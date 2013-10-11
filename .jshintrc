@@ -1,0 +1,102 @@
+{
+  /*
+   * Enforcing options
+   */
+  
+  "bitwise": true,    // disallow bitwise operators
+  
+  "curly": false,     // require curly braces for single-statement blocks
+  
+  "eqeqeq": true,     // Require === and !==
+  
+  "forin": true,      // for..in loops require hasOwnProperty()
+  
+  "immed": true,      // Immediate function invocations must be wrapped in parentheses
+  
+  "latedef": true,    // Vars must be declared before first use
+  
+  "newcap": true,     // capitalize constructor functions
+  
+  "noarg": true,      // disallow arguments.caller and arguments.callee
+  
+  "nonew": true,      // disallow use of new solely for side effects
+  
+  "undef": true,      // report undefined variables
+  
+  "unused": "vars",   // report unused local variables but not unused arguments
+  
+  /*
+   * Relaxing options
+   */
+  
+  "boss": false,      // allow assignments where comparisons expected
+  
+  "debug": false,     // allow debugger statements
+  
+  "eqnull": true,     // allow "== null" comparisons
+  
+  "evil": false,      // allow eval
+  
+  "expr": false,      // allow use of expressions where normally you would expect to see assignments or function calls
+  
+  "funcscope": false, // allow vars declared inside controls structures to be used outside
+  
+  "laxbreak": true,   // allow "possibly unsafe" line breaks
+  
+  "laxcomma": true,   // allow comma-first coding style
+  
+  "loopfunc": false,  // allow functions defined in loops
+  
+  "multistr": false,  // suppress warnings about multi-line strings
+  
+  "smarttabs": true,  // allow mixed spaces and tabs for alignment
+  
+  /*
+   * Ignore warnings without options
+   */
+  
+  "-W099": false,     // ignore warnings about mixes spaces and tabs
+
+  /*
+   * Environment options
+   */
+  
+  "browser": true,    // browser globals (document, navigator, FileReader)
+  
+  "devel": true,      // development globals (console, alert)
+  
+  "jquery": true,     // jQuery globals
+  
+  "globals": {
+    
+    // DG globals
+    "DG": false,
+    
+    // Protovis globals
+    "pv": false,
+    
+    // Raphael globals
+    "Raphael": false,
+    
+    // SproutCore globals
+    "SC": false,
+    "sc_require": false,
+    "sc_super": false,
+    "static_url": false,
+    "NO": false,
+    "YES": false,
+    
+    // SproutCore unit test globals
+    "equals": false,
+    "module": false,
+    "ok": false,
+    "same": false,
+    "start": false,
+    "stop": false,
+    "test": false,
+    
+    // jQuery globals
+    "$": false
+  }
+  
+}

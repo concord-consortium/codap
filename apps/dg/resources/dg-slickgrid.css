@@ -1,0 +1,89 @@
+/*
+ *  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+sc_require('resources/slickgrid/slick.grid.css')
+sc_require('resources/slickgrid/examples/slick-default-theme.css')
+sc_require('resources/slickgrid/plugins/slick.headermenu.css')
+
+/*
+ * slick.grid.css style overrides/extensions
+ */
+.slick-header-column.ui-state-default {
+  text-align: center;
+  font-weight: bold;
+
+  height: 14px;
+  line-height: 14px;
+}
+
+.slick-cell, .slick-headerrow-column {
+  z-index: auto;
+}
+
+
+/*
+ * slick-default-theme.css style overrides/extensions
+ */
+.slick-row {
+  line-height: 14px;
+}
+
+/*
+ * Disable SlickGrid's placement of collapse/expand icon within the group row.
+ */
+.slick-group-toggle.expanded {
+  background: none;
+}
+
+.slick-group-toggle.collapsed {
+  background: none;
+}
+
+/**
+ * Style the drop-down menu here since the plugin stylesheet mostly contains structural CSS.
+ * Based on http://mleibman.github.com/SlickGrid/examples/example-plugin-headermenu.html
+ * slick.headermenu.css overrides/extensions
+ */
+
+.slick-header-menu {
+  border: 1px solid #718BB7;
+  background: #f0f0f0;
+  padding: 2px;
+  -moz-box-shadow: 2px 2px 2px silver;
+  -webkit-box-shadow: 2px 2px 2px silver;
+  min-width: 100px;
+  z-index: 20;
+}
+
+.slick-header-menubutton {
+  /* should match the color of the column header cells */
+  background-color: #e6e6e6;
+}
+
+.slick-header-menuitem {
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.slick-header-menuitem:hover {
+  border-color: silver;
+  background: white;
+}
+
+.slick-header-menuitem-disabled {
+  border-color: transparent !important;
+  background: inherit !important;
+}

@@ -1,0 +1,299 @@
+/*
+ *  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+/* Default font for case tables */
+.dg-case-table {
+  font-family: arial !important;
+  font-size: 8pt !important;
+}
+
+.calculator label
+{
+  cursor: pointer;
+}
+
+.icon-label
+{
+  color: black;
+  font-size: 11px !important;
+  cursor: pointer;
+} 
+
+.drag-label
+{
+  color: black;
+  font-size: large !important;
+  background-color: lightblue !important;
+}
+
+.data-dot {
+  opacity: 0.85 !important;
+}
+
+.data-dot:hover {
+  fill: red !important;
+  stroke: red !important;
+}
+
+.data-dot-selected {
+  fill: red !important;
+  stroke-width: 2 !important;
+}
+
+/* data dot with variable fill color */
+.data-dot-colored {
+  opacity: 0.85 !important;
+  stroke: #315B7D !important;
+}
+
+.data-dot-colored-selected {
+  stroke: black !important;
+  stroke-width: 2 !important;
+}
+
+.axis-label {
+  font: caption !important;
+  /*fill: blue;*/
+  cursor: pointer;
+  font-size: 14px !important;
+  text-decoration: underline !important;
+}
+
+.data-strip {
+  opacity: 0.85 !important;
+  stroke-width: 0px !important;
+  fill: #315B7D;
+}
+
+.data-strip:hover {
+  fill: red !important;
+}
+
+.data-strip:active {
+  fill: red !important;
+}
+
+.data-strip-selected {
+  fill: red !important;
+}
+
+/* data strip with variable fill color */
+.data-strip-colored {
+  opacity: 0.85 !important;
+  stroke-width: 0px !important;
+}
+
+.data-strip-colored-selected {
+  stroke: black !important;
+  stroke-width: 2 !important;
+}
+
+.data-tip {
+  stroke-width: 1 !important;
+  stroke: yellow !important;
+  fill: #FBFBB0 !important;
+}
+
+.data-tip-shadow {
+  stroke-width: 2 !important;
+  stroke: #7A7452 !important;
+  opacity: 0.7 !important;
+}
+
+.data-tip-text {
+  text-align:left !important;
+  font-family: "lucida sans", helvetica, arial !important;
+  font-size: 100% !important;
+}
+
+.legend-key {
+  opacity: 0.85 !important;
+  stroke: #315B7D !important;
+  cursor: pointer;
+}
+
+.legend-key:hover {
+  stroke: red !important;
+}
+
+.legend-key-name {
+  cursor: pointer;
+}
+
+.sc-view.component-border {
+  border-left:   4px #999 solid;
+  border-top:    4px #666 solid;
+  border-bottom: 4px #ccc solid;
+  border-right:  4px #999 solid;
+}
+
+.sc-view .function-table-view {
+  background-color: #FFFFFF;
+}
+
+/* Function Table formula entry input */
+.function-table-formula-entry {
+  width: 220px
+}
+
+/* Function Table result header cell */
+.function-table-result {
+  width: 100px
+}
+
+/* Function Table data row */
+.function-table-data {
+  text-align: right
+}
+
+/* Function Table data entry cells */
+.function-table-text-entry {
+  width: 75px
+}
+
+body.dg .sc-view.doc-background
+{ 
+    background: static_url('images/dark_bg.jpg') !important;
+}
+
+.sc-view.toolshelf-background
+{
+    background: static_url('images/toolshelf.png') repeat-x center top !important;
+}
+
+.sc-view.icon-button
+{
+cursor: pointer;
+}
+
+.sc-view.showText
+{
+    opacity: 0;
+    background-color: #e6b036;
+    border-radius: 15px;
+    padding: 10px;
+    box-shadow: 5px 5px 3px #888888;
+}
+
+.sc-view.showText:hover
+{
+    background-color: yellow;
+}
+
+.graph-view {
+    background-color: #ffffff;
+}
+
+.graph-drop-frame {
+    stroke-width: 3;
+    stroke: orange;
+    stroke-opacity: 0.6;
+}
+
+.graph-drop-frame-fill {
+    fill: yellow;
+    fill-opacity: 0.3;
+}
+
+.graph-drop-plus-fill {
+    fill: yellow;
+    fill-opacity: 0.9;
+}
+
+.graph-drop-hint {
+    font-size: 14px !important;
+}
+
+.graph-drop-box {
+    fill: white;
+}
+
+.graph-multi-hint {
+    background-color: #d3d3d3;
+}
+
+#export_case_data_prompt {
+    font-weight: bold;
+    text-align: right;
+    line-height: 22px;
+}
+
+#formula_object {
+    background-color: white;
+    top: 0px;
+    bottom: 10px;
+    left: 0px;
+    right: 10px;
+    padding: 5px;
+}
+
+#formula_object p {
+    margin-bottom: 7px;
+}
+
+#formula_object p,em {
+    font-size: 14px;
+}
+
+#formula_object h2 {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#formula_object em {
+    font-weight: bold;
+    font-style: italic;
+}
+
+#formula_object table {
+    width: 100%;
+    margin: 0 auto;
+    border-collapse:collapse;
+}
+
+#formula_object th,td {
+    padding: 5px;
+    font-size: 14px;
+}
+
+#formula_object table, th, td {
+    border: 1px solid gray;
+}
+
+#formula_object th {
+    font-weight: bold;
+    text-align: center;
+}
+
+#formula_object textarea {
+    width: 100%;
+}
+
+#formula_object input {
+    width: 100px;
+}
+
+/* used by DG.CaseTableCellEditor */
+input.editor-text {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  margin: 0;
+  background: transparent;
+  outline: 0;
+  padding: 0;
+
+}

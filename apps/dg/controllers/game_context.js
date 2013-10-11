@@ -1,0 +1,325 @@
+// ==========================================================================
+//                          DG.GameContext
+//
+//  The GameContext is a derived class of DG.DataContext specialized to
+//  support the game components.
+//  
+//  Author:   Kirk Swenson
+//
+//  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+// ==========================================================================
+
+sc_require('controllers/data_context');
+
+/** @class DG.GameContext
+
+  Coordinating controller which manages a set of collections that form a
+  hierarchical data model.
+
+  @extends DG.DataContext
+*/
+DG.GameContext = DG.DataContext.extend(
+/** @scope DG.GameContext.prototype */ {
+
+  /**
+   *  The type of DataContext, for use when archiving/restoring.
+   *  @property {String}
+   */
+  type: 'DG.GameContext',
+  
+  /**
+   *  The specification of the game with which this context is associated.
+   *  @property {DG.GameSpec | DG.BaseGameSpec}
+   */
+  gameSpec: null,
+  
+  /**
+   * [Computed] The name of the currently selected game.
+   * @property {String}
+   */
+  gameName: function() {
+    return this.getPath('gameSpec.name');
+  }.property('gameSpec','gameSpec.name').cacheable(),
+  
+  /**
+   * [Computed] The dimensions of the currently selected game {width,height}.
+   * @property {Object}
+   */
+  gameDimensions: function() {
+    return this.getPath('gameSpec.dimensions');
+  }.property('gameSpec','gameSpec.dimensions').cacheable(),
+  
+  /**
+   * [Computed] The URL of the currently selected game.
+   * @property {String}
+   */
+  gameUrl: function() {
+    return this.getPath('gameSpec.url');
+  }.property('gameSpec','gamespec.url').cacheable(),
+  
+  _collections : null,
+  
+  /**
+   *  The collections for which this controller is responsible.
+   *  Clients expect the order of this array to be parent --> child.
+   *  This function is responsible for guaranteeing the order.
+   *  In particular, games using the old API often create their
+   *  collections in child --> parent order, and need to be reversed
+   *  in this function.
+   *  @property {Array of DG.CollectionRecords}
+   */
+  collections: function() {
+    var srcCollections = this.getPath('model.collections'),
+        i, collectionCount = srcCollections ? srcCollections.get('length') : 0;
+    
+    // If our cache is up to date, just return it
+    if( this._collections && (this._collections.length === collectionCount))
+      return this._collections;
+    
+    // Reset and restock the cached array
+    this._collections = [];
+    if( collectionCount > 0) {
+      var collection0 = srcCollections && srcCollections.objectAt( 0),
+          collection0Name = collection0 && collection0.get('name'),
+          childCollectionName = this.getPath('gameSpec.collectionName');
+      // Fill the cached array in the proper order
+      if( collection0Name === childCollectionName) {
+        // Reverse the order of the collections in the source
+        for( i = collectionCount - 1; i >= 0; --i)
+          this._collections.push( srcCollections.objectAt( i));
+      }
+      else {
+        // Preserve the order of collections in the source
+        for( i = 0; i < collectionCount; ++i)
+          this._collections.push( srcCollections.objectAt( i));
+      }
+    }
+    // Return the cached array in the proper order
+    return this._collections;
+  }.property('model','model.collections'),
+
+  /**
+    Called after a collection has been created to make sure it's hooked up properly.
+    @param    {DG.CollectionClient}   iCollectionClient -- The collection just created
+   */
+  didCreateCollection: function( iCollectionClient) {
+    var game = this.get('gameSpec');
+    // Have the GameSpec notify that collections have changed to clear caches, etc.
+    if( game) game.notifyPropertyChange('collections');
+    var childCollection = game && this.getCollectionByName( game.get('collectionName')),
+        parentCollection = game && this.getCollectionByName( game.get('parentCollectionName'));
+    // Once we have both the parent and child collections, hook them up appropriately.
+    if( childCollection && parentCollection && (childCollection !== parentCollection)) {
+      childCollection.setParentCollection( parentCollection);
+      DG.assert( childCollection.isDescendantOf( parentCollection));
+      DG.assert( parentCollection.isAncestorOf( childCollection));
+    }
+  },
+
+  /**
+    Returns the default DG.CollectionClient and default attributes to plot for
+    newly created graphs, as indicated by this context's game.
+   */
+  collectionDefaults: function() {
+    var defaults = { collectionClient: null,
+                     plotXAttr: null, plotXAttrIsNumeric: true,
+                     plotYAttr: null, plotYAttrIsNumeric: true },
+        game = this.get('gameSpec'),
+        collectionName = game && game.get('collectionName');
+
+    // Try to find the specified default collection
+    if ( !SC.empty( collectionName)) {
+      defaults.collectionClient = this.getCollectionByName( collectionName);
+      defaults.parentCollectionClient = this.getCollectionByName( game.get('parentCollectionName'));
+    }
+      
+    // If no default specified (or we can't find it), default to the child collection.
+    if (SC.none( defaults.collectionClient))
+      defaults.collectionClient = this.get('childCollection');
+
+    /**
+      Utility function for use in specifying default plot attributes.
+      @param  {String}    iAttrPrefix -- {'x','y','legend'}
+      @param  {String}    iAttrInfix -- {'X','Y','Legend'}
+     */
+    function configureDefaultPlotAttr( iAttrPrefix, iAttrInfix) {
+      // Retrieve the attribute name
+      var attrName = game && game.get( iAttrPrefix + 'AttrName');
+      if( defaults.collectionClient && !SC.empty( attrName)) {
+        // Set default attribute
+        defaults['plot' + iAttrInfix + 'Attr'] = defaults.collectionClient.
+                                                  getAttributeByName( attrName);
+        // Indicate the type of the default attribute
+        var isNumeric = game.get( iAttrPrefix + 'AttrIsNumeric');
+        if( !SC.none( isNumeric))
+          defaults['plot' + iAttrInfix + 'AttrIsNumeric'] = isNumeric;
+      }
+    }
+  
+    // Find the game-specified default attributes and configure them appropriately.
+    configureDefaultPlotAttr('x', 'X');
+    configureDefaultPlotAttr('y', 'Y');
+    configureDefaultPlotAttr('legend', 'Legend');
+
+    return defaults;
+  },
+  
+  /**
+    Returns the 'labels' object from the specification of the collection with the
+    specified name.
+    @param    {DG.CollectionClient} iCollection -- The collection whose labels are returned
+    @returns  {Object}              The 'labels' portion of the collection specification
+   */
+  getLabelsForCollection: function( iCollection) {
+    var gameSpec = this.get('gameSpec'),
+        collectionName = iCollection.get('name'),
+        collectionSpec = gameSpec && collectionName &&
+                          gameSpec.getCollectionSpecByName( collectionName),
+        labels = collectionSpec && collectionSpec.labels;
+    return labels;
+  },
+  
+  /**
+    Returns the string that best represents the noun form of the specified number of cases,
+    e.g. "case"|"cases", "person"|"people", "deer"|"deer", "goose"|"geese", etc.
+    @param    {DG.CollectionClient} iCollection -- The collection whose labels are returned
+    @param    {Number}              iCount -- The number of cases to represent
+    @returns  {String}              The string to represent the specified number of cases
+   */
+  getCaseNameForCount: function( iCollection, iCount) {
+    var labels = this.getLabelsForCollection( iCollection);
+    if( !labels || !labels.singleCase || !labels.pluralCase)
+      return sc_super();
+    
+    return iCount === 1 ? labels.singleCase : labels.pluralCase;
+  },
+  
+  /**
+    Returns the string that represents a coherent set of cases, e.g. a set of Lunar Lander
+    events is often called "a flight record", while in other games it might be "a round".
+    @param    {DG.CollectionClient} iCollection -- The collection whose labels are returned
+    @returns  {String}              The string label to represent a set of cases
+   */
+  getLabelForSetOfCases: function( iCollection) {
+    // Use the 'labels' specification if it's available
+    var labels = this.getLabelsForCollection( iCollection),
+        setOfCasesWithArticle = labels && labels.setOfCasesWithArticle;
+    if( !SC.empty( setOfCasesWithArticle)) return setOfCasesWithArticle;
+
+    // Use the legacy 'eventsAttributeName' if it's available
+    var eventAttrName = this.getPath('gameSpec.eventsAttributeName');
+    if( !SC.empty( eventAttrName)) return eventAttrName;
+
+    // Use the base class implementation as a final fallback
+    return sc_super();
+  },
+  
+  /**
+   *  Returns the object to be JSONified for storage.
+   *  @returns  {Object}
+   */
+  createStorage: function() {
+    var theStorage = sc_super();
+    theStorage.gameName = this.get('gameName');
+    theStorage.gameUrl = this.get('gameUrl');
+
+    // If a saved game state has been cached, add it to the
+    // returned storage object and then clear the cache.
+    var gameState = this.get('savedGameState');
+    if( gameState) {
+      // Copy _links_ from gameState to theStorage
+      DG.ObjectMap.forEach( gameState._links_,
+                            function( iKey, iLinkID) {
+                              // We prepend '_game_' so we can distinguish game links from DG
+                              // app links. Currently, all game links are to DG.Cases, since
+                              // the game doesn't have access to any other record IDs.
+                              DG.ArchiveUtils.addLinkID( theStorage, '_game_' + iKey, 'DG.Case', iLinkID);
+                            });
+      theStorage.gameState = gameState;
+      // Clear it once we've transferred it to storage
+      this.set('savedGameState', null);
+    }
+    
+    return theStorage;
+  },
+  
+  /**
+   *  Copies the contents of iComponentStorage to the model.
+   *  @param {Object} iContextStorage -- Properties restored from document.
+   */
+  restoreFromStorage: function( iContextStorage) {
+    sc_super();
+    
+    var theGameSpec = DG.gameSelectionController.findGameByName( iContextStorage.gameName);
+    if( theGameSpec) {
+      // GameContext has pointer to GameSpec
+      this.set('gameSpec', theGameSpec);
+      // GameSpec has pointer to GameContext (currently -- Lakosian violation)
+      theGameSpec.set('context', this);
+    }
+
+    // At the point at which we're restoring the context(s), the game may not
+    // have been loaded yet. We need to cache the game state locally until we
+    // receive some indication that the game is ready for the restored state.
+    if( iContextStorage.gameState) {
+      // Copy _links_ from iContextStorage into gameState
+      if( iContextStorage._links_) {
+        DG.ObjectMap.forEach( iContextStorage._links_,
+                              function( iKey, iLinkSpec) {
+                                // Game links are prepended with '_game_'
+                                if( iKey.slice( 0, 6) === '_game_') {
+                                  // Remove the prefix before storing in gameState
+                                  var tKey = iKey.slice( 6);
+                                  // Create the gameState's _links_ property if necessary
+                                  if( !iContextStorage.gameState._links_)
+                                    iContextStorage.gameState._links_ = {};
+                                    // Store it in gameState's _links_ property
+                                  iContextStorage.gameState._links_[ tKey] = iLinkSpec.id;
+                                }
+                              });
+      }
+      
+      this.set('restoredGameState', iContextStorage.gameState);
+    }
+  }
+  
+});
+
+DG.DataContext.registry['DG.GameContext'] = function( iProperties) {
+                                              return DG.GameContext.create( iProperties);
+                                            };
+
+/**
+ *  Retrieve the DataContext for the specified game, creating it if necessary.
+ *  @property {DG.DataContext} or a derived class
+ */
+DG.GameContext.getContextForGame = function( iGameSpec) {
+  if( !iGameSpec) return null;
+  var context = iGameSpec.get('context');
+  if( !context) {
+    var props = { type: iGameSpec.get('contextType') || 'DG.GameContext' };
+    if( props.type === 'DG.GameContext')
+      props.gameSpec = iGameSpec;
+    var documentID = DG.currDocumentController().getPath('content.id'),
+        model = DG.DataContextRecord.createContext({ type: props.type, document: documentID });
+    if( model)
+      props.model = model;
+    context = DG.DataContext.factory( props);
+    if( context)
+      iGameSpec.set('context', context);
+  }
+  return context;
+};
+
