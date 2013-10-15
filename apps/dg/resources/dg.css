@@ -225,6 +225,19 @@ cursor: pointer;
     background-color: #d3d3d3;
 }
 
+.rescale-button {
+    background-image: static_url('images/rescale.png');
+    cursor: pointer;
+}
+
+.rescale-button:hover {
+    background-color: #dada00;
+}
+
+.rescale-button:active {
+    background-color: gray;
+}
+
 #export_case_data_prompt {
     font-weight: bold;
     text-align: right;

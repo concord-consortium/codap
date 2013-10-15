@@ -18,12 +18,14 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('utilities/tool_tip');
+
 /** @class DG.DataTip A simple adornment-like class that displays and updates a data tip that shows when the
  *    user hovers over a point.
 
   @extends SC.Object
 */
-DG.DataTip = SC.Object.extend(
+DG.DataTip = DG.ToolTip.extend(
 /** @scope DG.DataTip.prototype */ 
 {
   /**
@@ -31,12 +33,6 @@ DG.DataTip = SC.Object.extend(
     @property { DG.PlotView }
   */
   plotView: null,
-
-  /**
-    What we draw on.
-    @property { Raphael }
-  */
-  paperBinding: '.plotView.paper',
 
   plotBinding: '.plotView.model',
 
@@ -47,39 +43,22 @@ DG.DataTip = SC.Object.extend(
   caseIndex: null,
 
   /**
-    These are the Raphael objects I draw, kept together for ease of showing and hiding.
-    @private
-    @property { SC.Array }
-  */
-  _myElements: null,
+   * Override to call getDataTipText
+   * @property {String}
+   */
+  text: function() {
+    return this.getDataTipText();
+  }.property(),
 
-  /**
-    The original screen coordinates of the element from which the tip derives.
-    @private
-    @property { {x, y} }
-  */
-  _tipOrigin: null,
+  init: function() {
+    sc_super();
+    this.set('paperSource', this.get('plotView'));
+  },
 
-  /**
-    This is the element used for the text in the data tip
-    @private
-    @property { Raphael Element }
-  */
-  _tipTextElement: null,
-
-  /**
-   This is the element used for the rectangle backing the data tip
-    @private
-    @property { Raphael Element }
-  */
-  _tipRectElement: null,
-
-  /**
-   This is the element used for the data tip shadow
-    @private
-    @property { Raphael Element }
-  */
-  _tipShadowElement: null,
+  show: function( iX, iY, iIndex) {
+    this.set('caseIndex', iIndex);
+    sc_super();
+  },
 
   getDataTipText: function() {
 
@@ -137,90 +116,6 @@ DG.DataTip = SC.Object.extend(
     return tCoords;
   },
 
-  updateTip: function() {
-    var tPaper = this.get('paper' ),
-        kRectXOffset = 10,
-        kRectYOffset = 5,
-        kShadowWidth = 2,
-        tShadowXOffset,
-        tShadowYOffset,
-        kTextXOffset = 15,
-        tTextYOffset,
-        tX, tY,
-        tExtent,
-        tRectWidth,
-        tRectHeight;
-
-    tX = this._tipOrigin.x;
-    tY = this._tipOrigin.y;
-    this._tipTextElement.attr( { text: this.getDataTipText() });
-    tExtent = DG.RenderingUtilities.getExtentForTextElement( this._tipTextElement, 12);
-    tRectWidth = tExtent.width + 10;
-    tRectHeight = tExtent.height + 10;
-    tTextYOffset = tRectHeight / 2 + 5;
-    tShadowXOffset = kRectXOffset + tRectWidth + kShadowWidth;
-    tShadowYOffset = kRectYOffset + kShadowWidth;
-
-    // Adjust tX and tY so that the tip will be within the plotview
-    if( tX + tShadowXOffset > tPaper.width)
-      tX -= (tX + tShadowXOffset) - tPaper.width;
-    if( tY + tShadowYOffset + tRectHeight > tPaper.height)
-      tY -= tShadowYOffset + tRectHeight;
-    this._tipTextElement.attr({ x: tX + kTextXOffset, y: tY + tTextYOffset });
-
-    this._tipShadowElement.stop()
-                          .animate( { 'path': 'M'+ (tX + tShadowXOffset) + ' ' + (tY + tShadowYOffset) +
-                                    ' v' + tRectHeight + ' h-' + tRectWidth }, 100, '<>');
-    this._tipRectElement.stop()
-                        .animate( { x: tX + kRectXOffset, y: tY + kRectYOffset,
-                                width: tRectWidth, height: tRectHeight }, 100, '<>');
-  },
-
-  show: function( iElement, iIndex) {
-    var tPaper = this.get('paper' ),
-        tSet = tPaper.set();
-
-    // Make sure only one data tip can be displayed at a time.
-    this.hide();
-
-    this._tipOrigin = { x: iElement.attr('cx'), y: iElement.attr('cy')};
-
-    this.set('caseIndex', iIndex);
-
-    this._tipTextElement = tPaper.text( 0, 0, '')
-                .attr({ 'text-anchor': 'start', 'opacity': 0 })
-                .addClass( DG.PlotUtilities.kDataTipTextClassName);
-    this._tipShadowElement = tPaper.path('')
-                .addClass( DG.PlotUtilities.kDataTipShadowClassName)
-                .attr('stroke-opacity', 0 );
-    this._tipRectElement = tPaper.rect( 0, 0, 0, 0)
-                .addClass( DG.PlotUtilities.kDataTipClassName)
-                .attr('opacity', 0 );
-
-    this.updateTip();
-
-    tSet.push( this._tipShadowElement);
-    tSet.push( this._tipRectElement);
-    tSet.push( this._tipTextElement);
-    this._tipTextElement.toFront();
-    this._myElements = tSet;
-    this._tipRectElement.animate({ 'opacity': 0.7 }, DG.PlotUtilities.kDataTipShowTime, '<>');
-    this._tipTextElement.animate({ 'opacity': 1 }, DG.PlotUtilities.kDataTipShowTime, '<>');
-    this._tipShadowElement.animate({ 'stroke-opacity': 0.7 }, DG.PlotUtilities.kDataTipShowTime, '<>');
-  },
-
-  hide: function() {
-    if( this._myElements) {
-      this._myElements.remove();
-      this._myElements = null;
-    }
-  },
-
-  toFront: function() {
-    if( this._myElements)
-      this._myElements.toFront();
-  },
-
   handleChanges: function( iChanges) {
     // iChanges can be a single index or an array of indices
     var tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? SC.IndexSet.create( iChanges) : iChanges);
@@ -231,4 +126,3 @@ DG.DataTip = SC.Object.extend(
   }
 
 });
-

@@ -62,7 +62,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tBothWaysNumeric =( tXAxisView.get('isNumeric') && tYAxisView.get('isNumeric')),
         tMarquee,
         tStartPt,
-        tBaseSelection = [];
+        tBaseSelection = [],
+        tHaveShowZoomTip = false,
+        tToolTip;
 
     function createRulerLines() {
 
@@ -158,6 +160,25 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.attr( { cursor: 'auto' });
     }
 
+    function destroyZoomTip() {
+      if( tToolTip) {
+        tToolTip.hide();
+        tToolTip.destroy();
+        tToolTip = null;
+      }
+    }
+
+    function mouseOver( iEvent) {
+      if( !tHaveShowZoomTip) {
+        var tZoomTipText = 'DG.GraphView.zoomTip'.loc();
+        tToolTip = DG.ToolTip.create( { paperSource: this_,
+                                        text: tZoomTipText });
+        tToolTip.show( iEvent.layerX, iEvent.layerY);
+        tHaveShowZoomTip = true;
+        this_.invokeLater( destroyZoomTip, 5000);
+      }
+    }
+
     var drawCellBands = function() {
       var tPaper = this.get('paper' ),
           tXView = this.get('xAxisView'),
@@ -222,7 +243,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                           this_.get('parentView').handleBackgroundClick( iEvent);
                         })
                 .drag( continueMarquee, startMarquee, endMarquee)
-                .mousemove( showCursor);
+                .mousemove( showCursor)
+                .mouseover( mouseOver);
     }
 
     this._backgroundForClick.attr( { width: this.get('drawWidth'),

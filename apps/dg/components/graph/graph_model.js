@@ -241,8 +241,8 @@ DG.GraphModel = SC.Object.extend( DG.Destroyable,
       // possibly have data, so it's a mystery why we have to call rescaleAxesFromData
       // TODO: Understand this better
       this.invalidate();
-      this.get('plot').rescaleAxesFromData( true /* allow scale shrinkage */,
-                                               true /* animate points */ );
+      this.rescaleAxesFromData( true /* allow scale shrinkage */,
+                                true /* animate points */ );
     },
 
     destroy: function() {
@@ -392,6 +392,19 @@ DG.GraphModel = SC.Object.extend( DG.Destroyable,
       this.addPlot( tPlot);
 
       this.notifyPropertyChange('attributeAdded');
+    },
+    /**
+     * Useful for knowing whether we can rescale.
+     * @return {Boolean}
+     */
+    hasNumericAxis: function() {
+      return this.getPath('xAxis.isNumeric') || this.getPath('yAxis.isNumeric');
+    }.property(),
+
+    rescaleAxesFromData: function( iShrink, iAnimate) {
+      var tPlot = this.get('plot');
+      if( tPlot)
+        tPlot.rescaleAxesFromData( iShrink, iAnimate);
     },
 
     /**

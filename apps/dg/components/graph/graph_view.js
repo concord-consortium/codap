@@ -43,6 +43,7 @@ DG.GraphView = SC.View.extend(
   legendView: null,
   plotBackgroundView: null,
   numberToggleView: null,
+  rescaleButton: null,
   
   /**
    * Returns the first plotView in _plotViews, if any. When used to set,
@@ -114,6 +115,10 @@ DG.GraphView = SC.View.extend(
       return null;
     }
 
+    var rescalePlot = function() {
+      this.get('model' ).rescaleAxesFromData( true, true);
+    }.bind( this)
+
     var tXAxis = this.getPath( 'model.xAxis'),
         tYAxis = this.getPath( 'model.yAxis'),
         tXSetup = { orientation: 'horizontal' },
@@ -123,8 +128,7 @@ DG.GraphView = SC.View.extend(
         tBackgroundView = DG.PlotBackgroundView.create( { xAxisView: tXAxisView, yAxisView: tYAxisView,
                                                           graphModel: this.get('model') } ),
         tPlots = this.getPath('model.plots' ),
-        tLegendView = DG.LegendView.create(),
-        tNumberToggleView;
+        tLegendView = DG.LegendView.create();
 
     sc_super();
     this.createMultiTarget();
@@ -141,9 +145,17 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tLegendView);
 
     if(DG.IS_INQUIRY_SPACE_BUILD) {
-      tNumberToggleView = DG.NumberToggleView.create( { model: this.getPath('model.numberToggle')});
+      var tNumberToggleView = DG.NumberToggleView.create( { model: this.getPath('model.numberToggle')});
       this.set('numberToggleView', tNumberToggleView);
       this.appendChild( tNumberToggleView);
+
+      var tRescaleButton = SC.ImageButtonView.create({
+                                      classNames: ['rescale-button'],
+                                      layout: { width: 16, height: 16, right: 2, top: 1 },
+                                      toolTip: 'DG.GraphView.rescale'.loc(),
+                                      action: rescalePlot });
+      this.set('rescaleButton', tRescaleButton);
+      this.appendChild( tRescaleButton);
     }
 
     tXAxisView.set('model', tXAxis);
@@ -221,6 +233,14 @@ DG.GraphView = SC.View.extend(
   },
 
 /**
+   * Pass to first plotview
+   * @param iEvent
+   */
+  handleBackgroundDblClick: function( iEvent) {
+    this.get('plotView').handleBackgroundDblClick( iEvent);
+  },
+
+/**
     Set the layout (view position) for our three subviews.
     @param {SC.RenderContext} the render context
     @param {Boolean} Is this the first time the rendering is happening?  Set to true if any of the 3 view are new.
@@ -240,6 +260,7 @@ DG.GraphView = SC.View.extend(
         tPlotViews = this.get('plotViews'),
         tLegendView = this.get('legendView'),
         tNumberToggleView = this.get('numberToggleView'),
+        tRescaleButton = this.get('rescaleButton'),
         tShowNumberToggle = !SC.none( tNumberToggleView) && tNumberToggleView.shouldShow(),
         tXHeight = SC.none(tXAxisView) ? 0 : tXAxisView.get('desiredExtent'),
         tYWidth = SC.none(tYAxisView) ? 0 : tYAxisView.get('desiredExtent'),
@@ -274,6 +295,10 @@ DG.GraphView = SC.View.extend(
       if( tNumberToggleView) {
         tNumberToggleView.set('isVisible', tShowNumberToggle);
       }
+      if( tRescaleButton) {
+        tRescaleButton.set('isVisible', this.getPath('model.hasNumericAxis'));
+      }
+
     }
     this._isRenderLayoutInProgress = false;
   },

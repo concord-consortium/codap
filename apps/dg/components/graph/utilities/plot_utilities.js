@@ -41,9 +41,9 @@ DG.PlotUtilities = {
   kColoredDotClassName: 'data-dot-colored',
   kSelectedColoredDotClassName: 'data-dot-colored-selected',
   kDotClassPattern: /data-dot[a-z\-]*/g, // pattern that matches all 4 Dot Class names above
-  kDataTipClassName: 'data-tip',
-  kDataTipShadowClassName: 'data-tip-shadow',
-  kDataTipTextClassName: 'data-tip-text',
+  kToolTipClassName: 'data-tip',
+  kToolTipShadowClassName: 'data-tip-shadow',
+  kToolTipTextClassName: 'data-tip-text',
   kStripClassName: 'data-strip',
   kSelectedStripClassName: 'data-strip-selected',
   kColoredStripClassName: 'data-strip-colored',

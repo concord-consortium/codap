@@ -585,22 +585,35 @@ DG.DotPlotView = DG.PlotView.extend(
   },
 
   /**
+   Used by both handleBackgroundClick and handleBackgroundDblClick
+    @param {SC.Event}
+  */
+  zoom: function( iEvent) {
+    var tAxisKey = (this.getPath('model.primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? 'x' : 'y',
+      tNumericAxisView = this.get('primaryAxisView'),
+        tWorldPoint = { },
+        tFactor = iEvent.shiftKey ? 2 : 0.5,
+        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.x, y: iEvent.y }, this);
+      tWorldPoint[ tAxisKey] = tNumericAxisView.coordinateToData( tViewPoint[ tAxisKey]);
+      this.get('model').dilate(tWorldPoint, tFactor);
+  },
+
+  /**
     Alt key triggers zoom.
     @param {SC.Event}
   */
   handleBackgroundClick: function( iEvent) {
-    var tAxisKey = (this.getPath('model.primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ?
-                        'x' : 'y',
-      tNumericAxisView = this.get('primaryAxisView'),
-      tFactor, tViewPoint, 
-      tWorldPoint = { };
     if( iEvent.altKey) {
-      tFactor = iEvent.shiftKey ? 2 : 0.5;
-      tViewPoint = DG.ViewUtilities.windowToViewCoordinates(
-        { x: iEvent.x, y: iEvent.y }, this);
-      tWorldPoint[ tAxisKey] = tNumericAxisView.coordinateToData( tViewPoint[ tAxisKey]);
-      this.get('model').dilate(tWorldPoint, tFactor);
+      this.zoom( iEvent);
     }
+  },
+
+  /**
+    Zoom at the mouse point
+    @param {SC.Event}
+  */
+  handleBackgroundDblClick: function( iEvent) {
+    this.zoom( iEvent);
   }
 
 });

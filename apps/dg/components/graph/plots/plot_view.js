@@ -960,7 +960,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
 
   showDataTip: function( iElement, iIndex) {
     if( this._dataTip)
-      this._dataTip.show( iElement, iIndex);
+      this._dataTip.show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
   },
 
   hideDataTip: function() {
@@ -974,6 +974,13 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     @param {SC.Event}
   */
   handleBackgroundClick: function( iEvent) {
+  },
+
+  /**
+    Subclasses will override if they have a double-click behavior
+    @param {SC.Event}
+  */
+  handleBackgroundDblClick: function( iEvent) {
   },
 
   /**

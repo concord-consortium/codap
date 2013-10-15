@@ -531,19 +531,33 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
   
   /**
+   * Used by both handleBackgroundClick and handleBackgroundDblClick
+   * @param iEvent
+   */
+  zoom: function( iEvent) {
+    var tFactor = iEvent.shiftKey ? 2 : 0.5,
+        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.x, y: iEvent.y }, this ),
+        tWorldPoint = { x: this.get('xAxisView').coordinateToData( tViewPoint.x),
+                        y: this.get('yAxisView').coordinateToData( tViewPoint.y) };
+    this.get('model').dilate(tWorldPoint, tFactor);
+  },
+  
+  /**
     Alt key triggers zoom.
     @param {SC.Event}
   */
   handleBackgroundClick: function( iEvent) {
-    var tFactor, tViewPoint, tWorldPoint;
     if( iEvent.altKey) {
-      tFactor = iEvent.shiftKey ? 2 : 0.5;
-      tViewPoint = DG.ViewUtilities.windowToViewCoordinates(
-        { x: iEvent.x, y: iEvent.y }, this);
-      tWorldPoint = { x: this.get('xAxisView').coordinateToData( tViewPoint.x),
-              y: this.get('yAxisView').coordinateToData( tViewPoint.y) };
-      this.get('model').dilate(tWorldPoint, tFactor);
+      this.zoom( iEvent);
     }
+  },
+
+  /**
+    Double-click triggers zoom.
+    @param {SC.Event}
+  */
+  handleBackgroundDblClick: function( iEvent) {
+    this.zoom( iEvent);
   }
   
 });
