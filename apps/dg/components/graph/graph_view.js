@@ -23,7 +23,7 @@
   @extends SC.View
 */
 DG.GraphView = SC.View.extend(
-/** @scope DG.GraphView.prototype */ 
+/** @scope DG.GraphView.prototype */
 {
   displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
@@ -117,7 +117,7 @@ DG.GraphView = SC.View.extend(
 
     var rescalePlot = function() {
       this.get('model' ).rescaleAxesFromData( true, true);
-    }.bind( this)
+    }.bind( this);
 
     var tXAxis = this.getPath( 'model.xAxis'),
         tYAxis = this.getPath( 'model.yAxis'),
