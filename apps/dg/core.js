@@ -186,7 +186,15 @@ DG = SC.Application.create( (function() // closure
 
   NAMESPACE: 'DG',
   APPNAME: 'DG',
-  VERSION: '1.0',
+  
+  /*
+   * Semantic version number
+   */
+  VERSION: '1.1',
+  
+  /*
+   * Build number
+   */
   BUILD_NUM: '0218',
 
   /**
