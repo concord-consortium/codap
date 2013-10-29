@@ -50,6 +50,8 @@ SC.stringsFor('English', {
 
   // IS_BUILD variants of strings for InquirySpace
   'DG.mainPage.mainPane.versionString.IS_BUILD' : "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  'DG.Authorization.loginPane.registerLink.IS_BUILD' : "",
+  'DG.Authorization.loginPane.recoveryLink.IS_BUILD' : "",
 
   // DG.IS_SRRI_BUILD variants of strings for SRRI build
   'DG.mainPage.mainPane.versionString.SRRI_BUILD' : "Version %@ (%@.srri7)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
