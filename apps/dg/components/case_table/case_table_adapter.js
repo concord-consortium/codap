@@ -317,6 +317,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   buildRowData: function() {
     var dataContext = this.get('dataContext'),
         collection = this.get('collection'),
+        collapseChildren = (collection &&
+                            collection.getPath('collection.collectionRecord.collapseChildren')) || false,
         parentRows = [],      // array of parent IDs in order
         rowDataByParent = {}, // map of parentID --> child case row info
         rowData = [],
@@ -349,7 +351,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                               rowData.push( iRowInfo);
                                               if( SC.none( parentGroupInfo.firstChildID)) {
                                                 parentGroupInfo.firstChildID = iRowInfo.id;
-                                                parentGroupInfo.isCollapsed = false;
+                                                parentGroupInfo.isCollapsed = collapseChildren;
                                               }
                                               parentGroupInfo.lastChildID = iRowInfo.id;
                                             });
@@ -378,6 +380,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                         return iGroup1.value - iGroup2.value;
                       }
           });
+      DG.ObjectMap.forEach( this.parentIDGroups,
+                            function( iParentID, iParentInfo) {
+                              if( iParentInfo.isCollapsed)
+                                this.gridDataView.collapseGroup( iParentID);
+                            }.bind(this));
     }
     
     return rowData;
@@ -494,8 +501,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         dataView = this.gridDataView;
     
     // Create the map entry if it doesn't already exist
-    if( !parentGroupInfo)
+    if( !parentGroupInfo) {
       parentGroupInfo = this.parentIDGroups[ parentID] = {};
+      parentGroupInfo.isCollapsed = this.getPath('collection.collection.collectionRecord.collapseChildren')
+                                          || false;
+    }
     
     // Update the parent map entry before we update the SlickGrid DataView, so that
     // any event handlers triggered will operate with up-to-date model information.
@@ -514,6 +524,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Simply append the new row
       dataView.setRefreshHints({ isFilterExpanding: true });
       dataView.addItem( rowInfo);
+      if( parentGroupInfo.isCollapsed)
+        dataView.collapseGroup( parentID);
     }
     parentGroupInfo.lastChildID = rowInfo.id;
     this.parentIDGroups[ parentID] = parentGroupInfo;

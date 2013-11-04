@@ -312,6 +312,8 @@ DG.GameController = DG.ComponentController.extend(
       // Each collection is the child of the previous collection
       if( gameCollections.length > 0)
         collectionProperties.parent = gameCollections[ gameCollections.length - 1].get('id');
+      if( iCollectionArgs.collapseChildren)
+        collectionProperties.collapseChildren = true;
 
       // Create/guarantee each collection and its required attributes
       var collection = gameContext.guaranteeCollection( collectionProperties);
