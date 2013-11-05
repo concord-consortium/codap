@@ -304,7 +304,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     var childTableViews = this.get('childTableViews');
     childTableViews.forEach( function( iTableView, iIndex) {
                               var adapter = iAdapters.objectAt( iIndex);
-                              iTableView.set('gridAdapter', adapter);
+                              iTableView.setIfChanged('gridAdapter', adapter);
                             });
     var parentTable = this.get('parentTableView'),
         childTable = this.get('childTableView'),

@@ -123,16 +123,39 @@ DG.CaseTableController = DG.ComponentController.extend(
       updateTableAdapters: function() {
         var dataContext = this.get('dataContext'),
             collectionRecords = this.getPath('dataContext.collections') || [],
-            this_ = this;
+            prevAdapters = this.caseTableAdapters,
+            newAdapters = [];
         
-        function createAdapterForCollectionRecord( iCollectionRecord) {
-          var collection = dataContext.getCollectionByID( iCollectionRecord.get('id')),
-              adapter = DG.CaseTableAdapter.create({ dataContext: dataContext,
-                                                      collection: collection });
-          this_.caseTableAdapters.push( adapter);
+        this.caseTableAdapters = newAdapters;
+        
+        // Utility function for identifying existing adapters for the specified collection
+        function findAdapterForCollection( iCollectionID) {
+          var i, count = prevAdapters.length;
+          for( i = 0; i < count; ++i) {
+            if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
+              return prevAdapters[i];
+          }
+          return null;
         }
         
-        collectionRecords.forEach( createAdapterForCollectionRecord);
+        // Utility function for finding or creating (if necessary) an appropriate
+        // adapter for the specified collection.
+        function guaranteeAdapterForCollectionRecord( iCollectionRecord) {
+          var collectionID = iCollectionRecord.get('id'),
+              collection = dataContext.getCollectionByID( collectionID),
+              // try to find an existing adapter for the specified collection
+              adapter = findAdapterForCollection( collectionID);
+          if( !adapter) {
+            // create a new adapter for the specified collection
+            adapter = DG.CaseTableAdapter.create({ dataContext: dataContext,
+                                                    collection: collection });
+
+          }
+          // add the new/found adapter to the adapter array
+          newAdapters.push( adapter);
+        }
+        
+        collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
       },
       
       /**
@@ -141,7 +164,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       dataContextDidChange: function() {
         var dataContext = this.get('dataContext');
         
-        this.caseTableAdapters = [];
         this.updateTableAdapters();
         
         var contentView = this.getPath('view.contentView');
