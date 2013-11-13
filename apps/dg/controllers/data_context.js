@@ -474,6 +474,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind( this);
     
     iChange.cases.forEach( deleteCaseAndChildren);
+    DG.store.commitRecords();
     return { success: true };
   },
   

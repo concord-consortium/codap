@@ -97,7 +97,14 @@ DG.Record = SC.Record.extend(
           // We must sort them to guarantee that they get written
           // out in the correct order.
           children.forEach( function( iChild) {
-                              sortedChildren.push( iChild);
+                              var status = iChild && iChild.get('status');
+
+                              /*jshint bitwise:false */
+                              // Destroyed child records should not be be written out
+                              if( status && !(status & SC.Record.DESTROYED) &&
+                                    (status !== SC.Record.BUSY_DESTROYING)) {
+                                sortedChildren.push( iChild);
+                              }
                             });
           sortedChildren.sort( function( iChild1, iChild2) {
                                   var childID1 = iChild1.get('id'),
