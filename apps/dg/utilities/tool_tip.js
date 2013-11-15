@@ -37,27 +37,35 @@ DG.ToolTip = SC.Object.extend(
   */
   paper: function() {
     return this.getPath('paperSource.paper');
-  }.property(),
+  }.property('paperSource' ).cacheable(),
+
+  /**
+   * The key into the layerManager to get the layer we use to display
+   * @property { String }
+   */
+  layerName: null,
+
+  /**
+   * The elements that make up the data tip get placed in this layer.
+   * @property { DG.RaphaelLayer }
+   */
+  layer: function() {
+    var tLayerManager = this.getPath('paperSource.layerManager');
+    return (tLayerManager && this.layerName) ? tLayerManager[ this.layerName] :null;
+  }.property('paperSource', 'layerName' ).cacheable(),
 
   /**
    * The text to display.
    * @property {String}
-   */
-  text: null,
-
-  /**
-    These are the Raphael objects I draw, kept together for ease of showing and hiding.
-    @private
-    @property { SC.Array }
   */
-  _myElements: null,
+  text: null,
 
   /**
     The original screen coordinates of the element from which the tip derives.
     @private
     @property { {x, y} }
   */
-  _tipOrigin: null,
+  tipOrigin: null,
 
   /**
     This is the element used for the text in the data tip
@@ -94,8 +102,8 @@ DG.ToolTip = SC.Object.extend(
         tRectWidth,
         tRectHeight;
 
-    tX = this._tipOrigin.x;
-    tY = this._tipOrigin.y;
+    tX = this.tipOrigin.x;
+    tY = this.tipOrigin.y;
     this._tipTextElement.attr( { text: this.get('text') });
     tExtent = DG.RenderingUtilities.getExtentForTextElement( this._tipTextElement, 12);
     tRectWidth = tExtent.width + 10;
@@ -117,14 +125,12 @@ DG.ToolTip = SC.Object.extend(
                                 width: tRectWidth, height: tRectHeight });
   },
 
-  show: function( iX, iY) {
+  show: function() {
     var tPaper = this.get('paper' ),
-        tSet = tPaper.set();
+        tLayer = this.get('layer');
 
     // Make sure only one data tip can be displayed at a time.
     this.hide();
-
-    this._tipOrigin = { x: iX, y: iY};
 
     this._tipTextElement = tPaper.text( 0, 0, '')
                 .attr({ 'text-anchor': 'start', 'opacity': 0 })
@@ -138,11 +144,9 @@ DG.ToolTip = SC.Object.extend(
 
     this.updateTip();
 
-    tSet.push( this._tipShadowElement);
-    tSet.push( this._tipRectElement);
-    tSet.push( this._tipTextElement);
-    this._tipTextElement.toFront();
-    this._myElements = tSet;
+    tLayer.push( this._tipShadowElement);
+    tLayer.push( this._tipRectElement);
+    tLayer.push( this._tipTextElement);
     // TODO: Move constants below to DG.RenderingUtilities
     this._tipRectElement.animate({ 'opacity': 0.7 }, DG.PlotUtilities.kToolTipShowTime, '<>');
     this._tipTextElement.animate({ 'opacity': 1 }, DG.PlotUtilities.kToolTipShowTime, '<>');
@@ -150,15 +154,13 @@ DG.ToolTip = SC.Object.extend(
   },
 
   hide: function() {
-    if( this._myElements) {
-      this._myElements.remove();
-      this._myElements = null;
-    }
-  },
-
-  toFront: function() {
-    if( this._myElements)
-      this._myElements.toFront();
+    var tLayer = this.get('layer');
+    [ this._tipShadowElement, this._tipRectElement, this._tipTextElement ].forEach( function( iElement) {
+      if( iElement) {
+        tLayer.prepareToMoveOrRemove( iElement);
+        iElement.remove();
+      }
+    });
   }
 
 });

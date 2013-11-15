@@ -29,6 +29,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
 {
   displayProperties: ['xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
                       'yAxisView.model.lowerBound', 'yAxisView.model.upperBound',
+                      'xAxisView.pixelMin', 'xAxisView.pixelMax',
+                      'yAxisView.pixelMin', 'yAxisView.pixelMax',
                       'model.areSquaresVisible', 'model.squares'],
   
   autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn'],
@@ -136,7 +138,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     DG.assert( tChanges);
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.createCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
+        this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
     });
 
@@ -293,7 +295,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
               this.wx = tCase.getNumValue( this_.getPath('model.xVarID'));
               this.wy = tCase.getNumValue( this_.getPath('model.yVarID'));
               this.animate({opacity: kOpaque }, DG.PlotUtilities.kDataTipShowTime, "bounce");
-              this.toFront();
             },
             function() {  // end
               this.animate( {transform: tInitialTransform }, DG.PlotUtilities.kHighlightHideTime);
@@ -308,7 +309,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
     if( iAnimate)
       DG.PlotUtilities.doCreateCircleAnimation( tCircle);
-    this_._plottedElements.push( tCircle);
+    return tCircle;
   },
   
   /**
@@ -407,10 +408,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
    * If we have a connecting line adornment, give it a chance to update selection.
    */
   updateSelection: function() {
-    sc_super();
-
-    if( this.connectingLineAdorn && this.connectingLineAdorn.wantVisible())
+    if( this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
       this.connectingLineAdorn.updateSelection();
+    }
+
+    sc_super();
   },
   
   /**
@@ -426,7 +428,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     tCases.forEach( function( iCase, iIndex) {
       var tUseAnimation = true;
       if( iIndex >= tPlotElementLength) {
-        this_.createCircle( iCase, iIndex, false);
+        this_.callCreateCircle( iCase, iIndex, false);
         tUseAnimation = false;
       }
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex, tUseAnimation);
@@ -450,15 +452,12 @@ DG.ScatterPlotView = DG.PlotView.extend(
     // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
     if( tMovableLine) {
       if( !this.movableLineAdorn) {
-        var tElementsInFront = this.get('elementsInFront' ),
-            tAdorn = DG.MovableLineAdornment.create( {
-                          parentView: this, model: tMovableLine, paper: this.get('paper'),
-                          xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView') } ),
+        var tAdorn = DG.MovableLineAdornment.create( {
+                          parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
+                          xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView'),
+                          layerName: DG.LayerNames.kAdornments } ),
             tNewElements = tAdorn.createElements();
         this.movableLineAdorn = tAdorn;
-        tNewElements.forEach( function( iElement) {
-          tElementsInFront.push( iElement);
-        });
       }
       this.movableLineAdorn.updateVisibility();
     }
@@ -469,14 +468,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
    because we don't want to destroy the adornment.
   */
   connectingLineChanged: function() {
-    var tPlotModel = this.get('model' ),
-        tAdornModel = tPlotModel && tPlotModel.getAdornmentModel( 'connectingLine' ),
-        tAdorn = this.get('connectingLineAdorn');
-    if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
-      tAdorn = DG.ConnectingLineAdornment.create({ parentView: this, model: tAdornModel,
-                                                      paperSource: this.get('paperSource')});
-      this.set('connectingLineAdorn', tAdorn);
-    }
+
+    var updateConnectingLine = function() {
     if( tAdorn) {
       tAdorn.updateToModel( true /*animate*/);
     }
@@ -484,6 +477,19 @@ DG.ScatterPlotView = DG.PlotView.extend(
     this.updatePointSize();
     this._elementOrderIsValid = false;
     this.updateSelection();
+    }.bind( this);
+
+    var tPlotModel = this.get('model' ),
+        tAdornModel = tPlotModel && tPlotModel.getAdornmentModel( 'connectingLine' ),
+        tAdorn = this.get('connectingLineAdorn');
+    if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
+      tAdorn = DG.ConnectingLineAdornment.create({ parentView: this, model: tAdornModel,
+                                                      paperSource: this.get('paperSource'),
+                                                      layerName: DG.LayerNames.kConnectingLines });
+      this.set('connectingLineAdorn', tAdorn);
+    }
+
+    this.invokeLast( updateConnectingLine); // So that we're ready
   }.observes('.model.connectingLine'),
 
   /**
@@ -513,7 +519,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
     if( SC.none( this.functionAdorn)) {
       this.functionAdorn = DG.PlottedFunctionAdornment.create({
-                parentView: this, model: tPlottedFunction, paper: this.get('paper'),
+                parentView: this, model: tPlottedFunction, paperSource: this.get('paperSource'),
+                layerName: DG.LayerNames.kAdornments,
                 xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView')
               });
     }

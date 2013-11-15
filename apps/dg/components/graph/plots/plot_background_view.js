@@ -21,6 +21,21 @@
 sc_require('components/graph/utilities/graph_drop_target');
 sc_require('views/raphael_base');
 
+/**
+ * Define constants for layers used in a plot.
+ */
+DG.LayerNames = {
+  kBackground: 'background',
+  kGrid: 'grid',
+  kClick: 'click',
+  kGhost: 'ghost',
+  kConnectingLines: 'connectingLines',
+  kPoints: 'points',
+  kSelectedPoints: 'selectedPoints',
+  kAdornments: 'adornments',
+  kDataTip: 'dataTip'
+};
+
 /** @class  DG.PlotBackgroundView - The base class view for a plot.
 
   @extends DG.RaphaelBaseView
@@ -28,6 +43,8 @@ sc_require('views/raphael_base');
 DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 /** @scope DG.PlotBackgroundView.prototype */ 
 {
+  autoDestroyProperties: [ '_backgroundForClick' ],
+
   displayProperties: ['xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
                       'yAxisView.model.lowerBound', 'yAxisView.model.upperBound',
                       'xAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
@@ -51,6 +68,37 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
   /**
+   * Additional setup after creating the view
+   */
+  didCreateLayer:function () {
+    var tGraphView = this.get( 'parentView' );
+    sc_super();
+    tGraphView.get( 'plotViews' ).forEach( function ( iPlotView ) {
+      iPlotView.didCreateLayer();
+    } );
+    tGraphView.drawPlots();
+  },
+
+  /**
+   * Subclasses can override calling sc_super() and then adding layers at will.
+   */
+  initLayerManager: function() {
+    sc_super();
+    var tLayerManager = this.get('layerManager');
+    with (DG.LayerNames) {
+      tLayerManager.addNamedLayer( kBackground );
+      tLayerManager.addNamedLayer( kGrid );
+      tLayerManager.addNamedLayer( kClick );
+      tLayerManager.addNamedLayer( kGhost );
+      tLayerManager.addNamedLayer( kConnectingLines );
+      tLayerManager.addNamedLayer( kPoints );
+      tLayerManager.addNamedLayer( kSelectedPoints );
+      tLayerManager.addNamedLayer( kAdornments );
+      tLayerManager.addNamedLayer( kDataTip );
+    }
+  },
+
+  /**
     We just have the background to draw. But it has a marquee behavior and a background click
     behavior to install.
   */
@@ -59,6 +107,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tFrame = this.get('frame' ),
         tXAxisView = this.get('xAxisView'),
         tYAxisView = this.get('yAxisView'),
+        tBackgroundLayer = this.getPath('layerManager.' + DG.LayerNames.kBackground ),
+        tGridLayer = this.getPath('layerManager.' + DG.LayerNames.kGrid),
         tBothWaysNumeric =( tXAxisView.get('isNumeric') && tYAxisView.get('isNumeric')),
         tMarquee,
         tStartPt,
@@ -69,13 +119,13 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     function createRulerLines() {
 
       function vLine( iX, iColor, iWidth) {
-        this_._elementsToClear.push(
+        tGridLayer.push(
           this_._paper.line( iX, tFrame.height, iX, 0)
                 .attr( { stroke: iColor, 'stroke-width': iWidth }));
       }
 
       function hLine( iY, iColor, iWidth) {
-        this_._elementsToClear.push(
+        tGridLayer.push(
           this_._paper.line( 0, iY, tFrame.width, iY)
                   .attr( { stroke: iColor, 'stroke-width': iWidth }));
       }
@@ -99,6 +149,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         drawLine( tXAxisView, vLine);
         drawLine( tYAxisView, hLine);
       }
+
       if( tBothWaysNumeric ) {
         tXAxisView.forEachTickDo( drawVRule);
         tYAxisView.forEachTickDo( drawHRule);
@@ -121,6 +172,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
               .attr( { fill: DG.PlotUtilities.kMarqueeColor,
                     stroke: DG.RenderingUtilities.kTransparent });
+      this_.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( tMarquee);
     }
 
     function continueMarquee( idX, idY) {
@@ -140,7 +192,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
-      tMarquee.remove();
+      this_.getPath('layerManager').removeElement( tMarquee);
       tMarquee = null;
       tBaseSelection = [];
 
@@ -172,8 +224,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( !tHaveShowZoomTip) {
         var tZoomTipText = 'DG.GraphView.zoomTip'.loc();
         tToolTip = DG.ToolTip.create( { paperSource: this_,
-                                        text: tZoomTipText });
-        tToolTip.show( iEvent.layerX, iEvent.layerY);
+                                            text: tZoomTipText,
+                                            tipOrigin: {x: iEvent.layerX, y: iEvent.layerY},
+            layerName: 'dataTip' });
+        tToolTip.show();
         tHaveShowZoomTip = true;
         this_.invokeLater( destroyZoomTip, 5000);
       }
@@ -188,20 +242,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           tSecCellWidth = tXView.get('fullCellWidth'),
           tPrimaryCellWidth = tYView.get('fullCellWidth'),
           tIsVertical = this.getPath('model.orientation') === 'vertical',
+          tHeight = tIsVertical ? tSecCellWidth : tPrimaryCellWidth,
+          tWidth = tIsVertical ? tPrimaryCellWidth : tSecCellWidth,
           tSecIndex, tPrimaryIndex,
-          tHeight, tWidth,
           tXCoord, tYCoord, tLeft, tTop;
       if(SC.none( tPaper))
         return;
-
-      if( tIsVertical) {
-        tHeight = tSecCellWidth;
-        tWidth = tPrimaryCellWidth;
-      }
-      else {
-        tHeight = tPrimaryCellWidth;
-        tWidth = tSecCellWidth;
-      }
 
       for( tPrimaryIndex = 0; tPrimaryIndex < tNumPrimaryCells; tPrimaryIndex++) {
         if( tIsVertical){
@@ -222,21 +268,24 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tLeft = tXCoord - tSecCellWidth / 2;
           }
           if( (tPrimaryIndex + tSecIndex) / 2 !== Math.floor((tPrimaryIndex + tSecIndex) / 2))
-            this._elementsToClear.push(
+            tBackgroundLayer.push(
               tPaper.rect( tLeft, tTop, tWidth, tHeight)
                 .attr( { fill: DG.PlotUtilities.kPlotCellFill, opacity: 0.8,
-                      stroke: DG.PlotUtilities.kPlotCellStroke })
-                .toBack());
+                  stroke:DG.RenderingUtilities.kTransparent} ));
         }
       }
     }.bind( this); // drawCellBands
+
+    tGridLayer.clear();
+    tBackgroundLayer.clear();
 
     createRulerLines();
 
     drawCellBands();
 
     if( SC.none( this._backgroundForClick)) {
-      this._backgroundForClick = this._paper.rect( 0, 0, 0, 0)
+      this._backgroundForClick = this.getPath('layerManager.' + DG.LayerNames.kClick).push(
+        this._paper.rect( 0, 0, 0, 0 )
                 .attr( { fill: DG.RenderingUtilities.kSeeThrough,
                          stroke: DG.RenderingUtilities.kTransparent })
                 .click( function( iEvent) {
@@ -244,21 +293,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                         })
                 .drag( continueMarquee, startMarquee, endMarquee)
                 .mousemove( showCursor)
-                .mouseover( mouseOver);
+                .mouseover( mouseOver));
     }
 
     this._backgroundForClick.attr( { width: this.get('drawWidth'),
                                     height: this.get('drawHeight') } );
 
-  },
-
-  didCreateLayer: function() {
-    var tGraphView = this.get('parentView');
-    sc_super();
-    tGraphView.get('plotViews' ).forEach( function( iPlotView) {
-      iPlotView.didCreateLayer();
-    });
-    tGraphView.drawPlots();
   }
 
 });

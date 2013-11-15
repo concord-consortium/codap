@@ -77,10 +77,14 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   createElements: function() {
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
+    var tLayer = this.get('layer');
     this.myElements = [];
     this.valueSegment = this.get('paper').path('').attr( { stroke: 'red' });
     this.myElements.push( this.valueSegment);
     this.myElements.push( this.createTextElement());
+    this.myElements.forEach( function( iElement) {
+      tLayer.push( iElement);
+    });
   },
 
   /**

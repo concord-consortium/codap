@@ -119,7 +119,6 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
 
   /**
     Make the pieces of the movable line. This only needs to be done once.
-    Return the Raphael elements generated so that they can be brought to the front.
   */
   createElements: function() {
     var this_ = this,
@@ -242,7 +241,8 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
 
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
-    var tPaper = this.get('paper');
+    var tPaper = this.get('paper'),
+        tLayer = this.get('layer');
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
               .attr({ stroke: DG.PlotUtilities.kDefaultMovableLineColor,
                       'stroke-opacity': 0 });
@@ -275,7 +275,10 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
     this.myElements = [ this.lineSeg, this.equation, this.firstSegHit, this.secondSegHit, this.thirdSegHit ];
-    return this.myElements; // These will be moved to the top of Raphael in order from back to front
+    this.myElements.forEach( function( iElement) {
+      tLayer.push( iElement);
+    });
+    return this.myElements;
   },
 
   /**

@@ -78,6 +78,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   */
   createElements: function() {
     var this_ = this,
+        tLayer = this.get('layer' ),
         tDragCoord;
   
     //=============Event handling functions===============
@@ -133,6 +134,9 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     this.textElement.animatable = true;
     this.lineSeg.animate({ 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     this.textElement.animate({ opacity: 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+    this.myElements.forEach( function( iElement) {
+      tLayer.push( iElement);
+    });
   },
 
   /**

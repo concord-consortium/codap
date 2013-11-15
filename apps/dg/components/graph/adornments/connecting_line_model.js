@@ -31,7 +31,23 @@ sc_require('components/graph/adornments/plot_adornment_model');
 DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
 /** @scope DG.ConnectingLineModel.prototype */
 {
-  values: null,       // [{ x,y }], one point per non-missing value in the plot
+  parents: null,      // [{Case}], the parents, if any, encountered while constructing values
+
+  /**
+   * @private
+   * @property{[[{ x,y }]]} array of arrays of one point per non-missing value in the plot
+   */
+  _values: null,
+
+  values: function( iKey, iValues) {
+    if( iValues) {
+      this._values = iValues;
+    }
+    else {
+      this.recomputeValueIfNeeded();
+    }
+    return this._values;
+  }.property(),
 
   /**
    * True if we need to compute new values to match new cells.
@@ -69,10 +85,10 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     */
   recomputeValue: function() {
     var tCases = this.getPath('plotModel.cases'),
+        tParents = [],
         tXVarID = this.getPath( 'plotModel.xVarID'),
         tYVarID = this.getPath( 'plotModel.yVarID');
     if( !( tXVarID && tYVarID )) {
-      DG.log("DG.ConnectingLineModel.recomputeValue() ignored, missing x or y axis var");
       return; // too early to recompute, caller must try again later.
     }
 
@@ -81,12 +97,14 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     tCases.forEach( function( iCase, iIndex ) {
       var tXVal = iCase.getNumValue( tXVarID),
           tYVal = iCase.getNumValue( tYVarID ),
-          tParent = iCase.getPath('parent.id');
-      tParent = tParent || 'top';
+          tParent = iCase.get('parent' ),
+          tParentID = tParent ? tParent.get('id') : 'top';
       if( isFinite( tXVal) && isFinite( tYVal)) { // if both values exist (else skip missing points)
-        if( !tValues[ tParent])
-          tValues[ tParent] = [];
-        tValues[ tParent].push( { x: tXVal, y: tYVal, theCase: iCase } );
+        if( !tValues[ tParentID]) {
+          tValues[ tParentID] = [];
+          tParents.push( tParent);
+      }
+        tValues[ tParentID].push( { x: tXVal, y: tYVal, theCase: iCase } );
       }
     });
 
@@ -97,15 +115,41 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         });
     });
 
-    this.set( 'values', DG.ObjectMap.values( tValues) ); // we expect view to observe this change
+    this.set('parents', tParents);
     this._needsComputing = false;
+    this.set( 'values', DG.ObjectMap.values( tValues) ); // we expect view to observe this change
   },
 
   /**
     Private cache.
     @property { Boolean }
   */
-  _needsComputing: true
+  _needsComputing: true,
+
+  /**
+   * Pass this along
+   * @param iIndex {Number} of parent
+   * @param iExtend {Boolean}
+   */
+  selectParent: function( iIndex, iExtend) {
+    var tParents = this.get('parents');
+    if( SC.isArray( tParents) && iIndex < tParents.length) {
+      var tParent = tParents[ iIndex],
+          tChange = {
+            operation: 'selectCases',
+            collection: tParent.get('collection'),
+            cases: [ tParent ],
+            select: true,
+            extend: iExtend
+          };
+
+      this.getPath('plotModel.dataContext').applyChange( tChange);
+      if( tChange.select)
+        DG.logUser("lineSelected: %@", iIndex);
+      else
+        DG.logUser("lineDeselected: %@", iIndex);
+    }
+  }
 
 });
 
