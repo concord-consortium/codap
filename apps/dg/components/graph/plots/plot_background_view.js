@@ -242,6 +242,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                 .click( function( iEvent) {
                           this_.get('parentView').handleBackgroundClick( iEvent);
                         })
+                .dblclick( function( iEvent) {
+                          this_.get('parentView').handleBackgroundDblClick( iEvent);
+                        })
                 .drag( continueMarquee, startMarquee, endMarquee)
                 .mousemove( showCursor)
                 .mouseover( mouseOver);
