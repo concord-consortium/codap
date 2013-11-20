@@ -37,7 +37,7 @@ DG.CasePlotView = DG.PlotView.extend(
       var tChanges = (SC.typeOf( iChanges ) === SC.T_NUMBER ? [ iChanges ] : iChanges);
       tChanges.forEach( function( iIndex ) {
         if( iIndex >= tPlotElementLength )
-          this_.createCircle( tCases[ iIndex], iIndex, this_._createAnimationOn );
+          this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn );
         this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
       } );
       sc_super();
@@ -147,7 +147,7 @@ DG.CasePlotView = DG.PlotView.extend(
       tCircle.node.setAttribute( 'shape-rendering', 'geometric-precision' );
       if( iAnimate)
         DG.PlotUtilities.doCreateCircleAnimation( tCircle);
-      this_._plottedElements.push( tCircle );
+      return tCircle;
     },
 
     /**
@@ -174,7 +174,7 @@ DG.CasePlotView = DG.PlotView.extend(
         this._plottedElements.length = 0;
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        tCases.forEach( this.createCircle, this );
+        tCases.forEach( this.callCreateCircle, this );
         this._mustCreatePlottedElements = false;
       }
 

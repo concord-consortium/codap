@@ -51,6 +51,7 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
     this.curve = this.get('paper').path('').attr( { stroke: 'red' });
     this.curve.animatable = true;
     this.myElements.push( this.curve);
+    this.get('layer' ).push( this.curve);
   },
 
   /**

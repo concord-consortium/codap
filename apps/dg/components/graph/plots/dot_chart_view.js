@@ -105,7 +105,7 @@ DG.DotChartView = DG.PlotView.extend(
       }
       // add plot elements for added cases
       for( tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.createCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
+        this.callCreateCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
         tCellIndices = tModel.lookupCellForCaseIndex( tIndex);
         this.privSetCircleCoords( tRC, tCases[ tIndex], tIndex, tCellIndices );
       }
@@ -138,7 +138,7 @@ DG.DotChartView = DG.PlotView.extend(
       // a plot element that no longer exists.
       //DG.assert( this_._plottedElements[ iIndex], "dataRangeDidChange: missing plotted element!");
       if( !this_._plottedElements[ iIndex])
-        this_.createCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
+        this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
       var tCellIndices = this_.get('model').lookupCellForCaseIndex( iIndex);
       this_.privSetCircleCoords( tRC, tCases[ iIndex], iIndex, tCellIndices );
     });
@@ -258,7 +258,7 @@ DG.DotChartView = DG.PlotView.extend(
     tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
     if( iAnimate)
       DG.PlotUtilities.doCreateCircleAnimation( tCircle);
-    this_._plottedElements.push( tCircle);
+    return tCircle;
   },
   
   /**
@@ -286,7 +286,7 @@ DG.DotChartView = DG.PlotView.extend(
     if( this._mustCreatePlottedElements) {
       this.removePlottedElements();
       this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-      tCases.forEach( this.createCircle, this);
+      tCases.forEach( this.callCreateCircle, this);
       this._mustCreatePlottedElements = false;
     }
 
@@ -355,7 +355,7 @@ DG.DotChartView = DG.PlotView.extend(
     tCases.forEach( function( iCase, iIndex) {
         var tPt = getCaseCurrentLocation( iIndex ),
             tCellIndices = tModel.lookupCellForCaseIndex( iIndex);
-        this_.createCircle( iCase, iIndex, false);
+        this_.callCreateCircle( iCase, iIndex, false);
         if( !SC.none( tPt)) {
           this_._plottedElements[ iIndex].attr( tPt);
         }

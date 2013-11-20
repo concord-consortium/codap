@@ -311,6 +311,16 @@ DG.PlotUtilities = {
 //      "25%": { transform: this.kDataCreateTransform, easing: "<" },
 //      "100%": { transform: "", easing: ">" }
 //      }, this.kDefaultAnimationTime);
+  },
+
+  doHideRemoveAnimation: function( iElement, iLayerManager) {
+    iElement.animate( { 'fill-opacity': 0, 'stroke-opacity': 0}, this.kDefaultAnimationTime, '<>',
+      function( e) {
+        if( iLayerManager)
+          iLayerManager.removeElement( e);
+        else if( e)
+          e.remove();
+      });
   }
 
 };

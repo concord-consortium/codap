@@ -44,6 +44,13 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   }.property('paperSource.paper'),
 
   /**
+   * @property {DG.LayerManager}
+   */
+  layerManager: function() {
+    return this.getPath('paperSource.layerManager');
+  }.property('paperSource.layerManager' ),
+
+  /**
    * Get from paperSource
    * @property {}
    */
@@ -60,12 +67,21 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   }.property('paperSource._elementsToClear'),
 
   /**
-   * Get from paperSource
-   * @property {}
+   * @private
+   * @property { DG.PointDataTip } for displaying attributes of whatever is underneath the mouse
    */
-  elementsInFront: function() {
-    return this.getPath('paperSource._elementsInFront');
-  }.property('paperSource._elementsInFront'),
+  _dataTip: null,
+
+  /**
+   * Lazy instantiation.
+   * @property {DG.PointDataTip }
+   */
+  dataTip: function() {
+    if( !this._dataTip) {
+      this._dataTip = DG.PointDataTip.create( { plotView: this, layerName: DG.LayerNames.kDataTip });
+    }
+    return this._dataTip;
+  }.property(),
 
   /**
    * These two properties are used to determine point color when there are multiple plots in a graph
@@ -195,11 +211,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   plottedCountAdorn: null,
 
   /**
-   * @property { DG.DataTip } for displaying attributes of whatever is underneath the mouse
-   */
-  _dataTip: null,
-
-  /**
    * @property { Number } current point radius of cases being displayed.
    */
   _pointRadius: DG.PlotUtilities.kPointRadiusMax,
@@ -226,7 +237,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   init: function() {
     sc_super();
     this._plottedElements = [];
-    this._dataTip = DG.DataTip.create( { plotView: this });
   },
 
   /**
@@ -260,7 +270,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     this.removeObserver('model.dataConfiguration.cases', this, 'dataDidChange');
     this.removeObserver('model.dataConfiguration.hiddenCases', this, 'dataDidChange');
     this.removeObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');
-    this._dataTip = null;
     if( this.cleanupTimer)
       this.cleanupTimer.invalidate();
     this.model = null;
@@ -348,6 +357,15 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       this.drawData();
   },
 
+  callCreateCircle: function( iCase, iIndex, iAnimate) {
+    var tCircle = this.createCircle( iCase, iIndex, iAnimate);
+    if( tCircle) {
+      this._plottedElements.push( tCircle );
+      this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tCircle);
+    }
+    return tCircle;
+  },
+
   /**
     Plots that show data as points should be able to use this as is. Others will probably
     override.
@@ -361,6 +379,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
         tDataLength = tCases && tCases.length,
         tPlotElementLength = this._plottedElements.length,
         tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
+        tLayerManager = this.get('layerManager' ),
         tIndex;
     this._elementOrderIsValid = false;
     // update the point radius before creating or updating plotted elements
@@ -384,7 +403,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       }
       // create plot elements for added cases
       for( tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.createCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
+        this.callCreateCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
         this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
       }
       this._isRenderingValid = false;
@@ -395,7 +414,8 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
         // It can happen during closing of a document that the elements no longer exist, so we have to test
         if( !SC.none( this._plottedElements[ tIndex])) {
           this._plottedElements[ tIndex].stop();
-          this._plottedElements[ tIndex].remove();
+          tLayerManager.removeElement( this._plottedElements[ tIndex]);
+          DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
         }
       }
       this._plottedElements.length = tDataLength;
@@ -417,7 +437,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
     this.updateAdornments();
-    this._dataTip.handleChanges( iChanges);
+    this.get('dataTip').handleChanges( iChanges);
   },
 
   /** Invalidate and update adornments shared by all plot types */
@@ -558,6 +578,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     var this_ = this,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
+        tLayerManager = this.get('layerManager' ),
         tPlotElementLength = this._plottedElements.length,
         tIndex;
 
@@ -567,7 +588,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     // remove invalid case elements
     if( this._mustCreatePlottedElements) {
       this._plottedElements.forEach( function( iElement) {
-          iElement.remove(); // remove from plot
+        tLayerManager.removeElement (iElement); // remove from plot
         });
       tPlotElementLength = this._plottedElements.length = 0; // remove from array
       this._mustCreatePlottedElements = false;
@@ -577,7 +598,8 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     // remove extra case elements
     if( tRC.casesRemoved ) {
       for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-        this._plottedElements[ tIndex].remove(); // remove from plot
+        DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
+          tLayerManager.removeElement( this._plottedElements[ tIndex]); // remove from plot
       }
       if( tCases.length < tPlotElementLength ) { // remove from array
         tPlotElementLength = this._plottedElements.length = tCases.length;
@@ -599,7 +621,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       this.prepareToResetCoordinates();
       tCases.forEach( function( iCase, iIndex) {
                         if( iIndex >= tPlotElementLength )
-                          this_.createCircle( tCases[ iIndex], iIndex, true);
+                          this_.callCreateCircle( tCases[ iIndex], iIndex, true);
                         this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
                       });
     }
@@ -645,8 +667,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
 
     var this_ = this,
       tPlottedElements = this._plottedElements,
-      tSelectedElements = [],
-      tElementsInFront = this.get('elementsInFront' ),
       // Use long path for selection because we can call this before bindings have happened
       // There must be a better way?
       tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
@@ -654,43 +674,23 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
                                           DG.Analysis.kNullAttribute) ||
                       (this.get('numPlots') > 1),
-      tDataTip = this.get('_dataTip');
+      tDataTip = this.get('dataTip' ),
+      tLayerManager = this.get('layerManager' );
 
     this.get('model').forEachCaseDo( function( iCase, iIndex) {
-        var tIsSelected, tElement;
+      var tIsSelected, tElement, tFrom, tTo;
         // We sometimes get here with fewer plotted elements than cases,
         // perhaps when newly added cases don't have plottable values.
-            if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
+       if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
           tElement = tPlottedElements[ iIndex];
           tIsSelected = tSelection.containsObject( iCase);
+          tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
+          tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
           tElement.removeClass( DG.PlotUtilities.kDotClassPattern );
           tElement.addClass(    this_.getPlottedElementClass( tIsSelected, tIsColored ));
-          if( tIsSelected) {
-            tSelectedElements.push (tElement);
-          }
-        // Let's _not_ restore the order of non-selected elements. This solves the problem in multi-attribute
-        // plots of getting points of non-first plots to the front and it may be that it helps users
-        // massage the order of points in ways they want.
-//          else
-//            // Here we restore order of non-selected elements
-//            tElement.toFront();
-        }
+          tLayerManager.moveElementFromTo( tElement, tFrom, tTo);
+       }
       });
-    // The selected elements need to be in front so we can see them.
-    tSelectedElements.forEach( function( iElement) {
-        iElement.toFront();
-      });
-
-    // The plot may have some elements that need to be kept in front of points
-    if( SC.isArray(tElementsInFront)) {
-      this.get('elementsInFront' ).forEach( function( iElement) {
-        iElement.toFront();
-      });
-    }
-
-    // If there is a data tip, it goes in front of everything else
-    if( !SC.none( tDataTip))
-      tDataTip.toFront();
     this._elementOrderIsValid = true;
   },
 
@@ -770,7 +770,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
         var tPt = getCaseCurrentLocation( iIndex ),
             tAnimate = false,
             tCallBack;
-        this_.createCircle( iCase, iIndex, false);
+        this_.callCreateCircle( iCase, iIndex, false);
         if( !SC.none( tPt)) {
           tElements[ iIndex].attr( tPt);
           tAnimate = true;
@@ -909,16 +909,14 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
    * Remove all plotted elements
    */
   removePlottedElements: function( iAnimate) {
+    var tLayerManager = this.get('layerManager');
     this._plottedElements.forEach( function(iElement) {
       iElement.stop();
       if( iAnimate) {
-        iElement.animate( { 'fill-opacity': 0, 'stroke-opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-          function( e) {
-            e.remove();
-          });
+        DG.PlotUtilities.doHideRemoveAnimation( iElement, tLayerManager);
       }
       else
-        iElement.remove();
+        tLayerManager.removeElement( iElement);
     });
     this._plottedElements.length = 0;
   },
@@ -959,14 +957,11 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   },
 
   showDataTip: function( iElement, iIndex) {
-    if( this._dataTip)
-      this._dataTip.show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
+    this.get('dataTip').show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
   },
 
   hideDataTip: function() {
-    if( this._dataTip) {
-      this._dataTip.hide();
-    }
+    this.get('dataTip').hide();
   },
 
   /**
@@ -1204,11 +1199,15 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     if( tCountModel && this.get('paper') ) {
       this.plottedCountAdorn = DG.PlottedCountAdornment.create( {
              parentView: this, valueAxisView: this.get('primaryAxisView'),
-             model: tCountModel, paper: this.get('paper') });
+             model: tCountModel, paperSource: this.get('paperSource'),
+             layerName: 'adornments'});
       this.plottedCountAdorn.updateToModel();
     }
   }.observes('.model.plottedCount'),
 
+  /**
+    * Here we do the initialization that relies on there being a paper to draw on.
+    */
   didCreateLayer: function() {
     this.plottedCountChanged(); // create count adornment to match model, now that we have paper
   }

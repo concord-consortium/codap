@@ -32,31 +32,15 @@ sc_require('components/graph/adornments/plot_adornment');
 DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
 /** @scope DG.ConnectingLineAdornment.prototype */
 {
-  paperSource: null,
-
-  paper: function() {
-    return this.getPath('paperSource.paper');
-  }.property('paperSource', 'paperSource.paper'),
-
-  /**
-   * Assume that the last of the elementsToClear is the element to use as the starting place.
-   * This is a temporary patch to the problem of getting points to always display in front of lines.
-   * Once we get layers and a layer manager, we'll have something less dependent on things like
-   * elementsToClear.
-   * @property {Raphael.Element}
-   */
-  elementToInsertAfter: function() {
-    var tElementsToClear = this.getPath('paperSource._elementsToClear');
-    if( tElementsToClear && (tElementsToClear.length > 0)) {
-      return tElementsToClear[ tElementsToClear.length - 1];
-    }
-    return null;
-  }.property(),
+  _dataTip: null,     // {DG.LineDataTip}
 
   init: function() {
     sc_super();
     this.myElements = [];
-    DG.assert( this.parentView );
+    var tPlotView = this.get('parentView');
+    DG.assert( tPlotView );
+    this._dataTip = DG.LineDataTip.create( { paperSource: this.get('paperSource'),
+                                            plotView: tPlotView, layerName: 'dataTip' });
   },
 
   /** do we want the line(s) to be visible and up to date? Yes if our model 'isVisible' */
@@ -99,9 +83,14 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
   },
 
   hideLines: function() {
-    var tNumElements = this.myElements.length;
+    var tNumElements = this.myElements.length,
+        tLayer = this.get('layer');
     for( var i = 0; i < tNumElements; i++) {
-      this.myElements[ i].animate( {'stroke-opacity': 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+      this.myElements[ i].animate( {'stroke-opacity': 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>',
+                                  function() {
+                                    tLayer.prepareToMoveOrRemove( this);
+                                    this.remove();
+                                  });
     }
   },
 
@@ -116,7 +105,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         tArrayOfValuesArrays = this.getPath('model.values'),
         kCount = 10,  // This is fixed so we get same colors no matter how many lines there are
         tPaper = this.get('paper' ),
-        tElementToInsertAfter = this.get( 'elementToInsertAfter');
+        tLayer = this.get('layer');
 
     if( !tPaper) {
       this.invokeOnceLater( function() {
@@ -151,11 +140,21 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         // create the line
         tLine = tPaper.path( '');
         this_.myElements.push( tLine );
-        if( tElementToInsertAfter) {
-          tLine.insertAfter( tElementToInsertAfter);
+        tLayer.push( tLine);
         }
-      }
-      tLine.attr({ path: tPath, 'stroke-opacity': 0, stroke: tLineColor });
+      tLine.attr({ path: tPath, 'stroke-opacity': 0, stroke: tLineColor, cursor: 'pointer' })
+        .mousedown( function( iEvent) {
+          this_.get('model' ).selectParent( iLineNum, iEvent.shiftKey);
+        })
+        .hover(
+          // over
+          function( iEvent) {
+            this_.showDataTip( iEvent, iLineNum);
+          },
+          // out
+          function(){
+            this_.hideDataTip();
+          });
       if( iAnimate)
         tLine.animate( { 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
       else
@@ -163,7 +162,9 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     });
 
     while( this.myElements.length > tArrayOfValuesArrays.length) {
-      this.myElements.pop().remove();
+      var tLast = this.myElements.pop();
+      tLayer.prepareToMoveOrRemove( tLast);
+      tLast.remove();
     }
     this.updateSelection();
   },
@@ -185,13 +186,40 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
           tAllSelected = true,
           tLine = this.myElements[ iLineNum],
           i;
+      if( tLine) {
       for( i = 0; i < tNumValues; ++i) {
         tAllSelected = tAllSelected && tSelection.indexOf( iValues[i].theCase) >= 0;
         if( !tAllSelected)
           break;
       }
       tLine.attr({ 'stroke-width': (tAllSelected ? kSelectedWidth : kUnselectedWidth) });
+      }
     }.bind( this));
+  },
+
+  showDataTip: function( iEvent, iLineNum) {
+    if( this._dataTip) {
+      var tParents = this.getPath('model.parents' ),
+          tParent = SC.isArray( tParents) && (iLineNum < tParents.length) ? tParents[ iLineNum] : null,
+          tParentName = tParent.getPath('collection.name' ),
+          tChildren = tParent.get('children' ).flatten(),
+          tNumChildren = SC.isArray(tChildren) ? tChildren.get('length') : 0,
+          tChildrenName = (tNumChildren > 0) ? tChildren[ 0].getPath('collection.name') : '';
+      this._dataTip.show(
+        {
+          lineIndex: iLineNum + 1,
+          parentName: tParentName,
+          numChildren: tNumChildren,
+          childrenName: tChildrenName
+        },
+        { x: iEvent.offsetX, y: iEvent.offsetY });
+    }
+  },
+
+  hideDataTip: function() {
+    if( this._dataTip) {
+      this._dataTip.hide();
+    }
   }
 
 });

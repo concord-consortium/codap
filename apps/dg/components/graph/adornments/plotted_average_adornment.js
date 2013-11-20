@@ -119,6 +119,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    */
   updateSymbols: function( iAnimate ) {
     var tAdornment = this,
+        tLayer = this.get('layer' ),
         tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
         tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === 'horizontal'),
         tValuesArray = this.getPath('model.values'),
@@ -174,6 +175,9 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         this.myElements.push( tBackground );
         this.myElements.push( tSymbol );
         this.myElements.push( tCover );
+        this.myElements.forEach( function( iElement) {
+          tLayer.push( iElement);
+        });
       }
 
       // update elements (to current size/position)

@@ -86,6 +86,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       return;
     }
     var tPaper = this.get('paper'),
+        tLayer = this.get('layer' ),
         tCellHeight = (this.numCellsOnY ? tPaper.height/this.numCellsOnY : tPaper.height ),
         tCellWidth = (this.numCellsOnX ? tPaper.width/this.numCellsOnX : tPaper.width );
     var tValue, tAttrs, tTextElem, tIsNewElement, i;
@@ -111,6 +112,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
         tTextElem = tPaper.text( tAttrs.x, tAttrs.y, tAttrs.text);
         tTextElem.attr({ 'title': tAttrs.title, 'text-anchor': 'end', fill: this.textColor });
         this.myElements.push( tTextElem );
+        tLayer.push( tTextElem);
         // TODO: iAnimate is not currently being set. Fix or eliminate parameter
 //      if( iAnimate) {
         tTextElem.attr({ opacity: 0})
@@ -136,9 +138,11 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    * @param iDesiredNumSymbols
    */
   removeExtraSymbols: function( iDesiredNumSymbols ) {
-    var i, j, tElement;
+    var tLayer = this.get('layer' ),
+        i, j, tElement;
     for( i=iDesiredNumSymbols, j=this.myElements.length; i<j; ++i ) {
       tElement = this.myElements[i];
+      tLayer.prepareToMoveOrRemove( tElement);
       tElement.remove(); // remove from paper
       tElement = null;   // remove from array
     }

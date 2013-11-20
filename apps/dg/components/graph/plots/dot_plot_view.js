@@ -136,7 +136,7 @@ DG.DotPlotView = DG.PlotView.extend(
     this.prepareToResetCoordinates();
     tCases.forEach( function( iCase, iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.createCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
+        this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
     });
 
@@ -333,7 +333,6 @@ DG.DotPlotView = DG.PlotView.extend(
               // Save the initial world coordinate
               this.w = this_.getPath('model.cases')[ this.index].getNumValue( this_.getPath('model.primaryVarID'));
               this.attr({opacity: kOpaque });
-              this.toFront();
             },
             function() {  // end
               this.animate( {transform: tInitialTransform }, DG.PlotUtilities.kHighlightHideTime);
@@ -346,7 +345,7 @@ DG.DotPlotView = DG.PlotView.extend(
     tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
     if( iAnimate)
       DG.PlotUtilities.doCreateCircleAnimation( tCircle);
-    this_._plottedElements.push( tCircle);
+    return tCircle;
   },
 
   /**
@@ -478,7 +477,7 @@ DG.DotPlotView = DG.PlotView.extend(
     tCases.forEach( function( iCase, iIndex) {
       var tUseAnimation = true;
       if( iIndex >= tPlotElementLength) {
-        this_.createCircle( iCase, iIndex, false);
+        this_.callCreateCircle( iCase, iIndex, false);
         tUseAnimation = false;
       }
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex, tUseAnimation);
@@ -496,7 +495,8 @@ DG.DotPlotView = DG.PlotView.extend(
     if( tMovableValue) {
       if( !this.movableValueAdorn) {
         this.movableValueAdorn = DG.MovableValueAdornment.create({
-                                     parentView: this, model: tMovableValue, paper: this.get('paper'),
+                                     parentView: this, model: tMovableValue, paperSource: this.get('paperSource'),
+                                     layerName: DG.LayerNames.kAdornments,
                                      valueAxisView: this.get('primaryAxisView') });
         this.movableValueAdorn.createElements();
       }
@@ -547,7 +547,8 @@ DG.DotPlotView = DG.PlotView.extend(
     if( tAdornmentModel) {
       if( !tAdornment) {
         tAdornment = iAdornmentClass.create({
-                        parentView: this, model: tAdornmentModel, paper: this.get('paper') });
+                        parentView: this, model: tAdornmentModel, paperSource: this.get('paperSource'),
+                        layerName: DG.LayerNames.kAdornments });
         this[ iAdornmentProperty] = tAdornment;
       }
       tAdornment.updateToModel();
@@ -570,7 +571,8 @@ DG.DotPlotView = DG.PlotView.extend(
       this.plottedValueAdorn = DG.PlottedValueAdornment.create({
                                   parentView: this, 
                                   model: tPlottedValue, 
-                                  paper: this.get('paper'),
+                                  paperSource: this.get('paperSource'),
+                                  layerName: DG.LayerNames.kAdornments,
                                   valueAxisView: this.get('primaryAxisView')
                                });
     }
