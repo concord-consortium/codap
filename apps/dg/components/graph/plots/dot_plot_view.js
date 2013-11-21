@@ -548,7 +548,7 @@ DG.DotPlotView = DG.PlotView.extend(
       if( !tAdornment) {
         tAdornment = iAdornmentClass.create({
                         parentView: this, model: tAdornmentModel, paperSource: this.get('paperSource'),
-                        layerName: DG.LayerNames.kAdornments });
+                        layerName: DG.LayerNames.kAdornments, shadingLayerName: DG.LayerNames.kIntervalShading });
         this[ iAdornmentProperty] = tAdornment;
       }
       tAdornment.updateToModel();

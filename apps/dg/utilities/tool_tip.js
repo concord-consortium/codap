@@ -52,7 +52,7 @@ DG.ToolTip = SC.Object.extend(
   layer: function() {
     var tLayerManager = this.getPath('paperSource.layerManager');
     return (tLayerManager && this.layerName) ? tLayerManager[ this.layerName] :null;
-  }.property('paperSource', 'layerName' ).cacheable(),
+  }.property('paperSource', 'layerName' ),
 
   /**
    * The text to display.
@@ -62,7 +62,6 @@ DG.ToolTip = SC.Object.extend(
 
   /**
     The original screen coordinates of the element from which the tip derives.
-    @private
     @property { {x, y} }
   */
   tipOrigin: null,

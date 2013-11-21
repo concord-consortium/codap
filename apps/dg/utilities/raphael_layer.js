@@ -104,8 +104,6 @@ DG.RaphaelLayer = SC.Object.extend(
      * @param iElement {Raphael Element}
      */
     prepareToMoveOrRemove: function( iElement) {
-      DG.assert( iElement);
-      DG.assert( this.isValid());
       if( iElement === this._firstElement) {
         if( this._firstElement === this._lastElement) {
           // After the move there will be no more elements in this layer
@@ -117,7 +115,6 @@ DG.RaphaelLayer = SC.Object.extend(
       else if( iElement === this._lastElement) {
         this._lastElement = iElement.prev;
       }
-      DG.assert( this.isValid());
     },
 
     forEach: function( iCallback) {
@@ -136,7 +133,7 @@ DG.RaphaelLayer = SC.Object.extend(
     contains: function( iElement) {
       var tElement;
       for( tElement = this._firstElement;
-           tElement && tElement !== this._lastElement;
+           tElement && tElement.prev !== this._lastElement;
            tElement = tElement.next) {
         if( tElement === iElement)
           return true;

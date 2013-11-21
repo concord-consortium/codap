@@ -408,11 +408,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
    * If we have a connecting line adornment, give it a chance to update selection.
    */
   updateSelection: function() {
+    sc_super();
     if( this.connectingLineAdorn && this.connectingLineAdorn.wantVisible()) {
       this.connectingLineAdorn.updateSelection();
     }
-
-    sc_super();
   },
   
   /**
@@ -470,13 +469,13 @@ DG.ScatterPlotView = DG.PlotView.extend(
   connectingLineChanged: function() {
 
     var updateConnectingLine = function() {
-    if( tAdorn) {
-      tAdorn.updateToModel( true /*animate*/);
-    }
-//    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
-    this.updatePointSize();
-    this._elementOrderIsValid = false;
-    this.updateSelection();
+      if( tAdorn) {
+        tAdorn.updateToModel( true /*animate*/);
+      }
+  //    this.adornmentDidChange('connectingLine', 'connectingLineAdorn', DG.ConnectingLineAdornment);
+      this.updatePointSize();
+      this._elementOrderIsValid = false;
+      this.updateSelection();
     }.bind( this);
 
     var tPlotModel = this.get('model' ),
