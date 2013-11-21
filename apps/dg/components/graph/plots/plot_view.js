@@ -598,8 +598,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     // remove extra case elements
     if( tRC.casesRemoved ) {
       for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-        DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
-          tLayerManager.removeElement( this._plottedElements[ tIndex]); // remove from plot
+        DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
       }
       if( tCases.length < tPlotElementLength ) { // remove from array
         tPlotElementLength = this._plottedElements.length = tCases.length;
@@ -674,7 +673,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
                                           DG.Analysis.kNullAttribute) ||
                       (this.get('numPlots') > 1),
-      tDataTip = this.get('dataTip' ),
       tLayerManager = this.get('layerManager' );
 
     this.get('model').forEachCaseDo( function( iCase, iIndex) {
@@ -961,7 +959,9 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   },
 
   hideDataTip: function() {
-    this.get('dataTip').hide();
+    var tDataTip = this.get('dataTip');
+    if( tDataTip)
+      tDataTip.hide();
   },
 
   /**
@@ -1200,7 +1200,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
       this.plottedCountAdorn = DG.PlottedCountAdornment.create( {
              parentView: this, valueAxisView: this.get('primaryAxisView'),
              model: tCountModel, paperSource: this.get('paperSource'),
-             layerName: 'adornments'});
+             layerName: DG.LayerNames.kAdornments });
       this.plottedCountAdorn.updateToModel();
     }
   }.observes('.model.plottedCount'),

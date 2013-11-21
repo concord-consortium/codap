@@ -27,6 +27,7 @@ sc_require('views/raphael_base');
 DG.LayerNames = {
   kBackground: 'background',
   kGrid: 'grid',
+  kIntervalShading: 'intervalShading',
   kClick: 'click',
   kGhost: 'ghost',
   kConnectingLines: 'connectingLines',
@@ -84,17 +85,17 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
    */
   initLayerManager: function() {
     sc_super();
-    var tLayerManager = this.get('layerManager');
     with (DG.LayerNames) {
-      tLayerManager.addNamedLayer( kBackground );
-      tLayerManager.addNamedLayer( kGrid );
-      tLayerManager.addNamedLayer( kClick );
-      tLayerManager.addNamedLayer( kGhost );
-      tLayerManager.addNamedLayer( kConnectingLines );
-      tLayerManager.addNamedLayer( kPoints );
-      tLayerManager.addNamedLayer( kSelectedPoints );
-      tLayerManager.addNamedLayer( kAdornments );
-      tLayerManager.addNamedLayer( kDataTip );
+      this.get('layerManager').addNamedLayer( kBackground )
+                    .addNamedLayer( kGrid )
+                    .addNamedLayer( kIntervalShading )
+                    .addNamedLayer( kClick )
+                    .addNamedLayer( kGhost )
+                    .addNamedLayer( kConnectingLines )
+                    .addNamedLayer( kPoints )
+                    .addNamedLayer( kSelectedPoints )
+                    .addNamedLayer( kAdornments )
+                    .addNamedLayer( kDataTip );
     }
   },
 

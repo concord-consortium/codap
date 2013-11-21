@@ -19,7 +19,6 @@
 // ==========================================================================
 
 sc_require('views/plots/adornments/data_tip');
-sc_require('utilities/object_map');
 
 /** @class DG.LineDataTip A simple adornment-like class that displays and updates a data tip that shows when the
  *    user hovers over a line.
@@ -41,8 +40,10 @@ DG.LineDataTip = DG.DataTip.extend(
   getDataTipText: function() {
     var tResult = '';
     if( this.info) {
-      tResult = this.info.parentName + ': ' + this.info.lineIndex + '\nwith ' + this.info.numChildren +
-                 ' ' + this.info.childrenName;
+      tResult = 'DG.DataTip.connectingLine'.loc( this.info.parentName,
+                                                this.info.lineIndex,
+                                                this.info.numChildren,
+                                                this.info.childrenName);
     }
     return tResult;
   },

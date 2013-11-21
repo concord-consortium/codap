@@ -80,7 +80,7 @@ DG.PlotAdornment = SC.Object.extend(
   layer: function() {
     var tLayerManager = this.getPath('paperSource.layerManager');
     return (tLayerManager && this.layerName) ? tLayerManager[ this.layerName] :null;
-  }.property('paperSource', 'layerName' ).cacheable(),
+  }.property('paperSource', 'layerName' ),
 
   /**
     Contains an array of elements, each of which corresponds to a pair of strings
@@ -124,11 +124,10 @@ DG.PlotAdornment = SC.Object.extend(
     Destruction method
    */
   destroy: function() {
-    var tLayer = this.get('layer');
+    var tLayerManager = this.getPath('paperSource.layerManager');
     this.detachModel();
     this.myElements.forEach( function( iElement) {
-      if( tLayer)
-        tLayer.prepareToMoveOrRemove( iElement);
+      tLayerManager.removeElement( iElement);
       iElement.remove();
     });
     this.myElements = null;

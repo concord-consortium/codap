@@ -40,7 +40,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     var tPlotView = this.get('parentView');
     DG.assert( tPlotView );
     this._dataTip = DG.LineDataTip.create( { paperSource: this.get('paperSource'),
-                                            plotView: tPlotView, layerName: 'dataTip' });
+                                            plotView: tPlotView, layerName: DG.LayerNames.kDataTip });
   },
 
   /** do we want the line(s) to be visible and up to date? Yes if our model 'isVisible' */
@@ -187,12 +187,12 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
           tLine = this.myElements[ iLineNum],
           i;
       if( tLine) {
-      for( i = 0; i < tNumValues; ++i) {
-        tAllSelected = tAllSelected && tSelection.indexOf( iValues[i].theCase) >= 0;
-        if( !tAllSelected)
-          break;
-      }
-      tLine.attr({ 'stroke-width': (tAllSelected ? kSelectedWidth : kUnselectedWidth) });
+        for( i = 0; i < tNumValues; ++i) {
+          tAllSelected = tAllSelected && tSelection.indexOf( iValues[i].theCase) >= 0;
+          if( !tAllSelected)
+            break;
+        }
+        tLine.attr({ 'stroke-width': (tAllSelected ? kSelectedWidth : kUnselectedWidth) });
       }
     }.bind( this));
   },

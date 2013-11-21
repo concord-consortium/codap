@@ -37,7 +37,8 @@ DG.PointDataTip = DG.DataTip.extend(
   getDataTipText: function() {
 
     var this_ = this,
-        tCase = this.getPath('plot.cases')[ this.get('caseIndex' )];
+        tCases = this.getPath('plot.cases' ), // Doesn't always succeed even when it should!
+        tCase = tCases ? tCases[ this.get('caseIndex')] : null;
 
     function getNameValuePair( iKey) {
       var tAttrDesc = this_.get('plot' ).getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
@@ -100,12 +101,12 @@ DG.PointDataTip = DG.DataTip.extend(
     sc_super();
   },
 
-  hide: function() {
-    var tLayer = this.get('layer');
-    if( tLayer)
-      tLayer.clear();
-  },
-
+//  hide: function() {
+//    var tLayer = this.get('layer');
+//    if( tLayer)
+//      tLayer.clear();
+//  },
+//
   handleChanges: function( iChanges) {
     // iChanges can be a single index or an array of indices
     var tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? SC.IndexSet.create( iChanges) : iChanges);

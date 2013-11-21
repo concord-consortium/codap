@@ -313,6 +313,12 @@ DG.PlotUtilities = {
 //      }, this.kDefaultAnimationTime);
   },
 
+  /**
+   * Called when we wish to animate the removal of an element, especially one stashed in a layer.
+   * Note that the animation depends on there being fill and/or stroke.
+   * @param iElement
+   * @param iLayerManager
+   */
   doHideRemoveAnimation: function( iElement, iLayerManager) {
     iElement.animate( { 'fill-opacity': 0, 'stroke-opacity': 0}, this.kDefaultAnimationTime, '<>',
       function( e) {

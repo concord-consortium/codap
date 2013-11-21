@@ -283,6 +283,9 @@ SC.stringsFor('English', {
    'DG.GraphView.addToEmptyPlace': "Create axis with %@",  // %@ is attribute name
    'DG.GraphView.dropInPlot': "Color points by values of %@",  // %@ is attribute name
    'DG.GraphView.zoomTip': "Double-click to zoom in.\nShift-double-click to zoom out",  // %@ is attribute name
-   'DG.GraphView.rescale': "Rescale to data"  // Rescale to data
+   'DG.GraphView.rescale': "Rescale to data",  // Rescale to data
+
+    // DG.DataTip
+    'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@"
   }
 ) ;

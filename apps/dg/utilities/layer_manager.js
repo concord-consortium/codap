@@ -18,8 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('utilities/raphael_layer');
-
 /**
  * @class
  *
@@ -27,8 +25,8 @@ sc_require('utilities/raphael_layer');
  *
  * @extends SC.Object
  */
-DG.LayerManager = SC.Object.extend(
-  {
+DG.LayerManager = function( iPaper) {
+  return  {
     /**
      * The first layer. If null, there are not yet any layers.
      * @property {DG.RaphaelLayer}
@@ -45,7 +43,7 @@ DG.LayerManager = SC.Object.extend(
      * The paper shared by all layers
      * @property {Raphael Paper}
      */
-    _paper: null,
+    _paper: iPaper,
 
     /**
      * A new layer will be created on top of all previous layers. If iName is not null, the new layer will be
@@ -54,7 +52,7 @@ DG.LayerManager = SC.Object.extend(
      * Otherwise, return the newly created layer.
      * @param iName {String}
      * @param iAfterLayer {DG.RaphaelLayer}
-     * @return {DG.RaphaelLayer} the newly created layer
+     * @return {DG.LayerManager} to facilitate chained calls
      */
     addNamedLayer: function( iName, iAfterLayer) {
       DG.assert( !SC.empty( iName));
@@ -76,7 +74,7 @@ DG.LayerManager = SC.Object.extend(
       else {  // Our very first layer
         this._firstLayer = this._lastLayer = tLayer;
       }
-      return tLayer;
+      return this;
     },
 
     forEach: function( iCallback) {
@@ -88,26 +86,22 @@ DG.LayerManager = SC.Object.extend(
     },
 
     /**
-     * The given element must be in iFromLayer.
      * Move the given element to iToLayer.
      * @param iElement {Raphael Element }
-     * @param iFromLayer {DG.RaphaelLayer}
-     * @param iToLayer {DG.RaphaelLayer}
+     * @param iFromLayer {DG.RaphaelLayer or String}
+     * @param iToLayer {DG.RaphaelLayer or String}
      */
     moveElementFromTo: function( iElement, iFromLayer, iToLayer) {
-      this.testValidity();
+      if( iFromLayer === iToLayer)
+        return;
       if( typeof iFromLayer === 'string')
         iFromLayer = this[iFromLayer];
       if( typeof iToLayer === 'string')
         iToLayer = this[iToLayer];
 
       if( iFromLayer.contains( iElement)) {
-        DG.assert( iFromLayer.isValid());
-        DG.assert( iToLayer.isValid());
         iFromLayer.prepareToMoveOrRemove( iElement);
-        DG.assert( iFromLayer.isValid());
         iToLayer.push( iElement);
-        DG.assert( iToLayer.isValid());
       }
       this.testValidity();
     },
@@ -125,10 +119,13 @@ DG.LayerManager = SC.Object.extend(
     },
 
     testValidity: function() {
+      // @if (debug)
       this.forEach( function( iLayer) {
         if( !iLayer.isValid())
-          console.debugger();
+          DG.logError('Invalid layer: ' + iLayer.name);
       });
+      // @endif
     }
 
-  } );
+  };
+};
