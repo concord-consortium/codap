@@ -25,9 +25,9 @@ end
 mode :debug do
   config :dg,
             :javascript_libs => [ # these urls will be inserted as the src of <script> tags in the <head> element
-             'https://maps.googleapis.com/maps/api/js?key=AIzaSyCKGfdpTr9kCvRd4zvf1GEGs8kG3RvdJYY&sensor=false' ]
+             'https://maps.googleapis.com/maps/api/js?sensor=false' ]
 #          :layout => 'sproutcore:lib/index.rhtml',
 end
 
 # proxy for local dev.
-proxy '/DataGames', :to => 'localhost:80'
+proxy '/DataGames', :to => 'dg.kcptech.com'
