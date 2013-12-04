@@ -25,7 +25,7 @@ DG.config = (function() {
     // then it should be entered in the following string in the same form that will be found in the header request.
     // For example: "Basic ZDOSJAODWancowjDSOJDSA=", this is Basic followed by the base64 encoding of the
     // (username:password)
-    headerAuthentication: "Basic ZGF0YWdhbWVzOjIwMTFmYXRob20="
+    headerAuthentication: ""
   };
 }());
 
