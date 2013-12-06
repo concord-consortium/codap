@@ -60,12 +60,13 @@ SproutCore requires Ruby 1.9.2+ for its build tools. Mac OS X versions up to 10.
 To clone the CODAP repository itself:
 
     $ git clone https://github.com/kcpt/codap.git
+    $ cd codap
+    $ git submodule update --init --recursive
 
 To work with the CODAP repository it is often useful to fork it on Github and then clone the fork.
 
 ## Run the CODAP Application Locally ##
 
-    $ cd codap             
     $ sc-server
 
 This runs the [SproutCore server](http://guides.sproutcore.com/build_tools.html#developing-with-sproutcore-sproutcore-server), which serves the application code locally. To run the application, enter the following URL into your web browser of choice: [http://localhost:4020/dg](http://localhost:4020/dg).
