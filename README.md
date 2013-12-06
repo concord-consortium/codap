@@ -78,4 +78,4 @@ By default, the CODAP application proxies to http://dg.kcptech.com. Guest access
 
 ## Modifying the CODAP Source ##
 
-Most changes to the CODAP application source are automatically reflected by simply reloading the browser page at [http://localhost:4020/dg](http://localhost:4020/dg). More extensive changes (e.g. adding/removing source files) may require stopping and restarting **sc-server**.
+Most changes to the CODAP application source are automatically reflected by simply reloading the browser page at [http://localhost:4020/dg](http://localhost:4020/dg). More extensive changes (e.g. adding/removing source files) may require stopping and restarting **sc-server** and/or removing the generated **tmp** folder.
