@@ -454,8 +454,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
         var tAdorn = DG.MovableLineAdornment.create( {
                           parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
                           xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView'),
-                          layerName: DG.LayerNames.kAdornments } ),
-            tNewElements = tAdorn.createElements();
+                          layerName: DG.LayerNames.kAdornments } );
+        tAdorn.createElements();
         this.movableLineAdorn = tAdorn;
       }
       this.movableLineAdorn.updateVisibility();
