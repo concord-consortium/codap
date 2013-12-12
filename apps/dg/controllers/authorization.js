@@ -45,9 +45,6 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
   @extends SC.Object
 */
 DG.authorizationController = SC.Controller.create( (function() {
-
-  var kHeaderAuthentication = DG.config.headerAuthentication;
-  
   var serverUrl = function(iRelativeUrl) {
     return '/DataGames/api/' + iRelativeUrl;
   };
@@ -84,13 +81,11 @@ return {
   
   
   getServerUrl: function(iUrl) {
-    return SC.Request.getUrl( serverUrl( iUrl))
-      .header('Authorization', kHeaderAuthentication);
+    return SC.Request.getUrl( serverUrl( iUrl));
   },
   
   postServerUrl: function(iUrl) {
-    return SC.Request.postUrl( serverUrl( iUrl))
-      .header('Authorization', kHeaderAuthentication);
+    return SC.Request.postUrl( serverUrl( iUrl));
   },
 
   postServerUrlJSON: function(iUrl) {

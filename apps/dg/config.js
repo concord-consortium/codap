@@ -20,12 +20,6 @@
 // one reason or another(e.g. security), are to be replaced here.
 DG.config = (function() {
   return {
-
-    // If there is a Basic Authentication required for any request to the server that is hosting the DG App
-    // then it should be entered in the following string in the same form that will be found in the header request.
-    // For example: "Basic ZDOSJAODWancowjDSOJDSA=", this is Basic followed by the base64 encoding of the
-    // (username:password)
-    headerAuthentication: ""
   };
 }());
 
