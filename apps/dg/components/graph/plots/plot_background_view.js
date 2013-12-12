@@ -85,18 +85,18 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
    */
   initLayerManager: function() {
     sc_super();
-    with (DG.LayerNames) {
-      this.get('layerManager').addNamedLayer( kBackground )
-                    .addNamedLayer( kGrid )
-                    .addNamedLayer( kIntervalShading )
-                    .addNamedLayer( kClick )
-                    .addNamedLayer( kGhost )
-                    .addNamedLayer( kConnectingLines )
-                    .addNamedLayer( kPoints )
-                    .addNamedLayer( kSelectedPoints )
-                    .addNamedLayer( kAdornments )
-                    .addNamedLayer( kDataTip );
-    }
+    
+    var ln = DG.LayerNames;
+    this.get('layerManager').addNamedLayer( ln.kBackground )
+                  .addNamedLayer( ln.kGrid )
+                  .addNamedLayer( ln.kIntervalShading )
+                  .addNamedLayer( ln.kClick )
+                  .addNamedLayer( ln.kGhost )
+                  .addNamedLayer( ln.kConnectingLines )
+                  .addNamedLayer( ln.kPoints )
+                  .addNamedLayer( ln.kSelectedPoints )
+                  .addNamedLayer( ln.kAdornments )
+                  .addNamedLayer( ln.kDataTip );
   },
 
   /**
