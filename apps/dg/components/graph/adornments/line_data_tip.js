@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('views/plots/adornments/data_tip');
+sc_require('components/graph/adornments/data_tip');
 
 /** @class DG.LineDataTip A simple adornment-like class that displays and updates a data tip that shows when the
  *    user hovers over a line.

@@ -751,7 +751,7 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     var hasElementMap = tNewToOldCaseMap.length > 0,
         hasVanishingElements = tOldToNewCaseMap.length > 0,
         getCaseCurrentLocation = ( hasElementMap ? caseLocationViaMap : caseLocationSimple ),
-        tNumPointsToAnimate = ( hasElementMap ? tNewToOldCaseMap.length : tOldPointAttrs.length );
+        tHaveInstalledCallback = false;
 
     this._elementOrderIsValid = false;
     DG.sounds.playMixup();
@@ -772,9 +772,8 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
         if( !SC.none( tPt)) {
           tElements[ iIndex].attr( tPt);
           tAnimate = true;
-          // TODO: Bill, There's likely a bug relating to knowing whether
-          // we are looking at the last animating point or not.
-          if( iIndex === tNumPointsToAnimate - 1) {
+          if( !tHaveInstalledCallback) {
+            tHaveInstalledCallback = true;
             tCallBack = function() {
               this_.setPath('model.isAnimating', false);  // Allow standard draw
             };
@@ -785,6 +784,8 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
           tNewPointAttrs.push( tPt );
         }
       });
+    if(!tHaveInstalledCallback)
+      this.setPath('model.isAnimating', false);
     if( hasVanishingElements ){
       // create a vanishing element for each old point that needs one (used if many-to-one animation)
       tOldPointAttrs.forEach( function( iOldAttrs, iIndex ) {
