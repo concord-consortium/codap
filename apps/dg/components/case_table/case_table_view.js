@@ -189,7 +189,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * Wrapped in @if(debug) so that only developers see it for now.
      */
     if( DG.supports('caseTableHeaderMenus')) {
-      var headerMenuPlugin = new Slick.Plugins.HeaderMenu({ buttonImage: static_url("images/down.gif") });
+      var headerMenuPlugin = new Slick.Plugins.HeaderMenu({
+                                                buttonIsCell: true,
+                                                buttonImage: static_url("images/down.gif")
+                                              });
       this._slickGrid.registerPlugin(headerMenuPlugin);
 
       headerMenuPlugin.onBeforeMenuShow.subscribe(function(e, args) {

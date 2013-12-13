@@ -131,10 +131,13 @@
       var menu = column.header && column.header.menu;
 
       if (menu) {
-        var $el = $("<div></div>")
-          .addClass("slick-header-menubutton")
-          .data("column", column)
-          .data("menu", menu);
+        var buttonDivHtml = options.buttonIsCell
+                              ? "<div style=\"display:none\"></div>"
+                              : "<div></div>",
+            $el = $(buttonDivHtml)
+                    .addClass("slick-header-menubutton")
+                    .data("column", column)
+                    .data("menu", menu);
 
         if (options.buttonCssClass) {
           $el.addClass(options.buttonCssClass);
@@ -148,9 +151,14 @@
           $el.attr("title", menu.tooltip);
         }
 
-        $el
-          .bind("click", showMenu)
-          .appendTo(args.node);
+        $el.appendTo(args.node);
+
+        if (options.buttonIsCell) {
+          $(args.node).bind("click", showMenu);
+        }
+        else {
+          $el.bind("click", showMenu);
+        }
       }
     }
 
@@ -165,7 +173,9 @@
 
 
     function showMenu(e) {
-      var $menuButton = $(this);
+      var $menuButton = options.buttonIsCell
+                          ? $(this).find(".slick-header-menubutton")
+                          : $(this);
       var menu = $menuButton.data("menu");
       var columnDef = $menuButton.data("column");
 

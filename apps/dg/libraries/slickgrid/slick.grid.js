@@ -955,7 +955,9 @@ if (typeof Slick === "undefined") {
               updateCanvasWidth(true);
               render();
               trigger(self.onColumnsResized, {});
-            });
+            })
+            // Don't propagate clicks to parent
+            .bind("click", function (e) { e.stopPropagation(); });
       });
     }
 
