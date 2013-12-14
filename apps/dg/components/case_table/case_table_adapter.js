@@ -265,6 +265,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             header: {
               menu : {
                 items: [
+                  { title: "Rename Attribute...", command: 'cmdRenameAttribute',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                    }
+                  },
                   { title: "Edit Formula...", command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');

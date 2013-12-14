@@ -229,8 +229,10 @@ DG.DataContext = SC.Object.extend((function() // closure
         result = this.doSelectCases( iChange);
         break;
       case 'createAttributes':
-      case 'updateAttributes':
         result = this.doCreateAttributes( iChange);
+        break;
+      case 'updateAttributes':
+        result = this.doUpdateAttributes( iChange);
         break;
     }
     return result;
@@ -513,6 +515,54 @@ DG.DataContext = SC.Object.extend((function() // closure
     return result;
   },
 
+  /**
+    Updates the specified properties of the specified attributes.
+    @param  {Object}    iChange - The change request object
+              {String}  .operation - "updateCases"
+              {DG.CollectionClient} .collection - Collection whose attributes(s) are changed
+              {Array of Object} .attrPropsArray - Array of attribute properties
+    @returns  {Object}
+                {Boolean}               .success
+                {Array of DG.Attribute} .attrs
+                {Array of Number}       .attrIDs
+   */
+  doUpdateAttributes: function( iChange) {
+    var collection = typeof iChange.collection === "string"
+                        ? this.getCollectionByName( iChange.collection)
+                        : iChange.collection,
+        result = { success: false, attrs: [], attrIDs: [] };
+    
+    // Function to update each individual attribute
+    function updateAttribute( iAttrProps) {
+      // Look up the attribute by ID if one is specified
+      var attribute = collection && !SC.none( iAttrProps.id)
+                        ? collection.getAttributeByID( iAttrProps.id)
+                        : null;
+      // Look up the attribute by name if not found by ID
+      if( !attribute && collection && iAttrProps.name) {
+        attribute = collection.getAttributeByName( iAttrProps.name);
+      }
+      if( attribute) {
+        attribute.beginPropertyChanges();
+        DG.ObjectMap.forEach( iAttrProps,
+                              function( iKey, iValue) {
+                                if( iKey !== "id") {
+                                  attribute.set( iKey, iValue);
+                                }
+                              });
+        attribute.endPropertyChanges();
+        result.success = true;
+        result.attrs.push( attribute);
+        result.attrIDs.push( attribute.get('id'));
+      }
+    }
+    
+    // Create/update each specified attribute
+    if( collection && iChange.attrPropsArray)
+      iChange.attrPropsArray.forEach( updateAttribute);
+    return result;
+  },
+  
   /**
    * Export the case data for all attributes and cases of the given collection,
    * suitable for pasting into TinkerPlots/Fathom.

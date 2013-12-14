@@ -212,9 +212,13 @@ DG.CaseTableController = DG.ComponentController.extend(
                     {String}  iArgs.column.id
        */
       doCommand: function( iArgs) {
+        var columnID = Number( iArgs.column.id);
         switch( iArgs.command) {
+        case 'cmdRenameAttribute':
+          this.renameAttribute( columnID);
+          break;
         case 'cmdEditFormula':
-          this.editAttributeFormula( Number( iArgs.column.id));
+          this.editAttributeFormula( columnID);
           break;
         }
       },
@@ -552,6 +556,46 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( tChildAttrIDs )   { tChildAttrIDs.forEach( addAttributeIfEditable ); }
 
         return tEditableAttrs;
+      },
+
+      /**
+       * Rename an attribute. Brings up the Rename Attribute dialog.
+       *
+       */
+      renameAttribute: function( iAttrID) {
+        var tDataContext = this.get('dataContext'),
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
+            tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
+            tDialog;
+        DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference" );
+        
+        function doRenameAttribute( iAttrID, iAttrName) {
+          var change = {
+                          operation: 'updateAttributes',
+                          collection: tAttrRef.collection,
+                          attrPropsArray: [{ id: iAttrID, name: iAttrName }]
+                        };
+          tDataContext.applyChange( change);
+        }
+        
+        function handleRenameAttributeOK() {
+          var newAttrName = tDialog.get('value');
+          if( !SC.empty( newAttrName)) {
+            tDialog.close();
+            doRenameAttribute( iAttrID, newAttrName);
+          }
+          else {
+          }
+        }
+        
+        tDialog = DG.CreateSingleTextDialog( {
+                        prompt: 'DG.TableController.renameAttributePrompt',
+                        textValue: tAttrName,
+                        textHint: 'DG.TableController.renameAttributeHint',
+                        okTarget: null,
+                        okAction: handleRenameAttributeOK,
+                        okTooltip: 'DG.TableController.renameAttributeOKTip'
+                      });
       },
 
       /**
