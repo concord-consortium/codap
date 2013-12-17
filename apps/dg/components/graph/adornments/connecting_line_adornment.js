@@ -92,6 +92,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
                                     this.remove();
                                   });
     }
+    this.myElements.length = 0;
   },
 
   /**
