@@ -265,18 +265,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             header: {
               menu : {
                 items: [
-                  { title: "Rename Attribute...", command: 'cmdRenameAttribute',
+                  { title: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                    command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
                     }
                   },
-                  { title: "Edit Formula...", command: 'cmdEditFormula',
+                  { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
+                    command: 'cmdRenameAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
                     }
                   }
-                  , { title: "Sort Ascending", command: 'cmdSortAscending', disabled: true }
-                  , { title: "Sort Descending", command: 'cmdSortDescending', disabled: true }
                 ]
               }
             }

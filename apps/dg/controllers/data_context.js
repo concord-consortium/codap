@@ -716,6 +716,16 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
   
   /**
+    Returns the collection (DG.CollectionClient) which contains
+    the specified attribute (DG.Attribute).
+    @param    {DG.Attribute}          iAttribute -- The attribute whose collection is to be returned
+    @returns  {DG.CollectionClient}   The collection which contains the specified case
+   */
+  getCollectionForAttribute: function( iAttribute) {
+    return this.getCollectionByID( iAttribute.getPath('collection.id'));
+  },
+  
+  /**
     Returns the parent collection, if any, for the specified collection.
     Returns null if the specified collection has no parent collection.
     @param    {DG.CollectionClient}   iCollection -- The (child) collection whose parent is sought

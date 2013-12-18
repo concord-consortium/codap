@@ -58,7 +58,7 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.registerLink.SRRI_BUILD' : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/register'>Create a new account</a>",
   'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/password'>Forgot your password?</a>",
 
-    // DG.AppController
+  // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
   'DG.AppController.resetData.toolTip' : "Delete all data from completed games",
   'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the completed game data?",
@@ -194,18 +194,23 @@ SC.stringsFor('English', {
   'DG.Formula.FuncArgsErrorRange.description': "The '%@' function expects %@-%@ arguments",
   
   // DG.TableController
+  'DG.TableController.headerMenuItems.editAttribute' : "Edit Formula...",
+  'DG.TableController.headerMenuItems.renameAttribute' : "Rename Attribute...",
+  'DG.TableController.headerMenuItems.deleteAttribute' : "Delete Attribute",
   'DG.TableController.gearMenuItems.newAttribute' : "New Attribute in %@...",
   'DG.TableController.gearMenuItems.setScoreFormula' : "Set Score Formula...",
   'DG.TableController.gearMenuItems.deleteCases' : "Delete Selected Cases",
-  'DG.TableController.gearMenuItems.editAttribute' : "Edit %@ Formula",
   'DG.TableController.newAttrDlg.defaultAttrName' : "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint' : "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint' : "If desired, type a formula for computing values of this attribute",
   'DG.TableController.newAttrDlg.applyTooltip' : "Define the new attribute using the name and (optional) formula",
   'DG.TableController.newAttrDlg.mustEnterAttrNameMsg' : "Please enter a name for the new attribute",
   'DG.TableController.renameAttributePrompt' : "Enter a new name for the attribute:",
-  'DG.TableController.renameAttributeHint' : "newAttributeName",
   'DG.TableController.renameAttributeOKTip' : "Accept the new attribute name",
+  'DG.TableController.renameAttributeInvalidMsg' : "Attribute names may not be empty",
+  'DG.TableController.renameAttributeInvalidDesc' : "Please enter a valid attribute name",
+  'DG.TableController.renameAttributeDuplicateMsg' : "An attribute with that name already exists",
+  'DG.TableController.renameAttributeDuplicateDesc' : "Please enter a unique attribute name",
   'DG.TableController.scoreAttrName' : "score",
   'DG.TableController.setScoreDlg.applyTooltip' : "Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint' : "Type a formula for computing values of this attribute",

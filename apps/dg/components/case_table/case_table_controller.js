@@ -214,11 +214,11 @@ DG.CaseTableController = DG.ComponentController.extend(
       doCommand: function( iArgs) {
         var columnID = Number( iArgs.column.id);
         switch( iArgs.command) {
-        case 'cmdRenameAttribute':
-          this.renameAttribute( columnID);
-          break;
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
+          break;
+        case 'cmdRenameAttribute':
+          this.renameAttribute( columnID);
           break;
         }
       },
@@ -368,7 +368,6 @@ DG.CaseTableController = DG.ComponentController.extend(
             tSelection = tDataContext && tDataContext.getSelectedCases(),
             tDeleteIsEnabled = tSelection && tSelection.get('length'),
             tNewAttrMenuItemStringKey = 'DG.TableController.gearMenuItems.newAttribute',
-            tEditableAttrs = this.getEditableAttributes(),
             tItems = [];
         if( !SC.empty( tChildCollectionName)) {
           tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
@@ -380,14 +379,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
         tItems.push({ title: 'DG.TableController.gearMenuItems.deleteCases', localize: true,
                       target: this, itemAction: this.deleteSelectedCases, isEnabled: tDeleteIsEnabled });
-        if( tEditableAttrs.length > 0 ) {
-          tItems.push({ isSeparator: YES });
-          for( var i=0; i<tEditableAttrs.length; ++i ) {
-            tItems.push({
-              title: 'DG.TableController.gearMenuItems.editAttribute'.loc( tEditableAttrs[i].name ),
-              target: this, itemAction: this.editAttributeFormula, args: [ tEditableAttrs[i].id ] });
-          }
-        }
         return tItems;
       }.property(),
       
@@ -526,72 +517,61 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Get a list of attributes with editable formulas.
-       * @return {Array} -- array of { name } objects
-       */
-      getEditableAttributes: function() {
-        var tDataContext = this.get('dataContext'),
-            tChildCollection = tDataContext && tDataContext.get('childCollection'),
-            tParentCollection = tDataContext && tDataContext.get('parentCollection'),
-            tChildAttrIDs = tChildCollection && tChildCollection.getAttributeIDs(),
-            tParentAttrIDs = tParentCollection && tParentCollection.getAttributeIDs(),
-            tEditableAttrs = [];
-
-        // if this attribute is editable or has a non-empty formula,
-        // add it to our list of editable attributes.
-        // Note that moving forward all editable attributes should have the
-        // 'editable' property set, but saved documents may have user-created
-        // attributes with formulas that aren't currently marked 'editable'.
-        function addAttributeIfEditable( iAttrID, iIndex ){
-          var tRef = tDataContext.getAttrRefByID( iAttrID),
-              isEditable = tRef && tRef.attribute.get('editable'),
-              hasFormula = tRef && tRef.attribute.get('hasFormula');
-          if( isEditable || hasFormula) {
-            tEditableAttrs.push( { name: tRef.attribute.get('name'), id: iAttrID });
-          }
-        }
-
-        // add attributes of parent collection first, if any, then attributes of child collection
-        if( tParentAttrIDs )  { tParentAttrIDs.forEach( addAttributeIfEditable ); }
-        if( tChildAttrIDs )   { tChildAttrIDs.forEach( addAttributeIfEditable ); }
-
-        return tEditableAttrs;
-      },
-
-      /**
        * Rename an attribute. Brings up the Rename Attribute dialog.
        *
        */
       renameAttribute: function( iAttrID) {
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
+            tCollectionRecord = tAttrRef && tAttrRef.collection,
+            tCollectionClient = tDataContext && tAttrRef &&
+                                tDataContext.getCollectionForAttribute( tAttrRef.attribute),
             tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
             tDialog;
-        DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference" );
+        if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
+          return;
         
         function doRenameAttribute( iAttrID, iAttrName) {
           var change = {
                           operation: 'updateAttributes',
-                          collection: tAttrRef.collection,
+                          collection: tCollectionRecord,
                           attrPropsArray: [{ id: iAttrID, name: iAttrName }]
                         };
           tDataContext.applyChange( change);
         }
         
         function handleRenameAttributeOK() {
-          var newAttrName = tDialog.get('value');
-          if( !SC.empty( newAttrName)) {
+          var newAttrName = tDialog.get('value'),
+              tExistingAttr = tCollectionClient && newAttrName &&
+                              tCollectionClient.getAttributeByName( newAttrName);
+          // if the name didn't change, then there's nothing to do
+          if( newAttrName === tAttrName) {
+            tDialog.close();
+            return;
+          }
+          if( newAttrName && !tExistingAttr) {
             tDialog.close();
             doRenameAttribute( iAttrID, newAttrName);
           }
-          else {
+          else if( tExistingAttr) {
+            DG.AlertPane.info({
+              message: 'DG.TableController.renameAttributeDuplicateMsg',
+              description: 'DG.TableController.renameAttributeDuplicateDesc',
+              localize: true
+            });
+          }
+          else if( !newAttrName) {
+            DG.AlertPane.info({
+              message: 'DG.TableController.renameAttributeInvalidMsg',
+              description: 'DG.TableController.renameAttributeInvalidDesc',
+              localize: true
+            });
           }
         }
         
         tDialog = DG.CreateSingleTextDialog( {
                         prompt: 'DG.TableController.renameAttributePrompt',
                         textValue: tAttrName,
-                        textHint: 'DG.TableController.renameAttributeHint',
                         okTarget: null,
                         okAction: handleRenameAttributeOK,
                         okTooltip: 'DG.TableController.renameAttributeOKTip'
