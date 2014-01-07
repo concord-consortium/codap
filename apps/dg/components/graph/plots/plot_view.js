@@ -776,6 +776,9 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
             tHaveInstalledCallback = true;
             tCallBack = function() {
               this_.setPath('model.isAnimating', false);  // Allow standard draw
+              // Draw once more because it can happen that a graph layout has happened since we computed
+              // point coordinates
+              this_.drawData();
             };
           }
         }
