@@ -234,6 +234,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'updateAttributes':
         result = this.doUpdateAttributes( iChange);
         break;
+      case 'deleteAttributes':
+        result = this.doDeleteAttributes( iChange);
+        break;
     }
     return result;
   },
@@ -560,6 +563,43 @@ DG.DataContext = SC.Object.extend((function() // closure
     // Create/update each specified attribute
     if( collection && iChange.attrPropsArray)
       iChange.attrPropsArray.forEach( updateAttribute);
+    return result;
+  },
+  
+  /**
+    Deletes the specified attributes.
+    @param  {Object}    iChange - The change request object
+              {String}  .operation - "deleteCases"
+              {DG.CollectionClient} .collection - Collection whose attributes(s) are changed
+              {Array of Object} .attrs - Array of attributes to delete
+    @returns  {Object}
+                {Boolean}               .success
+                {Array of DG.Attribute} .attrs
+                {Array of Number}       .attrIDs
+   */
+  doDeleteAttributes: function( iChange) {
+    var collection = typeof iChange.collection === "string"
+                        ? this.getCollectionByName( iChange.collection)
+                        : iChange.collection,
+        result = { success: false, attrIDs: [] };
+    
+    // Function to delete each individual attribute
+    function deleteAttribute( iAttr) {
+      // Look up the attribute by ID if one is specified
+      var attribute = collection && !SC.none( iAttr.id)
+                        ? collection.getAttributeByID( iAttr.id)
+                        : null;
+      if( attribute) {
+        DG.Attribute.destroyAttribute( iAttr.attribute);
+        result.attrIDs.push( iAttr.id);
+      }
+    }
+    
+    // Create/update each specified attribute
+    if( collection && iChange.attrs) {
+      iChange.attrs.forEach( deleteAttribute);
+      DG.store.commitRecords();
+    }
     return result;
   },
   

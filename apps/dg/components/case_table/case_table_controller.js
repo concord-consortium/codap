@@ -220,6 +220,9 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdRenameAttribute':
           this.renameAttribute( columnID);
           break;
+        case 'cmdDeleteAttribute':
+          this.deleteAttribute( columnID);
+          break;
         }
       },
       
@@ -259,6 +262,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               invalidateAggregates = false;
             break;
           case 'createAttributes':
+          case 'deleteAttributes':
             this.attributeCountDidChange( iChange);
             break;
           case 'updateAttributes':
@@ -576,6 +580,41 @@ DG.CaseTableController = DG.ComponentController.extend(
                         okAction: handleRenameAttributeOK,
                         okTooltip: 'DG.TableController.renameAttributeOKTip'
                       });
+      },
+
+      /**
+       * Delete an attribute after requesting confirmation from the user.
+       *
+       */
+      deleteAttribute: function( iAttrID) {
+        var tDataContext = this.get('dataContext'),
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
+            tCollectionRecord = tAttrRef && tAttrRef.collection,
+            tAttrName = tAttrRef && tAttrRef.attribute.get('name');
+      
+        function doDeleteAttribute() {
+          var change = {
+                          operation: 'deleteAttributes',
+                          collection: tCollectionRecord,
+                          attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+                        };
+          tDataContext.applyChange( change);
+        }
+      
+        DG.AlertPane.warn({
+          message: 'DG.TableController.deleteAttribute.confirmMessage'.loc( tAttrName),
+          description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
+          buttons: [
+            { title: 'DG.TableController.deleteAttribute.okButtonTitle',
+              action: doDeleteAttribute,
+              localize: YES
+            },
+            { title: 'DG.TableController.deleteAttribute.cancelButtonTitle',
+              localize: YES
+            }
+          ],
+          localize: false
+        });
       },
 
       /**
