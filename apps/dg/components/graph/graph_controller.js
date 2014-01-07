@@ -308,8 +308,15 @@ DG.GraphController = DG.ComponentController.extend(
                               function( aName) {
                                 return { title: aName, collection: tParentCollection };
                               });
-        return [ { title: tChildCollectionName, subMenu: tChildItems },
-                  { title: tParentCollectionName, subMenu: tParentItems } ];
+        if( tParentItems.length === 0) {
+          return tChildItems;
+        }
+        else if (tChildItems.length === 0) {
+          return tParentItems;
+        }
+        else
+          return [ { title: tChildCollectionName, subMenu: tChildItems },
+                    { title: tParentCollectionName, subMenu: tParentItems } ];
       },
 
       /** 
