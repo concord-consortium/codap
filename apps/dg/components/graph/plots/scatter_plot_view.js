@@ -542,7 +542,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
    */
   zoom: function( iEvent) {
     var tFactor = iEvent.shiftKey ? 2 : 0.5,
-        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.x, y: iEvent.y }, this ),
+        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.clientX, y: iEvent.clientY }, this ),
         tWorldPoint = { x: this.get('xAxisView').coordinateToData( tViewPoint.x),
                         y: this.get('yAxisView').coordinateToData( tViewPoint.y) };
     this.get('model').dilate(tWorldPoint, tFactor);

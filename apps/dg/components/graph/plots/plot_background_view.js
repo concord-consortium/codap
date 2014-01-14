@@ -297,7 +297,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                         })
                 .drag( continueMarquee, startMarquee, endMarquee)
                 .mousemove( showCursor)
-                .mouseover( mouseOver));
+                // The mouseover hint is annoying, and probably not useful.
+                /*.mouseover( mouseOver)*/);
     }
 
     this._backgroundForClick.attr( { width: this.get('drawWidth'),

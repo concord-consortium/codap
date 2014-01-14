@@ -595,7 +595,7 @@ DG.DotPlotView = DG.PlotView.extend(
       tNumericAxisView = this.get('primaryAxisView'),
         tWorldPoint = { },
         tFactor = iEvent.shiftKey ? 2 : 0.5,
-        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.x, y: iEvent.y }, this);
+        tViewPoint = DG.ViewUtilities.windowToViewCoordinates({ x: iEvent.clientX, y: iEvent.clientY }, this);
       tWorldPoint[ tAxisKey] = tNumericAxisView.coordinateToData( tViewPoint[ tAxisKey]);
       this.get('model').dilate(tWorldPoint, tFactor);
   },
