@@ -133,13 +133,14 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tLayer = this.get('layer' ),
         tShadingLayer = this.get('shadingLayer' ),
         tPrimaryAxisView = this.getPath('parentView.primaryAxisView'),
+        tSecondaryAxisView = this.getPath('parentView.secondaryAxisView'),
         tIsHorizontal = tPrimaryAxisView && (tPrimaryAxisView.get('orientation') === 'horizontal'),
         tValuesArray = this.getPath('model.values'),
         tNumValues = tValuesArray && tValuesArray.length,
         tNumElements = this.myElements.length;
     DG.assert( tNumValues > 0 ); // or tNumValues === number of cells
     var tPaper = this.get('paper'),
-        tCellHeight = (tNumValues ? ((tIsHorizontal ? tPaper.height : tPaper.width)/tNumValues) : 0),
+        tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
         p = { x:0, y:0, symSize:this.symSize, cellHeight:tCellHeight-this.cellGap },
         tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
     var tWorldCoord, tViewCoord, i, tSpread, tStat;
