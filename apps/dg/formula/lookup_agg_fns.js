@@ -147,6 +147,7 @@ DG.LookupAggFns = {
       
       var nextEvalContext = valueFn && getNextEvalContext( iContext, iEvalContext);
       
+      // default to undefined (empty) if no user-specified default
       return nextEvalContext
                     ? valueFn( iContext, nextEvalContext)
                     : defaultFn ? defaultFn( iContext, iEvalContext) : undefined;
@@ -186,10 +187,10 @@ DG.LookupAggFns = {
       
       var prevEvalContext = valueFn && getPrevEvalContext( iContext, iEvalContext);
 
-      // Default to zero if no user-specified default.
+      // default to undefined (empty) if no user-specified default
       return prevEvalContext
                     ? valueFn( iContext, prevEvalContext)
-                    : defaultFn ? defaultFn( iContext, iEvalContext) : 0;
+                    : defaultFn ? defaultFn( iContext, iEvalContext) : undefined;
     }
   
   })
