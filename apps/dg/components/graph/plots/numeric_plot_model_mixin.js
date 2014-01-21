@@ -47,7 +47,7 @@ DG.NumericPlotModelMixin =
     });
     
     if( SC.none( this.plotAnimator))
-      this.plotAnimator = DG.GraphAnimator.create();
+      this.plotAnimator = DG.GraphAnimator.create( { plot: this });
     this.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate();
   },
 
