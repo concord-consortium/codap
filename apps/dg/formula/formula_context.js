@@ -258,8 +258,8 @@ DG.FormulaContext = SC.Object.extend( (function() {
     'exp': { min:1, max:1 },
     'floor': { min:1, max:1 },
     //'log': { min:1, max:1 },    // replaced by DG version
-    'max': { min:1, max:'n' },
-    'min': { min:1, max:'n' },
+    //'max': { min:1, max:'n' },  // replaced by aggregate version
+    //'min': { min:1, max:'n' },  // replaced by aggregate version
     'pow': { min:2, max:2 },
     //'random': { min:0, max:0 }, // replaced by DG version
     //'round': { min:1, max:1 },  // replaced by DG version
