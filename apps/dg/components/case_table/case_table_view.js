@@ -196,14 +196,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this._slickGrid.registerPlugin(headerMenuPlugin);
 
       headerMenuPlugin.onBeforeMenuShow.subscribe(function(e, args) {
+        var enabledItems = 0;
         // call any associated updater functions, e.g. to enable/disable
         if( args.menu && args.menu.items && args.menu.items.length) {
           args.menu.items.forEach( function( ioMenuItem) {
                                       if( ioMenuItem.updater) {
                                         ioMenuItem.updater( args.column, args.menu, ioMenuItem);
                                       }
+                                      if( !ioMenuItem.disabled)
+                                        ++enabledItems;
                                    });
         }
+        // Only show the menu if there's at least one enabled item
+        return (enabledItems > 0);
       });
 
       headerMenuPlugin.onCommand.subscribe(function(e, args) {
