@@ -36,15 +36,10 @@ DG.config = (function() {
 DG.supportFuncs = {
 
   /**
-    Enable case table column header menus. Currently enabled
-    only in developer builds for internal testing.
+    Enable case table column header menus.
    */
   caseTableHeaderMenus: function() {
-    var isSupported = false;
-    //@if(debug)
-      isSupported = true;
-    //@endif
-    return isSupported;
+    return true;
   },
 
   /**
