@@ -116,7 +116,10 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @returns  {Number}    The index of the case with the specified ID
    */
   getCaseIndex: function( iCaseID) {
-    if( !this.caseIDToIndexMap)
+    // Note: It would be more efficient to have the collection maintain this map
+    // rather than having the context have to rebuild it whenever it changed,
+    // but this can serve as a stopgap measure until that is implemented.
+    if( !this.caseIDToIndexMap || (this.caseIDToIndexMap[ iCaseID] == null))
       this.updateCaseIDMap();
     return this.caseIDToIndexMap[ iCaseID];
   },
