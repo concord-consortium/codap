@@ -267,6 +267,13 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     }),
 
     DG.GameSpec.create({
+      name: 'Sampler',
+      dimensions: { width: 400, height: 300 },
+      url: 'DataGames/JavaScriptGames/Sampler/Sampler.html',
+      contextType: 'DG.DataContext'
+    }),
+
+    DG.GameSpec.create({
       name: 'Analytics',
       dimensions: { width: 450, height: 400 },
       url: 'DataGames/JavaScriptGames/Analytics/Analytics.html'
