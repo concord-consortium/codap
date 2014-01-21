@@ -60,6 +60,72 @@ DG.UnivariateStatsFns = {
   }),
 
   /**
+    min(expr)
+    Returns the smallest of its evaluated argument values.
+   */
+  min: DG.ParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+      var valueFn = iInstance.argFns[0],
+          value = valueFn && valueFn( iContext, iEvalContext);
+      if( isFinite( value)) {
+        var cache = iInstance.caches[ iCacheID];
+        if( cache) {
+          if( cache.min > value)
+            cache.min = value;
+        }
+        else
+          iInstance.caches[ iCacheID] = { min: value };
+      }
+      
+    },
+    
+    computeResults: function( iContext, iEvalContext, iInstance) {
+      DG.ObjectMap.forEach( iInstance.caches,
+                            function( iKey, iCache) {
+                              iInstance.results[ iKey] = iCache.min;
+                            });
+      return this.queryCache( iContext, iEvalContext, iInstance);
+    }
+  
+  }),
+
+  /**
+    max(expr)
+    Returns the largest of its evaluated argument values.
+   */
+  max: DG.ParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+      var valueFn = iInstance.argFns[0],
+          value = valueFn && valueFn( iContext, iEvalContext);
+      if( isFinite( value)) {
+        var cache = iInstance.caches[ iCacheID];
+        if( cache) {
+          if( cache.max < value)
+            cache.max = value;
+        }
+        else
+          iInstance.caches[ iCacheID] = { max: value };
+      }
+      
+    },
+    
+    computeResults: function( iContext, iEvalContext, iInstance) {
+      DG.ObjectMap.forEach( iInstance.caches,
+                            function( iKey, iCache) {
+                              iInstance.results[ iKey] = iCache.max;
+                            });
+      return this.queryCache( iContext, iEvalContext, iInstance);
+    }
+  
+  }),
+
+  /**
     mean(expr)
     Returns the aggregated mean of its evaluated argument values.
    */
