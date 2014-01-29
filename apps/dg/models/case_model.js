@@ -111,25 +111,28 @@ DG.Case = DG.Record.extend(
    * @returns {Number | String | null}
    */
   getValue: function( iAttrID) {
-    var returnValue;  // default to undefined
+
     if( !SC.none( iAttrID)) {
-      var tAttr = DG.Attribute.getAttributeByID( iAttrID);
+
       // If we have an attribute formula, we must evaluate it.
-      if (tAttr && tAttr.get('hasFormula')) {
-        returnValue = tAttr.evalFormula( this);
+      var tAttr = DG.Attribute.getAttributeByID( iAttrID);
+      if (tAttr && tAttr.get('hasFormula') &&
+          // we only do the evaluation if it's one of this case's attributes
+          (this.getPath('collection.id') === tAttr.getPath('collection.id'))) {
+        return tAttr.evalFormula( this);
       }
-      // No attribute formula; extract the value directly
-      else if( this._valuesMap && (this._valuesMap[iAttrID] !== undefined)) {
-        returnValue = this._valuesMap[iAttrID];
+
+      // If we have a cached value, simply return it
+      if( this._valuesMap && (this._valuesMap[iAttrID] !== undefined)) {
+        return this._valuesMap[iAttrID];
       }
-      else {
-        // one last chance if we've got a parent
-        var tParent = this.get('parent');
-        if( !SC.none( tParent))
-          returnValue = tParent.getValue( iAttrID);
-      }
+
+      // one last chance if we've got a parent
+      var tParent = this.get('parent');
+      if( tParent)
+        return tParent.getValue( iAttrID);
     }
-    return returnValue;
+    // if we get here, return value is undefined
   },
   
   /**

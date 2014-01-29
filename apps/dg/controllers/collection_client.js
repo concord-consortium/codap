@@ -514,31 +514,52 @@ DG.CollectionClient = SC.Object.extend(
   },
   
   /**
+    Delete the specified case.
+    Client should call didDeleteCases() after deleting a batch of cases.
+    @param    {DG.Case}   iCase: the case to delete
+   */
+  deleteCase: function( iCase) {
+    this.get('collection').deleteCase( iCase);
+  },
+  
+  /**
+    This function should be called whenever cases are deleted to allow
+    the collection a chance to synchronize store contents, ID to index
+    maps, and other contents.
+   */
+  didDeleteCases: function() {
+
+    DG.store.commitRecords();
+
+    this.get('collection').updateCaseIDToIndexMap();
+
+    // Manual refresh seems necessary for the results to take effect.
+    this.getPath('casesController.content').refresh();
+  },
+  
+  /**
     Deletes the currently selected cases from the collection.
    */
   deleteSelectedCases: function() {
-    var tController = this.get('casesController'),
-        tSelected = tController.get('selection');
+    var tCollection = this.get('collection'),
+        tSelected = this.getPath('casesController.selection');
     DG.logUser("deleteSelectedCases: %@", tSelected.length());
     tSelected.forEach( function( aCase) {
-      DG.Case.destroyCase( aCase);
+      tCollection.deleteCase( aCase);
     });
-    DG.store.commitRecords();
-    // Manual refresh seems necessary for the results to take effect.
-    tController.get('content').refresh();
+    this.didDeleteCases();
   },
   
   /**
     Deletes all cases from the collection.
    */
   deleteAllCases: function() {
-    var tController = this.get('casesController');
+    var tCollection = this.get('collection'),
+        tController = this.get('casesController');
     tController.forEach( function( aCase) {
-      DG.Case.destroyCase( aCase);
+      tCollection.deleteCase( aCase);
     });
-    DG.store.commitRecords();
-    // Manual refresh seems necessary for the results to take effect.
-    tController.get('content').refresh();
+    this.didDeleteCases();
   },
 
   /**

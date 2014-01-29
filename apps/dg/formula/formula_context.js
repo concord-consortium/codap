@@ -1,5 +1,5 @@
 // ==========================================================================
-//                    DG.CollectionFormulaContext
+//                          DG.FormulaContext
 //  
 //  Author:   Kirk Swenson
 //

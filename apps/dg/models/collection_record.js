@@ -93,6 +93,18 @@ DG.CollectionRecord = DG.Record.extend( (function() // closure
   }),
   
   /**
+   * Map of case IDs to indices within parent cases
+   * @property {Object} of {String}:{Number}
+   */
+  caseIDToIndexMap: null,
+  
+  /**
+   * Map of parent case IDs to number of cases with that parent
+   * @property {Object} of {String}:{Number}
+   */
+  caseCounts: null,
+  
+  /**
     Destroy the collection's cases and attributes when the collection is destroyed.
    */
   destroy: function() {

@@ -91,6 +91,8 @@ DG.Collection = SC.Object.extend(
                       collection: this.collectionRecord,
                       orderBy: compareIDs });
     this.casesRecords = DG.store.find(this.casesQuery);
+    
+    this.updateCaseIDToIndexMap();
   },
   
   /**
@@ -140,13 +142,32 @@ DG.Collection = SC.Object.extend(
 
   /**
    * Creates a new case in this collection with the specified properties.
+   * @param   {Object}  Properties of the newly created case
    * @returns {DG.Case}
    */
   createCase: function( iProperties) {
     iProperties = iProperties || {};
     // Relate it to its parent collection
     iProperties.collection = this.get('id');
-    return DG.Case.createCase( iProperties);
+    
+    var newCase = DG.Case.createCase( iProperties),
+        newCaseID = newCase.get('id'),
+        parentID = newCase.getPath('parent.id'),
+        caseIDToIndexMap = this.collectionRecord.get('caseIDToIndexMap'),
+        caseCounts = this.collectionRecord.get('caseCounts');
+    if( caseCounts[parentID] == null)
+      caseCounts[parentID] = 0;
+    caseIDToIndexMap[newCaseID] = caseCounts[parentID]++;
+    return newCase;
+  },
+  
+  /**
+   * Deletes the specified case from this collection.
+   * Clients should call updateCaseIDToIndexMap() after deleting cases.
+   * @param   {DG.Case}   The case to delete
+   */
+  deleteCase: function( iCase) {
+    DG.Case.destroyCase( iCase);
   },
   
   /**
@@ -172,6 +193,29 @@ DG.Collection = SC.Object.extend(
    */
   getCaseIDs: function() {
     return this.casesRecords.getEach('id');
+  },
+  
+  /**
+   * Rebuilds the 'caseIDToIndexMap' and 'caseContents' properties.
+   * This function should be called whenever the mapping between
+   * case IDs and indices must change, e.g. after deleting cases.
+   */
+  updateCaseIDToIndexMap: function() {
+    var caseIndices = {},
+        map = {};
+    this.casesRecords.
+          forEach( function( iCase) {
+                      if( !iCase.get('isDestroyed')) {
+                        var caseID = iCase.get('id'),
+                            parentID = iCase.getPath('parent.id');
+                        if( caseIndices[parentID] == null)
+                          caseIndices[parentID] = 0;
+                        map[caseID] = caseIndices[parentID]++;
+                      }
+                   });
+    this.collectionRecord.set('caseIDToIndexMap', map);
+    // The caseIndices map now indicates # cases for each parent
+    this.collectionRecord.set('caseCounts', caseIndices);
   },
   
   /**

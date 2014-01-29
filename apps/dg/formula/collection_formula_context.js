@@ -65,12 +65,6 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   aggFnCount: 0,
   
   /**
-    Map from case ID to case index.
-    @property {Object}  Map from case ID {Number} to case index {Number}.
-   */
-  caseIDToIndexMap: null,
-  
-  /**
     Initialization method.
    */
   init: function() {
@@ -92,36 +86,13 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   },
   
   /**
-    Build a map from case ID to case index.
-    Used to implement 'caseIndex' references.
-   */
-  updateCaseIDMap: function() {
-    var collection = this.get('collection'),
-        cases = collection && collection.get('cases'),
-        i, caseCount = cases && cases.get('length');
-    this.caseIDToIndexMap = {};
-    for( i = 0; i < caseCount; ++i) {
-      var tCase = cases.objectAt( i),
-          tCaseID = tCase && tCase.get('id');
-      if( !SC.none( tCaseID)) {
-        this.caseIDToIndexMap[ tCaseID] = i + 1;  // user-facing case index is 1-based
-      }
-    }
-  },
-  
-  /**
     Returns the case index for the give case ID.
-    Builds/uses the internal caseIDToIndexMap as needed.
     @param    {Number}    iCaseID -- The ID of the case being evaluated
     @returns  {Number}    The index of the case with the specified ID
    */
   getCaseIndex: function( iCaseID) {
-    // Note: It would be more efficient to have the collection maintain this map
-    // rather than having the context have to rebuild it whenever it changed,
-    // but this can serve as a stopgap measure until that is implemented.
-    if( !this.caseIDToIndexMap || (this.caseIDToIndexMap[ iCaseID] == null))
-      this.updateCaseIDMap();
-    return this.caseIDToIndexMap[ iCaseID];
+    var map = this.collection.caseIDToIndexMap;
+    return map && (map[ iCaseID] + 1); // 1-based index
   },
 
   /**

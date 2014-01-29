@@ -468,6 +468,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   doDeleteCases: function( iChange) {
   
     iChange.ids = [];
+    iChange.collectionIDs = {};
   
     var deleteCaseAndChildren = function( iCase) {
       var tChildren = iCase.get('children');
@@ -475,11 +476,21 @@ DG.DataContext = SC.Object.extend((function() // closure
         tChildren.forEach( deleteCaseAndChildren);
 
       iChange.ids.push( iCase.get('id'));
-      DG.Case.destroyCase( iCase);
+      
+      var tCollection = this.getCollectionForCase( iCase);
+      tCollection.deleteCase( iCase);
+      // keep track of the affected collections
+      iChange.collectionIDs[ tCollection.get('id')] = tCollection;
     }.bind( this);
     
     iChange.cases.forEach( deleteCaseAndChildren);
-    DG.store.commitRecords();
+
+    // Call didDeleteCases() for each affected collection
+    DG.ObjectMap.forEach( iChange.collectionIDs,
+                          function( iCollectionID, iCollection) {
+                            if( iCollection)
+                              iCollection.didDeleteCases();
+                          });
     return { success: true };
   },
   
