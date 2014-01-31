@@ -186,9 +186,9 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
             DG.logUser( "Show all parents:");
           }.bind( this ),
 
-          createNameElement = function() {
+          createShowAllElement = function() {
             var tClickHandling = false;
-            return this._paper.text( 0, 0, tModel.get('nameOfParentCollection' ) + ':')
+            return this._paper.text( 0, 0, 'DG.NumberToggleView.showAll'.loc() + ' -')
                       .attr( { font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
                                 fill: tModel.allCasesAreHidden() ? 'lightGray' : 'black',
                                 title: SC.String.loc( 'DG.NumberToggleView.overallTooltip') } )
@@ -257,7 +257,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
         var kSpace = 5,
             tModel = this.get('model' ),
             tNumParents = tModel.get('numberOfParents' ),
-            tNameElement = createNameElement(),
+            tNameElement = createShowAllElement(),
             tNameBox = tNameElement.getBBox(),
             tY = tNameBox.height / 2,
             tFirstX = tNameBox.x + tNameBox.width + kSpace,
