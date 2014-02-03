@@ -585,7 +585,9 @@ DG.GameController = DG.ComponentController.extend(
     DG.gameSelectionController.addCollectionSpecToGameSpecIfNecessary( iArgs.name, iArgs.attrs);
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
-        tCollectionProperties = { name: iArgs.name, areParentChildLinksConfigured: true },
+        tCollectionProperties = { name: iArgs.name,
+                                  collapseChildren: iArgs.collapseChildren,
+                                  areParentChildLinksConfigured: true },
         tGameCollections = DG.gameSelectionController.getPath('currentGame.collections');
     if( tGameCollections && tGameCollections.length > 1) {
       var tParentCollectionSpec = tGameCollections[ tGameCollections.length - 2],
