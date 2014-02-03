@@ -535,7 +535,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Simply append the new row
       dataView.setRefreshHints({ isFilterExpanding: true });
       dataView.addItem( rowInfo);
-      if( parentGroupInfo.isCollapsed)
+      if( parentID && parentGroupInfo.isCollapsed)
         dataView.collapseGroup( parentID);
     }
     parentGroupInfo.lastChildID = rowInfo.id;
