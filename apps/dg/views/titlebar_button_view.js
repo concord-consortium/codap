@@ -80,6 +80,9 @@ DG.TitleBarButtonView = SC.ImageView.extend(
         },
         mouseUp: function(evt) {
           if( this.get( 'isActive')) {
+            this.set( 'isActive', NO);
+            this.set( 'isMouseOver', NO);
+            this.set( 'isMouseDown', NO);
             this.closeIt();
           }
           else {

@@ -110,8 +110,14 @@ DG.ContainerView = SC.View.extend(
       }.property('frameNeedsUpdate').cacheable(),
       
       removeComponentView: function( iComponentView) {
-        DG.currDocumentController().removeComponentAssociatedWithView( iComponentView);
-        iComponentView.destroy();
+        var tCloseAction = iComponentView.get('closeAction');
+        if( tCloseAction) {
+          tCloseAction.action.apply( tCloseAction.target, tCloseAction.args );
+        }
+        else {
+          DG.currDocumentController().removeComponentAssociatedWithView( iComponentView);
+          iComponentView.destroy();
+        }
       },
       
       /**

@@ -67,8 +67,15 @@ DG.mainPage = SC.Page.design((function() {
         textAlign: SC.ALIGN_RIGHT,
         valueBinding: 'DG.authorizationController.currLogin.user'
       }),
-      
+
       init: function() {
+
+        var finishUpGuide = function() {
+          var tDocController = DG.currDocumentController();
+          tDocController.set('guideButton', this.guideButton);
+          tDocController.addGuideView( DG.mainPage.get('docView'));
+        }.bind(this);
+
         sc_super();
         var this_ = this,
             tLeft = 10;
@@ -78,6 +85,9 @@ DG.mainPage = SC.Page.design((function() {
           this_.appendChild( this_[ iButton.name]);
           tLeft += 50;
         });
+        // If we call this directly rather than invokeLater, Chrome (at least) gets
+        // all tangled up.
+        this.invokeLater( finishUpGuide, 10);
       }
       
     }), // topView

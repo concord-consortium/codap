@@ -49,7 +49,7 @@ DG.TitleBarGearView = SC.ImageView.extend(
         var tController = this.get('controller');
         return !SC.none( tController) ?
                 tController.get('gearMenuItems') : [];
-      }.property('controller'),
+      }.property('controller', 'controller.gearMenuItems'),
 
       updateVisibility: function() {
         var items = this.get('controllerItems'),

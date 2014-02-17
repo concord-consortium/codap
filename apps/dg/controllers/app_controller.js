@@ -40,6 +40,12 @@ DG.appController = SC.Object.create((function() // closure
   optionMenuPane: null,
 
   /**
+   * Options menu.
+   * @property {SC.MenuPane}
+   */
+  guideMenuPane: null,
+
+  /**
    * Initialization function.
    */
   init: function() {
@@ -52,7 +58,10 @@ DG.appController = SC.Object.create((function() // closure
               items: this.get('optionMenuItems'),
               layout: { width: 150 }
             });
-    
+    this.guideMenuPane = SC.MenuPane.create({
+              layout: { width: 250 }
+            });
+
     // Give the user a chance to confirm/cancel before closing, reloading,
     // or navigating away from the page. The sites listed below provide some
     // information on the 'beforeunload' event and its handling, but the upshot
@@ -108,6 +117,8 @@ DG.appController = SC.Object.create((function() // closure
     return [
       { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
         target: this, action: 'viewWebPage' },
+      { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
+        target: this, action: 'configureGuide' },
       { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
         target: this, action: 'reportProblem' },
       { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About Data Games...",
@@ -561,6 +572,13 @@ DG.appController = SC.Object.create((function() // closure
      */
     viewWebPage: function() {
       DG.currDocumentController().viewWebPage();
+    },
+
+    /**
+      Pass responsibility to document controller
+     */
+    configureGuide: function() {
+      DG.currDocumentController().configureGuide();
     },
 
     /**

@@ -109,8 +109,9 @@ DG.ViewUtilities = {
       kGap = 5, // Also used to increment during search
       tLoc = { x: kGap, y: kGap },
       tSuccess = false,
-      tViewRects = iViews.map( function( iView) { return iView.get('frame'); })
-      ;
+      tViewRects = iViews.map( function( iView) {
+        return iView.get('isVisible') ? iView.get('frame') : { x: 0, y: 0, width: 0, height: 0 };
+      });
     
     function intersectRect( r1, r2) {
       var tRes = (!isNaN( r1.x) && !isNaN( r1.y)) &&

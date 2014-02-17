@@ -120,5 +120,17 @@ DG.ToolButtonData = [
           toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change Data Games options"
           localize: true
       }}
+
+      , { name: 'guideButton',
+        desc: {
+          title: 'DG.ToolButtonData.guideMenu.title',  // "Guide"
+          iconName: static_url('images/guide.png'),
+          depressedIconName: static_url('images/guide_depressed.png'),
+          target: 'DG.appController.guideMenuPane',
+          action: 'popup',
+          toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change Data Games options"
+          localize: true,
+          isVisible: false
+      }}
 ];
 
