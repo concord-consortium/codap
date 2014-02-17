@@ -152,7 +152,6 @@ DG.ComponentView = SC.View.extend(
         kRightBorderCursor = SC.Cursor.create( { cursorStyle: SC.E_RESIZE_CURSOR }),
         kBottomBorderCursor = SC.Cursor.create( { cursorStyle: SC.S_RESIZE_CURSOR }),
         kLeftBorderCursor = SC.Cursor.create( { cursorStyle: SC.W_RESIZE_CURSOR }),
-        kTopBorderCursor = SC.Cursor.create( { cursorStyle: SC.N_RESIZE_CURSOR }),
         kCornerBorderCursor = SC.Cursor.create( { cursorStyle: SC.SE_RESIZE_CURSOR })
         ;
     return {
@@ -264,23 +263,11 @@ DG.ComponentView = SC.View.extend(
             }
         }),
         borderTop: DG.DragBorderView.design(
-          { layout: { top: 0, height: kDragWidth },
-            dragCursor: kTopBorderCursor,
+          { layout: { top: 0, height: 0 },
             dragAdjust: function( evt, info) {
-              var tContainerHeight = this.getContainerHeight(),
-                tNewHeight = info.height - (evt.pageY - info.pageY),
-                tLoc;
-              tNewHeight = Math.max( tNewHeight, kMinSize);
-              tLoc = info.top + info.height - tNewHeight;
-              // Don't let user drag top of component too close to doc bottom
-              if( (tLoc < tContainerHeight - kTitleBarHeight / 2) &&
-                  (tLoc > -kTitleBarHeight / 2)) {
-                this.parentView.adjust( 'height', tNewHeight);
-                this.parentView.adjust( 'top', tLoc);
-              }
             },
             canBeDragged: function() {
-              return this.parentView.get( 'isResizable');
+              return false;
             }
         }),
         borderCorner: DG.DragBorderView.design(
@@ -315,6 +302,13 @@ DG.ComponentView = SC.View.extend(
         sc_super();
       },
 
+      /**
+       * @property {Object} { action: {function}, target: {Object}, args: {Array}} or null
+       */
+      closeAction: function() {
+        return this.getPath('contentView.closeAction');
+      }.property(),
+
       addContent: function( iView) {
         var tFrame = iView.get('frame');
         if( tFrame.width > 0)
@@ -344,7 +338,7 @@ DG.ComponentView = SC.View.extend(
 );
 
 DG.ComponentView._createComponent = function(iComponentLayout, iComponentClass, iContentProperties,
-                      iTitle, iIsResizable) {
+                      iTitle, iIsResizable, iIsVisible) {
   var tComponentView = DG.ComponentView.create({ layout: iComponentLayout });
   tComponentView.addContent( iComponentClass.create( iContentProperties));
 
@@ -353,21 +347,26 @@ DG.ComponentView._createComponent = function(iComponentLayout, iComponentClass, 
   // pulls the value from the remote property. Therefore, we must wait
   // to set the title until after the binding has been connected.
   tComponentView.invokeLast( function() {
-                tComponentView.set('title', iTitle);
+                if( !SC.empty(iTitle))
+                  tComponentView.set('title', iTitle);
                 DG.logUser( "componentCreated: %@", iTitle);
               });
 
   if( !SC.none( iIsResizable))
     tComponentView.set( 'isResizable', iIsResizable);
+  if( !SC.none( iIsVisible))
+    tComponentView.set( 'isVisible', iIsVisible);
 
   return tComponentView;                    
 };
 
 DG.ComponentView.restoreComponent = function( iSuperView, iComponentLayout,
                       iComponentClass, iContentProperties,
-                      iTitle, iIsResizable) {
+                      iTitle, iIsResizable, iIsVisible) {
 
-  var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable);
+  var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
+                                              iTitle, iIsResizable,
+                                              iIsVisible);
 
   iSuperView.appendChild( tComponentView);
   iSuperView.set( 'frameNeedsUpdate', true);
@@ -387,14 +386,17 @@ DG.ComponentView.restoreComponent = function( iSuperView, iComponentLayout,
  */
 DG.ComponentView.addComponent = function( iSuperView, iComponentLayout,
                       iComponentClass, iContentProperties,
-                      iTitle, iIsResizable, iUseLayoutForPosition) {
+                      iTitle, iIsResizable, iUseLayoutForPosition,
+                      iIsVisible ) {
   iUseLayoutForPosition = iUseLayoutForPosition || false;
   if( !SC.none( iComponentLayout.width))
     iComponentLayout.width += DG.ViewUtilities.horizontalPadding();
   if( !SC.none( iComponentLayout.height))
     iComponentLayout.height += DG.ViewUtilities.verticalPadding();
 
-  var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable);
+  var tComponentView = this._createComponent(iComponentLayout, iComponentClass,
+                                              iContentProperties, iTitle, iIsResizable,
+                                              iIsVisible);
 
   if( !iUseLayoutForPosition)
     iSuperView.positionNewComponent( tComponentView);
