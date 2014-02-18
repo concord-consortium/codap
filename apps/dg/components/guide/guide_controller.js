@@ -46,6 +46,7 @@ DG.GuideController = DG.ComponentController.extend(
     modelContentsDidChange: function() {
       var tTitle = this.getPath('guideModel.title' ),
           tItems = this.getPath('guideModel.items' ),
+          tIconMenuItems = this.get('iconMenuItems' ),
           tButton = this.get('guideButton' ),
           tPane = this.get('guideMenuPane' ),
           tHasContent = !SC.empty( tTitle) || (tItems.length > 0);
@@ -55,13 +56,20 @@ DG.GuideController = DG.ComponentController.extend(
         var tShowGuide = 'DG.ToolButtonData.guideMenu.showGuide'.loc(),
             tMenuItems = [ { title: tShowGuide, isEnabled: true, target: this, action: 'showGuide' },
                           { isSeparator: true }];
-        tPane.set('items', tMenuItems.concat( this.get('iconMenuItems')));
+        tPane.set('items', tMenuItems.concat( tIconMenuItems));
+      }
+      // Set the currentURL to the first in the list
+      if( tIconMenuItems.length > 0) {
+        var tFirstItem = tIconMenuItems[ 0];
+        this.setPath('guideModel.currentURL', tFirstItem.url);
+        this.setPath('guideModel.currentItemTitle', tFirstItem.title);
       }
     }.observes('guideModel.title', 'guideModel.items'),
 
     showGuide: function() {
       var tComponentView = this.get('view');
       tComponentView.setPath('isVisible', true);
+      tComponentView.bringToFront();
       tComponentView.scrollToVisible();
     },
 
@@ -113,6 +121,12 @@ DG.GuideController = DG.ComponentController.extend(
       return tMenuItems;
     }.property(),
 
+    viewDidChange: function() {
+      if( !SC.none( this.tempIsVisible))
+        this.setPath('view.isVisible', this.tempIsVisible);
+      this.tempIsVisible = undefined;
+    }.observes('view'),
+
     createComponentStorage:function () {
       var tStorage = this.get('guideModel' ).createComponentStorage();
       tStorage.isVisible = this.getPath('view.isVisible' );
@@ -122,7 +136,7 @@ DG.GuideController = DG.ComponentController.extend(
     restoreComponentStorage:function ( iComponentStorage ) {
       this.get('guideModel' ).restoreComponentStorage( iComponentStorage);
       if( !SC.none( iComponentStorage.isVisible))
-        this.setPath('view.isVisible', iComponentStorage.isVisible);
+        this.tempIsVisible = iComponentStorage.isVisible;
     }
 
 });

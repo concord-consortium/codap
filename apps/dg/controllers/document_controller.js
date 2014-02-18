@@ -734,7 +734,6 @@ DG.DocumentController = SC.Object.extend(
     DG.store.commitRecords();
     
     DG.gameSelectionController.reset();
-    this.get('guideModel').reset();
     this.closeAllComponents();
   },
   
@@ -742,6 +741,10 @@ DG.DocumentController = SC.Object.extend(
     this._singletonViews = {};
 
     this.componentControllersMap = {};
+
+    // Reset the guide
+    this.get('guideModel').reset();
+    this.setPath('guideController.view', null);
   },
   
   removeComponentAssociatedWithView: function( iComponentView) {
