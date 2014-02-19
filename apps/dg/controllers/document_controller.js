@@ -632,8 +632,10 @@ DG.DocumentController = SC.Object.extend(
                             controller: tController,
                             componentClass: { type: 'DG.GuideView', constructor: DG.GuideView},
                             contentProperties: { backgroundColor: 'white', guideModel: tModel,
-                                                  controller: tController,
-                                                  closeAction: { action: this.closeGuideView, target: this }},
+                                                  controller: tController
+                              ,
+                                                  closeAction: { action: this.closeGuideView, target: this }
+                            },
                             defaultLayout: { width: 400, height: 200 },
                             isResizable: true,
                             useLayout: true,
@@ -663,13 +665,14 @@ DG.DocumentController = SC.Object.extend(
         tDialog = null,
         tGuideModel = this.get('guideModel');
 
-      function storeGuideModel() {
+      var storeGuideModel = function () {
+        this.addGuideView( DG.mainPage.docView);  // Make sure we have one hooked up to model
         tGuideModel.beginPropertyChanges();
           tGuideModel.set('title', tDialog.get('title'));
           tGuideModel.set('items', tDialog.get('items'));
         tGuideModel.endPropertyChanges();
         tDialog.close();
-      }
+      }.bind(this);
 
     tDialog = DG.CreateGuideConfigurationView( {
                     okTarget: null,
@@ -744,7 +747,6 @@ DG.DocumentController = SC.Object.extend(
 
     // Reset the guide
     this.get('guideModel').reset();
-    this.setPath('guideController.view', null);
   },
   
   removeComponentAssociatedWithView: function( iComponentView) {

@@ -75,8 +75,7 @@ DG.GuideController = DG.ComponentController.extend(
 
     guideNavigation: function() {
       var tUrl = this.getPath('guideMenuPane.selectedItem.url' ),
-          tItemTitle = this.getPath('guideMenuPane.selectedItem.title' ),
-          tComponentView = this.get('view');
+          tItemTitle = this.getPath('guideMenuPane.selectedItem.title' );
       this.setPath('guideModel.currentURL', tUrl);
       this.setPath('guideModel.currentItemTitle', tItemTitle);
       this.showGuide();

@@ -438,8 +438,7 @@ DG.appController = SC.Object.create((function() // closure
 
     // Create a new empty document
     DG.currDocumentController().setDocument( DG.currDocumentController().createDocument());
-    DG.currDocumentController().createComponentAndView( null, 'DG.GuideView');
-    
+
     // New documents generally start with a default game
     // TODO: Eliminate redundancy with DG.authorizationController....
     DG.gameSelectionController.setDefaultGame( iDefaultGameName);
