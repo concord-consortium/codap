@@ -43,7 +43,14 @@ DG.GuideView = SC.WebView.extend(
       },
 
       currentURLDidChange: function() {
-        this.set('value', this.get('realURL'));
+        // In Chrome, a direct call to set the URL often fails. We've experimented with
+        // different delays and found 500 to work reliably.
+        // Bottom line is we don't understand what's going on and why it only affects Chrome
+        // TODO: Understand this and figure out how to get rid of the invokeLater
+        this.invokeLater( function() {
+          this.set('value', this.get('realURL'));
+        }.bind(this),
+        500);
       }.observes('guideModel.currentURL')
 
     };
