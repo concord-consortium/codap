@@ -930,7 +930,8 @@ DG.GameController = DG.ComponentController.extend(
     // components have been read in successfully. Otherwise, we can end up with multiple
     // instances of the game component and other anomalies.
     // In Chrome, not using a delay, or a delay of < 500 ms URL often fails. We've experimented with
-    // different delays and found 500 to work reliably.
+    // different delays and for awhile we thought 500ms was good. But further testing, especially
+    // with template documents revealed that this has problems. So now we're trying 2000ms.
     // Bottom line is we don't understand what's going on and why it only affects Chrome
     // TODO: Understand this and figure out how to get rid of the invokeLater
     DG.gameSelectionController.invokeLater( function() {
@@ -939,7 +940,7 @@ DG.GameController = DG.ComponentController.extend(
                                                           requestedDimensions);
                                   this.set('gameIsReady', true);
                                }.bind(this),
-                          500);
+                           2000);
   },
   
   /**
