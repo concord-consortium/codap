@@ -453,9 +453,9 @@ DG.DocumentController = SC.Object.extend(
   },
   
   addGame: function( iParentView, iComponent) {
-    var tGameParams = DG.gameSelectionController.get('currentDimensions'),
-        tGameName = DG.gameSelectionController.get('currentName');
-    
+    var tGameParams = DG.gameSelectionController.get('currentDimensions') || { width: 0, height: 0 },
+        tGameName = DG.gameSelectionController.get('currentName') || '';
+
     var tView = this.createComponentView(iComponent, {
                               parentView: iParentView, 
                               controller: DG.currGameController,
