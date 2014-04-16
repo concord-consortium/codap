@@ -192,11 +192,14 @@ DG.mainPage = SC.Page.design((function() {
       addGame() - Will be called from main after mainPage.mainPane has been
         initialized. We can't describe the flashView as a childView because
         it isn't simple enough; i.e. it requires using DG.ComponentView.
+        4/15/14 (wff) Removed observes('DG.gameSelectionController.currentGame') in order
+          to prevent a second gameview from being created during restore document.
+          Seems not to be needed at all for choosing from game menu.
      */
   addGame: function() {
     if( !DG.currDocumentController().get('gameView'))
       DG.currDocumentController().addGame( this.scrollView.contentView);
-  }.observes('DG.gameSelectionController.currentGame')
+  }//.observes('DG.gameSelectionController.currentGame')
   
   }), // mainPane
 
