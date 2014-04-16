@@ -66,24 +66,18 @@ DG.GuideModel = SC.Object.extend(
     },
 
     restoreComponentStorage: function( iStorage) {
-      var tRestore = function() {
-        this.beginPropertyChanges();
-          if( iStorage.currentURL)
-            this.set('currentURL', iStorage.currentURL);
-          if( iStorage.title)
-            this.set('title', iStorage.title);
-          if( iStorage.title)
-            this.set('currentItemTitle', iStorage.currentItemTitle);
-          if( iStorage.items)
-            this.set('items', iStorage.items);
-        this.endPropertyChanges();
-      }.bind(this);
-
-      // We do this through invokeLater because Chrome has trouble accessing the URL
-      // unless everything has settled down
-      // TODO: In the long run we don't want a view level dependency here in the model
-      // Kirk suggests moving away from bindings and using addObserver instead
-      this.invokeLater( tRestore, 500);
+    // For a while we had an invokeLater wrapping the following because it improved
+    // Chromes ability to load iframes. But we think fixed that in a better way
+      this.beginPropertyChanges();
+        if( iStorage.currentURL)
+          this.set('currentURL', iStorage.currentURL);
+        if( iStorage.title)
+          this.set('title', iStorage.title);
+        if( iStorage.title)
+          this.set('currentItemTitle', iStorage.currentItemTitle);
+        if( iStorage.items)
+          this.set('items', iStorage.items);
+      this.endPropertyChanges();
     }
 
   } );
