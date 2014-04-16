@@ -51,6 +51,10 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   background: none;
 }
 
+.slick-cell.selected {
+    background-color: rgba(250, 28, 49, 0.3);
+}
+
 /**
  * Style the drop-down menu here since the plugin stylesheet mostly contains structural CSS.
  * Based on http://mleibman.github.com/SlickGrid/examples/example-plugin-headermenu.html
