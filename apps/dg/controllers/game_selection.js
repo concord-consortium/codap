@@ -36,6 +36,13 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
    * @property {Array of DG.[Base]GameSpec}
    */
   baseGames: [
+    // This first, 'null' gamespec is part of our transition to getting rid of Game menu
+    DG.GameSpec.create({
+      name: "Please choose an activity",
+      dimensions: { width: 300, height: 20 },
+      url: ''
+    }),
+
     DG.GameSpec.create({
       name: "Cart Weight",
       dimensions: { width: 290, height: 350 },
