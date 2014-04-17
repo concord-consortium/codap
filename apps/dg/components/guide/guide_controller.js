@@ -49,7 +49,8 @@ DG.GuideController = DG.ComponentController.extend(
           tIconMenuItems = this.get('iconMenuItems' ),
           tButton = this.get('guideButton' ),
           tPane = this.get('guideMenuPane' ),
-          tHasContent = !SC.empty( tTitle) || (tItems.length > 0);
+          tHasContent = !SC.empty( tTitle) || (tItems.length > 0),
+          tCurrentURL = this.getPath('guideModel.currentURL');
       if( tButton)
         tButton.set('isVisible', tHasContent);
       if( tPane) {
@@ -59,7 +60,7 @@ DG.GuideController = DG.ComponentController.extend(
         tPane.set('items', tMenuItems.concat( tIconMenuItems));
       }
       // Set the currentURL to the first in the list
-      if( tIconMenuItems.length > 0) {
+      if( (tIconMenuItems.length > 0) && SC.empty( tCurrentURL)) {
         var tFirstItem = tIconMenuItems[ 0];
         this.setPath('guideModel.currentURL', tFirstItem.url);
         this.setPath('guideModel.currentItemTitle', tFirstItem.title);

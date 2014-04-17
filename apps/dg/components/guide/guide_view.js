@@ -40,12 +40,13 @@ DG.GuideView = SC.WebView.extend(
       init: function() {
         sc_super();
         DG.assert( !SC.none( this.get( 'guideModel' ) ) );
+        this.currentURLDidChange(); // So that the model's currentURL can be installed
       },
 
       currentURLDidChange: function() {
       // For a while we had an invokeLater wrapping the following because it improved
       // Chromes ability to load the iframe. But we think fixed that in a better way
-          this.set('value', this.get('realURL'));
+        this.set('value', this.get('realURL'));
       }.observes('guideModel.currentURL')
 
     };
