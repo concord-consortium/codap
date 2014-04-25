@@ -60,7 +60,7 @@ This should run the CODAP application and bring up the login dialog.
 
 ## Configure CODAP Login ##
 
-By default, the CODAP application proxies to http://dg.kcptech.com. Guest access is available, but a user account is required to be able to save and restore documents. It's free to [create a user account](http://play.ccssgames.com/user/register), if desired.
+By default, the CODAP application proxies to http://dg.ccssgames.com. Guest access is available, but a user account is required to be able to save and restore documents. It's free to [create a user account](http://play.ccssgames.com/user/register), if desired.
 
 ## Modifying the CODAP Source ##
 
