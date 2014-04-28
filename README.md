@@ -10,6 +10,12 @@ Starting in 2012 CODAP became the data analysis environment for Concord Consorti
 
 In April, 2014, CODAP (project web site being developed) received NSF funding as a project in its own right with the goal of developing a platform that can be used by developers of online curriculum materials that engage learners with data. Initial collaborations are: continuing work with InquirySpace and new work with [OceanTracks](http://oceantracks.org) at [EDC](http://www.edc.org) and [Terra Populus](http://www.terrapop.org) at the [Minnesota Population Center](https://www.pop.umn.edu/index.php). CODAP's success depends on the extent to which a community of developers embraces it as a way to bring dynamic, interactive data science tools to classroom (and other) learning.
 
+### What CODAP Looks Like
+
+What CODAP looks like will depend strongly on the context. But below is a screen shot of CODAP in use with an InquirySpace investigation. The **Terminal Velocity** component is a simulation that is streaming data to CODAP. Note the hierarchical structure of the data in which there are five runs, each containing a time series. Note also the linked selection in which the fourth run and its time series are selected.
+
+![CODAP as it appears in InquirySpace](codap_screen.jpg)
+
 ### The License
 
 CODAP software is provided here under an open-source Apache 2.0 license.
