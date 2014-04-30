@@ -157,7 +157,7 @@ DG = SC.Application.create( (function() // closure
   };
   
   var isDevBuild = function() {
-    return (window.location.href.indexOf('-dev.kcptech.com') >= 0) ||
+    return (window.location.href.indexOf('-dev.codap.concord.org') >= 0) ||
            (window.location.href.indexOf('localhost:4020') >= 0);
   };
   
