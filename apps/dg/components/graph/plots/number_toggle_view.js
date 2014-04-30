@@ -205,21 +205,25 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
           createNumberElements = function() {
             // Create the number elements and stash their widths
-            var tIndex;
+            var tIndex, tClickHandling = false;
+
+            function doMouseDown( iEvent) {
+              tClickHandling = true;
+            }
+
+            function doMouseUp( iEvent) {
+              if( tClickHandling)
+                toggleNumber(this);
+              tClickHandling = false;
+            }
+
             for( tIndex = 0; tIndex < tNumParents; tIndex++ ) {
-              var tClickHandling = false,
-                  tFill = tModel.allChildrenAreHidden( tIndex) ? 'lightGray' : 'black',
+              var tFill = tModel.allChildrenAreHidden( tIndex) ? 'lightGray' : 'black',
                   tElement = this._paper.text( -100, tY, tIndex + 1)
                     .attr({ font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
                             fill: tFill })
-                    .mousedown( function() {
-                      tClickHandling = true;
-                    })
-                    .mouseup( function() {
-                      if( tClickHandling)
-                        toggleNumber( this);
-                      tClickHandling = false;
-                    });
+                    .mousedown( doMouseDown)
+                    .mouseup( doMouseUp);
 
               tElement.width = tElement.getBBox().width;  // Assigning new properties to Raphael element for convenience
               tElement.toggleIndex = tIndex;
