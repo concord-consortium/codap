@@ -66,6 +66,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
   }.observes('.movableLine.slope', '.movableLine.intercept'),
 
   /**
+   * @property{Boolean}
+   */
+  isMapVisible: false,
+
+  /**
    * Utility function to create a movable line when needed
    */
   createMovableLine: function() {
@@ -133,6 +138,13 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     this.set('areSquaresVisible', !this.get('areSquaresVisible'));
   },
 
+  /**
+    Convenience method for toggling Boolean property
+  */
+  toggleMap: function() {
+    this.toggleProperty('isMapVisible');
+  },
+
   handleDataConfigurationChange: function() {
     sc_super();
     this.rescaleAxesFromData( true, /* allow scale shrinkage */
@@ -183,7 +195,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
             'DG.ScatterPlotModel.UnlockIntercept' :
             'DG.ScatterPlotModel.LockIntercept').loc(),
         tPlotFunctionItem = tFunctionIsVisible ? "Hide Plotted Function" : "Plot Function",
-        tShowSquaresItem = this.get( 'areSquaresVisible') ? "Hide Squares" : "Show Squares"
+        tShowSquaresItem = this.get( 'areSquaresVisible') ? "Hide Squares" : "Show Squares",
+        tShowMapItem = this.get( 'isMapVisible') ? "Hide Map" : "Show Map"
       ;
     return [
       { title: "Rescale to Data", target: this_, itemAction: this_.rescaleAxesFromData,
@@ -195,7 +208,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
           isEnabled: tLineIsVisible },
       { title: tPlotFunctionItem, target: this_, itemAction: this.togglePlotFunction },
       { title: tShowSquaresItem, target: this_, itemAction: this.toggleShowSquares,
-          isEnabled: tLineIsVisible || tFunctionIsVisible }
+          isEnabled: tLineIsVisible || tFunctionIsVisible },
+      { title: tShowMapItem, target: this_, itemAction: this.toggleMap }
     ].concat( sc_super());
   },
 
@@ -209,6 +223,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       tStorage.movableLineStorage = tMovableLine.createStorage();
     if( this.get( 'areSquaresVisible'))
       tStorage.areSquaresVisible = true;
+    if( this.get( 'isMapVisible'))
+      tStorage.isMapVisible = true;
 
     return tStorage;
   },
@@ -239,6 +255,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     }
     if( iStorage.areSquaresVisible)
       this.toggleShowSquares();
+    if( iStorage.isMapVisible)
+      this.set('isMapVisible', true);
 
     // Legacy document support
     if( iStorage.plottedFunctionStorage) {

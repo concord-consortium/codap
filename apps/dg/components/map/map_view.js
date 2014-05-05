@@ -38,6 +38,7 @@ DG.MapView = SC.View.extend(
     home: null,
     homeBounds: null,
     zoom:8,
+    opts: null,
 
     map: function() {
       return this._map;
@@ -77,7 +78,7 @@ DG.MapView = SC.View.extend(
       } else {
         google.maps.visualRefresh = true;
 
-        var opts = {
+        var opts = this.opts || {
           zoom:this.get( 'zoom' ),
           center:this.get( 'home' ),
           panControl: false,
@@ -88,8 +89,10 @@ DG.MapView = SC.View.extend(
           mapTypeId:google.maps.MapTypeId.ROADMAP
         };
 
-        var div = this.$( 'div' )[0];
-        var map = new google.maps.Map( div, opts );
+        var div = this.$( 'div' )[0],
+            map = new google.maps.Map( div, opts );
+        if( opts.bounds)
+          map.fitBounds( opts.bounds);
 
         this._map = map;
 

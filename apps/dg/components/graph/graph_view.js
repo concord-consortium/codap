@@ -131,6 +131,40 @@ DG.GraphView = SC.View.extend(
         tLegendView = DG.LegendView.create();
 
     sc_super();
+    /* Prototype that places a MapView in my rectangle */
+    var tXLower = tXAxis.get('lowerBound' ),
+        tXUpper = tXAxis.get('upperBound' ),
+        tYLower = tYAxis.get('lowerBound' ),
+        tYUpper = tYAxis.get('upperBound' ),
+        tSW = new google.maps.LatLng( tYLower, tXLower, true ),
+        tNE = new google.maps.LatLng( tYUpper, tXUpper, true ),
+        tCenter = new google.maps.LatLng( (tYLower + tYUpper) / 2, (tXLower + tXUpper) / 2, true ),
+        tPixelWidth = 600,
+//        tPixelWidth = tXAxisView.get('pixelMax') - tXAxisView.get('pixelMin' ),
+        GLOBE_WIDTH = 256, // a constant in Google's map projection
+        west = tXLower,
+        east = tXUpper,
+        angle = east - west;
+    if (angle < 0) {
+      angle += 360;
+    }
+    var zoom = Math.round(Math.log(tPixelWidth * 360 / angle / GLOBE_WIDTH) / Math.LN2);
+    var tMapView = DG.MapView.create( {
+          model: DG.MapModel.create(),
+          layout: { left: 0, right: 0, top: 0, bottom: 0},
+          opts: {
+            zoom: zoom,
+            center: tCenter,
+            panControl: false,
+            zoomControl: false,
+            mapTypeId:google.maps.MapTypeId.SATELLITE,
+            mapTypeControl: false,
+            streetViewControl: false
+//            bounds: new google.maps.LatLngBounds( tSW, tNE)
+          }
+        });
+    this.appendChild( tMapView);
+
     this.createMultiTarget();
     this._plotViews = [];
 
