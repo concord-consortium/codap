@@ -4,7 +4,7 @@
 //  Author: William Finzer
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
-//  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+//  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
 //
 //  you may not use this file except in compliance with the License.
 //  You may obtain a copy of the License at

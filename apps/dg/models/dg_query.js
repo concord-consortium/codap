@@ -4,7 +4,7 @@
 //  Replace the orderStoreKeys method of SC.Query with one that avoids
 //  sorting the storeKeys unless it's necessary.
 //
-//  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+//  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
