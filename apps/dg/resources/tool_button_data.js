@@ -64,6 +64,17 @@ DG.ToolButtonData = [
           localize: true
       }},
 
+      { name: 'mapButton',
+        desc: {
+          title: 'DG.ToolButtonData.mapButton.title', // "Map"
+          iconName: static_url('images/map.png'),
+          depressedIconName: static_url('images/map_depressed.png'),
+          target: 'DG.mainPage',
+          action: 'toggleMap',
+          toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
+          localize: true
+      }},
+
       { name: 'sliderButton',
         desc: {
           title: 'DG.ToolButtonData.sliderButton.title',  // "Slider"
@@ -96,19 +107,6 @@ DG.ToolButtonData = [
           toolTip: 'DG.ToolButtonData.textButton.toolTip',  // "Make a text object (ctrl-alt-shift-t)"
           localize: true
       }}
-
-//@if(debug)
-      , { name: 'mapButton',
-        desc: {
-          title: 'DG.ToolButtonData.mapButton.title', // "Map"
-          iconName: static_url('images/map.png'),
-          depressedIconName: static_url('images/map_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'toggleMap',
-          toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
-          localize: true
-      }}
-//@endif
 
       , { name: 'optionButton',
         desc: {
