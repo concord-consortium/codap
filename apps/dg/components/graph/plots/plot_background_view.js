@@ -21,22 +21,6 @@
 sc_require('components/graph/utilities/graph_drop_target');
 sc_require('views/raphael_base');
 
-/**
- * Define constants for layers used in a plot.
- */
-DG.LayerNames = {
-  kBackground: 'background',
-  kGrid: 'grid',
-  kIntervalShading: 'intervalShading',
-  kClick: 'click',
-  kGhost: 'ghost',
-  kConnectingLines: 'connectingLines',
-  kPoints: 'points',
-  kSelectedPoints: 'selectedPoints',
-  kAdornments: 'adornments',
-  kDataTip: 'dataTip'
-};
-
 /** @class  DG.PlotBackgroundView - The base class view for a plot.
 
   @extends DG.RaphaelBaseView
