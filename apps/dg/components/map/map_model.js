@@ -77,7 +77,11 @@ DG.MapModel = DG.DataDisplayModel.extend(
         DG.logUser("caseSelected: %@", iIndex);
       else
         DG.logUser("caseDeselected: %@", iIndex);
-    }
+    },
+
+    getLatLngBounds: function() {
+
+    },
 
   } );
 
