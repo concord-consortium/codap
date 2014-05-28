@@ -177,7 +177,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     if( !this.get('paper'))
       return;
     // TODO: Encapsulate access to selection in plotModel.
-    var tArrayOfValuesArrays = this.getPath('model.values' ),
+    var tArrayOfValuesArrays = this.getPath('model.values' ) || [], // In certain situations 'model.values' can be null
         tSelection = this.getPath('model.plotModel.selection');
     tArrayOfValuesArrays.forEach( function( iValues, iLineNum) {
       var
