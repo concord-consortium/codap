@@ -3,7 +3,7 @@
 //
 //  Author:   William Finzer
 //
-//  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+//  Copyright ©2014 Concord Consortium
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -17,94 +17,68 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/* global google */
 
 /** @class  DG.MapView
 
- A view on a map.
-
- Tips on how to define a google maps view as a subclass of SC.View can be found at:
- https://groups.google.com/forum/#!msg/sproutcore/aZUnKzq-aC0/ZdYMZNKKUv4J
-
- Documentation for Google Maps can be found at:
- https://developers.google.com/maps/documentation/javascript/
+ A view on a map and plotted data.
 
  @extends SC.View
  */
 DG.MapView = SC.View.extend(
   /** @scope DG.MapView.prototype */ {
 
-    homeButton: null,
-    home: null,
-    homeBounds: null,
-    zoom:8,
-    opts: null,
+    /**
+     * @property {DG.MapModel}
+     */
+    model: null,
 
-    map: function() {
-      return this._map;
-    }.property('_map'),
+    /**
+     * @property {DG.MapLayer}
+     */
+    mapLayer: null,
 
-    didCreateMap: function( iMap) {
-      if( iMap) {
-        google.maps.event.addListener( iMap, 'tilesloaded', function() {
-          if( !this.homeBounds)
-            this.set('homeBounds', iMap.getBounds());
-        }.bind(this));
-      }
-    },
+    /**
+     * @property {DG.MapPointView}
+     */
+    mapPointView: null,
 
     init: function() {
       sc_super();
-
-      if( window.google && window.google.maps)
-        this.set('home', new google.maps.LatLng( 37.782112, -122.391815 ));  // San Francisco
+      this.set('mapLayer', DG.MapLayer.create({ containerView: this }));
     },
 
+    addPointLayer: function() {
+      this.set('mapPointView', DG.MapPointView.create(
+        {
+          mapLayer: this.get('mapLayer')
+        }));
+      this.setPath('mapPointView.model', this.get('model'))
+      this.appendChild( this.get( 'mapPointView'));
+    },
+
+    /**
+     * Provide an element on which we can draw.
+     * @param ctx
+     * @param first
+     */
     render:function ( ctx, first ) {
-      if( first ) {
-        ctx.push( '<div style="position:absolute;top:0;left:0;right:0;bottom:0"></div>' );
-      }
+      sc_super();
+      this.get('mapLayer' ).render( ctx, first);
     },
 
+    /**
+     * Additional setup after creating the view
+     */
     didCreateLayer:function () {
-      this.invokeLast( '_createMap' );
+      this.get('mapLayer' ).didCreateLayer();
     },
 
-    _createMap:function () {
-      if( !window.google || !window.google.maps)
-        return;
-      if( this._map ) {
-        google.maps.event.trigger( this._map, 'resize' );
-      } else {
-        google.maps.visualRefresh = true;
-
-        var opts = this.opts || {
-          zoom:this.get( 'zoom' ),
-          center:this.get( 'home' ),
-          panControl: false,
-          zoomControl: true,
-          zoomControlOptions: {
-                  position: google.maps.ControlPosition.LEFT_BOTTOM
-              },
-          mapTypeId:google.maps.MapTypeId.ROADMAP
-        };
-
-        var div = this.$( 'div' )[0],
-            map = new google.maps.Map( div, opts );
-        if( opts.bounds)
-          map.fitBounds( opts.bounds);
-
-        this._map = map;
-
-        if( this.didCreateMap ) this.didCreateMap( map );
-      }
-    },
-
-    viewDidResize: function() {
-      var tMap = this.get('map');
-      if( tMap) {
-        google.maps.event.trigger(tMap, 'resize');
-      }
+    /**
+     * Pass to layers
+     */
+    viewDidResize:function () {
+      sc_super();
+      this.get('mapLayer' ).viewDidResize();
     }
 
   }

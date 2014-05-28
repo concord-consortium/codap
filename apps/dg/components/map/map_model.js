@@ -3,7 +3,7 @@
 //
 //  Author:   William Finzer
 //
-//  Copyright ©2013 KCP Technologies, Inc., a McGraw-Hill Education Company
+//  Copyright ©2014 Concord Consortium
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('models/data_display_model');
+
 /** @class  DG.MapModel - The model for a map.
 
- @extends SC.Object
+ @extends DG.DataDisplayModel
  */
-DG.MapModel = SC.Object.extend(
+DG.MapModel = DG.DataDisplayModel.extend(
   /** @scope DG.MapModel.prototype */
   {
     /**
@@ -30,11 +32,52 @@ DG.MapModel = SC.Object.extend(
      */
     init: function() {
       sc_super();
+      this.set( 'dataConfiguration', DG.MapDataConfiguration.create(
+        {
+          dataContext: this.get('dataContext')
+        }
+      ) );
     },
 
     destroy: function() {
       sc_super();
     },
+
+    /**
+      @param {Number} The index of the case to be selected.
+      @param {Boolean} Should the current selection be extended?
+    */
+    selectCaseByIndex: function( iIndex, iExtend) {
+      var tCases = this.get('cases'),
+          tCase = tCases[ iIndex],
+          tSelection = this.get('selection'),
+          tChange = {
+            operation: 'selectCases',
+            collection: this.get('collectionClient'),
+            cases: [ tCase ],
+            select: true,
+            extend: iExtend
+          };
+
+      if( tSelection.get('length') !== 0) {
+        if( tSelection.contains( tCase)) {  // Case is already selected
+          if( iExtend) {
+            tChange.select = false;
+          }
+          // clicking on a selected case leaves it selected
+          else return;
+        }
+        else {
+          tChange.select = true;
+        }
+      }
+
+      this.get('dataContext').applyChange( tChange);
+      if( tChange.select)
+        DG.logUser("caseSelected: %@", iIndex);
+      else
+        DG.logUser("caseDeselected: %@", iIndex);
+    }
 
   } );
 
