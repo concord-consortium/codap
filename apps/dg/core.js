@@ -160,6 +160,10 @@ DG = SC.Application.create( (function() // closure
     return (window.location.href.indexOf('-dev.codap.concord.org') >= 0) ||
            (window.location.href.indexOf('localhost:4020') >= 0);
   };
+
+  var isTestBuild = function() {
+    return (window.location.href.indexOf('-test.') >= 0);
+  };
   
   // Attach ?fix='true' to the URL to use fixtures
   fixtures = getUrlParameter('fix');
@@ -203,7 +207,7 @@ DG = SC.Application.create( (function() // closure
    * Drupal site.  Interactions which are done programmatically, like authentication, in which the user is not directly
    * involve in is done using the server as the middleman for security purposes.
    */
-  DRUPAL_SUBDOMAIN: 'play.',
+  DRUPAL_SUBDOMAIN: 'play', // see also getDrupalSubdomain()
 
   IS_DG_BUILD: isDGBuild(),
 
@@ -226,6 +230,18 @@ DG = SC.Application.create( (function() // closure
         key += '.SRRI_BUILD';
     }
     return key;
+  },
+
+  // get the drupal subdomain sub-string, eg. "play-srri.", "play-srri-test." to form 'play-srri-test.kcptech.com", etc.
+  getDrupalSubdomain: function() {
+    var domainString = DG.DRUPAL_SUBDOMAIN;
+    if( DG.IS_SRRI_BUILD) {
+      domainString += '-srri';
+    }
+    if( isTestBuild()) {
+      domainString += '-test';
+    }
+    return domainString + '.';
   },
   
   IS_DEV_BUILD: isDevBuild(),

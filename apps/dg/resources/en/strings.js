@@ -39,8 +39,8 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.passwordLabel'  : "Password",
   'DG.Authorization.loginPane.loginAsGuest'   : "Login as guest",
   'DG.Authorization.loginPane.login'          : "Login",
-  'DG.Authorization.loginPane.registerLink'   : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/register'>Create a new account</a>",
-  'DG.Authorization.loginPane.recoveryLink'   : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/password'>Forgot your password?</a>",
+  'DG.Authorization.loginPane.registerLink'   : "<a href='http://%@/user/register'>Create a new account</a>",
+  'DG.Authorization.loginPane.recoveryLink'   : "<a href='http://%@/user/password'>Forgot your password?</a>",
   'DG.Authorization.loginPane.error.general'  : "Error occurred while logging in",
   'DG.Authorization.loginPane.error.userDatabaseError' : "Error connecting to the user database",
   'DG.Authorization.loginPane.error.authFailed': "Invalid username or password",
@@ -54,9 +54,9 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.recoveryLink.IS_BUILD' : "",
 
   // DG.IS_SRRI_BUILD variants of strings for SRRI build
-  'DG.mainPage.mainPane.versionString.SRRI_BUILD' : "Version %@ (%@.srri7)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
-  'DG.Authorization.loginPane.registerLink.SRRI_BUILD' : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/register'>Create a new account</a>",
-  'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://"+DG.DRUPAL_SUBDOMAIN+"%@/user/password'>Forgot your password?</a>",
+  'DG.mainPage.mainPane.versionString.SRRI_BUILD' : "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  'DG.Authorization.loginPane.registerLink.SRRI_BUILD' : "<a href='http://%@/user/register'>Create a new account</a>",
+  'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://%@/user/password'>Forgot your password?</a>",
 
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
@@ -78,11 +78,12 @@ SC.stringsFor('English', {
   'DG.AppController.closeDocument.cancelButtonTitle' : "Cancel",
   'DG.AppController.beforeUnload.confirmationMessage' : "The document contains unsaved changes.",
   'DG.AppController.optionMenuItems.reportProblem' : "Report Problem...",
-  'DG.AppController.optionMenuItems.viewWebPage' : "View Web Page...",
+  'DG.AppController.optionMenuItems.viewWebPage' : "Display Web Page...",
   'DG.AppController.optionMenuItems.configureGuide' : "Configure Guide...",
   'DG.AppController.optionMenuItems.about' : "About Data Games...",
   'DG.AppController.optionMenuItems.releaseNotes' : "What's New?",
   'DG.AppController.optionMenuItems.help' : "Help...",
+  'DG.AppController.optionMenuItems.toWebSite' : "Data Games website",
   'DG.AppController.optionMenuItems.logout' : "Logout",
   'DG.AppController.openDocument.prompt' : "Choose a document to open:",
   'DG.AppController.openDocument.okTitle' : "Open",
@@ -108,6 +109,14 @@ SC.stringsFor('English', {
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with JSON export",
   'DG.AppController.reportProblem.dialogTitle' : "Report Data Games Problem",
+  'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
+  'DG.AppController.showWebSiteURL' : '/', // path on Drupal website
+  'DG.AppController.showHelpURL' : '/support', // path on Drupal website
+  'DG.AppController.showHelpTitle' : 'Help with Data Games',
+  'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
+  'DG.AppController.showAboutTitle' : 'About Data Games',
+  'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
+  'DG.AppController.showReleaseNotesTitle' : 'Data Games Release Notes',
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
@@ -168,7 +177,7 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.mapButton.title' : "Map",
   'DG.ToolButtonData.mapButton.toolTip' : "Make a map",
   'DG.ToolButtonData.optionMenu.title' : "Options",
-  'DG.ToolButtonData.optionMenu.toolTip' : "Delete data, report a problem, learn about Data Games, ...",
+  'DG.ToolButtonData.optionMenu.toolTip' : "Help, activities, learn about Data Games, ...",
   'DG.ToolButtonData.guideMenu.title' : "Guide",
   'DG.ToolButtonData.guideMenu.toolTip' : "Show the guide for this activity and navigate within it",
   'DG.ToolButtonData.guideMenu.showGuide' : "Show Guide",

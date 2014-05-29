@@ -63,7 +63,7 @@ DG.NumericPlotModelMixin =
       tOldBoundsArray = [];
   
     function setNewBounds( iPlace, iAxis) {
-      var tAttribute = iAxis.getPath('attributeDescription.attribute');
+      var tAttribute = iAxis && iAxis.getPath('attributeDescription.attribute');
       if( !iAxis || !iAxis.setDataMinAndMax || (tAttribute === DG.Analysis.kNullAttribute))
         return;
 

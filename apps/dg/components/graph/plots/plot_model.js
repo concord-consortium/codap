@@ -412,7 +412,12 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     @return {Array of menu items}
   */
   getGearMenuItems: function() {
-    return [];
+    var tShowHideCountTitle = (this.get( 'isPlottedCountVisible' ) ?
+          'DG.PlotModel.hideCount' :
+          'DG.PlotModel.showCount').loc();
+    return [
+      { title:tShowHideCountTitle, target:this, itemAction:this.togglePlottedCount }
+    ];
   },
 
   /**

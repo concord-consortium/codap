@@ -24,6 +24,8 @@
 sc_require('components/graph/adornments/plot_adornment');
 sc_require('components/graph/adornments/line_label_mixin');
 
+DG.PlottedAverageLogString = '';  // global to avoid duplicate log strings.
+
 /**
  * @class  Abstract base class for plot adornments that draw averages (mean, median) as symbols in the plot.
  * @extends DG.PlotAdornment
@@ -107,11 +109,22 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       this.textShowingForID = iElementID;
     } else {
       // hide until next time
-      this.value = 0;
+      //this.value = 0;
       this.valueString = '';
       this.valueAxisView = null;
       this.textElement.hide();
       this.textShowingForID = undefined;
+    }
+  },
+
+  /**
+   * Create a user log of the the hover over the average line, but remove duplicates
+   * @param logString
+   */
+  updateHoverLog: function( logString ) {
+    if( logString !== DG.PlottedAverageLogString ) { // not 2 of the same log strings in a row
+      DG.PlottedAverageLogString = logString;        // save for next comparison
+      DG.logUser("%@: %@", "hoverOverGraphLine", DG.PlottedAverageLogString );
     }
   },
 
@@ -150,6 +163,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       var tAttributes = { stroke: tAdornment.hoverColor };
       this.stop();
       this.animate( tAttributes, tAdornment.hoverDelay );
+      if( this.textStatValue !== tAdornment.value ) // avoid redundant log statments since adornment made visible
+        tAdornment.updateHoverLog( tAdornment.statisticKey+"="+this.textStatValue );
       tAdornment.updateTextElement( true, this.textStatValue, this.textAxisPosition, this.textCrossPosition, this.id );
     }
 
@@ -217,7 +232,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
       // if mouse is now over an element with text showing, update the text now.
       if( this.textShowingForID === tCover.id ) {
-        overScope.call( tCover ); // update text label
+        this.updateTextElement( true, tCover.textStatValue, tCover.textAxisPosition, tCover.textCrossPosition, tCover.id );
       }
     }
 

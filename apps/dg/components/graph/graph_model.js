@@ -698,36 +698,24 @@ DG.GraphModel = SC.Object.extend( DG.Destroyable,
      */
     getGearMenuItems: function() {
       var this_ = this,
-        tPlot = this.get( 'plot' ),
-        kIsForSubmenu = true;
+        tPlot = this.get( 'plot' );
+        //kIsForSubmenu = true;
       if( SC.none( tPlot ) )  // Can happen if we can't handle a particular configuration
         return [];
 
       var getGraphMenuItems = function () {
         var tSelection = this_.get( 'selection' ),
-          tDeleteIsEnabled = tSelection && tSelection.get( 'length' ) !== 0,
-          tShowHideCountTitle = (tPlot.get( 'isPlottedCountVisible' ) ?
-                                 'DG.PlotModel.hideCount' :
-                                 'DG.PlotModel.showCount').loc();
+            tDeleteIsEnabled = tSelection && tSelection.get( 'length' ) !== 0;
         return [
           { title:"Select All", target:this_, itemAction:this_.selectAll, isEnabled:true },
-          { title:"Delete Selected Cases", target:this_, itemAction:this_.deleteSelectedCases,
-            isEnabled:tDeleteIsEnabled },
-          { title:tShowHideCountTitle, target:tPlot, itemAction:tPlot.togglePlottedCount }
+          { title:"Delete Selected Cases", target:this_, itemAction:this_.deleteSelectedCases, isEnabled:tDeleteIsEnabled }
         ];
       };
 
-      return tPlot.getGearMenuItems().concat(getGraphMenuItems())
-        .concat(
-          [
-            { isSeparator: YES },
-            { title: 'DG.GraphMenu.remove'.loc(), subMenu: [
-              this.createRemoveAttributeMenuItem( 'x', kIsForSubmenu),
-              this.createRemoveAttributeMenuItem( 'y', kIsForSubmenu),
-              this.createRemoveAttributeMenuItem( 'legend', kIsForSubmenu)
-            ]},
-            { title: 'DG.GraphMenu.hide'.loc(), subMenu: this.createHideShowAttributeSubMenuItems() }
-          ] );
+      return tPlot.getGearMenuItems(). // plot specific menu items
+          concat( getGraphMenuItems()). // then menu items for all plots...
+          concat( [{ isSeparator: YES }]).
+          concat( this.createHideShowAttributeSubMenuItems());
     },
 
     /** Submenu items for hiding selected or unselected cases, or showing all cases */

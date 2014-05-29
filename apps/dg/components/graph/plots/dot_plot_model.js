@@ -244,21 +244,24 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
             'DG.DotPlotModel.showIQR').loc(),
         tPlotValueItem = (this.isAdornmentVisible('plottedValue') ?
             'DG.DotPlotModel.hidePlottedValue' :
-            'DG.DotPlotModel.plotValue').loc();
-    return [
-      { title: tRescaleItem, target: this, itemAction: this.rescaleAxesFromData,
-          args: [ true /* allowAxisRescale */,
-                  false /* No need to animate points independently */,
-                  true /* log it */]},
-      { isSeparator: YES },
-      { title: tPlottedMeanItem, target: this, itemAction: this.togglePlottedMean },
-      { title: tPlottedMedianItem, target: this, itemAction: this.togglePlottedMedian },
-      { title: tPlottedStDevItem, target: this, itemAction: this.togglePlottedStDev },
-      { title: tPlottedIQRItem, target: this, itemAction: this.togglePlottedIQR },
-      { isSeparator: YES },
-      { title: tMovableValueItem, target: this, itemAction: this.toggleMovableValue },
-      { title: tPlotValueItem, target: this, itemAction: this.togglePlotValue }
-    ].concat( sc_super());
+            'DG.DotPlotModel.plotValue').loc(),
+        tMenu1 = [
+              { title: tRescaleItem, target: this, itemAction: this.rescaleAxesFromData,
+                  args: [ true /* allowAxisRescale */,
+                          false /* No need to animate points independently */,
+                          true /* log it */]},
+              { title: tMovableValueItem, target: this, itemAction: this.toggleMovableValue },
+              { title: tPlotValueItem, target: this, itemAction: this.togglePlotValue }
+            ],
+        tMenu2 = [
+              { isSeparator: YES },
+              { title: tPlottedMeanItem, target: this, itemAction: this.togglePlottedMean },
+              { title: tPlottedMedianItem, target: this, itemAction: this.togglePlottedMedian },
+              { title: tPlottedStDevItem, target: this, itemAction: this.togglePlottedStDev },
+              { title: tPlottedIQRItem, target: this, itemAction: this.togglePlottedIQR },
+              { isSeparator: YES }
+            ];
+    return tMenu1.concat( sc_super()).concat( tMenu2);
   }
 
 });
