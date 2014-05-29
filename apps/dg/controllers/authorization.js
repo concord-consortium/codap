@@ -504,13 +504,13 @@ return {
         registerLink: SC.StaticContentView.design({
           layout: { top: nextTop(kVSpace), left: 20, height: 18},
           textAlign: SC.ALIGN_CENTER,
-          content: DG.getVariantString('DG.Authorization.loginPane.registerLink').loc(this.getLoginCookieDomain())
+          content: DG.getVariantString('DG.Authorization.loginPane.registerLink').loc( DG.getDrupalSubdomain()+this.getLoginCookieDomain())
         }),
 
         recoveryLink: SC.StaticContentView.design({
           layout: { top: 148, left: 200, height: 18},
           textAlign: SC.ALIGN_CENTER,
-          content: DG.getVariantString('DG.Authorization.loginPane.recoveryLink').loc(this.getLoginCookieDomain())
+          content: DG.getVariantString('DG.Authorization.loginPane.recoveryLink').loc( DG.getDrupalSubdomain()+this.getLoginCookieDomain())
         })
        })
      });

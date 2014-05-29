@@ -115,18 +115,22 @@ DG.appController = SC.Object.create((function() // closure
   
   optionMenuItems: function() {
     return [
-      { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
-        target: this, action: 'viewWebPage' },
-      { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
-        target: this, action: 'configureGuide' },
+      { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
+        target: this, action: 'showHelp' },
       { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
         target: this, action: 'reportProblem' },
+      { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "Data Games website...",
+        target: this, action: 'showWebSite' },
+      { isSeparator: YES },
       { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About Data Games...",
         target: this, action: 'showAbout' },
       { localize: true, title: 'DG.AppController.optionMenuItems.releaseNotes', // "What's New?",
         target: this, action: 'showReleaseNotes' },
-      { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
-        target: this, action: 'showHelp' }
+      { isSeparator: YES },
+      { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
+        target: this, action: 'configureGuide' },
+      { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
+        target: this, action: 'viewWebPage' }
       ];
   }.property(),
 
@@ -330,7 +334,7 @@ DG.appController = SC.Object.create((function() // closure
    * Opens a new tab with users document manager opened.
    */
   loadManager: function() {
-    var url = 'http://'+DG.DRUPAL_SUBDOMAIN+DG.authorizationController.getLoginCookieDomain() + '/datagames_documents_manager';
+    var url = 'http://'+DG.getDrupalSubdomain()+DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.manageDocumentsURL'.loc());
     window.open(url, 'document_manager');
   },
 
@@ -586,7 +590,8 @@ DG.appController = SC.Object.create((function() // closure
      */
     showReleaseNotes: function() {
       DG.currDocumentController().addWebView( DG.mainPage.get('docView'), null,
-        'http://play.ccssgames.com/release_notes', 'Data Games Release Notes',
+        'DG.AppController.showReleaseNotesURL'.loc(),
+        'DG.AppController.showReleaseNotesTitle'.loc(), // 'Data Games Release Notes'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
     },
 
@@ -595,7 +600,8 @@ DG.appController = SC.Object.create((function() // closure
      */
     showAbout: function() {
       DG.currDocumentController().addWebView( DG.mainPage.get('docView'), null,
-        'DataGames/WebPages/about/aboutDG.html', 'About Data Games',
+        'DG.AppController.showAboutURL'.loc(),
+        'DG.AppController.showAboutTitle'.loc(), // 'About Data Games'
         { centerX: 0, centerY: 0, width: 770, height: 400 });
     },
 
@@ -604,8 +610,18 @@ DG.appController = SC.Object.create((function() // closure
      */
     showHelp: function() {
       DG.currDocumentController().addWebView( DG.mainPage.get('docView'), null,
-        'http://'+DG.DRUPAL_SUBDOMAIN+DG.authorizationController.getLoginCookieDomain()+'/support', 'Help with Data Games',
+        'http://'+DG.getDrupalSubdomain()+DG.authorizationController.getLoginCookieDomain()+('DG.AppController.showHelpURL'.loc()),
+        'DG.AppController.showHelpTitle'.loc(), //'Help with Data Games'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
+    },
+
+    /**
+     Open a new tab with the Data Games website.
+     */
+    showWebSite: function() {
+      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
+      var url = 'http://'+DG.getDrupalSubdomain()+DG.authorizationController.getLoginCookieDomain()+('DG.AppController.showWebSiteURL'.loc());
+      window.open( url, 'dg_website' );
     }
 
   }; // end return from closure

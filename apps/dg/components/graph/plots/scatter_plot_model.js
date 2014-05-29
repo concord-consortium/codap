@@ -186,17 +186,19 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         tShowSquaresItem = this.get( 'areSquaresVisible') ? "Hide Squares" : "Show Squares"
       ;
     return [
-      { title: "Rescale to Data", target: this_, itemAction: this_.rescaleAxesFromData,
-          args: [ true /* allowAxisRescale */, false /* No need to animate points independently */,
-                  true /* log it */]},
-      { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
-      { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
-      { title: tInterceptLockedItem, target: this_, itemAction: this.toggleInterceptLocked,
-          isEnabled: tLineIsVisible },
-      { title: tPlotFunctionItem, target: this_, itemAction: this.togglePlotFunction },
-      { title: tShowSquaresItem, target: this_, itemAction: this.toggleShowSquares,
-          isEnabled: tLineIsVisible || tFunctionIsVisible }
-    ].concat( sc_super());
+        { title: "Rescale to Data", target: this_, itemAction: this_.rescaleAxesFromData,
+            args: [ true /* allowAxisRescale */, false /* No need to animate points independently */,
+                    true /* log it */]},
+        { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
+        { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
+        { title: tInterceptLockedItem, target: this_, itemAction: this.toggleInterceptLocked,
+            isEnabled: tLineIsVisible },
+        { title: tPlotFunctionItem, target: this_, itemAction: this.togglePlotFunction },
+        { title: tShowSquaresItem, target: this_, itemAction: this.toggleShowSquares,
+            isEnabled: tLineIsVisible || tFunctionIsVisible }
+      ].concat( sc_super()).concat([
+        { isSeparator: YES }
+      ]);
   },
 
   /**

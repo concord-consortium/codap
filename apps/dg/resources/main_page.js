@@ -37,7 +37,7 @@ DG.mainPage = SC.Page.design((function() {
       anchorLocation: SC.ANCHOR_TOP,
 
       resetButton: SC.ButtonView.design({
-        layout: { centerY:0, height:24, right:280, width:100 },
+        layout: { centerY:0, height:24, left:0, width:100 },
         localize: true,
         title: 'DG.AppController.resetData.title', // "Reset Data..."
         target: 'DG.appController',
@@ -46,7 +46,7 @@ DG.mainPage = SC.Page.design((function() {
       }),
   
       logoutButton: SC.ButtonView.design({
-        layout: { centerY:0, height:24, right:160, width:80 },
+        layout: { centerY:0, height:24, left:0, width:80 },
         localize: true,
         title: 'DG.mainPage.mainPane.logoutButton.title', // "Logout"
         target: 'DG.appController',
@@ -55,7 +55,7 @@ DG.mainPage = SC.Page.design((function() {
       }),
   
       versionLabel: SC.LabelView.design({
-        layout: { top: 0, height: 24, right: 25, width: 150 },
+        layout: { top: 0, height: 24, left: 0, width: 150 },
         controlSize: SC.REGULAR_CONTROL_SIZE,
         fontWeight: SC.BOLD_WEIGHT,
         textAlign: SC.ALIGN_RIGHT,
@@ -63,22 +63,38 @@ DG.mainPage = SC.Page.design((function() {
       }),
   
       statusLabel: SC.LabelView.design({
-        layout: { bottom: 5, right: 25, width: 100, height: 18 },
+        layout: { bottom: 5, left: 0, width: 150, height: 18 },
         textAlign: SC.ALIGN_RIGHT,
         valueBinding: 'DG.authorizationController.currLogin.user'
       }),
 
       init: function() {
         sc_super();
-        var this_ = this,
-            tLeft = 10;
+        function moveHorizontal( iChildView, iNewLeft ) {
+          // move child view by updating its left-hand position
+          var tLayout = iChildView.get('layout'),
+              tNewRight = iNewLeft + tLayout.width;
+          tLayout.left = iNewLeft;
+          iChildView.set( 'layout', tLayout );
+          return tNewRight;
+        }
+        var kSpacer = 10,
+            kButtonWidth = 40,
+            tLeft = kSpacer;
+        // create tool buttons, left-justified
         DG.ToolButtonData.forEach( function( iButton) {
-          this_[ iButton.name] = DG.IconButton.create( iButton.desc);
-          this_[ iButton.name].set('layout', { left: tLeft, width: 40 });
-          this_.appendChild( this_[ iButton.name]);
-          tLeft += 50;
-        });
+          this[ iButton.name] = DG.IconButton.create( iButton.desc);
+          this[ iButton.name].set('layout', { left: tLeft, width: kButtonWidth });
+          this.appendChild( this[ iButton.name]);
+          tLeft += kButtonWidth + kSpacer;
+        }.bind(this));
         DG.currDocumentController().set('guideButton', this.guideButton);
+        // move existing buttons, left-justified after tool buttons
+        tLeft += kSpacer; // extra space to right of gear
+        tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
+        tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
+        moveHorizontal( this.versionLabel, tLeft );  // same left as statusLabel
+        tLeft = moveHorizontal( this.statusLabel, tLeft );
       }
       
     }), // topView
