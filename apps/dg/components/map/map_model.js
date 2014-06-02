@@ -37,6 +37,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
           dataContext: this.get('dataContext')
         }
       ) );
+      // We might already have some data, so let's make sure we make use of it when called upon to do so
+      this.invalidate();
     },
 
     destroy: function() {
@@ -80,8 +82,12 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     getLatLngBounds: function() {
-
-    },
+      var tLatMinMax = this.getPath('dataConfiguration.yAttributeDescription.attributeStats.minMax' ),
+          tLngMinMax = this.getPath('dataConfiguration.xAttributeDescription.attributeStats.minMax' ),
+          tSouthWest = [tLatMinMax.min, tLngMinMax.min],
+          tNorthEast = [tLatMinMax.max, tLngMinMax.max];
+       return [tSouthWest, tNorthEast];
+    }
 
   } );
 

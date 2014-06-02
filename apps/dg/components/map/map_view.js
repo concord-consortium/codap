@@ -48,12 +48,14 @@ DG.MapView = SC.View.extend(
     },
 
     addPointLayer: function() {
+      var kPadding = [10, 10];
       this.set('mapPointView', DG.MapPointView.create(
         {
           mapLayer: this.get('mapLayer')
         }));
       this.setPath('mapPointView.model', this.get('model'))
       this.appendChild( this.get( 'mapPointView'));
+      this.getPath('mapLayer.map' ).fitBounds( this.get('model' ).getLatLngBounds(), kPadding);
     },
 
     /**

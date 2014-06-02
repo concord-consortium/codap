@@ -582,7 +582,11 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
                                           DG.Analysis.kNullAttribute) ||
                       (this.get('numPlots') > 1),
-      tLayerManager = this.get('layerManager' );
+      tLayerManager = this.get('layerManager' ),
+      tCases = this.getPath('model.cases');
+
+    if(!tCases)
+      return;
 
     this.getPath('model.cases').forEach( function( iCase, iIndex) {
       var tIsSelected, tElement, tFrom, tTo;
