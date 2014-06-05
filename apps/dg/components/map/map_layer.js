@@ -61,12 +61,13 @@ DG.MapLayer = SC.Object.extend(
     render:function ( ctx, first ) {
       if( first ) {
         this._layerID = ctx.push(
-          '<div style="position:relative;width:100%;height:100%"></div>'
+          '<div></div>'
         ).id();
       }
     },
 
     didCreateLayer:function () {
+      // TODO: Investigate whether there is some later time to call _createMap so we don't have to use invokeLast
       this.invokeLast(this._createMap);
     },
 
@@ -76,6 +77,7 @@ DG.MapLayer = SC.Object.extend(
             this.containerView.addPointLayer();
           }.bind( this ),
           onDisplayChangeEvent = function( iEvent) {
+              // TODO: Eliminate knowledge at this level of mapPointView
             this.getPath('containerView.mapPointView').doDraw();
           }.bind( this);
 
