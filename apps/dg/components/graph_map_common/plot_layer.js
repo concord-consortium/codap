@@ -21,9 +21,9 @@
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
 
-/** @class  DG.PlotLayer - The base class view for a plot.
+/** @class  DG.PlotLayer - The base class for plotting points using Raphael.
 
-  @extends DG.RaphaelBaseView
+  @extends SC.Object.extend
 */
 DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 /** @scope DG.PlotLayer.prototype */ 
