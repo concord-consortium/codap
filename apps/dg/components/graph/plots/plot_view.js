@@ -18,70 +18,16 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('alpha/destroyable');
-sc_require('components/graph/utilities/plot_utilities');
+sc_require('components/graph_map_common/plot_layer');
 
-/** @class  DG.PlotView - The base class view for a plot.
+/** @class  DG.PlotView - The base class for a plot layer that appears in a graph.
 
-  @extends DG.RaphaelBaseView
+  @extends DG.PlotLayer
 */
-DG.PlotView = SC.Object.extend( DG.Destroyable,
+DG.PlotView = DG.PlotLayer.extend(
 /** @scope DG.PlotView.prototype */ 
 {
-  autoDestroyProperties: ['_dataTip', 'plottedCountAdorn'],
-
-  /**
-   * The paper we draw on is shared, not owned.
-   * @property {DG.RaphaelBase}
-   */
-  paperSource: null,
-
-  /**
-   * @property {Raphael paper}
-   */
-  paper: function() {
-    return this.getPath('paperSource.paper');
-  }.property('paperSource.paper'),
-
-  /**
-   * @property {DG.LayerManager}
-   */
-  layerManager: function() {
-    return this.getPath('paperSource.layerManager');
-  }.property('paperSource.layerManager' ),
-
-  /**
-   * Get from paperSource
-   * @property {}
-   */
-  frame: function() {
-    return this.getPath('paperSource.frame');
-  }.property('paperSource.frame'),
-
-  /**
-   * Get from paperSource
-   * @property {}
-   */
-  elementsToClear: function() {
-    return this.getPath('paperSource._elementsToClear');
-  }.property('paperSource._elementsToClear'),
-
-  /**
-   * @private
-   * @property { DG.PointDataTip } for displaying attributes of whatever is underneath the mouse
-   */
-  _dataTip: null,
-
-  /**
-   * Lazy instantiation.
-   * @property {DG.PointDataTip }
-   */
-  dataTip: function() {
-    if( !this._dataTip) {
-      this._dataTip = DG.PointDataTip.create( { plotView: this, layerName: DG.LayerNames.kDataTip });
-    }
-    return this._dataTip;
-  }.property(),
+  autoDestroyProperties: ['plottedCountAdorn'],
 
   /**
    * These two properties are used to determine point color when there are multiple plots in a graph
@@ -90,27 +36,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   numPlots: 1,
 
   /**
-   * Since we are not a view, we notify so that the graphView that owns us can take
-   * appropriate action.
-   */
-  displayDidChange: function() {
-    this.notifyPropertyChange('plotDisplayDidChange');
-  },
-
-  /**
-    The model on which this view is based.
-    @property { DG.PlotModel }
-  */
-  model: null,
-
-  /**
-    @property { DG.DataContext }  The data context
-  */
-  dataContext: function() {
-    return this.getPath('model.dataContext');
-  }.property('model.dataContext'),
-   
-  /**
     @property { DG.AxisView}
   */
   xAxisView: null,
@@ -118,9 +43,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     @property { DG.AxisView }
   */
   yAxisView: null,
-
-  selection: null,
-  selectionBinding: '*model.casesController.selection',
 
   /**
     Used to store point coordinates at the beginning of a configuration change.
@@ -140,186 +62,22 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   */
   allowTransferAnimation: true,
 
-  /**
-    @property { String }
-  */
-  changeKey: 'dataDidChange',
-
-  /**
-   * If defined, this function gets called after cases have been added or values changed, but only once,
-   * and only after a sufficient time has elapsed.
-   * @property { Function }
-   */
-    cleanupFunc: null,
-
-  /**
-   * Wait at least this long before calling cleanupFunc
-   * @property {Number} in milliseconds
-   */
-    cleanupDelay: 300,
-
-  /**
-   * While waiting to do a cleanup, call installCleanup at this interval to check to see if now is the time.
-   * @property {Number} in milliseconds
-   */
-    cleanupInterval: 300,
-
-  /**
-   * Are we already awaiting an opportunity to cleanup?
-   * @property {Boolean}
-   */
-    waitingForCleanup: false,
-
-  /**
-   * Time at which the last call for a cleanup occurred.
-   * @property {Number}
-   */
-    timeOfLastCleanupCall: null,
-
-  /**
-   * Used to schedule cleanup. We hold onto it so we can invalidate it during destroy.
-   * @property {SC.Timer}
-   */
-    cleanupTimer: null,
-
-  installCleanup: function() {
-    if( !this.cleanupFunc)
-      return;
-
-    var checkTime = function() {
-      var tNow = Date.now();
-      if( tNow - this.timeOfLastCleanupCall > this.cleanupDelay) {
-        this.cleanupFunc();
-        this.waitingForCleanup = false;
-        this.cleanupTimer = null;
-      }
-      else {
-        this.cleanupTimer = SC.Timer.schedule( { target: this, action: checkTime, interval: this.cleanupInterval });
-      }
-    };
-
-    this.timeOfLastCleanupCall = Date.now();
-    if( !this.waitingForCleanup) {
-      this.waitingForCleanup = true;
-      this.cleanupTimer = SC.Timer.schedule( { target: this, action: checkTime, interval: this.cleanupInterval });
-    }
-  },
-  
   _areAdornmentsInitialized: false,
 
   /** @property {DG.PlottedCountAdornment} */
   plottedCountAdorn: null,
 
   /**
-   * @property { Number } current point radius of cases being displayed.
-   */
-  _pointRadius: DG.PlotUtilities.kPointRadiusMax,
-  
-  /**
-    True if rendered content is up-to-date, false if redraw is required.
-    @property { Boolean }
-   */
-  _isRenderingValid: false,
-
-  blankDropHint: 'DG.GraphView.dropInPlot',
-
-  /**
-   * Refers specifically to a legend attribute
-   * @property {DG.Attribute}
-   */
-  plottedAttribute: function() {
-    return this.getPath('model.dataConfiguration.legendAttributeDescription.attribute');
-  }.property(),
-
-  /**
     Prepare dependencies.
   */
   init: function() {
     sc_super();
-    this._plottedElements = [];
-  },
-
-  /**
-    Prepare dependencies.
-  */
-  modelDidChange: function( iSource, iKey) {
-    this.dataConfigurationDidChange( iSource, iKey);
-
-    // We want dataDidChange to be called when cases change
-    this.addObserver('model.dataConfiguration.cases', this, 'dataDidChange');
-    this.addObserver('model.dataConfiguration.hiddenCases', this, 'dataDidChange');
-    this.addObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');
-
-    this._isRenderingValid = false;
-  }.observes('model'),
-
-  /**
-    Here we set up observers so that if the length of a data array is changed, dataDidChange
-    is called, and if a case value changes (which changes its 'revision' property), dataRangeDidChange
-    gets called.
-  */
-  dataConfigurationDidChange: function( iSource, iKey ) {
-    // initialize point radius when attaching new set of cases, since dataDidChange() is not called then.
-    this._pointRadius = this.calcPointRadius();
-
-    this._isRenderingValid = false;
   },
 
   destroy: function() {
-    this.removePlottedElements();
-    this.removeObserver('model.dataConfiguration.cases', this, 'dataDidChange');
-    this.removeObserver('model.dataConfiguration.hiddenCases', this, 'dataDidChange');
-    this.removeObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');
-    if( this.cleanupTimer)
-      this.cleanupTimer.invalidate();
-    this.model = null;
-
     sc_super();
   },
 
-  /**
-    Respond to DataContext notifications from the PlotModel.
-   */
-  handleDataContextNotification: function( iSource, iKey) {
-    var plotModel = this.get('model'),
-        lastChange = plotModel && plotModel.get('lastChange'),
-        operation = lastChange && lastChange.operation;
-    
-    // No response necessary if plot isn't affected.
-    if( !plotModel || !plotModel.isAffectedByChange( lastChange))
-      return;
-
-    switch( operation) {
-      case 'createCase':
-      case 'createCases':
-      case 'deleteCases':
-        // usually dataDidChange, but derived classes can override
-        var changeKey = this.get('changeKey');
-        if( !SC.empty( changeKey)) {
-          var handler = this[ changeKey];
-          if( handler)
-            handler.call( this, iKey);
-        }
-        break;
-      case 'updateCases':
-      case 'createAttributes':
-      case 'updateAttributes':
-        this.dataRangeDidChange( this, 'revision', this, lastChange.indices);
-        break;
-      case 'selectCases':
-        this.selectionDidChange();
-        break;
-    }
-  }.observes('.model.lastChange'),
-  
-  /**
-    Observer function triggered when the plot configuration changes.
-   */
-  plotConfigurationDidChange: function() {
-    this._isRenderingValid = false;
-    this.displayDidChange();
-  }.observes('.model.plotConfiguration'),
-  
   /**
     Observer function called when the axis bounds change.
    */
@@ -328,118 +86,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     this.displayDidChange();
   }.observes('.model.axisBounds'),
   
-  /**
-    Observer function called when the view/paper is resized.
-   */
-  paperSizeDidChange: function() {
-    this._isRenderingValid = false;
-    this.displayDidChange();
-  }.observes('paperSize'),
-
-  selectionChangeCount: function() {
-    this._elementOrderIsValid = false;
-  },
-
-  /**
-    Give subclasses a chance to do whatever they need to do before we recompute all the
-    point coordinates.
-  */
-  prepareToResetCoordinates: function() {
-  },
-  
-  /**
-    Utility function to be called when the coordinates of all circles must be updated.
-    New circle elements will be created if necessary, but this method never removes
-    elements so it cannot be used to handle deletion of cases.
-   */
-  refreshCoordinates: function() {
-    if( this.get('paper'))
-      this.drawData();
-  },
-
-  callCreateCircle: function( iCase, iIndex, iAnimate) {
-    var tCircle = this.createCircle( iCase, iIndex, iAnimate);
-    if( tCircle) {
-      this._plottedElements.push( tCircle );
-      this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tCircle);
-    }
-    return tCircle;
-  },
-
-  /**
-    Plots that show data as points should be able to use this as is. Others will probably
-    override.
-  */
-  dataDidChange: function() {
-    if( SC.none( this.get('paper')))
-      return;   // not ready to create elements yet
-    var this_ = this,
-        tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext(),
-        tDataLength = tCases && tCases.length,
-        tPlotElementLength = this._plottedElements.length,
-        tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
-        tLayerManager = this.get('layerManager' ),
-        tIndex;
-    this._elementOrderIsValid = false;
-    // update the point radius before creating or updating plotted elements
-    if( tWantNewPointRadius ) {
-      this._pointRadius = this.calcPointRadius();
-      this._isRenderingValid = false;
-      this.displayDidChange();
-    }
-    // update adornments when cases added or removed
-    // note: don't rely on tDataLength != tPlotElementLength test for this
-    this.updateAdornments();
-
-    // for any new cases
-    if( tDataLength > tPlotElementLength) {
-      if( tWantNewPointRadius ) {
-        // update the point radius for existing plotted elements
-        this.prepareToResetCoordinates();
-        for( tIndex = 0; tIndex < tPlotElementLength; tIndex++) {
-          this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
-        }
-      }
-      // create plot elements for added cases
-      for( tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.callCreateCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
-        this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
-      }
-      this._isRenderingValid = false;
-    }
-    // Get rid of plot elements for removed cases and update all coordinates
-    if( tDataLength < tPlotElementLength) {
-      for( tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
-        // It can happen during closing of a document that the elements no longer exist, so we have to test
-        if( !SC.none( this._plottedElements[ tIndex])) {
-          this._plottedElements[ tIndex].stop();
-          tLayerManager.removeElement( this._plottedElements[ tIndex]);
-          DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
-        }
-      }
-      this._plottedElements.length = tDataLength;
-
-      this.prepareToResetCoordinates();
-      tCases.forEach( function( iCase, iIndex) {
-          this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
-        });
-      this._isRenderingValid = false;
-      this.displayDidChange();
-    }
-
-    // There might be some cleanup that has to be done after a suitable waiting time
-    this.installCleanup();
-  },
-
-  /**
-    Subclasses should call sc_super()
-  */
-  dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
-    this.updateAdornments();
-    this.get('dataTip').handleChanges( iChanges);
-  },
-
   /** Invalidate and update adornments shared by all plot types */
   updateAdornments: function() {
     if( this.plottedCountAdorn ) {  // update counts if present
@@ -464,32 +110,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   },
 
   /**
-   * We determine if sufficient time has passed since the last call to allow (expensive) animation
-   * to occur in createCircle.
-   * Note that this side effects _createAnimationOn and _timeLastCreate.
-   * @return {Boolean}
-   */
- animationIsAllowable: function() {
-    var tNow = Date.now(),
-        tDelta = tNow - this._timeLastCreate;
-    if( tDelta < DG.PlotUtilities.kDefaultAnimationTime) {
-      this._createAnimationOn = false;
-    }
-    else if(tNow - this._timeLastCreate > this._kAllowableInterval)
-      this._createAnimationOn = true;
-    this._timeLastCreate = tNow;
-    return this._createAnimationOn;
-  },
-
-  /**
-   * If we have paper, we're ready to draw.
-   * @return {Boolean}
-   */
-  readyToDraw: function() {
-    return !SC.none( this.get('paper'));
-  },
-  
-  /**
     Initialize the adornments from the set of adornment models.
    */
   initializeAdornments: function() {
@@ -504,45 +124,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
                           });
 
     this._areAdornmentsInitialized = true;
-  },
-
-  /**
-   * Properties having to do with determining whether createCircle animation should be turned on
-   */
-
-  /**
-   * The last time we called createCircle. If sufficient time has elapsed, we can turn on animation
-   */
-  _timeLastCreate: null,
-
-  /**
-   * Controls whether we allow createCircle to do an animation. Turned off when animations are overlapping.
-   * Turned back on when sufficient time has elapsed.
-   */
-  _createAnimationOn: true,
-
-  _kAllowableInterval: 1000, // milliseconds
-
-  /**
-  */
-  animationStateDidChange: function() {
-    if( this.getPath('model.isAnimating'))
-      this.enterAnimationState();
-    else
-      this.leaveAnimationState();
-  }.observes('.model.isAnimating'),
-
-  /**
-    Subclasses should override in order to animate plotted elements to new coordinates.
-    These can be computed now, but should not be computed again until we leave animation state.
-  */
-  enterAnimationState: function() {
-  },
-
-  /**
-    Subclasses should override in order do any cleanup necessary when an animation ends.
-  */
-  leaveAnimationState: function() {
   },
 
   // Private properties
@@ -567,144 +148,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     this.set('numPlots', iNumPlots);
     if( !this._areAdornmentsInitialized)
       this.initializeAdornments();
-  },
-
-  /**
-    Subclasses will override
-  */
-  drawData: function drawData() {
-    if( !this.get('paper')) return; // abort if not yet ready to draw
-
-    var this_ = this,
-        tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext(),
-        tLayerManager = this.get('layerManager' ),
-        tPlotElementLength = this._plottedElements.length,
-        tIndex;
-
-    if( SC.none( tCases))
-      return; // No cases, nothing to draw
-
-    // remove invalid case elements
-    if( this._mustCreatePlottedElements) {
-      this._plottedElements.forEach( function( iElement) {
-        tLayerManager.removeElement (iElement); // remove from plot
-        });
-      tPlotElementLength = this._plottedElements.length = 0; // remove from array
-      this._mustCreatePlottedElements = false;
-      tRC.casesAdded = true; // ensure that cases are re-created below
-    }
-
-    // remove extra case elements
-    if( tRC.casesRemoved ) {
-      for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-        DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
-      }
-      if( tCases.length < tPlotElementLength ) { // remove from array
-        tPlotElementLength = this._plottedElements.length = tCases.length;
-      }
-    }
-
-    // update the cached circle size (dependent on the number of cases)
-    if( tRC.casesAdded ) {
-      this._pointRadius = this.calcPointRadius();
-    }
-
-    // If we're going to be adding cases, then we'll want to call updateSelection because
-    // these new cases may be selected. Setting _elementOrderIsValid to false accomplishes this.
-    if( tPlotElementLength < tCases.length)
-      this_._elementOrderIsValid = false;
-
-    // update case elements, adding them if necessary
-    if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded ) {
-      this.prepareToResetCoordinates();
-      tCases.forEach( function( iCase, iIndex) {
-                        if( iIndex >= tPlotElementLength )
-                          this_.callCreateCircle( tCases[ iIndex], iIndex, true);
-                        this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
-                      });
-    }
-    DG.assert( this._plottedElements.length === tCases.length );
-  },
-
-  /**
-    Set our _isRenderingValid flag when rendering is complete.
-   */
-  didDraw: function() {
-    sc_super();
-    this._isRenderingValid = true;
-  },
-
-  /**
-
-  */
-  selectionDidChange: function() {
-    this.updateSelection();
-    this._isRenderingValid = false;
-  }.observes('selection'),
-
-  /**
-    Get case icon CSS class; extended objects can override for different look to elements.
-    @param {boolean} iIsSelected Is the case selected?
-    @param {boolean} iIsColored Is the case one whose color is given by a legend attribute (defaults to false)
-    @returns {string}
-  */
-  getPlottedElementClass: function( iIsSelected, iIsColored ) {
-    return( iIsColored ?
-                (iIsSelected ? DG.PlotUtilities.kSelectedColoredDotClassName : DG.PlotUtilities.kColoredDotClassName ) :
-                (iIsSelected ? DG.PlotUtilities.kSelectedDotClassName : DG.PlotUtilities.kDotClassName ));
-  },
-
-  /**
-    For each case, set the fill of its corresponding point to show its selection state
-  */
-  updateSelection: function() {
-    if( !this.get('model'))
-      return;   // because this can get called by pending changes after I have been destroyed
-    if( this._elementOrderIsValid)
-      return;
-
-    var this_ = this,
-      tPlottedElements = this._plottedElements,
-      // Use long path for selection because we can call this before bindings have happened
-      // There must be a better way?
-      tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
-      // Points are 'colored' if there is a legend or if there is more than one plot
-      tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
-                                          DG.Analysis.kNullAttribute) ||
-                      (this.get('numPlots') > 1),
-      tLayerManager = this.get('layerManager' );
-
-    this.get('model').forEachCaseDo( function( iCase, iIndex) {
-      var tIsSelected, tElement, tFrom, tTo;
-        // We sometimes get here with fewer plotted elements than cases,
-        // perhaps when newly added cases don't have plottable values.
-       if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
-          tElement = tPlottedElements[ iIndex];
-          tIsSelected = tSelection.containsObject( iCase);
-          tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
-          tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
-          tElement.removeClass( DG.PlotUtilities.kDotClassPattern );
-          tElement.addClass(    this_.getPlottedElementClass( tIsSelected, tIsColored ));
-          tLayerManager.moveElementFromTo( tElement, tFrom, tTo);
-       }
-      });
-    this._elementOrderIsValid = true;
-  },
-
-  /**
-    @param {{ x: {Number}, y: {Number}, width: {Number}, height: {Number} }}
-    @return {Array} of DG.Case
-  */
-  getCasesForPointsInRect: function( iRect) {
-    var tCases = this.getPath('model.cases' ),
-        tSelected = [];
-
-    this._plottedElements.forEach( function( iElement, iIndex) {
-            if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
-              tSelected.push( tCases[ iIndex]);
-          });
-    return tSelected;
   },
 
   /**
@@ -911,67 +354,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
   },
 
   /**
-   * Remove all plotted elements
-   */
-  removePlottedElements: function( iAnimate) {
-    var tLayerManager = this.get('layerManager');
-    this._plottedElements.forEach( function(iElement) {
-      iElement.stop();
-      if( iAnimate) {
-        DG.PlotUtilities.doHideRemoveAnimation( iElement, tLayerManager);
-      }
-      else
-        tLayerManager.removeElement( iElement);
-    });
-    this._plottedElements.length = 0;
-  },
-
-  /**
-    @property { Number }  Takes into account any borders the parent views may have
-    Kludge alert! We're dealing with a SproutCore bug with computing frames in the presence
-    of borders. [SCBUG]
-  */
-  drawWidth: function() {
-    return this.get('frame').width - 2 * DG.ViewUtilities.kBorderWidth;
-  }.property('frame'),
-
-  /**
-    @property { Number }  Takes into account any borders the parent views may have
-    Kludge alert! We're dealing with a SproutCore bug with computing frames in the presence
-    of borders. [SCBUG]
-  */
-  drawHeight: function() {
-    return this.get('frame').height - 2 * DG.ViewUtilities.kBorderWidth;
-  }.property('frame'),
-
-  /**
-    Graph controller observes this property to detect that a drag has taken place.
-    @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
-              axisOrientation:{String} }}
-  */
-  dragData: null,
-
-  /**
-    Attempt to assign the given attribute to this axis.
-    @param {SC.Drag} 'data' property contains 'collection', 'attribute', 'text' properties
-    @param {SC.DRAG_LINK}
-  */
-  performDragOperation: function( iDragObject, iDragOp) {
-    this.set('dragData', iDragObject.data);
-    return SC.DRAG_LINK;
-  },
-
-  showDataTip: function( iElement, iIndex) {
-    this.get('dataTip').show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
-  },
-
-  hideDataTip: function() {
-    var tDataTip = this.get('dataTip');
-    if( tDataTip)
-      tDataTip.hide();
-  },
-
-  /**
     Subclasses may override. Note that deselection happens in startMarquee.
     @param {SC.Event}
   */
@@ -983,29 +365,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
     @param {SC.Event}
   */
   handleBackgroundDblClick: function( iEvent) {
-  },
-
-  /**
-   * Compute the desired point radius, which depends on the number of cases to be plotted.
-   * Caller should compare to this._pointRadius (actual size of case circles already created)
-   * @return {Number} radius of circle for each case, as a positive integer.
-   */
-  calcPointRadius: function() {
-    // Search for a point size in [min-max] range, where the point size is a power of logbase that is close to the data length.
-    // This step function avoids excessive plot resizing with every change in number of cases.
-    var tDataConfiguration = this.getPath('model.dataConfiguration' ),
-        tDataLength = tDataConfiguration ? tDataConfiguration.getCaseCount() : 0,
-        tRadius = DG.PlotUtilities.kPointRadiusMax,
-        tMinSize = DG.PlotUtilities.kPointRadiusMin,
-        tPower = DG.PlotUtilities.kPointRadiusLogBase;
-    // for loop is fast equivalent to radius = max( minSize, maxSize - floor( log( logBase, max( dataLength, 1 )))
-    for( var i=tPower; i<=tDataLength; i=i*tPower ) {
-      --tRadius;
-      if( tRadius <= tMinSize ) break;
-    }
-    DG.assert( tRadius > 0 && Math.round(tRadius)===tRadius ); // must be positive integer
-    //if( tRadius !== this._pointRadius ) DG.log("CalcPointRadius() r=" + tRadius + " for "+tDataLength +" cases.");
-    return tRadius;
   },
 
   /**
@@ -1046,151 +405,6 @@ DG.PlotView = SC.Object.extend( DG.Destroyable,
         return tCaseColor.colorString;
       }
     };
-  },
-
-  /**
-   * Show or hide the given plot element to match it's desired status.
-   * @param {} iPlottedElement, a Rafael element
-   * @param {Boolean} iWantHidden, true if we want the element to be hidden
-   * @param {Boolean} optional parameter, true if we want to animate hiding
-   * @return {Boolean} true if element is now shown.
-   */
-  showHidePlottedElement: function( iPlottedElement, iWantHidden /*, iAnimate*/ ) {
-    var tIsHidden = iPlottedElement.isHidden();
-    if( iWantHidden ) {
-      if( !tIsHidden ) {
-        // if want hidden but element is shown:
-        // hide immediately (TODO: find a way to animate the hiding/showing),
-        // and set the position/radius/color to a consistent state in case we animate after being shown.
-        iPlottedElement.stop();
-        iPlottedElement.hide();
-        iPlottedElement.attr({cx: 0, cy: 0, r: 1, fill: DG.ColorUtilities.kMissingValueCaseColor.colorString });
-      }
-    } else if( tIsHidden ) {
-      // if want shown but it is hidden: show (then let caller animate or jump to the new position).
-      iPlottedElement.show();
-      // Note that there is a possible problem in that if someone stops this animation, the element will
-      // likely be invisible or only partially visible
-      iPlottedElement.animate({ 'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'stroke-opacity': 1},
-                                DG.PlotUtilities.kDefaultAnimationTime, '<>');
-    }
-    return !iWantHidden;
-  },
-
-  /**
-   * Update the position of the plotted element.
-   * Assumes but does not require that the element is visible (see showHidePlottedElement())
-   * @param iPlottedElement {}
-   * @param iAnimate {Boolean}
-   * @param iViewX {Number}
-   * @param iViewY {Number}
-   * @param iRadius {Number}
-   * @param iColorString {String}
-   */
-  updatePlottedElement: function( iPlottedElement, iViewX, iViewY, iRadius, iColorString, iAnimate, iCallback ) {
-    var tAttrs = {cx: iViewX, cy: iViewY, r: iRadius},
-        tColor = pv.color( iColorString ),
-        tStrokeColor;
-    if( tColor.rgb) {
-      tStrokeColor = tColor.darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
-    }
-    else {  // tColor would not have been able to 'darker'
-      // Kludge!
-      // Assume iColorString is missing leading '#'. This was encountered through an improper color map
-      // created by Analytics. Still could fail of course.
-      tStrokeColor = pv.color('#' + iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
-    }
-
-    // Any prior positional animation is no longer valid
-    if( iPlottedElement.posAnimation) {
-      iPlottedElement.stop( iPlottedElement.posAnimation);
-      iPlottedElement.posAnimation = null;
-    }
-
-    // Raphael animation completion function, called when animation is complete
-    // with "this" set to the Raphael object.
-    function completeAnimation() {
-      this.posAnimation = null;
-      if(iCallback)
-        iCallback();
-    }
-    
-    if( iAnimate) {
-      // note: animating color does not look good (interaction with other plot changes), so update immediately
-      iPlottedElement.attr( {fill: iColorString, stroke: tStrokeColor });
-      
-      // Hover animation changes the transform which affects positioning.
-      // If we're trying to animate position, we simply complete the hover animation.
-      if( iPlottedElement.hoverAnimation) {
-        iPlottedElement.stop( iPlottedElement.hoverAnimation);
-        iPlottedElement.hoverAnimation = null;
-        iPlottedElement.transform('');
-      }
-      
-      // Set up the position animation and start the animation
-      iPlottedElement.posAnimation = Raphael.animation( tAttrs, DG.PlotUtilities.kDefaultAnimationTime,
-                                                        '<>', completeAnimation);
-      iPlottedElement.animate( iPlottedElement.posAnimation);
-    } else {
-      // Counteract any transform effect, e.g. from a hover animation
-      var currTransform = iPlottedElement.transform(),
-          currTransformIsIdentity = SC.empty( currTransform) || (currTransform.toString() === 's1');
-      if( !currTransformIsIdentity)
-        iPlottedElement.transform( '');
-
-      // Make the attribute changes we came here to make
-      tAttrs.fill = iColorString;
-      tAttrs.stroke = tStrokeColor;
-      iPlottedElement.attr( tAttrs);
-      // Some points got made but never had a chance to finish their creation animation
-//      if( iPlottedElement.attr('stroke-opacity') < 1 ) {
-//        iPlottedElement.animate( {'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'stroke-opacity': 1 },
-//                                DG.PlotUtilities.kDefaultAnimationTime, '<>');
-//      }
-
-      // Restore the transform to its original value
-      if( !currTransformIsIdentity)
-        iPlottedElement.transform( currTransform);
-    }
-  },
-
-  /**
-   * Add an element to our list of temporary, about-to-vanish plot elements,
-   * so that we can animate it before it disappears.  Note that this animated
-   * element looks like a normal plotted element but is underneath the plotted element (in the z-axis),
-   * and will be deleted at the next rendering.
-   * Note: Here we assume the vanishing element is visible throughout the animation period,
-   * so caller should not vanish a case if missing and therefore hidden in the new or old plot.
-   * @param iOldAttrs {cx,cy,r,fill} position and other attributes of old (deleted) plotted element
-   * @param iNewAttrs {cx,cy} pposition and optionally other attributes of new plotted element we apparently are merging with
-   */
-  vanishPlottedElement: function( iOldAttrs, iNewAttrs ) {
-
-    function completeVanishAnimation() {
-      this.hide(); // hide this element until it is deleted from elementsToClear list (at next rendering).
-    }
-
-    // create circle animation
-    var tCircle = this.get('paper').circle( -100, -100, this._pointRadius ) // match createCircle()
-            .toBack() // behind existing elements
-            .addClass( DG.PlotUtilities.kColoredDotClassName) // match createCircle
-            .attr( iOldAttrs) // starting position to match updatePlottedElement()
-            .animate( iNewAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>', completeVanishAnimation );
-
-    // add it to list of elements be erased at next rendering (ideally after animation is done)
-    this.get('elementsToClear').push( tCircle );
-  },
-
-  /**
-   * This gets called when the point size changes but nothing else, as for example, when we connect points
-   * in a scatterplot with lines and want the point size to decrease.
-   */
-  updatePointSize: function() {
-    this._pointRadius = this.calcPointRadius();
-    var tAttr = { r: this._pointRadius };
-    this._plottedElements.forEach( function( iElement) {
-      iElement.animate( tAttr, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-    });
   },
 
   /**

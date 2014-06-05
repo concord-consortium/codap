@@ -521,16 +521,7 @@ DG.DocumentController = SC.Object.extend(
   },
 
   addMap: function( iParentView, iComponent) {
-    var tMapModel = DG.MapModel.create();
-    // map as background
-//    var tMapView = DG.MapView.create( {
-//          model: tMapModel,
-//          layout: { left: 0, right: 0, top: 0, bottom: 0}
-//        });
-//    iParentView.appendChild( tMapView);
-//    iParentView.sendToBack( tMapView);
-//    this._singletonViews.mapView = tMapView;
-//    return tMapView;
+    var tMapModel = DG.MapModel.create( {dataContext: DG.gameSelectionController.get('currentContext')});
 
     // map as component
     var tView = this.createComponentView(iComponent, {

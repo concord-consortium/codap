@@ -1,9 +1,9 @@
 // ==========================================================================
-//                      DG.GraphDataConfiguration
+//                      DG.MapDataConfiguration
 //
 //  Author:   William Finzer
 //
-//  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
+//  Copyright ©2014 Concord Consortium
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -20,13 +20,13 @@
 
 sc_require('components/graph_map_common/plot_data_configuration');
 
-/** @class  DG.GraphDataConfiguration - The object that describes the manner in which attributes are
-    assigned to places in a graph.
+/** @class  DG.MapDataConfiguration - The object that describes the manner in which attributes are
+    assigned to places in a map.
 
   @extends DG.PlotDataConfiguration
 */
-DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
-/** @scope DG.GraphDataConfiguration.prototype */ 
+DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
+/** @scope DG.MapDataConfiguration.prototype */ 
 {
   /**
    * It is in initialization that we specialize from base class
@@ -39,7 +39,13 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
                                   legend: DG.AttributePlacementDescription.create()
                                 },
         tPlace,
-        tDefaults = DG.currDocumentController().collectionDefaults();
+        tDefaults = DG.currDocumentController().collectionDefaults(),
+        tCollectionClient = tDefaults && tDefaults.collectionClient,
+        tAttrNames = tCollectionClient && tCollectionClient.getAttributeNames(),
+        tLatName, tLongName,
+        tLatAttr, tLongAttr,
+        kLatNames = ['latitude', 'lat', 'Latitude', 'Lat'],
+        kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng'];
 
     sc_super();
     
@@ -50,31 +56,19 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
         @param  {Number}    iNumericRole -- Numeric analysis role
         @param  {Number}    iCategoricalRole -- Categorical analysis role
      */
-    var configAttrDesc = function( iAttrPrefix, iAttrInfix, iNumericRole, iCategoricalRole) {
-      var attrDesc = attributeDescriptions[ iAttrPrefix],
-          attrSpec = tDefaults['plot' + iAttrInfix + 'Attr'],
-          isAttrNumeric = tDefaults['plot' + iAttrInfix + 'AttrIsNumeric'];
+    var configAttrDesc = function( iAttrPrefix, iAttr) {
+      var attrDesc = attributeDescriptions[ iAttrPrefix];
           
       DG.assert( attrDesc);
       
       // Configure the attribute description for the specified default attribute
-      if( attrSpec) {
+      if( iAttr) {
         // Must set collection before attribute for attribute stats to be configured properly
-        attrDesc.set('collectionClient', tDefaults.collectionClient);
-        attrDesc.set('attribute', attrSpec);
-        attrDesc.setPath('attributeStats.attributeType',
-                        SC.none( attrSpec)
-                            ? DG.Analysis.EAttributeType.eNone
-                            : isAttrNumeric
-                                ? DG.Analysis.EAttributeType.eNumeric
-                                : DG.Analysis.EAttributeType.eCategorical);
-        attrDesc.set('role',
-                      SC.none( attrSpec)
-                          ? DG.Analysis.EAnalysisRole.eNone
-                          : isAttrNumeric ? iNumericRole : iCategoricalRole);
+        attrDesc.set('collectionClient', tCollectionClient);
+        attrDesc.set('attribute', iAttr);
+        attrDesc.setPath('attributeStats.attributeType', DG.Analysis.EAttributeType.eNumeric);
       }
-      
-      // Null out the attribute description when no default attribute is specified.
+      // Null out the attribute description when no map attribute is specified.
       else {
         attrDesc.set('collectionClient', null);
         attrDesc.removeAllAttributes();
@@ -84,13 +78,23 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
       // the time sc_super() (i.e. SC.Object.init()) is called.
       attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');
     }.bind( this);
+
+    if( tAttrNames) {
+      kLatNames.forEach( function( iName) {
+        if( tAttrNames.indexOf( iName) >= 0)
+          tLatName = iName;
+      });
+      tLatAttr = tLatName && tCollectionClient.getAttributeByName( tLatName);
+      kLongNames.forEach( function( iName) {
+        if( tAttrNames.indexOf( iName) >= 0)
+          tLongName = iName;
+      });
+      tLongAttr = tLongName && tCollectionClient.getAttributeByName( tLongName);
+    }
     
-    configAttrDesc('x', 'X', DG.Analysis.EAnalysisRole.ePrimaryNumeric,
-                             DG.Analysis.EAnalysisRole.ePrimaryCategorical);
-    configAttrDesc('y', 'Y', DG.Analysis.EAnalysisRole.eSecondaryNumeric,
-                             DG.Analysis.EAnalysisRole.eSecondaryCategorical);
-    configAttrDesc('legend', 'Legend', DG.Analysis.EAnalysisRole.eLegendNumeric,
-                                       DG.Analysis.EAnalysisRole.eLegendCategorical);
+    configAttrDesc('x', tLongAttr);
+    configAttrDesc('y', tLatAttr);
+    configAttrDesc('legend', null);
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.

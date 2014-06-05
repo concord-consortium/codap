@@ -32,9 +32,9 @@ DG.DataTip = DG.ToolTip.extend(
     Our gateway to attributes, values, and axes
     @property { DG.PlotView }
   */
-  plotView: null,
+  plotLayer: null,
 
-  plotBinding: '.plotView.model',
+  plotBinding: '.plotLayer.model',
 
   /**
    * The index of the case whose values are being displayed
@@ -52,7 +52,7 @@ DG.DataTip = DG.ToolTip.extend(
 
   init: function() {
     sc_super();
-    this.set('paperSource', this.get('plotView'));
+    this.set('paperSource', this.get('plotLayer'));
   },
 
   show: function( iX, iY, iIndex) {

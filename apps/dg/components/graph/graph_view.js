@@ -131,6 +131,7 @@ DG.GraphView = SC.View.extend(
         tLegendView = DG.LegendView.create();
 
     sc_super();
+
     this.createMultiTarget();
     this._plotViews = [];
 
