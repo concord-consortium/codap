@@ -48,6 +48,12 @@ DG.MapView = SC.View.extend(
     },
 
     addPointLayer: function() {
+
+      function isValidBounds( iBounds) {
+        // If any of the array elements are null we don't have a valid bounds
+        return !SC.none( iBounds[0][0], iBounds[0][1], iBounds[1][0], iBounds[1][1]);
+      }
+
       var kPadding = [10, 10];
       this.set('mapPointView', DG.MapPointView.create(
         {
@@ -55,7 +61,9 @@ DG.MapView = SC.View.extend(
         }));
       this.setPath('mapPointView.model', this.get('model'))
       this.appendChild( this.get( 'mapPointView'));
-      this.getPath('mapLayer.map' ).fitBounds( this.get('model' ).getLatLngBounds(), kPadding);
+      var tBounds = this.get('model' ).getLatLngBounds();
+      if( isValidBounds( tBounds))
+        this.getPath('mapLayer.map' ).fitBounds( tBounds, kPadding);
     },
 
     /**
