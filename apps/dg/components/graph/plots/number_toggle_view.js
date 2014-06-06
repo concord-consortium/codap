@@ -177,8 +177,8 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
       doDraw: function doDraw() {
         var toggleNumber = function( iElement) {
-            this.get('model' ).toggleChildrenVisibility( iElement.toggleIndex);
             DG.logUser( "Show parent: %@", iElement.toggleIndex + 1);
+            this.get('model' ).toggleChildrenVisibility( iElement.toggleIndex);
           }.bind( this ),
 
           changeAllCaseVisibility = function() {
