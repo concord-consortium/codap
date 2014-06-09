@@ -580,6 +580,10 @@ DG.DocumentController = SC.Object.extend(
         var tURL = tDialog.get('value');
         tDialog.close();
         if( !SC.empty( tURL)) {
+          // If url does not contain http:// or https:// at the beginning, append http://
+          if (!/^https?:\/\//i.test(tURL)) {
+            tURL = 'http://' + tURL;
+          }
           this_.addWebView(  DG.mainPage.get('docView'), null,
                   tURL, 'Web Page',
                   { width: 600, height: 400 });
