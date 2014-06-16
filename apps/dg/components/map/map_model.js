@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('models/data_display_model');
+sc_require('components/graph_map_common/data_display_model');
 
 /** @class  DG.MapModel - The model for a map.
 
@@ -32,17 +32,23 @@ DG.MapModel = DG.DataDisplayModel.extend(
      */
     init: function() {
       sc_super();
-      this.set( 'dataConfiguration', DG.MapDataConfiguration.create(
-        {
-          dataContext: this.get('dataContext')
-        }
-      ) );
       // We might already have some data, so let's make sure we make use of it when called upon to do so
-      this.invalidate();
+      //this.invalidate();
     },
 
     destroy: function() {
       sc_super();
+    },
+
+    handleOneDataContextChange: function( iNotifier, iChange) {
+      // We must invalidate before we build indices because the change may
+      // have affected the set of included cases, which affects indices.
+      // It would be better not to be dealing with indices at all, but
+      // that refactoring is left for another day.
+      this.get('dataConfiguration').invalidateCaches( null, iChange);
+      iChange.indices = this.buildIndices( iChange);
+      this.dataRangeDidChange( this, 'revision', this, iChange.indices);
+      this.set('lastChange', iChange);
     },
 
     /**
@@ -87,7 +93,15 @@ DG.MapModel = DG.DataDisplayModel.extend(
           tSouthWest = [tLatMinMax.min, tLngMinMax.min],
           tNorthEast = [tLatMinMax.max, tLngMinMax.max];
        return [tSouthWest, tNorthEast];
+    },
+
+    /**
+     * For now, we'll assume all changes affect us
+     * @param iChange
+     */
+    isAffectedByChange: function( iChange) {
+      return true;
     }
 
-  } );
+    } );
 
