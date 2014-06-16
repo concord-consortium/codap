@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/graph_map_common/plot_layer');
+sc_require('components/graph_map_common/plot_layer');
 
 /** @class DG.MapPointLayer - A plot of dots placed according to numeric values
 
@@ -36,6 +36,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   map: function() {
     return this.getPath('mapSource.mapLayer.map');
   }.property(),
+
+  hasSomethingToDraw: function() {
+    var tModel = this.get('model');
+    return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+        !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
+  },
 
   /**
    * Computing this context once at beginning of display loop speeds things up
@@ -235,8 +241,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     Generate the svg needed to display the plot
   */
   doDraw: function doDraw() {
-    this.drawData();
-    this.updateSelection();
+    if( this.hasSomethingToDraw()) {
+      this.drawData();
+      this.updateSelection();
+    }
   },
 
   updateSelection: function() {
