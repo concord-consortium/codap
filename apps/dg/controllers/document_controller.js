@@ -521,7 +521,11 @@ DG.DocumentController = SC.Object.extend(
   },
 
   addMap: function( iParentView, iComponent) {
-    var tMapModel = DG.MapModel.create( {dataContext: DG.gameSelectionController.get('currentContext')});
+    var tMapModel = DG.MapModel.create(),
+        tContext = DG.gameSelectionController.get('currentContext');
+    // Don't pass the data context in the constructor because it's a function property
+    tMapModel.set('dataContext',  tContext);
+    tMapModel.set('dataConfiguration', DG.MapDataConfiguration.create({ dataContext: tContext }) );
 
     // map as component
     var tView = this.createComponentView(iComponent, {
