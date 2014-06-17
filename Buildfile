@@ -24,8 +24,9 @@ end
 # Debug build (e.g. sc-server) configuration
 mode :debug do
   config :dg,
-            :javascript_libs => [ # these urls will be inserted as the src of <script> tags in the <head> element
-             'https://maps.googleapis.com/maps/api/js?sensor=false' ]
+            :javascript_libs => [ # these urls will be inserted as the src 
+                                  # of <script> tags in the <head> element
+             ]
 #          :layout => 'sproutcore:lib/index.rhtml',
 end
 
