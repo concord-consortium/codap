@@ -93,8 +93,11 @@ return {
   },
   
   sendLoginAsGuestRequest: function() {
-    this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
-                          'DG.Authorization.guestPassword'.loc());
+    this.setPath('currLogin.user', 'guest');
+    this.logIn({ enableLogging: true, enableSave: false, privileges: 0,
+  sessiontoken: "guestSession", useCookie: false, valid: true}, 200);
+    //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
+    //                      'DG.Authorization.guestPassword'.loc());
   },
   
   sendLoginRequestFromDialog: function() {
@@ -319,17 +322,13 @@ return {
     this.requireLogin();
   },
   
-  receiveLoginResponse: function(iResponse) {
-    var currLogin = this.get('currLogin'),
-        status, body;
-    if (SC.ok(iResponse)) {
-      status = iResponse.get('status');
-      body = iResponse.get('body');
-      var isValid = body.valid,
-          sessionID = body.sessiontoken,
-          isLoggingEnabled = body.enableLogging,
-          isSaveEnabled = body.enableSave,
-          privileges = body.privileges;
+  logIn: function(loginData, status) {
+      var currLogin = this.get('currLogin'),
+          isValid = loginData.valid,
+          sessionID = loginData.sessiontoken,
+          isLoggingEnabled = loginData.enableLogging,
+          isSaveEnabled = loginData.enableSave,
+          privileges = loginData.privileges;
       if (isValid && currLogin) {
         // If we've received a valid login, we can remove the login dialog.
         if( this.sheetPane) {
@@ -338,8 +337,9 @@ return {
         }
         currLogin.beginPropertyChanges();
         currLogin.set('status', status);
-        //if request was sent using session token(saved from login cookies), then we already know the session token,
-        //so the server doesn't send it back to us.
+        // if request was sent using session token(saved from login cookies),
+        // then we already know the session token,
+        // so the server doesn't send it back to us.
         if (sessionID) {
           currLogin.set('sessionID', sessionID);
         }
@@ -348,20 +348,30 @@ return {
         currLogin.set('privileges', privileges);
         currLogin.set('logIndex', 0);
         currLogin.endPropertyChanges();
-        if( body.useCookie)
+        if( loginData.useCookie)
           this.saveLoginCookie();
         DG.logUser("Login: %@", currLogin.get('user'), { force: true });
         return;
       }
-    }
+  },
+  receiveLoginResponse: function(iResponse) {
+    var currLogin = this.get('currLogin'),
+        status, body;
+    if (SC.ok(iResponse)) {
+      status = iResponse.get('status');
+      body = iResponse.get('body');
+      return this.logIn(body, status);
+    } else {
 
-    //if the server gets a 500 error(server script error), then there will be no message return
-    var errorCode = (body && body.message) || "";
-    // If we get here, then we didn't log in successfully.
-    currLogin
-      .clear()
-      .set('errorCode', errorCode)
-      .set('failedLoginAttempt', true);
+      // if the server gets a 500 error(server script error), 
+      // then there will be no message return
+      var errorCode = (body && body.message) || "";
+      // If we get here, then we didn't log in successfully.
+      currLogin
+        .clear()
+        .set('errorCode', errorCode)
+        .set('failedLoginAttempt', true);
+    }
   },
   
   /**
