@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# Make a deployment package for CODAP. This is a zip file that can be
+# unzipped in any web server accessible location and run from there.
+#
+# Expects a build number as an argument.
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+ROOTDIR=`dirname $DIRNAME`
+APPNAME=dg
+
+function usage() {
+    echo "usage: $PROGNAME buildnumber" 1>&2
+    exit 1
+}
+
+if [ "$1" == "" ] ; then
+    usage
+fi
+
+BUILD_NUM=$1
+TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
+ZIP_FILE=codap_${BUILD_NUM}.zip
+WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
+INDEX_HTML=$WORK_DIR/index.html
+TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
+META_REDIRECT='<meta http-equiv="refresh" content="0; url=static/dg/en/'${BUILD_NUM}'/index.html">'
+#BUILD_OPTS=--dont-minify
+BUILD_OPTS=
+
+mkdir -p $WORK_DIR
+
+#
+# Build to a temp directory
+sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=$BUILD_NUM -vv
+
+#
+# Generate top lvel index.html redirector
+echo "<html><head>${META_REDIRECT}</head><body><p>Please wait</p></body></html>" > $INDEX_HTML
+
+#
+# Fix absolute references
+files=`find $WORK_DIR -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
+for t in $files ; do 
+    sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g;s%DataGames/%../../../../DataGames/%g' $t > /tmp/$PROGNAME_replace.$$ &&
+    mv /tmp/$PROGNAME_replace.$$ $t
+done
+
+#
+# Zip up
+( cd `dirname $WORK_DIR`; zip -r $TMP_ZIP $BUILD_NUM )
+
+#
+# Move
+mv $TMP_ZIP $ZIP_FILE
+
+#
+# Clean up
+echo rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
+rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
