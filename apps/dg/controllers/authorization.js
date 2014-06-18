@@ -94,7 +94,7 @@ return {
   
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
-    this.logIn({ enableLogging: true, enableSave: false, privileges: 0,
+    this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
   sessiontoken: "guestSession", useCookie: false, valid: true}, 200);
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
