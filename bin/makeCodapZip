@@ -21,7 +21,7 @@ fi
 BUILD_NUM=$1
 TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
 ZIP_FILE=codap_${BUILD_NUM}.zip
-WORK_DIR=/tmp/$PROGNAME.$$/codap
+WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
 INDEX_HTML=$WORK_DIR/index.html
 TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
 META_REDIRECT='<meta http-equiv="refresh" content="0; url=static/dg/en/'${BUILD_NUM}'/index.html">'
@@ -40,13 +40,13 @@ echo "<html><head>${META_REDIRECT}</head><body><p>Please wait</p></body></html>"
 # Fix absolute references
 files=`find $WORK_DIR -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
 for t in $files ; do 
-    sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g' $t > /tmp/$PROGNAME_replace.$$ &&
+    sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g;s%DataGames/%../../../../DataGames/%g' $t > /tmp/$PROGNAME_replace.$$ &&
     mv /tmp/$PROGNAME_replace.$$ $t
 done
 
 #
 # Zip up
-( cd `dirname $WORK_DIR`; zip -r $TMP_ZIP codap )
+( cd `dirname $WORK_DIR`; zip -r $TMP_ZIP $BUILD_NUM )
 
 #
 # Move
@@ -54,4 +54,5 @@ mv $TMP_ZIP $ZIP_FILE
 
 #
 # Clean up
-rm -rf $TMP_ZIP $WORK_DIR
+echo rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
+rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
