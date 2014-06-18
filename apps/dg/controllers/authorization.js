@@ -46,7 +46,11 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
 */
 DG.authorizationController = SC.Controller.create( (function() {
   var serverUrl = function(iRelativeUrl) {
-    return '/DataGames/api/' + iRelativeUrl;
+    if (iRelativeUrl.match('://')) {
+      return iRelativeUrl;
+    } else {
+      return '/DataGames/api/' + iRelativeUrl;
+    }
   };
 
 return {
@@ -268,7 +272,7 @@ return {
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
     
-     var url = 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
               
     this.postServerUrlJSON( url )
@@ -277,7 +281,7 @@ return {
   },
 
   documentList: function(iReceiver) {
-    var url = 'document/all';
+    var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
     this.getServerUrl( url)
@@ -286,7 +290,7 @@ return {
   },
 
   openDocument: function(iDocumentId, iReceiver) {    
-    var url = 'document/open';
+    var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
@@ -296,7 +300,7 @@ return {
       .send(); 
   },
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {    
-    var url = 'document/open';
+    var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordname=' + iDocumentName;
