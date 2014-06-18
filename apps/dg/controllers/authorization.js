@@ -78,9 +78,12 @@ return {
 
     this.set('currEdit', DG.Authorization.create({user: '', passwd: ''}));
     this.set('currLogin', DG.Authorization.create({}));
-    
-    if( DG.Browser.isCompatibleBrowser())
+
+    if (DG.documentServer) {
+      this.loadLoginFromDocumentServer();
+    } else if( DG.Browser.isCompatibleBrowser()) {
       this.loadLoginCookie();
+    }
   },
   
   
@@ -95,7 +98,11 @@ return {
   postServerUrlJSON: function(iUrl) {
     return this.postServerUrl(iUrl).json();
   },
-  
+
+  getServerUrlJSON: function(iUrl) {
+    return this.getServerUrl(iUrl).json();
+  },
+
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
     this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
@@ -117,9 +124,15 @@ return {
       if (iSessionID) {
         this.get('currLogin').set('sessionID', iSessionID);
       }
-      this.postServerUrlJSON('auth/login')
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
+      if (DG.documentServer) {
+        this.getServerUrlJSON(DG.documentServer + 'user/info')
+          .notify(this, 'receiveLoginResponse')
+          .send({});
+      } else {
+        this.postServerUrlJSON('auth/login')
+          .notify(this, 'receiveLoginResponse')
+          .send(body);
+      }
     }
   },
   
@@ -131,9 +144,15 @@ return {
       this.setPath('currLogin.user', iUser);
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
-      this.postServerUrlJSON('auth/login')
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
+      if (DG.documentServer) {
+        this.getServerUrlJSON(DG.documentServer + 'user/info')
+          .notify(this, 'receiveLoginResponse')
+          .send({});
+      } else {
+        this.postServerUrlJSON('auth/login')
+          .notify(this, 'receiveLoginResponse')
+          .send(body);
+      }
   },
   
   /**
@@ -149,7 +168,27 @@ return {
         .send(body);
     }
   },
-  
+
+  loadLoginFromDocumentServer: function() {
+    var login = this.get('currLogin'),
+      currEdit = this.get('currEdit'),
+      user = 'user',
+      sessionID = 'abc123';
+
+    login.beginPropertyChanges();
+    login.set('user', user); // so UI can be updated ("user logging in...")
+    login.set('status', 0); // not yet logged in
+    login.endPropertyChanges();
+
+    // Pending login information is stored in the currEdit object
+    if( currEdit) {
+      currEdit.beginPropertyChanges();
+      currEdit.set('user', user);
+      currEdit.set('sessionID', sessionID);
+      currEdit.endPropertyChanges();
+    }
+  },
+
   /**
    * Cookie used to store login credentials between launches.
    * @property {SC.Cookie}
@@ -317,6 +356,7 @@ return {
    
    */
   logout: function() {
+    if (DG.documentServer) { return; }  // Don't allow logging out, for now...
     this.sendLogoutRequest(this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'));
     DG.logUser("Logout: %@", this.getPath('currLogin.user'), { force: true });
     this.get('currEdit').clear();
@@ -332,6 +372,7 @@ return {
           sessionID = loginData.sessiontoken,
           isLoggingEnabled = loginData.enableLogging,
           isSaveEnabled = loginData.enableSave,
+          realUsername = loginData.username,
           privileges = loginData.privileges;
       if (isValid && currLogin) {
         // If we've received a valid login, we can remove the login dialog.
@@ -346,6 +387,9 @@ return {
         // so the server doesn't send it back to us.
         if (sessionID) {
           currLogin.set('sessionID', sessionID);
+        }
+        if (realUsername) {
+          currLogin.set('user', realUsername);
         }
         currLogin.set('isLoggingEnabled', isLoggingEnabled);
         currLogin.set('isSaveEnabled', isSaveEnabled);
@@ -445,12 +489,18 @@ return {
     if( !SC.empty( pendingUser) && pendingSession) {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
-    
+
+    var children = '';
+    if (DG.documentServer) {
+      children = 'labelView statusLabel';
+    } else {
+      children = 'labelView userLabel userText passwordLabel passwordText loginAsGuestButton loginButton statusLabel registerLink recoveryLink';
+    }
     this.sheetPane = SC.PanelPane.create({
     
       layout: { top: 0, centerX: 0, width: 340, height: 200 },
       contentView: SC.View.extend({
-        childViews: 'labelView userLabel userText passwordLabel passwordText loginAsGuestButton loginButton statusLabel registerLink recoveryLink'.w(),
+        childViews: children.w(),
     
         labelView: SC.LabelView.design({
           layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(24) },
@@ -530,7 +580,9 @@ return {
      });
     
     this.sheetPane.append();
-    this.sheetPane.contentView.userText.becomeFirstResponder();
+    if (!DG.documentServer) {
+      this.sheetPane.contentView.userText.becomeFirstResponder();
+    }
   },
   
   _loginSessionDidChange: function() {

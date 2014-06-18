@@ -51,6 +51,7 @@ DG.mainPage = SC.Page.design((function() {
         title: 'DG.mainPage.mainPane.logoutButton.title', // "Logout"
         target: 'DG.appController',
         action: 'logout',
+        isVisible: !DG.documentServer,
         toolTip: 'DG.mainPage.mainPane.logoutButton.toolTip'  // "Log out the current user"
       }),
   
