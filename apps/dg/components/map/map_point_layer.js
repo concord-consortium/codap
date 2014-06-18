@@ -37,9 +37,13 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     return this.getPath('mapSource.mapLayer.map');
   }.property(),
 
-  hasSomethingToDraw: function() {
+  /**
+   * Augment my base class by checking to make sure we have the attributes we need.
+   * @returns {boolean}
+   */
+  readyToDraw: function() {
     var tModel = this.get('model');
-    return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+    return sc_super() && tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
         !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
   },
 
@@ -76,6 +80,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     Method name is legacy artifact of SproutCore range observer implementation.
    */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
+    if( !this.readyToDraw())
+      return;
     var this_ = this,
         tPlotElementLength = this._plottedElements.length,
         tCases = this.getPath('model.cases'),
@@ -241,7 +247,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     Generate the svg needed to display the plot
   */
   doDraw: function doDraw() {
-    if( this.hasSomethingToDraw()) {
+    if( this.readyToDraw()) {
       this.drawData();
       this.updateSelection();
     }

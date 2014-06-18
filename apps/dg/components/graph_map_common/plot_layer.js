@@ -325,7 +325,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     override.
   */
   dataDidChange: function() {
-    if( SC.none( this.get('paper')))
+    if( !this.readyToDraw())
       return;   // not ready to create elements yet
     var this_ = this,
         tCases = this.getPath('model.cases'),
