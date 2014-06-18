@@ -109,6 +109,15 @@ SC.Record.ignoreUnknownProperties = true;
  */
 SC.RecordArray.QUERY_MATCHING_THRESHOLD = 10000;
 
+SC.XHRResponse.prototype.oldCreateRequest = SC.XHRResponse.prototype.createRequest;
+SC.XHRResponse.prototype.createRequest = function() {
+  var rawRequest = this.oldCreateRequest();
+  if ("withCredentials" in rawRequest) {
+    rawRequest.withCredentials = true;
+  }
+  return rawRequest;
+};
+
 /** @namespace
 
   A web app prototype for the DataGames project.
