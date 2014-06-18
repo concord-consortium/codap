@@ -25,12 +25,14 @@ WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
 INDEX_HTML=$WORK_DIR/index.html
 TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
 META_REDIRECT='<meta http-equiv="refresh" content="0; url=static/dg/en/'${BUILD_NUM}'/index.html">'
+#BUILD_OPTS=--dont-minify
+BUILD_OPTS=
 
 mkdir -p $WORK_DIR
 
 #
 # Build to a temp directory
-sproutcore build --dont-minify $APPNAME --buildroot $WORK_DIR --build=$BUILD_NUM -vv
+sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=$BUILD_NUM -vv
 
 #
 # Generate top lvel index.html redirector
