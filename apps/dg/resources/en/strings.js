@@ -39,14 +39,17 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.passwordLabel'  : "Password",
   'DG.Authorization.loginPane.loginAsGuest'   : "Login as guest",
   'DG.Authorization.loginPane.login'          : "Login",
+  'DG.Authorization.loginPane.tryAgain'       : "Try Again",
   'DG.Authorization.loginPane.registerLink'   : "<a href='http://%@/user/register'>Create a new account</a>",
   'DG.Authorization.loginPane.recoveryLink'   : "<a href='http://%@/user/password'>Forgot your password?</a>",
+  'DG.Authorization.loginPane.documentStoreSignInLink': "<a href='%@user/authenticate'>Sign In</a>",
   'DG.Authorization.loginPane.error.general'  : "Error occurred while logging in",
   'DG.Authorization.loginPane.error.userDatabaseError' : "Error connecting to the user database",
   'DG.Authorization.loginPane.error.authFailed': "Invalid username or password",
   'DG.Authorization.loginPane.error.noResponse': "Could not connect to login server",
   'DG.Authorization.loginPane.error.sessionExpired': "Session expired, please login again",
   'DG.Authorization.loginPane.error.invalidSession': "Session invalid, please login again",
+  'DG.Authorization.loginPane.error.notLoggedIn': "Please sign in before continuing.",
 
   // IS_BUILD variants of strings for InquirySpace
   'DG.mainPage.mainPane.versionString.IS_BUILD' : "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
