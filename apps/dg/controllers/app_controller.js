@@ -334,7 +334,12 @@ DG.appController = SC.Object.create((function() // closure
    * Opens a new tab with users document manager opened.
    */
   loadManager: function() {
-    var url = 'http://'+DG.getDrupalSubdomain()+DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.manageDocumentsURL'.loc());
+    var url = '';
+    if (DG.documentServer) {
+      url = DG.documentServer + "documents";
+    } else {
+      url = 'http://'+DG.getDrupalSubdomain()+DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.manageDocumentsURL'.loc());
+    }
     window.open(url, 'document_manager');
   },
 
