@@ -356,9 +356,11 @@ return {
    
    */
   logout: function() {
-    if (DG.documentServer) { return; }  // Don't allow logging out, for now...
-    this.sendLogoutRequest(this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'));
-    DG.logUser("Logout: %@", this.getPath('currLogin.user'), { force: true });
+    if (DG.documentServer && this.getPath('currLogin.user') != 'guest') { return; }  // Don't allow logging out, for now...
+    if (!DG.documentServer) {
+      this.sendLogoutRequest(this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'));
+      DG.logUser("Logout: %@", this.getPath('currLogin.user'), { force: true });
+    }
     this.get('currEdit').clear();
     this.get('currLogin').clear();
     this.saveLoginCookie();
@@ -402,6 +404,11 @@ return {
         return;
       }
   },
+
+  logInViaDocumentServer: function() {
+    window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
+  },
+
   receiveLoginResponse: function(iResponse) {
     var currLogin = this.get('currLogin'),
         status, body;
@@ -497,7 +504,7 @@ return {
       this.sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
         contentView: SC.View.extend({
-          childViews: 'labelView loginButton statusLabel signInLink'.w(),
+          childViews: 'labelView loginButton loginAsGuestButton statusLabel'.w(),
 
           labelView: SC.LabelView.design({
             layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(54) },
@@ -515,18 +522,21 @@ return {
             valueBinding: 'DG.authorizationController.currLogin.statusMsg'
           }),
 
-          signInLink: SC.StaticContentView.design({
-            layout: { top: nextTop(kVSpace ), left: 20, height: 18, width: 170 },
-            textAlign: SC.ALIGN_CENTER,
-            content: DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInLink').loc( DG.documentServer )
+          loginAsGuestButton: SC.ButtonView.design({
+            layout: { top: nextTop( kVSpace ), height: lastHeight(24), right:130, width:125 },
+            title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
+            localize: YES,
+            target: 'DG.authorizationController',
+            action: 'sendLoginAsGuestRequest',
+            isDefault: NO
           }),
 
           loginButton: SC.ButtonView.design({
             layout: { top: top, height: lastHeight(24), right:20, width:100 },
-            title: 'DG.Authorization.loginPane.tryAgain',                // "Try again"
+            title: 'DG.Authorization.loginPane.login',                // "Log in"
             localize: YES,
             target: 'DG.authorizationController',
-            action: 'sendLoginRequestFromDialog',
+            action: 'logInViaDocumentServer',
             isDefault: YES
           })
          })
