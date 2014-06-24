@@ -74,6 +74,7 @@ SC.stringsFor('English', {
   'DG.AppController.fileMenuItems.importDocument' : "Import JSON Document...",
   'DG.AppController.fileMenuItems.exportDocument' : "Export JSON Document...",
   'DG.AppController.fileMenuItems.exportCaseData' : "Export Case Data...",
+  'DG.AppController.fileMenuItems.showShareLink' : "Share Document...",
   'DG.AppController.closeDocument.warnMessage' : "Close the current document without saving?",
   'DG.AppController.closeDocument.warnDescription' : "This action is not undoable.",
   'DG.AppController.closeDocument.okButtonTitle' : "Close",
@@ -119,6 +120,11 @@ SC.stringsFor('English', {
   'DG.AppController.showAboutTitle' : 'About Data Games',
   'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
   'DG.AppController.showReleaseNotesTitle' : 'Data Games Release Notes',
+  'DG.AppController.shareLinkDialog.title' : 'Share',
+  'DG.AppController.shareLinkDialog.okButtonTitle' : 'OK',
+  'DG.AppController.shareLinkDialog.instructions' : "<p>Use the link below to share this document with others:</p>",
+  'DG.AppController.shareLinkDialog.link' : "<a href='%{doc_server}document/launch?owner=%{owner}&doc=%{doc_encoded}&server=%{codap_server}'>%{doc}</a>",
+  'DG.AppController.shareLinkDialog.saveWarning' : "<p>Warning: Make sure to save your document and mark it as shared!</p>",
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
