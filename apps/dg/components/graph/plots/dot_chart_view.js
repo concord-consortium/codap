@@ -71,7 +71,9 @@ DG.DotChartView = DG.PlotView.extend(
   },
 
   /**
-    Called when we discover my model's cache is not valid.
+    Note: There's a lot of redundancy here with plotLayer::dataDidChange. But it's difficult to
+   refactor further because of the need to deal with positioning points via
+   privSetCircleCoords.
   */
   updatePoints: function() {
     // It's possible to get here before didCreateLayer() creates the get('paper').
@@ -84,6 +86,7 @@ DG.DotChartView = DG.PlotView.extend(
         tDataLength = tCases && tCases.length,
         tPlotElementLength = this._plottedElements.length,
         tWantNewPointRadius =(this._pointRadius !== this.calcPointRadius()),
+        tLayerManager = this.get('layerManager' ),
         tIndex, tCellIndices;
     // update the point radius before creating or updating plotted elements
     if( tWantNewPointRadius ) this._pointRadius = this.calcPointRadius();
@@ -112,8 +115,14 @@ DG.DotChartView = DG.PlotView.extend(
     }
     // Get rid of plot elements for removed cases and update all coordinates
     if( tDataLength < tPlotElementLength) {
-      for( tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++)
-        this._plottedElements[ tIndex].remove();
+      for( tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
+        // It can happen during closing of a document that the elements no longer exist, so we have to test
+        if (!SC.none(this._plottedElements[ tIndex])) {
+          this._plottedElements[ tIndex].stop();
+          tLayerManager.removeElement(this._plottedElements[ tIndex]);
+          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[ tIndex]);
+        }
+      }
       this._plottedElements.length = tDataLength;
       // update all coordinates because we don't know which cases were deleted
       tCases.forEach( function( iCase, iIndex) {
@@ -122,6 +131,7 @@ DG.DotChartView = DG.PlotView.extend(
         });
     }
     this._isRenderingValid = false;
+    this.displayDidChange();
   },
   
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
