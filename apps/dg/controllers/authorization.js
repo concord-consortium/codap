@@ -450,7 +450,7 @@ return {
    */
   logToServer: function(iMessage, iProperties, iMetaArgs) {
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (iMetaArgs && iMetaArgs.force);
+                    (!DG.documentServer && iMetaArgs && iMetaArgs.force);
     if( !shouldLog) {
       // The logging path below indirectly triggers SproutCore notifications.
       // Calling SC.run() allows the same notifications to get triggered without the logging.
