@@ -60,7 +60,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   valueString: function() {
     var tValue = this.get('value'),
         tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
-        tNumFormat = pv.Format.number().fractionDigits( 0, tDigits),
+        tNumFormat = DG.Format.number().fractionDigits( 0, tDigits),
         tVar = this.getPath('valueAxisView.model.firstAttributeName');
     return tVar + " = " + tNumFormat( tValue);
   }.property('model.value', 'valueAxisView.model.firstAttributeName' ).cacheable(),

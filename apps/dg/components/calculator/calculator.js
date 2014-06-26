@@ -16,7 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('libraries/protovis');
+sc_require('utilities/formatter');
 
 /** @class
 
@@ -54,11 +54,11 @@ DG.Calculator = SC.View.extend( (function() // closure
 
     // The view format is the default number format, which after some earlier
     // modification of the Protovis code uses the Unicode minus sign for negative numbers.
-    viewFormat: pv.Format.number().fractionDigits( 0, 9).group(""),
+    viewFormat: DG.Format.number().fractionDigits( 0, 9).group(""),
 
     // The export format uses the ASCII minus sign for negative numbers,
     // for use in log statements, etc.
-    exportFormat: pv.Format.number().fractionDigits( 0, 9).group("").negativeAffix("-",""),
+    exportFormat: DG.Format.number().fractionDigits( 0, 9).group("").negativeAffix("-",""),
     
     /**
       Formats values for use by the Calculator view.
@@ -66,7 +66,7 @@ DG.Calculator = SC.View.extend( (function() // closure
      */
     formatForView: function( iValue) {
       if( typeof iValue !== 'number') return String( iValue);
-      // pv.Format has been modified separately to use the Unicode minus sign,
+      // DG.Format has been modified separately to use the Unicode minus sign,
       // so this will format negative numbers with the Unicode minus sign.
       return this.viewFormat( iValue);
     },

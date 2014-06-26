@@ -72,7 +72,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         tFormat;
       if( (tFracDigits === 0) && (tTickGap < 10))
         tFracDigits++;
-      tFormat = pv.Format.number().group("").fractionDigits( 0, tFracDigits);
+      tFormat = DG.Format.number().group("").fractionDigits( 0, tFracDigits);
       return tFormat( tData);
     },
 
@@ -99,7 +99,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
           tLabelString,
           tMaxNumberExtent = DG.RenderingUtilities.kDefaultFontHeight,
           tFracDigits = (tTickGap < 1) ? Math.ceil( Math.abs( Math.log( tTickGap) / Math.LN10)) : 0,
-          tFormat = pv.Format.number().group("").fractionDigits( 0, tFracDigits)
+          tFormat = DG.Format.number().group("").fractionDigits( 0, tFracDigits)
           ;
 
       function drawTicks()

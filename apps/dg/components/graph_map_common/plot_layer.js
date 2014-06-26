@@ -753,7 +753,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    */
   updatePlottedElement: function( iPlottedElement, iViewX, iViewY, iRadius, iColorString, iAnimate, iCallback ) {
     var tAttrs = {cx: iViewX, cy: iViewY, r: iRadius},
-        tColor = pv.color( iColorString ),
+        tColor = DG.color( iColorString ),
         tStrokeColor;
     if( tColor.rgb) {
       tStrokeColor = tColor.darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
@@ -762,7 +762,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       // Kludge!
       // Assume iColorString is missing leading '#'. This was encountered through an improper color map
       // created by Analytics. Still could fail of course.
-      tStrokeColor = pv.color('#' + iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
+      tStrokeColor = DG.color('#' + iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
     }
 
     // Any prior positional animation is no longer valid

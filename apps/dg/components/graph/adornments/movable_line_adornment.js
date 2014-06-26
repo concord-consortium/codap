@@ -79,9 +79,9 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
         tDigits = DG.PlotUtilities.findNeededFractionDigits(
                 tSlope, tIntercept,
                 this_.get('xAxisView'), this_.get('yAxisView')),
-        tIntNumFormat = pv.Format.number().fractionDigits( 0, tDigits.interceptDigits),
+        tIntNumFormat = DG.Format.number().fractionDigits( 0, tDigits.interceptDigits),
         tInterceptString = tIntNumFormat( tIntercept),
-        tSlopeNumFormat = pv.Format.number().fractionDigits( 0, tDigits.slopeDigits),
+        tSlopeNumFormat = DG.Format.number().fractionDigits( 0, tDigits.slopeDigits),
         tSlopeString = tSlopeNumFormat( tSlope) + " ",
         tSign = (tIntercept < 0) ? " " : " + ",
         tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
@@ -106,7 +106,7 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
       var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this_.get('xAxisView')),
           tXIntercept = this_.getPath( 'model.xIntercept'),
           tXVar = this_.getPath('xAxisView.model.label');
-      return tXVar + " = " + pv.Format.number().fractionDigits( 0, tDigits)( tXIntercept);
+      return tXVar + " = " + DG.Format.number().fractionDigits( 0, tDigits)( tXIntercept);
     }
 
     if( this.getPath( 'model.isVertical'))
