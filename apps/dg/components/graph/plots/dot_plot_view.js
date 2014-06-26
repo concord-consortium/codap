@@ -443,8 +443,8 @@ DG.DotPlotView = DG.PlotView.extend(
                 (tBin < tBinArrays[ tCellNumber].length))
               tBinArrays[ tCellNumber][ tBin].total++;
       });
-      tMaxInBin = pv.max( tBinArrays.map( function( iBinArray ) {
-        return pv.max( iBinArray.map( function( iBin) {
+      tMaxInBin = DG.MathUtilities.max( tBinArrays.map( function( iBinArray ) {
+        return DG.MathUtilities.max( iBinArray.map( function( iBin) {
           return iBin.total;
         }) );
       } ) );
@@ -456,8 +456,8 @@ DG.DotPlotView = DG.PlotView.extend(
     } // computeOverlap()
     
     // Fill arrays with zeroes
-    this.set( 'binArrays', pv.range( tNumCells ).map( function() {
-      return pv.range( tNumBins ).map( function() {
+    this.set( 'binArrays', DG.MathUtilities.range( tNumCells ).map( function() {
+      return DG.MathUtilities.range( tNumBins ).map( function() {
         return { total: 0, counter: 0 };
       } );
     } ) );

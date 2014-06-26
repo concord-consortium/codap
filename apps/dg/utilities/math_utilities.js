@@ -191,7 +191,88 @@ DG.MathUtilities = {
    */
   isFinite: function( val ) {
     return (!SC.empty(val)) && isFinite( val);
+  },
+
+  /**
+   * @private A private variant of Array.prototype.map that supports the index
+   * property.
+   */
+  map: function(array, f) {
+    var o = {};
+    return f
+        ? array.map(function(d, i) { o.index = i; return f.call(o, d); })
+        : array.slice();
+  },
+
+/**
+   * Returns <tt>this.index</tt>. This method is provided for convenience for use
+   * with scales. For example, to color bars by their index, say:
+   *
+   * <pre>.fillStyle(pv.Colors.category10().by(pv.index))</pre>
+   *
+   * This method is equivalent to <tt>function() this.index</tt>, but more
+   * succinct. Note that the <tt>index</tt> property is also supported for
+   * accessor functions with {@link pv.max}, {@link pv.min} and other array
+   * utility methods.
+   *
+   * @see pv.Scale
+   * @see pv.Mark#index
+   */
+  index: function() { return this.index; },
+
+/**
+   * Returns the maximum value of the specified array. If the specified array is
+   * not an array of numbers, an optional accessor function <tt>f</tt> can be
+   * specified to map the elements to numbers. See {@link #normalize} for an
+   * example. Accessor functions can refer to <tt>this.index</tt>.
+   *
+   * @param {array} array an array of objects, or numbers.
+   * @param {function} [f] an optional accessor function.
+   * @returns {number} the maximum value of the specified array.
+   */
+  max: function(array, f) {
+    if (f == DG.MathUtilities.index) return array.length - 1;
+    return Math.max.apply(null, f ? DG.MathUtilities.map(array, f) : array);
+  },
+
+  /**
+   * Returns an array of numbers, starting at <tt>start</tt>, incrementing by
+   * <tt>step</tt>, until <tt>stop</tt> is reached. The stop value is
+   * exclusive. If only a single argument is specified, this value is interpeted
+   * as the <i>stop</i> value, with the <i>start</i> value as zero. If only two
+   * arguments are specified, the step value is implied to be one.
+   *
+   * <p>The method is modeled after the built-in <tt>range</tt> method from
+   * Python. See the Python documentation for more details.
+   *
+   * @see <a href="http://docs.python.org/library/functions.html#range">Python range</a>
+   * @param {number} [start] the start value.
+   * @param {number} stop the stop value.
+   * @param {number} [step] the step value.
+   * @returns {number[]} an array of numbers.
+   */
+  range: function(start, stop, step) {
+  if (arguments.length == 1) {
+    stop = start;
+    start = 0;
   }
+  if (step == undefined) step = 1;
+  if ((stop - start) / step == Infinity) throw new Error("range must be finite");
+  var array = [], i = 0, j;
+  stop -= (stop - start) * 1e-10; // floating point precision!
+  if (step < 0) {
+    while ((j = start + step * i++) > stop) {
+      array.push(j);
+    }
+  } else {
+    while ((j = start + step * i++) < stop) {
+      array.push(j);
+    }
+  }
+  return array;
+}
+
+
 
 };
 

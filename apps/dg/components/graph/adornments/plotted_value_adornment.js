@@ -59,7 +59,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       return tValue.message;
     
     var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
-        tNumFormat = pv.Format.number().fractionDigits( 0, tDigits);
+        tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
     return DG.isFinite( tValue) ? tNumFormat( tValue) : (tValue && tValue.toString());
   }.property(),
 

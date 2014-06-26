@@ -536,8 +536,8 @@ DG.ColorUtilities.dampenBrightnessByHue = function( iOldBrightness, iConstHue, i
  */
 
 DG.ColorUtilities.darker = function( iColorString, iFactor) {
-//  tStrokeColor = pv.color(iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
-  var tColor = pv.color(iColorString).darker( iFactor).color;
+//  tStrokeColor = DG.color(iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
+  var tColor = DG.color(iColorString).darker( iFactor).color;
   return tColor;
 };
 

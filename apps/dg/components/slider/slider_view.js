@@ -187,7 +187,7 @@ DG.SliderView = SC.View.extend(
             tMaxDecimals = Math.ceil( -tLogDelta),
             tModel = this.get('model'),
             tName = SC.none( tModel) ? '' : tModel.get('name'),
-            tNumber = SC.none( tModel) ? '' : pv.Format.number().fractionDigits( 0, tMaxDecimals)( tModel.get('value'));
+            tNumber = SC.none( tModel) ? '' : DG.Format.number().fractionDigits( 0, tMaxDecimals)( tModel.get('value'));
 
         this.setPath('valueView.value', tName + ' = ' + tNumber);
       }.observes('thumbCoord', 'name'),
