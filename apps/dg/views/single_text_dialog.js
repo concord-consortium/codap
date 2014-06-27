@@ -42,7 +42,7 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       localize: true,
       value: ''
     }),
-    editView: SC.TextFieldView.design({
+    editView: DG.FileInputView.design({
       layout: { top: 40, left: 5, right: 5, height:24 },
       value: '',
       isTextArea: false,
@@ -71,7 +71,7 @@ DG.SingleTextDialog = SC.PalettePane.extend(
   }),
   
   value: function() {
-    return this.getPath('contentView.editView.value');
+    return this.getPath('contentView.editView.files');
   }.property(),
   
   init: function() {
