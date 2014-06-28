@@ -481,12 +481,12 @@ DG.appController = SC.Object.create((function() // closure
   importDocument: function() {
     var tDialog;
     
-    var importJsonDocumentFromDialog = function() {
-      var docText = tDialog.get('value');
-      tDialog.close();
-      if( !SC.empty( docText))
-        this.openJsonDocument( docText);
-    }.bind( this);
+//    var importJsonDocumentFromDialog = function() {
+//      var docText = tDialog.get('value');
+//      tDialog.close();
+//      if( !SC.empty( docText))
+//        this.openJsonDocument( docText);
+//    }.bind( this);
 
     var importJsonFileFromDialog = function() {
       var v = tDialog.get('value');  
@@ -507,7 +507,7 @@ DG.appController = SC.Object.create((function() // closure
       reader.readAsText(v[0]);
     }.bind(this);
     
-    tDialog = DG.CreateSingleTextDialog( {
+    tDialog = DG.CreateFileUploadDialog( {
                     prompt: 'DG.AppController.importDocument.prompt',
                     textValue: '',
                     // TODO: Shouldn't hints be localized?
