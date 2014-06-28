@@ -99,7 +99,7 @@ SC.stringsFor('English', {
   'DG.AppController.saveDocument.prompt' : "Choose a name for the document:",
   'DG.AppController.saveDocument.okTitle' : "Save",
   'DG.AppController.saveDocument.okTooltip' : "Save the document with the specified name",
-  'DG.AppController.importDocument.prompt' : "Paste a JSON document to import:",
+  'DG.AppController.importDocument.prompt' : "Select a JSON document to import:",
   'DG.AppController.importDocument.okTitle' : "Import",
   'DG.AppController.importDocument.okTooltip' : "Import the specified JSON document",
   'DG.AppController.exportDocument.prompt' : "Copy the JSON document for export:",
