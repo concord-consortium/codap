@@ -5,11 +5,6 @@
 // License:   Licensed under MIT license (see license.js)
 // ==========================================================================
 
-sc_require('frameworks/sproutcore/frameworks/views/field') ;
-sc_require('frameworks/sproutcore/frameworks/system/text_selection') ;
-sc_require('frameworks/sproutcore/frameworks/mixins/static_layout') ;
-sc_require('frameworks/sproutcore/frameworks/mixins/editable');
-
 /**
   @class
 
