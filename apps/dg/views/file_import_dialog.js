@@ -86,7 +86,7 @@ DG.FileImportDialog = DG.SingleTextDialog.extend(
 
  @returns  {DG.FileImportDialog} the created dialog
  */
-DG.CreateFileUploadDialog = function( iProperties) {
+DG.CreateFileImportDialog = function( iProperties) {
     var tDialog = DG.FileImportDialog.create( iProperties),
         kParamMap = {
             prompt: 'promptView.value',

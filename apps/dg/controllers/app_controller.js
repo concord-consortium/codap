@@ -493,14 +493,19 @@ DG.appController = SC.Object.create((function() // closure
         console.log("Abort or error on file read.");
       }
       function handleRead(){
-        console.log("File read.");
-        that.openJsonDocument(this.result);
+        try {
+          console.log("File read.");
+          that.openJsonDocument(this.result);
+          tDialog.close();
+        }
+        catch (er) {
+          console.log(er);
+        }
       }
       var v = tDialog.get('value');
       var reader = new FileReader();
       var that = this;
       var text;
-      tDialog.close();
       if (v[0]) {
         reader.onabort = handleAbnormal;
         reader.onerror = handleAbnormal;
@@ -509,7 +514,7 @@ DG.appController = SC.Object.create((function() // closure
       }
     }.bind(this);
     
-    tDialog = DG.CreateFileUploadDialog( {
+    tDialog = DG.CreateFileImportDialog( {
                     prompt: 'DG.AppController.importDocument.prompt',
                     textValue: '',
                     // TODO: Shouldn't hints be localized?
