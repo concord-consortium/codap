@@ -1,5 +1,5 @@
 // ==========================================================================
-//                          DG.FileUploadDialog
+//                          DG.FileImportDialog
 //
 //  Implements a dialog with a single text field and Ok and Cancel buttons
 //  Has options to hide the cancel button, and make the text field multi-line.
@@ -21,20 +21,17 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('views/single_text_dialog');
+
 /** @class
 
     A simple dialog box with a label, a text edit view, a cancel button, and an OK button
 
  @extends SC.PalettePane
  */
-DG.FileUploadDialog = SC.PalettePane.extend(
-    /** @scope DG.FileUploadDialog.prototype */ {
-
-        isModal: true,
-
-        layout: { width: 400, height: 120, centerX: 0, centerY: 0 },
-
-        contentView: SC.View.extend({
+DG.FileImportDialog = DG.SingleTextDialog.extend(
+  /** @scope DG.FileImportDialog.prototype */ {
+    contentView: SC.View.extend({
 
             childViews: 'promptView editView okButton cancelButton'.w(),
             promptView: SC.LabelView.extend({
@@ -72,27 +69,8 @@ DG.FileUploadDialog = SC.PalettePane.extend(
 
         value: function() {
             return this.getPath('contentView.editView.files');
-        }.property(),
+        }.property()
 
-        init: function() {
-            sc_super();
-
-            // By default, cancel simply closes the dialog
-            this.setPath('contentView.cancelButton.target', this);
-            this.setPath('contentView.cancelButton.action', 'close');
-        },
-
-        /**
-         Close the open/save dialog.
-
-         Call this function from your okButton/cancelButton action handlers.
-         (The default cancelButton handler simply calls this method directly.)
-         */
-        close: function() {
-            // Not clear what the best way to close/destroy is.
-            this.remove();
-            this.destroy();
-        }
     });
 
 /**
@@ -106,10 +84,10 @@ DG.FileUploadDialog = SC.PalettePane.extend(
  displayed for the dialog items, etc.
  See the kParamMap below for details.
 
- @returns  {DG.FileUploadDialog} the created dialog
+ @returns  {DG.FileImportDialog} the created dialog
  */
 DG.CreateFileUploadDialog = function( iProperties) {
-    var tDialog = DG.FileUploadDialog.create( iProperties),
+    var tDialog = DG.FileImportDialog.create( iProperties),
         kParamMap = {
             prompt: 'promptView.value',
 
