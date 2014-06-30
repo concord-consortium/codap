@@ -489,10 +489,6 @@ DG.appController = SC.Object.create((function() // closure
 //    }.bind( this);
 
     var importJsonFileFromDialog = function() {
-      var v = tDialog.get('value');  
-      var reader = new FileReader();
-      var that = this;
-      var text;
       function handleAbnormal(){
         console.log("Abort or error on file read.");
       }
@@ -500,11 +496,17 @@ DG.appController = SC.Object.create((function() // closure
         console.log("File read.");
         that.openJsonDocument(this.result);
       }
+      var v = tDialog.get('value');
+      var reader = new FileReader();
+      var that = this;
+      var text;
       tDialog.close();
-      reader.onabort = handleAbnormal;
-      reader.onerror = handleAbnormal;
-      reader.onload = handleRead;
-      reader.readAsText(v[0]);
+      if (v[0]) {
+        reader.onabort = handleAbnormal;
+        reader.onerror = handleAbnormal;
+        reader.onload = handleRead;
+        reader.readAsText(v[0]);
+      }
     }.bind(this);
     
     tDialog = DG.CreateFileUploadDialog( {
