@@ -310,3 +310,11 @@ input.editor-text {
   padding: 0;
 
 }
+
+.dg-file-import-view {
+  background-color: transparent;
+}
+
+.dg-file-import-view.focus {
+  outline: none!important;
+}
