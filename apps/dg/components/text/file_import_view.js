@@ -16,7 +16,7 @@
 DG.FileImportView = SC.TextFieldView.extend(
   /** @scope SC.TextFieldView.prototype */ {
 
-  classNames: ['dg-file-input-view'],
+  classNames: ['dg-file-import-view'],
 
 
   // ..........................................................
@@ -80,6 +80,13 @@ DG.FileImportView = SC.TextFieldView.extend(
     @default YES
    */
   spellCheckEnabled: NO,
+  /**
+     Whether to render a border or not.
+
+     @type Boolean
+     @default YES
+  */
+  shouldRenderBorder: NO,
 
   files: function() {
     var v =this.$input().prop('files');
