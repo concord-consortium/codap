@@ -481,13 +481,6 @@ DG.appController = SC.Object.create((function() // closure
   importDocument: function() {
     var tDialog;
     
-//    var importJsonDocumentFromDialog = function() {
-//      var docText = tDialog.get('value');
-//      tDialog.close();
-//      if( !SC.empty( docText))
-//        this.openJsonDocument( docText);
-//    }.bind( this);
-
     var importJsonFileFromDialog = function() {
       function handleAbnormal(){
         console.log("Abort or error on file read.");
@@ -523,9 +516,6 @@ DG.appController = SC.Object.create((function() // closure
                     prompt: 'DG.AppController.importDocument.prompt',
                     alert: 'DG.AppController.importDocument.alert',
                     textValue: '',
-                    // TODO: Shouldn't hints be localized?
-                    //textHint: "JSON document text",
-                    textLimit: 1000000,
                     textAction: resetAlert,
                     okTarget: null,
                     okAction: importJsonFileFromDialog,

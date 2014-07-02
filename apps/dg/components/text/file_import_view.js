@@ -88,7 +88,10 @@ DG.FileImportView = SC.TextFieldView.extend(
   */
   shouldRenderBorder: NO,
 
-  isActiveAction: function () {
+    /**
+     * Callback invoked when the view focuses or blurs.
+      */
+  stateChangeAction: function () {
     if (this.action) {
       this.action();
     }

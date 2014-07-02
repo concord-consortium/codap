@@ -25,7 +25,9 @@ sc_require('views/single_text_dialog');
 
 /** @class
 
-    A simple dialog box with a label, a text edit view, a cancel button, and an OK button
+    A dialog box to manage importing a document from the file system. Has a
+    label, a file import view, an initially
+    hidden alert buttong, a cancel button, and an OK button.
 
  @extends SC.PalettePane
  */
@@ -45,6 +47,8 @@ DG.FileImportDialog = DG.SingleTextDialog.extend(
                 isTextArea: false,
                 spellCheckEnabled: false
             }),
+            // alertView: Initially invisible, only exposed if invalid file
+            // uploaded
             alertView: SC.LabelView.extend({
               layout: { top: 70, left: 5, right: 5, height:24 },
               classNames: ['dg-alert'],
