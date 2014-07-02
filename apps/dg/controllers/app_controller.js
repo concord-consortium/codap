@@ -481,21 +481,54 @@ DG.appController = SC.Object.create((function() // closure
   importDocument: function() {
     var tDialog;
     
-    var importJsonDocumentFromDialog = function() {
-      var docText = tDialog.get('value');
-      tDialog.close();
-      if( !SC.empty( docText))
-        this.openJsonDocument( docText);
-    }.bind( this);
-    
-    tDialog = DG.CreateSingleTextDialog( {
+//    var importJsonDocumentFromDialog = function() {
+//      var docText = tDialog.get('value');
+//      tDialog.close();
+//      if( !SC.empty( docText))
+//        this.openJsonDocument( docText);
+//    }.bind( this);
+
+    var importJsonFileFromDialog = function() {
+      function handleAbnormal(){
+        console.log("Abort or error on file read.");
+      }
+      function handleRead(){
+        try {
+          console.log("File read.");
+          that.openJsonDocument(this.result);
+          tDialog.close();
+        }
+        catch (er) {
+          console.log(er);
+          tDialog.showAlert();
+        }
+      }
+      var v = tDialog.get('value');
+      var reader = new FileReader();
+      var that = this;
+      var text;
+      if (v[0]) {
+        reader.onabort = handleAbnormal;
+        reader.onerror = handleAbnormal;
+        reader.onload = handleRead;
+        reader.readAsText(v[0]);
+      }
+    }.bind(this);
+
+    var resetAlert = function () {
+      tDialog && tDialog.hideAlert();
+    }.bind(this);
+
+    tDialog = DG.CreateFileImportDialog( {
                     prompt: 'DG.AppController.importDocument.prompt',
+                    alert: 'DG.AppController.importDocument.alert',
                     textValue: '',
                     // TODO: Shouldn't hints be localized?
-                    textHint: "JSON document text",
+                    //textHint: "JSON document text",
                     textLimit: 1000000,
+                    textAction: resetAlert,
                     okTarget: null,
-                    okAction: importJsonDocumentFromDialog,
+                    okAction: importJsonFileFromDialog,
                     okTitle: 'DG.AppController.importDocument.okTitle',
                     okTooltip: 'DG.AppController.importDocument.okTooltip'
                   });
