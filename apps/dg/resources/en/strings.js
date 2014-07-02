@@ -100,6 +100,7 @@ SC.stringsFor('English', {
   'DG.AppController.saveDocument.okTitle' : "Save",
   'DG.AppController.saveDocument.okTooltip' : "Save the document with the specified name",
   'DG.AppController.importDocument.prompt' : "Select a CODAP document to import:",
+  'DG.AppController.importDocument.alert' : "Alert: The imported file is not a CODAP document.",
   'DG.AppController.importDocument.okTitle' : "Import",
   'DG.AppController.importDocument.okTooltip' : "Import the specified CODAP document",
   'DG.AppController.exportDocument.prompt' : "Copy the CODAP document for export:",

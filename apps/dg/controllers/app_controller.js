@@ -500,6 +500,7 @@ DG.appController = SC.Object.create((function() // closure
         }
         catch (er) {
           console.log(er);
+          tDialog.showAlert();
         }
       }
       var v = tDialog.get('value');
@@ -513,13 +514,19 @@ DG.appController = SC.Object.create((function() // closure
         reader.readAsText(v[0]);
       }
     }.bind(this);
-    
+
+    var resetAlert = function () {
+      tDialog && tDialog.hideAlert();
+    }.bind(this);
+
     tDialog = DG.CreateFileImportDialog( {
                     prompt: 'DG.AppController.importDocument.prompt',
+                    alert: 'DG.AppController.importDocument.alert',
                     textValue: '',
                     // TODO: Shouldn't hints be localized?
                     //textHint: "JSON document text",
                     textLimit: 1000000,
+                    textAction: resetAlert,
                     okTarget: null,
                     okAction: importJsonFileFromDialog,
                     okTitle: 'DG.AppController.importDocument.okTitle',

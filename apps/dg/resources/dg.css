@@ -318,3 +318,7 @@ input.editor-text {
 .dg-file-import-view.focus {
   outline: none!important;
 }
+
+.dg-alert {
+    color: red;
+}

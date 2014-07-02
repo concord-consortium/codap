@@ -88,6 +88,12 @@ DG.FileImportView = SC.TextFieldView.extend(
   */
   shouldRenderBorder: NO,
 
+  isActiveAction: function () {
+    if (this.action) {
+      this.action();
+    }
+  }.observes('isEditing'),
+
   files: function() {
     var v =this.$input().prop('files');
     console.log('files: ' + v);

@@ -33,7 +33,7 @@ DG.FileImportDialog = DG.SingleTextDialog.extend(
   /** @scope DG.FileImportDialog.prototype */ {
     contentView: SC.View.extend({
 
-            childViews: 'promptView editView okButton cancelButton'.w(),
+            childViews: 'promptView editView alertView okButton cancelButton'.w(),
             promptView: SC.LabelView.extend({
                 layout: { top: 10, left: 5, right: 5, height:24 },
                 localize: true,
@@ -44,6 +44,13 @@ DG.FileImportDialog = DG.SingleTextDialog.extend(
                 value: '',
                 isTextArea: false,
                 spellCheckEnabled: false
+            }),
+            alertView: SC.LabelView.extend({
+              layout: { top: 70, left: 5, right: 5, height:24 },
+              classNames: ['dg-alert'],
+              localize: true,
+              isVisible: NO,
+              value: ''
             }),
             okButton: SC.ButtonView.design({
                 layout: { bottom:5, right: 5, height:24, width: 90 },
@@ -66,6 +73,14 @@ DG.FileImportDialog = DG.SingleTextDialog.extend(
                 isCancel: true
             })
         }),
+
+        showAlert: function () {
+          this.contentView.alertView.set('isVisible', YES);
+        },
+
+        hideAlert: function () {
+          this.contentView.alertView.set('isVisible', NO);
+        },
 
         value: function() {
             return this.getPath('contentView.editView.files');
@@ -95,6 +110,9 @@ DG.CreateFileImportDialog = function( iProperties) {
             textHint: 'editView.hint',
             textLimit: 'editView.maxLength',
             textIsMultiLine: 'editView.isTextArea',
+            textAction: 'editView.action',
+
+            alert: 'alertView.value',
 
             okTarget: 'okButton.target',
             okAction: 'okButton.action',
