@@ -418,12 +418,12 @@ DG.ColorUtilities.hsb_to_PlatformColor = function( tHue, tSaturation, tBrightnes
  * @returns {string} Rafael-compatible RGB color string.
  */
 DG.ColorUtilities.rgb_to_PlatformColor = function( red, green, blue ) {
-  // note: exponential numbers ("0.5e-14") don't render correctly,
-  // but SVG 'Interface RGBColor' says float is OK, so use .toFixed(4)
+  // note: although SVG 'Interface RGBColor' says float is OK, not all libraries work
+  // correctly unless values are integer. (E.g. Leaflet)
   return("rgb(" +
-        (red   * 255).toFixed(4) +","+
-        (green * 255).toFixed(4) +","+ 
-        (blue  * 255).toFixed(4) +")" 
+        Math.round(red   * 255) +","+
+        Math.round(green * 255) +","+
+        Math.round(blue  * 255) +")"
       );
 };
 
