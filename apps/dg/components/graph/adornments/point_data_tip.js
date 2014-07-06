@@ -43,7 +43,8 @@ DG.PointDataTip = DG.DataTip.extend(
     function getNameValuePair( iKey) {
       var tAttrDesc = this_.get('plot' ).getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
           tAttributes = tAttrDesc.get('attributes' ),
-          tPlotIndex = this_.getPath('plotLayer.plotIndex' );
+          tPlotIndex = this_.getPath('plotLayer.plotIndex'),
+          tAxisView = this_.getPath('plotLayer.' + iKey + 'AxisView');
       // If there are more than 1 attribute, we'll end up using the plot index to pull out the right one
       // This only works because we only allow multiple attributes on the y-place.
       tPlotIndex = (tPlotIndex < tAttributes.length) ? tPlotIndex : 0;
@@ -56,9 +57,9 @@ DG.PointDataTip = DG.DataTip.extend(
         if( SC.none( tValue)) return null;
 
         if( tAttrDesc.get('isNumeric')) {
-          tDigits = (iKey === 'legend') ?
+          tDigits = ((iKey === 'legend') || !tAxisView) ?
                     DG.PlotUtilities.findFractionDigitsForRange( tAttrDesc.getPath('attributeStats.minMax')) :
-                    DG.PlotUtilities.findFractionDigitsForAxis( this_.getPath('plotLayer.' + iKey + 'AxisView'));
+                    DG.PlotUtilities.findFractionDigitsForAxis( tAxisView);
           tNumFormat = pv.Format.number().fractionDigits( 0, tDigits);
           tValue = tNumFormat( tCase.getNumValue( tAttrID));
         }
