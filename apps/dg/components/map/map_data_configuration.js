@@ -34,18 +34,21 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
   init: function() {
 
     var attributeDescriptions = {
+                                  caption: DG.AttributePlacementDescription.create(),
                                   x: DG.AttributePlacementDescription.create(),
                                   y: DG.AttributePlacementDescription.create(),
-                                  legend: DG.AttributePlacementDescription.create()
+                                  legend: DG.AttributePlacementDescription.create(),
+                                  area: DG.AttributePlacementDescription.create()
                                 },
         tPlace,
         tDefaults = DG.currDocumentController().collectionDefaults(),
         tCollectionClient = tDefaults && tDefaults.collectionClient,
         tAttrNames = tCollectionClient && tCollectionClient.getAttributeNames(),
-        tLatName, tLongName,
-        tLatAttr, tLongAttr,
+        tCaptionName, tLatName, tLongName, tAreaName,
+        tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
         kLatNames = ['latitude', 'lat', 'Latitude', 'Lat'],
-        kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng'];
+        kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng'],
+        kAreaNames = ['boundary', 'area', 'polygon', 'Boundary', 'Area', 'Polygon'];
 
     sc_super();
     
@@ -57,7 +60,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         @param  {Number}    iCategoricalRole -- Categorical analysis role
      */
     var configAttrDesc = function( iAttrPrefix, iAttr) {
-      var attrDesc = attributeDescriptions[ iAttrPrefix];
+      var attrDesc = attributeDescriptions[ iAttrPrefix],
+          tType;
           
       DG.assert( attrDesc);
       
@@ -66,7 +70,20 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         // Must set collection before attribute for attribute stats to be configured properly
         attrDesc.set('collectionClient', tCollectionClient);
         attrDesc.set('attribute', iAttr);
-        attrDesc.setPath('attributeStats.attributeType', DG.Analysis.EAttributeType.eNumeric);
+        switch( iAttrPrefix) {
+          case 'x':
+          case 'y':
+            tType = DG.Analysis.EAttributeType.eNumeric;
+            break;
+          case 'area':
+            tType = DG.Analysis.EAttributeType.eBoundary;
+            break;
+          case 'caption':
+            tType = DG.Analysis.EAttributeType.eCategorical;
+            break;
+        }
+        if( tType)
+          attrDesc.setPath('attributeStats.attributeType', tType);
       }
       // Null out the attribute description when no map attribute is specified.
       else {
@@ -80,6 +97,9 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     }.bind( this);
 
     if( tAttrNames) {
+      tCaptionName = tAttrNames[ 0];
+      tCaptionAttr = tCaptionName && tCollectionClient.getAttributeByName( tCaptionName);
+
       kLatNames.forEach( function( iName) {
         if( tAttrNames.indexOf( iName) >= 0)
           tLatName = iName;
@@ -90,11 +110,19 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           tLongName = iName;
       });
       tLongAttr = tLongName && tCollectionClient.getAttributeByName( tLongName);
+
+      kAreaNames.forEach( function( iName) {
+        if( tAttrNames.indexOf( iName) >= 0)
+          tAreaName = iName;
+      });
+      tAreaAttr = tAreaName && tCollectionClient.getAttributeByName( tAreaName);
     }
     
+    configAttrDesc('caption', tCaptionAttr);
     configAttrDesc('x', tLongAttr);
     configAttrDesc('y', tLatAttr);
     configAttrDesc('legend', null);
+    configAttrDesc('area', tAreaAttr);
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.
@@ -104,10 +132,50 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     
     // Actually, during this coding transition, we're going to stash the previously
     // initialized attribute descriptions in attributesByPlace.
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eCaption][0] = attributeDescriptions.caption;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eX][0] = attributeDescriptions.x;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
-  }
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eArea][0] = attributeDescriptions.area;
+  },
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  areaAttributeDescription: function( iKey, iValue) {
+    return this.attributeDescriptionForPlace( iKey, iValue, DG.GraphTypes.EPlace.eArea);
+  }.property(),
+
+  areaCollectionDidChange: function() {
+    this.notifyPropertyChange('areaCollectionClient');
+  },
+
+  areaCollectionClient: function() {
+    return this.getPath('areaAttributeDescription.collectionClient');
+  }.property('areaAttributeDescription.collectionClient'),
+
+  areaAttributeID: function() {
+    return this.getPath('areaAttributeDescription.attributeID');
+  }.property('areaAttributeDescription.attributeID'),
+
+  /**
+   @property { DG.AttributePlacementDescription }
+   */
+  captionAttributeDescription: function( iKey, iValue) {
+    return this.attributeDescriptionForPlace( iKey, iValue, DG.GraphTypes.EPlace.eCaption);
+  }.property(),
+
+  captionCollectionDidChange: function() {
+    this.notifyPropertyChange('captionCollectionClient');
+  },
+
+  captionCollectionClient: function() {
+    return this.getPath('captionAttributeDescription.collectionClient');
+  }.property('captionAttributeDescription.collectionClient'),
+
+  captionAttributeID: function() {
+    return this.getPath('captionAttributeDescription.attributeID');
+  }.property('captionAttributeDescription.attributeID')
 
 });
 

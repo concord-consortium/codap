@@ -83,12 +83,71 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     /**
+     * If there is an area attribute, go through its values, finding the rectangle that encompases all
+     * the coordinates.
+     * @returns {*[]}
+     */
+    getAreaBounds: function() {
+      var tCases = this.getPath('cases'),
+          tAreaID = this.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
+          tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
+      if( !tAreaID)
+        return null;
+
+      function processArrayOfCoords( iArrayOfCoords) {
+        iArrayOfCoords.forEach( function( iPoint) {
+          tMinSouth = Math.min( tMinSouth, iPoint[1]);
+          tMaxNorth = Math.max( tMaxNorth, iPoint[1]);
+          tMinWest = Math.min( tMinWest, iPoint[0]);
+          tMaxEast = Math.max( tMaxEast, iPoint[0]);
+        });
+      }
+
+      tCases.forEach( function( iCase) {
+        try {
+          var tFeature = JSON.parse(iCase.getValue(tAreaID)),
+              tCoords = tFeature.geometry.coordinates,
+              tType = tFeature.geometry.type;
+          tCoords.forEach(function (iArray) {
+            switch (tType) {
+              case 'Polygon':
+                processArrayOfCoords(iArray);
+                break;
+              case 'MultiPolygon':
+                iArray.forEach(function (iSubArray) {
+                  processArrayOfCoords(iSubArray);
+                });
+                break;
+            }
+          });
+        }
+        catch(er) {}
+      });
+
+      return [[tMinSouth, tMinWest], [tMaxNorth, tMaxEast]];
+    },
+
+    hasLatLngAttrs: function() {
+      var tLatID = this.getPath('dataConfiguration.yAttributeDescription.attributeID'),
+          tLongID = this.getPath('dataConfiguration.xAttributeDescription.attributeID');
+      return !SC.none( tLatID) && !SC.none( tLongID);
+    }.property('dataConfiguration.yAttributeDescription.attributeID', 'dataConfiguration.xAttributeDescription.attributeID'),
+
+    /**
      * For now, we'll assume all changes affect us
      * @param iChange
      */
     isAffectedByChange: function( iChange) {
       return true;
+    },
+
+    /**
+     Return the map's notion of gear menu items concatenated with mine.
+     @return {Array of menu items}
+     */
+    getGearMenuItems: function() {
+      return [];
     }
 
-    } );
+  } );
 

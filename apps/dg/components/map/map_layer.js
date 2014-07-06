@@ -75,10 +75,16 @@ DG.MapLayer = SC.Object.extend(
 
       var onLayerAdd = function( iLayerEvent) {
             this.containerView.addPointLayer();
+            this.containerView.addAreaLayer();
           }.bind( this ),
+
           onDisplayChangeEvent = function( iEvent) {
               // TODO: Eliminate knowledge at this level of mapPointView
             this.getPath('containerView.mapPointView').doDraw();
+          }.bind( this),
+
+          onClick = function( iEvent) {
+            this.getPath('containerView.model').selectAll( false);
           }.bind( this);
 
       if( this._map ) {
@@ -91,9 +97,10 @@ DG.MapLayer = SC.Object.extend(
                               format: 'image/jpeg',
                               crs: L.CRS.EPSG4326
                             });
-        this._map.addLayer( tTileLayer, true /*add at bottom */);
-        this._map.on('drag', onDisplayChangeEvent);
-        this._map.on('zoomend', onDisplayChangeEvent);
+        this._map.addLayer( tTileLayer, true /*add at bottom */)
+            .on('drag', onDisplayChangeEvent)
+            .on('zoomend', onDisplayChangeEvent)
+            .on('click', onClick);
 
 //        L.tileLayer('http://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 //          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +

@@ -37,9 +37,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     return this.getPath('mapSource.mapLayer.map');
   }.property(),
 
-  hasSomethingToDraw: function() {
+  readyToDraw: function() {
     var tModel = this.get('model');
-    return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+    return sc_super() && tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
         !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
   },
 
@@ -65,7 +65,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, this.attrColor );
+            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc);
         return tCaseColor.colorString;
       }
     };
@@ -76,6 +76,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     Method name is legacy artifact of SproutCore range observer implementation.
    */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
+    if( !this.readyToDraw())
+      return;
+
     var this_ = this,
         tPlotElementLength = this._plottedElements.length,
         tCases = this.getPath('model.cases'),
@@ -162,32 +165,33 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       tCircle = this.get('paper').circle( -100, -100, this._pointRadius)
         .attr( { cursor: 'pointer' })
         .addClass( DG.PlotUtilities.kColoredDotClassName)
-//        .hover( function (event) {  // over
-//          if( !tIsDragging && SC.none( tInitialTransform)) {
-//                tInitialTransform = '';
-//                if( this.hoverAnimation)
-//                  this.stop( this.hoverAnimation);
-//                this.hoverAnimation = Raphael.animation( { opacity: kOpaque, transform: DG.PlotUtilities.kDataHoverTransform },
-//                                                            DG.PlotUtilities.kDataTipShowTime,
-//                                                            '<>', completeHoverAnimation);
-//                this.animate( this.hoverAnimation);
-//                this_.showDataTip( this, iIndex);
-//              }
-//            },
-//            function(event) { // out
-//              if( !tIsDragging) {
-//                if( this.hoverAnimation)
-//                  this.stop( this.hoverAnimation);
-//                this.hoverAnimation = Raphael.animation( { transform: tInitialTransform },
-//                                                            DG.PlotUtilities.kHighlightHideTime,
-//                                                            '<>', completeHoverAnimation);
-//                this.animate( this.hoverAnimation);
-//                tInitialTransform = null;
-//                this_.hideDataTip();
-//              }
-//            })
-        .mousedown( function( iEvent) {
+        .hover( function (event) {  // over
+          if( !tIsDragging && SC.none( tInitialTransform)) {
+                tInitialTransform = '';
+                if( this.hoverAnimation)
+                  this.stop( this.hoverAnimation);
+                this.hoverAnimation = Raphael.animation( { opacity: kOpaque, transform: DG.PlotUtilities.kDataHoverTransform },
+                                                            DG.PlotUtilities.kDataTipShowTime,
+                                                            '<>', completeHoverAnimation);
+                this.animate( this.hoverAnimation);
+                this_.showDataTip( this, iIndex);
+              }
+            },
+            function(event) { // out
+              if( !tIsDragging) {
+                if( this.hoverAnimation)
+                  this.stop( this.hoverAnimation);
+                this.hoverAnimation = Raphael.animation( { transform: tInitialTransform },
+                                                            DG.PlotUtilities.kHighlightHideTime,
+                                                            '<>', completeHoverAnimation);
+                this.animate( this.hoverAnimation);
+                tInitialTransform = null;
+                this_.hideDataTip();
+              }
+            })
+        .click( function( iEvent) {
               this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
+              iEvent.stopPropagation();
             })
 //        .drag(function (dx, dy) { // continue
 //                SC.run( function() {
@@ -241,7 +245,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     Generate the svg needed to display the plot
   */
   doDraw: function doDraw() {
-    if( this.hasSomethingToDraw()) {
+    if( this.readyToDraw()) {
       this.drawData();
       this.updateSelection();
     }

@@ -24,72 +24,113 @@
 
  @extends SC.View
  */
-DG.MapView = SC.View.extend(
-  /** @scope DG.MapView.prototype */ {
+DG.MapView = SC.View.extend( DG.GraphDropTarget,
+    /** @scope DG.MapView.prototype */ {
 
-    /**
-     * @property {DG.MapModel}
-     */
-    model: null,
+      kPadding: [10, 10],
 
-    /**
-     * @property {DG.MapLayer}
-     */
-    mapLayer: null,
+      /**
+       * @property {DG.MapModel}
+       */
+      model: null,
 
-    /**
-     * @property {DG.MapPointView}
-     */
-    mapPointView: null,
+      /**
+       * @property {DG.MapLayer}
+       */
+      mapLayer: null,
 
-    init: function() {
-      sc_super();
-      this.set('mapLayer', DG.MapLayer.create({ containerView: this }));
-    },
+      /**
+       * @property {DG.MapAreaLayer}
+       */
+      mapAreaLayer: null,
 
-    addPointLayer: function() {
+      /**
+       * @property {DG.MapPointView}
+       */
+      mapPointView: null,
 
-      function isValidBounds( iBounds) {
+      paper: function() {
+        return this.getPath('mapPointView.paper');
+      }.property(),
+
+      init: function () {
+        sc_super();
+        this.set('mapLayer', DG.MapLayer.create({ containerView: this }));
+      },
+
+      _isValidBounds: function( iBounds) {
         // If any of the array elements are null we don't have a valid bounds
-        return !SC.none( iBounds[0][0], iBounds[0][1], iBounds[1][0], iBounds[1][1]);
+        return iBounds && !SC.none(iBounds[0][0]) && !SC.none( iBounds[0][1]) &&
+            !SC.none( iBounds[1][0]) && !SC.none( iBounds[1][1]);
+      },
+
+      addPointLayer: function () {
+        if( this.get('mapPointView'))
+          return;
+
+        var tMapPointView = DG.MapPointView.create(
+            {
+              mapLayer: this.get('mapLayer')
+            });
+        this.set('mapPointView', tMapPointView);
+        this.setPath('mapPointView.model', this.get('model'))
+        this.appendChild( tMapPointView);
+        if( this.getPath('model.hasLatLngAttrs')) {
+          var tBounds = this.get('model').getLatLngBounds();
+          if (this._isValidBounds(tBounds))
+            this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        }
+        else {
+          tMapPointView.set('isVisible', false);
+        }
+      },
+
+      addAreaLayer: function () {
+        if( this.get('mapAreaLayer'))
+          return;
+
+        this.set('mapAreaLayer', DG.MapAreaLayer.create(
+            {
+              mapSource: this
+            }));
+        this.setPath('mapAreaLayer.model', this.get('model'));
+        var tBounds = this.get('model').getAreaBounds();
+        if (this._isValidBounds(tBounds))
+          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        this.get('mapAreaLayer').addFeatures();
+      },
+
+      /**
+       * Provide an element on which we can draw.
+       * @param ctx
+       * @param first
+       */
+      render: function (ctx, first) {
+        sc_super();
+        this.get('mapLayer').render(ctx, first);
+      },
+
+      /**
+       * Additional setup after creating the view
+       */
+      didCreateLayer: function () {
+        this.get('mapLayer').didCreateLayer();
+      },
+
+      /**
+       * Pass to layers
+       */
+      viewDidResize: function () {
+        sc_super();
+        this.get('mapLayer').viewDidResize();
+      },
+
+      /**
+       * This is our chance to add the features to the area layer
+       */
+      createVisualization: function () {
+        this.get('mapAreaLayer').createVisualization();
       }
 
-      var kPadding = [10, 10];
-      this.set('mapPointView', DG.MapPointView.create(
-        {
-          mapLayer: this.get('mapLayer')
-        }));
-      this.setPath('mapPointView.model', this.get('model'))
-      this.appendChild( this.get( 'mapPointView'));
-      var tBounds = this.get('model' ).getLatLngBounds();
-      if( isValidBounds( tBounds))
-        this.getPath('mapLayer.map' ).fitBounds( tBounds, kPadding);
-    },
-
-    /**
-     * Provide an element on which we can draw.
-     * @param ctx
-     * @param first
-     */
-    render:function ( ctx, first ) {
-      sc_super();
-      this.get('mapLayer' ).render( ctx, first);
-    },
-
-    /**
-     * Additional setup after creating the view
-     */
-    didCreateLayer:function () {
-      this.get('mapLayer' ).didCreateLayer();
-    },
-
-    /**
-     * Pass to layers
-     */
-    viewDidResize:function () {
-      sc_super();
-      this.get('mapLayer' ).viewDidResize();
     }
-
-  }
 );
