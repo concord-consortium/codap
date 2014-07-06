@@ -29,7 +29,8 @@ DG.Analysis = {
   EAttributeType: {
         eNone: 0,
         eNumeric: 1,
-        eCategorical: 2
+        eCategorical: 2,
+        eBoundary: 3
   },
 
   /**
