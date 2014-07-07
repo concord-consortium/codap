@@ -103,7 +103,7 @@ SC.stringsFor('English', {
   'DG.AppController.importDocument.alert' : "Alert: The specified file is not a CODAP document.",
   'DG.AppController.importDocument.okTitle' : "Import",
   'DG.AppController.importDocument.okTooltip' : "Import the specified CODAP document",
-  'DG.AppController.exportDocument.prompt' : "Copy the CODAP document for export:",
+  'DG.AppController.exportDocument.prompt' : "Filename:",
   'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
   'DG.AppController.exportCaseData.okTitle' : "Done",
   'DG.AppController.exportCaseData.okTooltip' : "Done with export",

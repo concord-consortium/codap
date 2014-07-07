@@ -199,9 +199,11 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     * Called when the name of the desired document is given other than through user dialog box.
+     * Called when the name of the desired document is given other than through
+     * user dialog box.
      *
-     * @param{String} iName
+     * @param {String} iName Name of the document
+     * @param {String} iOwner Owner of the document
      */
     openDocumentNamed: function (iName, iOwner) {
       if (iName) {  // try to open the document the user chose
@@ -501,7 +503,6 @@ DG.appController = SC.Object.create((function () // closure
         var v = tDialog.get('value');
         var reader = new FileReader();
         var that = this;
-        var text;
         if (v[0]) {
           reader.onabort = handleAbnormal;
           reader.onerror = handleAbnormal;
@@ -531,22 +532,28 @@ DG.appController = SC.Object.create((function () // closure
      */
     exportDocument: function () {
       var docArchive = DG.currDocumentController().exportDocument(),
+        docJson,
         tDialog = null,
-        closeOnOK = function () {
+        onOK = function () {
+          var fn = tDialog.value();
+          if (!fn || (fn.length === 0)) {
+            fn = "codap-doc.json";
+          }
+          var blob = new Blob([docJson], {type: "text/plain;charset=utf-8"});
+          saveAs(blob, fn);
           tDialog.close();
         };
       if (docArchive) {
-        var docJson = SC.json.encode(docArchive);
+        docJson = SC.json.encode(docArchive);
         if (!SC.empty(docJson)) {
           tDialog = DG.CreateSingleTextDialog({
             prompt: 'DG.AppController.exportDocument.prompt',
-            textLimit: 1000000,
-            textValue: docJson,
+            textValue: docArchive.name + '.json',
             okTarget: null,
-            okAction: closeOnOK,
+            okAction: onOK,
             okTitle: 'DG.AppController.exportDocument.okTitle',
             okTooltip: 'DG.AppController.exportDocument.okTooltip',
-            cancelVisible: false
+            cancelVisible: true
           });
         }
       }
