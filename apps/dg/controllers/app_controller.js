@@ -66,7 +66,7 @@ DG.appController = SC.Object.create((function () // closure
       // or navigating away from the page. The sites listed below provide some
       // information on the 'beforeunload' event and its handling, but the upshot
       // is that if you return a string, then the browser will provide a dialog
-      // that should include the returned string (Firefix >= 4 chooses not to on
+      // that should include the returned string (Firefox >= 4 chooses not to on
       // the grounds that there are security concerns).
       // https://developer.mozilla.org/en-US/docs/DOM/window.onbeforeunload
       // http://bytes.com/topic/javascript/insights/825556-using-onbeforeunload-javascript-event
@@ -536,10 +536,7 @@ DG.appController = SC.Object.create((function () // closure
         tDialog = null,
         onOK = function () {
           var fn = tDialog.value();
-          if (!fn || (fn.length === 0)) {
-            fn = "codap-doc.json";
-          }
-          var blob = new Blob([docJson], {type: "text/plain;charset=utf-8"});
+          var blob = new Blob([docJson], {type: "application/json;charset=utf-8"});
           saveAs(blob, fn);
           tDialog.close();
         };

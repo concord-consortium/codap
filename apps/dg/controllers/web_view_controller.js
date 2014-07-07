@@ -50,12 +50,10 @@ DG.WebViewController = DG.ComponentController.extend(
           tDialog = null;
 
       function setURL() {
-        // User has pressed OK
+        // User has pressed OK: can only do so if non-empty
         var tURL = tDialog.get('value');
         tDialog.close();
-        if( !SC.empty( tURL)) {
-          this_.set('theURL', tURL);
-        }
+        this_.set('theURL', tURL);
       }
 
       tDialog = DG.CreateSingleTextDialog( {
