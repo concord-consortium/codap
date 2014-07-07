@@ -543,8 +543,9 @@ DG.CaseTableController = DG.ComponentController.extend(
                         };
           tDataContext.applyChange( change);
         }
-        
+
         function handleRenameAttributeOK() {
+          // newAttrName: value of single-text-dialog: cannot be empty string
           var newAttrName = tDialog.get('value'),
               tExistingAttr = tCollectionClient && newAttrName &&
                               tCollectionClient.getAttributeByName( newAttrName);
@@ -561,13 +562,6 @@ DG.CaseTableController = DG.ComponentController.extend(
             DG.AlertPane.info({
               message: 'DG.TableController.renameAttributeDuplicateMsg',
               description: 'DG.TableController.renameAttributeDuplicateDesc',
-              localize: true
-            });
-          }
-          else if( !newAttrName) {
-            DG.AlertPane.info({
-              message: 'DG.TableController.renameAttributeInvalidMsg',
-              description: 'DG.TableController.renameAttributeInvalidDesc',
               localize: true
             });
           }

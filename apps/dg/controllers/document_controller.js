@@ -579,20 +579,18 @@ DG.DocumentController = SC.Object.extend(
     var this_ = this,
         tDialog = null;
 
-      function createWebPage() {
-        // User has pressed OK
-        var tURL = tDialog.get('value');
-        tDialog.close();
-        if( !SC.empty( tURL)) {
-          // If url does not contain http:// or https:// at the beginning, append http://
-          if (!/^https?:\/\//i.test(tURL)) {
-            tURL = 'http://' + tURL;
-          }
-          this_.addWebView(  DG.mainPage.get('docView'), null,
-                  tURL, 'Web Page',
-                  { width: 600, height: 400 });
-        }
+    function createWebPage() {
+      // User has pressed OK. tURL must have a value or 'OK' disabled.
+      var tURL = tDialog.get('value');
+      tDialog.close();
+      // If url does not contain http:// or https:// at the beginning, append http://
+      if (!/^https?:\/\//i.test(tURL)) {
+        tURL = 'http://' + tURL;
       }
+      this_.addWebView(  DG.mainPage.get('docView'), null,
+              tURL, 'Web Page',
+              { width: 600, height: 400 });
+    }
 
     tDialog = DG.CreateSingleTextDialog( {
                     prompt: 'DG.DocumentController.enterURLPrompt',

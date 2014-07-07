@@ -55,7 +55,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       title: 'DG.SingleTextDialog.okButton.title',  // "OK"
       target: null,
       action: null,
-      isDefault: true
+      isDefault: true,
+      isEnabledBinding: '.parentView.editView.value'
     }),
     cancelButton: SC.ButtonView.design({
       layout: { bottom:5, right: 115, height:24, width: 90 },
