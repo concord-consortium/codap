@@ -141,7 +141,6 @@ DG.PlottedValueAdornment.createFormulaEditView = function( iPlottedValue) {
             layout: { height: 20 },
             borderStyle: SC.BORDER_BEZEL,
             isVisible: false,
-            hint: 'Type an expression e.g. mean()',
             value: iPlottedValue.get('expression'),
             leftAccessoryView: SC.LabelView.create({
               layout: { left: 0, width:45, height:20, centerY: 0 },
