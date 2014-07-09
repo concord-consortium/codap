@@ -27,8 +27,13 @@ sc_require('alpha/destroyable');
 DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
   /** @scope DG.DataDisplayModel.prototype */
   {
-    autoDestroyProperties: [ 'dataConfiguration' ],
-    
+    autoDestroyProperties: [ 'dataConfiguration', 'legend' ],
+
+    /**
+     @property { DG.LegendModel }
+     */
+    legend: null,
+
     /**
      @property { DG.GraphDataConfiguration }
      */
@@ -72,7 +77,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      Prepare dependencies.
      */
     init: function() {
+      var tLegendDescription;
+
       sc_super();
+
+      this.set( 'dataConfiguration', this.get('dataConfigurationClass').create() );
+
+      tLegendDescription = this.dataConfiguration.get('legendAttributeDescription');
+
+      this.set('legend', DG.LegendModel.create());
+      this.setPath('legend.attributeDescription', tLegendDescription);
     },
 
     destroy: function() {
@@ -220,6 +234,13 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       for( i = 0; i < tNumChanges; i++) {
         this.handleOneDataContextChange( iNotifier, newChanges[ i]);
       }
+    },
+
+    /**
+     * Removing the attribute is just changing with null arguments
+     */
+    removeLegendAttribute: function() {
+      this.changeAttributeForLegend( null, null);
     },
 
     /**
