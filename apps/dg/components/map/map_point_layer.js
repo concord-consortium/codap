@@ -126,12 +126,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     var this_ = this;
 
     function changeCaseValues( iDeltaValues) {
-      var tXVarID = this_.getPath('model.xVarID'),
-          tYVarID = this_.getPath('model.yVarID'),
+      var tLngVarID = this_.getPath('model.lngVarID'),
+          tLatVarID = this_.getPath('model.latVarID'),
           tChange = {
             operation: 'updateCases',
             cases: [],
-            attributeIDs: [ tXVarID, tYVarID],
+            attributeIDs: [ tLngVarID, tLatVarID],
             values: [ [], [] ]
           },
           tDataContext = this_.get('dataContext');
@@ -140,19 +140,19 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       // declared in the closure. The array pointed to by such a closure is not updated!
       this_.getPath('model.casesController.selection').forEach( function( iCase) {
         tChange.cases.push( iCase);
-        tChange.values[0].push( iCase.getNumValue( tXVarID) + iDeltaValues.x);
-        tChange.values[1].push( iCase.getNumValue( tYVarID) + iDeltaValues.y);
+        tChange.values[0].push( iCase.getNumValue( tLngVarID) + iDeltaValues.x);
+        tChange.values[1].push( iCase.getNumValue( tLatVarID) + iDeltaValues.y);
       });
       tDataContext.applyChange( tChange);
     }
     
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoords) {
       var tCase = this_.getPath('model.cases')[ iCaseIndex],
-          tXVarID = this_.getPath('model.xVarID'),
-          tYVarID = this_.getPath('model.yVarID'),
-          tDeltaX = tCase.getNumValue( tXVarID) - iStartWorldCoords.x,
-          tDeltaY = tCase.getNumValue( tYVarID) - iStartWorldCoords.y;
-      this_.get('model').animateSelectionBackToStart([ tXVarID, tYVarID], [ tDeltaX, tDeltaY]);
+          tLngVarID = this_.getPath('model.lngVarID'),
+          tLatVarID = this_.getPath('model.latVarID'),
+          tDeltaX = tCase.getNumValue( tLngVarID) - iStartWorldCoords.x,
+          tDeltaY = tCase.getNumValue( tLatVarID) - iStartWorldCoords.y;
+      this_.get('model').animateSelectionBackToStart([ tLngVarID, tLatVarID], [ tDeltaX, tDeltaY]);
     }
     
     function completeHoverAnimation() {
@@ -195,16 +195,13 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             })
 //        .drag(function (dx, dy) { // continue
 //                SC.run( function() {
-//                  var tNewX = this_.get('xAxisView').coordinateToData( this.ox + dx),
-//                      tNewY = this_.get('yAxisView').coordinateToData( this.oy + dy),
+//                  var tCoords = this_.get('map').containerPointToLatLng([this.oy + dy, this.ox + dx] ),
+//                      tNewX = tCoords.lat,
+//                      tNewY = tCoords.lng,
 //                      tCase = this_.getPath('model.cases')[ this.index],
-//                      tOldX = tCase.getNumValue( this_.getPath('model.xVarID')),
-//                      tOldY = tCase.getNumValue( this_.getPath('model.yVarID')),
+//                      tOldX = tCase.getNumValue( this_.getPath('model.lngVarID')),
+//                      tOldY = tCase.getNumValue( this_.getPath('model.latVarID')),
 //                      tCurrTransform = this.transform();
-//                  // Note that we ignore invalid values. Matt managed to convert some dragged values
-//                  // to NaNs during testing, which then couldn't animate back to their original
-//                  // positions. This should have the effect of leaving points that would otherwise
-//                  // have become NaNs in their last-known-good positions.
 //                  if( isFinite( tNewX) && isFinite( tNewY)) {
 //                    // Put the element into the initial transformed state so that changing case values
 //                    // will not be affected by the scaling in the current transform.
