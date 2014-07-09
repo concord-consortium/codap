@@ -27,6 +27,8 @@
 DG.MapView = SC.View.extend( DG.GraphDropTarget,
     /** @scope DG.MapView.prototype */ {
 
+      displayProperties: ['model.dataConfiguration.attributeAssignment'],
+
       kPadding: [10, 10],
 
       /**
@@ -35,7 +37,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       model: null,
 
       /**
-       * @property {DG.MapLayer}
+       * @property {DG.MapLayerView}
        */
       mapLayer: null,
 
@@ -49,13 +51,26 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       mapPointView: null,
 
+      /**
+       * @property {DG.LegendView}
+       */
+      legendView: null,
+
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
 
       init: function () {
         sc_super();
-        this.set('mapLayer', DG.MapLayer.create({ containerView: this }));
+        var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
+            tMapLayer = DG.MapLayerView.create();
+
+        this.set('mapLayer', tMapLayer);
+        this.appendChild( tMapLayer);
+
+        this.set('legendView', tLegendView);
+        this.appendChild( tLegendView);
+        tLegendView.set('model', this.getPath('model.legend'));
       },
 
       _isValidBounds: function( iBounds) {
@@ -101,35 +116,52 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       /**
-       * Provide an element on which we can draw.
-       * @param ctx
-       * @param first
+       Set the layout (view position) for our subviews.
+       @returns {void}
        */
-      render: function (ctx, first) {
-        sc_super();
-        this.get('mapLayer').render(ctx, first);
-      },
+      adjustLayout: function( context, firstTime) {
+        var tMapLayer = this.get('mapLayer'),
+            tMapPointView = this.get('mapPointView' ),
+            tLegendView = this.get('legendView'),
+            tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' );
+
+        if( this._isRenderLayoutInProgress || !tMapPointView || !tLegendView)
+          return;
+        this._isRenderLayoutInProgress = true;
+
+        // adjust() method avoids triggering observers if layout parameter is already at correct value.
+        tMapPointView.adjust('bottom', tLegendHeight);
+        tMapLayer.adjust('bottom', tLegendHeight);
+        tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
+
+        this._isRenderLayoutInProgress = false;
+      }.observes('model.dataConfiguration.attributeAssignment'),
 
       /**
-       * Additional setup after creating the view
+       * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
        */
-      didCreateLayer: function () {
-        this.get('mapLayer').didCreateLayer();
-      },
-
-      /**
-       * Pass to layers
-       */
-      viewDidResize: function () {
-        sc_super();
-        this.get('mapLayer').viewDidResize();
-      },
+      _isRenderLayoutInProgress: false,
 
       /**
        * This is our chance to add the features to the area layer
        */
       createVisualization: function () {
         this.get('mapAreaLayer').createVisualization();
+      },
+
+      /**
+       * Override the two mixin methods because the drop target view is mapPointView
+       */
+      dragStarted: function() {
+        DG.GraphDropTarget.dragStarted.apply( this, arguments);
+        if( !this.getPath('model.hasLatLngAttrs'))
+          this.setPath('mapPointView.isVisible', true);
+      },
+
+      dragEnded: function() {
+        DG.GraphDropTarget.dragEnded.apply( this, arguments);
+        if( !this.getPath('model.hasLatLngAttrs'))
+          this.setPath('mapPointView.isVisible', false);
       }
 
     }
