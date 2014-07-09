@@ -27,7 +27,11 @@ sc_require('components/graph_map_common/data_display_model');
 DG.GraphModel = DG.DataDisplayModel.extend(
   /** @scope DG.GraphModel.prototype */
   {
-    autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis', 'legend' ],
+    autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis' ],
+
+    dataConfigurationClass: function() {
+      return DG.GraphDataConfiguration;
+    }.property(),
     
     /**
      * @property {DG.NumberToggleModel}
@@ -43,11 +47,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      @property { DG.AxisModel }
      */
     yAxis: null,
-
-    /**
-     @property { DG.LegendModel }
-     */
-    legend: null,
 
     /**
      * Returns the first plot in _plots, if any. When used to set,
@@ -165,7 +164,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      Prepare dependencies.
      */
     init: function() {
-      var tXDescription, tYDescription, tLegendDescription;
+      var tXDescription, tYDescription;
 
       sc_super();
       
@@ -178,8 +177,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           return DG.AxisModel;
       }
 
-      this.set( 'dataConfiguration', DG.GraphDataConfiguration.create() );
-
       this._plots = [];
 
       if( DG.IS_INQUIRY_SPACE_BUILD) {
@@ -187,15 +184,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
       tXDescription = this.dataConfiguration.get( 'xAttributeDescription' );
       tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
-      tLegendDescription = this.dataConfiguration.get('legendAttributeDescription');
 
       this.set( 'xAxis', getAxisClassFromType( tXDescription.get('attributeType')).create() );
       this.setPath('xAxis.attributeDescription', tXDescription);
       this.set( 'yAxis', getAxisClassFromType( tYDescription.get('attributeType')).create() );
       this.setPath('yAxis.attributeDescription', tYDescription);
-
-      this.set('legend', DG.LegendModel.create());
-      this.setPath('legend.attributeDescription', tLegendDescription);
 
       this.synchPlotWithAttributes();
 
@@ -278,13 +271,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       var tPlot = this.get('plot');
       if( tPlot)
         tPlot.rescaleAxesFromData( iShrink, iAnimate);
-    },
-
-    /**
-     * Removing the attribute is just changing with null arguments
-     */
-    removeLegendAttribute: function() {
-      this.changeAttributeForLegend( null, null);
     },
 
     /**
