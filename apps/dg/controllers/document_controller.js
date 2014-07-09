@@ -526,7 +526,6 @@ DG.DocumentController = SC.Object.extend(
         tContext = DG.gameSelectionController.get('currentContext');
     // Don't pass the data context in the constructor because it's a function property
     tMapModel.set('dataContext',  tContext);
-    tMapModel.set('dataConfiguration', DG.MapDataConfiguration.create({ dataContext: tContext }) );
     tMapController.set('dataContext', DG.gameSelectionController.get('currentContext'));
 
     // map as component
