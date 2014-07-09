@@ -78,7 +78,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       legendName: tLegendDesc.getPath('attribute.name'),
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
-          return 'yellow'; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
+          return 'red'; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
@@ -170,7 +170,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       if( tSelection.containsObject( iCase)) {
         tFeature.setStyle( {
           color: tHasLegend ? 'red' : 'black',
-          fillOpacity: 1,
+          fillOpacity: tHasLegend ? 0.5 : 1,
           weight: 4
         });
         tFeature.bringToFront();
@@ -201,7 +201,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this),
 
           handleMouseover = function( iEvent) {
-            this.features[ iIndex].bindPopup( this.calcTooltip( iCase), { closeButton: false }).openPopup();
+            var tFeature = this.features[ iIndex],
+                tPopup = L.popup({ closeButton: false }, tFeature);
+            tPopup.options.offset[1] = -20;
+            tPopup.setContent( this.calcTooltip( iCase));
+            tFeature.bindPopup( tPopup).openPopup();
           }.bind(this),
 
           handleMouseout = function( iEvent) {
