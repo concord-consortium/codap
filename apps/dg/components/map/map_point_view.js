@@ -29,7 +29,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 {
   autoDestroyProperties: [ ],
 
-  displayProperties: [],
+  displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
   /**
    * @property {DG.MapModel}
@@ -42,7 +42,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   mapPointLayer: null,
 
   /**
-   * @property {DG.MapLayer}
+   * @property {DG.MapLayerView}
    */
   mapLayer: null,
 
