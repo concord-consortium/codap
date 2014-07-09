@@ -1,5 +1,5 @@
 // ==========================================================================
-//                            DG.MapLayer
+//                            DG.MapLayerView
 //
 //  Author:   William Finzer
 //
@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-/** @class  DG.MapLayer
+/** @class  DG.MapLayerView
 
  A view on a map.
 
@@ -27,13 +27,8 @@
 
  @extends SC.Object
  */
-DG.MapLayer = SC.Object.extend(
-  /** @scope DG.MapLayer.prototype */ {
-
-    /**
-     * @property {SC.View}
-     */
-    containerView: null,
+DG.MapLayerView = SC.View.extend(
+  /** @scope DG.MapLayerView.prototype */ {
 
     kSanFran: [37.84,-122.10],
     kDefaultZoom: 5,
@@ -74,26 +69,36 @@ DG.MapLayer = SC.Object.extend(
     _createMap:function () {
 
       var onLayerAdd = function( iLayerEvent) {
-            this.containerView.addPointLayer();
+            var tParentView = this.get('parentView');
+            this._map.off('layeradd', onLayerAdd);
+            tParentView.addPointLayer();
+            tParentView.addAreaLayer();
           }.bind( this ),
+
           onDisplayChangeEvent = function( iEvent) {
               // TODO: Eliminate knowledge at this level of mapPointView
-            this.getPath('containerView.mapPointView').doDraw();
+            this.getPath('parentView.mapPointView').doDraw();
+          }.bind( this),
+
+          onClick = function( iEvent) {
+            this.getPath('parentView.model').selectAll( false);
           }.bind( this);
 
       if( this._map ) {
         // May need to resize here
       } else {
-        this._map = L.map(this._layerID).setView(this.kSanFran, this.kDefaultZoom);
+        this._map = L.map(this._layerID, { scrollWheelZoom: false })
+            .setView(this.kSanFran, this.kDefaultZoom);
         this._map.on('layeradd', onLayerAdd);
         var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
                               layers: 'gebco_08_grid',
                               format: 'image/jpeg',
                               crs: L.CRS.EPSG4326
                             });
-        this._map.addLayer( tTileLayer, true /*add at bottom */);
-        this._map.on('drag', onDisplayChangeEvent);
-        this._map.on('zoomend', onDisplayChangeEvent);
+        this._map.addLayer( tTileLayer, true /*add at bottom */)
+            .on('drag', onDisplayChangeEvent)
+            .on('zoomend', onDisplayChangeEvent)
+            .on('click', onClick);
 
 //        L.tileLayer('http://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 //          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
@@ -105,8 +110,10 @@ DG.MapLayer = SC.Object.extend(
       }
     },
 
-    viewDidResize: function() {
+    viewDidResize: function( iLayout) {
       var tMap = this.get('map');
+      if( iLayout)
+        $("#" + this._layerID).css(iLayout);
       if( tMap) {
         tMap.invalidateSize();
       }

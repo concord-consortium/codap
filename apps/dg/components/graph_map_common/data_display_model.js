@@ -27,8 +27,13 @@ sc_require('alpha/destroyable');
 DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
   /** @scope DG.DataDisplayModel.prototype */
   {
-    autoDestroyProperties: [ 'dataConfiguration' ],
-    
+    autoDestroyProperties: [ 'dataConfiguration', 'legend' ],
+
+    /**
+     @property { DG.LegendModel }
+     */
+    legend: null,
+
     /**
      @property { DG.GraphDataConfiguration }
      */
@@ -72,7 +77,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      Prepare dependencies.
      */
     init: function() {
+      var tLegendDescription;
+
       sc_super();
+
+      this.set( 'dataConfiguration', this.get('dataConfigurationClass').create() );
+
+      tLegendDescription = this.dataConfiguration.get('legendAttributeDescription');
+
+      this.set('legend', DG.LegendModel.create());
+      this.setPath('legend.attributeDescription', tLegendDescription);
     },
 
     destroy: function() {
@@ -221,7 +235,39 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         this.handleOneDataContextChange( iNotifier, newChanges[ i]);
       }
     },
-    
+
+    /**
+     * Removing the attribute is just changing with null arguments
+     */
+    removeLegendAttribute: function() {
+      this.changeAttributeForLegend( null, null);
+    },
+
+    /**
+     Sets the attribute for the legend.
+     @param  {DG.DataContext}      iDataContext -- The data context for this graph
+     @param  {Object}              iAttrRefs -- The attribute to set for the axis
+     {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
+     {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
+     */
+    changeAttributeForLegend: function( iDataContext, iAttrRefs) {
+      var tAttribute = iAttrRefs && iAttrRefs.attributes[0];
+      if( tAttribute)
+        DG.logUser("legendAttributeChange: { to attribute %@ }", tAttribute.get('name'));
+      else
+        DG.logUser("legendAttributeRemoved:");
+
+      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+
+      var dataConfiguration = this.get('dataConfiguration');
+      if( iDataContext)
+        dataConfiguration.set('dataContext', iDataContext);
+      dataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', iAttrRefs);
+
+      this.invalidate();
+      this.set('aboutToChangeConfiguration', false ); // reset for next time
+    },
+
     /**
      @private
      */

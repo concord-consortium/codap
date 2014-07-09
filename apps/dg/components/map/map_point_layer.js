@@ -43,7 +43,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
    */
   readyToDraw: function() {
     var tModel = this.get('model');
-    return sc_super() && tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
+    return tModel && !SC.none(tModel.getPath('dataConfiguration.yAttributeDescription.attributeID')) &&
         !SC.none(tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'));
   },
 
@@ -82,6 +82,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
     if( !this.readyToDraw())
       return;
+
     var this_ = this,
         tPlotElementLength = this._plottedElements.length,
         tCases = this.getPath('model.cases'),

@@ -588,7 +588,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if(!tCases)
       return;
 
-    this.getPath('model.cases').forEach( function( iCase, iIndex) {
+    tCases.forEach( function( iCase, iIndex) {
       var tIsSelected, tElement, tFrom, tTo;
         // We sometimes get here with fewer plotted elements than cases,
         // perhaps when newly added cases don't have plottable values.

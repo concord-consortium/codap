@@ -24,72 +24,145 @@
 
  @extends SC.View
  */
-DG.MapView = SC.View.extend(
-  /** @scope DG.MapView.prototype */ {
+DG.MapView = SC.View.extend( DG.GraphDropTarget,
+    /** @scope DG.MapView.prototype */ {
 
-    /**
-     * @property {DG.MapModel}
-     */
-    model: null,
+      displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
-    /**
-     * @property {DG.MapLayer}
-     */
-    mapLayer: null,
+      kPadding: [10, 10],
 
-    /**
-     * @property {DG.MapPointView}
-     */
-    mapPointView: null,
+      /**
+       * @property {DG.MapModel}
+       */
+      model: null,
 
-    init: function() {
-      sc_super();
-      this.set('mapLayer', DG.MapLayer.create({ containerView: this }));
-    },
+      /**
+       * @property {DG.MapLayerView}
+       */
+      mapLayer: null,
 
-    addPointLayer: function() {
+      /**
+       * @property {DG.MapAreaLayer}
+       */
+      mapAreaLayer: null,
 
-      function isValidBounds( iBounds) {
+      /**
+       * @property {DG.MapPointView}
+       */
+      mapPointView: null,
+
+      /**
+       * @property {DG.LegendView}
+       */
+      legendView: null,
+
+      paper: function() {
+        return this.getPath('mapPointView.paper');
+      }.property(),
+
+      init: function () {
+        sc_super();
+        var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
+            tMapLayer = DG.MapLayerView.create();
+
+        this.set('mapLayer', tMapLayer);
+        this.appendChild( tMapLayer);
+
+        this.set('legendView', tLegendView);
+        this.appendChild( tLegendView);
+        tLegendView.set('model', this.getPath('model.legend'));
+      },
+
+      _isValidBounds: function( iBounds) {
         // If any of the array elements are null we don't have a valid bounds
-        return !SC.none( iBounds[0][0], iBounds[0][1], iBounds[1][0], iBounds[1][1]);
+        return iBounds && !SC.none(iBounds[0][0]) && !SC.none( iBounds[0][1]) &&
+            !SC.none( iBounds[1][0]) && !SC.none( iBounds[1][1]);
+      },
+
+      addPointLayer: function () {
+        if( this.get('mapPointView'))
+          return;
+
+        var tMapPointView = DG.MapPointView.create(
+            {
+              mapLayer: this.get('mapLayer')
+            });
+        this.set('mapPointView', tMapPointView);
+        this.setPath('mapPointView.model', this.get('model'))
+        this.appendChild( tMapPointView);
+        if( this.getPath('model.hasLatLngAttrs')) {
+          var tBounds = this.get('model').getLatLngBounds();
+          if (this._isValidBounds(tBounds))
+            this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        }
+        else {
+          tMapPointView.set('isVisible', false);
+        }
+      },
+
+      addAreaLayer: function () {
+        if( this.get('mapAreaLayer'))
+          return;
+
+        this.set('mapAreaLayer', DG.MapAreaLayer.create(
+            {
+              mapSource: this
+            }));
+        this.setPath('mapAreaLayer.model', this.get('model'));
+        var tBounds = this.get('model').getAreaBounds();
+        if (this._isValidBounds(tBounds))
+          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        this.get('mapAreaLayer').addFeatures();
+      },
+
+      /**
+       Set the layout (view position) for our subviews.
+       @returns {void}
+       */
+      adjustLayout: function( context, firstTime) {
+        var tMapLayer = this.get('mapLayer'),
+            tMapPointView = this.get('mapPointView' ),
+            tLegendView = this.get('legendView'),
+            tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' );
+
+        if( this._isRenderLayoutInProgress || !tMapPointView || !tLegendView)
+          return;
+        this._isRenderLayoutInProgress = true;
+
+        // adjust() method avoids triggering observers if layout parameter is already at correct value.
+        tMapPointView.adjust('bottom', tLegendHeight);
+        tMapLayer.adjust('bottom', tLegendHeight);
+        tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
+
+        this._isRenderLayoutInProgress = false;
+      }.observes('model.dataConfiguration.attributeAssignment'),
+
+      /**
+       * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
+       */
+      _isRenderLayoutInProgress: false,
+
+      /**
+       * This is our chance to add the features to the area layer
+       */
+      createVisualization: function () {
+        this.get('mapAreaLayer').createVisualization();
+      },
+
+      /**
+       * Override the two mixin methods because the drop target view is mapPointView
+       */
+      dragStarted: function() {
+        DG.GraphDropTarget.dragStarted.apply( this, arguments);
+        if( !this.getPath('model.hasLatLngAttrs'))
+          this.setPath('mapPointView.isVisible', true);
+      },
+
+      dragEnded: function() {
+        DG.GraphDropTarget.dragEnded.apply( this, arguments);
+        if( !this.getPath('model.hasLatLngAttrs'))
+          this.setPath('mapPointView.isVisible', false);
       }
 
-      var kPadding = [10, 10];
-      this.set('mapPointView', DG.MapPointView.create(
-        {
-          mapLayer: this.get('mapLayer')
-        }));
-      this.setPath('mapPointView.model', this.get('model'))
-      this.appendChild( this.get( 'mapPointView'));
-      var tBounds = this.get('model' ).getLatLngBounds();
-      if( isValidBounds( tBounds))
-        this.getPath('mapLayer.map' ).fitBounds( tBounds, kPadding);
-    },
-
-    /**
-     * Provide an element on which we can draw.
-     * @param ctx
-     * @param first
-     */
-    render:function ( ctx, first ) {
-      sc_super();
-      this.get('mapLayer' ).render( ctx, first);
-    },
-
-    /**
-     * Additional setup after creating the view
-     */
-    didCreateLayer:function () {
-      this.get('mapLayer' ).didCreateLayer();
-    },
-
-    /**
-     * Pass to layers
-     */
-    viewDidResize:function () {
-      sc_super();
-      this.get('mapLayer' ).viewDidResize();
     }
-
-  }
 );

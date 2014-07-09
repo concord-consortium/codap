@@ -28,7 +28,9 @@ DG.GraphTypes = {
         eX: 0,
         eY: 1,
         eLegend: 2,
-        eNumPlaces: 3
+        eArea: 3,
+        eCaption: 4,
+        eNumPlaces: 5
   }
 
 };

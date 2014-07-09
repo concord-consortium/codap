@@ -27,6 +27,21 @@ sc_require('components/graph_map_common/data_display_model');
 DG.MapModel = DG.DataDisplayModel.extend(
   /** @scope DG.MapModel.prototype */
   {
+
+    dataConfigurationClass: function() {
+      return DG.MapDataConfiguration;
+    }.property(),
+
+    caseValueAnimator: null,  // Used to animate points back to start
+
+    latVarID: function() {
+      return this.getPath('dataConfiguration.yAttributeDescription.attributeID');
+    }.property('*dataConfiguration.yAttributeDescription.attributeID'),
+
+    lngVarID: function() {
+      return this.getPath('dataConfiguration.xAttributeDescription.attributeID');
+    }.property('dataConfiguration.xAttributeDescription.attributeID'),
+
     handleOneDataContextChange: function( iNotifier, iChange) {
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.
@@ -83,12 +98,109 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     /**
+     * If there is an area attribute, go through its values, finding the rectangle that encompases all
+     * the coordinates.
+     * @returns {*[]}
+     */
+    getAreaBounds: function() {
+      var tCases = this.getPath('cases'),
+          tAreaID = this.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
+          tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
+      if( !tAreaID)
+        return null;
+
+      function processArrayOfCoords( iArrayOfCoords) {
+        iArrayOfCoords.forEach( function( iPoint) {
+          tMinSouth = Math.min( tMinSouth, iPoint[1]);
+          tMaxNorth = Math.max( tMaxNorth, iPoint[1]);
+          tMinWest = Math.min( tMinWest, iPoint[0]);
+          tMaxEast = Math.max( tMaxEast, iPoint[0]);
+        });
+      }
+
+      tCases.forEach( function( iCase) {
+        try {
+          var tFeature = JSON.parse(iCase.getValue(tAreaID)),
+              tCoords = tFeature.geometry.coordinates,
+              tType = tFeature.geometry.type;
+          tCoords.forEach(function (iArray) {
+            switch (tType) {
+              case 'Polygon':
+                processArrayOfCoords(iArray);
+                break;
+              case 'MultiPolygon':
+                iArray.forEach(function (iSubArray) {
+                  processArrayOfCoords(iSubArray);
+                });
+                break;
+            }
+          });
+        }
+        catch(er) {}
+      });
+
+      return [[tMinSouth, tMinWest], [tMaxNorth, tMaxEast]];
+    },
+
+    hasLatLngAttrs: function() {
+      return !SC.none( this.get('latVarID')) && !SC.none( this.get('lngVarID'));
+    }.property('dataConfiguration.yAttributeDescription.attributeID', 'dataConfiguration.xAttributeDescription.attributeID'),
+
+    /**
      * For now, we'll assume all changes affect us
      * @param iChange
      */
     isAffectedByChange: function( iChange) {
       return true;
+    },
+
+    animateSelectionBackToStart: function( iAttrIDs, iDeltas) {
+      if( SC.none( this.caseValueAnimator))
+        this.caseValueAnimator = DG.CaseValueAnimator.create();
+      else  // We must end the animation before setting animator properties
+        this.caseValueAnimator.endAnimation();
+
+      this.caseValueAnimator.set( 'dataContext', this.get('dataContext'));
+      this.caseValueAnimator.set( 'cases', DG.copy( this.get('selection')));
+      this.caseValueAnimator.set( 'attributeIDs', iAttrIDs);
+      this.caseValueAnimator.set( 'deltas', iDeltas);
+
+      this.caseValueAnimator.animate();
+    },
+
+    _observedDataConfiguration: null,
+
+    /**
+     Responder method for dataConfiguration changes.
+     This is a copy of what is done in PlotModel.
+     */
+    dataConfigurationDidChange: function( iSource, iKey) {
+      if( this._observedDataConfiguration && (iKey === 'dataConfiguration')) {
+        this._observedDataConfiguration.removeObserver('cases', this, 'dataConfigurationDidChange');
+        this._observedDataConfiguration.removeObserver('attributeAssignment', this, 'dataConfigurationDidChange');
+        this._observedDataConfiguration = null;
+      }
+
+      var dataConfiguration = this.get('dataConfiguration');
+      if( dataConfiguration) {
+        this.invalidateCaches();
+        this.handleDataConfigurationChange();
+
+        if( iKey === 'dataConfiguration') {
+          dataConfiguration.addObserver('cases', this, 'dataConfigurationDidChange');
+          dataConfiguration.addObserver('attributeAssignment', this, 'dataConfigurationDidChange');
+          this._observedDataConfiguration = dataConfiguration;
+        }
+      }
+    },
+
+    /**
+     Return the map's notion of gear menu items concatenated with mine.
+     @return {Array of menu items}
+     */
+    getGearMenuItems: function() {
+      return [];
     }
 
-    } );
+  } );
 
