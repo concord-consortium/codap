@@ -20,6 +20,7 @@
 
 DG.PlotUtilities = {
 
+  // Constants for graphs
   kAxisColor: "#ccc",
   kRuleColor: '#ddd',   // graph background grid lines
   kRuleWidth: 1,
@@ -56,6 +57,19 @@ DG.PlotUtilities = {
   kHighlightHideTime: 250, // milliseconds delay time before various tips/highlighting disappears
   kDataHoverTransform: 's1.5',  // scale 1.5 times on hover
   kDataCreateTransform: 's2',   // scale 2 times on create
+
+  // Constants for maps
+  kMapAreaNoLegendColor: 'red',
+  kMapAreaNoLegendUnselectedOpacity: 0.2,
+  kMapAreaNoLegendSelectedOpacity: 1,
+  kMapAreaWithLegendSelectedOpacity: 0.5,
+  kMapAreaWithLegendUnselectedOpacity: 0.5,
+  kMapAreaNoLegendUnselectedBorderColor: 'yellow',
+  kMapAreaNoLegendSelectedBorderColor: 'black',
+  kMapAreaWithLegendUnselectedBorderColor: 'yellow',
+  kMapAreaWithLegendSelectedBorderColor: 'red',
+  kMapAreaSelectedBorderWeight: 4,
+  kMapAreaUnselectedBorderWeight: 2,
 
 
   //  DG.PlotUtilities.lineToAxisIntercepts

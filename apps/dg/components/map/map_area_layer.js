@@ -169,17 +169,21 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         return;
       if( tSelection.containsObject( iCase)) {
         tFeature.setStyle( {
-          color: tHasLegend ? 'red' : 'black',
-          fillOpacity: tHasLegend ? 0.5 : 1,
-          weight: 4
+          color: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendSelectedBorderColor :
+              DG.PlotUtilities.kMapAreaNoLegendSelectedBorderColor,
+          fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendSelectedOpacity :
+              DG.PlotUtilities.kMapAreaNoLegendSelectedOpacity,
+          weight: DG.PlotUtilities.kMapAreaSelectedBorderWeight
         });
         tFeature.bringToFront();
       }
       else {
         tFeature.setStyle( {
-          color: 'yellow',
-          fillOpacity: tHasLegend ? 0.5 : 0.2,
-          weight: 2
+          color: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedBorderColor :
+              DG.PlotUtilities.kMapAreaNoLegendUnselectedBorderColor,
+          fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :
+              DG.PlotUtilities.kMapAreaNoLegendUnselectedOpacity,
+          weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight
         });
       }
     }.bind( this));
@@ -228,6 +232,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
             .addTo(tRC.map);
       }
       catch(er) {
+        DG.logWarn("Invalid JSON for map area, reported from DG.MapAreaLayer.addFeatures()");
       }
     }.bind( this));
     this._areFeaturesAdded = true;

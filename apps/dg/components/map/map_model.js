@@ -171,30 +171,6 @@ DG.MapModel = DG.DataDisplayModel.extend(
     _observedDataConfiguration: null,
 
     /**
-     Responder method for dataConfiguration changes.
-     This is a copy of what is done in PlotModel.
-     */
-    dataConfigurationDidChange: function( iSource, iKey) {
-      if( this._observedDataConfiguration && (iKey === 'dataConfiguration')) {
-        this._observedDataConfiguration.removeObserver('cases', this, 'dataConfigurationDidChange');
-        this._observedDataConfiguration.removeObserver('attributeAssignment', this, 'dataConfigurationDidChange');
-        this._observedDataConfiguration = null;
-      }
-
-      var dataConfiguration = this.get('dataConfiguration');
-      if( dataConfiguration) {
-        this.invalidateCaches();
-        this.handleDataConfigurationChange();
-
-        if( iKey === 'dataConfiguration') {
-          dataConfiguration.addObserver('cases', this, 'dataConfigurationDidChange');
-          dataConfiguration.addObserver('attributeAssignment', this, 'dataConfigurationDidChange');
-          this._observedDataConfiguration = dataConfiguration;
-        }
-      }
-    },
-
-    /**
      Return the map's notion of gear menu items concatenated with mine.
      @return {Array of menu items}
      */

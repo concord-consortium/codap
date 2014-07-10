@@ -110,10 +110,8 @@ DG.MapLayerView = SC.View.extend(
       }
     },
 
-    viewDidResize: function( iLayout) {
+    viewDidResize: function() {
       var tMap = this.get('map');
-      if( iLayout)
-        $("#" + this._layerID).css(iLayout);
       if( tMap) {
         tMap.invalidateSize();
       }
