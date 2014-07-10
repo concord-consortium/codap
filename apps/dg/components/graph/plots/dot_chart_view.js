@@ -410,6 +410,7 @@ DG.DotChartView = DG.PlotView.extend(
         tActualPointsPerColumn = Math.ceil( tMaxInCell / tNumPointsInRow),
         tOverlap = Math.max( 0, ((tActualPointsPerColumn + 1) * tPointSize - tCellHeight) / 
                       tActualPointsPerColumn);
+      tOverlap = Math.min( tOverlap, tPointSize); // Otherwise points can stack downward
 
       // Note: Bill points out that 1 is a better default here, but using 1 doesn't fix the bug
       // I'm working on. This may have to do with making sure a notification goes out when

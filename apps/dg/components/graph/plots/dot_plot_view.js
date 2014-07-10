@@ -421,14 +421,15 @@ DG.DotPlotView = DG.PlotView.extend(
           tRadius = iBinWidth / 2,
           tBinArrays = this_.get('binArrays'),
           tMaxStackHeight = tCategoricalAxisView.get('fullCellWidth'),
-          tMaxThatFit = Math.round( tMaxStackHeight / (2 * tRadius)) - 2,
+          // The '-1' in the following is to ensure at least one point's worth of space between cells
+          tMaxThatFit = Math.round( tMaxStackHeight / (2 * tRadius)) - 1,
           tOverlap = 0,
           tColorDesc = this_.getPath('model.dataConfiguration.legendAttributeDescription'),
           tColorID = tColorDesc.get('attributeID'),
           tMaxInBin, tPixelsOutside;
 
-      if( tMaxThatFit <= 0) // happens during destruction
-        return 0;
+      if( tMaxThatFit <= 0) // If things are really tight, overlap points directly on top of each other
+        return iBinWidth;
           
       tCases.forEach( function( iCase) {
         var tColorValue = !SC.none( tColorID) ? iCase.getValue( tColorID) : null,
