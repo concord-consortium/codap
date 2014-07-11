@@ -18,117 +18,105 @@
 //  limitations under the License.
 // ==========================================================================
 
-DG.ToolButtonData = [
+DG.ToolButtonData = {
+  fileMenu: {
+    title: 'DG.ToolButtonData.fileMenu.title',  // "File"
+    iconName: static_url('images/folder.png'),
+    depressedIconName: static_url('images/folder_depressed.png'),
+    target: 'DG.appController.fileMenuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.fileMenu.toolTip',  // "Save and open document (ctrl-s and ctrl-o)"
+    localize: true
+  },
 
-      { name: 'fileMenu',
-        desc: {
-          title: 'DG.ToolButtonData.fileMenu.title',  // "File"
-          iconName: static_url('images/folder.png'),
-          depressedIconName: static_url('images/folder_depressed.png'),
-          target: 'DG.appController.fileMenuPane',
-          action: 'popup',
-          toolTip: 'DG.ToolButtonData.fileMenu.toolTip',  // "Save and open document (ctrl-s and ctrl-o)"
-          localize: true
-      }},
+  gameMenu: {
+    title: 'DG.ToolButtonData.gameMenu.title',  // "Game"
+    iconName: static_url('images/dg_ball.png'),
+    depressedIconName: static_url('images/dg_ball_depressed.png'),
+    target: 'DG.gameSelectionController.menuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.gameMenu.toolTip',  // "Choose the game to play (ctrl-alt-shift-g)"
+    localize: true
+  },
 
-      { name: 'gameMenu',
-        desc: {
-          title: 'DG.ToolButtonData.gameMenu.title',  // "Game"
-          iconName: static_url('images/dg_ball.png'),
-          depressedIconName: static_url('images/dg_ball_depressed.png'),
-          target: 'DG.gameSelectionController.menuPane',
-          action: 'popup',
-          toolTip: 'DG.ToolButtonData.gameMenu.toolTip',  // "Choose the game to play (ctrl-alt-shift-g)"
-          localize: true
-      }},
-      
-      { name: 'tableButton',
-        desc: {
-          title: 'DG.ToolButtonData.tableButton.title', // "Table"
-          iconName: static_url('images/table.png'),
-          depressedIconName: static_url('images/table_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'toggleCaseTable',
-          toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
-          localize: true
-      }},
-      
-      { name: 'graphButton',
-        desc: {
-          title: 'DG.ToolButtonData.graphButton.title', // "Graph"
-          iconName: static_url('images/graph.png'),
-          depressedIconName: static_url('images/graph_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'addGraph',
-          toolTip: 'DG.ToolButtonData.graphButton.toolTip', // "Make a graph (ctrl-alt-g)"
-          localize: true
-      }},
+  tableButton: {
+    title: 'DG.ToolButtonData.tableButton.title', // "Table"
+    iconName: static_url('images/table.png'),
+    depressedIconName: static_url('images/table_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'toggleCaseTable',
+    toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
+    localize: true
+  },
 
-      { name: 'mapButton',
-        desc: {
-          title: 'DG.ToolButtonData.mapButton.title', // "Map"
-          iconName: static_url('images/map.png'),
-          depressedIconName: static_url('images/map_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'toggleMap',
-          toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
-          localize: true
-      }},
+  graphButton: {
+    title: 'DG.ToolButtonData.graphButton.title', // "Graph"
+    iconName: static_url('images/graph.png'),
+    depressedIconName: static_url('images/graph_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'addGraph',
+    toolTip: 'DG.ToolButtonData.graphButton.toolTip', // "Make a graph (ctrl-alt-g)"
+    localize: true
+  },
 
-      { name: 'sliderButton',
-        desc: {
-          title: 'DG.ToolButtonData.sliderButton.title',  // "Slider"
-          iconName: static_url('images/slider.png'),
-          depressedIconName: static_url('images/slider_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'addSlider',
-          toolTip: 'DG.ToolButtonData.sliderButton.toolTip',  // "Make a slider (ctrl-alt-s)"
-          localize: true
-      }},
-      
-      { name: 'calcButton',
-        desc: {
-          title: 'DG.ToolButtonData.calcButton.title',  // "Calc"
-          iconName: static_url('images/calc.png'),
-          depressedIconName: static_url('images/calc_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'toggleCalculator',
-          toolTip: 'DG.ToolButtonData.calcButton.toolTip',  // "Open/close the calculator (ctrl-alt-c)"
-          localize: true
-      }},
-            
-      { name: 'textButton',
-        desc: {
-          title: 'DG.ToolButtonData.textButton.title',  // "Text"
-          iconName: static_url('images/texttool.png'),
-          depressedIconName: static_url('images/texttool_depressed.png'),
-          target: 'DG.mainPage',
-          action: 'addText',
-          toolTip: 'DG.ToolButtonData.textButton.toolTip',  // "Make a text object (ctrl-alt-shift-t)"
-          localize: true
-      }}
+  mapButton: {
+    title: 'DG.ToolButtonData.mapButton.title', // "Map"
+    iconName: static_url('images/map.png'),
+    depressedIconName: static_url('images/map_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'toggleMap',
+    toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
+    localize: true
+  },
 
-      , { name: 'optionButton',
-        desc: {
-          title: 'DG.ToolButtonData.optionMenu.title',  // "Options"
-          iconName: static_url('images/options.png'),
-          depressedIconName: static_url('images/options_depressed.png'),
-          target: 'DG.appController.optionMenuPane',
-          action: 'popup',
-          toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change Data Games options"
-          localize: true
-      }}
+  sliderButton: {
+    title: 'DG.ToolButtonData.sliderButton.title',  // "Slider"
+    iconName: static_url('images/slider.png'),
+    depressedIconName: static_url('images/slider_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'addSlider',
+    toolTip: 'DG.ToolButtonData.sliderButton.toolTip',  // "Make a slider (ctrl-alt-s)"
+    localize: true
+  },
 
-      , { name: 'guideButton',
-        desc: {
-          title: 'DG.ToolButtonData.guideMenu.title',  // "Guide"
-          iconName: static_url('images/guide.png'),
-          depressedIconName: static_url('images/guide_depressed.png'),
-          target: 'DG.appController.guideMenuPane',
-          action: 'popup',
-          toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change Data Games options"
-          localize: true,
-          isVisible: false
-      }}
-];
+  calcButton: {
+    title: 'DG.ToolButtonData.calcButton.title',  // "Calc"
+    iconName: static_url('images/calc.png'),
+    depressedIconName: static_url('images/calc_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'toggleCalculator',
+    toolTip: 'DG.ToolButtonData.calcButton.toolTip',  // "Open/close the calculator (ctrl-alt-c)"
+    localize: true
+  },
+
+  textButton: {
+    title: 'DG.ToolButtonData.textButton.title',  // "Text"
+    iconName: static_url('images/texttool.png'),
+    depressedIconName: static_url('images/texttool_depressed.png'),
+    target: 'DG.mainPage',
+    action: 'addText',
+    toolTip: 'DG.ToolButtonData.textButton.toolTip',  // "Make a text object (ctrl-alt-shift-t)"
+    localize: true
+  },
+  optionButton: {
+    title: 'DG.ToolButtonData.optionMenu.title',  // "Options"
+    iconName: static_url('images/options.png'),
+    depressedIconName: static_url('images/options_depressed.png'),
+    target: 'DG.appController.optionMenuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change Data Games options"
+    localize: true
+  },
+  guideButton: {
+    title: 'DG.ToolButtonData.guideMenu.title',  // "Guide"
+    iconName: static_url('images/guide.png'),
+    depressedIconName: static_url('images/guide_depressed.png'),
+    target: 'DG.appController.guideMenuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change Data Games options"
+    localize: true,
+    isVisible: false
+  }
+
+};
 

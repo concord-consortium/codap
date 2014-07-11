@@ -82,10 +82,11 @@ DG.mainPage = SC.Page.design((function() {
             kButtonWidth = 40,
             tLeft = kSpacer;
         // create tool buttons, left-justified
-        DG.ToolButtonData.forEach( function( iButton) {
-          this[ iButton.name] = DG.IconButton.create( iButton.desc);
-          this[ iButton.name].set('layout', { left: tLeft, width: kButtonWidth });
-          this.appendChild( this[ iButton.name]);
+        DG.toolButtons.forEach( function( iButtonName ) {
+          var tButton = DG.ToolButtonData[iButtonName];
+          this[ iButtonName] = DG.IconButton.create( tButton);
+          this[ iButtonName].set('layout', { left: tLeft, width: kButtonWidth });
+          this.appendChild( this[ iButtonName ]);
           tLeft += kButtonWidth + kSpacer;
         }.bind(this));
         DG.currDocumentController().set('guideButton', this.guideButton);
