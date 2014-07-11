@@ -357,6 +357,8 @@ DG.GameController = DG.ComponentController.extend(
       }
     }
 
+    $('title').text('CODAP - ' + currentGameName);
+
     // Once all the collections and attributes are created, we're ready to play the game.
     this.set('gameIsReady', true);
     

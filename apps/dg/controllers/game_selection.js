@@ -643,6 +643,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
    */
   gameViewWillClose: function() {
     this.menuPane.set('selectedItem', null);
+    $('title').text('CODAP');
   },
 
   /**
