@@ -16,171 +16,165 @@
 
 /* Default font for case tables */
 .dg-case-table {
-  font-family: arial !important;
-  font-size: 8pt !important;
+    font-family: arial !important;
+    font-size: 8pt !important;
 }
 
-.calculator label
-{
-  cursor: pointer;
+.calculator label {
+    cursor: pointer;
 }
 
-.icon-label
-{
-  color: black;
-  font-size: 11px !important;
-  cursor: pointer;
-} 
+.icon-label {
+    color: black;
+    font-size: 11px !important;
+    cursor: pointer;
+}
 
-.drag-label
-{
-  color: black;
-  font-size: large !important;
-  background-color: lightblue !important;
+.drag-label {
+    color: black;
+    font-size: large !important;
+    background-color: lightblue !important;
 }
 
 .data-dot {
-  opacity: 0.85 !important;
+    opacity: 0.85 !important;
+    pointer-events: all;
 }
 
 .data-dot:hover {
-  fill: red !important;
-  stroke: red !important;
+    fill: red !important;
+    stroke: red !important;
 }
 
 .data-dot-selected {
-  fill: red !important;
-  stroke-width: 2 !important;
+    fill: red !important;
+    stroke-width: 2 !important;
 }
 
 /* data dot with variable fill color */
 .data-dot-colored {
-  opacity: 0.85 !important;
-  stroke: #315B7D !important;
+    opacity: 0.85 !important;
+    stroke: #315B7D !important;
 }
 
 .data-dot-colored-selected {
-  stroke: black !important;
-  stroke-width: 2 !important;
+    stroke: black !important;
+    stroke-width: 2 !important;
 }
 
 .axis-label {
-  font: caption !important;
-  /*fill: blue;*/
-  cursor: pointer;
-  font-size: 14px !important;
-  text-decoration: underline !important;
+    font: caption !important;
+    /*fill: blue;*/
+    cursor: pointer;
+    font-size: 14px !important;
+    text-decoration: underline !important;
 }
 
 .data-strip {
-  opacity: 0.85 !important;
-  stroke-width: 0px !important;
-  fill: #315B7D;
+    opacity: 0.85 !important;
+    stroke-width: 0px !important;
+    fill: #315B7D;
 }
 
 .data-strip:hover {
-  fill: red !important;
+    fill: red !important;
 }
 
 .data-strip:active {
-  fill: red !important;
+    fill: red !important;
 }
 
 .data-strip-selected {
-  fill: red !important;
+    fill: red !important;
 }
 
 /* data strip with variable fill color */
 .data-strip-colored {
-  opacity: 0.85 !important;
-  stroke-width: 0px !important;
+    opacity: 0.85 !important;
+    stroke-width: 0px !important;
 }
 
 .data-strip-colored-selected {
-  stroke: black !important;
-  stroke-width: 2 !important;
+    stroke: black !important;
+    stroke-width: 2 !important;
 }
 
 .data-tip {
-  stroke-width: 1 !important;
-  stroke: yellow !important;
-  fill: #FBFBB0 !important;
+    stroke-width: 1 !important;
+    stroke: yellow !important;
+    fill: #FBFBB0 !important;
 }
 
 .data-tip-shadow {
-  stroke-width: 2 !important;
-  stroke: #7A7452 !important;
-  opacity: 0.7 !important;
+    stroke-width: 2 !important;
+    stroke: #7A7452 !important;
+    opacity: 0.7 !important;
 }
 
 .data-tip-text {
-  text-align:left !important;
-  font-family: "lucida sans", helvetica, arial !important;
-  font-size: 100% !important;
+    text-align: left !important;
+    font-family: "lucida sans", helvetica, arial !important;
+    font-size: 100% !important;
 }
 
 .legend-key {
-  opacity: 0.85 !important;
-  stroke: #315B7D !important;
-  cursor: pointer;
+    opacity: 0.85 !important;
+    stroke: #315B7D !important;
+    cursor: pointer;
 }
 
 .legend-key:hover {
-  stroke: red !important;
+    stroke: red !important;
 }
 
 .legend-key-name {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .sc-view.component-border {
-  border-left:   4px #999 solid;
-  border-top:    4px #666 solid;
-  border-bottom: 4px #ccc solid;
-  border-right:  4px #999 solid;
+    border-left: 4px #999 solid;
+    border-top: 4px #666 solid;
+    border-bottom: 4px #ccc solid;
+    border-right: 4px #999 solid;
 }
 
 .sc-view .function-table-view {
-  background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 /* Function Table formula entry input */
 .function-table-formula-entry {
-  width: 220px
+    width: 220px
 }
 
 /* Function Table result header cell */
 .function-table-result {
-  width: 100px
+    width: 100px
 }
 
 /* Function Table data row */
 .function-table-data {
-  text-align: right
+    text-align: right
 }
 
 /* Function Table data entry cells */
 .function-table-text-entry {
-  width: 75px
+    width: 75px
 }
 
-body.dg .sc-view.doc-background
-{ 
+body.dg .sc-view.doc-background {
     background: static_url('images/dark_bg.jpg') !important;
 }
 
-.sc-view.toolshelf-background
-{
+.sc-view.toolshelf-background {
     background: static_url('images/toolshelf.png') repeat-x center top !important;
 }
 
-.sc-view.icon-button
-{
-cursor: pointer;
+.sc-view.icon-button {
+    cursor: pointer;
 }
 
-.sc-view.showText
-{
+.sc-view.showText {
     opacity: 0;
     background-color: #e6b036;
     border-radius: 15px;
@@ -188,9 +182,12 @@ cursor: pointer;
     box-shadow: 5px 5px 3px #888888;
 }
 
-.sc-view.showText:hover
-{
+.sc-view.showText:hover {
     background-color: yellow;
+}
+
+.map-layer {
+    pointer-events: none;
 }
 
 .graph-view {
@@ -257,7 +254,7 @@ cursor: pointer;
     margin-bottom: 7px;
 }
 
-#formula_object p,em {
+#formula_object p, em {
     font-size: 14px;
 }
 
@@ -274,10 +271,10 @@ cursor: pointer;
 #formula_object table {
     width: 100%;
     margin: 0 auto;
-    border-collapse:collapse;
+    border-collapse: collapse;
 }
 
-#formula_object th,td {
+#formula_object th, td {
     padding: 5px;
     font-size: 14px;
 }
@@ -301,22 +298,22 @@ cursor: pointer;
 
 /* used by DG.CaseTableCellEditor */
 input.editor-text {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  margin: 0;
-  background: transparent;
-  outline: 0;
-  padding: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    background: transparent;
+    outline: 0;
+    padding: 0;
 
 }
 
 .dg-file-import-view {
-  background-color: transparent;
+    background-color: transparent;
 }
 
 .dg-file-import-view.focus {
-  outline: none!important;
+    outline: none !important;
 }
 
 .dg-alert {

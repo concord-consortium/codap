@@ -77,7 +77,8 @@ DG.MapLayerView = SC.View.extend(
 
           onDisplayChangeEvent = function( iEvent) {
               // TODO: Eliminate knowledge at this level of mapPointView
-            this.getPath('parentView.mapPointView').doDraw();
+            var tMapPointView = this.getPath('parentView.mapPointView');
+            tMapPointView && tMapPointView.doDraw();
           }.bind( this),
 
           onClick = function( iEvent) {

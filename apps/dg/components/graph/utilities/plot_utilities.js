@@ -220,6 +220,9 @@ DG.PlotUtilities = {
     @return {Number}
   */
   findFractionDigitsForAxis: function( iAxisView) {
+    if( !iAxisView)
+      return null;
+
     var tMiddle = (iAxisView.get('pixelMin') + iAxisView.get('pixelMax')) / 2,
         tDelta = iAxisView.coordinateToData( tMiddle) -
                             iAxisView.coordinateToData( tMiddle + 1),

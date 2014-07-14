@@ -42,6 +42,10 @@ DG.MapModel = DG.DataDisplayModel.extend(
       return this.getPath('dataConfiguration.xAttributeDescription.attributeID');
     }.property('dataConfiguration.xAttributeDescription.attributeID'),
 
+    areaVarID: function() {
+      return this.getPath('dataConfiguration.areaAttributeDescription.attributeID');
+    }.property('dataConfiguration.areaAttributeDescription.attributeID'),
+
     handleOneDataContextChange: function( iNotifier, iChange) {
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.
@@ -104,7 +108,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      */
     getAreaBounds: function() {
       var tCases = this.getPath('cases'),
-          tAreaID = this.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
+          tAreaID = this.get('areaVarID'),
           tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
       if( !tAreaID)
         return null;

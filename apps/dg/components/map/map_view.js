@@ -101,7 +101,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       addAreaLayer: function () {
-        if( this.get('mapAreaLayer'))
+        if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
           return;
 
         this.set('mapAreaLayer', DG.MapAreaLayer.create(

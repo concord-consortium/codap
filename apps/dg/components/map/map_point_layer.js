@@ -65,7 +65,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       updatedPositions: true,
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
-          return 'yellow'; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
+          return '#' + DG.ColorUtilities.simpleColorNames.yellow; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
@@ -121,6 +121,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     if( this.showHidePlottedElement( tCircle, tIsMissingCase)) {
       this.updatePlottedElement( tCircle, tCoordX, tCoordY, this._pointRadius, iRC.calcCaseColorString( iCase ),
         iAnimate, iCallback);
+      //tCircle.attr( {stroke: 'black'}); // updatePlottedElement tries to make a dark yellow border
       return { cx: tCoordX, cy: tCoordY, r: this._pointRadius };
     }
     return null;
@@ -169,30 +170,30 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       tCircle = this.get('paper').circle( -100, -100, this._pointRadius)
         .attr( { cursor: 'pointer' })
         .addClass( DG.PlotUtilities.kColoredDotClassName)
-//        .hover( function (event) {  // over
-//          if( !tIsDragging && SC.none( tInitialTransform)) {
-//                tInitialTransform = '';
-//                if( this.hoverAnimation)
-//                  this.stop( this.hoverAnimation);
-//                this.hoverAnimation = Raphael.animation( { opacity: kOpaque, transform: DG.PlotUtilities.kDataHoverTransform },
-//                                                            DG.PlotUtilities.kDataTipShowTime,
-//                                                            '<>', completeHoverAnimation);
-//                this.animate( this.hoverAnimation);
-//                this_.showDataTip( this, iIndex);
-//              }
-//            },
-//            function(event) { // out
-//              if( !tIsDragging) {
-//                if( this.hoverAnimation)
-//                  this.stop( this.hoverAnimation);
-//                this.hoverAnimation = Raphael.animation( { transform: tInitialTransform },
-//                                                            DG.PlotUtilities.kHighlightHideTime,
-//                                                            '<>', completeHoverAnimation);
-//                this.animate( this.hoverAnimation);
-//                tInitialTransform = null;
-//                this_.hideDataTip();
-//              }
-//            })
+        .hover( function (event) {  // over
+          if( !tIsDragging && SC.none( tInitialTransform)) {
+                tInitialTransform = '';
+                if( this.hoverAnimation)
+                  this.stop( this.hoverAnimation);
+                this.hoverAnimation = Raphael.animation( { opacity: kOpaque, transform: DG.PlotUtilities.kDataHoverTransform },
+                                                            DG.PlotUtilities.kDataTipShowTime,
+                                                            '<>', completeHoverAnimation);
+                this.animate( this.hoverAnimation);
+                this_.showDataTip( this, iIndex);
+              }
+            },
+            function(event) { // out
+              if( !tIsDragging) {
+                if( this.hoverAnimation)
+                  this.stop( this.hoverAnimation);
+                this.hoverAnimation = Raphael.animation( { transform: tInitialTransform },
+                                                            DG.PlotUtilities.kHighlightHideTime,
+                                                            '<>', completeHoverAnimation);
+                this.animate( this.hoverAnimation);
+                tInitialTransform = null;
+                this_.hideDataTip();
+              }
+            })
         .mousedown( function( iEvent) {
               this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
             })

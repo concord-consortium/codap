@@ -31,6 +31,8 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
   displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
+  classNames: ['map-layer'],
+
   /**
    * @property {DG.MapModel}
    */

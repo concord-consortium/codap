@@ -59,6 +59,8 @@ DG.PointDataTip = DG.DataTip.extend(
           tDigits = (iKey === 'legend') ?
                     DG.PlotUtilities.findFractionDigitsForRange( tAttrDesc.getPath('attributeStats.minMax')) :
                     DG.PlotUtilities.findFractionDigitsForAxis( this_.getPath('plotLayer.' + iKey + 'AxisView'));
+          if( SC.none( tDigits))  // Can happen for maps when there is no axis view
+            tDigits = 2;
           tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
           tValue = tNumFormat( tCase.getNumValue( tAttrID));
         }
