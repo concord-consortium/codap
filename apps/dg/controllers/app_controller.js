@@ -119,10 +119,10 @@ DG.appController = SC.Object.create((function () // closure
           target: this, action: 'showHelp' },
         { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
           target: this, action: 'reportProblem' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "Data Games website...",
+        { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, action: 'showWebSite' },
         { isSeparator: YES },
-        { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About Data Games...",
+        { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About CODAP...",
           target: this, action: 'showAbout' },
         { localize: true, title: 'DG.AppController.optionMenuItems.releaseNotes', // "What's New?",
           target: this, action: 'showReleaseNotes' },
@@ -622,7 +622,7 @@ DG.appController = SC.Object.create((function () // closure
     showReleaseNotes: function () {
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
         'DG.AppController.showReleaseNotesURL'.loc(),
-        'DG.AppController.showReleaseNotesTitle'.loc(), // 'Data Games Release Notes'
+        'DG.AppController.showReleaseNotesTitle'.loc(), // 'CODAP Release Notes'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
     },
 
@@ -632,7 +632,7 @@ DG.appController = SC.Object.create((function () // closure
     showAbout: function () {
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
         'DG.AppController.showAboutURL'.loc(),
-        'DG.AppController.showAboutTitle'.loc(), // 'About Data Games'
+        'DG.AppController.showAboutTitle'.loc(), // 'About CODAP'
         { centerX: 0, centerY: 0, width: 770, height: 400 });
     },
 
@@ -642,12 +642,12 @@ DG.appController = SC.Object.create((function () // closure
     showHelp: function () {
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
           'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.showHelpURL'.loc()),
-        'DG.AppController.showHelpTitle'.loc(), //'Help with Data Games'
+        'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
     },
 
     /**
-     Open a new tab with the Data Games website.
+     Open a new tab with the CODAP website.
      */
     showWebSite: function () {
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";

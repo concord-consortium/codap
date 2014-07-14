@@ -453,7 +453,7 @@ return {
           controlSize: SC.LARGE_CONTROL_SIZE,
           fontWeight: SC.BOLD_WEIGHT,
           textAlign: SC.ALIGN_CENTER,
-          value: 'DG.Authorization.loginPane.dialogTitle',            // "Data Games Login"
+          value: 'DG.Authorization.loginPane.dialogTitle',            // "CODAP Login"
           localize: YES
         }),
     

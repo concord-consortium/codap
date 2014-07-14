@@ -1,7 +1,7 @@
 // ==========================================================================
 //                                DG
 //
-//  DG is the namespace for all of the Data Games JavaScript code.
+//  DG is the namespace for all of the CODAP(formerly Data Games) JavaScript code.
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
 //

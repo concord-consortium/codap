@@ -34,7 +34,7 @@ SC.stringsFor('English', {
   // DG.Authorization
   'DG.Authorization.guestUserName'            : "guest",
   'DG.Authorization.guestPassword'            : "",
-  'DG.Authorization.loginPane.dialogTitle'    : "Data Games Login",
+  'DG.Authorization.loginPane.dialogTitle'    : "CODAP Login",
   'DG.Authorization.loginPane.userLabel'      : "User",
   'DG.Authorization.loginPane.passwordLabel'  : "Password",
   'DG.Authorization.loginPane.loginAsGuest'   : "Login as guest",
@@ -80,10 +80,10 @@ SC.stringsFor('English', {
   'DG.AppController.optionMenuItems.reportProblem' : "Report Problem...",
   'DG.AppController.optionMenuItems.viewWebPage' : "Display Web Page...",
   'DG.AppController.optionMenuItems.configureGuide' : "Configure Guide...",
-  'DG.AppController.optionMenuItems.about' : "About Data Games...",
+  'DG.AppController.optionMenuItems.about' : "About CODAP...",
   'DG.AppController.optionMenuItems.releaseNotes' : "What's New?",
   'DG.AppController.optionMenuItems.help' : "Help...",
-  'DG.AppController.optionMenuItems.toWebSite' : "Data Games website",
+  'DG.AppController.optionMenuItems.toWebSite' : "CODAP website",
   'DG.AppController.optionMenuItems.logout' : "Logout",
   'DG.AppController.openDocument.prompt' : "Choose a document to open:",
   'DG.AppController.openDocument.okTitle' : "Open",
@@ -109,15 +109,15 @@ SC.stringsFor('English', {
   'DG.AppController.exportCaseData.okTooltip' : "Done with export",
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
-  'DG.AppController.reportProblem.dialogTitle' : "Report Data Games Problem",
+  'DG.AppController.reportProblem.dialogTitle' : "Report CODAP Problem",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : '/', // path on Drupal website
   'DG.AppController.showHelpURL' : '/support', // path on Drupal website
-  'DG.AppController.showHelpTitle' : 'Help with Data Games',
+  'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
-  'DG.AppController.showAboutTitle' : 'About Data Games',
+  'DG.AppController.showAboutTitle' : 'About CODAP',
   'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
-  'DG.AppController.showReleaseNotesTitle' : 'Data Games Release Notes',
+  'DG.AppController.showReleaseNotesTitle' : 'CODAP Release Notes',
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
@@ -178,7 +178,7 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.mapButton.title' : "Map",
   'DG.ToolButtonData.mapButton.toolTip' : "Make a map",
   'DG.ToolButtonData.optionMenu.title' : "Options",
-  'DG.ToolButtonData.optionMenu.toolTip' : "Help, activities, learn about Data Games, ...",
+  'DG.ToolButtonData.optionMenu.toolTip' : "Help, activities, learn about CODAP, ...",
   'DG.ToolButtonData.guideMenu.title' : "Guide",
   'DG.ToolButtonData.guideMenu.toolTip' : "Show the guide for this activity and navigate within it",
   'DG.ToolButtonData.guideMenu.showGuide' : "Show Guide",

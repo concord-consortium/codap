@@ -104,7 +104,7 @@ DG.ToolButtonData = {
     depressedIconName: static_url('images/options_depressed.png'),
     target: 'DG.appController.optionMenuPane',
     action: 'popup',
-    toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change Data Games options"
+    toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change CODAP options"
     localize: true
   },
   guideButton: {
@@ -113,7 +113,7 @@ DG.ToolButtonData = {
     depressedIconName: static_url('images/guide_depressed.png'),
     target: 'DG.appController.guideMenuPane',
     action: 'popup',
-    toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change Data Games options"
+    toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change CODAP options"
     localize: true,
     isVisible: false
   }
