@@ -26,7 +26,7 @@ s/url(\(['"].*['"]\))/static_url(\1)/g
 # replace url(path/to/file.ext) with static_url('path/to/file.ext')
 s/url(\([^'")]*\))/static_url('\1')/g
 
-# comment out the active cell style since it's not relevant to Data Games
+# comment out the active cell style since it's not relevant to CODAP
 /.slick-cell.active/i\
 /* [KCPT] KHS 2012-10-26 \
 Disable "active" cell highlighting since we don't currently use the active cell in DG. 
