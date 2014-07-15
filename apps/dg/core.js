@@ -280,7 +280,7 @@ DG = SC.Application.create( (function() // closure
 
     toolButtons: [
       'fileMenu',
-//      'gameMenu',
+      'gameMenu',
       'tableButton',
       'graphButton',
       'mapButton',
