@@ -156,7 +156,7 @@ DG.ColorUtilities.calcCaseColor = function( iCaseValue, iColorAttributeDescripti
 
   if( tAttribute === DG.Analysis.kNullAttribute ) {
     newColor = iNoAttrColor || DG.ColorUtilities.kNoAttribCaseColor;
-  } else if( SC.none( iCaseValue )) {
+  } else if( SC.empty( iCaseValue )) {
     newColor = DG.ColorUtilities.kMissingValueCaseColor;
   } else {
     // we have an attribute and non-missing case value, now get stored or computed color
