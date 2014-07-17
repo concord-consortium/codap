@@ -357,6 +357,7 @@ DG.GameController = DG.ComponentController.extend(
       }
     }
 
+    // modify the page title to include the name of the current data interactive
     $('title').text('CODAP - ' + currentGameName);
 
     // Once all the collections and attributes are created, we're ready to play the game.

@@ -643,6 +643,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
    */
   gameViewWillClose: function() {
     this.menuPane.set('selectedItem', null);
+    // reset the title of the page to remove the data interactive name
     $('title').text('CODAP');
   },
 
