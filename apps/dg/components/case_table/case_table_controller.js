@@ -413,11 +413,14 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       deleteSelectedCases: function() {
         var tContext = this.get('dataContext'),
-            tChange = {
-              operation: 'deleteCases',
-              cases: tContext.getSelectedCases()
-            };
-        tContext.applyChange( tChange);
+            tChange;
+        if (tContext) {
+          tChange = {
+            operation: 'deleteCases',
+            cases: tContext.getSelectedCases()
+          };
+          tContext.applyChange( tChange);
+        }
       },
 
       // The following two functions pass the name of the DG.GameSpec property which specifies
