@@ -73,13 +73,11 @@ if (!Raphael.fn.line) {
 if (!Raphael.el.addClass) {
     Raphael.el.addClass = function (newClass) {
         var classNameEl = this.node.className;
-        var classes = classNameEl.baseVal.split(" ");
+        var classes = classNameEl.baseVal.trim().split(" ");
+
         if (classes.indexOf(newClass) < 0) {
-            if (classes.length>0) {
-                classes += " ";
-            }
-            classes += newClass;
-            classNameEl.baseVal = classes;
+            classes.push(newClass);
+            classNameEl.baseVal = classes.join(' ');
         }
         return this;
     }
@@ -96,6 +94,9 @@ if (!Raphael.el.addClass) {
 if (!Raphael.el.removeClass) {
   Raphael.el.removeClass = function (myClass) {
     function removeWord(str, word) {
+      if (!str) {
+        return str;
+      }
       var words = str.split(" ");
       var wordIndex = words.indexOf(word);
       if (wordIndex >= 0) {
