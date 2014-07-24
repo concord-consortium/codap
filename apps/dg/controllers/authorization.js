@@ -79,11 +79,11 @@ return {
       this.loadLoginCookie();
   },
   
-  
+
   getServerUrl: function(iUrl) {
     return SC.Request.getUrl( serverUrl( iUrl));
   },
-  
+
   postServerUrl: function(iUrl) {
     return SC.Request.postUrl( serverUrl( iUrl));
   },
@@ -105,7 +105,7 @@ return {
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
     this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
-  sessiontoken: "guestSession", useCookie: false, valid: true}, 200);
+  sessiontoken: "guest" + new Date().valueOf(), useCookie: false, valid: true}, 200);
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
   },
@@ -361,7 +361,6 @@ return {
         if( loginData.useCookie)
           this.saveLoginCookie();
         DG.logUser("Login: %@", currLogin.get('user'), { force: true });
-        return;
       }
   },
   receiveLoginResponse: function(iResponse) {
@@ -401,8 +400,18 @@ return {
                                         be passed on to the logToServer function as the meta-args.
    */
   logToServer: function(iMessage, iProperties, iMetaArgs) {
+    function extract(obj, prop) {
+      var p = obj[prop];
+      obj[prop] = undefined;
+      return p;
+    }
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (iMetaArgs && iMetaArgs.force);
+                    (iMetaArgs && iMetaArgs.force),
+        nowTime = new Date().valueOf(),
+        activity = extract(iProperties, 'activity') || 'Unknown',
+        body,
+        request;
+
     if( !shouldLog) {
       // The logging path below indirectly triggers SproutCore notifications.
       // Calling SC.run() allows the same notifications to get triggered without the logging.
@@ -410,18 +419,24 @@ return {
       return;
     }
     
-    var nowTime = new Date();
     this.currLogin.incrementProperty('logIndex');
-    var body = SC.mixin({ username: this.getPath('currLogin.user') || ""
-                        , sessionID: this.getPath('currLogin.sessionID') || 0
-                        , sessionIndex: this.getPath('currLogin.logIndex') || 0
-                        , type: 'LOG'
-                        , localTime: nowTime.toString()
-                        , message: iMessage
-          }, iProperties || {});  // Mix in the specified iProperties
 
-    this.urlForJSONPostRequests(DG.logServerUrl)
-        .send(body);
+    body = {
+      session: this.getPath('currLogin.sessionID'),
+      username: this.getPath('currLogin.user'),
+      time: nowTime,
+      application: 'CODAP',
+      activity: activity,
+      event: iMessage,
+      parameters: iProperties,
+      logIndex: this.getPath('currLogin.logIndex')
+    };
+
+    if (DG.logServerUrl) {
+      request = this.urlForJSONPostRequests(DG.logServerUrl);
+      request.attachIdentifyingHeaders = NO;
+      request.send(body);
+    }
   },
   
   requireLogin : function() {
