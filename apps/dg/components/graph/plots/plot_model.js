@@ -360,6 +360,8 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         return this.get('xAxis');
       case DG.GraphTypes.EPlace.eY:
         return this.get('yAxis');
+      case DG.GraphTypes.EPlace.eY2:
+        return this.get('y2Axis');
       default:
         return null;
     }

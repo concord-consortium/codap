@@ -100,6 +100,18 @@
     <script>
       SC.benchmarkPreloadEvents['headEnd'] = new Date().getTime();
     </script>
+    <!-- Google Analytics support inserted by bin/build.sh, using sed and bin/insert-google-analytics.sed -->
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-32754868-1']);
+      _gaq.push(['_setDomainName', 'ccssgames.com']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </head>
 
 <% # The theme CSS class is added automatically based on your chosen theme.
@@ -195,5 +207,11 @@
   <script>
     SC.benchmarkPreloadEvents['bodyEnd'] = new Date().getTime();
   </script>
-  </body>
+    <p class='site-descript'>Data Games is a free web application that embeds simple games in a data analysis environment.
+    It is intended for use in mathematics classrooms grades 7 to 12. Students play a game which generates data that students analyze to improve their strategies.</p>
+    <p class='site-descript'>Data Games requires that JavaScript be enabled.</p>
+    <script type="text/javascript"> var x = document.getElementsByClassName('site-descript');
+        x[0].style.display = "none";
+        x[1].style.display = "none";
+        document.getElementsByClassName("loading")[0].display = "inline"; </script>  </body>
 </html>

@@ -41,10 +41,14 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   model: null,
   
   /**
-    Either 'vertical' or 'horizontal'
+    Either 'vertical' or 'horizontal' or 'vertical2'
     @property { String }
   */
   orientation: null,
+
+  isVertical: function() {
+    return this.get('orientation').indexOf('vertical') >= 0;
+  }.property('orientation'),
 
   /**
    * @property {DG.Attribute}
@@ -74,8 +78,7 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     Note trouble with cacheability
   */
   pixelMin: function() {
-    return (this.get('orientation') === 'vertical') ?
-          this.get('drawHeight') : 0;
+    return this.get('isVertical') ? this.get('drawHeight') : 0;
   }.property('drawHeight')/*.cacheable()*/,
 
   /**
@@ -84,8 +87,7 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     Note trouble with cacheability
   */
   pixelMax: function() {
-    return (this.get('orientation') === 'vertical') ?
-          0 : this.get('drawWidth');
+    return this.get('isVertical') ? 0 : this.get('drawWidth');
   }.property('drawWidth')/*.cacheable()*/,
 
   /**
@@ -118,7 +120,7 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     var this_ = this,
         tChangeHappened = false,
         tLabelCount = 0,
-        tRotation = this.get('orientation') === 'vertical' ? -90 : 0,
+        tRotation = this.get('isVertical') ? -90 : 0,
         tLabels, tDescription, tNode;
     if( SC.none( this._paper))
       return [];
@@ -192,7 +194,7 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     var tNodes = this.get('labelNodes' ),
         tDrawWidth = this.get('drawWidth'),
         tDrawHeight = this.get('drawHeight'),
-        tIsVertical = this.get('orientation') === 'vertical',
+        tIsVertical = this.get('isVertical'),
         tRotation = tIsVertical ? -90 : 0,
         tTotalLength = 0,
         tLayout = tNodes.map( function( iNode) {

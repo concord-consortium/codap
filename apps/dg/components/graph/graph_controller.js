@@ -41,6 +41,7 @@ DG.GraphController = DG.ComponentController.extend(
       graphModel: null,
       xAxisView: null,
       yAxisView: null,
+      y2AxisView: null,
       plotView: null,
       legendView: null,
       axisMultiTarget: null,
@@ -180,6 +181,7 @@ DG.GraphController = DG.ComponentController.extend(
         if( graphView) {
           this.set('xAxisView', graphView.get('xAxisView'));
           this.set('yAxisView', graphView.get('yAxisView'));
+          this.set('y2AxisView', graphView.get('y2AxisView'));
           this.set('plotView', graphView.get('plotBackgroundView'));
           this.set('legendView', graphView.get('legendView'));
           this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
@@ -365,7 +367,7 @@ DG.GraphController = DG.ComponentController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ] },
                   iAxis.get('orientation'));
-      }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
+      }.observes('*xAxisView.dragData', '*yAxisView.dragData', '*y2AxisView.dragData'),
 
       /**
         The add attribute target has received a drop of an attribute. We respond by adding an

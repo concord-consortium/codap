@@ -153,7 +153,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
   rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt) {
     if( iAnimatePoints === undefined)
       iAnimatePoints = true;
-    this.doRescaleAxesFromData( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY],
+    this.doRescaleAxesFromData( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY, DG.GraphTypes.EPlace.eY2],
                                 iAllowScaleShrinkage, iAnimatePoints);
     if( iLogIt)
       DG.logUser("rescaleScatterplot");
