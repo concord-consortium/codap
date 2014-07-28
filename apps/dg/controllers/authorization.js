@@ -92,6 +92,16 @@ return {
     return this.postServerUrl(iUrl).json();
   },
   
+  urlForGetRequests: function(iUrl) {
+    return SC.Request.getUrl(iUrl);
+  },
+  urlForPostRequests: function(iUrl) {
+    return SC.Request.postUrl(iUrl);
+  },
+  urlForJSONPostRequests: function(iUrl) {
+    return this.urlForPostRequests(iUrl).json();
+  },
+
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
     this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
@@ -113,7 +123,7 @@ return {
       if (iSessionID) {
         this.get('currLogin').set('sessionID', iSessionID);
       }
-      this.postServerUrlJSON('auth/login')
+      this.urlForJSONPostRequests(serverUrl('auth/login'))
         .notify(this, 'receiveLoginResponse')
         .send(body);
     }
@@ -127,7 +137,7 @@ return {
       this.setPath('currLogin.user', iUser);
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
-      this.postServerUrlJSON('auth/login')
+      this.urlForJSONPostRequests(serverUrl('auth/login'))
         .notify(this, 'receiveLoginResponse')
         .send(body);
   },
@@ -141,7 +151,7 @@ return {
   sendLogoutRequest: function( iUser, iSessionID ) {
     if (!SC.empty( iUser )) {
       var body = { username: iUser, sessiontoken: iSessionID };
-      this.postServerUrlJSON('auth/logout')
+      this.urlForJSONPostRequests(serverUrl('auth/logout'))
         .send(body);
     }
   },
@@ -271,7 +281,7 @@ return {
      var url = 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
               
-    this.postServerUrlJSON( url )
+    this.urlForJSONPostRequests( serverUrl(url) )
       .notify(iReceiver, 'receivedSaveDocumentResponse')
       .send(iDocumentArchive);
   },
@@ -377,7 +387,7 @@ return {
   /**
     Logs the specified message, along with any additional properties, to the server.
     
-    @param    iLogMessage   {String}    The main message to log
+    @param    iMessage   {String}    The main message to log
     @param    iProperties   {Object}    Additional properties to pass to the server,
                                         e.g. { type: DG.Document }
     @param    iMetaArgs     {Object}    Additional flags/properties to control the logging.
@@ -410,7 +420,7 @@ return {
                         , message: iMessage
           }, iProperties || {});  // Mix in the specified iProperties
 
-    this.postServerUrlJSON('log/save')
+    this.urlForJSONPostRequests(DG.logServerUrl)
         .send(body);
   },
   

@@ -291,6 +291,8 @@ DG = SC.Application.create( (function() // closure
       'guideButton'
     ],
 
+    logServerUrl: '/DataGames/api/log/save',
+
     /**
     More useful alternative to JavaScript built-in typeof operator.
     From http://javascriptweblog.wordpress.com/2011/08/08/fixing-the-javascript-typeof-operator/
@@ -302,7 +304,7 @@ DG = SC.Application.create( (function() // closure
   /**
     Creates a shallow copy of its argument.
     The argument can be a primitive type, a JS object, an array, an SC object, etc.
-    @param    {Object}  The object to be copied.
+     @param    {Object}  iObject The object to be copied.
     @returns  {Object}  A shallow copy of its argument.
    */
   copy: function( iObject) {
@@ -312,7 +314,7 @@ DG = SC.Application.create( (function() // closure
   /**
     Creates a deep copy of its argument.
     The argument can be a primitive type, a JS object, an array, an SC object, etc.
-    @param    {Object}  The object to be cloned.
+     @param    {Object}  iObject The object to be cloned.
     @returns  {Object}  A deep copy of its argument.
    */
   clone: function( iObject) {
