@@ -94,6 +94,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   /**
     @property { Number }
   */
+  y2VarID: function() {
+    var tConfig = this.get('dataConfiguration' );
+    return tConfig ? tConfig.y2AttributeIDAt( this.yAttributeIndex) : null;
+  }.property('dataConfiguration.y2AttributeID'),
+
+  /**
+    @property { Number }
+  */
   legendVarID: function() {
     return this.getPath('dataConfiguration.legendAttributeID');
   }.property('dataConfiguration.legendAttributeID'),

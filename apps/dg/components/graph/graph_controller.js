@@ -367,7 +367,7 @@ DG.GraphController = DG.ComponentController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ] },
                   iAxis.get('orientation'));
-      }.observes('*xAxisView.dragData', '*yAxisView.dragData', '*y2AxisView.dragData'),
+      }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
         The add attribute target has received a drop of an attribute. We respond by adding an
@@ -386,6 +386,24 @@ DG.GraphController = DG.ComponentController.extend(
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });
       }.observes('*axisMultiTarget.dragData'),
+
+      /**
+        The Y2 axis has received a drop of an attribute. We respond by creating a new scatterplot that
+       uses the existing x-axis and the Y2 axis.
+      */
+      y2AxisDidAcceptDrop: function( iY2Axis, iKey, iDragData) {
+        if( SC.none(iDragData)) // The over-notification caused by the * in the observes
+          return;       // means we get here at times there isn't any drag data.
+        var tDataContext = this.get('dataContext'),
+            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
+
+        iY2Axis.dragData = null;
+
+        this.get('graphModel').addAttributeToY2Axis(
+                  tDataContext,
+                  { collection: tCollectionClient,
+                    attribute: iDragData.attribute });
+      }.observes('*y2AxisView.dragData'),
 
       /**
         The plot or legend view has received a drop of an attribute. Our job is to forward this properly on to

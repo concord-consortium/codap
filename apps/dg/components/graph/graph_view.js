@@ -87,12 +87,13 @@ DG.GraphView = SC.View.extend(
    * @param iCurrentPoints
    */
 
-  setPlotViewProperties: function( iPlotView, iPlotModel, iCurrentPoints) {
+  setPlotViewProperties: function( iPlotView, iPlotModel, iYAxisKey, iCurrentPoints) {
+    iYAxisKey = iYAxisKey || 'yAxisView';
     iPlotView.beginPropertyChanges();
     iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
     iPlotView.setIfChanged('model', iPlotModel);
-    iPlotView.setIfChanged( 'xAxisView', this.xAxisView);
-    iPlotView.setIfChanged( 'yAxisView', this.yAxisView);
+    iPlotView.setIfChanged( 'xAxisView', this.get('xAxisView'));
+    iPlotView.setIfChanged( 'yAxisView', this.get(iYAxisKey));
     iPlotView.setIfChanged('parentView', this);
     if( !SC.none( iCurrentPoints))
       iPlotView.set('cachedPointCoordinates', iCurrentPoints);
@@ -173,7 +174,7 @@ DG.GraphView = SC.View.extend(
     tPlots.forEach( function( iPlotModel) {
       var tPlotView = this.mapPlotModelToPlotView( iPlotModel).create();
       this.addPlotView( tPlotView);
-      this.setPlotViewProperties( tPlotView, iPlotModel);
+      this.setPlotViewProperties( tPlotView, iPlotModel, 'yAxisView');
     }.bind(this));
     tLegendView.set('model', this.getPath('model.legend'));
 
@@ -412,7 +413,7 @@ DG.GraphView = SC.View.extend(
     if( !SC.none(tNewView)) {
       if( !SC.none( tCurrentView))
         tCurrentPoints = tCurrentView.get('cachedPointCoordinates');
-      this.setPlotViewProperties( tNewView, tPlot, tCurrentPoints);
+      this.setPlotViewProperties( tNewView, tPlot, 'yAxisView', tCurrentPoints);
       // If we don't call doDraw immediately, we don't get the between-plot animation.
       if( tNewView.readyToDraw())
         tNewView.doDraw();
@@ -437,9 +438,28 @@ DG.GraphView = SC.View.extend(
       tPlotView = DG.ScatterPlotView.create();
       this.addPlotView( tPlotView);
       this.renderLayout( this.renderContext(this.get('tagName')), false );
-      this.setPlotViewProperties( tPlotView, tPlotModel);
+      this.setPlotViewProperties( tPlotView, tPlotModel, 'yAxisView');
     }
   }.observes('model.attributeAdded'),
+
+  /**
+   * An attribute has been added to the second vertical axis. There are now multiple plot models.
+   * For now, this only works with scatterplots, so we know we have to construct a
+   * ScatterPlotView.
+   * Note that we're assuming that if an attribute was just added, it must be the last, and
+   * we can bind the new scatterplot view to the last plot.
+   */
+  handleY2AttributeAdded: function() {
+    var tPlotModel = this.getPath('model.lastPlot' ),
+        tPlotView;
+    if( !SC.none( tPlotModel)) {
+      this.handleAxisModelChange();
+      tPlotView = DG.ScatterPlotView.create();
+      this.addPlotView( tPlotView);
+      this.renderLayout( this.renderContext(this.get('tagName')), false );
+      this.setPlotViewProperties( tPlotView, tPlotModel, 'y2AxisView');
+    }
+  }.observes('model.y2AttributeAdded'),
 
   /**
    * An attribute has been removed from the vertical axis. But there is at least one attribute

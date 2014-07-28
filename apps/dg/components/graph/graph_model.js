@@ -292,6 +292,50 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this.notifyPropertyChange('attributeAdded');
     },
+
+    /**
+      Sets the attribute for the specified axis.
+      @param  {DG.DataContext}      iDataContext -- The data context for this graph
+      @param  {Object}              iAttrRef -- The attribute to set for the axis
+              {DG.CollectionClient} iAttrRef.collection -- The collection that contains the attribute
+              {DG.Attribute}        iAttrRef.attribute -- The attribute to set for the axis
+      @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
+     */
+    addAttributeToY2Axis: function( iDataContext, iAttrRef) {
+
+      var setNewBounds = function() {
+        var tAttribute = iAttrRef.attribute,
+            tAxis = this.get('y2Axis');
+
+        var tDataConfiguration = this.get('dataConfiguration'),
+            tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( DG.GraphTypes.EPlace.eY2);
+        tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
+      }.bind(this);
+
+      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRef.attribute.get('name'));
+
+      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' ),
+          tAttrIndex = tY2AttrDescription.get('attributes' ).length;
+      tY2AttrDescription.addAttribute( iAttrRef.attribute);
+
+      this.privSyncAxisWithAttribute( 'y2AttributeDescription', 'y2Axis' );
+
+      // The only plot we can currently make with Y2 axis is a scatterplot
+      var tPlot = DG.ScatterPlotModel.create();
+      tPlot.beginPropertyChanges();
+      tPlot.setIfChanged( 'dataConfiguration', this.get('dataConfiguration') );
+      tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
+      tPlot.setIfChanged( 'yAxis', this.get( 'y2Axis' ) );
+      tPlot.set('yAttributeIndex', tAttrIndex);
+      tPlot.endPropertyChanges();
+
+      this.addPlot( tPlot);
+
+      setNewBounds();
+
+      this.notifyPropertyChange('y2AttributeAdded');
+    },
+
     /**
      * Useful for knowing whether we can rescale.
      * @return {Boolean}

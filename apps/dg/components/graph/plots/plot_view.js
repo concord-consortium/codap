@@ -375,7 +375,8 @@ DG.PlotView = DG.PlotLayer.extend(
   createRenderContext: function() {
     var tModel = this.get('model'),
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' ),
-        tPlotIndex = this.get('plotIndex');
+        tPlotIndex = this.get('plotIndex'),
+        tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID';
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -387,7 +388,7 @@ DG.PlotView = DG.PlotLayer.extend(
       xAxisView: this.get('xAxisView'),
       yAxisView: this.get('yAxisView'),
       xVarID: tModel.get('xVarID'),
-      yVarID: tModel.get('yVarID'),
+      yVarID: tModel.get(tYVarIDKey),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       attrColor: SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
