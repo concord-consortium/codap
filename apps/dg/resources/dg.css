@@ -55,6 +55,7 @@
 .data-dot-colored {
     opacity: 0.85 !important;
     stroke: #315B7D !important;
+    pointer-events: all;
 }
 
 .data-dot-colored-selected {

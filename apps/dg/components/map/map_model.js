@@ -46,6 +46,16 @@ DG.MapModel = DG.DataDisplayModel.extend(
       return this.getPath('dataConfiguration.areaAttributeDescription.attributeID');
     }.property('dataConfiguration.areaAttributeDescription.attributeID'),
 
+    /**
+     Prepare dependencies.
+     */
+    init: function() {
+      sc_super();
+
+      // base class doesn't do this because GraphModel has other initialization to do first
+      this.invalidate();
+    },
+
     handleOneDataContextChange: function( iNotifier, iChange) {
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.
