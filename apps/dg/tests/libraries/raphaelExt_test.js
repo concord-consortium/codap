@@ -28,7 +28,8 @@ test( "Verifies addClass and removeClass", function () {
     equals(circle.node.className.baseVal, 'classC', 'after removing classA');
     circle.removeClass('classC');
     equals(circle.node.className.baseVal, '', 'after removing classC');
-
+    circle.removeClass('classC');
+    equals(circle.node.className.baseVal, '', 'after attempting to remove classC from empty');
   }
 
 );
