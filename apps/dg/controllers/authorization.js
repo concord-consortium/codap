@@ -422,14 +422,16 @@ return {
     this.currLogin.incrementProperty('logIndex');
 
     body = {
-      session: this.getPath('currLogin.sessionID'),
-      username: this.getPath('currLogin.user'),
-      time: nowTime,
-      application: 'CODAP',
       activity: activity,
+      application: 'CODAP',
       event: iMessage,
-      parameters: iProperties,
-      logIndex: this.getPath('currLogin.logIndex')
+      localTime: nowTime.toString(),
+      logIndex: this.getPath('currLogin.logIndex'),
+      message: extract(iProperties, 'args'),
+      session: this.getPath('currLogin.sessionID'),
+      time: nowTime,
+      type: 'LOG',
+      username: this.getPath('currLogin.user')
     };
 
     if (DG.logServerUrl) {
