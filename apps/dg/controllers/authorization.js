@@ -423,14 +423,14 @@ return {
 
     body = {
       activity: activity,
-      application: 'CODAP',
+      application: extract(iProperties, 'application'),
       event: iMessage,
       localTime: nowTime.toString(),
       logIndex: this.getPath('currLogin.logIndex'),
       message: extract(iProperties, 'args'),
+      parameters: iProperties,
       session: this.getPath('currLogin.sessionID'),
       time: nowTime,
-      type: 'LOG',
       username: this.getPath('currLogin.user')
     };
 

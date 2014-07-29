@@ -351,7 +351,8 @@ DG.Debug = SC.Object.create( (function() {
         DG.logToServer( messageType, {
               type: iType,
               args: messageArgs,
-              activity: activityName
+              activity: activityName,
+              application: 'CODAP'
             }, metaArgs);
       }
     },
