@@ -118,6 +118,10 @@
     font-size: 100% !important;
 }
 
+.legend-view {
+    background-color: white;
+}
+
 .legend-key {
     opacity: 0.85 !important;
     stroke: #315B7D !important;

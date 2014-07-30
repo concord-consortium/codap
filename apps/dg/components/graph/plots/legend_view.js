@@ -39,6 +39,8 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
                           'model.numericRange'],
 
+      classNames: ['legend-view'],
+
       /**
         The model on which this view is based.
         @property { DG.LegendModel }
