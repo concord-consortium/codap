@@ -144,6 +144,12 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   */
   yAxis: null,
   
+  /**
+   * True if this plot is using the 2nd vertical axis.
+    @property { DG.Boolean }
+  */
+  verticalAxisIsY2: false,
+
   autoDestroyProperties: ['plotAnimator','caseValueAnimator'],
 
   /**
@@ -657,7 +663,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    * @return {Object} the saved data.
    */
   createStorage: function() {
-    var tStorage = {};
+    var tStorage = { verticalAxisIsY2: this.get('verticalAxisIsY2')};
     
     // Store any adornment models
     if( DG.ObjectMap.length( this._adornmentModels) > 0) {
@@ -694,6 +700,12 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    * @param iStorage
    */
   restoreStorage: function( iStorage) {
+    // I have my axes, but until now I can't take care of changing my yAxis to the y2Axis
+    this.verticalAxisIsY2 = iStorage.verticalAxisIsY2;
+    if( this.verticalAxisIsY2) {
+      this.set('yAxis', this.get('y2Axis'));
+    }
+
     // Restore any adornment models
     DG.ObjectMap.forEach( iStorage.adornments,
                           function( iAdornmentKey, iAdornmentStorage) {

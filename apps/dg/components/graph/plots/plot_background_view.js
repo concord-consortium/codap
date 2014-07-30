@@ -95,6 +95,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tBackgroundLayer = this.getPath('layerManager.' + DG.LayerNames.kBackground ),
         tGridLayer = this.getPath('layerManager.' + DG.LayerNames.kGrid),
         tBothWaysNumeric =( tXAxisView.get('isNumeric') && tYAxisView.get('isNumeric')),
+        tY2AttributeID = this.getPath('graphModel.dataConfiguration.y2AttributeID'),
+        tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tMarquee,
         tStartPt,
         tBaseSelection = [],
@@ -137,7 +139,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       if( tBothWaysNumeric ) {
         tXAxisView.forEachTickDo( drawVRule);
-        tYAxisView.forEachTickDo( drawHRule);
+        if( !tHasY2Attribute)
+          tYAxisView.forEachTickDo( drawHRule);
         drawZeroLines();
       } // else suppress numeric grid lines for dot plots (numeric only on one axis), because it interferes with mean/median lines, etc.
     } // createRulerLines

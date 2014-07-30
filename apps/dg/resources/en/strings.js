@@ -300,10 +300,12 @@ SC.stringsFor('English', {
    // DG.GraphModel
    'DG.GraphMenu.attribute_x': "X: %@", // %@ = attribute name
    'DG.GraphMenu.attribute_y': "Y: %@", // %@ = attribute name
+   'DG.GraphMenu.attribute_y2': "Y: %@", // %@ = attribute name
    'DG.GraphMenu.attribute_legend': "Legend: %@", // %@ = attribute name
    'DG.GraphMenu.remove': "Remove Attribute",
    'DG.GraphMenu.removeAttribute_x': "Remove X: %@", // %@ = attribute name
    'DG.GraphMenu.removeAttribute_y': "Remove Y: %@", // %@ = attribute name
+   'DG.GraphMenu.removeAttribute_y2': "Remove Y: %@", // %@ = attribute name
    'DG.GraphMenu.removeAttribute_legend': "Remove Legend: %@", // %@ = attribute name
    'DG.GraphMenu.treatAsCategorical': "Treat as Categorical",
    'DG.GraphMenu.treatAsNumeric': "Treat as Numeric",

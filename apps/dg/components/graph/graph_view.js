@@ -123,16 +123,14 @@ DG.GraphView = SC.View.extend(
 
     var tXAxis = this.getPath( 'model.xAxis'),
         tYAxis = this.getPath( 'model.yAxis'),
+        tY2Axis = this.getPath( 'model.y2Axis'),
         tXAxisView = getAxisViewClass( tXAxis).create( { orientation: 'horizontal' }),
         tYAxisView = getAxisViewClass( tYAxis).create( { orientation: 'vertical' }),
+        tY2AxisView = getAxisViewClass( tY2Axis).create( { orientation: 'vertical2' }),
         tBackgroundView = DG.PlotBackgroundView.create( { xAxisView: tXAxisView, yAxisView: tYAxisView,
                                                           graphModel: this.get('model') } ),
         tPlots = this.getPath('model.plots' ),
         tLegendView = DG.LegendView.create();
-
-    // For now we create this 2nd y-axis view immediately. Later we'll defer creation until we need one.
-    var tY2Axis = this.getPath( 'model.y2Axis'),
-        tY2AxisView = DG.AxisView.create( { orientation: 'vertical2' });
 
     sc_super();
 
@@ -174,7 +172,8 @@ DG.GraphView = SC.View.extend(
     tPlots.forEach( function( iPlotModel) {
       var tPlotView = this.mapPlotModelToPlotView( iPlotModel).create();
       this.addPlotView( tPlotView);
-      this.setPlotViewProperties( tPlotView, iPlotModel, 'yAxisView');
+      this.setPlotViewProperties( tPlotView, iPlotModel,
+          iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
     }.bind(this));
     tLegendView.set('model', this.getPath('model.legend'));
 
@@ -268,19 +267,21 @@ DG.GraphView = SC.View.extend(
     var tXAxisView = this.get('xAxisView'),
         tYAxisView = this.get('yAxisView'),
         tY2AxisView = this.get('y2AxisView'),
+        tY2AttributeID = this.getPath('model.dataConfiguration.y2AttributeID'),
+        tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tPlotBackground = this.get('plotBackgroundView' ),
         tPlotViews = this.get('plotViews'),
         tLegendView = this.get('legendView'),
         tNumberToggleView = this.get('numberToggleView'),
         tRescaleButton = this.get('rescaleButton'),
-        tShowNumberToggle = !SC.none( tNumberToggleView) && tNumberToggleView.shouldShow(),
-        tXHeight = SC.none(tXAxisView) ? 0 : tXAxisView.get('desiredExtent'),
-        tYWidth = SC.none(tYAxisView) ? 0 : tYAxisView.get('desiredExtent'),
-        tY2Width = SC.none(tY2AxisView) ? 0 : tY2AxisView.get('desiredExtent'),
-        tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' ),
+        tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
+        tXHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
+        tYWidth = !tYAxisView ? 0 : tYAxisView.get('desiredExtent'),
+        tY2Width = (!tY2AxisView || !tHasY2Attribute) ? 3 : tY2AxisView.get('desiredExtent'),
+        tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent' ),
         tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent' ) : 0;
 
-    if( !SC.none( tXAxisView) && !SC.none( tYAxisView) && ( tPlotViews.length > 0)) {
+    if( tXAxisView && tYAxisView && ( tPlotViews.length > 0)) {
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
         tXAxisView.set( 'layout', { left: tYWidth, right: tY2Width, bottom: tLegendHeight, height: tXHeight });

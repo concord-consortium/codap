@@ -86,9 +86,11 @@ DG.GraphController = DG.ComponentController.extend(
         storeDimension( 'x');
         storeDimension( 'y');
         storeDimension( 'legend');
+        storeDimension( 'y2');
 
         storeAxis('x');
         storeAxis('y');
+        storeAxis('y2');
 
         if( plotModels) {
           storage.plotModels = [];
@@ -144,7 +146,8 @@ DG.GraphController = DG.ComponentController.extend(
 
         // Configure the axes
         var xAxis = graphModel.get('xAxis'),
-            yAxis = graphModel.get('yAxis');
+            yAxis = graphModel.get('yAxis'),
+            y2Axis = graphModel.get('y2Axis');
         if( xAxis && xAxis.get('isNumeric') &&
             isFinite( iStorage.xLowerBound) && isFinite( iStorage.xUpperBound)) {
             xAxis.setLowerAndUpperBounds( iStorage.xLowerBound, iStorage.xUpperBound);
@@ -152,6 +155,10 @@ DG.GraphController = DG.ComponentController.extend(
         if( yAxis && yAxis.get('isNumeric') &&
             isFinite( iStorage.yLowerBound) && isFinite( iStorage.yUpperBound)) {
             yAxis.setLowerAndUpperBounds( iStorage.yLowerBound, iStorage.yUpperBound);
+        }
+        if( y2Axis && y2Axis.get('isNumeric') &&
+            isFinite( iStorage.y2LowerBound) && isFinite( iStorage.y2UpperBound)) {
+            y2Axis.setLowerAndUpperBounds( iStorage.y2LowerBound, iStorage.y2UpperBound);
         }
       },
 
@@ -254,7 +261,7 @@ DG.GraphController = DG.ComponentController.extend(
               function() {
                 this_.addAxisHandler( tView);
               });
-      }.observes('xAxisView', 'yAxisView', 'legendView'),
+      }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
 
       setupAttributeMenu: function( event, iAxisView, iAttrIndex) {
         var tGraphModel = this.get('graphModel'),
@@ -266,7 +273,9 @@ DG.GraphController = DG.ComponentController.extend(
             tPreferMatrix = (tOrientation === 'horizontal') ?
                     [ 0, 2, 1, 3, 0 ] :
                     [ 0, 1, 3, 2, 0],
-            tAxisKey = ((iAxisView.instanceOf( DG.LegendView)) ? 'legend':((tOrientation === 'horizontal') ? 'x':'y')),
+            tAxisKey = ((iAxisView.instanceOf( DG.LegendView)) ? 'legend':
+                ((tOrientation === 'horizontal') ? 'x':
+                    (tOrientation === 'vertical') ? 'y' : 'y2')),
             tMenuItems;
 
         tMenuItems = this.getAttributeMenuItems();
@@ -399,7 +408,7 @@ DG.GraphController = DG.ComponentController.extend(
 
         iY2Axis.dragData = null;
 
-        this.get('graphModel').addAttributeToY2Axis(
+        this.get('graphModel').changeAttributeForY2Axis(
                   tDataContext,
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });

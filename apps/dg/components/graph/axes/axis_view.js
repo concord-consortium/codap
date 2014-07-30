@@ -202,7 +202,8 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tTotalLength += tIsVertical ? tBox.height : tBox.width;
             return { node: iNode, box: tBox };
           } ),
-        tPosition = tIsVertical ? ((tDrawHeight + tTotalLength) / 2) : ((tDrawWidth - tTotalLength) / 2);
+        tPosition = tIsVertical ? ((tDrawHeight + tTotalLength) / 2) : ((tDrawWidth - tTotalLength) / 2),
+        tV2 = this.get('orientation') === 'vertical2';
     tLayout.forEach( function( iLayout) {
       var tNode = iLayout.node,
           tBox = iLayout.box,
@@ -213,6 +214,8 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tLoc.x = tLabelExtent.x / 4 + 2;
         tLoc.y = tPosition - tLabelExtent.y / 2;
         tPosition -= tLabelExtent.y;
+        if( tV2)
+          tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
       }
       else {  // horizontal
         tLoc.x = tPosition + tLabelExtent.x / 2;

@@ -301,7 +301,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
               {DG.Attribute}        iAttrRef.attribute -- The attribute to set for the axis
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
-    addAttributeToY2Axis: function( iDataContext, iAttrRef) {
+    changeAttributeForY2Axis: function( iDataContext, iAttrRef) {
 
       var setNewBounds = function() {
         var tAttribute = iAttrRef.attribute,
@@ -312,24 +312,36 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
 
+      var getY2Plot = function() {
+        var tY2Plot,
+            tY2Axis = this.get('y2Axis');
+        this.get('plots').forEach( function( iPlot) {
+          if( iPlot.get('yAxis') === tY2Axis)
+            tY2Plot = iPlot;
+        });
+        return tY2Plot;
+      }.bind( this);
+
       DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRef.attribute.get('name'));
 
-      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' ),
-          tAttrIndex = tY2AttrDescription.get('attributes' ).length;
+      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
+      tY2AttrDescription.removeAllAttributes();
       tY2AttrDescription.addAttribute( iAttrRef.attribute);
+      tY2AttrDescription.set('collectionClient', iAttrRef.collection);
 
       this.privSyncAxisWithAttribute( 'y2AttributeDescription', 'y2Axis' );
 
-      // The only plot we can currently make with Y2 axis is a scatterplot
-      var tPlot = DG.ScatterPlotModel.create();
-      tPlot.beginPropertyChanges();
-      tPlot.setIfChanged( 'dataConfiguration', this.get('dataConfiguration') );
-      tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
-      tPlot.setIfChanged( 'yAxis', this.get( 'y2Axis' ) );
-      tPlot.set('yAttributeIndex', tAttrIndex);
-      tPlot.endPropertyChanges();
+      if( !getY2Plot()) {
+        // The only plot we can currently make with Y2 axis is a scatterplot
+        var tPlot = DG.ScatterPlotModel.create( { verticalAxisIsY2: true });
+        tPlot.beginPropertyChanges();
+        tPlot.setIfChanged('dataConfiguration', this.get('dataConfiguration'));
+        tPlot.setIfChanged('xAxis', this.get('xAxis'));
+        tPlot.setIfChanged('yAxis', this.get('y2Axis'));
+        tPlot.endPropertyChanges();
 
-      this.addPlot( tPlot);
+        this.addPlot(tPlot);
+      }
 
       setNewBounds();
 
@@ -545,7 +557,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tPrevXAxis = this.get('xAxis'),
           tYAxisClass = DG.Core.classFromClassName( iStorage.yAxisClass),
           tPrevYAxis = this.get('yAxis'),
-          tY2AxisClass = DG.Core.classFromClassName( iStorage.y2AxisClass),
+          tY2AxisClass = iStorage.y2AxisClass ? DG.Core.classFromClassName( iStorage.y2AxisClass) : DG.AxisModel,
           tPrevY2Axis = this.get('y2Axis'),
           tCurrentXAxisClass = tPrevXAxis.constructor,
           tCurrentYAxisClass = tPrevYAxis.constructor,
@@ -604,6 +616,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tNewYAxis.set('attributeDescription', tDataConfig.get('yAttributeDescription'));
         this.set('yAxis', tNewYAxis);
         tPrevYAxis.destroy();
+      }
+      if( tY2AxisClass && tY2AxisClass !== tCurrentY2AxisClass) {
+        var tNewY2Axis = tY2AxisClass.create();
+        tNewY2Axis.set('attributeDescription', tDataConfig.get('y2AttributeDescription'));
+        this.set('y2Axis', tNewY2Axis);
+        tPrevY2Axis.destroy();
       }
       instantiateArrayOfPlots( (iStorage.plotClass ? [ {plotClass: iStorage.plotClass }] : null) ||
                                   iStorage.plotModels ||

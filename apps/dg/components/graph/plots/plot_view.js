@@ -45,6 +45,13 @@ DG.PlotView = DG.PlotLayer.extend(
   yAxisView: null,
 
   /**
+   * We can check the orientation of the yAxis.
+   */
+  isUsingY2: function() {
+    return this.getPath('yAxisView.orientation') === 'vertical2';
+  }.property('*yAxisView.orientation'),
+
+  /**
     Used to store point coordinates at the beginning of a configuration change.
     @property { Array of {cx:{Number}, cy:{Number}} }
   */
