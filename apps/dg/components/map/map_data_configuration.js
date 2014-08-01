@@ -148,6 +148,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
   /**
    * Override to return use the source that is used by either the area attribute or one of the lat/long attributes.
+   * Note that we are assuming that _either_ the area attribute _or_ the xAttribute have a collection client. If
+   * they both have collection clients and those are different, this won't be adequate.
    */
   collectionClient: function() {
     var tKeys = ['areaAttributeDescription', 'xAttributeDescription'],
