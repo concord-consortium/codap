@@ -117,7 +117,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      * @returns {*[]}
      */
     getAreaBounds: function() {
-      var tCases = this.getPath('cases'),
+      var tCases = this.get('cases'),
           tAreaID = this.get('areaVarID'),
           tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
       if( !tAreaID)
