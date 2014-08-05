@@ -40,6 +40,36 @@ DG.GameView = SC.WebView.extend(
   // document can contain multiple DG.ProviderContext instances.
   valueBinding: 'DG.gameSelectionController.currentUrl',
 
+  // Setup iframePhone communication with the child iframe before it loads, so that connection
+  // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
+  valueDidChange: function() {
+    var value = this.get('value');
+
+    if (value !== this._previousValue) {
+
+      // First discontinue listening to old game.
+      if (DG.gamePhone) {
+        DG.gamePhone.disconnect();
+      }
+
+      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
+        function(command, callback) {
+          // TODO. The following May throw a DataCloneError if  there is an Error object in the
+          // result from DG.doCommand (it appears to me that the requestAttributeValues and
+          // requestFormulaValues commands may include caught Error objects as values in the
+          // returned object -- rklancer)
+          callback(DG.doCommand(command));
+        },
+        'codap-game',
+        this.$('iframe')[0],
+        DG.gameSelectionController.getPath('currentGame.origin')
+      );
+    }
+
+    this._previousValue = value;
+
+  }.observes('value'),
+
   destroy: function() {
     DG.gameSelectionController.gameViewWillClose();
     sc_super();
@@ -58,29 +88,6 @@ DG.GameView = SC.WebView.extend(
         .attr('webkitallowfullscreen', true)
         .attr('mozallowfullscreen', true);
 
-      console.log("creating DG.gamePhone for iframe: '" + iframe.src +"'");
-
-      // Allow the game to communicate with us via iframePhone, if in a different window.
-      if (DG.gamePhone) {
-        // First discontinue listening to old game. (Note also that iframeDidLoad needs to be
-        // debounced -- I see it being called 3x for a single game load, meaning we create and
-        // disconnect 2 useless gamePhone instances before the one we actually use.)
-        DG.gamePhone.disconnect();
-      }
-
-      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
-        function(command, callback) {
-          // TODO. The following May throw a DataCloneError if  there is an Error object in the
-          // result from DG.doCommand (it appears to me that the requestAttributeValues and
-          // requestFormulaValues commands may include caught Error objects as values in the
-          // returned object -- rklancer)
-          callback(DG.doCommand(command));
-        },
-        'codap-game',
-        contentWindow,
-        DG.gameSelectionController.getPath('currentGame.origin')
-      );
-
       // Assign the callback functions as properties of the iframe's contentWindow.
       //
       // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
@@ -95,7 +102,7 @@ DG.GameView = SC.WebView.extend(
       //
       // Furthermore, note that these callbacks cannot be added, and an exception will be thrown, if
       // the game is hosted on another domain. Ignore that because we use HTML5 Web Messaging
-      // ("postMessage") via iFramePhone to talk to these games, which do not require the callbacks
+      // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
       // below.
 
       try {
