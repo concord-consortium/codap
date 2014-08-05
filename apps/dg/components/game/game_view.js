@@ -37,16 +37,16 @@ DG.GameView = SC.WebView.extend(
   // instance of the DG.ProviderContext class, and a single
   // document can contain multiple DG.ProviderContext instances.
   valueBinding: 'DG.gameSelectionController.currentUrl',
-  
+
   destroy: function() {
     DG.gameSelectionController.gameViewWillClose();
     sc_super();
   },
-  
+
   iframeDidLoad: function()
   {
     var iframe = this.$('iframe')[0];
-  
+
     if (iframe && iframe.contentWindow) {
       var contentWindow = iframe.contentWindow,
           target = DG.currGameController;
@@ -55,14 +55,14 @@ DG.GameView = SC.WebView.extend(
       $(iframe ).attr('allowfullscreen', true)
         .attr('webkitallowfullscreen', true)
         .attr('mozallowfullscreen', true);
-      
+
       // Assign the callback functions as properties of the iframe's contentWindow.
       // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
       // has a chance to propagate bindings and data changes. See "Why Does SproutCore
-      // Have a Run Loop and When Does It Execute?" at 
+      // Have a Run Loop and When Does It Execute?" at
       // http://frozencanuck.wordpress.com/2010/12/21/why-does-sproutcore-have-a-run-loop-and-when-does-it-execute/
       // for details of why this is necessary. In its concluding paragraph, it states
-      // "Therefore the run loop is also used to drive data propagation via binding whenever 
+      // "Therefore the run loop is also used to drive data propagation via binding whenever
       // an asynchronous event is fired in order to drive the application." These callbacks
       // from the game are just such an asynchronous event, and so must invoke the runloop
       // to operate properly.
