@@ -128,6 +128,11 @@ DG.GameSpec = DG.BaseGameSpec.extend(
         attrName = this.get('legendAttrName'),
         attrType = this.getAttrType( collection, attrName);
     return attrType === 'numeric';
-  }.property('childCollection','legendAttrName').cacheable()
+  }.property('childCollection','legendAttrName').cacheable(),
+
+  origin: function() {
+    var matches = this.get('url').match(/(.*?\/\/.*?)\//);
+    return matches ? matches[1] : null;
+  }.property('url').cacheable()
 
 }) ;
