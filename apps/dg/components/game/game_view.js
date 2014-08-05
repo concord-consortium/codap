@@ -16,8 +16,10 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* globals iframePhone */
 sc_require('components/game/game_controller');
 sc_require('controllers/game_selection');
+sc_require('libraries/iframe-phone');
 
 /** @class
 
@@ -56,7 +58,31 @@ DG.GameView = SC.WebView.extend(
         .attr('webkitallowfullscreen', true)
         .attr('mozallowfullscreen', true);
 
+      console.log("creating DG.gamePhone for iframe: '" + iframe.src +"'");
+
+      // Allow the game to communicate with us via iframePhone, if in a different window.
+      if (DG.gamePhone) {
+        // First discontinue listening to old game. (Note also that iframeDidLoad needs to be
+        // debounced -- I see it being called 3x for a single game load, meaning we create and
+        // disconnect 2 useless gamePhone instances before the one we actually use.)
+        DG.gamePhone.disconnect();
+      }
+
+      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
+        function(command, callback) {
+          // TODO. The following May throw a DataCloneError if  there is an Error object in the
+          // result from DG.doCommand (it appears to me that the requestAttributeValues and
+          // requestFormulaValues commands may include caught Error objects as values in the
+          // returned object -- rklancer)
+          callback(DG.doCommand(command));
+        },
+        'codap-game',
+        contentWindow,
+        DG.gameSelectionController.getPath('currentGame.origin')
+      );
+
       // Assign the callback functions as properties of the iframe's contentWindow.
+      //
       // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
       // has a chance to propagate bindings and data changes. See "Why Does SproutCore
       // Have a Run Loop and When Does It Execute?" at
@@ -66,42 +92,53 @@ DG.GameView = SC.WebView.extend(
       // an asynchronous event is fired in order to drive the application." These callbacks
       // from the game are just such an asynchronous event, and so must invoke the runloop
       // to operate properly.
+      //
+      // Furthermore, note that these callbacks cannot be added, and an exception will be thrown, if
+      // the game is hosted on another domain. Ignore that because we use HTML5 Web Messaging
+      // ("postMessage") via iFramePhone to talk to these games, which do not require the callbacks
+      // below.
 
-      // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
+      try {
 
-      // NewCollectionWithAttributes
-      contentWindow.NewCollectionWithAttributes = 
-        function(iCollectionName, iAttributeNames) {
-          SC.run( function() {
-                    target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
-                  });
-        };
-      
-      // AddCaseToCollectionWithValues
-      contentWindow.AddCaseToCollectionWithValues = 
-        function(iCollectionName, iValues) {
-          SC.run( function() {
-                    target.addCaseToCollectionWithValues(iCollectionName,iValues);
-                  });
-        };
-      
-      // LogUserAction
-      contentWindow.LogUserAction = 
-        function(iActionString, iValues) {
-          SC.run( function() {
-                    target.logUserAction(iActionString,iValues);
-                  });
-        };
-      
-      // DoCommand
-      contentWindow.DoCommand = 
-        function(iCmd) {
-          var result;
-          SC.run( function() {
-                    result = target.doCommand(iCmd);
-                  });
-          return SC.json.encode( result);
-        };
+        // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
+
+        // NewCollectionWithAttributes
+        contentWindow.NewCollectionWithAttributes =
+          function(iCollectionName, iAttributeNames) {
+            SC.run( function() {
+                      target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
+                    });
+          };
+
+        // AddCaseToCollectionWithValues
+        contentWindow.AddCaseToCollectionWithValues =
+          function(iCollectionName, iValues) {
+            SC.run( function() {
+                      target.addCaseToCollectionWithValues(iCollectionName,iValues);
+                    });
+          };
+
+        // LogUserAction
+        contentWindow.LogUserAction =
+          function(iActionString, iValues) {
+            SC.run( function() {
+                      target.logUserAction(iActionString,iValues);
+                    });
+          };
+
+        // DoCommand
+        contentWindow.DoCommand =
+          function(iCmd) {
+            var result;
+            SC.run( function() {
+                      result = target.doCommand(iCmd);
+                    });
+            return SC.json.encode( result);
+          };
+      } catch (e) {
+        // e should be a SecurityError but I haven't found documentation regarding how standard
+        // that error type is.
+      }
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
     }
