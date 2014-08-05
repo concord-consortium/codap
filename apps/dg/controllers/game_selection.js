@@ -253,6 +253,12 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       url: 'DataGames/JavaScriptGames/GuessMyNumber.html'
     }),
 
+    DG.GameSpec.create({
+      name: 'Guess My Number (cross-domain)',
+      dimensions: { width: 400, height: 250 },
+      url: 'http://localhost:8000/GuessMyNumber.html'
+    }),
+
 
     DG.GameSpec.create({
       name: 'Importer',
