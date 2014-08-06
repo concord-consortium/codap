@@ -97,25 +97,32 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     }.bind( this);
 
     var lookForMapAttributes = function( iCollectionClient) {
-      var tAttrNames = iCollectionClient && iCollectionClient.getAttributeNames();
+      var tFoundOne = false;
+          tAttrNames = iCollectionClient && iCollectionClient.getAttributeNames();
       if( tAttrNames) {
         tCaptionName = tAttrNames[ 0];
         tCaptionAttr = tCaptionName && iCollectionClient.getAttributeByName( tCaptionName);
 
         kLatNames.forEach( function( iName) {
-          if( tAttrNames.indexOf( iName) >= 0)
+          if( tAttrNames.indexOf( iName) >= 0) {
             tLatName = iName;
+            tFoundOne = true;
+          }
         });
         tLatAttr = tLatName && iCollectionClient.getAttributeByName( tLatName);
         kLongNames.forEach( function( iName) {
-          if( tAttrNames.indexOf( iName) >= 0)
+          if( tAttrNames.indexOf( iName) >= 0) {
             tLongName = iName;
+            tFoundOne = true;
+          }
         });
         tLongAttr = tLongName && iCollectionClient.getAttributeByName( tLongName);
 
         kAreaNames.forEach( function( iName) {
-          if( tAttrNames.indexOf( iName) >= 0)
+          if( tAttrNames.indexOf( iName) >= 0) {
             tAreaName = iName;
+            tFoundOne = true;
+          }
         });
         tAreaAttr = tAreaName && iCollectionClient.getAttributeByName( tAreaName);
       }
@@ -126,10 +133,11 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       configAttrDesc('legend', null, iCollectionClient);
       configAttrDesc('area', tAreaAttr, iCollectionClient);
 
+      return tFoundOne;
     }.bind( this);
 
-    lookForMapAttributes( tChildCollectionClient);
-    lookForMapAttributes( tParentCollectionClient);
+    lookForMapAttributes( tChildCollectionClient) ||
+      lookForMapAttributes( tParentCollectionClient);
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.
