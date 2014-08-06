@@ -89,6 +89,10 @@ DG.GameView = SC.WebView.extend(
         this.$('iframe')[0],
         DG.gameSelectionController.getPath('currentGame.origin')
       );
+
+      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+      // old iframePhone supporting page) and can use its API.
+      DG.gamePhone.call({ message: "codap-present" });
     }
 
     this._previousValue = value;
