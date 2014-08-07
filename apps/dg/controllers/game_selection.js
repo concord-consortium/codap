@@ -259,6 +259,11 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       url: 'http://localhost:8000/GuessMyNumber.html'
     }),
 
+    DG.GameSpec.create({
+      name: 'Pendulum (cross-domain)',
+      dimensions: { width: 400, height: 250 },
+      url: 'http://localhost:9292/embeddable-local.html#interactives/inquiry-space/1-pendulum.json'
+    }),
 
     DG.GameSpec.create({
       name: 'Importer',
