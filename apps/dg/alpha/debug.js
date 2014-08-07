@@ -336,25 +336,30 @@ DG.Debug = SC.Object.create( (function() {
       
       // Log the message to the server as well, if appropriate
       if( DG.Debug._shouldLogTypeToServer( scType)) {
-        // Pass along any properties that were passed in the last argument as
-        // metaArgs
-        var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
-                ? iOriginalArgs[ iOriginalArgs.length - 1]
-                : undefined,
-            metaArgs = typeof lastArg === 'object' ? lastArg : {},
-            messageParts = DG.Debug._currentMessage.split(":"),
-            activity = DG.gameSelectionController.get('currentGame'),
-            activityName = activity? activity.get('name') : undefined,
-            messageType = messageParts.shift(),
-            messageArgs = messageParts.join(':').trim();
+        try {
+          // Pass along any properties that were passed in the last argument as
+          // metaArgs
+          var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
+                  ? iOriginalArgs[ iOriginalArgs.length - 1]
+                  : undefined,
+              metaArgs = typeof lastArg === 'object' ? lastArg : {},
+              messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
+              activity = DG.gameSelectionController.get('currentGame'),
+              activityName = activity? activity.get('name') : undefined,
+              messageType = messageParts.shift(),
+              messageArgs = messageParts.join(':').trim();
 
-        DG.logToServer( messageType, {
-              type: iType,
-              args: messageArgs,
-              activity: activityName,
-              application: 'CODAP'
-            }, metaArgs);
+          DG.logToServer( messageType, {
+                type: iType,
+                args: messageArgs,
+                activity: activityName,
+                application: 'CODAP'
+              }, metaArgs);
+        } catch(ex) {
+          console && console.log && console.log('Log to server failed: ' + ex);
+        }
       }
+
     },
 
     /** @private
