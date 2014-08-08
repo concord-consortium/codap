@@ -840,6 +840,7 @@ DG.DocumentController = SC.Object.extend(
     var docArchive = this.exportDocument();
     if( !SC.none( iDocumentPermissions))
       docArchive._permissions = iDocumentPermissions;
+      this.setPath('content._permissions', iDocumentPermissions);
 
     if( DG.assert( !SC.none(docArchive))) {
       DG.authorizationController.saveDocument(iDocumentId, docArchive, this);

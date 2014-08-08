@@ -81,30 +81,73 @@ DG.appController = SC.Object.create((function () // closure
 
     fileMenuItems: function () {
       var stdItems = [
-          { localize: true, title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
-            target: this, action: 'openDocument',
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
+            target: this, 
+            action: 'openDocument',
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' 
+          },
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
+            target: this, 
+            action: 'saveDocument',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
-          { localize: true, title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
-            target: this, action: 'saveDocument',
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
+            target: this, 
+            action: 'closeDocumentWithConfirmation' },
+          { 
+            isSeparator: YES },
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
+            target: this, 
+            action: 'loadManager',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
-          { localize: true, title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
-            target: this, action: 'closeDocumentWithConfirmation' },
           { isSeparator: YES },
-          { localize: true, title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
-            target: this, action: 'loadManager',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
+            target: this, 
+            action: 'exportCaseData' }
+        ],
+        docServerItems = [
           { isSeparator: YES },
-          { localize: true, title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
-            target: this, action: 'exportCaseData' }
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
+            target: this, 
+            action: 'showShareLink',
+            saveEnabledBinding: 'DG.authorizationController.isSaveEnabled',
+            hasBeenSharedBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
+            isEnabled: function() {
+              return this.get('saveEnabled') && this.get('hasBeenShared');
+            }.property('saveEnabled', 'hasBeenShared') },
         ],
         devItems = [
           { isSeparator: YES },
-          { localize: true, title: 'DG.AppController.fileMenuItems.importDocument', // "Import JSON Document..."
-            target: this, action: 'importDocument' },
-          { localize: true, title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
-            target: this, action: 'exportDocument' }
-        ];
-      return this._fileMenuIncludesDevItems ? stdItems.concat(devItems) : stdItems;
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.importDocument', // "Import JSON Document..."
+            target: this, 
+            action: 'importDocument' },
+          { 
+            localize: true, 
+            title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
+            target: this, 
+            action: 'exportDocument' }
+        ], finalItems;
+        finalItems = stdItems.concat([]);
+        if (DG.documentServer) { 
+          finalItems = finalItems.concat( docServerItems ); 
+        }
+        if (this._fileMenuIncludesDevItems) { 
+          finalItems = finalItems.concat( devItems ); 
+        }
+        return finalItems;
     }.property(),
 
     loginDidChange: function () {
@@ -335,8 +378,16 @@ DG.appController = SC.Object.create((function () // closure
     /**
      * Opens a new tab with users document manager opened.
      */
-    loadManager: function () {
-      var url = 'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.manageDocumentsURL'.loc());
+    loadManager: function() {
+      var url = '';
+      if (DG.documentServer) {
+        url = DG.documentServer + "documents";
+      } else {
+        url = 'http://' +
+            DG.getDrupalSubdomain() +
+            DG.authorizationController.getLoginCookieDomain() + 
+            ('DG.AppController.manageDocumentsURL'.loc());
+      }
       window.open(url, 'document_manager');
     },
 
@@ -580,6 +631,70 @@ DG.appController = SC.Object.create((function () // closure
         okTooltip: 'DG.AppController.exportDocument.okTooltip'
       });
     },
+
+  showShareLink: function() {
+    var sheetPane = SC.PanelPane.create({
+      layout: { top: 0, centerX: 0, width: 340, height: 140 },
+      contentView: SC.View.extend({
+        childViews: 'titleView okButton instructionsLabel linkLabel warningLabel'.w(),
+
+        titleView: SC.LabelView.design({
+          layout: { top: 10, left: 0, right: 0, height: 34 },
+          controlSize: SC.LARGE_CONTROL_SIZE,
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_CENTER,
+          value: 'DG.AppController.shareLinkDialog.title',            // "Share"
+          localize: YES
+        }),
+
+        instructionsLabel: SC.LabelView.design({
+          escapeHTML: NO,
+          layout: { top: 44, left: 0, right: 0, height: 24 },
+          textAlign: SC.ALIGN_CENTER,
+          value: 'DG.AppController.shareLinkDialog.instructions',
+          localize: YES
+        }),
+
+        linkLabel: SC.LabelView.design({
+          escapeHTML: NO,
+          layout: { top: 66, left: 0, right: 0, height: 24 },
+          textAlign: SC.ALIGN_CENTER,
+          value: this.get('_shareLinkDialogText')
+        }),
+
+        warningLabel: SC.LabelView.design({
+          controlSize: SC.TINY_CONTROL_SIZE,
+          escapeHTML: NO,
+          layout: { top: 88, left: 0, right: 0, height: 24 },
+          textAlign: SC.ALIGN_CENTER,
+          value: 'DG.AppController.shareLinkDialog.saveWarning',
+          localize: YES
+        }),
+
+        okButton: SC.ButtonView.design({
+          layout: { top: 110, height: 24, right:20, width:100 },
+          title: 'DG.AppController.shareLinkDialog.okButtonTitle',                // "OK"
+          localize: YES,
+          action: function() { sheetPane.remove() },
+          isDefault: YES
+        })
+      })
+    });
+    sheetPane.append();
+  },
+
+  _shareLinkDialogText: function() {
+    var currUser = DG.authorizationController.getPath('currLogin.user'),
+         currDoc = DG.currDocumentController().get('documentName'),
+         currLoc = window.location.origin + window.location.pathname;
+    return 'DG.AppController.shareLinkDialog.link'.loc({
+      doc_server: DG.documentServer,
+      codap_server: encodeURIComponent(currLoc),
+      owner: encodeURIComponent(currUser),
+      doc: currDoc,
+      doc_encoded: encodeURIComponent(currDoc)
+    });
+  }.property(),
 
     /**
      Bring up the bug report page.

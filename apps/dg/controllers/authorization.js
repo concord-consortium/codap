@@ -46,7 +46,11 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
 */
 DG.authorizationController = SC.Controller.create( (function() {
   var serverUrl = function(iRelativeUrl) {
+    if (iRelativeUrl.match('://')) {
+      return iRelativeUrl;
+    } else {
     return '/DataGames/api/' + iRelativeUrl;
+    }
   };
 
 return {
@@ -75,31 +79,27 @@ return {
     this.set('currEdit', DG.Authorization.create({user: '', passwd: ''}));
     this.set('currLogin', DG.Authorization.create({}));
     
-    if( DG.Browser.isCompatibleBrowser())
+    if (DG.documentServer) {
+      this.loadLoginFromDocumentServer();
+    } else if( DG.Browser.isCompatibleBrowser()) {
       this.loadLoginCookie();
-  },
-  
-
-  getServerUrl: function(iUrl) {
-    return SC.Request.getUrl( serverUrl( iUrl));
-  },
-
-  postServerUrl: function(iUrl) {
-    return SC.Request.postUrl( serverUrl( iUrl));
-  },
-
-  postServerUrlJSON: function(iUrl) {
-    return this.postServerUrl(iUrl).json();
+    }
   },
   
   urlForGetRequests: function(iUrl) {
     return SC.Request.getUrl(iUrl);
   },
+
   urlForPostRequests: function(iUrl) {
     return SC.Request.postUrl(iUrl);
   },
+
   urlForJSONPostRequests: function(iUrl) {
     return this.urlForPostRequests(iUrl).json();
+  },
+
+  urlForJSONGetRequests: function(iUrl) {
+    return this.urlForGetRequests(iUrl).json();
   },
 
   sendLoginAsGuestRequest: function() {
@@ -123,9 +123,15 @@ return {
       if (iSessionID) {
         this.get('currLogin').set('sessionID', iSessionID);
       }
-      this.urlForJSONPostRequests(serverUrl('auth/login'))
+      if (DG.documentServer) {
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+          .notify(this, 'receiveLoginResponse')
+          .send({});
+      } else {
+        this.urlForJSONPostRequests(serverUrl('auth/login'))
         .notify(this, 'receiveLoginResponse')
         .send(body);
+      }
     }
   },
   
@@ -137,9 +143,15 @@ return {
       this.setPath('currLogin.user', iUser);
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
-      this.urlForJSONPostRequests(serverUrl('auth/login'))
+      if (DG.documentServer) {
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+          .notify(this, 'receiveLoginResponse')
+          .send({});
+      } else {
+        this.urlForJSONPostRequests(serverUrl('auth/login'))
         .notify(this, 'receiveLoginResponse')
         .send(body);
+      }
   },
   
   /**
@@ -156,6 +168,26 @@ return {
     }
   },
   
+  loadLoginFromDocumentServer: function() {
+    var login = this.get('currLogin'),
+      currEdit = this.get('currEdit'),
+      user = 'user',
+      sessionID = 'abc123';
+
+    login.beginPropertyChanges();
+    login.set('user', user); // so UI can be updated ("user logging in...")
+    login.set('status', 0); // not yet logged in
+    login.endPropertyChanges();
+
+    // Pending login information is stored in the currEdit object
+    if( currEdit) {
+      currEdit.beginPropertyChanges();
+      currEdit.set('user', user);
+      currEdit.set('sessionID', sessionID);
+      currEdit.endPropertyChanges();
+    }
+  },
+
   /**
    * Cookie used to store login credentials between launches.
    * @property {SC.Cookie}
@@ -278,7 +310,7 @@ return {
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
     
-     var url = 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
               
     this.urlForJSONPostRequests( serverUrl(url) )
@@ -287,32 +319,32 @@ return {
   },
 
   documentList: function(iReceiver) {
-    var url = 'document/all';
+    var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    this.getServerUrl( url)
+    this.urlForGetRequests( url)
       .notify(iReceiver, 'receivedDocumentListResponse')
       .send(); 
   },
 
   openDocument: function(iDocumentId, iReceiver) {    
-    var url = 'document/open';
+    var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
     
-    this.getServerUrl(url)
+    this.urlForGetRequests(url)
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {    
-    var url = 'document/open';
+    var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordname=' + iDocumentName;
     url += '&owner=' + iDocumentOwner;
     
-    this.getServerUrl(url)
+    this.urlForGetRequests(url)
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
@@ -323,8 +355,11 @@ return {
    
    */
   logout: function() {
+    if (DG.documentServer && this.getPath('currLogin.user') != 'guest') { return; }  // Don't allow logging out, for now...
+    if (!DG.documentServer) {
     this.sendLogoutRequest(this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'));
     DG.logUser("Logout: %@", this.getPath('currLogin.user'), { force: true });
+    }
     this.get('currEdit').clear();
     this.get('currLogin').clear();
     this.saveLoginCookie();
@@ -338,6 +373,7 @@ return {
           sessionID = loginData.sessiontoken,
           isLoggingEnabled = loginData.enableLogging,
           isSaveEnabled = loginData.enableSave,
+          realUsername = loginData.username,
           privileges = loginData.privileges;
       if (isValid && currLogin) {
         // If we've received a valid login, we can remove the login dialog.
@@ -353,6 +389,9 @@ return {
         if (sessionID) {
           currLogin.set('sessionID', sessionID);
         }
+        if (realUsername) {
+          currLogin.set('user', realUsername);
+        }
         currLogin.set('isLoggingEnabled', isLoggingEnabled);
         currLogin.set('isSaveEnabled', isSaveEnabled);
         currLogin.set('privileges', privileges);
@@ -363,6 +402,11 @@ return {
         DG.logUser("Login: %@", currLogin.get('user'), { force: true });
       }
   },
+
+  logInViaDocumentServer: function() {
+    window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
+  },
+
   receiveLoginResponse: function(iResponse) {
     var currLogin = this.get('currLogin'),
         status, body;
@@ -375,6 +419,9 @@ return {
       // if the server gets a 500 error(server script error), 
       // then there will be no message return
       var errorCode = (body && body.message) || "";
+      if (DG.documentServer && iResponse.get('status') == 401) {
+        errorCode = 'error.notLoggedIn';
+      }
       // If we get here, then we didn't log in successfully.
       currLogin
         .clear()
@@ -406,7 +453,7 @@ return {
       return p;
     }
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (iMetaArgs && iMetaArgs.force),
+                    (!DG.documentServer && iMetaArgs && iMetaArgs.force),
         nowTime = new Date().valueOf(),
         activity = extract(iProperties, 'activity') || 'Unknown',
         body,
@@ -469,6 +516,50 @@ return {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
     
+    if (DG.documentServer) {
+      this.sheetPane = SC.PanelPane.create({
+        layout: { top: 0, centerX: 0, width: 340, height: 140 },
+        contentView: SC.View.extend({
+          childViews: 'labelView loginButton loginAsGuestButton statusLabel'.w(),
+
+          labelView: SC.LabelView.design({
+            layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(54) },
+            controlSize: SC.LARGE_CONTROL_SIZE,
+            fontWeight: SC.BOLD_WEIGHT,
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.Authorization.loginPane.dialogTitle',            // "Data Games Login"
+            localize: YES
+          }),
+
+          statusLabel: SC.LabelView.design({
+            escapeHTML: NO,
+            layout: { top: nextTop( kVSpace ), left: 0, right: 0, height: lastHeight(48) },
+            textAlign: SC.ALIGN_CENTER,
+            valueBinding: 'DG.authorizationController.currLogin.statusMsg'
+          }),
+
+          loginAsGuestButton: SC.ButtonView.design({
+            layout: { top: nextTop( kVSpace ), height: lastHeight(24), right:130, width:125 },
+            title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
+            localize: YES,
+            target: 'DG.authorizationController',
+            action: 'sendLoginAsGuestRequest',
+            isDefault: NO
+          }),
+
+          loginButton: SC.ButtonView.design({
+            layout: { top: top, height: lastHeight(24), right:20, width:100 },
+            title: 'DG.Authorization.loginPane.login',                // "Log in"
+            localize: YES,
+            target: 'DG.authorizationController',
+            action: 'logInViaDocumentServer',
+            isDefault: YES
+          })
+         })
+       });
+
+      this.sheetPane.append();
+    } else {
     this.sheetPane = SC.PanelPane.create({
     
       layout: { top: 0, centerX: 0, width: 340, height: 200 },
@@ -554,6 +645,7 @@ return {
     
     this.sheetPane.append();
     this.sheetPane.contentView.userText.becomeFirstResponder();
+    }
   },
   
   _loginSessionDidChange: function() {
