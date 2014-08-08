@@ -26,7 +26,7 @@ sc_require('models/base_game_spec');
 */
 DG.GameSpec = DG.BaseGameSpec.extend(
 /** @scope DG.GameSpec.prototype */ {
-  
+
   /**
     Returns the specification for the child/leaf collection.
     @returns  {Object}    The collection specification
@@ -58,7 +58,7 @@ DG.GameSpec = DG.BaseGameSpec.extend(
         name = collection && collection.name;
     return !SC.empty( name) ? name : null;
   }.property('childCollection').cacheable(),
-  
+
   /**
     Returns the name of the parent collection.
     @returns  {String}    The name of the collection
@@ -68,7 +68,7 @@ DG.GameSpec = DG.BaseGameSpec.extend(
         name = collection && collection.name;
     return !SC.empty( name) ? name : null;
   }.property('parentCollection').cacheable(),
-  
+
   eventsAttributeName: function() {
     var parent = this.get('parentCollection'),
         events = parent && parent.childAttrName;
@@ -78,7 +78,7 @@ DG.GameSpec = DG.BaseGameSpec.extend(
     }
     return !SC.empty( events) ? events : null;
   }.property('parentCollection','childCollection').cacheable(),
-  
+
   getAttrType: function( iCollection, iAttrName) {
     var i, attrCount = iCollection.attrs.length;
     for( i = 0; i < attrCount; ++i) {
@@ -88,46 +88,51 @@ DG.GameSpec = DG.BaseGameSpec.extend(
     }
     return null;
   },
-  
+
   graphDefaults: function() {
     var collection = this.get('childCollection');
     return collection && collection.defaults;
   }.property('childCollection').cacheable(),
-  
+
   xAttrName: function() {
     var defaults = this.get('graphDefaults');
     return defaults && defaults.xAttr;
   }.property('graphDefaults').cacheable(),
-  
+
   xAttrIsNumeric: function() {
     var collection = this.get('childCollection'),
         attrName = this.get('xAttrName'),
         attrType = this.getAttrType( collection, attrName);
     return attrType === 'numeric';
   }.property('childCollection','xAttrName').cacheable(),
-  
+
   yAttrName: function() {
     var defaults = this.get('graphDefaults');
     return defaults && defaults.yAttr;
   }.property('graphDefaults').cacheable(),
-  
+
   yAttrIsNumeric: function() {
     var collection = this.get('childCollection'),
         attrName = this.get('yAttrName'),
         attrType = this.getAttrType( collection, attrName);
     return attrType === 'numeric';
   }.property('childCollection','yAttrName').cacheable(),
-  
+
   legendAttrName: function() {
     var defaults = this.get('graphDefaults');
     return defaults && defaults.legendAttr;
   }.property('graphDefaults').cacheable(),
-  
+
   legendAttrIsNumeric: function() {
     var collection = this.get('childCollection'),
         attrName = this.get('legendAttrName'),
         attrType = this.getAttrType( collection, attrName);
     return attrType === 'numeric';
-  }.property('childCollection','legendAttrName').cacheable()
-  
+  }.property('childCollection','legendAttrName').cacheable(),
+
+  origin: function() {
+    var matches = this.get('url').match(/(.*?\/\/.*?)\//);
+    return matches ? matches[1] : null;
+  }.property('url').cacheable()
+
 }) ;
