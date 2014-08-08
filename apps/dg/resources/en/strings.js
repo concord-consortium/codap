@@ -188,7 +188,8 @@ SC.stringsFor('English', {
   'DG.DataContext.pluralCaseName': "cases",
   'DG.DataContext.caseCountString': "%@1 %@2",  // %@1: count, %@2: case name string
   'DG.DataContext.setOfCasesLabel': "a collection",
-  
+  'DG.DataContext.collapsedRowString': "a %@1 of %@2",
+
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "The formula for attribute \"%@\" is not editable.",
   'DG.CollectionClient.cantEditFormulaErrorDesc': "Create a new attribute to be able to specify a formula.",

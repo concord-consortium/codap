@@ -931,13 +931,16 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Returns the string that best represents the noun form of the specified number of cases,
     e.g. "case"|"cases", "person"|"people", "deer"|"deer", "goose"|"geese", etc.
-    @param    {DG.CollectionClient} iCollection -- The collection whose labels are returned
+    @param    {DG.CollectionClient} iCollectionClient -- The collection whose labels are returned
     @param    {Number}              iCount -- The number of cases to represent
     @returns  {String}              The string to represent the specified number of cases
    */
-  getCaseNameForCount: function( iCollection, iCount) {
-    return iCount === 1 ? 'DG.DataContext.singleCaseName'.loc()
-                        : 'DG.DataContext.pluralCaseName'.loc();
+  getCaseNameForCount: function( iCollectionClient, iCount) {
+    var tSetName = (iCount === 1) ? iCollectionClient.getPath('collection.collectionRecord.caseName') :
+                      iCollectionClient.getPath('collection.collectionRecord.name');
+    tSetName = tSetName || (iCount === 1 ? 'DG.DataContext.singleCaseName'.loc()
+                              : 'DG.DataContext.pluralCaseName'.loc());
+    return tSetName;
   },
   
   /**
@@ -959,7 +962,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {String}              The string label to represent a set of cases
    */
   getLabelForSetOfCases: function( iCollection) {
-    return 'DG.DataContext.setOfCasesLabel'.loc();
+    return iCollection.getPath('collection.collectionRecord.parent.caseName') ||
+        'DG.DataContext.setOfCasesLabel'.loc();
   },
   
   /**
