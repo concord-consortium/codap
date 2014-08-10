@@ -80,8 +80,8 @@ DG.GraphDropTarget =
     }
 
     if( this.isValidAttribute( iDrag)) {
-      if( tPaper.width < 5)
-        this.adjust('width', 40);
+//      if( tPaper.width < 5)
+//        this.adjust('width', 40);
 
       tFrame = { x: kWidth, y: kWidth,
                     width: tPaper.width - 2 * kWidth,

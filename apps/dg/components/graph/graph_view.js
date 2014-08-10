@@ -134,21 +134,27 @@ DG.GraphView = SC.View.extend(
 
     sc_super();
 
-    this.createMultiTarget();
     this._plotViews = [];
 
     this.set('xAxisView', tXAxisView);
     this.appendChild( tXAxisView);
     this.set('yAxisView', tYAxisView);
     this.appendChild( tYAxisView);
+
+    // y2AxisView must be 'under' plotBackgroundView for dragging to work properly when there is no
+    // attribute on y2 axis.
+    this.set('y2AxisView', tY2AxisView);
+    this.appendChild( tY2AxisView);
+    tY2AxisView.set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
+    tY2AxisView.set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+
     this.set('plotBackgroundView', tBackgroundView);
     this.appendChild( tBackgroundView);
 
-    this.set('y2AxisView', tY2AxisView);
-    this.appendChild( tY2AxisView);
-
     this.set('legendView', tLegendView);
     this.appendChild( tLegendView);
+
+    this.createMultiTarget();
 
     if(DG.IS_INQUIRY_SPACE_BUILD) {
       var tNumberToggleView = DG.NumberToggleView.create( { model: this.getPath('model.numberToggle')});
@@ -277,17 +283,19 @@ DG.GraphView = SC.View.extend(
         tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
         tXHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
         tYWidth = !tYAxisView ? 0 : tYAxisView.get('desiredExtent'),
-        tY2Width = (!tY2AxisView || !tHasY2Attribute) ? 3 : tY2AxisView.get('desiredExtent'),
+        tSpaceForY2 = (!tY2AxisView || !tHasY2Attribute) ? 0 : tY2AxisView.get('desiredExtent'),
+        tY2DesiredWidth = !tY2AxisView ? 0 : tY2AxisView.get('desiredExtent'),
         tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent' ),
         tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent' ) : 0;
 
     if( tXAxisView && tYAxisView && ( tPlotViews.length > 0)) {
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
-        tXAxisView.set( 'layout', { left: tYWidth, right: tY2Width, bottom: tLegendHeight, height: tXHeight });
+        tXAxisView.set( 'layout', { left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight });
         tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tYWidth });
-        tY2AxisView.set( 'layout', { right: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tY2Width });
-        tPlotBackground.set( 'layout', { left: tYWidth, right: tY2Width, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
+        tY2AxisView.set( 'layout', { right: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tY2DesiredWidth });
+//        tY2AxisView.set('visible', tSpaceForY2 !== 0);
+        tPlotBackground.set( 'layout', { left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
         tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
         if(tNumberToggleView)
           tNumberToggleView.set( 'layout', { left: tYWidth, height: tNumberToggleHeight });
@@ -295,17 +303,17 @@ DG.GraphView = SC.View.extend(
       else {
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
         tXAxisView.adjust('left', tYWidth);
-        tXAxisView.adjust('right', tY2Width);
+        tXAxisView.adjust('right', tSpaceForY2);
         tXAxisView.adjust('bottom', tLegendHeight);
         tXAxisView.adjust('height', tXHeight);
         tYAxisView.adjust('bottom', tXHeight + tLegendHeight);
         tYAxisView.adjust('width', tYWidth);
         tYAxisView.adjust('top', tNumberToggleHeight);
         tY2AxisView.adjust('bottom', tXHeight + tLegendHeight);
-        tY2AxisView.adjust('width', tY2Width);
+        tY2AxisView.adjust('width', tY2DesiredWidth);
         tY2AxisView.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('left', tYWidth);
-        tPlotBackground.adjust('right', tY2Width);
+        tPlotBackground.adjust('right', tSpaceForY2);
         tPlotBackground.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('bottom', tXHeight + tLegendHeight);
         tLegendView.adjust('height', tLegendHeight);
@@ -573,6 +581,7 @@ DG.GraphView = SC.View.extend(
     tMulti.set('attributeDescription', this.getPath('model.yAxis.attributeDescription'));
     tMulti.set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     tMulti.set('layout', { left: 0, top: 0, width: tExtent.width, height: tExtent.height });
+    tMulti.set('isVisible', false); // Start out hidden
 
     this.set('yAxisMultiTarget', tMulti);
   }

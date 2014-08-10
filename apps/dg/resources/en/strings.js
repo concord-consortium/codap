@@ -252,6 +252,9 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.cancelBtnTitle' : "Cancel",
   'DG.GuideConfigView.cancelBtnTooltip' : "Dismiss the dialog without making any changes",
 
+  // DG.AxisView
+  'DG.AxisView.labelTooltip' : "Click to change %@ axis attribute",  // "—Click to change <orientation> axis attribute"
+
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
   'DG.CellLinearAxisView.lowerPanelTooltip' : "Drag to change axis lower bound",

@@ -562,7 +562,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tCurrentXAxisClass = tPrevXAxis.constructor,
           tCurrentYAxisClass = tPrevYAxis.constructor,
           tCurrentY2AxisClass = tPrevY2Axis.constructor,
-          tDataConfig = this.get('dataConfiguration');
+          tDataConfig = this.get('dataConfiguration'),
+          tYAttrIndex = 0,
+          tY2AttrIndex = 0;
 
       var instantiateArrayOfPlots = function( iPlots) {
         iPlots.forEach( function( iModelDesc, iIndex) {
@@ -570,13 +572,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             return;
           var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create(
             { _isBeingRestored: true }  // So that rescaling won't happen
-          );
+          ),
+              tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
           tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
           tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
           tPlot.setIfChanged( 'y2Axis', this.get( 'y2Axis' ) );
-          tPlot.setIfChanged( 'yAttributeIndex', iIndex);
+          tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
           tPlot.endPropertyChanges();
           if( iIndex === 0)
             this.set('plot', tPlot);

@@ -57,6 +57,9 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     return this.getPath('model.attributeDescription.attribute');
   }.property(),
 
+  xAttributeDescription: null,  // Used by vertical2 axis to test if drag attribute is valid
+  otherYAttributeDescription: null,  // Used by vertical2 axis to test if drag attribute is valid
+
   blankDropHint: 'DG.GraphView.addToEmptyPlace',
 
   /**
@@ -121,6 +124,8 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tChangeHappened = false,
         tLabelCount = 0,
         tRotation = this.get('isVertical') ? -90 : 0,
+        tOtherYAttributes = this.getPath('otherYAttributeDescription.attributes'),
+        tBaseLabelIndex = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
         tLabels, tDescription, tNode;
     if( SC.none( this._paper))
       return [];
@@ -128,9 +133,11 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     tLabels = this.getPath('model.labels');
     tLabels.forEach( function( iLabel, iIndex) {
       var tColor = 'blue';
-      if( iIndex > 0) {
-        iLabel = ': ' + iLabel;
-        tColor = DG.ColorUtilities.calcAttributeColorFromIndex( iIndex, tLabels.length ).colorString;
+      if( iIndex + tBaseLabelIndex > 0) {
+        if(iIndex > 0)
+          iLabel = ': ' + iLabel;
+        tColor = DG.ColorUtilities.calcAttributeColorFromIndex( iIndex + tBaseLabelIndex,
+            tLabels.length + tBaseLabelIndex).colorString;
       }
       if( tLabelCount >= this_._labelNodes.length) {
         tNode = this_._paper.text( 0, 0, '')
@@ -146,8 +153,7 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       // If the text has changed, we set it and notify
       if( iLabel !== tNode.attr( 'text')) {
         tDescription = this_.get('model' ).getLabelDescription( iIndex);
-        // TODO: Move strings to strings.js
-        tDescription += '—Click to change ' + this_.orientation + ' axis attribute';
+        tDescription += '—' + 'DG.AxisView.labelTooltip'.loc(this_.orientation);
         tNode.attr({ text: iLabel, title: tDescription });
         tChangeHappened = true;
       }
@@ -347,6 +353,21 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       tPixelMin = this.get('pixelMin'),
       tPixelMax = this.get('pixelMax');
     return (iCoord - tPixelMin) / (tPixelMax - tPixelMin);
+  },
+
+  isValidAttribute: function( iDrag) {
+    if( this.get('orientation') === 'vertical2') {
+      var tDragAttr = iDrag.data.attribute,
+          tCurrAttr = this.get('plottedAttribute'),
+          tCurrXAttr = this.getPath('xAttributeDescription.attribute'),
+          tY1Attr = this.getPath('otherYAttributeDescription.attribute');
+      return (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
+          (tY1Attr !== DG.Analysis.kNullAttribute) &&
+          (tY1Attr !== tDragAttr) &&
+          (tCurrAttr !== tDragAttr);
+    }
+    else
+      return DG.GraphDropTarget.isValidAttribute.call(this, iDrag)
   }
 
 });
