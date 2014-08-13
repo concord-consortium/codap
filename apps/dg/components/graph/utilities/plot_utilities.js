@@ -59,11 +59,12 @@ DG.PlotUtilities = {
   kDataCreateTransform: 's2',   // scale 2 times on create
 
   // Constants for maps
-  kMapAreaNoLegendColor: 'red',
-  kMapAreaNoLegendUnselectedOpacity: 0.2,
+  kMapAreaNoLegendColor: 'blue',
+  kMapAreaNoLegendSelectedColor: 'red',
+  kMapAreaNoLegendUnselectedOpacity: 0.9,
   kMapAreaNoLegendSelectedOpacity: 1,
-  kMapAreaWithLegendSelectedOpacity: 0.5,
-  kMapAreaWithLegendUnselectedOpacity: 0.5,
+  kMapAreaWithLegendSelectedOpacity: 0.9,
+  kMapAreaWithLegendUnselectedOpacity: 0.9,
   kMapAreaNoLegendUnselectedBorderColor: 'yellow',
   kMapAreaNoLegendSelectedBorderColor: 'black',
   kMapAreaWithLegendUnselectedBorderColor: 'yellow',

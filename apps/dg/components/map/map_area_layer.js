@@ -78,7 +78,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       legendName: tLegendDesc.getPath('attribute.name'),
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
-          return 'red'; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
+          return DG.PlotUtilities.kMapAreaNoLegendColor;
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
@@ -123,7 +123,6 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       if( tFeature) {
         tFeature.setStyle({
           fillColor: tColorString,
-          fillOpacity: 0.5
         });
       }
     }.bind( this));
@@ -175,6 +174,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
               DG.PlotUtilities.kMapAreaNoLegendSelectedOpacity,
           weight: DG.PlotUtilities.kMapAreaSelectedBorderWeight
         });
+        if( !tHasLegend) {
+          tFeature.setStyle( {
+            fillColor: DG.PlotUtilities.kMapAreaNoLegendSelectedColor
+          });
+        }
         tFeature.bringToFront();
       }
       else {
@@ -185,6 +189,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
               DG.PlotUtilities.kMapAreaNoLegendUnselectedOpacity,
           weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight
         });
+        if( !tHasLegend) {
+          tFeature.setStyle( {
+            fillColor: DG.PlotUtilities.kMapAreaNoLegendColor
+          });
+        }
       }
     }.bind( this));
   },
@@ -199,21 +208,32 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
         tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
     tCases.forEach( function( iCase, iIndex) {
+      var tFeature, tPopup;
 
-      var handleClick = function( iEvent) {
+      var
+          handleClick = function( iEvent) {
             this.get('model').selectCaseByIndex(iIndex, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
           }.bind( this),
 
           handleMouseover = function( iEvent) {
-            var tFeature = this.features[ iIndex],
-                tPopup = L.popup({ closeButton: false }, tFeature);
+            tFeature = this.features[ iIndex],
+            tPopup = L.popup({ closeButton: false }, tFeature);
             tPopup.options.offset[1] = -20;
             tPopup.setContent( this.calcTooltip( iCase));
-            tFeature.bindPopup( tPopup).openPopup();
+            SC.Timer.schedule( { target: this,
+                                action: function() {
+                                          if( tPopup)
+                                            tFeature.bindPopup( tPopup).openPopup();
+                                        },
+                                interval: 500 });
+
           }.bind(this),
 
           handleMouseout = function( iEvent) {
-            //this.features[ iIndex].unbindPopup(); // Would like to explicitly hide the popup
+            if( tPopup) {
+              tPopup._close();
+              tPopup = null;
+            }
           }.bind( this);
 
       try {
@@ -222,7 +242,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           style: function (feature) {
             return {color: 'yellow',
                     weight: 2,
-                    fillColor: 'red',
+                    fillColor: DG.PlotUtilities.kMapAreaNoLegendColor,
                     smoothFactor: 2};
           }
         })
@@ -236,6 +256,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       }
     }.bind( this));
     this._areFeaturesAdded = true;
+    this.doDraw();
   }
 
 });

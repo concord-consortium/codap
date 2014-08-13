@@ -236,6 +236,42 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       }
     },
 
+    /** create a menu item that removes the attribute on the given axis/legend */
+    createRemoveAttributeMenuItem: function( iXYorLegend, isForSubmenu, iAttrIndex ) {
+      iAttrIndex = iAttrIndex || 0;
+      var tDescKey = iXYorLegend + 'AttributeDescription',
+          tAxisKey = iXYorLegend + 'Axis', // not used by removeLegendAttribute()
+          tAttributes = this.getPath( 'dataConfiguration.' + tDescKey + '.attributes'),
+          tAttribute = (SC.isArray( tAttributes) && iAttrIndex < tAttributes.length) ?
+              tAttributes[ iAttrIndex] : DG.Analysis.kNullAttribute,
+          tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
+          tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
+          tTitle = ('DG.GraphMenu.' + tResourceName + iXYorLegend).loc( tName ),
+          tAction = ((iXYorLegend==='x'||iXYorLegend==='y') ? this.removeAttribute : this.removeLegendAttribute );
+      return {
+        title: tTitle,
+        target: this,
+        itemAction: tAction,
+        isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+        args: [ tDescKey, tAxisKey, iAttrIndex ] };
+    },
+
+    /** create a menu item that changes the attribute type on the given axis/legend */
+    createChangeAttributeTypeMenuItem: function( iXYorLegend ) {
+      var tDescKey = iXYorLegend + 'AttributeDescription',
+          tAxisKey = iXYorLegend + 'Axis',
+          tDescription = this.getPath( 'dataConfiguration.' + tDescKey),
+          tAttribute = tDescription && tDescription.get( 'attribute'),
+          tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
+          tTitle =( tIsNumeric ? 'DG.GraphMenu.treatAsCategorical' : 'DG.GraphMenu.treatAsNumeric').loc();
+      return {
+        title: tTitle,
+        target: this,
+        itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
+        isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+        args: [ tDescKey, tAxisKey, !tIsNumeric ] };
+    },
+
     /**
      * Removing the attribute is just changing with null arguments
      */
