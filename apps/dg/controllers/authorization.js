@@ -322,7 +322,7 @@ return {
     var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    this.urlForGetRequests( url)
+    this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
       .send(); 
   },
@@ -333,7 +333,7 @@ return {
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
     
-    this.urlForGetRequests(url)
+    this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
@@ -344,7 +344,7 @@ return {
     url += '&recordname=' + iDocumentName;
     url += '&owner=' + iDocumentOwner;
     
-    this.urlForGetRequests(url)
+    this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
