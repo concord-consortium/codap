@@ -519,7 +519,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tConfig.get( iDescKey ).set( 'role', tSecondaryRole );
           tConfig.get( tOtherDesc ).set( 'role', tPrimaryRole );
 
-          this.synchPlotWithAttributes();
+          if( iAxisKey === 'y2Axis') {
+            // TODO: This is a kludge that won't hold up beyond the simplest case
+            this.removePlotAtIndex( this.get('plots').length - 1);
+            this.notifyPropertyChange('attributeRemoved');
+          }
+          else {
+            this.synchPlotWithAttributes();
+          }
 
           this.invalidate();
           this.set( 'aboutToChangeConfiguration', false ); // reset for next time
@@ -714,7 +721,17 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
           tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
           tTitle = ('DG.GraphMenu.' + tResourceName + iXYorLegend).loc( tName ),
-          tAction = ((iXYorLegend==='x'||iXYorLegend==='y') ? this.removeAttribute : this.removeLegendAttribute );
+          tAction;
+      switch( iXYorLegend) {
+        case 'x':
+        case 'y':
+        case 'y2':
+          tAction = this.removeAttribute;
+          break;
+        case 'legend':
+          tAction = this.removeLegendAttribute;
+          break;
+      }
       return {
         title: tTitle,
         target: this,

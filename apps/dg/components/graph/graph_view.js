@@ -467,6 +467,9 @@ DG.GraphView = SC.View.extend(
       this.addPlotView( tPlotView);
       this.renderLayout( this.renderContext(this.get('tagName')), false );
       this.setPlotViewProperties( tPlotView, tPlotModel, 'y2AxisView');
+      // The y2AxisView needs to know how many attribute descriptions there are on the other y-axis so that
+      // it can properly set the color of the label.
+      this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
     }
   }.observes('model.y2AttributeAdded'),
 
