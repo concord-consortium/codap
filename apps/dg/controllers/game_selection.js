@@ -574,25 +574,29 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     passed by the game as part of the 'initGame' command.
    */
   saveCurrentGameState: function() {
-    var gameSpec = this.get('currentGame'),
-        gameContext = gameSpec && gameSpec.get('context'),
-        doAppCommandFunc = gameSpec && gameSpec.get('doCommandFunc'),
-        gameElement = this.findCurrentGameElement( gameSpec && gameSpec.get('gameEmbedID')),
-        saveCommand = { operation: "saveState" },
-        result;
-    // We can only save game state if we have a game callback function and a context.
-    if( gameContext) {
-      if( doAppCommandFunc ) {
-        // for JavaScript games we can call directly with Objects as arguments
-        result = doAppCommandFunc( saveCommand);
-      } else if (gameElement && gameElement.doCommandFunc ) {
-        // for flash games we use the embedded swf object, then call its 'doCommandFunc'
-        result = gameElement.doCommandFunc( SC.json.encode( saveCommand ));
-        result = this.safeJsonDecode( result, "Invalid JSON found in saveCurrentGameState()" );
+    try {
+      var gameSpec = this.get('currentGame'),
+          gameContext = gameSpec && gameSpec.get('context'),
+          doAppCommandFunc = gameSpec && gameSpec.get('doCommandFunc'),
+          gameElement = this.findCurrentGameElement( gameSpec && gameSpec.get('gameEmbedID')),
+          saveCommand = { operation: "saveState" },
+          result;
+      // We can only save game state if we have a game callback function and a context.
+      if( gameContext) {
+        if( doAppCommandFunc ) {
+          // for JavaScript games we can call directly with Objects as arguments
+          result = doAppCommandFunc( saveCommand);
+        } else if (gameElement && gameElement.doCommandFunc ) {
+          // for flash games we use the embedded swf object, then call its 'doCommandFunc'
+          result = gameElement.doCommandFunc( SC.json.encode( saveCommand ));
+          result = this.safeJsonDecode( result, "Invalid JSON found in saveCurrentGameState()" );
+        }
+        // Stash the game state in the context's 'savedGameState' property.
+        if( result && result.success)
+          gameContext.set('savedGameState', result.state);
       }
-      // Stash the game state in the context's 'savedGameState' property.
-      if( result && result.success)
-        gameContext.set('savedGameState', result.state);
+    } catch (ex) {
+      DG.logWarn("Exception saving game context: " + ex);
     }
   },
 
