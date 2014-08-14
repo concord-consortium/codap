@@ -70,6 +70,14 @@ DG.MapModel = DG.DataDisplayModel.extend(
       this.set('zoom', 5);  // Reasonable default
     },
 
+    handleLegendAttrChange: function() {
+      var tLegendAttrDesc = this.getPath('dataConfiguration.legendAttributeDescription');
+      if( tLegendAttrDesc) {
+        tLegendAttrDesc.set('offsetMinProportion', DG.PlotUtilities.kMapColorRangeOffset);
+        tLegendAttrDesc.invalidateCaches();
+      }
+    }.observes('dataConfiguration.legendAttributeDescription.attribute'),
+
     handleOneDataContextChange: function( iNotifier, iChange) {
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.

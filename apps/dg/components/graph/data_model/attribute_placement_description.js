@@ -98,6 +98,24 @@ DG.AttributePlacementDescription = SC.Object.extend(
   attributeStats: null,
 
   /**
+   * Note: True range is adjusted by offsetMinProportion.
+   @property{{min:{Number}, max:{Number} isDataInteger:{Boolean}}}
+   */
+  minMax:function () {
+    var tMinMax = this.getPath( 'attributeStats.minMax'),
+        tRange = tMinMax.max - tMinMax.min;
+    tMinMax.min -= this.get('offsetMinProportion') * tRange;
+    return tMinMax;
+  }.property('attributeStats.minMax', 'offsetMinProportion'),
+
+  /**
+   * Set to cause minimum of numeric values to be offset downward by this proportion of the range.
+   * Useful for keeping areas on a map from getting colored white.
+   * @property{Number}
+   */
+  offsetMinProportion: 0,
+
+  /**
     @private { Array of DG.Attribute }
   */
   _attributes: null,

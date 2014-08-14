@@ -174,7 +174,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
          */
         function drawNumericScale() {
           var tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc).colorString,
-              tMinMax = tAttrStats.get('minMax'),
+              tMinMax = tAttrDesc.get('minMax'),
               tMin = DG.Format.number().fractionDigits( 0, 2)(tMinMax.min),
               tMax = DG.Format.number().fractionDigits( 0, 2)(tMinMax.max),
               tLabelHeight = this_.get('labelExtent').y,
