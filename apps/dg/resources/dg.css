@@ -53,11 +53,12 @@
 
 /* data dot with variable fill color */
 .data-dot-colored {
-    opacity: 0.85 !important;
+    opacity: 0.5 !important;
     stroke: #315B7D !important;
 }
 
 .data-dot-colored-selected {
+    opacity: 0.85 !important;
     stroke: black !important;
     stroke-width: 2 !important;
 }
