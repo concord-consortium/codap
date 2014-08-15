@@ -19,7 +19,7 @@
 /* globals iframePhone */
 sc_require('components/game/game_controller');
 sc_require('controllers/game_selection');
-//sc_require('libraries/iframe-phone');
+sc_require('libraries/iframe-phone');
 
 /** @class
 
@@ -45,55 +45,55 @@ DG.GameView = SC.WebView.extend(
   valueDidChange: function() {
     var value = this.get('value');
 
-//    if (value !== this._previousValue) {
-//
-//      // First discontinue listening to old game.
-//      if (DG.gamePhone) {
-//        DG.gamePhone.disconnect();
-//      }
-//
-//      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
-//
-//        // TODO put this handler function somewhere appropriate rather than inlining it in (what is
-//        // at notionally) view code?
-//
-//        function(command, callback) {
-//          var ret = DG.doCommand(command);
-//
-//          // Analysis shows that the object returned by DG.doCommand may contain Error values, which
-//          // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
-//          // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
-//          // 'requestAttributeValues' API commands are the guilty parties. The following is an
-//          // ad-hoc attempt to clean up the object for successful serialization.
-//
-//          if (ret && ret.error && ret.error instanceof Error) {
-//            ret.error = ret.error.message;
-//          }
-//
-//          if (ret && ret.values && ret.values.length) {
-//            ret.values = ret.values.map(function(value) {
-//              return value instanceof Error ? null : value;
-//            });
-//          }
-//
-//          // If there's a DataCloneError anyway, at least let the client know something is wrong:
-//          try {
-//            callback(ret);
-//          } catch (e) {
-//            if (e instanceof window.DOMException && e.name === 'DataCloneError') {
-//              callback({ success: false });
-//            }
-//          }
-//        },
-//        'codap-game',
-//        this.$('iframe')[0],
-//        DG.gameSelectionController.getPath('currentGame.origin')
-//      );
-//
-//      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
-//      // old iframePhone supporting page) and can use its API.
-//      DG.gamePhone.call({ message: "codap-present" });
-//    }
+    if (value !== this._previousValue) {
+
+      // First discontinue listening to old game.
+      if (DG.gamePhone) {
+        DG.gamePhone.disconnect();
+      }
+
+      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
+
+        // TODO put this handler function somewhere appropriate rather than inlining it in (what is
+        // at notionally) view code?
+
+        function(command, callback) {
+          var ret = DG.doCommand(command);
+
+          // Analysis shows that the object returned by DG.doCommand may contain Error values, which
+          // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
+          // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
+          // 'requestAttributeValues' API commands are the guilty parties. The following is an
+          // ad-hoc attempt to clean up the object for successful serialization.
+
+          if (ret && ret.error && ret.error instanceof Error) {
+            ret.error = ret.error.message;
+          }
+
+          if (ret && ret.values && ret.values.length) {
+            ret.values = ret.values.map(function(value) {
+              return value instanceof Error ? null : value;
+            });
+          }
+
+          // If there's a DataCloneError anyway, at least let the client know something is wrong:
+          try {
+            callback(ret);
+          } catch (e) {
+            if (e instanceof window.DOMException && e.name === 'DataCloneError') {
+              callback({ success: false });
+            }
+          }
+        },
+        'codap-game',
+        this.$('iframe')[0],
+        DG.gameSelectionController.getPath('currentGame.origin')
+      );
+
+      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+      // old iframePhone supporting page) and can use its API.
+      DG.gamePhone.call({ message: "codap-present" });
+    }
 
     this._previousValue = value;
 
