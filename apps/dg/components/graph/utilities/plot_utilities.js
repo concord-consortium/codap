@@ -62,7 +62,7 @@ DG.PlotUtilities = {
   // Constants for maps
   kMapAreaNoLegendColor: 'blue',
   kMapAreaNoLegendSelectedColor: 'red',
-  kMapAreaNoLegendUnselectedOpacity: 0.9,
+  kMapAreaNoLegendUnselectedOpacity: 0.7,
   kMapAreaNoLegendSelectedOpacity: 1,
   kMapAreaWithLegendSelectedOpacity: 0.9,
   kMapAreaWithLegendUnselectedOpacity: 0.9,

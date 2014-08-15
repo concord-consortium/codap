@@ -37,11 +37,12 @@ DG.PointDataTip = DG.DataTip.extend(
   getDataTipText: function() {
 
     var this_ = this,
-        tCases = this.getPath('plot.cases' ), // Doesn't always succeed even when it should!
+        tPlot = this.getPath('plotLayer.model'),  // Use of plotBinding doesn't work the first time
+        tCases = tPlot.get('cases' ),
         tCase = tCases ? tCases[ this.get('caseIndex')] : null;
 
     function getNameValuePair( iKey) {
-      var tAttrDesc = this_.get('plot' ).getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
+      var tAttrDesc = tPlot.getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
           tAttributes = tAttrDesc.get('attributes' ),
           tPlotIndex = this_.getPath('plotLayer.plotIndex' );
       // If there are more than 1 attribute, we'll end up using the plot index to pull out the right one

@@ -168,15 +168,12 @@ DG.ColorUtilities.calcCaseColor = function( iCaseValue, iColorAttributeDescripti
     }
     if( newColor === null ) {
       // calculate color using TinkerPlots color-space algorithm
-      var tAttributeColor = DG.ColorUtilities.calcAttributeColor( iColorAttributeDescription),
-          tMinmax = iColorAttributeDescription.get('minMax'),
-          calcFunction = tIsNumeric ?
-                            DG.ColorUtilities.calcContinuousColor :
-                            DG.ColorUtilities.calcCategoryColor ;
-      newColor = calcFunction(
-                      tMinmax,
-                      tAttributeColor,
-                      iCaseValue );
+      var tAttributeColor = DG.ColorUtilities.calcAttributeColor( iColorAttributeDescription);
+      newColor = tIsNumeric ?
+        DG.ColorUtilities.calcContinuousColor(
+            iColorAttributeDescription.get('minMax'), tAttributeColor, iCaseValue ) :
+        DG.ColorUtilities.calcCategoryColor(
+            iColorAttributeDescription.get('attributeStats'), tAttributeColor, iCaseValue );
     }
   }
   return newColor;

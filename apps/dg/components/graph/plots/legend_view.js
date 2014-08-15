@@ -31,7 +31,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   {
     var kMinWidth = 150, // of a cell. Used to determine how many columns
         kVMargin = 3,
-        kHMargin = 12;  // Could be dynamic
+        kHMargin = 6;
     
     /** @scope DG.LegendView.prototype */
     return {
@@ -223,8 +223,10 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                     .attr( { stroke: tAttrColor }));
           }
           var tTextY = kVMargin + tLabelHeight + tHeight / 3 + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
-          this_._elementsToClear.push( this_._paper.text( kHMargin + kStrokeWidth, tTextY, tMin));
-          this_._elementsToClear.push( this_._paper.text( kHMargin + tWidth - 2 * kStrokeWidth, tTextY, tMax));
+          this_._elementsToClear.push( this_._paper.text( kHMargin + kStrokeWidth, tTextY, tMin)
+              .attr({ 'text-anchor': 'start' }));
+          this_._elementsToClear.push( this_._paper.text( kHMargin + tWidth - 2 * kStrokeWidth, tTextY, tMax)
+              .attr({ 'text-anchor': 'end' }));
         }
 
         /**
