@@ -140,6 +140,23 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /**
+      Delete the currently unselected cases.
+      Passes the request on to the data context to do the heavy lifting.
+     */
+    deleteUnselectedCases: function(){
+      var tCases = this.getPath('dataConfiguration.cases');
+      var tUnselected = DG.ArrayUtils.subtract( tCases, this.get('selection'),
+                                                            function( iCase) {
+                                                              return iCase.get('id');
+                                                            });
+      var tChange = {
+            operation: 'deleteCases',
+            cases: DG.copy(tUnselected)
+          };
+      this.get('dataContext').applyChange( tChange);
+    },
+
+    /**
       Select/deselect all of the points in all the plots.
       @param  {Boolean}   iSelect -- True to select all points, false to deselect all.
                                       Defaults to true (select all) if undefined/null.

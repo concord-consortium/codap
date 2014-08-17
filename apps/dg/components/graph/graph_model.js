@@ -658,7 +658,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             tDeleteIsEnabled = tSelection && tSelection.get( 'length' ) !== 0;
         return [
           { title:"Select All", target:this_, itemAction:this_.selectAll, isEnabled:true },
-          { title:"Delete Selected Cases", target:this_, itemAction:this_.deleteSelectedCases, isEnabled:tDeleteIsEnabled }
+          { title:"Delete Selected Cases", target:this_, itemAction:this_.deleteSelectedCases, isEnabled:tDeleteIsEnabled },
+          { title:"Delete Unselected Cases", target:this_, itemAction:this_.deleteUnselectedCases, isEnabled:tDeleteIsEnabled }
         ];
       };
 
