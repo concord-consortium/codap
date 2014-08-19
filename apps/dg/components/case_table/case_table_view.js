@@ -350,6 +350,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     A new one will be recreated on render() if there is a valid adapter.
    */
   gridAdapterDidChange: function() {
+    DG.log('DG.CaseTableView.gridAdapterDidChange')
     if( this._slickGrid) {
       this.destroySlickGrid();
       this.displayDidChange();
@@ -361,6 +362,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Refreshes the Slick.DataView and re-renders the Slick.Grid.
    */
   refresh: function() {
+    DG.log('DG.CaseTableView.refresh')
     var gridAdapter = this.get('gridAdapter');
     if( gridAdapter) gridAdapter.refresh();
     if( this._slickGrid) this._slickGrid.invalidate();

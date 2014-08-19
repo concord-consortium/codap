@@ -32,35 +32,35 @@ DG.GameController = DG.ComponentController.extend(
     @property {Array of Number}
    */
   openCaseIDs: null,
-  
+
   // Currently, DG.currGameController is a singleton that
   // outlives the game component and view.
   shouldDestroyOnComponentDestroy: false,
-  
+
   gameIsReady: true,  // Will be set to false at the point we discover we're going to have a default game loaded
-  
+
   /**
     The total number of document-dirtying changes.
     @property   {Number}
    */
   changeCount: 0,
-  
+
   /**
     The number of document-dirtying changes that have been saved.
     If this is less than the total change count, then the document is dirty.
     @property   {Number}
    */
   savedChangeCount: 0,
-  
+
   /**
     Initialization method
    */
   init: function() {
     sc_super();
-    
+
     this.openCaseIDs = [];
   },
-  
+
   /**
     Whether or not the document contains unsaved changes such that the user
     should be prompted to confirm when closing the document, for instance.
@@ -69,7 +69,7 @@ DG.GameController = DG.ComponentController.extend(
   hasUnsavedChanges: function() {
     return this.get('changeCount') > this.get('savedChangeCount');
   }.property(),
-  
+
   /**
     Synchronize the saved change count with the full change count.
     This method should be called when a save occurs, for instance.
@@ -77,7 +77,7 @@ DG.GameController = DG.ComponentController.extend(
   updateSavedChangeCount: function() {
     this.set('savedChangeCount', this.get('changeCount'));
   },
-  
+
   /**
     Returns the IDs of any currently open game cases, plus the child cases of those cases.
     @param iExcludeChildren {Boolean} optional parameter to not include child cases of open game cases.
@@ -86,7 +86,7 @@ DG.GameController = DG.ComponentController.extend(
   getOpenCaseIDs: function( iExcludeChildren ) {
     var openCaseIDs = [],
         includeChildCases = (iExcludeChildren ? false : true);
-    
+
     // Adds the id of the specified case and all of its child cases to openCaseIDs.
     function addCase( iCase) {
       openCaseIDs.push( iCase.get('id'));
@@ -96,19 +96,19 @@ DG.GameController = DG.ComponentController.extend(
         childCases.forEach( function( iChildCase) { addCase( iChildCase); });
       }
     }
-    
+
     // New Game API support -- Add open parent cases, child cases, and their values
     this.openCaseIDs.forEach( function( iCaseID) {
                                 var parentCase = DG.store.find( DG.Case, iCaseID);
                                 if( parentCase) addCase( parentCase);
                               });
-    
+
     // Old Game API support -- Add open parent cases, child cases, and their values
     DG.ObjectMap.forEach( this._openParentCases,
                           function( iCollectionName, iOpenCase) {
                             addCase( iOpenCase);
                           });
-    
+
     // Return the caseIDs to the caller
     return openCaseIDs;
   },
@@ -119,12 +119,12 @@ DG.GameController = DG.ComponentController.extend(
     SC.run( function() { result = this_.dispatchCommand( iCmd); });
     return result;
   },
-  
+
   dispatchCommand: function( iCmd) {
     var cmdObj = null;
-    
+
     var ret = { 'success' : false };
-    
+
     // If it's a string, parse it as JSON
     if( SC.typeOf( iCmd) === SC.T_STRING) {
       // Catch any exceptions thrown by the parser
@@ -137,19 +137,19 @@ DG.GameController = DG.ComponentController.extend(
         DG.log( "JSON: "+iCmd );
       }
     }
-    
+
     // If it's not a JSON-formatted string, assume it's a JavaScript cmd object
     else {
       cmdObj = iCmd;
     }
-    
+
     // Bail if we don't have a valid cmdObj at this point
     if( !cmdObj) return ret;
-    
+
     // Dispatch the action to the appropriate handler
     var shouldDirtyDocument = true;
     switch( cmdObj.action) {
-    
+
     /*
      * New API
      */
@@ -159,11 +159,11 @@ DG.GameController = DG.ComponentController.extend(
       this.updateSavedChangeCount();
       shouldDirtyDocument = false;
       break;
-    
+
     case 'createComponent':
       ret = this.handleCreateComponent( cmdObj.args);
       break;
-    
+
     case 'createCollection':
       ret = this.handleCreateCollection( cmdObj.args);
       break;
@@ -171,19 +171,19 @@ DG.GameController = DG.ComponentController.extend(
     case 'openCase':
       ret = this.handleOpenCase( cmdObj.args);
       break;
-    
+
     case 'updateCase':
       ret = this.handleUpdateCase( cmdObj.args);
       break;
-    
+
     case 'closeCase':
       ret = this.handleCloseCase( cmdObj.args);
       break;
-    
+
     case 'createCase':
       ret = this.handleCreateCase( cmdObj.args);
       break;
-    
+
     case 'createCases':
       ret = this.handleCreateCases( cmdObj.args);
       break;
@@ -191,12 +191,16 @@ DG.GameController = DG.ComponentController.extend(
     case 'deleteAllCaseData':
       ret = this.handleDeleteAllCaseData( cmdObj.args);
       break;
-    
+
     case 'logAction':
       ret = this.handleLogAction( cmdObj.args);
       shouldDirtyDocument = false;
       break;
-    
+
+    case 'reset':
+      ret = this.handleReset( cmdObj.args);
+      break;
+
     /*
      * Old API
      */
@@ -208,11 +212,13 @@ DG.GameController = DG.ComponentController.extend(
       cmdObj.args.attrs.forEach( function( iAttr) { tAttrNames.push( iAttr.name); });
       this.newCollectionWithAttributes( cmdObj.args.name, tAttrNames);
       ret.success = true;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
       break;
-    
+
     case 'newCase':
       this.addCaseToCollectionWithValues( cmdObj.args.collection, cmdObj.args.values);
       ret.success = true;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
       break;
 
     case 'requestFormulaObject':
@@ -222,37 +228,43 @@ DG.GameController = DG.ComponentController.extend(
                                                                       cmdObj.args.descriptions,
                                                                       cmdObj.args.allow_user_variables);
       shouldDirtyDocument = false;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
       break;
 
-      case 'updateFormulaObject':
-        ret.success = DG.formulaObjectCoordinator.updateFormulaObject( cmdObj.args.description,
-                                                                        cmdObj.args.output, cmdObj.args.inputs,
-                                                                        cmdObj.args.descriptions,
-                                                                        cmdObj.args.allow_user_variables);
-        shouldDirtyDocument = false;
-        break;
+    case 'updateFormulaObject':
+      ret.success = DG.formulaObjectCoordinator.updateFormulaObject( cmdObj.args.description,
+                                                                      cmdObj.args.output, cmdObj.args.inputs,
+                                                                      cmdObj.args.descriptions,
+                                                                      cmdObj.args.allow_user_variables);
+      shouldDirtyDocument = false;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
+      break;
 
     case 'requestFormulaValue':
       ret = DG.formulaObjectCoordinator.requestFormulaValue( cmdObj.args.output, cmdObj.args);
       shouldDirtyDocument = false;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
       break;
 
     case 'requestAttributeValues':
       ret = this.handleRequestAttributeValues( cmdObj.args );
       shouldDirtyDocument = false;
+      SC.warn("Deprecated API Call: " + cmdObj.action);
       break;
-    
+
     default:
       shouldDirtyDocument = false;
+      SC.warn("Dispatch of unknown Data Interactive action(" + cmdObj.action +
+        "): ignoring");
       break;
     }
-    
+
     if( shouldDirtyDocument)
       this.incrementProperty('changeCount');
-    
+
     return ret;
   },
-  
+
   /**
     'initGame' handler
     @param {Object}   iArgs   See below for arguments
@@ -280,7 +292,7 @@ DG.GameController = DG.ComponentController.extend(
     }
    */
   handleInitGame: function( iArgs) {
-  
+
     // The game-specified arguments form the core of the new DG.GameSpec.
     var currentGame = DG.gameSelectionController.get('currentGame'),
         currentGameName = currentGame && currentGame.get('name'),
@@ -308,7 +320,7 @@ DG.GameController = DG.ComponentController.extend(
       }
       this.view.set('version', SC.none( currentGame.version) ? '' : currentGame.version);
     }
-    
+
     // Function for creating each collection and its required attributes
     function handleNewCollection( iCollectionArgs) {
       var collectionProperties = { name: iCollectionArgs.name,
@@ -328,7 +340,7 @@ DG.GameController = DG.ComponentController.extend(
           forEach( function( iAttrArgs) { collection.guaranteeAttribute( iAttrArgs); });
       }
     }
-    
+
     // Create/guarantee each collection and its required attributes
     if( iArgs.collections)
       iArgs.collections.forEach( handleNewCollection);
@@ -362,12 +374,12 @@ DG.GameController = DG.ComponentController.extend(
 
     // Once all the collections and attributes are created, we're ready to play the game.
     this.set('gameIsReady', true);
-    
+
     if( (iArgs.log === undefined) || iArgs.log)
       DG.logUser("initGame: '%@', Collections: [%@]",
                   currentGameName, gameCollections.getEach('name').join(", "));
   },
-  
+
   /**
     Create a component of the specified type.
    */
@@ -375,7 +387,7 @@ DG.GameController = DG.ComponentController.extend(
     // We use sendAction() here to avoid Lakosian issues
     return SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iArgs);
   },
-  
+
   /**
     Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
     @param {String} iAction   Command being executed (e.g. 'openCase', 'createCase')
@@ -391,10 +403,10 @@ DG.GameController = DG.ComponentController.extend(
         ret = { success: false };
     if( !SC.none( iArgs.parent))
       caseProperties.parent = iArgs.parent;
-    
+
     if( !DG.assert( gameContext))
       return ret;
-    
+
     var change = {
                     operation: 'createCase',
                     properties: caseProperties,
@@ -404,9 +416,9 @@ DG.GameController = DG.ComponentController.extend(
       change.collection = collection;
     else  // We don't assert, because the data context will default to the child collection.
       DG.logWarn("DG.GameController.doCreateCase: Can't find collection '%@'", iArgs.collection);
-    
+
     ret = gameContext.applyChange( change);
-    
+
     if( ret.success && ((iArgs.log === undefined) || iArgs.log))
       DG.logUser("%@: %@ [%@]", iAction, iArgs.collection, iArgs.values.join(", "));
     return ret;
@@ -426,10 +438,10 @@ DG.GameController = DG.ComponentController.extend(
         ret = { success: false };
     if( !SC.none( iArgs.parent))
       caseProperties.parent = iArgs.parent;
-    
+
     if( !DG.assert( gameContext))
       return ret;
-    
+
     var change = {
                     operation: 'createCases',
                     properties: caseProperties,
@@ -439,9 +451,9 @@ DG.GameController = DG.ComponentController.extend(
       change.collection = collection;
     else  // We don't assert, because the data context will default to the child collection.
       DG.logWarn("DG.GameController.doCreateCase: Can't find collection '%@'", iArgs.collection);
-    
+
     ret = gameContext.applyChange( change);
-    
+
     if( ret.success && ((iArgs.log === undefined) || iArgs.log))
       DG.logUser("%@: %@ %@ cases created", iAction, iArgs.collection, iArgs.values.length);
     return ret;
@@ -543,7 +555,28 @@ DG.GameController = DG.ComponentController.extend(
       return this.doDeleteAllCaseData( preserveAllGameCasesOption, ! preserveOpenEventCasesOption );
    },
 
+
   /**
+      Reset CODAP
+
+     Remove the collections in the data context: they are to be redefined by the
+     Data Interactive.
+   */
+  handleReset: function( iArgs) {
+    // Destroy the collections: not just the cases within, but the attribute
+    // definitions, too.
+    this.doResetCollections();
+  },
+
+  doResetCollections: function() {
+    DG.log("GameController.resetCollections");
+    var dataContext = DG.gameSelectionController.get('currentContext'),
+        change = {
+          operation: 'resetCollections'
+        };
+  },
+
+    /**
    Delete all case data (except data linked to the currently open game case).
    Design for use by user (DG.AppController.deleteAllCaseData()) or by game (this.handleDeleteAllCaseData())
    @param preserveTopCasesOption {Boolean} (optional) prevent delete of all top level cases (delete child cases only)
@@ -617,7 +650,7 @@ DG.GameController = DG.ComponentController.extend(
         tCollectionProperties.parent = tParentCollection.get('id');
     }
 
-    var tResult = gameContext && 
+    var tResult = gameContext &&
                   gameContext.applyChange({
                     operation: 'createCollection',
                     properties: tCollectionProperties,
@@ -632,7 +665,7 @@ DG.GameController = DG.ComponentController.extend(
     else
       return { success: false };
   },
-  
+
   /**
     Calls logUser with the specified arguments.
     Uses Function.apply to package the formatStr and replaceArgs for use by the logUser function.
@@ -657,10 +690,10 @@ DG.GameController = DG.ComponentController.extend(
   /**
     Get attribute values of the case, matching each of the supplied attribute names.
     Typically used to get values of formula attributes after doUpdateCase().
-        
+
     If the case exists an array of values will be returned, with success==true.  Array
     values will be null if the matching attribute does not exist, or has a missing value.
-    
+
     @param {Object} iArgs     Arguments { collection, caseID, attributeNames:[] }
     @returns {Object}         { success: {Boolean}, values: [] }
    */
@@ -672,7 +705,7 @@ DG.GameController = DG.ComponentController.extend(
         collection = gameContext.getCollectionByName( iArgs.collection),
         theCase = DG.store.find( DG.Case, iArgs.caseID),
         ret = { success: false, values: [] };
-        
+
     if( collection && theCase && iArgs.attributeNames) {
       // get the attribute values matching each attribute name
       var attrIDs = collection.getAttributeIDs(),
@@ -711,7 +744,7 @@ DG.GameController = DG.ComponentController.extend(
                                   aCollection.guaranteeAttribute( { name: iAttributeName });
                                });
     }
-  
+
     // Weasels kluge -- Create the Games collection automatically
     if( iCollectionName === "Weasels")
       this.newCollectionWithAttributes("Games", ["game"]);
@@ -721,32 +754,32 @@ DG.GameController = DG.ComponentController.extend(
 
     this.set('gameIsReady', true);
   },
-  
+
   queuedCases: [],  // When we get a request to add a case, we stash it in this array
             // for later processing
   addCasesTimer: null,  // Set when we get a case to add.
   startQueueTime: null,
-  
+
   _openGameName: '',
   _openParentCollectionName: '',
   _openParentCases: {},
-  
+
   openParentCase: function( iGameName, iCollectionName, iParentCollectionName, iParentCase) {
     this._openGameName = iGameName;
     this._openParentCollectionName = iParentCollectionName;
     this._openParentCases[ iCollectionName] = iParentCase;
   },
-  
+
   closeParentCases: function() {
     this._openGameName = '';
     this._openParentCollectionName = '';
     this._openParentCases = {};
   },
-  
+
   closeParentCase: function( iValues) {
     this.closeParentCases();
   },
-  
+
   getParentCaseFor: function( iValues) {
     return this._openParentCases[ Object.keys( this._openParentCases).pop()];
   },
@@ -765,25 +798,25 @@ DG.GameController = DG.ComponentController.extend(
           collectionClient = DG.gameCollectionWithName( currentGameName, iCollectionName),
           attrIDs = collectionClient && collectionClient.getAttributeIDs(),
           attrCount = attrIDs ? attrIDs.length : 0;
-      
+
       DG.logUser("caseCreated: %@ [%@]", iCollectionName, iValues.join(', '));
-  
+
       if (attrCount > iValues.length)
         attrCount = iValues.length;
-        
+
       var isParentCollection = (iCollectionName === parentCollectionName);
-      
+
       // If we've switched games, close the open case from the previous game
       if (currentGameName !== this_._openGameName)
         this_.closeParentCases();
-  
+
       // First child case for a given parent must "open" the parent case
-      if (!isParentCollection && !SC.none( parentCollection) && 
+      if (!isParentCollection && !SC.none( parentCollection) &&
           SC.none( this_._openParentCases[ iCollectionName])) {
         var parentCase = parentCollection.createCase();
         this_.openParentCase( currentGameName, iCollectionName, parentCollectionName, parentCase);
       }
-  
+
       var newCase = null;
       if (iCollectionName !== this_._openParentCollectionName) {
         var caseInitializerList = {};
@@ -800,7 +833,7 @@ DG.GameController = DG.ComponentController.extend(
         if( newCase)
           newCase.beginCaseValueChanges();
       }
-  
+
       // If we don't have an open parent case, then skip it.
       // Game must be sending us extraneous parent case requests.
       if( newCase) {
@@ -809,7 +842,7 @@ DG.GameController = DG.ComponentController.extend(
           newCase.setValue( attrIDs[i], tValue);
         }
       }
-  
+
       // Close the open parent case once its values have been created/set.
       if ((iCollectionName === this_._openParentCollectionName)) {
         this_.closeParentCase( iValues);
@@ -819,12 +852,12 @@ DG.GameController = DG.ComponentController.extend(
       }
     });
   },
-  
+
   addCaseToCollectionWithValues: function(iCollectionName, iValues)
   {
     var this_ = this,
         tTime;
-    
+
     function processQueue() {
 //      console.log('Queue length: ' + this_.queuedCases.length + ' at ',
 //              (new Date()).valueOf() - this_.startQueueTime);
@@ -833,7 +866,7 @@ DG.GameController = DG.ComponentController.extend(
         this_.queuedCases.length = 0;
       });
     }
-    
+
     if( !SC.none( this.addCasesTimer))
       this.addCasesTimer.invalidate();
     tTime = (new Date()).valueOf();
@@ -842,12 +875,12 @@ DG.GameController = DG.ComponentController.extend(
       this.startQueueTime = tTime;
 
     this.queuedCases.push( { collectionName: iCollectionName, values: iValues });
-    this.addCasesTimer = SC.Timer.schedule( { 
+    this.addCasesTimer = SC.Timer.schedule( {
                             action: processQueue,
                             interval: 20
                           });
   },
-  
+
   /**
    *  Returns an object that should be stored with the document when the document is saved.
    *  @returns  {Object}  An object whose properties should be stored with the document.
@@ -855,12 +888,12 @@ DG.GameController = DG.ComponentController.extend(
   createComponentStorage: function() {
     var currentGame = DG.gameSelectionController.get('currentGame'),
         storage = { };
-    
+
     // Save information about the current game
     if( currentGame) {
       storage.currentGameName = currentGame.get('name');
       storage.currentGameUrl = currentGame.get('url');
-      
+
       var dataContext = currentGame.get('context');
       if( dataContext)
         this.addLink( storage, 'context', dataContext);
@@ -871,10 +904,10 @@ DG.GameController = DG.ComponentController.extend(
       // and they should be saved for any game in which formulas are defined.
       storage.currentGameFormulas = SC.clone( currentGame.get('formulas'));
     }
-    
+
     return storage;
   },
-  
+
   /**
    *  Restores the properties of the DG.GameController from the specified Object.
    *  @param  {Object}  iComponentStorage -- The object whose properties should be restored.
@@ -896,7 +929,7 @@ DG.GameController = DG.ComponentController.extend(
                                       url: iComponentStorage.currentGameUrl });
       DG.gameSelectionController.prependToGamesMenu([ gameSpec ]);
     }
-    
+
     // If the gameSpec was just created above, or if it isn't associated with
     // a DG.GameContext (e.g. the Importer, which uses only a DG.DataContext),
     // then we get here with a gameSpec without an associated context. In that
@@ -952,7 +985,7 @@ DG.GameController = DG.ComponentController.extend(
     DG.gameSelectionController.setCurrentGameByName( gameName, requestedDimensions);
     this.set('gameIsReady', true);
   },
-  
+
   /**
     Logs a user action with the specified action name and array of values.
     If no values are passed, the logged message is simply the iActionString.

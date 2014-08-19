@@ -255,6 +255,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       case 'createCase':
       case 'createCases':
       case 'deleteCases':
+      case 'createCollection':
+      case 'resetCollections':
         // usually dataDidChange, but derived classes can override
         var changeKey = this.get('changeKey');
         if( !SC.empty( changeKey)) {
@@ -266,6 +268,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       case 'updateCases':
       case 'createAttributes':
       case 'updateAttributes':
+      case 'deleteAttribute':
         this.dataRangeDidChange( this, 'revision', this, lastChange.indices);
         break;
       case 'selectCases':
