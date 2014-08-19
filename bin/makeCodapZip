@@ -18,13 +18,16 @@ if [ "$1" == "" ] ; then
     usage
 fi
 
+# Set up locations
 BUILD_NUM=$1
 TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
 ZIP_FILE=codap_${BUILD_NUM}.zip
 WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
 INDEX_HTML=$WORK_DIR/index.html
 TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
-META_REDIRECT='<meta http-equiv="refresh" content="0; url=static/dg/en/'${BUILD_NUM}'/index.html">'
+
+REDIRECT_PATH=./static/dg/en/${BUILD_NUM}/index.html
+
 #BUILD_OPTS=--dont-minify
 BUILD_OPTS=
 
@@ -36,7 +39,20 @@ sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=$BUILD_NUM -
 
 #
 # Generate top lvel index.html redirector
-echo "<html><head>${META_REDIRECT}</head><body><p>Please wait</p></body></html>" > $INDEX_HTML
+cat > $INDEX_HTML << END_DOC
+<!DOCTYPE html>
+<html>
+<head>
+<title>Redirect</title>
+</head>
+<body>
+<script type="text/javascript">
+  var s = window.location.search;
+  window.location.replace("$REDIRECT_PATH" + s);
+</script>
+</body>
+</html>
+END_DOC
 
 #
 # Fix absolute references
