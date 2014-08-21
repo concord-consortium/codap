@@ -1,0 +1,70 @@
+#!/bin/bash
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+# Send an error and exit
+function error () {
+  echo $PROGNAME: $* 1>&2
+  exit 1
+}
+
+function usage() {
+  echo usage: $PROGNAME $* 1>&2
+  exit 2
+}
+
+# Look for the BUILD_NUM: 'xxxx' line, and cough up the xxxx
+function getBuildNumber() {
+  [ "$1" == "" ] && usage "version-file"
+
+  sed -nE "s/ *BUILD_NUM: '([0-9]+)'.*/\\1/p" $1
+}
+
+function paddedIncrement() {
+  [ "$1" == "" ] && usage "number"
+
+  perl -e "\$n=\"$1\"+1;\$pad = \"0\"x(length(\"$1\")-length(\$n)); print \$pad,\$n"
+}
+
+
+# replace BULD_NUM: 'xxxx' with BUILD_NUM: $2 in the file given by $1
+function setBuildNumber() {
+  [ "$2" == "" ] && usage "version-file new-version"
+  VERSION_FILE_1=$1
+  NEW_VERSION_1=$2
+
+  perl -i -pe "s/^(\s*BUILD_NUM:.*')(\d+)('.*)/ \$1 . \"$NEW_VERSION_1\" .\$3/e" $VERSION_FILE_1
+}
+
+# increment the build number in the named file
+function doUpdateBuildNumber() {
+  [ "$1" == "" ] && usage "version-file"
+  VERSION_FILE_2=$1
+  VERSION=`getBuildNumber $VERSION_FILE_2`
+  NEW_VERSION=`paddedIncrement $VERSION`
+  setBuildNumber $VERSION_FILE_2 $NEW_VERSION
+  echo $NEW_VERSION
+}
+
+# Returns the number of changed, uncommitted, or untracked files and sets
+# the status to the same number. Thus, will set a zero status if the git 
+# repository is clean.
+function gitChangeCount() {
+  ST=`git status --porcelain 2>/dev/null | wc -l`
+  echo $ST
+}
+
+function updateBuildNumber () {
+  VERSION_FILE=./apps/dg/core.js
+  [ ! -e $VERSION_FILE ] && error "Version File not found: $VERSION_FILE"
+  [ `gitChangeCount` != "0" ] && error "git is dirty"
+  BUILD_NUMBER=`doUpdateBuildNumber $VERSION_FILE` &&
+    git add $VERSION_FILE &&
+    git commit -m "Build $BUILD_NUMBER" &&
+    git tag "build_$BUILD_NUMBER" &&
+    git push &&
+    git push --tags &&
+    echo && echo Updated CODAP version to build_$BUILD_NUMBER
+}
+
+$PROGNAME "$@"
