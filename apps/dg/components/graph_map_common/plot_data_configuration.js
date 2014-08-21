@@ -544,7 +544,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
   invalidateAxisDescriptionCaches: function( iCases, iChange) {
     this.get('xAttributeDescription').invalidateCaches( iCases, iChange);
     this.get('yAttributeDescription').invalidateCaches( iCases, iChange);
-    this.get('y2AttributeDescription').invalidateCaches( iCases, iChange);
+    if( this.get('y2AttributeDescription'))
+      this.get('y2AttributeDescription').invalidateCaches( iCases, iChange);
     this.get('legendAttributeDescription').invalidateCaches( iCases, iChange);
 
  },
