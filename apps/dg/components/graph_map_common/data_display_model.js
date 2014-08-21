@@ -246,7 +246,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
               tAttributes[ iAttrIndex] : DG.Analysis.kNullAttribute,
           tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
           tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
-          tTitle = ('DG.GraphMenu.' + tResourceName + iXYorLegend).loc( tName ),
+          tTitle = ('DG.DataDisplayMenu.' + tResourceName + iXYorLegend).loc( tName ),
           tAction = ((iXYorLegend==='x'||iXYorLegend==='y') ? this.removeAttribute : this.removeLegendAttribute );
       return {
         title: tTitle,
@@ -263,7 +263,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           tDescription = this.getPath( 'dataConfiguration.' + tDescKey),
           tAttribute = tDescription && tDescription.get( 'attribute'),
           tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
-          tTitle =( tIsNumeric ? 'DG.GraphMenu.treatAsCategorical' : 'DG.GraphMenu.treatAsNumeric').loc();
+          tTitle =( tIsNumeric ? 'DG.DataDisplayMenu.treatAsCategorical' : 'DG.DataDisplayMenu.treatAsNumeric').loc();
       return {
         title: tTitle,
         target: this,

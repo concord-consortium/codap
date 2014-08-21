@@ -589,11 +589,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return [
         // Note that these 'built' string keys will have to be specially handled by any
         // minifier we use
-                  { title: ('DG.GraphMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
+                  { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
                                       target: this, itemAction: hideSelectedCases },
-                  { title: ('DG.GraphMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
+                  { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
                                       target: this, itemAction: hideUnselectedCases },
-                  { title: 'DG.GraphMenu.showAll', isEnabled: tSomethingHidden,
+                  { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
                                       target: this, itemAction: showAllCases }
               ];
     },

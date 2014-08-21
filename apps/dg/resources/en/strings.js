@@ -307,21 +307,21 @@ SC.stringsFor('English', {
   'DG.PlottedCountAdornment.title' : "%@ %@, %@%", // "12 cases, 50%"
 
    // DG.GraphModel
-   'DG.GraphMenu.attribute_x': "X: %@", // %@ = attribute name
-   'DG.GraphMenu.attribute_y': "Y: %@", // %@ = attribute name
-   'DG.GraphMenu.attribute_legend': "Legend: %@", // %@ = attribute name
-   'DG.GraphMenu.remove': "Remove Attribute",
-   'DG.GraphMenu.removeAttribute_x': "Remove X: %@", // %@ = attribute name
-   'DG.GraphMenu.removeAttribute_y': "Remove Y: %@", // %@ = attribute name
-   'DG.GraphMenu.removeAttribute_legend': "Remove Legend: %@", // %@ = attribute name
-   'DG.GraphMenu.treatAsCategorical': "Treat as Categorical",
-   'DG.GraphMenu.treatAsNumeric': "Treat as Numeric",
-   'DG.GraphMenu.hide': "Hide and Show",
-   'DG.GraphMenu.hideSelectedPlural': "Hide Selected Cases",
-   'DG.GraphMenu.hideUnselectedPlural': "Hide Unselected Cases",
-   'DG.GraphMenu.hideSelectedSing': "Hide Selected Case",
-   'DG.GraphMenu.hideUnselectedSing': "Hide Unselected Case",
-   'DG.GraphMenu.showAll': "Show All Cases",
+   'DG.DataDisplayMenu.attribute_x': "X: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.attribute_y': "Y: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.attribute_legend': "Legend: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.remove': "Remove Attribute",
+   'DG.DataDisplayMenu.removeAttribute_x': "Remove X: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.removeAttribute_y': "Remove Y: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.removeAttribute_legend': "Remove Legend: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.treatAsCategorical': "Treat as Categorical",
+   'DG.DataDisplayMenu.treatAsNumeric': "Treat as Numeric",
+   'DG.DataDisplayMenu.hide': "Hide and Show",
+   'DG.DataDisplayMenu.hideSelectedPlural': "Hide Selected Cases",
+   'DG.DataDisplayMenu.hideUnselectedPlural': "Hide Unselected Cases",
+   'DG.DataDisplayMenu.hideSelectedSing': "Hide Selected Case",
+   'DG.DataDisplayMenu.hideUnselectedSing': "Hide Unselected Case",
+   'DG.DataDisplayMenu.showAll': "Show All Cases",
 
    // DG.GraphView
    'DG.GraphView.replaceAttribute': "Replace %@ with %@",  // both %@ are attribute names
