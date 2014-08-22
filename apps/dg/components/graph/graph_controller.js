@@ -18,16 +18,16 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/component_controller');
+sc_require('components/graph_map_common/data_display_controller');
 
 /** @class
 
-  DG.GraphController provides controller functionaly, particular gear menu items,
-  for scatter plots.
+  DG.GraphController provides controller functionality, particular gear menu items,
+  for graphs.
 
-  @extends SC.Controller
+  @extends SC.DataDisplayController
 */
-DG.GraphController = DG.ComponentController.extend(
+DG.GraphController = DG.DataDisplayController.extend(
 /** @scope DG.GraphController.prototype */ 
   (function() {
 
@@ -37,37 +37,20 @@ DG.GraphController = DG.ComponentController.extend(
     }
 
     return {
-      dataContext: null,
-      graphModel: null,
+      graphModel: function() {
+        return this.get('dataDisplayModel');
+      }.property('dataDisplayModel'),
       xAxisView: null,
       yAxisView: null,
       plotView: null,
-      legendView: null,
       axisMultiTarget: null,
-      attributeMenu: null,
-      menuAnchorView: null,
 
       createComponentStorage: function() {
-        var storage = { _links_: {} },
+        var storage = sc_super(),
             dataContext = this.get('dataContext'),
             dataConfiguration = this.getPath('graphModel.dataConfiguration'),
             hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' ),
             plotModels = this.getPath('graphModel.plots');
-
-        var storeDimension = function( iDim) {
-          var tCollection = dataConfiguration && dataConfiguration.get(iDim + 'CollectionClient' ),
-              tAttrDesc = dataConfiguration && dataConfiguration.get(iDim + 'AttributeDescription' ),
-              tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
-          if( tCollection && (tAttrs.length > 0)) {
-            storage._links_[iDim + 'Coll'] = tCollection.toLink();
-            var tKey = iDim + 'Attr';
-            tAttrs.forEach( function( iAttr) {
-              DG.ArchiveUtils.addLink( storage, tKey, iAttr);
-            });
-          }
-          storage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
-          storage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
-        };
 
         var storeAxis = function( iDim) {
           var tAxis = this.getPath('graphModel.' + iDim + 'Axis' );
@@ -79,12 +62,11 @@ DG.GraphController = DG.ComponentController.extend(
           }
         }.bind( this);
 
-        if( dataContext)
-          storage._links_.context = dataContext.toLink();
+        this.storeDimension( dataConfiguration, storage, 'x');
+        this.storeDimension( dataConfiguration, storage, 'y');
 
         storeDimension( 'x');
         storeDimension( 'y');
-        storeDimension( 'legend');
         storeDimension( 'y2');
 
         storeAxis('x');
@@ -106,17 +88,9 @@ DG.GraphController = DG.ComponentController.extend(
       },
 
       restoreComponentStorage: function( iStorage, iDocumentID) {
-        var graphModel = this.get('graphModel'),
-            contextID = this.getLinkID( iStorage, 'context'),
-            dataContext = null;
+        var graphModel = this.get('dataDisplayModel');
         
-        if( !SC.none( contextID)) {
-          dataContext = DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
-          if( dataContext) {
-            this.set('dataContext', dataContext);
-            this.setPath('graphModel.dataConfiguration.dataContext', dataContext);
-          }
-        }
+        sc_super();
 
         if( SC.none( iStorage._links_))
           return; // We don't support the older format 0096 and before. Just bring up the default graph
@@ -155,26 +129,6 @@ DG.GraphController = DG.ComponentController.extend(
         }
       },
 
-      /**
-      	When our 'dataContext' is changed, we must let our model know.
-       */
-      dataContextDidChange: function() {
-        var graphModel = this.get('graphModel');
-        if( graphModel)
-          graphModel.set('dataContext', this.get('dataContext'));
-      }.observes('dataContext'),
-
-      /**
-        When our model changes, make sure it has the right 'dataContext'.
-       */
-      modelDidChange: function() {
-        // Our model is our component; its content is the graph model
-        var graphModel = this.getPath('model.content');
-        this.set('graphModel', graphModel);
-        if( graphModel)
-          graphModel.set('dataContext', this.get('dataContext'));
-      }.observes('model'),
-
       viewDidChange: function() {
         var componentView = this.get('view'),
             graphView = componentView && componentView.get('contentView');
@@ -207,37 +161,6 @@ DG.GraphController = DG.ComponentController.extend(
 
       init: function() {
         sc_super();
-
-        // To Do: We need to have the menu dynamically compute its layout.
-        this.attributeMenu = SC.MenuPane.create( {
-                  layout: { width: 200, height: 150 }
-                });
-        this.attributeMenu.selectedAxis = null;
-        this.attributeMenu.addObserver('selectedItem', this,
-                        this.attributeMenuItemChanged);
-        this.menuAnchorView = SC.View.create( {
-                    layout: { left: 0, width: 20, top: 0, height: 20 },
-                    backgroundColor: 'transparent',
-                    isVisible: false
-                  });
-      },
-
-      addAxisHandler: function( iAxisView) {
-        var this_ = this,
-            tNodes = iAxisView.get('labelNodes');
-
-        if( SC.isArray( tNodes)) {
-          tNodes.forEach( function( iNode, iIndex) {
-
-            function mouseDownHandler( iEvent) {
-              this_.setupAttributeMenu( iEvent, iAxisView, iIndex);
-            }
-
-            if( !SC.none( iNode.events))
-              iNode.unmousedown( mouseDownHandler); // In case it got added already
-            iNode.mousedown( mouseDownHandler);
-          });
-        }
       },
 
       /**
@@ -294,25 +217,7 @@ DG.GraphController = DG.ComponentController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });
-      }.observes('*y2AxisView.dragData'),
-
-      /**
-        The plot or legend view has received a drop of an attribute. Our job is to forward this properly on to
-        the graph so that the configuration can be changed.
-      */
-      plotOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
-        if( SC.none(iDragData)) // The over-notification caused by the * in the observes
-          return;       // means we get here at times there isn't any drag data.
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
-
-        iView.dragData = null;
-
-        this.get('graphModel').changeAttributeForLegend(
-                  tDataContext,
-                  { collection: tCollectionClient,
-                    attributes: [ iDragData.attribute ]});
-      }.observes('*plotView.dragData', '*legendView.dragData')
+      }.observes('*y2AxisView.dragData')
     };
 
   }()) // function closure
