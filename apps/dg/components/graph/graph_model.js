@@ -27,7 +27,7 @@ sc_require('components/graph_map_common/data_display_model');
 DG.GraphModel = DG.DataDisplayModel.extend(
   /** @scope DG.GraphModel.prototype */
   {
-    autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis' ],
+    autoDestroyProperties: [ 'plot', 'xAxis', 'yAxis', 'y2Axis' ],
 
     dataConfigurationClass: function() {
       return DG.GraphDataConfiguration;
@@ -47,6 +47,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      @property { DG.AxisModel }
      */
     yAxis: null,
+
+    /**
+     * This second axis is only instantiated when the user has indicated a desire to plot an attribute on an axis
+     * to the right of the plot.
+     * @property { DG.AxisModel }
+     */
+    y2Axis: null,
 
     /**
      * Returns the first plot in _plots, if any. When used to set,
@@ -148,6 +155,15 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     }.observes( 'yAxis' ),
 
     /**
+     Keep plot axis in synch
+     */
+    y2AxisChanged: function() {
+      var tPlot = this.get( 'plot' );
+      if( !SC.none( tPlot ) )
+        tPlot.set( 'y2Axis', this.get( 'y2Axis' ) );
+    }.observes( 'y2Axis' ),
+
+    /**
      * The menu item applies to the zeroth plot. We pass this command along to any other
      * plots as well.
      */
@@ -164,7 +180,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      Prepare dependencies.
      */
     init: function() {
-      var tXDescription, tYDescription;
+      var tXDescription, tYDescription, tY2Description;
 
       sc_super();
       
@@ -184,11 +200,16 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
       tXDescription = this.dataConfiguration.get( 'xAttributeDescription' );
       tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
+      tY2Description = this.dataConfiguration.get( 'y2AttributeDescription' );
 
       this.set( 'xAxis', getAxisClassFromType( tXDescription.get('attributeType')).create() );
       this.setPath('xAxis.attributeDescription', tXDescription);
       this.set( 'yAxis', getAxisClassFromType( tYDescription.get('attributeType')).create() );
       this.setPath('yAxis.attributeDescription', tYDescription);
+
+      // To get started with y2Axis we're going to create one during init. But this may change.
+      this.set( 'y2Axis', DG.AxisModel.create() );
+      this.setPath('y2Axis.attributeDescription', tY2Description);
 
       this.synchPlotWithAttributes();
 
@@ -213,9 +234,21 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
-      var tDescKey = (iOrientation === 'horizontal') ?
-                         'xAttributeDescription' : 'yAttributeDescription',
-          tAxisKey = (iOrientation === 'horizontal') ? 'xAxis' : 'yAxis';
+      var tDescKey, tAxisKey;
+      switch( iOrientation) {
+        case 'horizontal':
+          tDescKey = 'xAttributeDescription';
+          tAxisKey = 'xAxis';
+          break;
+        case 'vertical':
+          tDescKey = 'yAttributeDescription';
+          tAxisKey = 'yAxis';
+          break;
+        case 'vertical2':
+          tDescKey = 'y2AttributeDescription';
+          tAxisKey = 'y2Axis';
+          break;
+      }
 
       DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }", 
                   iOrientation, iAttrRefs.attributes[0].get('name'));
@@ -259,6 +292,62 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this.notifyPropertyChange('attributeAdded');
     },
+
+    /**
+      Sets the attribute for the specified axis.
+      @param  {DG.DataContext}      iDataContext -- The data context for this graph
+      @param  {Object}              iAttrRef -- The attribute to set for the axis
+              {DG.CollectionClient} iAttrRef.collection -- The collection that contains the attribute
+              {DG.Attribute}        iAttrRef.attribute -- The attribute to set for the axis
+      @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
+     */
+    changeAttributeForY2Axis: function( iDataContext, iAttrRef) {
+
+      var setNewBounds = function() {
+        var tAttribute = iAttrRef.attribute,
+            tAxis = this.get('y2Axis');
+
+        var tDataConfiguration = this.get('dataConfiguration'),
+            tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( DG.GraphTypes.EPlace.eY2);
+        tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
+      }.bind(this);
+
+      var getY2Plot = function() {
+        var tY2Plot,
+            tY2Axis = this.get('y2Axis');
+        this.get('plots').forEach( function( iPlot) {
+          if( iPlot.get('yAxis') === tY2Axis)
+            tY2Plot = iPlot;
+        });
+        return tY2Plot;
+      }.bind( this);
+
+      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRef.attribute.get('name'));
+
+      var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
+      tY2AttrDescription.removeAllAttributes();
+      tY2AttrDescription.addAttribute( iAttrRef.attribute);
+      tY2AttrDescription.set('collectionClient', iAttrRef.collection);
+
+      this.privSyncAxisWithAttribute( 'y2AttributeDescription', 'y2Axis' );
+
+      if( !getY2Plot()) {
+        // The only plot we can currently make with Y2 axis is a scatterplot
+        var tPlot = DG.ScatterPlotModel.create( { verticalAxisIsY2: true });
+        tPlot.beginPropertyChanges();
+        tPlot.setIfChanged('dataConfiguration', this.get('dataConfiguration'));
+        tPlot.setIfChanged('xAxis', this.get('xAxis'));
+        tPlot.setIfChanged('yAxis', this.get('y2Axis'));
+        tPlot.endPropertyChanges();
+
+        this.addPlot(tPlot);
+      }
+
+      setNewBounds();
+
+      this.notifyPropertyChange('y2AttributeAdded');
+    },
+
     /**
      * Useful for knowing whether we can rescale.
      * @return {Boolean}
@@ -430,7 +519,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tConfig.get( iDescKey ).set( 'role', tSecondaryRole );
           tConfig.get( tOtherDesc ).set( 'role', tPrimaryRole );
 
+          if( iAxisKey === 'y2Axis') {
+            // TODO: This is a kludge that won't hold up beyond the simplest case
+            this.removePlotAtIndex( this.get('plots').length - 1);
+            this.notifyPropertyChange('attributeRemoved');
+          }
+          else {
           this.synchPlotWithAttributes();
+          }
 
           this.invalidate();
           this.set( 'aboutToChangeConfiguration', false ); // reset for next time
@@ -463,14 +559,19 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      */
     restoreStorage: function( iStorage) {
       var tDataContext = this.getPath('dataConfiguration.dataContext'),
-          xAttrRef, yAttrRef, legendAttrRef,
+          xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
           tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
           tPrevXAxis = this.get('xAxis'),
           tYAxisClass = DG.Core.classFromClassName( iStorage.yAxisClass),
           tPrevYAxis = this.get('yAxis'),
+          tY2AxisClass = iStorage.y2AxisClass ? DG.Core.classFromClassName( iStorage.y2AxisClass) : DG.AxisModel,
+          tPrevY2Axis = this.get('y2Axis'),
           tCurrentXAxisClass = tPrevXAxis.constructor,
           tCurrentYAxisClass = tPrevYAxis.constructor,
-          tDataConfig = this.get('dataConfiguration');
+          tCurrentY2AxisClass = tPrevY2Axis.constructor,
+          tDataConfig = this.get('dataConfiguration'),
+          tYAttrIndex = 0,
+          tY2AttrIndex = 0;
 
       var instantiateArrayOfPlots = function( iPlots) {
         iPlots.forEach( function( iModelDesc, iIndex) {
@@ -478,12 +579,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             return;
           var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create(
             { _isBeingRestored: true }  // So that rescaling won't happen
-          );
+          ),
+          tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
           tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
           tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-          tPlot.setIfChanged( 'yAttributeIndex', iIndex);
+          tPlot.setIfChanged( 'y2Axis', this.get( 'y2Axis' ) );
+          tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
           tPlot.endPropertyChanges();
           if( iIndex === 0)
             this.set('plot', tPlot);
@@ -497,6 +600,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       // Instantiate the attribute references
       xAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'xColl', 'xAttr');
       yAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'yColl', 'yAttr');
+      y2AttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'y2Coll', 'y2Attr');
       legendAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'legendColl', 'legendAttr');
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
@@ -506,6 +610,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       //    methods like storageToRole(iStorage.xRole), storageToAttributeType(iStorage.xAttributeType).
       tDataConfig.setAttributeAndCollectionClient('xAttributeDescription', xAttrRef, iStorage.xRole, iStorage.xAttributeType);
       tDataConfig.setAttributeAndCollectionClient('yAttributeDescription', yAttrRef, iStorage.yRole, iStorage.yAttributeType);
+      tDataConfig.setAttributeAndCollectionClient('y2AttributeDescription', y2AttrRef, iStorage.y2Role, iStorage.y2AttributeType);
       tDataConfig.setAttributeAndCollectionClient('legendAttributeDescription', legendAttrRef, iStorage.legendRole, iStorage.legendAttributeType);
 
       this.set('aboutToChangeConfiguration', false ); // We're done
@@ -521,6 +626,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tNewYAxis.set('attributeDescription', tDataConfig.get('yAttributeDescription'));
         this.set('yAxis', tNewYAxis);
         tPrevYAxis.destroy();
+      }
+      if( tY2AxisClass && tY2AxisClass !== tCurrentY2AxisClass) {
+        var tNewY2Axis = tY2AxisClass.create();
+        tNewY2Axis.set('attributeDescription', tDataConfig.get('y2AttributeDescription'));
+        this.set('y2Axis', tNewY2Axis);
+        tPrevY2Axis.destroy();
       }
       instantiateArrayOfPlots( (iStorage.plotClass ? [ {plotClass: iStorage.plotClass }] : null) ||
                                   iStorage.plotModels ||
@@ -590,59 +701,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return [
         // Note that these 'built' string keys will have to be specially handled by any
         // minifier we use
-                  { title: ('DG.GraphMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
+                  { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
                                       target: this, itemAction: hideSelectedCases },
-                  { title: ('DG.GraphMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
+                  { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
                                       target: this, itemAction: hideUnselectedCases },
-                  { title: 'DG.GraphMenu.showAll', isEnabled: tSomethingHidden,
+                  { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
                                       target: this, itemAction: showAllCases }
               ];
-    },
-
-    /** create a menu item that removes the attribute on the given axis/legend */
-    createRemoveAttributeMenuItem: function( iXYorLegend, isForSubmenu, iAttrIndex ) {
-      iAttrIndex = iAttrIndex || 0;
-      var tDescKey = iXYorLegend + 'AttributeDescription',
-          tAxisKey = iXYorLegend + 'Axis', // not used by removeLegendAttribute()
-          tAttributes = this.getPath( 'dataConfiguration.' + tDescKey + '.attributes'),
-          tAttribute = (SC.isArray( tAttributes) && iAttrIndex < tAttributes.length) ?
-                            tAttributes[ iAttrIndex] : DG.Analysis.kNullAttribute,
-          tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
-          tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
-          tTitle = ('DG.GraphMenu.' + tResourceName + iXYorLegend).loc( tName ),
-          tAction;
-      switch( iXYorLegend) {
-        case 'x':
-        case 'y':
-        case 'y2':
-          tAction = this.removeAttribute;
-          break;
-        case 'legend':
-          tAction = this.removeLegendAttribute;
-          break;
-      }
-      return {
-        title: tTitle,
-        target: this,
-        itemAction: tAction,
-        isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
-        args: [ tDescKey, tAxisKey, iAttrIndex ] };
-    },
-
-    /** create a menu item that changes the attribute type on the given axis/legend */
-    createChangeAttributeTypeMenuItem: function( iXYorLegend ) {
-      var tDescKey = iXYorLegend + 'AttributeDescription',
-          tAxisKey = iXYorLegend + 'Axis',
-          tDescription = this.getPath( 'dataConfiguration.' + tDescKey),
-          tAttribute = tDescription && tDescription.get( 'attribute'),
-          tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
-          tTitle =( tIsNumeric ? 'DG.GraphMenu.treatAsCategorical' : 'DG.GraphMenu.treatAsNumeric').loc();
-      return {
-        title: tTitle,
-        target: this,
-        itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
-        isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
-        args: [ tDescKey, tAxisKey, !tIsNumeric ] };
     },
 
     /**
@@ -652,6 +717,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.get('plot').stopAnimation();
       this.get('xAxis').stopAnimation();
       this.get('yAxis').stopAnimation();
+      var tY2Axis = this.get('y2Axis');
+      tY2Axis && tY2Axis.stopAnimation();
     },
 
     isParentCase: function( iCase) {

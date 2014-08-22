@@ -100,15 +100,15 @@ DG.MapLayerView = SC.View.extend(
               .setView(this.get('center'), this.get('zoom'));
           this._map.on('layeradd', onLayerAdd);
 
-          var tTileLayer = L.esri.tiledMapLayer("http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSShadedReliefOnly/MapServer", {
-            opacity: 0.90,
-            zIndex: 2
-          });
-//        var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
-//                              layers: 'gebco_08_grid',
-//                              format: 'image/jpeg',
-//                              crs: L.CRS.EPSG4326
-//                            });
+//          var tTileLayer = L.esri.tiledMapLayer("http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSShadedReliefOnly/MapServer", {
+//            opacity: 0.90,
+//            zIndex: 2
+//          });
+        var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
+                              layers: 'gebco_08_grid',
+                              format: 'image/jpeg',
+                              crs: L.CRS.EPSG4326
+                            });
           this._map.addLayer(tTileLayer, true /*add at bottom */)
               .on('drag', onDisplayChangeEvent)
               .on('zoomend', onDisplayChangeEvent)

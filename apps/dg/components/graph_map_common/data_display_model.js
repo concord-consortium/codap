@@ -247,7 +247,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
           tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
           tTitle = ('DG.DataDisplayMenu.' + tResourceName + iXYorLegend).loc( tName ),
-          tAction = ((iXYorLegend==='x'||iXYorLegend==='y') ? this.removeAttribute : this.removeLegendAttribute );
+          tAction;
+      switch( iXYorLegend) {
+        case 'x':
+        case 'y':
+        case 'y2':
+          tAction = this.removeAttribute;
+          break;
+        case 'legend':
+          tAction = this.removeLegendAttribute;
+          break;
+      }
       return {
         title: tTitle,
         target: this,
