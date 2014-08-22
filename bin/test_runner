@@ -1,0 +1,6 @@
+#!/bin/sh
+
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+phantomjs $DIRNAME/test_runner.js
