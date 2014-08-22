@@ -41,12 +41,14 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.login'          : "Login",
   'DG.Authorization.loginPane.registerLink'   : "<a href='http://%@/user/register'>Create a new account</a>",
   'DG.Authorization.loginPane.recoveryLink'   : "<a href='http://%@/user/password'>Forgot your password?</a>",
+  'DG.Authorization.loginPane.documentStoreSignInHref': "%@user/authenticate",
   'DG.Authorization.loginPane.error.general'  : "Error occurred while logging in",
   'DG.Authorization.loginPane.error.userDatabaseError' : "Error connecting to the user database",
   'DG.Authorization.loginPane.error.authFailed': "Invalid username or password",
   'DG.Authorization.loginPane.error.noResponse': "Could not connect to login server",
   'DG.Authorization.loginPane.error.sessionExpired': "Session expired, please login again",
   'DG.Authorization.loginPane.error.invalidSession': "Session invalid, please login again",
+  'DG.Authorization.loginPane.error.notLoggedIn': "Please log in before continuing.",
 
   // IS_BUILD variants of strings for InquirySpace
   'DG.mainPage.mainPane.versionString.IS_BUILD' : "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
@@ -72,6 +74,7 @@ SC.stringsFor('English', {
   'DG.AppController.fileMenuItems.importDocument' : "Import CODAP Document...",
   'DG.AppController.fileMenuItems.exportDocument' : "Export CODAP Document...",
   'DG.AppController.fileMenuItems.exportCaseData' : "Export Case Data...",
+  'DG.AppController.fileMenuItems.showShareLink' : "Share Document...",
   'DG.AppController.closeDocument.warnMessage' : "Close the current document without saving?",
   'DG.AppController.closeDocument.warnDescription' : "This action is not undoable.",
   'DG.AppController.closeDocument.okButtonTitle' : "Close",
@@ -118,6 +121,11 @@ SC.stringsFor('English', {
   'DG.AppController.showAboutTitle' : 'About CODAP',
   'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
   'DG.AppController.showReleaseNotesTitle' : 'CODAP Release Notes',
+  'DG.AppController.shareLinkDialog.title' : 'Share',
+  'DG.AppController.shareLinkDialog.okButtonTitle' : 'OK',
+  'DG.AppController.shareLinkDialog.instructions' : "<p>Use the link below to share this document with others:</p>",
+  'DG.AppController.shareLinkDialog.link' : "<a href='%{doc_server}document/launch?owner=%{owner}&doc=%{doc_encoded}&server=%{codap_server}'>%{doc}</a>",
+  'DG.AppController.shareLinkDialog.saveWarning' : "<p>Warning: Make sure to save your document and mark it as shared!</p>",
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
@@ -188,7 +196,8 @@ SC.stringsFor('English', {
   'DG.DataContext.pluralCaseName': "cases",
   'DG.DataContext.caseCountString': "%@1 %@2",  // %@1: count, %@2: case name string
   'DG.DataContext.setOfCasesLabel': "a collection",
-  
+  'DG.DataContext.collapsedRowString': "a %@1 of %@2",
+
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "The formula for attribute \"%@\" is not editable.",
   'DG.CollectionClient.cantEditFormulaErrorDesc': "Create a new attribute to be able to specify a formula.",
