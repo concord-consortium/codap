@@ -63,7 +63,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       init: function () {
         sc_super();
         var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
-            tMapLayer = DG.MapLayerView.create();
+            tMapLayer = DG.MapLayerView.create( { center: this.getPath('model.center'),
+                                                  zoom: this.getPath('model.zoom')});
 
         this.set('mapLayer', tMapLayer);
         this.appendChild( tMapLayer);
@@ -91,13 +92,16 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.setPath('mapPointView.model', this.get('model'))
         this.appendChild( tMapPointView);
         if( this.getPath('model.hasLatLngAttrs')) {
-          var tBounds = this.get('model').getLatLngBounds();
-          if (this._isValidBounds(tBounds))
-            this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          if( !this.getPath('model.centerAndZoomBeingRestored')) {
+            var tBounds = this.get('model').getLatLngBounds();
+            if (this._isValidBounds(tBounds))
+              this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          }
         }
         else {
           tMapPointView.set('isVisible', false);
         }
+        this.adjustLayout( this.renderContext( this.get('tagName')));
       },
 
       addAreaLayer: function () {
@@ -109,9 +113,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               mapSource: this
             }));
         this.setPath('mapAreaLayer.model', this.get('model'));
-        var tBounds = this.get('model').getAreaBounds();
-        if (this._isValidBounds(tBounds))
-          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        if( !this.getPath('model.centerAndZoomBeingRestored')) {
+          var tBounds = this.get('model').getAreaBounds();
+          if (this._isValidBounds(tBounds))
+            this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        }
         this.get('mapAreaLayer').addFeatures();
       },
 
@@ -148,6 +154,30 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       createVisualization: function () {
         this.get('mapAreaLayer').createVisualization();
       },
+
+      /**
+       * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
+       */
+      handleLegendLayoutChange: function() {
+        this.adjustLayout( this.renderContext( this.get('tagName')));
+      }.observes('*legendView.desiredExtent'),
+
+      handleMapLayerDisplayChange: function() {
+        var tMapPointView = this.get('mapPointView');
+        tMapPointView && tMapPointView.doDraw();
+
+        // Store the map's center and zoom in my model for save and restore
+        var tMap = this.getPath('mapLayer.map'),
+            tModel = this.get('model'),
+            tCenter = tMap.getCenter(),
+            tZoom = tMap.getZoom();
+        tModel.set('center', tCenter);
+        tModel.set('zoom', tZoom);
+      }.observes('mapLayer.displayChangeCount'),
+
+      handleClick: function() {
+        this.get('model').selectAll(false);
+      }.observes('mapLayer.clickCount'),
 
       /**
        * Override the two mixin methods because the drop target view is mapPointView

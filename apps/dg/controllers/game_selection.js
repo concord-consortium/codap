@@ -30,7 +30,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   var kDefaultGameIndex = 0;  // 0-based index into 'games' array below
 
   return {  // return from closure
-  
+
   /**
    * Array of available games.
    * @property {Array of DG.[Base]GameSpec}
@@ -174,7 +174,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       dimensions: { width: 600, height: 374 },
       url: 'DataGames/FlashGames/Wheel.html'
     }),
-    
+
     DG.GameSpec.create({
       name: "Lunar Lander [eeps]",
       dimensions: { width: 425, height: 550 },
@@ -191,7 +191,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       // http://www.eeps.com/dataGames/DGGames/
       url: 'DataGames/Games/External/FloydsFargo/index.html'
     }),
-    
+
     DG.GameSpec.create({
       name: "RoboBall",
       dimensions: { width: 700, height: 500 },
@@ -199,7 +199,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       // http://www.eeps.com/dataGames/DGGames/
       url: 'DataGames/FlashGames/RoboBall.html'
     }),
- 
+
     DG.GameSpec.create({
       name: "Prox (test short)",
       dimensions: { width: 800, height: 380 },
@@ -218,14 +218,14 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       url: 'DataGames/FlashGames/Sample.html'
     }),
 
-   
+
 
 //     DG.GameSpec.create({
 //       name: "Rallye",
 //       dimensions: { width: 540, height: 475 },
 //       url: 'DataGames/JavaScriptGames/Rallye/index.html'
 //     }),
-// 
+//
 //     DG.GameSpec.create({
 //       name: "Rallye [eeps]",
 //       dimensions: { width: 540, height: 475 },
@@ -348,14 +348,14 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     })
 
   ], // end of devGames array
-  
+
   /**
    * The currently selected game.
    *  Defaults to the game at index 'kDefaultGameIndex' in the 'games' array.
    * @property {DG.GameSpec}
    */
   currentGame: null,
-  
+
   /**
    * [Computed] The name of the currently selected game.
    * @property {String}
@@ -363,14 +363,14 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   currentName: function() {
     return this.getPath('currentGame.name');
   }.property('currentGame').cacheable(),
-  
+
   /**
    * Dimensions requested by the client setting the current game,
    * e.g. after restoring a document with user-set dimensions.
    * @property {Object}
    */
   requestedDimensions: null,
-  
+
   /**
    * [Computed] The dimensions of the currently selected game {width,height}.
    * @property {Object}
@@ -378,7 +378,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   currentDimensions: function() {
     return this.getPath('currentGame.dimensions');
   }.property('currentGame').cacheable(),
-  
+
   /**
    * [Computed] The URL of the currently selected game.
    * @property {String}
@@ -386,18 +386,18 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   currentUrl: function() {
     return this.getPath('currentGame.url');
   }.property('currentGame').cacheable(),
-  
+
   /**
    *  The DataContext for the currently selected game.
    *  @property {DG.DataContext} or a derived class
    */
   currentContext: function() {
-    // We don't call DG.GameContext.getContextForGame() because we don't want 
+    // We don't call DG.GameContext.getContextForGame() because we don't want
     // to force creation here. Otherwise, setting the context to null (e.g. when
     // closing the document) can result in immediate creation of new contexts.
     return this.getPath('currentGame.context');
   }.property('currentGame','currentGame.context'),
-  
+
   /**
    * [Computed] The collection associated with the currently selected game.
    * @property {DG.Collection}
@@ -406,13 +406,13 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   //  var collectionName = this.getPath('currentGame.collectionName');
   //  return DG.collectionWithName(collectionName);
   //}.property('currentGame').cacheable(),
-  
+
   /**
    * Game selection menu.
    * @property {SC.MenuPane}
    */
   menuPane: null,
-  
+
   /**
    * Initialization function.
    */
@@ -424,11 +424,11 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
               itemTitleKey: 'name',
               layout: { width: 200/*, height: 200*/ }
             });
-    
+
     // Specify the default game
     this.setDefaultGame();
   },
-  
+
   /**
     Appends the specified game specifications to the beginning of the games menu.
     This allows documents which reference games that are not in the current games menu
@@ -442,9 +442,9 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     this.games = newGames;
     this.menuPane.set('items', newGames);
   },
-  
+
   buildGamesMenu: function( iShowSrriGames, iShowDevGames) {
-  
+
     this.games = [];
 
     // Add any entries specified as URL parameters
@@ -462,22 +462,22 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       if( this.games.length > 0)
         this.games.push( DG.BaseGameSpec.create({ name: null, isSeparator: true }));
     }
-  
+
     this.games = this.games.concat( this.get('baseGames'));
-    
+
     if( iShowSrriGames || iShowDevGames )
       this.games = this.games.concat( this.get('srriGames'));
-    
+
     if( iShowDevGames)
       this.games = this.games.concat( this.get('devGames'));
   },
-  
+
   loginDidChange: function() {
     var isDeveloper = DG.authorizationController.get('isUserDeveloper');
     this.buildGamesMenu( DG.IS_SRRI_BUILD || isDeveloper, DG.IS_DEV_BUILD || isDeveloper);
     this.menuPane.set('items', this.games);
   }.observes('DG.authorizationController.isUserDeveloper'),
-  
+
   /**
     Loads the specified game as the default game for a new document.
     Attempts to determine a default game by the following means:
@@ -511,7 +511,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       this.endPropertyChanges();
     }
   },
-  
+
   /**
     Observer method called whenever the 'currentGame' property is changed.
    */
@@ -520,7 +520,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     if( DG.currGameController)
       DG.currGameController.set('gameIsReady', false);
   }.observes('currentGame'),
-   
+
   /**
    * Action method for game selection menu.
    *  Called when the user selects a game from the menu.
@@ -544,14 +544,14 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
         this.notifyPropertyChange('currentGame');
         return;
       }
-      
+
       // Clear the menu item so it can be selected again, if necessary.
       this.setPath('menuPane.selectedItem', null);
-      
+
       DG.appController.closeDocumentWithConfirmation( selectedGameName);
     }
   }.observes('.menuPane.selectedItem'),
-  
+
   /**
     Sets the current game to the DG.[Base]GameSpec that matches the specified game name.
     @param  {String}  iGameName   The name of the game to set as the current game
@@ -660,7 +660,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
                         });
     this.menuPane.set('selectedItem', null);
   },
-  
+
   /**
     Returns the DG.[Base]GameSpec for the specified game name.
     Returns null if no matching game is found.
@@ -690,7 +690,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       });
     }
   },
-  
+
   /**
     [Old API] Fill out the DG.BaseGameSpec fields from the arguments passed to the
     'newCollectionWithAttributes' command. In the old API, this code must infer some
@@ -700,7 +700,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     // Make sure we have a current game
     var currentGame = this.get('currentGame');
     if( !currentGame) return;
-    
+
     // Extract the cmd args we'll be using
     var collectionName = iCmdArgs.name,
         childrenName = iCmdArgs.children,
@@ -714,23 +714,23 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
         currentGame.collections.push( collectionName);
 
       switch( currentGame.collections.length) {
-      
+
       case 1:
         // Extract the parent collection name if we don't already know it
         if( SC.empty( currentGame.parentCollectionName))
           currentGame.parentCollectionName = collectionName;
         break;
-      
+
       case 2:
         // Extract the events collection name if we don't already know it
         if( SC.empty( currentGame.collectionName))
           currentGame.collectionName = collectionName;
         break;
-      
+
       default:
       }
     }
-    
+
     // Extract the name of the events attribute (which links to the child cases)
     if( SC.empty( currentGame.eventsAttributeName) && !SC.empty( childrenName))
       currentGame.eventsAttributeName = childrenName;
@@ -743,5 +743,5 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   }
 
   }; // end return from closure
-  
+
 }())) ; // end closure

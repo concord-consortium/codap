@@ -1,0 +1,62 @@
+#!/bin/bash
+#
+# Installs a CODAP executable in the release directory.
+#
+# Expects one argument, the CODAP instance packaged as a zip file, and having
+# its top level directory named according to its build name.
+# The target directory is the release directory for the codap web site.
+# This script deletes any old directory it finds matching the new executable's
+# build name.
+#
+# The script expects to be run with root privileges.
+#
+# The script changes ownership so the directory will be accessible to apache.
+PROGNAME=`basename $0`
+
+RELEASE_DIR=/var/www-codap/html/releases
+TMP_DIR=/tmp/${PROGNAME}.$$
+
+ZIP_FILE=$1
+
+function usage() {
+    echo usage: ${PROGNAME} codap-zip 1>&2
+    exit 1
+}
+
+function error_exit() {
+    echo "${PROGNAME}: error: $1" 1>&2
+    echo exiting... 1>&2
+    exit 2
+}
+
+# Make sure only root can run our script
+if [[ $EUID -ne 0 ]]; then
+   error_exit "This script must be run as root"
+fi
+
+
+if [ "$ZIP_FILE" = "" ] ; then
+  usage
+fi
+
+mkdir ${TMP_DIR}
+unzip -d ${TMP_DIR} $ZIP_FILE
+chgrp -R www-data ${TMP_DIR}/*
+
+# Get build name from directory name
+t=`ls ${TMP_DIR}`
+BUILD_NAME=`basename $t`
+
+echo BUILD_NAME=$BUILD_NAME
+
+# Check if site exists in Release dir. If so, drop it and warn
+if [ -e ${RELEASE_DIR}/${BUILD_NAME} ] ; then
+  rm -r ${TMP_DIR}
+  error_exit "Build ${BUILD_NAME} already exists. Not overwriting."
+fi
+
+# Move from tmp to release dir
+mv ${TMP_DIR}/${BUILD_NAME} ${RELEASE_DIR}
+
+# remove tmp dir
+rm -r ${TMP_DIR}

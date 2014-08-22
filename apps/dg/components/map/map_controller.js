@@ -18,16 +18,15 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/component_controller');
+sc_require('components/graph_map_common/data_display_controller');
 
 /** @class
 
-  DG.MapController provides controller functionaly, particular gear menu items,
-  for scatter plots.
+  DG.MapController provides controller functionality, for maps.
 
-  @extends SC.Controller
+  @extends SC.DataDisplayController
 */
-DG.MapController = DG.ComponentController.extend(
+DG.MapController = DG.DataDisplayController.extend(
 /** @scope DG.MapController.prototype */ 
   (function() {
 
@@ -37,91 +36,23 @@ DG.MapController = DG.ComponentController.extend(
     }
 
     return {
-      dataContext: null,
-      mapModel: null,
+      mapModel: function() {
+        return this.get('dataDisplayModel');
+      }.property('dataDisplayModel'),
       mapView: null,
-      legendView: null,
 
       createComponentStorage: function() {
-        var storage = { _links_: {} },
-            dataContext = this.get('dataContext'),
-            dataConfiguration = this.getPath('mapModel.dataConfiguration'),
-            hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' );
+        var storage = sc_super();
 
-//        var storeDimension = function( iDim) {
-//          var tCollection = dataConfiguration && dataConfiguration.get(iDim + 'CollectionClient' ),
-//              tAttrDesc = dataConfiguration && dataConfiguration.get(iDim + 'AttributeDescription' ),
-//              tAttrs = (tAttrDesc && tAttrDesc.get('attributes')) || [];
-//          if( tCollection && (tAttrs.length > 0)) {
-//            storage._links_[iDim + 'Coll'] = tCollection.toLink();
-//            var tKey = iDim + 'Attr';
-//            tAttrs.forEach( function( iAttr) {
-//              DG.ArchiveUtils.addLink( storage, tKey, iAttr);
-//            });
-//          }
-//          storage[iDim + 'Role'] = tAttrDesc.get('role');  // Has a role even without an attribute
-//          storage[iDim + 'AttributeType'] = tAttrDesc.get('attributeType');
-//        };
-
-        if( dataContext)
-          storage._links_.context = dataContext.toLink();
-
-//        storeDimension( 'x');
-//        storeDimension( 'y');
-//        storeDimension( 'legend');
-
-        if( hiddenCases) {
-          storage.hiddenCases = hiddenCases.map( function( iCase) {
-            return iCase.get('id');
-          });
-        }
+        storage.mapModelStorage = this.get('mapModel').createStorage();
         return storage;
       },
 
       restoreComponentStorage: function( iStorage, iDocumentID) {
-//        var mapModel = this.get('mapModel'),
-//            contextID = this.getLinkID( iStorage, 'context'),
-//            dataContext = null;
-//
-//        if( !SC.none( contextID)) {
-//          dataContext = DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
-//          if( dataContext) {
-//            this.set('dataContext', dataContext);
-//            this.setPath('mapModel.dataConfiguration.dataContext', dataContext);
-//          }
-//        }
-//
-//        if( SC.none( iStorage._links_))
-//          return; // We don't support the older format 0096 and before. Just bring up the default graph
-//                  // that we already have.
-//
-//        mapModel.restoreStorage( iStorage);
-//
-//        // There may be some animations that have been set up. We have to stop them so that changes
-//        // we make below (e.g. to axis bounds) will stick.
-//        mapModel.stopAnimation();
-//
+        sc_super();
+
+        this.get('dataDisplayModel').restoreStorage( iStorage);
       },
-
-      /**
-      	When our 'dataContext' is changed, we must let our model know.
-       */
-      dataContextDidChange: function() {
-        var mapModel = this.get('mapModel');
-        if( mapModel)
-          mapModel.set('dataContext', this.get('dataContext'));
-      }.observes('dataContext'),
-
-      /**
-        When our model changes, make sure it has the right 'dataContext'.
-       */
-      modelDidChange: function() {
-        // Our model is our component; its content is the graph model
-        var mapModel = this.getPath('model.content');
-        this.set('mapModel', mapModel);
-        if( mapModel)
-          mapModel.set('dataContext', this.get('dataContext'));
-      }.observes('model'),
 
       viewDidChange: function() {
         var componentView = this.get('view'),
@@ -140,21 +71,8 @@ DG.MapController = DG.ComponentController.extend(
       gearMenuItems: function() {
         var tMap = this.getPath('mapModel');
         return SC.none( tMap) ? [] : tMap.getGearMenuItems();
-      }.property('mapModel'),
+      }.property('mapModel')
 
-      mapOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
-        if( SC.none(iDragData)) // The over-notification caused by the * in the observes
-          return;       // means we get here at times there isn't any drag data.
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
-
-        iView.dragData = null;
-
-        this.get('mapModel').changeAttributeForLegend(
-                  tDataContext,
-                  { collection: tCollectionClient,
-                    attributes: [ iDragData.attribute ]});
-      }.observes('*mapView.dragData', '*legendView.dragData')
     };
 
   }()) // function closure

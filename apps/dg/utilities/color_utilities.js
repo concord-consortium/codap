@@ -168,15 +168,12 @@ DG.ColorUtilities.calcCaseColor = function( iCaseValue, iColorAttributeDescripti
     }
     if( newColor === null ) {
       // calculate color using TinkerPlots color-space algorithm
-      var tAttributeColor = DG.ColorUtilities.calcAttributeColor( iColorAttributeDescription),
-          tStats = iColorAttributeDescription.get('attributeStats'),
-          calcFunction = tIsNumeric ?
-                            DG.ColorUtilities.calcContinuousColor :
-                            DG.ColorUtilities.calcCategoryColor ;
-      newColor = calcFunction(
-                      tStats,
-                      tAttributeColor,
-                      iCaseValue );
+      var tAttributeColor = DG.ColorUtilities.calcAttributeColor( iColorAttributeDescription);
+      newColor = tIsNumeric ?
+        DG.ColorUtilities.calcContinuousColor(
+            iColorAttributeDescription.get('minMax'), tAttributeColor, iCaseValue ) :
+        DG.ColorUtilities.calcCategoryColor(
+            iColorAttributeDescription.get('attributeStats'), tAttributeColor, iCaseValue );
     }
   }
   return newColor;
@@ -217,16 +214,15 @@ DG.ColorUtilities.getAttributeColorFromColorMap = function( iColorMap ) {
  *      variable.  Creates a gradient from white for the lowest numeric value,
  *      to the attribute color for the highest numeric value. Returns the
  *      missing value color for any non-numeric case values.
- * @param {DG.AttributeStats} iAttributeStats
+ * @param {DG.AttributeStats} iMinMax
  * @param {DG.ColorUtilities.hsbColor} iAttributeColor
  * @param iCaseValue
  * @returns {DG.ColorUtilities.Color}
  */
-DG.ColorUtilities.calcContinuousColor = function( iAttributeStats, iAttributeColor, iCaseValue ) {
+DG.ColorUtilities.calcContinuousColor = function( iMinMax, iAttributeColor, iCaseValue ) {
 
   var tCaseColor  = DG.ColorUtilities.kMissingValueCaseColor,
-      tMinMax     = iAttributeStats.get('minMax'),
-      tRange      = tMinMax.max - tMinMax.min,
+      tRange      = iMinMax.max - iMinMax.min,
       tHue        = iAttributeColor.h,  // break color into components
       tSaturation = iAttributeColor.s,
       tBrightness = iAttributeColor.b,
@@ -236,7 +232,7 @@ DG.ColorUtilities.calcContinuousColor = function( iAttributeStats, iAttributeCol
   if( DG.isFinite( tRange ) && DG.isFinite( iCaseValue )) {
     //KCP_ASSERT( Compare::inRange( iCaseValue, iVarStats.GetMin(), iVarStats.GetMax() ));
     // adjust saturation and brightness along gradient
-    tScale = (tRange > 0) ? ((iCaseValue - tMinMax.min) / tRange) : 1;
+    tScale = (tRange > 0) ? ((iCaseValue - iMinMax.min) / tRange) : 1;
     tSaturation *= tScale;
     tBrightness = DG.ColorUtilities.gammaCorrect( 1.0 - ((1.0 - tBrightness) * tScale));
     tCaseColor  = DG.ColorUtilities.hsb_to_PlatformColor( tHue, tSaturation, tBrightness );

@@ -48,10 +48,14 @@ DG.mainPage = SC.Page.design((function() {
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
         localize: true,
-        title: 'DG.mainPage.mainPane.logoutButton.title', // "Logout"
+        title: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'), // "Logout"
         target: 'DG.appController',
         action: 'logout',
-        toolTip: 'DG.mainPage.mainPane.logoutButton.toolTip'  // "Log out the current user"
+        userBinding: 'DG.authorizationController.currLogin.user',
+        isVisible: function() {
+          return !DG.documentServer || this.get('user') == 'guest';
+        }.property('user'),
+        toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip')  // "Log out the current user"
       }),
   
       versionLabel: SC.LabelView.design({

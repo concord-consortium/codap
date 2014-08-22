@@ -597,7 +597,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
           tIsSelected = tSelection.containsObject( iCase);
           tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
           tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
-          tElement.removeClass( DG.PlotUtilities.kDotClassPattern );
+          DG.PlotUtilities.kDotClasses.forEach( function( iClass) {
+            tElement.removeClass( iClass);
+          });
           tElement.addClass(    this_.getPlottedElementClass( tIsSelected, tIsColored ));
           tLayerManager.moveElementFromTo( tElement, tFrom, tTo);
        }

@@ -42,8 +42,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                                 },
         tPlace,
         tDefaults = DG.currDocumentController().collectionDefaults(),
-        tCollectionClient = tDefaults && tDefaults.collectionClient,
-        tAttrNames = tCollectionClient && tCollectionClient.getAttributeNames(),
+        tChildCollectionClient = tDefaults && tDefaults.collectionClient,
+        tParentCollectionClient = tDefaults && tDefaults.parentCollectionClient,
         tCaptionName, tLatName, tLongName, tAreaName,
         tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
         kLatNames = ['latitude', 'lat', 'Latitude', 'Lat'],
@@ -59,7 +59,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         @param  {Number}    iNumericRole -- Numeric analysis role
         @param  {Number}    iCategoricalRole -- Categorical analysis role
      */
-    var configAttrDesc = function( iAttrPrefix, iAttr) {
+    var configAttrDesc = function( iAttrPrefix, iAttr, iCollectionClient) {
       var attrDesc = attributeDescriptions[ iAttrPrefix],
           tType;
           
@@ -68,7 +68,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       // Configure the attribute description for the specified default attribute
       if( iAttr) {
         // Must set collection before attribute for attribute stats to be configured properly
-        attrDesc.set('collectionClient', tCollectionClient);
+        attrDesc.set('collectionClient', iCollectionClient);
         attrDesc.set('attribute', iAttr);
         switch( iAttrPrefix) {
           case 'x':
@@ -96,33 +96,48 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');
     }.bind( this);
 
-    if( tAttrNames) {
-      tCaptionName = tAttrNames[ 0];
-      tCaptionAttr = tCaptionName && tCollectionClient.getAttributeByName( tCaptionName);
+    var lookForMapAttributes = function( iCollectionClient) {
+      var tFoundOne = false;
+          tAttrNames = iCollectionClient && iCollectionClient.getAttributeNames();
+      if( tAttrNames) {
+        tCaptionName = tAttrNames[ 0];
+        tCaptionAttr = tCaptionName && iCollectionClient.getAttributeByName( tCaptionName);
 
-      kLatNames.forEach( function( iName) {
-        if( tAttrNames.indexOf( iName) >= 0)
-          tLatName = iName;
-      });
-      tLatAttr = tLatName && tCollectionClient.getAttributeByName( tLatName);
-      kLongNames.forEach( function( iName) {
-        if( tAttrNames.indexOf( iName) >= 0)
-          tLongName = iName;
-      });
-      tLongAttr = tLongName && tCollectionClient.getAttributeByName( tLongName);
+        kLatNames.forEach( function( iName) {
+          if( tAttrNames.indexOf( iName) >= 0) {
+            tLatName = iName;
+            tFoundOne = true;
+          }
+        });
+        tLatAttr = tLatName && iCollectionClient.getAttributeByName( tLatName);
+        kLongNames.forEach( function( iName) {
+          if( tAttrNames.indexOf( iName) >= 0) {
+            tLongName = iName;
+            tFoundOne = true;
+          }
+        });
+        tLongAttr = tLongName && iCollectionClient.getAttributeByName( tLongName);
 
-      kAreaNames.forEach( function( iName) {
-        if( tAttrNames.indexOf( iName) >= 0)
-          tAreaName = iName;
-      });
-      tAreaAttr = tAreaName && tCollectionClient.getAttributeByName( tAreaName);
-    }
-    
-    configAttrDesc('caption', tCaptionAttr);
-    configAttrDesc('x', tLongAttr);
-    configAttrDesc('y', tLatAttr);
-    configAttrDesc('legend', null);
-    configAttrDesc('area', tAreaAttr);
+        kAreaNames.forEach( function( iName) {
+          if( tAttrNames.indexOf( iName) >= 0) {
+            tAreaName = iName;
+            tFoundOne = true;
+          }
+        });
+        tAreaAttr = tAreaName && iCollectionClient.getAttributeByName( tAreaName);
+      }
+
+      configAttrDesc('caption', tCaptionAttr, iCollectionClient);
+      configAttrDesc('x', tLongAttr, iCollectionClient);
+      configAttrDesc('y', tLatAttr, iCollectionClient);
+      configAttrDesc('legend', null, iCollectionClient);
+      configAttrDesc('area', tAreaAttr, iCollectionClient);
+
+      return tFoundOne;
+    }.bind( this);
+
+    lookForMapAttributes( tChildCollectionClient) ||
+      lookForMapAttributes( tParentCollectionClient);
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.
@@ -138,6 +153,30 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eArea][0] = attributeDescriptions.area;
   },
+
+  /**
+   * Override to return use the source that is used by either the area attribute or one of the lat/long attributes.
+   * Note that we are assuming that _either_ the area attribute _or_ the xAttribute have a collection client. If
+   * they both have collection clients and those are different, this won't be adequate.
+   */
+  collectionClient: function() {
+    var tKeys = ['areaAttributeDescription', 'xAttributeDescription'],
+        tSource;
+    tKeys.forEach( function( iAttrKey) {
+      var tAttrDesc = this.get( iAttrKey);
+      if( tAttrDesc && tAttrDesc.collectionClient)
+        tSource = tAttrDesc.collectionClient;
+    }.bind( this));
+    return tSource;
+  }.property(),
+
+  /**
+   * @property {SC.Array of DG.Case} All cases, both hidden and visible
+   */
+  allCases: function() {
+    var tSource = this.get('collectionClient');
+    return tSource ? tSource.getPath('casesController.arrangedObjects') : null;
+  }.property(),
 
   /**
    @property { DG.AttributePlacementDescription }

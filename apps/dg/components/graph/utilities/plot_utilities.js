@@ -41,7 +41,7 @@ DG.PlotUtilities = {
   kSelectedDotClassName: 'data-dot-selected',
   kColoredDotClassName: 'data-dot-colored',
   kSelectedColoredDotClassName: 'data-dot-colored-selected',
-  kDotClassPattern: /data-dot[a-z\-]*/g, // pattern that matches all 4 Dot Class names above
+  kDotClasses: [ 'data-dot', 'data-dot-selected', 'data-dot-colored', 'data-dot-colored-selected'],
   kToolTipClassName: 'data-tip',
   kToolTipShadowClassName: 'data-tip-shadow',
   kToolTipTextClassName: 'data-tip-text',
@@ -51,6 +51,7 @@ DG.PlotUtilities = {
   kSelectedColoredStripClassName: 'data-strip-colored-selected',
   kLegendKey: 'legend-key',
   kLegendKeyName: 'legend-key-name',
+  kMapColorRangeOffset: 0.1, // Offset proportion used to lower the apparent color min for map area coloring
   kDefaultAnimationTime: 1000,  // milliseconds
   kDataTipShowTime: 500, // milliseconds delay time before data tips appear
   kHighlightShowTime: 100, // milliseconds delay time before adornment highlighting appears
@@ -59,11 +60,12 @@ DG.PlotUtilities = {
   kDataCreateTransform: 's2',   // scale 2 times on create
 
   // Constants for maps
-  kMapAreaNoLegendColor: 'red',
-  kMapAreaNoLegendUnselectedOpacity: 0.2,
+  kMapAreaNoLegendColor: 'blue',
+  kMapAreaNoLegendSelectedColor: 'red',
+  kMapAreaNoLegendUnselectedOpacity: 0.7,
   kMapAreaNoLegendSelectedOpacity: 1,
-  kMapAreaWithLegendSelectedOpacity: 0.5,
-  kMapAreaWithLegendUnselectedOpacity: 0.5,
+  kMapAreaWithLegendSelectedOpacity: 0.9,
+  kMapAreaWithLegendUnselectedOpacity: 0.9,
   kMapAreaNoLegendUnselectedBorderColor: 'yellow',
   kMapAreaNoLegendSelectedBorderColor: 'black',
   kMapAreaWithLegendUnselectedBorderColor: 'yellow',

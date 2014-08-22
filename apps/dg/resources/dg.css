@@ -55,6 +55,7 @@
 .data-dot-colored {
     opacity: 0.5 !important;
     stroke: #315B7D !important;
+    pointer-events: all;
 }
 
 .data-dot-colored-selected {
@@ -116,6 +117,10 @@
     text-align: left !important;
     font-family: "lucida sans", helvetica, arial !important;
     font-size: 100% !important;
+}
+
+.legend-view {
+    background-color: white;
 }
 
 .legend-key {

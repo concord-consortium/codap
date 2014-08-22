@@ -47,7 +47,7 @@ DG.supportFuncs = {
     for setting document permissions when documents are saved.
    */
   docSavePermissions: function() {
-    return DG.IS_INQUIRY_SPACE_BUILD;
+    return DG.IS_INQUIRY_SPACE_BUILD || !!DG.documentServer;
   }
 
 };

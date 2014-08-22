@@ -302,7 +302,8 @@ DG.Debug = SC.Object.create( (function() {
       Private function used to decide when to log to the DG server.
       Analogous to SC.Logger._shouldOutputType and SC.Logger._shouldRecordType.
 
-      @param {Constant}  type
+      @param {String}  iType  The name of the type in question from among
+                                standard Sproutcore log types.
       @returns {Boolean}
     */
     _shouldLogTypeToServer: function( iType) {
@@ -320,10 +321,10 @@ DG.Debug = SC.Object.create( (function() {
       automatically on the message, but only if at least one of the log levels
       is such that the result will be used.
   
-      @param {String}               type                 Expected to be SC.LOGGER_LEVEL_DEBUG, etc.
-      @param {Boolean}              automaticallyFormat  Whether or not to treat 'message' as a format string if there are additional arguments
-      @param {String}               message              Expected to a string format (for String.fmt()) if there are other arguments
-      @param {String}   (optional)  originalArguments    All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
+      @param {String}  iType         Expected to be SC.LOGGER_LEVEL_DEBUG, etc.
+      @param {Boolean} iAutoFormat   Whether or not to treat 'message' as a format string if there are additional arguments
+      @param {String}  iMessage      Expected to a string format (for String.fmt()) if there are other arguments
+      @param {Object}  iOriginalArgs (optional) All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
     */
     _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
     
@@ -335,13 +336,27 @@ DG.Debug = SC.Object.create( (function() {
       
       // Log the message to the server as well, if appropriate
       if( DG.Debug._shouldLogTypeToServer( scType)) {
-        // Pass along any properties that were passed in the last argument as metaArgs
-        var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0)) ? iOriginalArgs[ iOriginalArgs.length - 1] : undefined,
-            metaArgs = typeof lastArg === 'object' ? lastArg : {};
-        DG.logToServer( DG.Debug._currentMessage, { type: iType }, metaArgs);
+        // Pass along any properties that were passed in the last argument as
+        // metaArgs
+        var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
+                ? iOriginalArgs[ iOriginalArgs.length - 1]
+                : undefined,
+            metaArgs = typeof lastArg === 'object' ? lastArg : {},
+            messageParts = DG.Debug._currentMessage.split(":"),
+            activity = DG.gameSelectionController.get('currentGame'),
+            activityName = activity? activity.get('name') : undefined,
+            messageType = messageParts.shift(),
+            messageArgs = messageParts.join(':').trim();
+
+        DG.logToServer( messageType, {
+              type: iType,
+              args: messageArgs,
+              activity: activityName,
+              application: 'CODAP'
+            }, metaArgs);
       }
     },
-    
+
     /** @private
       Our exception handler override which logs the exception and stops in the debugger
       before calling the SproutCore exception handler.

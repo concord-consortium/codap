@@ -28,78 +28,91 @@
  @extends SC.Object
  */
 DG.MapLayerView = SC.View.extend(
-  /** @scope DG.MapLayerView.prototype */ {
+    /** @scope DG.MapLayerView.prototype */ {
 
-    kSanFran: [37.84,-122.10],
-    kDefaultZoom: 5,
+      center: null,
+      zoom: null,
 
-    _layerID: null,
+      _layerID: null,
 
-    _map: null,
+      _map: null,
 
-    map: function() {
-      return this._map;
-    }.property('_map'),
+      map: function () {
+        return this._map;
+      }.property('_map'),
 
-    didCreateMap: function( iMap) {
-    },
+      didCreateMap: function (iMap) {
+      },
 
-    init: function() {
-      sc_super();
-    },
+      /**
+       * Property that can be observed by parent view
+       */
+      displayChangeCount: 0,
 
-    /**
-     * Provide an element on which we can draw.
-     * @param ctx
-     * @param first
-     */
-    render:function ( ctx, first ) {
-      if( first ) {
-        this._layerID = ctx.push(
-          '<div></div>'
-        ).id();
-      }
-    },
+      /**
+       * Property that can be observed by parent view
+       */
+      clickCount: 0,
 
-    didCreateLayer:function () {
-      // TODO: Investigate whether there is some later time to call _createMap so we don't have to use invokeLast
-      this.invokeLast(this._createMap);
-    },
+      init: function () {
+        sc_super();
+      },
 
-    _createMap:function () {
+      /**
+       * Provide an element on which we can draw.
+       * @param ctx
+       * @param first
+       */
+      render: function (ctx, first) {
+        if (first) {
+          this._layerID = ctx.push(
+              '<div></div>'
+          ).id();
+        }
+      },
 
-      var onLayerAdd = function( iLayerEvent) {
-            var tParentView = this.get('parentView');
-            this._map.off('layeradd', onLayerAdd);
-            tParentView.addPointLayer();
-            tParentView.addAreaLayer();
-          }.bind( this ),
+      didCreateLayer: function () {
+        // TODO: Investigate whether there is some later time to call _createMap so we don't have to use invokeLast
+        this.invokeLast(this._createMap);
+      },
 
-          onDisplayChangeEvent = function( iEvent) {
-              // TODO: Eliminate knowledge at this level of mapPointView
-            var tMapPointView = this.getPath('parentView.mapPointView');
-            tMapPointView && tMapPointView.doDraw();
-          }.bind( this),
+      _createMap: function () {
 
-          onClick = function( iEvent) {
-            this.getPath('parentView.model').selectAll( false);
-          }.bind( this);
+        var onLayerAdd = function (iLayerEvent) {
+              var tParentView = this.get('parentView');
+              this._map.off('layeradd', onLayerAdd);
+              tParentView.addPointLayer();
+              tParentView.addAreaLayer();
+            }.bind(this),
 
-      if( this._map ) {
-        // May need to resize here
-      } else {
-        this._map = L.map(this._layerID, { scrollWheelZoom: false })
-            .setView(this.kSanFran, this.kDefaultZoom);
-        this._map.on('layeradd', onLayerAdd);
-        var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
-                              layers: 'gebco_08_grid',
-                              format: 'image/jpeg',
-                              crs: L.CRS.EPSG4326
-                            });
-        this._map.addLayer( tTileLayer, true /*add at bottom */)
-            .on('drag', onDisplayChangeEvent)
-            .on('zoomend', onDisplayChangeEvent)
-            .on('click', onClick);
+            onDisplayChangeEvent = function (iEvent) {
+              this.incrementProperty('displayChangeCount');
+            }.bind(this),
+
+            onClick = function (iEvent) {
+              this.incrementProperty('clickCount');
+            }.bind(this);
+
+        if (this._map) {
+          // May need to resize here
+        } else {
+          this._map = L.map(this._layerID, { scrollWheelZoom: false })
+              .setView(this.get('center'), this.get('zoom'));
+          this._map.on('layeradd', onLayerAdd);
+
+          var tTileLayer = L.esri.tiledMapLayer("http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSShadedReliefOnly/MapServer", {
+            opacity: 0.90,
+            zIndex: 2
+          });
+//        var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
+//                              layers: 'gebco_08_grid',
+//                              format: 'image/jpeg',
+//                              crs: L.CRS.EPSG4326
+//                            });
+          this._map.addLayer(tTileLayer, true /*add at bottom */)
+              .on('drag', onDisplayChangeEvent)
+              .on('zoomend', onDisplayChangeEvent)
+              .on('click', onClick);
 
 //        L.tileLayer('http://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
 //          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
@@ -108,15 +121,15 @@ DG.MapLayerView = SC.View.extend(
 //          			id: 'wfinzer.i9k4439c',
 //            maxZoom: 18
 //        }).addTo(this._map);
-      }
-    },
+        }
+      },
 
-    viewDidResize: function() {
-      var tMap = this.get('map');
-      if( tMap) {
-        tMap.invalidateSize();
+      viewDidResize: function () {
+        var tMap = this.get('map');
+        if (tMap) {
+          tMap.invalidateSize();
+        }
       }
+
     }
-
-  }
 );

@@ -606,6 +606,7 @@ DG.GameController = DG.ComponentController.extend(
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
         tCollectionProperties = { name: iArgs.name,
+                                  caseName: iArgs.caseName,
                                   collapseChildren: iArgs.collapseChildren,
                                   areParentChildLinksConfigured: true },
         tGameCollections = DG.gameSelectionController.getPath('currentGame.collections');

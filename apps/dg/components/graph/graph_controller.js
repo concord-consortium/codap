@@ -41,7 +41,6 @@ DG.GraphController = DG.ComponentController.extend(
       graphModel: null,
       xAxisView: null,
       yAxisView: null,
-      y2AxisView: null,
       plotView: null,
       legendView: null,
       axisMultiTarget: null,
@@ -90,7 +89,6 @@ DG.GraphController = DG.ComponentController.extend(
 
         storeAxis('x');
         storeAxis('y');
-        storeAxis('y2');
 
         if( plotModels) {
           storage.plotModels = [];
@@ -146,8 +144,7 @@ DG.GraphController = DG.ComponentController.extend(
 
         // Configure the axes
         var xAxis = graphModel.get('xAxis'),
-            yAxis = graphModel.get('yAxis'),
-            y2Axis = graphModel.get('y2Axis');
+            yAxis = graphModel.get('yAxis');
         if( xAxis && xAxis.get('isNumeric') &&
             isFinite( iStorage.xLowerBound) && isFinite( iStorage.xUpperBound)) {
             xAxis.setLowerAndUpperBounds( iStorage.xLowerBound, iStorage.xUpperBound);
@@ -155,10 +152,6 @@ DG.GraphController = DG.ComponentController.extend(
         if( yAxis && yAxis.get('isNumeric') &&
             isFinite( iStorage.yLowerBound) && isFinite( iStorage.yUpperBound)) {
             yAxis.setLowerAndUpperBounds( iStorage.yLowerBound, iStorage.yUpperBound);
-        }
-        if( y2Axis && y2Axis.get('isNumeric') &&
-            isFinite( iStorage.y2LowerBound) && isFinite( iStorage.y2UpperBound)) {
-            y2Axis.setLowerAndUpperBounds( iStorage.y2LowerBound, iStorage.y2UpperBound);
         }
       },
 
@@ -188,7 +181,6 @@ DG.GraphController = DG.ComponentController.extend(
         if( graphView) {
           this.set('xAxisView', graphView.get('xAxisView'));
           this.set('yAxisView', graphView.get('yAxisView'));
-          this.set('y2AxisView', graphView.get('y2AxisView'));
           this.set('plotView', graphView.get('plotBackgroundView'));
           this.set('legendView', graphView.get('legendView'));
           this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
@@ -246,116 +238,6 @@ DG.GraphController = DG.ComponentController.extend(
             iNode.mousedown( mouseDownHandler);
           });
         }
-      },
-
-      /**
-        An axis view has been assigned to the property named iPropertyKey.
-        We want to hook up to its labelNode so that clicking on it will bring
-        up an attribute menu.
-      */
-      axisViewChanged: function( iThis, iPropertyKey) {
-        var this_ = this,
-            tView = this.get( iPropertyKey);
-        if( !SC.none( tView))
-          tView.addObserver( 'labelNode', this,
-              function() {
-                this_.addAxisHandler( tView);
-              });
-      }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
-
-      setupAttributeMenu: function( event, iAxisView, iAttrIndex) {
-        var tGraphModel = this.get('graphModel'),
-            tMenuLayout = { left: event.layerX, top: event.layerY, height: 20, width: 20 },
-            tOrientation = iAxisView.get('orientation'),
-            // The following parameter is supposed to specify the preferred position of the menu
-            // relative to the anchor. But it doesn't seem to have any effect.
-            // SC.POINTER_LAYOUT = ["perfectRight", "perfectLeft", "perfectTop", "perfectBottom"];
-            tPreferMatrix = (tOrientation === 'horizontal') ?
-                    [ 0, 2, 1, 3, 0 ] :
-                    [ 0, 1, 3, 2, 0],
-            tAxisKey = ((iAxisView.instanceOf( DG.LegendView)) ? 'legend':
-                ((tOrientation === 'horizontal') ? 'x':
-                    (tOrientation === 'vertical') ? 'y' : 'y2')),
-            tMenuItems;
-
-        tMenuItems = this.getAttributeMenuItems();
-        // WARNING: before we added this separator, the "Remove Attribute" menu item had a bug where it would not respond correctly
-        // on the first click.  It appears that SC.MenuItemView.mouseUp() gets a null 'targetMenuItem' at that point,
-        // which prevents our menu handler from being called.  This may or may not a bug related to the submenu just above this point.
-        // --Craig and Kirk 2012-06-07
-        tMenuItems.push( { isSeparator: YES } );
-        var kNotForSubmenu = false;
-        tMenuItems.push( tGraphModel.createRemoveAttributeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
-        tMenuItems.push( tGraphModel.createChangeAttributeTypeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
-        this.attributeMenu.set( 'items', tMenuItems);
-        this.attributeMenu.selectedAxis = tOrientation;
-        this.attributeMenu.isLegend = iAxisView.instanceOf( DG.LegendView);
-
-        // We need SC to accomplish the layout of the anchor view before we
-        // show the popup menu. Initiating and ending a runloop seems to be one way
-        // to accomplish this.
-        SC.RunLoop.begin();
-          this.menuAnchorView.removeFromParent();
-          iAxisView.appendChild( this.menuAnchorView);
-          this.menuAnchorView.set('layout', tMenuLayout);
-          this.menuAnchorView.set('isVisible', true);
-        SC.RunLoop.end();
-        this.attributeMenu.popup( this.menuAnchorView, tPreferMatrix);
-      },
-
-      getAttributeMenuItems: function() {
-
-        var tChildCollection = this.getPath('dataContext.childCollection'),
-            tChildCollectionName = tChildCollection && tChildCollection.get('name'),
-            tChildNames = tChildCollection ? tChildCollection.getAttributeNames() : [],
-            tChildItems = tChildNames.map(
-                            function( aName) {
-                              return { title: aName, collection: tChildCollection };
-                            }),
-            tParentCollection = this.getPath('dataContext.parentCollection'),
-            tParentCollectionName = tParentCollection && tParentCollection.get('name'),
-            tParentNames = tParentCollection ? tParentCollection.getAttributeNames() : [],
-            tParentItems = tParentNames.map(
-                              function( aName) {
-                                return { title: aName, collection: tParentCollection };
-                              });
-        if( tParentItems.length === 0) {
-          return tChildItems;
-        }
-        else if (tChildItems.length === 0) {
-          return tParentItems;
-        }
-        else
-          return [ { title: tChildCollectionName, subMenu: tChildItems },
-                    { title: tParentCollectionName, subMenu: tParentItems } ];
-      },
-
-      /** 
-        Handle a 'Change...' or 'Remove {location} Attribute' menu item.
-        Menu items set up by setupAttributeMenu()
-      */
-      attributeMenuItemChanged: function() {
-        var tNewItem = this.attributeMenu.selectedItem,
-            tCollectionClient = tNewItem && tNewItem.collection,
-            tAxisOrientation = this.attributeMenu.selectedAxis,
-            tAttrRefs,
-            tGraphModel = this.get('graphModel'),
-            tDataContext = this.get('dataContext');
-        if( ! tNewItem )
-          return;
-        if( tCollectionClient ) {
-          // change attribute
-          tAttrRefs = { collection: tCollectionClient,
-                       attributes: [tCollectionClient.attrsController.objectAt( tNewItem.contentIndex)] };
-          if( this.attributeMenu.isLegend)
-            tGraphModel.changeAttributeForLegend( tDataContext, tAttrRefs);
-          else
-            tGraphModel.changeAttributeForAxis( tDataContext, tAttrRefs, tAxisOrientation);
-        } else if ( tNewItem.target === tGraphModel ) {
-          // remove or change attribute
-          tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
-        }
-        this.menuAnchorView.set('isVisible', false);
       },
 
       /**

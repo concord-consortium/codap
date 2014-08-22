@@ -27,6 +27,17 @@ sc_require('components/graph_map_common/data_display_model');
 DG.MapModel = DG.DataDisplayModel.extend(
   /** @scope DG.MapModel.prototype */
   {
+    /**
+     * These two properties are from the Leaflet Map and are kept in synch for save and restore
+     * by my view.
+     */
+    center: null,
+    zoom: null,
+
+    /**
+     * Set to true during restore as flag to use to know whether to fit bounds or not
+     */
+    centerAndZoomBeingRestored: false,
 
     dataConfigurationClass: function() {
       return DG.MapDataConfiguration;
@@ -45,6 +56,27 @@ DG.MapModel = DG.DataDisplayModel.extend(
     areaVarID: function() {
       return this.getPath('dataConfiguration.areaAttributeDescription.attributeID');
     }.property('dataConfiguration.areaAttributeDescription.attributeID'),
+
+    /**
+     Prepare dependencies.
+     */
+    init: function() {
+      sc_super();
+
+      // base class doesn't do this because GraphModel has other initialization to do first
+      this.invalidate();
+
+      this.set('center', [37.84, -122.10]); // San Francisco
+      this.set('zoom', 5);  // Reasonable default
+    },
+
+    handleLegendAttrChange: function() {
+      var tLegendAttrDesc = this.getPath('dataConfiguration.legendAttributeDescription');
+      if( tLegendAttrDesc) {
+        tLegendAttrDesc.set('offsetMinProportion', DG.PlotUtilities.kMapColorRangeOffset);
+        tLegendAttrDesc.invalidateCaches();
+      }
+    }.observes('dataConfiguration.legendAttributeDescription.attribute'),
 
     handleOneDataContextChange: function( iNotifier, iChange) {
       // We must invalidate before we build indices because the change may
@@ -107,7 +139,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      * @returns {*[]}
      */
     getAreaBounds: function() {
-      var tCases = this.getPath('cases'),
+      var tCases = this.get('cases'),
           tAreaID = this.get('areaVarID'),
           tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
       if( !tAreaID)
@@ -180,6 +212,29 @@ DG.MapModel = DG.DataDisplayModel.extend(
      */
     getGearMenuItems: function() {
       return [];
+    },
+
+    createStorage: function() {
+      var tStorage = {};
+      tStorage.center = this.get('center');
+      tStorage.zoom = this.get('zoom');
+
+      return tStorage;
+    },
+
+    restoreStorage: function( iStorage) {
+      sc_super();
+
+      var tLegendAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'legendColl', 'legendAttr'),
+          tDataConfig = this.get('dataConfiguration');
+      tDataConfig.setAttributeAndCollectionClient('legendAttributeDescription', tLegendAttrRef,
+          iStorage.legendRole, iStorage.legendAttributeType);
+
+      if( iStorage.mapModelStorage) {
+        this.set('center', iStorage.mapModelStorage.center);
+        this.set('zoom', iStorage.mapModelStorage.zoom);
+        this.set('centerAndZoomBeingRestored', true);
+      }
     }
 
   } );

@@ -384,7 +384,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       this.gridDataView.setGrouping({
             getter: "parentID",
             formatter: function( iGroup) {
-                          return "%@ (%@)".loc( getLabelForSetOfCases(), 
+                          return "DG.DataContext.collapsedRowString".loc( getLabelForSetOfCases(),
                                                 getCaseCountString( iGroup.count));
                         },
             comparer: function( iGroup1, iGroup2) {
