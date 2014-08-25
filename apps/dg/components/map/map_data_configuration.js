@@ -46,8 +46,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         tParentCollectionClient = tDefaults && tDefaults.parentCollectionClient,
         tCaptionName, tLatName, tLongName, tAreaName,
         tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
-        kLatNames = ['latitude', 'lat', 'Latitude', 'Lat'],
-        kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng'],
+        kLatNames = ['latitude', 'lat', 'Latitude', 'Lat', 'LAT'],
+        kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng', 'LONG'],
         kAreaNames = ['boundary', 'area', 'polygon', 'Boundary', 'Area', 'Polygon'];
 
     sc_super();
