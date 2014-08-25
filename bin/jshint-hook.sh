@@ -26,6 +26,6 @@ if $pass; then
 else
     echo ""
     echo "COMMIT FAILED:"
-    echo "Some JavaScript files are invalid. Please fix errors and try committing again."
+    echo "Some JavaScript files have JSHint errors. Please fix errors and try committing again."
     exit 1
 fi
