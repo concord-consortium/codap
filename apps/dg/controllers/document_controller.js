@@ -534,7 +534,7 @@ DG.DocumentController = SC.Object.extend(
                               controller: tMapController,
                               componentClass: { type: 'DG.MapView', constructor: DG.MapView},
                               contentProperties: { model: tMapModel },
-                              defaultLayout: { width: 300, height: 300 },
+                              defaultLayout: { width: 700, height: 450 },
                               title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
                               isResizable: true}
                             );
