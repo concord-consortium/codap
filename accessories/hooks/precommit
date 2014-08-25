@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# A hook script that verify what is about to be committed.
+# Called by "git commit" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message if
+# it wants to stop the commit.
+#
+# This is linked to .git/hooks/pre-commit by running bin/hookinstaller.sh
+
+
+
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+GITROOT=$DIRNAME/../..
+
+function checkError {
+    if [[ $1 != 0 ]]; then
+      echo "Commit failed" >&2
+      exit 99
+    fi
+}
+
+
+#Linting
+
+$GITROOT/bin/jshint-hook.sh
+status=$?
+checkError "$status"
+echo "Ran JSHint"
+
+
+### Find and execute the test suite
+#Run dg/tests.html in the sproutcore test framework
+#phantomjs test_runner.js
+
+$GITROOT/bin/test_runner
+status=$?
+checkError "$status"
+
+
+exit 0
