@@ -42,6 +42,7 @@ DG.GraphController = DG.DataDisplayController.extend(
       }.property('dataDisplayModel'),
       xAxisView: null,
       yAxisView: null,
+      y2AxisView: null,
       plotView: null,
       axisMultiTarget: null,
 
@@ -64,9 +65,11 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         this.storeDimension( dataConfiguration, storage, 'x');
         this.storeDimension( dataConfiguration, storage, 'y');
+        this.storeDimension( dataConfiguration, storage, 'y2');
 
         storeAxis('x');
         storeAxis('y');
+        storeAxis('y2');
 
         if( plotModels) {
           storage.plotModels = [];
@@ -131,6 +134,7 @@ DG.GraphController = DG.DataDisplayController.extend(
         if( graphView) {
           this.set('xAxisView', graphView.get('xAxisView'));
           this.set('yAxisView', graphView.get('yAxisView'));
+          this.set('y2AxisView', graphView.get('y2AxisView'));
           this.set('plotView', graphView.get('plotBackgroundView'));
           this.set('legendView', graphView.get('legendView'));
           this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
@@ -195,8 +199,25 @@ DG.GraphController = DG.DataDisplayController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });
-      }.observes('*axisMultiTarget.dragData')
+      }.observes('*axisMultiTarget.dragData'),
 
+      /**
+        The Y2 axis has received a drop of an attribute. We respond by creating a new scatterplot that
+       uses the existing x-axis and the Y2 axis.
+      */
+      y2AxisDidAcceptDrop: function( iY2Axis, iKey, iDragData) {
+        if( SC.none(iDragData)) // The over-notification caused by the * in the observes
+          return;       // means we get here at times there isn't any drag data.
+        var tDataContext = this.get('dataContext'),
+            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
+
+        iY2Axis.dragData = null;
+
+        this.get('graphModel').changeAttributeForY2Axis(
+                  tDataContext,
+                  { collection: tCollectionClient,
+                    attribute: iDragData.attribute });
+      }.observes('*y2AxisView.dragData')
     };
 
   }()) // function closure
