@@ -47,3 +47,11 @@ sc_require('resources/leaflet-0/leaflet.css')
     height: 0px;
     padding: 0px;
 }
+
+.leaflet-control {
+    z-index: inherit;
+}
+.leaflet-top,
+.leaflet-bottom {
+    z-index: inherit;
+}

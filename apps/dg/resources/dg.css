@@ -191,6 +191,10 @@ body.dg .sc-view.doc-background {
     background-color: yellow;
 }
 
+.sc-segmented-view {
+    z-index: inherit;
+}
+
 .map-layer {
     pointer-events: none;
 }
