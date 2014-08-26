@@ -152,7 +152,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               function() {
                 this_.addAxisHandler( tView);
               });
-      }.observes('xAxisView', 'yAxisView', 'legendView'),
+      }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
 
       setupAttributeMenu: function( event, iAxisView, iAttrIndex) {
         var tDataDisplayModel = this.get('dataDisplayModel'),

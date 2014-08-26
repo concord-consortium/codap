@@ -333,6 +333,9 @@ SC.stringsFor('English', {
    'DG.GraphView.zoomTip': "Double-click to zoom in.\nShift-double-click to zoom out",  // %@ is attribute name
    'DG.GraphView.rescale': "Rescale to data",  // Rescale to data
 
+   // DG.AxisView
+   'DG.AxisView.labelTooltip': "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
+
     // DG.DataTip
     'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@"
   }
