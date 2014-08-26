@@ -42,6 +42,7 @@ DG.GraphController = DG.DataDisplayController.extend(
       }.property('dataDisplayModel'),
       xAxisView: null,
       yAxisView: null,
+      y2AxisView: null,
       plotView: null,
       axisMultiTarget: null,
 
@@ -64,13 +65,11 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         this.storeDimension( dataConfiguration, storage, 'x');
         this.storeDimension( dataConfiguration, storage, 'y');
-
-        storeDimension( 'x');
-        storeDimension( 'y');
-        storeDimension( 'y2');
+        this.storeDimension( dataConfiguration, storage, 'y2');
 
         storeAxis('x');
         storeAxis('y');
+        storeAxis('y2');
 
         if( plotModels) {
           storage.plotModels = [];
@@ -135,6 +134,7 @@ DG.GraphController = DG.DataDisplayController.extend(
         if( graphView) {
           this.set('xAxisView', graphView.get('xAxisView'));
           this.set('yAxisView', graphView.get('yAxisView'));
+          this.set('y2AxisView', graphView.get('y2AxisView'));
           this.set('plotView', graphView.get('plotBackgroundView'));
           this.set('legendView', graphView.get('legendView'));
           this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
