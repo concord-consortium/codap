@@ -205,6 +205,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       }
     }
 
+/*
     function mouseOver( iEvent) {
       if( !tHaveShowZoomTip) {
         var tZoomTipText = 'DG.GraphView.zoomTip'.loc();
@@ -217,6 +218,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this_.invokeLater( destroyZoomTip, 5000);
       }
     }
+*/
 
     var drawCellBands = function() {
       var tPaper = this.get('paper' ),

@@ -112,11 +112,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   doDraw: function() {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
-    var this_ = this,
+    var //this_ = this,
         tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext(),
-        tDataLength = tCases && tCases.length,
-        tIndex;
+        tRC = this.createRenderContext();
+        //tDataLength = tCases && tCases.length,
+        //tIndex;
     tCases.forEach( function( iCase, iIndex) {
       var tColorString = tRC.calcCaseColorString( iCase),
           tFeature = this.features[ iIndex];
@@ -204,9 +204,9 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
     var tRC = this.createRenderContext(),
         tModel = this.get('model'),
-        tCases = tModel.get( 'cases'),
-        tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
-        tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
+        tCases = tModel.get( 'cases');//,
+        //tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
+        //tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
     tCases.forEach( function( iCase, iIndex) {
       var tFeature, tPopup;
 
