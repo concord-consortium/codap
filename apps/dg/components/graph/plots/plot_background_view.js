@@ -98,7 +98,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tMarquee,
         tStartPt,
         tBaseSelection = [],
-        tHaveShowZoomTip = false,
+        //tHaveShowZoomTip = false,
         tToolTip;
 
     function createRulerLines() {
@@ -197,6 +197,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.attr( { cursor: 'auto' });
     }
 
+/*
     function destroyZoomTip() {
       if( tToolTip) {
         tToolTip.hide();
@@ -204,6 +205,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tToolTip = null;
       }
     }
+*/
 
 /*
     function mouseOver( iEvent) {
