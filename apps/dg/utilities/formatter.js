@@ -451,7 +451,7 @@ DG.Format.time = function(type) {
         return t;
       }
     }
-  }
+  };
 
   return format;
 };

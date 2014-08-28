@@ -50,7 +50,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
             if( tBlurAction)
               tBlurAction.call( tBlurTarget);
           });
-        })
+        });
       },
       rowObject: function() {
         var tTitle = this.getPath('itemTitle.value' ),

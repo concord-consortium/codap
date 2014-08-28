@@ -675,7 +675,7 @@ DG.appController = SC.Object.create((function () // closure
           layout: { top: 110, height: 24, right:20, width:100 },
           title: 'DG.AppController.shareLinkDialog.okButtonTitle',                // "OK"
           localize: YES,
-          action: function() { sheetPane.remove() },
+          action: function() { sheetPane.remove(); },
           isDefault: YES
         })
       })

@@ -118,7 +118,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               mapLayer: this.get('mapLayer')
             });
         this.set('mapPointView', tMapPointView);
-        this.setPath('mapPointView.model', this.get('model'))
+        this.setPath('mapPointView.model', this.get('model'));
         this.appendChild( tMapPointView);
         if( this.getPath('model.hasLatLngAttrs')) {
           if( !this.getPath('model.centerAndZoomBeingRestored')) {
