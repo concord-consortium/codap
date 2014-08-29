@@ -45,6 +45,8 @@ DG.appController = SC.Object.create((function () // closure
      */
     guideMenuPane: null,
 
+    autoSaveTimer: null,
+
     /**
      * Initialization function.
      */
@@ -60,6 +62,13 @@ DG.appController = SC.Object.create((function () // closure
       });
       this.guideMenuPane = SC.MenuPane.create({
         layout: { width: 250 }
+      });
+
+      this.autoSaveTimer = SC.Timer.schedule({
+        target: this,
+        action: 'autoSaveDocument',
+        interval: 1000*10, // Every ten seconds
+        repeats: YES
       });
 
       // Give the user a chance to confirm/cancel before closing, reloading,
@@ -373,6 +382,21 @@ DG.appController = SC.Object.create((function () // closure
       // Close the open/save dialog.
       this.openSaveDialog.close();
       this.openSaveDialog = null;
+    },
+
+    /**
+     Callback function which saves the current document.
+     */
+    autoSaveDocument: function () {
+      if (DG.authorizationController.get('isSaveEnabled')) {
+        var docName = DG.currDocumentController().get('documentName'),
+          documentPermissions = DG.currDocumentController().get('documentPermissions');
+
+        if (!SC.empty(docName) && docName != SC.String.loc('DG.Document.defaultDocumentName') && DG.currDocumentController().get('hasUnsavedChanges')) {
+          DG.currDocumentController().saveDocument(docName, documentPermissions);
+          DG.logUser("autoSaveDocument: '%@'", docName);
+        }
+      }
     },
 
     /**
