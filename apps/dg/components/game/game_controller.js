@@ -568,12 +568,18 @@ DG.GameController = DG.ComponentController.extend(
     this.doResetCollections();
   },
 
+    /**
+     * Reset all collections. Remove all case data and attributes.
+     */
   doResetCollections: function() {
     DG.log("GameController.resetCollections");
     var dataContext = DG.gameSelectionController.get('currentContext'),
-        change = {
+        tChange = {
           operation: 'resetCollections'
         };
+    if( dataContext)
+      result = dataContext.applyChange( tChange);
+    return result;
   },
 
     /**
