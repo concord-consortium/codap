@@ -30,8 +30,7 @@
 DG.MapLayerView = SC.View.extend(
     /** @scope DG.MapLayerView.prototype */ {
 
-      center: null,
-      zoom: null,
+      model: null,
 
       _layerID: null,
 
@@ -40,6 +39,9 @@ DG.MapLayerView = SC.View.extend(
       map: function () {
         return this._map;
       }.property('_map'),
+
+      baseMapLayer: null,
+      baseMapLabels: null,
 
       didCreateMap: function (iMap) {
       },
@@ -83,44 +85,15 @@ DG.MapLayerView = SC.View.extend(
               this._map.off('layeradd', onLayerAdd);
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
-            }.bind(this),
-
-            onDisplayChangeEvent = function (iEvent) {
-              this.incrementProperty('displayChangeCount');
-            }.bind(this),
-
-            onClick = function (iEvent) {
-              this.incrementProperty('clickCount');
             }.bind(this);
 
         if (this._map) {
           // May need to resize here
         } else {
           this._map = L.map(this._layerID, { scrollWheelZoom: false })
-              .setView(this.get('center'), this.get('zoom'));
+              .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd);
-
-//          var tTileLayer = L.esri.tiledMapLayer("http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSShadedReliefOnly/MapServer", {
-//            opacity: 0.90,
-//            zIndex: 2
-//          });
-        var tTileLayer = L.tileLayer.wms("http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv", {
-                              layers: 'gebco_08_grid',
-                              format: 'image/jpeg',
-                              crs: L.CRS.EPSG4326
-                            });
-          this._map.addLayer(tTileLayer, true /*add at bottom */)
-              .on('drag', onDisplayChangeEvent)
-              .on('zoomend', onDisplayChangeEvent)
-              .on('click', onClick);
-
-//        L.tileLayer('http://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png', {
-//          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-//          				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-//          				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-//          			id: 'wfinzer.i9k4439c',
-//            maxZoom: 18
-//        }).addTo(this._map);
+          this.backgroundChanged(); // will initialize baseMap
         }
       },
 
@@ -129,7 +102,36 @@ DG.MapLayerView = SC.View.extend(
         if (tMap) {
           tMap.invalidateSize();
         }
-      }
+      },
+
+      backgroundChanged: function() {
+        var tMap = this.get('map'),
+            tNewLayerName = this.getPath('model.baseMapLayerName'),
+            tNewLayer;
+
+        var onDisplayChangeEvent = function (iEvent) {
+              this.incrementProperty('displayChangeCount');
+            }.bind(this),
+
+            onClick = function (iEvent) {
+              this.incrementProperty('clickCount');
+            }.bind(this);
+
+        if(!tNewLayerName)
+          return;
+        if( this.get('baseMapLayer'))
+          tMap.removeLayer( this.get('baseMapLayer'));
+        if( this.get('baseMapLabels'))
+          tMap.removeLayer( this.get('baseMapLabels'));
+        tNewLayer = L.esri.basemapLayer( tNewLayerName);
+        this._map.addLayer(tNewLayer, true /*add at bottom */)
+            .on('drag', onDisplayChangeEvent)
+            .on('move', onDisplayChangeEvent)
+            .on('zoomend', onDisplayChangeEvent)
+            .on('click', onClick);
+        //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
+        this.set('baseMapLayer', tNewLayer);
+      }.observes('model.baseMapLayerName')
 
     }
 );
