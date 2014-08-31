@@ -56,6 +56,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       legendView: null,
 
+      /**
+       * SC.ButtonView
+       */
+      backgroundControl: null,
+
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
@@ -63,8 +68,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       init: function () {
         sc_super();
         var tLegendView = DG.LegendView.create({layout: { bottom: 0, height: 0 }}),
-            tMapLayer = DG.MapLayerView.create( { center: this.getPath('model.center'),
-                                                  zoom: this.getPath('model.zoom')});
+            tMapLayer = DG.MapLayerView.create( { model: this.get('model') });
 
         this.set('mapLayer', tMapLayer);
         this.appendChild( tMapLayer);
@@ -72,6 +76,31 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.set('legendView', tLegendView);
         this.appendChild( tLegendView);
         tLegendView.set('model', this.getPath('model.legend'));
+
+        var tItems = [
+          SC.Object.create( { label: 'Oceans',
+            value: 'Oceans'}),
+          SC.Object.create( { label: 'Topo',
+            value: 'Topographic'} ),
+          SC.Object.create( { label: 'Streets',
+            value: 'Streets'} )
+        ];
+
+        this.backgroundControl = SC.SegmentedView.create({
+          controlSize: SC.SMALL_CONTROL_SIZE,
+          layout: { width: 170, height: 18, top: 5, right: 5 },
+          items: tItems,
+          value: [this.getPath('model.baseMapLayerName')],
+          itemTitleKey: 'label',
+          itemValueKey: 'value',
+          action: 'changeBaseMap',
+          target: this
+        });
+        this.appendChild( this.backgroundControl );
+      },
+
+      changeBaseMap: function() {
+        this.setPath('model.baseMapLayerName', this.backgroundControl.get('value'));
       },
 
       _isValidBounds: function( iBounds) {

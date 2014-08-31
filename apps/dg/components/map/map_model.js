@@ -35,6 +35,12 @@ DG.MapModel = DG.DataDisplayModel.extend(
     zoom: null,
 
     /**
+     * This is the name of the layer used as an argument to L.esri.basemapLayer
+     * {@property String}
+     */
+    baseMapLayerName: null,
+
+    /**
      * Set to true during restore as flag to use to know whether to fit bounds or not
      */
     centerAndZoomBeingRestored: false,
@@ -68,6 +74,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
       this.set('center', [37.84, -122.10]); // San Francisco
       this.set('zoom', 5);  // Reasonable default
+      this.set('baseMapLayerName', 'Topographic');
     },
 
     handleLegendAttrChange: function() {
@@ -218,6 +225,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tStorage = {};
       tStorage.center = this.get('center');
       tStorage.zoom = this.get('zoom');
+      tStorage.baseMapLayerName = this.get('baseMapLayerName');
 
       return tStorage;
     },
@@ -233,6 +241,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       if( iStorage.mapModelStorage) {
         this.set('center', iStorage.mapModelStorage.center);
         this.set('zoom', iStorage.mapModelStorage.zoom);
+        this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
         this.set('centerAndZoomBeingRestored', true);
       }
     }

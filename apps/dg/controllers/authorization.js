@@ -355,7 +355,7 @@ return {
    
    */
   logout: function() {
-    if (DG.documentServer && this.getPath('currLogin.user') != 'guest') { return; }  // Don't allow logging out, for now...
+    if (DG.documentServer && this.getPath('currLogin.user') !== 'guest') { return; }  // Don't allow logging out, for now...
     if (!DG.documentServer) {
     this.sendLogoutRequest(this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'));
     DG.logUser("Logout: %@", this.getPath('currLogin.user'), { force: true });
@@ -375,9 +375,10 @@ return {
           isSaveEnabled = loginData.enableSave,
           realUsername = loginData.username,
           privileges = loginData.privileges;
-      if (isValid && currLogin) {
+    if (currLogin) {
+      if (isValid) {
         // If we've received a valid login, we can remove the login dialog.
-        if( this.sheetPane) {
+        if (this.sheetPane) {
           this.sheetPane.remove();
           this.sheetPane = null;
         }
@@ -397,10 +398,18 @@ return {
         currLogin.set('privileges', privileges);
         currLogin.set('logIndex', 0);
         currLogin.endPropertyChanges();
-        if( loginData.useCookie)
+        if (loginData.useCookie)
           this.saveLoginCookie();
         DG.logUser("Login: %@", currLogin.get('user'), { force: true });
+      } else {
+        currLogin
+          .clear()
+          .set('errorCode', "Login Failed")
+          .set('failedLoginAttempt', true);
       }
+    } else {
+      DG.logWarn("Login: no currLogin record");
+    }
   },
 
   logInViaDocumentServer: function() {
@@ -419,7 +428,7 @@ return {
       // if the server gets a 500 error(server script error), 
       // then there will be no message return
       var errorCode = (body && body.message) || "";
-      if (DG.documentServer && iResponse.get('status') == 401) {
+      if (DG.documentServer && iResponse.get('status') === 401) {
         errorCode = 'error.notLoggedIn';
       }
       // If we get here, then we didn't log in successfully.
@@ -511,8 +520,9 @@ return {
     // If we have pending login credentials, e.g. from a saved cookie,
     // send them to the server for verification.
     var pendingUser = currEdit && currEdit.get('user'),
+        pendingPwd = currEdit && currEdit.get('password'),
         pendingSession = currEdit && currEdit.get('sessionID');
-    if( !SC.empty( pendingUser) && pendingSession) {
+    if( !SC.empty( pendingUser) && !SC.empty(pendingPwd) && pendingSession) {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
     

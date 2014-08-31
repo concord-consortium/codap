@@ -31,3 +31,8 @@ sh $TMP_SCRIPT_NAME
 
 # Delete the script
 rm $TMP_SCRIPT_NAME
+
+
+
+exit $?
+
