@@ -322,6 +322,10 @@ DG.ComponentView = SC.View.extend(
       bringToFront: function() {
         this.parentView.bringToFront( this);
       },
+      mouseDown: function(evt) {
+        this.bringToFront();
+        return false;
+      },
       contentIsInstanceOf: function( aPrototype) {
         return this.get('contentView') instanceof aPrototype;
       },
