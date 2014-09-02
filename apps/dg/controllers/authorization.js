@@ -104,7 +104,8 @@ return {
 
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
-    this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
+    var save = (!!DG.documentServer && !!DG.runKey) || false;
+    this.logIn({ enableLogging: false, enableSave: save, privileges: 0,
   sessiontoken: "guest" + new Date().valueOf(), useCookie: false, valid: true}, 200);
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
@@ -124,7 +125,7 @@ return {
         this.get('currLogin').set('sessionID', iSessionID);
       }
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -144,7 +145,7 @@ return {
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -310,8 +311,12 @@ return {
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
     
-     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+    var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
               
     this.urlForJSONPostRequests( serverUrl(url) )
       .notify(iReceiver, 'receivedSaveDocumentResponse')
@@ -322,6 +327,9 @@ return {
     var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
       .send(); 
@@ -332,6 +340,10 @@ return {
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
@@ -343,6 +355,10 @@ return {
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordname=' + iDocumentName;
     url += '&owner=' + iDocumentOwner;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')

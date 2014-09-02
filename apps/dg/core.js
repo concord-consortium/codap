@@ -286,7 +286,14 @@ DG = SC.Application.create((function () // closure
      * documents. It should be formatted as a full url, to which 'document/*' will be appended.
      * ex: 'http://docs.example.com/'
      */
-  documentServer: getUrlParameter('documentServer') || '',
+    documentServer: getUrlParameter('documentServer') || '',
+
+    /**
+     * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
+     * anonymous read-write access to documents. It can be any string.
+     * ex: 'e342d47a-d3e5-48b8-9675-8622e40bb2c8'
+     */
+    runKey: getUrlParameter('runKey') || '',
 
     /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
