@@ -162,6 +162,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         Configure the table for the new data context.
        */
       dataContextDidChange: function() {
+        DG.log('DG.CaseTableController.dataContextDidChange')
         var dataContext = this.get('dataContext');
         
         this.updateTableAdapters();
@@ -253,7 +254,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'deleteCases':
             this.caseCountDidChange( iChange);
-            // fallthrough intentional
+            // fall-through intentional
             /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
           case 'selectCases':
             this.doSelectCases( iChange);
@@ -268,7 +269,13 @@ DG.CaseTableController = DG.ComponentController.extend(
           case 'updateAttributes':
             this.doUpdateAttributes( iChange);
             break;
-          }    
+          case 'resetCollections':
+            this.doResetCollections( iChange );
+            break;
+          default:
+            DG.logWarn('Unhandled operation: ' + iChange.operation);
+          }
+
         }.bind( this);
         
         // Process all changes that have occurred since the last notification.
@@ -288,7 +295,14 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
         }
       },
-      
+      doResetCollections: function (iChange) {
+        function processAdapter(iAdapter) {
+          iAdapter.rebuild();
+          iAdapter.refresh();
+        }
+        var adapters = this.get('caseTableAdapters');
+        adapters.forEach( processAdapter);
+      },
       /**
         Called when the data context notifies that the set of selected cases has changed.
         @param  {Object}  An object describing the nature of the change
