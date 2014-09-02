@@ -147,6 +147,7 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tY2AxisView);
     tY2AxisView.set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     tY2AxisView.set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+    tYAxisView.set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
 
     this.set('plotBackgroundView', tBackgroundView);
     this.appendChild( tBackgroundView);
@@ -470,6 +471,7 @@ DG.GraphView = SC.View.extend(
       // The y2AxisView needs to know how many attribute descriptions there are on the other y-axis so that
       // it can properly set the color of the label.
       this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+      this.get('yAxisView').set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
     }
   }.observes('model.y2AttributeAdded'),
 
