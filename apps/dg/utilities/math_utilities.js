@@ -231,7 +231,7 @@ DG.MathUtilities = {
    * @returns {number} the maximum value of the specified array.
    */
   max: function(array, f) {
-    if (f == DG.MathUtilities.index) return array.length - 1;
+    if (f === DG.MathUtilities.index) return array.length - 1;
     return Math.max.apply(null, f ? DG.MathUtilities.map(array, f) : array);
   },
 
@@ -252,12 +252,12 @@ DG.MathUtilities = {
    * @returns {number[]} an array of numbers.
    */
   range: function(start, stop, step) {
-  if (arguments.length == 1) {
+  if (arguments.length === 1) {
     stop = start;
     start = 0;
   }
-  if (step == undefined) step = 1;
-  if ((stop - start) / step == Infinity) throw new Error("range must be finite");
+  if (step === undefined) step = 1;
+  if ((stop - start) / step === Infinity) throw new Error("range must be finite");
   var array = [], i = 0, j;
   stop -= (stop - start) * 1e-10; // floating point precision!
   if (step < 0) {
