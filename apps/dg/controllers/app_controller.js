@@ -563,7 +563,9 @@ DG.appController = SC.Object.create((function () // closure
       }.bind(this);
 
       var resetAlert = function () {
-        tDialog && tDialog.hideAlert();
+        if (tDialog) {
+          tDialog.hideAlert();
+        }
       }.bind(this);
 
       tDialog = DG.CreateFileImportDialog({
@@ -588,7 +590,7 @@ DG.appController = SC.Object.create((function () // closure
         onOK = function () {
           var fn = tDialog.value();
           var blob = new Blob([docJson], {type: "application/json;charset=utf-8"});
-          saveAs(blob, fn);
+          window.saveAs(blob, fn);
           tDialog.close();
         };
       if (docArchive) {
