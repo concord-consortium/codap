@@ -523,9 +523,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         // We could do a collection test if that information were reliably
         // available in the change request, but that's not currently so.
         return true;
-      case 'createCollection':
-      case 'resetCollections':
-        return true;
       case 'createAttributes':
       case 'updateAttributes':
         // only if there are formulas such that the plotted attributes

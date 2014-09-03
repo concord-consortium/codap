@@ -621,9 +621,8 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
 
   doResetCollections: function (iChange) {
-      DG.log('doResetCollections')
       DG.DataContext.clearContextMap();
-      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
+//      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
       DG.Record.destroyAllRecordsOfType( DG.Case);
       DG.Record.destroyAllRecordsOfType( DG.Attribute);
       DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);

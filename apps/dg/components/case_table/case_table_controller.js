@@ -162,7 +162,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         Configure the table for the new data context.
        */
       dataContextDidChange: function() {
-        DG.log('DG.CaseTableController.dataContextDidChange')
         var dataContext = this.get('dataContext');
         
         this.updateTableAdapters();
@@ -275,7 +274,6 @@ DG.CaseTableController = DG.ComponentController.extend(
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
           }
-
         }.bind( this);
         
         // Process all changes that have occurred since the last notification.

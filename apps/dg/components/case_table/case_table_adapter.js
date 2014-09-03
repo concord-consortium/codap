@@ -433,7 +433,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     Rebuilds the adapter by rebuilding the column header info, the row data, and the options.
    */
   rebuild: function() {
-    DG.log("DG.CaseTableAdapter.rebuild")
     this.updateColumnInfo();
     this.buildRowData();
     this.buildGridOptions();
@@ -480,7 +479,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     Rebuilds the table when the data context changes.
    */
   dataContextDidChange: function() {
-    DG.log('DG.CaseTableAdapter.dataContextDidChange');
     this.rebuild();
   }.observes('dataContext'),
   
