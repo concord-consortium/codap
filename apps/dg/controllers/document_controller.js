@@ -859,6 +859,8 @@ DG.DocumentController = SC.Object.extend(
           localize: true,
           message: errorMessage});
       }
+    } else {
+      DG.appController.triggerSaveNotification();
     }
   }
 });

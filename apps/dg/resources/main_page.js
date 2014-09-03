@@ -33,7 +33,7 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: 0, height: kToolbarHeight },
-      childViews: 'resetButton logoutButton versionLabel statusLabel'.w(),
+      childViews: 'resetButton logoutButton versionLabel statusLabel documentTitle saveNotification'.w(),
       anchorLocation: SC.ANCHOR_TOP,
 
       resetButton: SC.ButtonView.design({
@@ -60,7 +60,6 @@ DG.mainPage = SC.Page.design((function() {
   
       versionLabel: SC.LabelView.design({
         layout: { top: 0, height: 24, left: 0, width: 150 },
-        controlSize: SC.REGULAR_CONTROL_SIZE,
         fontWeight: SC.BOLD_WEIGHT,
         textAlign: SC.ALIGN_RIGHT,
         value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
@@ -70,6 +69,27 @@ DG.mainPage = SC.Page.design((function() {
         layout: { bottom: 5, left: 0, width: 150, height: 18 },
         textAlign: SC.ALIGN_RIGHT,
         valueBinding: 'DG.authorizationController.currLogin.user'
+      }),
+
+      documentTitle: SC.LabelView.design({
+        layout: { top: 0, left: 0, width: 150, height: 18 },
+        fontWeight: SC.BOLD_WEIGHT,
+        textAlign: SC.ALIGN_LEFT,
+        needsEllipsis: YES,
+        isEditable: true,
+        valueBinding: 'DG._currDocumentController.documentName',
+        toolTipBinding: 'DG._currDocumentController.documentName',
+        valueChanged: function() {
+          // Set the doc dirty state
+          DG.currDocumentController().incrementProperty('changeCount');
+        }.observes('value')
+      }),
+
+      saveNotification: SC.LabelView.design({
+        classNames: ['invisible'],
+        layout: { bottom: 5, left: 0, width: 150, height: 18 },
+        textAlign: SC.ALIGN_LEFT,
+        value: 'Document Saved!'
       }),
 
       init: function() {
@@ -98,8 +118,10 @@ DG.mainPage = SC.Page.design((function() {
         tLeft += kSpacer; // extra space to right of gear
         tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
+        moveHorizontal( this.documentTitle, tLeft ); // same left as lastSaved
+        tLeft = kSpacer + moveHorizontal( this.saveNotification, tLeft );
         moveHorizontal( this.versionLabel, tLeft );  // same left as statusLabel
-        tLeft = moveHorizontal( this.statusLabel, tLeft );
+        tLeft = kSpacer + moveHorizontal( this.statusLabel, tLeft );
       }
       
     }), // topView

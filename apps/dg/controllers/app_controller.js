@@ -411,6 +411,21 @@ DG.appController = SC.Object.create((function () // closure
       }
     },
 
+    triggerSaveNotification: function() {
+      var el = DG.getPath('mainPage.mainPane.topView.saveNotification.layer');
+      var opacity = 1;
+      var next = function(i) {
+        if (opacity > 0) {
+          el.style.opacity = opacity;
+          opacity = 1 - (Math.pow(i,5));
+          setTimeout(function() { next(i + 0.05); }, 100);
+        } else {
+          el.style.opacity = 0;
+        }
+      };
+      next(0);
+    },
+
     /**
      * Opens a new tab with users document manager opened.
      */
