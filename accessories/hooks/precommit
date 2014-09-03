@@ -26,6 +26,7 @@ function checkError {
 
 $GITROOT/bin/jshint-hook.sh
 status=$?
+
 checkError "$status"
 echo "Ran JSHint"
 
