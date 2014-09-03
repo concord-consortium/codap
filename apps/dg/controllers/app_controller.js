@@ -125,7 +125,7 @@ DG.appController = SC.Object.create((function () // closure
             hasBeenSharedBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
             isEnabled: function() {
               return this.get('saveEnabled') && this.get('hasBeenShared');
-            }.property('saveEnabled', 'hasBeenShared') },
+            }.property('saveEnabled', 'hasBeenShared') }
         ],
         devItems = [
           { isSeparator: YES },

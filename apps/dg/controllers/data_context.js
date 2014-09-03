@@ -237,6 +237,12 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'deleteAttributes':
         result = this.doDeleteAttributes( iChange);
         break;
+      case 'resetCollections':
+        result = this.doResetCollections( iChange );
+        break;
+      default:
+        DG.logWarn('DataContext.performChange: unknown operation: '
+            + iChange.operation);
     }
     return result;
   },
@@ -612,6 +618,16 @@ DG.DataContext = SC.Object.extend((function() // closure
       DG.store.commitRecords();
     }
     return result;
+  },
+
+  doResetCollections: function (iChange) {
+      DG.DataContext.clearContextMap();
+//      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
+      DG.Record.destroyAllRecordsOfType( DG.Case);
+      DG.Record.destroyAllRecordsOfType( DG.Attribute);
+      DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);
+//      DG.Record.destroyAllRecordsOfType( DG.DataContextRecord);
+      DG.store.commitRecords();
   },
   
   /**
