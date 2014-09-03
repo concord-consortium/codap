@@ -262,7 +262,13 @@ DG.appController = SC.Object.create((function () // closure
         DG.authorizationController.openDocumentByName(iName, iOwner, this);
         DG.logUser("openDocument: '%@'", iName);
       }
+
+      if (iOwner != DG.iUser) {
+        this.setOpenedDocumentUnshared = YES;
+      }
     },
+
+    setOpenedDocumentUnshared: NO,
 
     /**
      openDocument callback function after the document content has been loaded.
@@ -346,6 +352,12 @@ DG.appController = SC.Object.create((function () // closure
         docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
       }
+
+      if (this.setOpenedDocumentUnshared) {
+        DG.currDocumentController().setPath('content._permissions', 0);
+        this.setOpenedDocumentUnshared = NO;
+      }
+
       return true;
     },
 
