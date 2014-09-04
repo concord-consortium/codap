@@ -5,7 +5,7 @@
 
   "bitwise": true,    // disallow bitwise operators
 
-  "camelcase": true,  // allows to force all variables to camelCase or UPPER_CASE with underscore
+  "camelcase": false,  // allows to force all variables to camelCase or UPPER_CASE with underscore
 
   "curly": false,     // require curly braces for single-statement blocks
 
