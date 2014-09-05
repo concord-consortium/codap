@@ -104,7 +104,6 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
         toolTip: 'DG.GuideConfigView.okBtnToolTip',
         target: null,
         action: null,
-        toolTip: '',
         localize: true,
         isDefault: true
       } ),
