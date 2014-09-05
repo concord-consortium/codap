@@ -47,7 +47,6 @@ DG.GraphController = DG.DataDisplayController.extend(
 
       createComponentStorage: function() {
         var storage = sc_super(),
-            dataContext = this.get('dataContext'),
             dataConfiguration = this.getPath('graphModel.dataConfiguration'),
             hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' ),
             plotModels = this.getPath('graphModel.plots');

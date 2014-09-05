@@ -67,7 +67,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
       paperSource: this,
       model: this.get('model'),
       mapSource: this
-    }))
+    }));
   },
 
   modelDidChange: function () {

@@ -30,10 +30,12 @@ DG.MapController = DG.DataDisplayController.extend(
 /** @scope DG.MapController.prototype */ 
   (function() {
 
+/*
     function getCollectionClientFromDragData( iContext, iDragData) {
       var collectionID = iDragData.collection && iDragData.collection.get('id');
       return iContext && !SC.none( collectionID) && iContext.getCollectionByID( collectionID);
     }
+*/
 
     return {
       mapModel: function() {

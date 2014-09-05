@@ -158,6 +158,7 @@ DG.Format.date = function(pattern) {
   /** @private */
   function format(d) {
     return pattern.replace(/%[a-zA-Z0-9]/g, function(s) {
+      var h, w;
       switch (s) {
         case '%a': return [
           "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
@@ -185,7 +186,7 @@ DG.Format.date = function(pattern) {
         case '%e': return pad(" ", 2, d.getDate());
         case '%H': return pad("0", 2, d.getHours());
         case '%I': {
-          var h = d.getHours() % 12;
+          h = d.getHours() % 12;
           return h ? pad("0", 2, h) : 12;
         }
         // TODO %j: day of year as a decimal number [001,366]
@@ -196,7 +197,7 @@ DG.Format.date = function(pattern) {
         case '%T':
         case '%X':
         case '%r': {
-          var h = d.getHours() % 12;
+          h = d.getHours() % 12;
           return (h ? pad("0", 2, h) : 12)
               + ":" + pad("0", 2, d.getMinutes())
               + ":" + pad("0", 2, d.getSeconds())
@@ -207,7 +208,7 @@ DG.Format.date = function(pattern) {
         case '%Q': return pad("0", 3, d.getMilliseconds());
         case '%t': return "\t";
         case '%u': {
-          var w = d.getDay();
+          w = d.getDay();
           return w ? w : 1;
         }
         // TODO %U: week number (sunday first day) [00,53]
@@ -292,9 +293,9 @@ DG.Format.date = function(pattern) {
         // TODO %p: locale's equivalent of a.m. or p.m.
         case '%p': { // TODO this is a hack
           fields.push(function(x) {
-            if (hour == 12) {
-              if (x == "am") hour = 0;
-            } else if (x == "pm") {
+            if (hour === 12) {
+              if (x === "am") hour = 0;
+            } else if (x === "pm") {
               hour = Number(hour) + 12;
             }
           });
@@ -368,6 +369,11 @@ DG.Format.time = function(type) {
 
   /** @private */
   function format(t) {
+    function toInt(fl) {
+      /* jshint ignore: start */
+      return fl >> 0; // bit-shift zero places: converts to 32 bit int
+      /* jshint ignore: end */
+    }
     t = Number(t); // force conversion from Date
     switch (type) {
       case "short": {
@@ -386,11 +392,11 @@ DG.Format.time = function(type) {
       }
       case "long": {
         var a = [],
-            s = ((t % 6e4) / 1e3) >> 0,
-            m = ((t % 36e5) / 6e4) >> 0;
+            s = toInt((t % 6e4) / 1e3),
+            m = toInt((t % 36e5) / 6e4);
         a.push(pad("0", 2, s));
         if (t >= 36e5) {
-          var h = ((t % 864e5) / 36e5) >> 0;
+          var h = toInt((t % 864e5) / 36e5);
           a.push(pad("0", 2, m));
           if (t >= 864e5) {
             a.push(pad("0", 2, h));
@@ -425,11 +431,15 @@ DG.Format.time = function(type) {
    * @returns {number} the parsed duration in milliseconds.
    */
   format.parse = function(s) {
+    var re, a, t, f, u;
     switch (type) {
       case "short": {
-        var re = /([0-9,.]+)\s*([a-z]+)/g, a, t = 0;
-        while (a = re.exec(s)) {
-          var f = parseFloat(a[0].replace(",", "")), u = 0;
+        re = /([0-9,.]+)\s*([a-z]+)/g;
+        t = 0;
+        a = re.exec(s);
+        while (a) {
+          f = parseFloat(a[0].replace(",", ""));
+          u = 0;
           switch (a[2].toLowerCase()) {
             case "year": case "years": u = 31536e6; break;
             case "week": case "weeks": u = 6048e5; break;
@@ -439,11 +449,13 @@ DG.Format.time = function(type) {
             case "second": case "seconds": u = 1e3; break;
           }
           t += f * u;
+          a = re.exec(s);
         }
         return t;
       }
       case "long": {
-        var a = s.replace(",", "").split(":").reverse(), t = 0;
+        a = s.replace(",", "").split(":").reverse();
+        t = 0;
         if (a.length) t += parseFloat(a[0]) * 1e3;
         if (a.length > 1) t += parseFloat(a[1]) * 6e4;
         if (a.length > 2) t += parseFloat(a[2]) * 36e5;
@@ -451,7 +463,7 @@ DG.Format.time = function(type) {
         return t;
       }
     }
-  }
+  };
 
   return format;
 };

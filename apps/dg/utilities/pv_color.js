@@ -28,12 +28,18 @@
  * @see <a href="http://www.w3.org/TR/css3-color/">CSS3 color module</a>
  */
 DG.color = function(format) {
+  function parse(c) { // either integer or percentage
+    var f = parseFloat(c);
+    return (c[c.length - 1] === '%') ? Math.round(f * 2.55) : f;
+  }
+  var r, g, b, h, s, l, m1, m2, a;
   if (format.rgb) return format.rgb();
 
   /* Handle hsl, rgb. */
-  var m1 = /([a-z]+)\((.*)\)/i.exec(format);
+  m1 = /([a-z]+)\((.*)\)/i.exec(format);
   if (m1) {
-    var m2 = m1[2].split(","), a = 1;
+    m2 = m1[2].split(",");
+    a = 1;
     switch (m1[1]) {
       case "hsla":
       case "rgba": {
@@ -45,18 +51,16 @@ DG.color = function(format) {
     switch (m1[1]) {
       case "hsla":
       case "hsl": {
-        var h = parseFloat(m2[0]), // degrees
-            s = parseFloat(m2[1]) / 100, // percentage
-            l = parseFloat(m2[2]) / 100; // percentage
+        h = parseFloat(m2[0]); // degrees
+        s = parseFloat(m2[1]) / 100; // percentage
+        l = parseFloat(m2[2]) / 100; // percentage
         return (new DG.Color.Hsl(h, s, l, a)).rgb();
       }
       case "rgba":
       case "rgb": {
-        function parse(c) { // either integer or percentage
-          var f = parseFloat(c);
-          return (c[c.length - 1] == '%') ? Math.round(f * 2.55) : f;
-        }
-        var r = parse(m2[0]), g = parse(m2[1]), b = parse(m2[2]);
+        r = parse(m2[0]);
+        g = parse(m2[1]);
+        b = parse(m2[2]);
         return DG.rgb(r, g, b, a);
       }
     }
@@ -68,13 +72,12 @@ DG.color = function(format) {
 //  if (named) return named;
 
   /* Hexadecimal colors: #rgb and #rrggbb. */
-  if (format.charAt(0) == "#") {
-    var r, g, b;
-    if (format.length == 4) {
+  if (format.charAt(0) === "#") {
+    if (format.length === 4) {
       r = format.charAt(1); r += r;
       g = format.charAt(2); g += g;
       b = format.charAt(3); b += b;
-    } else if (format.length == 7) {
+    } else if (format.length === 7) {
       r = format.substring(1, 3);
       g = format.substring(3, 5);
       b = format.substring(5, 7);
@@ -161,7 +164,7 @@ DG.Color.prototype.darker = function(k) {
  * @returns DG.Color.Rgb
  */
 DG.rgb = function(r, g, b, a) {
-  return new DG.Color.Rgb(r, g, b, (arguments.length == 4) ? a : 1);
+  return new DG.Color.Rgb(r, g, b, (arguments.length === 4) ? a : 1);
 };
 
 /**
