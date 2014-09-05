@@ -152,7 +152,6 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       doDraw: function doDraw() {
         var this_ = this,
             tAttrDesc = this.getPath('model.attributeDescription'),
-            //tAttrStats = tAttrDesc.get('attributeStats'),
             tWidth = this_._paper.width - 2 * kHMargin,
             tHeight = this_._paper.height - 2 * kVMargin
           ;

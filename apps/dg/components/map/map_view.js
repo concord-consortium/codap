@@ -193,7 +193,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       handleMapLayerDisplayChange: function() {
         var tMapPointView = this.get('mapPointView');
-        tMapPointView && tMapPointView.doDraw();
+        if (tMapPointView) { tMapPointView.doDraw(); }
 
         // Store the map's center and zoom in my model for save and restore
         var tMap = this.getPath('mapLayer.map'),

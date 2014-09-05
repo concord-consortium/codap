@@ -659,8 +659,7 @@ DG.DocumentController = SC.Object.extend(
      */
   configureGuide: function() {
 
-    var //this_ = this,
-        tDialog = null,
+    var tDialog = null,
         tGuideModel = this.get('guideModel');
 
       var storeGuideModel = function () {

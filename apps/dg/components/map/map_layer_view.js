@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global L */
 /** @class  DG.MapLayerView
 
  A view on a map.

@@ -97,9 +97,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tBothWaysNumeric =( tXAxisView.get('isNumeric') && tYAxisView.get('isNumeric')),
         tMarquee,
         tStartPt,
-        tBaseSelection = [],
-        //tHaveShowZoomTip = false,
-        tToolTip;
+        tBaseSelection = [];//,
+//        tToolTip;
 
     function createRulerLines() {
 

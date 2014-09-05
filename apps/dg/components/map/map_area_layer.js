@@ -17,8 +17,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/* global L */
 sc_require('components/graph_map_common/plot_layer');
+sc_require('libraries/leaflet-src');
+
 
 /** @class DG.MapAreaLayer - A plot of dots placed according to numeric values
 
@@ -122,7 +124,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           tFeature = this.features[ iIndex];
       if( tFeature) {
         tFeature.setStyle({
-          fillColor: tColorString,
+          fillColor: tColorString
         });
       }
     }.bind( this));
@@ -216,7 +218,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this),
 
           handleMouseover = function( iEvent) {
-            tFeature = this.features[ iIndex],
+            tFeature = this.features[ iIndex];
             tPopup = L.popup({ closeButton: false }, tFeature);
             tPopup.options.offset[1] = -20;
             tPopup.setContent( this.calcTooltip( iCase));
@@ -237,7 +239,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this);
 
       try {
-        var tFeature = JSON.parse(iCase.getValue(tRC.areaVarID));
+        tFeature = JSON.parse(iCase.getValue(tRC.areaVarID));
         this.features[ iIndex] = L.geoJson(tFeature, {
           style: function (feature) {
             return {color: 'yellow',
