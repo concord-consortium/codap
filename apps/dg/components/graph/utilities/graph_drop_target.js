@@ -52,6 +52,7 @@ DG.GraphDropTarget =
   dragEntered: function( iDragObject, iEvent) {
     this.borderFrame.addClass('graph-drop-frame-fill');
     this.showDropHint();
+    DG.ViewUtilities.componentViewForView( this).bringToFront();
   },
   
   dragExited: function( iDragObject, iEvent) {

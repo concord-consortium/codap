@@ -176,6 +176,17 @@ DG.ViewUtilities = {
   ptInRect: function( iPoint, iRect) {
     return (iPoint.x >= iRect.x) && (iPoint.x <= iRect.x + iRect.width) &&
            (iPoint.y >= iRect.y) && (iPoint.y <= iRect.y + iRect.height);
+  },
+
+  /**
+   *
+   * @param iView {SC.View} normally a child view of a ComponentView
+   */
+  componentViewForView: function( iView) {
+    while( iView && !(iView instanceof DG.ComponentView)) {
+      iView = iView.get('parentView');
+    }
+    return iView;
   }
 
 };
