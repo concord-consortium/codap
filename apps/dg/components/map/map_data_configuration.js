@@ -97,7 +97,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     }.bind( this);
 
     var lookForMapAttributes = function( iCollectionClient) {
-      var tFoundOne = false;
+      var tFoundOne = false,
           tAttrNames = iCollectionClient && iCollectionClient.getAttributeNames();
       if( tAttrNames) {
         tCaptionName = tAttrNames[ 0];
@@ -136,8 +136,9 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       return tFoundOne;
     }.bind( this);
 
-    lookForMapAttributes( tChildCollectionClient) ||
+    if (!lookForMapAttributes( tChildCollectionClient)) {
       lookForMapAttributes( tParentCollectionClient);
+    }
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.
