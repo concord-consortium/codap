@@ -527,7 +527,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
           return isAffected || this.getPlottedAttributesContainFormulas();
         }
         /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
-        // fallthrough intentional -- w/o attribute IDs, rely on collection
+        // fall-through intentional -- w/o attribute IDs, rely on collection
       case 'createCase':
       case 'createCases':
         // Only if the case(s) created are in a collection that is being plotted

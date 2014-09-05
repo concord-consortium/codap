@@ -740,11 +740,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         case 'createCase':
         case 'createCases':
         case 'deleteCases':
+        case 'createCollection':
+        case 'resetCollections':
           this.dataDidChange( null, null, iChange);
           break;
         case 'updateCases':
         case 'createAttributes':
         case 'updateAttributes':
+        case 'deleteAttribute':
           // We must invalidate before we build indices because the change may
           // have affected the set of included cases, which affects indices.
           // It would be better not to be dealing with indices at all, but
