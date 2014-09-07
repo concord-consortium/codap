@@ -43,7 +43,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             loc: null,  // {x, y}
             _circleElement: null,
             _textElement: null,
-            _color: null,
             kCircleRadius: 6,
 
             init: function() {
@@ -54,22 +53,24 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             },
 
             numColorsChanged: function() {
-              this._color = 'blue';
+              var tTextColor = 'blue',
+                  tPointColor = 'lightblue';
               if (this.colorIndex > 0) {
-                this._color = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+                tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+                tPointColor = tTextColor;
               }
-              this._textElement.attr('fill', this._color);
+              this._textElement.attr('fill', tTextColor);
 
               if((this.numColors > 1) && !this._circleElement) {
                 this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
-                    .addClass('data-dot');
+                    .addClass('axis-dot');
               }
               else if((this.numColors === 0) && this._circleElement) {
                 this._circleElement.remove();
                 this._circleElement = null;
               }
               if( this._circleElement)
-                this._circleElement.attr('fill', this._color);
+                this._circleElement.attr('fill', tPointColor);
             }.observes('numColors'),
 
             textChanged: function() {
@@ -82,13 +83,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
             locChanged: function() {
               var tYOffset = this._circleElement ? this.kCircleRadius / 2 : 0;
-              this._textElement.attr({ x: this.loc.x, y: this.loc.y + tYOffset });
-              DG.RenderingUtilities.rotateText(this._textElement, this.rotation, this.loc.x, this.loc.y);
+              this._textElement.attr({ x: this.loc.x, y: this.loc.y - tYOffset });
+              DG.RenderingUtilities.rotateText(this._textElement, this.rotation, this.loc.x, this.loc.y - tYOffset);
               if( this._circleElement) {
                 var tBox = this._textElement.getBBox(),
                     tCenter;
                 if (this.rotation !== 0) {
-                  tCenter = { cx: this.loc.x + 1, cy: this.loc.y + tYOffset + tBox.height / 2 + this.kCircleRadius + 2 }
+                  tCenter = { cx: this.loc.x + 1, cy: this.loc.y - tYOffset + tBox.height / 2 + this.kCircleRadius + 2 }
                 }
                 else {
                   tCenter = { cx: this.loc.x - (tBox.width / 2 + this.kCircleRadius + 2), cy: this.loc.y }
@@ -100,8 +101,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             extent: function() {
               var tResult = this._textElement.getBBox();
               if( this._circleElement) {
-                tResult.width += (this.rotation !== 0) ? 2 * this.kCircleRadius + 2 : 0;
-                tResult.height += (this.rotation === 0) ? 2 * this.kCircleRadius + 2 : 0;
+                tResult.width += (this.rotation === 0) ? 2 * this.kCircleRadius + 2 : 0;
+                tResult.height += (this.rotation !== 0) ? 2 * this.kCircleRadius + 2 : 0;
               }
               return tResult;
             },
@@ -306,14 +307,14 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if (tIsVertical) {
               tLoc.x = tLabelExtent.x / 4 + 2;
               tLoc.y = tPosition - tLabelExtent.y / 2;
-              tPosition -= tLabelExtent.y;
+              tPosition -= tLabelExtent.y + 4;
               if (tV2)
                 tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
             }
             else {  // horizontal
               tLoc.x = tPosition + tLabelExtent.x / 2;
               tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
-              tPosition += tLabelExtent.x;
+              tPosition += tLabelExtent.x + 4;
             }
             tNode.set('loc', tLoc);
           });

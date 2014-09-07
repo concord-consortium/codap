@@ -64,6 +64,10 @@
     stroke-width: 2 !important;
 }
 
+.axis-dot {
+    opacity: 0.85 !important;
+}
+
 .axis-label {
     font: caption !important;
     /*fill: blue;*/
