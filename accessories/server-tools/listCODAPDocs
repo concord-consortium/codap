@@ -1,0 +1,19 @@
+#!/bin/bash
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+function usage() {
+  echo usage: $PROGNAME db user >&2
+  exit 1
+}
+
+[ $# != 2 ] && usage
+
+DB=$1
+USER=$2
+
+mongoexport -d "$DB" -c documents -csv -f name -q '{"_username": "'$USER'"}' \
+      2>/dev/null |
+  sed '/^name$/d;s/^"//;s/"$//' |
+  sort
+
