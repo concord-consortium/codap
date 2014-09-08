@@ -572,8 +572,8 @@ DG.GameController = DG.ComponentController.extend(
      * Reset all collections. Remove all case data and attributes.
      */
   doResetCollections: function() {
-    DG.log("GameController.resetCollections");
-    var dataContext = DG.gameSelectionController.get('currentContext'),
+    var result,
+        dataContext = DG.gameSelectionController.get('currentContext'),
         tChange = {
           operation: 'resetCollections'
         };

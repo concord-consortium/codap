@@ -130,6 +130,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   createCircle: function( iDatum, iIndex, iAnimate) {
     var this_ = this;
 
+/*
     function changeCaseValues( iDeltaValues) {
       var tXVarID = this_.getPath('model.xVarID'),
           tYVarID = this_.getPath('model.yVarID'),
@@ -150,7 +151,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       });
       tDataContext.applyChange( tChange);
     }
+*/
     
+/*
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoords) {
       var tCase = this_.getPath('model.cases')[ iCaseIndex],
           tXVarID = this_.getPath('model.xVarID'),
@@ -159,6 +162,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
           tDeltaY = tCase.getNumValue( tYVarID) - iStartWorldCoords.y;
       this_.get('model').animateSelectionBackToStart([ tXVarID, tYVarID], [ tDeltaX, tDeltaY]);
     }
+*/
     
     function completeHoverAnimation() {
       this.hoverAnimation = null;
