@@ -477,26 +477,6 @@ DG.GraphView = SC.View.extend(
 
   /**
    * An attribute has been removed from the vertical axis. But there is at least one attribute
-   * left on that axis. We don't know which one was removed, so we remove the last plotview and
-   * reset the properties of the remaining plotviews.
-   */
-//  handleAttributeRemoved: function() {
-//    var tPlots = this.getPath('model.plots' ),
-//        tNumPlots = tPlots.length,
-//        tLastPlotView = this._plotViews.pop();
-//    tLastPlotView.removePlottedElements( true /* animate */);
-//    tLastPlotView.destroy();
-//    DG.assert( tNumPlots === this._plotViews.length);
-//
-//    this._plotViews.forEach( function( iPlotView, iIndex) {
-//      if( iIndex < tNumPlots) {
-//        iPlotView.set('model', tPlots[ iIndex]);
-//      }
-//    });
-//  }.observes('model.attributeRemoved'),
-
-  /**
-   * An attribute has been removed from the vertical axis. But there is at least one attribute
    * left on that axis. We run through the plotViews to find the one whose model is no longer
    * one of our plots. That one, we destroy.
    */

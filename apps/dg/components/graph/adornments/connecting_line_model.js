@@ -87,7 +87,8 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     var tCases = this.getPath('plotModel.cases'),
         tParents = [],
         tXVarID = this.getPath( 'plotModel.xVarID'),
-        tYVarID = this.getPath( 'plotModel.yVarID');
+        tYKey = 'plotModel.' + (this.getPath('plotModel.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
+        tYVarID = this.getPath(tYKey);
     if( !( tXVarID && tYVarID )) {
       return; // too early to recompute, caller must try again later.
     }

@@ -65,7 +65,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
                     .addClass('axis-dot');
               }
-              else if((this.numColors === 0) && this._circleElement) {
+              else if((this.numColors <= 1) && this._circleElement) {
                 this._circleElement.remove();
                 this._circleElement = null;
               }
@@ -126,7 +126,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
       return {
         displayProperties: ['model.attributeDescription.attribute',
-          'model.attributeDescription.attributeStats.categoricalStats.numberOfCells'],
+          'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
+          'otherYAttributeDescription.attribute'],
 
         /**
          The model on which this view is based.
@@ -238,7 +239,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             }
             else {
               tNode = this_._labelNodes[ tLabelCount];
-              tNode.setIfChanged('numColors', tBaseLabelIndex + tLabels.length);
+              tNode.setIfChanged('numColors', tNumAttributes);
             }
 
             tChangeHappened = (iLabel !== tNode.get('text'));

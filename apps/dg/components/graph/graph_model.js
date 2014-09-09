@@ -115,14 +115,20 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
     },
 
+    removePlot: function( iPlot) {
+      var tIndex = this._plots.indexOf( iPlot);
+      if( tIndex >= 0)
+        this.removePlotAtIndex( tIndex);
+    },
+
     /**
      * In addition to removing the plot, synchronize the remaining plots' yAttributeIndex
-     * @param iIndex {Number}
+     * @param iPlotIndex {Number}
      */
-    removePlotAtIndex: function( iIndex) {
-      DG.assert( iIndex < this._plots.length);
-      var tPlot = this._plots[ iIndex];
-      this._plots.splice( iIndex, 1);
+    removePlotAtIndex: function( iPlotIndex) {
+      DG.assert( iPlotIndex < this._plots.length);
+      var tPlot = this._plots[ iPlotIndex];
+      this._plots.splice( iPlotIndex, 1);
       tPlot.destroy();
       this._plots.forEach( function( iPlot, iIndex) {
         iPlot.setIfChanged( 'yAttributeIndex', iIndex);
@@ -294,6 +300,20 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     /**
+     * Return the plot whose yAxis property is our y2Axis.
+     * @returns {DG.PlotModel}
+     */
+    getY2Plot: function() {
+      var tY2Plot,
+          tY2Axis = this.get('y2Axis');
+      this.get('plots').forEach( function( iPlot) {
+        if( iPlot.get('yAxis') === tY2Axis)
+          tY2Plot = iPlot;
+      });
+      return tY2Plot;
+    },
+
+    /**
       Sets the attribute for the specified axis.
       @param  {DG.DataContext}      iDataContext -- The data context for this graph
       @param  {Object}              iAttrRef -- The attribute to set for the axis
@@ -312,16 +332,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
 
-      var getY2Plot = function() {
-        var tY2Plot,
-            tY2Axis = this.get('y2Axis');
-        this.get('plots').forEach( function( iPlot) {
-          if( iPlot.get('yAxis') === tY2Axis)
-            tY2Plot = iPlot;
-        });
-        return tY2Plot;
-      }.bind( this);
-
       DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRef.attribute.get('name'));
 
       var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
@@ -331,7 +341,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this.privSyncAxisWithAttribute( 'y2AttributeDescription', 'y2Axis' );
 
-      if( !getY2Plot()) {
+      if( !this.getY2Plot()) {
         // The only plot we can currently make with Y2 axis is a scatterplot
         var tPlot = DG.ScatterPlotModel.create( { verticalAxisIsY2: true });
         tPlot.beginPropertyChanges();
@@ -477,78 +487,85 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      @param{String} key to the axis whose attribute is to be removed
      @param{Number} index of attribute in the list
      */
-    removeAttribute: function( iDescKey, iAxisKey, iAttrIndex ) {
+    removeAttribute: function (iDescKey, iAxisKey, iAttrIndex) {
 
       var
-        /**
-         * This is the normal case - there's one attribute assigned to the axis, and we remove it.
-         * When we remove the last attribute, we have to do some plot reconfiguration. When it's not
-         * the last attribute, we assume that the plot configuration remains the same.
-         */
-        removeLastAttribute = function() {
-          var tName = tConfig.getPath( iDescKey + '.attribute' + '.name'),
-              tAxisToDestroy = this.get( iAxisKey ),
-              tNewAxis = DG.AxisModel.create(),
-              tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
-              tSecondaryRole, tPrimaryRole;
+          /**
+           * This is the normal case - there's one attribute assigned to the axis, and we remove it.
+           * When we remove the last attribute, we have to do some plot reconfiguration. When it's not
+           * the last attribute, we assume that the plot configuration remains the same.
+           */
+          removeLastAttribute = function () {
+            var tName = tConfig.getPath(iDescKey + '.attribute' + '.name'),
+                tAxisToDestroy = this.get(iAxisKey),
+                tNewAxis = DG.AxisModel.create(),
+                tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
+                tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
+                tSecondaryRole, tPrimaryRole;
 
-          DG.logUser("attributeRemoved: %@", tName);
+            DG.logUser("attributeRemoved: %@", tName);
 
-          this.set( 'aboutToChangeConfiguration', true ); // signals dependents to prepare
+            this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 
-          tNewAxis.set( 'attributeDescription', tConfig.get( iDescKey ) );
-          this.set( iAxisKey, tNewAxis );
-          tAxisToDestroy.destroy();
+            tNewAxis.set('attributeDescription', tConfig.get(iDescKey));
+            this.set(iAxisKey, tNewAxis);
+            tAxisToDestroy.destroy();
 
-          tConfig.setAttributeAndCollectionClient( iDescKey, null);
-          // The role of the attribute placement description on the axis whose attribute is removed must be secondary
-          // and the other axis role must now be primary
-          switch( this.getPath( 'dataConfiguration.' + tOtherDesc + '.attributeType' ) ) {
-            case DG.Analysis.EAttributeType.eNumeric:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
-              break;
-            case DG.Analysis.EAttributeType.eCategorical:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
-              break;
-            default:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
-          }
-          tConfig.get( iDescKey ).set( 'role', tSecondaryRole );
-          tConfig.get( tOtherDesc ).set( 'role', tPrimaryRole );
+            tConfig.setAttributeAndCollectionClient(iDescKey, null);
+            // The role of the attribute placement description on the axis whose attribute is removed must be secondary
+            // and the other axis role must now be primary
+            switch (this.getPath('dataConfiguration.' + tOtherDesc + '.attributeType')) {
+              case DG.Analysis.EAttributeType.eNumeric:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
+                break;
+              case DG.Analysis.EAttributeType.eCategorical:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
+                break;
+              default:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
+            }
+            tConfig.get(iDescKey).set('role', tSecondaryRole);
+            tConfig.get(tOtherDesc).set('role', tPrimaryRole);
 
-          if( iAxisKey === 'y2Axis') {
-            // TODO: This is a kludge that won't hold up beyond the simplest case
-            this.removePlotAtIndex( this.get('plots').length - 1);
+            if (iAxisKey === 'y2Axis') {
+              if( tY2Plot) {
+                this.removePlot( tY2Plot);
+                this.notifyPropertyChange('attributeRemoved');
+              }
+            }
+            else {
+              this.synchPlotWithAttributes();
+            }
+
+            this.invalidate();
+            this.set('aboutToChangeConfiguration', false); // reset for next time
+          }.bind(this),
+
+          /**
+           * We're removing one of 2 or more attributes. The axis will stay the same. One plot will be removed.
+           */
+          removeIndexedAttribute = function () {
+            var tAttrDesc = tConfig.get(iDescKey);
+            tAttrDesc.removeAttributeAtIndex(iAttrIndex);
+            this.removePlotAtIndex(iAttrIndex);
+
             this.notifyPropertyChange('attributeRemoved');
-          }
-          else {
-          this.synchPlotWithAttributes();
-          }
-
-          this.invalidate();
-          this.set( 'aboutToChangeConfiguration', false ); // reset for next time
-        }.bind(this),
-
-        /**
-         * We're removing one of 2 or more attributes. The axis will stay the same. One plot will be removed.
-         */
-        removeIndexedAttribute = function() {
-          var tAttrDesc = tConfig.get( iDescKey);
-          tAttrDesc.removeAttributeAtIndex( iAttrIndex);
-          this.removePlotAtIndex( iAttrIndex);
-
-          this.notifyPropertyChange('attributeRemoved');
-        }.bind(this);
+          }.bind(this);
 
       iAttrIndex = iAttrIndex || 0;
-      var tConfig = this.get( 'dataConfiguration' ),
-          tAttributes = tConfig.getPath( iDescKey + '.attributes');
+      var tConfig = this.get('dataConfiguration'),
+          tAttributes = tConfig.getPath(iDescKey + '.attributes');
 
-      if( tAttributes.length === 1)
+      if (tAttributes.length === 1) {
+        // If we are removing the last x or y-axis attribute and there is a y2-axis attribute, remove the latter first.
+        if( ((iAxisKey === 'yAxis') || (iAxisKey === 'xAxis')) && this.getY2Plot())
+          this.removeAttribute( 'y2AttributeDescription', 'y2Axis', 0);
+
         removeLastAttribute();
+      }
       else
         removeIndexedAttribute();
     },

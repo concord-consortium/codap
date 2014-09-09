@@ -66,6 +66,7 @@
 
 .axis-dot {
     opacity: 0.85 !important;
+    cursor: pointer;
 }
 
 .axis-label {
