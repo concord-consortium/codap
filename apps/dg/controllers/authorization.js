@@ -309,7 +309,7 @@ return {
                                 is received. The called method should check for errors
                                 and perform any other appropriate tasks upon completion.
    */
-  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
+  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
@@ -318,8 +318,9 @@ return {
       url += '&runKey=%@'.fmt(DG.runKey)
     }
               
+    var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveDocumentResponse')
+      .notify(iReceiver, notificationFunction)
       .send(iDocumentArchive);
   },
 

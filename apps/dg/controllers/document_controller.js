@@ -144,6 +144,8 @@ DG.DocumentController = SC.Object.extend(
    */
   savedChangeCount: 0,
 
+  _lastCopiedDocument: null,
+
   init: function() {
     sc_super();
     
@@ -846,7 +848,7 @@ DG.DocumentController = SC.Object.extend(
       this.updateSavedChangeCount();
     }
   },
-    
+
   receivedSaveDocumentResponse: function(iResponse) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
@@ -861,6 +863,46 @@ DG.DocumentController = SC.Object.extend(
       }
     } else {
       DG.appController.triggerSaveNotification();
+    }
+  },
+
+  /**
+    Archive the document into durable form, and save it.
+
+    @param {String} iDocumentId   The unique Id of the document as known to the server.
+  */
+  copyDocument: function( iDocumentId, iDocumentPermissions) {
+    var docArchive = this.exportDocument();
+    docArchive.name = iDocumentId;
+    if( !SC.none( iDocumentPermissions))
+      docArchive._permissions = iDocumentPermissions;
+
+    if( DG.assert( !SC.none(docArchive))) {
+      this.set('_lastCopiedDocument', iDocumentId);
+      DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+    }
+  },
+
+  receivedCopyDocumentResponse: function(iResponse) {
+    var body = iResponse.get('body'),
+        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+    if( isError) {
+      var errorMessage = 'DG.AppController.copyDocument.' + body.message;
+      if (errorMessage.loc() === errorMessage)
+        errorMessage = 'DG.AppController.copyDocument.error.general';
+      if( isError) {
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage});
+      }
+    } else {
+      // Pop open the document in a new window/tab
+      var win = window.open(DG.appController.copyLink(this.get('_lastCopiedDocument'), '_blank'));
+      if (win) {
+        win.focus();
+      } else {
+        DG.appController.showCopyLink(this.get('_lastCopiedDocument'));
+      }
     }
   }
 });

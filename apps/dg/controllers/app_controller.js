@@ -99,9 +99,9 @@ DG.appController = SC.Object.create((function () // closure
           },
           { 
             localize: true, 
-            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
+            title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
             target: this, 
-            action: 'saveDocument',
+            action: 'copyDocument',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
           { 
             localize: true, 
@@ -365,15 +365,32 @@ DG.appController = SC.Object.create((function () // closure
      Allows the user to save the current document contents with a user-specified document name.
      */
     saveDocument: function () {
+      if (DG.currDocumentController().get('documentName') == SC.String.loc('DG.Document.defaultDocumentName')) {
+        this.openSaveDialog = DG.CreateOpenSaveDialog({
+          dialogType: DG.OpenSaveDialog.kSaveDialog,
+          prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for your document:"
+          documentNameValue: DG.currDocumentController().get('documentName'),
+          documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
+          okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
+          okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+          okTarget: this,
+          okAction: 'saveDocumentFromDialog'
+        });
+      } else {
+        this.autoSaveDocument();
+      }
+    },
+
+    copyDocument: function () {
       this.openSaveDialog = DG.CreateOpenSaveDialog({
         dialogType: DG.OpenSaveDialog.kSaveDialog,
-        prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for your document:"
+        prompt: 'DG.AppController.copyDocument.prompt', // "Choose a name for your document:"
         documentNameValue: DG.currDocumentController().get('documentName'),
         documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
-        okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
-        okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+        okTitle: 'DG.AppController.copyDocument.okTitle', // "Save"
+        okTooltip: 'DG.AppController.copyDocument.okTooltip', // "Save the document with the specified name"
         okTarget: this,
-        okAction: 'saveDocumentFromDialog'
+        okAction: 'copyDocumentFromDialog'
       });
     },
 
@@ -389,6 +406,24 @@ DG.appController = SC.Object.create((function () // closure
         DG.currDocumentController().set('documentName', docName);
         DG.currDocumentController().saveDocument(docName, documentPermissions);
         DG.logUser("saveDocument: '%@'", docName);
+      }
+
+      // Close the open/save dialog.
+      this.openSaveDialog.close();
+      this.openSaveDialog = null;
+    },
+
+    /**
+     Dialog callback function after the user chooses a name for copying the document.
+     */
+    copyDocumentFromDialog: function () {
+      var docName = this.openSaveDialog.get('documentName'),
+        documentPermissions = this.openSaveDialog.get('documentPermissions');
+
+      if (!SC.empty(docName)) {
+        docName = docName.trim();
+        DG.currDocumentController().copyDocument(docName, documentPermissions);
+        DG.logUser("copyDocument: '%@'", docName);
       }
 
       // Close the open/save dialog.
@@ -748,6 +783,57 @@ DG.appController = SC.Object.create((function () // closure
       doc_encoded: encodeURIComponent(currDoc)
     });
   }.property(),
+
+    showCopyLink: function(newDocName) {
+      var destination = this.copyLink(newDocName);
+      var sheetPane = SC.PanelPane.create({
+        layout: { top: 0, centerX: 0, width: 340, height: 140 },
+        contentView: SC.View.extend({
+          childViews: 'titleView okButton instructionsLabel'.w(),
+
+          titleView: SC.LabelView.design({
+            layout: { top: 10, left: 0, right: 0, height: 34 },
+            controlSize: SC.LARGE_CONTROL_SIZE,
+            fontWeight: SC.BOLD_WEIGHT,
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.copyLinkDialog.title',            // "Share"
+            localize: YES
+          }),
+
+          instructionsLabel: SC.LabelView.design({
+            escapeHTML: NO,
+            layout: { top: 44, left: 0, right: 0, height: 36 },
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.copyLinkDialog.instructions',
+            localize: YES
+          }),
+
+          okButton: SC.ButtonView.design({
+            layout: { top: 110, height: 24, right:20, width:100 },
+            title: 'DG.AppController.copyLinkDialog.okButtonTitle',                // "OK"
+            localize: YES,
+            action: function() {
+              var win = window.open(destination, '_blank');
+              if (win) {
+                win.focus();
+              }
+              sheetPane.remove()
+            },
+            isDefault: YES
+          })
+        })
+      });
+      sheetPane.append();
+    },
+
+    copyLink: function(newDocName) {
+      var currUrl = window.location,
+          currDoc = DG.currDocumentController().get('documentName'),
+          currLoc = '' + window.location,
+          newLoc  = currLoc.replace(encodeURIComponent(currDoc), encodeURIComponent(newDocName));
+
+      return newLoc;
+    }.property(),
 
     /**
      Bring up the bug report page.
