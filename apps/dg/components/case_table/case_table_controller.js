@@ -101,7 +101,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       init: function() {
         sc_super();
         this.caseTableAdapters = [];
-        
+
         if( this.get('dataContext'))
           this.dataContextDidChange();
       },
@@ -187,8 +187,27 @@ DG.CaseTableController = DG.ComponentController.extend(
                                             addObserver('[]', this_, 'attributeCountDidChange');
                                          });
         }
+        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
       }.observes('dataContext'),
-      
+
+      getCaseCountMessage: function () {
+        var parentCount = this.getPath('contentView.parentTableView.gridAdapter.totalRowCount'),
+          childCount = this.getPath('contentView.childTableView.gridAdapter.totalRowCount'),
+          dataContext = this.get('dataContext'),
+          parentCollection, childCollection, tStatusMessage = "";
+        if (dataContext) {
+          parentCollection = this.getPath('dataContext.parentCollection');
+          childCollection = this.getPath('dataContext.childCollection');
+          if (parentCollection && childCollection) {
+            tStatusMessage = dataContext.getCaseCountString(parentCollection,
+              parentCount) + '/' + dataContext.getCaseCountString(childCollection,
+              childCount);
+          }
+        }
+        DG.logInfo("UpdateStatus: "  + tStatusMessage);
+        return tStatusMessage;
+      },
+
       createComponentStorage: function() {
         var storage = {},
             dataContext = this.get('dataContext');
@@ -361,9 +380,12 @@ DG.CaseTableController = DG.ComponentController.extend(
         Called when the array observer indicates that the number of cases has changed.
        */
       caseCountDidChange: function( iChange) {
-        var hierTableView = this.getPath('view.contentView');
-        if( hierTableView)
+        var hierTableView = this.getPath('view.contentView'),
+          componentView = this.view;
+        if( hierTableView) {
           hierTableView.updateRowCount();
+          componentView.set('status', this.getCaseCountMessage());
+        }
       },
       
       /**
@@ -444,6 +466,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tChildCollection = tDataContext && tDataContext.get('childCollection');
         this.newAttribute({ collection: tChildCollection });
       },
+
       newParentAttribute: function() {
         var tDataContext = this.get('dataContext'),
             tParentCollection = tDataContext && tDataContext.get('parentCollection');
