@@ -440,6 +440,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var gearView = this.getPath('view.containerView.titlebar.gearView');
         if( gearView)
           gearView.set('contentView', tComponentView);
+        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
       }.observes('view'),
 
       /**
