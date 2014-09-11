@@ -26,7 +26,7 @@ WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
 INDEX_HTML=$WORK_DIR/index.html
 TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
 
-REDIRECT_PATH=./static/dg/en/${BUILD_NUM}/index.html
+REDIRECT_PATH=./static/dg/en/cert/index.html
 
 #BUILD_OPTS=--dont-minify
 BUILD_OPTS=
@@ -35,10 +35,10 @@ mkdir -p $WORK_DIR
 
 #
 # Build to a temp directory
-sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=$BUILD_NUM -vv
+sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=cert -vv
 
 #
-# Generate top lvel index.html redirector
+# Generate top level index.html redirector
 cat > $INDEX_HTML << END_DOC
 <!DOCTYPE html>
 <html>
@@ -72,5 +72,5 @@ mv $TMP_ZIP $ZIP_FILE
 
 #
 # Clean up
-echo rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
+#echo rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
 rm -rf $TMP_ZIP /tmp/$PROGNAME.$$

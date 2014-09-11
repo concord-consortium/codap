@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global L */
 /** @class  DG.MapLayerView
 
  A view on a map.
@@ -126,6 +127,7 @@ DG.MapLayerView = SC.View.extend(
         tNewLayer = L.esri.basemapLayer( tNewLayerName);
         this._map.addLayer(tNewLayer, true /*add at bottom */)
             .on('drag', onDisplayChangeEvent)
+            .on('move', onDisplayChangeEvent)
             .on('zoomend', onDisplayChangeEvent)
             .on('click', onClick);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
