@@ -827,10 +827,16 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     copyLink: function(newDocName) {
-      var currUrl = window.location,
-          currDoc = DG.currDocumentController().get('documentName'),
+      var currDoc = DG.currDocumentController().get('documentName'),
+          currOwner = DG.authorizationController.getPath('currLogin.user'),
           currLoc = '' + window.location,
-          newLoc  = currLoc.replace(encodeURIComponent(currDoc), encodeURIComponent(newDocName));
+          parts = currLoc.split('?'),
+          currQuery = DG.queryString.parse(parts[1] ? parts[1] : '');
+
+      currQuery["doc"] = encodeURIComponent(newDocName);
+      currQuery["owner"] = encodeURIComponent(currOwner);
+
+      newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
 
       return newLoc;
     }.property(),
