@@ -520,9 +520,8 @@ return {
     // If we have pending login credentials, e.g. from a saved cookie,
     // send them to the server for verification.
     var pendingUser = currEdit && currEdit.get('user'),
-        pendingPwd = currEdit && currEdit.get('password'),
         pendingSession = currEdit && currEdit.get('sessionID');
-    if( !SC.empty( pendingUser) && !SC.empty(pendingPwd) && pendingSession) {
+    if( !SC.empty( pendingUser) && pendingSession) {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
     
