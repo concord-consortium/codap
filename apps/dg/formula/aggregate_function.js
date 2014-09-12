@@ -233,7 +233,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
    */
   evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
     var valueFn = iInstance.argFns[0],
-        value = valueFn && valueFn( iContext, iEvalContext);
+        value = valueFn && Number(valueFn( iContext, iEvalContext));
     // Currently, we only sort numeric values.
     // To support a Fathom-like alphanumeric sort, we would have to change the test here.
     if( isFinite( value)) {

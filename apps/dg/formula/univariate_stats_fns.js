@@ -69,7 +69,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && valueFn( iContext, iEvalContext);
+          value = valueFn && Number(valueFn( iContext, iEvalContext));
       if( isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -102,7 +102,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && valueFn( iContext, iEvalContext);
+          value = valueFn && Number(valueFn( iContext, iEvalContext));
       if( isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -135,7 +135,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && valueFn( iContext, iEvalContext);
+          value = valueFn && Number(valueFn( iContext, iEvalContext));
       if( isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -184,7 +184,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && valueFn( iContext, iEvalContext);
+          value = valueFn && Number(valueFn( iContext, iEvalContext));
       if( isFinite( value)) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
