@@ -720,69 +720,69 @@ DG.appController = SC.Object.create((function () // closure
       });
     },
 
-  showShareLink: function() {
-    var sheetPane = SC.PanelPane.create({
-      layout: { top: 0, centerX: 0, width: 340, height: 140 },
-      contentView: SC.View.extend({
-        childViews: 'titleView okButton instructionsLabel linkLabel warningLabel'.w(),
+    showShareLink: function() {
+      var sheetPane = SC.PanelPane.create({
+        layout: { top: 0, centerX: 0, width: 340, height: 140 },
+        contentView: SC.View.extend({
+          childViews: 'titleView okButton instructionsLabel linkLabel warningLabel'.w(),
 
-        titleView: SC.LabelView.design({
-          layout: { top: 10, left: 0, right: 0, height: 34 },
-          controlSize: SC.LARGE_CONTROL_SIZE,
-          fontWeight: SC.BOLD_WEIGHT,
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.AppController.shareLinkDialog.title',            // "Share"
-          localize: YES
-        }),
+          titleView: SC.LabelView.design({
+            layout: { top: 10, left: 0, right: 0, height: 34 },
+            controlSize: SC.LARGE_CONTROL_SIZE,
+            fontWeight: SC.BOLD_WEIGHT,
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.shareLinkDialog.title',            // "Share"
+            localize: YES
+          }),
 
-        instructionsLabel: SC.LabelView.design({
-          escapeHTML: NO,
-          layout: { top: 44, left: 0, right: 0, height: 24 },
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.AppController.shareLinkDialog.instructions',
-          localize: YES
-        }),
+          instructionsLabel: SC.LabelView.design({
+            escapeHTML: NO,
+            layout: { top: 44, left: 0, right: 0, height: 24 },
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.shareLinkDialog.instructions',
+            localize: YES
+          }),
 
-        linkLabel: SC.LabelView.design({
-          escapeHTML: NO,
-          layout: { top: 66, left: 0, right: 0, height: 24 },
-          textAlign: SC.ALIGN_CENTER,
-          value: this.get('_shareLinkDialogText')
-        }),
+          linkLabel: SC.LabelView.design({
+            escapeHTML: NO,
+            layout: { top: 66, left: 0, right: 0, height: 24 },
+            textAlign: SC.ALIGN_CENTER,
+            value: this.get('_shareLinkDialogText')
+          }),
 
-        warningLabel: SC.LabelView.design({
-          controlSize: SC.TINY_CONTROL_SIZE,
-          escapeHTML: NO,
-          layout: { top: 88, left: 0, right: 0, height: 24 },
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.AppController.shareLinkDialog.saveWarning',
-          localize: YES
-        }),
+          warningLabel: SC.LabelView.design({
+            controlSize: SC.TINY_CONTROL_SIZE,
+            escapeHTML: NO,
+            layout: { top: 88, left: 0, right: 0, height: 24 },
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.shareLinkDialog.saveWarning',
+            localize: YES
+          }),
 
-        okButton: SC.ButtonView.design({
-          layout: { top: 110, height: 24, right:20, width:100 },
-          title: 'DG.AppController.shareLinkDialog.okButtonTitle',                // "OK"
-          localize: YES,
-          action: function() { sheetPane.remove(); },
-          isDefault: YES
+          okButton: SC.ButtonView.design({
+            layout: { top: 110, height: 24, right:20, width:100 },
+            title: 'DG.AppController.shareLinkDialog.okButtonTitle',                // "OK"
+            localize: YES,
+            action: function() { sheetPane.remove(); },
+            isDefault: YES
+          })
         })
-      })
-    });
-    sheetPane.append();
-  },
+      });
+      sheetPane.append();
+    },
 
-  _shareLinkDialogText: function() {
-    var currUser = DG.authorizationController.getPath('currLogin.user'),
-         currDoc = DG.currDocumentController().get('documentName'),
-         currLoc = window.location.origin + window.location.pathname;
-    return 'DG.AppController.shareLinkDialog.link'.loc({
-      doc_server: DG.documentServer,
-      codap_server: encodeURIComponent(currLoc),
-      owner: encodeURIComponent(currUser),
-      doc: currDoc,
-      doc_encoded: encodeURIComponent(currDoc)
-    });
-  }.property(),
+    _shareLinkDialogText: function() {
+      var currUser = DG.authorizationController.getPath('currLogin.user'),
+           currDoc = DG.currDocumentController().get('documentName'),
+           currLoc = window.location.origin + window.location.pathname;
+      return 'DG.AppController.shareLinkDialog.link'.loc({
+        doc_server: DG.documentServer,
+        codap_server: encodeURIComponent(currLoc),
+        owner: encodeURIComponent(currUser),
+        doc: currDoc,
+        doc_encoded: encodeURIComponent(currDoc)
+      });
+    }.property(),
 
     showCopyLink: function(newDocName) {
       var destination = this.copyLink(newDocName);
