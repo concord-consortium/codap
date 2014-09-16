@@ -76,12 +76,38 @@ DG.mainPage = SC.Page.design((function() {
         fontWeight: SC.BOLD_WEIGHT,
         textAlign: SC.ALIGN_LEFT,
         needsEllipsis: YES,
-        isEditable: true,
+        isEditableBinding: 'DG.authorizationController.isSaveEnabled',
         valueBinding: 'DG._currDocumentController.documentName',
         toolTipBinding: 'DG._currDocumentController.documentName',
+        inlineEditorDidBeginEditing: function(editor, value) {
+          this.set('originalValue', value);
+        },
         valueChanged: function() {
-          // Set the doc dirty state
-          DG.currDocumentController().incrementProperty('changeCount');
+          var original = this.get('originalValue'),
+              newValue = this.get('value');
+          if (original && newValue != original && original != SC.String.loc('DG.Document.defaultDocumentName')) {
+            var docController = DG.currDocumentController();
+            var changeCount = docController.get('changeCount');
+
+            // Delete the old document once the new document has saved.
+            var saveObserver = function() {
+              var savedChangeCount = docController.get('savedChangeCount');
+              if (savedChangeCount > changeCount) {
+                // quit observing and delete the old document
+                docController.removeObserver('savedChangeCount', saveObserver);
+                docController.deleteDocument(original);
+              }
+            }
+            docController.addObserver('savedChangeCount', saveObserver);
+
+            this.invokeLast(function() {
+              // Mark the current doc as dirty, and save the doc under the new name.
+              // Run this within an invokeLast so that the new name propagates.
+              docController.incrementProperty('changeCount');
+              DG.appController.saveDocument();
+            });
+          }
+          return true;
         }.observes('value')
       }),
 

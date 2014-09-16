@@ -904,6 +904,25 @@ DG.DocumentController = SC.Object.extend(
         DG.appController.showCopyLink(this.get('_lastCopiedDocument'));
       }
     }
+  },
+
+  deleteDocument: function(iDocumentId) {
+    DG.authorizationController.deleteDocument(iDocumentId, this);
+  },
+
+  receivedDeleteDocumentResponse: function(iResponse) {
+    var body = iResponse.get('body'),
+        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+    if( isError) {
+      var errorMessage = 'DG.AppController.deleteDocument.' + body.message;
+      if (errorMessage.loc() === errorMessage)
+        errorMessage = 'DG.AppController.deleteDocument.error.general';
+      if( isError) {
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage});
+      }
+    }
   }
 });
 

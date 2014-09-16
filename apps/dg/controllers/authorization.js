@@ -324,6 +324,27 @@ return {
       .send(iDocumentArchive);
   },
 
+  /**
+    Deletes the specified document object to the server.
+
+    @param    iDocumentId       The ID of the document object
+    @param    iReceiver         The receiver object whose receivedDeleteDocumentResponse()
+                                method will be called when the response from the server
+                                is received. The called method should check for errors
+                                and perform any other appropriate tasks upon completion.
+   */
+  deleteDocument: function(iDocumentId, iReceiver) {
+    var url = DG.documentServer + 'document/delete?recordname=%@'.fmt( iDocumentId );
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests( serverUrl(url) )
+      .notify(iReceiver, 'receivedDeleteDocumentResponse')
+      .send();
+  },
+
   documentList: function(iReceiver) {
     var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
