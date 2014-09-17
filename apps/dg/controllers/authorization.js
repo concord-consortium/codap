@@ -467,7 +467,11 @@ return {
       // then there will be no message return
       var errorCode = (body && body.message) || "";
       if (DG.documentServer && iResponse.get('status') === 401) {
-        errorCode = 'error.notLoggedIn';
+        if (DG.runAsGuest) {
+          return DG.authorizationController.sendLoginAsGuestRequest();
+        } else {
+          errorCode = 'error.notLoggedIn';
+        }
       }
       // If we get here, then we didn't log in successfully.
       currLogin

@@ -296,6 +296,12 @@ DG = SC.Application.create((function () // closure
     runKey: getUrlParameter('runKey') || '',
 
     /**
+     * runAsGuest can be passed as a Url parameter named runAsGuest. It is a boolean which tells the login logic to avoid prompting
+     * for a login if a user isn't currently logged in, and instead runs as guest automatically.
+     */
+    runAsGuest: getUrlParameter('runAsGuest') == 'true',
+
+    /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
      *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars.
      *  The default is 'no'.
