@@ -834,7 +834,11 @@ DG.appController = SC.Object.create((function () // closure
           currQuery = DG.queryString.parse(parts[1] ? parts[1] : '');
 
       currQuery["doc"] = encodeURIComponent(newDocName);
-      currQuery["owner"] = encodeURIComponent(currOwner);
+      if (currOwner && currOwner != "guest") {
+        currQuery["owner"] = encodeURIComponent(currOwner);
+      } else {
+        delete currQuery["owner"];
+      }
 
       newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
 
