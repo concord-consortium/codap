@@ -263,7 +263,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.logUser("openDocument: '%@'", iName);
       }
 
-      if (iOwner != DG.iUser) {
+      if (iOwner && iOwner != DG.authorizationController.getPath('currLogin.user')) {
         this.setOpenedDocumentUnshared = YES;
       }
     },
