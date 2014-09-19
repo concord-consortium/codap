@@ -134,9 +134,9 @@ SC.stringsFor('English', {
   'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
   'DG.AppController.showReleaseNotesTitle' : 'CODAP Release Notes',
   'DG.AppController.shareLinkDialog.title' : 'Share',
+  'DG.AppController.shareLinkDialog.shareButtonLabel' : 'Shareable',
   'DG.AppController.shareLinkDialog.okButtonTitle' : 'OK',
   'DG.AppController.shareLinkDialog.instructions' : "<p>Use the link below to share this document with others:</p>",
-  'DG.AppController.shareLinkDialog.link' : "<a href='%{doc_server}document/launch?owner=%{owner}&doc=%{doc_encoded}&server=%{codap_server}'>%{doc}</a>",
   'DG.AppController.shareLinkDialog.saveWarning' : "<p>Warning: Make sure to save your document and mark it as shared!</p>",
   'DG.AppController.copyLinkDialog.title' : 'Copy complete',
   'DG.AppController.copyLinkDialog.okButtonTitle' : 'Go!',

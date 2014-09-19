@@ -130,11 +130,8 @@ DG.appController = SC.Object.create((function () // closure
             title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
             target: this, 
             action: 'showShareLink',
-            saveEnabledBinding: 'DG.authorizationController.isSaveEnabled',
-            hasBeenSharedBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
-            isEnabled: function() {
-              return this.get('saveEnabled') && this.get('hasBeenShared');
-            }.property('saveEnabled', 'hasBeenShared') }
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
+          }
         ],
         devItems = [
           { isSeparator: YES },
@@ -722,9 +719,9 @@ DG.appController = SC.Object.create((function () // closure
 
     showShareLink: function() {
       var sheetPane = SC.PanelPane.create({
-        layout: { top: 0, centerX: 0, width: 340, height: 140 },
+        layout: { top: 0, centerX: 0, width: 540, height: 190 },
         contentView: SC.View.extend({
-          childViews: 'titleView okButton instructionsLabel linkLabel warningLabel'.w(),
+          childViews: 'titleView shareButton okButton instructionsLabel linkLabel'.w(),
 
           titleView: SC.LabelView.design({
             layout: { top: 10, left: 0, right: 0, height: 34 },
@@ -735,36 +732,68 @@ DG.appController = SC.Object.create((function () // closure
             localize: YES
           }),
 
+          shareButton: SC.CheckboxView.design({
+            layout: { top: 44, height: 20, left: 10, width:100 },
+            title: 'DG.AppController.shareLinkDialog.shareButtonLabel', // "Shareable"
+            localize: YES,
+            valueBinding: 'DG._currDocumentController.content._permissions',
+            toggleOnValue: 1,
+            toggleOffValue: 0,
+            isDefault: NO,
+            action: function() {
+              DG.currDocumentController().incrementProperty('changeCount');
+              this.invokeNext(function() {
+                DG.appController.autoSaveDocument();
+              })
+            }
+          }),
+
           instructionsLabel: SC.LabelView.design({
             escapeHTML: NO,
-            layout: { top: 44, left: 0, right: 0, height: 24 },
+            layout: { top: 67, left: 0, right: 0, height: 24 },
             textAlign: SC.ALIGN_CENTER,
             value: 'DG.AppController.shareLinkDialog.instructions',
+            isVisibleBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
             localize: YES
           }),
 
-          linkLabel: SC.LabelView.design({
+          linkLabel: SC.TextFieldView.design({
+            layerId: 'shareLinkField',
             escapeHTML: NO,
-            layout: { top: 66, left: 0, right: 0, height: 24 },
+            layout: { top: 87, left: 0, right: 0, height: 65 },
             textAlign: SC.ALIGN_CENTER,
-            value: this.get('_shareLinkDialogText')
-          }),
-
-          warningLabel: SC.LabelView.design({
-            controlSize: SC.TINY_CONTROL_SIZE,
-            escapeHTML: NO,
-            layout: { top: 88, left: 0, right: 0, height: 24 },
-            textAlign: SC.ALIGN_CENTER,
-            value: 'DG.AppController.shareLinkDialog.saveWarning',
-            localize: YES
+            isTextArea: YES,
+            isEditable: NO,
+            autoCapitalize: NO,
+            autoCorrect: NO,
+            isDefault: YES,
+            value: this.get('_shareLinkDialogText'),
+            isVisibleBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
+            didAppendToDocument: function() {
+              // Force always have all text selected
+              // HACK, but I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
+              $("#shareLinkField textarea").mouseup(function(e) {
+                e.preventDefault();
+                $("#shareLinkField textarea").select();
+              });
+              this.visibilityChanged();
+            },
+            visibilityChanged: function() {
+              if (this.get('isVisible')) {
+                var linkView = this.get('_view_layer');
+                // HACK, once again I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
+                $("#shareLinkField textarea").focus();
+                $("#shareLinkField textarea").select();
+              }
+            }.observes('isVisible'),
           }),
 
           okButton: SC.ButtonView.design({
-            layout: { top: 110, height: 24, right:20, width:100 },
+            layout: { bottom: 5, height: 24, right:20, width:100 },
             title: 'DG.AppController.shareLinkDialog.okButtonTitle',                // "OK"
             localize: YES,
             action: function() { sheetPane.remove(); },
-            isDefault: YES
+            isDefault: NO
           })
         })
       });
@@ -772,16 +801,8 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     _shareLinkDialogText: function() {
-      var currUser = DG.authorizationController.getPath('currLogin.user'),
-           currDoc = DG.currDocumentController().get('documentName'),
-           currLoc = window.location.origin + window.location.pathname;
-      return 'DG.AppController.shareLinkDialog.link'.loc({
-        doc_server: DG.documentServer,
-        codap_server: encodeURIComponent(currLoc),
-        owner: encodeURIComponent(currUser),
-        doc: currDoc,
-        doc_encoded: encodeURIComponent(currDoc)
-      });
+      var currDoc = DG.currDocumentController().get('documentName');
+      return this.copyLink(currDoc);
     }.property(),
 
     showCopyLink: function(newDocName) {
