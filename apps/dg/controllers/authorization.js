@@ -405,6 +405,24 @@ return {
       .send();
   },
 
+  renameDocument: function(iOriginalName, iNewName, iReceiver) {
+    var url = DG.documentServer + 'document/rename';
+    url += '?recordname=' + iOriginalName;
+    url += '&newRecordname=' + iNewName;
+
+    if (this.getPath('currLogin.user') != 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedRenameDocumentResponse')
+      .send();
+  },
+
   /**
     Sends a request to expire the session connected the session
     token in the database.

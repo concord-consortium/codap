@@ -95,28 +95,8 @@ DG.mainPage = SC.Page.design((function() {
         valueChanged: function() {
           var original = this.get('originalValue'),
               newValue = this.get('value');
-          if (original && newValue != original && original != SC.String.loc('DG.Document.defaultDocumentName')) {
-            var docController = DG.currDocumentController();
-            var changeCount = docController.get('changeCount');
 
-            // Delete the old document once the new document has saved.
-            var saveObserver = function() {
-              var savedChangeCount = docController.get('savedChangeCount');
-              if (savedChangeCount > changeCount) {
-                // quit observing and delete the old document
-                docController.removeObserver('savedChangeCount', saveObserver);
-                docController.deleteDocument(original);
-              }
-            }
-            docController.addObserver('savedChangeCount', saveObserver);
-
-            this.invokeLast(function() {
-              // Mark the current doc as dirty, and save the doc under the new name.
-              // Run this within an invokeLast so that the new name propagates.
-              docController.incrementProperty('changeCount');
-              DG.appController.saveDocument();
-            });
-          }
+          DG.appController.renameDocument(original, newValue);
           return true;
         }.observes('value')
       }),
