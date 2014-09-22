@@ -386,7 +386,25 @@ return {
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
-  
+
+  revertCurrentDocument: function(iReceiver) {
+    var url = DG.documentServer + 'document/open';
+    url += '?recordname=' + DG.currDocumentController().get('documentName');
+    url += '&original=true';
+
+    if (this.getPath('currLogin.user') != 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .send();
+  },
+
   /**
     Sends a request to expire the session connected the session
     token in the database.

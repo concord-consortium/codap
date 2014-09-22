@@ -271,7 +271,6 @@ DG.appController = SC.Object.create((function () // closure
      openDocument callback function after the document content has been loaded.
      */
     receivedOpenDocumentResponse: function (iResponse) {
-
       var shouldShowAlert = true,
         alertDescription = null;
       // Currently, we must close any open document before opening another
@@ -583,6 +582,30 @@ DG.appController = SC.Object.create((function () // closure
       // TODO: Eliminate redundancy with DG.authorizationController....
       DG.gameSelectionController.setDefaultGame(iDefaultGameName);
       DG.mainPage.addGameIfNotPresent();
+    },
+
+    /**
+     Revert document to the original stored in the document server, after prompting user for OK/Cancel.
+     */
+    revertDocumentToOriginal: function () {
+      var _this = this;
+      function doRevert() {
+        DG.logUser("Reverted to original"); // deleted by user action, not game action
+        DG.authorizationController.revertCurrentDocument(_this);
+      }
+
+      DG.AlertPane.warn({
+        message: 'DG.AppController.revertDocument.warnMessage',
+        description: 'DG.AppController.revertDocument.warnDescription',
+        buttons: [
+          { title: 'DG.AppController.revertDocument.okButtonTitle',
+            action: doRevert,
+            localize: YES
+          },
+          { title: 'DG.AppController.revertDocument.cancelButtonTitle', localize: YES }
+        ],
+        localize: YES
+      });
     },
 
     /**
