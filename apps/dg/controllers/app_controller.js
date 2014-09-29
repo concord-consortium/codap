@@ -103,6 +103,12 @@ DG.appController = SC.Object.create((function () // closure
             target: this, 
             action: 'copyDocument',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
+          {
+            localize: true,
+            title: 'DG.AppController.revertDocument.title', // "Revert to Original..."
+            target: this,
+            action: 'revertDocumentToOriginal',
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
           { 
             localize: true, 
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
