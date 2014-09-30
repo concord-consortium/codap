@@ -752,6 +752,10 @@ return {
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
     }
+    else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
+    }
     else {
       DG.gameSelectionController.setDefaultGame();
       DG.mainPage.addGameIfNotPresent();

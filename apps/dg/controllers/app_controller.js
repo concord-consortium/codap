@@ -271,6 +271,15 @@ DG.appController = SC.Object.create((function () // closure
       }
     },
 
+    openDocumentWithId: function (iId) {
+      if (iId) {
+        DG.authorizationController.openDocument(iId, this);
+        DG.logUser("openDocument: '%@' (id)", iId);
+      }
+
+      // FIXME How do we determine whether it should get set unshared or not?
+    },
+
     setOpenedDocumentUnshared: NO,
 
     /**
