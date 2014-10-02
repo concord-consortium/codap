@@ -504,7 +504,7 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     triggerSaveNotification: function() {
-      var el = DG.getPath('mainPage.mainPane.topView.saveNotification.layer');
+      var el = DG.getPath('mainPage.mainPane.infoBar.leftSide.saveNotification.layer');
       var opacity = 1;
       var next = function(i) {
         if (opacity > 0) {

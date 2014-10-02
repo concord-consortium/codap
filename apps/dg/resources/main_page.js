@@ -20,7 +20,8 @@
 DG.mainPage = SC.Page.design((function() {
 
   var
-      kToolbarHeight = 44;
+      kToolbarHeight = 44,
+      kInfobarHeight = 24;
   
   // begin compatible browser main page design
   return DG.Browser.isCompatibleBrowser() ? {
@@ -28,13 +29,86 @@ DG.mainPage = SC.Page.design((function() {
   // The main pane is made visible on screen as soon as your app is loaded.
   // Add childViews to this pane for views to display immediately on page load.
   mainPane: SC.MainPane.design({
-    childViews: 'topView scrollView'.w(),
-    
+    childViews: 'infoBar topView scrollView'.w(),
+
+    infoBar: SC.ToolbarView.design({
+      classNames: 'infobar'.w(),
+      layout: { top: 0, height: kInfobarHeight },
+      childViews: 'leftSide rightSide'.w(),
+      anchorLocation: SC.ANCHOR_TOP,
+
+      leftSide: SC.View.design(SC.FlowedLayout, {
+        layout: { top: 3, left: 5, height: kInfobarHeight, zIndex: 1  },
+        childViews: 'documentTitle titleEditButton saveNotification'.w(),
+        defaultFlowSpacing: { left: 0, right: 5, top: 0, bottom: 0 },
+
+        documentTitle: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_LEFT,
+          needsEllipsis: YES,
+          isEditableBinding: 'DG.authorizationController.isSaveEnabled',
+          valueBinding: 'DG._currDocumentController.documentName',
+          toolTipBinding: 'DG._currDocumentController.documentName',
+          inlineEditorDidBeginEditing: function(editor, value) {
+            this.set('originalValue', value);
+          },
+          valueChanged: function() {
+            var original = this.get('originalValue'),
+                newValue = this.get('value');
+
+            DG.appController.renameDocument(original, newValue);
+            return true;
+          }.observes('value')
+        }),
+
+        titleEditButton: SC.LabelView.design({
+          layout: { height: 14, width: 12 },
+          textAlign: SC.ALIGN_LEFT,
+          escapeHTML: NO,
+          value: '<img style="margin-top: 2px;" src="' + static_url('images/pencil.png') + '" />',
+          tooltip: 'Rename document.',
+          click: function() {
+            this.getPath('parentView.documentTitle').beginEditing();
+          }
+        }),
+
+        saveNotification: SC.LabelView.design(SC.AutoResize, {
+          classNames: ['invisible'],
+          layout: { height: 18 },
+          textAlign: SC.ALIGN_LEFT,
+          value: 'Document Saved!'
+        })
+      }),
+
+      rightSide: SC.View.design(SC.FlowedLayout, {
+        layout: { top: 3, right: 5, height: kInfobarHeight, zIndex: 0 },
+        childViews: 'statusLabel versionLabel'.w(),
+        align: SC.ALIGN_RIGHT,
+        defaultFlowSpacing: { left: 5, right: 0, top: 0, bottom: 0 },
+
+        versionLabel: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_RIGHT,
+          value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
+        }),
+
+        statusLabel: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          textAlign: SC.ALIGN_RIGHT,
+          currUsernameBinding: 'DG.authorizationController.currLogin.user',
+          value: function() {
+            return 'User: ' + this.get('currUsername');
+          }.property('currUsername')
+        })
+      })
+    }),
+
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
-      layout: { top: 0, height: kToolbarHeight },
-      childViews: 'resetButton logoutButton versionLabel statusLabel documentTitle saveNotification'.w(),
-      anchorLocation: SC.ANCHOR_TOP,
+      layout: { top: kInfobarHeight, height: kToolbarHeight },
+      childViews: 'resetButton logoutButton'.w(),
 
       resetButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:100 },
@@ -56,46 +130,6 @@ DG.mainPage = SC.Page.design((function() {
           return !DG.documentServer || this.get('user') === 'guest';
         }.property('user'),
         toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip')  // "Log out the current user"
-      }),
-  
-      versionLabel: SC.LabelView.design({
-        layout: { top: 0, height: 24, left: 0, width: 150 },
-        fontWeight: SC.BOLD_WEIGHT,
-        textAlign: SC.ALIGN_RIGHT,
-        value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
-      }),
-  
-      statusLabel: SC.LabelView.design({
-        layout: { bottom: 5, left: 0, width: 150, height: 18 },
-        textAlign: SC.ALIGN_RIGHT,
-        valueBinding: 'DG.authorizationController.currLogin.user'
-      }),
-
-      documentTitle: SC.LabelView.design({
-        layout: { top: 0, left: 0, width: 150, height: 18 },
-        fontWeight: SC.BOLD_WEIGHT,
-        textAlign: SC.ALIGN_LEFT,
-        needsEllipsis: YES,
-        isEditableBinding: 'DG.authorizationController.isSaveEnabled',
-        valueBinding: 'DG._currDocumentController.documentName',
-        toolTipBinding: 'DG._currDocumentController.documentName',
-        inlineEditorDidBeginEditing: function(editor, value) {
-          this.set('originalValue', value);
-        },
-        valueChanged: function() {
-          var original = this.get('originalValue'),
-              newValue = this.get('value');
-
-          DG.appController.renameDocument(original, newValue);
-          return true;
-        }.observes('value')
-      }),
-
-      saveNotification: SC.LabelView.design({
-        classNames: ['invisible'],
-        layout: { bottom: 5, left: 0, width: 150, height: 18 },
-        textAlign: SC.ALIGN_LEFT,
-        value: 'Document Saved!'
       }),
 
       init: function() {
@@ -124,16 +158,12 @@ DG.mainPage = SC.Page.design((function() {
         tLeft += kSpacer; // extra space to right of gear
         tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
-        moveHorizontal( this.documentTitle, tLeft ); // same left as lastSaved
-        tLeft = kSpacer + moveHorizontal( this.saveNotification, tLeft );
-        moveHorizontal( this.versionLabel, tLeft );  // same left as statusLabel
-        tLeft = kSpacer + moveHorizontal( this.statusLabel, tLeft );
       }
       
     }), // topView
 
     scrollView: SC.ScrollView.design({
-      layout: { top: kToolbarHeight },
+      layout: { top: kInfobarHeight + kToolbarHeight },
       classNames: 'doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
