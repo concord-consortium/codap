@@ -53,14 +53,20 @@
 
 /* data dot with variable fill color */
 .data-dot-colored {
-    opacity: 0.85 !important;
+    opacity: 0.5 !important;
     stroke: #315B7D !important;
     pointer-events: all;
 }
 
 .data-dot-colored-selected {
+    opacity: 0.85 !important;
     stroke: black !important;
     stroke-width: 2 !important;
+}
+
+.axis-dot {
+    opacity: 0.85 !important;
+    cursor: pointer;
 }
 
 .axis-label {

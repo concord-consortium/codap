@@ -45,6 +45,10 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   */
   upperBound: null,
 
+  init: function() {
+    sc_super();
+  },
+
   /**
     Should the zero be locked at one end of the axis?
     @property { boolean }

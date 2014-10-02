@@ -60,6 +60,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     */
     maxNumberExtent: 0,
 
+    init: function() {
+      sc_super();
+    },
+
     /**
     coordToString
       @param {Number} location on axis
@@ -136,6 +140,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 
               switch( tOrientation) {
                 case 'vertical':
+                case 'vertical2':
                   tHalfHeight = tTextExtent.y / 2;
 
                   if (firstTime || (Math.abs( lastPixelUsed - tickPixel) > tHalfHeight)) {
@@ -187,7 +192,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 //                      this_.cellDataToCoordinate( tCellNumber, tStart + tTickGap + tOffset)) /
 //                          tNumSubIntervals,
             tPixelMax = this_.get('pixelMax'),
-            tTickIndex = 0;
+            tTickIndex = 0,
+            tTickLength = (tOrientation === 'vertical2') ? -kTickLength : kTickLength,
+            tAxisGap = (tOrientation === 'vertical2') ? -kAxisGap : kAxisGap,
+            tAnchor = (tOrientation === 'vertical2') ? 'start' : 'end';
 
         this_.forEachTickDo( function( iSpot, iTickPixel) {
           var tNum, tLabelExtent, tWidth, tHeight;
@@ -201,18 +209,19 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 
           switch( tOrientation) {
             case 'vertical':
+            case 'vertical2':
               iTickPixel += tPixelMax;  // offset by top of axis
               if( (iTickPixel < this_.get('pixelMin')) && (tTickIndex >= 0))
                 this_._elementsToClear.push(
-                  this_._paper.line( tBaseline, iTickPixel, tBaseline - kTickLength, iTickPixel)
+                  this_._paper.line( tBaseline, iTickPixel, tBaseline - tTickLength, iTickPixel)
                         .attr( { stroke: DG.PlotUtilities.kAxisColor }));
               //DrawSubTicks( iTickPixel, tSubTickPixelGap, tNumSubIntervals);
 
               if (tCounter === 0) {
                 if( (iTickPixel < this_.get('pixelMin')) && (tTickIndex >= 0)) {
-                  tNum.attr( { x: tBaseline - kTickLength - kAxisGap,
+                  tNum.attr( { x: tBaseline - tTickLength - tAxisGap,
                                y: iTickPixel,
-                              'text-anchor': 'end' });
+                              'text-anchor': tAnchor });
 //                  tNum.node.setAttribute( 'style', tNum.node.getAttribute('style') +
 //                            'dominant-baseline:middle');
 //                  tNum.node.setAttribute( 'dominant-baseline', 'middle');
@@ -227,13 +236,13 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               iTickPixel += this_.get('pixelMin');  // offset by left start of axis
               if( (iTickPixel >= this_.get('pixelMin')) && (tTickIndex >= 0))
                 this_._elementsToClear.push(
-                  this_._paper.line( iTickPixel, tBaseline, iTickPixel, tBaseline + kTickLength)
+                  this_._paper.line( iTickPixel, tBaseline, iTickPixel, tBaseline + tTickLength)
                         .attr( { stroke: DG.PlotUtilities.kAxisColor }));
               //DrawSubTicks( iTickPixel, tSubTickPixelGap, tNumSubIntervals);
               if (tCounter === 0) {
                 if ((iTickPixel >= this_.get('pixelMin')) && (tTickIndex >= 0)) {
                   tNum.attr({ x: iTickPixel + 1,
-                              y: tBaseline + kTickLength + kAxisGap + tHeight / 3 });
+                              y: tBaseline + tTickLength + tAxisGap + tHeight / 3 });
                   tMaxNumberExtent = Math.max( tMaxNumberExtent, tHeight);
                 }
               }
@@ -277,7 +286,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         function doTranslate( idX, idY) {
           if( !tClickHandling && this_._isDragging) {
             //DG.SoundUtilities.drag();
-            var tDelta = (this_.get('orientation') === 'vertical') ? idY : idX,
+            var tDelta = this_.get('isVertical') ? idY : idX,
                 tLowerBound = this_.getPath('model.lowerBound'),
                 tCurrentDelta = this_.coordinateToDataGivenCell( 0, 0) -
                         this_.coordinateToDataGivenCell( 0, tDelta),
@@ -292,7 +301,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             var tPoint = DG.ViewUtilities.windowToViewCoordinates(
                           { x: iWindowX, y: iWindowY }, this_);
             this_._dilationAnchorCoord =
-                    (this_.get( 'orientation') === 'vertical') ? tPoint.y : tPoint.x;
+                    this_.get( 'isVertical') ? tPoint.y : tPoint.x;
             this_._lowerBoundAtDragStart = this_.getPath('model.lowerBound');
             beginDrag();
           }
@@ -303,7 +312,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             //DG.SoundUtilities.drag();
             var tLowerAtStart = this_.get('_lowerBoundAtDragStart'),
                 tUpper = this_.getPath('model.upperBound'),
-                tCurrDelta = (this_.get( 'orientation') === 'vertical') ? idY : idX,
+                tCurrDelta = this_.get( 'isVertical') ? idY : idX,
                 tFixed = this_.get( 'pixelMax'),
                 tDelta = tFixed - this_._dilationAnchorCoord,
                 tFactor = tDelta / (tDelta - tCurrDelta);
@@ -320,7 +329,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             var tPoint = DG.ViewUtilities.windowToViewCoordinates(
                           { x: iWindowX, y: iWindowY }, this_);
             this_._dilationAnchorCoord =
-                    (this_.get( 'orientation') === 'vertical') ? tPoint.y : tPoint.x;
+                    this_.get( 'isVertical') ? tPoint.y : tPoint.x;
             this_._upperBoundAtDragStart = this_.getPath('model.upperBound');
             beginDrag();
           }
@@ -331,7 +340,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             //DG.SoundUtilities.drag();
             var tUpperAtStart = this_.get('_upperBoundAtDragStart'),
                 tLower = this_.getPath('model.lowerBound'),
-                tCurrDelta = (this_.get( 'orientation') === 'vertical') ? idY : idX,
+                tCurrDelta = this_.get( 'isVertical') ? idY : idX,
                 tFixed = this_.get( 'pixelMin'),
                 tDelta = tFixed - this_._dilationAnchorCoord,
                 tFactor = tDelta / (tDelta - tCurrDelta);
@@ -370,8 +379,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             tFactor = iEvent.shiftKey ? 2 : 0.5;
             tViewPoint = DG.ViewUtilities.windowToViewCoordinates(
               { x: iEvent.clientX, y: iEvent.clientY }, this_);
-            tFixedCoord =  (this_.get('orientation') === 'vertical') ?
-              tViewPoint.y : tViewPoint.x;
+            tFixedCoord =  this_.get('isVertical') ? tViewPoint.y : tViewPoint.x;
             this_.get('model').dilate( this_.coordinateToData(tFixedCoord), tFactor,
                           true /* with animation */);
             tClickHandling = false;
@@ -414,34 +422,34 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
           // you will get a black closed hand no matter what is in the file.
           this_._dragPanel.attr( { cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8) });
         }
-          if( this_.get('orientation') === 'vertical') {
-            setRect( this_._lowerPanel, tFrame.x, (5/8) * tFrame.height,
-                        tFrame.width, (3/8) * tFrame.height);
-          this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/DownDilate.cur'), 8, 8);
-          this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
-            setRect( this_._midPanel, tFrame.x, (3/8) * tFrame.height,
-                        tFrame.width, (3/8) * tFrame.height);
-          this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateY.cur'), 8, 8);
-          this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
-            setRect( this_._upperPanel, tFrame.x, 0,
-                        tFrame.width, (3/8) * tFrame.height);
-          this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/UpDilate.cur'), 8, 8);
-          this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
-            setRect( this_._dragPanel, tFrame.x, 0,
-                        tFrame.width, tFrame.height);
-          } else {
-            setRect( this_._lowerPanel, 0, 0, (3/8) * tFrame.width, tFrame.height);
-          this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/LeftDilate.cur'), 8, 8);
-          this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
-            setRect( this_._midPanel, (3/8) * tFrame.width, 0, (3/8) * tFrame.width, tFrame.height);
-          this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateX.cur'), 8, 8);
-          this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
-            setRect( this_._upperPanel, (5/8) * tFrame.width, 0, (3/8) * tFrame.width, tFrame.height);
-          this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/RightDilate.cur'), 8, 8);
-          this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
-            setRect( this_._dragPanel, 0, 0,
-                        tFrame.width, tFrame.height);
-          }
+        switch( this_.get('orientation')) {
+          case 'vertical':
+          case 'vertical2':
+            setRect(this_._lowerPanel, 0, (5 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
+            this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/DownDilate.cur'), 8, 8);
+            this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
+            setRect(this_._midPanel, 0, (3 / 8) * tFrame.height, tFrame.width, (3 / 8) * tFrame.height);
+            this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateY.cur'), 8, 8);
+            this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
+            setRect(this_._upperPanel, 0, 0, tFrame.width, (3 / 8) * tFrame.height);
+            this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/UpDilate.cur'), 8, 8);
+            this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
+            setRect(this_._dragPanel, 0, 0, tFrame.width, tFrame.height);
+            break;
+          case 'horizontal':
+            setRect(this_._lowerPanel, 0, 0, (3 / 8) * tFrame.width, tFrame.height);
+            this_._lowerPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/LeftDilate.cur'), 8, 8);
+            this_._lowerPanel.attr({ cursor: this_._lowerPanel.defaultCursor });
+            setRect(this_._midPanel, (3 / 8) * tFrame.width, 0, (3 / 8) * tFrame.width, tFrame.height);
+            this_._midPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/TranslateX.cur'), 8, 8);
+            this_._midPanel.attr({ cursor: this_._midPanel.defaultCursor });
+            setRect(this_._upperPanel, (5 / 8) * tFrame.width, 0, (3 / 8) * tFrame.width, tFrame.height);
+            this_._upperPanel.defaultCursor = DG.Browser.customCursorStr(static_url('cursors/RightDilate.cur'), 8, 8);
+            this_._upperPanel.attr({ cursor: this_._upperPanel.defaultCursor });
+            setRect(this_._dragPanel, 0, 0,
+                tFrame.width, tFrame.height);
+            break;
+        }
         if( !this_._isDragging)
             this_._dragPanel.hide();
       }
@@ -482,6 +490,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
       if(!SC.none(tCoordinate))
         switch( this.get('orientation')) {
           case 'vertical':
+          case 'vertical2':
             tCoordinate = iCache.pixelMax + (iCell + 1) * iCache.cellWidth - tCoordinate;
             break;
 
@@ -534,7 +543,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
 //        TBool tReverseScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleReversed();
 //        TBool tLogScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleLogarithmic();
 
-        if( this.get('orientation') === 'vertical') {
+        if( this.get('isVertical')) {
           tPixelMin = this.get('pixelMax') + tCellWidth * (iCell + 1);
           tPixelMax = tPixelMin - tCellWidth;
           iCoord += this.get('pixelMax'); // offset by the top of the axis

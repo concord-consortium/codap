@@ -54,6 +54,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     return this.getPath('yAttributeDescription.collectionClient');
   }.property('yAttributeDescription.collectionClient'),
   
+  y2CollectionClient: function() {
+    return this.getPath('y2AttributeDescription.collectionClient');
+  }.property('y2AttributeDescription.collectionClient'),
+
   legendCollectionClient: function() {
     return this.getPath('legendAttributeDescription.collectionClient');
   }.property('legendAttributeDescription.collectionClient'),
@@ -66,6 +70,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this.notifyPropertyChange('yCollectionClient');
   },
   
+  y2CollectionDidChange: function() {
+    this.notifyPropertyChange('y2CollectionClient');
+  },
+
   legendCollectionDidChange: function() {
     this.notifyPropertyChange('legendCollectionClient');
   },
@@ -82,6 +90,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
   */
   yAttributeDescription: function( iKey, iValue) {
     return this.attributeDescriptionForPlace( iKey, iValue, DG.GraphTypes.EPlace.eY);
+  }.property(),
+
+  /**
+    @property { DG.AttributePlacementDescription }
+  */
+  y2AttributeDescription: function( iKey, iValue) {
+    return this.attributeDescriptionForPlace( iKey, iValue, DG.GraphTypes.EPlace.eY2);
   }.property(),
 
   /**
@@ -137,6 +152,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     return this.getPath('yAttributeDescription.attributeID');
   }.property('yAttributeDescription.attributeID'),
 
+  y2AttributeID: function() {
+    return this.getPath('y2AttributeDescription.attributeID');
+  }.property('y2AttributeDescription.attributeID'),
+
   legendAttributeID: function() {
     return this.getPath('legendAttributeDescription.attributeID');
   }.property('legendAttributeDescription.attributeID'),
@@ -156,6 +175,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property('yAttributeDescription.isNumeric'),
 
   /**
+    @property {Boolean}
+  */
+  y2IsNumeric: function() {
+    return this.getPath('y2AttributeDescription.isNumeric');
+  }.property('y2AttributeDescription.isNumeric'),
+
+  /**
     @property {DG.Analysis.EAttributeType}
   */
   xType: function() {
@@ -168,6 +194,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
   yType: function() {
     return this.getPath('yAttributeDescription.attributeType');
   }.property('yAttributeDescription.attributeType'),
+
+  /**
+    @property {DG.Analysis.EAttributeType}
+  */
+  y2Type: function() {
+    return this.getPath('y2AttributeDescription.attributeType');
+  }.property('y2AttributeDescription.attributeType'),
 
   /**
    * This property is never actually assigned. It is used only as a notification bottleneck
@@ -216,6 +249,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     return this.get('yAttributeDescription' ).attributeIDAt( iIndex);
   },
 
+  y2AttributeIDAt: function( iIndex) {
+    return this.get('y2AttributeDescription' ).attributeIDAt( iIndex);
+  },
+
   /**
    * @property {Array}
    */
@@ -241,12 +278,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
   destroy: function() {
     var xDesc = this.get('xAttributeDescription'),
         yDesc = this.get('yAttributeDescription'),
+        y2Desc = this.get('y2AttributeDescription'),
         legDesc = this.get('legendAttributeDescription');
 
     if( xDesc)
       xDesc.removeObserver('collectionClient', this, 'xCollectionDidChange');
     if( yDesc)
       yDesc.removeObserver('collectionClient', this, 'yCollectionDidChange');
+    if( y2Desc)
+      y2Desc.removeObserver('collectionClient', this, 'y2CollectionDidChange');
     if( legDesc)
       legDesc.removeObserver('collectionClient', this, 'legendCollectionDidChange');
 
@@ -353,7 +393,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var plottedCollectionIDs = [],
         collectionClient = this.get('collectionClient'),
         collectionClientID = collectionClient && collectionClient.get('id'),
-        properties = ['xCollectionClient', 'yCollectionClient', 'legendCollectionClient'];
+        properties = ['xCollectionClient', 'yCollectionClient', 'y2CollectionClient', 'legendCollectionClient'];
     if( collectionClient && !SC.none( collectionClientID))
       plottedCollectionIDs.push( collectionClientID);
 
@@ -367,7 +407,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     }.bind( this));
     return plottedCollectionIDs;
   }.property('collectionClient','xCollectionClient',
-              'yCollectionClient','legendCollectionClient').cacheable(),
+              'yCollectionClient','y2CollectionClient','legendCollectionClient').cacheable(),
 
   _casesCache: null, // Array of DG.Case
 
@@ -403,7 +443,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
                       });
 
         // Only include cases that have values of x and y attributes (if such exist)
-        [ DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY].forEach( function( iPlace) {
+        [ DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY, DG.GraphTypes.EPlace.eY2].forEach( function( iPlace) {
           tAttributesByPlace[ iPlace].forEach( function( iDescription) {
             var tAttrID = iDescription.get('attributeID');
             if(!SC.none( tAttrID))
@@ -444,14 +484,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
                                     function( iCase) {
                                       return iCase.get('id');
                                     });
-  }.property('xCollectionClient','yCollectionClient', 'legendCollectionClient', 'hiddenCases'),
+  }.property('xCollectionClient','yCollectionClient','y2CollectionClient', 'legendCollectionClient', 'hiddenCases'),
 
   /**
    * Bottleneck for detecting attribute assignment change
    */
   attributeAssignmentDidChange: function() {
     this.notifyPropertyChange('attributeAssignment');
-  }.observes('.xAttributeDescription.attribute', '.yAttributeDescription.attribute', '.legendAttributeDescription.attribute'),
+  }.observes('.xAttributeDescription.attribute', '.yAttributeDescription.attribute', '.y2AttributeDescription.attribute',
+      '.legendAttributeDescription.attribute'),
 
   /**
     Iteration through all attribute descriptions.
@@ -503,6 +544,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
   invalidateAxisDescriptionCaches: function( iCases, iChange) {
     this.get('xAttributeDescription').invalidateCaches( iCases, iChange);
     this.get('yAttributeDescription').invalidateCaches( iCases, iChange);
+    if( this.get('y2AttributeDescription'))
+      this.get('y2AttributeDescription').invalidateCaches( iCases, iChange);
     this.get('legendAttributeDescription').invalidateCaches( iCases, iChange);
 
  },
@@ -547,11 +590,14 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var tXVarCC = this.get('xCollectionClient'),
         tYVarCC = this.get('yCollectionClient'),
         tLegVarCC = this.get('legendCollectionClient'),
+        tY2VarCC = this.get('y2CollectionClient'),
         tArrays = !SC.none( tXVarCC) ? [ tXVarCC.casesController.arrangedObjects()] : [];
     if( (tXVarCC !== tYVarCC) && !SC.none( tYVarCC))
       tArrays.push( tYVarCC.casesController.arrangedObjects());
-    else if (!SC.none( tLegVarCC) && (tLegVarCC !== tXVarCC) && (tLegVarCC !== tYVarCC))
+    if (!SC.none( tLegVarCC) && (tLegVarCC !== tXVarCC) && (tLegVarCC !== tYVarCC))
       tArrays.push( tLegVarCC.casesController.arrangedObjects());
+    if (!SC.none( tY2VarCC) && (tY2VarCC !== tXVarCC) && (tY2VarCC !== tYVarCC) && (tY2VarCC !== tLegVarCC))
+      tArrays.push( tY2VarCC.casesController.arrangedObjects());
 
     // In the situation in which there is not an x or a y or a legend collection client, we still want to
     // have arranged objects so that the "empty" plot will work
@@ -576,6 +622,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
         break;
       case DG.GraphTypes.EPlace.eY:
         tAttributeDescription = this.get('yAttributeDescription');
+        break;
+      case DG.GraphTypes.EPlace.eY2:
+        tAttributeDescription = this.get('y2AttributeDescription');
         break;
       case DG.GraphTypes.EPlace.eLegend:
         tAttributeDescription = this.get('legendAttributeDescription');

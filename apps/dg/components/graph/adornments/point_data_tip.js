@@ -77,7 +77,8 @@ DG.PointDataTip = DG.DataTip.extend(
       return '';
 
     var tXPair = getNameValuePair('x'),
-        tYPair = getNameValuePair('y'),
+        tYKey = this.getPath('plotLayer.isUsingY2') ? 'y2' : 'y',
+        tYPair = getNameValuePair(tYKey),
         tLegendPair = getNameValuePair('legend'),
         tCoords;
     tCoords = SC.none(tXPair) ? '' : tXPair;

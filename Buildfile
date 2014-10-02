@@ -33,4 +33,4 @@ mode :debug do
 end
 
 # proxy for local dev.
-proxy '/DataGames', :to => 'dg.ccssgames.com'
+proxy '/DataGames', :to => 'localhost:80'
