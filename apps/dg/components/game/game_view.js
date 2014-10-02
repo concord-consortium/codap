@@ -52,12 +52,16 @@ DG.GameView = SC.WebView.extend(
         DG.gamePhone.disconnect();
       }
 
+      // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
+      DG.set('isGamePhoneInUse', false);
+
       DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
 
         // TODO put this handler function somewhere appropriate rather than inlining it in (what is
         // at notionally) view code?
 
         function(command, callback) {
+          DG.set('isGamePhoneInUse', true);
           var ret = DG.doCommand(command);
 
           // Analysis shows that the object returned by DG.doCommand may contain Error values, which
