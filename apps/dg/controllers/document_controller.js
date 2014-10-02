@@ -145,6 +145,7 @@ DG.DocumentController = SC.Object.extend(
   savedChangeCount: 0,
 
   _lastCopiedDocument: null,
+  externalDocumentId: null,
 
   init: function() {
     sc_super();
@@ -862,6 +863,8 @@ DG.DocumentController = SC.Object.extend(
           message: errorMessage});
       }
     } else {
+      var newDocId = iResponse.getPath('response.id');
+      this.set('externalDocumentId', ''+newDocId);
       DG.appController.triggerSaveNotification();
     }
   },
@@ -878,7 +881,6 @@ DG.DocumentController = SC.Object.extend(
       docArchive._permissions = iDocumentPermissions;
 
     if( DG.assert( !SC.none(docArchive))) {
-      this.set('_lastCopiedDocument', iDocumentId);
       DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
     }
   },
@@ -897,11 +899,12 @@ DG.DocumentController = SC.Object.extend(
       }
     } else {
       // Pop open the document in a new window/tab
-      var win = window.open(DG.appController.copyLink(this.get('_lastCopiedDocument'), '_blank'));
+      var newDocId = iResponse.getPath('response.id');
+      var win = window.open(DG.appController.copyLink(newDocId), '_blank');
       if (win) {
         win.focus();
       } else {
-        DG.appController.showCopyLink(this.get('_lastCopiedDocument'));
+        DG.appController.showCopyLink(newDocId);
       }
     }
   },

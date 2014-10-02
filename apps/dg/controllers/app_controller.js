@@ -274,6 +274,7 @@ DG.appController = SC.Object.create((function () // closure
     openDocumentWithId: function (iId) {
       if (iId) {
         DG.authorizationController.openDocument(iId, this);
+        DG.currDocumentController().set('externalDocumentId', ''+iId);
         DG.logUser("openDocument: '%@' (id)", iId);
       }
 
@@ -293,6 +294,10 @@ DG.appController = SC.Object.create((function () // closure
 
         if (this.openJsonDocument(iResponse.get('body'))) {
           shouldShowAlert = false;
+          var docId = iResponse.headers()['Document-Id'];
+          if (docId) {
+            DG.currDocumentController().set('externalDocumentId', ''+docId);
+          }
         }
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
@@ -885,12 +890,12 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     _shareLinkDialogText: function() {
-      var currDoc = DG.currDocumentController().get('documentName');
-      return this.copyLink(currDoc);
+      var currDocId = DG.currDocumentController().get('externalDocumentId');
+      return this.copyLink(currDocId);
     }.property(),
 
-    showCopyLink: function(newDocName) {
-      var destination = this.copyLink(newDocName);
+    showCopyLink: function(newDocId) {
+      var destination = this.copyLink(newDocId);
       var sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
         contentView: SC.View.extend({
@@ -931,19 +936,12 @@ DG.appController = SC.Object.create((function () // closure
       sheetPane.append();
     },
 
-    copyLink: function(newDocName) {
-      var currDoc = DG.currDocumentController().get('documentName'),
-          currOwner = DG.authorizationController.getPath('currLogin.user'),
-          currLoc = '' + window.location,
+    copyLink: function(newDocId) {
+      var currLoc = '' + window.location,
           parts = currLoc.split('?'),
           currQuery = DG.queryString.parse(parts[1] ? parts[1] : '');
 
-      currQuery["doc"] = encodeURIComponent(newDocName);
-      if (currOwner && currOwner != "guest") {
-        currQuery["owner"] = encodeURIComponent(currOwner);
-      } else {
-        delete currQuery["owner"];
-      }
+      currQuery["recordid"] = encodeURIComponent(newDocId);
 
       newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
 
