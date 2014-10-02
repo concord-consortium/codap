@@ -584,8 +584,8 @@ DG.appController = SC.Object.create((function () // closure
      Handler for the Export JSON Document... menu command.
      */
     exportDocument: function () {
-      var docArchive = DG.currDocumentController().exportDocument(),
-        docJson,
+      DG.currDocumentController().exportDocument(function(docArchive) {
+        var docJson,
         tDialog = null,
         onOK = function () {
           var fn = tDialog.value();
@@ -593,20 +593,21 @@ DG.appController = SC.Object.create((function () // closure
           window.saveAs(blob, fn);
           tDialog.close();
         };
-      if (docArchive) {
-        docJson = SC.json.encode(docArchive);
-        if (!SC.empty(docJson)) {
-          tDialog = DG.CreateSingleTextDialog({
-            prompt: 'DG.AppController.exportDocument.prompt',
-            textValue: docArchive.name + '.json',
-            okTarget: null,
-            okAction: onOK,
-            okTitle: 'DG.AppController.exportDocument.okTitle',
-            okTooltip: 'DG.AppController.exportDocument.okTooltip',
-            cancelVisible: true
-          });
+        if (docArchive) {
+          docJson = SC.json.encode(docArchive);
+          if (!SC.empty(docJson)) {
+            tDialog = DG.CreateSingleTextDialog({
+              prompt: 'DG.AppController.exportDocument.prompt',
+              textValue: docArchive.name + '.json',
+              okTarget: null,
+              okAction: onOK,
+              okTitle: 'DG.AppController.exportDocument.okTitle',
+              okTooltip: 'DG.AppController.exportDocument.okTooltip',
+              cancelVisible: true
+            });
+          }
         }
-      }
+      });
     },
 
     /**
