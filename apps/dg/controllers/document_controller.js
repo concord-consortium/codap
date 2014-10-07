@@ -857,11 +857,9 @@ DG.DocumentController = SC.Object.extend(
       var errorMessage = 'DG.AppController.saveDocument.' + body.message;
       if (errorMessage.loc() === errorMessage)
         errorMessage = 'DG.AppController.saveDocument.error.general';
-      if( isError) {
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage});
-      }
+      DG.AlertPane.error({
+        localize: true,
+        message: errorMessage});
     } else {
       var newDocId = iResponse.getPath('response.id');
       this.set('externalDocumentId', ''+newDocId);
@@ -892,11 +890,9 @@ DG.DocumentController = SC.Object.extend(
       var errorMessage = 'DG.AppController.copyDocument.' + body.message;
       if (errorMessage.loc() === errorMessage)
         errorMessage = 'DG.AppController.copyDocument.error.general';
-      if( isError) {
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage});
-      }
+      DG.AlertPane.error({
+        localize: true,
+        message: errorMessage});
     } else {
       // Pop open the document in a new window/tab
       var newDocId = iResponse.getPath('response.id');
@@ -920,11 +916,9 @@ DG.DocumentController = SC.Object.extend(
       var errorMessage = 'DG.AppController.deleteDocument.' + body.message;
       if (errorMessage.loc() === errorMessage)
         errorMessage = 'DG.AppController.deleteDocument.error.general';
-      if( isError) {
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage});
-      }
+      DG.AlertPane.error({
+        localize: true,
+        message: errorMessage});
     }
   }
 });
