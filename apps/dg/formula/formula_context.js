@@ -224,9 +224,56 @@ DG.FormulaContext = SC.Object.extend( (function() {
      */
     'trunc': function(x) {
       return x < 0 ? Math.ceil(x) : Math.floor(x);
+    },
+
+    /**
+      Returns a string treating the argument as seconds in an epoch
+      @param    {Number}  A number of seconds in the epoch beginning Jan 1, 1970
+      @returns  {String}  A date
+     */
+    'secondsToDate': function(x) {
+      var tDate = new Date( x * 1000);
+      return tDate.toLocaleDateString();
+    },
+
+    /**
+      Returns the month corresponding to the given date
+      @param    {String|Number}  A date string or number of seconds in epoch
+      @returns  {String}  The month for the given date
+     */
+    'month': function(x) {
+      if( DG.isFinite(x))
+        x *= 1000;
+      var tDate = new Date( x);
+      switch( tDate.getMonth()) {
+        case 0:
+          return 'January';
+        case 1:
+          return 'February';
+        case 2:
+          return 'March';
+        case 3:
+          return 'April';
+        case 4:
+          return 'May';
+        case 5:
+          return 'June';
+        case 6:
+          return 'July';
+        case 7:
+          return 'August';
+        case 8:
+          return 'September';
+        case 9:
+          return 'October';
+        case 10:
+          return 'November';
+        case 11:
+          return 'December';
+      };
     }
   },
-  
+
   /**
     Property which provides meta-data about the functions supported by the '_fns' property.
     @property   {Object}  Map of name {String} to {Object}.
@@ -240,7 +287,9 @@ DG.FormulaContext = SC.Object.extend( (function() {
     'random': { min:0, max:2 },
     'round': { min:1, max:2 },
     'string': { min:1, max:1 },
-    'trunc': { min:1, max:1 }
+    'trunc': { min:1, max:1 },
+    'secondsToDate': { min:1, max:1 },
+    'month': { min:1, max:1 }
   },
   
   /**
