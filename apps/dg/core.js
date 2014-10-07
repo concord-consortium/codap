@@ -209,7 +209,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0266',
+    BUILD_NUM: '0267',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -305,7 +305,7 @@ DG = SC.Application.create((function () // closure
      * runAsGuest can be passed as a Url parameter named runAsGuest. It is a boolean which tells the login logic to avoid prompting
      * for a login if a user isn't currently logged in, and instead runs as guest automatically.
      */
-    runAsGuest: getUrlParameter('runAsGuest') == 'true',
+    runAsGuest: getUrlParameter('runAsGuest') === 'true',
 
     /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
