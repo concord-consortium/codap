@@ -810,13 +810,12 @@ DG.DocumentController = SC.Object.extend(
     Returns an object which contains the contents of the document suitable for conversion
     to JSON and sending to the server.
     
-    @returns  {Object} Object representing the document suitable for JSON-conversion
+    Signature of `callback`:
+    @param  {Object} docArchive an object representing the document suitable for JSON-conversion
   */
-  exportDocument: function() {
-    var archiver = DG.DocumentArchiver.create({}),
-        docArchive = archiver.saveDocument( this.get('content'));
-        
-    return docArchive;
+  exportDocument: function(callback) {
+    var archiver = DG.DocumentArchiver.create({});
+    archiver.saveDocument( this.get('content'), callback);
   },
 
     /**
@@ -836,15 +835,17 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    var docArchive = this.exportDocument();
-    if( !SC.none( iDocumentPermissions))
-      docArchive._permissions = iDocumentPermissions;
-      this.setPath('content._permissions', iDocumentPermissions);
+    this.exportDocument(function(docArchive) {
+      if( !SC.none( iDocumentPermissions)) {
+        docArchive._permissions = iDocumentPermissions;
+        this.setPath('content._permissions', iDocumentPermissions);
+      }
 
-    if( DG.assert( !SC.none(docArchive))) {
-      DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-      this.updateSavedChangeCount();
-    }
+      if( DG.assert( !SC.none(docArchive))) {
+        DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+        this.updateSavedChangeCount();
+      }
+    });
   },
     
   receivedSaveDocumentResponse: function(iResponse) {
