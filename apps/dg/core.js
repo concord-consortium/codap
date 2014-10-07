@@ -282,8 +282,8 @@ DG = SC.Application.create((function () // closure
     startingDocOwner: getUrlParameter('owner'),
 
     /**
-     * startingDocOwner can be passed as a Url parameter named doc. It is a second parameter required for DG to open a document
-     * on startup.  It is the username of the owner of the document in the database.
+     * startingDocId can be passed as a Url parameter named doc. It is a parameter that can be used instead of startingDocName and
+     * startingDocOwner to open a document on startup.  It is the id of the document in the database.
      */
     startingDocId: getUrlParameter('recordid'),
 
