@@ -120,7 +120,9 @@ DG.Component.createComponent = function( iProperties) {
   newComponent.normalize();
   // Seems like we ought to be able to commit once at the end of all our changes,
   // but the MemoryDataSource seems to require that we commit after each change.
-  DG.store.commitRecords();
+  // [wff 14_10_07: Removed the following to improve performance. Could not find
+  // any bad effects of this, so perhaps it is no longer necessary?
+  //DG.store.commitRecords();
   return newComponent;
 };
 
