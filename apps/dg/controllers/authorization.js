@@ -104,7 +104,8 @@ return {
 
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
-    this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
+    var save = (!!DG.documentServer && !!DG.runKey) || false;
+    this.logIn({ enableLogging: false, enableSave: save, privileges: 0,
   sessiontoken: "guest" + new Date().valueOf(), useCookie: false, valid: true}, 200);
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
@@ -124,7 +125,7 @@ return {
         this.get('currLogin').set('sessionID', iSessionID);
       }
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -144,7 +145,7 @@ return {
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -308,20 +309,49 @@ return {
                                 is received. The called method should check for errors
                                 and perform any other appropriate tasks upon completion.
    */
-  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
+  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     
-     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+    var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
               
+    var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveDocumentResponse')
+      .notify(iReceiver, notificationFunction)
       .send(iDocumentArchive);
+  },
+
+  /**
+    Deletes the specified document object to the server.
+
+    @param    iDocumentId       The ID of the document object
+    @param    iReceiver         The receiver object whose receivedDeleteDocumentResponse()
+                                method will be called when the response from the server
+                                is received. The called method should check for errors
+                                and perform any other appropriate tasks upon completion.
+   */
+  deleteDocument: function(iDocumentId, iReceiver) {
+    var url = DG.documentServer + 'document/delete?recordname=%@'.fmt( iDocumentId );
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests( serverUrl(url) )
+      .notify(iReceiver, 'receivedDeleteDocumentResponse')
+      .send();
   },
 
   documentList: function(iReceiver) {
     var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
       .send(); 
@@ -332,6 +362,10 @@ return {
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
@@ -343,12 +377,52 @@ return {
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordname=' + iDocumentName;
     url += '&owner=' + iDocumentOwner;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
-  
+
+  revertCurrentDocument: function(iReceiver) {
+    var url = DG.documentServer + 'document/open';
+    url += '?recordname=' + DG.currDocumentController().get('documentName');
+    url += '&original=true';
+
+    if (this.getPath('currLogin.user') != 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .send();
+  },
+
+  renameDocument: function(iOriginalName, iNewName, iReceiver) {
+    var url = DG.documentServer + 'document/rename';
+    url += '?recordname=' + iOriginalName;
+    url += '&newRecordname=' + iNewName;
+
+    if (this.getPath('currLogin.user') != 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey)
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedRenameDocumentResponse')
+      .send();
+  },
+
   /**
     Sends a request to expire the session connected the session
     token in the database.
@@ -429,7 +503,11 @@ return {
       // then there will be no message return
       var errorCode = (body && body.message) || "";
       if (DG.documentServer && iResponse.get('status') === 401) {
-        errorCode = 'error.notLoggedIn';
+        if (DG.runAsGuest) {
+          return DG.authorizationController.sendLoginAsGuestRequest();
+        } else {
+          errorCode = 'error.notLoggedIn';
+        }
       }
       // If we get here, then we didn't log in successfully.
       currLogin
@@ -673,6 +751,10 @@ return {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+    }
+    else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
     }
     else {
       DG.gameSelectionController.setDefaultGame();

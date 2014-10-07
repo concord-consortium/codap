@@ -282,11 +282,30 @@ DG = SC.Application.create((function () // closure
     startingDocOwner: getUrlParameter('owner'),
 
     /**
+     * startingDocId can be passed as a Url parameter named doc. It is a parameter that can be used instead of startingDocName and
+     * startingDocOwner to open a document on startup.  It is the id of the document in the database.
+     */
+    startingDocId: getUrlParameter('recordid'),
+
+    /**
      * documentServer can be passed as a Url parameter named documentServer. It is the server from which DG will use to open/save
      * documents. It should be formatted as a full url, to which 'document/*' will be appended.
      * ex: 'http://docs.example.com/'
      */
-  documentServer: getUrlParameter('documentServer') || '',
+    documentServer: getUrlParameter('documentServer') || '',
+
+    /**
+     * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
+     * anonymous read-write access to documents. It can be any string.
+     * ex: 'e342d47a-d3e5-48b8-9675-8622e40bb2c8'
+     */
+    runKey: getUrlParameter('runKey') || '',
+
+    /**
+     * runAsGuest can be passed as a Url parameter named runAsGuest. It is a boolean which tells the login logic to avoid prompting
+     * for a login if a user isn't currently logged in, and instead runs as guest automatically.
+     */
+    runAsGuest: getUrlParameter('runAsGuest') == 'true',
 
     /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.

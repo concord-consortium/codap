@@ -328,3 +328,19 @@ input.editor-text {
 .dg-alert {
     color: red;
 }
+
+.sc-label-view.ellipsis {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    -o-text-overflow: ellipsis !important;
+    -ms-text-overflow: ellipsis !important;
+}
+
+.invisible {
+    opacity: 0;
+}
+
+.sc-text-field-view.inline-editor {
+    z-index: 20;
+}
