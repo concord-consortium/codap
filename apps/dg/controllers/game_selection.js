@@ -395,7 +395,30 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     // We don't call DG.GameContext.getContextForGame() because we don't want
     // to force creation here. Otherwise, setting the context to null (e.g. when
     // closing the document) can result in immediate creation of new contexts.
-    return this.getPath('currentGame.context');
+    var tGameContext = this.getPath('currentGame.context'),
+        tGameCollections = tGameContext && tGameContext.get('collections');
+    /**
+     * The following bit of skullduggery deals with reading in documents that have lost
+     * their 'game.' Typically, this is because the data interactive is not being saved
+     * properly. But, often, there is a context with the data that was originally part
+     * of the document. We hook that up to the bogus game.
+     * This should become unnecessary once we get rid of the whole concept of a single game
+     * or data interactive.
+     */
+    if(! tGameCollections || (tGameCollections.length === 0)) {
+      var tContextWithColls;
+      DG.DataContext.forEachContextInMap( 0, function( iKey, iContext) {
+        var tCollections = iContext.get('collections');
+        if( tCollections && (tCollections.length > 0)) {
+          tContextWithColls = iContext;
+        }
+      });
+      if( tContextWithColls) {
+        this.setPath('currentGame.context', tContextWithColls);
+        tGameContext = tContextWithColls;
+      }
+    }
+    return tGameContext;
   }.property('currentGame','currentGame.context'),
 
   /**
