@@ -297,6 +297,28 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /**
+     * Change the attribute type (EAttributeType) on the axis described by the given key,
+     * to treat a Numeric attribute as Categorical.
+     * @param{String} iDescKey - key to the desired attribute description (x...|y...|legendAttributeDescription)
+     * @param{String} iAxisKey - key to the axis whose attribute is to be removed (x...|yAxis)
+     * @param{Boolean} true if we want to treat the attribute as numeric (else categorical).
+     */
+    changeAttributeType: function( iDescKey, iAxisKey, iTreatAsNumeric ) {
+      var tDataConfiguration = this.get('dataConfiguration');
+
+      DG.logUser("plotAxisAttributeChangeType: { axis: %@, attribute: %@ }",
+          iAxisKey, tDataConfiguration.getPath( iDescKey + '.attribute.name'));
+      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+
+      tDataConfiguration.setAttributeType( iDescKey, iTreatAsNumeric );
+
+      if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription')
+        this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
+      this.invalidate( null, true /* also invalidate plot caches */);
+      this.set('aboutToChangeConfiguration', false ); // reset for next time
+    },
+
+    /**
      Sets the attribute for the legend.
      @param  {DG.DataContext}      iDataContext -- The data context for this graph
      @param  {Object}              iAttrRefs -- The attribute to set for the axis
