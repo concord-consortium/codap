@@ -139,6 +139,7 @@ DG.DotChartView = DG.PlotView.extend(
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? [ iChanges ] : iChanges);
+    tChanges = tChanges || [];
 
     this.model.invalidateCaches();
     this.computeCellParams();

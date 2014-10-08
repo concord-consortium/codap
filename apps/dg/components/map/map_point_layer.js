@@ -89,7 +89,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         tRC = this.createRenderContext(),
         // iChanges can be a single index or an array of indices
         tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? [ iChanges ] : iChanges);
-    DG.assert( tChanges);
+    tChanges = tChanges || [];
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
         this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);

@@ -35,6 +35,7 @@ DG.CasePlotView = DG.PlotView.extend(
 
       // iChanges can be a single index or an array of indices
       var tChanges = (SC.typeOf( iChanges ) === SC.T_NUMBER ? [ iChanges ] : iChanges);
+      tChanges = tChanges || [];
       tChanges.forEach( function( iIndex ) {
         if( iIndex >= tPlotElementLength )
           this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn );
