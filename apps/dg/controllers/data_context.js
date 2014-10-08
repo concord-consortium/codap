@@ -204,7 +204,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     // been taken, simply return with success.
     if( iChange.isComplete) return { success: true };
 
-    var result = { success: false };
+    var result = { success: false },
+        shouldDirtyDoc = true;
     switch( iChange.operation) {
       case 'createCollection':
         result = this.doCreateCollection( iChange);
@@ -227,6 +228,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'selectCases':
         result = this.doSelectCases( iChange);
+        shouldDirtyDoc = false;
         break;
       case 'createAttributes':
         result = this.doCreateAttributes( iChange);
@@ -244,6 +246,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         DG.logWarn('DataContext.performChange: unknown operation: '
             + iChange.operation);
     }
+    if( shouldDirtyDoc)
+      DG.dirtyCurrentDocument();
     return result;
   },
   
