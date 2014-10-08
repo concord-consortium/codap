@@ -60,6 +60,9 @@ DG.main = function main() {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+    } else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
     }
   }
 };

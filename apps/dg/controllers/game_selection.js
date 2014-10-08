@@ -573,7 +573,15 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     property of the current game's context. Uses the 'doCommandFunc' property
     passed by the game as part of the 'initGame' command.
    */
-  saveCurrentGameState: function() {
+  saveCurrentGameState: function(done) {
+
+    // Stash the game state in the context's 'savedGameState' property.
+    function saveState(result) {
+      if( result && result.success) {
+        gameContext.set('savedGameState', result.state);
+      }
+    }
+
     try {
       var gameSpec = this.get('currentGame'),
           gameContext = gameSpec && gameSpec.get('context'),
@@ -590,14 +598,24 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
           // for flash games we use the embedded swf object, then call its 'doCommandFunc'
           result = gameElement.doCommandFunc( SC.json.encode( saveCommand ));
           result = this.safeJsonDecode( result, "Invalid JSON found in saveCurrentGameState()" );
+        } else if (DG.get('isGamePhoneInUse')) {
+          // async path
+          DG.gamePhone.call(saveCommand, function(result) {
+            saveState(result);
+            done();
+          });
+          return;
         }
-        // Stash the game state in the context's 'savedGameState' property.
-        if( result && result.success)
-          gameContext.set('savedGameState', result.state);
+
+        saveState(result);
       }
     } catch (ex) {
       DG.logWarn("Exception saving game context: " + ex);
     }
+
+    // For consistency with gamePhone case, make sure that done callback is invoked in a later
+    // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
+    this.invokeLater(function() { done(); } );
   },
 
   /**

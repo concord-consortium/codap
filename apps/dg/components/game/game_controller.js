@@ -120,7 +120,7 @@ DG.GameController = DG.ComponentController.extend(
     return result;
   },
 
-  dispatchCommand: function( iCmd) {
+  dispatchCommand: function( iCmd, callback) {
     var cmdObj = null;
 
     var ret = { 'success' : false };
@@ -154,11 +154,22 @@ DG.GameController = DG.ComponentController.extend(
      * New API
      */
     case 'initGame':
-      ret = this.handleInitGame( cmdObj.args);
-      this.set('changeCount', 0);
-      this.updateSavedChangeCount();
-      shouldDirtyDocument = false;
-      break;
+      this.handleInitGame( cmdObj.args, function() {
+        var ret = { success: true };
+
+        this.set('changeCount', 0);
+        this.updateSavedChangeCount();
+        shouldDirtyDocument = false;
+
+        finishDispatchCommand.call(this);
+
+        if (callback) {
+          callback(ret);  
+        } else {
+          return ret;
+        }
+      }.bind(this));
+      return;
 
     case 'createComponent':
       ret = this.handleCreateComponent( cmdObj.args);
@@ -259,8 +270,20 @@ DG.GameController = DG.ComponentController.extend(
       break;
     }
 
-    if( shouldDirtyDocument)
-      this.incrementProperty('changeCount');
+    function finishDispatchCommand() {
+      if( shouldDirtyDocument) {
+        this.incrementProperty('changeCount');   
+      }
+    }
+
+    finishDispatchCommand.call(this);
+
+    if (callback) {
+      this.invokeLast(function() {
+        callback(ret);
+      });
+      return;
+    }
 
     return ret;
   },
@@ -268,7 +291,8 @@ DG.GameController = DG.ComponentController.extend(
   /**
     'initGame' handler
     @param {Object}   iArgs   See below for arguments
-    @returns {Object}         { success: {Boolean} }
+    @param {Function} callback  Callback, called when game is inited (this includes 
+                                  any game-state restoration)
     args: {
       name: "GameName",
       dimensions: { width: _WIDTH_PIX_, height: _HEIGHT_PIX_ },
@@ -291,7 +315,7 @@ DG.GameController = DG.ComponentController.extend(
       ]
     }
    */
-  handleInitGame: function( iArgs) {
+  handleInitGame: function( iArgs, callback) {
 
     // The game-specified arguments form the core of the new DG.GameSpec.
     var currentGame = DG.gameSelectionController.get('currentGame'),
@@ -365,19 +389,30 @@ DG.GameController = DG.ComponentController.extend(
         } else if( gameElement && gameElement.doCommandFunc ) {
           // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
           gameElement.doCommandFunc( SC.json.encode( restoreCommand ));
+        } else if (DG.get('isGamePhoneInUse')) {
+          DG.gamePhone.call(restoreCommand, finishInitGame.bind(this));
+          return;
         }
       }
     }
 
-    // modify the page title to include the name of the current data interactive
-    $('title').text('CODAP - ' + currentGameName);
+    function finishInitGame() {
+      // modify the page title to include the name of the current data interactive
+      $('title').text('CODAP - ' + currentGameName);
 
-    // Once all the collections and attributes are created, we're ready to play the game.
-    this.set('gameIsReady', true);
+      // Once all the collections and attributes are created, we're ready to play the game.
+      this.set('gameIsReady', true);
 
-    if( (iArgs.log === undefined) || iArgs.log)
-      DG.logUser("initGame: '%@', Collections: [%@]",
-                  currentGameName, gameCollections.getEach('name').join(", "));
+      if( (iArgs.log === undefined) || iArgs.log)
+        DG.logUser("initGame: '%@', Collections: [%@]",
+                    currentGameName, gameCollections.getEach('name').join(", "));
+
+      if (callback) {
+        callback();
+      }
+    }
+
+    finishInitGame.call(this);
   },
 
   /**
@@ -1011,10 +1046,13 @@ DG.currGameController = DG.GameController.create({});
 /**
   Calls the doCommand() method of the current game controller (DG.currGameController).
   This is a convenience function for use by games, particularly JavaScript games.
+
+  If callback is provided, it will be called on completion of the command and there will be no return
+  value from doCommand. The callback is guaranteed to be called in a subsequent event turn.
   */
-DG.doCommand = function( iCmd) {
+DG.doCommand = function( iCmd, callback)  {
   var result;
-  SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd); });
+  SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd, callback); });
   return result;
 };
 

@@ -269,28 +269,31 @@ DG.DocumentArchiver = SC.Object.extend(
   /**
     Save the specified document in its JSON-text form.
     @param    {DG.Document}   iDocument   The document whose contents are to be archived
-    @returns  {Object}                    An object suitable for JSON encoding
+
+    signature of `callback`:
+    @param  {Object} docArchive      An object suitable for JSON encoding
    */
-  saveDocument: function( iDocument) {
-    var docController = DG.currDocumentController();
+  saveDocument: function( iDocument, callback) {
     
     // Prepare the context-specific storage for saving.
     // Start by saving the state of the current game in the appropriate context.
-    DG.gameSelectionController.saveCurrentGameState();
-    DG.DataContext.forEachContextInMap( iDocument.get('id'),
-                                        function( iContextID, iContext) {
-                                          iContext.willSaveContext();
-                                        });
-    if( docController) {
-      // Prepare the component-specific storage for saving
-      DG.ObjectMap.forEach( docController.componentControllersMap,
-                            function( iComponentID, iController) {
-                              iController.willSaveComponent();
-                            });
-    }
+    // Callback below executes after the state has been saved
+    DG.gameSelectionController.saveCurrentGameState(function() {
+      var docController = DG.currDocumentController();      
+      DG.DataContext.forEachContextInMap( iDocument.get('id'),
+                                          function( iContextID, iContext) {
+                                            iContext.willSaveContext();
+                                          });
+      if( docController) {
+        // Prepare the component-specific storage for saving
+        DG.ObjectMap.forEach( docController.componentControllersMap,
+                              function( iComponentID, iController) {
+                                iController.willSaveComponent();
+                              });
+      }
 
-    var docArchive = iDocument.toArchive();
-    return docArchive;
+      callback(iDocument.toArchive());
+    });
   },
 
   /**
