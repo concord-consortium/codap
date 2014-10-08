@@ -176,6 +176,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ] },
                   iAxis.get('orientation'));
+        DG.dirtyCurrentDocument();
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
@@ -194,6 +195,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });
+        DG.dirtyCurrentDocument();
       }.observes('*axisMultiTarget.dragData')
 
     };
