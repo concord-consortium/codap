@@ -682,6 +682,7 @@ DG.appController = SC.Object.create((function () // closure
       function doDelete() {
         DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
         DG.currGameController.doDeleteAllCaseData();
+        DG.dirtyCurrentDocument();
       }
 
       DG.AlertPane.warn({
