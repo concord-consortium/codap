@@ -848,7 +848,7 @@ DG.DocumentController = SC.Object.extend(
         DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
         this.updateSavedChangeCount();
       }
-    });
+    }.bind(this));
   },
 
   receivedSaveDocumentResponse: function(iResponse) {
@@ -874,14 +874,15 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   copyDocument: function( iDocumentId, iDocumentPermissions) {
-    var docArchive = this.exportDocument();
-    docArchive.name = iDocumentId;
-    if( !SC.none( iDocumentPermissions))
-      docArchive._permissions = iDocumentPermissions;
+    this.exportDocument( function( docArchive) {
+      docArchive.name = iDocumentId;
+      if (!SC.none(iDocumentPermissions))
+        docArchive._permissions = iDocumentPermissions;
 
-    if( DG.assert( !SC.none(docArchive))) {
-      DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
-    }
+      if (DG.assert(!SC.none(docArchive))) {
+        DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+      }
+    }.bind(this));
   },
 
   receivedCopyDocumentResponse: function(iResponse) {
