@@ -34,15 +34,6 @@ sc_require('views/titlebar_gear_view');
 DG.DragBorderView = SC.View.extend(
   (function () {
 
-    /*
-     function logDrag( iBorderView, iTag) {
-     var layout = iBorderView.viewToDrag().get('layout'),
-     tTitle = iBorderView.viewToDrag().get('title');
-     DG.logUser("%@: { name: %@, left: %@, top: %@, width: %@, height: %@ }",
-     iTag, tTitle, layout.left, layout.top, layout.width, layout.height);
-     }
-     */
-
     return {
       /** @scope DG.DragBorderView.prototype */
       dragCursor: null,
@@ -72,19 +63,22 @@ DG.DragBorderView = SC.View.extend(
           height: layout.height,
           width: layout.width
         };
-//        logDrag.call(this, "dragComponentBegin");
         return YES; // so we get other events
       },
 
       mouseUp: function (evt) {
-        var tContainer = this.viewToDrag().get('parentView');
+        var tContainer = this.viewToDrag().get('parentView'),
+            tOldLayout = this._mouseDownInfo,
+            tNewLayout = this.viewToDrag().get('layout');
         // apply one more time to set final position
         this.mouseDragged(evt);
         this._mouseDownInfo = null; // cleanup info
         tContainer.coverUpComponentViews('uncover');
         tContainer.set('frameNeedsUpdate', true);
-
-//        logDrag.call(this, "dragComponentEnd");
+        if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
+            (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
+          DG.dirtyCurrentDocument();
+        }
         return YES; // handled!
       },
 
@@ -268,8 +262,6 @@ DG.ComponentView = SC.View.extend(
         }),
       borderTop: DG.DragBorderView.design(
         { layout: { top: 0, height: 0 },
-          dragAdjust: function (evt, info) {
-          },
           canBeDragged: function () {
             return false;
           }

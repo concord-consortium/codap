@@ -876,3 +876,10 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
   return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
 };
 
+/**
+ * A global convenience function for dirtying the document.
+ */
+DG.dirtyCurrentDocument = function() {
+  DG.currDocumentController().incrementProperty('changeCount');
+  DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+};
