@@ -396,7 +396,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     // to force creation here. Otherwise, setting the context to null (e.g. when
     // closing the document) can result in immediate creation of new contexts.
     var tGameContext = this.getPath('currentGame.context'),
-        tGameCollections = tGameContext && tGameContext.get('collections');
+      tGameCollections = tGameContext && tGameContext.get('collections');
     /**
      * The following bit of skullduggery deals with reading in documents that have lost
      * their 'game.' Typically, this is because the data interactive is not being saved

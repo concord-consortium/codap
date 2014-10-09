@@ -876,10 +876,10 @@ DG.DocumentController = SC.Object.extend(
   copyDocument: function( iDocumentId, iDocumentPermissions) {
     this.exportDocument( function( docArchive) {
       docArchive.name = iDocumentId;
-      if( !SC.none( iDocumentPermissions))
+      if (!SC.none(iDocumentPermissions))
         docArchive._permissions = iDocumentPermissions;
 
-      if( DG.assert( !SC.none(docArchive))) {
+      if (DG.assert(!SC.none(docArchive))) {
         DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
       }
     }.bind(this));
@@ -937,10 +937,3 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
   return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
 };
 
-/**
- * A global convenience function for dirtying the document.
- */
-DG.dirtyCurrentDocument = function() {
-  DG.currDocumentController().incrementProperty('changeCount');
-  DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
-};
