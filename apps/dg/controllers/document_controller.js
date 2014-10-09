@@ -307,7 +307,7 @@ DG.DocumentController = SC.Object.extend(
       iComponent.didLoadRecord();
     
     if( didCreateComponent)
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
   },
   
   /**
@@ -450,7 +450,7 @@ DG.DocumentController = SC.Object.extend(
     }
     
     if( tComponentView)
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
     
     return tComponentView;
   },
@@ -778,7 +778,7 @@ DG.DocumentController = SC.Object.extend(
         tController.set('view', null);
       }
       // Closing a component should dirty the document.
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
     }
     // the view will be destroyed elsewhere
   },
@@ -937,3 +937,10 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
   return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
 };
 
+/**
+ * A global convenience function for dirtying the document.
+ */
+DG.dirtyCurrentDocument = function() {
+  DG.currDocumentController().incrementProperty('changeCount');
+  //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+};
