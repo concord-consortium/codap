@@ -364,14 +364,6 @@ DG.mainPage.addSlider = function() {
 };
 
 DG.mainPage.addGraph = function() {
-  // TO DO: The graph will currently (110828) crash if it's called while the game is still setting up.
-  // [ wff 2014_10_07: Removed the following check without any discernable bad effect and with the good effect that
-  // documents that have lost their 'game' can be opened.
-//  if( !DG.currGameController.get('gameIsReady')) {
-//    DG.log("DocumentController:addGraph called before gameIsReady.");
-//    return;
-//  }
-
   return DG.currDocumentController().addGraph( this.get('docView'));
 };
 
