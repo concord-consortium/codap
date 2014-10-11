@@ -42,15 +42,15 @@ SC.Query.orderStoreKeys = function(storeKeys, query, store) {
     var i, len = storeKeys.get('length'),
         isSorted = true,
         prevStoreKey = null;
-    for (i=0; i<len; i++) {
-      var thisStoreKey = storeKeys.objectAt(i);
-      if (prevStoreKey &&
-          SC.Query.compareStoreKeys(query, store, prevStoreKey, thisStoreKey) > 0) {
-        isSorted = false;
-        break;
-      }
-      prevStoreKey = thisStoreKey;
-    }
+//    for (i=0; i<len; i++) {
+//      var thisStoreKey = storeKeys.objectAt(i);
+//      if (prevStoreKey &&
+//          SC.Query.compareStoreKeys(query, store, prevStoreKey, thisStoreKey) > 0) {
+//        isSorted = false;
+//        break;
+//      }
+//      prevStoreKey = thisStoreKey;
+//    }
     // only sort if they're not already sorted
     if (!isSorted) {
       storeKeys.sort(function(a, b) {

@@ -114,7 +114,8 @@ DG.MemoryDataSource = SC.DataSource.extend( (function() // closure
     function updateParentRecord( iParentRecordClass, iParentRecord, iParentChildrenProperty, iStore) {
       var tParentRecordStoreKey = iStore.storeKeyFor( iParentRecordClass, iParentRecord.guid),
           storeDataHash = iStore.readEditableDataHash( tParentRecordStoreKey);
-      storeDataHash[ iParentChildrenProperty] = SC.copy( iParentRecord[ iParentChildrenProperty], true);
+//      storeDataHash[ iParentChildrenProperty] = SC.copy( iParentRecord[ iParentChildrenProperty], true);
+      storeDataHash[ iParentChildrenProperty] = iParentRecord[ iParentChildrenProperty];
       iStore.dataHashDidChange( tParentRecordStoreKey, null, false, iParentChildrenProperty);
     }
     
@@ -365,13 +366,12 @@ DG.MemoryDataSource = SC.DataSource.extend( (function() // closure
   },
   
   createRecord: function(store, storeKey) {
-    
    //Get the record type for the storeKey.
     var recordType = typeOfRecord(store.recordTypeFor(storeKey), store);
  
     //Get the hash in the store.
     var recordHash = clone(store.readDataHash(storeKey));
- 
+
     //Generate a new index
     recordHash.guid = ++ currGuids[recordType];
  
@@ -398,7 +398,7 @@ DG.MemoryDataSource = SC.DataSource.extend( (function() // closure
     var recordHash = clone(store.readDataHash(storeKey));
     //Get the guid.
     var guid = store.idFor(storeKey);
- 
+
     //Remove the old object from our storage.
     var currentHash = storageHash[recordType][guid]; //get the hash in our store
     storageArray[recordType].removeObject(currentHash); //remove it from the array
@@ -427,8 +427,7 @@ DG.MemoryDataSource = SC.DataSource.extend( (function() // closure
     var recordType = typeOfRecord(store.recordTypeFor(storeKey), store);
     //Get the guid.
     var guid = store.idFor(storeKey);
- 
- 
+
     //Remove the object from our storage.
     var currentHash = storageHash[recordType][guid];
     storageArray[recordType].removeObject(currentHash);
