@@ -322,8 +322,11 @@ SC.stringsFor('English', {
   'DG.LegendView.attributeTooltip' : "Click to change legend attribute",  // "Click to change legend attribute"
 
   // DG.NumberToggleView
-  'DG.NumberToggleView.showAll' : "Show All",  // "Show All"
-  'DG.NumberToggleView.overallTooltip' : "Click numbers to show one. Click label to show all.",  // "Click to toggle visibility"
+  'DG.NumberToggleView.showAll' : "Show All -",  // "Show All"
+  'DG.NumberToggleView.hideAll' : "Hide All -",  // "Hide All"
+  'DG.NumberToggleView.showAllTooltip' : "Click numbers to toggle visibility. Click label to show all.",  // "Click numbers to toggle visibility. Click label to show all."
+  'DG.NumberToggleView.hideAllTooltip' : "Click numbers to toggle visibility. Click label to hide all.",  // "Click numbers to toggle visibility. Click label to hide all."
+  'DG.NumberToggleView.indexTooltip' : "Click to toggle visibility.",  // "Click to toggle visibility."
 
   // DG.PlottedAverageAdornment
   'DG.PlottedAverageAdornment.meanValueTitle' : "mean=%@", // "mean=123.456"
