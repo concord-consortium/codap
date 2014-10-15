@@ -263,6 +263,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ]});
+        DG.dirtyCurrentDocument();
       }.observes('*plotView.dragData', '*legendView.dragData', '*mapView.dragData')
     };
 

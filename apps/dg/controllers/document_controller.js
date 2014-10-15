@@ -307,7 +307,7 @@ DG.DocumentController = SC.Object.extend(
       iComponent.didLoadRecord();
     
     if( didCreateComponent)
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
   },
   
   /**
@@ -450,7 +450,7 @@ DG.DocumentController = SC.Object.extend(
     }
     
     if( tComponentView)
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
     
     return tComponentView;
   },
@@ -778,7 +778,7 @@ DG.DocumentController = SC.Object.extend(
         tController.set('view', null);
       }
       // Closing a component should dirty the document.
-      this.incrementProperty('changeCount');
+      DG.dirtyCurrentDocument();
     }
     // the view will be destroyed elsewhere
   },
@@ -848,7 +848,7 @@ DG.DocumentController = SC.Object.extend(
         DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
         this.updateSavedChangeCount();
       }
-    });
+    }.bind(this));
   },
 
   receivedSaveDocumentResponse: function(iResponse) {
@@ -874,14 +874,15 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   copyDocument: function( iDocumentId, iDocumentPermissions) {
-    var docArchive = this.exportDocument();
-    docArchive.name = iDocumentId;
-    if( !SC.none( iDocumentPermissions))
-      docArchive._permissions = iDocumentPermissions;
+    this.exportDocument( function( docArchive) {
+      docArchive.name = iDocumentId;
+      if (!SC.none(iDocumentPermissions))
+        docArchive._permissions = iDocumentPermissions;
 
-    if( DG.assert( !SC.none(docArchive))) {
-      DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
-    }
+      if (DG.assert(!SC.none(docArchive))) {
+        DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+      }
+    }.bind(this));
   },
 
   receivedCopyDocumentResponse: function(iResponse) {
@@ -936,3 +937,10 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
   return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
 };
 
+/**
+ * A global convenience function for dirtying the document.
+ */
+DG.dirtyCurrentDocument = function() {
+  DG.currDocumentController().incrementProperty('changeCount');
+  //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+};

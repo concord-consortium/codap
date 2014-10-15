@@ -364,12 +364,6 @@ DG.mainPage.addSlider = function() {
 };
 
 DG.mainPage.addGraph = function() {
-  // TO DO: The graph will currently (110828) crash if it's called while the game is still setting up.
-  if( !DG.currGameController.get('gameIsReady')) {
-    DG.log("DocumentController:addGraph called before gameIsReady.");
-    return;
-  }
-
   return DG.currDocumentController().addGraph( this.get('docView'));
 };
 

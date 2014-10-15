@@ -410,7 +410,7 @@ DG.appController = SC.Object.create((function () // closure
         alertDescription = null;
       // Currently, we must close any open document before opening another
       if (SC.ok(iResponse) && !iResponse.get('isError')) {
-          DG.currDocumentController().incrementProperty('changeCount');
+          DG.dirtyCurrentDocument();
           this.saveDocument();
           return;
       }
@@ -682,6 +682,7 @@ DG.appController = SC.Object.create((function () // closure
       function doDelete() {
         DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
         DG.currGameController.doDeleteAllCaseData();
+        DG.dirtyCurrentDocument();
       }
 
       DG.AlertPane.warn({
@@ -831,7 +832,7 @@ DG.appController = SC.Object.create((function () // closure
             toggleOffValue: 0,
             isDefault: NO,
             action: function() {
-              DG.currDocumentController().incrementProperty('changeCount');
+              DG.dirtyCurrentDocument();
               this.invokeNext(function() {
                 DG.appController.autoSaveDocument();
               })
