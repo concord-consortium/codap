@@ -204,7 +204,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               childCount);
           }
         }
-        DG.logInfo("UpdateStatus: "  + tStatusMessage);
+//        DG.logInfo("UpdateStatus: "  + tStatusMessage);
         return tStatusMessage;
       },
 
