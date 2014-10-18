@@ -182,8 +182,12 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
           }.bind( this ),
 
           changeAllCaseVisibility = function() {
-            this.get('model' ).changeAllCaseVisibility();
-            DG.logUser( "Show all:");
+            var tModel = this.get('model');
+            tModel.changeAllCaseVisibility();
+            if( tModel.allCasesAreHidden())
+              DG.logUser( "Hide all:");
+            else
+              DG.logUser( "Show all:");
           }.bind( this ),
 
           createShowAllElement = function() {
