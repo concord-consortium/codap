@@ -30,7 +30,8 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   autoDestroyProperties: [ ],
 
   displayProperties: ['model.dataConfiguration.attributeAssignment',
-                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType'],
+                      'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
+                      'model.gridModel.visible'],
 
   classNames: ['map-layer'],
 
@@ -82,7 +83,12 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
   doDraw: function doDraw() {
     this.get('mapPointLayer' ).doDraw();
-  }
+  },
+
+  gridVisibilityDidChange: function() {
+    var tFixedSize = this.getPath('model.gridModel.visible') ? 3 : null;
+    this.setPath('mapPointLayer.fixedPointRadius', tFixedSize);
+  }.observes('model.gridModel.visible')
 
 });
 

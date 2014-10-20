@@ -52,6 +52,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapPointView: null,
 
       /**
+       * @property {DG.MapGridLayer}
+       */
+      mapGridLayer: null,
+
+      /**
        * @property {DG.LegendView}
        */
       legendView: null,
@@ -150,6 +155,22 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.get('mapAreaLayer').addFeatures();
       },
 
+      addGridLayer: function () {
+        if( this.get('mapGridLayer'))
+          return;
+
+        this.set('mapGridLayer', DG.MapGridLayer.create(
+            {
+              mapSource: this,
+              model: this.getPath('model.gridModel')
+            }));
+        // The size of any points depends on whether the grid is visible or not
+        if( !this.get('mapPointView'))
+          this.addPointLayer();
+        if( this.getPath('model.gridModel.visible'))
+          this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
+      },
+
       /**
        Set the layout (view position) for our subviews.
        @returns {void}
@@ -199,9 +220,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         var tMap = this.getPath('mapLayer.map'),
             tModel = this.get('model'),
             tCenter = tMap.getCenter(),
-            tZoom = tMap.getZoom();
+            tZoom = tMap.getZoom(),
+            tBounds = tMap.getBounds();
         tModel.set('center', tCenter);
         tModel.set('zoom', tZoom);
+        tModel.set('bounds', tBounds);
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {

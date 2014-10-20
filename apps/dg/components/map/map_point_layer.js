@@ -27,8 +27,6 @@ sc_require('components/graph_map_common/plot_layer');
 DG.MapPointLayer = DG.PlotLayer.extend(
 /** @scope DG.MapPointLayer.prototype */ 
 {
-  displayProperties: [],
-  
   autoDestroyProperties: [],
 
   mapSource: null,

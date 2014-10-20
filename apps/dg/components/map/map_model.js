@@ -35,10 +35,20 @@ DG.MapModel = DG.DataDisplayModel.extend(
     zoom: null,
 
     /**
+     * {@property L.latLngBounds}
+     */
+    bounds: null,
+
+    /**
      * This is the name of the layer used as an argument to L.esri.basemapLayer
      * {@property String}
      */
     baseMapLayerName: null,
+
+    /**
+     * {@property DG.MapGridModel}
+     */
+    gridModel: null,
 
     /**
      * Set to true during restore as flag to use to know whether to fit bounds or not
@@ -75,6 +85,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
       this.set('center', [37.84, -122.10]); // San Francisco
       this.set('zoom', 5);  // Reasonable default
       this.set('baseMapLayerName', 'Topographic');
+
+      this.set('gridModel', DG.MapGridModel.create({ dataConfiguration: this.get('dataConfiguration')}));
     },
 
     handleLegendAttrChange: function() {
@@ -218,7 +230,23 @@ DG.MapModel = DG.DataDisplayModel.extend(
      @return {Array of menu items}
      */
     getGearMenuItems: function() {
-      return [];
+
+      var showGrid = function() {
+        var tGrid = this.get('gridModel');
+        if( SC.none( tGrid.get( 'center'))) {
+          tGrid.setDefaultGrid( this.get('bounds'));
+        }
+        tGrid.set('visible', !tGrid.get( 'visible'))
+      };
+
+      if( this.get('hasLatLngAttrs')) {
+        var tTitle = this.getPath('gridModel.visible') ? 'DG.MapView.hideGrid' : 'DG.MapView.showGrid';
+        return [
+          { title: tTitle, isEnabled: true, target: this, itemAction: showGrid }
+        ];
+      }
+      else
+        return [];
     },
 
     createStorage: function() {
@@ -226,6 +254,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       tStorage.center = this.get('center');
       tStorage.zoom = this.get('zoom');
       tStorage.baseMapLayerName = this.get('baseMapLayerName');
+      tStorage.grid = this.get('gridModel').createStorage();
 
       return tStorage;
     },
@@ -243,6 +272,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
         this.set('zoom', iStorage.mapModelStorage.zoom);
         this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
         this.set('centerAndZoomBeingRestored', true);
+        this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
       }
     }
 

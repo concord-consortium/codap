@@ -82,10 +82,12 @@ DG.MapLayerView = SC.View.extend(
       _createMap: function () {
 
         var onLayerAdd = function (iLayerEvent) {
-              var tParentView = this.get('parentView');
+            var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
+              tParentView.addGridLayer();
+              tParentView.setPath('model.bounds', this._map.getBounds())
             }.bind(this);
 
         if (this._map) {

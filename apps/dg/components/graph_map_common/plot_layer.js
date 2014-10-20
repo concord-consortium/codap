@@ -176,7 +176,13 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @property { Number } current point radius of cases being displayed.
    */
   _pointRadius: DG.PlotUtilities.kPointRadiusMax,
-  
+
+  /**
+   * If this is non-null, it will be used as the radius for points regardless of number of points
+   * {@property Number}
+   */
+  fixedPointRadius: null,
+
   /**
     True if rendered content is up-to-date, false if redraw is required.
     @property { Boolean }
@@ -692,6 +698,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @return {Number} radius of circle for each case, as a positive integer.
    */
   calcPointRadius: function() {
+    if( this.fixedPointRadius)
+      return this.fixedPointRadius;
+
     // Search for a point size in [min-max] range, where the point size is a power of logbase that is close to the data length.
     // This step function avoids excessive plot resizing with every change in number of cases.
     var tDataConfiguration = this.getPath('model.dataConfiguration' ),
@@ -860,7 +869,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._plottedElements.forEach( function( iElement) {
       iElement.animate( tAttr, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     });
-  },
+  }.observes('fixedPointRadius'),
 
   /**
     * Subclasses will override

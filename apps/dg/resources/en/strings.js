@@ -361,6 +361,10 @@ SC.stringsFor('English', {
    'DG.GraphView.rescale': "Rescale to data",  // Rescale to data
 
     // DG.DataTip
-    'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@"
+    'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@",
+
+    // DG.MapView
+    'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
+    'DG.MapView.hideGrid': "Hide Grid"  // "Hide Grid"
   }
 ) ;
