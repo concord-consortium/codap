@@ -122,7 +122,10 @@ DG.Component.createComponent = function( iProperties) {
   // but the MemoryDataSource seems to require that we commit after each change.
   // [wff 14_10_07: Removed the following to improve performance. Could not find
   // any bad effects of this, so perhaps it is no longer necessary?
-  //DG.store.commitRecords();
+  // We found a bad effect; namely that the document store was not being properly
+  // updated when a new component was created and therefore a saved document did
+  // not contain the new component.
+  DG.store.commitRecords();
   return newComponent;
 };
 
