@@ -35,15 +35,16 @@ DG.MapModel = DG.DataDisplayModel.extend(
     zoom: null,
 
     /**
-     * {@property L.latLngBounds}
-     */
-    bounds: null,
-
-    /**
      * This is the name of the layer used as an argument to L.esri.basemapLayer
      * {@property String}
      */
     baseMapLayerName: null,
+
+    /**
+     * Reflects (and determines) whether the mapPointView subview is showing
+     * {@property Boolean}
+     */
+    pointsShouldBeVisible: null,
 
     /**
      * {@property DG.MapGridModel}
@@ -62,12 +63,12 @@ DG.MapModel = DG.DataDisplayModel.extend(
     caseValueAnimator: null,  // Used to animate points back to start
 
     latVarID: function() {
-      return this.getPath('dataConfiguration.yAttributeDescription.attributeID');
-    }.property('*dataConfiguration.yAttributeDescription.attributeID'),
+      return this.getPath('dataConfiguration.latAttributeID');
+    }.property('*dataConfiguration.latAttributeID'),
 
-    lngVarID: function() {
-      return this.getPath('dataConfiguration.xAttributeDescription.attributeID');
-    }.property('dataConfiguration.xAttributeDescription.attributeID'),
+    longVarID: function() {
+      return this.getPath('dataConfiguration.longAttributeID');
+    }.property('dataConfiguration.longAttributeID'),
 
     areaVarID: function() {
       return this.getPath('dataConfiguration.areaAttributeDescription.attributeID');
@@ -144,62 +145,9 @@ DG.MapModel = DG.DataDisplayModel.extend(
         DG.logUser("caseDeselected: %@", iIndex);
     },
 
-    getLatLngBounds: function() {
-      var tLatMinMax = this.getPath('dataConfiguration.yAttributeDescription.attributeStats.minMax' ),
-          tLngMinMax = this.getPath('dataConfiguration.xAttributeDescription.attributeStats.minMax' ),
-          tSouthWest = [tLatMinMax.min, tLngMinMax.min],
-          tNorthEast = [tLatMinMax.max, tLngMinMax.max];
-       return [tSouthWest, tNorthEast];
-    },
-
-    /**
-     * If there is an area attribute, go through its values, finding the rectangle that encompases all
-     * the coordinates.
-     * @returns {*[]}
-     */
-    getAreaBounds: function() {
-      var tCases = this.get('cases'),
-          tAreaID = this.get('areaVarID'),
-          tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
-      if( !tAreaID)
-        return null;
-
-      function processArrayOfCoords( iArrayOfCoords) {
-        iArrayOfCoords.forEach( function( iPoint) {
-          tMinSouth = Math.min( tMinSouth, iPoint[1]);
-          tMaxNorth = Math.max( tMaxNorth, iPoint[1]);
-          tMinWest = Math.min( tMinWest, iPoint[0]);
-          tMaxEast = Math.max( tMaxEast, iPoint[0]);
-        });
-      }
-
-      tCases.forEach( function( iCase) {
-        try {
-          var tFeature = JSON.parse(iCase.getValue(tAreaID)),
-              tCoords = tFeature.geometry.coordinates,
-              tType = tFeature.geometry.type;
-          tCoords.forEach(function (iArray) {
-            switch (tType) {
-              case 'Polygon':
-                processArrayOfCoords(iArray);
-                break;
-              case 'MultiPolygon':
-                iArray.forEach(function (iSubArray) {
-                  processArrayOfCoords(iSubArray);
-                });
-                break;
-            }
-          });
-        }
-        catch(er) {}
-      });
-
-      return [[tMinSouth, tMinWest], [tMaxNorth, tMaxEast]];
-    },
-
-    hasLatLngAttrs: function() {
-      return !SC.none( this.get('latVarID')) && !SC.none( this.get('lngVarID'));
-    }.property('dataConfiguration.yAttributeDescription.attributeID', 'dataConfiguration.xAttributeDescription.attributeID'),
+    hasLatLongAttributes: function() {
+      return this.getPath('dataConfiguration.hasLatLongAttributes');
+    }.property('dataConfiguration.hasLatLongAttributes').cacheable(),
 
     /**
      * For now, we'll assume all changes affect us
@@ -230,23 +178,38 @@ DG.MapModel = DG.DataDisplayModel.extend(
      @return {Array of menu items}
      */
     getGearMenuItems: function() {
+      var tMenuItems;
 
-      var showGrid = function() {
+      var hideShowGrid = function() {
         var tGrid = this.get('gridModel');
-        if( SC.none( tGrid.get( 'center'))) {
-          tGrid.setDefaultGrid( this.get('bounds'));
-        }
-        tGrid.set('visible', !tGrid.get( 'visible'))
-      };
+        tGrid.set('visible', !tGrid.get( 'visible'));
+        DG.dirtyCurrentDocument();
+      }.bind(this);
 
-      if( this.get('hasLatLngAttrs')) {
-        var tTitle = this.getPath('gridModel.visible') ? 'DG.MapView.hideGrid' : 'DG.MapView.showGrid';
-        return [
-          { title: tTitle, isEnabled: true, target: this, itemAction: showGrid }
-        ];
+      var hideShowPoints = function() {
+        var tPointsVisible = this.get('pointsShouldBeVisible');
+        if( tPointsVisible !== false)
+          tPointsVisible = true;
+        this.set('pointsShouldBeVisible', !tPointsVisible);
+        DG.dirtyCurrentDocument();
+      }.bind(this);
+
+      if( this.get('hasLatLongAttributes')) {
+        var tHideShowGridTitle = this.getPath('gridModel.visible') ?
+                'DG.MapView.hideGrid'.loc() : 'DG.MapView.showGrid'.loc(),
+            tHideShowPointsTitle = (this.get('pointsShouldBeVisible') !== false) ? 'DG.MapView.hidePoints'.loc() :
+                'DG.MapView.showPoints'.loc();
+        tMenuItems = [
+                      { title: tHideShowGridTitle, isEnabled: true, target: this, itemAction: hideShowGrid },
+                      { title: tHideShowPointsTitle, isEnabled: true, target: this, itemAction: hideShowPoints }
+                    ].
+            concat( [{ isSeparator: YES }]).
+            concat( this.createHideShowSelectionMenuItems());
       }
       else
-        return [];
+        tMenuItems = [];
+
+      return tMenuItems;
     },
 
     createStorage: function() {
@@ -254,6 +217,9 @@ DG.MapModel = DG.DataDisplayModel.extend(
       tStorage.center = this.get('center');
       tStorage.zoom = this.get('zoom');
       tStorage.baseMapLayerName = this.get('baseMapLayerName');
+      var tPointsVisible = this.get('pointsShouldBeVisible');
+      if( tPointsVisible !== null)
+        tStorage.pointsShouldBeVisible = tPointsVisible;
       tStorage.grid = this.get('gridModel').createStorage();
 
       return tStorage;
@@ -272,6 +238,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
         this.set('zoom', iStorage.mapModelStorage.zoom);
         this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
         this.set('centerAndZoomBeingRestored', true);
+        if( iStorage.mapModelStorage.pointsShouldBeVisible !== null)
+          this.set('pointsShouldBeVisible', iStorage.mapModelStorage.pointsShouldBeVisible);
         this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
       }
     }

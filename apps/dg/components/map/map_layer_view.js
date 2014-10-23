@@ -87,7 +87,6 @@ DG.MapLayerView = SC.View.extend(
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
               tParentView.addGridLayer();
-              tParentView.setPath('model.bounds', this._map.getBounds())
             }.bind(this);
 
         if (this._map) {

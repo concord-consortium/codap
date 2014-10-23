@@ -355,38 +355,39 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     // note: don't rely on tDataLength != tPlotElementLength test for this
     this.updateAdornments();
 
-    // for any new cases
-    if( tDataLength > tPlotElementLength) {
-      if( tWantNewPointRadius ) {
-        // update the point radius for existing plotted elements
-        this.prepareToResetCoordinates();
-        for( tIndex = 0; tIndex < tPlotElementLength; tIndex++) {
-          this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
+    if( tDataLength !== tPlotElementLength) {
+      // for any new cases
+      if (tDataLength > tPlotElementLength) {
+        if (tWantNewPointRadius) {
+          // update the point radius for existing plotted elements
+          this.prepareToResetCoordinates();
+          for (tIndex = 0; tIndex < tPlotElementLength; tIndex++) {
+            this.setCircleCoordinate(tRC, tCases[ tIndex], tIndex);
+          }
+        }
+        // create plot elements for added cases
+        for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
+          this.callCreateCircle(tCases[ tIndex], tIndex, this.animationIsAllowable());
+          this.setCircleCoordinate(tRC, tCases[ tIndex], tIndex);
         }
       }
-      // create plot elements for added cases
-      for( tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.callCreateCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
-        this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
-      }
-      this._isRenderingValid = false;
-    }
-    // Get rid of plot elements for removed cases and update all coordinates
-    if( tDataLength < tPlotElementLength) {
-      for( tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
-        // It can happen during closing of a document that the elements no longer exist, so we have to test
-        if( !SC.none( this._plottedElements[ tIndex])) {
-          this._plottedElements[ tIndex].stop();
-          tLayerManager.removeElement( this._plottedElements[ tIndex]);
-          DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
+      // Get rid of plot elements for removed cases and update all coordinates
+      if (tDataLength < tPlotElementLength) {
+        for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
+          // It can happen during closing of a document that the elements no longer exist, so we have to test
+          if (!SC.none(this._plottedElements[ tIndex])) {
+            this._plottedElements[ tIndex].stop();
+            tLayerManager.removeElement(this._plottedElements[ tIndex]);
+            DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[ tIndex]);
+          }
         }
-      }
-      this._plottedElements.length = tDataLength;
+        this._plottedElements.length = tDataLength;
 
-      this.prepareToResetCoordinates();
-      tCases.forEach( function( iCase, iIndex) {
-          this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
+        this.prepareToResetCoordinates();
+        tCases.forEach(function (iCase, iIndex) {
+          this_.setCircleCoordinate(tRC, tCases[ iIndex], iIndex);
         });
+      }
       this._isRenderingValid = false;
       this.displayDidChange();
     }

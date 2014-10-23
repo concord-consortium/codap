@@ -30,6 +30,10 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     this.count = 0;
   }
 
+  /**
+   * A 2-dim sparse array of RectRecords, each of which shows up at the view level as a colored rectangle.
+   * @constructor
+   */
   function RectArray() {
     this.maxCount = 0;
 
@@ -37,7 +41,10 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       []
     ];
     this.getRect = function (iLongIndex, iLatIndex) {
-      return this.rectangles[iLongIndex][iLatIndex];
+      if(iLongIndex < this.rectangles.length)
+        return this.rectangles[iLongIndex][iLatIndex];
+      else
+        return null;
     };
     this.setRect = function(iLongIndex, iLatIndex, iRect) {
       if(!this.rectangles[iLongIndex])
@@ -46,9 +53,10 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     };
 
     this.forEachRect = function( iFunc) {
-      this.rectangles.forEach( function(iLongArray) {
-        iLongArray.forEach( function( iRect) {
-          iFunc( iRect);
+      this.rectangles.forEach( function(iLongArray, iLongIndex) {
+        iLongArray.forEach( function( iRect, iLatIndex) {
+          if( iRect)
+            iFunc( iRect, iLongIndex, iLatIndex);
         });
       });
     };
@@ -60,8 +68,28 @@ DG.MapGridModel = SC.Object.extend((function () // closure
         this.maxCount = Math.max(this.maxCount, tRect.count);
       }
     };
+
+    this.deleteZeroRects = function() {
+      this.rectangles.forEach( function(iLongArray, iLongIndex) {
+        iLongArray.forEach( function( iRect, iLatIndex) {
+          if( iRect.count === 0)
+            iLongArray[ iLatIndex] = undefined;
+        });
+      });
+    };
   };
 
+  /**
+   * The grid has a width and height measured in degrees
+   * These are private variables used to compute actual grid width and height
+   */
+  var _gridWidth, // Number (degrees)
+      _gridHeight, // Number (degrees)
+      kGridCellCount = 20;
+
+  /**
+   * Start of MapGridModel
+   */
   return {
     /**
      * Here we get access to the cases being plotted so we can determine how many points are in a grid rectangle
@@ -70,24 +98,20 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     dataConfiguration: null,
 
     /**
-     * {@property L.latLngBounds}
+     * This number is multiplied times _gridWidth and _gridHeight to get the actual width and height
      */
-    bounds: null,
+    gridMultiplier: 1,  // Number [.1-2]
 
-    /**
-     * We keep track of the latitude and longitude of a reference point
-     */
-    refLat: null, // Number (degrees)
-    refLong: null, // Number (degrees)
+    gridWidth: function() {
+      return _gridWidth * this.gridMultiplier;
+    }.property('gridMultiplier'),
 
-    /**
-     * The grid has a width and height measured in degrees
-     */
-    gridWidth: null, // Number (degrees)
-    gridHeight: null, // Number (degrees)
+    gridHeight: function() {
+      return _gridHeight * this.gridMultiplier;
+    }.property('gridMultiplier'),
 
     startWest: null, // Number (degrees) - Left edge of grid
-    startSouth: null, // Number (degrees) - Bottom edige of grid
+    startSouth: null, // Number (degrees) - Bottom edge of grid
 
     /**
      * A 2-dimensional array of objects, each of which consists of a rectangle and a count
@@ -104,101 +128,87 @@ DG.MapGridModel = SC.Object.extend((function () // closure
      */
     visible: false,
 
-    init: function() {
-      sc_super();
-
-      this.rectArray = new RectArray();
-    },
-
     forEachRect: function( iFunc) {
       this.get('rectArray').forEachRect( iFunc);
     },
 
-    /**
-     * Called with lat and long of bounds to allow a default grid to be chosen with the center of the bounds
-     * as the reference point and 1/10 of the bounds width and height as the grid width and height.
-     * {@param L.latLngBounds}
-     */
-    setDefaultGrid: function (iBounds) {
-      if (!iBounds)
-        return;
-      var tCenter = iBounds.getCenter(),
-          tNorth = iBounds.getNorth(),
-          tWest = iBounds.getWest(),
-          tSouth = iBounds.getSouth(),
-          tEast = iBounds.getEast();
-      this.beginPropertyChanges();
-        this.set('refLat', tCenter.lat);
-        this.set('refLong', tCenter.lng);
-        this.set('gridWidth', (tEast - tWest) / 20);
-        this.set('gridHeight', (tNorth - tSouth) / 20);
-        this.set('bounds', iBounds);
-      this.endPropertyChanges();
-      this.setupRectangles();
-      this.computeCounts();
-    },
+    initializeRectArray: function() {
 
-    /**
-     * We figure out the grid using the default settings.
-     */
-    setupRectangles: function() {
-      var tRectArray = this.get('rectArray'),
-          tBounds = this.get('bounds'),
-          tGridWidth = this.get('gridWidth'),
-          tWest = tBounds.getWest(),
-          tRefLong = this.get('refLong'),
-          tNumToWest = Math.ceil((tRefLong - tWest) / tGridWidth),
-          tFirstWest = tRefLong - tGridWidth * tNumToWest,
+      var tStartSouth, tStartWest;
 
-          tGridHeight = this.get('gridHeight'),
-          tSouth = tBounds.getSouth(),
-          tRefLat = this.get('refLat'),
-          tNumToSouth = Math.ceil((tRefLat - tSouth) / tGridHeight),
-          tFirstSouth = tRefLat - tGridHeight * tNumToSouth,
-          tLatIndex, tLongIndex;
+      var setupRectangles = function() {
+        var tRectArray = this.get('rectArray'),
+            tBounds = this.get('dataConfiguration').getLatLongBounds(),
+            tCenter = tBounds.getCenter(),
+            tRefLong = tCenter.lng,
+            tRefLat = tCenter.lat,
+            tWest = tBounds.getWest(),
+            tEast = tBounds.getEast(),
+            tSouth = tBounds.getSouth(),
+            tNorth = tBounds.getNorth();
 
-      for( tLongIndex = 0 ; tLongIndex < 2 * tNumToWest; tLongIndex++) {
-        for( tLatIndex = 0; tLatIndex < 2 * tNumToSouth; tLatIndex++) {
-          tRectArray.setRect( tLongIndex, tLatIndex, new RectRecord( [
-            [tFirstSouth + tLatIndex * tGridHeight, tFirstWest + tLongIndex * tGridWidth],
-            [tFirstSouth + (tLatIndex + 1) * tGridHeight, tFirstWest + (tLongIndex + 1)* tGridWidth]]));
+        _gridWidth = (tEast - tWest) / kGridCellCount;
+        _gridHeight = (tNorth - tSouth) / kGridCellCount;
+
+        var tGridWidth = this.get('gridWidth'),
+            tNumToWest = Math.ceil((tRefLong - tWest) / tGridWidth);
+        tStartWest = tRefLong - tGridWidth * tNumToWest;
+
+        var tGridHeight = this.get('gridHeight'),
+            tNumToSouth = Math.ceil((tRefLat - tSouth) / tGridHeight),
+            tLatIndex, tLongIndex;
+        tStartSouth = tRefLat - tGridHeight * tNumToSouth;
+
+        for (tLongIndex = 0; tLongIndex < 2 * tNumToWest; tLongIndex++) {
+          for (tLatIndex = 0; tLatIndex < 2 * tNumToSouth; tLatIndex++) {
+            tRectArray.setRect(tLongIndex, tLatIndex, new RectRecord([
+              [tStartSouth + tLatIndex * tGridHeight, tStartWest + tLongIndex * tGridWidth],
+              [tStartSouth + (tLatIndex + 1) * tGridHeight, tStartWest + (tLongIndex + 1) * tGridWidth]
+            ]));
+          }
         }
-      }
-      this.set('startWest', tFirstWest);
-      this.set('startSouth', tFirstSouth);
+      }.bind(this);
+
+      var computeCounts = function(){
+
+        var zeroCounts = function() {
+          this.get('rectArray').forEachRect( function( iRect) {
+            iRect.count = 0;
+          });
+          this.get('rectArray').maxCount = 0;
+        }.bind(this);
+
+        var tCases = this.getPath('dataConfiguration.cases'),
+            tGridWidth = this.get('gridWidth'),
+            tGridHeight = this.get('gridHeight'),
+            tLongVarID = this.getPath('dataConfiguration.xAttributeDescription.attributeID'),
+            tLatVarID = this.getPath('dataConfiguration.yAttributeDescription.attributeID'),
+            tRectArray = this.get('rectArray');
+        zeroCounts();
+        tCases.forEach( function( iCase) {
+          var tLongVal = iCase.getNumValue( tLongVarID),
+              tLatVal = iCase.getNumValue( tLatVarID),
+              tLongIndex = Math.floor( (tLongVal - tStartWest) / tGridWidth),
+              tLatIndex = Math.floor( (tLatVal - tStartSouth) / tGridHeight);
+          tRectArray.incrementCount( tLongIndex, tLatIndex);
+        })
+      }.bind(this);
+
+      this.beginPropertyChanges();
+        this.set('rectArray', new RectArray());
+        setupRectangles();
+        computeCounts();
+        this.get('rectArray').deleteZeroRects();
+      this.endPropertyChanges();
     },
 
     /**
-     * Zero the count of each rectangle
+     * We have to recompute the rectArray
+     * TODO: Handle change in the number of cases and changes in values of cases
      */
-    zeroCounts: function() {
-      this.get('rectArray').forEachRect( function( iRect) {
-        iRect.count = 0;
-      });
-      this.get('rectArray').maxCount = 0;
-    },
-
-    /**
-     * For each case, increment the count for the rectangle in which it lies
-     */
-    computeCounts: function() {
-      var tCases = this.getPath('dataConfiguration.cases'),
-          tGridWidth = this.get('gridWidth'),
-          tGridHeight = this.get('gridHeight'),
-          tStartWest = this.get('startWest'),
-          tStartSouth = this.get('startSouth'),
-          tLongVarID = this.getPath('dataConfiguration.xAttributeDescription.attributeID'),
-          tLatVarID = this.getPath('dataConfiguration.yAttributeDescription.attributeID'),
-          tRectArray = this.get('rectArray');
-      this.zeroCounts();
-      tCases.forEach( function( iCase) {
-        var tLongVal = iCase.getNumValue( tLongVarID),
-            tLatVal = iCase.getNumValue( tLatVarID),
-            tLongIndex = Math.floor( (tLongVal - tStartWest) / tGridWidth),
-            tLatIndex = Math.floor( (tLatVal - tStartSouth) / tGridHeight);
-        tRectArray.incrementCount( tLongIndex, tLatIndex);
-      })
-    },
+    rectArrayMustChange: function() {
+      this.initializeRectArray();
+    }.observes('gridMultiplier', 'dataConfiguration.hiddenCases'),
 
     /**
      *
@@ -206,11 +216,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
      */
     createStorage: function () {
       var tStorage = {};
-      tStorage.bounds = this.get('bounds');
-      tStorage.refLat = this.get('refLat');
-      tStorage.refLong = this.get('refLong');
-      tStorage.gridWidth = this.get('gridWidth');
-      tStorage.gridHeight = this.get('gridHeight');
+      tStorage.gridMultiplier = this.get('gridMultiplier');
       tStorage.visible = this.get('visible');
 
       return tStorage;
@@ -223,14 +229,9 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     restoreStorage: function (iStorage) {
       if (iStorage) {
         this.beginPropertyChanges();
-        this.set('bounds', iStorage.bounds);
-        this.set('refLat', iStorage.refLat);
-        this.set('refLong', iStorage.refLong);
-        this.set('gridWidth', iStorage.gridWidth);
-        this.set('gridHeight', iStorage.gridHeight);
+        this.set('gridMultiplier', iStorage.gridMultiplier ? iStorage.gridMultiplier : 1);
         this.set('visible', iStorage.visible);
         this.endPropertyChanges();
-        this.setDefaultGrid( iStorage.bounds)
       }
     }
   };

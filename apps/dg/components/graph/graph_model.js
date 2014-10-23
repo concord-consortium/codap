@@ -532,49 +532,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return tPlot.getGearMenuItems(). // plot specific menu items
           concat( getGraphMenuItems()). // then menu items for all plots...
           concat( [{ isSeparator: YES }]).
-          concat( this.createHideShowAttributeSubMenuItems());
-    },
-
-    /** Submenu items for hiding selected or unselected cases, or showing all cases */
-    createHideShowAttributeSubMenuItems: function() {
-      var tSelection = this.getPath('dataConfiguration.selection' ).toArray(),
-          tSomethingIsSelected = tSelection && tSelection.get('length') !== 0,
-          tCases = this.getPath('dataConfiguration.cases' ),
-          tSomethingIsUnselected = tSelection && tCases && (tSelection.get('length') < tCases.length),
-          tSomethingHidden = this.getPath('dataConfiguration.hiddenCases' ).length > 0,
-          tHideSelectedNumber = (tSelection && tSelection.length > 1) ? 'Plural' : 'Sing',
-          tHideUnselectedNumber = (tSelection && tCases &&
-                                   (tCases.length - tSelection.length > 1)) ? 'Plural' : 'Sing';
-
-      function hideSelectedCases() {
-        DG.logUser("Hide %@ selected cases", tSelection.length);
-        this.get('dataConfiguration' ).hideCases( tSelection);
-      }
-
-      function hideUnselectedCases() {
-        var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
-                                                            function( iCase) {
-                                                              return iCase.get('id');
-                                                            });
-        DG.logUser("Hide %n selected cases", tUnselected.length);
-        this.get('dataConfiguration' ).hideCases( tUnselected);
-      }
-
-      function showAllCases() {
-        DG.logUser("Show all cases");
-        this.get('dataConfiguration' ).showAllCases();
-      }
-
-      return [
-        // Note that these 'built' string keys will have to be specially handled by any
-        // minifier we use
-                  { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
-                                      target: this, itemAction: hideSelectedCases },
-                  { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
-                                      target: this, itemAction: hideUnselectedCases },
-                  { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
-                                      target: this, itemAction: showAllCases }
-              ];
+          concat( this.createHideShowSelectionMenuItems());
     },
 
     /**

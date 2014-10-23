@@ -64,12 +64,31 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   },
 
   init: function() {
+    var tVisibleAtZoomStart;
+
+    var handleZoomStart = function() {
+          tVisibleAtZoomStart = this.get('isVisible');
+          if( tVisibleAtZoomStart)
+            this.set('isVisible', false);
+        }.bind(this),
+
+        handleZoomEnd = function() {
+          if( tVisibleAtZoomStart)
+            this.set('isVisible', true);
+        }.bind(this);
+
     sc_super();
     this.set('mapPointLayer', DG.MapPointLayer.create({
       paperSource: this,
       model: this.get('model'),
       mapSource: this
     }));
+
+    // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
+    // points momentarily in wrong place.
+    this.getPath('mapLayer.map')
+        .on('zoomstart', handleZoomStart)
+        .on('zoomend', handleZoomEnd)
   },
 
   modelDidChange: function () {

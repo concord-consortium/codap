@@ -47,7 +47,7 @@ DG.MapGridLayer = SC.Object.extend(
   },
 
   /**
-    Draw the grid lines
+    Draw the grid cells
   */
   addGridLayer: function() {
     var tMap = this.get('map'),
@@ -57,10 +57,45 @@ DG.MapGridLayer = SC.Object.extend(
     var tOptions = { color: 'white', fillColor: 'red', weight: 1 },
         tModel = this.get('model'),
         tRectangles = [],
-        tMaxCount = tModel.get('rectArray').maxCount;
-    tModel.forEachRect( function( iRect) {
+        tMaxCount = tModel.get('rectArray').maxCount,
+        tIndex = 0,
+        tPopup, tRect;
+    tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
+      var tLocalIndex = tIndex,
+          handleClick = function( iEvent) {
+            // Select cases in this rectangle?
+          }.bind( this),
+
+          handleMouseover = function( iEvent) {
+            tRect = tModel.get('rectArray').getRect( iLongIndex, iLatIndex);
+            if( tRect.count === 0)
+              return;
+            tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
+            tPopup.options.offset[1] = -10;
+            tPopup.setContent( 'count = ' + tRect.count);
+            SC.Timer.schedule( { target: this,
+              action: function() {
+                if( tPopup)
+                  tRectangles[ tLocalIndex].bindPopup( tPopup).openPopup();
+              },
+              interval: 500 });
+
+          }.bind(this),
+
+          handleMouseout = function( iEvent) {
+            if( tPopup) {
+              tPopup._close();
+              tPopup = null;
+            }
+          }.bind( this);
+
       tOptions.fillOpacity = iRect.count / tMaxCount;
-      tRectangles.push(L.rectangle( iRect.rect, tOptions));
+      var tLeafRect = L.rectangle( iRect.rect, tOptions)
+                        .on('click', handleClick)
+                            .on('mouseover', handleMouseover)
+                            .on('mouseout', handleMouseout);
+      tRectangles.push(tLeafRect);
+      tIndex++;
     });
 
     this.set('grid', tRectangles);
@@ -83,9 +118,11 @@ DG.MapGridLayer = SC.Object.extend(
   removeGridFromMap: function() {
     var tMap = this.get('map'),
         tRectangles = this.get('grid');
-    tRectangles.forEach( function( iRect) {
-      tMap.removeLayer( iRect);
-    });
+    if( tRectangles) {
+      tRectangles.forEach(function (iRect) {
+        tMap.removeLayer(iRect);
+      });
+    }
   },
 
   visibilityHasChanged: function() {
@@ -98,7 +135,13 @@ DG.MapGridLayer = SC.Object.extend(
       if(this.get('grid'))
         this.removeGridFromMap();
     }
-  }.observes('model.visible')
+  }.observes('model.visible'),
+
+  gridRectArrayChanged: function() {
+    this.removeGridFromMap();
+    this.addGridLayer();
+    this.visibilityHasChanged();
+  }.observes('model.rectArray')
 
 });
 
