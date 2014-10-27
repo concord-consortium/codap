@@ -62,8 +62,8 @@ SC.stringsFor('English', {
 
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
-  'DG.AppController.resetData.toolTip' : "Delete all data from completed games",
-  'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the completed game data?",
+  'DG.AppController.resetData.toolTip' : "Delete all data from document",
+  'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the data in this document?",
   'DG.AppController.resetData.warnDescription' : "This action is not undoable.",
   'DG.AppController.resetData.okButtonTitle' : "Yes, delete the data",
   'DG.AppController.resetData.cancelButtonTitle' : "No, keep the data",
