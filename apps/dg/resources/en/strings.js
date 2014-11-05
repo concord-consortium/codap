@@ -62,7 +62,7 @@ SC.stringsFor('English', {
 
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
-  'DG.AppController.resetData.toolTip' : "Delete all data from document",
+  'DG.AppController.resetData.toolTip' : "Delete all data from current document",
   'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the data in this document?",
   'DG.AppController.resetData.warnDescription' : "This action is not undoable.",
   'DG.AppController.resetData.okButtonTitle' : "Yes, delete the data",
