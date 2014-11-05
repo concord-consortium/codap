@@ -192,11 +192,23 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
   areaCollectionClient: function() {
     return this.getPath('areaAttributeDescription.collectionClient');
-  }.property('areaAttributeDescription.collectionClient'),
+  }.property('areaAttributeDescription.collectionClient').cacheable(),
+
+  latAttributeID: function() {
+    return this.getPath('yAttributeDescription.attributeID');
+  }.property('yAttributeDescription.attributeID').cacheable(),
+
+  longAttributeID: function() {
+    return this.getPath('xAttributeDescription.attributeID');
+  }.property('xAttributeDescription.attributeID').cacheable(),
+
+  hasLatLongAttributes: function() {
+    return !SC.none(this.get('latAttributeID')) && !SC.none(this.get('longAttributeID'));
+  }.property('latAttributeID', 'longAttributeID').cacheable(),
 
   areaAttributeID: function() {
     return this.getPath('areaAttributeDescription.attributeID');
-  }.property('areaAttributeDescription.attributeID'),
+  }.property('areaAttributeDescription.attributeID').cacheable(),
 
   /**
    @property { DG.AttributePlacementDescription }
@@ -215,7 +227,60 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
   captionAttributeID: function() {
     return this.getPath('captionAttributeDescription.attributeID');
-  }.property('captionAttributeDescription.attributeID')
+  }.property('captionAttributeDescription.attributeID'),
+
+  getLatLongBounds: function() {
+    var tLatMinMax = this.getPath('yAttributeDescription.attributeStats.minMax' ),
+        tLngMinMax = this.getPath('xAttributeDescription.attributeStats.minMax' ),
+        tSouthWest = [tLatMinMax.min, tLngMinMax.min],
+        tNorthEast = [tLatMinMax.max, tLngMinMax.max];
+    return L.latLngBounds([tSouthWest, tNorthEast]);
+  },
+
+  /**
+   * If there is an area attribute, go through its values, finding the rectangle that encompases all
+   * the coordinates.
+   * @returns {*[]}
+   */
+  getAreaBounds: function() {
+    var tCases = this.get('cases'),
+        tAreaID = this.get('areaAttributeID'),
+        tMinWest = 180, tMaxEast = -180, tMinSouth = 90, tMaxNorth = -90;
+    if( !tAreaID)
+      return null;
+
+    function processArrayOfCoords( iArrayOfCoords) {
+      iArrayOfCoords.forEach( function( iPoint) {
+        tMinSouth = Math.min( tMinSouth, iPoint[1]);
+        tMaxNorth = Math.max( tMaxNorth, iPoint[1]);
+        tMinWest = Math.min( tMinWest, iPoint[0]);
+        tMaxEast = Math.max( tMaxEast, iPoint[0]);
+      });
+    }
+
+    tCases.forEach( function( iCase) {
+      try {
+        var tFeature = JSON.parse(iCase.getValue(tAreaID)),
+            tCoords = tFeature.geometry.coordinates,
+            tType = tFeature.geometry.type;
+        tCoords.forEach(function (iArray) {
+          switch (tType) {
+            case 'Polygon':
+              processArrayOfCoords(iArray);
+              break;
+            case 'MultiPolygon':
+              iArray.forEach(function (iSubArray) {
+                processArrayOfCoords(iSubArray);
+              });
+              break;
+          }
+        });
+      }
+      catch(er) {}
+    });
+
+    return L.latLngBounds([[tMinSouth, tMinWest], [tMaxNorth, tMaxEast]]);
+  }
 
 });
 

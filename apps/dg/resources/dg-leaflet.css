@@ -55,3 +55,7 @@ sc_require('resources/leaflet-0/leaflet.css')
 .leaflet-bottom {
     z-index: inherit;
 }
+
+.leaflet-clickable {
+    cursor: inherit;
+}

@@ -52,14 +52,29 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapPointView: null,
 
       /**
+       * @property {DG.MapGridLayer}
+       */
+      mapGridLayer: null,
+
+      /**
        * @property {DG.LegendView}
        */
       legendView: null,
 
       /**
-       * SC.ButtonView
+       * SC.SegmentedView
        */
       backgroundControl: null,
+
+      /**
+       * SC.SliderView
+       */
+      gridControl: null,
+
+      /**
+       * SC.ImageButtonView
+       */
+//      marqueeTool: null,
 
       paper: function() {
         return this.getPath('mapPointView.paper');
@@ -97,41 +112,71 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           target: this
         });
         this.appendChild( this.backgroundControl );
+
+        this.gridControl = SC.SliderView.create({
+          controlSize: SC.SMALL_CONTROL_SIZE,
+          layout: { width: 40, height: 16, top: 25, right: 15 },
+          minimum: 0,
+          maximum: 1,
+          step: 0,
+          value: this.getPath('model.gridModel.gridMultiplier') / 1.8 - 0.1,
+          isVisible: false
+        });
+        this.appendChild( this.gridControl );
+
+//        this.marqueeTool = SC.ImageButtonView.create({
+//          controlSize: SC.SMALL_CONTROL_SIZE,
+//          //classNames: ['my-image-button'],
+//          layout: { width: 18, height: 18, right: 180, top: 5 },
+//          image: static_url('images/map_marquee.png')
+//        });
+//        this.appendChild( this.marqueeTool);
       },
 
       changeBaseMap: function() {
         this.setPath('model.baseMapLayerName', this.backgroundControl.get('value'));
       },
 
-      _isValidBounds: function( iBounds) {
-        // If any of the array elements are null we don't have a valid bounds
-        return iBounds && !SC.none(iBounds[0][0]) && !SC.none( iBounds[0][1]) &&
-            !SC.none( iBounds[1][0]) && !SC.none( iBounds[1][1]);
-      },
+      changeGridSize: function() {
+        var tControlValue = this.gridControl.get('value');
+        this.setPath('model.gridModel.gridMultiplier', 0.1 + 1.9 * tControlValue);
+      }.observes('gridControl.value'),
 
       addPointLayer: function () {
         if( this.get('mapPointView'))
           return;
+        var tMakeVisible = this.getPath('model.pointsShouldBeVisible');
 
         var tMapPointView = DG.MapPointView.create(
             {
               mapLayer: this.get('mapLayer')
             });
+        tMapPointView.set( 'model', this.get('model')); // Cannot pass in because of observer setup
         this.set('mapPointView', tMapPointView);
-        this.setPath('mapPointView.model', this.get('model'));
         this.appendChild( tMapPointView);
-        if( this.getPath('model.hasLatLngAttrs')) {
-          if( !this.getPath('model.centerAndZoomBeingRestored')) {
-            var tBounds = this.get('model').getLatLngBounds();
-            if (this._isValidBounds(tBounds))
+
+        if( this.getPath('model.hasLatLongAttributes')) {
+          if (!this.getPath('model.centerAndZoomBeingRestored')) {
+            var tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
+            if (tBounds.isValid())
               this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
           }
+          // if model's pointsShouldBeVisible has not previously been set or it is set to true, we make the
+          //  the pointView visible.
+          if (tMakeVisible !== false)
+            tMakeVisible = true;
+          tMapPointView.set('isVisible', tMakeVisible);
+          this.setPath('model.pointsShouldBeVisible', tMakeVisible);
         }
         else {
           tMapPointView.set('isVisible', false);
         }
         this.adjustLayout( this.renderContext( this.get('tagName')));
       },
+
+      pointVisibilityChanged: function() {
+        this.setPath('mapPointView.isVisible', this.getPath('model.pointsShouldBeVisible'));
+      }.observes('model.pointsShouldBeVisible'),
 
       addAreaLayer: function () {
         if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
@@ -143,12 +188,38 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             }));
         this.setPath('mapAreaLayer.model', this.get('model'));
         if( !this.getPath('model.centerAndZoomBeingRestored')) {
-          var tBounds = this.get('model').getAreaBounds();
-          if (this._isValidBounds(tBounds))
+          var tBounds = this.getPath('model.dataConfiguration').getAreaBounds();
+          if ( tBounds.isValid())
             this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
         }
         this.get('mapAreaLayer').addFeatures();
       },
+
+      addGridLayer: function () {
+        if( !this.getPath('model.hasLatLongAttributes') || this.get('mapGridLayer'))
+          return;
+
+        var tGridModel = this.getPath('model.gridModel');
+        tGridModel.initializeRectArray();
+
+        this.set('mapGridLayer', DG.MapGridLayer.create(
+            {
+              mapSource: this,
+              model: tGridModel
+            }));
+        // The size of any points depends on whether the grid is visible or not
+        if( !this.get('mapPointView'))
+          this.addPointLayer();
+        // Make the points smaller so they don't completely cover the grid cells
+        if( tGridModel.get('visible'))
+          this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
+
+        this.gridVisibilityChanged();
+      },
+
+      gridVisibilityChanged: function() {
+        this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
+      }.observes('model.gridModel.visible'),
 
       /**
        Set the layout (view position) for our subviews.
@@ -213,13 +284,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       dragStarted: function() {
         DG.GraphDropTarget.dragStarted.apply( this, arguments);
-        if( !this.getPath('model.hasLatLngAttrs'))
+        if( !this.getPath('model.hasLatLongAttributes'))
           this.setPath('mapPointView.isVisible', true);
       },
 
       dragEnded: function() {
         DG.GraphDropTarget.dragEnded.apply( this, arguments);
-        if( !this.getPath('model.hasLatLngAttrs'))
+        if( !this.getPath('model.hasLatLongAttributes'))
           this.setPath('mapPointView.isVisible', false);
       }
 
