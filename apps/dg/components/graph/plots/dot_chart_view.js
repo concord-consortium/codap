@@ -51,6 +51,16 @@ DG.DotChartView = DG.PlotView.extend(
   },
 
   /**
+   * The primaryAxisView needs to be told that its tick marks and labels are to be centered in each cell.
+   */
+  setupAxes: function() {
+    var tPrimary = this.get('primaryAxisView');
+    if( tPrimary) {
+      tPrimary.set('centering', true);
+    }
+  },
+
+  /**
     @property { DG.CellAxisView }
   */
   primaryAxisView: function() {
