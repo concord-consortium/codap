@@ -135,6 +135,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       changeBaseMap: function() {
         this.setPath('model.baseMapLayerName', this.backgroundControl.get('value'));
+        DG.dirtyCurrentDocument();
       },
 
       changeGridSize: function() {
@@ -273,6 +274,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tZoom = tMap.getZoom();
         tModel.set('center', tCenter);
         tModel.set('zoom', tZoom);
+        DG.dirtyCurrentDocument();
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {

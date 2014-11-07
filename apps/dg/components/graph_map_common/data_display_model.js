@@ -359,6 +359,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
       this.invalidate( null, true /* also invalidate plot caches */);
       this.set('aboutToChangeConfiguration', false ); // reset for next time
+      DG.dirtyCurrentDocument();
     },
 
     /**
@@ -384,6 +385,8 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
+
+      DG.dirtyCurrentDocument();
     },
 
     /**
