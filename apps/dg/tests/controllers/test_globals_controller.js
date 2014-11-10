@@ -18,15 +18,14 @@
 
 module("DG.globalsController", {
   setup: function() {
-    DG.prevStore = DG.store;
-    DG.store = DG.appStore;
+    DG.Document.createDocument();
   },
   teardown: function() {
-    DG.store = DG.prevStore;
+    DG.Document.destroyDocument(DG.activeDocument);
   }
 });
 
-test("test description", function() {
+test("test DG.globalsController", function() {
 
   var v1 = DG.globalsController.createGlobalValue();
   equals(v1.get('name'), "v1", "initial value has default name of v1");
@@ -61,11 +60,7 @@ test("test description", function() {
   equals(tNamespace.g1, 3, "g1 should be in namespace");
   
   DG.globalsController.destroyGlobalValue( v1);
-  equals(v1.get('status'), SC.Record.DESTROYED_DIRTY, "destroyed record should have dirty status until committed");
-  // When finding by query, destroyed records are not included in the results
   equals(DG.globalsController.getGlobalValueByName("v1"), null, "getGlobalValueByName('v1') should fail");
-  DG.store.commitRecords();
-  equals(v1.get('status'), SC.Record.DESTROYED_CLEAN, "destroyed record should have clean status after commit");
   equals(DG.globalsController.isNameInUse("v1"), false, "'v1' is no longer in use");
   equals(DG.globalsController.getGlobalValueByName("v1"), null, "getGlobalValueByName('v1') should fail");
   names = DG.globalsController.getGlobalValueNames();

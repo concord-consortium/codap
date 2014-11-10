@@ -1,6 +1,3 @@
-// ==========================================================================
-//                              DG.GlobalValue
-//
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,48 +12,71 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+/**
+ * Created by jsandoe on 10/17/14.
+ */
+sc_require('models/base_model');
 
-sc_require('models/dg_record');
-
-/** @class
-
-  Represents an global value (e.g. slider).
-
-  @extends DG.Record
-*/
-DG.GlobalValue = DG.Record.extend(
-/** @scope DG.GlobalValue.prototype */ {
+/**
+ * @class
+ *
+ * A GlobalValue is a named, user created value that can be employed in
+ * formulas. Sliders control global values.
+ *
+ * @extends SC.Object
+ */
+DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
 
   /**
    * The name of the global value
    * @property {String}
    */
-  name: SC.Record.attr(String, { defaultValue: '' }),
+  name: '',
 
   /**
    * The "native" storage of the value is a number for now.
    * Eventually, this will need to be a more general notion of value.
    * @property {Number}
    */
-  value: SC.Record.attr(Number),
-  
+  value: '',
+
   /**
    * A relational link back to the document.
    * @property {DG.Document}
    */
-  document: SC.Record.toOne('DG.Document', {
-    inverse: 'globalValues', isOwner: NO, isMaster: NO
-  })
+  document: null,
 
+  destroy: function () {
+    if (this.document) {
+      delete this.document.globalValues[this.id];
+    }
+    sc_super();
+  },
+
+  verify: function () {
+    if (SC.empty(this.document)) {
+      DG.logWarn('Unattached global value: ' + this.id);
+    }
+    if (typeof this.document === 'number') {
+      DG.logWarn('Unresolved reference to document id, ' + this.document +
+        ', in global value: ' + this.id);
+    }
+  },
+
+  toArchive: function () {
+    return {name: this.name, value: this.value };
+  }
 });
 
-DG.GlobalValue.createGlobalValue = function( iProperties) {
-  var tGlobal = DG.store.createRecord( DG.GlobalValue, iProperties || {});
-  DG.store.commitRecords();
+DG.GlobalValue.createGlobalValue = function (iProperties) {
+  var tProperties = iProperties || {},
+    tGlobal = DG.GlobalValue.create(tProperties);
+  if (iProperties.document) {
+    tProperties.document.globalValues[tGlobal.get('id')] = tGlobal;
+  }
   return tGlobal;
 };
 
-DG.GlobalValue.destroyGlobalValue = function( iGlobalValue) {
+DG.GlobalValue.destroyGlobalValue = function (iGlobalValue) {
   iGlobalValue.destroy();
 };
-

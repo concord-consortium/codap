@@ -31,12 +31,6 @@ DG.Collection = SC.Object.extend(
     return this.collectionRecord && this.collectionRecord.get('id');
   }.property('collectionRecord').cacheable(),
 
-  /**
-   * Query used to request attributes associated with this collection.
-   * Assigned in the init() function with a call to SC.Query.local().
-   * @property {SC.Query}
-   */
-  attrsQuery: null,
 
   /**
    * Array of attribute records returned from a find of the attrsQuery.
@@ -45,13 +39,6 @@ DG.Collection = SC.Object.extend(
    */
   attrsRecords: null,
   
-  /**
-   * Query used to request cases associated with this collection.
-   * Assigned in the init() function with a call to SC.Query.local().
-   * @property {SC.Query}
-   */
-  casesQuery: null,
-
   /**
    * Array of case records returned from a find of the casesQuery.
    * Assigned in the init() function with a call to DG.store.find().
@@ -66,32 +53,11 @@ DG.Collection = SC.Object.extend(
   
     sc_super();
 
-    // Utility function for use as 'orderBy' property.
-    // Uses local _id property of record, if present.
-    function compareIDs( record1, record2) {
-      var id1 = record1._id || record1.get('id'),
-          id2 = record2._id || record2.get('id');
-      if( id1 < id2) return -1;
-      if( id1 > id2) return 1;
-      return 0;
-    }
-
-  // Note that the following code assumes that the collection
-  // property will have been set by the time we get here,
-  // e.g. by passing it to the create() function.
-  
-    this.attrsQuery = SC.Query.local(DG.Attribute, {
-                      conditions: 'collection = {collection}',
-                      collection: this.collectionRecord,
-                      orderBy: compareIDs });
-    this.attrsRecords = DG.store.find(this.attrsQuery);
-    
-    this.casesQuery = SC.Query.local(DG.Case, {
-                      conditions: 'collection = {collection}',
-                      collection: this.collectionRecord,
-                      orderBy: compareIDs });
-    this.casesRecords = DG.store.find(this.casesQuery);
-    
+//    this.attrsRecords = DG.store.find(this.attrsQuery);
+//
+//    this.casesRecords = DG.store.find(this.casesQuery);
+    this.set('attrsRecords', this.collectionRecord.attrs);
+    this.set('casesRecords', this.collectionRecord.cases);
     this.updateCaseIDToIndexMap();
   },
   
@@ -134,10 +100,13 @@ DG.Collection = SC.Object.extend(
    * @returns {DG.Attribute}
    */
   createAttribute: function( iProperties) {
+    var attr;
     iProperties = iProperties || {};
     // Relate it to its parent collection
     iProperties.collection = this.get('id');
-    return DG.Attribute.createAttribute( iProperties);
+    attr =  DG.Attribute.createAttribute( iProperties);
+    this.attrsRecords.pushObject(attr);
+    return attr;
   },
 
   /**
@@ -148,16 +117,18 @@ DG.Collection = SC.Object.extend(
   createCase: function( iProperties) {
     iProperties = iProperties || {};
     // Relate it to its parent collection
-    iProperties.collection = this.get('id');
+    iProperties.collection = this.collectionRecord;
     
     var newCase = DG.Case.createCase( iProperties),
         newCaseID = newCase.get('id'),
         parentID = newCase.getPath('parent.id'),
         caseIDToIndexMap = this.collectionRecord.get('caseIDToIndexMap'),
         caseCounts = this.collectionRecord.get('caseCounts');
-    if( caseCounts[parentID] == null)
+    if( caseCounts[parentID] === null) {
       caseCounts[parentID] = 0;
+    }
     caseIDToIndexMap[newCaseID] = caseCounts[parentID]++;
+    this.casesRecords.pushObject(newCase);
     return newCase;
   },
   
@@ -167,7 +138,13 @@ DG.Collection = SC.Object.extend(
    * @param   {DG.Case}   The case to delete
    */
   deleteCase: function( iCase) {
+    var ix;
     DG.Case.destroyCase( iCase);
+    ix = this.getCaseIDs().indexOf(iCase.id);
+    if (ix >= 0) {
+      this.casesRecords.splice(ix, 1);
+    }
+    this.updateCaseIDToIndexMap();
   },
   
   /**
@@ -216,14 +193,6 @@ DG.Collection = SC.Object.extend(
     this.collectionRecord.set('caseIDToIndexMap', map);
     // The caseIndices map now indicates # cases for each parent
     this.collectionRecord.set('caseCounts', caseIndices);
-  },
-  
-  /**
-   * Calls the refresh() methods of the attrsRecords and casesRecords objects.
-   */
-  refresh: function() {
-    this.attrsRecords.refresh();
-    this.casesRecords.refresh();
   },
 
   /**

@@ -1,6 +1,3 @@
-// ==========================================================================
-//                               DG.Document
-//
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,108 +12,136 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+/*
+ * Created by jsandoe on 10/17/14.
+ */
+sc_require('models/model_store');
+sc_require('models/base_model');
+/**
+ * @class
+ *
+ * A describes the momentary state of a user interaction with CODAP components
+ * and collections of data in the CODAP workspace.
+ *
+ * The document provides view and controller objects with access to data contexts,
+ * components, and global values. In a running instance of CODAP there is always
+ * exactly one active document. It can create contexts and destroy itself
+ * and its dependent objects. Documents can be serialized and deserialized. This
+ * permits them to be stored to filesystems or databases.
+ */
+DG.Document = DG.BaseModel.extend(
+  /** @scope DG.Document.prototype */ {
+    type: 'DG.Document',
+    id: null,
+    name: '', // String
+    appName: '', // String
+    appVersion: '', // String
+    appBuildNum: '', // String
+    components: null,
+    contexts: null,
+    globalValues: null,
 
-sc_require('models/dg_record');
+    init: function () {
+      this.components = {};
+      this.contexts = {};
+      this.globalValues = {};
+      sc_super();
+    },
+    verify: function () {
+      if (SC.empty(this.name)) {
+        DG.logWarn('Unnamed document: ' + this.id);
+      }
+    },
+    getGlobalValueByName: function (name) {
+      var key;
+      for (key in this.globalValues) {
+        if (this.globalValues[key].name === name) {
+          return this.globalValues[key];
+        }
+      }
+    },
+    // init: function () {},
+    destroy: function () {
+      sc_super();
+    },
+    createContext: function(iProperties) {
+      if( SC.none( iProperties)) iProperties = {};
+      iProperties.document = this;
+      return DG.DataContextRecord.createContext( iProperties);
+    },
+    /**
+     * Prepare to save record. Set the current app information, potentially
+     * overriding original document information.
+     */
+    willSaveRecord: function() {
+      this.set('appName', DG.APPNAME);
+      this.set('appVersion', DG.VERSION);
+      this.set('appBuildNum', DG.BUILD_NUM);
+    },
 
-/** @class
+    toArchive: function() {
+      var obj = {
+          name: this.name,
+          guid: this.id,
+          components: [],
+          contexts: [],
+          appName: this.appName,
+          appVersion: this.appVersion,
+          appBuildNum: this.appBuildNum,
+          globalValues: DG.ObjectMap.values(this.globalValues)
+        };
+      DG.ObjectMap.forEach(this.components, function (componentKey) {
+        obj.components.push(this.components[componentKey].toArchive());
+      }.bind(this));
+      DG.ObjectMap.forEach(this.contexts, function (contextKey) {
+        obj.contexts.push(this.contexts[contextKey].toArchive());
+      }.bind(this));
 
-  Represents a user document.
-
-  @extends DG.Record
-*/
-DG.Document = DG.Record.extend(
-/** @scope DG.Document.prototype */ {
-
-  /**
-   * The name/title of the document
-   * @property {String}
-   */
-  name: SC.Record.attr(String, { defaultValue: '' }),
-  
-  appName: SC.Record.attr(String, { defaultValue: '' }),
-
-  appVersion: SC.Record.attr(String, { defaultValue: '' }),
-
-  appBuildNum: SC.Record.attr(String, { defaultValue: '' }),
-
-  /**
-   * A relational link to the components in this document.
-   * @property {Array of DG.Component}
-   */
-  components: SC.Record.toMany('DG.Component', {
-    inverse: 'document', isOwner: YES, isMaster: YES
-  }),
-
-  /**
-   * A relational link to the collections in this document.
-   * @property {Array of DG.CollectionRecord}
-   */
-  contexts: SC.Record.toMany('DG.DataContextRecord', {
-    inverse: 'context', isOwner: YES, isMaster: YES
-  }),
-
-  /**
-   * A relational link to the collections in this document.
-   * @property {Array of DG.CollectionRecord}
-   */
-  globalValues: SC.Record.toMany('DG.GlobalValue', {
-    inverse: 'document', isOwner: YES, isMaster: YES
-  }),
-  
-  contextRecords: null,
-  
-  init: function() {
-    sc_super();
-    
-    this.contextRecords = DG.store.find( DG.DataContextRecord);
-  },
-  
-  destroy: function() {
-  
-    this.get('globalValues').forEach( function( iGlobal) {
-                                      DG.GlobalValue.destroy( iGlobal);
-                                    });
-  
-    this.get('contexts').forEach( function( iContext) {
-                                      DG.DataContextRecord.destroy( iContext);
-                                    });
-  
-    this.get('components').forEach( function( iComponent) {
-                                      DG.Component.destroy( iComponent);
-                                    });
-    sc_super();
-  },
-  
-  createContext: function( iProperties) {
-    if( SC.none( iProperties)) iProperties = {};
-    iProperties.document = this.get('id');
-    return DG.DataContextRecord.createContext( iProperties);
-  },
-  
-  willSaveRecord: function() {
-    this.set('appName', DG.APPNAME);
-    this.set('appVersion', DG.VERSION);
-    this.set('appBuildNum', DG.BUILD_NUM);
-  }
-  
-});
+      return obj;
+    }
+  });
 
 DG.Document.createDocument = function( iProperties) {
-  var kMemoryDataSource = 'DG.MemoryDataSource',
-      // kRESTDataSource = 'DG.RESTDataSource',
-      kDefaultDataSource = /*kRESTDataSource*/ kMemoryDataSource;
-  var docStore = SC.Store.create({ document: this }).from( kDefaultDataSource);
+  var tDocument,
+    tProperties = iProperties || {};
 
-  DG.assert( !DG.store, "Can't create another document without closing the first.");
-  DG.store = docStore;
+  if(DG.activeDocument) {
+    DG.logError("Can't create another document without closing the first.");
+    DG.Document.destroyDocument(DG.activeDocument);
+    DG.activeDocument = null;
+    DG.store = null;
+  }
 
-  var tDocument = docStore.createRecord( DG.Document, iProperties || {});
-  DG.store.commitRecords();
-  
+  tDocument =  DG.Document.create(tProperties);
+  DG.store = DG.ModelStore.create();
+
+  DG.activeDocument = tDocument;
+
+  if (tProperties.globalValues) {
+    DG.ObjectMap.forEach(tProperties.globalValues, function (gv) {
+      gv.document = tDocument;
+      DG.GlobalValue.createGlobalValue(gv);
+    });
+  }
+  if (tProperties.components) {
+    tProperties.components.forEach(function (component) {
+      component.document = tDocument;
+      DG.Component.createComponent(component);
+    });
+  }
+  if (tProperties.contexts) {
+    tProperties.contexts.forEach(function (context) {
+      context.document = tDocument;
+      DG.DataContextRecord.createContext(context);
+    });
+  }
+  DG.log('Create document: ' + [tDocument.name, tDocument.appName].join(', '));
+
   return tDocument;
 };
 
 DG.Document.destroyDocument = function( iDocument) {
   iDocument.destroy();
+  DG.activeDocument = null;
   DG.store = null;
 };

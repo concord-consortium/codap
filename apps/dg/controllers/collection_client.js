@@ -401,7 +401,7 @@ DG.CollectionClient = SC.Object.extend(
   getCaseAt: function(iCaseIndex) {
     return this.casesController.objectAt(iCaseIndex);
   },
-  
+
   /**
     Returns true if the case at the specified index is selected, false otherwise.
     @param    {Number}    The index of the case whose selection status is to be returned

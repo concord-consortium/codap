@@ -88,9 +88,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {Array of DG.CollectionRecords}
    */
   collections: function() {
-    return this.getPath('model.collections');
+    return DG.ObjectMap.values(this.getPath('model.collections'));
   }.property('model','model.collections'),
-  
+
   /**
    *  Map of DG.CollectionClients, corresponding one-to-one to the DG.CollectionRecords.
    *  @property {Object} Map from collectionID to DG.CollectionClients
@@ -141,8 +141,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return selection;
   },
-  
-  /**
+
+  getCaseByID: function(iCaseID) {
+    return DG.store.find( DG.Case, iCaseID);
+  },
+
+
+    /**
     Private properties used internally to synchronize changes with notifications.
    */
   _changeCount: 0,
@@ -289,11 +294,20 @@ DG.DataContext = SC.Object.extend((function() // closure
               {Number}              result.caseID -- the case ID of the newly created case
    */
   doCreateCases: function( iChange) {
-    if( !iChange.collection) iChange.collection = this.get('childCollection');
-    var collection = iChange.collection,
+    var collection,
         result = { success: false, caseIDs: [] };
+
+    if( !iChange.collection) {
+      iChange.collection = this.get('childCollection');
+    }
+
+    if (typeof iChange.collection === "string") {
+      collection = this.getCollectionByName( iChange.collection);
+    } else {
+      collection = iChange.collection;
+    }
+
     if( collection) {
-    
       var createOneCase = function( iValues) {
         var newCase = collection.createCase( iChange.properties);
         if( newCase) {
@@ -626,12 +640,11 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   doResetCollections: function (iChange) {
       DG.DataContext.clearContextMap();
-//      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
-      DG.Record.destroyAllRecordsOfType( DG.Case);
-      DG.Record.destroyAllRecordsOfType( DG.Attribute);
-      DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);
-//      DG.Record.destroyAllRecordsOfType( DG.DataContextRecord);
-      DG.store.commitRecords();
+//      DG.store.destroyAllRecordsOfType( DG.GlobalValue);
+      DG.store.destroyAllRecordsOfType( DG.Case);
+      DG.store.destroyAllRecordsOfType( DG.Attribute);
+      DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
+//      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
   },
   
   /**
@@ -758,10 +771,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collectionCount = this.get('collectionCount'),
         collections = this.get('collections'),
         collectionRecord;
+//    DG.log("collectionArray.length=" + collectionArray.length);
     for( var i = 0; i < collectionCount; ++i) {
-      collectionRecord = collections.objectAt( i);
-      if( collectionRecord && (collectionRecord.get('name') === iName))
+//      DG.log("collection Name: " + collectionArray[i].name);
+      collectionRecord = collections.objectAt(i);
+      if (collectionRecord && (collectionRecord.get('name') === iName)) {
         return this._collectionClients[ collectionRecord.get('id')];
+      }
     }
     //DG.log("DG.DataContext.getCollectionByName: storeContextID: %@, scContextID: %@, Failed to find %@ in %@ collections!",
     //        this.get('id'), DG.Debug.scObjectID( this), iName, collectionCount);
@@ -1059,10 +1075,14 @@ DG.DataContext = SC.Object.extend((function() // closure
                 {String}                object.plotYAttr -- default Y attribute on graphs
    */
   collectionDefaults: function() {
-    var defaults = { collectionClient: this.get('childCollection'),
-                     parentCollectionClient: this.get('parentCollection'),
-                     plotXAttr: null, plotXAttrIsNumeric: true,
-                     plotYAttr: null, plotYAttrIsNumeric: true };
+    var defaults = {
+      collectionClient: this.get('childCollection'),
+      parentCollectionClient: this.get('parentCollection'),
+      plotXAttr: null,
+      plotXAttrIsNumeric: true,
+      plotYAttr: null,
+      plotYAttrIsNumeric: true
+    };
     return defaults;
   },
   
@@ -1107,8 +1127,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = this.get('collections'),
         this_ = this;
     if( !SC.none( collections)) {
-      collections.forEach( function( iCollection) {
-                            this_.addCollection( iCollection);
+      DG.ObjectMap.forEach(collections, function( key) {
+                            this_.addCollection( collections[key]);
                           });
     }
   }

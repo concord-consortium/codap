@@ -130,10 +130,13 @@ DG.CaseTableController = DG.ComponentController.extend(
         
         // Utility function for identifying existing adapters for the specified collection
         function findAdapterForCollection( iCollectionID) {
-          var i, count = prevAdapters.length;
-          for( i = 0; i < count; ++i) {
-            if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
-              return prevAdapters[i];
+          var i, count;
+          if (prevAdapters) {
+            count = prevAdapters.length;
+            for( i = 0; i < count; ++i) {
+              if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
+                return prevAdapters[i];
+            }
           }
           return null;
         }
