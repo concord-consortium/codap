@@ -413,8 +413,6 @@ DG.GameController = DG.ComponentController.extend(
         }
       }
     }
-
-
     finishInitGame.call(this);
   },
 

@@ -295,7 +295,18 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doCreateCases: function( iChange) {
     var collection,
-        result = { success: false, caseIDs: [] };
+        result = { success: false, caseIDs: [] },
+        createOneCase = function( iValues) {
+          var newCase = collection.createCase( iChange.properties);
+          if( newCase) {
+            if( !SC.none( iValues)) {
+              collection.setCaseValuesFromArray( newCase, iValues);
+              DG.store.commitRecords();
+            }
+            result.success = true;
+            result.caseIDs.push( newCase.get('id'));
+          }
+        }.bind( this);
 
     if( !iChange.collection) {
       iChange.collection = this.get('childCollection');
@@ -308,22 +319,11 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     if( collection) {
-      var createOneCase = function( iValues) {
-        var newCase = collection.createCase( iChange.properties);
-        if( newCase) {
-          if( !SC.none( iValues)) {
-            collection.setCaseValuesFromArray( newCase, iValues);
-            DG.store.commitRecords();
-          }
-          result.success = true;
-          result.caseIDs.push( newCase.get('id'));
-        }
-      }.bind( this);
-    
       var valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
-      if( result.caseIDs && (result.caseIDs.length > 0))
+      if( result.caseIDs && (result.caseIDs.length > 0)) {
         result.caseID = result.caseIDs[0];
+      }
     }
     return result;
   },
@@ -771,16 +771,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collectionCount = this.get('collectionCount'),
         collections = this.get('collections'),
         collectionRecord;
-//    DG.log("collectionArray.length=" + collectionArray.length);
     for( var i = 0; i < collectionCount; ++i) {
-//      DG.log("collection Name: " + collectionArray[i].name);
       collectionRecord = collections.objectAt(i);
       if (collectionRecord && (collectionRecord.get('name') === iName)) {
         return this._collectionClients[ collectionRecord.get('id')];
       }
     }
-    //DG.log("DG.DataContext.getCollectionByName: storeContextID: %@, scContextID: %@, Failed to find %@ in %@ collections!",
-    //        this.get('id'), DG.Debug.scObjectID( this), iName, collectionCount);
     return null;
   },
   
