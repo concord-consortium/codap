@@ -176,7 +176,13 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @property { Number } current point radius of cases being displayed.
    */
   _pointRadius: DG.PlotUtilities.kPointRadiusMax,
-  
+
+  /**
+   * If this is non-null, it will be used as the radius for points regardless of number of points
+   * {@property Number}
+   */
+  fixedPointRadius: null,
+
   /**
     True if rendered content is up-to-date, false if redraw is required.
     @property { Boolean }
@@ -349,38 +355,39 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     // note: don't rely on tDataLength != tPlotElementLength test for this
     this.updateAdornments();
 
-    // for any new cases
-    if( tDataLength > tPlotElementLength) {
-      if( tWantNewPointRadius ) {
-        // update the point radius for existing plotted elements
-        this.prepareToResetCoordinates();
-        for( tIndex = 0; tIndex < tPlotElementLength; tIndex++) {
-          this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
+    if( tDataLength !== tPlotElementLength) {
+      // for any new cases
+      if (tDataLength > tPlotElementLength) {
+        if (tWantNewPointRadius) {
+          // update the point radius for existing plotted elements
+          this.prepareToResetCoordinates();
+          for (tIndex = 0; tIndex < tPlotElementLength; tIndex++) {
+            this.setCircleCoordinate(tRC, tCases[ tIndex], tIndex);
+          }
+        }
+        // create plot elements for added cases
+        for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
+          this.callCreateCircle(tCases[ tIndex], tIndex, this.animationIsAllowable());
+          this.setCircleCoordinate(tRC, tCases[ tIndex], tIndex);
         }
       }
-      // create plot elements for added cases
-      for( tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.callCreateCircle( tCases[ tIndex], tIndex, this.animationIsAllowable());
-        this.setCircleCoordinate( tRC, tCases[ tIndex], tIndex);
-      }
-      this._isRenderingValid = false;
-    }
-    // Get rid of plot elements for removed cases and update all coordinates
-    if( tDataLength < tPlotElementLength) {
-      for( tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
-        // It can happen during closing of a document that the elements no longer exist, so we have to test
-        if( !SC.none( this._plottedElements[ tIndex])) {
-          this._plottedElements[ tIndex].stop();
-          tLayerManager.removeElement( this._plottedElements[ tIndex]);
-          DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex]);
+      // Get rid of plot elements for removed cases and update all coordinates
+      if (tDataLength < tPlotElementLength) {
+        for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
+          // It can happen during closing of a document that the elements no longer exist, so we have to test
+          if (!SC.none(this._plottedElements[ tIndex])) {
+            this._plottedElements[ tIndex].stop();
+            tLayerManager.removeElement(this._plottedElements[ tIndex]);
+            DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[ tIndex]);
+          }
         }
-      }
-      this._plottedElements.length = tDataLength;
+        this._plottedElements.length = tDataLength;
 
-      this.prepareToResetCoordinates();
-      tCases.forEach( function( iCase, iIndex) {
-          this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
+        this.prepareToResetCoordinates();
+        tCases.forEach(function (iCase, iIndex) {
+          this_.setCircleCoordinate(tRC, tCases[ iIndex], iIndex);
         });
+      }
       this._isRenderingValid = false;
       this.displayDidChange();
     }
@@ -692,6 +699,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @return {Number} radius of circle for each case, as a positive integer.
    */
   calcPointRadius: function() {
+    if( this.fixedPointRadius)
+      return this.fixedPointRadius;
+
     // Search for a point size in [min-max] range, where the point size is a power of logbase that is close to the data length.
     // This step function avoids excessive plot resizing with every change in number of cases.
     var tDataConfiguration = this.getPath('model.dataConfiguration' ),
@@ -860,7 +870,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._plottedElements.forEach( function( iElement) {
       iElement.animate( tAttr, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     });
-  },
+  }.observes('fixedPointRadius'),
 
   /**
     * Subclasses will override

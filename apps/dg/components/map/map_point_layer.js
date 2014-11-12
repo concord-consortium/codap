@@ -27,8 +27,6 @@ sc_require('components/graph_map_common/plot_layer');
 DG.MapPointLayer = DG.PlotLayer.extend(
 /** @scope DG.MapPointLayer.prototype */ 
 {
-  displayProperties: [],
-  
   autoDestroyProperties: [],
 
   mapSource: null,
@@ -57,9 +55,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       return; // not ready yet
     var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' );
     return {
+      // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
+      casesAdded: true,
+      casesRemoved: true,
+      updatedColors: true,
+
       map: this.get('map' ),
-      latVarID: tModel.getPath('dataConfiguration.yAttributeDescription.attributeID'),
-      lngVarID: tModel.getPath('dataConfiguration.xAttributeDescription.attributeID'),
+      latVarID: tModel.getPath('dataConfiguration.latAttributeID'),
+      longVarID: tModel.getPath('dataConfiguration.longAttributeID'),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       updatedPositions: true,
@@ -108,11 +111,11 @@ DG.MapPointLayer = DG.PlotLayer.extend(
    * @returns {cx {Number},cy {Number}} final coordinates or null if not defined (hidden plot element)
    */
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
-    DG.assert( iRC && iRC.map && iRC.latVarID && iRC.lngVarID );
+    DG.assert( iRC && iRC.map && iRC.latVarID && iRC.longVarID );
     DG.assert( iCase );
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
     var tCircle = this._plottedElements[ iIndex],
-        tCoords = iRC.map.latLngToContainerPoint([iCase.getNumValue( iRC.latVarID ), iCase.getNumValue( iRC.lngVarID)] ),
+        tCoords = iRC.map.latLngToContainerPoint([iCase.getNumValue( iRC.latVarID ), iCase.getNumValue( iRC.longVarID)] ),
         tCoordX = tCoords.x,
         tCoordY = tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
@@ -252,12 +255,12 @@ DG.MapPointLayer = DG.PlotLayer.extend(
   /**
     Generate the svg needed to display the plot
   */
-  doDraw: function doDraw() {
+  doDraw: function() {
     if( this.readyToDraw()) {
       this.drawData();
       this.updateSelection();
     }
-  },
+  }.observes('plotDisplayDidChange'),
 
   updateSelection: function() {
     if( SC.none( this.get('map')))

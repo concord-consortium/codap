@@ -88,17 +88,19 @@ DG.GraphView = SC.View.extend(
 
   setPlotViewProperties: function( iPlotView, iPlotModel, iCurrentPoints) {
     iPlotView.beginPropertyChanges();
-    iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
-    iPlotView.setIfChanged('model', iPlotModel);
-    iPlotView.setIfChanged( 'xAxisView', this.xAxisView);
-    iPlotView.setIfChanged( 'yAxisView', this.yAxisView);
-    iPlotView.setIfChanged('parentView', this);
-    if( !SC.none( iCurrentPoints))
-      iPlotView.set('cachedPointCoordinates', iCurrentPoints);
-    iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
-    this.invokeLast( this.drawPlots);
-    });
+      iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
+      iPlotView.setIfChanged('model', iPlotModel);
+      iPlotView.setIfChanged( 'xAxisView', this.xAxisView);
+      iPlotView.setIfChanged( 'yAxisView', this.yAxisView);
+      iPlotView.setIfChanged('parentView', this);
+      iPlotView.setupAxes();  // special requirements set up here
+      if( !SC.none( iCurrentPoints))
+        iPlotView.set('cachedPointCoordinates', iCurrentPoints);
     iPlotView.endPropertyChanges();
+
+    iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
+      this.invokeLast( this.drawPlots);
+    });
   },
 
   init: function() {

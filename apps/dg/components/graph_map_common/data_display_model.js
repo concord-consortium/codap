@@ -56,8 +56,9 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     /**
      * @property {Array} of DG.Case
      */
-    cases: null,
-    casesBinding: '*dataConfiguration.cases',
+    cases: function() {
+      return this.getPath('dataConfiguration.cases');
+    }.property('dataConfiguration.cases'),
 
     /**
       @property { SC.SelectionSet }
@@ -289,6 +290,48 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         args: [ tDescKey, tAxisKey, !tIsNumeric ] };
     },
 
+    /** Submenu items for hiding selected or unselected cases, or showing all cases */
+    createHideShowSelectionMenuItems: function() {
+      var tSelection = this.getPath('dataConfiguration.selection' ).toArray(),
+          tSomethingIsSelected = tSelection && tSelection.get('length') !== 0,
+          tCases = this.getPath('dataConfiguration.cases' ),
+          tSomethingIsUnselected = tSelection && tCases && (tSelection.get('length') < tCases.length),
+          tSomethingHidden = this.getPath('dataConfiguration.hiddenCases' ).length > 0,
+          tHideSelectedNumber = (tSelection && tSelection.length > 1) ? 'Plural' : 'Sing',
+          tHideUnselectedNumber = (tSelection && tCases &&
+              (tCases.length - tSelection.length > 1)) ? 'Plural' : 'Sing';
+
+      function hideSelectedCases() {
+        DG.logUser("Hide %@ selected cases", tSelection.length);
+        this.get('dataConfiguration' ).hideCases( tSelection);
+      }
+
+      function hideUnselectedCases() {
+        var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
+            function( iCase) {
+              return iCase.get('id');
+            });
+        DG.logUser("Hide %n selected cases", tUnselected.length);
+        this.get('dataConfiguration' ).hideCases( tUnselected);
+      }
+
+      function showAllCases() {
+        DG.logUser("Show all cases");
+        this.get('dataConfiguration' ).showAllCases();
+      }
+
+      return [
+        // Note that these 'built' string keys will have to be specially handled by any
+        // minifier we use
+        { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
+          target: this, itemAction: hideSelectedCases },
+        { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
+          target: this, itemAction: hideUnselectedCases },
+        { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
+          target: this, itemAction: showAllCases }
+      ];
+    },
+
     /**
      * Removing the attribute is just changing with null arguments
      */
@@ -316,6 +359,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
       this.invalidate( null, true /* also invalidate plot caches */);
       this.set('aboutToChangeConfiguration', false ); // reset for next time
+      DG.dirtyCurrentDocument();
     },
 
     /**
@@ -341,6 +385,8 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
+
+      DG.dirtyCurrentDocument();
     },
 
     /**

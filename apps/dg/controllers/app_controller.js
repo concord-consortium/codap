@@ -430,8 +430,14 @@ DG.appController = SC.Object.create((function () // closure
       // We got an error. Revert the rename.
       DG.currDocumentController().set('documentName', this.get('_originalDocumentName'));
 
-      // Handle error response from server
-      var msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
+      try {
+        // Handle error response from server
+        var msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
+      }
+      catch(error) {
+        msgKey = '';
+      }
+
       if (msgKey.loc() === msgKey)
         msgKey = 'DG.AppController.renameDocument.error.general';
       // Note that we currently only support a single message rather than message & description.
