@@ -54,11 +54,13 @@ SC.stringsFor('English', {
   'DG.mainPage.mainPane.versionString.IS_BUILD' : "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
   'DG.Authorization.loginPane.registerLink.IS_BUILD' : "",
   'DG.Authorization.loginPane.recoveryLink.IS_BUILD' : "",
+  'DG.Authorization.loginPane.documentStoreSignInHref.IS_BUILD': "%@user/authenticate",
 
   // DG.IS_SRRI_BUILD variants of strings for SRRI build
   'DG.mainPage.mainPane.versionString.SRRI_BUILD' : "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
   'DG.Authorization.loginPane.registerLink.SRRI_BUILD' : "<a href='http://%@/user/register'>Create a new account</a>",
   'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://%@/user/password'>Forgot your password?</a>",
+  'DG.Authorization.loginPane.documentStoreSignInHref.SRRI_BUILD': "%@user/authenticate",
 
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
@@ -137,8 +139,8 @@ SC.stringsFor('English', {
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
   'DG.AppController.reportProblem.dialogTitle' : "Report CODAP Problem",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
-  'DG.AppController.showWebSiteURL' : '/', // path on Drupal website
-  'DG.AppController.showHelpURL' : '/support', // path on Drupal website
+  'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
+  'DG.AppController.showHelpURL' : 'play.codap.concord.org/support', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
   'DG.AppController.showAboutTitle' : 'About CODAP',

@@ -176,11 +176,12 @@ DG.appController = SC.Object.create((function () // closure
           target: this, action: 'reportProblem' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, action: 'showWebSite' },
-        { isSeparator: YES },
+       // Hiding About CODAP and What's New for IS dissemination
+       /* { isSeparator: YES },
         { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About CODAP...",
           target: this, action: 'showAbout' },
         { localize: true, title: 'DG.AppController.optionMenuItems.releaseNotes', // "What's New?",
-          target: this, action: 'showReleaseNotes' },
+          target: this, action: 'showReleaseNotes' },*/
         { isSeparator: YES },
         { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
           target: this, action: 'configureGuide' },
@@ -194,6 +195,7 @@ DG.appController = SC.Object.create((function () // closure
      Called when the user selects "Open" from the document's gear menu.
      */
     openDocument: function () {
+    //  SC.Benchmark.start('openDocument');
       this.openSaveDialog = DG.CreateOpenSaveDialog({
         dialogType: DG.OpenSaveDialog.kOpenDialog,
         prompt: 'DG.AppController.openDocument.prompt', // "Choose a document to open:"
@@ -203,12 +205,15 @@ DG.appController = SC.Object.create((function () // closure
         okTarget: this,
         okAction: 'openDocumentFromDialog'
       });
+    //  SC.Benchmark.end('openDocument');
+    //  SC.Benchmark.log('openDocument');
     },
 
     /**
      Dialog callback function after the user chooses a document to open.
      */
     openDocumentFromDialog: function () {
+    //  SC.Benchmark.start('openDocumentFromDialog');
       var docName = this.openSaveDialog.get('documentName'),
         docID = this.openSaveDialog.get('documentID');
 
@@ -251,6 +256,8 @@ DG.appController = SC.Object.create((function () // closure
           openDocumentAfterConfirmation();
         }
       }
+    //  SC.Benchmark.end('openDocumentFromDialog');
+    //  SC.Benchmark.log('openDocumentFromDialog');
     },
 
     /**
@@ -344,7 +351,8 @@ DG.appController = SC.Object.create((function () // closure
      @returns  {Boolean}   True on success, false on failure
      */
     openJsonDocument: function (iDocText) {
-
+      console.log('In app_controller:openJsaonDocument');
+      SC.Benchmark.start('app_controller:openJsonDocument');
       var kMemoryDataSource = 'DG.MemoryDataSource',
       // kRESTDataSource = 'DG.RESTDataSource',
         kDefaultDataSource = /*kRESTDataSource*/ kMemoryDataSource;
@@ -365,15 +373,20 @@ DG.appController = SC.Object.create((function () // closure
       // Parse the document contents from the retrieved docText.
       newDocument = archiver.openDocument(docStore, iDocText);
       if (newDocument) {
+        console.log('In app_controller:openJsonDocument:setting document controller')
+        SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
         docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
+        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
+        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
       }
 
       if (this.setOpenedDocumentUnshared) {
         DG.currDocumentController().setPath('content._permissions', 0);
         this.setOpenedDocumentUnshared = NO;
       }
-
+    SC.Benchmark.end('app_controller:openJsonDocument');
+    SC.Benchmark.log('app_controller:openJsonDocument');
       return true;
     },
 
@@ -583,6 +596,8 @@ DG.appController = SC.Object.create((function () // closure
      Close the current document and all its components.
      */
     closeDocument: function () {
+
+      SC.Benchmark.start('closeDocument');
       // Destroy the views
       DG.mainPage.closeAllComponents();
 
@@ -593,6 +608,9 @@ DG.appController = SC.Object.create((function () // closure
       // Destroy the document and its contents
       DG.currDocumentController().closeDocument();
       DG.store = null;
+
+      SC.Benchmark.end('closeDocument');
+      SC.Benchmark.log('closeDocument');
     },
 
     /**
@@ -876,7 +894,7 @@ DG.appController = SC.Object.create((function () // closure
                 $("#shareLinkField textarea").focus();
                 $("#shareLinkField textarea").select();
               }
-            }.observes('isVisible'),
+            }.observes('isVisible')
           }),
 
           okButton: SC.ButtonView.design({
@@ -959,7 +977,7 @@ DG.appController = SC.Object.create((function () // closure
       if (username === 'guest') // Guest user isn't specific enough
         username = '';
 
-      var serverString = 'DataGames/WebPages/scripts/datagames.php' +
+      /*var serverString = 'DataGames/WebPages/scripts/datagames.php' +
         '?device=%@&os=%@&os_version=%@&cf_browser=%@&cf_browser_version=%@&version=%@&name=%@'.fmt(
           encodeURIComponent(SC.browser.device),
           encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
@@ -968,7 +986,10 @@ DG.appController = SC.Object.create((function () // closure
       DG.currDocumentController().
         addWebView(DG.mainPage.get('docView'), null, serverString,
         'DG.AppController.reportProblem.dialogTitle'.loc(),
-        { centerX: 0, centerY: 0, width: 600, height: 400 });
+        { centerX: 0, centerY: 0, width: 600, height: 400 });*/
+      var url = 'mailto:codap-help@concord.org?subject=Bug%20Report' /*+ ('DG.AppController.showHelpURL'.loc());*/
+      location=url;
+      //window.open(url,'dg_help_page');
     },
 
     /**
@@ -986,33 +1007,36 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Bring up the bug report page.
+     Bring up the bug report page. What's New menu item is hidden for IS dissemination
      */
-    showReleaseNotes: function () {
+  /*  showReleaseNotes: function () {
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
         'DG.AppController.showReleaseNotesURL'.loc(),
         'DG.AppController.showReleaseNotesTitle'.loc(), // 'CODAP Release Notes'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
-    },
+    },*/
 
     /**
-     Show the about box.
+     Show the about box. About CODAP menu item is hidden for IS dissemination
      */
-    showAbout: function () {
+  /*  showAbout: function () {
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
         'DG.AppController.showAboutURL'.loc(),
         'DG.AppController.showAboutTitle'.loc(), // 'About CODAP'
         { centerX: 0, centerY: 0, width: 770, height: 400 });
-    },
+    },*/
 
     /**
      Show the help window.
      */
     showHelp: function () {
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.showHelpURL'.loc()),
+      // Changed link to play.codap.concord.org/support
+      /*DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ ('DG.AppController.showHelpURL'.loc()),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
-        { centerX: 0, centerY: 0, width: 600, height: 400 });
+        { centerX: 0, centerY: 0, width: 600, height: 400 });*/
+      var url = 'http://' + ('DG.AppController.showHelpURL'.loc());
+      window.open(url,'dg_help_page');
     },
 
     /**
@@ -1020,7 +1044,7 @@ DG.appController = SC.Object.create((function () // closure
      */
     showWebSite: function () {
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
-      var url = 'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() + ('DG.AppController.showWebSiteURL'.loc());
+      var url = 'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() +*/ ('DG.AppController.showWebSiteURL'.loc());
       window.open(url, 'dg_website');
     }
 
