@@ -187,12 +187,6 @@ DG.appController = SC.Object.create((function () // closure
           target: this, action: 'reportProblem' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, action: 'showWebSite' },
-       // Hiding About CODAP and What's New for IS dissemination
-       /* { isSeparator: YES },
-        { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About CODAP...",
-          target: this, action: 'showAbout' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.releaseNotes', // "What's New?",
-          target: this, action: 'showReleaseNotes' },*/
         { isSeparator: YES },
         { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
           target: this, action: 'configureGuide' },
@@ -375,6 +369,8 @@ DG.appController = SC.Object.create((function () // closure
       console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
+      var kMemoryDataSource = 'DG.MemoryDataSource';
+
       // Does it look like it could be a valid document?
       if (!this.isValidJsonDocument(iDocText)) return false;
 
@@ -390,17 +386,17 @@ DG.appController = SC.Object.create((function () // closure
       if (newDocument) {
         console.log('In app_controller:openJsonDocument:setting document controller');
         SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
+
+        docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
-        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
+
       }
 
       if (this.setOpenedDocumentUnshared) {
         DG.currDocumentController().setPath('content._permissions', 0);
         this.setOpenedDocumentUnshared = NO;
       }
-    SC.Benchmark.end('app_controller:openJsonDocument');
-    SC.Benchmark.log('app_controller:openJsonDocument');
+
       return true;
     },
 
@@ -643,7 +639,7 @@ DG.appController = SC.Object.create((function () // closure
      */
     closeDocument: function () {
 
-      SC.Benchmark.start('closeDocument');
+
       // Destroy the views
       DG.mainPage.closeAllComponents();
 
@@ -655,8 +651,7 @@ DG.appController = SC.Object.create((function () // closure
       DG.currDocumentController().closeDocument();
       DG.store = null;
 
-      SC.Benchmark.end('closeDocument');
-      SC.Benchmark.log('closeDocument');
+
     },
 
     /**
@@ -1082,9 +1077,7 @@ DG.appController = SC.Object.create((function () // closure
         addWebView(DG.mainPage.get('docView'), null, serverString,
         'DG.AppController.reportProblem.dialogTitle'.loc(),
         { centerX: 0, centerY: 0, width: 600, height: 500 });
-      //var url = 'mailto:codap-help@concord.org?subject=Bug%20Report' /*('DG.AppController.showHelpURL'.loc())*/;
-      //location=url;
-      //window.open(url,'dg_help_page');
+
     },
 
     /**
@@ -1102,36 +1095,15 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Bring up the bug report page. What's New menu item is hidden for IS dissemination
-     */
-  /*  showReleaseNotes: function () {
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        'DG.AppController.showReleaseNotesURL'.loc(),
-        'DG.AppController.showReleaseNotesTitle'.loc(), // 'CODAP Release Notes'
-        { centerX: 0, centerY: 0, width: 600, height: 400 });
-    },*/
-
-    /**
-     Show the about box. About CODAP menu item is hidden for IS dissemination
-     */
-  /*  showAbout: function () {
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        'DG.AppController.showAboutURL'.loc(),
-        'DG.AppController.showAboutTitle'.loc(), // 'About CODAP'
-        { centerX: 0, centerY: 0, width: 770, height: 400 });
-    },*/
-
-    /**
      Show the help window.
      */
     showHelp: function () {
       // Changed link to play.codap.concord.org/support
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showHelpURL'.loc()),
+          'http://' +  ('DG.AppController.showHelpURL'.loc()),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
-     // var url = 'http://' + ('DG.AppController.showHelpURL'.loc());
-     // window.open(url,'dg_help_page');
+
     },
 
     /**
@@ -1140,11 +1112,10 @@ DG.appController = SC.Object.create((function () // closure
     showWebSite: function () {
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showWebSiteURL'.loc()),
+          'http://' +  ('DG.AppController.showWebSiteURL'.loc()),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
         { centerX: 0, centerY: 0, width: 1000, height: 500 });
-      //var url = 'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() +*/ ('DG.AppController.showWebSiteURL'.loc());
-      //window.open(url, '_blank' /*'dg_website'*/);
+
 
     }
 
