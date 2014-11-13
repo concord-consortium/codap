@@ -16,7 +16,7 @@ export PATH
 
 # set up local symbols
 TEMPDIR=/tmp/$PROGNAME.$$
-SERVER=codap.concord.org
+SERVER=eireland@codap.concord.org
 SERVER_DIR=public_html
 
 function usage() {
