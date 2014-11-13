@@ -983,7 +983,7 @@ DG.appController = SC.Object.create((function () // closure
       if (username === 'guest') // Guest user isn't specific enough
         username = '';
 
-      /*var serverString = 'DataGames/WebPages/scripts/datagames.php' +
+      var serverString = 'DataGames/WebPages/scripts/datagames.php' +
         '?device=%@&os=%@&os_version=%@&cf_browser=%@&cf_browser_version=%@&version=%@&name=%@'.fmt(
           encodeURIComponent(SC.browser.device),
           encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
@@ -992,9 +992,9 @@ DG.appController = SC.Object.create((function () // closure
       DG.currDocumentController().
         addWebView(DG.mainPage.get('docView'), null, serverString,
         'DG.AppController.reportProblem.dialogTitle'.loc(),
-        { centerX: 0, centerY: 0, width: 600, height: 400 });*/
-      var url = 'mailto:codap-help@concord.org?subject=Bug%20Report' /*+ ('DG.AppController.showHelpURL'.loc());*/
-      location=url;
+        { centerX: 0, centerY: 0, width: 600, height: 500 });
+      //var url = 'mailto:codap-help@concord.org?subject=Bug%20Report' /*('DG.AppController.showHelpURL'.loc())*/;
+      //location=url;
       //window.open(url,'dg_help_page');
     },
 
@@ -1037,12 +1037,12 @@ DG.appController = SC.Object.create((function () // closure
      */
     showHelp: function () {
       // Changed link to play.codap.concord.org/support
-      /*DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ ('DG.AppController.showHelpURL'.loc()),
+      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showHelpURL'.loc()),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
-        { centerX: 0, centerY: 0, width: 600, height: 400 });*/
-      var url = 'http://' + ('DG.AppController.showHelpURL'.loc());
-      window.open(url,'dg_help_page');
+        { centerX: 0, centerY: 0, width: 600, height: 400 });
+     // var url = 'http://' + ('DG.AppController.showHelpURL'.loc());
+     // window.open(url,'dg_help_page');
     },
 
     /**
@@ -1050,8 +1050,13 @@ DG.appController = SC.Object.create((function () // closure
      */
     showWebSite: function () {
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
-      var url = 'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() +*/ ('DG.AppController.showWebSiteURL'.loc());
-      window.open(url, 'dg_website');
+      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showWebSiteURL'.loc()),
+        'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
+        { centerX: 0, centerY: 0, width: 1000, height: 500 });
+      //var url = 'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() +*/ ('DG.AppController.showWebSiteURL'.loc());
+      //window.open(url, '_blank' /*'dg_website'*/);
+
     }
 
   }; // end return from closure

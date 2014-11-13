@@ -140,6 +140,7 @@ SC.stringsFor('English', {
   'DG.AppController.reportProblem.dialogTitle' : "Report CODAP Problem",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
+  'DG.AppController.showWebSiteTitle' : 'About CODAP',
   'DG.AppController.showHelpURL' : 'play.codap.concord.org/support', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
