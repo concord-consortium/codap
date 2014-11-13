@@ -1072,7 +1072,7 @@ DG.appController = SC.Object.create((function () // closure
       if (username === 'guest') // Guest user isn't specific enough
         username = '';
 
-      var serverString = 'DataGames/WebPages/scripts/datagames.php' +
+      var serverString = 'http://app.ccssgames.com/DataGames/WebPages/scripts/datagames.php' +
         '?device=%@&os=%@&os_version=%@&cf_browser=%@&cf_browser_version=%@&version=%@&name=%@'.fmt(
           encodeURIComponent(SC.browser.device),
           encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
