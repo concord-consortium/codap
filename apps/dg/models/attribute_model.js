@@ -23,7 +23,7 @@ sc_require('models/base_model');
 
   Represents an attribute of a collection.
 
- @extends SC.Object
+ @extends SC.BaseModel
  */
 DG.Attribute = DG.BaseModel.extend(
   /** @scope DG.Attribute.prototype */ {
