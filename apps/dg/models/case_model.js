@@ -56,18 +56,14 @@ DG.Case = DG.BaseModel.extend(
     children: null,
 
     /**
-     * Private cache of 'id' property for quicker lookups.
-     * Set by DG.Case.createCase().
-     */
-    _id: null,
-
-    /**
      * Associative array of {AttrID:value} pairs for quicker lookups.
      */
     _valuesMap: null,
 
     /**
      * An object whose properties represent the values of the case.
+     *
+     * Only used to persist the object as JSON.
      * @property {Object}
      */
     values: null,
@@ -102,6 +98,9 @@ DG.Case = DG.BaseModel.extend(
      * Destruction function for the case.
      */
     destroy: function() {
+      if (this.parent) {
+        this.parent.children.removeObject(this);
+      }
       this._valuesMap = null;
       sc_super();
     },
@@ -267,14 +266,14 @@ DG.Case = DG.BaseModel.extend(
         valuesMap = {};
       DG.ObjectMap.
         forEach( this.get('values'),
-        function( iKey, iValue) {
-          if( iValue !== undefined) {
-            var attr = collection && collection.getAttributeByName( iKey),
-              attrID = attr && attr.get('id');
-            if( !SC.none( attrID))
-              valuesMap[attrID] = iValue;
-          }
-        }.bind(this));
+          function( iKey, iValue) {
+            if( iValue !== undefined) {
+              var attr = collection && collection.getAttributeByName( iKey),
+                attrID = attr && attr.get('id');
+              if( !SC.none( attrID))
+                valuesMap[attrID] = iValue;
+            }
+          });
       this._valuesMap = valuesMap;
       // We don't need the 'values' property outside of save/restore
       this.set('values', null);
@@ -283,13 +282,17 @@ DG.Case = DG.BaseModel.extend(
     debugLog: function(iPrompt) {
       DG.log('Case ' + this.get('id'));
     },
+
     toArchive: function () {
+      var result;
       this.genArchive();
-      return {
+      result = {
         parent: (this.parent && this.parent.id)  || undefined,
         guid: this.id,
         values: this.values
       };
+      this.values = null;
+      return result;
     }
 
   }) ;
@@ -308,7 +311,6 @@ DG.Case.createCase = function( iProperties) {
     iProperties.parent = DG.store.resolve(parent);
   }
   newCase = DG.Case.create(iProperties || {});
-  newCase._id = newCase.get('id');
   newCase.didLoadRecord();
   return newCase;
 };

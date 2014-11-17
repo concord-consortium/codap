@@ -23,7 +23,7 @@ sc_require('models/base_model');
 
   Represents an individual component of a DG.Document.
 
- @extends SC.Object
+ @extends DG.BaseModel
  */
 DG.Component = DG.BaseModel.extend(
   /** @scope DG.Component.prototype */ {

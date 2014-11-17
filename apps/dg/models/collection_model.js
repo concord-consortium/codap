@@ -103,7 +103,7 @@ DG.Collection = SC.Object.extend(
     var attr;
     iProperties = iProperties || {};
     // Relate it to its parent collection
-    iProperties.collection = this.get('id');
+    iProperties.collection = this;
     attr =  DG.Attribute.createAttribute( iProperties);
     this.attrsRecords.pushObject(attr);
     return attr;
@@ -142,7 +142,7 @@ DG.Collection = SC.Object.extend(
     DG.Case.destroyCase( iCase);
     ix = this.getCaseIDs().indexOf(iCase.id);
     if (ix >= 0) {
-      this.casesRecords.splice(ix, 1);
+      this.casesRecords.removeObject(iCase);
     }
     this.updateCaseIDToIndexMap();
   },

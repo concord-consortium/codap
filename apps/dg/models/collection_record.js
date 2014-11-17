@@ -57,7 +57,7 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
      * A relational link to the subcollections of this collection.
      * @property {Array of DG.CollectionRecord}
      */
-    children: [],
+    children: null,
 
     /**
      * Indicates whether parent/child links are configured correctly.
@@ -97,6 +97,7 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
     init: function () {
       this.attrs = [];
       this.cases = [];
+      this.children = [];
       sc_super();
     },
     /**

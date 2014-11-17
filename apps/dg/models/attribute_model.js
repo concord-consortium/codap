@@ -98,9 +98,6 @@ DG.Attribute = DG.BaseModel.extend(
       if (typeof this.collection === 'number') {
         this.collection = DG.store.find(DG.Attribute, this.collection);
       }
-//      if (this.collection) {
-//        this.collection.attrs.push(this);
-//      }
     },
 
     verify: function () {

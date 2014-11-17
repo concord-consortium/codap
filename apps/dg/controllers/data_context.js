@@ -142,6 +142,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     return selection;
   },
 
+    /**
+     * Accesses a case from its ID.
+     *
+     * Centralized method for Component layer objects.
+     * @param iCaseID
+     * @returns {*}
+     */
   getCaseByID: function(iCaseID) {
     return DG.store.find( DG.Case, iCaseID);
   },

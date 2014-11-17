@@ -26,7 +26,7 @@ sc_require('models/base_model');
 
   Represents a user document.
 
- @extends SC.Object
+ @extends SC.BaseModel
  */
 DG.DataContextRecord = DG.BaseModel.extend(
   /** @scope DG.DataContextRecord.prototype */ {

@@ -23,7 +23,7 @@ sc_require('models/base_model');
  * A GlobalValue is a named, user created value that can be employed in
  * formulas. Sliders control global values.
  *
- * @extends SC.Object
+ * @extends DG.BaseModel
  */
 DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
 

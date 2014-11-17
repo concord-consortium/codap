@@ -28,6 +28,8 @@ sc_require('models/base_model');
  * exactly one active document. It can create contexts and destroy itself
  * and its dependent objects. Documents can be serialized and deserialized. This
  * permits them to be stored to filesystems or databases.
+ *
+ * @extends DG.baseModel
  */
 DG.Document = DG.BaseModel.extend(
   /** @scope DG.Document.prototype */ {
