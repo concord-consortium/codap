@@ -36,8 +36,7 @@ DG.DocumentArchiver = SC.Object.extend(
         dataSource = DG.ModelStore.create();
 
     DG.store = dataSource;
-    DG.Document.createDocument(docArchive);
-    return DG.activeDocument;
+    return DG.Document.createDocument(docArchive);
   },
 
   /**
