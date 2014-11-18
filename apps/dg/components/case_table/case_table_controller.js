@@ -200,8 +200,8 @@ DG.CaseTableController = DG.ComponentController.extend(
         if (dataContext) {
           parentCollection = this.getPath('dataContext.parentCollection');
           childCollection = this.getPath('dataContext.childCollection');
-          parentCount = parentCollection.getCaseCount();
-          childCount = childCollection.getCaseCount();
+          parentCount = parentCollection? parentCollection.getCaseCount(): 0;
+          childCount = childCollection? childCollection.getCaseCount(): 0;
           if (parentCollection && childCollection) {
             tStatusMessage = dataContext.getCaseCountString(parentCollection,
               parentCount) + '/' + dataContext.getCaseCountString(childCollection,
