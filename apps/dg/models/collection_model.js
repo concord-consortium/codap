@@ -135,18 +135,13 @@ DG.Collection = SC.Object.extend(
   /**
    * Deletes the specified case from this collection.
    * Clients should call updateCaseIDToIndexMap() after deleting cases.
-   * @param   {DG.Case}   The case to delete
+   * @param   {DG.Case} iCase The case to delete.
    */
   deleteCase: function( iCase) {
-    var ix;
     DG.Case.destroyCase( iCase);
-    ix = this.getCaseIDs().indexOf(iCase.id);
-    if (ix >= 0) {
-      this.casesRecords.removeObject(iCase);
-    }
     this.updateCaseIDToIndexMap();
   },
-  
+
   /**
    * Returns an array of ids for the attributes in the collection.
    * @returns {Array of Number}

@@ -101,6 +101,9 @@ DG.Case = DG.BaseModel.extend(
       if (this.parent) {
         this.parent.children.removeObject(this);
       }
+      if (this.collection) {
+        this.collection.cases.removeObject(this);
+      }
       this._valuesMap = null;
       sc_super();
     },

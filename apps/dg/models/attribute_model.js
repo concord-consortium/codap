@@ -120,6 +120,10 @@ DG.Attribute = DG.BaseModel.extend(
         delete DG.Attribute.idMap[ attrID];
       }
 
+      if (this.collection) {
+        this.collection.attrsRecords.removeObject(this);
+      }
+
       if( this._dgFormula)
         this.destroyDGFormula();
       sc_super();

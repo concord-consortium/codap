@@ -194,13 +194,14 @@ DG.CaseTableController = DG.ComponentController.extend(
       }.observes('dataContext'),
 
       getCaseCountMessage: function () {
-        var parentCount = this.getPath('contentView.parentTableView.gridAdapter.totalRowCount'),
-          childCount = this.getPath('contentView.childTableView.gridAdapter.totalRowCount'),
-          dataContext = this.get('dataContext'),
-          parentCollection, childCollection, tStatusMessage = "";
+        var dataContext = this.get('dataContext'),
+          parentCollection, childCollection, parentCount, childCount,
+          tStatusMessage = "";
         if (dataContext) {
           parentCollection = this.getPath('dataContext.parentCollection');
           childCollection = this.getPath('dataContext.childCollection');
+          parentCount = parentCollection.getCaseCount();
+          childCount = childCollection.getCaseCount();
           if (parentCollection && childCollection) {
             tStatusMessage = dataContext.getCaseCountString(parentCollection,
               parentCount) + '/' + dataContext.getCaseCountString(childCollection,
@@ -275,6 +276,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'deleteCases':
             this.caseCountDidChange( iChange);
+              break;
             // fall-through intentional
             /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
           case 'selectCases':
