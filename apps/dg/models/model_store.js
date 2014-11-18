@@ -99,6 +99,9 @@ DG.ModelStore = SC.Object.extend(
     },
     destroyAllRecordsOfType: function (type, exceptionKeys) {
       var removedKeys = [];
+      if (SC.empty(exceptionKeys)) {
+        exceptionKeys = [];
+      }
       store.forEach(function (obj) {
         var id = obj.id;
         if (obj.get('recordType') === type && !exceptionKeys.contains(id)) {
