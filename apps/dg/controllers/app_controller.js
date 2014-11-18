@@ -273,7 +273,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.logUser("openDocument: '%@'", iName);
       }
 
-      if (iOwner && iOwner != DG.authorizationController.getPath('currLogin.user')) {
+      if (iOwner && iOwner !== DG.authorizationController.getPath('currLogin.user')) {
         this.setOpenedDocumentUnshared = YES;
       }
     },
@@ -351,11 +351,8 @@ DG.appController = SC.Object.create((function () // closure
      @returns  {Boolean}   True on success, false on failure
      */
     openJsonDocument: function (iDocText) {
-      console.log('In app_controller:openJsaonDocument');
+      console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
-      var kMemoryDataSource = 'DG.MemoryDataSource',
-      // kRESTDataSource = 'DG.RESTDataSource',
-        kDefaultDataSource = /*kRESTDataSource*/ kMemoryDataSource;
 
       // Does it look like it could be a valid document?
       if (!this.isValidJsonDocument(iDocText)) return false;
@@ -364,16 +361,13 @@ DG.appController = SC.Object.create((function () // closure
       this.closeDocument();
 
       // Create document-specific store.
-      var docStore = SC.Store.create({}).from(kDefaultDataSource),
-        archiver = DG.DocumentArchiver.create({}),
+      var archiver = DG.DocumentArchiver.create({}),
         newDocument;
 
-      DG.store = docStore;
-
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.openDocument(docStore, iDocText);
+      newDocument = archiver.openDocument(DG.store, iDocText);
       if (newDocument) {
-        console.log('In app_controller:openJsonDocument:setting document controller')
+        console.log('In app_controller:openJsonDocument:setting document controller');
         SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
         docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
@@ -394,7 +388,7 @@ DG.appController = SC.Object.create((function () // closure
      Allows the user to save the current document contents with a user-specified document name.
      */
     saveDocument: function () {
-      if (DG.currDocumentController().get('documentName') == SC.String.loc('DG.Document.defaultDocumentName')) {
+      if (DG.currDocumentController().get('documentName') === SC.String.loc('DG.Document.defaultDocumentName')) {
         this.openSaveDialog = DG.CreateOpenSaveDialog({
           dialogType: DG.OpenSaveDialog.kSaveDialog,
           prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for your document:"
@@ -412,7 +406,7 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName != iOriginalName && iOriginalName != SC.String.loc('DG.Document.defaultDocumentName')) {
+      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }
@@ -420,7 +414,7 @@ DG.appController = SC.Object.create((function () // closure
 
     receivedRenameDocumentResponse: function(iResponse) {
       var shouldShowAlert = true,
-        alertDescription = null;
+        alertDescription = null, msgKey;
       // Currently, we must close any open document before opening another
       if (SC.ok(iResponse) && !iResponse.get('isError')) {
           DG.dirtyCurrentDocument();
@@ -432,7 +426,7 @@ DG.appController = SC.Object.create((function () // closure
 
       try {
         // Handle error response from server
-        var msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
+        msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
       }
       catch(error) {
         msgKey = '';
@@ -520,7 +514,9 @@ DG.appController = SC.Object.create((function () // closure
         var docName = DG.currDocumentController().get('documentName'),
           documentPermissions = DG.currDocumentController().get('documentPermissions');
 
-        if (!SC.empty(docName) && docName != SC.String.loc('DG.Document.defaultDocumentName') && DG.currDocumentController().get('hasUnsavedChanges')) {
+        if (!SC.empty(docName)
+          && docName !== SC.String.loc('DG.Document.defaultDocumentName')
+          && DG.currDocumentController().get('hasUnsavedChanges')) {
           DG.currDocumentController().saveDocument(docName, documentPermissions);
           DG.logUser("autoSaveDocument: '%@'", docName);
         }
@@ -705,7 +701,7 @@ DG.appController = SC.Object.create((function () // closure
 
       function doDelete() {
         DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
-        DG.currGameController.doDeleteAllCaseData();
+        DG.doCommand({action: 'deleteAllCaseData'});
         DG.dirtyCurrentDocument();
       }
 
@@ -859,7 +855,7 @@ DG.appController = SC.Object.create((function () // closure
               DG.dirtyCurrentDocument();
               this.invokeNext(function() {
                 DG.appController.autoSaveDocument();
-              })
+              });
             }
           }),
 
@@ -895,7 +891,7 @@ DG.appController = SC.Object.create((function () // closure
             },
             visibilityChanged: function() {
               if (this.get('isVisible')) {
-                var linkView = this.get('_view_layer');
+                //var linkView = this.get('_view_layer');
                 // HACK, once again I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
                 $("#shareLinkField textarea").focus();
                 $("#shareLinkField textarea").select();
@@ -953,7 +949,7 @@ DG.appController = SC.Object.create((function () // closure
               if (win) {
                 win.focus();
               }
-              sheetPane.remove()
+              sheetPane.remove();
             },
             isDefault: YES
           })
@@ -965,9 +961,10 @@ DG.appController = SC.Object.create((function () // closure
     copyLink: function(newDocId) {
       var currLoc = '' + window.location,
           parts = currLoc.split('?'),
-          currQuery = DG.queryString.parse(parts[1] ? parts[1] : '');
+          currQuery = DG.queryString.parse(parts[1] ? parts[1] : ''),
+        newLoc;
 
-      currQuery["recordid"] = encodeURIComponent(newDocId);
+      currQuery.recordid = encodeURIComponent(newDocId);
 
       newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
 

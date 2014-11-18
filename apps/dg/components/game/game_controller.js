@@ -84,7 +84,9 @@ DG.GameController = DG.ComponentController.extend(
     @returns  {Array of Number}   Array of open case IDs
    */
   getOpenCaseIDs: function( iExcludeChildren ) {
-    var openCaseIDs = [],
+    var currentGame = DG.gameSelectionController.get('currentGame'),
+      gameContext = DG.GameContext.getContextForGame( currentGame),
+      openCaseIDs = [],
         includeChildCases = (iExcludeChildren ? false : true);
 
     // Adds the id of the specified case and all of its child cases to openCaseIDs.
@@ -99,7 +101,7 @@ DG.GameController = DG.ComponentController.extend(
 
     // New Game API support -- Add open parent cases, child cases, and their values
     this.openCaseIDs.forEach( function( iCaseID) {
-                                var parentCase = DG.store.find( DG.Case, iCaseID);
+                                var parentCase = gameContext.getCaseByID(iCaseID);
                                 if( parentCase) addCase( parentCase);
                               });
 
@@ -345,6 +347,22 @@ DG.GameController = DG.ComponentController.extend(
       this.view.set('version', SC.none( currentGame.version) ? '' : currentGame.version);
     }
 
+    function finishInitGame() {
+      // modify the page title to include the name of the current data interactive
+      $('title').text('CODAP - ' + currentGameName);
+
+      // Once all the collections and attributes are created, we're ready to play the game.
+      this.set('gameIsReady', true);
+
+      if( (iArgs.log === undefined) || iArgs.log)
+        DG.logUser("initGame: '%@', Collections: [%@]",
+                    currentGameName, gameCollections.getEach('name').join(", "));
+
+      if (callback) {
+        callback();
+      }
+    }
+
     // Function for creating each collection and its required attributes
     function handleNewCollection( iCollectionArgs) {
       var collectionProperties = { name: iCollectionArgs.name,
@@ -395,23 +413,6 @@ DG.GameController = DG.ComponentController.extend(
         }
       }
     }
-
-    function finishInitGame() {
-      // modify the page title to include the name of the current data interactive
-      $('title').text('CODAP - ' + currentGameName);
-
-      // Once all the collections and attributes are created, we're ready to play the game.
-      this.set('gameIsReady', true);
-
-      if( (iArgs.log === undefined) || iArgs.log)
-        DG.logUser("initGame: '%@', Collections: [%@]",
-                    currentGameName, gameCollections.getEach('name').join(", "));
-
-      if (callback) {
-        callback();
-      }
-    }
-
     finishInitGame.call(this);
   },
 
@@ -504,7 +505,7 @@ DG.GameController = DG.ComponentController.extend(
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
         collection = gameContext.getCollectionByName( iArgs.collection),
-        theCase = DG.store.find( DG.Case, iArgs.caseID),
+        theCase = gameContext.getCaseByID( iArgs.caseID),
         ret = { success: false };
     if( collection && theCase && iArgs.values) {
       var change = {
@@ -643,7 +644,7 @@ DG.GameController = DG.ComponentController.extend(
         });
       }
     }
-    tDeletedCaseIDs = DG.Record.destroyAllRecordsOfType( DG.Case, tCaseIDsToPreserve);
+    tDeletedCaseIDs = DG.store.destroyAllRecordsOfType( DG.Case, tCaseIDsToPreserve);
     DG.store.commitRecords();
 
     // Note that for efficiency, the record deletion above is carried out
@@ -744,7 +745,7 @@ DG.GameController = DG.ComponentController.extend(
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
         collection = gameContext.getCollectionByName( iArgs.collection),
-        theCase = DG.store.find( DG.Case, iArgs.caseID),
+        theCase = gameContext.getCaseByID(iArgs.caseID),
         ret = { success: false, values: [] };
 
     if( collection && theCase && iArgs.attributeNames) {

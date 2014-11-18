@@ -245,7 +245,7 @@ DG.DocumentController = SC.Object.extend(
   restoreDataContexts: function() {
     var contexts = this.get('contexts') || [],
         this_ = this;
-    contexts.forEach( function( iContextModel) {
+    DG.ObjectMap.forEach(contexts, function(key, iContextModel) {
                         var newContext = this_.createDataContextForModel( iContextModel);
                         if( newContext) {
                           newContext.restoreFromStorage( iContextModel.get('contextStorage'));
@@ -317,7 +317,7 @@ DG.DocumentController = SC.Object.extend(
   restoreComponentControllersAndViews: function() {
     var components = this.get('components');
     if( components) {
-      components.forEach( function( iComponent) {
+      DG.ObjectMap.forEach(components, function(key, iComponent) {
                             this.createComponentAndView( iComponent);
                           }.bind( this));
     }
@@ -376,8 +376,8 @@ DG.DocumentController = SC.Object.extend(
     if( !isRestoring) {
       var tComponentProperties = { type: iParams.componentClass.type };
       // If we create it, hook it up to the document.
-      if( !SC.none(documentID))
-        tComponentProperties.document = documentID;
+      if( !SC.none(this.content))
+        tComponentProperties.document = this.content;
       tComponent = DG.Component.createComponent( tComponentProperties);
     }
     
@@ -728,14 +728,8 @@ DG.DocumentController = SC.Object.extend(
     DG.gameSelectionController.reset();
     DG.DataContext.clearContextMap();
     
-    DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
-    DG.Record.destroyAllRecordsOfType( DG.Case);
-    DG.Record.destroyAllRecordsOfType( DG.Attribute);
-    DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);
-    DG.Record.destroyAllRecordsOfType( DG.DataContextRecord);
-    DG.Record.destroyAllRecordsOfType( DG.Component);
-    DG.store.commitRecords();
-    
+    DG.Document.destroyDocument(DG.activeDocument);
+
     DG.gameSelectionController.reset();
     this.closeAllComponents();
   },
@@ -805,7 +799,7 @@ DG.DocumentController = SC.Object.extend(
 
   createGlobalValue: function( iProperties) {
     iProperties = iProperties || {};
-    iProperties.document = this.get('documentID');
+    iProperties.document = this.get('content');
     return DG.globalsController.createGlobalValue( iProperties);
   },
   

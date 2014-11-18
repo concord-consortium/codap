@@ -88,9 +88,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {Array of DG.CollectionRecords}
    */
   collections: function() {
-    return this.getPath('model.collections');
+    return DG.ObjectMap.values(this.getPath('model.collections'));
   }.property('model','model.collections'),
-  
+
   /**
    *  Map of DG.CollectionClients, corresponding one-to-one to the DG.CollectionRecords.
    *  @property {Object} Map from collectionID to DG.CollectionClients
@@ -141,8 +141,20 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return selection;
   },
-  
-  /**
+
+    /**
+     * Accesses a case from its ID.
+     *
+     * Centralized method for Component layer objects.
+     * @param iCaseID
+     * @returns {*}
+     */
+  getCaseByID: function(iCaseID) {
+    return DG.store.find( DG.Case, iCaseID);
+  },
+
+
+    /**
     Private properties used internally to synchronize changes with notifications.
    */
   _changeCount: 0,
@@ -289,27 +301,36 @@ DG.DataContext = SC.Object.extend((function() // closure
               {Number}              result.caseID -- the case ID of the newly created case
    */
   doCreateCases: function( iChange) {
-    if( !iChange.collection) iChange.collection = this.get('childCollection');
-    var collection = iChange.collection,
-        result = { success: false, caseIDs: [] };
-    if( collection) {
-    
-      var createOneCase = function( iValues) {
-        var newCase = collection.createCase( iChange.properties);
-        if( newCase) {
-          if( !SC.none( iValues)) {
-            collection.setCaseValuesFromArray( newCase, iValues);
-            DG.store.commitRecords();
+    var collection,
+        result = { success: false, caseIDs: [] },
+        createOneCase = function( iValues) {
+          var newCase = collection.createCase( iChange.properties);
+          if( newCase) {
+            if( !SC.none( iValues)) {
+              collection.setCaseValuesFromArray( newCase, iValues);
+              DG.store.commitRecords();
+            }
+            result.success = true;
+            result.caseIDs.push( newCase.get('id'));
           }
-          result.success = true;
-          result.caseIDs.push( newCase.get('id'));
-        }
-      }.bind( this);
-    
+        }.bind( this);
+
+    if( !iChange.collection) {
+      iChange.collection = this.get('childCollection');
+    }
+
+    if (typeof iChange.collection === "string") {
+      collection = this.getCollectionByName( iChange.collection);
+    } else {
+      collection = iChange.collection;
+    }
+
+    if( collection) {
       var valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
-      if( result.caseIDs && (result.caseIDs.length > 0))
+      if( result.caseIDs && (result.caseIDs.length > 0)) {
         result.caseID = result.caseIDs[0];
+      }
     }
     return result;
   },
@@ -626,12 +647,11 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   doResetCollections: function (iChange) {
       DG.DataContext.clearContextMap();
-//      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
-      DG.Record.destroyAllRecordsOfType( DG.Case);
-      DG.Record.destroyAllRecordsOfType( DG.Attribute);
-      DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);
-//      DG.Record.destroyAllRecordsOfType( DG.DataContextRecord);
-      DG.store.commitRecords();
+//      DG.store.destroyAllRecordsOfType( DG.GlobalValue);
+      DG.store.destroyAllRecordsOfType( DG.Case);
+      DG.store.destroyAllRecordsOfType( DG.Attribute);
+      DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
+//      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
   },
   
   /**
@@ -759,12 +779,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         collections = this.get('collections'),
         collectionRecord;
     for( var i = 0; i < collectionCount; ++i) {
-      collectionRecord = collections.objectAt( i);
-      if( collectionRecord && (collectionRecord.get('name') === iName))
+      collectionRecord = collections.objectAt(i);
+      if (collectionRecord && (collectionRecord.get('name') === iName)) {
         return this._collectionClients[ collectionRecord.get('id')];
+      }
     }
-    //DG.log("DG.DataContext.getCollectionByName: storeContextID: %@, scContextID: %@, Failed to find %@ in %@ collections!",
-    //        this.get('id'), DG.Debug.scObjectID( this), iName, collectionCount);
     return null;
   },
   
@@ -1059,10 +1078,14 @@ DG.DataContext = SC.Object.extend((function() // closure
                 {String}                object.plotYAttr -- default Y attribute on graphs
    */
   collectionDefaults: function() {
-    var defaults = { collectionClient: this.get('childCollection'),
-                     parentCollectionClient: this.get('parentCollection'),
-                     plotXAttr: null, plotXAttrIsNumeric: true,
-                     plotYAttr: null, plotYAttrIsNumeric: true };
+    var defaults = {
+      collectionClient: this.get('childCollection'),
+      parentCollectionClient: this.get('parentCollection'),
+      plotXAttr: null,
+      plotXAttrIsNumeric: true,
+      plotYAttr: null,
+      plotYAttrIsNumeric: true
+    };
     return defaults;
   },
   
@@ -1107,8 +1130,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = this.get('collections'),
         this_ = this;
     if( !SC.none( collections)) {
-      collections.forEach( function( iCollection) {
-                            this_.addCollection( iCollection);
+      DG.ObjectMap.forEach(collections, function( key) {
+                            this_.addCollection( collections[key]);
                           });
     }
   }

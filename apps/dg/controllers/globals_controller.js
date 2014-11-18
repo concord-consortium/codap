@@ -62,10 +62,7 @@ DG.globalsController = SC.Controller.create( (function() {
       @returns  {DG.GlobalValue}  The matching global value or null if not found
      */
     getGlobalValueByName: function( iName) {
-      var tQuery = SC.Query.local( DG.GlobalValue, { conditions: 'name = {name}',
-                                                      name: iName }),
-          tResults = DG.store.find( tQuery);
-      return tResults.get('length') > 0 ? tResults.objectAt( 0) : null;
+      return DG.activeDocument.getGlobalValueByName(iName);
     },
   
     /**
@@ -94,6 +91,9 @@ DG.globalsController = SC.Controller.create( (function() {
      */
     createGlobalValue: function( iProperties, iPrefix) {
       iProperties = iProperties || {};
+      if ( SC.empty(iProperties.document)) {
+        iProperties.document = DG.activeDocument;
+      }
       if( SC.empty( iProperties.name))
         iProperties.name = this.getUniqueName( iPrefix);
       if( !iProperties.value)

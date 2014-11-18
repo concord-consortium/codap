@@ -315,7 +315,7 @@ return {
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
               
     var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
@@ -337,7 +337,7 @@ return {
     var url = DG.documentServer + 'document/delete?recordname=%@'.fmt( iDocumentId );
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForGetRequests( serverUrl(url) )
@@ -350,7 +350,7 @@ return {
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
     this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
@@ -364,7 +364,7 @@ return {
     url += '&recordid=' + iDocumentId;
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
     
     this.urlForGetRequests(serverUrl(url))
@@ -379,7 +379,7 @@ return {
     url += '&owner=' + iDocumentOwner;
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
     
     this.urlForGetRequests(serverUrl(url))
@@ -392,12 +392,12 @@ return {
     url += '?recordname=' + DG.currDocumentController().get('documentName');
     url += '&original=true';
 
-    if (this.getPath('currLogin.user') != 'guest') {
+    if (this.getPath('currLogin.user') !== 'guest') {
       url += '&owner=' + this.getPath('currLogin.user');
     }
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForGetRequests(serverUrl(url))
@@ -410,12 +410,12 @@ return {
     url += '?recordname=' + iOriginalName;
     url += '&newRecordname=' + iNewName;
 
-    if (this.getPath('currLogin.user') != 'guest') {
+    if (this.getPath('currLogin.user') !== 'guest') {
       url += '&owner=' + this.getPath('currLogin.user');
     }
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey)
+      url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForGetRequests(serverUrl(url))

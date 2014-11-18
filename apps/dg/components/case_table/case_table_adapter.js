@@ -593,7 +593,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       for( i = 0; i < rowCount; ++i) {
         var rowInfo = dataView.getItem( i);
         if( rowInfo && rowInfo.__group) {
-          var tCase = DG.store.find( DG.Case, rowInfo.value);
+          var tCase = dataContext.getCaseByID(rowInfo.value);
           if( parentCollection.isCaseSelected( tCase))
             selectedRows.push( i);
         }
@@ -620,7 +620,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         tIsSelected = tCollection && tCase && tCollection.isCaseSelected( tCase);
     
     if( !SC.none( tGroupParentID)) {
-      tCase = DG.store.find( DG.Case, tGroupParentID);
+      tCase = tContext.getCaseByID(tGroupParentID);
       tCollection = tContext.getCollectionForCase( tCase);
     }
     
@@ -659,7 +659,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           tCase = tRowInfo && tRowInfo.theCase,
           tGroupCaseID = tRowInfo && tRowInfo.__group && tRowInfo.value;
       if( !SC.empty( tGroupCaseID))
-        tCase = DG.store.find( DG.Case, tGroupCaseID);
+        tCase = tContext.getCaseByID(tGroupCaseID);
       if( tCase) tCases.push( tCase);
     }
     if( tCases.length) {

@@ -130,10 +130,13 @@ DG.CaseTableController = DG.ComponentController.extend(
         
         // Utility function for identifying existing adapters for the specified collection
         function findAdapterForCollection( iCollectionID) {
-          var i, count = prevAdapters.length;
-          for( i = 0; i < count; ++i) {
-            if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
-              return prevAdapters[i];
+          var i, count;
+          if (prevAdapters) {
+            count = prevAdapters.length;
+            for( i = 0; i < count; ++i) {
+              if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
+                return prevAdapters[i];
+            }
           }
           return null;
         }
@@ -191,13 +194,14 @@ DG.CaseTableController = DG.ComponentController.extend(
       }.observes('dataContext'),
 
       getCaseCountMessage: function () {
-        var parentCount = this.getPath('contentView.parentTableView.gridAdapter.totalRowCount'),
-          childCount = this.getPath('contentView.childTableView.gridAdapter.totalRowCount'),
-          dataContext = this.get('dataContext'),
-          parentCollection, childCollection, tStatusMessage = "";
+        var dataContext = this.get('dataContext'),
+          parentCollection, childCollection, parentCount, childCount,
+          tStatusMessage = "";
         if (dataContext) {
           parentCollection = this.getPath('dataContext.parentCollection');
           childCollection = this.getPath('dataContext.childCollection');
+          parentCount = parentCollection? parentCollection.getCaseCount(): 0;
+          childCount = childCollection? childCollection.getCaseCount(): 0;
           if (parentCollection && childCollection) {
             tStatusMessage = dataContext.getCaseCountString(parentCollection,
               parentCount) + '/' + dataContext.getCaseCountString(childCollection,
@@ -272,8 +276,8 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'deleteCases':
             this.caseCountDidChange( iChange);
-            // fall-through intentional
-            /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+            this.doSelectCases(iChange);
+            break;
           case 'selectCases':
             this.doSelectCases( iChange);
             // selection changes don't require aggregate invalidation
