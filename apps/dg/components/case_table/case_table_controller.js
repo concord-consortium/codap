@@ -276,9 +276,8 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'deleteCases':
             this.caseCountDidChange( iChange);
-              break;
-            // fall-through intentional
-            /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+            this.doSelectCases(iChange);
+            break;
           case 'selectCases':
             this.doSelectCases( iChange);
             // selection changes don't require aggregate invalidation
