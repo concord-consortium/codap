@@ -22,15 +22,7 @@
  */
 DG.ModelStore = SC.Object.extend(
 /** @scope DG.ModelStore.prototype */ (function() {
-  var currGuids = {
-      'DG.Document': 10,
-      'DG.Component': 100,
-      'DG.DataContextRecord': 400,
-      'DG.CollectionRecord': 600,
-      'DG.Attribute': 1000,
-      'DG.Case': 2000,
-      'DG.GlobalValue': 9000
-    },
+  var idCount = 1,
     store = [];
 
 
@@ -42,10 +34,10 @@ DG.ModelStore = SC.Object.extend(
      * If not, gets the next identifier for the type.
      */
     register: function (iRecordType, iObj) {
-      var tNewID= this.getIDForNewRecord(iRecordType, iObj);
+      var tNewID= this.getIDForNewRecord(iObj);
       iObj.id = tNewID;
+      DG.assert(!SC.none(tNewID));
       DG.assert(SC.none(store[tNewID]));
-      DG.assert(tNewID !== undefined);
       store[tNewID] = iObj;
       return tNewID;
     },
@@ -77,22 +69,18 @@ DG.ModelStore = SC.Object.extend(
      *
      * If there is an id or guid property, and tries to use this as the identifier.
      * Verifies that id's do not correspond with any registered records.
-     * If not, gets the next identifier for the type.
+     * If not, gets the next identifier in sequence.
      */
-    getIDForNewRecord: function (tRecordType, tObj) {
-      if (SC.empty(currGuids[tRecordType])) {
-        DG.warn("Unknown record type, cannot assign id: " + tRecordType);
-      }
+    getIDForNewRecord: function (tObj) {
       var tNewID;
-      if (!SC.empty(tObj.id)) {
-        tNewID = tObj.id;
-      } else if (!SC.empty(tObj.guid)) {
+      if (!SC.empty(tObj.guid)) {
         tNewID = tObj.guid;
+      } else if (!SC.empty(tObj.id)) {
+        tNewID = tObj.id;
       }
       while (SC.empty(tNewID) || store[tNewID]) {
-        tNewID = ++currGuids[tRecordType];
+        tNewID = ++idCount;
       }
-      currGuids[tRecordType] = Math.max(currGuids[tRecordType], tNewID);
       return tNewID;
     },
     _getDataSource: function () { return this;},
@@ -109,26 +97,19 @@ DG.ModelStore = SC.Object.extend(
         className = iRecordTypeStr.substr(classNameStartPos);
       return DG[className];
     },
-    destroyAllRecordsOfType: function (typeSpec) {
-      var type, keys = [];
-      if (typeof typeSpec === 'string') {
-        type = typeSpec;
-      } else if (typeof typeSpec === 'object') {
-        type = (typeSpec.get && typeSpec.get('recordType'));
-      }
-      if (type) {
-        store.forEach(function (obj) {
-          var id = this.id;
-          if (obj.get && obj.get('recordType') === type) {
-            keys.push(id);
-            obj.destroy();
-            if (store[this.id]) {
-              this.deregister(this.id);
-            }
+    destroyAllRecordsOfType: function (type, exceptionKeys) {
+      var removedKeys = [];
+      store.forEach(function (obj) {
+        var id = obj.id;
+        if (obj.get('recordType') === type && !exceptionKeys.contains(id)) {
+          removedKeys.push(id);
+          obj.destroy();
+          if (store[id]) {
+            this.deregister(id);
           }
-        });
-      }
-      return keys;
+        }
+      });
+      return removedKeys;
     },
     /*
      * If x is an ID look it up. If it is an object, return it as is.
