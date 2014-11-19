@@ -129,10 +129,6 @@ DG = SC.Application.create((function () // closure
 /** @scope DG.prototype */ {
 
   var theStore = null;
-  var fixtures = false;
-  var kMemoryDataSource = 'DG.MemoryDataSource',
-  // kRESTDataSource = 'DG.RESTDataSource',
-    kDefaultDataSource = kMemoryDataSource;
 
   // Utility function for extracting URL parameters
   var getUrlParameter = function (iParam, iDefault) {
