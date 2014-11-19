@@ -369,7 +369,6 @@ DG.appController = SC.Object.create((function () // closure
       if (newDocument) {
         console.log('In app_controller:openJsonDocument:setting document controller');
         SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
-        docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
         SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
         SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');

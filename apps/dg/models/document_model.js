@@ -114,8 +114,8 @@ DG.Document.createDocument = function( iProperties) {
     DG.store = null;
   }
 
-  tDocument =  DG.Document.create(tProperties);
   DG.store = DG.ModelStore.create();
+  tDocument =  DG.Document.create(tProperties);
 
   DG.activeDocument = tDocument;
 

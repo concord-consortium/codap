@@ -175,26 +175,6 @@ DG = SC.Application.create((function () // closure
     return (window.location.href.indexOf('-test.') >= 0);
   };
 
-  // Attach ?fix='true' to the URL to use fixtures
-  fixtures = getUrlParameter('fix');
-
-  if (fixtures) {
-    theStore = SC.Store.create().from(SC.Record.fixtures);
-  }
-  else {
-    theStore = SC.Store.create({
-      commitRecordsAutomatically: YES
-    }).from(kDefaultDataSource);
-  }
-
-  theStore._originalCreateRecord = theStore.createRecord;
-  theStore.createRecord = function (recordType, dataHash, id) {
-    var newRecord = this._originalCreateRecord(recordType, dataHash, id);
-    // Currently, must call normalize for defaultValues to get handled appropriately.
-    // See https://github.com/sproutcore/sproutcore/issues/98 for details.
-    newRecord.normalize();
-    return newRecord;
-  };
 
   return { // return from closure
 

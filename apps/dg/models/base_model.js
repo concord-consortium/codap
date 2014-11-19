@@ -31,6 +31,10 @@ DG.BaseModel = SC.Object.extend(
       return this.constructor;
     }.property().cacheable(),
 
+    recordTypeString: function() {
+      return this.toString().replace(/:.*/, '');
+    }.property().cacheable(),
+
     init: function () {
       sc_super();
       // DG.store can be missing in test scenario
@@ -49,8 +53,8 @@ DG.BaseModel = SC.Object.extend(
        Provide an abstract reference to this object.
      */
     toLink: function() {
-      var recordType = this.get('recordType');
-      return { type: recordType, id: this.get('id') };
+      var recordTypeString = this.get('recordTypeString');
+      return { type: recordTypeString, id: this.get('id') };
     },
     /**
      Update any properties that need to be updated pre-archive, e.g. layout.
