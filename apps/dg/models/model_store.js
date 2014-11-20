@@ -21,15 +21,20 @@
  * Created by jsandoe on 10/17/14.
  */
 DG.ModelStore = SC.Object.extend(
-/** @scope DG.ModelStore.prototype */ (function() {
-  var idCount = 0,
-    store = null;
-
-
-  return {
+/** @scope DG.ModelStore.prototype */ {
+    _idCount: 0,
+    /*
+     * Right now, CODAP can manage one document per instance and all managed
+     * objects are owned by the document. Therefore there is one store per
+     * document. It may be that there is more than one document per instance.
+     * In that circumstance, we may have multiple documents managed within the
+     * same store and this class will need to change.
+     */
+    _store: null,
     init: function() {
-      store = [];
-      idCount = 0;
+      sc_super();
+      this._store = [];
+      this._idCount = 0;
     },
     /**
      * register: registers the object in the global store.
@@ -41,8 +46,8 @@ DG.ModelStore = SC.Object.extend(
       var tNewID= this.getIDForNewRecord(iObj);
       iObj.id = tNewID;
       DG.assert(!SC.none(tNewID));
-      DG.assert(SC.none(store[tNewID]));
-      store[tNewID] = iObj;
+      DG.assert(SC.none(this._store[tNewID]));
+      this._store[tNewID] = iObj;
       return tNewID;
     },
 
@@ -51,7 +56,7 @@ DG.ModelStore = SC.Object.extend(
      * @param {number} id
      */
     deregister: function (id) {
-      delete store[id];
+      delete this._store[id];
     },
 
     /**
@@ -65,7 +70,7 @@ DG.ModelStore = SC.Object.extend(
       if (typeof type === 'number' && typeof id === 'undefined') {
         id = type;
       }
-      return store[id];
+      return this._store[id];
     },
 
     /**
@@ -82,12 +87,12 @@ DG.ModelStore = SC.Object.extend(
       } else if (!SC.empty(tObj.id)) {
         tNewID = tObj.id;
       }
-      if (!SC.empty(tNewID) && !SC.empty(tNewID)) {
+      if (!SC.empty(tNewID) && !SC.empty(this._store[tNewID])) {
         DG.logWarn('Store may be corrupt: found id, ' + tNewID + ', in new object and store.');
         DG.logWarn("Creating new object, but bad references may be present.");
       }
-      while (SC.empty(tNewID) || store[tNewID]) {
-        tNewID = ++idCount;
+      while (SC.empty(tNewID) || this._store[tNewID]) {
+        tNewID = ++this._idCount;
       }
       return tNewID;
     },
@@ -110,12 +115,12 @@ DG.ModelStore = SC.Object.extend(
       if (SC.empty(exceptionKeys)) {
         exceptionKeys = [];
       }
-      store.forEach(function (obj) {
+      this._store.forEach(function (obj) {
         var id = obj.id;
         if (obj.get('recordType') === type && !exceptionKeys.contains(id)) {
           removedKeys.push(id);
           obj.destroy();
-          if (store[id]) {
+          if (this._store[id]) {
             this.deregister(id);
           }
         }
@@ -141,6 +146,5 @@ DG.ModelStore = SC.Object.extend(
     },
     commitRecords: function () { /* No-op */},
     flush: function () { /* No-op */}
-  };
-}()));
+});
 
