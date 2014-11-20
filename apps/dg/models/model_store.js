@@ -22,11 +22,15 @@
  */
 DG.ModelStore = SC.Object.extend(
 /** @scope DG.ModelStore.prototype */ (function() {
-  var idCount = 1,
-    store = [];
+  var idCount = 0,
+    store = null;
 
 
   return {
+    init: function() {
+      store = [];
+      idCount = 0;
+    },
     /**
      * register: registers the object in the global store.
      *
@@ -77,6 +81,10 @@ DG.ModelStore = SC.Object.extend(
         tNewID = tObj.guid;
       } else if (!SC.empty(tObj.id)) {
         tNewID = tObj.id;
+      }
+      if (!SC.empty(tNewID) && !SC.empty(tNewID)) {
+        DG.logWarn('Store may be corrupt: found id, ' + tNewID + ', in new object and store.');
+        DG.logWarn("Creating new object, but bad references may be present.");
       }
       while (SC.empty(tNewID) || store[tNewID]) {
         tNewID = ++idCount;
