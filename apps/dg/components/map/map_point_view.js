@@ -88,7 +88,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     // points momentarily in wrong place.
     this.getPath('mapLayer.map')
         .on('zoomstart', handleZoomStart)
-        .on('zoomend', handleZoomEnd)
+        .on('zoomend', handleZoomEnd);
   },
 
   modelDidChange: function () {

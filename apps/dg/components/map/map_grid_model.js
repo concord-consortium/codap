@@ -77,7 +77,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
         });
       });
     };
-  };
+  }
 
   /**
    * The grid has a width and height measured in degrees
@@ -191,7 +191,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
               tLongIndex = Math.floor( (tLongVal - tStartWest) / tGridWidth),
               tLatIndex = Math.floor( (tLatVal - tStartSouth) / tGridHeight);
           tRectArray.incrementCount( tLongIndex, tLatIndex);
-        })
+        });
       }.bind(this);
 
       this.beginPropertyChanges();

@@ -266,7 +266,7 @@ test("test DG.DocumentArchiver", function () {
     else if (SC.isArray(x) && SC.isArray(y)) {
       x.forEach(function (obj, ix) {
         compareGUID(name + '[' + ix + ']', x[ix], y[ix]);
-      })
+      });
     }
   }
   [

@@ -118,7 +118,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     List of function names for use in the Functions popup menu.
     Will need to become hierarchical as the number of functions increases
     beyond the capacity of a simple flat popup menu.
-    @property   {Array of String}   Names of functions, e.g. ["abs","acos", ...]
+    @property   {array[string]}   Names of functions, e.g. ["abs","acos", ...]
    */
   fnNames: [],
   
@@ -130,7 +130,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     
     /**
       Coerces its argument to a boolean value.
-      @param    {Object}  The argument to be coerced to boolean
+      @param    {Object}  x The argument to be coerced to boolean
       @returns  {Boolean} The converted boolean value
      */
     'boolean': function(x) {
@@ -270,7 +270,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
           return 'November';
         case 11:
           return 'December';
-      };
+      }
     }
   },
 
