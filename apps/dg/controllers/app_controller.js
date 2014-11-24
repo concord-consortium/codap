@@ -162,6 +162,17 @@ DG.appController = SC.Object.create((function () // closure
         return finalItems;
     }.property(),
 
+    documentNameDidChange: function () {
+      // Update document title
+      var documentController = DG.currDocumentController
+          && DG.currDocumentController(),
+        nameString = '';
+      if (documentController) {
+        nameString = ' - ' + documentController.get('documentName');
+      }
+      $('title').text('CODAP' + nameString);
+    }.observes('DG._currDocumentController.documentName'),
+
     loginDidChange: function () {
       var isDeveloper = DG.authorizationController.get('isUserDeveloper');
       this._fileMenuIncludesDevItems = this._fileMenuIncludesDevItems || isDeveloper;

@@ -65,6 +65,8 @@ DG.main = function main() {
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
     }
   }
+  // set initial game in title
+  DG.appController.documentNameDidChange();
 };
 
 /* jshint unused:false */
