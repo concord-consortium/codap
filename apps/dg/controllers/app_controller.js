@@ -168,9 +168,9 @@ DG.appController = SC.Object.create((function () // closure
           && DG.currDocumentController(),
         nameString = '';
       if (documentController) {
-        nameString = ' - ' + documentController.get('documentName');
+        nameString = documentController.get('documentName') + ' - ';
       }
-      $('title').text('CODAP' + nameString);
+      $('title').text(nameString + 'CODAP');
     }.observes('DG._currDocumentController.documentName'),
 
     loginDidChange: function () {
