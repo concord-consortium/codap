@@ -319,18 +319,6 @@ DG.appController = SC.Object.create((function () // closure
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
       }
-//      else {
-//        // Handle error response from server
-//        var msgKey = 'DG.AppController.openDocument.' + SC.json.decode(iResponse.get('body')).message;
-//        if (msgKey.loc() === msgKey)
-//          msgKey = 'DG.AppController.openDocument.error.general';
-//        // Note that we currently only support a single message rather than message & description.
-//        // We could use a convention like a '\n' in the string to delineate the separate message
-//        // and description without requiring the server to return two strings (for instance).
-//        // We leave this as a possible future nicety for a subsequent release so as not to hold
-//        // up the initial release for what is essentially a cosmetic improvement.
-//        alertDescription = msgKey;
-//      }
       if (shouldShowAlert) {
         // Should handle errors here -- alert the user, etc.
         DG.AlertPane.error({
