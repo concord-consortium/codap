@@ -17,7 +17,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/* global L */
 sc_require('components/graph_map_common/plot_data_configuration');
 
 /** @class  DG.MapDataConfiguration - The object that describes the manner in which attributes are

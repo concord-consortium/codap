@@ -17,7 +17,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/* global L */
 /** @class DG.MapGridLayer - A plot of dots placed according to numeric values
 
   @extends SC.Object
@@ -55,7 +55,6 @@ DG.MapGridLayer = SC.Object.extend(
     if( !tMap || !tModel)
       return;
     var tOptions = { color: 'white', fillColor: 'red', weight: 1 },
-        tModel = this.get('model'),
         tRectangles = [],
         tMaxCount = tModel.get('rectArray').maxCount,
         tIndex = 0,
