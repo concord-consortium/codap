@@ -532,9 +532,6 @@ DG.CollectionClient = SC.Object.extend(
     DG.store.commitRecords();
 
     this.get('collection').updateCaseIDToIndexMap();
-
-    // Manual refresh seems necessary for the results to take effect.
-    this.getPath('casesController.content').refresh();
   },
   
   /**
