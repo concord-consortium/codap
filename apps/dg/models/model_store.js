@@ -124,7 +124,7 @@ DG.ModelStore = SC.Object.extend(
             this.deregister(id);
           }
         }
-      });
+      }.bind(this));
       return removedKeys;
     },
     /*
