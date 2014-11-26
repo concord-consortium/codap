@@ -108,6 +108,11 @@ DG.Attribute = DG.BaseModel.extend(
         DG.logWarn('Unresolved reference to collection id, ' + this.collection +
           ', in attribute: ' + this.id);
       }
+      if (!(this.collection.recordType
+        && this.collection.recordType() === DG.CollectionRecord) ) {
+        DG.logWarn('Unexpected collection RecordType: '
+          + this.collection.recordTypeString());
+      }
     },
 
     /**
@@ -121,7 +126,7 @@ DG.Attribute = DG.BaseModel.extend(
       }
 
       if (this.collection) {
-        this.collection.attrsRecords.removeObject(this);
+        this.collection.attrs.removeObject(this);
       }
 
       if( this._dgFormula)
@@ -224,12 +229,14 @@ DG.Attribute = DG.BaseModel.extend(
       return {
         name: this.name,
         type: this.type,
-        precision: this.precision,
         defaultMin: this.defaultMin,
         defaultMax: this.defaultMax,
         description: this.description,
         colormap: this.colormap || undefined,
-        guid: this.id
+        editable: this.formula? this.editable: undefined,
+        formula: this.formula? this.formula: undefined,
+        guid: this.id,
+        precision: this.precision
       };
     }
   });

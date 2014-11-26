@@ -103,7 +103,7 @@ DG.Collection = SC.Object.extend(
     var attr;
     iProperties = iProperties || {};
     // Relate it to its parent collection
-    iProperties.collection = this;
+    iProperties.collection = this.get('collectionRecord');
     attr =  DG.Attribute.createAttribute( iProperties);
     this.attrsRecords.pushObject(attr);
     return attr;
