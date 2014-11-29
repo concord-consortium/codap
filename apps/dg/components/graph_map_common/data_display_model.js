@@ -304,6 +304,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       function hideSelectedCases() {
         DG.logUser("Hide %@ selected cases", tSelection.length);
         this.get('dataConfiguration' ).hideCases( tSelection);
+        DG.dirtyCurrentDocument();
       }
 
       function hideUnselectedCases() {
@@ -313,11 +314,13 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
             });
         DG.logUser("Hide %n selected cases", tUnselected.length);
         this.get('dataConfiguration' ).hideCases( tUnselected);
+        DG.dirtyCurrentDocument();
       }
 
       function showAllCases() {
         DG.logUser("Show all cases");
         this.get('dataConfiguration' ).showAllCases();
+        DG.dirtyCurrentDocument();
       }
 
       return [
