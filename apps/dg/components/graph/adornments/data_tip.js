@@ -52,7 +52,8 @@ DG.DataTip = DG.ToolTip.extend(
 
   init: function() {
     sc_super();
-    this.set('paperSource', this.get('plotLayer'));
+    if(!this.get('paperSource'))
+      this.set('paperSource', this.get('plotLayer'));
   },
 
   show: function( iX, iY, iIndex) {
