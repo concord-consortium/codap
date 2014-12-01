@@ -142,19 +142,13 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         var tCoord = this_.cellToCoordinate( iCellNum),
             tTextElement = this_._paper.text( 0, 0, iCellName),
             tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
-                                tTextElement, DG.RenderingUtilities.kDefaultFontHeight),
-            tLineOffset = 0,
-            tTextOffset = 0;
+                                tTextElement, DG.RenderingUtilities.kDefaultFontHeight);
 
         if( !isFinite( tCoord)) {
           tTextElement.remove();
           return;
         }
-        if( (iCellNum === tModel.get('numberOfCells') - 1) && (tOrientation === 'vertical')) {
-          tLineOffset = -2;
-          tTextOffset = -tTextExtent.height / 2;
-        }
-        tLabelSpecs.push( { element: tTextElement, coord: tCoord, lineOffset: tLineOffset, textOffset: tTextOffset,
+        tLabelSpecs.push( { element: tTextElement, coord: tCoord,
                             height: tTextExtent.height, width: tTextExtent.width });
 
         tMaxHeight = Math.max( tMaxHeight, tTextExtent.height);
@@ -171,14 +165,13 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       function drawOneCell( iLabelSpec) {
         var tCoord = iLabelSpec.coord,
             tLabelX, tLabelY;
-        switch( tOrientation) {
+        switch( this_.get('orientation')) {
           case 'vertical':
             this_._elementsToClear.push(
-              this_._paper.line( tBaseline, tCoord + tTickOffset + iLabelSpec.lineOffset,
-                      tBaseline - kTickLength, tCoord + tTickOffset + iLabelSpec.lineOffset)
+              this_._paper.line( tBaseline, tCoord + tTickOffset, tBaseline - kTickLength, tCoord + tTickOffset)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
             tLabelX = tBaseline - kTickLength - kAxisGap - iLabelSpec.height / 3;
-            tLabelY = tCoord + tTickOffset + iLabelSpec.textOffset;
+            tLabelY = tCoord + tTickOffset;
             if( tRotation === 0) {
               tAnchor = 'end';
             }
