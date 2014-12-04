@@ -445,6 +445,7 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
+
       if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
@@ -1064,6 +1065,18 @@ DG.appController = SC.Object.create((function () // closure
     reportProblem: function () {
       var username = DG.authorizationController.getPath('currLogin.user');
 
+      var kVSpace = 20;
+      var top = 0;
+      var height = 0;
+      var nextTop = function (n) {
+        top += (height + n);
+        return top;
+      };
+      var lastHeight = function (n) {
+        height = n;
+        return height;
+      };
+
       if (username === 'guest') // Guest user isn't specific enough
         username = '';
 
@@ -1073,13 +1086,75 @@ DG.appController = SC.Object.create((function () // closure
           encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
           encodeURIComponent(SC.browser.name), encodeURIComponent(SC.browser.version),
           encodeURIComponent(DG.BUILD_NUM), encodeURIComponent(username));
-      DG.currDocumentController().
-        addWebView(DG.mainPage.get('docView'), null, serverString,
-        'DG.AppController.reportProblem.dialogTitle'.loc(),
-        { centerX: 0, centerY: 0, width: 600, height: 500 });
+
+      //Begin feedback form
+
+      this.feedbackPane=SC.PanelPane.create({
+
+        layout: { top: 200, centerX: 0, width: 800, height: 400 },
+        contentView: SC.View.extend({
+          childViews: 'feedbackHeader messageText subjectText feedbackText submitFeedbackButton'.w(),
+
+          feedbackHeader: SC.LabelView.design({
+            layout: { top: 20, left: 40, right: 0, height: lastHeight(24) },
+            controlSize: SC.LARGE_CONTROL_SIZE,
+            fontWeight: SC.BOLD_WEIGHT,
+            textAlign: SC.ALIGN_LEFT,
+            value: 'Open support request',
+            localize: YES
+          }),
+
+          messageText: SC.LabelView.design({
+            layout: { top: 60, left: 40, right: 0, width: 350},
+            textAlign: SC.ALIGN_LEFT,
+            value: 'Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback  Please send us your feedback Please send us your feedback Please send us your feedback',
+            localize: YES
+          }),
+
+          subjectText: SC.TextFieldView.design({
+            layout: { top: 60, right: 40, width: 350, height: lastHeight(20) },
+            autoCorrect: false,
+            autoCapitalize: false,
+            hint: 'Subject'
+          }),
+
+          /*passwordLabel: SC.LabelView.design({
+            layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18) },
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.Authorization.loginPane.passwordLabel',        // "Password"
+            localize: YES
+          }),*/
+
+          feedbackText: SC.TextFieldView.design({
+            layout: { top: 90, right: 40, height: lastHeight(200), width: 350 },
+            isTextArea: true,
+            autoCorrect: false,
+            autoCapitalize: false,
+            hint:'Type in feedback'
+          }),
+
+          submitFeedbackButton: SC.ButtonView.design({
+            layout: { bottom: 40, height: lastHeight(24), right: 40, width: 125 },
+            title: 'Submit feedback',
+            localize: YES,
+            target:"DG.appController",
+            action: 'submitFeedback',
+            isDefault: NO
+          })
+        })
+      });
+
+      this.feedbackPane.append();
+      this.feedbackPane.contentView.subjectText.becomeFirstResponder();
+
 
     },
 
+    submitFeedback: function() {
+
+    this.feedbackPane.remove();
+    this.feedbackPane=null;
+  },
     /**
      Pass responsibility to document controller
      */
