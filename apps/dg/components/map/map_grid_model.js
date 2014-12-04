@@ -134,7 +134,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
 
     initializeRectArray: function() {
 
-      var tStartSouth, tStartWest;
+      var tCases = this.getPath('dataConfiguration.cases'),
+          tStartSouth, tStartWest;
 
       var setupRectangles = function() {
         var tRectArray = this.get('rectArray'),
@@ -178,8 +179,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
           this.get('rectArray').maxCount = 0;
         }.bind(this);
 
-        var tCases = this.getPath('dataConfiguration.cases'),
-            tGridWidth = this.get('gridWidth'),
+        var tGridWidth = this.get('gridWidth'),
             tGridHeight = this.get('gridHeight'),
             tLongVarID = this.getPath('dataConfiguration.xAttributeDescription.attributeID'),
             tLatVarID = this.getPath('dataConfiguration.yAttributeDescription.attributeID'),
@@ -196,9 +196,11 @@ DG.MapGridModel = SC.Object.extend((function () // closure
 
       this.beginPropertyChanges();
         this.set('rectArray', new RectArray());
-        setupRectangles();
-        computeCounts();
-        this.get('rectArray').deleteZeroRects();
+        if(tCases.length > 0) {
+          setupRectangles();
+          computeCounts();
+          this.get('rectArray').deleteZeroRects();
+        }
       this.endPropertyChanges();
     },
 

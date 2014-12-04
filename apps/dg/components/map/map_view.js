@@ -176,7 +176,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       pointVisibilityChanged: function() {
-        this.setPath('mapPointView.isVisible', this.getPath('model.pointsShouldBeVisible'));
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible');
+        this.setPath('mapPointView.isVisible', tPointsAreVisible);
+        this.setPath('mapGridLayer.showTips', !tPointsAreVisible);
       }.observes('model.pointsShouldBeVisible'),
 
       addAreaLayer: function () {
@@ -206,7 +208,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.set('mapGridLayer', DG.MapGridLayer.create(
             {
               mapSource: this,
-              model: tGridModel
+              model: tGridModel,
+              showTips: !this.getPath('model.pointsShouldBeVisible')
             }));
         // The size of any points depends on whether the grid is visible or not
         if( !this.get('mapPointView'))

@@ -41,6 +41,8 @@ DG.MapGridLayer = SC.Object.extend(
    */
   grid: null,
 
+  showTips: false,
+
   init: function() {
     sc_super();
     this.visibilityHasChanged();
@@ -67,7 +69,7 @@ DG.MapGridLayer = SC.Object.extend(
 
           handleMouseover = function( iEvent) {
             tRect = tModel.get('rectArray').getRect( iLongIndex, iLatIndex);
-            if( tRect.count === 0)
+            if( (tRect.count === 0) || !this.get('showTips'))
               return;
             tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
             tPopup.options.offset[1] = -10;
@@ -95,7 +97,7 @@ DG.MapGridLayer = SC.Object.extend(
                             .on('mouseout', handleMouseout);
       tRectangles.push(tLeafRect);
       tIndex++;
-    });
+    }.bind( this));
 
     this.set('grid', tRectangles);
   },
