@@ -102,13 +102,13 @@ DG.appController = SC.Object.create((function () // closure
             title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
             target: this, 
             action: 'copyDocument',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
+            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
           {
             localize: true,
             title: 'DG.AppController.revertDocument.title', // "Revert to Original..."
             target: this,
             action: 'revertDocumentToOriginal',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
+            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
           { 
             localize: true, 
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
@@ -136,7 +136,7 @@ DG.appController = SC.Object.create((function () // closure
             title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
             target: this, 
             action: 'showShareLink',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
+            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
           }
         ],
         devItems = [

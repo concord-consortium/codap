@@ -147,6 +147,22 @@ DG.DocumentController = SC.Object.extend(
   _lastCopiedDocument: null,
   externalDocumentId: null,
 
+  isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled').bool(),
+
+  canBeCopied: function() {
+    return this.get('isSaveEnabled') &&
+           this.get('documentName') !== SC.String.loc('DG.Document.defaultDocumentName') &&
+           this.get('externalDocumentId');
+  }.property('isSaveEnabled','documentName','savedChangeCount','externalDocumentId'),
+
+  canBeReverted: function() {
+    return this.get('canBeCopied');
+  }.property('canBeCopied'),
+
+  canBeShared: function() {
+    return this.get('canBeCopied');
+  }.property('canBeCopied'),
+
   init: function() {
     sc_super();
     
