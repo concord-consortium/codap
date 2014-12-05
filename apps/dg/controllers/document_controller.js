@@ -207,7 +207,9 @@ DG.DocumentController = SC.Object.extend(
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
   },
-  
+
+  gameHasUnsavedChangesBinding: SC.Binding.oneWay('DG._currGameController.hasUnsavedChanges').bool(),
+
   /**
     Whether or not the document contains unsaved changes such that the user
     should be prompted to confirm when closing the document, for instance.
@@ -221,11 +223,11 @@ DG.DocumentController = SC.Object.extend(
    */
   hasUnsavedChanges: function() {
     // Game controller state affects the document state
-    return DG.authorizationController.get('isSaveEnabled') &&
+    return this.get('isSaveEnabled') &&
             ((this.get('changeCount') > this.get('savedChangeCount')) ||
-            DG.currGameController.get('hasUnsavedChanges'));
-  }.property(),
-  
+            this.get('gameHasUnsavedChanges'));
+  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges'),
+
   /**
     Synchronize the saved change count with the full change count.
     This method should be called when a save occurs, for instance.
