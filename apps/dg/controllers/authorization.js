@@ -334,7 +334,7 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   deleteDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/delete?recordname=%@'.fmt( iDocumentId );
+    var url = DG.documentServer + 'document/delete?recordid=%@'.fmt( iDocumentId );
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
@@ -388,8 +388,10 @@ return {
   },
 
   revertCurrentDocument: function(iReceiver) {
+    if (!DG.currDocumentController().get('canBeReverted')) { return; }
+
     var url = DG.documentServer + 'document/open';
-    url += '?recordname=' + DG.currDocumentController().get('documentName');
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
     url += '&original=true';
 
     if (this.getPath('currLogin.user') !== 'guest') {
@@ -407,7 +409,7 @@ return {
 
   renameDocument: function(iOriginalName, iNewName, iReceiver) {
     var url = DG.documentServer + 'document/rename';
-    url += '?recordname=' + iOriginalName;
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
     url += '&newRecordname=' + iNewName;
 
     if (this.getPath('currLogin.user') !== 'guest') {
