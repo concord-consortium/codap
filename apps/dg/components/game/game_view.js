@@ -38,19 +38,20 @@ DG.GameView = SC.WebView.extend(
   // providerContext.currentUrl, where providerContext is an
   // instance of the DG.ProviderContext class, and a single
   // document can contain multiple DG.ProviderContext instances.
-  valueBinding: 'DG.gameSelectionController.currentUrl',
+  //valueBinding: 'DG.gameSelectionController.currentUrl',
 
   // Setup iframePhone communication with the child iframe before it loads, so that connection
   // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
   valueDidChange: function() {
     var value = this.get('value');
+    debugger;
 
     if (value !== this._previousValue) {
 
       // First discontinue listening to old game.
-      if (DG.gamePhone) {
-        DG.gamePhone.disconnect();
-      }
+//      if (DG.gamePhone) {
+//        DG.gamePhone.disconnect();
+//      }
 
       // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
       DG.set('isGamePhoneInUse', false);
@@ -89,7 +90,7 @@ DG.GameView = SC.WebView.extend(
             }            
           });
         },
-        'codap-game',
+        this.name,
         this.$('iframe')[0],
         DG.gameSelectionController.getPath('currentGame.origin')
       );
@@ -111,7 +112,7 @@ DG.GameView = SC.WebView.extend(
   iframeDidLoad: function()
   {
     var iframe = this.$('iframe')[0];
-
+    this.valueDidChange();
     if (iframe && iframe.contentWindow) {
       var contentWindow = iframe.contentWindow,
           target = DG.currGameController;
