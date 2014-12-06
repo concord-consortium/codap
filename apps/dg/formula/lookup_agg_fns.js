@@ -58,7 +58,7 @@ DG.LookupAggFns = {
         // then the "first case" is different. We handle that
         // possibility by stashing a separate _childCase_
         // reference in the returned evaluation context.
-        if( children)
+        if( children && children.length > 0)
           tmpEvalContext._childCase_ = children.firstObject();
         return tmpEvalContext;
       }
@@ -100,7 +100,7 @@ DG.LookupAggFns = {
         // then the "last case" is different. We handle that
         // possibility by stashing a separate _childCase_
         // reference in the returned evaluation context.
-        if( children)
+        if( children && children.length > 0)
           tmpEvalContext._childCase_ = children.lastObject();
         return tmpEvalContext;
       }
