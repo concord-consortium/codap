@@ -519,13 +519,14 @@ DG.DocumentController = SC.Object.extend(
   
   addGame: function( iParentView, iComponent) {
     var tGameParams = DG.gameSelectionController.get('currentDimensions') || { width: 0, height: 0 },
-        tGameName = DG.gameSelectionController.get('currentName') || '';
+        tGameUrl = (iComponent && iComponent.getPath('componentStorage.currentGameUrl')),
+        tGameName = (iComponent && iComponent.getPath('componentStorage.currentGameName')) || '';
 
     var tView = this.createComponentView(iComponent, {
                               parentView: iParentView, 
                               controller: DG.currGameController,
                               componentClass: { type: 'DG.GameView', constructor: DG.GameView},
-                              contentProperties: {},             
+                              contentProperties: {value: tGameUrl, name: tGameName},
                               defaultLayout: { width: tGameParams.width, height: tGameParams.height },
                               title: tGameName,
                               isResizable: true}  // may change this to false in the future
