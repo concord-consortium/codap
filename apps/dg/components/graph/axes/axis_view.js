@@ -69,24 +69,38 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   }.property('labelNode'),
 
   /**
+   * A y-axis gets its pixelMin from the corresponding x-axis
+   * @property { DG.AxisView }
+   */
+  otherAxisView: null,
+
+  /**
     Coordinate of my minimum value (Y: bottom end, X: left end)
     @property { Number }
-    Note trouble with cacheability
   */
   pixelMin: function() {
-    return (this.get('orientation') === 'vertical') ?
-          this.get('drawHeight') : 0;
-  }.property('drawHeight')/*.cacheable()*/,
+    switch( this.get('orientation')) {
+      case 'vertical':
+        return this.get('drawHeight') - this.getPath('otherAxisView.drawHeight');
+        break;
+      case 'horizontal':
+        return 0;
+    }
+  }.property('otherAxisView.drawHeight', 'drawHeight'),
 
   /**
     Coordinate of my maximum value (Y: top end, X: right end)
     @property { Number }
-    Note trouble with cacheability
   */
   pixelMax: function() {
-    return (this.get('orientation') === 'vertical') ?
-          0 : this.get('drawWidth');
-  }.property('drawWidth')/*.cacheable()*/,
+    switch( this.get('orientation')) {
+      case 'vertical':
+        return 0;
+        break;
+      case 'horizontal':
+        return this.get('drawWidth');
+    }
+  }.property('drawWidth'),
 
   /**
   Return the extent of the label
@@ -181,6 +195,14 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   init: function() {
     sc_super();
     this._labelNodes = [];
+  },
+
+  /**
+   * Make sure we don't hang around pointing to otherAxisView
+   */
+  destroy: function() {
+    this.otherAxisView = null;  // break circular references
+    sc_super();
   },
 
   /**
