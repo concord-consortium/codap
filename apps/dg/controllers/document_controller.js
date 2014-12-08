@@ -869,12 +869,16 @@ DG.DocumentController = SC.Object.extend(
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
-      var errorMessage = 'DG.AppController.saveDocument.' + body.message;
-      if (errorMessage.loc() === errorMessage)
-        errorMessage = 'DG.AppController.saveDocument.error.general';
-      DG.AlertPane.error({
-        localize: true,
-        message: errorMessage});
+      if (body.message == 'error.sessionExpired' || iResponse.get('status') == 401 || iResponse.get('status') == 403) {
+        DG.authorizationController.sessionTimeoutPrompt();
+      } else {
+        var errorMessage = 'DG.AppController.saveDocument.' + body.message;
+        if (errorMessage.loc() === errorMessage)
+          errorMessage = 'DG.AppController.saveDocument.error.general';
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage});
+      }
     } else {
       var newDocId = iResponse.getPath('response.id');
       this.set('externalDocumentId', ''+newDocId);

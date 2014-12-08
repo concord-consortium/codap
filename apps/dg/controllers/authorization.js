@@ -496,6 +496,29 @@ return {
     }
   },
 
+  sessionTimeoutPrompt: function() {
+    DG.AlertPane.error({
+      localize: true,
+      message: 'DG.Authorization.sessionExpired.message',
+      buttons: [
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.loginButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.loginButtonTooltip',
+          isDefault: true,
+          target: this,
+          action: 'logInViaDocumentServer'
+        },
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.ignoreButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
+          isCancel: true
+        },
+      ]
+    })
+  },
+
   logInViaDocumentServer: function() {
     window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
   },
