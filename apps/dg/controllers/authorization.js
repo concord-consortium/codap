@@ -310,18 +310,26 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    
+    this.set('saveInProgress', true);
+
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
-              
+
     var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
       .notify(iReceiver, notificationFunction)
+      .notify(this, 'doneSavingDocument')
+      .timeoutAfter(60000)
       .send(iDocumentArchive);
+  },
+
+  saveInProgress: false,
+  doneSavingDocument: function() {
+    this.set('saveInProgress', false);
   },
 
   /**

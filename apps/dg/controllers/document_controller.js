@@ -850,17 +850,19 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    this.exportDocument(function(docArchive) {
-      if( !SC.none( iDocumentPermissions)) {
-        docArchive._permissions = iDocumentPermissions;
-        this.setPath('content._permissions', iDocumentPermissions);
-      }
+    if (!DG.authorizationController.get('saveInProgress')) {
+      this.exportDocument(function(docArchive) {
+        if( !SC.none( iDocumentPermissions)) {
+          docArchive._permissions = iDocumentPermissions;
+          this.setPath('content._permissions', iDocumentPermissions);
+        }
 
-      if( DG.assert( !SC.none(docArchive))) {
-        DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-        this.updateSavedChangeCount();
-      }
-    }.bind(this));
+        if( DG.assert( !SC.none(docArchive))) {
+          DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+          this.updateSavedChangeCount();
+        }
+      }.bind(this));
+    }
   },
 
   receivedSaveDocumentResponse: function(iResponse) {
