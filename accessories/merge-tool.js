@@ -4,11 +4,13 @@ var fs   = require("fs");
 //var path = require("path");
 
 function main(args) {
+/*
   function printArgs(args) {
     args.forEach(function(arg) {
       util.error(arg);
     });
   }
+*/
 
   function abort(message) {
     util.error(message);
