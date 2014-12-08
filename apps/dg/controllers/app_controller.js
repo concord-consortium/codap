@@ -429,6 +429,7 @@ DG.appController = SC.Object.create((function () // closure
       if (SC.ok(iResponse) && !iResponse.get('isError')) {
           DG.dirtyCurrentDocument();
           this.saveDocument();
+          this.set('_originalDocumentName', null);
           return;
       }
       // We got an error. Revert the rename.
