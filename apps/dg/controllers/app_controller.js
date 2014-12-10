@@ -25,7 +25,12 @@
 DG.appController = SC.Object.create((function () // closure
 /** @scope DG.appController.prototype */ {
 
+
   return {  // return from closure
+
+    userFeedbackSubject: null,
+
+    userFeedbackText: null,
 
     /**
      * File menu.
@@ -1091,54 +1096,70 @@ DG.appController = SC.Object.create((function () // closure
 
       this.feedbackPane=SC.PanelPane.create({
 
-        layout: { top: 200, centerX: 0, width: 800, height: 400 },
+        layout: { top: 175, centerX: 0, width: 500, height: 550 },
+
         contentView: SC.View.extend({
-          childViews: 'feedbackHeader messageText subjectText feedbackText submitFeedbackButton'.w(),
+          backgroundColor: '#dde2e8',
+          childViews: 'feedbackHeader codapLogo feedbackImage messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
 
           feedbackHeader: SC.LabelView.design({
-            layout: { top: 20, left: 40, right: 0, height: lastHeight(24) },
+            layout: { top: 55, left: 40, right: 0, height: lastHeight(24) },
             controlSize: SC.LARGE_CONTROL_SIZE,
             fontWeight: SC.BOLD_WEIGHT,
             textAlign: SC.ALIGN_LEFT,
-            value: 'Open support request',
+            value: 'DG.AppController.feedbackDialog.dialogTitle',
             localize: YES
           }),
 
+          codapLogo: SC.ImageView.design({
+            layout: {bottom:50, left:40, height:40, width:40},
+            value: 'http://concord.org/sites/default/files/images/logos/cc/projects/codap.png'
+          }),
+
+          feedbackImage: SC.ImageView.design({
+            layout: {top:30, right:40, height:80, width:80},
+            value: 'http://darkeyeglances.com/wp-content/uploads/2013/11/thumbsup-down.jpg'
+          }),
+
           messageText: SC.LabelView.design({
-            layout: { top: 60, left: 40, right: 0, width: 350},
+            layout: { top: 115, left: 40, right: 0, width: 400},
             textAlign: SC.ALIGN_LEFT,
-            value: 'Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback Please send us your feedback  Please send us your feedback Please send us your feedback Please send us your feedback',
+            value: 'DG.AppController.feedbackDialog.messageText',
             localize: YES
           }),
 
           subjectText: SC.TextFieldView.design({
-            layout: { top: 60, right: 40, width: 350, height: lastHeight(20) },
+            layout: { top: 175, left: 40, width: 400, height: lastHeight(30) },
             autoCorrect: false,
             autoCapitalize: false,
-            hint: 'Subject'
+            hint: 'DG.AppController.feedbackDialog.subjectHint',
+            valueBinding: 'DG.appController.userFeedbackSubject'
           }),
 
-          /*passwordLabel: SC.LabelView.design({
-            layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18) },
-            textAlign: SC.ALIGN_CENTER,
-            value: 'DG.Authorization.loginPane.passwordLabel',        // "Password"
-            localize: YES
-          }),*/
-
           feedbackText: SC.TextFieldView.design({
-            layout: { top: 90, right: 40, height: lastHeight(200), width: 350 },
+            layout: { top: 215, left: 40, height: lastHeight(200), width: 400 },
             isTextArea: true,
             autoCorrect: false,
             autoCapitalize: false,
-            hint:'Type in feedback'
+            hint:'DG.AppController.feedbackDialog.feedbackHint',
+            valueBinding: 'DG.appController.userFeedbackText'
           }),
 
           submitFeedbackButton: SC.ButtonView.design({
             layout: { bottom: 40, height: lastHeight(24), right: 40, width: 125 },
-            title: 'Submit feedback',
+            title: 'DG.AppController.feedbackDialog.submitFeedbackButton',
             localize: YES,
             target:"DG.appController",
             action: 'submitFeedback',
+            isDefault: NO
+          }),
+
+          cancelFeedbackButton: SC.ButtonView.design({
+            layout: { bottom: 40, height: lastHeight(24), right: 180, width: 125 },
+            title: 'DG.AppController.feedbackDialog.cancelFeedbackButton',
+            localize: YES,
+            target:"DG.appController",
+            action: 'cancelFeedback',
             isDefault: NO
           })
         })
@@ -1150,11 +1171,45 @@ DG.appController = SC.Object.create((function () // closure
 
     },
 
-    submitFeedback: function() {
+    callDGProblemForm: function(){
 
-    this.feedbackPane.remove();
-    this.feedbackPane=null;
-  },
+    },
+
+    submitFeedback: function() {
+      var iUser = DG.authorizationController.getPath('currLogin.user');
+      var url = 'http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php';
+
+
+      console.log(iUser);
+      console.log(DG.appController.userFeedbackSubject);
+      console.log(DG.appController.userFeedbackText);
+      console.log("Build #"+DG.BUILD_NUM);
+      console.log("Browser: "+SC.browser.name+" v."+SC.browser.version);
+      console.log("Device: "+SC.browser.device);
+      console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
+      //app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?device=desktop&os=mac&os_version=10.9.4&cf_browser=chrome&cf_browser_version=39.0.2171.71&version=0264&name=?device=desktop&os=mac&os_version=10.9.4&cf_browser=chrome&cf_browser_version=39.0.2171.71&version=0264&name=
+
+
+      SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
+        'device='+ SC.browser.device +
+        '&os='+SC.browser.os+
+        '&os_version='+SC.browser.osVersion+
+        '&cf_browser='+SC.browser.name+
+        '&cf_browser_version='+SC.browser.version+
+        '&version='+DG.BUILD_NUM+
+        '&name='+iUser+
+        '&description='+DG.appController.userFeedbackSubject+
+        '&comments='+DG.appController.userFeedbackText)
+        .notify()
+        .send();
+      this.feedbackPane.remove();
+      this.feedbackPane=null;
+    },
+
+    cancelFeedback: function() {
+      this.feedbackPane.remove();
+      this.feedbackPane=null;
+    },
     /**
      Pass responsibility to document controller
      */

@@ -144,7 +144,13 @@ SC.stringsFor('English', {
   'DG.AppController.exportCaseData.okTooltip' : "Done with export",
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
-  'DG.AppController.reportProblem.dialogTitle' : "Report CODAP Problem",
+  'DG.AppController.feedbackDialog.dialogTitle' : "Report a Problem/Provide Feedback",
+  'DG.AppController.feedbackDialog.messageText' : "Your feedback is important to us. Please let us know how we can continue to improve our product. Questions, bug reports and feature requests are all welcome. Thank you!",
+  'DG.AppController.feedbackDialog.subjectHint' : "Subject",
+  'DG.AppController.feedbackDialog.feedbackHint' : "Type in feedback here",
+  'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
+  'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
+  'DG.AppController.feedbackDialog.codapLogoImage' : "http://concord.org/sites/default/files/images/logos/cc/projects/codap.png",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
   'DG.AppController.showWebSiteTitle' : 'About CODAP',
@@ -162,6 +168,7 @@ SC.stringsFor('English', {
   'DG.AppController.copyLinkDialog.title' : 'Copy complete',
   'DG.AppController.copyLinkDialog.okButtonTitle' : 'Go!',
   'DG.AppController.copyLinkDialog.instructions' : "<p>Your document copy is now ready.<br/>Click the Go! button to open it in a new window/tab.</p>",
+
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
