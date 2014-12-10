@@ -104,11 +104,17 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
      Destroy the collection's cases and attributes when the collection is destroyed.
      */
     destroy: function() {
-      var context;
+      var context, ix;
       this.cases.forEach( function( iCase) { DG.Case.destroyCase( iCase); });
 
       this.attrs.forEach( function( iAttr) { DG.Attribute.destroyAttribute( iAttr); });
 
+      if (this.parent) {
+        ix = this.parent.children.indexOf(this);
+        if (ix >= 0) {
+          this.parent.children.splice(ix, 1);
+        }
+      }
       context = this.context;
       delete context.collections[this.id];
       sc_super();
@@ -215,6 +221,9 @@ DG.CollectionRecord.createCollection = function( iProperties) {
 
   tCollection = DG.CollectionRecord.create(iProperties);
 
+  if (iProperties.parent) {
+    iProperties.parent.children.push(tCollection);
+  }
   if (iProperties.context) {
     iProperties.context.collections[tCollection.id] = tCollection;
   }

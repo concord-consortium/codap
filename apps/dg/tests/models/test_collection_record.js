@@ -66,6 +66,8 @@ test('test DG.CollectionRecord', function () {
   equals(tFoundInStore && tFoundInStore.get('id'), tChildID,
     'Newly created child collection should be findable in store');
 
+  // verify that the parent's children array is updated
+  equals(tParentCollection.children.length, 1, 'Child is registered with parent.');
   ok(!tChildCollection.isAncestorOf(tParentCollection), 'Child is not ancestor of parent.');
   ok(tChildCollection.isDescendantOf(tParentCollection), 'Child is descendant of parent.');
   ok(tParentCollection.isAncestorOf(tChildCollection), 'Parent is ancestor of child.');
@@ -86,4 +88,7 @@ test('test DG.CollectionRecord', function () {
   ok(!tFoundInDocument, 'Destroyed child collection is not findable in context.');
   tFoundInStore = DG.store.find(DG.Collection, tChildID);
   ok(!tFoundInStore, 'Destroyed child context is not findable in store.');
+  // make sure the child collection is no longer in the parent record
+  equals(tParentCollection.children.length, 0, 'Child is removed from parent.');
+
 });
