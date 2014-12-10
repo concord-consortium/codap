@@ -1096,14 +1096,14 @@ DG.appController = SC.Object.create((function () // closure
 
       this.feedbackPane=SC.PanelPane.create({
 
-        layout: { top: 175, centerX: 0, width: 500, height: 550 },
+        layout: { top: 175, centerX: 0, width: 525, height: 480 },
 
         contentView: SC.View.extend({
           backgroundColor: '#dde2e8',
           childViews: 'feedbackHeader codapLogo feedbackImage messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
 
           feedbackHeader: SC.LabelView.design({
-            layout: { top: 100, left: 100, right: 0, height: lastHeight(24) },
+            layout: { top: 48, left: 110, height: lastHeight(24) },
             controlSize: SC.LARGE_CONTROL_SIZE,
             fontWeight: SC.BOLD_WEIGHT,
             textAlign: SC.ALIGN_LEFT,
@@ -1122,14 +1122,14 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           messageText: SC.LabelView.design({
-            layout: { top: 125, left: 40, right: 0, width: 400},
+            layout: { top: 105, left: 40, right: 0, width: 400},
             textAlign: SC.ALIGN_LEFT,
             value: 'DG.AppController.feedbackDialog.messageText',
             localize: YES
           }),
 
           subjectText: SC.TextFieldView.design({
-            layout: { top: 185, left: 40, width: 400, height: lastHeight(30) },
+            layout: { top: 165, left: 40, width: 445, height: lastHeight(30) },
             autoCorrect: false,
             autoCapitalize: false,
             hint: 'DG.AppController.feedbackDialog.subjectHint',
@@ -1137,7 +1137,7 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           feedbackText: SC.TextFieldView.design({
-            layout: { top: 225, left: 40, height: lastHeight(200), width: 400 },
+            layout: { top: 205, left: 40, height: lastHeight(200), width: 445 },
             isTextArea: true,
             autoCorrect: false,
             autoCapitalize: false,
@@ -1146,7 +1146,7 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           submitFeedbackButton: SC.ButtonView.design({
-            layout: { bottom: 40, height: lastHeight(24), right: 40, width: 125 },
+            layout: { bottom: 30, height: lastHeight(24), right: 40, width: 125 },
             title: 'DG.AppController.feedbackDialog.submitFeedbackButton',
             localize: YES,
             target:"DG.appController",
@@ -1155,7 +1155,7 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           cancelFeedbackButton: SC.ButtonView.design({
-            layout: { bottom: 40, height: lastHeight(24), right: 180, width: 125 },
+            layout: { bottom: 30, height: lastHeight(24), right: 180, width: 125 },
             title: 'DG.AppController.feedbackDialog.cancelFeedbackButton',
             localize: YES,
             target:"DG.appController",

@@ -145,7 +145,7 @@ SC.stringsFor('English', {
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
   'DG.AppController.feedbackDialog.dialogTitle' : "Report a Problem/Provide Feedback",
-  'DG.AppController.feedbackDialog.messageText' : "Your feedback is important to us. Please let us know how we can continue to improve our product. Questions, bug reports and feature requests are all welcome. Thank you!",
+  'DG.AppController.feedbackDialog.messageText' : "Your feedback is important to us.\n Please let us know how we can continue to improve our product.\n Questions, bug reports and feature requests are all welcome. Thank you!",
   'DG.AppController.feedbackDialog.subjectHint' : "Subject",
   'DG.AppController.feedbackDialog.feedbackHint' : "Type in feedback here",
   'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
