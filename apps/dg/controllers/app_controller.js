@@ -1103,7 +1103,7 @@ DG.appController = SC.Object.create((function () // closure
           childViews: 'feedbackHeader codapLogo feedbackImage messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
 
           feedbackHeader: SC.LabelView.design({
-            layout: { top: 55, left: 40, right: 0, height: lastHeight(24) },
+            layout: { top: 100, left: 100, right: 0, height: lastHeight(24) },
             controlSize: SC.LARGE_CONTROL_SIZE,
             fontWeight: SC.BOLD_WEIGHT,
             textAlign: SC.ALIGN_LEFT,
@@ -1112,24 +1112,24 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           codapLogo: SC.ImageView.design({
-            layout: {bottom:50, left:40, height:40, width:40},
+            layout: {top:30, left:40, height:60, width:60},
             value: 'http://concord.org/sites/default/files/images/logos/cc/projects/codap.png'
           }),
 
           feedbackImage: SC.ImageView.design({
-            layout: {top:30, right:40, height:80, width:80},
-            value: 'http://darkeyeglances.com/wp-content/uploads/2013/11/thumbsup-down.jpg'
+            layout: {top:30, right:40, height:60, width:60},
+            value: 'http://localhost/~evangelineireland/upanddown.png'
           }),
 
           messageText: SC.LabelView.design({
-            layout: { top: 115, left: 40, right: 0, width: 400},
+            layout: { top: 125, left: 40, right: 0, width: 400},
             textAlign: SC.ALIGN_LEFT,
             value: 'DG.AppController.feedbackDialog.messageText',
             localize: YES
           }),
 
           subjectText: SC.TextFieldView.design({
-            layout: { top: 175, left: 40, width: 400, height: lastHeight(30) },
+            layout: { top: 185, left: 40, width: 400, height: lastHeight(30) },
             autoCorrect: false,
             autoCapitalize: false,
             hint: 'DG.AppController.feedbackDialog.subjectHint',
@@ -1137,7 +1137,7 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           feedbackText: SC.TextFieldView.design({
-            layout: { top: 215, left: 40, height: lastHeight(200), width: 400 },
+            layout: { top: 225, left: 40, height: lastHeight(200), width: 400 },
             isTextArea: true,
             autoCorrect: false,
             autoCapitalize: false,
