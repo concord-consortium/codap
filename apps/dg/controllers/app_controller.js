@@ -1100,13 +1100,13 @@ DG.appController = SC.Object.create((function () // closure
 
         contentView: SC.View.extend({
           backgroundColor: '#dde2e8',
-          childViews: 'feedbackHeader codapLogo feedbackImage messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
+          childViews: 'feedbackHeader codapLogo feedbackImage subHeaderText messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
 
           feedbackHeader: SC.LabelView.design({
-            layout: { top: 48, left: 110, height: lastHeight(24) },
+            layout: { top: 48,  height: lastHeight(24) },
             controlSize: SC.LARGE_CONTROL_SIZE,
             fontWeight: SC.BOLD_WEIGHT,
-            textAlign: SC.ALIGN_LEFT,
+            textAlign: SC.ALIGN_CENTER,
             value: 'DG.AppController.feedbackDialog.dialogTitle',
             localize: YES
           }),
@@ -1118,11 +1118,19 @@ DG.appController = SC.Object.create((function () // closure
 
           feedbackImage: SC.ImageView.design({
             layout: {top:30, right:40, height:60, width:60},
-            value: 'http://localhost/~evangelineireland/upanddown.png'
+            value: 'http://localhost/~evangelineireland/thumbupanddown.png'
+          }),
+
+          subHeaderText: SC.LabelView.design({
+            layout: { top: 105, right: 0},
+            textAlign: SC.ALIGN_CENTER,
+            fontWeight: SC.BOLD_WEIGHT,
+            value: 'DG.AppController.feedbackDialog.subHeaderText',
+            localize: YES
           }),
 
           messageText: SC.LabelView.design({
-            layout: { top: 105, left: 40, right: 0, width: 400},
+            layout: { top: 120, left: 40, right: 0, width: 400},
             textAlign: SC.ALIGN_LEFT,
             value: 'DG.AppController.feedbackDialog.messageText',
             localize: YES
