@@ -143,6 +143,8 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tYAxisView);
     this.set('plotBackgroundView', tBackgroundView);
     this.appendChild( tBackgroundView);
+    tXAxisView.set('otherAxisView', tYAxisView);
+    tYAxisView.set('otherAxisView', tXAxisView);
 
     this.set('legendView', tLegendView);
     this.appendChild( tLegendView);
@@ -274,7 +276,7 @@ DG.GraphView = SC.View.extend(
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
         tXAxisView.set( 'layout', { left: tYWidth, bottom: tLegendHeight, height: tXHeight });
-        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tYWidth });
+        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tLegendHeight, width: tYWidth });
         tPlotBackground.set( 'layout', { left: tYWidth, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
         tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
         if(tNumberToggleView)
@@ -285,7 +287,7 @@ DG.GraphView = SC.View.extend(
         tXAxisView.adjust('left', tYWidth);
         tXAxisView.adjust('bottom', tLegendHeight);
         tXAxisView.adjust('height', tXHeight);
-        tYAxisView.adjust('bottom', tXHeight + tLegendHeight);
+        tYAxisView.adjust('bottom', tLegendHeight);
         tYAxisView.adjust('width', tYWidth);
         tYAxisView.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('left', tYWidth);
@@ -364,6 +366,8 @@ DG.GraphView = SC.View.extend(
     
     handleOneAxis( 'model.xAxis', 'xAxisView');
     handleOneAxis( 'model.yAxis', 'yAxisView');
+    this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
+    this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis'),
   
