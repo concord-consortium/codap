@@ -14,6 +14,11 @@
  *  limitations under the License.
  */
 
+.dg-receive-outside-drop {
+    border: 3px solid yellow !important;
+    background-color: blue !important;
+}
+
 /* Default font for case tables */
 .dg-case-table {
     font-family: arial !important;

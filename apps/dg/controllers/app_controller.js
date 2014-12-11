@@ -730,6 +730,39 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * The file parameter may have come from a drop or a dialog box.
+     * @param iFile
+     */
+    importJSONFile: function( iFile, iDialog) {
+
+      function handleAbnormal() {
+        console.log("Abort or error on file read.");
+      }
+
+      function handleRead() {
+        try {
+          that.openJsonDocument(this.result);
+          iDialog.close();
+        }
+        catch(er) {
+          console.log(er);
+          if( iDialog) {
+            iDialog.showAlert();
+          }
+        }
+      }
+
+      var reader = new FileReader();
+      var that = this;
+      if (iFile) {
+        reader.onabort = handleAbnormal;
+        reader.onerror = handleAbnormal;
+        reader.onload = handleRead;
+        reader.readAsText(iFile);
+      }
+    },
+
+    /**
      Handler for the Import JSON Document... menu command.
      Puts up a dialog in which the user can paste the JSON document text and then
      attempts to parse the text and import its contents.
@@ -738,31 +771,8 @@ DG.appController = SC.Object.create((function () // closure
       var tDialog;
 
       var importJsonFileFromDialog = function () {
-        function handleAbnormal() {
-          console.log("Abort or error on file read.");
-        }
-
-        function handleRead() {
-          try {
-            console.log("File read.");
-            that.openJsonDocument(this.result);
-            tDialog.close();
-          }
-          catch (er) {
-            console.log(er);
-            tDialog.showAlert();
-          }
-        }
-
         var v = tDialog.get('value');
-        var reader = new FileReader();
-        var that = this;
-        if (v[0]) {
-          reader.onabort = handleAbnormal;
-          reader.onerror = handleAbnormal;
-          reader.onload = handleRead;
-          reader.readAsText(v[0]);
-        }
+        this.importJSONFile( v[0], tDialog);
       }.bind(this);
 
       var resetAlert = function () {
