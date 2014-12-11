@@ -231,10 +231,11 @@ DG.appController = SC.Object.create((function () // closure
     openDocumentFromDialog: function () {
 
       console.log("In openDocumentFromDialog");
-      SC.Benchmark.start('openDocumentFromDialog');
+
 
       var docName = this.openSaveDialog.get('documentName'),
         docID = this.openSaveDialog.get('documentID');
+      SC.Benchmark.start('openDocumentFromDialog: '+docName);
 
       // Close the dialog when we're finished with it.
       this.openSaveDialog.close();
@@ -276,9 +277,8 @@ DG.appController = SC.Object.create((function () // closure
         }
       }
 
-      SC.Benchmark.end('openDocumentFromDialog');
-      SC.Benchmark.log('openDocumentFromDialog');
-
+      SC.Benchmark.end('openDocumentFromDialog: '+docName);
+      SC.Benchmark.log('openDocumentFromDialog: '+docName);
     },
 
     /**

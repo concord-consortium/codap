@@ -341,6 +341,7 @@ DG.ComponentView = SC.View.extend(
 );
 
 DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iIsVisible) {
+
   var tComponentView = DG.ComponentView.create({ layout: iComponentLayout });
   tComponentView.addContent(iComponentClass.create(iContentProperties));
 
@@ -349,9 +350,13 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
   // pulls the value from the remote property. Therefore, we must wait
   // to set the title until after the binding has been connected.
   tComponentView.invokeLast(function () {
+
     if (!SC.empty(iTitle))
       tComponentView.set('title', iTitle);
+    SC.Benchmark.start('createComponent: '+iTitle);
     DG.logUser("componentCreated: %@", iTitle);
+    SC.Benchmark.end('createComponent: '+iTitle);
+    SC.Benchmark.log('createComponent: '+iTitle);
   });
 
   if (!SC.none(iIsResizable))
