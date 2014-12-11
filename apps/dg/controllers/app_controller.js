@@ -733,46 +733,77 @@ DG.appController = SC.Object.create((function () // closure
      * The file parameter may have come from a drop or a dialog box.
      * @param iFile
      */
-    importJSONFile: function( iFile, iDialog) {
+    importJSONFileWithConfirmation: function( iFile, iDialog) {
 
-      function handleAbnormal() {
-        console.log("Abort or error on file read.");
-      }
-
-      function handleRead() {
-        try {
-          that.openJsonDocument(this.result);
-          iDialog.close();
+      var importJSONFile = function() {
+        function handleAbnormal() {
+          console.log("Abort or error on file read.");
         }
-        catch(er) {
-          console.log(er);
-          if( iDialog) {
-            iDialog.showAlert();
+
+        function handleRead() {
+          try {
+            that.openJsonDocument(this.result);
+            if (iDialog)
+              iDialog.close();
+          }
+          catch (er) {
+            console.log(er);
+            if (iDialog) {
+              iDialog.showAlert();
+            }
           }
         }
-      }
 
-      var reader = new FileReader();
-      var that = this;
-      if (iFile) {
-        reader.onabort = handleAbnormal;
-        reader.onerror = handleAbnormal;
-        reader.onload = handleRead;
-        reader.readAsText(iFile);
+        var reader = new FileReader();
+        var that = this;
+        if (iFile) {
+          reader.onabort = handleAbnormal;
+          reader.onerror = handleAbnormal;
+          reader.onload = handleRead;
+          reader.readAsText(iFile);
+        }
+      }.bind( this);
+
+      var cancelCloseDocument = function () {
+        DG.logUser("cancelCloseDocument: '%@'", docName);
+      };
+
+      if (DG.currDocumentController().get('hasUnsavedChanges')) {
+        var docName = DG.currDocumentController().get('documentName');
+        DG.logUser("confirmCloseDocument?: '%@'", docName);
+        DG.AlertPane.warn({
+          message: 'DG.AppController.closeDocument.warnMessage',
+          description: 'DG.AppController.closeDocument.warnDescription',
+          buttons: [
+            { title: 'DG.AppController.closeDocument.okButtonTitle',
+              action: importJSONFile,
+              localize: YES
+            },
+            { title: 'DG.AppController.closeDocument.cancelButtonTitle',
+              action: cancelCloseDocument,
+              localize: YES
+            }
+          ],
+          localize: YES
+        });
       }
+      else {
+        importJSONFile();
+      }
+      if( iDialog)
+        iDialog.close();
     },
 
     /**
      Handler for the Import JSON Document... menu command.
-     Puts up a dialog in which the user can paste the JSON document text and then
-     attempts to parse the text and import its contents.
+     Puts up a dialog with which the user can specify a file to be imported.
      */
     importDocument: function () {
       var tDialog;
 
       var importJsonFileFromDialog = function () {
         var v = tDialog.get('value');
-        this.importJSONFile( v[0], tDialog);
+        this.importJSONFileWithConfirmation( v[0], tDialog);
       }.bind(this);
 
       var resetAlert = function () {

@@ -25,7 +25,7 @@ test("test DG.DataContext", function () {
     tChildCollection = tDataContext.createCollection({
       name: 'cB',
       description: 'A child collection',
-      parent: tParentCollection
+      parent: tParentCollection.getPath('collection.id')
     }), rslt;
   ok(tDataContext, 'Can create a Data Context');
   equals(tDataContext.collectionCount(), 2, 'Can get collection count.');

@@ -91,8 +91,19 @@ DG.ModelStore = SC.Object.extend(
         DG.logWarn('Store may be corrupt: found id, ' + tNewID + ', in new object and store.');
         DG.logWarn("Creating new object, but bad references may be present.");
       }
-      while (SC.empty(tNewID) || this._store[tNewID]) {
-        tNewID = ++this._idCount;
+      if (SC.empty(tNewID)) {
+        while (SC.empty(tNewID) || this._store[tNewID]) {
+          tNewID = ++this._idCount;
+        }
+      } else {
+        // We make sure that new IDs for previously unassigned objects are
+        // higher than any yet seen. The case table orders child groups by
+        // parent IDs. In itself, this is a bug in the case table. We are
+        // fixing it here because it would require significant revisions of the
+        // case table to fix there, and we are to replace the case table soon.
+        // With a new case table implementation we should be able to remove this
+        // clause. jms 12/2014
+        this._idCount = Math.max(this._idCount, tNewID);
       }
       return tNewID;
     },

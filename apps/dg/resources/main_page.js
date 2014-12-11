@@ -107,68 +107,10 @@ DG.mainPage = SC.Page.design((function() {
         })
       }),
 
-      setupDragDrop: function() {
-
-        var cancel = function( iEvent) {
-          if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-          iEvent.dataTransfer.dropEffect = 'copy'; // tells the browser what drop effect is allowed here
-          return false; // required by IE
-        },
-            dragEnter = function( iEvent) {
-              cancel( iEvent);
-              $(tElement).addClass('dg-receive-outside-drop');
-            }.bind( this),
-            dragEnd = function( iEvent) {
-              cancel( iEvent);
-              $(tElement).removeClass('dg-receive-outside-drop');
-            }.bind( this);
-
-        var handleDrop = function( iEvent) {
-          if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-
-          var tDataTransfer = iEvent.dataTransfer,
-              tFiles = tDataTransfer.files;
-          if( tFiles && (tFiles.length > 0) && (tFiles[0].type === 'application/json')) {
-            DG.appController.importJSONFile( tFiles[0]);
-          }
-          $(tElement).removeClass('dg-receive-outside-drop');
-
-          return false;
-        };
-
-        var tElement = this._view_layer;
-        tElement.ondragover = cancel;
-        tElement.ondragenter = dragEnter;
-        tElement.ondragend = dragEnd;
-        tElement.ondrop = handleDrop;
-      },
-
       init: function() {
         sc_super();
-        this.invokeLater( 'setupDragDrop', 300);
-      },
-
-      // We can drop a URL or file in this view to show a web view or import a document
-      dataDragEntered: function( iEvent) {
-        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-        iEvent.dataTransfer.dropEffect = 'copy';
-        console.log('entered');
-        return false;
-      },
-      dataDragHovered: function( iEvent) {
-        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-        iEvent.dataTransfer.dropEffect = 'copy';
-        console.log('hovered');
-        return false;
-      },
-      dataDragDropped: function( iEvent) {
-        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-        console.log('dropped');
-        return false;
-      },
-      dataDragExited: function( iEvent) {
-        console.log('exited');
       }
+
     }),
 
     topView: SC.ToolbarView.design({
@@ -256,8 +198,45 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
+      this.invokeLater( 'setupDragDrop', 300);
     },
-    
+
+    setupDragDrop: function() {
+
+      var cancel = function( iEvent) {
+            if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+            iEvent.dataTransfer.dropEffect = 'copy';
+            return false; // required by IE
+          },
+          dragEnter = function( iEvent) {
+            cancel( iEvent);
+            $(tElement).addClass('dg-receive-outside-drop');
+          }.bind( this),
+          dragEnd = function( iEvent) {
+            cancel( iEvent);
+            $(tElement).removeClass('dg-receive-outside-drop');
+          }.bind( this);
+
+      var handleDrop = function( iEvent) {
+        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+
+        var tDataTransfer = iEvent.dataTransfer,
+            tFiles = tDataTransfer.files;
+        if( tFiles && (tFiles.length > 0) && (tFiles[0].type === 'application/json')) {
+          DG.appController.importJSONFileWithConfirmation( tFiles[0]);
+        }
+        $(tElement).removeClass('dg-receive-outside-drop');
+
+        return false;
+      };
+
+      var tElement = this._view_layer;
+      tElement.ondragover = cancel;
+      tElement.ondragenter = dragEnter;
+      tElement.ondragleave = dragEnd;
+      tElement.ondrop = handleDrop;
+    },
+
     /**
       The mainPane itself should be the default key view, rather than an arbitrary subview.
       
