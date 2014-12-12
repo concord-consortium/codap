@@ -310,18 +310,26 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    
+    this.set('saveInProgress', true);
+
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
-              
+
     var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
       .notify(iReceiver, notificationFunction)
+      .notify(this, 'doneSavingDocument')
+      .timeoutAfter(60000)
       .send(iDocumentArchive);
+  },
+
+  saveInProgress: false,
+  doneSavingDocument: function() {
+    this.set('saveInProgress', false);
   },
 
   /**
@@ -334,7 +342,7 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   deleteDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/delete?recordname=%@'.fmt( iDocumentId );
+    var url = DG.documentServer + 'document/delete?recordid=%@'.fmt( iDocumentId );
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
@@ -388,8 +396,10 @@ return {
   },
 
   revertCurrentDocument: function(iReceiver) {
+    if (!DG.currDocumentController().get('canBeReverted')) { return; }
+
     var url = DG.documentServer + 'document/open';
-    url += '?recordname=' + DG.currDocumentController().get('documentName');
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
     url += '&original=true';
 
     if (this.getPath('currLogin.user') !== 'guest') {
@@ -407,7 +417,7 @@ return {
 
   renameDocument: function(iOriginalName, iNewName, iReceiver) {
     var url = DG.documentServer + 'document/rename';
-    url += '?recordname=' + iOriginalName;
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
     url += '&newRecordname=' + iNewName;
 
     if (this.getPath('currLogin.user') !== 'guest') {
@@ -484,6 +494,29 @@ return {
     } else {
       DG.logWarn("Login: no currLogin record");
     }
+  },
+
+  sessionTimeoutPrompt: function() {
+    DG.AlertPane.error({
+      localize: true,
+      message: 'DG.Authorization.sessionExpired.message',
+      buttons: [
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.loginButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.loginButtonTooltip',
+          isDefault: true,
+          target: this,
+          action: 'logInViaDocumentServer'
+        },
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.ignoreButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
+          isCancel: true
+        },
+      ]
+    })
   },
 
   logInViaDocumentServer: function() {

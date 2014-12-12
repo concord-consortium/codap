@@ -50,6 +50,7 @@ DG.mainPage = SC.Page.design((function() {
           isEditableBinding: 'DG.authorizationController.isSaveEnabled',
           valueBinding: 'DG._currDocumentController.documentName',
           toolTipBinding: 'DG._currDocumentController.documentName',
+          originalValue: null,
           inlineEditorDidBeginEditing: function(editor, value) {
             this.set('originalValue', value);
           },
@@ -57,7 +58,10 @@ DG.mainPage = SC.Page.design((function() {
             var original = this.get('originalValue'),
                 newValue = this.get('value');
 
-            DG.appController.renameDocument(original, newValue);
+            if (original) {
+              DG.appController.renameDocument(original, newValue);
+              this.set('originalValue', null);
+            }
             return true;
           }.observes('value'),
           click: function() {
