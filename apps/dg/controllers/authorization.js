@@ -516,7 +516,7 @@ return {
           isCancel: true
         },
       ]
-    })
+    });
   },
 
   logInViaDocumentServer: function() {

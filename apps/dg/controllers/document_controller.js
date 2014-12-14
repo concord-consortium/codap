@@ -869,7 +869,7 @@ DG.DocumentController = SC.Object.extend(
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
-      if (body.message == 'error.sessionExpired' || iResponse.get('status') == 401 || iResponse.get('status') == 403) {
+      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
         var errorMessage = 'DG.AppController.saveDocument.' + body.message;
