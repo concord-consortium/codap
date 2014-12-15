@@ -395,6 +395,29 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     *
+     * @param iText - either CSV or tab-delimited
+     * @returns {Boolean}
+     */
+    importText: function( iText) {
+      // Currently, we must close any open document before opening another
+      this.closeDocument();
+
+      // Create document-specific store.
+      var archiver = DG.DocumentArchiver.create({}),
+          newDocument;
+
+      // Parse the document contents from the retrieved docText.
+      newDocument = archiver.importTextIntoDocument( iText);
+
+      DG.currDocumentController().setDocument(newDocument);
+
+      DG.mainPage.toggleCaseTable();  // This will show the case table
+
+      return true;
+    },
+
+    /**
      Allows the user to save the current document contents with a user-specified document name.
      */
     saveDocument: function () {
@@ -733,17 +756,24 @@ DG.appController = SC.Object.create((function () // closure
     /**
      * The file parameter may have come from a drop or a dialog box.
      * @param iFile
+     * @param {String} 'JSON' or 'TEXT'
+     * @param optional
      */
-    importJSONFileWithConfirmation: function( iFile, iDialog) {
+    importFileWithConfirmation: function( iFile, iType, iDialog) {
 
-      var importJSONFile = function() {
+      var importFile = function() {
         function handleAbnormal() {
           console.log("Abort or error on file read.");
         }
 
         function handleRead() {
           try {
-            that.openJsonDocument(this.result);
+            if( iType === 'JSON') {
+              that.openJsonDocument(this.result);
+            }
+            else if( iType === 'TEXT') {
+              that.importText( this.result);
+            }
             if (iDialog)
               iDialog.close();
           }
@@ -777,7 +807,7 @@ DG.appController = SC.Object.create((function () // closure
           description: 'DG.AppController.closeDocument.warnDescription',
           buttons: [
             { title: 'DG.AppController.closeDocument.okButtonTitle',
-              action: importJSONFile,
+              action: importFile,
               localize: YES
             },
             { title: 'DG.AppController.closeDocument.cancelButtonTitle',
@@ -789,7 +819,7 @@ DG.appController = SC.Object.create((function () // closure
         });
       }
       else {
-        importJSONFile();
+        importFile();
       }
       if( iDialog)
         iDialog.close();
@@ -804,7 +834,7 @@ DG.appController = SC.Object.create((function () // closure
 
       var importJsonFileFromDialog = function () {
         var v = tDialog.get('value');
-        this.importJSONFileWithConfirmation( v[0], tDialog);
+        this.importFileWithConfirmation( v[0], 'JSON', tDialog);
       }.bind(this);
 
       var resetAlert = function () {
