@@ -710,25 +710,6 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
   
   /**
-   *  Creates a context model appropriate for use by this DataContext.
-   *  @param  {Object}  iProperties -- Properties passed to model on construction.
-   *                      iProperties.id -- id of parent document
-   *                      iProperties.type -- [optional] Type of DataContext to create
-   *                                          Uses this.get('type') if unspecified,
-   *                                          or 'DG.DataContext' if all else fails.
-   *  @returns  {DG.DataContext}  The created DataContext, which may be an instance
-   *                              of DG.DataContext or one of its derived classes.
-   */
-  createContextModel: function( iProperties) {
-    if( !iProperties) iProperties = {};
-    if( SC.empty( iProperties.type))
-      iProperties.type = this.get('type') || 'DG.DataContext';
-    var contextRecord = DG.DataContextRecord.create( iProperties);
-    this.set('model', contextRecord);
-    return contextRecord;
-  },
-  
-  /**
    *  The number of collections controlled by this controller.
    *  @property {Number}
    */

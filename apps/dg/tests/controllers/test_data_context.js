@@ -54,7 +54,6 @@ test("test DG.DataContext", function () {
    attrFormulaDidChange
    clearContextMap
    collectionDefaults
-   createContextModel
    createStorage
    destroy
    didAddCollection
