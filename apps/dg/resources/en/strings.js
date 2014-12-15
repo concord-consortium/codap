@@ -62,6 +62,13 @@ SC.stringsFor('English', {
   'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://%@/user/password'>Forgot your password?</a>",
   'DG.Authorization.loginPane.documentStoreSignInHref.SRRI_BUILD': "%@user/authenticate",
 
+  // Session expiration dialog
+  'DG.Authorization.sessionExpired.message': 'Your session has expired. In order to continue saving, please log in.',
+  'DG.Authorization.sessionExpired.loginButtonText': 'Log In',
+  'DG.Authorization.sessionExpired.loginButtonTooltip': 'Abort this current session and log in again.',
+  'DG.Authorization.sessionExpired.ignoreButtonText': 'Ignore',
+  'DG.Authorization.sessionExpired.ignoreButtonTooltip': 'Ignore this error and attempt to continue working.',
+
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
   'DG.AppController.resetData.toolTip' : "Delete all data from current document",

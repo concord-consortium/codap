@@ -411,13 +411,13 @@ DG.CaseTableController = DG.ComponentController.extend(
             tDeleteIsEnabled = tSelection && tSelection.get('length'),
             tNewAttrMenuItemStringKey = 'DG.TableController.gearMenuItems.newAttribute',
             tItems = [];
-        if( !SC.empty( tChildCollectionName)) {
-          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
-                        target: this, itemAction: this.newChildAttribute });
-        }
         if( !SC.empty( tParentCollectionName)) {
           tItems.push({ title: tNewAttrMenuItemStringKey.loc( tParentCollectionName),
                         target: this, itemAction: this.newParentAttribute });
+        }
+        if( !SC.empty( tChildCollectionName)) {
+          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
+            target: this, itemAction: this.newChildAttribute });
         }
         tItems.push({ title: 'DG.TableController.gearMenuItems.deleteCases', localize: true,
                       target: this, itemAction: this.deleteSelectedCases, isEnabled: tDeleteIsEnabled });

@@ -147,6 +147,22 @@ DG.DocumentController = SC.Object.extend(
   _lastCopiedDocument: null,
   externalDocumentId: null,
 
+  isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled').bool(),
+
+  canBeCopied: function() {
+    return this.get('isSaveEnabled') &&
+           this.get('documentName') !== SC.String.loc('DG.Document.defaultDocumentName') &&
+           this.get('externalDocumentId');
+  }.property('isSaveEnabled','documentName','savedChangeCount','externalDocumentId'),
+
+  canBeReverted: function() {
+    return this.get('canBeCopied');
+  }.property('canBeCopied'),
+
+  canBeShared: function() {
+    return this.get('canBeCopied');
+  }.property('canBeCopied'),
+
   init: function() {
     sc_super();
     
@@ -191,7 +207,9 @@ DG.DocumentController = SC.Object.extend(
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
   },
-  
+
+  gameHasUnsavedChangesBinding: SC.Binding.oneWay('DG._currGameController.hasUnsavedChanges').bool(),
+
   /**
     Whether or not the document contains unsaved changes such that the user
     should be prompted to confirm when closing the document, for instance.
@@ -205,11 +223,11 @@ DG.DocumentController = SC.Object.extend(
    */
   hasUnsavedChanges: function() {
     // Game controller state affects the document state
-    return DG.authorizationController.get('isSaveEnabled') &&
+    return this.get('isSaveEnabled') &&
             ((this.get('changeCount') > this.get('savedChangeCount')) ||
-            DG.currGameController.get('hasUnsavedChanges'));
-  }.property(),
-  
+            this.get('gameHasUnsavedChanges'));
+  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges'),
+
   /**
     Synchronize the saved change count with the full change count.
     This method should be called when a save occurs, for instance.
@@ -832,29 +850,35 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    this.exportDocument(function(docArchive) {
-      if( !SC.none( iDocumentPermissions)) {
-        docArchive._permissions = iDocumentPermissions;
-        this.setPath('content._permissions', iDocumentPermissions);
-      }
+    if (!DG.authorizationController.get('saveInProgress')) {
+      this.exportDocument(function(docArchive) {
+        if( !SC.none( iDocumentPermissions)) {
+          docArchive._permissions = iDocumentPermissions;
+          this.setPath('content._permissions', iDocumentPermissions);
+        }
 
-      if( DG.assert( !SC.none(docArchive))) {
-        DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-        this.updateSavedChangeCount();
-      }
-    }.bind(this));
+        if( DG.assert( !SC.none(docArchive))) {
+          DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+          this.updateSavedChangeCount();
+        }
+      }.bind(this));
+    }
   },
 
   receivedSaveDocumentResponse: function(iResponse) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
-      var errorMessage = 'DG.AppController.saveDocument.' + body.message;
-      if (errorMessage.loc() === errorMessage)
-        errorMessage = 'DG.AppController.saveDocument.error.general';
-      DG.AlertPane.error({
-        localize: true,
-        message: errorMessage});
+      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
+        DG.authorizationController.sessionTimeoutPrompt();
+      } else {
+        var errorMessage = 'DG.AppController.saveDocument.' + body.message;
+        if (errorMessage.loc() === errorMessage)
+          errorMessage = 'DG.AppController.saveDocument.error.general';
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage});
+      }
     } else {
       var newDocId = iResponse.getPath('response.id');
       this.set('externalDocumentId', ''+newDocId);

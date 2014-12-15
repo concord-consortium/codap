@@ -50,6 +50,7 @@ DG.mainPage = SC.Page.design((function() {
           isEditableBinding: 'DG.authorizationController.isSaveEnabled',
           valueBinding: 'DG._currDocumentController.documentName',
           toolTipBinding: 'DG._currDocumentController.documentName',
+          originalValue: null,
           inlineEditorDidBeginEditing: function(editor, value) {
             this.set('originalValue', value);
           },
@@ -57,7 +58,10 @@ DG.mainPage = SC.Page.design((function() {
             var original = this.get('originalValue'),
                 newValue = this.get('value');
 
-            DG.appController.renameDocument(original, newValue);
+            if (original) {
+              DG.appController.renameDocument(original, newValue);
+              this.set('originalValue', null);
+            }
             return true;
           }.observes('value'),
           click: function() {
@@ -222,8 +226,15 @@ DG.mainPage = SC.Page.design((function() {
 
         var tDataTransfer = iEvent.dataTransfer,
             tFiles = tDataTransfer.files;
-        if( tFiles && (tFiles.length > 0) && (tFiles[0].type === 'application/json')) {
-          DG.appController.importJSONFileWithConfirmation( tFiles[0]);
+        if( tFiles && (tFiles.length > 0)) {
+          var tFile = tFiles[0],
+              tType = tFile.type;
+          if( tType === 'application/json') {
+            DG.appController.importFileWithConfirmation(tFile, 'JSON');
+          }
+          else if( (tType === 'text/csv') || (tType === 'text/plain')) {
+            DG.appController.importFileWithConfirmation(tFile, 'TEXT');
+          }
         }
         $(tElement).removeClass('dg-receive-outside-drop');
 
