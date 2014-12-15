@@ -24,6 +24,9 @@
 
   @extends SC.Object
 */
+
+/*global CSV: true */
+
 DG.DocumentArchiver = SC.Object.extend(
 /** @scope DG.DocumentArchiver.prototype */ {
 

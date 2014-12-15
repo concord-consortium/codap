@@ -82,7 +82,6 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     switch( this.get('orientation')) {
       case 'vertical':
         return this.get('drawHeight') - this.getPath('otherAxisView.drawHeight');
-        break;
       case 'horizontal':
         return 0;
     }
@@ -96,7 +95,6 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     switch( this.get('orientation')) {
       case 'vertical':
         return 0;
-        break;
       case 'horizontal':
         return this.get('drawWidth');
     }
