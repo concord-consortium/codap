@@ -121,6 +121,40 @@ DG.DocumentArchiver = SC.Object.extend(
   },
 
   /**
+   *
+   * @param iURL - URL of data interactive
+   * @returns {DG.Document}
+   */
+  importURLIntoDocument: function (iURL) {
+    var tDoc = {
+      name: 'DG.Document.defaultDocumentName'.loc(),
+      components: [
+        {
+          "type": "DG.GameView",
+          "componentStorage": {
+            "currentGameName": "",
+            "currentGameUrl": iURL,
+          },
+        }
+      ],
+      contexts: [
+      ],
+      "layout": {
+        "width": 350,
+        "height": 250,
+        "left": 5,
+        "top": 5
+      },
+      appName: DG.APPNAME,
+      appVersion: DG.VERSION,
+      appBuildNum: DG.BUILD_NUM,
+      globalValues: []
+    };
+
+    return DG.Document.createDocument(tDoc);
+  },
+
+  /**
     Save the specified document in its JSON-text form.
     @param    {DG.Document}   iDocument   The document whose contents are to be archived
 

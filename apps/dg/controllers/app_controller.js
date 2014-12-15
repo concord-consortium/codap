@@ -418,6 +418,27 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     *
+     * @param iURL - For the moment, we're assuming it's the URL of a data interactive
+     * @returns {Boolean}
+     */
+    importURL: function( iURL) {
+      // Currently, we must close any open document before opening a new data interactive
+      this.closeDocument();
+
+      // Create document-specific store.
+      var archiver = DG.DocumentArchiver.create({}),
+          newDocument;
+
+      // Parse the document contents from the retrieved docText.
+      newDocument = archiver.importURLIntoDocument( iURL);
+
+      DG.currDocumentController().setDocument(newDocument);
+
+      return true;
+    },
+
+    /**
      Allows the user to save the current document contents with a user-specified document name.
      */
     saveDocument: function () {
