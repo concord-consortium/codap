@@ -40,6 +40,87 @@ DG.DocumentArchiver = SC.Object.extend(
   },
 
   /**
+   *
+   * @param iText - csv or tab-delimited
+   * @returns {DG.Document}
+   */
+  importTextIntoDocument: function( iText) {
+
+    function parseText() {
+      var tValuesArrays,
+          tCollectionRow,
+          tCollectionName = 'Collection',
+          tAttrNamesRow,// Column Header Names: should be second row
+          tDoc = {
+            name: 'DG.Document.defaultDocumentName'.loc(),
+            components: [],
+            contexts: [
+              {
+                "type": "DG.DataContext",
+                "document": 1,
+                "collections": [
+                  {
+                    "attrs": [],
+                    "cases": []
+                  }
+                ]
+              }
+            ],
+            appName: DG.APPNAME,
+            appVersion: DG.VERSION,
+            appBuildNum: DG.BUILD_NUM,
+            globalValues: []
+          },
+          tAttrsArray = tDoc.contexts[0].collections[0].attrs,
+          tCasesArray = tDoc.contexts[0].collections[0].cases;
+
+      CSV.RELAXED = true;
+      tValuesArrays = CSV.parse(iText);
+      if (tValuesArrays && tValuesArrays.length >= 2) {
+        tCollectionRow = tValuesArrays.shift();
+        tAttrNamesRow = tValuesArrays[0];
+
+        if (Array.isArray(tCollectionRow)) {
+          // check if it looks like name row is missing
+          if ((tAttrNamesRow.length === tCollectionRow.length) && (tAttrNamesRow.length > 1)) {
+            tAttrNamesRow = tCollectionRow;
+          } else {
+            tCollectionName = tCollectionRow[0];
+            tValuesArrays.shift();
+          }
+        }
+        else {
+          tCollectionName = tCollectionRow;
+          tValuesArrays.shift();
+        }
+        tDoc.contexts[0].collections[0].name = tCollectionName;
+
+        tAttrNamesRow.forEach(function (iName) {
+          tAttrsArray.push( {
+            name: iName,
+          });
+        });
+
+        tValuesArrays.forEach( function( iValues) {
+          var tCase = {
+            values: {}
+          };
+          tAttrNamesRow.forEach( function( iName, iIndex) {
+            tCase.values[ iName] = iValues[ iIndex];
+          });
+          tCasesArray.push( tCase);
+        });
+
+        return tDoc;
+      }
+    } // parseText
+
+    var docArchive = parseText( );
+
+    return DG.Document.createDocument(docArchive);
+  },
+
+  /**
     Save the specified document in its JSON-text form.
     @param    {DG.Document}   iDocument   The document whose contents are to be archived
 
