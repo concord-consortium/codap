@@ -395,6 +395,22 @@ return {
       .send(); 
   },
 
+  openDocumentSynchronously: function(iDocumentId) {
+    var url = DG.documentServer + 'document/open';
+    url += '?username=' + this.getPath('currLogin.user');
+    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
+    url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    return this.urlForGetRequests(serverUrl(url))
+      .async(NO)
+      .json(YES)
+      .send();
+  },
+
   revertCurrentDocument: function(iReceiver) {
     if (!DG.currDocumentController().get('canBeReverted')) { return; }
 
