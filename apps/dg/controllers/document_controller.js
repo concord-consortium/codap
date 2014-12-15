@@ -525,9 +525,10 @@ DG.DocumentController = SC.Object.extend(
                             title: 'DG.DocumentController.graphTitle'.loc(),  // "Graph"
                             isResizable: true}
                           );
-    return tView;
+
     SC.Benchmark.end('addGraph');
     SC.Benchmark.log('addGraph');
+    return tView;
   },
   
   addText: function( iParentView, iComponent) {
