@@ -48,11 +48,28 @@ DG.DocumentArchiver = SC.Object.extend(
    * @returns {DG.Document}
    */
   importTextIntoDocument: function( iText) {
-
+    // trims empty columns from right side of
+    function trimTrailingColumns(arr) {
+      var newArr = [];
+      arr.forEach(function (row) {
+        var value;
+        if (Array.isArray(row)) {
+          do {
+            value = row.pop();
+          } while(value === '');
+          if (value) row.push(value);
+        }
+        if (row.length) {
+          newArr.push(row);
+        }
+      });
+      return newArr;
+    }
     function parseText() {
-      var tValuesArrays,
+      var tValuesArray,
           tCollectionRow,
-          tCollectionName = 'Collection',
+          tChildName = 'children',// Child Collection Name: should be first
+                                  // line of CSV
           tAttrNamesRow,// Column Header Names: should be second row
           tDoc = {
             name: 'DG.Document.defaultDocumentName'.loc(),
@@ -78,33 +95,35 @@ DG.DocumentArchiver = SC.Object.extend(
           tCasesArray = tDoc.contexts[0].collections[0].cases;
 
       CSV.RELAXED = true;
-      tValuesArrays = CSV.parse(iText);
-      if (tValuesArrays && tValuesArrays.length >= 2) {
-        tCollectionRow = tValuesArrays.shift();
-        tAttrNamesRow = tValuesArrays[0];
+      CSV.IGNORE_RECORD_LENGTH = true;
+      tValuesArray = CSV.parse(iText);
+      if (tValuesArray && tValuesArray.length >= 2) {
+        tValuesArray = trimTrailingColumns(tValuesArray);
+        tCollectionRow = tValuesArray.shift();
+        tAttrNamesRow = tValuesArray[0];
 
         if (Array.isArray(tCollectionRow)) {
           // check if it looks like name row is missing
           if ((tAttrNamesRow.length === tCollectionRow.length) && (tAttrNamesRow.length > 1)) {
             tAttrNamesRow = tCollectionRow;
           } else {
-            tCollectionName = tCollectionRow[0];
-            tValuesArrays.shift();
+            tChildName = tCollectionRow[0];
+            tValuesArray.shift();
           }
         }
         else {
-          tCollectionName = tCollectionRow;
-          tValuesArrays.shift();
+          tChildName = tCollectionRow;
+          tValuesArray.shift();
         }
-        tDoc.contexts[0].collections[0].name = tCollectionName;
+        tDoc.contexts[0].collections[0].name = tChildName;
 
         tAttrNamesRow.forEach(function (iName) {
           tAttrsArray.push( {
-            name: iName,
+            name: iName
           });
         });
 
-        tValuesArrays.forEach( function( iValues) {
+        tValuesArray.forEach( function( iValues) {
           var tCase = {
             values: {}
           };
