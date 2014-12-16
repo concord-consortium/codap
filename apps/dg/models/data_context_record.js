@@ -90,6 +90,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
             type: this.type,
             document: this.document && this.document.id || undefined,
             guid: this.id,
+            externalDocumentId: this.externalDocumentId,
             collections: [],
             contextStorage: this.contextStorage
           };

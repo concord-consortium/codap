@@ -172,6 +172,20 @@ DG.DocumentArchiver = SC.Object.extend(
     });
   },
 
+  saveExternalDataContexts: function( iDocument, callback) {
+    var model;
+    DG.gameSelectionController.saveCurrentGameState(function() {
+      DG.DataContext.forEachContextInMap( iDocument.get('id'),
+                                          function( iContextID, iContext) {
+                                            iContext.willSaveContext();
+                                            model = iContext.get('model');
+                                            if ( !SC.none(model.get('externalDocumentId'))) {
+                                              callback(model.toArchive(true));
+                                            }
+                                          });
+      });
+  },
+
   /**
    * Copy the specified document case data in tab-delimited string form
    * @param	{String} iWhichCollection 'parent' or 'child' (TODO: allow 'both' for flatted collection with all attributes)

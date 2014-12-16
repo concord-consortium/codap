@@ -836,6 +836,11 @@ DG.DocumentController = SC.Object.extend(
     archiver.saveDocument( this.get('content'), callback);
   },
 
+  exportExternalDataContexts: function(callback) {
+    var archiver = DG.DocumentArchiver.create({});
+    archiver.saveExternalDataContexts( this.get('content'), callback);
+  },
+
     /**
      * return an object with case data from this document.
      * @return {String}
@@ -854,6 +859,13 @@ DG.DocumentController = SC.Object.extend(
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
     if (!DG.authorizationController.get('saveInProgress')) {
+      this.exportExternalDataContexts(function(docArchive) {
+        if( DG.assert( !SC.none(docArchive))) {
+          var externalDocumentId = docArchive.externalDocumentId;
+          delete docArchive.externalDocumentId;
+          DG.authorizationController.saveExternalDataContext(externalDocumentId, docArchive, this);
+        }
+      }.bind(this));
       this.exportDocument(function(docArchive) {
         if( !SC.none( iDocumentPermissions)) {
           docArchive._permissions = iDocumentPermissions;
@@ -886,6 +898,23 @@ DG.DocumentController = SC.Object.extend(
       var newDocId = iResponse.getPath('response.id');
       this.set('externalDocumentId', ''+newDocId);
       DG.appController.triggerSaveNotification();
+    }
+  },
+
+  receivedSaveExternalDataContextResponse: function(iResponse) {
+    var body = iResponse.get('body'),
+        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+    if( isError) {
+      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
+        DG.authorizationController.sessionTimeoutPrompt();
+      } else {
+        var errorMessage = 'DG.AppController.saveDocument.' + body.message;
+        if (errorMessage.loc() === errorMessage)
+          errorMessage = 'DG.AppController.saveDocument.error.general';
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage});
+      }
     }
   },
 
@@ -926,6 +955,10 @@ DG.DocumentController = SC.Object.extend(
         DG.appController.showCopyLink(newDocId);
       }
     }
+  },
+
+  receivedCopyExternalDataContextResponse: function(iResponse) {
+    // FIXME
   },
 
   deleteDocument: function(iDocumentId) {

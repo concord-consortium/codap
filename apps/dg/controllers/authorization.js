@@ -327,6 +327,23 @@ return {
       .send(iDocumentArchive);
   },
 
+  saveExternalDataContext: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
+    this.set('saveInProgress', true);
+
+    var url = DG.documentServer + 'document/save?recordid=%@'.fmt(iDocumentId);
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    var notificationFunction = (isCopying ? 'receivedCopyExternalDataContextResponse' : 'receivedSaveExternalDataContextResponse');
+    this.urlForJSONPostRequests( serverUrl(url) )
+      .notify(iReceiver, notificationFunction)
+      .notify(this, 'doneSavingDocument')
+      .timeoutAfter(60000)
+      .send(iDocumentArchive);
+  },
+
   saveInProgress: false,
   doneSavingDocument: function() {
     this.set('saveInProgress', false);
