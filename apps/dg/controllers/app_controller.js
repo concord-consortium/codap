@@ -450,7 +450,6 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-
       if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
@@ -1176,10 +1175,6 @@ DG.appController = SC.Object.create((function () // closure
       this.feedbackPane.append();
       this.feedbackPane.contentView.subjectText.becomeFirstResponder();
 
-
-    },
-
-    callDGProblemForm: function(){
 
     },
 
