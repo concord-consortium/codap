@@ -90,7 +90,7 @@ SC.stringsFor('English', {
   'DG.AppController.closeDocument.okButtonTitle' : "Close",
   'DG.AppController.closeDocument.cancelButtonTitle' : "Cancel",
   'DG.AppController.beforeUnload.confirmationMessage' : "The document contains unsaved changes.",
-  'DG.AppController.optionMenuItems.reportProblem' : "Report Problem...",
+  'DG.AppController.optionMenuItems.reportProblem' : "Send Feedback...",
   'DG.AppController.optionMenuItems.viewWebPage' : "Display Web Page...",
   'DG.AppController.optionMenuItems.configureGuide' : "Configure Guide...",
   'DG.AppController.optionMenuItems.about' : "About CODAP...",
