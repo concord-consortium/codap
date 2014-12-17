@@ -362,8 +362,11 @@ DG.GameController = DG.ComponentController.extend(
 
     // Function for creating each collection and its required attributes
     function handleNewCollection( iCollectionArgs) {
-      var collectionProperties = { name: iCollectionArgs.name,
-                                  areParentChildLinksConfigured: true };
+      var collectionProperties = {
+        name: iCollectionArgs.name,
+        labels: iCollectionArgs.labels,
+        areParentChildLinksConfigured: true
+      };
 
       // Each collection is the child of the previous collection
       if( gameCollections.length > 0)
