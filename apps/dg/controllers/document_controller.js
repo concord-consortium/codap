@@ -880,28 +880,38 @@ DG.DocumentController = SC.Object.extend(
     }
   },
 
-  receivedSaveDocumentResponse: function(iResponse) {
+  receivedSaveDocumentResponse: function(iResponse, isCopy) {
     var body = iResponse.get('body'),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
+        messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
-        var errorMessage = 'DG.AppController.saveDocument.' + body.message;
+        var errorMessage = messageBase + body.message;
         if (errorMessage.loc() === errorMessage)
-          errorMessage = 'DG.AppController.saveDocument.error.general';
+          errorMessage = messageBase + 'error.general';
         DG.AlertPane.error({
           localize: true,
           message: errorMessage});
       }
     } else {
       var newDocId = iResponse.getPath('response.id');
-      this.set('externalDocumentId', ''+newDocId);
-      DG.appController.triggerSaveNotification();
+      if (isCopy) {
+        var win = window.open(DG.appController.copyLink(newDocId), '_blank');
+        if (win) {
+          win.focus();
+        } else {
+          DG.appController.showCopyLink(newDocId);
+        }
+      } else {
+        this.set('externalDocumentId', ''+newDocId);
+        DG.appController.triggerSaveNotification();
+      }
     }
   },
 
-  receivedSaveExternalDataContextResponse: function(iResponse) {
+  receivedSaveExternalDataContextResponse: function(iResponse, isCopy) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
@@ -933,32 +943,6 @@ DG.DocumentController = SC.Object.extend(
         DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
       }
     }.bind(this));
-  },
-
-  receivedCopyDocumentResponse: function(iResponse) {
-    var body = iResponse.get('body'),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
-    if( isError) {
-      var errorMessage = 'DG.AppController.copyDocument.' + body.message;
-      if (errorMessage.loc() === errorMessage)
-        errorMessage = 'DG.AppController.copyDocument.error.general';
-      DG.AlertPane.error({
-        localize: true,
-        message: errorMessage});
-    } else {
-      // Pop open the document in a new window/tab
-      var newDocId = iResponse.getPath('response.id');
-      var win = window.open(DG.appController.copyLink(newDocId), '_blank');
-      if (win) {
-        win.focus();
-      } else {
-        DG.appController.showCopyLink(newDocId);
-      }
-    }
-  },
-
-  receivedCopyExternalDataContextResponse: function(iResponse) {
-    // FIXME
   },
 
   deleteDocument: function(iDocumentId) {

@@ -319,9 +319,8 @@ return {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, notificationFunction)
+      .notify(iReceiver, 'receivedSaveDocumentResponse', isCopying)
       .notify(this, 'doneSavingDocument')
       .timeoutAfter(60000)
       .send(iDocumentArchive);
@@ -336,9 +335,8 @@ return {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    var notificationFunction = (isCopying ? 'receivedCopyExternalDataContextResponse' : 'receivedSaveExternalDataContextResponse');
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, notificationFunction)
+      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', isCopying)
       .notify(this, 'doneSavingDocument')
       .timeoutAfter(60000)
       .send(iDocumentArchive);
