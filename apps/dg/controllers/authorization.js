@@ -310,8 +310,6 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    this.set('saveInProgress', true);
-
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
 
@@ -327,8 +325,6 @@ return {
   },
 
   saveExternalDataContext: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    this.set('saveInProgress', true);
-
     var url = DG.documentServer + 'document/save?recordid=%@'.fmt(iDocumentId);
 
     if (DG.runKey) {
@@ -340,11 +336,6 @@ return {
       .notify(this, 'doneSavingDocument')
       .timeoutAfter(60000)
       .send(iDocumentArchive);
-  },
-
-  saveInProgress: false,
-  doneSavingDocument: function() {
-    this.set('saveInProgress', false);
   },
 
   /**

@@ -852,13 +852,15 @@ DG.DocumentController = SC.Object.extend(
     return caseDataString;
   },
     
+  saveInProgress: false,
   /**
     Archive the document into durable form, and save it.
     
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    if (!DG.authorizationController.get('saveInProgress')) {
+    if (!this.get('saveInProgress')) {
+      this.set('saveInProgress', true);
       this.exportExternalDataContexts(function(docArchive) {
         if( DG.assert( !SC.none(docArchive))) {
           var externalDocumentId = docArchive.externalDocumentId;
@@ -884,6 +886,7 @@ DG.DocumentController = SC.Object.extend(
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
+    this.set('saveInProgress', false);
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
