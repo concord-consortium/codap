@@ -836,9 +836,9 @@ DG.DocumentController = SC.Object.extend(
     archiver.saveDocument( this.get('content'), callback);
   },
 
-  exportExternalDataContexts: function(callback) {
+  exportDataContexts: function(callback, externalOnly) {
     var archiver = DG.DocumentArchiver.create({});
-    archiver.saveExternalDataContexts( this.get('content'), callback);
+    return archiver.saveDataContexts( this.get('content'), callback, externalOnly);
   },
 
     /**
@@ -852,24 +852,35 @@ DG.DocumentController = SC.Object.extend(
     return caseDataString;
   },
     
-  saveInProgress: false,
+  saveInProgress: null,
+  signalSaveInProgress: function() {
+    var saveInProgress = $.Deferred();
+    saveInProgress.done(function() { this.set('saveInProgress', null); }.bind(this));
+    this.set('saveInProgress', saveInProgress);
+    return saveInProgress;
+  },
+
   /**
     Archive the document into durable form, and save it.
     
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    if (!this.get('saveInProgress')) {
-      this.set('saveInProgress', true);
-      var deferreds = [];
-      this.exportExternalDataContexts(function(docArchive) {
-        if( DG.assert( !SC.none(docArchive))) {
-          var externalDocumentId = docArchive.externalDocumentId;
-          delete docArchive.externalDocumentId;
-          deferreds.push(DG.authorizationController.saveExternalDataContext(externalDocumentId, docArchive, this));
-        }
-      }.bind(this));
-      $.when.apply($, deferreds).then(function() {
+    var deferreds = [],
+      existingSaveInProgress = this.get('saveInProgress'),
+      saveInProgress,
+      exportDeferred;
+    if (!SC.none(existingSaveInProgress)) {
+      return;
+    }
+    saveInProgress = this.signalSaveInProgress();
+    exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      if( DG.assert( !SC.none(docArchive))) {
+        deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
+      }
+    }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    exportDeferred.done(function() {
+      $.when.apply($, deferreds).done(function() {
         // FIXME What should we do if a data context fails to save?
         this.exportDocument(function(docArchive) {
           if( !SC.none( iDocumentPermissions)) {
@@ -878,12 +889,13 @@ DG.DocumentController = SC.Object.extend(
           }
 
           if( DG.assert( !SC.none(docArchive))) {
-            DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+            var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
             this.updateSavedChangeCount();
+            save.done(function() { saveInProgress.resolve(); });
           }
         }.bind(this));
-      });
-    }
+      }.bind(this));
+    }.bind(this));
   },
 
   receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
@@ -892,7 +904,6 @@ DG.DocumentController = SC.Object.extend(
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     this.set('saveInProgress', false);
     if( isError) {
-      deferred.resolve(false);
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
@@ -903,8 +914,8 @@ DG.DocumentController = SC.Object.extend(
           localize: true,
           message: errorMessage});
       }
+      deferred.resolve(false);
     } else {
-      deferred.resolve(true);
       var newDocId = iResponse.getPath('response.id');
       if (isCopy) {
         var win = window.open(DG.appController.copyLink(newDocId), '_blank');
@@ -917,10 +928,11 @@ DG.DocumentController = SC.Object.extend(
         this.set('externalDocumentId', ''+newDocId);
         DG.appController.triggerSaveNotification();
       }
+      deferred.resolve(true);
     }
   },
 
-  receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy) {
+  receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
@@ -936,7 +948,18 @@ DG.DocumentController = SC.Object.extend(
           message: errorMessage});
       }
     } else {
-      deferred.resolve(true);
+      // FIXME isCopy
+      var newDocId = iResponse.getPath('response.id');
+      SC.run(function() {
+        if (isCopy) {
+          contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+        }
+        contextModel.set('externalDocumentId', ''+newDocId);
+
+        this.invokeLater(function() {
+          deferred.resolve(true);
+        });
+      }.bind(this));
     }
   },
 
@@ -946,14 +969,45 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   copyDocument: function( iDocumentId, iDocumentPermissions) {
-    this.exportDocument( function( docArchive) {
-      docArchive.name = iDocumentId;
-      if (!SC.none(iDocumentPermissions))
-        docArchive._permissions = iDocumentPermissions;
-
-      if (DG.assert(!SC.none(docArchive))) {
-        DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+    var deferreds = [],
+      existingSaveInProgress = this.get('saveInProgress'),
+      saveInProgress,
+      exportDeferred;
+    if (!SC.none(existingSaveInProgress)) {
+      existingSaveInProgress.done(function() { this.copyDocument(iDocumentId, iDocumentPermissions); }.bind(this));
+      return;
+    }
+    saveInProgress = this.signalSaveInProgress();
+    exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      if( DG.assert( !SC.none(docArchive))) {
+        deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this, true));
       }
+    }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    exportDeferred.done(function() {
+      $.when.apply($, deferreds).done(function() {
+        // FIXME What do we do when a data context fails to save?
+        this.exportDocument( function( docArchive) {
+          docArchive.name = iDocumentId;
+          if (!SC.none(iDocumentPermissions))
+            docArchive._permissions = iDocumentPermissions;
+
+          if (DG.assert(!SC.none(docArchive))) {
+            var deferred = DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+            $.when(deferred).then(function() {
+              // Set the externalDocumentIds back
+              DG.DataContext.forEachContextInMap( this.getPath('content.id'),
+                                            function( iContextID, iContext) {
+                                              var model = iContext.get('model');
+                                              if ( !SC.none(model.get('externalDocumentId'))) {
+                                                model.set('externalDocumentId', model.get('oldExternalDocumentId'));
+                                                model.set('oldExternalDocumentId', null);
+                                              }
+                                            });
+              saveInProgress.resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      }.bind(this));
     }.bind(this));
   },
 

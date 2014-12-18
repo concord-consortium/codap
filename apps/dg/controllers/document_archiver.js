@@ -172,18 +172,21 @@ DG.DocumentArchiver = SC.Object.extend(
     });
   },
 
-  saveExternalDataContexts: function( iDocument, callback) {
-    var model;
+  saveDataContexts: function( iDocument, callback, externalOnly) {
+    var model,
+        deferred = $.Deferred();
     DG.gameSelectionController.saveCurrentGameState(function() {
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
                                           function( iContextID, iContext) {
                                             iContext.willSaveContext();
                                             model = iContext.get('model');
-                                            if ( !SC.none(model.get('externalDocumentId'))) {
-                                              callback(model.toArchive(true));
+                                            if ( !externalOnly || !SC.none(model.get('externalDocumentId'))) {
+                                              callback(model, model.toArchive(true));
                                             }
                                           });
-      });
+      deferred.resolve();
+    });
+    return deferred;
   },
 
   /**

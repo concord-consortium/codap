@@ -326,16 +326,23 @@ return {
     return deferred;
   },
 
-  saveExternalDataContext: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    var url = DG.documentServer + 'document/save?recordid=%@'.fmt(iDocumentId),
+  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying) {
+    var url,
+        externalDocumentId = contextModel.get('externalDocumentId'),
         deferred = $.Deferred();
+
+    if (!isCopying && !SC.none(externalDocumentId)) {
+      url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+    } else {
+      url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying)
+      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
       .timeoutAfter(60000)
       .send(iDocumentArchive);
 
