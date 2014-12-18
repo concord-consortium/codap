@@ -311,31 +311,35 @@ return {
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
-                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
+                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
+        deferred = $.Deferred();
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveDocumentResponse', isCopying)
-      .notify(this, 'doneSavingDocument')
+      .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
       .timeoutAfter(60000)
       .send(iDocumentArchive);
+
+    return deferred;
   },
 
   saveExternalDataContext: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    var url = DG.documentServer + 'document/save?recordid=%@'.fmt(iDocumentId);
+    var url = DG.documentServer + 'document/save?recordid=%@'.fmt(iDocumentId),
+        deferred = $.Deferred();
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
     this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', isCopying)
-      .notify(this, 'doneSavingDocument')
+      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying)
       .timeoutAfter(60000)
       .send(iDocumentArchive);
+
+    return deferred;
   },
 
   /**

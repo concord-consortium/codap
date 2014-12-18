@@ -861,33 +861,38 @@ DG.DocumentController = SC.Object.extend(
   saveDocument: function( iDocumentId, iDocumentPermissions) {
     if (!this.get('saveInProgress')) {
       this.set('saveInProgress', true);
+      var deferreds = [];
       this.exportExternalDataContexts(function(docArchive) {
         if( DG.assert( !SC.none(docArchive))) {
           var externalDocumentId = docArchive.externalDocumentId;
           delete docArchive.externalDocumentId;
-          DG.authorizationController.saveExternalDataContext(externalDocumentId, docArchive, this);
+          deferreds.push(DG.authorizationController.saveExternalDataContext(externalDocumentId, docArchive, this));
         }
       }.bind(this));
-      this.exportDocument(function(docArchive) {
-        if( !SC.none( iDocumentPermissions)) {
-          docArchive._permissions = iDocumentPermissions;
-          this.setPath('content._permissions', iDocumentPermissions);
-        }
+      $.when.apply($, deferreds).then(function() {
+        // FIXME What should we do if a data context fails to save?
+        this.exportDocument(function(docArchive) {
+          if( !SC.none( iDocumentPermissions)) {
+            docArchive._permissions = iDocumentPermissions;
+            this.setPath('content._permissions', iDocumentPermissions);
+          }
 
-        if( DG.assert( !SC.none(docArchive))) {
-          DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-          this.updateSavedChangeCount();
-        }
-      }.bind(this));
+          if( DG.assert( !SC.none(docArchive))) {
+            DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+            this.updateSavedChangeCount();
+          }
+        }.bind(this));
+      });
     }
   },
 
-  receivedSaveDocumentResponse: function(iResponse, isCopy) {
+  receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     this.set('saveInProgress', false);
     if( isError) {
+      deferred.resolve(false);
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
@@ -899,6 +904,7 @@ DG.DocumentController = SC.Object.extend(
           message: errorMessage});
       }
     } else {
+      deferred.resolve(true);
       var newDocId = iResponse.getPath('response.id');
       if (isCopy) {
         var win = window.open(DG.appController.copyLink(newDocId), '_blank');
@@ -914,10 +920,11 @@ DG.DocumentController = SC.Object.extend(
     }
   },
 
-  receivedSaveExternalDataContextResponse: function(iResponse, isCopy) {
+  receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy) {
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
+      deferred.resolve(false);
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
@@ -928,6 +935,8 @@ DG.DocumentController = SC.Object.extend(
           localize: true,
           message: errorMessage});
       }
+    } else {
+      deferred.resolve(true);
     }
   },
 
