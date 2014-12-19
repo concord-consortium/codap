@@ -180,7 +180,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
       }.bind( this);
 
       var tNumRowViews = this.get('rowViews' ).length,
-          tNumRowObjects = this.get('rowObjects').length
+          tNumRowObjects = this.get('rowObjects').length;
 
       checkURLs();
 
