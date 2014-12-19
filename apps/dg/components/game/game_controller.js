@@ -326,25 +326,16 @@ DG.GameController = DG.ComponentController.extend(
         gameCollections = [];
 
     if( currentGame) {
-      // Fill out the contents of the DG.GameSpec with the properties passed
-      // by the game. Don't replace the name, however, so that we can keep
-      // multiple copies of the same game code in use, e.g. "Local Lunar Lander"
-      // and "External Lunar Lander".
-      DG.ObjectMap.copySome( currentGame, iArgs,
-                              function( iKey) { return iKey !== 'name'; });
+      DG.ObjectMap.copy( currentGame, iArgs);
       // Ask for the context after we've copied the arguments/properties,
       // so that if there's a 'contextType' it will be used.
       gameContext = DG.GameContext.getContextForGame( currentGame);
       if( iArgs.dimensions) {
-        var prevDimensions = DG.gameSelectionController.get('currentDimensions'),
-            prevWidth = prevDimensions && prevDimensions.width,
-            prevHeight = prevDimensions && prevDimensions.height,
-            newDimensions = { width: iArgs.dimensions.width, height: iArgs.dimensions.height };
-        // If game specifies a different size, update to the new size
-        if( (prevWidth !== newDimensions.width) || (prevHeight !== newDimensions.height))
-          DG.gameSelectionController.set('currentDimensions', newDimensions );
+          DG.gameSelectionController.set('currentDimensions',
+              { width: iArgs.dimensions.width, height: iArgs.dimensions.height });
       }
       this.view.set('version', SC.none( currentGame.version) ? '' : currentGame.version);
+      this.view.set('title', SC.none( currentGame.name) ? '' : currentGame.name);
     }
 
     function finishInitGame() {

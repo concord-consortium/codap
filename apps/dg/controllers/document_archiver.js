@@ -139,12 +139,6 @@ DG.DocumentArchiver = SC.Object.extend(
       ],
       contexts: [
       ],
-      "layout": {
-        "width": 350,
-        "height": 250,
-        "left": 5,
-        "top": 5
-      },
       appName: DG.APPNAME,
       appVersion: DG.VERSION,
       appBuildNum: DG.BUILD_NUM,
