@@ -296,6 +296,7 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.okBtnToolTip' : "Accept the Guide menu items",
   'DG.GuideConfigView.cancelBtnTitle' : "Cancel",
   'DG.GuideConfigView.cancelBtnTooltip' : "Dismiss the dialog without making any changes",
+  'DG.GuideConfigView.httpWarning' : "The URL must start with either http:// or https://",
 
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
