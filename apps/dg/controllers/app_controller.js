@@ -206,7 +206,10 @@ DG.appController = SC.Object.create((function () // closure
      Called when the user selects "Open" from the document's gear menu.
      */
     openDocument: function () {
-    //  SC.Benchmark.start('openDocument');
+
+      console.log('In openDocument');
+      SC.Benchmark.start('openDocument');
+
       this.openSaveDialog = DG.CreateOpenSaveDialog({
         dialogType: DG.OpenSaveDialog.kOpenDialog,
         prompt: 'DG.AppController.openDocument.prompt', // "Choose a document to open:"
@@ -216,17 +219,23 @@ DG.appController = SC.Object.create((function () // closure
         okTarget: this,
         okAction: 'openDocumentFromDialog'
       });
-    //  SC.Benchmark.end('openDocument');
-    //  SC.Benchmark.log('openDocument');
+
+      SC.Benchmark.end('openDocument');
+      SC.Benchmark.log('openDocument');
+
     },
 
     /**
      Dialog callback function after the user chooses a document to open.
      */
     openDocumentFromDialog: function () {
-    //  SC.Benchmark.start('openDocumentFromDialog');
+
+      console.log("In openDocumentFromDialog");
+
+
       var docName = this.openSaveDialog.get('documentName'),
         docID = this.openSaveDialog.get('documentID');
+      SC.Benchmark.start('openDocumentFromDialog: '+docName);
 
       // Close the dialog when we're finished with it.
       this.openSaveDialog.close();
@@ -267,8 +276,9 @@ DG.appController = SC.Object.create((function () // closure
           openDocumentAfterConfirmation();
         }
       }
-    //  SC.Benchmark.end('openDocumentFromDialog');
-    //  SC.Benchmark.log('openDocumentFromDialog');
+
+      SC.Benchmark.end('openDocumentFromDialog: '+docName);
+      SC.Benchmark.log('openDocumentFromDialog: '+docName);
     },
 
     /**

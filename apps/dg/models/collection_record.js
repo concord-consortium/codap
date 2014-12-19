@@ -189,6 +189,7 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
           areParentChildLinksConfigured: this.areParentChildLinksConfigured,
           parent: parentID,
           guid: this.id,
+          labels: this.labels,
           attrs: [],
           cases: []
         };

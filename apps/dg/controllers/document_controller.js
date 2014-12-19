@@ -511,7 +511,7 @@ DG.DocumentController = SC.Object.extend(
   },
   
   addGraph: function( iParentView, iComponent) {
-  
+    SC.Benchmark.start('addGraph');
     var tGraphModel = DG.GraphModel.create(),
         tGraphController = DG.GraphController.create();
     // Default to current context. Will be replaced by referenced context in restored documents.
@@ -525,6 +525,9 @@ DG.DocumentController = SC.Object.extend(
                             title: 'DG.DocumentController.graphTitle'.loc(),  // "Graph"
                             isResizable: true}
                           );
+
+    SC.Benchmark.end('addGraph');
+    SC.Benchmark.log('addGraph');
     return tView;
   },
   

@@ -233,7 +233,9 @@ DG.mainPage = SC.Page.design((function() {
           if( tType === 'application/json') {
             DG.appController.importFileWithConfirmation(tFile, 'JSON');
           }
-          else if( (tType === 'text/csv') || (tType === 'text/plain')) {
+          else if( (tType === 'text/csv')
+              || (tType === 'text/plain')
+              || (tType === 'text/tab-separated-values')) {
             DG.appController.importFileWithConfirmation(tFile, 'TEXT');
           }
         }
