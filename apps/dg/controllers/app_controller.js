@@ -1068,35 +1068,51 @@ DG.appController = SC.Object.create((function () // closure
      */
     reportProblem: function () {
       var username = DG.authorizationController.getPath('currLogin.user');
-
-      var kVSpace = 20;
-      var top = 0;
       var height = 0;
-      var nextTop = function (n) {
-        top += (height + n);
-        return top;
-      };
       var lastHeight = function (n) {
         height = n;
         return height;
       };
 
-      if (username === 'guest') // Guest user isn't specific enough
-        username = '';
+      var submitFeedback= function() {
+        var iUser = DG.authorizationController.getPath('currLogin.user');
+        if (iUser === 'guest') // Guest user isn't specific enough
+          iUser = 'guest';
 
-      var serverString = 'http://app.ccssgames.com/DataGames/WebPages/scripts/datagames.php' +
-        '?device=%@&os=%@&os_version=%@&cf_browser=%@&cf_browser_version=%@&version=%@&name=%@'.fmt(
-          encodeURIComponent(SC.browser.device),
-          encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
-          encodeURIComponent(SC.browser.name), encodeURIComponent(SC.browser.version),
-          encodeURIComponent(DG.BUILD_NUM), encodeURIComponent(username));
+        console.log(iUser);
+        console.log(feedbackPane.contentView.subjectText.value);
+        console.log(feedbackPane.contentView.feedbackText.value);
+        console.log("Build #"+DG.BUILD_NUM);
+        console.log("Browser: "+SC.browser.name+" v."+SC.browser.version);
+        console.log("Device: "+SC.browser.device);
+        console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
+
+        SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
+          'device='+ SC.browser.device +
+          '&os='+SC.browser.os+
+          '&os_version='+SC.browser.osVersion+
+          '&cf_browser='+SC.browser.name+
+          '&cf_browser_version='+SC.browser.version+
+          '&version='+DG.BUILD_NUM+
+          '&name='+iUser+
+          '&description='+feedbackPane.contentView.subjectText.value+
+          '&comments='+feedbackPane.contentView.feedbackText.value)
+          .notify()
+          .send();
+        feedbackPane.remove();
+        feedbackPane=null;
+      };
+
+      var cancelFeedback= function() {
+        feedbackPane.remove();
+        feedbackPane=null;
+      };
 
       //Begin feedback form
 
-      this.feedbackPane=SC.PanelPane.create({
+      var feedbackPane=SC.PanelPane.create({
 
         layout: { top: 175, centerX: 0, width: 525, height: 480 },
-
         contentView: SC.View.extend({
           backgroundColor: '#dde2e8',
           childViews: 'feedbackHeader codapLogo feedbackImage subHeaderText messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
@@ -1121,8 +1137,7 @@ DG.appController = SC.Object.create((function () // closure
           }),
 
           subHeaderText: SC.LabelView.design({
-            layout: { top: 105, right: 0},
-            textAlign: SC.ALIGN_CENTER,
+            layout: { top: 105, left: 40},
             fontWeight: SC.BOLD_WEIGHT,
             value: 'DG.AppController.feedbackDialog.subHeaderText',
             localize: YES
@@ -1139,8 +1154,7 @@ DG.appController = SC.Object.create((function () // closure
             layout: { top: 165, left: 40, width: 445, height: lastHeight(30) },
             autoCorrect: false,
             autoCapitalize: false,
-            hint: 'DG.AppController.feedbackDialog.subjectHint',
-            valueBinding: 'DG.appController.userFeedbackSubject'
+            hint: 'DG.AppController.feedbackDialog.subjectHint'
           }),
 
           feedbackText: SC.TextFieldView.design({
@@ -1148,16 +1162,14 @@ DG.appController = SC.Object.create((function () // closure
             isTextArea: true,
             autoCorrect: false,
             autoCapitalize: false,
-            hint:'DG.AppController.feedbackDialog.feedbackHint',
-            valueBinding: 'DG.appController.userFeedbackText'
+            hint:'DG.AppController.feedbackDialog.feedbackHint'
           }),
 
           submitFeedbackButton: SC.ButtonView.design({
             layout: { bottom: 30, height: lastHeight(24), right: 40, width: 125 },
             title: 'DG.AppController.feedbackDialog.submitFeedbackButton',
             localize: YES,
-            target:"DG.appController",
-            action: 'submitFeedback',
+            action: submitFeedback,
             isDefault: NO
           }),
 
@@ -1165,54 +1177,16 @@ DG.appController = SC.Object.create((function () // closure
             layout: { bottom: 30, height: lastHeight(24), right: 180, width: 125 },
             title: 'DG.AppController.feedbackDialog.cancelFeedbackButton',
             localize: YES,
-            target:"DG.appController",
-            action: 'cancelFeedback',
+            action: cancelFeedback,
             isDefault: NO
           })
         })
       });
-
-      this.feedbackPane.append();
-      this.feedbackPane.contentView.subjectText.becomeFirstResponder();
-
-
+      feedbackPane.append();
+      feedbackPane.contentView.subjectText.becomeFirstResponder();
     },
 
-    submitFeedback: function() {
-      var iUser = DG.authorizationController.getPath('currLogin.user');
-      var url = 'http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php';
 
-
-      console.log(iUser);
-      console.log(DG.appController.userFeedbackSubject);
-      console.log(DG.appController.userFeedbackText);
-      console.log("Build #"+DG.BUILD_NUM);
-      console.log("Browser: "+SC.browser.name+" v."+SC.browser.version);
-      console.log("Device: "+SC.browser.device);
-      console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
-      //app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?device=desktop&os=mac&os_version=10.9.4&cf_browser=chrome&cf_browser_version=39.0.2171.71&version=0264&name=?device=desktop&os=mac&os_version=10.9.4&cf_browser=chrome&cf_browser_version=39.0.2171.71&version=0264&name=
-
-
-      SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
-        'device='+ SC.browser.device +
-        '&os='+SC.browser.os+
-        '&os_version='+SC.browser.osVersion+
-        '&cf_browser='+SC.browser.name+
-        '&cf_browser_version='+SC.browser.version+
-        '&version='+DG.BUILD_NUM+
-        '&name='+iUser+
-        '&description='+DG.appController.userFeedbackSubject+
-        '&comments='+DG.appController.userFeedbackText)
-        .notify()
-        .send();
-      this.feedbackPane.remove();
-      this.feedbackPane=null;
-    },
-
-    cancelFeedback: function() {
-      this.feedbackPane.remove();
-      this.feedbackPane=null;
-    },
     /**
      Pass responsibility to document controller
      */
