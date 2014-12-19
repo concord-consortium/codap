@@ -259,7 +259,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             + iChange.operation);
     }
     if( shouldDirtyDoc)
-      DG.dirtyCurrentDocument();
+      DG.dirtyCurrentDocument(this.get('model'));
     return result;
   },
   

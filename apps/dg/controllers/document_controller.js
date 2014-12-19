@@ -144,6 +144,8 @@ DG.DocumentController = SC.Object.extend(
    */
   savedChangeCount: 0,
 
+  _changedObjects: null,
+
   _lastCopiedDocument: null,
   externalDocumentId: null,
 
@@ -171,6 +173,8 @@ DG.DocumentController = SC.Object.extend(
     // If we were created with a 'content' property pointing to our document,
     // then use it; otherwise, create a new document.
     this.setDocument( this.get('content') || this.createDocument());
+
+    this.clearChangedObjects();
   },
   
   destroy: function() {
@@ -203,7 +207,8 @@ DG.DocumentController = SC.Object.extend(
 
     // Create the individual component views
     this.restoreComponentControllersAndViews();
-    
+
+    this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
   },
@@ -237,7 +242,21 @@ DG.DocumentController = SC.Object.extend(
     DG.currGameController.updateSavedChangeCount();
     this.set('savedChangeCount', this.get('changeCount'));
   },
-  
+
+  objectChanged: function(obj) {
+    var changes = this.get('_changedObjects');
+    changes.push(obj);
+  },
+
+  clearChangedObjects: function() {
+    this.set('_changedObjects', []);
+  },
+
+  objectHasUnsavedChanges: function(obj) {
+    var changes = this.get('_changedObjects');
+    return changes.indexOf(obj) !== -1;
+  },
+
   /**
     Creates an appropriate DG.DataContext for the specified DG.DataContextRecord object.
     If no model is specified, creates the DG.DataContextRecord as well.
@@ -875,7 +894,7 @@ DG.DocumentController = SC.Object.extend(
     }
     saveInProgress = this.signalSaveInProgress();
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
-      if( DG.assert( !SC.none(docArchive))) {
+      if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
         deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
       }
     }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
@@ -883,15 +902,22 @@ DG.DocumentController = SC.Object.extend(
       $.when.apply($, deferreds).done(function() {
         // FIXME What should we do if a data context fails to save?
         this.exportDocument(function(docArchive) {
-          if( !SC.none( iDocumentPermissions)) {
+          var needsSave = this.objectHasUnsavedChanges(this.get('content'));
+          if( !SC.none( iDocumentPermissions) && this.getPath('content._permissions') !== iDocumentPermissions) {
             docArchive._permissions = iDocumentPermissions;
             this.setPath('content._permissions', iDocumentPermissions);
+            needsSave = true;
           }
 
           if( DG.assert( !SC.none(docArchive))) {
-            var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+            if (needsSave) {
+              var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+              save.done(function() { saveInProgress.resolve(); });
+            } else {
+              this.invokeLater(function() { saveInProgress.resolve(); });
+            }
             this.updateSavedChangeCount();
-            save.done(function() { saveInProgress.resolve(); });
+            this.clearChangedObjects();
           }
         }.bind(this));
       }.bind(this));
@@ -1044,7 +1070,12 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
 /**
  * A global convenience function for dirtying the document.
  */
-DG.dirtyCurrentDocument = function() {
+DG.dirtyCurrentDocument = function(changedObject) {
+  if (SC.none(changedObject)) {
+    changedObject = DG.currDocumentController().get('content');
+  }
+
+  DG.currDocumentController().objectChanged(changedObject);
   DG.currDocumentController().incrementProperty('changeCount');
   //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
 };
