@@ -28,10 +28,6 @@ DG.appController = SC.Object.create((function () // closure
 
   return {  // return from closure
 
-    userFeedbackSubject: null,
-
-    userFeedbackText: null,
-
     /**
      * File menu.
      * @property {SC.MenuPane}
@@ -1067,7 +1063,6 @@ DG.appController = SC.Object.create((function () // closure
      Bring up the bug report page.
      */
     reportProblem: function () {
-      var username = DG.authorizationController.getPath('currLogin.user');
       var height = 0;
       var lastHeight = function (n) {
         height = n;
