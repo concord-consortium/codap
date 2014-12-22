@@ -974,7 +974,6 @@ DG.DocumentController = SC.Object.extend(
           message: errorMessage});
       }
     } else {
-      // FIXME isCopy
       var newDocId = iResponse.getPath('response.id');
       SC.run(function() {
         if (isCopy) {
