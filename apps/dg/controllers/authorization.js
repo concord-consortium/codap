@@ -553,20 +553,10 @@ return {
   /**
     Logs the specified message, along with any additional properties, to the server.
     
-    @param    iMessage   {String}    The main message to log
-    @param    iProperties   {Object}    Additional properties to pass to the server,
-                                        e.g. { type: DG.Document }
-    @param    iMetaArgs     {Object}    Additional flags/properties to control the logging.
-                                        The only meta-arg currently supported is { force: true }
-                                        to force logging to occur even when logging is otherwise
-                                        disabled for a given user. This is used to guarantee that
-                                        login/logout events get logged even when other user actions
-                                        are not logged (e.g. for guest users). Clients using the
-                                        utility functions (e.g. DG.logUser()) can add an additional
-                                        argument, which must be a JavaScript object, and which will
-                                        be passed on to the logToServer function as the meta-args.
+    description and signature TODO
+
    */
-  logToServer: function(iMessage, iProperties, iMetaArgs) {
+  logToServer: function(event, iProperties, iMetaArgs) {
     function extract(obj, prop) {
       var p = obj[prop];
       obj[prop] = undefined;
@@ -575,7 +565,8 @@ return {
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
                     (!DG.documentServer && iMetaArgs && iMetaArgs.force),
         nowTime = new Date().valueOf(),
-        activity = extract(iProperties, 'activity') || 'Unknown',
+        eventValue,
+        parameters,
         body,
         request;
 
@@ -588,17 +579,23 @@ return {
     
     this.currLogin.incrementProperty('logIndex');
 
+    eventValue = extract(iProperties, 'args');
+
+    try {
+      parameters = JSON.parse(eventValue);
+    } catch(e) {
+      parameters = {};
+    }
+
     body = {
-      activity: activity,
+      activity:    extract(iProperties, 'activity') || 'Unknown',
       application: extract(iProperties, 'application'),
-      event: iMessage,
-      localTime: nowTime.toString(),
-      logIndex: this.getPath('currLogin.logIndex'),
-      message: extract(iProperties, 'args'),
-      parameters: iProperties,
-      session: this.getPath('currLogin.sessionID'),
-      time: nowTime,
-      username: this.getPath('currLogin.user')
+      username:    this.getPath('currLogin.user'),
+      session:     this.getPath('currLogin.sessionID'),
+      localTime:   nowTime.toString(),
+      event:       event,
+      event_value: eventValue,
+      parameters:  parameters
     };
 
     if (DG.logServerUrl) {
