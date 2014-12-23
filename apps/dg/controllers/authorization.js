@@ -607,7 +607,23 @@ return {
     if (DG.logServerUrl) {
       request = this.urlForJSONPostRequests(DG.logServerUrl);
       request.attachIdentifyingHeaders = NO;
+
+      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true. 
+      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin 
+      // to '*' (correctly, to accept logs from any domain).
+      // It is a security violation to send credentials (cookies, etc) to a server with a permissive ACAO header.
+      //      
+      // When we update to Sproutcore >= 1.11, we will be able to replace the monkey patch below by
+      // setting the new allowCredentials property of SC.Request to false.
+
+      // save the monkey patch
+      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;  
+      // undo the monkey patch
+      SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
+      // send the request, hopefully with <xhr object>.withCredentials == false
       request.send(body);
+      // put the monkey patch back in place
+      SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
     }
   },
   
