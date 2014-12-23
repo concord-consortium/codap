@@ -587,6 +587,12 @@ return {
       parameters = {};
     }
 
+    // hack to deal with pgsql 'varying' type length limitation
+
+    if (eventValue && eventValue.length > 255) {
+      eventValue = eventValue.substr(0, 255);
+    }
+
     body = {
       activity:    extract(iProperties, 'activity') || 'Unknown',
       application: extract(iProperties, 'application'),
