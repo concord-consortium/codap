@@ -151,7 +151,6 @@ SC.stringsFor('English', {
   'DG.AppController.feedbackDialog.feedbackHint' : "Type in feedback here",
   'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
   'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
-  'DG.AppController.feedbackDialog.codapLogoImage' : "http://concord.org/sites/default/files/images/logos/cc/projects/codap.png",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
   'DG.AppController.showWebSiteTitle' : 'About CODAP',
