@@ -1065,8 +1065,6 @@ DG.appController = SC.Object.create((function () // closure
 
       var submitFeedback= function() {
         var iUser = DG.authorizationController.getPath('currLogin.user');
-        if (iUser === 'guest') // Guest user isn't specific enough
-          iUser = 'guest';
 
         console.log(iUser);
         console.log(feedbackPane.contentView.subjectText.value);
