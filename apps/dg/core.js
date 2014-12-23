@@ -307,7 +307,7 @@ DG = SC.Application.create((function () // closure
       'guideButton'
     ],
 
-    logServerUrl: '/api/logs',
+    logServerUrl: 'http://192.168.59.103:3000/api/logs',
 
 //    logServerUrl: 'http://localhost:3000/api/logs',
 
