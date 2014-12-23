@@ -370,8 +370,6 @@ DG.appController = SC.Object.create((function () // closure
       console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
-      var kMemoryDataSource = 'DG.MemoryDataSource';
-
       // Does it look like it could be a valid document?
       if (!this.isValidJsonDocument(iDocText)) return false;
 
@@ -387,17 +385,17 @@ DG.appController = SC.Object.create((function () // closure
       if (newDocument) {
         console.log('In app_controller:openJsonDocument:setting document controller');
         SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
-
-        docStore.document = newDocument;
         DG.currDocumentController().setDocument(newDocument);
-
+        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
+        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
       }
 
       if (this.setOpenedDocumentUnshared) {
         DG.currDocumentController().setPath('content._permissions', 0);
         this.setOpenedDocumentUnshared = NO;
       }
-
+      SC.Benchmark.end('app_controller:openJsonDocument');
+      SC.Benchmark.log('app_controller:openJsonDocument');
       return true;
     },
 
@@ -639,7 +637,7 @@ DG.appController = SC.Object.create((function () // closure
      Close the current document and all its components.
      */
     closeDocument: function () {
-
+      SC.Benchmark.start('closeDocument');
 
       // Destroy the views
       DG.mainPage.closeAllComponents();
@@ -651,7 +649,8 @@ DG.appController = SC.Object.create((function () // closure
       // Destroy the document and its contents
       DG.currDocumentController().closeDocument();
       DG.store = null;
-
+      SC.Benchmark.end('closeDocument');
+      SC.Benchmark.log('closeDocument');
 
     },
 
@@ -1087,7 +1086,7 @@ DG.appController = SC.Object.create((function () // closure
           '&name='+iUser+
           '&description='+feedbackPane.contentView.subjectText.value+
           '&comments='+feedbackPane.contentView.feedbackText.value)
-          .notify()
+        //  .notify()
           .send();
         feedbackPane.remove();
         feedbackPane=null;
@@ -1118,12 +1117,12 @@ DG.appController = SC.Object.create((function () // closure
 
           codapLogo: SC.ImageView.design({
             layout: {top:30, left:40, height:60, width:60},
-            value: 'http://concord.org/sites/default/files/images/logos/cc/projects/codap.png'
+            value: static_url('images/codap_logo.png')
           }),
 
           feedbackImage: SC.ImageView.design({
             layout: {top:30, right:40, height:60, width:60},
-            value: 'http://localhost/~evangelineireland/thumbupanddown.png'
+            value: static_url('images/upanddown.png')
           }),
 
           subHeaderText: SC.LabelView.design({
