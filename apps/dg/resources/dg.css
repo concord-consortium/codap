@@ -347,6 +347,10 @@ input.editor-text {
     -ms-text-overflow: ellipsis !important;
 }
 
+.disabled {
+    opacity: .5;
+}
+
 .invisible {
     opacity: 0;
 }
