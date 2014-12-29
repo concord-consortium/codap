@@ -201,6 +201,8 @@ DG = SC.Application.create((function () // closure
 
     IS_SRRI_BUILD: isSrriBuild(),
 
+    USE_DIFFERENTIAL_SAVING: true,
+
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
      * key if this is an SRRI build (also expected to be in in strings.js).

@@ -20,6 +20,9 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* globals jiff */
+sc_require('libraries/jiff');
+
 /** @class
 
   Coordinating controller for the document.
@@ -895,7 +898,19 @@ DG.DocumentController = SC.Object.extend(
     saveInProgress = this.signalSaveInProgress();
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
-        deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
+        if (DG.USE_DIFFERENTIAL_SAVING) {
+          var cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
+          var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
+          var d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
+          d.done(function(success) {
+            if (success) {
+              context.updateSavedShadowCopy(cleaned_docArchive);
+            }
+          });
+          deferreds.push(d);
+        } else {
+          deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
+        }
       }
     }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
     exportDeferred.done(function() {
@@ -1003,6 +1018,11 @@ DG.DocumentController = SC.Object.extend(
       return;
     }
     saveInProgress = this.signalSaveInProgress();
+
+    var oldDifferentialSaving = DG.USE_DIFFERENTIAL_SAVING;
+    DG.USE_DIFFERENTIAL_SAVING = false;
+    saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
+
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive))) {
         deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this, true));

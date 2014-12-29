@@ -326,13 +326,17 @@ return {
     return deferred;
   },
 
-  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying) {
+  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
         deferred = $.Deferred();
 
     if (!isCopying && !SC.none(externalDocumentId)) {
-      url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+      if (isDifferential) {
+        url = DG.documentServer + 'document/patch?recordid=%@'.fmt(externalDocumentId);
+      } else {
+        url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+      }
     } else {
       url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
     }
