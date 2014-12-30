@@ -233,8 +233,9 @@ DG.DocumentController = SC.Object.extend(
     // Game controller state affects the document state
     return this.get('isSaveEnabled') &&
             ((this.get('changeCount') > this.get('savedChangeCount')) ||
-            this.get('gameHasUnsavedChanges'));
-  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges'),
+            this.get('gameHasUnsavedChanges') ||
+            this.get('_changedObjects').length > 0);
+  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges','_changedObjects'),
 
   /**
     Synchronize the saved change count with the full change count.
@@ -248,11 +249,23 @@ DG.DocumentController = SC.Object.extend(
 
   objectChanged: function(obj) {
     var changes = this.get('_changedObjects');
-    changes.push(obj);
+    if (changes.indexOf(obj) === -1) {
+      changes.push(obj);
+      this.set('_changedObjects', changes);
+    }
   },
 
   clearChangedObjects: function() {
     this.set('_changedObjects', []);
+  },
+
+  clearChangedObject: function(obj) {
+    var changes = this.get('_changedObjects');
+    var idx = changes.indexOf(obj);
+    if (idx !== -1) {
+      changes.splice(idx, 1);
+      this.set('_changedObjects', changes);
+    }
   },
 
   objectHasUnsavedChanges: function(obj) {
@@ -896,8 +909,10 @@ DG.DocumentController = SC.Object.extend(
       return;
     }
     saveInProgress = this.signalSaveInProgress();
+    this.updateSavedChangeCount();
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
+        this.clearChangedObject(context);
         if (DG.USE_DIFFERENTIAL_SAVING) {
           var cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
           var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
@@ -905,8 +920,10 @@ DG.DocumentController = SC.Object.extend(
           d.done(function(success) {
             if (success) {
               context.updateSavedShadowCopy(cleaned_docArchive);
+            } else {
+              DG.dirtyCurrentDocument(context);
             }
-          });
+          }.bind(this));
           deferreds.push(d);
         } else {
           deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
@@ -931,9 +948,9 @@ DG.DocumentController = SC.Object.extend(
             } else {
               this.invokeLater(function() { saveInProgress.resolve(); });
             }
-            this.updateSavedChangeCount();
-            this.clearChangedObjects();
           }
+
+          this.clearChangedObject(this.get('content'));
         }.bind(this));
       }.bind(this));
     }.bind(this));
@@ -953,9 +970,12 @@ DG.DocumentController = SC.Object.extend(
           errorMessage = messageBase + 'error.general';
         DG.AlertPane.error({
           localize: true,
-          message: errorMessage});
+          message: errorMessage,
+          buttons: [
+            {title: "OK", action: function() { DG.dirtyCurrentDocument(); deferred.resolve(false); } }
+          ]
+        });
       }
-      deferred.resolve(false);
     } else {
       var newDocId = iResponse.getPath('response.id');
       if (isCopy) {
@@ -977,7 +997,6 @@ DG.DocumentController = SC.Object.extend(
     var body = iResponse.get('body'),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
-      deferred.resolve(false);
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
       } else {
@@ -986,7 +1005,11 @@ DG.DocumentController = SC.Object.extend(
           errorMessage = 'DG.AppController.saveDocument.error.general';
         DG.AlertPane.error({
           localize: true,
-          message: errorMessage});
+          message: errorMessage,
+          buttons: [
+            {title: "OK", action: function() { deferred.resolve(false); } }
+          ]
+        });
       }
     } else {
       var newDocId = iResponse.getPath('response.id');
@@ -1094,7 +1117,18 @@ DG.dirtyCurrentDocument = function(changedObject) {
     changedObject = DG.currDocumentController().get('content');
   }
 
-  DG.currDocumentController().objectChanged(changedObject);
-  DG.currDocumentController().incrementProperty('changeCount');
-  //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+  var update = function() {
+    DG.currDocumentController().objectChanged(changedObject);
+    DG.currDocumentController().incrementProperty('changeCount');
+    //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+  };
+
+  // Dirty the document after the current save finishes so that we don't miss sending to the server any changes that
+  // didn't make it into this save cycle.
+  var saveInProgress = DG.currDocumentController().get('saveInProgress');
+  if (!SC.none(saveInProgress)) {
+    saveInProgress.done(update);
+  } else {
+    update();
+  }
 };
