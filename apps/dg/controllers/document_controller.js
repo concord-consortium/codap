@@ -913,7 +913,8 @@ DG.DocumentController = SC.Object.extend(
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
         this.clearChangedObject(context);
-        if (DG.USE_DIFFERENTIAL_SAVING) {
+        // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
+        if (DG.USE_DIFFERENTIAL_SAVING && !SC.none(context.get('externalDocumentId'))) {
           var cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
           var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
           var d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
