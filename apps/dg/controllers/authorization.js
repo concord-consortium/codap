@@ -324,6 +324,7 @@ return {
 
     this.urlForPostRequests( serverUrl(url) )
       .header('Content-Encoding', 'deflate')
+      .header('Content-Type', 'application/x-codap-document')
       .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
       .timeoutAfter(60000)
       .send(compressedDocumentArchive);
@@ -355,6 +356,7 @@ return {
 
     this.urlForPostRequests( serverUrl(url) )
       .header('Content-Encoding', 'deflate')
+      .header('Content-Type', 'application/x-codap-document')
       .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
       .timeoutAfter(60000)
       .send(compressedDocumentArchive);
