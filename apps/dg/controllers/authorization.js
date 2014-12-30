@@ -18,6 +18,9 @@
 
 sc_require('models/authorization_model');
 
+/* globals pako */
+sc_require('libraries/pako-deflate');
+
 /**
   Logs the specified message, along with any additional properties, to the server.
   
@@ -312,16 +315,18 @@ return {
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
-        deferred = $.Deferred();
+        deferred = $.Deferred(),
+        compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    this.urlForJSONPostRequests( serverUrl(url) )
+    this.urlForPostRequests( serverUrl(url) )
+      .header('Content-Encoding', 'deflate')
       .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
       .timeoutAfter(60000)
-      .send(iDocumentArchive);
+      .send(compressedDocumentArchive);
 
     return deferred;
   },
@@ -329,7 +334,8 @@ return {
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
-        deferred = $.Deferred();
+        deferred = $.Deferred(),
+        compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
 
     if (!isCopying && !SC.none(externalDocumentId)) {
       if (isDifferential) {
@@ -345,10 +351,13 @@ return {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    this.urlForJSONPostRequests( serverUrl(url) )
+
+
+    this.urlForPostRequests( serverUrl(url) )
+      .header('Content-Encoding', 'deflate')
       .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
       .timeoutAfter(60000)
-      .send(iDocumentArchive);
+      .send(compressedDocumentArchive);
 
     return deferred;
   },
