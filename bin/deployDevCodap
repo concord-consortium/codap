@@ -7,8 +7,14 @@
 # web at http://codap.concord.org/~[username]/[version name].
 # As a side effect, a zip file containing the static site is created.
 #
+function usage() {
+  echo usage: $PROGNAME version-string 1>&2
+  exit 1
+}
+
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
+RC_FILE=.${PROGNAME}rc
 
 # update the path to include this path
 PATH=$DIRNAME:$PATH
@@ -19,10 +25,8 @@ TEMPDIR=/tmp/$PROGNAME.$$
 SERVER=codap.concord.org
 SERVER_DIR=public_html
 
-function usage() {
-  echo usage: $PROGNAME version-string 1>&2
-  exit 1
-}
+# modify env variables if there is an rc file
+[ -e $RC_FILE ] && . $RC_FILE
 
 #
 # Make sure we have the expected argument
