@@ -913,22 +913,27 @@ DG.DocumentController = SC.Object.extend(
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
         this.clearChangedObject(context);
+        var d,
+            cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
         // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
         if (DG.USE_DIFFERENTIAL_SAVING && !SC.none(context.get('externalDocumentId'))) {
-          var cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
           var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
-          var d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
-          d.done(function(success) {
-            if (success) {
-              context.updateSavedShadowCopy(cleaned_docArchive);
-            } else {
-              DG.dirtyCurrentDocument(context);
-            }
-          }.bind(this));
-          deferreds.push(d);
+          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
         } else {
-          deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this));
+          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this);
+          // This will change the main document by replacing the data context with an id, so we need to make sure the parent saves, too.
+          DG.dirtyCurrentDocument();
         }
+        d.done(function(success) {
+          if (success) {
+            if (DG.USE_DIFFERENTIAL_SAVING) {
+              context.updateSavedShadowCopy(cleaned_docArchive);
+            }
+          } else {
+            DG.dirtyCurrentDocument(context);
+          }
+        }.bind(this));
+        deferreds.push(d);
       }
     }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
     exportDeferred.done(function() {
