@@ -911,7 +911,8 @@ DG.DocumentController = SC.Object.extend(
     saveInProgress = this.signalSaveInProgress();
     this.updateSavedChangeCount();
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
-      if( DG.assert( !SC.none(docArchive)) && this.objectHasUnsavedChanges(context)) {
+      // FIXME If we toggle splitting on and off, we'll need to change this test
+      if( DG.assert( !SC.none(docArchive)) && (this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
         this.clearChangedObject(context);
         var d,
             cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
