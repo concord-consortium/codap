@@ -957,7 +957,7 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
-    var body = iResponse.get('body'),
+    var body = JSON.parse(iResponse.get('body')),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     if( isError) {
@@ -976,7 +976,7 @@ DG.DocumentController = SC.Object.extend(
         });
       }
     } else {
-      var newDocId = iResponse.getPath('response.id');
+      var newDocId = body.id;
       if (isCopy) {
         var win = window.open(DG.appController.copyLink(newDocId), '_blank');
         if (win) {
@@ -993,7 +993,7 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
-    var body = iResponse.get('body'),
+    var body = JSON.parse(iResponse.get('body')),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
@@ -1011,7 +1011,7 @@ DG.DocumentController = SC.Object.extend(
         });
       }
     } else {
-      var newDocId = iResponse.getPath('response.id');
+      var newDocId = body.id;
       SC.run(function() {
         if (isCopy) {
           contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
