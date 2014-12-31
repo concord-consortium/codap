@@ -156,7 +156,8 @@ DG.DocumentArchiver = SC.Object.extend(
           "componentStorage": {
             "currentGameName": "",
             "currentGameUrl": iURL,
-          },
+            allowInitGameOverride: true
+          }
         }
       ],
       contexts: [

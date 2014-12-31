@@ -433,17 +433,64 @@ DG.appController = SC.Object.create((function () // closure
      * @returns {Boolean}
      */
     importURL: function( iURL) {
-      // Currently, we must close any open document before opening a new data interactive
-      this.closeDocument();
 
-      // Create document-specific store.
-      var archiver = DG.DocumentArchiver.create({}),
-          newDocument;
+      function isHTML() {
+        var parser = document.createElement('a');
+        parser.href = iURL;
+        var tPath = parser.pathname,
+            tRegEx = /\.[^\/]+$/,
+            tSuffix = tPath.match( tRegEx);
+        return SC.empty( tSuffix) || (tSuffix[0] === '.htm') || (tSuffix[0] === '.html');
+      }
 
-      // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importURLIntoDocument( iURL);
+      /**
+       Give the user a chance to choose what kind of import to do.
+       */
+      var chooseImport = function () {
 
-      DG.currDocumentController().setDocument(newDocument);
+        var embedInteractive = function () {
+              // Currently, we must close any open document before opening a new data interactive
+              this.closeDocument();
+
+              // Create document-specific store.
+              var archiver = DG.DocumentArchiver.create({}),
+                  newDocument;
+
+              // Make a data interactive iFrame using the given URL
+              newDocument = archiver.importURLIntoDocument(iURL);
+
+              DG.currDocumentController().setDocument(newDocument);
+            }.bind(this),
+
+            embedWebView = function () {
+              DG.currDocumentController().addWebView(  DG.mainPage.get('docView'), null,
+                  iURL, 'Web Page',
+                  { width: 600, height: 400 });
+            }.bind(this);
+
+
+        DG.AlertPane.plain({
+          message: 'What do you want to do with the URL you dragged in?',
+          description: 'There are two possibilities:',
+          buttons: [
+            { title: 'Ignore', localize: YES},
+            { title: 'Embed a data interactive', action: embedInteractive, localize: YES },
+            { title: 'Embed a web view', action: embedWebView, localize: YES }
+          ],
+          localize: YES
+        });
+      }.bind(this);
+
+      function isDataInteractive() {
+        $.get( iURL, function( iResult) {
+          console.log('got result')
+        });
+      }
+
+      if( !isHTML())
+        return false;
+
+      chooseImport();
 
       return true;
     },
