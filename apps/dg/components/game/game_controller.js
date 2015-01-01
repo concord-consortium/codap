@@ -966,7 +966,7 @@ DG.GameController = DG.ComponentController.extend(
       // our document may provide a new url for a given game. We should take this
       // as authoritative.
       if (gameUrl) {
-        gameSpec.currentGameUrl = gameUrl;
+        gameSpec.url = gameUrl;
       }
     }
 
