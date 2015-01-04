@@ -148,6 +148,7 @@ DG.DocumentController = SC.Object.extend(
   savedChangeCount: 0,
 
   _changedObjects: null,
+  _skipPatchNextTime: [],
 
   _lastCopiedDocument: null,
   externalDocumentId: null,
@@ -924,9 +925,11 @@ DG.DocumentController = SC.Object.extend(
       if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
         this.clearChangedObject(context);
         var d,
-            cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
+            cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)), // Strips all keys with undefined values
+            should_skip = this._skipPatchNextTime.indexOf(context) !== -1;
         // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
-        if (DG.USE_DIFFERENTIAL_SAVING && !SC.none(context.get('externalDocumentId'))) {
+
+        if (DG.USE_DIFFERENTIAL_SAVING && !should_skip && !SC.none(context.get('externalDocumentId'))) {
           var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
           d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
         } else {
@@ -938,8 +941,11 @@ DG.DocumentController = SC.Object.extend(
         }
         d.done(function(success) {
           if (success) {
-            if (DG.USE_DIFFERENTIAL_SAVING) {
+            if (DG.USE_DIFFERENTIAL_SAVING || should_skip) {
               context.updateSavedShadowCopy(cleaned_docArchive);
+            }
+            if (should_skip) {
+              this._skipPatchNextTime.splice(this._skipPatchNextTime.indexOf(context), 1);
             }
           } else {
             DG.dirtyCurrentDocument(context);
@@ -1020,6 +1026,9 @@ DG.DocumentController = SC.Object.extend(
         var errorMessage = 'DG.AppController.saveDocument.' + body.message;
         if (errorMessage.loc() === errorMessage)
           errorMessage = 'DG.AppController.saveDocument.error.general';
+        if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+          this._skipPatchNextTime.push(contextModel);
+        }
         DG.AlertPane.error({
           localize: true,
           message: errorMessage,
