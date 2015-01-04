@@ -922,8 +922,10 @@ DG.DocumentController = SC.Object.extend(
           d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
         } else {
           d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this);
-          // This will change the main document by replacing the data context with an id, so we need to make sure the parent saves, too.
-          DG.dirtyCurrentDocument();
+          if (SC.none(context.get('externalDocumentId'))) {
+            // This will change the main document by replacing the data context with an id, so we need to make sure the parent saves, too.
+            DG.dirtyCurrentDocument();
+          }
         }
         d.done(function(success) {
           if (success) {
