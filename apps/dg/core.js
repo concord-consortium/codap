@@ -203,6 +203,8 @@ DG = SC.Application.create((function () // closure
 
     USE_DIFFERENTIAL_SAVING: true,
 
+    USE_COMPRESSION: true,
+
     FORCE_SPLIT_DOCUMENT: true,
 
     /**

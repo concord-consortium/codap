@@ -315,19 +315,27 @@ return {
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
                   this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
-        deferred = $.Deferred(),
-        compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+        deferred = $.Deferred();
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    this.urlForPostRequests( serverUrl(url) )
-      .header('Content-Encoding', 'deflate')
-      .header('Content-Type', 'application/x-codap-document')
-      .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
-      .timeoutAfter(60000)
-      .send(compressedDocumentArchive);
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
 
     return deferred;
   },
@@ -335,8 +343,7 @@ return {
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
-        deferred = $.Deferred(),
-        compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+        deferred = $.Deferred();
 
     if (!isCopying && !SC.none(externalDocumentId)) {
       if (isDifferential) {
@@ -353,13 +360,21 @@ return {
     }
 
 
-
-    this.urlForPostRequests( serverUrl(url) )
-      .header('Content-Encoding', 'deflate')
-      .header('Content-Type', 'application/x-codap-document')
-      .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
-      .timeoutAfter(60000)
-      .send(compressedDocumentArchive);
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
 
     return deferred;
   },
