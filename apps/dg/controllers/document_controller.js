@@ -911,8 +911,17 @@ DG.DocumentController = SC.Object.extend(
     saveInProgress = this.signalSaveInProgress();
     this.updateSavedChangeCount();
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      // Ensure that _permissions matches the main document
+      var needsSave = false;
+      if( !SC.none( iDocumentPermissions)) {
+        if (docArchive._permissions !== iDocumentPermissions) {
+          needsSave = true;
+        }
+        docArchive._permissions = iDocumentPermissions;
+      }
+
       // FIXME If we toggle splitting on and off, we'll need to change this test
-      if( DG.assert( !SC.none(docArchive)) && (this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
+      if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
         this.clearChangedObject(context);
         var d,
             cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
@@ -1056,6 +1065,10 @@ DG.DocumentController = SC.Object.extend(
 
     exportDeferred = this.exportDataContexts(function(context, docArchive) {
       if( DG.assert( !SC.none(docArchive))) {
+        // Ensure that _permissions matches the main document
+        if( !SC.none( iDocumentPermissions)) {
+          docArchive._permissions = iDocumentPermissions;
+        }
         deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this, true));
       }
     }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
