@@ -333,6 +333,12 @@ input.editor-text {
     color: red;
 }
 
+.dg-guide-alert {
+    color: red;
+    font-size: 10px !important;
+    background-color: lightyellow;
+}
+
 .sc-label-view.ellipsis {
     white-space: nowrap !important;
     overflow: hidden !important;

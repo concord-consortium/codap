@@ -25,6 +25,7 @@
 DG.appController = SC.Object.create((function () // closure
 /** @scope DG.appController.prototype */ {
 
+
   return {  // return from closure
 
     /**
@@ -187,12 +188,6 @@ DG.appController = SC.Object.create((function () // closure
           target: this, action: 'reportProblem' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, action: 'showWebSite' },
-       // Hiding About CODAP and What's New for IS dissemination
-       /* { isSeparator: YES },
-        { localize: true, title: 'DG.AppController.optionMenuItems.about', // "About CODAP...",
-          target: this, action: 'showAbout' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.releaseNotes', // "What's New?",
-          target: this, action: 'showReleaseNotes' },*/
         { isSeparator: YES },
         { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
           target: this, action: 'configureGuide' },
@@ -399,8 +394,8 @@ DG.appController = SC.Object.create((function () // closure
         DG.currDocumentController().setPath('content._permissions', 0);
         this.setOpenedDocumentUnshared = NO;
       }
-    SC.Benchmark.end('app_controller:openJsonDocument');
-    SC.Benchmark.log('app_controller:openJsonDocument');
+      SC.Benchmark.end('app_controller:openJsonDocument');
+      SC.Benchmark.log('app_controller:openJsonDocument');
       return true;
     },
 
@@ -710,8 +705,8 @@ DG.appController = SC.Object.create((function () // closure
      Close the current document and all its components.
      */
     closeDocument: function () {
-
       SC.Benchmark.start('closeDocument');
+
       // Destroy the views
       DG.mainPage.closeAllComponents();
 
@@ -722,9 +717,9 @@ DG.appController = SC.Object.create((function () // closure
       // Destroy the document and its contents
       DG.currDocumentController().closeDocument();
       DG.store = null;
-
       SC.Benchmark.end('closeDocument');
       SC.Benchmark.log('closeDocument');
+
     },
 
     /**
@@ -1135,25 +1130,117 @@ DG.appController = SC.Object.create((function () // closure
      Bring up the bug report page.
      */
     reportProblem: function () {
-      var username = DG.authorizationController.getPath('currLogin.user');
 
-      if (username === 'guest') // Guest user isn't specific enough
-        username = '';
+      var submitFeedback= function() {
+        var iUser = DG.authorizationController.getPath('currLogin.user');
 
-      var serverString = 'DataGames/WebPages/scripts/datagames.php' +
-        '?device=%@&os=%@&os_version=%@&cf_browser=%@&cf_browser_version=%@&version=%@&name=%@'.fmt(
-          encodeURIComponent(SC.browser.device),
-          encodeURIComponent(SC.browser.os), encodeURIComponent(SC.browser.osVersion),
-          encodeURIComponent(SC.browser.name), encodeURIComponent(SC.browser.version),
-          encodeURIComponent(DG.BUILD_NUM), encodeURIComponent(username));
-      DG.currDocumentController().
-        addWebView(DG.mainPage.get('docView'), null, serverString,
-        'DG.AppController.reportProblem.dialogTitle'.loc(),
-        { centerX: 0, centerY: 0, width: 600, height: 500 });
-      //var url = 'mailto:codap-help@concord.org?subject=Bug%20Report' /*('DG.AppController.showHelpURL'.loc())*/;
-      //location=url;
-      //window.open(url,'dg_help_page');
+        console.log(iUser);
+        console.log(feedbackPane.contentView.subjectText.value);
+        console.log(feedbackPane.contentView.feedbackText.value);
+        console.log("Build #"+DG.BUILD_NUM);
+        console.log("Browser: "+SC.browser.name+" v."+SC.browser.version);
+        console.log("Device: "+SC.browser.device);
+        console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
+
+        SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
+          'device='+ SC.browser.device +
+          '&os='+SC.browser.os+
+          '&os_version='+SC.browser.osVersion+
+          '&cf_browser='+SC.browser.name+
+          '&cf_browser_version='+SC.browser.version+
+          '&version='+DG.BUILD_NUM+
+          '&name='+iUser+
+          '&description='+feedbackPane.contentView.subjectText.value+
+          '&comments='+feedbackPane.contentView.feedbackText.value)
+        //  .notify()
+          .send();
+        feedbackPane.remove();
+        feedbackPane=null;
+      };
+
+      var cancelFeedback= function() {
+        feedbackPane.remove();
+        feedbackPane=null;
+      };
+
+      //Begin feedback form
+
+      var feedbackPane=SC.PanelPane.create({
+
+        layout: { top: 175, centerX: 0, width: 525, height: 480 },
+        contentView: SC.View.extend({
+          backgroundColor: '#dde2e8',
+          childViews: 'feedbackHeader codapLogo feedbackImage subHeaderText messageText subjectText feedbackText submitFeedbackButton cancelFeedbackButton'.w(),
+
+          feedbackHeader: SC.LabelView.design({
+            layout: { top: 48,  height: 24 },
+            controlSize: SC.LARGE_CONTROL_SIZE,
+            fontWeight: SC.BOLD_WEIGHT,
+            textAlign: SC.ALIGN_CENTER,
+            value: 'DG.AppController.feedbackDialog.dialogTitle',
+            localize: YES
+          }),
+
+          codapLogo: SC.ImageView.design({
+            layout: {top:30, left:40, height:60, width:60},
+            value: static_url('images/codap_logo.png')
+          }),
+
+          feedbackImage: SC.ImageView.design({
+            layout: {top:30, right:40, height:60, width:60},
+            value: static_url('images/upanddown.png')
+          }),
+
+          subHeaderText: SC.LabelView.design({
+            layout: { top: 105, left: 40},
+            fontWeight: SC.BOLD_WEIGHT,
+            value: 'DG.AppController.feedbackDialog.subHeaderText',
+            localize: YES
+          }),
+
+          messageText: SC.LabelView.design({
+            layout: { top: 120, left: 40, right: 0, width: 400},
+            textAlign: SC.ALIGN_LEFT,
+            value: 'DG.AppController.feedbackDialog.messageText',
+            localize: YES
+          }),
+
+          subjectText: SC.TextFieldView.design({
+            layout: { top: 165, left: 40, width: 445, height: 30 },
+            autoCorrect: false,
+            autoCapitalize: false,
+            hint: 'DG.AppController.feedbackDialog.subjectHint'
+          }),
+
+          feedbackText: SC.TextFieldView.design({
+            layout: { top: 205, left: 40, height: 200, width: 445 },
+            isTextArea: true,
+            autoCorrect: false,
+            autoCapitalize: false,
+            hint:'DG.AppController.feedbackDialog.feedbackHint'
+          }),
+
+          submitFeedbackButton: SC.ButtonView.design({
+            layout: { bottom: 30, height: 24, right: 40, width: 125 },
+            title: 'DG.AppController.feedbackDialog.submitFeedbackButton',
+            localize: YES,
+            action: submitFeedback,
+            isDefault: NO
+          }),
+
+          cancelFeedbackButton: SC.ButtonView.design({
+            layout: { bottom: 30, height: 24, right: 180, width: 125 },
+            title: 'DG.AppController.feedbackDialog.cancelFeedbackButton',
+            localize: YES,
+            action: cancelFeedback,
+            isDefault: NO
+          })
+        })
+      });
+      feedbackPane.append();
+      feedbackPane.contentView.subjectText.becomeFirstResponder();
     },
+
 
     /**
      Pass responsibility to document controller
@@ -1170,36 +1257,15 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Bring up the bug report page. What's New menu item is hidden for IS dissemination
-     */
-  /*  showReleaseNotes: function () {
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        'DG.AppController.showReleaseNotesURL'.loc(),
-        'DG.AppController.showReleaseNotesTitle'.loc(), // 'CODAP Release Notes'
-        { centerX: 0, centerY: 0, width: 600, height: 400 });
-    },*/
-
-    /**
-     Show the about box. About CODAP menu item is hidden for IS dissemination
-     */
-  /*  showAbout: function () {
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        'DG.AppController.showAboutURL'.loc(),
-        'DG.AppController.showAboutTitle'.loc(), // 'About CODAP'
-        { centerX: 0, centerY: 0, width: 770, height: 400 });
-    },*/
-
-    /**
      Show the help window.
      */
     showHelp: function () {
       // Changed link to play.codap.concord.org/support
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showHelpURL'.loc()),
+          'http://' +  ('DG.AppController.showHelpURL'.loc()),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
         { centerX: 0, centerY: 0, width: 600, height: 400 });
-     // var url = 'http://' + ('DG.AppController.showHelpURL'.loc());
-     // window.open(url,'dg_help_page');
+
     },
 
     /**
@@ -1208,11 +1274,10 @@ DG.appController = SC.Object.create((function () // closure
     showWebSite: function () {
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain()+ */ ('DG.AppController.showWebSiteURL'.loc()),
+          'http://' +  ('DG.AppController.showWebSiteURL'.loc()),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
         { centerX: 0, centerY: 0, width: 1000, height: 500 });
-      //var url = 'http://' + /*DG.getDrupalSubdomain() + DG.authorizationController.getLoginCookieDomain() +*/ ('DG.AppController.showWebSiteURL'.loc());
-      //window.open(url, '_blank' /*'dg_website'*/);
+
 
     }
 

@@ -51,7 +51,11 @@ DG.main = function main() {
   DG.getPath('mainPage.mainPane').append();
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
-    DG.authorizationController.requireLogin();
+    if (DG.documentServer) {
+      DG.authorizationController.requireLogin();
+    } else {
+      DG.authorizationController.sendLoginAsGuestRequest();
+    }
   }
   else {  // If componentMode is requested, open starting doc found in url params
     DG.currGameController.set('gameIsReady', false);  // So user can't make graphs right away

@@ -141,7 +141,12 @@ DG.mainPage = SC.Page.design((function() {
         isVisible: function() {
           return !DG.documentServer || this.get('user') === 'guest';
         }.property('user'),
-        toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip')  // "Log out the current user"
+        toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip'),  // "Log out the current user"
+        userDidChange: function () {
+          var user = this.get('user');
+          this.set('title', DG.documentServer || user === 'guest' ?
+            'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'); // "Logout"
+        }.observes('user')
       }),
 
       init: function() {
@@ -222,6 +227,24 @@ DG.mainPage = SC.Page.design((function() {
           }.bind( this);
 
       var handleDrop = function( iEvent) {
+
+        function adjustTypeBasedOnSuffix() {
+          var tRegEx = /\.[^\/]+$/,
+              tSuffix = tFile.name.match(tRegEx),
+              tNewType = tType;
+          if( !SC.empty(tSuffix))
+            tSuffix = tSuffix[0];
+          switch( tSuffix) {
+            case '.csv':
+              tNewType = 'text/csv';
+              break;
+            case '.txt':
+              tNewType = 'text/plain';
+              break;
+          }
+          tType = tNewType;
+        }
+
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
@@ -230,6 +253,9 @@ DG.mainPage = SC.Page.design((function() {
         if( tFiles && (tFiles.length > 0)) {
           var tFile = tFiles[0],  // We only deal with the first file
               tType = tFile.type;
+          if( tType === '')
+            adjustTypeBasedOnSuffix();
+
           if( tType === 'application/json') {
             DG.appController.importFileWithConfirmation(tFile, 'JSON');
           }
