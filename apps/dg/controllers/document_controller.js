@@ -953,7 +953,7 @@ DG.DocumentController = SC.Object.extend(
         // FIXME What should we do if a data context fails to save?
         this.exportDocument(function(docArchive) {
           var needsSave = this.objectHasUnsavedChanges(this.get('content'));
-          if( !SC.none( iDocumentPermissions) && this.getPath('content._permissions') !== iDocumentPermissions) {
+          if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
             docArchive._permissions = iDocumentPermissions;
             this.setPath('content._permissions', iDocumentPermissions);
             needsSave = true;
