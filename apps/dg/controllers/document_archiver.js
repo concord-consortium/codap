@@ -172,7 +172,7 @@ DG.DocumentArchiver = SC.Object.extend(
     });
   },
 
-  saveDataContexts: function( iDocument, callback, externalOnly) {
+  saveDataContexts: function( iDocument, callback, saveAll) {
     var model,
         deferred = $.Deferred();
     DG.gameSelectionController.saveCurrentGameState(function() {
@@ -180,7 +180,7 @@ DG.DocumentArchiver = SC.Object.extend(
                                           function( iContextID, iContext) {
                                             iContext.willSaveContext();
                                             model = iContext.get('model');
-                                            if ( !externalOnly || !SC.none(model.get('externalDocumentId'))) {
+                                            if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
                                               callback(model, model.toArchive(true));
                                             }
                                           });

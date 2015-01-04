@@ -871,9 +871,9 @@ DG.DocumentController = SC.Object.extend(
     archiver.saveDocument( this.get('content'), callback);
   },
 
-  exportDataContexts: function(callback, externalOnly) {
+  exportDataContexts: function(callback, exportAll) {
     var archiver = DG.DocumentArchiver.create({});
-    return archiver.saveDataContexts( this.get('content'), callback, externalOnly);
+    return archiver.saveDataContexts( this.get('content'), callback, exportAll);
   },
 
     /**
@@ -938,7 +938,7 @@ DG.DocumentController = SC.Object.extend(
         }.bind(this));
         deferreds.push(d);
       }
-    }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
     exportDeferred.done(function() {
       $.when.apply($, deferreds).done(function() {
         // FIXME What should we do if a data context fails to save?
@@ -1058,7 +1058,7 @@ DG.DocumentController = SC.Object.extend(
       if( DG.assert( !SC.none(docArchive))) {
         deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this, true));
       }
-    }.bind(this), false); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
     exportDeferred.done(function() {
       $.when.apply($, deferreds).done(function() {
         // FIXME What do we do when a data context fails to save?
