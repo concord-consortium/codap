@@ -13,7 +13,7 @@
 # The script changes ownership so the directory will be accessible to apache.
 PROGNAME=`basename $0`
 
-RELEASE_DIR=/var/www-codap/html/releases
+RELEASE_DIR=/var/www/html/releases
 TMP_DIR=/tmp/${PROGNAME}.$$
 
 ZIP_FILE=$1
