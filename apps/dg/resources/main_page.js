@@ -248,9 +248,10 @@ DG.mainPage = SC.Page.design((function() {
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
-            tFiles = tDataTransfer.files;
+            tFiles = tDataTransfer.files,
+            tURI = tDataTransfer.getData('text/uri-list');
         if( tFiles && (tFiles.length > 0)) {
-          var tFile = tFiles[0],
+          var tFile = tFiles[0],  // We only deal with the first file
               tType = tFile.type;
           if( tType === '')
             adjustTypeBasedOnSuffix();
@@ -263,6 +264,9 @@ DG.mainPage = SC.Page.design((function() {
               || (tType === 'text/tab-separated-values')) {
             DG.appController.importFileWithConfirmation(tFile, 'TEXT');
           }
+        }
+        else if( !SC.empty(tURI)) {
+          DG.appController.importURL( tURI);
         }
         $(tElement).removeClass('dg-receive-outside-drop');
 
