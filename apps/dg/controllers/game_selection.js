@@ -249,7 +249,7 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
 
     DG.GameSpec.create({
       name: 'Guess My Number',
-      dimensions: { width: 100, height: 150 },
+      dimensions: { width: 400, height: 250 },
       url: 'DataGames/JavaScriptGames/GuessMyNumber.html'
     }),
 
