@@ -124,7 +124,7 @@ DG.Document.createDocument = function( iProperties) {
   DG.activeDocument = tDocument;
 
   if (tProperties.globalValues) {
-    DG.ObjectMap.forEach(tProperties.globalValues, function (gv) {
+    tProperties.globalValues.forEach( function (gv) {
       gv.document = tDocument;
       DG.GlobalValue.createGlobalValue(gv);
     });
