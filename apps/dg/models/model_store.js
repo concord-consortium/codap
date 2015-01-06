@@ -45,8 +45,11 @@ DG.ModelStore = SC.Object.extend(
     register: function (iRecordType, iObj) {
       var tNewID= this.getIDForNewRecord(iObj);
       iObj.id = tNewID;
-      DG.assert(!SC.none(tNewID));
-      DG.assert(SC.none(this._store[tNewID]));
+      DG.assert(!SC.none(tNewID),
+        'Check if found or created valid new ID for record of type %@'
+          .fmt(iRecordType));
+      DG.assert(SC.none(this._store[tNewID]),
+        'Check if store contains new object ID of type %@'.fmt(iRecordType));
       this._store[tNewID] = iObj;
       return tNewID;
     },
