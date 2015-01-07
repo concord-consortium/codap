@@ -143,6 +143,35 @@ DG.DocumentArchiver = SC.Object.extend(
   },
 
   /**
+   *
+   * @param iURL - URL of data interactive
+   * @returns {DG.Document}
+   */
+  importURLIntoDocument: function (iURL) {
+    var tDoc = {
+      name: 'DG.Document.defaultDocumentName'.loc(),
+      components: [
+        {
+          "type": "DG.GameView",
+          "componentStorage": {
+            "currentGameName": "",
+            "currentGameUrl": iURL,
+            allowInitGameOverride: true
+          }
+        }
+      ],
+      contexts: [
+      ],
+      appName: DG.APPNAME,
+      appVersion: DG.VERSION,
+      appBuildNum: DG.BUILD_NUM,
+      globalValues: []
+    };
+
+    return DG.Document.createDocument(tDoc);
+  },
+
+  /**
     Save the specified document in its JSON-text form.
     @param    {DG.Document}   iDocument   The document whose contents are to be archived
 
@@ -170,6 +199,23 @@ DG.DocumentArchiver = SC.Object.extend(
 
       callback(iDocument.toArchive());
     });
+  },
+
+  saveDataContexts: function( iDocument, callback, saveAll) {
+    var model,
+        deferred = $.Deferred();
+    DG.gameSelectionController.saveCurrentGameState(function() {
+      DG.DataContext.forEachContextInMap( iDocument.get('id'),
+                                          function( iContextID, iContext) {
+                                            iContext.willSaveContext();
+                                            model = iContext.get('model');
+                                            if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
+                                              callback(model, model.toArchive(true));
+                                            }
+                                          });
+      deferred.resolve();
+    });
+    return deferred;
   },
 
   /**

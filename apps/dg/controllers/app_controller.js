@@ -423,6 +423,48 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     *
+     * @param iURL - For the moment, we're assuming it's the URL of a data interactive
+     * @returns {Boolean}
+     */
+    importURL: function (iURL) {
+
+      var embedInteractive = function () {
+            // Currently, we must close any open document before opening a new data interactive
+            this.closeDocument();
+
+            // Create document-specific store.
+            var archiver = DG.DocumentArchiver.create({}),
+                newDocument;
+
+            // Make a data interactive iFrame using the given URL
+            newDocument = archiver.importURLIntoDocument(iURL);
+
+            DG.currDocumentController().setDocument(newDocument);
+          }.bind(this),
+
+          embedWebView = function () {
+            DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+                iURL, 'Web Page',
+                {width: 600, height: 400});
+          }.bind(this);
+
+
+      DG.AlertPane.plain({
+        message: 'What do you want to do with the URL you dragged in?',
+        description: 'There are two possibilities:',
+        buttons: [
+          {title: 'Ignore', localize: YES},
+          {title: 'Embed a data interactive', action: embedInteractive, localize: YES},
+          {title: 'Embed a web view', action: embedWebView, localize: YES}
+        ],
+        localize: YES
+      });
+
+      return true;
+    },
+
+    /**
      Allows the user to save the current document contents with a user-specified document name.
      */
     saveDocument: function () {

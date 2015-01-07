@@ -20,6 +20,9 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* globals jiff */
+sc_require('libraries/jiff');
+
 /** @class
 
   Coordinating controller for the document.
@@ -144,6 +147,9 @@ DG.DocumentController = SC.Object.extend(
    */
   savedChangeCount: 0,
 
+  _changedObjects: null,
+  _skipPatchNextTime: [],
+
   _lastCopiedDocument: null,
   externalDocumentId: null,
 
@@ -171,6 +177,8 @@ DG.DocumentController = SC.Object.extend(
     // If we were created with a 'content' property pointing to our document,
     // then use it; otherwise, create a new document.
     this.setDocument( this.get('content') || this.createDocument());
+
+    this.clearChangedObjects();
   },
   
   destroy: function() {
@@ -203,7 +211,8 @@ DG.DocumentController = SC.Object.extend(
 
     // Create the individual component views
     this.restoreComponentControllersAndViews();
-    
+
+    this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
   },
@@ -225,8 +234,9 @@ DG.DocumentController = SC.Object.extend(
     // Game controller state affects the document state
     return this.get('isSaveEnabled') &&
             ((this.get('changeCount') > this.get('savedChangeCount')) ||
-            this.get('gameHasUnsavedChanges'));
-  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges'),
+            this.get('gameHasUnsavedChanges') ||
+            this.get('_changedObjects').length > 0);
+  }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges','_changedObjects'),
 
   /**
     Synchronize the saved change count with the full change count.
@@ -237,7 +247,33 @@ DG.DocumentController = SC.Object.extend(
     DG.currGameController.updateSavedChangeCount();
     this.set('savedChangeCount', this.get('changeCount'));
   },
-  
+
+  objectChanged: function(obj) {
+    var changes = this.get('_changedObjects');
+    if (changes.indexOf(obj) === -1) {
+      changes.push(obj);
+      this.set('_changedObjects', changes);
+    }
+  },
+
+  clearChangedObjects: function() {
+    this.set('_changedObjects', []);
+  },
+
+  clearChangedObject: function(obj) {
+    var changes = this.get('_changedObjects');
+    var idx = changes.indexOf(obj);
+    if (idx !== -1) {
+      changes.splice(idx, 1);
+      this.set('_changedObjects', changes);
+    }
+  },
+
+  objectHasUnsavedChanges: function(obj) {
+    var changes = this.get('_changedObjects');
+    return changes.indexOf(obj) !== -1;
+  },
+
   /**
     Creates an appropriate DG.DataContext for the specified DG.DataContextRecord object.
     If no model is specified, creates the DG.DataContextRecord as well.
@@ -836,6 +872,11 @@ DG.DocumentController = SC.Object.extend(
     archiver.saveDocument( this.get('content'), callback);
   },
 
+  exportDataContexts: function(callback, exportAll) {
+    var archiver = DG.DocumentArchiver.create({});
+    return archiver.saveDataContexts( this.get('content'), callback, exportAll);
+  },
+
     /**
      * return an object with case data from this document.
      * @return {String}
@@ -847,29 +888,136 @@ DG.DocumentController = SC.Object.extend(
     return caseDataString;
   },
     
+  saveInProgress: null,
+  signalSaveInProgress: function() {
+    var saveInProgress = $.Deferred();
+    saveInProgress.done(function() { this.set('saveInProgress', null); }.bind(this));
+    this.set('saveInProgress', saveInProgress);
+    return saveInProgress;
+  },
+
   /**
     Archive the document into durable form, and save it.
     
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    if (!DG.authorizationController.get('saveInProgress')) {
-      this.exportDocument(function(docArchive) {
-        if( !SC.none( iDocumentPermissions)) {
-          docArchive._permissions = iDocumentPermissions;
-          this.setPath('content._permissions', iDocumentPermissions);
+    var deferreds = [],
+      existingSaveInProgress = this.get('saveInProgress'),
+      saveInProgress,
+      exportDeferred;
+    if (!SC.none(existingSaveInProgress)) {
+      return;
+    }
+    saveInProgress = this.signalSaveInProgress();
+    this.updateSavedChangeCount();
+    exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      // Ensure that _permissions matches the main document
+      var needsSave = false;
+      if( !SC.none( iDocumentPermissions)) {
+        if (docArchive._permissions !== iDocumentPermissions) {
+          needsSave = true;
         }
+        docArchive._permissions = iDocumentPermissions;
+      }
 
-        if( DG.assert( !SC.none(docArchive))) {
-          DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-          this.updateSavedChangeCount();
+      // FIXME If we toggle splitting on and off, we'll need to change this test
+      if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
+        this.clearChangedObject(context);
+        var d,
+            cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)), // Strips all keys with undefined values
+            should_skip = this._skipPatchNextTime.indexOf(context) !== -1;
+        // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
+
+        if (DG.USE_DIFFERENTIAL_SAVING && !should_skip && !SC.none(context.get('externalDocumentId'))) {
+          var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
+          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
+        } else {
+          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this);
+          if (SC.none(context.get('externalDocumentId'))) {
+            // This will change the main document by replacing the data context with an id, so we need to make sure the parent saves, too.
+            DG.dirtyCurrentDocument();
+          }
         }
+        d.done(function(success) {
+          if (success) {
+            if (DG.USE_DIFFERENTIAL_SAVING || should_skip) {
+              context.updateSavedShadowCopy(cleaned_docArchive);
+            }
+            if (should_skip) {
+              this._skipPatchNextTime.splice(this._skipPatchNextTime.indexOf(context), 1);
+            }
+          } else {
+            DG.dirtyCurrentDocument(context);
+          }
+        }.bind(this));
+        deferreds.push(d);
+      }
+    }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    exportDeferred.done(function() {
+      $.when.apply($, deferreds).done(function() {
+        // FIXME What should we do if a data context fails to save?
+        this.exportDocument(function(docArchive) {
+          var needsSave = this.objectHasUnsavedChanges(this.get('content'));
+          if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
+            docArchive._permissions = iDocumentPermissions;
+            this.setPath('content._permissions', iDocumentPermissions);
+            needsSave = true;
+          }
+
+          if( DG.assert( !SC.none(docArchive))) {
+            if (needsSave) {
+              var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
+              save.done(function() { saveInProgress.resolve(); });
+            } else {
+              this.invokeLater(function() { saveInProgress.resolve(); });
+            }
+          }
+
+          this.clearChangedObject(this.get('content'));
+        }.bind(this));
       }.bind(this));
+    }.bind(this));
+  },
+
+  receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
+    var body = JSON.parse(iResponse.get('body')),
+        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
+        messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
+    if( isError) {
+      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
+        DG.authorizationController.sessionTimeoutPrompt();
+      } else {
+        var errorMessage = messageBase + body.message;
+        if (errorMessage.loc() === errorMessage)
+          errorMessage = messageBase + 'error.general';
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage,
+          buttons: [
+            {title: "OK", action: function() { DG.dirtyCurrentDocument(); deferred.resolve(false); } }
+          ]
+        });
+      }
+    } else {
+      var newDocId = body.id;
+      if (isCopy) {
+        var win = window.open(DG.appController.copyLink(newDocId), '_blank');
+        if (win) {
+          win.focus();
+        } else {
+          DG.appController.showCopyLink(newDocId);
+        }
+      } else {
+        this.set('externalDocumentId', ''+newDocId);
+        DG.appController.triggerSaveNotification();
+      }
+      deferred.resolve(true);
     }
   },
 
-  receivedSaveDocumentResponse: function(iResponse) {
-    var body = iResponse.get('body'),
+  receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
+    var body = JSON.parse(iResponse.get('body')),
         isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
@@ -878,14 +1026,29 @@ DG.DocumentController = SC.Object.extend(
         var errorMessage = 'DG.AppController.saveDocument.' + body.message;
         if (errorMessage.loc() === errorMessage)
           errorMessage = 'DG.AppController.saveDocument.error.general';
+        if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+          this._skipPatchNextTime.push(contextModel);
+        }
         DG.AlertPane.error({
           localize: true,
-          message: errorMessage});
+          message: errorMessage,
+          buttons: [
+            {title: "OK", action: function() { deferred.resolve(false); } }
+          ]
+        });
       }
     } else {
-      var newDocId = iResponse.getPath('response.id');
-      this.set('externalDocumentId', ''+newDocId);
-      DG.appController.triggerSaveNotification();
+      var newDocId = body.id;
+      SC.run(function() {
+        if (isCopy) {
+          contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+        }
+        contextModel.set('externalDocumentId', ''+newDocId);
+
+        this.invokeLater(function() {
+          deferred.resolve(true);
+        });
+      }.bind(this));
     }
   },
 
@@ -895,37 +1058,55 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   copyDocument: function( iDocumentId, iDocumentPermissions) {
-    this.exportDocument( function( docArchive) {
-      docArchive.name = iDocumentId;
-      if (!SC.none(iDocumentPermissions))
-        docArchive._permissions = iDocumentPermissions;
-
-      if (DG.assert(!SC.none(docArchive))) {
-        DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
-      }
-    }.bind(this));
-  },
-
-  receivedCopyDocumentResponse: function(iResponse) {
-    var body = iResponse.get('body'),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
-    if( isError) {
-      var errorMessage = 'DG.AppController.copyDocument.' + body.message;
-      if (errorMessage.loc() === errorMessage)
-        errorMessage = 'DG.AppController.copyDocument.error.general';
-      DG.AlertPane.error({
-        localize: true,
-        message: errorMessage});
-    } else {
-      // Pop open the document in a new window/tab
-      var newDocId = iResponse.getPath('response.id');
-      var win = window.open(DG.appController.copyLink(newDocId), '_blank');
-      if (win) {
-        win.focus();
-      } else {
-        DG.appController.showCopyLink(newDocId);
-      }
+    var deferreds = [],
+      existingSaveInProgress = this.get('saveInProgress'),
+      saveInProgress,
+      exportDeferred;
+    if (!SC.none(existingSaveInProgress)) {
+      existingSaveInProgress.done(function() { this.copyDocument(iDocumentId, iDocumentPermissions); }.bind(this));
+      return;
     }
+    saveInProgress = this.signalSaveInProgress();
+
+    var oldDifferentialSaving = DG.USE_DIFFERENTIAL_SAVING;
+    DG.USE_DIFFERENTIAL_SAVING = false;
+    saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
+
+    exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      if( DG.assert( !SC.none(docArchive))) {
+        // Ensure that _permissions matches the main document
+        if( !SC.none( iDocumentPermissions)) {
+          docArchive._permissions = iDocumentPermissions;
+        }
+        deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this, true));
+      }
+    }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+    exportDeferred.done(function() {
+      $.when.apply($, deferreds).done(function() {
+        // FIXME What do we do when a data context fails to save?
+        this.exportDocument( function( docArchive) {
+          docArchive.name = iDocumentId;
+          if (!SC.none(iDocumentPermissions))
+            docArchive._permissions = iDocumentPermissions;
+
+          if (DG.assert(!SC.none(docArchive))) {
+            var deferred = DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
+            $.when(deferred).then(function() {
+              // Set the externalDocumentIds back
+              DG.DataContext.forEachContextInMap( this.getPath('content.id'),
+                                            function( iContextID, iContext) {
+                                              var model = iContext.get('model');
+                                              if ( !SC.none(model.get('externalDocumentId'))) {
+                                                model.set('externalDocumentId', model.get('oldExternalDocumentId'));
+                                                model.set('oldExternalDocumentId', null);
+                                              }
+                                            });
+              saveInProgress.resolve();
+            }.bind(this));
+          }
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
   },
 
   deleteDocument: function(iDocumentId) {
@@ -961,7 +1142,23 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
 /**
  * A global convenience function for dirtying the document.
  */
-DG.dirtyCurrentDocument = function() {
-  DG.currDocumentController().incrementProperty('changeCount');
-  //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+DG.dirtyCurrentDocument = function(changedObject) {
+  if (SC.none(changedObject)) {
+    changedObject = DG.currDocumentController().get('content');
+  }
+
+  var update = function() {
+    DG.currDocumentController().objectChanged(changedObject);
+    DG.currDocumentController().incrementProperty('changeCount');
+    //DG.log('changeCount = %@', DG.currDocumentController().get('changeCount'));
+  };
+
+  // Dirty the document after the current save finishes so that we don't miss sending to the server any changes that
+  // didn't make it into this save cycle.
+  var saveInProgress = DG.currDocumentController().get('saveInProgress');
+  if (!SC.none(saveInProgress)) {
+    saveInProgress.done(update);
+  } else {
+    update();
+  }
 };

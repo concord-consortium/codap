@@ -227,13 +227,35 @@ DG.mainPage = SC.Page.design((function() {
           }.bind( this);
 
       var handleDrop = function( iEvent) {
+
+        function adjustTypeBasedOnSuffix() {
+          var tRegEx = /\.[^\/]+$/,
+              tSuffix = tFile.name.match(tRegEx),
+              tNewType = tType;
+          if( !SC.empty(tSuffix))
+            tSuffix = tSuffix[0];
+          switch( tSuffix) {
+            case '.csv':
+              tNewType = 'text/csv';
+              break;
+            case '.txt':
+              tNewType = 'text/plain';
+              break;
+          }
+          tType = tNewType;
+        }
+
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
-            tFiles = tDataTransfer.files;
+            tFiles = tDataTransfer.files,
+            tURI = tDataTransfer.getData('text/uri-list');
         if( tFiles && (tFiles.length > 0)) {
-          var tFile = tFiles[0],
+          var tFile = tFiles[0],  // We only deal with the first file
               tType = tFile.type;
+          if( tType === '')
+            adjustTypeBasedOnSuffix();
+
           if( tType === 'application/json') {
             DG.appController.importFileWithConfirmation(tFile, 'JSON');
           }
@@ -242,6 +264,9 @@ DG.mainPage = SC.Page.design((function() {
               || (tType === 'text/tab-separated-values')) {
             DG.appController.importFileWithConfirmation(tFile, 'TEXT');
           }
+        }
+        else if( !SC.empty(tURI)) {
+          DG.appController.importURL( tURI);
         }
         $(tElement).removeClass('dg-receive-outside-drop');
 
