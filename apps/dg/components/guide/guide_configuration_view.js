@@ -169,7 +169,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
             tTitleLayout = this.getPath('contentView.titleField.layout');
         tWarning.set('isVisible', false);
         tRowObjects.forEach( function( iObject, iIndex) {
-          var tUrl = iObject.url;
+          var tUrl = iObject.url.toLowerCase();
           if( !SC.empty( tUrl) && (tUrl.indexOf('http://') !== 0) && (tUrl.indexOf('https://') !== 0)) {
             var tItemLayout = this.get('rowViews')[iIndex].get('layout'),
                 tItemViewBottom = tTitleLayout.top + tTitleLayout.height + tItemLayout.top + tItemLayout.height - 3;
