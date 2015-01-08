@@ -956,11 +956,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {String}              The string to represent the specified number of cases
    */
   getCaseNameForCount: function( iCollectionClient, iCount) {
-    var tSetName = (iCount === 1) ? iCollectionClient.getPath('collection.collectionRecord.caseName') :
-                      iCollectionClient.getPath('collection.collectionRecord.name');
-    tSetName = tSetName || (iCount === 1 ? 'DG.DataContext.singleCaseName'.loc()
-                              : 'DG.DataContext.pluralCaseName'.loc());
-    return tSetName;
+    var tLabels = iCollectionClient.getPath('collection.collectionRecord.labels'),
+        tSingName = tLabels ? tLabels.singleCase : iCollectionClient.getPath('collection.collectionRecord.caseName'),
+        tPluralName = tLabels ? tLabels.pluralCase : iCollectionClient.getPath('collection.collectionRecord.name');
+    tSingName = tSingName || 'DG.DataContext.singleCaseName'.loc();
+    tPluralName = tPluralName || 'DG.DataContext.pluralCaseName'.loc();
+    return (iCount === 1) ? tSingName : tPluralName;
   },
   
   /**
