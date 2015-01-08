@@ -66,6 +66,9 @@ DG.DocumentController = SC.Object.extend(
    */
   _singletonViews: null,
 
+    /**
+     * The state of the document. The document is not ready during document load.
+      */
   ready: true,
 
   /**

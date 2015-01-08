@@ -48,7 +48,7 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
     localize: true,
     //isEnabled: false
-    isEnabledBinding: 'DG.currDocumentController.ready'
+    isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready')
   },
 
   graphButton: {
@@ -72,7 +72,7 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
     localize: true,
     //isEnabled: false
-    isEnabledBinding: 'DG.currDocumentController.ready'
+    isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready')
   },
 
   sliderButton: {
