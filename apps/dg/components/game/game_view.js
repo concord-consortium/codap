@@ -44,7 +44,6 @@ DG.GameView = SC.WebView.extend(
   // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
   valueDidChange: function() {
     var value = this.get('value');
-    debugger;
 
     if (value !== this._previousValue) {
 
