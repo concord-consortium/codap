@@ -65,7 +65,12 @@ DG.DocumentController = SC.Object.extend(
     Maintain links to singleton component views
    */
   _singletonViews: null,
-  
+
+    /**
+     * The state of the document. The document is not ready during document load.
+      */
+  ready: true,
+
   /**
     Provide client access to the game view.
    */
@@ -201,6 +206,8 @@ DG.DocumentController = SC.Object.extend(
     @param    {DG.Document} iDocument -- The document to be associated with this controller
    */
   setDocument: function( iDocument) {
+
+    this.set('ready', false);
     this.set('content', iDocument);
 
     DG.DataContext.clearContextMap();
@@ -215,6 +222,7 @@ DG.DocumentController = SC.Object.extend(
     this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
+    this.set('ready', true);
   },
 
   gameHasUnsavedChangesBinding: SC.Binding.oneWay('DG._currGameController.hasUnsavedChanges').bool(),
@@ -1133,7 +1141,7 @@ DG.currDocumentController = function() {
     DG._currDocumentController.set('guideMenuPane', DG.appController.get('guideMenuPane'));
   }
   return DG._currDocumentController;
-};
+}.property();
 
 DG.gameCollectionWithName = function( iGameName, iCollectionName) {
   return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
