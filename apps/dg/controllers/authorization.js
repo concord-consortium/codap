@@ -18,6 +18,9 @@
 
 sc_require('models/authorization_model');
 
+/* globals pako */
+sc_require('libraries/pako-deflate');
+
 /**
   Logs the specified message, along with any additional properties, to the server.
   
@@ -310,26 +313,70 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    this.set('saveInProgress', true);
-
     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
-                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
+                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
+        deferred = $.Deferred();
 
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    var notificationFunction = (isCopying ? 'receivedCopyDocumentResponse' : 'receivedSaveDocumentResponse');
-    this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, notificationFunction)
-      .notify(this, 'doneSavingDocument')
-      .timeoutAfter(60000)
-      .send(iDocumentArchive);
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
+
+    return deferred;
   },
 
-  saveInProgress: false,
-  doneSavingDocument: function() {
-    this.set('saveInProgress', false);
+  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
+    var url,
+        externalDocumentId = contextModel.get('externalDocumentId'),
+        deferred = $.Deferred();
+
+    if (!isCopying && !SC.none(externalDocumentId)) {
+      if (isDifferential) {
+        url = DG.documentServer + 'document/patch?recordid=%@'.fmt(externalDocumentId);
+      } else {
+        url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+      }
+    } else {
+      url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
+
+    return deferred;
   },
 
   /**
@@ -393,6 +440,22 @@ return {
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
+  },
+
+  openDocumentSynchronously: function(iDocumentId) {
+    var url = DG.documentServer + 'document/open';
+    url += '?username=' + this.getPath('currLogin.user');
+    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
+    url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    return this.urlForGetRequests(serverUrl(url))
+      .async(NO)
+      .json(YES)
+      .send();
   },
 
   revertCurrentDocument: function(iReceiver) {

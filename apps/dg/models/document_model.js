@@ -87,11 +87,14 @@ DG.Document = DG.BaseModel.extend(
           guid: this.id,
           components: [],
           contexts: [],
+          globalValues: [],
           appName: this.appName,
           appVersion: this.appVersion,
-          appBuildNum: this.appBuildNum,
-          globalValues: DG.ObjectMap.values(this.globalValues)
+          appBuildNum: this.appBuildNum
         };
+      DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
+        obj.globalValues.push(this.globalValues[globalKey].toArchive());
+      }.bind(this));
       DG.ObjectMap.forEach(this.components, function (componentKey) {
         obj.components.push(this.components[componentKey].toArchive());
       }.bind(this));
@@ -121,7 +124,7 @@ DG.Document.createDocument = function( iProperties) {
   DG.activeDocument = tDocument;
 
   if (tProperties.globalValues) {
-    DG.ObjectMap.forEach(tProperties.globalValues, function (gv) {
+    tProperties.globalValues.forEach( function (gv) {
       gv.document = tDocument;
       DG.GlobalValue.createGlobalValue(gv);
     });

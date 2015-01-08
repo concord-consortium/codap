@@ -51,6 +51,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     contextStorage: null,
 
+    _savedShadowCopy: null,
+
     init: function () {
       this.collections = {};
       sc_super();
@@ -82,28 +84,56 @@ DG.DataContextRecord = DG.BaseModel.extend(
       return DG.CollectionRecord.createCollection( iProperties);
     },
 
-    toArchive: function () {
-      var obj = {
-          type: this.type,
-          document: this.document && this.document.id || undefined,
-          guid: this.id,
-          collections: [],
-          contextStorage: this.contextStorage
+    toArchive: function (fullData) {
+      var obj;
+      fullData = fullData || false;
+      if ( fullData || SC.none(this.externalDocumentId) ) {
+        obj = {
+            type: this.type,
+            document: this.document && this.document.id || undefined,
+            guid: this.id,
+            collections: [],
+            contextStorage: this.contextStorage
+          };
+        DG.ObjectMap.forEach(this.collections, function (collectionKey){
+          obj.collections.push(this.collections[collectionKey].toArchive());
+        }.bind(this));
+      } else {
+        obj = {
+          externalDocumentId: this.externalDocumentId
         };
-      DG.ObjectMap.forEach(this.collections, function (collectionKey){
-        obj.collections.push(this.collections[collectionKey].toArchive());
-      }.bind(this));
+      }
       return obj;
+    },
+
+    savedShadowCopy: function() {
+      return this._savedShadowCopy;
+    },
+
+    updateSavedShadowCopy: function(shadow) {
+      this._savedShadowCopy = shadow;
     }
 
   });
 
 DG.DataContextRecord.createContext = function( iProperties) {
-  var tContext;
+  var tContext, shadowCopy = {};
   if( SC.none( iProperties)) iProperties = {};
+  if( !SC.none( iProperties.externalDocumentId)) {
+    // We should be loading this info from an external document.
+    var response = DG.authorizationController.openDocumentSynchronously(iProperties.externalDocumentId);
+
+    if (SC.ok(response)) {
+      shadowCopy = $.extend(true, shadowCopy, response.get('body'));
+      iProperties = $.extend(response.get('body'), iProperties);
+    } else {
+      // FIXME What do we do for an error?
+    }
+  }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';
   iProperties.document = DG.store.resolve(iProperties.document);
   tContext = DG.DataContextRecord.create(iProperties);
+  tContext.updateSavedShadowCopy(shadowCopy);
   if (iProperties.document) {
     iProperties.document.contexts[tContext.get('id')] = tContext;
   }
