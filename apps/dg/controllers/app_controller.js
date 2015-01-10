@@ -406,18 +406,24 @@ DG.appController = SC.Object.create((function () // closure
      */
     importText: function( iText) {
       // Currently, we must close any open document before opening another
-      this.closeDocument();
+      //this.closeDocument();
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-          newDocument;
+          newDocument, context, contextRecord;
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importTextIntoDocument( iText);
+      newDocument = archiver.importCSV( iText);
+      // set the id of the current document into the data context.
+      newDocument.contexts[0].document = DG.currDocumentController().get('documentID');
+      // Create the context record.
+      contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
+      // create the context
+      context = DG.currDocumentController().createDataContextForModel(contextRecord);
+      context.restoreFromStorage(contextRecord.contextStorage);
+      //DG.currDocumentController().setDocument(newDocument);
 
-      DG.currDocumentController().setDocument(newDocument);
-
-      DG.mainPage.toggleCaseTable();  // This will show the case table
+      //DG.mainPage.toggleCaseTable();  // This will show the case table
 
       return true;
     },
