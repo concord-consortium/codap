@@ -42,12 +42,8 @@ DG.DocumentArchiver = SC.Object.extend(
     return DG.Document.createDocument(docArchive);
   },
 
-  /**
-   *
-   * @param iText - csv or tab-delimited
-   * @returns {DG.Document}
-   */
-  importTextIntoDocument: function( iText) {
+  importCSV: function (iText) {
+
     // trims empty columns from right side of
     function trimTrailingColumns(arr) {
       var newArr = [];
@@ -67,32 +63,31 @@ DG.DocumentArchiver = SC.Object.extend(
     }
     function parseText() {
       var tValuesArray,
-          tCollectionRow,
-          tChildName = 'children',// Child Collection Name: should be first
-                                  // line of CSV
-          tAttrNamesRow,// Column Header Names: should be second row
-          tDoc = {
-            name: 'DG.Document.defaultDocumentName'.loc(),
-            components: [],
-            contexts: [
-              {
-                "type": "DG.DataContext",
-                "document": 1,
-                "collections": [
-                  {
-                    "attrs": [],
-                    "cases": []
-                  }
-                ]
-              }
-            ],
-            appName: DG.APPNAME,
-            appVersion: DG.VERSION,
-            appBuildNum: DG.BUILD_NUM,
-            globalValues: []
-          },
-          tAttrsArray = tDoc.contexts[0].collections[0].attrs,
-          tCasesArray = tDoc.contexts[0].collections[0].cases;
+        tCollectionRow,
+        tChildName = 'children',// Child Collection Name: should be first
+                                // line of CSV
+        tAttrNamesRow,// Column Header Names: should be second row
+        tDoc = {
+          name: 'DG.Document.defaultDocumentName'.loc(),
+          components: [],
+          contexts: [
+            {
+              "type": "DG.DataContext",
+              "collections": [
+                {
+                  "attrs": [],
+                  "cases": []
+                }
+              ]
+            }
+          ],
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          globalValues: []
+        },
+        tAttrsArray = tDoc.contexts[0].collections[0].attrs,
+        tCasesArray = tDoc.contexts[0].collections[0].cases;
 
       CSV.RELAXED = true;
       CSV.IGNORE_RECORD_LENGTH = true;
@@ -138,6 +133,15 @@ DG.DocumentArchiver = SC.Object.extend(
     } // parseText
 
     var docArchive = parseText( );
+    return docArchive;
+  },
+  /**
+   *
+   * @param iText - csv or tab-delimited
+   * @returns {DG.Document}
+   */
+  importTextIntoDocument: function( iText) {
+    var docArchive = this.importCSV(iText);
 
     return DG.Document.createDocument(docArchive);
   },
