@@ -519,8 +519,10 @@ DG.DocumentController = SC.Object.extend(
   
   addGame: function( iParentView, iComponent) {
     var tGameParams = DG.gameSelectionController.get('currentDimensions') || { width: 0, height: 0 },
-        tGameUrl = (iComponent && iComponent.getPath('componentStorage.currentGameUrl')),
-        tGameName = (iComponent && iComponent.getPath('componentStorage.currentGameName')) || '';
+        tGameUrl = (iComponent && iComponent.getPath('componentStorage.currentGameUrl'))
+          || DG.gameSelectionController.get('currentUrl'),
+        tGameName = (iComponent && iComponent.getPath('componentStorage.currentGameName'))
+          || DG.gameSelectionController.get('currentName') || '';
 
     var tView = this.createComponentView(iComponent, {
                               parentView: iParentView, 

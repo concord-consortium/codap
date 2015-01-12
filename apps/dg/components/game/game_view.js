@@ -89,7 +89,7 @@ DG.GameView = SC.WebView.extend(
             }            
           });
         },
-        this.name,
+        'codap-game',
         this.$('iframe')[0],
         DG.gameSelectionController.getPath('currentGame.origin')
       );
@@ -111,7 +111,9 @@ DG.GameView = SC.WebView.extend(
   iframeDidLoad: function()
   {
     var iframe = this.$('iframe')[0];
-    this.valueDidChange();
+    if (this.value) {
+      this.valueDidChange();
+    }
     if (iframe && iframe.contentWindow) {
       var contentWindow = iframe.contentWindow,
           target = DG.currGameController;
