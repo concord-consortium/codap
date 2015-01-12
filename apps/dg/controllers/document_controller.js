@@ -556,7 +556,27 @@ DG.DocumentController = SC.Object.extend(
     this._singletonViews.caseTableView = tView;
     return tView;
   },
-  
+
+  /*
+     An alternate implementation of addCaseTable that adds the ability to pass
+     parameters. Needed for multiple data contexts.
+     */
+  addCaseTableP: function( iParentView, iComponent, iProperties) {
+
+    var props = SC.Object.create({
+      parentView: iParentView,
+      controller: DG.CaseTableController.create(iProperties),
+      componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
+      contentProperties: {},
+      defaultLayout: { width: 500, height: 200 },
+      title: 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+      isResizable: true}), tView;
+    DG.ObjectMap.copy(props, iProperties);
+    tView = this.createComponentView(iComponent, props);
+    this._singletonViews.caseTableView = tView;
+    return tView;
+  },
+
   addGraph: function( iParentView, iComponent) {
     SC.Benchmark.start('addGraph');
     var tGraphModel = DG.GraphModel.create(),
