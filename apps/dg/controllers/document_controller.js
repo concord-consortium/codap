@@ -37,7 +37,7 @@ DG.DocumentController = SC.Object.extend(
    *  @property {DG.Document}
    */
   content: null,
-  
+
   /**
    *  The DataContexts which are managed by this controller.
    *  Bound to the document's 'contexts' property.
@@ -553,7 +553,6 @@ DG.DocumentController = SC.Object.extend(
                               title: 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
                               isResizable: true}
                             );
-    this._singletonViews.caseTableView = tView;
     return tView;
   },
 
@@ -573,7 +572,6 @@ DG.DocumentController = SC.Object.extend(
       isResizable: true}), tView;
     DG.ObjectMap.copy(props, iProperties);
     tView = this.createComponentView(iComponent, props);
-    this._singletonViews.caseTableView = tView;
     return tView;
   },
 
