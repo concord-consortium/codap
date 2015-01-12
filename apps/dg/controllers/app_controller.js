@@ -421,6 +421,10 @@ DG.appController = SC.Object.create((function () // closure
       // create the context
       context = DG.currDocumentController().createDataContextForModel(contextRecord);
       context.restoreFromStorage(contextRecord.contextStorage);
+
+      // add case table
+      DG.currDocumentController().addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
+
       //DG.currDocumentController().setDocument(newDocument);
 
       //DG.mainPage.toggleCaseTable();  // This will show the case table
