@@ -410,24 +410,21 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-          newDocument, context, contextRecord;
+          newDocument, context, contextRecord,
+          documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
       newDocument = archiver.importCSV( iText);
       // set the id of the current document into the data context.
-      newDocument.contexts[0].document = DG.currDocumentController().get('documentID');
+      newDocument.contexts[0].document = documentController.get('documentID');
       // Create the context record.
       contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
       // create the context
-      context = DG.currDocumentController().createDataContextForModel(contextRecord);
+      context = documentController.createDataContextForModel(contextRecord);
       context.restoreFromStorage(contextRecord.contextStorage);
 
       // add case table
-      DG.currDocumentController().addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
-
-      //DG.currDocumentController().setDocument(newDocument);
-
-      //DG.mainPage.toggleCaseTable();  // This will show the case table
+      documentController.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
 
       return true;
     },
