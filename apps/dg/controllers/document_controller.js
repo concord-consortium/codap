@@ -575,6 +575,24 @@ DG.DocumentController = SC.Object.extend(
     return tView;
   },
 
+  openCaseTablesForEachContext: function () {
+    debugger;
+    var caseTables = this.findComponentsByType(DG.CaseTableController);
+    function haveCaseTableForContext (context) {
+      var ix;
+      for (ix = 0; ix < caseTables.length; ix += 1) {
+        if (caseTables[ix].dataContext === context) { return true; }
+      }
+      return false;
+    }
+    DG.DataContext.forEachContextInMap(null, function (id, context) {
+      if (!haveCaseTableForContext(context)) {
+        this.addCaseTableP(DG.mainPage.get('docView'),
+          null, {dataContext: context});
+      }
+    }.bind(this));
+  },
+
   addGraph: function( iParentView, iComponent) {
     SC.Benchmark.start('addGraph');
     var tGraphModel = DG.GraphModel.create(),
@@ -837,7 +855,15 @@ DG.DocumentController = SC.Object.extend(
     // Reset the guide
     this.get('guideModel').reset();
   },
-  
+  findComponentsByType: function (iType) {
+    var tResults = [];
+    DG.ObjectMap.forEach(this.componentControllersMap, function (key, componentController) {
+      if (componentController.constructor === iType) {
+        tResults.push(componentController);
+      }
+    });
+    return tResults;
+  },
   removeComponentAssociatedWithView: function( iComponentView) {
     var tController = null,
         tComponentID = DG.ObjectMap.findKey( this.componentControllersMap,
