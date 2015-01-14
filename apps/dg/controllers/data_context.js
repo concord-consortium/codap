@@ -1185,6 +1185,14 @@ DG.DataContext.forEachContextInMap = function( iDocumentID, iFunction) {
 };
 
 /**
+ Returns an array of keys to known data contexts.
+ @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
+ */
+DG.DataContext.contextIDs = function(iDocumentID) {
+  return DG.ObjectMap.keys(DG.DataContext._contextMap);
+};
+
+/**
   Returns the context that contains the specified collection.
   Currently, this is implemented simply by following the 'context' property
   of the DG.CollectionRecord back to its DG.DataContextRecord and then looking
