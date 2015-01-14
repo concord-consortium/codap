@@ -576,7 +576,6 @@ DG.DocumentController = SC.Object.extend(
   },
 
   openCaseTablesForEachContext: function () {
-    debugger;
     var caseTables = this.findComponentsByType(DG.CaseTableController);
     function haveCaseTableForContext (context) {
       var ix;
