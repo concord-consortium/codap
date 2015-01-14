@@ -166,8 +166,24 @@ DG.GraphController = DG.DataDisplayController.extend(
       axisViewDidAcceptDrop: function( iAxis, iKey, iDragData) {
         if( SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
+        var /*tDataContext = this.get('dataContext'),*/
+          tMyDataContext = this.get('dataContext'),
+          tDragContext = iDragData.context,
+          tDataContext = tMyDataContext,
+          tCollectionClient;
+
+        if (!SC.none(tDragContext)) {
+          tDataContext = tDragContext;
+          //if (tDragContext !== tMyDataContext) {
+            //this.get('graphModel').changeAttributeForAxis(
+            //  tDataContext,
+            //  null,
+            //  iAxis.get('orientation')==='horizontal'?'vertical':'horizontal');
+          //}
+          this.set('dataContext', tDragContext);
+        }
+
+        tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
 
         iAxis.dragData = null;
 

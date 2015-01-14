@@ -244,14 +244,18 @@ DG.AxisView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   
   /**
     Graph controller observes this property to detect that a drag has taken place.
-    @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
-                axisOrientation:{String} }}
+    @property{{
+      context:{DG.DataContext},
+      collection:{DG.CollectionRecord},
+      attribute:{DG.Attribute},
+      text:{String},
+      axisOrientation:{String} }}
   */
     dragData: null,
 
   /**
     Attempt to assign the given attribute to this axis.
-    @param {SC.Drag} 'data' property contains 'collection', 'attribute', 'text' properties
+    @param {SC.Drag} 'data' property contains 'context', 'collection', 'attribute', 'text' properties
     @param {SC.DRAG_LINK}
   */
   performDragOperation: function( iDragObject, iDragOp) {

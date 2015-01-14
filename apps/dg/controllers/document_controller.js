@@ -578,9 +578,13 @@ DG.DocumentController = SC.Object.extend(
   addGraph: function( iParentView, iComponent) {
     SC.Benchmark.start('addGraph');
     var tGraphModel = DG.GraphModel.create(),
-        tGraphController = DG.GraphController.create();
-    // Default to current context. Will be replaced by referenced context in restored documents.
-    tGraphController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+      tGraphController = DG.GraphController.create(),
+      tContextIds = DG.DataContext.contextIDs(null);
+
+    if (DG.ObjectMap.length(tContextIds) === 1) {
+      tGraphController.set('dataContext',
+        DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
+    }
     var tView = this.createComponentView(iComponent, {
                             parentView: iParentView, 
                             controller: tGraphController,
@@ -612,10 +616,15 @@ DG.DocumentController = SC.Object.extend(
   addMap: function( iParentView, iComponent) {
     var tMapModel = DG.MapModel.create(),
         tMapController = DG.MapController.create(),
-        tContext = DG.gameSelectionController.get('currentContext');
-    // Don't pass the data context in the constructor because it's a function property
-    tMapModel.set('dataContext',  tContext);
-    tMapController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+        tContextIds = DG.DataContext.contextIDs(null),
+        tContext;
+
+    if (DG.ObjectMap.length(tContextIds) === 1) {
+      tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
+      // Don't pass the data context in the constructor because it's a function property
+      tMapModel.set('dataContext',  tContext);
+      tMapController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+    }
 
     // map as component
     var tView = this.createComponentView(iComponent, {
