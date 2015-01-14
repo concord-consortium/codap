@@ -435,12 +435,10 @@ DG.mainPage.toggleCalculator = function() {
       toggleComponent( this.get('docView'), 'calcView');
 };
 
-DG.mainPage.openAllCaseTables = function () {
-  DG.DataContext.forEachContextInMap(null, function (id, context) {
-    DG.currDocumentController().addCaseTableP(DG.mainPage.get('docView'),
-      null, {dataContext: context});
-  });
+DG.mainPage.openCaseTablesForEachContext = function () {
+  DG.currDocumentController().openCaseTablesForEachContext();
 };
+
 DG.mainPage.toggleCaseTable = function() {
 
   DG.currDocumentController().
