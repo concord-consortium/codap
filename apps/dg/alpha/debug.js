@@ -19,6 +19,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
+sc_require('libraries/metacog');
 
 /**
   Constant used to indicate logging of user actions.
@@ -160,6 +161,25 @@ DG.Debug = SC.Object.create( (function() {
       // Install our exception-handling intervention
       this._prevExceptionHandler = SC.ExceptionHandler.handleException;
       SC.ExceptionHandler.handleException = this._prevExceptionHandler;
+
+      console.log('Initializing metacog......')
+      Metacog.init({
+        "session": {
+          "publisher_id": 'f5f4a2c2',
+          "application_id": '22d4cd0305eea8b55cf928b77e0a3ed2',
+          "widget_id": 'codap',
+          "learner_id": "User-"+Math.floor(Math.random()*100000), // only alphanumeric (no periods)
+          "session_id": "Session-"+Math.floor(Math.random()*100000)
+        },
+        log_tab: true,
+        mode:"production"
+      });
+
+      //Metacog.Router.init({
+      //  on_any_event: function() {}
+      //});
+
+      Metacog.Logger.start();
     },
     
     /**
@@ -327,7 +347,9 @@ DG.Debug = SC.Object.create( (function() {
       @param {Object}  iOriginalArgs (optional) All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
     */
     _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
-    
+
+
+
       // Map DG-specific types to standard SC.Logger types
       var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
       
@@ -355,6 +377,18 @@ DG.Debug = SC.Object.create( (function() {
                 activity: activityName,
                 application: 'CODAP'
               }, metaArgs);
+          if (iType === DG.LOGGER_LEVEL_USER) {
+            Metacog.Router.sendEvent({
+              event: messageType.replace( /\s/g, "_" ), // strip whitespace
+              data: {
+                type: iType,
+                args: messageArgs,
+                activity: activityName,
+                application: 'CODAP'
+              },
+              type: Metacog.EVENT_TYPE.MODEL
+            });
+          }
         } catch(ex) {
           if (console && console.log) {
             console.log('Log to server failed: ' + ex);
