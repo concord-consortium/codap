@@ -61,6 +61,11 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
         }.bind( this);
 
+        /*
+         * Set the dataContext id. It will be resolved to the
+         * object when it is restored.
+         */
+        storage.dataContext = dataConfiguration.get('dataContext').id;
         this.storeDimension( dataConfiguration, storage, 'x');
         this.storeDimension( dataConfiguration, storage, 'y');
 
@@ -174,12 +179,11 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         if (!SC.none(tDragContext)) {
           tDataContext = tDragContext;
-          //if (tDragContext !== tMyDataContext) {
-            //this.get('graphModel').changeAttributeForAxis(
-            //  tDataContext,
-            //  null,
-            //  iAxis.get('orientation')==='horizontal'?'vertical':'horizontal');
-          //}
+          if (tDragContext !== tMyDataContext) {
+            var iOtherAxis = iAxis.orientation === 'horizontal'? 'yAxis': 'xAxis',
+              tOtherDesc = (iAxis === 'horizontal') ? 'yAttributeDescription' : 'xAttributeDescription';
+            this.get('graphModel').removeAttribute(tOtherDesc, iOtherAxis, 0);
+          }
           this.set('dataContext', tDragContext);
         }
 
