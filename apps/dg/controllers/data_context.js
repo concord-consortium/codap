@@ -1061,8 +1061,8 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   collectionDefaults: function() {
     var defaults = {
-      collectionClient: this.get('childCollection'),
-      parentCollectionClient: this.get('parentCollection'),
+      collectionClient: null, //this.get('childCollection'),
+      parentCollectionClient: null, //this.get('parentCollection'),
       plotXAttr: null,
       plotXAttrIsNumeric: true,
       plotYAttr: null,
