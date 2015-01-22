@@ -429,7 +429,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       var tConfig = this.get( 'dataConfiguration' ),
           tAttributes = tConfig.getPath( iDescKey + '.attributes');
 
-      if( tAttributes.length === 1)
+      if( tAttributes.length === 0)
+        return;
+      else if( tAttributes.length === 1)
         removeLastAttribute();
       else
         removeIndexedAttribute();
