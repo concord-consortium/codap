@@ -179,11 +179,11 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         if (!SC.none(tDragContext)) {
           tDataContext = tDragContext;
-          if (tDragContext !== tMyDataContext) {
-            var iOtherAxis = iAxis.orientation === 'horizontal'? 'yAxis': 'xAxis',
-              tOtherDesc = (iAxis === 'horizontal') ? 'yAttributeDescription' : 'xAttributeDescription';
-            this.get('graphModel').removeAttribute(tOtherDesc, iOtherAxis, 0);
-          }
+          //if (tDragContext !== tMyDataContext) {
+          //  var iOtherAxis = iAxis.orientation === 'horizontal'? 'yAxis': 'xAxis',
+          //    tOtherDesc = (iAxis === 'horizontal') ? 'yAttributeDescription' : 'xAttributeDescription';
+          //  this.get('graphModel').removeAttribute(tOtherDesc, iOtherAxis, 0);
+          //}
           this.set('dataContext', tDragContext);
         }
 
