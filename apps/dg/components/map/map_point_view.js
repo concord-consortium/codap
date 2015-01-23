@@ -34,6 +34,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
                       'model.gridModel.visible'],
 
   classNames: ['map-layer'],
+  classNameBindings: ['isInMarqueeMode:marquee-mode'],
 
   /**
    * @property {DG.MapModel}
@@ -51,6 +52,13 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   mapLayer: null,
 
   /**
+   * @property {Boolean}
+   */
+  isInMarqueeMode: false,
+
+  marqueeContext: null,
+
+  /**
    * Subclasses can override calling sc_super() and then adding layers at will.
    */
   initLayerManager: function() {
@@ -60,7 +68,68 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.get('layerManager').addNamedLayer( ln.kBackground )
                   .addNamedLayer( ln.kPoints )
                   .addNamedLayer( ln.kSelectedPoints )
+                  .addNamedLayer( ln.kAdornments )
                   .addNamedLayer( ln.kDataTip );
+  },
+
+  mouseDown: function( iEvent) {
+    this.marqueeContext = {};
+    this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
+        { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this);
+    this.marqueeContext.marquee = this._paper.rect( this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
+        .attr( { fill: DG.PlotUtilities.kMarqueeColor,
+          stroke: DG.RenderingUtilities.kTransparent });
+    this.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( this.marqueeContext.marquee);
+    return true;
+  },
+
+  mouseMoved: function( iEvent) {
+    if( !this.get('marqueeContext'))
+      return false;
+
+    var tBaseSelection = [],
+        tCurrPt = DG.ViewUtilities.windowToViewCoordinates(
+                      { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this),
+        tX = Math.min( this.marqueeContext.startPt.x, tCurrPt.x),
+        tY = Math.min( this.marqueeContext.startPt.y, tCurrPt.y),
+        tWidth = Math.abs( this.marqueeContext.startPt.x - tCurrPt.x),
+        tHeight = Math.abs( this.marqueeContext.startPt.y - tCurrPt.y),
+        tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
+    this.marqueeContext.marquee.attr( tRect);
+    this.selectPointsInRect( tRect, tBaseSelection);
+    return true;
+  },
+
+  selectPointsInRect: function( iRect, iBaseSelection) {
+    var tDataContext = this.getPath('model.dataContext'),
+        tCollection = this.getPath('model.collectionClient');
+    if( SC.none( tDataContext))
+      return;
+    iBaseSelection = iBaseSelection || [];
+
+    var tSelection = this.get('mapPointLayer' ).getCasesForPointsInRect( iRect),
+        tChange = {
+                    operation: 'selectCases',
+                    collection: tCollection,
+                    cases: iBaseSelection.concat( tSelection),
+                    select: true
+                  };
+
+    // If there are no cases to select, then simply deselect all
+    if( tChange.cases.length === 0) {
+      tChange.cases = null;
+      tChange.select = false;
+    }
+    tDataContext.applyChange( tChange);
+  },
+
+  mouseUp: function( iEvent) {
+    if( !this.get('marqueeContext'))
+      return false;
+    this.getPath('layerManager').removeElement( this.marqueeContext.marquee);
+    this.marqueeContext = null;
+    this.set('isInMarqueeMode', false);
+    return true;
   },
 
   init: function() {
