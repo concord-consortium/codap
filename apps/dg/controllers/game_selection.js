@@ -471,20 +471,20 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     this.games = [];
 
     // Add any entries specified as URL parameters
-    if( !SC.empty( DG.urlParamGames)) {
-      var urlGames = SC.json.decode( DG.urlParamGames);
-      if( SC.none( urlGames.length))
-        urlGames = [ urlGames ];
-      urlGames.forEach( function( iSpec) {
-                          // sanity-check the spec
-                          if( !SC.empty( iSpec.name) && !SC.empty( iSpec.url)) {
-                            var newGame = DG.GameSpec.create( iSpec);
-                            if( newGame) this.games.push( newGame);
-                          }
-                        }.bind( this));
-      if( this.games.length > 0)
-        this.games.push( DG.BaseGameSpec.create({ name: null, isSeparator: true }));
-    }
+    //if( !SC.empty( DG.urlParamGames)) {
+    //  var urlGames = SC.json.decode( DG.urlParamGames);
+    //  if( SC.none( urlGames.length))
+    //    urlGames = [ urlGames ];
+    //  urlGames.forEach( function( iSpec) {
+    //                      // sanity-check the spec
+    //                      if( !SC.empty( iSpec.name) && !SC.empty( iSpec.url)) {
+    //                        var newGame = DG.GameSpec.create( iSpec);
+    //                        if( newGame) this.games.push( newGame);
+    //                      }
+    //                    }.bind( this));
+    //  if( this.games.length > 0)
+    //    this.games.push( DG.BaseGameSpec.create({ name: null, isSeparator: true }));
+    //}
 
     this.games = this.games.concat( this.get('baseGames'));
 
