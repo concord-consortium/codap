@@ -344,8 +344,7 @@ DG.Debug = SC.Object.create( (function() {
                   : undefined,
               metaArgs = typeof lastArg === 'object' ? lastArg : {},
               messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
-              activity = DG.gameSelectionController.get('currentGame'),
-              activityName = activity? activity.get('name') : undefined,
+              activityName = DG.currDocumentController().documentName,
               messageType = messageParts.shift(),
               messageArgs = messageParts.join(':').trim();
 
