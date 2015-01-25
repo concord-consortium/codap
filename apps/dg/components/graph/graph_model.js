@@ -389,7 +389,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           this.set( iAxisKey, tNewAxis );
           tAxisToDestroy.destroy();
 
-          tConfig.setAttributeAndCollectionClient( iDescKey, null);
+          tConfig.setAttributeAndCollectionClient( iDescKey, null,
+              DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
           // The role of the attribute placement description on the axis whose attribute is removed must be secondary
           // and the other axis role must now be primary
           switch( this.getPath( 'dataConfiguration.' + tOtherDesc + '.attributeType' ) ) {

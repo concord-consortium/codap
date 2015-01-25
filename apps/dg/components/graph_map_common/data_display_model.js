@@ -97,6 +97,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /**
+     * This is called when the dataContext has changed. We prepare to accept a new dataContext and be
+     * reconfigured with new axes, plots, and legends.
+     */
+    reset: function() {
+      this.init();
+    },
+
+    /**
       The data context for the graph. Set by caller after construction initially and
       reset for graphs restored from document to point to the restored data context.
       @property   {DG.DataContext}

@@ -370,6 +370,11 @@ DG.GraphView = SC.View.extend(
     this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis'),
+
+  handleLegendModelChange: function() {
+    var tLegendModel = this.getPath('model.legend');
+    this.setPath('legendView.model', tLegendModel);
+  }.observes('.model.legend'),
   
   /**
     When my plot model changes, we need to respond by changing its corresponding view.
