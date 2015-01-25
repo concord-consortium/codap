@@ -254,8 +254,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
       plotOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
         if( SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
+
+        var tDragContext = iDragData.context;
+        if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
+          this.get('dataDisplayModel').reset();
+          this.set('dataContext', tDragContext);
+        }
+
         var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
+            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
         iView.dragData = null;
 

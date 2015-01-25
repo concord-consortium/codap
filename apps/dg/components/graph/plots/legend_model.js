@@ -37,18 +37,18 @@ DG.LegendModel = SC.Object.extend(
   */
   label: function() {
     var tDesc = this.get('attributeDescription'),
-        tAttr = SC.none( tDesc) ? null : tDesc.get('attribute');
+        tAttr = SC.none( tDesc) ? DG.Analysis.kNullAttribute : tDesc.get('attribute');
     return ( tAttr === DG.Analysis.kNullAttribute) ? '' : tAttr.get('name');
   }.property('attributeDescription.attribute'),
 
   /**
-    Determined by asking attributeStats
-    @property{Number}	>= 1
-  */
-    numberOfCells: function() {
-        return Math.max( 1,
-                this.getPath('attributeDescription.attributeStats.numberOfCells'));
-    }.property('attributeDescription.attributeStats.numberOfCells'),
+   Determined by asking attributeStats
+   @property{Number}  >= 0
+   */
+  numberOfCells: function () {
+    var tNumCells = this.getPath('attributeDescription.attributeStats.numberOfCells');
+    return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
+  }.property('attributeDescription.attributeStats.numberOfCells'),
 
   /**
     Determined by asking attributeStats
