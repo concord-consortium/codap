@@ -39,23 +39,23 @@ DG.CaseTableController = DG.ComponentController.extend(
        *  contents of the restored data context.
        *  @property {DG.DataContext} or derived class
        */
-      _currentGameContext: null,
-      _currentGameContextBinding: SC.Binding.oneWay('DG.gameSelectionController.currentContext'),
+      //_currentGameContext: null,
+      //_currentGameContextBinding: SC.Binding.oneWay('DG.gameSelectionController.currentContext'),
       
       /**
         Observer function called when the currently selected game context changes.
        */
       currentGameContextDidChange: function( iNotifier, iKey) {
-        if( !this.restoredDataContext) {
-          this.notifyPropertyChange('dataContext');
-        }
+        //if( !this.restoredDataContext) {
+        //  this.notifyPropertyChange('dataContext');
+        //}
         // 'gameIsReady' affects our labels, which affects our group headers
-        else if( iKey === 'gameIsReady') {
+        /*else*/ if( iKey === 'gameIsReady') {
           var hierTableView = this.getPath('view.contentView');
           if( hierTableView)
             hierTableView.refresh();
         }
-      }.observes('_currentGameContext','DG.currGameController.gameIsReady'),
+      }.observes(/*'_currentGameContext',*/'DG.currGameController.gameIsReady'),
       
       /**
         The restored data context for tables restored from documents.
@@ -63,7 +63,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         Otherwise, it will reflect the contents of the current game context.
         @property   {DG.DataContext} or derived class
        */
-      restoredDataContext: null,
+      //restoredDataContext: null,
       
       /**
         The table will reflect the contents of the restored data context if there is one.
@@ -71,9 +71,9 @@ DG.CaseTableController = DG.ComponentController.extend(
         Will notify when 'restoredDataContext' changes.
         @property   {DG.DataContext} or derived class
        */
-      dataContext: function() {
-        return this.get('restoredDataContext') || this.get('_currentGameContext');
-      }.property('restoredDataContext'),
+      dataContext: null,//function() {
+        //return this.get('restoredDataContext') || this.get('_currentGameContext');
+      //}.property('restoredDataContext'),
       
       /**
         @private
@@ -104,6 +104,7 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         if( this.get('dataContext'))
           this.dataContextDidChange();
+        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
       },
       
       /**
@@ -202,13 +203,24 @@ DG.CaseTableController = DG.ComponentController.extend(
           childCollection = this.getPath('dataContext.childCollection');
           parentCount = parentCollection? parentCollection.getCaseCount(): 0;
           childCount = childCollection? childCollection.getCaseCount(): 0;
-          if (parentCollection && childCollection) {
-            tStatusMessage = dataContext.getCaseCountString(parentCollection,
-              parentCount) + '/' + dataContext.getCaseCountString(childCollection,
+          if (parentCollection) {
+            tStatusMessage = dataContext.getCaseCountString(parentCollection, parentCount);
+            if (childCollection) {
+              tStatusMessage += '/';
+            }
+          }
+          if (childCollection) {
+            tStatusMessage += dataContext.getCaseCountString(childCollection,
               childCount);
           }
+          if (SC.empty(tStatusMessage)) {
+            DG.logWarn('No status message for case table: no collections')
+          }
+        } else {
+          DG.logWarn('No status message for case table: no context')
         }
-//        DG.logInfo("UpdateStatus: "  + tStatusMessage);
+
+        DG.logInfo("UpdateStatus: "  + tStatusMessage);
         return tStatusMessage;
       },
 
@@ -224,7 +236,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var contextID = this.getLinkID( iStorage, 'context'),
             dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
         if( dataContext)
-          this.set('restoredDataContext', dataContext);
+          this.set('dataContex', dataContext);
       },
       
       /**
@@ -444,7 +456,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var gearView = this.getPath('view.containerView.titlebar.gearView');
         if( gearView)
           gearView.set('contentView', tComponentView);
-        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
+        this.view.set('status', this.getCaseCountMessage());
       }.observes('view'),
 
       /**
