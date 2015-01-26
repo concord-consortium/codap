@@ -404,7 +404,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param iText - either CSV or tab-delimited
      * @returns {Boolean}
      */
-    importText: function( iText) {
+    importText: function( iText, name) {
       // Currently, we must close any open document before opening another
       //this.closeDocument();
 
@@ -414,7 +414,7 @@ DG.appController = SC.Object.create((function () // closure
           documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importCSV( iText);
+      newDocument = archiver.importCSV( iText, name);
       // set the id of the current document into the data context.
       newDocument.contexts[0].document = documentController.get('documentID');
       // Create the context record.
@@ -826,7 +826,7 @@ DG.appController = SC.Object.create((function () // closure
               that.openJsonDocument(this.result);
             }
             else if( iType === 'TEXT') {
-              that.importText( this.result);
+              that.importText(this.result, iFile.name);
             }
             if (iDialog)
               iDialog.close();

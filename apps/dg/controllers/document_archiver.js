@@ -42,7 +42,7 @@ DG.DocumentArchiver = SC.Object.extend(
     return DG.Document.createDocument(docArchive);
   },
 
-  importCSV: function (iText) {
+  importCSV: function (iText, iFileName) {
 
     // trims empty columns from right side of
     function trimTrailingColumns(arr) {
@@ -78,7 +78,10 @@ DG.DocumentArchiver = SC.Object.extend(
                   "attrs": [],
                   "cases": []
                 }
-              ]
+              ],
+              "contextStorage": {
+                "gameUrl": iFileName
+              }
             }
           ],
           appName: DG.APPNAME,
@@ -140,8 +143,8 @@ DG.DocumentArchiver = SC.Object.extend(
    * @param iText - csv or tab-delimited
    * @returns {DG.Document}
    */
-  importTextIntoDocument: function( iText) {
-    var docArchive = this.importCSV(iText);
+  importTextIntoDocument: function( iText, iName) {
+    var docArchive = this.importCSV(iText, iName);
 
     return DG.Document.createDocument(docArchive);
   },
