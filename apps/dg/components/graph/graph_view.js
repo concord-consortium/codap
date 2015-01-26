@@ -155,6 +155,7 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tBackgroundView);
     tXAxisView.set('otherAxisView', tYAxisView);
     tYAxisView.set('otherAxisView', tXAxisView);
+    tY2AxisView.set('otherAxisView', tXAxisView);
 
     this.set('legendView', tLegendView);
     this.appendChild( tLegendView);
@@ -314,7 +315,7 @@ DG.GraphView = SC.View.extend(
         tYAxisView.adjust('bottom', tLegendHeight);
         tYAxisView.adjust('width', tYWidth);
         tYAxisView.adjust('top', tNumberToggleHeight);
-        tY2AxisView.adjust('bottom', tXHeight + tLegendHeight);
+        tY2AxisView.adjust('bottom', tLegendHeight);
         tY2AxisView.adjust('width', tY2DesiredWidth);
         tY2AxisView.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('left', tYWidth);
@@ -407,6 +408,7 @@ DG.GraphView = SC.View.extend(
     handleOneAxis( 'model.y2Axis', 'y2AxisView');
     this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
     this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
+    this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
   

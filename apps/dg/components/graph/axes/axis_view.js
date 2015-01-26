@@ -181,12 +181,9 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @property { Number }
          */
         pixelMin: function() {
-          switch( this.get('orientation')) {
-            case 'vertical':
-              return this.get('drawHeight') - this.getPath('otherAxisView.drawHeight');
-            case 'horizontal':
-              return 0;
-          }
+          return this.get('isVertical') ?
+              this.get('drawHeight') - this.getPath('otherAxisView.drawHeight') :
+              0;
         }.property('otherAxisView.drawHeight', 'drawHeight'),
 
         /**
@@ -194,12 +191,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @property { Number }
          */
         pixelMax: function() {
-          switch( this.get('orientation')) {
-            case 'vertical':
-              return 0;
-            case 'horizontal':
-              return this.get('drawWidth');
-          }
+          return this.get('isVertical') ? 0 :
+              this.get('drawWidth');
         }.property('drawWidth'),
 
         /**
@@ -377,7 +370,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         drawHeight: function () {
           var tHeight = this.get('frame').height;
-          if (this.get('orientation') === 'vertical')
+          if (this.get('isVertical'))
             tHeight -= 2 * DG.ViewUtilities.kBorderWidth;
           return tHeight;
         }.property('frame'),

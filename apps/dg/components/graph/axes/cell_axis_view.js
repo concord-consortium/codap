@@ -120,7 +120,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tPixelMax = this.get('pixelMax');
         // In order to do the computation, we have to adjust for the coordinates of the ends
         // of the axes, knowing the thePixel is in plot view coordinates, not axis view coordinates.
-        if( this.get('orientation') === 'vertical') {
+        if( this.get('isVertical')) {
           iCoord = Math.min( Math.max( tPixelMax + 1, iCoord), tPixelMin - 1);
           tCell = Math.floor( (iCoord - tPixelMax) * tNumCells / ( tPixelMin - tPixelMax));
         }
@@ -181,6 +181,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelX, tLabelY;
         switch( this_.get('orientation')) {
           case 'vertical':
+          case 'vertical2':
             this_._elementsToClear.push(
               this_._paper.line( tBaseline, tCoord + tTickOffset, tBaseline - kTickLength, tCoord + tTickOffset)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
