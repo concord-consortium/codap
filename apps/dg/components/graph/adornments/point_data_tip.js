@@ -114,6 +114,7 @@ DG.PointDataTip = DG.DataTip.extend(
   handleChanges: function( iChanges) {
     // iChanges can be a single index or an array of indices
     var tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? SC.IndexSet.create( iChanges) : iChanges);
+    tChanges = tChanges || [];
     if( !tChanges.contains( this.get('caseIndex')))
       return;
 

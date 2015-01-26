@@ -86,6 +86,14 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
+   * Called after axes have been assigned. Default is to do nothing. Subclasses may override to set certain
+   * axis view properties for their purpose.
+   */
+  setupAxes: function() {
+
+  },
+
+  /**
     Observer function called when the axis bounds change.
    */
   axisBoundsDidChange: function() {
@@ -292,7 +300,7 @@ DG.PlotView = DG.PlotLayer.extend(
       // return the number of children of the given case in the parent collection
       var tParentCase = tParentCollectionClient.getCaseAt( iCaseIndex),
           tParentCaseChildren = tParentCase && tParentCase.get('children');
-      return( tParentCaseChildren ? tParentCaseChildren.length() : 0 );
+      return( tParentCaseChildren ? tParentCaseChildren.get('length') : 0 );
     }
     function getParentToChildTransformation( iNewToOld, iOldToNew ) {
       // fill iNewToOld[] with child case index to parent case index mapping

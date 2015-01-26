@@ -99,9 +99,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tMarquee,
         tStartPt,
-        tBaseSelection = [],
-        tHaveShowZoomTip = false,
-        tToolTip;
+        tBaseSelection = [];//,
+//        tToolTip;
 
     function createRulerLines() {
 
@@ -200,6 +199,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.attr( { cursor: 'auto' });
     }
 
+/*
     function destroyZoomTip() {
       if( tToolTip) {
         tToolTip.hide();
@@ -207,7 +207,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tToolTip = null;
       }
     }
+*/
 
+/*
     function mouseOver( iEvent) {
       if( !tHaveShowZoomTip) {
         var tZoomTipText = 'DG.GraphView.zoomTip'.loc();
@@ -220,6 +222,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this_.invokeLater( destroyZoomTip, 5000);
       }
     }
+*/
 
     var drawCellBands = function() {
       var tPaper = this.get('paper' ),

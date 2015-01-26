@@ -1,0 +1,38 @@
+#!/bin/bash
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+function usage() {
+  echo usage: $PROGNAME db user >&2
+  exit 1
+}
+
+[ $# != 2 ] && usage
+
+DB=$1
+USER=$2
+TEMPDIR=/tmp/$PROGNAME.$$
+WORKDIR=$TEMPDIR/$USER
+ZIPFILE=${PWD}/codap-$DB-$USER.zip
+
+PATH=$DIRNAME:$PATH
+echo $PATH
+
+mkdir -p $WORKDIR
+(
+  listCODAPDocs "$DB" "$USER" > $TEMPDIR/docs
+  set -f
+  IFS='
+'
+  for t in $(cat $TEMPDIR/docs); do
+    echo $t
+    getOneCODAPDoc "$DB" "$USER" "$t" > $WORKDIR/"$t".json
+  done
+)
+
+( 
+  cd $TEMPDIR &&
+  zip $ZIPFILE $USER/* &&
+  echo Created `basename $ZIPFILE`
+)
+

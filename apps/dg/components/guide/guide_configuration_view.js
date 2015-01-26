@@ -50,7 +50,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
             if( tBlurAction)
               tBlurAction.call( tBlurTarget);
           });
-        })
+        });
       },
       rowObject: function() {
         var tTitle = this.getPath('itemTitle.value' ),
@@ -80,7 +80,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
     layout: { width: 400, height: 400, centerX: 0, centerY: 0 },
 
     contentView: SC.View.extend( {
-      childViews: 'titleField menuItems okButton cancel'.w(),
+      childViews: 'titleField menuItems okButton cancel warning'.w(),
       titleField: SC.TextFieldView.design( {
         layout: { top: 5, left: 5, right: 25, height: 24 },
         value: '',
@@ -104,7 +104,6 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
         toolTip: 'DG.GuideConfigView.okBtnToolTip',
         target: null,
         action: null,
-        toolTip: '',
         localize: true,
         isDefault: true
       } ),
@@ -117,6 +116,13 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
         toolTip: 'DG.GuideConfigView.cancelBtnTooltip',  // "Dismiss the dialog without making any changes"
         localize: true,
         isCancel: true
+      } ),
+      warning: SC.LabelView.design( {
+        value: 'DG.GuideConfigView.httpWarning',  // "The URL must start with either http:// or https://"
+        classNames: 'dg-guide-alert',
+        isVisible: false,
+        transitionShow: SC.View.FADE_IN,
+        localize: true
       } )
     } ),
 
@@ -156,8 +162,28 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
     }.property(),
 
     configureRows: function() {
+
+      var checkURLs = function() {
+        var tRowObjects = this.get('rowObjects'),
+            tWarning = this.getPath('contentView.warning'),
+            tTitleLayout = this.getPath('contentView.titleField.layout');
+        tWarning.set('isVisible', false);
+        tRowObjects.forEach( function( iObject, iIndex) {
+          var tUrl = iObject.url.toLowerCase();
+          if( !SC.empty( tUrl) && (tUrl.indexOf('http://') !== 0) && (tUrl.indexOf('https://') !== 0)) {
+            var tItemLayout = this.get('rowViews')[iIndex].get('layout'),
+                tItemViewBottom = tTitleLayout.top + tTitleLayout.height + tItemLayout.top + tItemLayout.height - 3;
+            tWarning.set('layout', { left: 160, top: tItemViewBottom, height: 12 });
+            tWarning.set('isVisible', true);
+          }
+        }.bind( this));
+      }.bind( this);
+
       var tNumRowViews = this.get('rowViews' ).length,
-          tNumRowObjects = this.get('rowObjects' ).length;
+          tNumRowObjects = this.get('rowObjects').length;
+
+      checkURLs();
+
       while( tNumRowViews < tNumRowObjects + 1) {
         this.addMenuItemRow();
         tNumRowViews++;

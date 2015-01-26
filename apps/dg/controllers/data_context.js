@@ -88,9 +88,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {Array of DG.CollectionRecords}
    */
   collections: function() {
-    return this.getPath('model.collections');
+    return DG.ObjectMap.values(this.getPath('model.collections'));
   }.property('model','model.collections'),
-  
+
   /**
    *  Map of DG.CollectionClients, corresponding one-to-one to the DG.CollectionRecords.
    *  @property {Object} Map from collectionID to DG.CollectionClients
@@ -141,8 +141,20 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return selection;
   },
-  
-  /**
+
+    /**
+     * Accesses a case from its ID.
+     *
+     * Centralized method for Component layer objects.
+     * @param iCaseID
+     * @returns {*}
+     */
+  getCaseByID: function(iCaseID) {
+    return DG.store.find( DG.Case, iCaseID);
+  },
+
+
+    /**
     Private properties used internally to synchronize changes with notifications.
    */
   _changeCount: 0,
@@ -204,7 +216,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     // been taken, simply return with success.
     if( iChange.isComplete) return { success: true };
 
-    var result = { success: false };
+    var result = { success: false },
+        shouldDirtyDoc = true;
     switch( iChange.operation) {
       case 'createCollection':
         result = this.doCreateCollection( iChange);
@@ -227,6 +240,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'selectCases':
         result = this.doSelectCases( iChange);
+        shouldDirtyDoc = false;
         break;
       case 'createAttributes':
         result = this.doCreateAttributes( iChange);
@@ -244,6 +258,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         DG.logWarn('DataContext.performChange: unknown operation: '
             + iChange.operation);
     }
+    if( shouldDirtyDoc)
+      DG.dirtyCurrentDocument(this.get('model'));
     return result;
   },
   
@@ -285,27 +301,36 @@ DG.DataContext = SC.Object.extend((function() // closure
               {Number}              result.caseID -- the case ID of the newly created case
    */
   doCreateCases: function( iChange) {
-    if( !iChange.collection) iChange.collection = this.get('childCollection');
-    var collection = iChange.collection,
-        result = { success: false, caseIDs: [] };
-    if( collection) {
-    
-      var createOneCase = function( iValues) {
-        var newCase = collection.createCase( iChange.properties);
-        if( newCase) {
-          if( !SC.none( iValues)) {
-            collection.setCaseValuesFromArray( newCase, iValues);
-            DG.store.commitRecords();
+    var collection,
+        result = { success: false, caseIDs: [] },
+        createOneCase = function( iValues) {
+          var newCase = collection.createCase( iChange.properties);
+          if( newCase) {
+            if( !SC.none( iValues)) {
+              collection.setCaseValuesFromArray( newCase, iValues);
+              DG.store.commitRecords();
+            }
+            result.success = true;
+            result.caseIDs.push( newCase.get('id'));
           }
-          result.success = true;
-          result.caseIDs.push( newCase.get('id'));
-        }
-      }.bind( this);
-    
+        }.bind( this);
+
+    if( !iChange.collection) {
+      iChange.collection = this.get('childCollection');
+    }
+
+    if (typeof iChange.collection === "string") {
+      collection = this.getCollectionByName( iChange.collection);
+    } else {
+      collection = iChange.collection;
+    }
+
+    if( collection) {
       var valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
-      if( result.caseIDs && (result.caseIDs.length > 0))
+      if( result.caseIDs && (result.caseIDs.length > 0)) {
         result.caseID = result.caseIDs[0];
+      }
     }
     return result;
   },
@@ -622,12 +647,11 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   doResetCollections: function (iChange) {
       DG.DataContext.clearContextMap();
-//      DG.Record.destroyAllRecordsOfType( DG.GlobalValue);
-      DG.Record.destroyAllRecordsOfType( DG.Case);
-      DG.Record.destroyAllRecordsOfType( DG.Attribute);
-      DG.Record.destroyAllRecordsOfType( DG.CollectionRecord);
-//      DG.Record.destroyAllRecordsOfType( DG.DataContextRecord);
-      DG.store.commitRecords();
+//      DG.store.destroyAllRecordsOfType( DG.GlobalValue);
+      DG.store.destroyAllRecordsOfType( DG.Case);
+      DG.store.destroyAllRecordsOfType( DG.Attribute);
+      DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
+//      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
   },
   
   /**
@@ -686,25 +710,6 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
   
   /**
-   *  Creates a context model appropriate for use by this DataContext.
-   *  @param  {Object}  iProperties -- Properties passed to model on construction.
-   *                      iProperties.id -- id of parent document
-   *                      iProperties.type -- [optional] Type of DataContext to create
-   *                                          Uses this.get('type') if unspecified,
-   *                                          or 'DG.DataContext' if all else fails.
-   *  @returns  {DG.DataContext}  The created DataContext, which may be an instance
-   *                              of DG.DataContext or one of its derived classes.
-   */
-  createContextModel: function( iProperties) {
-    if( !iProperties) iProperties = {};
-    if( SC.empty( iProperties.type))
-      iProperties.type = this.get('type') || 'DG.DataContext';
-    var contextRecord = DG.DataContextRecord.create( iProperties);
-    this.set('model', contextRecord);
-    return contextRecord;
-  },
-  
-  /**
    *  The number of collections controlled by this controller.
    *  @property {Number}
    */
@@ -755,12 +760,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         collections = this.get('collections'),
         collectionRecord;
     for( var i = 0; i < collectionCount; ++i) {
-      collectionRecord = collections.objectAt( i);
-      if( collectionRecord && (collectionRecord.get('name') === iName))
+      collectionRecord = collections.objectAt(i);
+      if (collectionRecord && (collectionRecord.get('name') === iName)) {
         return this._collectionClients[ collectionRecord.get('id')];
+      }
     }
-    //DG.log("DG.DataContext.getCollectionByName: storeContextID: %@, scContextID: %@, Failed to find %@ in %@ collections!",
-    //        this.get('id'), DG.Debug.scObjectID( this), iName, collectionCount);
     return null;
   },
   
@@ -952,11 +956,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {String}              The string to represent the specified number of cases
    */
   getCaseNameForCount: function( iCollectionClient, iCount) {
-    var tSetName = (iCount === 1) ? iCollectionClient.getPath('collection.collectionRecord.caseName') :
-                      iCollectionClient.getPath('collection.collectionRecord.name');
-    tSetName = tSetName || (iCount === 1 ? 'DG.DataContext.singleCaseName'.loc()
-                              : 'DG.DataContext.pluralCaseName'.loc());
-    return tSetName;
+    var tLabels = iCollectionClient.getPath('collection.collectionRecord.labels'),
+        tSingName = tLabels ? tLabels.singleCase : iCollectionClient.getPath('collection.collectionRecord.caseName'),
+        tPluralName = tLabels ? tLabels.pluralCase : iCollectionClient.getPath('collection.collectionRecord.name');
+    tSingName = tSingName || 'DG.DataContext.singleCaseName'.loc();
+    tPluralName = tPluralName || 'DG.DataContext.pluralCaseName'.loc();
+    return (iCount === 1) ? tSingName : tPluralName;
   },
   
   /**
@@ -1055,10 +1060,14 @@ DG.DataContext = SC.Object.extend((function() // closure
                 {String}                object.plotYAttr -- default Y attribute on graphs
    */
   collectionDefaults: function() {
-    var defaults = { collectionClient: this.get('childCollection'),
-                     parentCollectionClient: this.get('parentCollection'),
-                     plotXAttr: null, plotXAttrIsNumeric: true,
-                     plotYAttr: null, plotYAttrIsNumeric: true };
+    var defaults = {
+      collectionClient: this.get('childCollection'),
+      parentCollectionClient: this.get('parentCollection'),
+      plotXAttr: null,
+      plotXAttrIsNumeric: true,
+      plotYAttr: null,
+      plotYAttrIsNumeric: true
+    };
     return defaults;
   },
   
@@ -1103,8 +1112,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = this.get('collections'),
         this_ = this;
     if( !SC.none( collections)) {
-      collections.forEach( function( iCollection) {
-                            this_.addCollection( iCollection);
+      DG.ObjectMap.forEach(collections, function( key) {
+                            this_.addCollection( collections[key]);
                           });
     }
   }

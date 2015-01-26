@@ -61,6 +61,17 @@ DG.DotPlotView = DG.PlotView.extend(
     }
   }.property('model.secondaryAxisPlace', 'xAxisView', 'yAxisView')/*.cacheable()*/,
 
+  /**
+   * The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.
+   * Though this is the default, if the prior plot was a dot chart, the axis will be stuck in centering mode.
+   */
+  setupAxes: function() {
+    var tCellAxis = this.get('secondaryAxisView');
+    if( tCellAxis) {
+      tCellAxis.set('centering', false);
+    }
+  },
+
   /** @property {DG.MovableValueAdornment} */
   movableValueAdorn: null,
 

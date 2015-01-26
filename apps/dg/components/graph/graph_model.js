@@ -373,28 +373,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     /**
-     * Change the attribute type (EAttributeType) on the axis described by the given key,
-     * to treat a Numeric attribute as Categorical.
-     * @param{String} iDescKey - key to the desired attribute description (x...|y...|legendAttributeDescription)
-     * @param{String} iAxisKey - key to the axis whose attribute is to be removed (x...|yAxis)
-     * @param{Boolean} true if we want to treat the attribute as numeric (else categorical).
-     */
-    changeAttributeType: function( iDescKey, iAxisKey, iTreatAsNumeric ) {
-      var tDataConfiguration = this.get('dataConfiguration');
-
-      DG.logUser("plotAxisAttributeChangeType: { axis: %@, attribute: %@ }",
-          iAxisKey, tDataConfiguration.getPath( iDescKey + '.attribute.name'));
-      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
-
-      tDataConfiguration.setAttributeType( iDescKey, iTreatAsNumeric );
-
-      if( iDescKey === 'xAttributeDescription' || iDescKey === 'yAttributeDescription')
-        this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
-      this.invalidate( null, true /* also invalidate plot caches */);
-      this.set('aboutToChangeConfiguration', false ); // reset for next time
-    },
-
-    /**
      * Sychronize the axis model to a new attribute or attribute description, to sure correct kind of axis is installed.
      * @param{String} iDescKey - key to the desired attribute description (x...|yAttributeDescription)
      * @param{String} iAxisKey - key to the axis to be changed (x...|yAxis)
@@ -683,49 +661,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return tPlot.getGearMenuItems(). // plot specific menu items
           concat( getGraphMenuItems()). // then menu items for all plots...
           concat( [{ isSeparator: YES }]).
-          concat( this.createHideShowAttributeSubMenuItems());
-    },
-
-    /** Submenu items for hiding selected or unselected cases, or showing all cases */
-    createHideShowAttributeSubMenuItems: function() {
-      var tSelection = this.getPath('dataConfiguration.selection' ).toArray(),
-          tSomethingIsSelected = tSelection && tSelection.get('length') !== 0,
-          tCases = this.getPath('dataConfiguration.cases' ),
-          tSomethingIsUnselected = tSelection && tCases && (tSelection.get('length') < tCases.length),
-          tSomethingHidden = this.getPath('dataConfiguration.hiddenCases' ).length > 0,
-          tHideSelectedNumber = (tSelection && tSelection.length > 1) ? 'Plural' : 'Sing',
-          tHideUnselectedNumber = (tSelection && tCases &&
-                                   (tCases.length - tSelection.length > 1)) ? 'Plural' : 'Sing';
-
-      function hideSelectedCases() {
-        DG.logUser("Hide %@ selected cases", tSelection.length);
-        this.get('dataConfiguration' ).hideCases( tSelection);
-      }
-
-      function hideUnselectedCases() {
-        var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
-                                                            function( iCase) {
-                                                              return iCase.get('id');
-                                                            });
-        DG.logUser("Hide %n selected cases", tUnselected.length);
-        this.get('dataConfiguration' ).hideCases( tUnselected);
-      }
-
-      function showAllCases() {
-        DG.logUser("Show all cases");
-        this.get('dataConfiguration' ).showAllCases();
-      }
-
-      return [
-        // Note that these 'built' string keys will have to be specially handled by any
-        // minifier we use
-                  { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
-                                      target: this, itemAction: hideSelectedCases },
-                  { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
-                                      target: this, itemAction: hideUnselectedCases },
-                  { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
-                                      target: this, itemAction: showAllCases }
-              ];
+          concat( this.createHideShowSelectionMenuItems());
     },
 
     /**

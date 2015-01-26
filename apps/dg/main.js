@@ -51,7 +51,11 @@ DG.main = function main() {
   DG.getPath('mainPage.mainPane').append();
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
-    DG.authorizationController.requireLogin();
+    if (DG.documentServer) {
+      DG.authorizationController.requireLogin();
+    } else {
+      DG.authorizationController.sendLoginAsGuestRequest();
+    }
   }
   else {  // If componentMode is requested, open starting doc found in url params
     DG.currGameController.set('gameIsReady', false);  // So user can't make graphs right away
@@ -60,8 +64,13 @@ DG.main = function main() {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+    } else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
     }
   }
+  // set initial game in title
+  DG.appController.documentNameDidChange();
 };
 
 /* jshint unused:false */

@@ -48,7 +48,6 @@ DG.GraphController = DG.DataDisplayController.extend(
 
       createComponentStorage: function() {
         var storage = sc_super(),
-            dataContext = this.get('dataContext'),
             dataConfiguration = this.getPath('graphModel.dataConfiguration'),
             hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' ),
             plotModels = this.getPath('graphModel.plots');
@@ -88,9 +87,9 @@ DG.GraphController = DG.DataDisplayController.extend(
 
       restoreComponentStorage: function( iStorage, iDocumentID) {
         var graphModel = this.get('dataDisplayModel');
-        
-        sc_super();
 
+        sc_super();
+        
         if( SC.none( iStorage._links_))
           return; // We don't support the older format 0096 and before. Just bring up the default graph
                   // that we already have.
@@ -181,6 +180,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ] },
                   iAxis.get('orientation'));
+        DG.dirtyCurrentDocument();
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
@@ -199,6 +199,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attribute: iDragData.attribute });
+        DG.dirtyCurrentDocument();
       }.observes('*axisMultiTarget.dragData'),
 
       /**

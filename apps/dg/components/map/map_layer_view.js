@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global L */
 /** @class  DG.MapLayerView
 
  A view on a map.
@@ -81,10 +82,11 @@ DG.MapLayerView = SC.View.extend(
       _createMap: function () {
 
         var onLayerAdd = function (iLayerEvent) {
-              var tParentView = this.get('parentView');
+            var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
+              tParentView.addGridLayer();
             }.bind(this);
 
         if (this._map) {

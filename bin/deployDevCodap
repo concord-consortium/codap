@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Builds and deploys a development version of CODAP, nominally, to 
+# the user's public_html directory on the CODAP server. The program
+# expects a version name as an argument. If the user's directory,
+# if properly configured, then, it will be accessible thought the 
+# web at http://codap.concord.org/~[username]/[version name].
+# As a side effect, a zip file containing the static site is created.
+#
+function usage() {
+  echo usage: $PROGNAME version-string 1>&2
+  exit 1
+}
+
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+RC_FILE=.${PROGNAME}rc
+
+# update the path to include this path
+PATH=$DIRNAME:$PATH
+export PATH
+
+# set up local symbols
+TEMPDIR=/tmp/$PROGNAME.$$
+SERVER=codap.concord.org
+SERVER_DIR=public_html
+
+# modify env variables if there is an rc file
+[ -e $RC_FILE ] && . $RC_FILE
+
+#
+# Make sure we have the expected argument
+if [ $# != 1 ] ; then usage; fi
+
+VERSION_STRING=$1
+
+#
+# Make the relocatable version
+makeCODAPZip $VERSION_STRING
+
+#
+# Transmit it
+mkdir $TEMPDIR
+unzip -d $TEMPDIR codap_$VERSION_STRING
+rsync -av $TEMPDIR/$VERSION_STRING $SERVER:$SERVER_DIR
+
+#
+# Clean up
+rm -rf $TEMPDIR

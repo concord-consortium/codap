@@ -395,7 +395,30 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     // We don't call DG.GameContext.getContextForGame() because we don't want
     // to force creation here. Otherwise, setting the context to null (e.g. when
     // closing the document) can result in immediate creation of new contexts.
-    return this.getPath('currentGame.context');
+    var tGameContext = this.getPath('currentGame.context'),
+      tGameCollections = tGameContext && tGameContext.get('collections');
+    /**
+     * The following bit of skullduggery deals with reading in documents that have lost
+     * their 'game.' Typically, this is because the data interactive is not being saved
+     * properly. But, often, there is a context with the data that was originally part
+     * of the document. We hook that up to the bogus game.
+     * This should become unnecessary once we get rid of the whole concept of a single game
+     * or data interactive.
+     */
+    if(! tGameCollections || (tGameCollections.length === 0)) {
+      var tContextWithColls;
+      DG.DataContext.forEachContextInMap( 0, function( iKey, iContext) {
+        var tCollections = iContext.get('collections');
+        if( tCollections && (tCollections.length > 0)) {
+          tContextWithColls = iContext;
+        }
+      });
+      if( tContextWithColls) {
+        this.setPath('currentGame.context', tContextWithColls);
+        tGameContext = tContextWithColls;
+      }
+    }
+    return tGameContext;
   }.property('currentGame','currentGame.context'),
 
   /**
@@ -573,7 +596,15 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     property of the current game's context. Uses the 'doCommandFunc' property
     passed by the game as part of the 'initGame' command.
    */
-  saveCurrentGameState: function() {
+  saveCurrentGameState: function(done) {
+
+    // Stash the game state in the context's 'savedGameState' property.
+    function saveState(result) {
+      if( result && result.success) {
+        gameContext.set('savedGameState', result.state);
+      }
+    }
+
     try {
       var gameSpec = this.get('currentGame'),
           gameContext = gameSpec && gameSpec.get('context'),
@@ -590,14 +621,24 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
           // for flash games we use the embedded swf object, then call its 'doCommandFunc'
           result = gameElement.doCommandFunc( SC.json.encode( saveCommand ));
           result = this.safeJsonDecode( result, "Invalid JSON found in saveCurrentGameState()" );
+        } else if (DG.get('isGamePhoneInUse')) {
+          // async path
+          DG.gamePhone.call(saveCommand, function(result) {
+            saveState(result);
+            done();
+          });
+          return;
         }
-        // Stash the game state in the context's 'savedGameState' property.
-        if( result && result.success)
-          gameContext.set('savedGameState', result.state);
+
+        saveState(result);
       }
     } catch (ex) {
       DG.logWarn("Exception saving game context: " + ex);
     }
+
+    // For consistency with gamePhone case, make sure that done callback is invoked in a later
+    // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
+    this.invokeLater(function() { done(); } );
   },
 
   /**
@@ -647,8 +688,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
    */
   gameViewWillClose: function() {
     this.menuPane.set('selectedItem', null);
-    // reset the title of the page to remove the data interactive name
-    $('title').text('CODAP');
   },
 
   /**

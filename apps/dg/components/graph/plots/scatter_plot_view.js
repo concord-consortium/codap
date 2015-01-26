@@ -135,7 +135,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         tRC = this.createRenderContext(),
         // iChanges can be a single index or an array of indices
         tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? [ iChanges ] : iChanges);
-    DG.assert( tChanges);
+    tChanges = tChanges || [];
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
         this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
@@ -223,7 +223,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
       var tCase = this_.getPath('model.cases')[ iCaseIndex],
           tDeltaX = tCase.getNumValue( tXVarID) - iStartWorldCoords.x,
           tDeltaY = tCase.getNumValue( tYVarID) - iStartWorldCoords.y;
-      this_.get('model').animateSelectionBackToStart([ tXVarID, tYVarID], [ tDeltaX, tDeltaY]);
+      if((tDeltaX !== 0) || (tDeltaY !== 0))
+        this_.get('model').animateSelectionBackToStart([ tXVarID, tYVarID], [ tDeltaX, tDeltaY]);
     }
     
     function completeHoverAnimation() {

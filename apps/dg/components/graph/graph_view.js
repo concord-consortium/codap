@@ -90,17 +90,18 @@ DG.GraphView = SC.View.extend(
   setPlotViewProperties: function( iPlotView, iPlotModel, iYAxisKey, iCurrentPoints) {
     iYAxisKey = iYAxisKey || 'yAxisView';
     iPlotView.beginPropertyChanges();
-    iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
-    iPlotView.setIfChanged('model', iPlotModel);
-    iPlotView.setIfChanged( 'xAxisView', this.get('xAxisView'));
-    iPlotView.setIfChanged( 'yAxisView', this.get(iYAxisKey));
-    iPlotView.setIfChanged('parentView', this);
-    if( !SC.none( iCurrentPoints))
-      iPlotView.set('cachedPointCoordinates', iCurrentPoints);
+      iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
+      iPlotView.setIfChanged('model', iPlotModel);
+      iPlotView.setIfChanged( 'xAxisView', this.get('xAxisView'));
+      iPlotView.setIfChanged( 'yAxisView', this.get(iYAxisKey));
+      iPlotView.setIfChanged('parentView', this);
+      iPlotView.setupAxes();  // special requirements set up here
+      if( !SC.none( iCurrentPoints))
+        iPlotView.set('cachedPointCoordinates', iCurrentPoints);
+    iPlotView.endPropertyChanges();
     iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
     this.invokeLast( this.drawPlots);
     });
-    iPlotView.endPropertyChanges();
   },
 
   init: function() {
@@ -134,6 +135,7 @@ DG.GraphView = SC.View.extend(
 
     sc_super();
 
+    this.createMultiTarget();
     this._plotViews = [];
 
     this.set('xAxisView', tXAxisView);
@@ -151,6 +153,8 @@ DG.GraphView = SC.View.extend(
 
     this.set('plotBackgroundView', tBackgroundView);
     this.appendChild( tBackgroundView);
+    tXAxisView.set('otherAxisView', tYAxisView);
+    tYAxisView.set('otherAxisView', tXAxisView);
 
     this.set('legendView', tLegendView);
     this.appendChild( tLegendView);
@@ -289,7 +293,7 @@ DG.GraphView = SC.View.extend(
         tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent' ),
         tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent' ) : 0;
 
-    if( tXAxisView && tYAxisView && ( tPlotViews.length > 0)) {
+    if( !SC.none( tXAxisView) && !SC.none( tYAxisView) && ( tPlotViews.length > 0)) {
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
         tXAxisView.set( 'layout', { left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight });
@@ -307,7 +311,7 @@ DG.GraphView = SC.View.extend(
         tXAxisView.adjust('right', tSpaceForY2);
         tXAxisView.adjust('bottom', tLegendHeight);
         tXAxisView.adjust('height', tXHeight);
-        tYAxisView.adjust('bottom', tXHeight + tLegendHeight);
+        tYAxisView.adjust('bottom', tLegendHeight);
         tYAxisView.adjust('width', tYWidth);
         tYAxisView.adjust('top', tNumberToggleHeight);
         tY2AxisView.adjust('bottom', tXHeight + tLegendHeight);
@@ -401,6 +405,8 @@ DG.GraphView = SC.View.extend(
     handleOneAxis( 'model.xAxis', 'xAxisView');
     handleOneAxis( 'model.yAxis', 'yAxisView');
     handleOneAxis( 'model.y2Axis', 'y2AxisView');
+    this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
+    this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
   

@@ -81,6 +81,25 @@ DG.NumberToggleModel = SC.Object.extend(
   }.property(),
 
   /**
+   * True if cases have parents
+   * @property{Integer}
+   */
+  indicesRepresentChildren: function() {
+    return this.get('numberOfParents') > 0;
+  }.property('numberOfParents'),
+
+  /**
+   * Return the number of indices that should be displayed
+   * @property{Integer}
+   */
+  numberOfToggleIndices: function() {
+    if( this.get('indicesRepresentChildren'))
+      return this.get('numberOfParents');
+    else  // There are no parents, so each case gets an index
+      return this.getPath('dataConfiguration.allCases' ).length();
+  }.property('*dataConfiguration.allCases'),
+
+  /**
    * Return the children of the parent with the given index.
    *
    * @param iIndex {Number}
@@ -93,18 +112,24 @@ DG.NumberToggleModel = SC.Object.extend(
   },
 
   /**
-   * If any cases are visible, hide them. Otherwise show all cases
+   * @return{Boolean}
+   */
+  allCasesAreVisible: function() {
+    return this.getPath('dataConfiguration.cases').length === this.getPath('dataConfiguration.allCases').length();
+  },
+
+  /**
+   * If any cases are hidden, show them. Otherwise hide all cases
    *
    */
   changeAllCaseVisibility: function() {
-    var tConfig = this.get('dataConfiguration' ) /*,
-        tVisibleCases = tConfig.get('cases') */;
-//    if( tVisibleCases.length > 0) {
-//      tConfig.hideCases( tVisibleCases);
-//    }
-//    else {
+    var tConfig = this.get('dataConfiguration' );
+    if( this.allCasesAreVisible()) {
+      tConfig.hideCases( tConfig.get('cases'));
+    }
+    else {
       tConfig.showAllCases();
-//    }
+    }
   },
 
   /**
@@ -113,35 +138,55 @@ DG.NumberToggleModel = SC.Object.extend(
    *
    * @param iIndex {Number}
    */
-//  toggleChildrenVisibility: function( iIndex) {
-//    var tChildren = this.childrenOfParent( iIndex ),
-//        tConfig = this.get('dataConfiguration'),
-//        tHidden = tConfig ? tConfig.get('hiddenCases' ) : [];
-//
-//    function isVisible( iCase) {
-//      return tHidden.indexOf( iCase) < 0;
-//    }
-//
-//    if( tChildren.some( isVisible)) {
-//      tConfig.hideCases( tChildren);
-//    }
-//    else {
-//      tConfig.showCases( tChildren);
-//    }
-//  },
+  toggleChildrenVisibility: function( iIndex) {
+    var tChildren = this.childrenOfParent( iIndex ),
+        tConfig = this.get('dataConfiguration'),
+        tHidden = tConfig ? tConfig.get('hiddenCases' ) : [];
+
+    function isVisible( iCase) {
+      return tHidden.indexOf( iCase) < 0;
+    }
+
+    if( tChildren.some( isVisible)) {
+      tConfig.hideCases( tChildren);
+    }
+    else {
+      tConfig.showCases( tChildren);
+    }
+  },
+
+  /**
+   * Whether we toggle visibility of children or a single parent depends what the indices represent
+   * @param iIndex
+   */
+  toggleVisibility: function( iIndex) {
+    if( this.get('indicesRepresentChildren')) {
+      this.toggleChildrenVisibility( iIndex);
+    }
+    else {
+      var tConfig = this.get('dataConfiguration'),
+          tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+          tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
+          tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
+      if( tHidden.indexOf( tCase) < 0)
+        tConfig.hideCases([tCase]);
+      else
+        tConfig.showCases([tCase]);
+    }
+  },
 
   /**
    * Show all children of parent corresponding to given index. Hide all other cases.
    *
    * @param iIndex {Number}
    */
-  toggleChildrenVisibility: function( iIndex) {
-    var tChildren = this.childrenOfParent( iIndex ),
-        tConfig = this.get('dataConfiguration' ),
-        tVisibleCases = tConfig.get('cases');
-    tConfig.hideCases( tVisibleCases);
-    tConfig.showCases( tChildren);
-  },
+//  toggleChildrenVisibility: function( iIndex) {
+//    var tChildren = this.childrenOfParent( iIndex ),
+//        tConfig = this.get('dataConfiguration' ),
+//        tVisibleCases = tConfig.get('cases');
+//    tConfig.hideCases( tVisibleCases);
+//    tConfig.showCases( tChildren);
+//  },
 
   /**
    *
@@ -160,6 +205,24 @@ DG.NumberToggleModel = SC.Object.extend(
   },
 
   /**
+   * Depends on what indices represent
+   * @param iIndex
+   * @return {Boolean}
+   */
+  casesForIndexAreHidden: function( iIndex) {
+    if( this.get('indicesRepresentChildren')) {
+      return this.allChildrenAreHidden( iIndex);
+    }
+    else {
+      var tConfig = this.get('dataConfiguration'),
+          tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+          tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
+          tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
+      return( tHidden.indexOf( tCase) >= 0);
+    }
+  },
+
+      /**
    *
    * Note: returns true if no cases are hidden when there are no cases
    * @param iIndex

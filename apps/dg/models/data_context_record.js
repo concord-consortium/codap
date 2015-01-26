@@ -1,3 +1,6 @@
+/**
+ * Created by jsandoe on 10/20/14.
+ */
 // ==========================================================================
 //                        DG.DataContextRecord
 //
@@ -16,62 +19,132 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('models/dg_record');
+sc_require('models/model_store');
+sc_require('models/base_model');
 
 /** @class
 
   Represents a user document.
 
-  @extends DG.Record
-*/
-DG.DataContextRecord = DG.Record.extend(
-/** @scope DG.DataContextRecord.prototype */ {
+ @extends SC.BaseModel
+ */
+DG.DataContextRecord = DG.BaseModel.extend(
+  /** @scope DG.DataContextRecord.prototype */ {
 
-  type: SC.Record.attr(String, { defaultValue: 'DG.DataContext' }),
+    type: 'DG.DataContext',
 
-  /**
-   * A relational link back to the parent DG.Document
-   * @property {DG.Document}
-   */
-  document: SC.Record.toOne("DG.Document", {
-    inverse: "contexts", isOwner: NO, isMaster: NO
-  }),
+    /**
+     * A relational link back to the parent DG.Document
+     * @property {DG.Document}
+     */
+    document: null,
 
-  /**
-   * A relational link to the collections in this document.
-   * @property {Array of DG.CollectionRecord}
-   */
-  collections: SC.Record.toMany('DG.CollectionRecord', {
-    inverse: 'context', isOwner: YES, isMaster: YES
-  }),
+    /**
+     * A relational link to the collections in this document.
+     * @property {Array of DG.CollectionRecord}
+     */
+    collections: null,
 
-  /**
-   * Per-component storage, in a component specific format.
-   * @property {JSON}
-   */
-  contextStorage: SC.Record.attr(Object, { defaultValue: null }),
-  
-  destroy: function() {
-  
-    this.collections.forEach( function( iCollection) {
-                                      DG.CollectionRecord.destroy( iCollection);
-                                    });
-    sc_super();
-  },
-  
-  createCollection: function( iProperties) {
-    iProperties = iProperties || {};
-    iProperties.context = this.get('id');
-    return DG.CollectionRecord.createCollection( iProperties);
-  }
-  
-});
+    /**
+     * Per-component storage, in a component specific format.
+     * @property {JSON}
+     */
+    contextStorage: null,
+
+    _savedShadowCopy: null,
+
+    init: function () {
+      this.collections = {};
+      sc_super();
+    },
+
+    verify: function () {
+      if (SC.empty(this.document)) {
+        DG.logWarn('Unattached data context: ' + this.id);
+      }
+      if (typeof this.document === 'number') {
+        DG.logWarn('Unresolved reference to document id, ' + this.document +
+          ', in data context: ' + this.id);
+      }
+    },
+
+    destroy: function() {
+      if (this.collections) {
+        DG.ObjectMap.forEach(this.collections, function( iCollection) {
+          DG.CollectionRecord.destroyCollection( iCollection);
+        });
+      }
+      delete this.document.contexts[this.id];
+      sc_super();
+    },
+
+    createCollection: function( iProperties) {
+      iProperties = iProperties || {};
+      iProperties.context = this;
+      return DG.CollectionRecord.createCollection( iProperties);
+    },
+
+    toArchive: function (fullData) {
+      var obj;
+      fullData = fullData || false;
+      if ( fullData || SC.none(this.externalDocumentId) ) {
+        obj = {
+            type: this.type,
+            document: this.document && this.document.id || undefined,
+            guid: this.id,
+            collections: [],
+            contextStorage: this.contextStorage
+          };
+        DG.ObjectMap.forEach(this.collections, function (collectionKey){
+          obj.collections.push(this.collections[collectionKey].toArchive());
+        }.bind(this));
+      } else {
+        obj = {
+          externalDocumentId: this.externalDocumentId
+        };
+      }
+      return obj;
+    },
+
+    savedShadowCopy: function() {
+      return this._savedShadowCopy;
+    },
+
+    updateSavedShadowCopy: function(shadow) {
+      this._savedShadowCopy = shadow;
+    }
+
+  });
 
 DG.DataContextRecord.createContext = function( iProperties) {
+  var tContext, shadowCopy = {};
   if( SC.none( iProperties)) iProperties = {};
+  if( !SC.none( iProperties.externalDocumentId)) {
+    // We should be loading this info from an external document.
+    var response = DG.authorizationController.openDocumentSynchronously(iProperties.externalDocumentId);
+
+    if (SC.ok(response)) {
+      shadowCopy = $.extend(true, shadowCopy, response.get('body'));
+      iProperties = $.extend(response.get('body'), iProperties);
+    } else {
+      // FIXME What do we do for an error?
+    }
+  }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';
-  var tContext = DG.store.createRecord( DG.DataContextRecord, iProperties);
-  DG.store.commitRecords();
+  iProperties.document = DG.store.resolve(iProperties.document);
+  tContext = DG.DataContextRecord.create(iProperties);
+  tContext.updateSavedShadowCopy(shadowCopy);
+  if (iProperties.document) {
+    iProperties.document.contexts[tContext.get('id')] = tContext;
+  }
+  if (iProperties.collections) {
+    iProperties.collections.forEach(function (iProps) {
+      iProps.context = tContext;
+      DG.CollectionRecord.createCollection(iProps);
+    });
+  }
+  DG.log('Create context: ');
+
   return tContext;
 };
 

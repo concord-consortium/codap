@@ -129,10 +129,6 @@ DG = SC.Application.create((function () // closure
 /** @scope DG.prototype */ {
 
   var theStore = null;
-  var fixtures = false;
-  var kMemoryDataSource = 'DG.MemoryDataSource',
-  // kRESTDataSource = 'DG.RESTDataSource',
-    kDefaultDataSource = kMemoryDataSource;
 
   // Utility function for extracting URL parameters
   var getUrlParameter = function (iParam, iDefault) {
@@ -175,26 +171,6 @@ DG = SC.Application.create((function () // closure
     return (window.location.href.indexOf('-test.') >= 0);
   };
 
-  // Attach ?fix='true' to the URL to use fixtures
-  fixtures = getUrlParameter('fix');
-
-  if (fixtures) {
-    theStore = SC.Store.create().from(SC.Record.fixtures);
-  }
-  else {
-    theStore = SC.Store.create({
-      commitRecordsAutomatically: YES
-    }).from(kDefaultDataSource);
-  }
-
-  theStore._originalCreateRecord = theStore.createRecord;
-  theStore.createRecord = function (recordType, dataHash, id) {
-    var newRecord = this._originalCreateRecord(recordType, dataHash, id);
-    // Currently, must call normalize for defaultValues to get handled appropriately.
-    // See https://github.com/sproutcore/sproutcore/issues/98 for details.
-    newRecord.normalize();
-    return newRecord;
-  };
 
   return { // return from closure
 
@@ -209,7 +185,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0264',
+    BUILD_NUM: '0279',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -224,6 +200,12 @@ DG = SC.Application.create((function () // closure
     IS_INQUIRY_SPACE_BUILD: isInquirySpaceBuild(),
 
     IS_SRRI_BUILD: isSrriBuild(),
+
+    USE_DIFFERENTIAL_SAVING: true,
+
+    USE_COMPRESSION: true,
+
+    FORCE_SPLIT_DOCUMENT: true,
 
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
@@ -282,11 +264,30 @@ DG = SC.Application.create((function () // closure
     startingDocOwner: getUrlParameter('owner'),
 
     /**
+     * startingDocId can be passed as a Url parameter named doc. It is a parameter that can be used instead of startingDocName and
+     * startingDocOwner to open a document on startup.  It is the id of the document in the database.
+     */
+    startingDocId: getUrlParameter('recordid'),
+
+    /**
      * documentServer can be passed as a Url parameter named documentServer. It is the server from which DG will use to open/save
      * documents. It should be formatted as a full url, to which 'document/*' will be appended.
      * ex: 'http://docs.example.com/'
      */
-  documentServer: getUrlParameter('documentServer') || '',
+    documentServer: getUrlParameter('documentServer') || '',
+
+    /**
+     * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
+     * anonymous read-write access to documents. It can be any string.
+     * ex: 'e342d47a-d3e5-48b8-9675-8622e40bb2c8'
+     */
+    runKey: getUrlParameter('runKey') || '',
+
+    /**
+     * runAsGuest can be passed as a Url parameter named runAsGuest. It is a boolean which tells the login logic to avoid prompting
+     * for a login if a user isn't currently logged in, and instead runs as guest automatically.
+     */
+    runAsGuest: getUrlParameter('runAsGuest') === 'true',
 
     /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.

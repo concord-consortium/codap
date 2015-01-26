@@ -54,21 +54,31 @@ SC.stringsFor('English', {
   'DG.mainPage.mainPane.versionString.IS_BUILD' : "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
   'DG.Authorization.loginPane.registerLink.IS_BUILD' : "",
   'DG.Authorization.loginPane.recoveryLink.IS_BUILD' : "",
+  'DG.Authorization.loginPane.documentStoreSignInHref.IS_BUILD': "%@user/authenticate",
 
   // DG.IS_SRRI_BUILD variants of strings for SRRI build
   'DG.mainPage.mainPane.versionString.SRRI_BUILD' : "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
   'DG.Authorization.loginPane.registerLink.SRRI_BUILD' : "<a href='http://%@/user/register'>Create a new account</a>",
   'DG.Authorization.loginPane.recoveryLink.SRRI_BUILD' : "<a href='http://%@/user/password'>Forgot your password?</a>",
+  'DG.Authorization.loginPane.documentStoreSignInHref.SRRI_BUILD': "%@user/authenticate",
+
+  // Session expiration dialog
+  'DG.Authorization.sessionExpired.message': 'Your session has expired. In order to continue saving, please log in.',
+  'DG.Authorization.sessionExpired.loginButtonText': 'Log In',
+  'DG.Authorization.sessionExpired.loginButtonTooltip': 'Abort this current session and log in again.',
+  'DG.Authorization.sessionExpired.ignoreButtonText': 'Ignore',
+  'DG.Authorization.sessionExpired.ignoreButtonTooltip': 'Ignore this error and attempt to continue working.',
 
   // DG.AppController
   'DG.AppController.resetData.title' : "Clear Data...",
-  'DG.AppController.resetData.toolTip' : "Delete all data from completed games",
-  'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the completed game data?",
+  'DG.AppController.resetData.toolTip' : "Delete all data from current document",
+  'DG.AppController.resetData.warnMessage' : "Do you really want to delete all the data in this document?",
   'DG.AppController.resetData.warnDescription' : "This action is not undoable.",
   'DG.AppController.resetData.okButtonTitle' : "Yes, delete the data",
   'DG.AppController.resetData.cancelButtonTitle' : "No, keep the data",
   'DG.AppController.fileMenuItems.openDocument' : "Open Document...",
   'DG.AppController.fileMenuItems.saveDocument' : "Save Document...",
+  'DG.AppController.fileMenuItems.copyDocument' : "Make a Copy...",
   'DG.AppController.fileMenuItems.documentManager' : "Manage Documents...",
   'DG.AppController.fileMenuItems.closeDocument' : "Close Document...",
   'DG.AppController.fileMenuItems.importDocument' : "Import CODAP Document...",
@@ -80,7 +90,7 @@ SC.stringsFor('English', {
   'DG.AppController.closeDocument.okButtonTitle' : "Close",
   'DG.AppController.closeDocument.cancelButtonTitle' : "Cancel",
   'DG.AppController.beforeUnload.confirmationMessage' : "The document contains unsaved changes.",
-  'DG.AppController.optionMenuItems.reportProblem' : "Report Problem...",
+  'DG.AppController.optionMenuItems.reportProblem' : "Send Feedback...",
   'DG.AppController.optionMenuItems.viewWebPage' : "Display Web Page...",
   'DG.AppController.optionMenuItems.configureGuide' : "Configure Guide...",
   'DG.AppController.optionMenuItems.about' : "About CODAP...",
@@ -102,6 +112,28 @@ SC.stringsFor('English', {
   'DG.AppController.saveDocument.prompt' : "Choose a name for the document:",
   'DG.AppController.saveDocument.okTitle' : "Save",
   'DG.AppController.saveDocument.okTooltip' : "Save the document with the specified name",
+  'DG.AppController.copyDocument.error.writeFailed' : "An error occurred when trying to copy the document.",
+  'DG.AppController.copyDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
+  'DG.AppController.copyDocument.error.general' : "The document could not be copied because an error occurred.",
+  'DG.AppController.copyDocument.prompt' : "Choose a name for the document:",
+  'DG.AppController.copyDocument.okTitle' : "Copy",
+  'DG.AppController.copyDocument.okTooltip' : "Copy the document with the specified name",
+  'DG.AppController.deleteDocument.error.unknown' : "The document could not be deleted because an unknown error occurred.",
+  'DG.AppController.deleteDocument.error.general' : "The document could not be deleted because an error occurred.",
+  'DG.AppController.deleteDocument.error.notFound' : "The document could not be found.",
+  'DG.AppController.deleteDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
+  'DG.AppController.deleteDocument.error.permissions' : "The document could not be deleted because you do not have the correct permissions.",
+  'DG.AppController.revertDocument.title' : "Revert to Original...",
+  'DG.AppController.revertDocument.toolTip' : "Revert the current document to its original state.",
+  'DG.AppController.revertDocument.warnMessage' : "Do you really want to revert your current document?",
+  'DG.AppController.revertDocument.warnDescription' : "You will lose all changes, and this action is not undoable.",
+  'DG.AppController.revertDocument.okButtonTitle' : "Revert",
+  'DG.AppController.revertDocument.cancelButtonTitle' : "Cancel",
+  'DG.AppController.renameDocument.error.unknown' : "The document could not be renamed because an unknown error occurred.",
+  'DG.AppController.renameDocument.error.general' : "The document could not be renamed because an error occurred.",
+  'DG.AppController.renameDocument.error.notFound' : "The document to rename could not be found.",
+  'DG.AppController.renameDocument.error.duplicate' : "A document with the new name already exists!",
+  'DG.AppController.renameDocument.error.permissions' : "The document could not be renamed because you do not have the correct permissions.",
   'DG.AppController.importDocument.prompt' : "Select a CODAP document to import:",
   'DG.AppController.importDocument.alert' : "Alert: The specified file is not a CODAP document.",
   'DG.AppController.importDocument.okTitle' : "Import",
@@ -112,20 +144,36 @@ SC.stringsFor('English', {
   'DG.AppController.exportCaseData.okTooltip' : "Done with export",
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
-  'DG.AppController.reportProblem.dialogTitle' : "Report CODAP Problem",
+  'DG.AppController.feedbackDialog.dialogTitle' : "Report a Problem/Provide Feedback",
+  'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
+  'DG.AppController.feedbackDialog.messageText' : "Please let us know how we can continue to improve our product.\n Questions, bug reports and feature requests are all welcome. Thank you!",
+  'DG.AppController.feedbackDialog.subjectHint' : "Subject",
+  'DG.AppController.feedbackDialog.feedbackHint' : "Type in feedback here",
+  'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
+  'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
-  'DG.AppController.showWebSiteURL' : '/', // path on Drupal website
-  'DG.AppController.showHelpURL' : '/support', // path on Drupal website
+  'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
+  'DG.AppController.showWebSiteTitle' : 'About CODAP',
+  'DG.AppController.showHelpURL' : 'play.codap.concord.org/support', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
   'DG.AppController.showAboutTitle' : 'About CODAP',
   'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
   'DG.AppController.showReleaseNotesTitle' : 'CODAP Release Notes',
   'DG.AppController.shareLinkDialog.title' : 'Share',
+  'DG.AppController.shareLinkDialog.shareButtonLabel' : 'Shareable',
   'DG.AppController.shareLinkDialog.okButtonTitle' : 'OK',
   'DG.AppController.shareLinkDialog.instructions' : "<p>Use the link below to share this document with others:</p>",
-  'DG.AppController.shareLinkDialog.link' : "<a href='%{doc_server}document/launch?owner=%{owner}&doc=%{doc_encoded}&server=%{codap_server}'>%{doc}</a>",
   'DG.AppController.shareLinkDialog.saveWarning' : "<p>Warning: Make sure to save your document and mark it as shared!</p>",
+  'DG.AppController.copyLinkDialog.title' : 'Copy complete',
+  'DG.AppController.copyLinkDialog.okButtonTitle' : 'Go!',
+  'DG.AppController.copyLinkDialog.instructions' : "<p>Your document copy is now ready.<br/>Click the Go! button to open it in a new window/tab.</p>",
+  'DG.AppController.dropURLDialog.message' : 'What do you want to do with the URL you dragged in?',
+  'DG.AppController.dropURLDialog.description' : 'There are two possibilities:',
+  'DG.AppController.dropURLDialog.ignore' : 'Ignore',
+  'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
+  'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
+
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
   'DG.OpenSaveDialog.promptView.value' : "Choose a document/name",
@@ -196,7 +244,7 @@ SC.stringsFor('English', {
   'DG.DataContext.pluralCaseName': "cases",
   'DG.DataContext.caseCountString': "%@1 %@2",  // %@1: count, %@2: case name string
   'DG.DataContext.setOfCasesLabel': "a collection",
-  'DG.DataContext.collapsedRowString': "a %@1 of %@2",
+  'DG.DataContext.collapsedRowString': "%@1 of %@2",
 
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "The formula for attribute \"%@\" is not editable.",
@@ -260,6 +308,7 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.okBtnToolTip' : "Accept the Guide menu items",
   'DG.GuideConfigView.cancelBtnTitle' : "Cancel",
   'DG.GuideConfigView.cancelBtnTooltip' : "Dismiss the dialog without making any changes",
+  'DG.GuideConfigView.httpWarning' : "The URL must start with either http:// or https://",
 
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
@@ -296,8 +345,11 @@ SC.stringsFor('English', {
   'DG.LegendView.attributeTooltip' : "Click to change legend attribute",  // "Click to change legend attribute"
 
   // DG.NumberToggleView
-  'DG.NumberToggleView.showAll' : "Show All",  // "Show All"
-  'DG.NumberToggleView.overallTooltip' : "Click numbers to show one. Click label to show all.",  // "Click to toggle visibility"
+  'DG.NumberToggleView.showAll' : "Show All -",  // "Show All"
+  'DG.NumberToggleView.hideAll' : "Hide All -",  // "Hide All"
+  'DG.NumberToggleView.showAllTooltip' : "Click numbers to toggle visibility. Click label to show all.",  // "Click numbers to toggle visibility. Click label to show all."
+  'DG.NumberToggleView.hideAllTooltip' : "Click numbers to toggle visibility. Click label to hide all.",  // "Click numbers to toggle visibility. Click label to hide all."
+  'DG.NumberToggleView.indexTooltip' : "Click to toggle visibility.",  // "Click to toggle visibility."
 
   // DG.PlottedAverageAdornment
   'DG.PlottedAverageAdornment.meanValueTitle' : "mean=%@", // "mean=123.456"
@@ -337,6 +389,12 @@ SC.stringsFor('English', {
    'DG.AxisView.labelTooltip': "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
 
     // DG.DataTip
-    'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@"
+    'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@",
+
+    // DG.MapView
+    'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
+    'DG.MapView.hideGrid': "Hide Grid",  // "Hide Grid"
+    'DG.MapView.showPoints': "Show Points",  // "Show Points"
+    'DG.MapView.hidePoints': "Hide Points"  // "Hide Points"
   }
 ) ;

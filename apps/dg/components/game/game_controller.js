@@ -84,7 +84,9 @@ DG.GameController = DG.ComponentController.extend(
     @returns  {Array of Number}   Array of open case IDs
    */
   getOpenCaseIDs: function( iExcludeChildren ) {
-    var openCaseIDs = [],
+    var currentGame = DG.gameSelectionController.get('currentGame'),
+      gameContext = DG.GameContext.getContextForGame( currentGame),
+      openCaseIDs = [],
         includeChildCases = (iExcludeChildren ? false : true);
 
     // Adds the id of the specified case and all of its child cases to openCaseIDs.
@@ -99,7 +101,7 @@ DG.GameController = DG.ComponentController.extend(
 
     // New Game API support -- Add open parent cases, child cases, and their values
     this.openCaseIDs.forEach( function( iCaseID) {
-                                var parentCase = DG.store.find( DG.Case, iCaseID);
+                                var parentCase = gameContext.getCaseByID(iCaseID);
                                 if( parentCase) addCase( parentCase);
                               });
 
@@ -120,7 +122,7 @@ DG.GameController = DG.ComponentController.extend(
     return result;
   },
 
-  dispatchCommand: function( iCmd) {
+  dispatchCommand: function( iCmd, callback) {
     var cmdObj = null;
 
     var ret = { 'success' : false };
@@ -154,11 +156,22 @@ DG.GameController = DG.ComponentController.extend(
      * New API
      */
     case 'initGame':
-      ret = this.handleInitGame( cmdObj.args);
-      this.set('changeCount', 0);
-      this.updateSavedChangeCount();
-      shouldDirtyDocument = false;
-      break;
+      this.handleInitGame( cmdObj.args, function() {
+        var ret = { success: true };
+
+        this.set('changeCount', 0);
+        this.updateSavedChangeCount();
+        shouldDirtyDocument = false;
+
+        finishDispatchCommand.call(this);
+
+        if (callback) {
+          callback(ret);  
+        } else {
+          return ret;
+        }
+      }.bind(this));
+      return;
 
     case 'createComponent':
       ret = this.handleCreateComponent( cmdObj.args);
@@ -259,8 +272,20 @@ DG.GameController = DG.ComponentController.extend(
       break;
     }
 
-    if( shouldDirtyDocument)
-      this.incrementProperty('changeCount');
+    function finishDispatchCommand() {
+      if( shouldDirtyDocument) {
+        this.incrementProperty('changeCount');   
+      }
+    }
+
+    finishDispatchCommand.call(this);
+
+    if (callback) {
+      this.invokeLast(function() {
+        callback(ret);
+      });
+      return;
+    }
 
     return ret;
   },
@@ -268,7 +293,8 @@ DG.GameController = DG.ComponentController.extend(
   /**
     'initGame' handler
     @param {Object}   iArgs   See below for arguments
-    @returns {Object}         { success: {Boolean} }
+    @param {Function} callback  Callback, called when game is inited (this includes 
+                                  any game-state restoration)
     args: {
       name: "GameName",
       dimensions: { width: _WIDTH_PIX_, height: _HEIGHT_PIX_ },
@@ -291,7 +317,7 @@ DG.GameController = DG.ComponentController.extend(
       ]
     }
    */
-  handleInitGame: function( iArgs) {
+  handleInitGame: function( iArgs, callback) {
 
     // The game-specified arguments form the core of the new DG.GameSpec.
     var currentGame = DG.gameSelectionController.get('currentGame'),
@@ -300,31 +326,38 @@ DG.GameController = DG.ComponentController.extend(
         gameCollections = [];
 
     if( currentGame) {
-      // Fill out the contents of the DG.GameSpec with the properties passed
-      // by the game. Don't replace the name, however, so that we can keep
-      // multiple copies of the same game code in use, e.g. "Local Lunar Lander"
-      // and "External Lunar Lander".
-      DG.ObjectMap.copySome( currentGame, iArgs,
-                              function( iKey) { return iKey !== 'name'; });
+      DG.ObjectMap.copy( currentGame, iArgs);
       // Ask for the context after we've copied the arguments/properties,
       // so that if there's a 'contextType' it will be used.
       gameContext = DG.GameContext.getContextForGame( currentGame);
       if( iArgs.dimensions) {
-        var prevDimensions = DG.gameSelectionController.get('currentDimensions'),
-            prevWidth = prevDimensions && prevDimensions.width,
-            prevHeight = prevDimensions && prevDimensions.height,
-            newDimensions = { width: iArgs.dimensions.width, height: iArgs.dimensions.height };
-        // If game specifies a different size, update to the new size
-        if( (prevWidth !== newDimensions.width) || (prevHeight !== newDimensions.height))
-          DG.gameSelectionController.set('currentDimensions', newDimensions );
+          DG.gameSelectionController.set('currentDimensions',
+              { width: iArgs.dimensions.width, height: iArgs.dimensions.height });
       }
       this.view.set('version', SC.none( currentGame.version) ? '' : currentGame.version);
+      this.view.set('title', SC.none( currentGame.name) ? '' : currentGame.name);
+    }
+
+    function finishInitGame() {
+      // Once all the collections and attributes are created, we're ready to play the game.
+      this.set('gameIsReady', true);
+
+      if( (iArgs.log === undefined) || iArgs.log)
+        DG.logUser("initGame: '%@', Collections: [%@]",
+                    currentGameName, gameCollections.getEach('name').join(", "));
+
+      if (callback) {
+        callback();
+      }
     }
 
     // Function for creating each collection and its required attributes
     function handleNewCollection( iCollectionArgs) {
-      var collectionProperties = { name: iCollectionArgs.name,
-                                  areParentChildLinksConfigured: true };
+      var collectionProperties = {
+        name: iCollectionArgs.name,
+        labels: iCollectionArgs.labels,
+        areParentChildLinksConfigured: true
+      };
 
       // Each collection is the child of the previous collection
       if( gameCollections.length > 0)
@@ -365,19 +398,13 @@ DG.GameController = DG.ComponentController.extend(
         } else if( gameElement && gameElement.doCommandFunc ) {
           // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
           gameElement.doCommandFunc( SC.json.encode( restoreCommand ));
+        } else if (DG.get('isGamePhoneInUse')) {
+          DG.gamePhone.call(restoreCommand, finishInitGame.bind(this));
+          return;
         }
       }
     }
-
-    // modify the page title to include the name of the current data interactive
-    $('title').text('CODAP - ' + currentGameName);
-
-    // Once all the collections and attributes are created, we're ready to play the game.
-    this.set('gameIsReady', true);
-
-    if( (iArgs.log === undefined) || iArgs.log)
-      DG.logUser("initGame: '%@', Collections: [%@]",
-                  currentGameName, gameCollections.getEach('name').join(", "));
+    finishInitGame.call(this);
   },
 
   /**
@@ -469,7 +496,7 @@ DG.GameController = DG.ComponentController.extend(
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
         collection = gameContext.getCollectionByName( iArgs.collection),
-        theCase = DG.store.find( DG.Case, iArgs.caseID),
+        theCase = gameContext.getCaseByID( iArgs.caseID),
         ret = { success: false };
     if( collection && theCase && iArgs.values) {
       var change = {
@@ -572,8 +599,8 @@ DG.GameController = DG.ComponentController.extend(
      * Reset all collections. Remove all case data and attributes.
      */
   doResetCollections: function() {
-    DG.log("GameController.resetCollections");
-    var dataContext = DG.gameSelectionController.get('currentContext'),
+    var result,
+        dataContext = DG.gameSelectionController.get('currentContext'),
         tChange = {
           operation: 'resetCollections'
         };
@@ -608,7 +635,7 @@ DG.GameController = DG.ComponentController.extend(
         });
       }
     }
-    tDeletedCaseIDs = DG.Record.destroyAllRecordsOfType( DG.Case, tCaseIDsToPreserve);
+    tDeletedCaseIDs = DG.store.destroyAllRecordsOfType( DG.Case, tCaseIDsToPreserve);
     DG.store.commitRecords();
 
     // Note that for efficiency, the record deletion above is carried out
@@ -709,7 +736,7 @@ DG.GameController = DG.ComponentController.extend(
     var currentGame = DG.gameSelectionController.get('currentGame'),
         gameContext = DG.GameContext.getContextForGame( currentGame),
         collection = gameContext.getCollectionByName( iArgs.collection),
-        theCase = DG.store.find( DG.Case, iArgs.caseID),
+        theCase = gameContext.getCaseByID(iArgs.caseID),
         ret = { success: false, values: [] };
 
     if( collection && theCase && iArgs.attributeNames) {
@@ -923,6 +950,7 @@ DG.GameController = DG.ComponentController.extend(
     var layout = this.getPath('model.layout'),
         requestedDimensions = layout ? { width: layout.width, height: layout.height } : null,
         gameName = iComponentStorage.currentGameName,
+        gameUrl = iComponentStorage.currentGameUrl,
         gameSpec = DG.gameSelectionController.findGameByName( gameName);
 
     if( !gameSpec) {
@@ -934,6 +962,12 @@ DG.GameController = DG.ComponentController.extend(
       gameSpec = DG.GameSpec.create({ name: gameName,
                                       url: iComponentStorage.currentGameUrl });
       DG.gameSelectionController.prependToGamesMenu([ gameSpec ]);
+    } else {
+      // our document may provide a new url for a given game. We should take this
+      // as authoritative.
+      if (gameUrl) {
+        gameSpec.url = gameUrl;
+      }
     }
 
     // If the gameSpec was just created above, or if it isn't associated with
@@ -1011,10 +1045,13 @@ DG.currGameController = DG.GameController.create({});
 /**
   Calls the doCommand() method of the current game controller (DG.currGameController).
   This is a convenience function for use by games, particularly JavaScript games.
+
+  If callback is provided, it will be called on completion of the command and there will be no return
+  value from doCommand. The callback is guaranteed to be called in a subsequent event turn.
   */
-DG.doCommand = function( iCmd) {
+DG.doCommand = function( iCmd, callback)  {
   var result;
-  SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd); });
+  SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd, callback); });
   return result;
 };
 

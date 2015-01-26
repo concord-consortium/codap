@@ -34,7 +34,8 @@ DG.GuideView = SC.WebView.extend(
       guideModel: null,
 
       realURL: function() {
-        return DG.StringUtilities.guaranteePrefix( this.getPath('guideModel.currentURL'), 'http://')
+        // We require the author to specify either http:// or https:// so that there is no ambiguity
+        return this.getPath('guideModel.currentURL');
       }.property('guideModel.currentURL'),
 
       init: function() {

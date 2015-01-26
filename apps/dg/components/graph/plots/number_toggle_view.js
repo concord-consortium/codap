@@ -172,26 +172,33 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
       init: function() {
         sc_super();
-        this.lastDisplayedIndex = this.getPath('model.numberOfParents') - 1;
+        this.lastDisplayedIndex = this.getPath('model.numberOfToggleIndices') - 1;
       },
 
       doDraw: function doDraw() {
         var toggleNumber = function( iElement) {
             DG.logUser( "Show parent: %@", iElement.toggleIndex + 1);
-            this.get('model' ).toggleChildrenVisibility( iElement.toggleIndex);
+            this.get('model' ).toggleVisibility( iElement.toggleIndex);
           }.bind( this ),
 
           changeAllCaseVisibility = function() {
-            this.get('model' ).changeAllCaseVisibility();
-            DG.logUser( "Show all parents:");
+            var tModel = this.get('model');
+            tModel.changeAllCaseVisibility();
+            if( tModel.allCasesAreHidden())
+              DG.logUser( "Hide all:");
+            else
+              DG.logUser( "Show all:");
           }.bind( this ),
 
           createShowAllElement = function() {
             var tClickHandling = false;
-            return this._paper.text( 0, 0, 'DG.NumberToggleView.showAll'.loc() + ' -')
+            return this._paper.text( 0, 0, '')
                       .attr( { font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
-                                fill: tModel.allCasesAreHidden() ? 'lightGray' : 'black',
-                                title: SC.String.loc( 'DG.NumberToggleView.overallTooltip') } )
+                                fill: 'black',
+                                text: tModel.allCasesAreVisible() ? 'DG.NumberToggleView.hideAll'.loc() :
+                                    'DG.NumberToggleView.showAll'.loc(),
+                                title: tModel.allCasesAreVisible() ? 'DG.NumberToggleView.hideAllTooltip'.loc() :
+                                    'DG.NumberToggleView.showAllTooltip'.loc()} )
                       // Use mousedown/mouseup here rather than click so that touch will work
                       .mousedown( function() {
                         tClickHandling = true;
@@ -218,10 +225,11 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
             }
 
             for( tIndex = 0; tIndex < tNumParents; tIndex++ ) {
-              var tFill = tModel.allChildrenAreHidden( tIndex) ? 'lightGray' : 'black',
+              var tFill = tModel.casesForIndexAreHidden( tIndex) ? 'lightGray' : 'black',
                   tElement = this._paper.text( -100, tY, tIndex + 1)
                     .attr({ font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
-                            fill: tFill })
+                            fill: tFill,
+                            title: SC.String.loc( 'DG.NumberToggleView.indexTooltip') })
                     .mousedown( doMouseDown)
                     .mouseup( doMouseUp);
 
@@ -260,7 +268,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
         // Start of doDraw
         var kSpace = 5,
             tModel = this.get('model' ),
-            tNumParents = tModel.get('numberOfParents' ),
+            tNumParents = tModel.get('numberOfToggleIndices' ),
             tNameElement = createShowAllElement(),
             tNameBox = tNameElement.getBBox(),
             tY = tNameBox.height / 2,
@@ -351,29 +359,30 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
       scrollRight: function() {
         var tFirst = this.get('firstDisplayedIndex' ),
             tLast = this.get('lastDisplayedIndex' ),
-            tNumber = this.getPath('model.numberOfParents' ),
+            tNumber = this.getPath('model.numberOfToggleIndices' ),
             tScrollBy = Math.min( tNumber - tLast - 1, tLast - tFirst);
         this.incrementProperty( 'lastDisplayedIndex', tScrollBy);
       },
 
       /**
-       * Only need to display if there are more than one parent
+       * We used to show only when there were parent cases. Now we always show.
        * @return {Boolean}
        */
       shouldShow: function() {
-        return this.getPath('model.numberOfParents') > 1;
+//        return this.getPath('model.numberOfParents') > 1;
+        return true;
       },
 
       /**
        * If the case count changes we need to redisplay, but we can wait awhile
        */
       handleCaseCountChange: function() {
-        this.set('lastDisplayedIndex', this.getPath('model.numberOfParents') - 1);
+        this.set('lastDisplayedIndex', this.getPath('model.numberOfToggleIndices') - 1);
         this.displayDidChange();  // Use displayDidChange so that doDraw doesn't get called too often
       }.observes('model.caseCount'),
 
       /**
-       * If the case count changes we need to redisplay, but we can wait awhile
+       * If the hidden cases change we need to redisplay, but we can wait awhile
        */
       handleHiddenCasesChange: function() {
         SC.run( function() {

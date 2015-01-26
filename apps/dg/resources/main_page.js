@@ -20,7 +20,8 @@
 DG.mainPage = SC.Page.design((function() {
 
   var
-      kToolbarHeight = 44;
+      kToolbarHeight = 44,
+      kInfobarHeight = 24;
   
   // begin compatible browser main page design
   return DG.Browser.isCompatibleBrowser() ? {
@@ -28,13 +29,98 @@ DG.mainPage = SC.Page.design((function() {
   // The main pane is made visible on screen as soon as your app is loaded.
   // Add childViews to this pane for views to display immediately on page load.
   mainPane: SC.MainPane.design({
-    childViews: 'topView scrollView'.w(),
-    
+    childViews: 'infoBar topView scrollView'.w(),
+
+    infoBar: SC.ToolbarView.design({
+      classNames: 'infobar'.w(),
+      layout: { top: 0, height: kInfobarHeight },
+      childViews: 'leftSide rightSide'.w(),
+      anchorLocation: SC.ANCHOR_TOP,
+
+      leftSide: SC.View.design(SC.FlowedLayout, {
+        layout: { top: 3, left: 5, height: kInfobarHeight, zIndex: 1  },
+        childViews: 'documentTitle titleEditButton saveNotification'.w(),
+        defaultFlowSpacing: { left: 0, right: 5, top: 0, bottom: 0 },
+
+        documentTitle: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_LEFT,
+          needsEllipsis: YES,
+          isEditableBinding: 'DG.authorizationController.isSaveEnabled',
+          valueBinding: 'DG._currDocumentController.documentName',
+          toolTipBinding: 'DG._currDocumentController.documentName',
+          originalValue: null,
+          inlineEditorDidBeginEditing: function(editor, value) {
+            this.set('originalValue', value);
+          },
+          valueChanged: function() {
+            var original = this.get('originalValue'),
+                newValue = this.get('value');
+
+            if (original) {
+              DG.appController.renameDocument(original, newValue);
+              this.set('originalValue', null);
+            }
+            return true;
+          }.observes('value'),
+          click: function() {
+            this.beginEditing();
+          }
+        }),
+
+        titleEditButton: SC.LabelView.design({
+          layout: { height: 14, width: 12 },
+          textAlign: SC.ALIGN_LEFT,
+          escapeHTML: NO,
+          value: '<img style="margin-top: 2px;" src="' + static_url('images/pencil.png') + '" />',
+          tooltip: 'Rename document.',
+          click: function() {
+            this.getPath('parentView.documentTitle').beginEditing();
+          }
+        }),
+
+        saveNotification: SC.LabelView.design(SC.AutoResize, {
+          classNames: ['invisible'],
+          layout: { height: 18 },
+          textAlign: SC.ALIGN_LEFT,
+          value: 'Document Saved!'
+        })
+      }),
+
+      rightSide: SC.View.design(SC.FlowedLayout, {
+        layout: { top: 3, right: 5, height: kInfobarHeight, zIndex: 0 },
+        childViews: 'statusLabel versionLabel'.w(),
+        align: SC.ALIGN_RIGHT,
+        defaultFlowSpacing: { left: 5, right: 0, top: 0, bottom: 0 },
+
+        versionLabel: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_RIGHT,
+          value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
+        }),
+
+        statusLabel: SC.LabelView.design(SC.AutoResize, {
+          layout: { height: 18 },
+          textAlign: SC.ALIGN_RIGHT,
+          currUsernameBinding: 'DG.authorizationController.currLogin.user',
+          value: function() {
+            return 'User: ' + this.get('currUsername');
+          }.property('currUsername')
+        })
+      }),
+
+      init: function() {
+        sc_super();
+      }
+
+    }),
+
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
-      layout: { top: 0, height: kToolbarHeight },
-      childViews: 'resetButton logoutButton versionLabel statusLabel'.w(),
-      anchorLocation: SC.ANCHOR_TOP,
+      layout: { top: kInfobarHeight, height: kToolbarHeight },
+      childViews: 'resetButton logoutButton'.w(),
 
       resetButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:100 },
@@ -44,7 +130,7 @@ DG.mainPage = SC.Page.design((function() {
         action: 'deleteAllCaseData',
         toolTip: 'DG.AppController.resetData.toolTip' // "Delete all data from completed games"
       }),
-  
+
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
         localize: true,
@@ -53,23 +139,14 @@ DG.mainPage = SC.Page.design((function() {
         action: 'logout',
         userBinding: 'DG.authorizationController.currLogin.user',
         isVisible: function() {
-          return !DG.documentServer || this.get('user') == 'guest';
+          return !DG.documentServer || this.get('user') === 'guest';
         }.property('user'),
-        toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip')  // "Log out the current user"
-      }),
-  
-      versionLabel: SC.LabelView.design({
-        layout: { top: 0, height: 24, left: 0, width: 150 },
-        controlSize: SC.REGULAR_CONTROL_SIZE,
-        fontWeight: SC.BOLD_WEIGHT,
-        textAlign: SC.ALIGN_RIGHT,
-        value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
-      }),
-  
-      statusLabel: SC.LabelView.design({
-        layout: { bottom: 5, left: 0, width: 150, height: 18 },
-        textAlign: SC.ALIGN_RIGHT,
-        valueBinding: 'DG.authorizationController.currLogin.user'
+        toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip'),  // "Log out the current user"
+        userDidChange: function () {
+          var user = this.get('user');
+          this.set('title', DG.documentServer || user === 'guest' ?
+            'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'); // "Logout"
+        }.observes('user')
       }),
 
       init: function() {
@@ -98,14 +175,12 @@ DG.mainPage = SC.Page.design((function() {
         tLeft += kSpacer; // extra space to right of gear
         tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
-        moveHorizontal( this.versionLabel, tLeft );  // same left as statusLabel
-        tLeft = moveHorizontal( this.statusLabel, tLeft );
       }
       
     }), // topView
 
     scrollView: SC.ScrollView.design({
-      layout: { top: kToolbarHeight },
+      layout: { top: kInfobarHeight + kToolbarHeight },
       classNames: 'doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
@@ -132,8 +207,79 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
+      this.invokeLater( 'setupDragDrop', 300);
     },
-    
+
+    setupDragDrop: function() {
+
+      var cancel = function( iEvent) {
+            if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+            iEvent.dataTransfer.dropEffect = 'copy';
+            return false; // required by IE
+          },
+          dragEnter = function( iEvent) {
+            cancel( iEvent);
+            $(tElement).addClass('dg-receive-outside-drop');
+          }.bind( this),
+          dragEnd = function( iEvent) {
+            cancel( iEvent);
+            $(tElement).removeClass('dg-receive-outside-drop');
+          }.bind( this);
+
+      var handleDrop = function( iEvent) {
+
+        function adjustTypeBasedOnSuffix() {
+          var tRegEx = /\.[^\/]+$/,
+              tSuffix = tFile.name.match(tRegEx),
+              tNewType = tType;
+          if( !SC.empty(tSuffix))
+            tSuffix = tSuffix[0];
+          switch( tSuffix) {
+            case '.csv':
+              tNewType = 'text/csv';
+              break;
+            case '.txt':
+              tNewType = 'text/plain';
+              break;
+          }
+          tType = tNewType;
+        }
+
+        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+
+        var tDataTransfer = iEvent.dataTransfer,
+            tFiles = tDataTransfer.files,
+            tURI = tDataTransfer.getData('text/uri-list');
+        if( tFiles && (tFiles.length > 0)) {
+          var tFile = tFiles[0],  // We only deal with the first file
+              tType = tFile.type;
+          if( tType === '')
+            adjustTypeBasedOnSuffix();
+
+          if( tType === 'application/json') {
+            DG.appController.importFileWithConfirmation(tFile, 'JSON');
+          }
+          else if( (tType === 'text/csv')
+              || (tType === 'text/plain')
+              || (tType === 'text/tab-separated-values')) {
+            DG.appController.importFileWithConfirmation(tFile, 'TEXT');
+          }
+        }
+        else if( !SC.empty(tURI)) {
+          DG.appController.importURL( tURI);
+        }
+        $(tElement).removeClass('dg-receive-outside-drop');
+
+        return false;
+      };
+
+      var tElement = this._view_layer;
+      tElement.ondragover = cancel;
+      tElement.ondragenter = dragEnter;
+      tElement.ondragleave = dragEnd;
+      tElement.ondrop = handleDrop;
+    },
+
     /**
       The mainPane itself should be the default key view, rather than an arbitrary subview.
       
@@ -306,12 +452,6 @@ DG.mainPage.addSlider = function() {
 };
 
 DG.mainPage.addGraph = function() {
-  // TO DO: The graph will currently (110828) crash if it's called while the game is still setting up.
-  if( !DG.currGameController.get('gameIsReady')) {
-    DG.log("DocumentController:addGraph called before gameIsReady.");
-    return;
-  }
-
   return DG.currDocumentController().addGraph( this.get('docView'));
 };
 

@@ -356,7 +356,9 @@ DG.Debug = SC.Object.create( (function() {
                 application: 'CODAP'
               }, metaArgs);
         } catch(ex) {
-          console && console.log && console.log('Log to server failed: ' + ex);
+          if (console && console.log) {
+            console.log('Log to server failed: ' + ex);
+          }
         }
       }
 

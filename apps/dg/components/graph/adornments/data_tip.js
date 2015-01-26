@@ -52,7 +52,8 @@ DG.DataTip = DG.ToolTip.extend(
 
   init: function() {
     sc_super();
-    this.set('paperSource', this.get('plotLayer'));
+    if(!this.get('paperSource'))
+      this.set('paperSource', this.get('plotLayer'));
   },
 
   show: function( iX, iY, iIndex) {
@@ -67,6 +68,7 @@ DG.DataTip = DG.ToolTip.extend(
   handleChanges: function( iChanges) {
     // iChanges can be a single index or an array of indices
     var tChanges = (SC.typeOf( iChanges) === SC.T_NUMBER ? SC.IndexSet.create( iChanges) : iChanges);
+    tChanges = tChanges || [];
     if( SC.none( this._myElements) || (this._myElements.length === 0) || !(tChanges.contains( this.get('caseIndex'))))
       return;
 

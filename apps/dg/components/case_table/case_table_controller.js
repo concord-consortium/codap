@@ -101,7 +101,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       init: function() {
         sc_super();
         this.caseTableAdapters = [];
-        
+
         if( this.get('dataContext'))
           this.dataContextDidChange();
       },
@@ -130,10 +130,13 @@ DG.CaseTableController = DG.ComponentController.extend(
         
         // Utility function for identifying existing adapters for the specified collection
         function findAdapterForCollection( iCollectionID) {
-          var i, count = prevAdapters.length;
-          for( i = 0; i < count; ++i) {
-            if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
-              return prevAdapters[i];
+          var i, count;
+          if (prevAdapters) {
+            count = prevAdapters.length;
+            for( i = 0; i < count; ++i) {
+              if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
+                return prevAdapters[i];
+            }
           }
           return null;
         }
@@ -187,8 +190,28 @@ DG.CaseTableController = DG.ComponentController.extend(
                                             addObserver('[]', this_, 'attributeCountDidChange');
                                          });
         }
+        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
       }.observes('dataContext'),
-      
+
+      getCaseCountMessage: function () {
+        var dataContext = this.get('dataContext'),
+          parentCollection, childCollection, parentCount, childCount,
+          tStatusMessage = "";
+        if (dataContext) {
+          parentCollection = this.getPath('dataContext.parentCollection');
+          childCollection = this.getPath('dataContext.childCollection');
+          parentCount = parentCollection? parentCollection.getCaseCount(): 0;
+          childCount = childCollection? childCollection.getCaseCount(): 0;
+          if (parentCollection && childCollection) {
+            tStatusMessage = dataContext.getCaseCountString(parentCollection,
+              parentCount) + '/' + dataContext.getCaseCountString(childCollection,
+              childCount);
+          }
+        }
+//        DG.logInfo("UpdateStatus: "  + tStatusMessage);
+        return tStatusMessage;
+      },
+
       createComponentStorage: function() {
         var storage = {},
             dataContext = this.get('dataContext');
@@ -253,8 +276,8 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'deleteCases':
             this.caseCountDidChange( iChange);
-            // fall-through intentional
-            /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+            this.doSelectCases(iChange);
+            break;
           case 'selectCases':
             this.doSelectCases( iChange);
             // selection changes don't require aggregate invalidation
@@ -361,9 +384,12 @@ DG.CaseTableController = DG.ComponentController.extend(
         Called when the array observer indicates that the number of cases has changed.
        */
       caseCountDidChange: function( iChange) {
-        var hierTableView = this.getPath('view.contentView');
-        if( hierTableView)
+        var hierTableView = this.getPath('view.contentView'),
+          componentView = this.view;
+        if( hierTableView) {
           hierTableView.updateRowCount();
+          componentView.set('status', this.getCaseCountMessage());
+        }
       },
       
       /**
@@ -385,13 +411,13 @@ DG.CaseTableController = DG.ComponentController.extend(
             tDeleteIsEnabled = tSelection && tSelection.get('length'),
             tNewAttrMenuItemStringKey = 'DG.TableController.gearMenuItems.newAttribute',
             tItems = [];
-        if( !SC.empty( tChildCollectionName)) {
-          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
-                        target: this, itemAction: this.newChildAttribute });
-        }
         if( !SC.empty( tParentCollectionName)) {
           tItems.push({ title: tNewAttrMenuItemStringKey.loc( tParentCollectionName),
                         target: this, itemAction: this.newParentAttribute });
+        }
+        if( !SC.empty( tChildCollectionName)) {
+          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
+            target: this, itemAction: this.newChildAttribute });
         }
         tItems.push({ title: 'DG.TableController.gearMenuItems.deleteCases', localize: true,
                       target: this, itemAction: this.deleteSelectedCases, isEnabled: tDeleteIsEnabled });
@@ -418,6 +444,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var gearView = this.getPath('view.containerView.titlebar.gearView');
         if( gearView)
           gearView.set('contentView', tComponentView);
+        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
       }.observes('view'),
 
       /**
@@ -444,6 +471,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tChildCollection = tDataContext && tDataContext.get('childCollection');
         this.newAttribute({ collection: tChildCollection });
       },
+
       newParentAttribute: function() {
         var tDataContext = this.get('dataContext'),
             tParentCollection = tDataContext && tDataContext.get('parentCollection');

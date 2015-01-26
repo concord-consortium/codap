@@ -82,7 +82,8 @@ DG.GameContext = DG.DataContext.extend(
    */
   collections: function() {
     var srcCollections = this.getPath('model.collections'),
-        i, collectionCount = srcCollections ? srcCollections.get('length') : 0;
+        srcCollectionArray = DG.ObjectMap.values(srcCollections),
+        i, collectionCount = srcCollectionArray.length;
     
     // If our cache is up to date, just return it
     if( this._collections && (this._collections.length === collectionCount))
@@ -91,19 +92,19 @@ DG.GameContext = DG.DataContext.extend(
     // Reset and restock the cached array
     this._collections = [];
     if( collectionCount > 0) {
-      var collection0 = srcCollections && srcCollections.objectAt( 0),
+      var collection0 = srcCollectionArray[0],
           collection0Name = collection0 && collection0.get('name'),
           childCollectionName = this.getPath('gameSpec.collectionName');
       // Fill the cached array in the proper order
       if( collection0Name === childCollectionName) {
         // Reverse the order of the collections in the source
         for( i = collectionCount - 1; i >= 0; --i)
-          this._collections.push( srcCollections.objectAt( i));
+          this._collections.push( srcCollectionArray[i]);
       }
       else {
         // Preserve the order of collections in the source
         for( i = 0; i < collectionCount; ++i)
-          this._collections.push( srcCollections.objectAt( i));
+          this._collections.push( srcCollectionArray[i]);
       }
     }
     // Return the cached array in the proper order

@@ -45,9 +45,14 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
 
     /**
      I'm not supposed to work with numbers.
-     @return { Boolean }
+     @property { Boolean }
      */
     isNumeric: false,
+
+    /**
+     * @property {Boolean}
+     */
+    centering: false,
 
     /**
      @property{Number}
@@ -139,6 +144,9 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tOrientation = this.get('orientation'),
           tRotation = (tOrientation === 'horizontal') ? 0 : -90, // default to parallel to axis
           tMaxHeight = DG.RenderingUtilities.kDefaultFontHeight,  // So there will be a default extent
+          tCentering = this.get('centering'),
+          tTickOffset = tCentering ? 0 : this.get('fullCellWidth') / 2,
+          tAnchor = tCentering ? 'middle' : 'start',
           tMaxWidth = tMaxHeight,
           tLabelSpecs = [],
           tCollision = false,
@@ -174,25 +182,27 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         switch( this_.get('orientation')) {
           case 'vertical':
             this_._elementsToClear.push(
-              this_._paper.line( tBaseline, tCoord, tBaseline - kTickLength, tCoord)
+              this_._paper.line( tBaseline, tCoord + tTickOffset, tBaseline - kTickLength, tCoord + tTickOffset)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
             tLabelX = tBaseline - kTickLength - kAxisGap - iLabelSpec.height / 3;
-            tLabelY = tCoord;
-            if( tRotation === 0)
-              tLabelX -= iLabelSpec.width / 2;
+            tLabelY = tCoord + tTickOffset;
+            if( tRotation === 0) {
+              tAnchor = 'end';
+            }
             break;
 
           case 'horizontal':
             this_._elementsToClear.push(
-              this_._paper.line( tCoord, tBaseline, tCoord, tBaseline + kTickLength)
+              this_._paper.line( tCoord - tTickOffset, tBaseline, tCoord - tTickOffset, tBaseline + kTickLength)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
-            tLabelX = tCoord + 1;
+            tLabelX = tCoord - tTickOffset + 1;
             tLabelY = tBaseline + kTickLength + kAxisGap + iLabelSpec.height / 3;
-            if( tRotation === -90)
-              tLabelY += iLabelSpec.width / 2;
+            if( tRotation === -90) {
+              tAnchor = 'end';
+            }
             break;
         }
-        iLabelSpec.element.attr( { x: tLabelX, y: tLabelY });
+        iLabelSpec.element.attr( { x: tLabelX, y: tLabelY, 'text-anchor': tAnchor });
         DG.RenderingUtilities.rotateText( iLabelSpec.element, tRotation, tLabelX, tLabelY);
       } // drawOneCell
 

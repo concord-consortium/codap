@@ -17,8 +17,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/* global L */
 sc_require('components/graph_map_common/plot_layer');
+sc_require('libraries/leaflet-src');
+
 
 /** @class DG.MapAreaLayer - A plot of dots placed according to numeric values
 
@@ -112,17 +114,17 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   doDraw: function() {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
-    var this_ = this,
+    var //this_ = this,
         tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext(),
-        tDataLength = tCases && tCases.length,
-        tIndex;
+        tRC = this.createRenderContext();
+        //tDataLength = tCases && tCases.length,
+        //tIndex;
     tCases.forEach( function( iCase, iIndex) {
       var tColorString = tRC.calcCaseColorString( iCase),
           tFeature = this.features[ iIndex];
       if( tFeature) {
         tFeature.setStyle({
-          fillColor: tColorString,
+          fillColor: tColorString
         });
       }
     }.bind( this));
@@ -204,9 +206,9 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
     var tRC = this.createRenderContext(),
         tModel = this.get('model'),
-        tCases = tModel.get( 'cases'),
-        tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
-        tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
+        tCases = tModel.get( 'cases');//,
+        //tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
+        //tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
     tCases.forEach( function( iCase, iIndex) {
       var tFeature, tPopup;
 
@@ -216,7 +218,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this),
 
           handleMouseover = function( iEvent) {
-            tFeature = this.features[ iIndex],
+            tFeature = this.features[ iIndex];
             tPopup = L.popup({ closeButton: false }, tFeature);
             tPopup.options.offset[1] = -20;
             tPopup.setContent( this.calcTooltip( iCase));
@@ -237,7 +239,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this);
 
       try {
-        var tFeature = JSON.parse(iCase.getValue(tRC.areaVarID));
+        tFeature = JSON.parse(iCase.getValue(tRC.areaVarID));
         this.features[ iIndex] = L.geoJson(tFeature, {
           style: function (feature) {
             return {color: 'yellow',

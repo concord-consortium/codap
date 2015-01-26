@@ -58,7 +58,7 @@ DG.LookupAggFns = {
         // then the "first case" is different. We handle that
         // possibility by stashing a separate _childCase_
         // reference in the returned evaluation context.
-        if( children)
+        if( children && children.length > 0)
           tmpEvalContext._childCase_ = children.firstObject();
         return tmpEvalContext;
       }
@@ -100,7 +100,7 @@ DG.LookupAggFns = {
         // then the "last case" is different. We handle that
         // possibility by stashing a separate _childCase_
         // reference in the returned evaluation context.
-        if( children)
+        if( children && children.length > 0)
           tmpEvalContext._childCase_ = children.lastObject();
         return tmpEvalContext;
       }
@@ -131,12 +131,14 @@ DG.LookupAggFns = {
       // The appropriate evaluation context for the next() argument is
       // the subsequent case, i.e. the case at the subsequent index.
       function getNextEvalContext( iContext, iEvalContext) {
-        var parentCase = iEvalContext._case_ && iEvalContext._case_.get('parent'),
-            children = parentCase && parentCase.get('children'),
-            caseCount = children && children.get('length'),
-            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-            nextCase = children && (thisCaseIndex < caseCount)
-                            ? children.objectAt( thisCaseIndex) // 0-based index
+        var iCase = iEvalContext._case_,
+          parentCase = iCase && iCase.get('parent'),
+          siblings = parentCase ? parentCase.get('children')
+                : iContext && iContext.getPath('collection.cases'),
+          caseCount = siblings && siblings.get('length'),
+          thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
+          nextCase = siblings && (thisCaseIndex < caseCount)
+                            ? siblings.objectAt( thisCaseIndex) // 0-based index
                             : null;
         return nextCase ? { _case_: nextCase, _id_: nextCase.get('id') } : null;
       }
@@ -168,11 +170,13 @@ DG.LookupAggFns = {
       // The appropriate evaluation context for the prev() argument
       // is the previous case, i.e. the case at the previous index.
       function getPrevEvalContext( iContext, iEvalContext) {
-        var parentCase = iEvalContext._case_ && iEvalContext._case_.get('parent'),
-            children = parentCase && parentCase.get('children'),
-            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-            prevCase = children && (thisCaseIndex >= 2)
-                            ? children.objectAt( thisCaseIndex - 2)  // 0-based index
+        var iCase = iEvalContext._case_,
+          parentCase = iCase && iCase.get('parent'),
+          siblings = parentCase ? parentCase.get('children')
+                  : iContext && iContext.getPath('collection.cases'),
+          thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
+          prevCase = siblings && (thisCaseIndex >= 2)
+                            ? siblings.objectAt( thisCaseIndex - 2)  // 0-based index
                             : null;
         return prevCase ? { _case_: prevCase, _id_: prevCase.get('id') } : null;
       }

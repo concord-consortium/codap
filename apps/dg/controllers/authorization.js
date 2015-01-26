@@ -18,6 +18,9 @@
 
 sc_require('models/authorization_model');
 
+/* globals pako */
+sc_require('libraries/pako-deflate');
+
 /**
   Logs the specified message, along with any additional properties, to the server.
   
@@ -104,7 +107,8 @@ return {
 
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
-    this.logIn({ enableLogging: false, enableSave: false, privileges: 0,
+    var save = (!!DG.documentServer && !!DG.runKey) || false;
+    this.logIn({ enableLogging: false, enableSave: save, privileges: 0,
   sessiontoken: "guest" + new Date().valueOf(), useCookie: false, valid: true}, 200);
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
@@ -124,7 +128,7 @@ return {
         this.get('currLogin').set('sessionID', iSessionID);
       }
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -144,7 +148,7 @@ return {
       var body = { username: iUser, phrase: iPhrase, pass: iPass};
       //response from server is same as with login requests
       if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info')
+        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
           .notify(this, 'receiveLoginResponse')
           .send({});
       } else {
@@ -308,20 +312,101 @@ return {
                                 is received. The called method should check for errors
                                 and perform any other appropriate tasks upon completion.
    */
-  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver) {
-    
-     var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
-                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId);
-              
-    this.urlForJSONPostRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedSaveDocumentResponse')
-      .send(iDocumentArchive);
+  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
+    var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
+        deferred = $.Deferred();
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
+
+    return deferred;
+  },
+
+  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
+    var url,
+        externalDocumentId = contextModel.get('externalDocumentId'),
+        deferred = $.Deferred();
+
+    if (!isCopying && !SC.none(externalDocumentId)) {
+      if (isDifferential) {
+        url = DG.documentServer + 'document/patch?recordid=%@'.fmt(externalDocumentId);
+      } else {
+        url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+      }
+    } else {
+      url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+
+    if (DG.USE_COMPRESSION) {
+      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Encoding', 'deflate')
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
+        .timeoutAfter(60000)
+        .send(compressedDocumentArchive);
+    } else {
+      this.urlForPostRequests( serverUrl(url) )
+        .header('Content-Type', 'application/x-codap-document')
+        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .timeoutAfter(60000)
+        .send(JSON.stringify(iDocumentArchive));
+    }
+
+    return deferred;
+  },
+
+  /**
+    Deletes the specified document object to the server.
+
+    @param    iDocumentId       The ID of the document object
+    @param    iReceiver         The receiver object whose receivedDeleteDocumentResponse()
+                                method will be called when the response from the server
+                                is received. The called method should check for errors
+                                and perform any other appropriate tasks upon completion.
+   */
+  deleteDocument: function(iDocumentId, iReceiver) {
+    var url = DG.documentServer + 'document/delete?recordid=%@'.fmt( iDocumentId );
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    this.urlForGetRequests( serverUrl(url) )
+      .notify(iReceiver, 'receivedDeleteDocumentResponse')
+      .send();
   },
 
   documentList: function(iReceiver) {
     var url = DG.documentServer + 'document/all';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
     this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
       .send(); 
@@ -332,6 +417,10 @@ return {
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
@@ -343,12 +432,70 @@ return {
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
     url += '&recordname=' + iDocumentName;
     url += '&owner=' + iDocumentOwner;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
     
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
       .send(); 
   },
-  
+
+  openDocumentSynchronously: function(iDocumentId) {
+    var url = DG.documentServer + 'document/open';
+    url += '?username=' + this.getPath('currLogin.user');
+    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
+    url += '&recordid=' + iDocumentId;
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    return this.urlForGetRequests(serverUrl(url))
+      .async(NO)
+      .json(YES)
+      .send();
+  },
+
+  revertCurrentDocument: function(iReceiver) {
+    if (!DG.currDocumentController().get('canBeReverted')) { return; }
+
+    var url = DG.documentServer + 'document/open';
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
+    url += '&original=true';
+
+    if (this.getPath('currLogin.user') !== 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .send();
+  },
+
+  renameDocument: function(iOriginalName, iNewName, iReceiver) {
+    var url = DG.documentServer + 'document/rename';
+    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
+    url += '&newRecordname=' + iNewName;
+
+    if (this.getPath('currLogin.user') !== 'guest') {
+      url += '&owner=' + this.getPath('currLogin.user');
+    }
+
+    if (DG.runKey) {
+      url += '&runKey=%@'.fmt(DG.runKey);
+    }
+
+    this.urlForGetRequests(serverUrl(url))
+      .notify(iReceiver, 'receivedRenameDocumentResponse')
+      .send();
+  },
+
   /**
     Sends a request to expire the session connected the session
     token in the database.
@@ -412,6 +559,29 @@ return {
     }
   },
 
+  sessionTimeoutPrompt: function() {
+    DG.AlertPane.error({
+      localize: true,
+      message: 'DG.Authorization.sessionExpired.message',
+      buttons: [
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.loginButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.loginButtonTooltip',
+          isDefault: true,
+          target: this,
+          action: 'logInViaDocumentServer'
+        },
+        {
+          localize: true,
+          title: 'DG.Authorization.sessionExpired.ignoreButtonText',
+          toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
+          isCancel: true
+        },
+      ]
+    });
+  },
+
   logInViaDocumentServer: function() {
     window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
   },
@@ -429,7 +599,11 @@ return {
       // then there will be no message return
       var errorCode = (body && body.message) || "";
       if (DG.documentServer && iResponse.get('status') === 401) {
-        errorCode = 'error.notLoggedIn';
+        if (DG.runAsGuest) {
+          return DG.authorizationController.sendLoginAsGuestRequest();
+        } else {
+          errorCode = 'error.notLoggedIn';
+        }
       }
       // If we get here, then we didn't log in successfully.
       currLogin
@@ -520,9 +694,8 @@ return {
     // If we have pending login credentials, e.g. from a saved cookie,
     // send them to the server for verification.
     var pendingUser = currEdit && currEdit.get('user'),
-        pendingPwd = currEdit && currEdit.get('password'),
         pendingSession = currEdit && currEdit.get('sessionID');
-    if( !SC.empty( pendingUser) && !SC.empty(pendingPwd) && pendingSession) {
+    if( !SC.empty( pendingUser) && pendingSession) {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
     
@@ -674,6 +847,10 @@ return {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+    }
+    else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
     }
     else {
       DG.gameSelectionController.setDefaultGame();

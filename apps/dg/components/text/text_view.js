@@ -20,32 +20,36 @@ sc_require('views/text_field_view');
 
 /** @class  DG.TextView
 
-  A wrapper for a TextFieldView that gives user a place to type notes.
+ A wrapper for a TextFieldView that gives user a place to type notes.
 
-  @extends SC.View
-*/
+ @extends SC.View
+ */
 DG.TextView = SC.View.extend(
-/** @scope DG.TextView.prototype */ {
+    /** @scope DG.TextView.prototype */ {
 
-  backgroundColor: 'white',
+      backgroundColor: 'white',
 
-  // We're saying that the TextView wraps an SC.TextFieldView. Any reason we shouldn't
-  // simply use an SC.TextFieldView?
-  childViews: ['editView'],
-    editView: DG.TextFieldView.design({
-      layout: { left: 2, right: 2, top: 2, bottom: 2 },
-      isEditable: true,
-      isTextArea: true,
-      commitEditing: function() {
-        var result = sc_super();
-        DG.logUser("editTextObject: '%@'", this.get('value'));
-        return result;
-      }
-    }),
+      // We're saying that the TextView wraps an SC.TextFieldView. Any reason we shouldn't
+      // simply use an SC.TextFieldView?
+      childViews: ['editView'],
+      editView: DG.TextFieldView.design({
+        layout: { left: 2, right: 2, top: 2, bottom: 2 },
+        isEditable: true,
+        isTextArea: true,
+        commitEditing: function () {
+          var result = sc_super();
+          DG.logUser("editTextObject: '%@'", this.get('value'));
+          return result;
+        },
+        fieldDidBlur: function() {
+          sc_super();
+          DG.dirtyCurrentDocument();
+        }
+      }),
 
-  defaultFirstResponder: function() {
-    return this.get('editView');
-  }.property()
+      defaultFirstResponder: function () {
+        return this.get('editView');
+      }.property()
 
-  }
+    }
 );
