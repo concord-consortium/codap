@@ -75,7 +75,7 @@ DG.MapGridLayer = SC.Object.extend(
               return;
             tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
             tPopup.options.offset[1] = -10;
-            tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count))
+            tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count));
             SC.Timer.schedule( { target: this,
               action: function() {
                 if( tPopup)
