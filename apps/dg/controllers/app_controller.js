@@ -451,12 +451,12 @@ DG.appController = SC.Object.create((function () // closure
 
 
       DG.AlertPane.plain({
-        message: 'What do you want to do with the URL you dragged in?',
-        description: 'There are two possibilities:',
+        message: 'DG.AppController.dropURLDialog.message',
+        description: 'DG.AppController.dropURLDialog.description',
         buttons: [
-          {title: 'Ignore', localize: YES},
-          {title: 'Embed a data interactive', action: embedInteractive, localize: YES},
-          {title: 'Embed a web view', action: embedWebView, localize: YES}
+          {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
+          {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
+          {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
         ],
         localize: YES
       });

@@ -32,6 +32,9 @@ DG.IconButton = SC.View.extend(
 /** @scope DG.IconButton.prototype */
   (function() {
     return {
+      // if the property 'disabled' is set a class of the same name is set on the
+      // button
+      classNameBindings: ['disabled'],
       iconName: null,
       depressedIconName: null,
       title: null,
@@ -69,6 +72,8 @@ DG.IconButton = SC.View.extend(
       },
       
       isEnabled: true,
+      // inverts the significance of isEnabled.
+      disabledBinding: SC.Binding.transform(function (state) {return !state;}).oneWay('.isEnabled'),
 
       isMouseDown: NO,
       isMouseOver: NO,

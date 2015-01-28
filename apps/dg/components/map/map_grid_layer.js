@@ -59,6 +59,8 @@ DG.MapGridLayer = SC.Object.extend(
     var tOptions = { color: 'white', fillColor: 'red', weight: 1 },
         tRectangles = [],
         tMaxCount = tModel.get('rectArray').maxCount,
+        tDataContext = tModel.getPath('dataConfiguration.dataContext'),
+        tCollection = tModel.getPath('dataConfiguration.collectionClient'),
         tIndex = 0,
         tPopup, tRect;
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
@@ -73,7 +75,7 @@ DG.MapGridLayer = SC.Object.extend(
               return;
             tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
             tPopup.options.offset[1] = -10;
-            tPopup.setContent( 'count = ' + tRect.count);
+            tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count));
             SC.Timer.schedule( { target: this,
               action: function() {
                 if( tPopup)

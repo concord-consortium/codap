@@ -46,7 +46,9 @@ DG.ToolButtonData = {
     target: 'DG.mainPage',
     action: 'toggleCaseTable',
     toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
-    localize: true
+    localize: true,
+    //isEnabled: false
+    isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready')
   },
 
   graphButton: {
@@ -56,7 +58,9 @@ DG.ToolButtonData = {
     target: 'DG.mainPage',
     action: 'addGraph',
     toolTip: 'DG.ToolButtonData.graphButton.toolTip', // "Make a graph (ctrl-alt-g)"
-    localize: true
+    localize: true,
+    //isEnabled: false
+    isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready')
   },
 
   mapButton: {
@@ -66,7 +70,9 @@ DG.ToolButtonData = {
     target: 'DG.mainPage',
     action: 'toggleMap',
     toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
-    localize: true
+    localize: true,
+    //isEnabled: false
+    isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready')
   },
 
   sliderButton: {

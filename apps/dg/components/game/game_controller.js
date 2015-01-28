@@ -950,6 +950,7 @@ DG.GameController = DG.ComponentController.extend(
     var layout = this.getPath('model.layout'),
         requestedDimensions = layout ? { width: layout.width, height: layout.height } : null,
         gameName = iComponentStorage.currentGameName,
+        gameUrl = iComponentStorage.currentGameUrl,
         gameSpec = DG.gameSelectionController.findGameByName( gameName);
 
     if( !gameSpec) {
@@ -961,6 +962,12 @@ DG.GameController = DG.ComponentController.extend(
       gameSpec = DG.GameSpec.create({ name: gameName,
                                       url: iComponentStorage.currentGameUrl });
       DG.gameSelectionController.prependToGamesMenu([ gameSpec ]);
+    } else {
+      // our document may provide a new url for a given game. We should take this
+      // as authoritative.
+      if (gameUrl) {
+        gameSpec.url = gameUrl;
+      }
     }
 
     // If the gameSpec was just created above, or if it isn't associated with

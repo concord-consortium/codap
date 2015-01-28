@@ -148,7 +148,7 @@ SC.stringsFor('English', {
   'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
   'DG.AppController.feedbackDialog.messageText' : "Please let us know how we can continue to improve our product.\n Questions, bug reports and feature requests are all welcome. Thank you!",
   'DG.AppController.feedbackDialog.subjectHint' : "What is your feedback about",
-  'DG.AppController.feedbackDialog.feedbackHint' : "Your feedback",
+  'DG.AppController.feedbackDialog.feedbackHint' : "Details",
   'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
   'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
@@ -168,6 +168,11 @@ SC.stringsFor('English', {
   'DG.AppController.copyLinkDialog.title' : 'Copy complete',
   'DG.AppController.copyLinkDialog.okButtonTitle' : 'Go!',
   'DG.AppController.copyLinkDialog.instructions' : "<p>Your document copy is now ready.<br/>Click the Go! button to open it in a new window/tab.</p>",
+  'DG.AppController.dropURLDialog.message' : 'What do you want to do with the URL you dragged in?',
+  'DG.AppController.dropURLDialog.description' : 'There are two possibilities:',
+  'DG.AppController.dropURLDialog.ignore' : 'Ignore',
+  'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
+  'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
 
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
