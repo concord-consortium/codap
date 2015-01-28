@@ -364,6 +364,12 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       DG.logUser("plotAxisAttributeChangeType: { axis: %@, attribute: %@ }",
           iAxisKey, tDataConfiguration.getPath( iDescKey + '.attribute.name'));
+
+      // We're handling a case specific to graphs here for convenience
+      if( !iTreatAsNumeric && this.getY2Plot && this.getY2Plot()) {
+        this.removeAttribute('y2AttributeDescription', 'y2Axis', 0);
+      }
+
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
       tDataConfiguration.setAttributeType( iDescKey, iTreatAsNumeric );

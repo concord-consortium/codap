@@ -548,6 +548,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         removeIndexedAttribute();
     },
 
+    hiddenCasesDidChange: function() {
+      if( !this._isBeingRestored) {
+        this.invalidate();
+        this.rescaleAxesFromData( false, /* no shrinkage allowed */ true /* animate */);
+      }
+    }.observes('dataConfiguration.hiddenCases'),
+
     /**
      * Use the properties of the given object to restore my plot, axes, and legend.
      * @param iStorage {Object}
@@ -568,13 +575,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tYAttrIndex = 0,
           tY2AttrIndex = 0;
 
+      this._isBeingRestored = true;
+
       var instantiateArrayOfPlots = function( iPlots) {
         iPlots.forEach( function( iModelDesc, iIndex) {
           if( !iModelDesc.plotClass)
             return;
-          var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create(
-            { _isBeingRestored: true }  // So that rescaling won't happen
-          ),
+          var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create(),
           tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
@@ -631,10 +638,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       instantiateArrayOfPlots( (iStorage.plotClass ? [ {plotClass: iStorage.plotClass }] : null) ||
                                   iStorage.plotModels ||
                                   []);
-
-      this.get('plots' ).forEach( function( iPlot) {
-        iPlot._isBeingRestored = null;  // Reenable rescaling
-      });
+      this._isBeingRestored = false;
     },
 
     /**

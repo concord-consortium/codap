@@ -672,8 +672,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
       return;
 
     this.set('hiddenCases', iArrayOfCaseIDs.map( function( iID) {
-                                  return this.dataContext.getCaseByID(DG.Case, iID);
-                                }));
+                                  return this.dataContext.getCaseByID( iID);
+                                }.bind(this)
+    ));
   }
 
 });

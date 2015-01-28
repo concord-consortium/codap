@@ -191,7 +191,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
         tMenuItems.push( { isSeparator: YES } );
         var kNotForSubmenu = false;
         tMenuItems.push( tDataDisplayModel.createRemoveAttributeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
-        tMenuItems.push( tDataDisplayModel.createChangeAttributeTypeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
+        if( tAxisKey !== 'y2')
+          tMenuItems.push( tDataDisplayModel.createChangeAttributeTypeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
         this.attributeMenu.set( 'items', tMenuItems);
         this.attributeMenu.selectedAxis = tOrientation;
         this.attributeMenu.isLegend = iAxisView.instanceOf( DG.LegendView);
