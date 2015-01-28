@@ -95,7 +95,8 @@ DG.CasePlotView = DG.PlotView.extend(
       var tIsDragging = false,
           kOpaque = 1,
           tInitialTransform = null,
-          tCircle = this.get('paper').circle( -100, -100, this._pointRadius )
+          tPaper = this.get('paper'),
+          tCircle = tPaper.circle( tPaper.width / 2, tPaper.height / 2, this._pointRadius )
             .attr( { cursor: "pointer" } )
             .addClass( DG.PlotUtilities.kColoredDotClassName )
             .hover( function ( event ) {  // over
@@ -146,8 +147,6 @@ DG.CasePlotView = DG.PlotView.extend(
       //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "CreateCircle index="+iIndex );
       tCircle.index = iIndex;
       tCircle.node.setAttribute( 'shape-rendering', 'geometric-precision' );
-      if( iAnimate)
-        DG.PlotUtilities.doCreateCircleAnimation( tCircle);
       return tCircle;
     },
 
@@ -177,6 +176,7 @@ DG.CasePlotView = DG.PlotView.extend(
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         tCases.forEach( this.callCreateCircle, this );
         this._mustCreatePlottedElements = false;
+        this.worldValuesChanged();  // Initial animation from center of plot to random points
       }
 
       tCases.forEach( function( iCase, iIndex ) {
