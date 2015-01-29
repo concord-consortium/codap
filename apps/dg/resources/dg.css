@@ -14,6 +14,10 @@
  *  limitations under the License.
  */
 
+.dg-splash {
+    background-color: white !important;
+}
+
 .dg-receive-outside-drop {
     border: 3px solid yellow !important;
 }
