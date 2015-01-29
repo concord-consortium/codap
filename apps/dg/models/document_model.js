@@ -147,7 +147,9 @@ DG.Document.createDocument = function( iProperties) {
 };
 
 DG.Document.destroyDocument = function( iDocument) {
-  iDocument.destroy();
+  if( iDocument) {
+    iDocument.destroy();
+  }
   DG.activeDocument = null;
   DG.store = null;
 };
