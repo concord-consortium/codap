@@ -431,7 +431,7 @@ DG.GameController = DG.ComponentController.extend(
     if( !SC.none( iArgs.parent))
       caseProperties.parent = iArgs.parent;
 
-    if( !DG.assert( gameContext))
+    if( !DG.assert( gameContext, 'Missing game Context'))
       return ret;
 
     var change = {
@@ -466,7 +466,7 @@ DG.GameController = DG.ComponentController.extend(
     if( !SC.none( iArgs.parent))
       caseProperties.parent = iArgs.parent;
 
-    if( !DG.assert( gameContext))
+    if( !DG.assert( gameContext), 'Missing game context')
       return ret;
 
     var change = {
