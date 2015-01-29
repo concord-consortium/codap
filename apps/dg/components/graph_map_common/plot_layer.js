@@ -595,7 +595,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       tLayerManager = this.get('layerManager' ),
       tCases = this.getPath('model.cases');
 
-    if(!tCases)
+    if(!tCases || !tSelection)
       return;
 
     tCases.forEach( function( iCase, iIndex) {
