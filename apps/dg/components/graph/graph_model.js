@@ -113,7 +113,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iIndex {Number}
      */
     removePlotAtIndex: function( iIndex) {
-      DG.assert( iIndex < this._plots.length);
+      DG.assert( iIndex < this._plots.length,
+        'Attempt to remove non-existent plot');
       var tPlot = this._plots[ iIndex];
       this._plots.splice( iIndex, 1);
       tPlot.destroy();
