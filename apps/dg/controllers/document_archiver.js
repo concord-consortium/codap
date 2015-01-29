@@ -157,17 +157,29 @@ DG.DocumentArchiver = SC.Object.extend(
   importURLIntoDocument: function (iURL) {
     var tDoc = {
       name: 'DG.Document.defaultDocumentName'.loc(),
+      guid: 1,
       components: [
         {
           "type": "DG.GameView",
           "componentStorage": {
             "currentGameName": "",
             "currentGameUrl": iURL,
-            allowInitGameOverride: true
+            allowInitGameOverride: true,
+            "_links_": {
+              "context": {
+                "type": "DG.DataContextRecord",
+                "id": 501
+              }
+            }
           }
         }
       ],
       contexts: [
+        {
+          type: 'DG.GameContext',
+          guid: 501,
+          contextStorage: {}
+        }
       ],
       appName: DG.APPNAME,
       appVersion: DG.VERSION,
