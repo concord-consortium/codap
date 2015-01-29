@@ -863,17 +863,18 @@ return {
   
   _setupGameOrDocument: function() {
     function openDataInteractive(iURL) {
+      if (iURL) {
+        // Create document-specific store.
+        var archiver = DG.DocumentArchiver.create({}),
+          newDocument;
 
-      // Create document-specific store.
-      var archiver = DG.DocumentArchiver.create({}),
-        newDocument;
+        DG.currDocumentController().closeDocument();
 
-      DG.currDocumentController().closeDocument();
+        // Make a data interactive iFrame using the given URL
+        newDocument = archiver.importURLIntoDocument(iURL);
 
-      // Make a data interactive iFrame using the given URL
-      newDocument = archiver.importURLIntoDocument(iURL);
-
-      DG.currDocumentController().setDocument(newDocument);
+        DG.currDocumentController().setDocument(newDocument);
+      }
     }
     if( !SC.empty( DG.startingDocName)) {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
