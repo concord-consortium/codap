@@ -263,14 +263,6 @@ DG.GameContext = DG.DataContext.extend(
   restoreFromStorage: function( iContextStorage) {
     sc_super();
     
-    var theGameSpec = DG.gameSelectionController.findGameByName( iContextStorage.gameName);
-    if( theGameSpec) {
-      // GameContext has pointer to GameSpec
-      this.set('gameSpec', theGameSpec);
-      // GameSpec has pointer to GameContext (currently -- Lakosian violation)
-      theGameSpec.set('context', this);
-    }
-
     // At the point at which we're restoring the context(s), the game may not
     // have been loaded yet. We need to cache the game state locally until we
     // receive some indication that the game is ready for the restored state.
