@@ -827,7 +827,7 @@ DG.appController = SC.Object.create((function () // closure
           catch (er) {
             console.log(er);
             if (iDialog) {
-              iDialog.showAlert();
+              iDialog.showAlert( er);
             }
           }
         }
