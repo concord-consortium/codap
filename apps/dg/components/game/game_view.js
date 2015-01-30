@@ -43,26 +43,27 @@ DG.GameView = SC.WebView.extend(
   // Setup iframePhone communication with the child iframe before it loads, so that connection
   // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
   valueDidChange: function() {
-    var value = this.get('value');
+    var tValue = this.get('value'),
+      tController = this.controller;
 
-    if (value !== this._previousValue) {
+    if (tValue !== this._previousValue) {
 
       // First discontinue listening to old game.
-//      if (DG.gamePhone) {
-//        DG.gamePhone.disconnect();
-//      }
+      if (tController.gamePhone) {
+        tController.gamePhone.disconnect();
+      }
 
       // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
-      DG.set('isGamePhoneInUse', false);
+      tController.set('isGamePhoneInUse', false);
 
-      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
+      tController.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
 
         // TODO put this handler function somewhere appropriate rather than inlining it in (what is
         // at notionally) view code?
 
         function(command, callback) {
-          DG.set('isGamePhoneInUse', true);
-          DG.doCommand(command, function(ret) {
+          tController.set('isGamePhoneInUse', true);
+          tController.dispatchCommand(command, function(ret) {
             // Analysis shows that the object returned by DG.doCommand may contain Error values, which
             // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
             // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
@@ -86,26 +87,31 @@ DG.GameView = SC.WebView.extend(
               if (e instanceof window.DOMException && e.name === 'DataCloneError') {
                 callback({ success: false });
               }
-            }            
+            }
           });
-        },
-        'codap-game',
+        }.bind(this),
+        tValue,
         this.$('iframe')[0],
-        DG.gameSelectionController.getPath('currentGame.origin')
+        null // todo: this should be set to a correct origin
       );
 
       // Let games/interactives know that they are talking to CODAP, specifically (rather than any
       // old iframePhone supporting page) and can use its API.
-      DG.gamePhone.call({ message: "codap-present" });
+      tController.gamePhone.call({ message: "codap-present" });
     }
 
-    this._previousValue = value;
+    this._previousValue = tValue;
 
   }.observes('value'),
 
   destroy: function() {
-    DG.gameSelectionController.gameViewWillClose();
+    this.controller.gameViewWillClose();
     sc_super();
+  },
+
+  extractOrigin: function(url) {
+    var re = /[^:]*:\/\/([^\/]*)\//;
+    return re.exec(url)[1];
   },
 
   iframeDidLoad: function()
@@ -116,7 +122,7 @@ DG.GameView = SC.WebView.extend(
     }
     if (iframe && iframe.contentWindow) {
       var contentWindow = iframe.contentWindow,
-          target = DG.currGameController;
+          target = this.get('controller');
 
       // Allow the iframe to take over the entire screen (requested by InquirySpace)
       $(iframe ).attr('allowfullscreen', true)
@@ -140,47 +146,47 @@ DG.GameView = SC.WebView.extend(
       // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
       // below.
 
-      try {
-
-        // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
-
-        // NewCollectionWithAttributes
-        contentWindow.NewCollectionWithAttributes =
-          function(iCollectionName, iAttributeNames) {
-            SC.run( function() {
-                      target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
-                    });
-          };
-
-        // AddCaseToCollectionWithValues
-        contentWindow.AddCaseToCollectionWithValues =
-          function(iCollectionName, iValues) {
-            SC.run( function() {
-                      target.addCaseToCollectionWithValues(iCollectionName,iValues);
-                    });
-          };
-
-        // LogUserAction
-        contentWindow.LogUserAction =
-          function(iActionString, iValues) {
-            SC.run( function() {
-                      target.logUserAction(iActionString,iValues);
-                    });
-          };
-
-        // DoCommand
-        contentWindow.DoCommand =
-          function(iCmd) {
-            var result;
-            SC.run( function() {
-                      result = target.doCommand(iCmd);
-                    });
-            return SC.json.encode( result);
-          };
-      } catch (e) {
-        // e should be a SecurityError but I haven't found documentation regarding how standard
-        // that error type is.
-      }
+      //try {
+      //
+      //  // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
+      //
+      //  // NewCollectionWithAttributes
+      //  contentWindow.NewCollectionWithAttributes =
+      //    function(iCollectionName, iAttributeNames) {
+      //      SC.run( function() {
+      //                target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
+      //              });
+      //    };
+      //
+      //  // AddCaseToCollectionWithValues
+      //  contentWindow.AddCaseToCollectionWithValues =
+      //    function(iCollectionName, iValues) {
+      //      SC.run( function() {
+      //                target.addCaseToCollectionWithValues(iCollectionName,iValues);
+      //              });
+      //    };
+      //
+      //  // LogUserAction
+      //  contentWindow.LogUserAction =
+      //    function(iActionString, iValues) {
+      //      SC.run( function() {
+      //                target.logUserAction(iActionString,iValues);
+      //              });
+      //    };
+      //
+      //  // DoCommand
+      //  contentWindow.DoCommand =
+      //    function(iCmd) {
+      //      var result;
+      //      SC.run( function() {
+      //                result = target.doCommand(iCmd);
+      //              });
+      //      return SC.json.encode( result);
+      //    };
+      //} catch (e) {
+      //  // e should be a SecurityError but I haven't found documentation regarding how standard
+      //  // that error type is.
+      //}
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
     }
