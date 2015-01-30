@@ -376,39 +376,6 @@ DG.mainPage = SC.Page.design((function() {
 
     docView: SC.outlet('mainPane.scrollView.contentView'),
 
-    /*
-      updateLayout()
-      Lays out the views to accommodate the dimensions of the game.
-      Observes DG.gameSelectionController.menuPane.selectedItem so
-      that it triggers primarily on user selection of a new game.
-     */
-    updateLayout: function() {
-      var mainPane = this.get('mainPane');
-      if (!mainPane)
-        return;
-
-      // Auto-update the size for user selection of a new game,
-      // but not for restore of a game from document (which sets
-      // the 'selectedItem' to null).
-      var gameView = DG.currDocumentController().get('gameView');
-      if( gameView) {
-        var requestedDimensions = DG.gameSelectionController.get('requestedDimensions');
-        if( !requestedDimensions) {
-          // If specific dimensions were not requested (e.g. not restoring),
-          // then we use the default dimensions specified in the DG.GameSpec.
-          var gameSize = DG.gameSelectionController.get('currentDimensions'),
-              newWidth = gameSize.width + DG.ViewUtilities.horizontalPadding(),
-              newHeight = gameSize.height + DG.ViewUtilities.verticalPadding();
-          gameView.adjust('width', newWidth);
-          gameView.adjust('height', newHeight);
-        }
-      }
-      // If we don't have a game component but we do have a selected menu item,
-      // create the game component for the currently selected game.
-      else if( DG.gameSelectionController.getPath('menuPane.selectedItem')) {
-        this.addGameIfNotPresent();
-      }
-    }.observes('DG.gameSelectionController.currentDimensions')
 
   } // end compatible browser mainPage design
   
