@@ -449,7 +449,19 @@ DG.appController = SC.Object.create((function () // closure
 
             DG.currDocumentController().setDocument(newDocument);
           }.bind(this),
-
+          // add interactive to existing document
+          addInteractive = function () {
+            var tDoc = DG.currDocumentController(),
+              tComponent = DG.Component.createComponent({
+                "type": "DG.GameView",
+                "componentStorage": {
+                  "currentGameName": "",
+                    "currentGameUrl": iURL,
+                    allowInitGameOverride: true
+                }
+              });
+            tDoc.createComponentAndView( tComponent);
+          }.bind(this),
           embedWebView = function () {
             DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
                 iURL, 'Web Page',
@@ -462,7 +474,7 @@ DG.appController = SC.Object.create((function () // closure
         description: 'DG.AppController.dropURLDialog.description',
         buttons: [
           {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
+          {title: 'DG.AppController.dropURLDialog.embedDI', action: addInteractive, localize: YES},
           {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
         ],
         localize: YES
