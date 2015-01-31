@@ -214,10 +214,10 @@ DG.CaseTableController = DG.ComponentController.extend(
               childCount);
           }
           if (SC.empty(tStatusMessage)) {
-            DG.logWarn('No status message for case table: no collections')
+            DG.logWarn('No status message for case table: no collections');
           }
         } else {
-          DG.logWarn('No status message for case table: no context')
+          DG.logWarn('No status message for case table: no context');
         }
 
         DG.logInfo("UpdateStatus: "  + tStatusMessage);

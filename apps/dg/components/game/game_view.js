@@ -121,8 +121,8 @@ DG.GameView = SC.WebView.extend(
       this.valueDidChange();
     }
     if (iframe && iframe.contentWindow) {
-      var contentWindow = iframe.contentWindow,
-          target = this.get('controller');
+      //var contentWindow = iframe.contentWindow,
+      //    target = this.get('controller');
 
       // Allow the iframe to take over the entire screen (requested by InquirySpace)
       $(iframe ).attr('allowfullscreen', true)

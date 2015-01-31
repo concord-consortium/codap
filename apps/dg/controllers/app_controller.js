@@ -436,7 +436,7 @@ DG.appController = SC.Object.create((function () // closure
      */
     importURL: function (iURL) {
 
-      var embedInteractive = function () {
+      var /*embedInteractive = function () {
             // Currently, we must close any open document before opening a new data interactive
             this.closeDocument();
 
@@ -448,7 +448,7 @@ DG.appController = SC.Object.create((function () // closure
             newDocument = archiver.importURLIntoDocument(iURL);
 
             DG.currDocumentController().setDocument(newDocument);
-          }.bind(this),
+          }.bind(this),*/
           // add interactive to existing document
           addInteractive = function () {
             var tDoc = DG.currDocumentController(),

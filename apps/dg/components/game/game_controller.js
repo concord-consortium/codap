@@ -1033,7 +1033,7 @@ DG.GameController = DG.ComponentController.extend(
     // Currently, only formulas from the current game are saved.
     // Eventually, the formulas should be stored with the DG.GameContext
     // and they should be saved for any game in which formulas are defined.
-    tStorage.currentGameFormulas = SC.clone( currentGame.get('formulas'));
+    tStorage.currentGameFormulas = SC.clone( this.getPath('gameSpec.formulas'));
 
     return tStorage;
   },
@@ -1044,11 +1044,11 @@ DG.GameController = DG.ComponentController.extend(
    *  @param  {String}  iDocumentID -- The ID of the document being restored.
    */
   restoreComponentStorage: function (iComponentStorage, iDocumentID) {
-    var layout = this.getPath('model.layout'),
-      requestedDimensions = layout ? {
-        width: layout.width,
-        height: layout.height
-      } : null,
+    var //layout = this.getPath('model.layout'),
+      //requestedDimensions = layout ? {
+      //  width: layout.width,
+      //  height: layout.height
+      //} : null,
       gameName = iComponentStorage.currentGameName,
       gameUrl = iComponentStorage.currentGameUrl,
       gameSpec,

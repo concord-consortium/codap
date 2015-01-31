@@ -43,10 +43,12 @@ DG.DocumentController = SC.Object.extend(
    *  Bound to the document's 'contexts' property.
    *  @property {Array of DG.DataContextRecord}
    */
-  contexts: function() {
+  contextRecords: function() {
     return this.getPath('content.contexts');
   }.property(),
-  
+
+    contexts: null,
+
   /**
    *  The Components which are managed by this controller.
    *  Bound to the document's 'components' property.
@@ -178,7 +180,8 @@ DG.DocumentController = SC.Object.extend(
     sc_super();
     
     this._singletonViews = {};
-    
+    this.contexts = [];
+
     // If we were created with a 'content' property pointing to our document,
     // then use it; otherwise, create a new document.
     this.setDocument( this.get('content') || this.createDocument());
@@ -252,7 +255,7 @@ DG.DocumentController = SC.Object.extend(
    */
   updateSavedChangeCount: function() {
     // Game controller state affects the document state
-    DG.currGameController.updateSavedChangeCount();
+    //DG.currGameController.updateSavedChangeCount(); // ToDo: figure out the correct replacement jms
     this.set('savedChangeCount', this.get('changeCount'));
   },
 
@@ -304,17 +307,27 @@ DG.DocumentController = SC.Object.extend(
     Creates an appropriate DG.DataContext for each DG.DataContextRecord in the document.
     Can be used after restoring a document, for instance.
    */
-  restoreDataContexts: function() {
-    var contexts = this.get('contexts') || [],
-        this_ = this;
-    DG.ObjectMap.forEach(contexts, function(key, iContextModel) {
-                        var newContext = this_.createDataContextForModel( iContextModel);
-                        if( newContext) {
-                          newContext.restoreFromStorage( iContextModel.get('contextStorage'));
-                        }
-                      });
+  restoreDataContexts: function () {
+    var contextRecords = this.get('contextRecords') || [];
+    DG.ObjectMap.forEach(contextRecords, function (key, iContextModel) {
+      var newContext = this.createDataContextForModel(iContextModel);
+      if (newContext) {
+        newContext.restoreFromStorage(iContextModel.get('contextStorage'));
+      }
+      this.contexts.push(newContext);
+    }.bind(this));
   },
-  
+
+  createNewDataContext: function(iProps) {
+    var contextRecord = DG.DataContextRecord.createContext(iProps),
+        context = this.createDataContextForModel(contextRecord);
+    if (contextRecord.contextStorage) {
+      context.restoreFromStorage(contextRecord.contextStorage);
+    }
+    this.contexts.push(context);
+    return context;
+  },
+
   /**
     Creates the specified component and its associated view.
     Clients should specify either iComponent or iComponentType.
@@ -412,9 +425,14 @@ DG.DocumentController = SC.Object.extend(
               {Object.plotYAttrIsNumeric}  {Boolean}  Whether the default Y axis attribute is numeric
    */
   collectionDefaults: function() {
-    var gameSpec = DG.gameSelectionController.get('currentGame'),
-        gameContext = gameSpec && DG.GameContext.getContextForGame( gameSpec),
-        defaults = gameContext && gameContext.collectionDefaults();
+    var gameContext,
+        defaults;
+    if (this.get('contexts').length === 1) {
+      gameContext = this.get('contexts')[0];
+      defaults = gameContext && gameContext.collectionDefaults();
+    } else {
+      defaults = DG.DataContext.collectionDefaults();
+    }
     return defaults;
   },
   
@@ -443,7 +461,7 @@ DG.DocumentController = SC.Object.extend(
       tComponent = DG.Component.createComponent( tComponentProperties);
     }
     
-    // If client specified a model, assocate it with the component in our map
+    // If client specified a model, associate it with the component in our map
     if( iParams.contentProperties && iParams.contentProperties.model)
       tComponent.set('content', iParams.contentProperties.model);
     
@@ -516,32 +534,43 @@ DG.DocumentController = SC.Object.extend(
     
     return tComponentView;
   },
-  
-  addGame: function( iParentView, iComponent) {
-    var tGameParams = DG.gameSelectionController.get('currentDimensions') || { width: 0, height: 0 },
-        tGameUrl = (iComponent && iComponent.getPath('componentStorage.currentGameUrl'))
-          || DG.gameSelectionController.get('currentUrl'),
-        tGameName = (iComponent && iComponent.getPath('componentStorage.currentGameName'))
-          || DG.gameSelectionController.get('currentName') || '';
 
-    var tView = this.createComponentView(iComponent, {
-                              parentView: iParentView, 
-                              controller: DG.currGameController,
-                              componentClass: { type: 'DG.GameView', constructor: DG.GameView},
-                              contentProperties: {value: tGameUrl, name: tGameName},
-                              defaultLayout: { width: tGameParams.width, height: tGameParams.height },
-                              title: tGameName,
-                              isResizable: true}  // may change this to false in the future
-                            );
-    this._singletonViews.gameView = tView;
+    addGame: function (iParentView, iComponent) {
+      var tGameParams = {
+          width: 640, height: 480
+        },
+        tGameUrl = (iComponent && iComponent.getPath(
+          'componentStorage.currentGameUrl')),
+        tGameName = (iComponent && iComponent.getPath(
+            'componentStorage.currentGameName')) || 'Unknown Game',
+        tController = DG.GameController.create(),
+        tView = this.createComponentView(iComponent, {
+            parentView: iParentView,
+            controller: tController,
+            componentClass: {
+              type: 'DG.GameView', constructor: DG.GameView
+            },
+            contentProperties: {
+              controller: tController, value: tGameUrl, name: tGameName
+            },
+            defaultLayout: {
+              width: tGameParams.width,
+              height: tGameParams.height
+            },
+            title: tGameName,
+            isResizable: true,
+            useLayout: false
+          }  // may change this to false in the future
+        );
+      //this._singletonViews.gameView = tView;
 
-    // Override default component view behavior.
-    // Do nothing until we figure out how to prevent reloading of Flash object.
-    tView.bringToFront = function() {};
-    tView.bind('title', 'DG.gameSelectionController.currentName');
-      
-    return tView;
-  },
+      // Override default component view behavior.
+      // Do nothing until we figure out how to prevent reloading of Flash object.
+      tView.bringToFront = function () { };
+      //tView.bind('title', 'DG.gameSelectionController.currentName');
+
+      return tView;
+    },
   
   addCaseTable: function( iParentView, iComponent) {
     var tView = this.createComponentView(iComponent, {
@@ -640,7 +669,7 @@ DG.DocumentController = SC.Object.extend(
       tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
       // Don't pass the data context in the constructor because it's a function property
       tMapModel.set('dataContext',  tContext);
-      tMapController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+      tMapController.set('dataContext', tContext);
     }
 
     // map as component
@@ -837,11 +866,13 @@ DG.DocumentController = SC.Object.extend(
                           });
 
     DG.globalsController.stopAnimation();
+    // todo: Not sure the following is needed any more, but it appears to do no harm - jms 1/2015
     DG.gameSelectionController.reset();
     DG.DataContext.clearContextMap();
     
     DG.Document.destroyDocument(DG.activeDocument);
 
+    // todo: Not sure the following is needed any more, but it appears to do no harm - jms 1/2015
     DG.gameSelectionController.reset();
     this.closeAllComponents();
   },
