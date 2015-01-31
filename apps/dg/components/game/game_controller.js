@@ -17,12 +17,21 @@
 // ==========================================================================
 
 sc_require('controllers/component_controller');
+sc_require('models/game_spec');
 
 /** @class
-
-  (Document Your Controller Here)
-
-  @extends SC.Object
+ *
+ * The GameController manages a Component presumably containing a Data
+ * Interactive.
+ *
+ * From CODAP's perspective a Data Interactive is a data source. It provides
+ * data to an associated Data Context.
+ *
+ * It receives events from the interactive and acts upon them. Chiefly these
+ * are events that create or update case data in collections managed by its
+ * data context.
+ *
+ * @extends DG.ComponentController
 */
 DG.GameController = DG.ComponentController.extend(
 /** @scope DG.GameController.prototype */ {
@@ -33,11 +42,10 @@ DG.GameController = DG.ComponentController.extend(
    */
   openCaseIDs: null,
 
-  // Currently, DG.currGameController is a singleton that
-  // outlives the game component and view.
-  shouldDestroyOnComponentDestroy: false,
+  shouldDestroyOnComponentDestroy: true,
 
-  gameIsReady: true,  // Will be set to false at the point we discover we're going to have a default game loaded
+  gameIsReady: true,  // Will be set to false at the point we discover we're
+                      // going to have a default game loaded
 
   /**
     The total number of document-dirtying changes.
@@ -53,11 +61,19 @@ DG.GameController = DG.ComponentController.extend(
   savedChangeCount: 0,
 
   /**
+   * Specification of this Data Interactive
+   *
+   * @property {DG.GameSpec}
+   */
+  gameSpec: null,
+
+  /**
     Initialization method
    */
   init: function() {
     sc_super();
 
+    this.gameSpec = DG.GameSpec.create({});
     this.openCaseIDs = [];
   },
 
@@ -84,8 +100,7 @@ DG.GameController = DG.ComponentController.extend(
     @returns  {Array of Number}   Array of open case IDs
    */
   getOpenCaseIDs: function( iExcludeChildren ) {
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-      gameContext = DG.GameContext.getContextForGame( currentGame),
+    var gameContext = this.getPath('gameSpec.context'),
       openCaseIDs = [],
         includeChildCases = (iExcludeChildren ? false : true);
 
@@ -217,7 +232,8 @@ DG.GameController = DG.ComponentController.extend(
     /*
      * Old API
      */
-    case 'newCollection':
+      case 'newCollection':
+      // Todo: I think this method can be moved here -- jms
       DG.gameSelectionController.processNewCollectionArgs( cmdObj.args);
 
       // Extract the attribute names into an array for newCollectionWithAttributes().
@@ -318,33 +334,13 @@ DG.GameController = DG.ComponentController.extend(
     }
    */
   handleInitGame: function( iArgs, callback) {
-
-    // The game-specified arguments form the core of the new DG.GameSpec.
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        currentGameName = currentGame && currentGame.get('name'),
-        gameContext,
-        gameCollections = [];
-
-    if( currentGame) {
-      DG.ObjectMap.copy( currentGame, iArgs);
-      // Ask for the context after we've copied the arguments/properties,
-      // so that if there's a 'contextType' it will be used.
-      gameContext = DG.GameContext.getContextForGame( currentGame);
-      if( iArgs.dimensions) {
-          DG.gameSelectionController.set('currentDimensions',
-              { width: iArgs.dimensions.width, height: iArgs.dimensions.height });
-      }
-      this.view.set('version', SC.none( currentGame.version) ? '' : currentGame.version);
-      this.view.set('title', SC.none( currentGame.name) ? '' : currentGame.name);
-    }
-
     function finishInitGame() {
       // Once all the collections and attributes are created, we're ready to play the game.
       this.set('gameIsReady', true);
 
       if( (iArgs.log === undefined) || iArgs.log)
         DG.logUser("initGame: '%@', Collections: [%@]",
-                    currentGameName, gameCollections.getEach('name').join(", "));
+          currentGameName, gameCollections.getEach('name').join(", "));
 
       if (callback) {
         callback();
@@ -374,39 +370,82 @@ DG.GameController = DG.ComponentController.extend(
       }
     }
 
+    // The game-specified arguments form the core of the new DG.GameSpec.
+    var currentGameName = this.getPath('gameSpec.name'),
+      gameContext= this.getPath('gameSpec.context'),
+      gameCollections = [],
+      restoredGameState,
+      restoreCommand,
+      doAppCommandFunc,
+      gameElement;
+
+    if (SC.empty(gameContext)) {
+      gameContext = DG.currDocumentController().createNewDataContext(
+        {type: 'DG.GameContext'});
+      this.setPath('gameSpec.context', gameContext);
+    }
+
+    // Ask for the context after we've copied the arguments/properties,
+    // so that if there's a 'contextType' it will be used.
+    if(iArgs.name) {
+      this.setPath('gameSpec.name', iArgs.name);
+    }
+    if( iArgs.dimensions) {
+      this.setPath('gameSpec.dimensions',
+          { width: iArgs.dimensions.width, height: iArgs.dimensions.height });
+    }
+    this.view.set('version', SC.none( this.gameSpec.version) ? '' : this.gameSpec.version);
+    this.view.set('title', SC.none( this.gameSpec.name) ? '' : this.gameSpec.name);
+
     // Create/guarantee each collection and its required attributes
-    if( iArgs.collections)
+    if( iArgs.collections) {
       iArgs.collections.forEach( handleNewCollection);
+    }
 
-    if( currentGame) {
-      // Notify that the collections have changed
-      currentGame.notifyPropertyChange('collections');
+    // Notify that the collections have changed
+    this.notifyPropertyChange('collections');
 
-      // If we have restored game state for this game, we pass it to the game
-      // at this point, before we've signalled that the game is ready. This way,
-      // clients that respond to 'gameIsReady' won't have a chance to query the
-      // game until it has finished restoring its state.
-      var currentContext = currentGame.get('context'),
-          restoredGameState = currentContext && currentContext.get('restoredGameState'),
-          restoreCommand = { operation: 'restoreState', args: { state: restoredGameState }},
-          doAppCommandFunc = currentGame.get('doCommandFunc'),
-          gameElement = DG.gameSelectionController.findCurrentGameElement( currentGame.get('gameEmbedID'));
-      if( restoredGameState ) {
-        if( doAppCommandFunc ) {
-          // for javascript games we can call the games 'doCommandFunc' directly
-          doAppCommandFunc( restoreCommand );
-        } else if( gameElement && gameElement.doCommandFunc ) {
-          // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
-          gameElement.doCommandFunc( SC.json.encode( restoreCommand ));
-        } else if (DG.get('isGamePhoneInUse')) {
-          DG.gamePhone.call(restoreCommand, finishInitGame.bind(this));
-          return;
-        }
+    // If we have restored game state for this game, we pass it to the game
+    // at this point, before we've signalled that the game is ready. This way,
+    // clients that respond to 'gameIsReady' won't have a chance to query the
+    // game until it has finished restoring its state.
+    restoredGameState = gameContext && gameContext.get('restoredGameState');
+    restoreCommand = { operation: 'restoreState', args: { state: restoredGameState }};
+    doAppCommandFunc = this.get('doCommandFunc');
+    gameElement = this.findGameElement( this.get('gameEmbedID'));
+    if( restoredGameState ) {
+      if( doAppCommandFunc ) {
+        // for javascript games we can call the games 'doCommandFunc' directly
+        doAppCommandFunc( restoreCommand );
+      } else if( gameElement && gameElement.doCommandFunc ) {
+        // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
+        gameElement.doCommandFunc( SC.json.encode( restoreCommand ));
+      } else if (this.get('isGamePhoneInUse')) {
+        this.gamePhone.call(restoreCommand, finishInitGame.bind(this));
+        return;
       }
     }
     finishInitGame.call(this);
   },
-
+    /**
+     * Find the current game element in DG, by searching the DOM
+     *    Useful for callbacks to embedded flash .swf objects,
+     *    which have functions made available by AS3's ExternalInterface.addCallback()
+     * @param embeddedGameID the ID parameter of the game, e.g. set by ChainSaw.html for ChainSaw.swf
+     * @return {} null or an element of an iFrame that has the given html ID.
+     */
+    findGameElement: function( embeddedGameID ) {
+      // games are dynamically embedded objects in iFrames
+      var iFrames = document.getElementsByTagName("iframe"),
+        gameElement = null;
+      if( embeddedGameID ) {
+        var i,j; // find first iFrame with embedded element ID==embeddedGameID (expect 0 or 1 match)
+        for( i=0,j=iFrames.length; i<j && !gameElement; ++i ) {
+          gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+        }
+      }
+      return gameElement;
+    },
   /**
     Create a component of the specified type.
    */
@@ -423,8 +462,7 @@ DG.GameController = DG.ComponentController.extend(
    */
   doCreateCase: function( iAction, iArgs) {
     // TODO: Consolidate with doCreateCases() method below.
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
+    var gameContext = this.getPath('gameSpec.context'),
         collection = gameContext.getCollectionByName( iArgs.collection),
         caseProperties = {},
         ret = { success: false };
@@ -458,8 +496,7 @@ DG.GameController = DG.ComponentController.extend(
     @returns {Object}         { success: {Boolean}, [caseID: {Number}] }
    */
   doCreateCases: function( iAction, iArgs) {
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
+    var gameContext = this.getPath('gameSpec.context'),
         collection = gameContext.getCollectionByName( iArgs.collection),
         caseProperties = {},
         ret = { success: false };
@@ -493,8 +530,7 @@ DG.GameController = DG.ComponentController.extend(
     @returns {Object}         { success: {Boolean} }
    */
   doUpdateCase: function( iAction, iArgs) {
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
+    var gameContext = this.getPath('gameSpec.context'),
         collection = gameContext.getCollectionByName( iArgs.collection),
         theCase = gameContext.getCaseByID( iArgs.caseID),
         ret = { success: false };
@@ -596,11 +632,58 @@ DG.GameController = DG.ComponentController.extend(
   },
 
     /**
+     [Old API] Fill out the DG.BaseGameSpec fields from the arguments passed to the
+     'newCollectionWithAttributes' command. In the old API, this code must infer some
+     things that can be explicitly stated in the New Game API.
+     */
+    processNewCollectionArgs: function( iCmdArgs) {
+      // Make sure we have a current game
+      var gameSpec = this.get('gameSpec');
+      if (!gameSpec) return;
+
+      // Extract the cmd args we'll be using
+      var collectionName = iCmdArgs.name, childrenName = iCmdArgs.children, defaultPlotX = iCmdArgs.defaultPlotX, defaultPlotY = iCmdArgs.defaultPlotY;
+
+      // Add the collection name to the list of collections.
+      // Collections are assumed to be added in order from parents to children
+      if (!SC.empty(collectionName)) {
+        if (gameSpec.collections.indexOf(collectionName) < 0)
+          gameSpec.collections.push(collectionName);
+
+        switch (gameSpec.collections.length) {
+
+          case 1:
+            // Extract the parent collection name if we don't already know it
+            if (SC.empty(gameSpec.parentCollectionName))
+              gameSpec.parentCollectionName = collectionName;
+            break;
+
+          case 2:
+            // Extract the events collection name if we don't already know it
+            if (SC.empty(gameSpec.collectionName))
+              gameSpec.collectionName = collectionName;
+            break;
+
+          default:
+        }
+      }
+
+      // Extract the name of the events attribute (which links to the child cases)
+      if (SC.empty(gameSpec.eventsAttributeName) && !SC.empty(childrenName))
+        gameSpec.eventsAttributeName = childrenName;
+
+      // Extract the default attributes to plot on axes
+      if (SC.empty(gameSpec.xAttrName) && !SC.empty(defaultPlotX))
+        gameSpec.xAttrName = defaultPlotX;
+      if (SC.empty(gameSpec.yAttrName) && !SC.empty(defaultPlotY))
+        gameSpec.yAttrName = defaultPlotY;
+    },
+      /**
      * Reset all collections. Remove all case data and attributes.
      */
   doResetCollections: function() {
     var result,
-        dataContext = DG.gameSelectionController.get('currentContext'),
+        dataContext = this.getPath('gameSpec.context'),
         tChange = {
           operation: 'resetCollections'
         };
@@ -619,7 +702,7 @@ DG.GameController = DG.ComponentController.extend(
   doDeleteAllCaseData: function( preserveTopCasesOption, deleteOpenEventCases ) {
     preserveTopCasesOption = preserveTopCasesOption || false;
     deleteOpenEventCases = deleteOpenEventCases || false;
-    var dataContext = DG.gameSelectionController.get('currentContext'),
+    var dataContext = this.getPath('gameSpec.context'),
         tCaseIDsToPreserve = this.getOpenCaseIDs( deleteOpenEventCases ), // don't delete the open cases (parent or child)
         tGameCollection = null,
         tDeletedCaseIDs = null;
@@ -659,7 +742,23 @@ DG.GameController = DG.ComponentController.extend(
     return result;
   },
 
-  /**
+    /**
+     *
+     * @param iName {String}
+     * @param iAttrs { Array of attribute specs }
+     */
+    addCollectionSpecToGameSpecIfNecessary: function( iName, iAttrs) {
+      var tCurrentGame = this.get('gameSpec'),
+        tCollections = tCurrentGame && tCurrentGame.get('collections');
+      if( !SC.none( tCollections)) {
+        tCollections.push( {
+          name: iName,
+          attrs: iAttrs
+        });
+      }
+    },
+
+    /**
     Create a collection.
     Returns the ID of the created collection.
     @param {Object}       iArgs -- An object that specifies the properties of the collection
@@ -668,14 +767,13 @@ DG.GameController = DG.ComponentController.extend(
     @returns {Object}     { success: {Boolean}, collectionID: {Number} }
    */
   handleCreateCollection: function( iArgs) {
-    DG.gameSelectionController.addCollectionSpecToGameSpecIfNecessary( iArgs.name, iArgs.attrs);
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
+    this.addCollectionSpecToGameSpecIfNecessary( iArgs.name, iArgs.attrs);
+    var gameContext = this.getPath('gameSpec.context'),
         tCollectionProperties = { name: iArgs.name,
                                   caseName: iArgs.caseName,
                                   collapseChildren: iArgs.collapseChildren,
                                   areParentChildLinksConfigured: true },
-        tGameCollections = DG.gameSelectionController.getPath('currentGame.collections');
+        tGameCollections = gameContext.get('collections');
     if( tGameCollections && tGameCollections.length > 1) {
       var tParentCollectionSpec = tGameCollections[ tGameCollections.length - 2],
           tParentCollection = tParentCollectionSpec && gameContext && gameContext.getCollectionByName( tParentCollectionSpec.name);
@@ -733,8 +831,7 @@ DG.GameController = DG.ComponentController.extend(
   handleRequestAttributeValues: function( iArgs) {
 
     // get the case from the requested collection
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
+    var gameContext = this.getPath('gameSpec.context'),
         collection = gameContext.getCollectionByName( iArgs.collection),
         theCase = gameContext.getCaseByID(iArgs.caseID),
         ret = { success: false, values: [] };
@@ -769,12 +866,13 @@ DG.GameController = DG.ComponentController.extend(
   {
     DG.logUser("newCollectionCreated: %@ [%@]", iCollectionName, iAttributeNames.join(', '));
 
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        gameContext = DG.GameContext.getContextForGame( currentGame),
-        aCollection = gameContext && gameContext.guaranteeCollection( { name: iCollectionName });
+    var gameContext = this.getPath('gameSpec.context'),
+        aCollection = gameContext && gameContext.guaranteeCollection( {
+            name: iCollectionName });
     if (aCollection) {
       iAttributeNames.forEach( function( iAttributeName) {
-                                  aCollection.guaranteeAttribute( { name: iAttributeName });
+                                  aCollection.guaranteeAttribute( {
+                                    name: iAttributeName });
                                });
     }
 
@@ -783,7 +881,7 @@ DG.GameController = DG.ComponentController.extend(
       this.newCollectionWithAttributes("Games", ["game"]);
 
     // Notify that the collections have changed
-    if( currentGame) currentGame.notifyPropertyChange('collections');
+    this.notifyPropertyChange('collections');
 
     this.set('gameIsReady', true);
   },
@@ -820,10 +918,10 @@ DG.GameController = DG.ComponentController.extend(
   addCasesFromQueue: function()
   {
     var this_ = this,
-        currentGame = DG.gameSelectionController.get('currentGame'),
-        currentGameName = DG.gameSelectionController.get('currentName'),
-        parentCollectionName = currentGame && currentGame.get('parentCollectionName'),
-        parentCollection = DG.gameCollectionWithName( currentGameName, parentCollectionName);
+        context = this.getPath('gameSpec.context'),
+        currentGameName = this.getPath('gameSpec.currentName'),
+        parentCollectionName = context && context.get('parentCollectionName'),
+        parentCollection = context.get('parentCollection');
 
     this.queuedCases.forEach( function( anItem) {
       var iCollectionName = anItem.collectionName,
@@ -919,26 +1017,25 @@ DG.GameController = DG.ComponentController.extend(
    *  @returns  {Object}  An object whose properties should be stored with the document.
    */
   createComponentStorage: function() {
-    var currentGame = DG.gameSelectionController.get('currentGame'),
-        storage = { };
+    var tStorage = { };
 
     // Save information about the current game
-    if( currentGame) {
-      storage.currentGameName = currentGame.get('name');
-      storage.currentGameUrl = currentGame.get('url');
+    tStorage.currentGameName = this.getPath('gameSpec.name');
+    tStorage.currentGameUrl = this.getPath('gameSpec.url');
 
-      var dataContext = currentGame.get('context');
-      if( dataContext)
-        this.addLink( storage, 'context', dataContext);
+    var dataContext = this.getPath('gameSpec.context');
 
-      // Save any user-created formulas from DG.FormulaObjects.
-      // Currently, only formulas from the current game are saved.
-      // Eventually, the formulas should be stored with the DG.GameContext
-      // and they should be saved for any game in which formulas are defined.
-      storage.currentGameFormulas = SC.clone( currentGame.get('formulas'));
+    if( dataContext) {
+      this.addLink( tStorage, 'context', dataContext);
     }
 
-    return storage;
+    // Save any user-created formulas from DG.FormulaObjects.
+    // Currently, only formulas from the current game are saved.
+    // Eventually, the formulas should be stored with the DG.GameContext
+    // and they should be saved for any game in which formulas are defined.
+    tStorage.currentGameFormulas = SC.clone( currentGame.get('formulas'));
+
+    return tStorage;
   },
 
   /**
@@ -946,87 +1043,78 @@ DG.GameController = DG.ComponentController.extend(
    *  @param  {Object}  iComponentStorage -- The object whose properties should be restored.
    *  @param  {String}  iDocumentID -- The ID of the document being restored.
    */
-  restoreComponentStorage: function(iComponentStorage, iDocumentID) {
+  restoreComponentStorage: function (iComponentStorage, iDocumentID) {
     var layout = this.getPath('model.layout'),
-        requestedDimensions = layout ? { width: layout.width, height: layout.height } : null,
-        gameName = iComponentStorage.currentGameName,
-        gameUrl = iComponentStorage.currentGameUrl,
-        gameSpec = DG.gameSelectionController.findGameByName( gameName);
+      requestedDimensions = layout ? {
+        width: layout.width,
+        height: layout.height
+      } : null,
+      gameName = iComponentStorage.currentGameName,
+      gameUrl = iComponentStorage.currentGameUrl,
+      gameSpec,
+      contextID,
+      dataContext;
 
-    if( !gameSpec) {
-      // If we didn't find a match in the menu, add an entry for the restored game and URL
-      // in the game selection menu. This allows games loaded via URL parameter to be reloaded
-      // from saved documents as well as support for legacy games that may have been removed
-      // from the active/current game menu for some reason but for which documents should
-      // still be able to load which reference that game.
-      gameSpec = DG.GameSpec.create({ name: gameName,
-                                      url: iComponentStorage.currentGameUrl });
-      DG.gameSelectionController.prependToGamesMenu([ gameSpec ]);
-    } else {
-      // our document may provide a new url for a given game. We should take this
-      // as authoritative.
-      if (gameUrl) {
-        gameSpec.url = gameUrl;
+    gameSpec = DG.GameSpec.create({
+      name: gameName, url: gameUrl
+    });
+
+    // We try to hook up the appropriate restored context.
+    //if( gameSpec && !gameSpec.get('context')) {
+    // Try to restore the data context for the current game.
+    // First, see if it was written out with the document.
+    // (Writing out the link began in build 0175.)
+    contextID = this.getLinkID(iComponentStorage, 'context');
+    dataContext = contextID && DG.DataContext.retrieveContextFromMap(iDocumentID, contextID);
+    if (!dataContext) {
+      // If it wasn't written out with the document, look for one
+      // associated with a game of the correct name, or for the
+      // first context as a last resort.
+      DG.DataContext.forEachContextInMap(iDocumentID, function (iContextID, iContext) {
+          // Look for a context with matching game name.
+          // Note that at the moment, 'gameName' is a computed
+          // property which relies on the 'gameSpec' property
+          // having been set, which is unlikely to have occurred
+          // given that the gameSpec doesn't know about the context.
+          // This could change down the road, however, so we leave it.
+          if (!dataContext && iContext) {
+            var contextGameName = iContext.get('gameName');
+            if (contextGameName === gameName) {
+              dataContext = iContext;
+            }
+          }
+        });
+    }
+    if (dataContext) {
+      this.setPath('gameSpec.context', dataContext);
+      gameSpec.set('context', dataContext);
+      if (dataContext.get('type') === 'DG.GameContext') {
+        dataContext.set('gameSpec', gameSpec);
       }
     }
 
-    // If the gameSpec was just created above, or if it isn't associated with
-    // a DG.GameContext (e.g. the Importer, which uses only a DG.DataContext),
-    // then we get here with a gameSpec without an associated context. In that
-    // case, we try to hook up the appropriate restored context.
-    if( gameSpec && !gameSpec.get('context')) {
-      // Try to restore the data context for the current game.
-      // First, see if it was written out with the document.
-      // (Writing out the link began in build 0175.)
-      var contextID = this.getLinkID( iComponentStorage, 'context'),
-          dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
-          firstContext = null;
-      if( !dataContext) {
-        // If it wasn't written out with the document, look for one
-        // associated with a game of the correct name, or for the
-        // first context as a last resort.
-        DG.DataContext.forEachContextInMap(
-                          iDocumentID,
-                          function( iContextID, iContext) {
-                            // Look for a context with matching game name.
-                            // Note that at the moment, 'gameName' is a computed
-                            // property which relies on the 'gameSpec' property
-                            // having been set, which is unlikely to have occurred
-                            // given that the gameSpec doesn't know about the context.
-                            // This could change down the road, however, so we leave it.
-                            if( !dataContext && iContext) {
-                              var contextGameName = iContext.get('gameName');
-                              if( contextGameName === gameName) {
-                                dataContext = iContext;
-                              }
-                              // First context may be a last resort
-                              else if( !firstContext) {
-                                firstContext = iContext;
-                              }
-                            }
-                          });
-        // No context with matching name -- default to first context.
-        if( !dataContext && firstContext)
-          dataContext = firstContext;
-      }
-      if( dataContext) {
-        gameSpec.set('context', dataContext);
-        if( dataContext.get('type') === 'DG.GameContext')
-          dataContext.set('gameSpec', gameSpec);
-      }
-    }
-
-    // If there are user-created formulas to restore, set them in the DG.GameSpec.
+    // If there are user-created formulas to restore, set them in the gameSpec.
     if( gameSpec && iComponentStorage.currentGameFormulas)
       gameSpec.set('formulas', iComponentStorage.currentGameFormulas);
 
-    // For a while we had an invokeLater wrapping the next two lines because it improved
-    // Chromes ability to load the game. But we think fixed that in a better way
-    DG.gameSelectionController.setCurrentGameByName( gameName, requestedDimensions);
     this.set('gameIsReady', true);
   },
 
-  /**
+    gameViewWillClose: function() {
+    },
+
+    updateLayout: function() {
+      var gameView = this.get('view');
+      if( gameView) {
+          var gameSize = this.getPath('gameSpec.dimensions'),
+            newWidth = gameSize.width + DG.ViewUtilities.horizontalPadding(),
+            newHeight = gameSize.height + DG.ViewUtilities.verticalPadding();
+          gameView.adjust('width', newWidth);
+          gameView.adjust('height', newHeight);
+      }
+    }.observes('gameSpec.dimensions'),
+
+    /**
     Logs a user action with the specified action name and array of values.
     If no values are passed, the logged message is simply the iActionString.
     If values are specified, they are appended to the log message:
@@ -1040,7 +1128,7 @@ DG.GameController = DG.ComponentController.extend(
   }
 }) ;
 
-DG.currGameController = DG.GameController.create({});
+//DG.currGameController = DG.GameController.create({});
 
 /**
   Calls the doCommand() method of the current game controller (DG.currGameController).
@@ -1049,6 +1137,7 @@ DG.currGameController = DG.GameController.create({});
   If callback is provided, it will be called on completion of the command and there will be no return
   value from doCommand. The callback is guaranteed to be called in a subsequent event turn.
   */
+// Todo: I think this is obsolete
 DG.doCommand = function( iCmd, callback)  {
   var result;
   SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd, callback); });
