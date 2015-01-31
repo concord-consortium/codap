@@ -154,6 +154,21 @@ DG.CasePlotView = DG.PlotView.extend(
      We may clear and draw everything from scratch if required.
      */
     drawData: function() {
+      var tIncrementBy,
+      animateSomePoints = function() {
+        var tStopIndex = tLoopIndex + tIncrementBy;
+        if( tLoopIndex < tCases.length) {
+          for( ; (tLoopIndex < tCases.length) && (tLoopIndex < tStopIndex); tLoopIndex++ ) {
+            var tCase = tCases[tLoopIndex],
+                tPoint = this.createCircle(null, tLoopIndex);
+            tPoint.attr({'fill-opacity': 0, fill: 'yellow'});
+            this._plottedElements.push(tPoint);
+            this.setCircleCoordinate(tRC, tCase, tLoopIndex, true);
+          }
+          this.invokeLater( animateSomePoints, 10);
+        }
+      }.bind( this);
+
       if( this.getPath( 'model.isAnimating' ) )
         return; // Points are animating to new position
 
@@ -168,26 +183,28 @@ DG.CasePlotView = DG.PlotView.extend(
           tIndex;
 
       if( this._mustCreatePlottedElements ) {
+        var tLoopIndex = 0;
         this._plottedElements.forEach( function( iElement ) {
           iElement.remove();
         } );
         this._plottedElements.length = 0;
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        tCases.forEach( this.callCreateCircle, this );
+        tIncrementBy = Math.ceil( tCases.length / 50);
+        animateSomePoints();  // will loop through all points using invokeLater
         this._mustCreatePlottedElements = false;
-        this.worldValuesChanged();  // Initial animation from center of plot to random points
       }
+      else {
+        tCases.forEach(function (iCase, iIndex) {
+          this_.setCircleCoordinate(tRC, iCase, iIndex);
+        });
 
-      tCases.forEach( function( iCase, iIndex ) {
-        this_.setCircleCoordinate( tRC, iCase, iIndex );
-      } );
-
-      // Get rid of any extra circles
-      for( tIndex = tCases.length; tIndex < this._plottedElements.length; tIndex++ ) {
-        this._plottedElements[ tIndex].remove();
+        // Get rid of any extra circles
+        for (tIndex = tCases.length; tIndex < this._plottedElements.length; tIndex++) {
+          this._plottedElements[tIndex].remove();
+        }
+        this._plottedElements.length = tCases.length;
       }
-      this._plottedElements.length = tCases.length;
     },
 
     /**
