@@ -58,28 +58,28 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
       DG.assert( attrDesc);
       
       // Configure the attribute description for the specified default attribute
-      //if( attrSpec) {
-      //  // Must set collection before attribute for attribute stats to be configured properly
-      //  attrDesc.set('collectionClient', tDefaults.collectionClient);
-      //  attrDesc.set('attribute', attrSpec);
-      //  attrDesc.setPath('attributeStats.attributeType',
-      //                  SC.none( attrSpec)
-      //                      ? DG.Analysis.EAttributeType.eNone
-      //                      : isAttrNumeric
-      //                          ? DG.Analysis.EAttributeType.eNumeric
-      //                          : DG.Analysis.EAttributeType.eCategorical);
-      //  attrDesc.set('role',
-      //                SC.none( attrSpec)
-      //                    ? DG.Analysis.EAnalysisRole.eNone
-      //                    : isAttrNumeric ? iNumericRole : iCategoricalRole);
-      //}
+      if( attrSpec) {
+        // Must set collection before attribute for attribute stats to be configured properly
+        attrDesc.set('collectionClient', tDefaults.collectionClient);
+        attrDesc.set('attribute', attrSpec);
+        attrDesc.setPath('attributeStats.attributeType',
+                        SC.none( attrSpec)
+                            ? DG.Analysis.EAttributeType.eNone
+                            : isAttrNumeric
+                                ? DG.Analysis.EAttributeType.eNumeric
+                                : DG.Analysis.EAttributeType.eCategorical);
+        attrDesc.set('role',
+                      SC.none( attrSpec)
+                          ? DG.Analysis.EAnalysisRole.eNone
+                          : isAttrNumeric ? iNumericRole : iCategoricalRole);
+      }
       //
-      //// Null out the attribute description when no default attribute is specified.
-      //else {
+      // Null out the attribute description when no default attribute is specified.
+      else {
         attrDesc.set('collectionClient', null);
         attrDesc.removeAllAttributes();
-      //}
-      
+      }
+
       // We must set these up manually, because the infrastructure isn't in place by
       // the time sc_super() (i.e. SC.Object.init()) is called.
       attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');
