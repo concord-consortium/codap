@@ -469,17 +469,17 @@ DG.appController = SC.Object.create((function () // closure
           }.bind(this);
 
 
-      DG.AlertPane.plain({
-        message: 'DG.AppController.dropURLDialog.message',
-        description: 'DG.AppController.dropURLDialog.description',
-        buttons: [
-          {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedDI', action: addInteractive, localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
-        ],
-        localize: YES
-      });
-
+      //DG.AlertPane.plain({
+      //  message: 'DG.AppController.dropURLDialog.message',
+      //  description: 'DG.AppController.dropURLDialog.description',
+      //  buttons: [
+      //    {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedDI', action: addInteractive, localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
+      //  ],
+      //  localize: YES
+      //});
+      addInteractive();
       return true;
     },
 
