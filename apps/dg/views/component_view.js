@@ -367,12 +367,17 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
   return tComponentView;
 };
 
-DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iIsVisible) {
+DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iUseLayoutForPosition, iIsVisible) {
 
   var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
     iTitle, iIsResizable,
     iIsVisible);
-
+  //default to use the existing layout
+  if (SC.empty(iUseLayoutForPosition)) {
+    iUseLayoutForPosition = true;
+  }
+  if (!iUseLayoutForPosition)
+    iSuperView.positionNewComponent(tComponentView);
   iSuperView.appendChild(tComponentView);
   iSuperView.set('frameNeedsUpdate', true);
 

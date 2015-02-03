@@ -502,9 +502,9 @@ DG.DocumentController = SC.Object.extend(
       tComponentView = DG.ComponentView.restoreComponent( iParams.parentView, tLayout, 
                                                      iParams.componentClass.constructor,
                                                      iParams.contentProperties,
-                                                     iParams.title, iParams.isResizable);
-    }
-    else {
+                                                     iParams.title, iParams.isResizable,
+                                                     iParams.useLayout);
+    } else {
       DG.sounds.playCreate();
       tComponentView = DG.ComponentView.addComponent( iParams.parentView, tLayout,
                                                     iParams.componentClass.constructor,
