@@ -468,6 +468,7 @@ DG.appController = SC.Object.create((function () // closure
                 iURL, 'Web Page',
                 {width: 600, height: 400});
           }.bind(this);
+      // jshint unused: vars
 
 
       //DG.AlertPane.plain({
