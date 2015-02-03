@@ -163,22 +163,8 @@ DG.DocumentArchiver = SC.Object.extend(
           "type": "DG.GameView",
           "componentStorage": {
             "currentGameName": "",
-            "currentGameUrl": iURL,
-            allowInitGameOverride: true,
-            "_links_": {
-              "context": {
-                "type": "DG.DataContextRecord",
-                "id": 501
-              }
-            }
+            "currentGameUrl": iURL
           }
-        }
-      ],
-      contexts: [
-        {
-          type: 'DG.GameContext',
-          guid: 501,
-          contextStorage: {}
         }
       ],
       appName: DG.APPNAME,
