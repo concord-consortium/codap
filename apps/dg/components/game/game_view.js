@@ -90,7 +90,7 @@ DG.GameView = SC.WebView.extend(
             }
           });
         }.bind(this),
-        tValue,
+        'codap-game',
         this.$('iframe')[0],
         this.extractOrigin(tValue) // todo: this should be set to a correct origin
       );
