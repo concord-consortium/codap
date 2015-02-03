@@ -436,7 +436,8 @@ DG.appController = SC.Object.create((function () // closure
      */
     importURL: function (iURL) {
 
-      var /*embedInteractive = function () {
+      // jshint unused: false
+      var embedInteractive = function () {
             // Currently, we must close any open document before opening a new data interactive
             this.closeDocument();
 
@@ -448,7 +449,7 @@ DG.appController = SC.Object.create((function () // closure
             newDocument = archiver.importURLIntoDocument(iURL);
 
             DG.currDocumentController().setDocument(newDocument);
-          }.bind(this),*/
+          }.bind(this),
           // add interactive to existing document
           addInteractive = function () {
             var tDoc = DG.currDocumentController(),
@@ -461,12 +462,12 @@ DG.appController = SC.Object.create((function () // closure
                 }
               });
             tDoc.createComponentAndView( tComponent);
-          }.bind(this);//,
-          //embedWebView = function () {
-          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          //      iURL, 'Web Page',
-          //      {width: 600, height: 400});
-          //}.bind(this);
+          }.bind(this),
+          embedWebView = function () {
+            DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+                iURL, 'Web Page',
+                {width: 600, height: 400});
+          }.bind(this);
 
 
       //DG.AlertPane.plain({
