@@ -461,12 +461,12 @@ DG.appController = SC.Object.create((function () // closure
                 }
               });
             tDoc.createComponentAndView( tComponent);
-          }.bind(this),
-          embedWebView = function () {
-            DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-                iURL, 'Web Page',
-                {width: 600, height: 400});
-          }.bind(this);
+          }.bind(this);//,
+          //embedWebView = function () {
+          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          //      iURL, 'Web Page',
+          //      {width: 600, height: 400});
+          //}.bind(this);
 
 
       //DG.AlertPane.plain({
