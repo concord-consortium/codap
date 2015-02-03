@@ -55,7 +55,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
           attrSpec = tDefaults['plot' + iAttrInfix + 'Attr'],
           isAttrNumeric = tDefaults['plot' + iAttrInfix + 'AttrIsNumeric'];
           
-      DG.assert( attrDesc);
+      DG.assert( attrDesc, 'Check for missing attribute description.');
       
       // Configure the attribute description for the specified default attribute
       if( attrSpec) {
