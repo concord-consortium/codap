@@ -92,7 +92,7 @@ DG.GameView = SC.WebView.extend(
         }.bind(this),
         tValue,
         this.$('iframe')[0],
-        null // todo: this should be set to a correct origin
+        this.extractOrigin(tValue) // todo: this should be set to a correct origin
       );
 
       // Let games/interactives know that they are talking to CODAP, specifically (rather than any
@@ -110,7 +110,7 @@ DG.GameView = SC.WebView.extend(
   },
 
   extractOrigin: function(url) {
-    var re = /[^:]*:\/\/([^\/]*)\//;
+    var re = /([^:]*:\/\/[^\/]*)\//;
     return re.exec(url)[1];
   },
 
