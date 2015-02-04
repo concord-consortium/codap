@@ -237,7 +237,9 @@ DG.appController = SC.Object.create((function () // closure
       this.openSaveDialog = null;
 
       var openDocumentAfterConfirmation = function () {
-        DG.authorizationController.openDocument(docID, this);
+        DG.busyCursor.show( function() {
+          DG.authorizationController.openDocument(docID, this);
+        }.bind(this));
         DG.logUser("openDocument: '%@'", docName);
       }.bind(this);
 
@@ -335,6 +337,7 @@ DG.appController = SC.Object.create((function () // closure
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
       }
+      DG.busyCursor.hide();
       if (shouldShowAlert) {
         // Should handle errors here -- alert the user, etc.
         DG.AlertPane.error({
@@ -449,17 +452,18 @@ DG.appController = SC.Object.create((function () // closure
                 {width: 600, height: 400});
           }.bind(this);
 
+      embedInteractive();
 
-      DG.AlertPane.plain({
-        message: 'DG.AppController.dropURLDialog.message',
-        description: 'DG.AppController.dropURLDialog.description',
-        buttons: [
-          {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
-        ],
-        localize: YES
-      });
+      //DG.AlertPane.plain({
+      //  message: 'DG.AppController.dropURLDialog.message',
+      //  description: 'DG.AppController.dropURLDialog.description',
+      //  buttons: [
+      //    {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
+      //  ],
+      //  localize: YES
+      //});
 
       return true;
     },
@@ -830,16 +834,18 @@ DG.appController = SC.Object.create((function () // closure
               iDialog.showAlert( er);
             }
           }
+          DG.busyCursor.hide();
         }
-
-        var reader = new FileReader();
         var that = this;
-        if (iFile) {
-          reader.onabort = handleAbnormal;
-          reader.onerror = handleAbnormal;
-          reader.onload = handleRead;
-          reader.readAsText(iFile);
-        }
+        DG.busyCursor.show( function() {
+          var reader = new FileReader();
+          if (iFile) {
+            reader.onabort = handleAbnormal;
+            reader.onerror = handleAbnormal;
+            reader.onload = handleRead;
+            reader.readAsText(iFile);
+          }
+        });
       }.bind( this);
 
       var cancelCloseDocument = function () {
@@ -866,7 +872,9 @@ DG.appController = SC.Object.create((function () // closure
         });
       }
       else {
-        importFile();
+        DG.busyCursor.show(function() {
+          importFile();
+        });
       }
       if( iDialog)
         iDialog.close();
