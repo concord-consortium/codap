@@ -312,21 +312,30 @@ DG.GameController = DG.ComponentController.extend(
       @param {Function} callback  Callback, called when game is inited (this includes
                                     any game-state restoration)
       args: {
-        name: "GameName",
+        name: "Name String",
+        version: "Version String",
         dimensions: { width: _WIDTH_PIX_, height: _HEIGHT_PIX_ },
-        contextType: 'DG.GameContext' // or 'DG.DataContext', ...
+        contextType: 'DG.GameContext' | 'DG.DataContext', ...
         // Collections required to be ordered from grandparent-to-parent-to-child
         collections: [  // array of collections to create
           {
             name: "Collection1",
             attrs: [  // array of attributes to create/guarantee for this collection
-              { name: "AttrName", type: 'numeric'|'nominal', [precision: _DECIMAL_PRECISION_] },
+              { name: "name string", type: 'numeric'|'nominal', [precision: _DECIMAL_PRECISION_] },
               ...
             ],
+            labels: {
+              singleCase: "singular name, e.g.: trial",
+              pluralCase: "plural name, e.g.: trials",
+              singleCaseWithArticle: "e.g.: a trial",
+              setOfCases: "singular name, e.g.: game",
+              setOfCasesWithArticle: "e.g.: a game"
+            },
             defaults: {
-              xAttr: "defaultXAttr",
-              yAttr: "defaultYAttr",
-              groupAttr: "defaultGroupAttr"
+              xAttr: "attribute name",
+              yAttr: "attribute name",
+              legendAttr: "attribute name",
+              groupAttr: "attribute name"
             }
           },
           ...
