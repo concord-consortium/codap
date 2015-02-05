@@ -40,35 +40,29 @@ DG.GameContext = DG.DataContext.extend(
   type: 'DG.GameContext',
   
   /**
-   *  The specification of the game with which this context is associated.
-   *  @property {DG.GameSpec | DG.BaseGameSpec}
-   */
-  gameSpec: null,
-  
-  /**
-   * [Computed] The name of the currently selected game.
+   * The name of the currently selected game.
    * @property {String}
    */
-  gameName: function() {
-    return this.getPath('gameSpec.name');
-  }.property('gameSpec','gameSpec.name').cacheable(),
+  gameName: null,
   
   /**
-   * [Computed] The dimensions of the currently selected game {width,height}.
+   * The dimensions of the currently selected game {width,height}.
    * @property {Object}
    */
-  gameDimensions: function() {
-    return this.getPath('gameSpec.dimensions');
-  }.property('gameSpec','gameSpec.dimensions').cacheable(),
+  gameDimensions: null,
   
   /**
-   * [Computed] The URL of the currently selected game.
+   * The URL of the currently selected game.
    * @property {String}
    */
-  gameUrl: function() {
-    return this.getPath('gameSpec.url');
-  }.property('gameSpec','gamespec.url').cacheable(),
-  
+  gameUrl: null,
+
+  /**
+   * The version string for the game.
+   * @property {String}
+   */
+  gameVersion: null,
+
   _collections : null,
   
   /**
@@ -78,12 +72,13 @@ DG.GameContext = DG.DataContext.extend(
    *  In particular, games using the old API often create their
    *  collections in child --> parent order, and need to be reversed
    *  in this function.
-   *  @property {Array of DG.CollectionRecords}
+   *  @property {Array} of DG.CollectionRecords
    */
   collections: function() {
     var srcCollections = this.getPath('model.collections'),
-        srcCollectionArray = DG.ObjectMap.values(srcCollections),
-        i, collectionCount = srcCollectionArray.length;
+      srcCollectionArray = DG.ObjectMap.values(srcCollections),
+      i,
+      collectionCount = srcCollectionArray.length;
     
     // If our cache is up to date, just return it
     if( this._collections && (this._collections.length === collectionCount))
@@ -92,20 +87,9 @@ DG.GameContext = DG.DataContext.extend(
     // Reset and restock the cached array
     this._collections = [];
     if( collectionCount > 0) {
-      var collection0 = srcCollectionArray[0],
-          collection0Name = collection0 && collection0.get('name'),
-          childCollectionName = this.getPath('gameSpec.collectionName');
-      // Fill the cached array in the proper order
-      if( collection0Name === childCollectionName) {
-        // Reverse the order of the collections in the source
-        for( i = collectionCount - 1; i >= 0; --i)
+        for( i = 0; i < collectionCount; ++i) {
           this._collections.push( srcCollectionArray[i]);
-      }
-      else {
-        // Preserve the order of collections in the source
-        for( i = 0; i < collectionCount; ++i)
-          this._collections.push( srcCollectionArray[i]);
-      }
+        }
     }
     // Return the cached array in the proper order
     return this._collections;
@@ -116,17 +100,10 @@ DG.GameContext = DG.DataContext.extend(
     @param    {DG.CollectionClient}   iCollectionClient -- The collection just created
    */
   didCreateCollection: function( iCollectionClient) {
-    var game = this.get('gameSpec');
-    // Have the GameSpec notify that collections have changed to clear caches, etc.
-    if( game) game.notifyPropertyChange('collections');
-    var childCollection = game && this.getCollectionByName( game.get('collectionName')),
-        parentCollection = game && this.getCollectionByName( game.get('parentCollectionName'));
-    // Once we have both the parent and child collections, hook them up appropriately.
-    if( childCollection && parentCollection && (childCollection !== parentCollection)) {
-      childCollection.setParentCollection( parentCollection);
-      DG.assert( childCollection.isDescendantOf( parentCollection));
-      DG.assert( parentCollection.isAncestorOf( childCollection));
-    }
+    // The prior logic for this method relied upon properties in the deprecated
+    // gameSpec that were not widely employed to determine proper parent/child
+    // relationships. Presently this is left in as a no-op, pending a new
+    // mechanism.
   },
 
   /**
@@ -137,13 +114,13 @@ DG.GameContext = DG.DataContext.extend(
     var defaults = { collectionClient: null,
                      plotXAttr: null, plotXAttrIsNumeric: true,
                      plotYAttr: null, plotYAttrIsNumeric: true },
-        game = this.get('gameSpec'),
-        collectionName = game && game.get('collectionName');
+        gameSpec = this.get('gameSpec'),
+        collectionName = gameSpec && gameSpec.get('collectionName');
 
     // Try to find the specified default collection
     if ( !SC.empty( collectionName)) {
       defaults.collectionClient = this.getCollectionByName( collectionName);
-      defaults.parentCollectionClient = this.getCollectionByName( game.get('parentCollectionName'));
+      defaults.parentCollectionClient = this.getCollectionByName( gameSpec.get('parentCollectionName'));
     }
       
     // If no default specified (or we can't find it), default to the child collection.
@@ -157,13 +134,13 @@ DG.GameContext = DG.DataContext.extend(
      */
     function configureDefaultPlotAttr( iAttrPrefix, iAttrInfix) {
       // Retrieve the attribute name
-      var attrName = game && game.get( iAttrPrefix + 'AttrName');
+      var attrName = gameSpec && gameSpec.get( iAttrPrefix + 'AttrName');
       if( defaults.collectionClient && !SC.empty( attrName)) {
         // Set default attribute
         defaults['plot' + iAttrInfix + 'Attr'] = defaults.collectionClient.
                                                   getAttributeByName( attrName);
         // Indicate the type of the default attribute
-        var isNumeric = game.get( iAttrPrefix + 'AttrIsNumeric');
+        var isNumeric = gameSpec.get( iAttrPrefix + 'AttrIsNumeric');
         if( !SC.none( isNumeric))
           defaults['plot' + iAttrInfix + 'AttrIsNumeric'] = isNumeric;
       }
@@ -303,12 +280,12 @@ DG.GameContext.getContextForGame = function( iGameSpec) {
   var context = iGameSpec.get('context');
   if( !context) {
     var props = { type: iGameSpec.get('contextType') || 'DG.GameContext' };
-    if( props.type === 'DG.GameContext')
+    if( props.type === 'DG.GameContext') {
       props.gameSpec = iGameSpec;
+    }
     var documentID = DG.currDocumentController().getPath('content.id'),
         model = DG.DataContextRecord.createContext({ type: props.type, document: documentID });
-    if( model)
-      props.model = model;
+    if( model) { props.model = model; }
     context = DG.DataContext.factory( props);
     if( context)
       iGameSpec.set('context', context);
