@@ -401,10 +401,11 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iText - either CSV or tab-delimited
+     * @param iText String  either CSV or tab-delimited
+     * @param iName String  document name
      * @returns {Boolean}
      */
-    importText: function( iText, name) {
+    importText: function( iText, iName) {
       // Currently, we must close any open document before opening another
       //this.closeDocument();
 
@@ -414,7 +415,7 @@ DG.appController = SC.Object.create((function () // closure
           documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importCSV( iText, name);
+      newDocument = archiver.importCSV( iText, iName);
       // set the id of the current document into the data context.
       newDocument.contexts[0].document = documentController.get('documentID');
       // Create the context record.
