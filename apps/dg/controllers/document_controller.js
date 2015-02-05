@@ -597,7 +597,8 @@ DG.DocumentController = SC.Object.extend(
       componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
       contentProperties: {},
       defaultLayout: { width: 500, height: 200 },
-      title: 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+      title: iProperties.dataContext.gameName ||
+          'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
       isResizable: true}), tView;
     DG.ObjectMap.copy(props, iProperties);
     tView = this.createComponentView(iComponent, props);
