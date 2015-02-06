@@ -627,7 +627,7 @@ DG.DocumentController = SC.Object.extend(
       tGraphController = DG.GraphController.create(),
       tContextIds = DG.DataContext.contextIDs(null);
 
-    if (DG.ObjectMap.length(tContextIds) === 1) {
+    if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
       tGraphController.set('dataContext',
         DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
     }
