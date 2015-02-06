@@ -372,8 +372,9 @@ DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout, iCom
   var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
     iTitle, iIsResizable,
     iIsVisible);
-  //default to use the existing layout
-  if (SC.empty(iUseLayoutForPosition)) {
+  //default to use the existing layout if present, even when requested otherwise.
+  if (SC.none(iUseLayoutForPosition)&& SC.none(iComponentLayout.left) &&
+    SC.none(iComponentLayout.top)) {
     iUseLayoutForPosition = true;
   }
   if (!iUseLayoutForPosition)
