@@ -236,7 +236,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var contextID = this.getLinkID( iStorage, 'context'),
             dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
         if( dataContext)
-          this.set('dataContex', dataContext);
+          this.set('dataContext', dataContext);
       },
       
       /**
