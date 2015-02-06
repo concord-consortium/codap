@@ -57,7 +57,24 @@ DG.DocumentController = SC.Object.extend(
   components: function() {
     return this.getPath('content.components');
   }.property(),
-  
+
+    /**
+     * Returns an array of the GameControllers defined in this document.
+     */
+    dataInteractives: function() {
+      var components = this.get('components'),
+        result = [];
+      if (components) {
+        components.forEach(function (component) {
+          var type;
+          type = component.get('type');
+          if (type === 'DG.GameContext' || type === 'DG.DataContext') {
+            result.push(component);
+          }
+        });
+      }
+      return result;
+    }.property('components').cacheable(),
   /**
     Map from component ID to the component's controller
    */
@@ -255,7 +272,9 @@ DG.DocumentController = SC.Object.extend(
    */
   updateSavedChangeCount: function() {
     // Game controller state affects the document state
-    //DG.currGameController.updateSavedChangeCount(); // ToDo: figure out the correct replacement jms
+    this.dataInteractives().forEach( function (gameController) {
+      DG.currGameController.updateSavedChangeCount();
+    });
     this.set('savedChangeCount', this.get('changeCount'));
   },
 
