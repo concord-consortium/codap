@@ -409,6 +409,10 @@ DG.GameController = DG.ComponentController.extend(
         this.setPath('context.gameName', iArgs.name);
       }
 
+      if (iArgs.version) {
+        this.setPath('context.gameVersion', iArgs.version);
+      }
+
       if (SC.empty(this.getPath('context.gameUrl'))) {
         this.setPath('context.gameUrl', this.getPath('model.componentStorage.currentGameUrl'));
       }
