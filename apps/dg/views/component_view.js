@@ -377,8 +377,9 @@ DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout, iCom
     SC.none(iComponentLayout.top)) {
     iUseLayoutForPosition = true;
   }
-  if (!iUseLayoutForPosition)
+  if (!iUseLayoutForPosition) {
     iSuperView.positionNewComponent(tComponentView);
+  }
   iSuperView.appendChild(tComponentView);
   iSuperView.set('frameNeedsUpdate', true);
 

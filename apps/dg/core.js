@@ -253,8 +253,6 @@ DG = SC.Application.create((function () // closure
 
     urlParamGames: getUrlParameter('moreGames'),
 
-    //defaultGameName: getUrlParameter('game'),
-
     /**
      * startingDocName can be passed as a Url parameter named doc.
      * DG will attempt to open this document on startup.
