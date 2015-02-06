@@ -562,12 +562,11 @@ DG.DocumentController = SC.Object.extend(
             useLayout: false
           }  // may change this to false in the future
         );
-      //this._singletonViews.gameView = tView;
 
       // Override default component view behavior.
       // Do nothing until we figure out how to prevent reloading of Flash object.
       tView.bringToFront = function () { };
-      //tView.bind('title', 'DG.gameSelectionController.currentName');
+      //tView.bind('title', 'context.gameName');
 
       return tView;
     },

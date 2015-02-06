@@ -412,9 +412,9 @@ DG.GameController = DG.ComponentController.extend(
         });
       }
       this.view.set('version',
-        SC.none(this.context.version) ? '' : this.context.version);
+        SC.none(this.context.gameVersion) ? 'none' : this.context.gameVersion);
       this.view.set('title',
-        SC.none(this.context.name) ? '' : this.context.name);
+        SC.none(this.context.gameName) ? 'none' : this.context.gameName);
 
       // Create/guarantee each collection and its required attributes
       if (iArgs.collections) {
@@ -434,38 +434,16 @@ DG.GameController = DG.ComponentController.extend(
       };
       doAppCommandFunc = this.get('doCommandFunc');
 
-      gameElement = this.findGameElement(this.get('gameEmbedID'));
       if (restoredGameState) {
         if (doAppCommandFunc) {
           // for javascript games we can call the games 'doCommandFunc' directly
           doAppCommandFunc(restoreCommand);
-        } else if (gameElement && gameElement.doCommandFunc) {
-          // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
-          gameElement.doCommandFunc(SC.json.encode(restoreCommand));
         } else if (this.get('isGamePhoneInUse')) {
           this.gamePhone.call(restoreCommand, finishInitGame.bind(this));
           return;
         }
       }
       finishInitGame.call(this);
-    },
-    /**
-     * Find the current game element in DG, by searching the DOM
-     *    Useful for callbacks to embedded flash .swf objects,
-     *    which have functions made available by AS3's ExternalInterface.addCallback()
-     * @param embeddedGameID the ID parameter of the game, e.g. set by ChainSaw.html for ChainSaw.swf
-     * @return {Element} null or an element of an iFrame that has the given html ID.
-     */
-    findGameElement: function (embeddedGameID) {
-      // games are dynamically embedded objects in iFrames
-      var iFrames = document.getElementsByTagName("iframe"), gameElement = null;
-      if (embeddedGameID) {
-        var i, j; // find first iFrame with embedded element ID==embeddedGameID (expect 0 or 1 match)
-        for (i = 0, j = iFrames.length; i < j && !gameElement; ++i) {
-          gameElement = iFrames[i].contentWindow.document.getElementById(embeddedGameID);
-        }
-      }
-      return gameElement;
     },
     /**
       Create a component of the specified type.
@@ -881,7 +859,7 @@ DG.GameController = DG.ComponentController.extend(
       This function is called directly by games using the old Game API.
       New games should use the New Game API 'initGame' command.
       @param  {String}  iCollectionName -- The name of the collection to create
-      @param  {Array of String}  iAttributeNames -- The names of the attributes to create
+      @param  {Array} of String  iAttributeNames -- The names of the attributes to create
      */
     newCollectionWithAttributes: function(iCollectionName, iAttributeNames)
     {
@@ -1119,13 +1097,14 @@ DG.GameController = DG.ComponentController.extend(
       },
 
       updateLayout: function() {
-        var gameView = this.get('view');
-        if( gameView) {
-            var gameSize = this.getPath('context.gameDimensions'),
-              newWidth = gameSize.width + DG.ViewUtilities.horizontalPadding(),
-              newHeight = gameSize.height + DG.ViewUtilities.verticalPadding();
-            gameView.adjust('width', newWidth);
-            gameView.adjust('height', newHeight);
+        var gameView = this.get('view'),
+          gameSize = this.getPath('context.gameDimensions'),
+          newWidth, newHeight;
+        if( gameView && gameSize) {
+          newWidth = gameSize.width + DG.ViewUtilities.horizontalPadding();
+          newHeight = gameSize.height + DG.ViewUtilities.verticalPadding();
+          gameView.adjust('width', newWidth);
+          gameView.adjust('height', newHeight);
         }
       }.observes('context.gameDimensions'),
 
