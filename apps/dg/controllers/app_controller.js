@@ -456,6 +456,7 @@ DG.appController = SC.Object.create((function () // closure
             var tDoc = DG.currDocumentController(),
               tComponent = DG.Component.createComponent({
                 "type": "DG.GameView",
+                "document": tDoc.get('content') ,
                 "componentStorage": {
                   "currentGameName": "",
                     "currentGameUrl": iURL,
