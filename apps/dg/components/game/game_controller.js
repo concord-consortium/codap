@@ -362,6 +362,7 @@ DG.GameController = DG.ComponentController.extend(
         var collectionProperties = {
           name: iCollectionArgs.name,
           labels: iCollectionArgs.labels,
+          defaults: iCollectionArgs.defaults,
           areParentChildLinksConfigured: true
         };
 
@@ -412,9 +413,9 @@ DG.GameController = DG.ComponentController.extend(
         });
       }
       this.view.set('version',
-        SC.none(this.context.gameVersion) ? 'none' : this.context.gameVersion);
+        SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
       this.view.set('title',
-        SC.none(this.context.gameName) ? 'none' : this.context.gameName);
+        SC.none(this.context.gameName) ? '' : this.context.gameName);
 
       // Create/guarantee each collection and its required attributes
       if (iArgs.collections) {

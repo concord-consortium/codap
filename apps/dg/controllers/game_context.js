@@ -113,43 +113,39 @@ DG.GameContext = DG.DataContext.extend(
   collectionDefaults: function() {
     var defaults = { collectionClient: null,
                      plotXAttr: null, plotXAttrIsNumeric: true,
-                     plotYAttr: null, plotYAttrIsNumeric: true },
-        gameSpec = this.get('gameSpec'),
-        collectionName = gameSpec && gameSpec.get('collectionName');
+                     plotYAttr: null, plotYAttrIsNumeric: true };
 
-    // Try to find the specified default collection
-    if ( !SC.empty( collectionName)) {
-      defaults.collectionClient = this.getCollectionByName( collectionName);
-      defaults.parentCollectionClient = this.getCollectionByName( gameSpec.get('parentCollectionName'));
-    }
-      
     // If no default specified (or we can't find it), default to the child collection.
-    if (SC.none( defaults.collectionClient))
+    if (SC.none( defaults.collectionClient)) {
       defaults.collectionClient = this.get('childCollection');
+      defaults.parentCollectionClient = this.get('parentCollection');
+    }
 
     /**
       Utility function for use in specifying default plot attributes.
       @param  {String}    iAttrPrefix -- {'x','y','legend'}
       @param  {String}    iAttrInfix -- {'X','Y','Legend'}
      */
-    function configureDefaultPlotAttr( iAttrPrefix, iAttrInfix) {
+    function configureDefaultPlotAttr(collectionClient, iAttrPrefix, iAttrInfix) {
       // Retrieve the attribute name
-      var attrName = gameSpec && gameSpec.get( iAttrPrefix + 'AttrName');
+      var attrName = collectionClient && collectionClient.getPath('defaults.' +
+        iAttrPrefix + 'Attr');
       if( defaults.collectionClient && !SC.empty( attrName)) {
         // Set default attribute
         defaults['plot' + iAttrInfix + 'Attr'] = defaults.collectionClient.
                                                   getAttributeByName( attrName);
         // Indicate the type of the default attribute
-        var isNumeric = gameSpec.get( iAttrPrefix + 'AttrIsNumeric');
+        var isNumeric = collectionClient && collectionClient.getPath('defaults.' +
+              iAttrPrefix + 'AttrIsNumeric');
         if( !SC.none( isNumeric))
           defaults['plot' + iAttrInfix + 'AttrIsNumeric'] = isNumeric;
       }
     }
   
     // Find the game-specified default attributes and configure them appropriately.
-    configureDefaultPlotAttr('x', 'X');
-    configureDefaultPlotAttr('y', 'Y');
-    configureDefaultPlotAttr('legend', 'Legend');
+    configureDefaultPlotAttr(defaults.collectionClient, 'x', 'X');
+    configureDefaultPlotAttr(defaults.collectionClient, 'y', 'Y');
+    configureDefaultPlotAttr(defaults.collectionClient, 'legend', 'Legend');
 
     return defaults;
   },
@@ -161,11 +157,7 @@ DG.GameContext = DG.DataContext.extend(
     @returns  {Object}              The 'labels' portion of the collection specification
    */
   getLabelsForCollection: function( iCollection) {
-    var gameSpec = this.get('gameSpec'),
-        collectionName = iCollection.get('name'),
-        collectionSpec = gameSpec && collectionName &&
-                          gameSpec.getCollectionSpecByName( collectionName),
-        labels = collectionSpec && collectionSpec.labels;
+    var labels = iCollection.getCollectionLabels();
     return labels;
   },
   
@@ -195,10 +187,6 @@ DG.GameContext = DG.DataContext.extend(
     var labels = this.getLabelsForCollection( iCollection),
         setOfCasesWithArticle = labels && labels.setOfCasesWithArticle;
     if( !SC.empty( setOfCasesWithArticle)) return setOfCasesWithArticle;
-
-    // Use the legacy 'eventsAttributeName' if it's available
-    var eventAttrName = this.getPath('gameSpec.eventsAttributeName');
-    if( !SC.empty( eventAttrName)) return eventAttrName;
 
     // Use the base class implementation as a final fallback
     return sc_super();
