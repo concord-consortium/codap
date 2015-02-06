@@ -97,7 +97,8 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
       Returns the IDs of any currently open game cases, plus the child cases of those cases.
-      @param iExcludeChildren {Boolean} optional parameter to not include child cases of open game cases.
+      @param iExcludeChildren {Boolean} optional parameter to not include child
+         cases of open game cases.
       @returns  {Array} of Number   Array of open case IDs
      */
     getOpenCaseIDs: function (iExcludeChildren) {
@@ -309,7 +310,8 @@ DG.GameController = DG.ComponentController.extend(
     /**
       'initGame' handler
       @param {Object}   iArgs   See below for arguments
-      @param {Function} callback  Callback, called when game is inited (this includes
+      @param {Function} callback  Callback, called when game is inited (this
+         includes
                                     any game-state restoration)
       args: {
         name: "Name String",
@@ -392,10 +394,9 @@ DG.GameController = DG.ComponentController.extend(
         gameCollections = [],
         restoredGameState,
         restoreCommand,
-        doAppCommandFunc,
-        gameElement;
+        doAppCommandFunc;
 
-      if (SC.empty(gameContext)) {
+      if (SC.none(gameContext)) {
         gameContext = DG.currDocumentController().createNewDataContext({
           type: 'DG.GameContext'
         });
@@ -407,6 +408,11 @@ DG.GameController = DG.ComponentController.extend(
       if (iArgs.name) {
         this.setPath('context.gameName', iArgs.name);
       }
+
+      if (SC.empty(this.getPath('context.gameUrl'))) {
+        this.setPath('context.gameUrl', this.getPath('model.componentStorage.currentGameUrl'));
+      }
+
       if (iArgs.dimensions) {
         this.setPath('context.gameDimensions', {
           width: iArgs.dimensions.width, height: iArgs.dimensions.height
@@ -456,7 +462,8 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
       Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
-      @param {String} iAction   Command being executed (e.g. 'openCase', 'createCase')
+      @param {String} iAction   Command being executed (e.g. 'openCase',
+         'createCase')
       @param {Object} iArgs     Arguments passed to the command
       @returns {Object}         { success: {Boolean}, [caseID: {Number}] }
      */
@@ -491,7 +498,8 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
       Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
-      @param {String} iAction   Command being executed (e.g. 'openCase', 'createCase')
+      @param {String} iAction   Command being executed (e.g. 'openCase',
+         'createCase')
       @param {Object} iArgs     Arguments passed to the command
       @returns {Object}         { success: {Boolean}, [caseID: {Number}] }
      */
@@ -525,7 +533,8 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
       Update the values of an existing case.
-      @param {String} iAction   Command being executed (e.g. 'openCase', 'createCase')
+      @param {String} iAction   Command being executed (e.g. 'openCase',
+         'createCase')
       @param {Object} iArgs     Arguments passed to the command
       @returns {Object}         { success: {Boolean} }
      */
@@ -608,7 +617,8 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
        Delete all case data not associated with the current game case.
-       @param {Object} iArgs     Arguments passed to the 'deleteAllCaseData' command
+       @param {Object} iArgs     Arguments passed to the 'deleteAllCaseData'
+          command
        @returns {Object}         { success: {Boolean}, [caseID: {Number}] }
      */
     handleDeleteAllCaseData: function( iArgs) {
@@ -695,8 +705,10 @@ DG.GameController = DG.ComponentController.extend(
       /**
      Delete all case data (except data linked to the currently open game case).
      Design for use by user (DG.AppController.deleteAllCaseData()) or by game (this.handleDeleteAllCaseData())
-     @param preserveTopCasesOption {Boolean} (optional) prevent delete of all top level cases (delete child cases only)
-     @param deleteOpenEventCases {Boolean} (optional) also delete open event cases, which by default are preserved.
+     @param preserveTopCasesOption {Boolean} (optional) prevent delete of all
+        top level cases (delete child cases only)
+     @param deleteOpenEventCases {Boolean} (optional) also delete open event
+        cases, which by default are preserved.
      @returns {{success: boolean}}
      */
     doDeleteAllCaseData: function( preserveTopCasesOption, deleteOpenEventCases ) {
@@ -761,7 +773,8 @@ DG.GameController = DG.ComponentController.extend(
       /**
       Create a collection.
       Returns the ID of the created collection.
-      @param {Object}       iArgs -- An object that specifies the properties of the collection
+      @param {Object}       iArgs -- An object that specifies the properties of
+         the collection
               {String}          iArgs.name -- Name of the new collection
               {Array of Object} iArgs.attrs -- Array of attribute specification objects
       @returns {Object}     { success: {Boolean}, collectionID: {Number} }
@@ -824,8 +837,8 @@ DG.GameController = DG.ComponentController.extend(
 
       If the case exists an array of values will be returned, with success==true.  Array
       values will be null if the matching attribute does not exist, or has a missing value.
-
-      @param {Object} iArgs     Arguments { collection, caseID, attributeNames:[] }
+      @param {Object} iArgs     Arguments { collection, caseID,
+         attributeNames:[] }
       @returns {Object}         { success: {Boolean}, values: [] }
      */
     handleRequestAttributeValues: function( iArgs) {
@@ -860,7 +873,8 @@ DG.GameController = DG.ComponentController.extend(
       This function is called directly by games using the old Game API.
       New games should use the New Game API 'initGame' command.
       @param  {String}  iCollectionName -- The name of the collection to create
-      @param  {Array} of String  iAttributeNames -- The names of the attributes to create
+      @param  {Array} of String  iAttributeNames -- The names of the attributes
+         to create
      */
     newCollectionWithAttributes: function(iCollectionName, iAttributeNames)
     {
@@ -1087,7 +1101,8 @@ DG.GameController = DG.ComponentController.extend(
         this.setPath('context.gameUrl', gameUrl);
       }
 
-      // If there are user-created formulas to restore, set them in the gameSpec.
+      // If there are user-created formulas to restore, set them in the
+      // gameSpec.
       if( dataContext && iComponentStorage.currentGameFormulas)
         dataContext.set('formulas', iComponentStorage.currentGameFormulas);
 
@@ -1115,8 +1130,10 @@ DG.GameController = DG.ComponentController.extend(
       If values are specified, they are appended to the log message:
         logUserAction("doSomething") --> "doSomething"
         logUserAction("doSomething", ["John Doe", 37]) --> "doSomething: [John Doe, 37]"
-      @param    {String}    iActionString -- The name of the action/command being logged
-      @param    {Array}     iValues -- Additional values to be included in the log message
+      @param    {String}    iActionString -- The name of the action/command
+         being logged
+      @param    {Array}     iValues -- Additional values to be included in the
+         log message
      */
     logUserAction: function( iActionString, iValues) {
       DG.logUser( iActionString + (iValues && iValues.length ? ": [" + iValues.join( ", ") + "]" : ""));
