@@ -123,20 +123,25 @@ DG.GameContext = DG.DataContext.extend(
 
     /**
       Utility function for use in specifying default plot attributes.
+      @param  {DG.CollectionClient} collectionClient
       @param  {String}    iAttrPrefix -- {'x','y','legend'}
       @param  {String}    iAttrInfix -- {'X','Y','Legend'}
      */
     function configureDefaultPlotAttr(collectionClient, iAttrPrefix, iAttrInfix) {
       // Retrieve the attribute name
       var attrName = collectionClient && collectionClient.getPath('defaults.' +
-        iAttrPrefix + 'Attr');
+        iAttrPrefix + 'Attr'),
+        attr, isNumeric;
       if( defaults.collectionClient && !SC.empty( attrName)) {
         // Set default attribute
-        defaults['plot' + iAttrInfix + 'Attr'] = defaults.collectionClient.
-                                                  getAttributeByName( attrName);
+        attr = defaults.collectionClient.getAttributeByName(attrName);
+        defaults['plot' + iAttrInfix + 'Attr'] = attr;
         // Indicate the type of the default attribute
-        var isNumeric = collectionClient && collectionClient.getPath('defaults.' +
+        isNumeric = collectionClient && collectionClient.getPath('defaults.' +
               iAttrPrefix + 'AttrIsNumeric');
+        if(SC.none( isNumeric)) {
+          isNumeric = (attr.get('type') === 'numeric');
+        }
         if( !SC.none( isNumeric))
           defaults['plot' + iAttrInfix + 'AttrIsNumeric'] = isNumeric;
       }
