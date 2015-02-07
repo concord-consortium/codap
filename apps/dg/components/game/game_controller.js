@@ -759,22 +759,6 @@ DG.GameController = DG.ComponentController.extend(
     },
 
       /**
-       *
-       * @param iName {String}
-       * @param iAttrs { Array} of attribute specs
-       */
-      addCollectionSpecToGameSpecIfNecessary: function( iName, iAttrs) {
-        var tContext = this.get('context'),
-          tCollections = tCurrentGame && tCurrentGame.get('collections');
-        if( !SC.none( tCollections)) {
-          tCollections.push( {
-            name: iName,
-            attrs: iAttrs
-          });
-        }
-      },
-
-      /**
       Create a collection.
       Returns the ID of the created collection.
       @param {Object}       iArgs -- An object that specifies the properties of
@@ -784,7 +768,6 @@ DG.GameController = DG.ComponentController.extend(
       @returns {Object}     { success: {Boolean}, collectionID: {Number} }
      */
     handleCreateCollection: function( iArgs) {
-      this.addCollectionSpecToGameSpecIfNecessary( iArgs.name, iArgs.attrs);
       var gameContext = this.get('context'),
           tCollectionProperties = { name: iArgs.name,
                                     caseName: iArgs.caseName,
