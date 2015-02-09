@@ -18,7 +18,15 @@
 //  limitations under the License.
 // ==========================================================================
 /*jslint newcap:true */
-/*global DG:true */
+/*global DG:true, ADL:false*/
+
+sc_require('libraries/xapiwrapper');
+
+ADL.XAPIWrapper.changeConfig({
+    "endpoint" : "https://lrs.learninglocker.net/data/xAPI/",
+    "user" : "80bd56fba507e3cf887a369c92b90a5663ade7dd",
+    "password" : "75ce776b7bd5eef63b1f9931b8b32a26f0548f45",
+});
 
 /**
  *  Returns an array of all own enumerable properties found upon a given object,

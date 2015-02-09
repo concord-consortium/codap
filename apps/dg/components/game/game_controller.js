@@ -342,9 +342,50 @@ DG.GameController = DG.ComponentController.extend(
       // Once all the collections and attributes are created, we're ready to play the game.
       this.set('gameIsReady', true);
 
-      if( (iArgs.log === undefined) || iArgs.log)
-        DG.logUser("initGame: '%@', Collections: [%@]",
+      if( (iArgs.log === undefined) || iArgs.log) {
+        var logString = DG.logUser("initGame: '%@', Collections: [%@]",
                     currentGameName, gameCollections.getEach('name').join(", "));
+
+        (function() {
+          var userName = DG.authorizationController.getPath('currLogin.user');
+          // get a unique name for this session
+          var uniqueAgentName = userName === 'guest' ?
+            DG.authorizationController.getPath('currLogin.sessionID') : 
+            userName;
+          var agent = new ADL.XAPIStatement.Agent({
+            account: {
+              homePage: "http://codap.concord.org/",
+              name: uniqueAgentName
+            }
+          }, userName);
+
+          var verb = new ADL.XAPIStatement.Verb('codap:initGame', 'initialized');
+
+          // Note that the game being the statement's "activity" is a special case for initGame
+          var game = DG.gameSelectionController.get('currentGame');
+          var gameName = game.get('name');
+          var gameUrl = game.get('url');
+          var gameId = "codap:" + gameName.replace(/\s/g, '_');
+          var activity = new ADL.XAPIStatement.Activity(gameId, gameName);
+          activity.definition.moreInfo = gameUrl;
+
+          var stmt = new ADL.XAPIStatement(agent, verb, activity);
+          stmt.context = {
+            extensions: {
+              "http://codap.concord.org/logStatement": logString
+            },
+          };
+
+          stmt.generateId();
+
+          // can't add moreInfo to contextActivities
+          stmt.addParentActivity( new ADL.XAPIStatement.Activity(gameUrl) );
+          stmt.generateRegistration();
+
+          // need callback or XAPIWrapper uses sync XHR (!)
+          ADL.XAPIWrapper.sendStatement(stmt, function() {});
+        }());
+      }
 
       if (callback) {
         callback();

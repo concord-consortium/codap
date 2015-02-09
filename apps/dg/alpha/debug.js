@@ -213,6 +213,8 @@ DG.Debug = SC.Object.create( (function() {
     
     logUser: function( iMessage, iOptFormatArgs) {
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, arguments);
+      var restArgs = Array.prototype.splice.call(arguments, 1)
+      return SC.String.fmt(iMessage, restArgs);
     },
     
     logUserRaw: function( iRawArgs) {
