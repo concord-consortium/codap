@@ -52,7 +52,7 @@ DG.DocumentController = SC.Object.extend(
   /**
    *  The Components which are managed by this controller.
    *  Bound to the document's 'components' property.
-   *  @property {Array of DG.Component}
+   *  @property {Object} Hashmap of Components
    */
   components: function() {
     return this.getPath('content.components');
@@ -65,7 +65,7 @@ DG.DocumentController = SC.Object.extend(
       var components = this.get('components'),
         result = [];
       if (components) {
-        components.forEach(function (component) {
+        DG.ObjectMap.forEach(components, function (key, component) {
           var type;
           type = component.get('type');
           if (type === 'DG.GameContext' || type === 'DG.DataContext') {
@@ -273,7 +273,7 @@ DG.DocumentController = SC.Object.extend(
   updateSavedChangeCount: function() {
     // Game controller state affects the document state
     this.dataInteractives().forEach( function (gameController) {
-      DG.currGameController.updateSavedChangeCount();
+      gameController.updateSavedChangeCount();
     });
     this.set('savedChangeCount', this.get('changeCount'));
   },
@@ -592,14 +592,15 @@ DG.DocumentController = SC.Object.extend(
   
   addCaseTable: function( iParentView, iComponent) {
     var tView = this.createComponentView(iComponent, {
-                              parentView: iParentView, 
-                              controller: DG.CaseTableController.create(),
-                              componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-                              contentProperties: {},             
-                              defaultLayout: { width: 500, height: 200 },
-                              title: 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
-                              isResizable: true}
-                            );
+        parentView: iParentView,
+        controller: DG.CaseTableController.create(),
+        componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
+        contentProperties: {},
+        defaultLayout: { width: 500, height: 200 },
+        title: iProperties.dataContext.gameName ||
+          'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+        isResizable: true}
+    );
     return tView;
   },
 
@@ -885,13 +886,11 @@ DG.DocumentController = SC.Object.extend(
                           });
 
     DG.globalsController.stopAnimation();
-    // todo: Not sure the following is needed any more, but it appears to do no harm - jms 1/2015
     DG.gameSelectionController.reset();
     DG.DataContext.clearContextMap();
     
     DG.Document.destroyDocument(DG.activeDocument);
 
-    // todo: Not sure the following is needed any more, but it appears to do no harm - jms 1/2015
     DG.gameSelectionController.reset();
     this.closeAllComponents();
   },
@@ -1237,8 +1236,56 @@ DG.DocumentController = SC.Object.extend(
         localize: true,
         message: errorMessage});
     }
-  }
-});
+  },
+    /**
+     Saves the current state of the current game into the 'savedGameState'
+     property of the current game's context. Uses the 'doCommandFunc' property
+     passed by the game as part of the 'initGame' command.
+
+     @param {function} done A callback.
+     */
+    saveCurrentGameState: function(done) {
+
+      // Stash the game state in the context's 'savedGameState' property.
+      function saveState(result) {
+        if( result && result.success) {
+          gameContext.set('savedGameState', result.state);
+        }
+      }
+
+      try {
+        var gameControllers = this.get('dataInteractives'),
+          gameController = gameControllers && gameControllers[0],
+          gameContext = gameController && gameController.get('context'),
+          doAppCommandFunc = gameController && gameController.get('doCommandFunc'),
+          saveCommand = { operation: "saveState" },
+          result;
+        // We can only save game state if we have a game callback function and a context.
+        if( gameContext) {
+          if( doAppCommandFunc ) {
+            // for JavaScript games we can call directly with Objects as arguments
+            result = doAppCommandFunc( saveCommand);
+          } else if (DG.get('isGamePhoneInUse')) {
+            // async path
+            gameController.gamePhone.call(saveCommand, function(result) {
+              saveState(result);
+              done();
+            });
+            return;
+          }
+
+          saveState(result);
+        }
+      } catch (ex) {
+        DG.logWarn("Exception saving game context: " + ex);
+      }
+
+      // For consistency with gamePhone case, make sure that done callback is invoked in a later
+      // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
+      this.invokeLater(function() { done(); } );
+    }
+
+  });
 
 DG.currDocumentController = function() {
   if( !DG._currDocumentController) {
