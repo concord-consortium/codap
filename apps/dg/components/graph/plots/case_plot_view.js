@@ -167,6 +167,8 @@ DG.CasePlotView = DG.PlotView.extend(
           }
           this.invokeLater( animateSomePoints, 10);
         }
+        else
+          this.setPath( 'model.isAnimating', false);
       }.bind( this);
 
       if( this.getPath( 'model.isAnimating' ) )
@@ -191,6 +193,7 @@ DG.CasePlotView = DG.PlotView.extend(
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         tIncrementBy = Math.ceil( tCases.length / 50);
+        this.setPath( 'model.isAnimating', true); // So the animation can finish
         animateSomePoints();  // will loop through all points using invokeLater
         this._mustCreatePlottedElements = false;
       }
