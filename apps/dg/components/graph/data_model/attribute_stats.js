@@ -405,10 +405,12 @@ DG.AttributeStats = SC.Object.extend(
           tCases.forEach( function ( iCase ) {
             addCaseValueToStats( iCase, iCase.getValue( tVarID ));
           } );
-          DG.ObjectMap.forEach( tCellMap, function( iKey, iValue) {
-            if( iValue.length === 0)
-              delete tCellMap[iKey];
-          });
+          if( iAttribute.get('blockDisplayOfEmptyCategories')) {
+            DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
+              if (iValue.length === 0)
+                delete tCellMap[iKey];
+            });
+          }
         });
 
         this.categoricalStats.beginPropertyChanges();
