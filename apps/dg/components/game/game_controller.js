@@ -1028,7 +1028,7 @@ DG.GameController = DG.ComponentController.extend(
 
       var dataContext = this.get('context');
 
-      if( dataContext) {
+      if( dataContext && !this.getLinkID(tStorage, 'context')) {
         this.addLink( tStorage, 'context', dataContext);
       }
 
