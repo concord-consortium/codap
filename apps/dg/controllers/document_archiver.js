@@ -188,18 +188,18 @@ DG.DocumentArchiver = SC.Object.extend(
     // Prepare the context-specific storage for saving.
     // Start by saving the state of the current game in the appropriate context.
     // Callback below executes after the state has been saved
-    DG.gameSelectionController.saveCurrentGameState(function() {
+    DG.currDocumentController().saveCurrentGameState(function() {
       var docController = DG.currDocumentController();      
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
-                                          function( iContextID, iContext) {
-                                            iContext.willSaveContext();
-                                          });
+        function( iContextID, iContext) {
+          iContext.willSaveContext();
+        });
       if( docController) {
         // Prepare the component-specific storage for saving
         DG.ObjectMap.forEach( docController.componentControllersMap,
-                              function( iComponentID, iController) {
-                                iController.willSaveComponent();
-                              });
+          function( iComponentID, iController) {
+            iController.willSaveComponent();
+          });
       }
 
       callback(iDocument.toArchive());
@@ -209,15 +209,15 @@ DG.DocumentArchiver = SC.Object.extend(
   saveDataContexts: function( iDocument, callback, saveAll) {
     var model,
         deferred = $.Deferred();
-    DG.gameSelectionController.saveCurrentGameState(function() {
+    DG.currDocumentController().saveCurrentGameState(function() {
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
-                                          function( iContextID, iContext) {
-                                            iContext.willSaveContext();
-                                            model = iContext.get('model');
-                                            if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
-                                              callback(model, model.toArchive(true));
-                                            }
-                                          });
+        function( iContextID, iContext) {
+          iContext.willSaveContext();
+          model = iContext.get('model');
+          if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
+            callback(model, model.toArchive(true));
+          }
+        });
       deferred.resolve();
     });
     return deferred;
