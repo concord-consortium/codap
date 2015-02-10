@@ -591,14 +591,22 @@ DG.DocumentController = SC.Object.extend(
     },
   
   addCaseTable: function( iParentView, iComponent) {
-    var tView = this.createComponentView(iComponent, {
+    function resolveContextLink(iComponent) {
+      var id = DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'context');
+      if (id) {
+        return iComponent.document.contexts[id];
+      }
+    }
+    var context = resolveContextLink(iComponent),
+      contextName = (context && context.contextStorage && context.contextStorage.gameName)
+        || 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+      tView = this.createComponentView(iComponent, {
         parentView: iParentView,
         controller: DG.CaseTableController.create(),
         componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
         contentProperties: {},
         defaultLayout: { width: 500, height: 200 },
-        title: iProperties.dataContext.gameName ||
-          'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+        title: contextName,
         isResizable: true}
     );
     return tView;
