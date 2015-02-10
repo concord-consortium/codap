@@ -1045,12 +1045,7 @@ DG.GameController = DG.ComponentController.extend(
      *  @param  {String}  iDocumentID -- The ID of the document being restored.
      */
     restoreComponentStorage: function (iComponentStorage, iDocumentID) {
-      var //layout = this.getPath('model.layout'),
-        //requestedDimensions = layout ? {
-        //  width: layout.width,
-        //  height: layout.height
-        //} : null,
-        gameName = iComponentStorage.currentGameName,
+      var gameName = iComponentStorage.currentGameName,
         gameUrl = iComponentStorage.currentGameUrl,
         contextID,
         dataContext;
@@ -1126,20 +1121,4 @@ DG.GameController = DG.ComponentController.extend(
       DG.logUser( iActionString + (iValues && iValues.length ? ": [" + iValues.join( ", ") + "]" : ""));
     }
 }) ;
-
-//DG.currGameController = DG.GameController.create({});
-
-/**
-  Calls the doCommand() method of the current game controller (DG.currGameController).
-  This is a convenience function for use by games, particularly JavaScript games.
-
-  If callback is provided, it will be called on completion of the command and there will be no return
-  value from doCommand. The callback is guaranteed to be called in a subsequent event turn.
-  */
-// Todo: I think this is obsolete
-DG.doCommand = function( iCmd, callback)  {
-  var result;
-  SC.run( function() { result = DG.currGameController.dispatchCommand( iCmd, callback); });
-  return result;
-};
 

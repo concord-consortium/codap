@@ -30,16 +30,6 @@ sc_require('libraries/iframe-phone');
 DG.GameView = SC.WebView.extend(
 /** @scope DG.GameView.prototype */ {
 
-  // Bind the 'value' property of the WebView, which determines
-  // the URL of the page that is displayed, to the 'currentURL'
-  // property of the global DG.gameSelectionController. If we
-  // ever wanted to support multiple game instances in a single
-  // document, we would need to bind to something like a
-  // providerContext.currentUrl, where providerContext is an
-  // instance of the DG.ProviderContext class, and a single
-  // document can contain multiple DG.ProviderContext instances.
-  //valueBinding: 'DG.gameSelectionController.currentUrl',
-
   // Setup iframePhone communication with the child iframe before it loads, so that connection
   // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
   valueDidChange: function() {
@@ -121,8 +111,6 @@ DG.GameView = SC.WebView.extend(
       this.valueDidChange();
     }
     if (iframe && iframe.contentWindow) {
-      //var contentWindow = iframe.contentWindow,
-      //    target = this.get('controller');
 
       // Allow the iframe to take over the entire screen (requested by InquirySpace)
       $(iframe ).attr('allowfullscreen', true)
