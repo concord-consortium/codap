@@ -298,9 +298,9 @@ DG.GameController = DG.ComponentController.extend(
       finishDispatchCommand.call(this);
 
       if (iCallback) {
-        this.invokeLast(function() {
+        //this.invokeLast(function() {
           iCallback(tRet);
-        });
+        //});
         return;
       }
 
@@ -1018,11 +1018,13 @@ DG.GameController = DG.ComponentController.extend(
      *  @returns  {Object}  An object whose properties should be stored with the document.
      */
     createComponentStorage: function() {
-      var tStorage = { };
+      var tStorage = this.getPath('model.componentStorage');
 
-      // Save information about the current game
-      tStorage.currentGameName = this.getPath('context.gameName');
-      tStorage.currentGameUrl = this.getPath('context.gameUrl');
+      if (!SC.none(this.context)) {
+        // Save information about the current game
+        tStorage.currentGameName = this.getPath('context.gameName');
+        tStorage.currentGameUrl = this.getPath('context.gameUrl');
+      }
 
       var dataContext = this.get('context');
 
