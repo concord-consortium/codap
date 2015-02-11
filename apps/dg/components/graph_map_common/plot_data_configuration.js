@@ -621,7 +621,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
   restoreHiddenCases: function( iArrayOfCaseIDs) {
     if(SC.none( iArrayOfCaseIDs))
       return;
-    var this_ = this;
     this.set('hiddenCases', iArrayOfCaseIDs.map( function( iID) {
                                   return this.dataContext.getCaseByID( iID);
     }.bind(this)));
