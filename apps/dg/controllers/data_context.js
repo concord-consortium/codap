@@ -1102,12 +1102,11 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @param {Object} iComponentStorage -- Properties restored from document.
    */
   restoreFromStorage: function( iContextStorage) {
-    var collections = this.get('collections'),
-        this_ = this;
+    var collections = this.get('collections');
     if( !SC.none( collections)) {
       DG.ObjectMap.forEach(collections, function( key) {
-                            this_.addCollection( collections[key]);
-                          });
+                            this.addCollection( collections[key]);
+      }.bind(this));
     }
   }
   
