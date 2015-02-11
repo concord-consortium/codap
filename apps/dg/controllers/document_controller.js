@@ -319,6 +319,7 @@ DG.DocumentController = SC.Object.extend(
     iProperties.type = iModel.get('type');
     iProperties.model = iModel;
     var context = DG.DataContext.factory( iProperties);
+    this.get('contexts').push(context);
     return context;
   },
   
