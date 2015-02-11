@@ -99,9 +99,16 @@ DG.GameView = SC.WebView.extend(
     sc_super();
   },
 
+    /**
+     * If the URL is a web URL return the origin.
+     *
+     * The origin is scheme://domain_name.port
+     */
   extractOrigin: function(url) {
     var re = /([^:]*:\/\/[^\/]*)\//;
-    return re.exec(url)[1];
+    if (/^http.*/i.test(url)) {
+      return re.exec(url)[1];
+    }
   },
 
   iframeDidLoad: function()
