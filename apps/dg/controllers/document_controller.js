@@ -334,7 +334,7 @@ DG.DocumentController = SC.Object.extend(
       if (newContext) {
         newContext.restoreFromStorage(iContextModel.get('contextStorage'));
       }
-      this.contexts.push(newContext);
+      //this.contexts.push(newContext);
     }.bind(this));
   },
 
@@ -344,7 +344,7 @@ DG.DocumentController = SC.Object.extend(
     if (contextRecord.contextStorage) {
       context.restoreFromStorage(contextRecord.contextStorage);
     }
-    this.contexts.push(context);
+    //this.contexts.push(context);
     return context;
   },
 
