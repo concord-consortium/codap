@@ -340,7 +340,9 @@ DG.ComponentView = SC.View.extend(
   }()) // function closure
 );
 
-DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iIsVisible) {
+DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
+                                              iContentProperties, iTitle,
+                                              iIsResizable, iIsVisible) {
 
   var tComponentView = DG.ComponentView.create({ layout: iComponentLayout });
   tComponentView.addContent(iComponentClass.create(iContentProperties));
@@ -367,14 +369,17 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
   return tComponentView;
 };
 
-DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iUseLayoutForPosition, iIsVisible) {
+DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
+                                              iComponentClass, iContentProperties,
+                                              iTitle, iIsResizable,
+                                              iUseLayoutForPosition, iIsVisible) {
 
   var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
     iTitle, iIsResizable,
     iIsVisible);
   //default to use the existing layout if present, even when requested otherwise.
-  if (SC.none(iUseLayoutForPosition)&& SC.none(iComponentLayout.left) &&
-    SC.none(iComponentLayout.top)) {
+  if (SC.none(iUseLayoutForPosition)&& !SC.none(iComponentLayout.left) &&
+    !SC.none(iComponentLayout.top)) {
     iUseLayoutForPosition = true;
   }
   if (!iUseLayoutForPosition) {
