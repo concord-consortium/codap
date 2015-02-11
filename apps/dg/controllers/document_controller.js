@@ -585,7 +585,6 @@ DG.DocumentController = SC.Object.extend(
       // Override default component view behavior.
       // Do nothing until we figure out how to prevent reloading of Flash object.
       tView.bringToFront = function () { };
-      //tView.bind('title', 'context.gameName');
 
       return tView;
     },

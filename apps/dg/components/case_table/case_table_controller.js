@@ -34,19 +34,16 @@ DG.CaseTableController = DG.ComponentController.extend(
     return {
 
       /**
-        Observer function called when the currently selected game context changes.
+        Called when the currently selected game context changes.
        */
       currentGameContextDidChange: function( iNotifier, iKey) {
-        //if( !this.restoredDataContext) {
-        //  this.notifyPropertyChange('dataContext');
-        //}
         // 'gameIsReady' affects our labels, which affects our group headers
-        /*else*/ if( iKey === 'gameIsReady') {
+        if( iKey === 'gameIsReady') {
           var hierTableView = this.getPath('view.contentView');
           if( hierTableView)
             hierTableView.refresh();
         }
-      }.observes(/*'_currentGameContext','DG.currGameController.gameIsReady'*/),
+      },
 
       /**
         The table will reflect the contents of this data context.

@@ -407,7 +407,6 @@ DG.appController = SC.Object.create((function () // closure
      */
     importText: function( iText, iName) {
       // Currently, we must close any open document before opening another
-      //this.closeDocument();
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),

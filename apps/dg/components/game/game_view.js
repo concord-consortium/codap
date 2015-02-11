@@ -82,7 +82,7 @@ DG.GameView = SC.WebView.extend(
         }.bind(this),
         'codap-game',
         this.$('iframe')[0],
-        this.extractOrigin(tValue) // todo: this should be set to a correct origin
+        this.extractOrigin(tValue)
       );
 
       // Let games/interactives know that they are talking to CODAP, specifically (rather than any
@@ -134,47 +134,47 @@ DG.GameView = SC.WebView.extend(
       // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
       // below.
 
-      //try {
-      //
-      //  // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
-      //
-      //  // NewCollectionWithAttributes
-      //  contentWindow.NewCollectionWithAttributes =
-      //    function(iCollectionName, iAttributeNames) {
-      //      SC.run( function() {
-      //                target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
-      //              });
-      //    };
-      //
-      //  // AddCaseToCollectionWithValues
-      //  contentWindow.AddCaseToCollectionWithValues =
-      //    function(iCollectionName, iValues) {
-      //      SC.run( function() {
-      //                target.addCaseToCollectionWithValues(iCollectionName,iValues);
-      //              });
-      //    };
-      //
-      //  // LogUserAction
-      //  contentWindow.LogUserAction =
-      //    function(iActionString, iValues) {
-      //      SC.run( function() {
-      //                target.logUserAction(iActionString,iValues);
-      //              });
-      //    };
-      //
-      //  // DoCommand
-      //  contentWindow.DoCommand =
-      //    function(iCmd) {
-      //      var result;
-      //      SC.run( function() {
-      //                result = target.doCommand(iCmd);
-      //              });
-      //      return SC.json.encode( result);
-      //    };
-      //} catch (e) {
-      //  // e should be a SecurityError but I haven't found documentation regarding how standard
-      //  // that error type is.
-      //}
+      try {
+
+        // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
+
+        // NewCollectionWithAttributes
+        contentWindow.NewCollectionWithAttributes =
+          function(iCollectionName, iAttributeNames) {
+            SC.run( function() {
+                      target.newCollectionWithAttributes(iCollectionName,iAttributeNames);
+                    });
+          };
+
+        // AddCaseToCollectionWithValues
+        contentWindow.AddCaseToCollectionWithValues =
+          function(iCollectionName, iValues) {
+            SC.run( function() {
+                      target.addCaseToCollectionWithValues(iCollectionName,iValues);
+                    });
+          };
+
+        // LogUserAction
+        contentWindow.LogUserAction =
+          function(iActionString, iValues) {
+            SC.run( function() {
+                      target.logUserAction(iActionString,iValues);
+                    });
+          };
+
+        // DoCommand
+        contentWindow.DoCommand =
+          function(iCmd) {
+            var result;
+            SC.run( function() {
+                      result = target.doCommand(iCmd);
+                    });
+            return SC.json.encode( result);
+          };
+      } catch (e) {
+        // e should be a SecurityError but I haven't found documentation regarding how standard
+        // that error type is.
+      }
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
     }

@@ -17,7 +17,6 @@
 // ==========================================================================
 
 sc_require('controllers/component_controller');
-sc_require('models/game_spec');
 
 /** @class
  *
@@ -645,53 +644,6 @@ DG.GameController = DG.ComponentController.extend(
       this.doResetCollections();
     },
 
-      /**
-       [Old API] Fill out the DG.BaseGameSpec fields from the arguments passed to the
-       'newCollectionWithAttributes' command. In the old API, this code must infer some
-       things that can be explicitly stated in the New Game API.
-       */
-      processNewCollectionArgs: function( iCmdArgs) {
-        // Make sure we have a current game
-        //var gameSpec = this.get('gameSpec');
-        //if (!gameSpec) return;
-        //
-        //// Extract the cmd args we'll be using
-        //var collectionName = iCmdArgs.name, childrenName = iCmdArgs.children, defaultPlotX = iCmdArgs.defaultPlotX, defaultPlotY = iCmdArgs.defaultPlotY;
-        //
-        //// Add the collection name to the list of collections.
-        //// Collections are assumed to be added in order from parents to children
-        //if (!SC.empty(collectionName)) {
-        //  if (gameSpec.collections.indexOf(collectionName) < 0)
-        //    gameSpec.collections.push(collectionName);
-        //
-        //  switch (gameSpec.collections.length) {
-        //
-        //    case 1:
-        //      // Extract the parent collection name if we don't already know it
-        //      if (SC.empty(gameSpec.parentCollectionName))
-        //        gameSpec.parentCollectionName = collectionName;
-        //      break;
-        //
-        //    case 2:
-        //      // Extract the events collection name if we don't already know it
-        //      if (SC.empty(gameSpec.collectionName))
-        //        gameSpec.collectionName = collectionName;
-        //      break;
-        //
-        //    default:
-        //  }
-        //}
-        //
-        //// Extract the name of the events attribute (which links to the child cases)
-        //if (SC.empty(gameSpec.eventsAttributeName) && !SC.empty(childrenName))
-        //  gameSpec.eventsAttributeName = childrenName;
-        //
-        //// Extract the default attributes to plot on axes
-        //if (SC.empty(gameSpec.xAttrName) && !SC.empty(defaultPlotX))
-        //  gameSpec.xAttrName = defaultPlotX;
-        //if (SC.empty(gameSpec.yAttrName) && !SC.empty(defaultPlotY))
-        //  gameSpec.yAttrName = defaultPlotY;
-      },
         /**
        * Reset all collections. Remove all case data and attributes.
        */
@@ -1054,7 +1006,6 @@ DG.GameController = DG.ComponentController.extend(
 
 
       // We try to hook up the appropriate restored context.
-      //if( gameSpec && !gameSpec.get('context')) {
       // Try to restore the data context for the current game.
       // First, see if it was written out with the document.
       // (Writing out the link began in build 0175.)
