@@ -896,10 +896,10 @@ DG.DocumentController = SC.Object.extend(
     DG.globalsController.stopAnimation();
     DG.gameSelectionController.reset();
     DG.DataContext.clearContextMap();
-    
+
     DG.Document.destroyDocument(DG.activeDocument);
 
-    DG.gameSelectionController.reset();
+    this.contexts = [];
     this.closeAllComponents();
   },
   
