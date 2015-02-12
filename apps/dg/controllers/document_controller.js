@@ -66,15 +66,14 @@ DG.DocumentController = SC.Object.extend(
         result = [];
       if (componentControllers) {
         DG.ObjectMap.forEach(componentControllers, function (key, component) {
-          var type;
-          type = component.getPath('model.type');
+          var type = component.getPath('model.type');
           if (type === 'DG.GameView') {
             result.push(component);
           }
         });
       }
       return result;
-    }.property('components'),
+    }.property('componentControllersMap'),
   /**
     Map from component ID to the component's controller
    */
@@ -1295,7 +1294,7 @@ DG.DocumentController = SC.Object.extend(
             }
           }));
         });
-        // when all promises in the array of promises, then call the callback
+        // when all promises in the array of promises complete, then call the callback
         Promise.all(promises).then(function (value) {
             DG.logInfo('saveCurrentGameState complete.');
             done();
