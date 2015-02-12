@@ -62,19 +62,19 @@ DG.DocumentController = SC.Object.extend(
      * Returns an array of the GameControllers defined in this document.
      */
     dataInteractives: function() {
-      var components = this.get('components'),
+      var componentControllers = this.get('componentControllersMap'),
         result = [];
-      if (components) {
-        DG.ObjectMap.forEach(components, function (key, component) {
+      if (componentControllers) {
+        DG.ObjectMap.forEach(componentControllers, function (key, component) {
           var type;
-          type = component.get('type');
-          if (type === 'DG.GameContext' || type === 'DG.DataContext') {
+          type = component.getPath('model.type');
+          if (type === 'DG.GameView') {
             result.push(component);
           }
         });
       }
       return result;
-    }.property('components').cacheable(),
+    }.property('components'),
   /**
     Map from component ID to the component's controller
    */
@@ -1254,43 +1254,59 @@ DG.DocumentController = SC.Object.extend(
      */
     saveCurrentGameState: function(done) {
 
-      // Stash the game state in the context's 'savedGameState' property.
-      function saveState(result) {
-        if( result && result.success) {
-          gameContext.set('savedGameState', result.state);
-        }
-      }
 
-      try {
-        var gameControllers = this.get('dataInteractives'),
-          gameController = gameControllers && gameControllers[0],
-          gameContext = gameController && gameController.get('context'),
-          doAppCommandFunc = gameController && gameController.get('doCommandFunc'),
-          saveCommand = { operation: "saveState" },
-          result;
-        // We can only save game state if we have a game callback function and a context.
-        if( gameContext) {
-          if( doAppCommandFunc ) {
-            // for JavaScript games we can call directly with Objects as arguments
-            result = doAppCommandFunc( saveCommand);
-          } else if (DG.get('isGamePhoneInUse')) {
-            // async path
-            gameController.gamePhone.call(saveCommand, function(result) {
-              saveState(result);
-              done();
-            });
-            return;
-          }
-
-          saveState(result);
-        }
-      } catch (ex) {
-        DG.logWarn("Exception saving game context: " + ex);
+      var gameControllers = this.get('dataInteractives'),
+          promises = [];
+      if (gameControllers) {
+        gameControllers.forEach(function (gameController) {
+          var gameContext = gameController.get('context'),
+            doAppCommandFunc = gameController.get('doCommandFunc'),
+            saveCommand = { operation: "saveState" },
+            result;
+          // create an array of promises, one for each data interactive.
+          // issue the request in the promise.
+          promises.push(new Promise(function (resolve, reject) {
+            try {
+              if( gameContext) {
+                if( doAppCommandFunc ) {
+                  // for JavaScript games we can call directly with Objects as arguments
+                  result = doAppCommandFunc( saveCommand);
+                  if( result && result.success) {
+                    gameContext.set('savedGameState', result.state);
+                    resolve(result);
+                  } else {
+                    reject(result);
+                  }
+                } else if (gameController.get('isGamePhoneInUse')) {
+                  // async path
+                  gameController.gamePhone.call(saveCommand, function(result) {
+                    if( result && result.success) {
+                      gameContext.set('savedGameState', result.state);
+                      resolve(result);
+                    } else {
+                      reject(result);
+                    }
+                  });
+                }
+              }
+            } catch (ex) {
+              DG.logWarn("Exception saving game context: " + ex);
+              reject(ex);
+            }
+          }));
+        });
+        // when all promises in the array of promises, then call the callback
+        Promise.all(promises).then(function (value) {
+            DG.logInfo('saveCurrentGameState complete.');
+            done();
+          }, function (reason) {
+            DG.logWarn('saveCurrentGameState failed: ' + reason)
+        });
       }
 
       // For consistency with gamePhone case, make sure that done callback is invoked in a later
       // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
-      this.invokeLater(function() { done(); } );
+      //this.invokeLater(function() { done(); } );
     }
 
   });
