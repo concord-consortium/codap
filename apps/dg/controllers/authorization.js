@@ -23,7 +23,7 @@ sc_require('libraries/pako-deflate');
 
 /**
   Logs the specified message, along with any additional properties, to the server.
-  
+
   @param    iLogMessage   {String}    The main message to log
   @param    iProperties   {Object}    Additional properties to pass to the server,
                                       e.g. { type: DG.Document }
@@ -60,7 +60,7 @@ return {
 /** @scope DG.authorizationController.prototype */
 
   currEdit: null,   // DG.Authorization
-  
+
   currLogin: null,  // DG.Authorization
 
   isValid: function() {
@@ -70,7 +70,7 @@ return {
   isSaveEnabled: function() {
     return this.getPath('currLogin.isSaveEnabled');
   }.property('currLogin.isSaveEnabled'),
-  
+
   isUserDeveloper: function() {
     // 1 === developer according to the server
     return this.getPath('currLogin.privileges') === 1;
@@ -81,14 +81,14 @@ return {
 
     this.set('currEdit', DG.Authorization.create({user: '', passwd: ''}));
     this.set('currLogin', DG.Authorization.create({}));
-    
+
     if (DG.documentServer) {
       this.loadLoginFromDocumentServer();
     } else if( DG.Browser.isCompatibleBrowser()) {
       this.loadLoginCookie();
     }
   },
-  
+
   urlForGetRequests: function(iUrl) {
     return SC.Request.getUrl(iUrl);
   },
@@ -113,11 +113,11 @@ return {
     //this.sendLoginRequest('DG.Authorization.guestUserName'.loc(),
     //                      'DG.Authorization.guestPassword'.loc());
   },
-  
+
   sendLoginRequestFromDialog: function() {
     this.sendLoginRequest( this.getPath('currEdit.user'), this.getPath('currEdit.passwd'));
   },
-  
+
   sendLoginRequest: function( iUser, iPassword, iSessionID) {
     if (!SC.empty( iUser)) {
       // Set the user so we can update the UI while waiting for a server response
@@ -138,9 +138,9 @@ return {
       }
     }
   },
-  
+
   /**
-   * Send a request to obtain a token to be used instead of 
+   * Send a request to obtain a token to be used instead of
    * re-authenticating again for each further request before logging out.
    */
   sendTokenRequest: function( iUser, iPhrase, iPass ) {
@@ -157,10 +157,10 @@ return {
         .send(body);
       }
   },
-  
+
   /**
    * Expires the session in the database to make it invalid.
-   * 
+   *
    * @param iUser{string} user's username
    * @param iSessionID session token as a string
    */
@@ -171,7 +171,7 @@ return {
         .send(body);
     }
   },
-  
+
   loadLoginFromDocumentServer: function() {
     var login = this.get('currLogin'),
       currEdit = this.get('currEdit'),
@@ -197,21 +197,21 @@ return {
    * @property {SC.Cookie}
    */
   cookie: null,
-  
+
   /**
    * Saves the contents of the authorization in the 'login' cookie.
    */
   saveLoginCookie: function() {
-    this.cookie = this.findLoginCookie() || 
+    this.cookie = this.findLoginCookie() ||
         SC.Cookie.create({name: 'login', value: '', domain:this.getLoginCookieDomain()});
 
     var login = this.get('currLogin'),
-        c = [login.get('user'), login.get('status'), login.get('sessionID'), 
+        c = [login.get('user'), login.get('status'), login.get('sessionID'),
              login.get('logIndex'), login.get('isLoggingEnabled')].join('\t');
     this.cookie.set('value', c);
     this.cookie.write();
   },
-  
+
   /**
    * Loads the contents of the authorization from the 'login' cookie.
    */
@@ -230,7 +230,7 @@ return {
       login.set('user', user); // so UI can be updated ("kswenson logging in...")
       login.set('status', 0); // not yet logged in
       login.endPropertyChanges();
- 
+
       // Pending login information is stored in the currEdit object
       if( currEdit) {
         currEdit.beginPropertyChanges();
@@ -240,14 +240,14 @@ return {
       }
     }
   },
-  
+
   findLoginCookie: function() {
     if (!SC.empty(this.cookie)) return this.cookie;
     this.cookie = SC.Cookie.find('login');
     if (!SC.empty(this.cookie)) this.cookie.domain = this.getLoginCookieDomain();
     return this.cookie;
   },
-  
+
   /**
    * This returns the domain attribute that should be used for setting the domain attribute on a cookie key/value.  This
    * should NOT be used for other purposes because this returns an empty string if localhost is found to be in the
@@ -267,27 +267,27 @@ return {
     if (domainStr.indexOf('localhost') >= 0) return '';
     return domainStr;
   },
-  
+
   /**
     Return the "path" of the document, which we conceive as analogous to a unix "/" delimited path,
     except we'll use a ':', since "/" is overloaded with meaning in a url context (even when escaped).
     We'll return an absolute path, prefixing relative paths with the username - this will help
     ensure uniqueness of the path, so that it can be used as an id. Note that the "path" interpretation
     is not known to the server - to the server, this is just used as a unique Id.
-    
+
     @private
     @param iDocumentId{String} A string to use as the document id.
   */
   _documentPath: function(iDocumentId) {
     var path = iDocumentId;
-    
+
     // Prefix non-relative paths with user name.
     if( !/^:/.test( path))
       path = ':' + this.getPath('currLogin.user') + ':' + iDocumentId;
-      
+
     return path;
   },
-  
+
   /**
     Url for server get / save document
     @private
@@ -297,13 +297,13 @@ return {
     var url = serverUrl('document');
     url += '/' + encodeURIComponent(this.getPath('currLogin.sessionID'));
     url += '/' + encodeURIComponent(this._documentPath(iDocumentId));
-    
+
     return url;
-  }, 
+  },
 
   /**
     Saves the specified document object to the server.
-    
+
     @param    iDocumentId       The ID of the document object
     @param    iDocumentArchive  The document object to be archived. This should be
                                 a JavaScript object suitable for JSON-encoding.
@@ -409,10 +409,10 @@ return {
     }
     this.urlForGetRequests( serverUrl(url))
       .notify(iReceiver, 'receivedDocumentListResponse')
-      .send(); 
+      .send();
   },
 
-  openDocument: function(iDocumentId, iReceiver) {    
+  openDocument: function(iDocumentId, iReceiver) {
     var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
@@ -421,12 +421,12 @@ return {
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
-    
+
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
-      .send(); 
+      .send();
   },
-  openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {    
+  openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
     var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
     url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
@@ -436,10 +436,10 @@ return {
     if (DG.runKey) {
       url += '&runKey=%@'.fmt(DG.runKey);
     }
-    
+
     this.urlForGetRequests(serverUrl(url))
       .notify(iReceiver, 'receivedOpenDocumentResponse')
-      .send(); 
+      .send();
   },
 
   openDocumentSynchronously: function(iDocumentId) {
@@ -499,7 +499,7 @@ return {
   /**
     Sends a request to expire the session connected the session
     token in the database.
-   
+
    */
   logout: function() {
     if (DG.documentServer && this.getPath('currLogin.user') !== 'guest') { return; }  // Don't allow logging out, for now...
@@ -510,10 +510,10 @@ return {
     this.get('currEdit').clear();
     this.get('currLogin').clear();
     this.saveLoginCookie();
-  
+
     this.requireLogin();
   },
-  
+
   logIn: function(loginData, status) {
       var currLogin = this.get('currLogin'),
           isValid = loginData.valid,
@@ -595,7 +595,7 @@ return {
       return this.logIn(body, status);
     } else {
 
-      // if the server gets a 500 error(server script error), 
+      // if the server gets a 500 error(server script error),
       // then there will be no message return
       var errorCode = (body && body.message) || "";
       if (DG.documentServer && iResponse.get('status') === 401) {
@@ -612,10 +612,10 @@ return {
         .set('failedLoginAttempt', true);
     }
   },
-  
+
   /**
     Logs the specified message, along with any additional properties, to the server.
-    
+
     description and signature TODO
 
    */
@@ -639,7 +639,7 @@ return {
       SC.run();
       return;
     }
-    
+
     this.currLogin.incrementProperty('logIndex');
 
     eventValue = extract(iProperties, 'args');
@@ -671,16 +671,16 @@ return {
       request = this.urlForJSONPostRequests(DG.logServerUrl);
       request.attachIdentifyingHeaders = NO;
 
-      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true. 
-      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin 
+      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true.
+      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin
       // to '*' (correctly, to accept logs from any domain).
       // It is a security violation to send credentials (cookies, etc) to a server with a permissive ACAO header.
-      //      
+      //
       // When we update to Sproutcore >= 1.11, we will be able to replace the monkey patch below by
       // setting the new allowCredentials property of SC.Request to false.
 
       // save the monkey patch
-      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;  
+      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;
       // undo the monkey patch
       SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
       // send the request, hopefully with <xhr object>.withCredentials == false
@@ -689,9 +689,9 @@ return {
       SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
     }
   },
-  
+
   requireLogin : function() {
-  
+
     var kVSpace = 2;
     var top = 0;
     var height = 0;
@@ -700,13 +700,13 @@ return {
     var currLogin = this.get('currLogin'),
         currEdit = this.get('currEdit'),
         isValid = currLogin && currLogin.get('isValid');
-    
+
     // If we are already logged in, then there's nothing to do
     if( isValid) return;
-    
+
     // If we're not going to run anyway, don't try to log in
     if( !DG.Browser.isCompatibleBrowser()) return;
-    
+
     // If we're already showing the login dialog, don't show it again
     if( this.sheetPane) return;
 
@@ -717,7 +717,7 @@ return {
     if( !SC.empty( pendingUser) && pendingSession) {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
-    
+
     if (DG.documentServer) {
       this.sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
@@ -763,11 +763,11 @@ return {
       this.sheetPane.append();
     } else {
     this.sheetPane = SC.PanelPane.create({
-    
+
       layout: { top: 0, centerX: 0, width: 340, height: 200 },
       contentView: SC.View.extend({
         childViews: 'labelView userLabel userText passwordLabel passwordText loginAsGuestButton loginButton statusLabel registerLink recoveryLink'.w(),
-    
+
         labelView: SC.LabelView.design({
           layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(24) },
           controlSize: SC.LARGE_CONTROL_SIZE,
@@ -776,28 +776,28 @@ return {
           value: 'DG.Authorization.loginPane.dialogTitle',            // "CODAP Login"
           localize: YES
         }),
-    
+
         userLabel: SC.LabelView.design({
           layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18)},
           textAlign: SC.ALIGN_CENTER,
           value: 'DG.Authorization.loginPane.userLabel',              // "User"
           localize: YES
         }),
-    
+
         userText: SC.TextFieldView.design({
           layout: { top: nextTop(kVSpace), centerX: 0, width: 200, height: lastHeight(20) },
           autoCorrect: false,
           autoCapitalize: false,
           valueBinding: "DG.authorizationController.currEdit.user"
         }),
-    
+
         passwordLabel: SC.LabelView.design({
           layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18) },
           textAlign: SC.ALIGN_CENTER,
           value: 'DG.Authorization.loginPane.passwordLabel',        // "Password"
           localize: YES
         }),
-    
+
         passwordText: SC.TextFieldView.design({
           layout: { top: nextTop(kVSpace), centerX: 0, height: lastHeight(20), width: 200 },
           type: 'password',
@@ -805,7 +805,7 @@ return {
           autoCapitalize: false,
           valueBinding: "DG.authorizationController.currEdit.passwd"
         }),
-    
+
         loginAsGuestButton: SC.ButtonView.design({
           layout: { top: nextTop(6*kVSpace), height: lastHeight(24), left:20, width:125 },
           title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
@@ -814,7 +814,7 @@ return {
           action: 'sendLoginAsGuestRequest',
           isDefault: NO
         }),
-    
+
         loginButton: SC.ButtonView.design({
           layout: { top: top, height: lastHeight(24), right:20, width:100 },
           title: 'DG.Authorization.loginPane.login',                // "Login"
@@ -823,7 +823,7 @@ return {
           action: 'sendLoginRequestFromDialog',
           isDefault: YES
         }),
-        
+
         statusLabel: SC.LabelView.design({
           escapeHTML: NO,
           layout: { top: nextTop( kVSpace), left: 0, right: 0, height: lastHeight(18) },
@@ -844,12 +844,12 @@ return {
         })
        })
      });
-    
+
     this.sheetPane.append();
     this.sheetPane.contentView.userText.becomeFirstResponder();
     }
   },
-  
+
   _loginSessionDidChange: function() {
     // We only create the flash component if we have a valid session ID
     if( this.get('isValid')) {
@@ -860,7 +860,7 @@ return {
     }
   // Chained observer fires if 'currLogin' or 'currLogin.status' is changed
   }.observes('.currLogin.status'),
-  
+
   _setupGameOrDocument: function() {
     if( !SC.empty( DG.startingDocName)) {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
@@ -880,7 +880,7 @@ return {
       // with an unnecessary document scroll bar and incorrectly believing that
       // the initial document position is scrolled. Resizing the window fixes the
       // problem. We attempt to address it here by signaling a layout size change
-      // after the user logs in, which is just after it's calculated(incorrectly) and 
+      // after the user logs in, which is just after it's calculated(incorrectly) and
       // cached so we can clear the incorrect cache
       var scrollView = DG.mainPage.mainPane.scrollView;
       if( scrollView) {
