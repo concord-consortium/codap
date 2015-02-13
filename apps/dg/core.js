@@ -23,9 +23,9 @@
 sc_require('libraries/xapiwrapper');
 
 ADL.XAPIWrapper.changeConfig({
-    "endpoint" : "https://lrs.learninglocker.net/data/xAPI/",
-    "user" : "80bd56fba507e3cf887a369c92b90a5663ade7dd",
-    "password" : "75ce776b7bd5eef63b1f9931b8b32a26f0548f45",
+    "endpoint" : "http://learninglocker.local/data/xAPI/",
+    "user" : "3d32d7c3bc22e2fc2ed056a6a91458096bc3d5e6",
+    "password" : "46a05f9169aa3b84ff804ad1cf3745e78f2abf5f",
 });
 
 /**
@@ -320,10 +320,6 @@ DG = SC.Application.create((function () // closure
       'optionButton',
       'guideButton'
     ],
-
-    logServerUrl: 'http://cc-log-manager.herokuapp.com/api/logs',
-
-//    logServerUrl: 'http://localhost:3000/api/logs',
 
     /**
      More useful alternative to JavaScript built-in typeof operator.

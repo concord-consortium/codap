@@ -18,28 +18,8 @@
 
 sc_require('models/authorization_model');
 
-/* globals pako */
+/* globals pako, ADL*/
 sc_require('libraries/pako-deflate');
-
-/**
-  Logs the specified message, along with any additional properties, to the server.
-
-  @param    iLogMessage   {String}    The main message to log
-  @param    iProperties   {Object}    Additional properties to pass to the server,
-                                      e.g. { type: DG.Document }
-  @param    iMetaArgs     {Object}    Additional flags/properties to control the logging.
-                                      The only meta-arg currently supported is { force: true }
-                                      to force logging to occur even when logging is otherwise
-                                      disabled for a given user. This is used to guarantee that
-                                      login/logout events get logged even when other user actions
-                                      are not logged (e.g. for guest users). Clients using the
-                                      utility functions (e.g. DG.logUser()) can add an additional
-                                      argument, which must be a JavaScript object, and which will
-                                      be passed on to the logToServer function as the meta-args.
- */
-DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
-  DG.authorizationController.logToServer( iLogMessage, iProperties, iMetaArgs);
-};
 
 /** @class
 
@@ -614,80 +594,90 @@ return {
   },
 
   /**
-    Logs the specified message, along with any additional properties, to the server.
-
-    description and signature TODO
-
+    Logs a message to the xAPI endpoint.
    */
-  logToServer: function(event, iProperties, iMetaArgs) {
-    function extract(obj, prop) {
-      var p = obj[prop];
-      obj[prop] = undefined;
-      return p;
-    }
-    var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (!DG.documentServer && iMetaArgs && iMetaArgs.force),
-        nowTime = new Date().valueOf(),
-        eventValue,
-        parameters,
-        body,
-        request;
+  logToServer: function(messageType, messageContent, logString, controlArgs) {
 
-    if( !shouldLog) {
+    var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
+                      (!DG.documentServer && controlArgs && controlArgs.force);
+
+    if( ! shouldLog ) {
       // The logging path below indirectly triggers SproutCore notifications.
       // Calling SC.run() allows the same notifications to get triggered without the logging.
       SC.run();
       return;
     }
 
-    this.currLogin.incrementProperty('logIndex');
-
-    eventValue = extract(iProperties, 'args');
-
+    var messageContentAsObject;
     try {
-      parameters = JSON.parse(eventValue);
+      messageContentAsObject = JSON.parse(messageContent);
     } catch(e) {
-      parameters = {};
+      // noop
     }
 
-    // hack to deal with pgsql 'varying' type length limitation
+    // Going to put the xAPI statement generation inline for now
+    // TODO: extract into generic service, since we'll want to use more-semantic xAPI statements
+    // eventually.
 
-    if (eventValue && eventValue.length > 255) {
-      eventValue = eventValue.substr(0, 255);
-    }
+    // The xAPI Actor (the "Who") will be the (possibly anonymous) user. To disambiguate anonymous
+    // users, we'll reuse the exisiting sessionID property.
+    // FIXME: This is only reasonable for small-scale usage as it uses only a timestamp as the
+    // unique key. However, it's for analytics not user experience so collisions are not catastrophic.
 
-    body = {
-      activity:    extract(iProperties, 'activity') || 'Unknown',
-      application: extract(iProperties, 'application'),
-      username:    this.getPath('currLogin.user'),
-      session:     this.getPath('currLogin.sessionID'),
-      localTime:   nowTime.toString(),
-      event:       event,
-      event_value: eventValue,
-      parameters:  parameters
+    var userName = this.getPath('currLogin.user');
+    var uniqueAgentName = userName === 'guest' ? this.getPath('currLogin.sessionID') : userName;
+    var agent = new ADL.XAPIStatement.Agent({
+        account: {
+          homePage: "http://codap.concord.org/",
+          name: uniqueAgentName
+        }
+      }, userName);
+
+    // Verb (the "Did") is always "logged" for now. Eventually CODAP mayu be instrumented to provide
+    // richer semantics (eg more-descriptive verbs) that are more conformant with the xAPI mental model.
+    var verb = new ADL.XAPIStatement.Verb('codap:logged', 'logged');
+
+    // Activity (the "What") is the specific message type ("initGame", "createCase", etc)
+    var activity = new ADL.XAPIStatement.Activity('codap:'+encodeURIComponent(messageType), messageType);
+
+    var stmt = new ADL.XAPIStatement(agent, verb, activity);
+
+    // xAPI statements can include a result ("Who Did What, with what Result?") Include the additional
+    // information -- the part that comes after ':' in "initGame: <game name>" for example -- in the
+    // result
+    stmt.result = {
+      extensions: {
+        "codap:messageContent": messageContent
+      }
     };
 
-    if (DG.logServerUrl) {
-      request = this.urlForJSONPostRequests(DG.logServerUrl);
-      request.attachIdentifyingHeaders = NO;
-
-      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true.
-      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin
-      // to '*' (correctly, to accept logs from any domain).
-      // It is a security violation to send credentials (cookies, etc) to a server with a permissive ACAO header.
-      //
-      // When we update to Sproutcore >= 1.11, we will be able to replace the monkey patch below by
-      // setting the new allowCredentials property of SC.Request to false.
-
-      // save the monkey patch
-      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;
-      // undo the monkey patch
-      SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
-      // send the request, hopefully with <xhr object>.withCredentials == false
-      request.send(body);
-      // put the monkey patch back in place
-      SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
+    if (messageContentAsObject) {
+      stmt.result.extensions["codap:messageContentAsObject"] = messageContentAsObject;
     }
+
+    // We will always include the string that was logged to the console as context
+    // (even when we do more semantic logging)
+    stmt.context = {
+      extensions: {
+        "codap:logString": logString
+      },
+    };
+
+    // Identify the running CODAP interactive (name + url) as the parent "context activity"
+    // Note this modifies stmt.context, so don't overwrite stmt.context later
+    var gameUrl = DG.gameSelectionController.getPath('currentGame.url');
+    var gameName = DG.gameSelectionController.getPath('currentGame.name');
+    var parentActivity = new ADL.XAPIStatement.Activity("codap:"+encodeURIComponent(gameName), gameName);
+    parentActivity.definition.moreInfo = gameUrl;
+    stmt.addParentActivity(parentActivity);
+
+    stmt.generateId();
+    stmt.generateRegistration();
+
+    // Note: MUST include a callback here, otherwise XAPIWrapper tries to send the statement sync (eww)
+    ADL.XAPIWrapper.sendStatement(stmt, function() {
+      this.get('currLogin').incrementProperty('logIndex');
+    }.bind(this));
   },
 
   requireLogin : function() {
@@ -890,3 +880,22 @@ return {
   }
 
 }; })());
+
+
+/**
+  Takes a (partially-processed) log message (see DG.Debug._handleLogMessage), attempts to parse it,
+  and sends it as xAPI statements to a Learning Record Store
+
+  @param    messageType     {String}    The part of the preced
+  @param    messageContents {String}    Additional properties to pass to the server,
+  @param    iMetaArgs     {Object}    Additional flags/properties to control the logging.
+                                      The only meta-arg currently supported is { force: true }
+                                      to force logging to occur even when logging is otherwise
+                                      disabled for a given user. This is used to guarantee that
+                                      login/logout events get logged even when other user actions
+                                      are not logged (e.g. for guest users). Clients using the
+                                      utility functions (e.g. DG.logUser()) can add an additional
+                                      argument, which must be a JavaScript object, and which will
+                                      be passed on to the logToServer function as the meta-args.
+ */
+DG.logToServer = DG.authorizationController.logToServer.bind(DG.authorizationController);

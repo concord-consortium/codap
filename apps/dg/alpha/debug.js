@@ -302,16 +302,12 @@ DG.Debug = SC.Object.create( (function() {
       Private function used to decide when to log to the DG server.
       Analogous to SC.Logger._shouldOutputType and SC.Logger._shouldRecordType.
 
-      @param {String}  iType  The name of the type in question from among
+      @param {String}  type  The name of the type in question from among
                                 standard Sproutcore log types.
       @returns {Boolean}
     */
-    _shouldLogTypeToServer: function( iType) {
-      var logLevelMapping = SC.Logger._LOG_LEVEL_MAPPING,
-          level           = logLevelMapping[iType]                      || 0,
-          currentLevel    = logLevelMapping[this.get('logServerLevel')] || 0;
-
-      return (level <= currentLevel);
+    _shouldLogTypeToServer: function(type) {
+      return type === DG.LOGGER_LEVEL_USER;
     },
 
     /** @private
@@ -321,45 +317,45 @@ DG.Debug = SC.Object.create( (function() {
       automatically on the message, but only if at least one of the log levels
       is such that the result will be used.
 
-      @param {String}  iType         Expected to be SC.LOGGER_LEVEL_DEBUG, etc.
-      @param {Boolean} iAutoFormat   Whether or not to treat 'message' as a format string if there are additional arguments
-      @param {String}  iMessage      Expected to a string format (for String.fmt()) if there are other arguments
-      @param {Object}  iOriginalArgs (optional) All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
+      @param {String}  type         Expected to be SC.LOGGER_LEVEL_DEBUG, etc.
+      @param {Boolean} autoFormat   Whether or not to treat 'message' as a format string if there are additional arguments
+      @param {String}  message      Expected to a string format (for String.fmt()) if there are other arguments
+      @param {Object}  originalArgs (optional) All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
     */
-    _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
+    _handleLogMessage: function(type, autoFormat, message, originalArgs) {
 
       // Map DG-specific types to standard SC.Logger types
-      var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
+      var scType = (type === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : type);
 
-      // Let SC.Logger log the message normally
-      this._prevHandleLogMessage.call( SC.Logger, scType, iAutoFormat, iMessage, iOriginalArgs);
+      // Let SC.Logger log the message normally (but we intercept the output and store
+      // it in DG.Debug._currentMessage)
+      this._prevHandleLogMessage.call(SC.Logger, scType, autoFormat, message, originalArgs);
 
       // Log the message to the server as well, if appropriate
-      if( DG.Debug._shouldLogTypeToServer( scType)) {
-        try {
+      if( DG.Debug._shouldLogTypeToServer(type) ) {
+//        try {
           // Pass along any properties that were passed in the last argument as
-          // metaArgs
-          var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
-                  ? iOriginalArgs[ iOriginalArgs.length - 1]
-                  : undefined,
-              metaArgs = typeof lastArg === 'object' ? lastArg : {},
-              messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
-              activity = DG.gameSelectionController.get('currentGame'),
-              activityName = activity? activity.get('name') : undefined,
-              messageType = messageParts.shift(),
-              messageArgs = messageParts.join(':').trim();
+          // controlArgs (allow them to control how logging happens)
+          var lastArg = (originalArgs && originalArgs.length > 0)
+                  ? originalArgs[originalArgs.length - 1]
+                  : undefined;
+          var controlArgs = typeof lastArg === 'object' ? lastArg : {};
 
-          DG.logToServer( messageType, {
-                type: iType,
-                args: messageArgs,
-                activity: activityName,
-                application: 'CODAP'
-              }, metaArgs);
-        } catch(ex) {
-          if (console && console.log) {
-            console.log('Log to server failed: ' + ex);
-          }
-        }
+          // Loosely parse the actual string sent above to the console
+          var logString         = DG.Debug._currentMessage || "";
+          var logStringParts    = logString.match(/^([^:]+):?(.*)$/);
+          // "initGame", "createCase", etc:
+          var messageType       = logStringParts[1].trim();
+          // descriptive string with collection name + new case values, stringified JSON of
+          // parameter data from Lab interactive, etc:
+          var messageContents   = logStringParts[2].trim();
+
+          DG.logToServer(messageType, messageContents, logString, controlArgs);
+        // } catch(ex) {
+        //   if (console && console.log) {
+        //     console.log('Log to server failed: ' + ex);
+        //   }
+        // }
       }
 
     },
