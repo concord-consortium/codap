@@ -1075,3 +1075,12 @@ DG.GameController = DG.ComponentController.extend(
     }
 }) ;
 
+DG.doCommand = function( iCmd, callback)  {
+  var result, interactives = DG.currDocumentController().get('dataInteractives'),
+    myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
+  if (myController) {
+    SC.run( function() { result = myController.dispatchCommand( iCmd, callback); });
+  }
+  return result;
+};
+
