@@ -1075,6 +1075,19 @@ DG.GameController = DG.ComponentController.extend(
     }
 }) ;
 
+/**
+ * The entry point for synchronous invocation of the Data Interactive API.
+ * There is a problem of identification. The API implied a singular Data
+ * Interactive. The synchronous API is regarded as deprecated. So, we will
+ * respond to this API only if there is a single Data Interactive in the
+ * system.
+ *
+ * TODO: Consider modifying the API to support channel identification.
+ *
+ * @param iCmd
+ * @param callback
+ * @returns {*}
+ */
 DG.doCommand = function( iCmd, callback)  {
   var result, interactives = DG.currDocumentController().get('dataInteractives'),
     myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
