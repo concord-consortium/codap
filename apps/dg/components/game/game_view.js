@@ -118,6 +118,8 @@ DG.GameView = SC.WebView.extend(
       this.valueDidChange();
     }
     if (iframe && iframe.contentWindow) {
+      var contentWindow = iframe.contentWindow,
+        target = this.controller;
 
       // Allow the iframe to take over the entire screen (requested by InquirySpace)
       $(iframe ).attr('allowfullscreen', true)
@@ -181,6 +183,7 @@ DG.GameView = SC.WebView.extend(
       } catch (e) {
         // e should be a SecurityError but I haven't found documentation regarding how standard
         // that error type is.
+        console.error(e);
       }
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
