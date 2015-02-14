@@ -68,6 +68,8 @@ DG.GameController = DG.ComponentController.extend(
      */
     context: null,
 
+    doCommandFunc: null,
+
     /**
       Initialization method
      */
@@ -421,6 +423,9 @@ DG.GameController = DG.ComponentController.extend(
           width: iArgs.dimensions.width, height: iArgs.dimensions.height
         });
       }
+
+      this.set('doCommandFunc', iArgs.doCommandFunc);
+
       this.view.set('version',
         SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
       this.view.set('title',
