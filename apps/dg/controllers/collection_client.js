@@ -313,9 +313,13 @@ DG.CollectionClient = SC.Object.extend(
         if (!SC.none( iProperties.colormap)) {
           tAttribute.set('colormap', SC.clone( iProperties.colormap));
         }
+        // copy 'blockDisplayOfEmptyCategories' property
+        if (!SC.none( iProperties.blockDisplayOfEmptyCategories)) {
+          tAttribute.set('blockDisplayOfEmptyCategories', iProperties.blockDisplayOfEmptyCategories);
+        }
         // copy 'editable' property
         if (!SC.none( iProperties.editable)) {
-          tAttribute.set('colormap', iProperties.editable);
+          tAttribute.set('editable', iProperties.editable);
         }
         // Eventually we should copy all properties here.
       }

@@ -44,8 +44,8 @@ DG.splash = SC.Object.create({
           }).append();
       tSplash.contentView.becomeFirstResponder();
       this.invokeLater(function () {
-        tSplash && tSplash.close();
-      }, 4000)
+        if(tSplash) { tSplash.close(); }
+      }, 4000);
     }
   }
 
