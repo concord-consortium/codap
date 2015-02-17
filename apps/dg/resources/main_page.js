@@ -482,9 +482,8 @@ DG.mainPage.getComponentsOfType = function( aPrototype) {
   var docView = this.get('docView'),
       tComponentViews = docView && docView.get('childViews'),
       tDesiredViews = tComponentViews && tComponentViews.filter( function( aComponentView) {
-                        return (aComponentView instanceof DG.ComponentView) &&
-                                aComponentView.contentIsInstanceOf( aPrototype);
-                      });
+            return aComponentView.contentIsInstanceOf( aPrototype);
+          });
   return tDesiredViews ? tDesiredViews.getEach('contentView') : [];
 };
 
