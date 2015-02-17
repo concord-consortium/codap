@@ -28,24 +28,23 @@ DG.busyCursor = SC.Object.create({
         tCover = this.get('cover');
     if( !tCover) {
       tCover = SC.View.create( {
-        classNames: ['dg-busy-cover']
+        classNames: ['dg-busy-cover'],
+        isVisible: false
       });
       this.set('cover', tCover);
+      tMainPane.appendChild( tCover);
     }
-    tMainPane.appendChild( tCover);
+    tCover.set('isVisible', true);
     this.invokeNext(iFunction);
-    SC.Event.trigger(tCover.get('layer'), 'mousedown');
-    //SC.run(null, null, true); // to trigger iFunction even if no events occur
   },
 
   /**
    * Uncover so regular cursors can show
    */
   hide: function() {
-    var tMainPane = DG.getPath('mainPage.mainPane'),
-        tCover = this.get('cover');
-    if( tCover && (tCover.parentView === tMainPane))
-      tMainPane.removeChild( tCover);
+    var tCover = this.get('cover');
+    if( tCover)
+      tCover.set('isVisible', false);
   }
 
 });
