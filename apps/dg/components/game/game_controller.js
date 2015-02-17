@@ -345,24 +345,24 @@ DG.GameController = DG.ComponentController.extend(
         ]
       }
      */
-    handleInitGame: function (iArgs, callback) {
+    handleInitGame: function (iArgs, iCallback) {
       var finishInitGame = function () {
         // Once all the collections and attributes are created,
         // we're ready to play the game.
         this.set('gameIsReady', true);
 
         if ((iArgs.log === undefined) || iArgs.log)
-          DG.logUser("initGame: '%@', Collections: [%@]", currentGameName,
-            gameCollections.getEach('name').join(", "));
+          DG.logUser("initGame: '%@', Collections: [%@]", tCurrentGameName,
+            tGameCollections.getEach('name').join(", "));
         this.updateLayout();
-        if (callback) {
-          callback();
+        if (iCallback) {
+          iCallback();
         }
       }.bind(this);
 
       // Function for creating each collection and its required attributes
       function handleNewCollection(iCollectionArgs) {
-        var collectionProperties = {
+        var tCollectionProperties = {
           name: iCollectionArgs.name,
           labels: iCollectionArgs.labels,
           defaults: iCollectionArgs.defaults,
@@ -370,38 +370,39 @@ DG.GameController = DG.ComponentController.extend(
         };
 
         // Each collection is the child of the previous collection
-        if (gameCollections.length > 0) {
-          collectionProperties.parent
-            = gameCollections[gameCollections.length - 1].get('id');
+        if (tGameCollections.length > 0) {
+          tCollectionProperties.parent
+            = tGameCollections[tGameCollections.length - 1].get('id');
         }
         if (iCollectionArgs.collapseChildren)
-          collectionProperties.collapseChildren = true;
+          tCollectionProperties.collapseChildren = true;
 
         // Create/guarantee each collection and its required attributes
-        var collection = gameContext.guaranteeCollection(collectionProperties);
-        if (collection) {
-          gameCollections.push(collection);
+        var tCollection = tGameContext.guaranteeCollection(tCollectionProperties);
+        if (tCollection) {
+          tGameCollections.push(tCollection);
           iCollectionArgs.attrs.forEach(function (iAttrArgs) {
-            collection.guaranteeAttribute(iAttrArgs);
+            tCollection.guaranteeAttribute(iAttrArgs);
           });
         }
       }
 
       // The game-specified arguments form the core of the new DG.GameSpec.
-      var currentGameName = this.getPath('context.gameName'),
-        currentGameUrl = this.getPath('context.gameUrl') ||
+      var tCurrentGameName = this.getPath('context.gameName'),
+        tCurrentGameUrl = this.getPath('context.gameUrl') ||
           this.getPath('model.componentStorage.currentGameUrl'),
-        gameContext = this.get('context'),
-        gameCollections = [],
-        restoredGameState,
-        restoreCommand,
-        doAppCommandFunc;
+        tGameContext = this.get('context'),
+        tGameCollections = [],
+        tRestoredGameState,
+        tRestoreCommand,
+        tDoAppCommandFunc,
+        tGameElement;
 
-      if (SC.none(gameContext)) {
-        gameContext = DG.currDocumentController().createNewDataContext({
+      if (SC.none(tGameContext)) {
+        tGameContext = DG.currDocumentController().createNewDataContext({
           type: 'DG.GameContext'
         });
-        this.set('context', gameContext);
+        this.set('context', tGameContext);
       }
 
       // Ask for the context after we've copied the arguments/properties,
@@ -415,7 +416,7 @@ DG.GameController = DG.ComponentController.extend(
       }
 
       if (SC.empty(this.getPath('context.gameUrl'))) {
-        this.setPath('context.gameUrl', this.getPath('model.componentStorage.currentGameUrl'));
+        this.setPath('context.gameUrl', tCurrentGameUrl);
       }
 
       if (iArgs.dimensions) {
@@ -425,6 +426,7 @@ DG.GameController = DG.ComponentController.extend(
       }
 
       this.set('doCommandFunc', iArgs.doCommandFunc);
+      this.set('gameEmbedID', iArgs.gameEmbedID)
 
       this.view.set('version',
         SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
@@ -443,18 +445,22 @@ DG.GameController = DG.ComponentController.extend(
       // at this point, before we've signalled that the game is ready. This way,
       // clients that respond to 'gameIsReady' won't have a chance to query the
       // game until it has finished restoring its state.
-      restoredGameState = gameContext && gameContext.get('restoredGameState');
-      restoreCommand = {
-        operation: 'restoreState', args: {state: restoredGameState}
+      tRestoredGameState = tGameContext && tGameContext.get('restoredGameState');
+      tRestoreCommand = {
+        operation: 'restoreState', args: {state: tRestoredGameState}
       };
-      doAppCommandFunc = this.get('doCommandFunc');
+      tDoAppCommandFunc = this.get('doCommandFunc');
+      tGameElement = this.findCurrentGameElement( this.get('gameEmbedID'));
 
-      if (restoredGameState) {
-        if (doAppCommandFunc) {
+      if (tRestoredGameState) {
+        if (tDoAppCommandFunc) {
           // for javascript games we can call the games 'doCommandFunc' directly
-          doAppCommandFunc(restoreCommand);
+          tDoAppCommandFunc(tRestoreCommand);
+        } else if( tGameElement && tGameElement.doCommandFunc ) {
+          // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
+          tGameElement.doCommandFunc( SC.json.encode( tRestoreCommand ));
         } else if (this.get('isGamePhoneInUse')) {
-          this.gamePhone.call(restoreCommand, finishInitGame.bind(this));
+          this.gamePhone.call(tRestoreCommand, finishInitGame.bind(this));
           return;
         }
       }
@@ -469,6 +475,26 @@ DG.GameController = DG.ComponentController.extend(
     },
 
     /**
+     * Find the current game element in DG, by searching the DOM
+     *    Useful for callbacks to embedded flash .swf objects,
+     *    which have functions made available by AS3's ExternalInterface.addCallback()
+     * @param embeddedGameID the ID parameter of the game, e.g. set by ChainSaw.html for ChainSaw.swf
+     * @return {} null or an element of an iFrame that has the given html ID.
+     */
+    findCurrentGameElement: function( embeddedGameID ) {
+      // games are dynamically embedded objects in iFrames
+      var iFrames = document.getElementsByTagName("iframe"),
+        gameElement = null;
+      if( embeddedGameID ) {
+        var i,j; // find first iFrame with embedded element ID==embeddedGameID (expect 0 or 1 match)
+        for( i=0,j=iFrames.length; i<j && !gameElement; ++i ) {
+          gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+        }
+      }
+      return gameElement;
+    },
+
+    /**
       Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
       @param {String} iAction   Command being executed (e.g. 'openCase',
          'createCase')
@@ -477,14 +503,14 @@ DG.GameController = DG.ComponentController.extend(
      */
     doCreateCase: function( iAction, iArgs) {
       // TODO: Consolidate with doCreateCases() method below.
-      var gameContext = this.get('context'),
-          collection = gameContext.getCollectionByName( iArgs.collection),
+      var tGameContext = this.get('context'),
+          collection = tGameContext.getCollectionByName( iArgs.collection),
           caseProperties = {},
           ret = { success: false };
       if( !SC.none( iArgs.parent))
         caseProperties.parent = iArgs.parent;
 
-      if( !DG.assert( gameContext, 'Missing game Context'))
+      if( !DG.assert( tGameContext, 'Missing game Context'))
         return ret;
 
       var change = {
@@ -497,7 +523,7 @@ DG.GameController = DG.ComponentController.extend(
       else  // We don't assert, because the data context will default to the child collection.
         DG.logWarn("DG.GameController.doCreateCase: Can't find collection '%@'", iArgs.collection);
 
-      ret = gameContext.applyChange( change);
+      ret = tGameContext.applyChange( change);
 
       if( ret.success && ((iArgs.log === undefined) || iArgs.log))
         DG.logUser("%@: %@ [%@]", iAction, iArgs.collection, iArgs.values.join(", "));
@@ -512,14 +538,14 @@ DG.GameController = DG.ComponentController.extend(
       @returns {Object}         { success: {Boolean}, [caseID: {Number}] }
      */
     doCreateCases: function( iAction, iArgs) {
-      var gameContext = this.get('context'),
-          collection = gameContext.getCollectionByName( iArgs.collection),
+      var tGameContext = this.get('context'),
+          collection = tGameContext.getCollectionByName( iArgs.collection),
           caseProperties = {},
           ret = { success: false };
       if( !SC.none( iArgs.parent))
         caseProperties.parent = iArgs.parent;
 
-      if( !DG.assert( gameContext, 'Missing game context'))
+      if( !DG.assert( tGameContext, 'Missing game context'))
         return ret;
 
       var change = {
@@ -532,7 +558,7 @@ DG.GameController = DG.ComponentController.extend(
       else  // We don't assert, because the data context will default to the child collection.
         DG.logWarn("DG.GameController.doCreateCase: Can't find collection '%@'", iArgs.collection);
 
-      ret = gameContext.applyChange( change);
+      ret = tGameContext.applyChange( change);
 
       if( ret.success && ((iArgs.log === undefined) || iArgs.log))
         DG.logUser("%@: %@ %@ cases created", iAction, iArgs.collection, iArgs.values.length);
@@ -547,9 +573,9 @@ DG.GameController = DG.ComponentController.extend(
       @returns {Object}         { success: {Boolean} }
      */
     doUpdateCase: function( iAction, iArgs) {
-      var gameContext = this.get('context'),
-          collection = gameContext.getCollectionByName( iArgs.collection),
-          theCase = gameContext.getCaseByID( iArgs.caseID),
+      var tGameContext = this.get('context'),
+          collection = tGameContext.getCollectionByName( iArgs.collection),
+          theCase = tGameContext.getCaseByID( iArgs.caseID),
           ret = { success: false };
       if( collection && theCase && iArgs.values) {
         var change = {
@@ -558,7 +584,7 @@ DG.GameController = DG.ComponentController.extend(
               cases: [ theCase ],
               values: [ iArgs.values ]
             };
-        gameContext.applyChange( change);
+        tGameContext.applyChange( change);
         ret.success = true;
       }
       if( (iArgs.log === undefined) || iArgs.log) {
@@ -725,21 +751,21 @@ DG.GameController = DG.ComponentController.extend(
       @returns {Object}     { success: {Boolean}, collectionID: {Number} }
      */
     handleCreateCollection: function( iArgs) {
-      var gameContext = this.get('context'),
+      var tGameContext = this.get('context'),
           tCollectionProperties = { name: iArgs.name,
                                     caseName: iArgs.caseName,
                                     collapseChildren: iArgs.collapseChildren,
                                     areParentChildLinksConfigured: true },
-          tGameCollections = gameContext.get('collections');
+          tGameCollections = tGameContext.get('collections');
       if( tGameCollections && tGameCollections.length > 1) {
         var tParentCollectionSpec = tGameCollections[ tGameCollections.length - 2],
-            tParentCollection = tParentCollectionSpec && gameContext && gameContext.getCollectionByName( tParentCollectionSpec.name);
+            tParentCollection = tParentCollectionSpec && tGameContext && tGameContext.getCollectionByName( tParentCollectionSpec.name);
         if( tParentCollection)
           tCollectionProperties.parent = tParentCollection.get('id');
       }
 
-      var tResult = gameContext &&
-                    gameContext.applyChange({
+      var tResult = tGameContext &&
+                    tGameContext.applyChange({
                       operation: 'createCollection',
                       properties: tCollectionProperties,
                       attributes: iArgs.attrs
@@ -788,9 +814,9 @@ DG.GameController = DG.ComponentController.extend(
     handleRequestAttributeValues: function( iArgs) {
 
       // get the case from the requested collection
-      var gameContext = this.get('context'),
-          collection = gameContext.getCollectionByName( iArgs.collection),
-          theCase = gameContext.getCaseByID(iArgs.caseID),
+      var tGameContext = this.get('context'),
+          collection = tGameContext.getCollectionByName( iArgs.collection),
+          theCase = tGameContext.getCaseByID(iArgs.caseID),
           ret = { success: false, values: [] };
 
       if( collection && theCase && iArgs.attributeNames) {
@@ -824,8 +850,8 @@ DG.GameController = DG.ComponentController.extend(
     {
       DG.logUser("newCollectionCreated: %@ [%@]", iCollectionName, iAttributeNames.join(', '));
 
-      var gameContext = this.get('context'),
-          aCollection = gameContext && gameContext.guaranteeCollection( {
+      var tGameContext = this.get('context'),
+          aCollection = tGameContext && tGameContext.guaranteeCollection( {
               name: iCollectionName });
       if (aCollection) {
         iAttributeNames.forEach( function( iAttributeName) {
@@ -877,14 +903,14 @@ DG.GameController = DG.ComponentController.extend(
     {
       var this_ = this,
           context = this.get('context'),
-          currentGameName = this.getPath('context.currentName'),
+          tCurrentGameName = this.getPath('context.currentName'),
           parentCollectionName = context && context.get('parentCollectionName'),
           parentCollection = context.get('parentCollection');
 
       this.queuedCases.forEach( function( anItem) {
         var iCollectionName = anItem.collectionName,
             iValues = anItem.values,
-            collectionClient = DG.gameCollectionWithName( currentGameName, iCollectionName),
+            collectionClient = DG.gameCollectionWithName( tCurrentGameName, iCollectionName),
             attrIDs = collectionClient && collectionClient.getAttributeIDs(),
             attrCount = attrIDs ? attrIDs.length : 0;
 
@@ -896,14 +922,14 @@ DG.GameController = DG.ComponentController.extend(
         var isParentCollection = (iCollectionName === parentCollectionName);
 
         // If we've switched games, close the open case from the previous game
-        if (currentGameName !== this_._openGameName)
+        if (tCurrentGameName !== this_._openGameName)
           this_.closeParentCases();
 
         // First child case for a given parent must "open" the parent case
         if (!isParentCollection && !SC.none( parentCollection) &&
             SC.none( this_._openParentCases[ iCollectionName])) {
           var parentCase = parentCollection.createCase();
-          this_.openParentCase( currentGameName, iCollectionName, parentCollectionName, parentCase);
+          this_.openParentCase( tCurrentGameName, iCollectionName, parentCollectionName, parentCase);
         }
 
         var newCase = null;
@@ -1090,14 +1116,14 @@ DG.GameController = DG.ComponentController.extend(
  * TODO: Consider modifying the API to support channel identification.
  *
  * @param iCmd
- * @param callback
+ * @param iCallback
  * @returns {*}
  */
-DG.doCommand = function( iCmd, callback)  {
+DG.doCommand = function( iCmd, iCallback)  {
   var result, interactives = DG.currDocumentController().get('dataInteractives'),
     myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
   if (myController) {
-    SC.run( function() { result = myController.dispatchCommand( iCmd, callback); });
+    SC.run( function() { result = myController.dispatchCommand( iCmd, iCallback); });
   }
   return result;
 };
