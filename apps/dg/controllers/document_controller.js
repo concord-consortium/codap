@@ -222,6 +222,7 @@ DG.DocumentController = SC.Object.extend(
     this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
+    this.set('externalDocumentId', null);
     this.set('ready', true);
   },
 
