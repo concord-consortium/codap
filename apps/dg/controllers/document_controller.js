@@ -876,9 +876,9 @@ DG.DocumentController = SC.Object.extend(
     Signature of `callback`:
     @param  {Object} docArchive an object representing the document suitable for JSON-conversion
   */
-  exportDocument: function(callback) {
+  exportDocument: function(callback, fullData) {
     var archiver = DG.DocumentArchiver.create({});
-    archiver.saveDocument( this.get('content'), callback);
+    archiver.saveDocument( this.get('content'), callback, fullData);
   },
 
   exportDataContexts: function(callback, exportAll) {

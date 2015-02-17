@@ -81,7 +81,7 @@ DG.Document = DG.BaseModel.extend(
       this.set('appBuildNum', DG.BUILD_NUM);
     },
 
-    toArchive: function() {
+    toArchive: function(fullData) {
       var obj = {
           name: this.name,
           guid: this.id,
@@ -99,7 +99,7 @@ DG.Document = DG.BaseModel.extend(
         obj.components.push(this.components[componentKey].toArchive());
       }.bind(this));
       DG.ObjectMap.forEach(this.contexts, function (contextKey) {
-        obj.contexts.push(this.contexts[contextKey].toArchive());
+        obj.contexts.push(this.contexts[contextKey].toArchive(fullData));
       }.bind(this));
 
       return obj;

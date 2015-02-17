@@ -937,7 +937,7 @@ DG.appController = SC.Object.create((function () // closure
             });
           }
         }
-      });
+      }, true);
     },
 
     /**
