@@ -1,8 +1,8 @@
 // ==========================================================================
 //                              DG.Debug
-// 
+//
 //  Debugging utilities for use in the DG application.
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -48,60 +48,60 @@ DG.debugLaunchDebugger = function() {
 
   DG.Debug provides debugging utilities for use during development.
   These debugging utilities are synchronized with the SproutCore facilities.
-  
+
   (1) Expanded logging support (enhances SC.Logger)
       -- Log messages can be logged to the DG server via DG.logToServer().
       -- Addition of the DG.LOGGER_LEVEL_USER for logging of user actions
-      
+
       Clients control the level of server logging via the 'logServerLevel'
       property of DG.Debug. Clients should use the global convenience
       functions for their logging needs:
         DG.log(), DG.logRaw(), DG.logGroupBegin(), DG.logGroupEnd()
         DG.logInfo(), DG.logInfoRaw(), DG.logUser(), DG.logUserRaw(),
         DG.logWarn(), DG.logWarnRaw(), DG.logError(), DG.logErrorRaw()
-      
+
       Note that the "standard" functions support printf-style formatting
       to simplify formatting of log strings. See SC.Logger for details.
       The "raw" functions skip the printf-style formatting for clients
       that would prefer to do the formatting themselves.
-  
+
   (2) Assert functions
-      
+
       Assert functions test a condition and put up an alert if it fails.
       As currently configured, the alert provides "Reload" and "Ignore"
       buttons and for developer builds (i.e. when running from sc-server
       during development), a "Debugger" button which drops into the debugger.
-      
+
       In addition, for developer builds (i.e. when running from sc-server),
       the assert functions will drop into the debugger at a point at which
       the stack is meaningful, as it will contain the function which called
       the assert function.
-      
+
       The following functions are defined at this point:
-      
+
       DG.assert( iCondition, iMessage, iDescription)
       DG.check( iObject, iMessage, iDescription)
         -- Equivalent to assert( !SC.none( iObject))
-      
+
       The assert functions as they exist now are designed to return the
       condition being tested. Thus, it is possible to handle the failure
       as well as being notified about it, e.g.
-      
+
         if( DG.check( iObject))
           iObject.doSomething();
-      
+
       Thus, even if the alert and dropping into the debugger features
       of the assert functions are eliminated in a production build, clients
       may still use the assertion functions to bypass code that would
       otherwise fail
-      
+
       Note that currently the assert function will bring up the assertion
       failure dialog in production builds as well as during development.
       If we decide at some point that this is not what we want, at least
       there will be a single place in which to make the change.
-      
+
   (3) Unhandled exception handling
-  
+
       The SproutCore White Screen of Death (WSOD) is the built-in SproutCore
       handler of last resort for otherwise unhandled exceptions. We intercept
       this mechanism to log it (using DG.logError()) and to stop in the debugger
@@ -119,10 +119,10 @@ SC.Logger.logOutputLevel = SC.LOGGER_LEVEL_DEBUG;
 // @endif
 
 DG.Debug = SC.Object.create( (function() {
-/** @scope DG.GlobalsController.prototype */ 
+/** @scope DG.GlobalsController.prototype */
 
   return {
-  
+
     /**
       Controls the logging level to the DG server.
       Analogous to SC.Logger.logOutputLevel and SC.Logger.logRecordingLevel.
@@ -130,13 +130,13 @@ DG.Debug = SC.Object.create( (function() {
       @property: {Constant}
      */
     logServerLevel: SC.LOGGER_LEVEL_INFO,
-    
+
     /**
       Previous message logging function
       Called from our intervening message log handler.
     */
     _prevHandleLogMessage: null,
-    
+
     /**
       Previous exception handler
       Called from our intervening exception handler.
@@ -145,14 +145,14 @@ DG.Debug = SC.Object.create( (function() {
 
     /** the time in milliseconds when init() or logDebugTimer(true) was last called. */
     _debugStartTime: 0,
-    
+
     /**
       Install our overrides/interventions.
     */
     init: function() {
 
       this._debugStartTime = Date.now(); // record current time in milliseconds "since the epoch"
-    
+
       // Install our message-logging intervention
       this._prevHandleLogMessage = SC.Logger._handleMessage;
       SC.Logger._handleMessage = this._prevHandleLogMessage;
@@ -161,7 +161,7 @@ DG.Debug = SC.Object.create( (function() {
       this._prevExceptionHandler = SC.ExceptionHandler.handleException;
       SC.ExceptionHandler.handleException = this._prevExceptionHandler;
     },
-    
+
     /**
       Issue a log warning if the specified value is not finite (NaN, infinite, etc.)
      */
@@ -169,7 +169,7 @@ DG.Debug = SC.Object.create( (function() {
       if( !isFinite( iValue))
         this.logWarn("DG.Debug.logIfNotFinite: String: %@, Value: %@", iOptString, iValue);
     },
-  
+
     /**
       DG.Debug logging methods.
       Clients will generally use the global convenience functions defined later.
@@ -206,35 +206,35 @@ DG.Debug = SC.Object.create( (function() {
     logInfo: function( iMessage, iOptFormatArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_INFO, YES, iMessage, arguments);
     },
-    
+
     logInfoRaw: function( iRawArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_INFO, NO, null, arguments);
     },
-    
+
     logUser: function( iMessage, iOptFormatArgs) {
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, arguments);
     },
-    
+
     logUserRaw: function( iRawArgs) {
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, NO, null, arguments);
     },
-    
+
     logWarn: function( iMessage, iOptFormatArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_WARN, YES, iMessage, arguments);
     },
-    
+
     logWarnRaw: function( iRawArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_WARN, NO, null, arguments);
     },
-    
+
     logError: function( iMessage, iOptFormatArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_ERROR, YES, iMessage, arguments);
     },
-    
+
     logErrorRaw: function( iRawArgs) {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_ERROR, NO, null, arguments);
     },
-    
+
     /**
       Asserts that its condition is true.
       Puts up an alert message when its condition is not true, and
@@ -284,7 +284,7 @@ DG.Debug = SC.Object.create( (function() {
       //   myObj.doSomething();
       return iCondition;
     },
-    
+
     /**
       Asserts that the specified object is defined and non-null.
       Equivalent to DG.assert( !SC.none( iObject, iMessage, iDescription))
@@ -297,7 +297,7 @@ DG.Debug = SC.Object.create( (function() {
     check: function( iObject, iMessage, iDescription) {
       return this.assert( !SC.none( iObject), iMessage, iDescription);
     },
-    
+
     /** @private
       Private function used to decide when to log to the DG server.
       Analogous to SC.Logger._shouldOutputType and SC.Logger._shouldRecordType.
@@ -310,30 +310,30 @@ DG.Debug = SC.Object.create( (function() {
       var logLevelMapping = SC.Logger._LOG_LEVEL_MAPPING,
           level           = logLevelMapping[iType]                      || 0,
           currentLevel    = logLevelMapping[this.get('logServerLevel')] || 0;
-  
+
       return (level <= currentLevel);
     },
-    
+
     /** @private
       Outputs to the console and/or records the specified message and/or
       logs it to the DG server if the respective current log levels allows for it.
       Assuming 'automaticallyFormat' is specified, then String.fmt() will be called
       automatically on the message, but only if at least one of the log levels
       is such that the result will be used.
-  
+
       @param {String}  iType         Expected to be SC.LOGGER_LEVEL_DEBUG, etc.
       @param {Boolean} iAutoFormat   Whether or not to treat 'message' as a format string if there are additional arguments
       @param {String}  iMessage      Expected to a string format (for String.fmt()) if there are other arguments
       @param {Object}  iOriginalArgs (optional) All arguments passed into debug(), etc. (which includes 'message'; for efficiency, we don’t copy it)
     */
     _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
-    
+
       // Map DG-specific types to standard SC.Logger types
       var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
-      
+
       // Let SC.Logger log the message normally
       this._prevHandleLogMessage.call( SC.Logger, scType, iAutoFormat, iMessage, iOriginalArgs);
-      
+
       // Log the message to the server as well, if appropriate
       if( DG.Debug._shouldLogTypeToServer( scType)) {
         try {
@@ -370,14 +370,14 @@ DG.Debug = SC.Object.create( (function() {
     */
     _handleException: function( iException) {
       var shouldCallSystemHandler = !SC.none( this._prevExceptionHandler);
-      
+
       DG.Debug.logErrorRaw( "Exception: " + iException.message);
-      
+
       //@if(debug)
         /* jslint evil:true */
         eval('debugger');
       //@endif
-    
+
       if( shouldCallSystemHandler)
         this._prevExceptionHandler.call( SC.ExceptionHandler, iException);
     }
