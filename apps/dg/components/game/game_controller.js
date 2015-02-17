@@ -68,7 +68,25 @@ DG.GameController = DG.ComponentController.extend(
      */
     context: null,
 
+    /**
+     * Method for synchronous Data Interactive communication with a
+     * data interactive (deprecated). Set by initGame.
+     * This method is used for CODAP to initiate requests to
+     * the Data Interactive.
+     *
+     * @property {Function}
+     */
     doCommandFunc: null,
+
+    /**
+     * Name used for synchronous Data Interactive communication with a
+     * Flash-based data interactive (deprecated). Set by initGame.
+     * This name is used to identify an element with which to initiate requests to
+     * the Data Interactive.
+     *
+     * @property {String}
+     */
+    gameEmbedID: null,
 
     /**
       Initialization method
