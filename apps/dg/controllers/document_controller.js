@@ -1261,6 +1261,7 @@ DG.DocumentController = SC.Object.extend(
           var gameContext = gameController.get('context'),
             doAppCommandFunc = gameController.get('doCommandFunc'),
             saveCommand = { operation: "saveState" },
+            tGameElement = gameController.findCurrentGameElement( gameController.get('gameEmbedID')),
             result;
           // create an array of promises, one for each data interactive.
           // issue the request in the promise.
@@ -1269,12 +1270,25 @@ DG.DocumentController = SC.Object.extend(
               if( gameContext) {
                 if( doAppCommandFunc ) {
                   // for JavaScript games we can call directly with Objects as arguments
-                  result = doAppCommandFunc( saveCommand);
-                  if( result && result.success) {
+                  result = doAppCommandFunc(saveCommand);
+                  if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
                     resolve(result);
                   } else {
-                    reject(result);
+                    reject(new Error(gameContext.get('gameName') + ": " +
+                    result));
+                  }
+                } else if (tGameElement && tGameElement.doCommandFunc ) {
+                  result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
+                  if (typeof result === 'string') {
+                    result = JSON.parse(result);
+                  }
+                  if (result && result.success) {
+                    gameContext.set('savedGameState', result.state);
+                    resolve(result);
+                  } else {
+                    reject(new Error(gameContext.get('gameName') + ": " +
+                    result));
                   }
                 } else if (gameController.get('isGamePhoneInUse')) {
                   // async path
@@ -1283,14 +1297,18 @@ DG.DocumentController = SC.Object.extend(
                       gameContext.set('savedGameState', result.state);
                       resolve(result);
                     } else {
-                      reject(result);
+                      reject(new Error(gameContext.get('gameName') +
+                        ": " + result));
                     }
                   });
+                } else {
+                  reject(new Error("No channel to Data Interactive: " +
+                  gameContext.get('gameName')));
                 }
               }
             } catch (ex) {
               DG.logWarn("Exception saving game context: " + ex);
-              reject(ex);
+              reject(new Error(gameContext.get('gameName') + ':' + ex));
             }
           }));
         });
@@ -1298,7 +1316,7 @@ DG.DocumentController = SC.Object.extend(
         Promise.all(promises).then(function (value) {
             DG.logInfo('saveCurrentGameState complete.');
             done();
-          }, function (reason) {
+          }).catch(function (reason) {
             DG.logWarn('saveCurrentGameState failed: ' + reason)
         });
       }
