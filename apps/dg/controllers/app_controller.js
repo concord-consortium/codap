@@ -114,7 +114,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true, 
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
             target: this, 
-            action: 'closeDocumentWithConfirmation' },
+            action: 'closeCurrentDocument' },
           { 
             isSeparator: YES },
           { 
@@ -708,6 +708,18 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Closes the current document with confirmation.
+     *
+     * We interpose this between the menu item and closeDocumentWithConfirmation
+     * to correct the argument.
+     *
+     * @param {SC.Menu} sender: unused by the function.
+     */
+    closeCurrentDocument: function (sender) {
+      this.closeDocumentWithConfirmation(null);
+    },
+
+    /**
      Closes the document after confirming with the user that that is desired.
      */
     closeDocumentWithConfirmation: function (iDefaultGameName) {
@@ -756,10 +768,13 @@ DG.appController = SC.Object.create((function () // closure
       // Create a new empty document
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
 
-      // New documents generally start with a default game
-      // TODO: Eliminate redundancy with DG.authorizationController....
-      DG.gameSelectionController.setDefaultGame(iDefaultGameName);
-      DG.mainPage.addGameIfNotPresent();
+      /**
+       * If we are still in the GamesMenu world, we need to find the new game.
+       */
+      if (!SC.none(iDefaultGameName)){
+        DG.gameSelectionController.setDefaultGame(iDefaultGameName);
+        DG.mainPage.addGameIfNotPresent();
+      }
     },
 
     /**
