@@ -173,13 +173,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     selectAll: function( iSelect) {
       var tSelect = SC.none( iSelect) ? true : !!iSelect,
           tCases = tSelect ? this.get('cases') : null,  // null means all cases, even hidden ones
+          tContext = this.get('dataContext'),
           tChange = {
             operation: 'selectCases',
             collection: this.get('collectionClient'),
             cases: tCases,
             select: tSelect
           };
-      this.get('dataContext').applyChange( tChange);
+      if (tContext) {
+        tContext.applyChange( tChange);
+      }
       DG.logUser( iSelect ? "selectAll" : "deselectAll");
     },
 
