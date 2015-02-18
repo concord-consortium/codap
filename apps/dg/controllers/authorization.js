@@ -684,10 +684,16 @@ return {
       var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;
       // undo the monkey patch
       SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
+
+      this.invokeLater(function() {
+        // Put the monkey patch back in place later.
+        // By doing this in an invoke later, we don't accidentally break document server saving
+        // if the log request fails (mixed-content blocking or another error).
+        SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
+      });
+
       // send the request, hopefully with <xhr object>.withCredentials == false
       request.send(body);
-      // put the monkey patch back in place
-      SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
     }
   },
 
