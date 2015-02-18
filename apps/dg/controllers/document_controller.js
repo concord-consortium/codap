@@ -1011,11 +1011,15 @@ DG.DocumentController = SC.Object.extend(
     } else {
       var newDocId = body.id;
       if (isCopy) {
-        var win = window.open(DG.appController.copyLink(newDocId), '_blank');
+        var url = DG.appController.copyLink(newDocId);
+        if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+          url = $.param.querystring(url, {runAsGuest: 'true'});
+        }
+        var win = window.open(url, '_blank');
         if (win) {
           win.focus();
         } else {
-          DG.appController.showCopyLink(newDocId);
+          DG.appController.showCopyLink(url);
         }
       } else {
         this.set('externalDocumentId', ''+newDocId);

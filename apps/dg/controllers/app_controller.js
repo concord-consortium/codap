@@ -1053,8 +1053,7 @@ DG.appController = SC.Object.create((function () // closure
       return this.copyLink(currDocId);
     }.property(),
 
-    showCopyLink: function(newDocId) {
-      var destination = this.copyLink(newDocId);
+    showCopyLink: function(destination) {
       var sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
         contentView: SC.View.extend({
