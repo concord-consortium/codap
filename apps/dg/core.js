@@ -276,9 +276,16 @@ DG = SC.Application.create((function () // closure
     /**
      * documentServer can be passed as a Url parameter named documentServer. It is the server from which DG will use to open/save
      * documents. It should be formatted as a full url, to which 'document/*' will be appended.
-     * ex: 'http://docs.example.com/'
+     * A trailing slash (/) will be appended if it is omitted.
+     * ex: 'http://docs.example.com/', 'https://www.example.com/docserver/'
      */
-    documentServer: getUrlParameter('documentServer') || '',
+    documentServer: (function() {
+      var docServer = getUrlParameter('documentServer') || '';
+      if (docServer.length > 0 && SC.none(docServer.match(/\/$/))) {
+        docServer += '/';
+      }
+      return docServer;
+    })(),
 
     /**
      * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
