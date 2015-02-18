@@ -627,7 +627,7 @@ return {
     }
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
                     (!DG.documentServer && iMetaArgs && iMetaArgs.force),
-        nowTime = new Date().valueOf(),
+        time = new Date(),
         eventValue,
         parameters,
         body,
@@ -661,7 +661,8 @@ return {
       application: extract(iProperties, 'application'),
       username:    this.getPath('currLogin.user'),
       session:     this.getPath('currLogin.sessionID'),
-      localTime:   nowTime.toString(),
+      // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
+      time:        time.getTime(),
       event:       event,
       event_value: eventValue,
       parameters:  parameters
