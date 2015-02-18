@@ -120,16 +120,7 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: kInfobarHeight, height: kToolbarHeight },
-      childViews: 'resetButton logoutButton'.w(),
-
-      resetButton: SC.ButtonView.design({
-        layout: { centerY:0, height:24, left:0, width:100 },
-        localize: true,
-        title: 'DG.AppController.resetData.title', // "Reset Data..."
-        target: 'DG.appController',
-        action: 'deleteAllCaseData',
-        toolTip: 'DG.AppController.resetData.toolTip' // "Delete all data from completed games"
-      }),
+      childViews: 'logoutButton'.w(),
 
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
@@ -173,7 +164,6 @@ DG.mainPage = SC.Page.design((function() {
         DG.currDocumentController().set('guideButton', this.guideButton);
         // move existing buttons, left-justified after tool buttons
         tLeft += kSpacer; // extra space to right of gear
-        tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
       }
       
@@ -374,7 +364,7 @@ DG.mainPage = SC.Page.design((function() {
      * DG.mainPage methods
      */
 
-    docView: SC.outlet('mainPane.scrollView.contentView'),
+    docView: SC.outlet('mainPane.scrollView.contentView')
 
 
   } // end compatible browser mainPage design
