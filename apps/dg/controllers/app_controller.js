@@ -1096,16 +1096,7 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     copyLink: function(newDocId) {
-      var currLoc = '' + window.location,
-          parts = currLoc.split('?'),
-          currQuery = DG.queryString.parse(parts[1] ? parts[1] : ''),
-        newLoc;
-
-      currQuery.recordid = encodeURIComponent(newDocId);
-
-      newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
-
-      return newLoc;
+      return $.param.querystring(window.location.href, {recordid: newDocId} );
     }.property(),
 
     /**
