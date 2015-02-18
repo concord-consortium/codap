@@ -1242,6 +1242,34 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     Update the url in the browser bar to reflect the latest document information
+     */
+    updateUrlBar: function() {
+      if (DG.authorizationController.getPath('currLogin.status') === 0) {
+        // we haven't logged in yet, so leave the url alone
+        return;
+      }
+      var currentParams = $.deparam.querystring(),
+          recordid = DG.currDocumentController().get('externalDocumentId'),
+          docName = DG.currDocumentController().get('documentName'),
+          currUser = DG.authorizationController.getPath('currLogin.user');
+      delete currentParams.runAsGuest;
+      if (!SC.none(recordid)) {
+        delete currentParams.doc;
+        delete currentParams.owner;
+        currentParams.recordid = recordid;
+      } else {
+        delete currentParams.recordid;
+        if (currUser !== 'guest') {
+          currentParams.owner = currUser;
+        }
+        currentParams.doc = docName;
+      }
+      var newUrl = $.param.querystring(window.location.href, currentParams, 2); // Completely replace the current query string
+      window.history.replaceState("codap", docName + " - CODAP", newUrl);
+    }.observes('DG.authorizationController.currLogin.user', 'DG._currDocumentController.documentName', 'DG._currDocumentController.externalDocumentId'),
+
+    /**
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
