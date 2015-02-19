@@ -233,6 +233,7 @@ DG.Attribute = DG.BaseModel.extend(
         defaultMax: this.defaultMax,
         description: this.description,
         colormap: this.colormap || undefined,
+        blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
         editable: this.formula? this.editable: undefined,
         formula: this.formula? this.formula: undefined,
         guid: this.id,

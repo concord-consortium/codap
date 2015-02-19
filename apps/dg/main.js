@@ -50,6 +50,8 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').append();
 
+  DG.splash.showSplash();
+
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
     if (DG.documentServer) {
       DG.authorizationController.requireLogin();

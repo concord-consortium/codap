@@ -14,8 +14,18 @@
  *  limitations under the License.
  */
 
+.dg-splash {
+    background-color: white !important;
+}
+
 .dg-receive-outside-drop {
     border: 3px solid yellow !important;
+}
+
+.dg-busy-cover {
+    cursor: wait;
+    background-color: rgba(255, 255, 255, 0.01) !important;
+    z-index: 100;
 }
 
 /* Default font for case tables */

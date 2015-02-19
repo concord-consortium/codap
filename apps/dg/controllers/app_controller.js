@@ -237,7 +237,9 @@ DG.appController = SC.Object.create((function () // closure
       this.openSaveDialog = null;
 
       var openDocumentAfterConfirmation = function () {
-        DG.authorizationController.openDocument(docID, this);
+        DG.busyCursor.show( function() {
+          DG.authorizationController.openDocument(docID, this);
+        }.bind(this));
         DG.logUser("openDocument: '%@'", docName);
       }.bind(this);
 
@@ -335,6 +337,7 @@ DG.appController = SC.Object.create((function () // closure
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
       }
+      DG.busyCursor.hide();
       if (shouldShowAlert) {
         // Should handle errors here -- alert the user, etc.
         DG.AlertPane.error({
@@ -449,17 +452,18 @@ DG.appController = SC.Object.create((function () // closure
                 {width: 600, height: 400});
           }.bind(this);
 
+      embedInteractive();
 
-      DG.AlertPane.plain({
-        message: 'DG.AppController.dropURLDialog.message',
-        description: 'DG.AppController.dropURLDialog.description',
-        buttons: [
-          {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
-        ],
-        localize: YES
-      });
+      //DG.AlertPane.plain({
+      //  message: 'DG.AppController.dropURLDialog.message',
+      //  description: 'DG.AppController.dropURLDialog.description',
+      //  buttons: [
+      //    {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
+      //    {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
+      //  ],
+      //  localize: YES
+      //});
 
       return true;
     },
@@ -486,7 +490,7 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')) {
+      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName') && !SC.none(DG.currDocumentController().get('externalId'))) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }
@@ -827,19 +831,21 @@ DG.appController = SC.Object.create((function () // closure
           catch (er) {
             console.log(er);
             if (iDialog) {
-              iDialog.showAlert();
+              iDialog.showAlert( er);
             }
           }
+          DG.busyCursor.hide();
         }
-
-        var reader = new FileReader();
         var that = this;
-        if (iFile) {
-          reader.onabort = handleAbnormal;
-          reader.onerror = handleAbnormal;
-          reader.onload = handleRead;
-          reader.readAsText(iFile);
-        }
+        DG.busyCursor.show( function() {
+          var reader = new FileReader();
+          if (iFile) {
+            reader.onabort = handleAbnormal;
+            reader.onerror = handleAbnormal;
+            reader.onload = handleRead;
+            reader.readAsText(iFile);
+          }
+        });
       }.bind( this);
 
       var cancelCloseDocument = function () {
@@ -866,7 +872,9 @@ DG.appController = SC.Object.create((function () // closure
         });
       }
       else {
-        importFile();
+        DG.busyCursor.show(function() {
+          importFile();
+        });
       }
       if( iDialog)
         iDialog.close();
@@ -929,7 +937,7 @@ DG.appController = SC.Object.create((function () // closure
             });
           }
         }
-      });
+      }, true);
     },
 
     /**
@@ -1045,8 +1053,7 @@ DG.appController = SC.Object.create((function () // closure
       return this.copyLink(currDocId);
     }.property(),
 
-    showCopyLink: function(newDocId) {
-      var destination = this.copyLink(newDocId);
+    showCopyLink: function(destination) {
       var sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
         contentView: SC.View.extend({
@@ -1088,16 +1095,7 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     copyLink: function(newDocId) {
-      var currLoc = '' + window.location,
-          parts = currLoc.split('?'),
-          currQuery = DG.queryString.parse(parts[1] ? parts[1] : ''),
-        newLoc;
-
-      currQuery.recordid = encodeURIComponent(newDocId);
-
-      newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
-
-      return newLoc;
+      return $.param.querystring(window.location.href, {recordid: newDocId} );
     }.property(),
 
     /**
@@ -1241,6 +1239,34 @@ DG.appController = SC.Object.create((function () // closure
         { centerX: 0, centerY: 0, width: 600, height: 400 });
 
     },
+
+    /**
+     Update the url in the browser bar to reflect the latest document information
+     */
+    updateUrlBar: function() {
+      if (DG.authorizationController.getPath('currLogin.status') === 0) {
+        // we haven't logged in yet, so leave the url alone
+        return;
+      }
+      var currentParams = $.deparam.querystring(),
+          recordid = DG.currDocumentController().get('externalDocumentId'),
+          docName = DG.currDocumentController().get('documentName'),
+          currUser = DG.authorizationController.getPath('currLogin.user');
+      delete currentParams.runAsGuest;
+      if (!SC.none(recordid)) {
+        delete currentParams.doc;
+        delete currentParams.owner;
+        currentParams.recordid = recordid;
+      } else {
+        delete currentParams.recordid;
+        if (currUser !== 'guest') {
+          currentParams.owner = currUser;
+        }
+        currentParams.doc = docName;
+      }
+      var newUrl = $.param.querystring(window.location.href, currentParams, 2); // Completely replace the current query string
+      window.history.replaceState("codap", docName + " - CODAP", newUrl);
+    }.observes('DG.authorizationController.currLogin.user', 'DG._currDocumentController.documentName', 'DG._currDocumentController.externalDocumentId'),
 
     /**
      Open a new tab with the CODAP website.

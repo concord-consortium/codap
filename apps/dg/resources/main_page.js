@@ -245,6 +245,17 @@ DG.mainPage = SC.Page.design((function() {
           tType = tNewType;
         }
 
+        var tAlertDialog = {
+          showAlert: function( iError) {
+            DG.AlertPane.show( {
+              message: 'DG.AppController.dropFile.error'.loc( iError.message)
+            });
+          },
+          close: function() {
+            // Do nothing
+          }
+        };
+
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
@@ -257,12 +268,12 @@ DG.mainPage = SC.Page.design((function() {
             adjustTypeBasedOnSuffix();
 
           if( tType === 'application/json') {
-            DG.appController.importFileWithConfirmation(tFile, 'JSON');
+            DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
           }
           else if( (tType === 'text/csv')
               || (tType === 'text/plain')
               || (tType === 'text/tab-separated-values')) {
-            DG.appController.importFileWithConfirmation(tFile, 'TEXT');
+            DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
           }
         }
         else if( !SC.empty(tURI)) {
@@ -471,8 +482,8 @@ DG.mainPage.getComponentsOfType = function( aPrototype) {
   var docView = this.get('docView'),
       tComponentViews = docView && docView.get('childViews'),
       tDesiredViews = tComponentViews && tComponentViews.filter( function( aComponentView) {
-                        return aComponentView.contentIsInstanceOf( aPrototype);
-                      });
+            return aComponentView.contentIsInstanceOf( aPrototype);
+          });
   return tDesiredViews ? tDesiredViews.getEach('contentView') : [];
 };
 

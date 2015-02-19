@@ -178,7 +178,7 @@ DG.DocumentArchiver = SC.Object.extend(
     signature of `callback`:
     @param  {Object} docArchive      An object suitable for JSON encoding
    */
-  saveDocument: function( iDocument, callback) {
+  saveDocument: function( iDocument, callback, fullData) {
     
     // Prepare the context-specific storage for saving.
     // Start by saving the state of the current game in the appropriate context.
@@ -197,7 +197,7 @@ DG.DocumentArchiver = SC.Object.extend(
                               });
       }
 
-      callback(iDocument.toArchive());
+      callback(iDocument.toArchive(fullData));
     });
   },
 

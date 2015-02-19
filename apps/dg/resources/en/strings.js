@@ -173,6 +173,7 @@ SC.stringsFor('English', {
   'DG.AppController.dropURLDialog.ignore' : 'Ignore',
   'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
   'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
+  'DG.AppController.dropFile.error' : 'Error: %@1',  // Error: <error text>
 
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients

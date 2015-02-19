@@ -110,6 +110,10 @@ SC.Record.ignoreUnknownProperties = true;
  */
 SC.RecordArray.QUERY_MATCHING_THRESHOLD = 10000;
 
+if (SC.Request.prototype.allowCredentials != null) {
+  throw new Error("Looks like Sproutcore was updated and now implements SC.Request.allowCredentials! Remove the SC.XHRResponse monkey patch in core.js, and its override in DG.authorizationController.logToServer.");
+}
+
 SC.XHRResponse.prototype.oldCreateRequest = SC.XHRResponse.prototype.createRequest;
 SC.XHRResponse.prototype.createRequest = function() {
   var rawRequest = this.oldCreateRequest();
@@ -185,7 +189,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0279',
+    BUILD_NUM: '0282',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -272,9 +276,16 @@ DG = SC.Application.create((function () // closure
     /**
      * documentServer can be passed as a Url parameter named documentServer. It is the server from which DG will use to open/save
      * documents. It should be formatted as a full url, to which 'document/*' will be appended.
-     * ex: 'http://docs.example.com/'
+     * A trailing slash (/) will be appended if it is omitted.
+     * ex: 'http://docs.example.com/', 'https://www.example.com/docserver/'
      */
-    documentServer: getUrlParameter('documentServer') || '',
+    documentServer: (function() {
+      var docServer = getUrlParameter('documentServer') || '';
+      if (docServer.length > 0 && SC.none(docServer.match(/\/$/))) {
+        docServer += '/';
+      }
+      return docServer;
+    })(),
 
     /**
      * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
@@ -309,7 +320,7 @@ DG = SC.Application.create((function () // closure
       'guideButton'
     ],
 
-    logServerUrl: '/DataGames/api/log/save',
+    logServerUrl: 'http://cc-log-manager.herokuapp.com/api/logs',
 
 //    logServerUrl: 'http://localhost:3000/api/logs',
 

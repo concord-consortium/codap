@@ -222,6 +222,7 @@ DG.DocumentController = SC.Object.extend(
     this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
+    this.set('externalDocumentId', null);
     this.set('ready', true);
   },
 
@@ -875,9 +876,9 @@ DG.DocumentController = SC.Object.extend(
     Signature of `callback`:
     @param  {Object} docArchive an object representing the document suitable for JSON-conversion
   */
-  exportDocument: function(callback) {
+  exportDocument: function(callback, fullData) {
     var archiver = DG.DocumentArchiver.create({});
-    archiver.saveDocument( this.get('content'), callback);
+    archiver.saveDocument( this.get('content'), callback, fullData);
   },
 
   exportDataContexts: function(callback, exportAll) {
@@ -1010,11 +1011,15 @@ DG.DocumentController = SC.Object.extend(
     } else {
       var newDocId = body.id;
       if (isCopy) {
-        var win = window.open(DG.appController.copyLink(newDocId), '_blank');
+        var url = DG.appController.copyLink(newDocId);
+        if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+          url = $.param.querystring(url, {runAsGuest: 'true'});
+        }
+        var win = window.open(url, '_blank');
         if (win) {
           win.focus();
         } else {
-          DG.appController.showCopyLink(newDocId);
+          DG.appController.showCopyLink(url);
         }
       } else {
         this.set('externalDocumentId', ''+newDocId);

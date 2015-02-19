@@ -95,7 +95,8 @@ DG.CasePlotView = DG.PlotView.extend(
       var tIsDragging = false,
           kOpaque = 1,
           tInitialTransform = null,
-          tCircle = this.get('paper').circle( -100, -100, this._pointRadius )
+          tPaper = this.get('paper'),
+          tCircle = tPaper.circle( tPaper.width / 2, tPaper.height / 2, this._pointRadius )
             .attr( { cursor: "pointer" } )
             .addClass( DG.PlotUtilities.kColoredDotClassName )
             .hover( function ( event ) {  // over
@@ -146,8 +147,6 @@ DG.CasePlotView = DG.PlotView.extend(
       //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "CreateCircle index="+iIndex );
       tCircle.index = iIndex;
       tCircle.node.setAttribute( 'shape-rendering', 'geometric-precision' );
-      if( iAnimate)
-        DG.PlotUtilities.doCreateCircleAnimation( tCircle);
       return tCircle;
     },
 
@@ -155,6 +154,23 @@ DG.CasePlotView = DG.PlotView.extend(
      We may clear and draw everything from scratch if required.
      */
     drawData: function() {
+      var tIncrementBy,
+      animateSomePoints = function() {
+        var tStopIndex = tLoopIndex + tIncrementBy;
+        if( tLoopIndex < tCases.length) {
+          for( ; (tLoopIndex < tCases.length) && (tLoopIndex < tStopIndex); tLoopIndex++ ) {
+            var tCase = tCases[tLoopIndex],
+                tPoint = this.createCircle(null, tLoopIndex);
+            tPoint.attr({'fill-opacity': 0, fill: 'yellow'});
+            this._plottedElements.push(tPoint);
+            this.setCircleCoordinate(tRC, tCase, tLoopIndex, true);
+          }
+          this.invokeLater( animateSomePoints, 10);
+        }
+        else
+          this.setPath( 'model.isAnimating', false);
+      }.bind( this);
+
       if( this.getPath( 'model.isAnimating' ) )
         return; // Points are animating to new position
 
@@ -169,25 +185,29 @@ DG.CasePlotView = DG.PlotView.extend(
           tIndex;
 
       if( this._mustCreatePlottedElements ) {
+        var tLoopIndex = 0;
         this._plottedElements.forEach( function( iElement ) {
           iElement.remove();
         } );
         this._plottedElements.length = 0;
 
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        tCases.forEach( this.callCreateCircle, this );
+        tIncrementBy = Math.ceil( tCases.length / 50);
+        this.setPath( 'model.isAnimating', true); // So the animation can finish
+        animateSomePoints();  // will loop through all points using invokeLater
         this._mustCreatePlottedElements = false;
       }
+      else {
+        tCases.forEach(function (iCase, iIndex) {
+          this_.setCircleCoordinate(tRC, iCase, iIndex);
+        });
 
-      tCases.forEach( function( iCase, iIndex ) {
-        this_.setCircleCoordinate( tRC, iCase, iIndex );
-      } );
-
-      // Get rid of any extra circles
-      for( tIndex = tCases.length; tIndex < this._plottedElements.length; tIndex++ ) {
-        this._plottedElements[ tIndex].remove();
+        // Get rid of any extra circles
+        for (tIndex = tCases.length; tIndex < this._plottedElements.length; tIndex++) {
+          this._plottedElements[tIndex].remove();
+        }
+        this._plottedElements.length = tCases.length;
       }
-      this._plottedElements.length = tCases.length;
     },
 
     /**
