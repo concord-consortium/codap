@@ -213,6 +213,24 @@ body.dg .sc-view.doc-background {
     pointer-events: none;
 }
 
+.map-marquee {
+    background-image:  static_url('images/map_marquee_icon.png');
+    background-size: cover;
+    cursor: pointer;
+}
+
+.map-marquee-selected {
+    background-image:  static_url('images/map_marquee_icon_selected.png');
+    background-size: cover;
+    cursor: pointer;
+}
+
+.marquee-mode {
+    cursor: crosshair;
+    background-color: rgba(0, 0, 0, 0.01);
+    pointer-events: all;
+}
+
 .graph-view {
     background-color: #ffffff;
 }

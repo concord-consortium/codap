@@ -391,6 +391,8 @@ SC.stringsFor('English', {
     'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
     'DG.MapView.hideGrid': "Hide Grid",  // "Hide Grid"
     'DG.MapView.showPoints': "Show Points",  // "Show Points"
-    'DG.MapView.hidePoints': "Hide Points"  // "Hide Points"
+    'DG.MapView.hidePoints': "Hide Points",  // "Hide Points"
+    'DG.MapView.marqueeHint': "Marquee tool—drag select points in map",  // "Marquee tool—drag select points in map"
+    'DG.MapView.gridControlHint': "Change size of grid rectangles"  // "Change size of grid rectangles"
   }
 ) ;
