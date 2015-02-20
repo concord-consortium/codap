@@ -22,6 +22,7 @@
 
 /* globals jiff */
 sc_require('libraries/jiff');
+sc_require('libraries/es6-promise-polyfill');
 
 /** @class
 
@@ -1273,11 +1274,8 @@ DG.DocumentController = SC.Object.extend(
                   result = doAppCommandFunc(saveCommand);
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
-                    resolve(result);
-                  } else {
-                    reject(new Error(gameContext.get('gameName') + ": " +
-                    result));
                   }
+                  resolve(result);
                 } else if (tGameElement && tGameElement.doCommandFunc ) {
                   result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
                   if (typeof result === 'string') {
@@ -1285,39 +1283,35 @@ DG.DocumentController = SC.Object.extend(
                   }
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
-                    resolve(result);
-                  } else {
-                    reject(new Error(gameContext.get('gameName') + ": " +
-                    result));
                   }
+                  resolve(result);
                 } else if (gameController.get('isGamePhoneInUse')) {
                   // async path
                   gameController.gamePhone.call(saveCommand, function(result) {
                     if( result && result.success) {
                       gameContext.set('savedGameState', result.state);
-                      resolve(result);
-                    } else {
-                      reject(new Error(gameContext.get('gameName') +
-                        ": " + result));
                     }
+                    resolve(result);
                   });
                 } else {
-                  reject(new Error("No channel to Data Interactive: " +
-                  gameContext.get('gameName')));
+                  DG.logWarn("No channel to Data Interactive: " +
+                  gameContext.get('gameName'));
+                  resolve({success:false});
                 }
               }
             } catch (ex) {
-              DG.logWarn("Exception saving game context: " + ex);
-              reject(new Error(gameContext.get('gameName') + ':' + ex));
+              DG.logWarn("Exception saving game context(" + gameContext.get('gameName') + "): " + ex);
+              resolve({success:false});
             }
           }));
         });
         // when all promises in the array of promises complete, then call the callback
         Promise.all(promises).then(function (value) {
-            DG.logInfo('saveCurrentGameState complete.');
+          DG.logInfo('saveCurrentGameState complete.');
+          done()},
+          function (reason) {
+            DG.logWarn('saveCurrentGameState failed: ' + reason);
             done();
-          }).catch(function (reason) {
-            DG.logWarn('saveCurrentGameState failed: ' + reason)
         });
       }
 
