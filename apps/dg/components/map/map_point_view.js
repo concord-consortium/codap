@@ -34,6 +34,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
                       'model.gridModel.visible'],
 
   classNames: ['map-layer'],
+  // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
   classNameBindings: ['isInMarqueeMode:marquee-mode'],
 
   /**
@@ -72,6 +73,11 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
                   .addNamedLayer( ln.kDataTip );
   },
 
+  /**
+   * We only receive this event when we are in marquee mode.
+   * @param iEvent
+   * @returns {boolean}
+   */
   mouseDown: function( iEvent) {
     this.marqueeContext = {};
     this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
