@@ -57,6 +57,11 @@ DG.Attribute = DG.BaseModel.extend(
     description: '',
 
     /**
+     * Type of the attribute: 'numeric' or 'nominal'
+     */
+    type: null,
+
+    /**
      * A relational link back to the parent collection.
      * @property {DG.CollectionRecord}
      */

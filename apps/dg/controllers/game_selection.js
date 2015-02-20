@@ -350,21 +350,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   ], // end of devGames array
 
   /**
-   * The currently selected game.
-   *  Defaults to the game at index 'kDefaultGameIndex' in the 'games' array.
-   * @property {DG.GameSpec}
-   */
-  currentGame: null,
-
-  /**
-   * [Computed] The name of the currently selected game.
-   * @property {String}
-   */
-  currentName: function() {
-    return this.getPath('currentGame.name');
-  }.property('currentGame').cacheable(),
-
-  /**
    * Dimensions requested by the client setting the current game,
    * e.g. after restoring a document with user-set dimensions.
    * @property {Object}
@@ -378,57 +363,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   currentDimensions: function() {
     return this.getPath('currentGame.dimensions');
   }.property('currentGame').cacheable(),
-
-  /**
-   * [Computed] The URL of the currently selected game.
-   * @property {String}
-   */
-  currentUrl: function() {
-    return this.getPath('currentGame.url');
-  }.property('currentGame').cacheable(),
-
-  /**
-   *  The DataContext for the currently selected game.
-   *  @property {DG.DataContext} or a derived class
-   */
-  currentContext: function() {
-    // We don't call DG.GameContext.getContextForGame() because we don't want
-    // to force creation here. Otherwise, setting the context to null (e.g. when
-    // closing the document) can result in immediate creation of new contexts.
-    var tGameContext = this.getPath('currentGame.context'),
-      tGameCollections = tGameContext && tGameContext.get('collections');
-    /**
-     * The following bit of skullduggery deals with reading in documents that have lost
-     * their 'game.' Typically, this is because the data interactive is not being saved
-     * properly. But, often, there is a context with the data that was originally part
-     * of the document. We hook that up to the bogus game.
-     * This should become unnecessary once we get rid of the whole concept of a single game
-     * or data interactive.
-     */
-    if(! tGameCollections || (tGameCollections.length === 0)) {
-      var tContextWithColls;
-      DG.DataContext.forEachContextInMap( 0, function( iKey, iContext) {
-        var tCollections = iContext.get('collections');
-        if( tCollections && (tCollections.length > 0)) {
-          tContextWithColls = iContext;
-        }
-      });
-      if( tContextWithColls) {
-        this.setPath('currentGame.context', tContextWithColls);
-        tGameContext = tContextWithColls;
-      }
-    }
-    return tGameContext;
-  }.property('currentGame','currentGame.context'),
-
-  /**
-   * [Computed] The collection associated with the currently selected game.
-   * @property {DG.Collection}
-   */
-  //currentCollection: function() {
-  //  var collectionName = this.getPath('currentGame.collectionName');
-  //  return DG.collectionWithName(collectionName);
-  //}.property('currentGame').cacheable(),
 
   /**
    * Game selection menu.
@@ -470,21 +404,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
 
     this.games = [];
 
-    // Add any entries specified as URL parameters
-    if( !SC.empty( DG.urlParamGames)) {
-      var urlGames = SC.json.decode( DG.urlParamGames);
-      if( SC.none( urlGames.length))
-        urlGames = [ urlGames ];
-      urlGames.forEach( function( iSpec) {
-                          // sanity-check the spec
-                          if( !SC.empty( iSpec.name) && !SC.empty( iSpec.url)) {
-                            var newGame = DG.GameSpec.create( iSpec);
-                            if( newGame) this.games.push( newGame);
-                          }
-                        }.bind( this));
-      if( this.games.length > 0)
-        this.games.push( DG.BaseGameSpec.create({ name: null, isSeparator: true }));
-    }
 
     this.games = this.games.concat( this.get('baseGames'));
 
@@ -529,20 +448,10 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
     }
     if( defaultGame) {
       this.beginPropertyChanges();
-      this.set('requestedDimensions', null);
-      this.set('currentGame', defaultGame);
+      //this.set('requestedDimensions', null);
       this.endPropertyChanges();
     }
   },
-
-  /**
-    Observer method called whenever the 'currentGame' property is changed.
-   */
-  currentGameDidChange: function() {
-    // Clear the 'gameIsReady' flag whenever a new game is selected.
-    if( DG.currGameController)
-      DG.currGameController.set('gameIsReady', false);
-  }.observes('currentGame'),
 
   /**
    * Action method for game selection menu.
@@ -553,20 +462,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
         selectedGameName = selectedGame && selectedGame.get('name');
     if( selectedGame && !SC.empty( selectedGameName)) {
       this.set('requestedDimensions', null);
-      // If the user closes the game component, the 'selectedItem'
-      // is set to null but the 'currentGame' is not automatically
-      // reset so as not to immediately impact existing graphs, etc.
-      // If the user reselects the same game, however, the call to
-      // set() below detects that the game hasn't changed and so
-      // it never sends out the notifications that clients rely
-      // on to bring up the game component, etc. Therefore, we
-      // test to see if this is the case, and send out the
-      // notification ourselves if we detect that the notification
-      // won't go out otherwise.
-      if( this.get('currentGame') === selectedGame) {
-        this.notifyPropertyChange('currentGame');
-        return;
-      }
 
       // Clear the menu item so it can be selected again, if necessary.
       this.setPath('menuPane.selectedItem', null);
@@ -590,57 +485,6 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
       this.endPropertyChanges();
     }
   },
-
-  /**
-    Saves the current state of the current game into the 'savedGameState'
-    property of the current game's context. Uses the 'doCommandFunc' property
-    passed by the game as part of the 'initGame' command.
-   */
-  saveCurrentGameState: function(done) {
-
-    // Stash the game state in the context's 'savedGameState' property.
-    function saveState(result) {
-      if( result && result.success) {
-        gameContext.set('savedGameState', result.state);
-      }
-    }
-
-    try {
-      var gameSpec = this.get('currentGame'),
-          gameContext = gameSpec && gameSpec.get('context'),
-          doAppCommandFunc = gameSpec && gameSpec.get('doCommandFunc'),
-          gameElement = this.findCurrentGameElement( gameSpec && gameSpec.get('gameEmbedID')),
-          saveCommand = { operation: "saveState" },
-          result;
-      // We can only save game state if we have a game callback function and a context.
-      if( gameContext) {
-        if( doAppCommandFunc ) {
-          // for JavaScript games we can call directly with Objects as arguments
-          result = doAppCommandFunc( saveCommand);
-        } else if (gameElement && gameElement.doCommandFunc ) {
-          // for flash games we use the embedded swf object, then call its 'doCommandFunc'
-          result = gameElement.doCommandFunc( SC.json.encode( saveCommand ));
-          result = this.safeJsonDecode( result, "Invalid JSON found in saveCurrentGameState()" );
-        } else if (DG.get('isGamePhoneInUse')) {
-          // async path
-          DG.gamePhone.call(saveCommand, function(result) {
-            saveState(result);
-            done();
-          });
-          return;
-        }
-
-        saveState(result);
-      }
-    } catch (ex) {
-      DG.logWarn("Exception saving game context: " + ex);
-    }
-
-    // For consistency with gamePhone case, make sure that done callback is invoked in a later
-    // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
-    this.invokeLater(function() { done(); } );
-  },
-
   /**
    * Find the current game element in DG, by searching the DOM
    *    Useful for callbacks to embedded flash .swf objects,

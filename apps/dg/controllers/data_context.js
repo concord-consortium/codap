@@ -1060,15 +1060,8 @@ DG.DataContext = SC.Object.extend((function() // closure
                 {String}                object.plotYAttr -- default Y attribute on graphs
    */
   collectionDefaults: function() {
-    var defaults = {
-      collectionClient: this.get('childCollection'),
-      parentCollectionClient: this.get('parentCollection'),
-      plotXAttr: null,
-      plotXAttrIsNumeric: true,
-      plotYAttr: null,
-      plotYAttrIsNumeric: true
-    };
-    return defaults;
+
+    return DG.DataContext.collectionDefaults();
   },
   
   /**
@@ -1109,12 +1102,11 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @param {Object} iComponentStorage -- Properties restored from document.
    */
   restoreFromStorage: function( iContextStorage) {
-    var collections = this.get('collections'),
-        this_ = this;
+    var collections = this.get('collections');
     if( !SC.none( collections)) {
       DG.ObjectMap.forEach(collections, function( key) {
-                            this_.addCollection( collections[key]);
-                          });
+                            this.addCollection( collections[key]);
+      }.bind(this));
     }
   }
   
@@ -1185,6 +1177,14 @@ DG.DataContext.forEachContextInMap = function( iDocumentID, iFunction) {
 };
 
 /**
+ Returns an array of keys to known data contexts.
+ @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
+ */
+DG.DataContext.contextIDs = function(iDocumentID) {
+  return DG.ObjectMap.keys(DG.DataContext._contextMap);
+};
+
+/**
   Returns the context that contains the specified collection.
   Currently, this is implemented simply by following the 'context' property
   of the DG.CollectionRecord back to its DG.DataContextRecord and then looking
@@ -1203,7 +1203,26 @@ DG.DataContext.getContextFromCollection = function( iCollectionClient) {
                   DG.DataContext.retrieveContextFromMap( null, contextID);
   return context;
 };
-
+/**
+ Returns an object which specifies the default collections for this data context along
+ with some of the default properties of that collection, e.g. default attributes to plot.
+ @returns    {Object}    An object specifying the defaults
+ {DG.CollectionClient}   object.collectionClient -- child collection
+ {DG.CollectionClient}   object.parentCollectionClient -- parent collection
+ {String}                object.plotXAttr -- default X attribute on graphs
+ {String}                object.plotYAttr -- default Y attribute on graphs
+ */
+DG.DataContext.collectionDefaults = function() {
+  var defaults = {
+    collectionClient: null, //this.get('childCollection'),
+    parentCollectionClient: null, //this.get('parentCollection'),
+    plotXAttr: null,
+    plotXAttrIsNumeric: true,
+    plotYAttr: null,
+    plotYAttrIsNumeric: true
+  };
+  return defaults;
+};
 /**
  *  A factory function for creating an appropriate DG.DataContext object, i.e.
  *  either a DG.DataContext or an appropriate derived class. Derived classes should

@@ -97,6 +97,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /**
+     * This is called when the dataContext has changed. We prepare to accept a new dataContext and be
+     * reconfigured with new axes, plots, and legends.
+     */
+    reset: function() {
+      this.init();
+    },
+
+    /**
       The data context for the graph. Set by caller after construction initially and
       reset for graphs restored from document to point to the restored data context.
       @property   {DG.DataContext}
@@ -165,13 +173,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     selectAll: function( iSelect) {
       var tSelect = SC.none( iSelect) ? true : !!iSelect,
           tCases = tSelect ? this.get('cases') : null,  // null means all cases, even hidden ones
+          tContext = this.get('dataContext'),
           tChange = {
             operation: 'selectCases',
             collection: this.get('collectionClient'),
             cases: tCases,
             select: tSelect
           };
-      this.get('dataContext').applyChange( tChange);
+      if (tContext) {
+        tContext.applyChange( tChange);
+      }
       DG.logUser( iSelect ? "selectAll" : "deselectAll");
     },
 

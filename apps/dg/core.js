@@ -253,17 +253,43 @@ DG = SC.Application.create((function () // closure
 
     urlParamGames: getUrlParameter('moreGames'),
 
-    defaultGameName: getUrlParameter('game'),
-
     /**
-     * startingDocName can be passed as a Url parameter named doc. DG will attempt to open this document on startup.
+     * startingDocName can be passed as a Url parameter named doc.
+     * DG will attempt to open this document on startup.
      *
      */
     startingDocName: getUrlParameter('doc'),
 
     /**
-     * startingDocOwner can be passed as a Url parameter named doc. It is a second parameter required for DG to open a document
-     * on startup.  It is the username of the owner of the document in the database.
+     * startingDataInteractive can be passed as a Url parameter named 'di'
+     * Expects the URL of an executable page. For now, it will only have
+     * an effect if the 'doc' query parameter is _not_ set, and must be singular
+     * if present.
+     */
+    _startingDataInteractive: getUrlParameter('di'),
+
+    startingDataInteractive: function() {
+      var parsedGames;
+
+      if (this._startingDataInteractive) {
+        return this._startingDataInteractive;
+      } else if (this.urlParamGames) {
+        try {
+          parsedGames = JSON.parse(this.urlParamGames);
+          if (parsedGames && parsedGames[0]) {
+            return parsedGames[0].url;
+          }
+        } catch (ex) {
+          DG.logWarn(ex);
+        }
+      }
+    }.property('urlParamGames, _startingDataInteractive'),
+
+    /**
+     * startingDocOwner can be passed as a Url parameter named doc.
+     * It is a second parameter required for DG to open a document
+     * on startup.  It is the username of the owner of the document in the
+     * database.
      */
     startingDocOwner: getUrlParameter('owner'),
 
@@ -309,7 +335,7 @@ DG = SC.Application.create((function () // closure
 
     toolButtons: [
       'fileMenu',
-      'gameMenu',
+      //'gameMenu',
       'tableButton',
       'graphButton',
       'mapButton',

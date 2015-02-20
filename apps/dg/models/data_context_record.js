@@ -137,6 +137,9 @@ DG.DataContextRecord.createContext = function( iProperties) {
     }
   }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';
+  if (!iProperties.document) {
+    iProperties.document = DG.currDocumentController().content;
+  }
   iProperties.document = DG.store.resolve(iProperties.document);
   tContext = DG.DataContextRecord.create(iProperties);
   tContext.updateSavedShadowCopy(shadowCopy);

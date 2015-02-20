@@ -42,8 +42,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
     @property { DG.CollectionClient }
   */
   collectionClient: function() {
-    return this.chooseChildCollection( this.get('xCollectionClient'), this.get('yCollectionClient')) ||
-              DG.currDocumentController().collectionDefaults().collectionClient;
+    return (this.chooseChildCollection( this.get('xCollectionClient'), this.get('yCollectionClient')) ||
+        this.get('legendCollectionClient'));
   }.property('xCollectionClient','yCollectionClient'),
   
   xCollectionClient: function() {

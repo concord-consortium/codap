@@ -114,7 +114,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true, 
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
             target: this, 
-            action: 'closeDocumentWithConfirmation' },
+            action: 'closeCurrentDocument' },
           { 
             isSeparator: YES },
           { 
@@ -404,23 +404,29 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iText - either CSV or tab-delimited
+     * @param iText String  either CSV or tab-delimited
+     * @param iName String  document name
      * @returns {Boolean}
      */
-    importText: function( iText) {
-      // Currently, we must close any open document before opening another
-      this.closeDocument();
+    importText: function( iText, iName) {
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-          newDocument;
+          newDocument, context, contextRecord,
+          documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importTextIntoDocument( iText);
+      newDocument = archiver.importCSV( iText, iName);
+      // set the id of the current document into the data context.
+      newDocument.contexts[0].document = documentController.get('documentID');
+      // Create the context record.
+      contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
+      // create the context
+      context = documentController.createDataContextForModel(contextRecord);
+      context.restoreFromStorage(contextRecord.contextStorage);
 
-      DG.currDocumentController().setDocument(newDocument);
-
-      DG.mainPage.toggleCaseTable();  // This will show the case table
+      // add case table
+      documentController.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
 
       return true;
     },
@@ -445,26 +451,27 @@ DG.appController = SC.Object.create((function () // closure
 
             DG.currDocumentController().setDocument(newDocument);
           }.bind(this),
-
+          // add interactive to existing document
+          addInteractive = function () {
+            var tDoc = DG.currDocumentController(),
+              tComponent = DG.Component.createComponent({
+                "type": "DG.GameView",
+                "document": tDoc.get('content') ,
+                "componentStorage": {
+                  "currentGameName": "",
+                    "currentGameUrl": iURL,
+                    allowInitGameOverride: true
+                }
+              });
+            tDoc.createComponentAndView( tComponent);
+          }.bind(this),
           embedWebView = function () {
             DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
                 iURL, 'Web Page',
                 {width: 600, height: 400});
           }.bind(this);
 
-      embedInteractive();
-
-      //DG.AlertPane.plain({
-      //  message: 'DG.AppController.dropURLDialog.message',
-      //  description: 'DG.AppController.dropURLDialog.description',
-      //  buttons: [
-      //    {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-      //    {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
-      //    {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
-      //  ],
-      //  localize: YES
-      //});
-
+      addInteractive();
       return true;
     },
 
@@ -701,6 +708,18 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Closes the current document with confirmation.
+     *
+     * We interpose this between the menu item and closeDocumentWithConfirmation
+     * to correct the argument.
+     *
+     * @param {SC.Menu} sender: unused by the function.
+     */
+    closeCurrentDocument: function (sender) {
+      this.closeDocumentWithConfirmation(null);
+    },
+
+    /**
      Closes the document after confirming with the user that that is desired.
      */
     closeDocumentWithConfirmation: function (iDefaultGameName) {
@@ -749,10 +768,13 @@ DG.appController = SC.Object.create((function () // closure
       // Create a new empty document
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
 
-      // New documents generally start with a default game
-      // TODO: Eliminate redundancy with DG.authorizationController....
-      DG.gameSelectionController.setDefaultGame(iDefaultGameName);
-      DG.mainPage.addGameIfNotPresent();
+      /**
+       * If we are still in the GamesMenu world, we need to find the new game.
+       */
+      if (!SC.none(iDefaultGameName)){
+        DG.gameSelectionController.setDefaultGame(iDefaultGameName);
+        DG.mainPage.addGameIfNotPresent();
+      }
     },
 
     /**
@@ -823,7 +845,7 @@ DG.appController = SC.Object.create((function () // closure
               that.openJsonDocument(this.result);
             }
             else if( iType === 'TEXT') {
-              that.importText( this.result);
+              that.importText(this.result, iFile.name);
             }
             if (iDialog)
               iDialog.close();

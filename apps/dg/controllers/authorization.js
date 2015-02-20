@@ -869,6 +869,20 @@ return {
   }.observes('.currLogin.status'),
 
   _setupGameOrDocument: function() {
+    function openDataInteractive(iURL) {
+      if (iURL) {
+        // Create document-specific store.
+        var archiver = DG.DocumentArchiver.create({}),
+          newDocument;
+
+        DG.currDocumentController().closeDocument();
+
+        // Make a data interactive iFrame using the given URL
+        newDocument = archiver.importURLIntoDocument(iURL);
+
+        DG.currDocumentController().setDocument(newDocument);
+      }
+    }
     if( !SC.empty( DG.startingDocName)) {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
@@ -877,8 +891,9 @@ return {
     else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-    }
-    else {
+    } else if ( !SC.empty( DG.startingDataInteractive)) {
+      openDataInteractive(DG.get('startingDataInteractive'));
+    } else {
       DG.gameSelectionController.setDefaultGame();
       DG.mainPage.addGameIfNotPresent();
     }
