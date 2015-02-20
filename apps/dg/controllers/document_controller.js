@@ -1313,7 +1313,7 @@ DG.DocumentController = SC.Object.extend(
         // when all promises in the array of promises complete, then call the callback
         Promise.all(promises).then(function (value) {
           DG.logInfo('saveCurrentGameState complete.');
-          done()},
+          done();},
           function (reason) {
             DG.logWarn('saveCurrentGameState failed: ' + reason);
             done();

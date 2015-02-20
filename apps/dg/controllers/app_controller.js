@@ -438,38 +438,39 @@ DG.appController = SC.Object.create((function () // closure
      */
     importURL: function (iURL) {
 
-      var embedInteractive = function () {
+      var addInteractive = function () {
+        var tDoc = DG.currDocumentController(),
+          tComponent = DG.Component.createComponent({
+            "type": "DG.GameView",
+            "document": tDoc.get('content') ,
+            "componentStorage": {
+              "currentGameName": "",
+              "currentGameUrl": iURL,
+              allowInitGameOverride: true
+            }
+          });
+        tDoc.createComponentAndView( tComponent);
+      }.bind(this);
+      //embedInteractive = function () {
             // Currently, we must close any open document before opening a new data interactive
-            this.closeDocument();
+            //this.closeDocument();
 
             // Create document-specific store.
-            var archiver = DG.DocumentArchiver.create({}),
-                newDocument;
+            //var archiver = DG.DocumentArchiver.create({}),
+              //  newDocument;
 
             // Make a data interactive iFrame using the given URL
-            newDocument = archiver.importURLIntoDocument(iURL);
+            //newDocument = archiver.importURLIntoDocument(iURL);
 
-            DG.currDocumentController().setDocument(newDocument);
-          }.bind(this),
+            //DG.currDocumentController().setDocument(newDocument);
+          //}.bind(this),
           // add interactive to existing document
-          addInteractive = function () {
-            var tDoc = DG.currDocumentController(),
-              tComponent = DG.Component.createComponent({
-                "type": "DG.GameView",
-                "document": tDoc.get('content') ,
-                "componentStorage": {
-                  "currentGameName": "",
-                    "currentGameUrl": iURL,
-                    allowInitGameOverride: true
-                }
-              });
-            tDoc.createComponentAndView( tComponent);
-          }.bind(this),
-          embedWebView = function () {
-            DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-                iURL, 'Web Page',
-                {width: 600, height: 400});
-          }.bind(this);
+          //,
+          //embedWebView = function () {
+          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          //      iURL, 'Web Page',
+          //      {width: 600, height: 400});
+          //}.bind(this);
 
       addInteractive();
       return true;

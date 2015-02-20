@@ -444,7 +444,7 @@ DG.GameController = DG.ComponentController.extend(
       }
 
       this.set('doCommandFunc', iArgs.doCommandFunc);
-      this.set('gameEmbedID', iArgs.gameEmbedID)
+      this.set('gameEmbedID', iArgs.gameEmbedID);
 
       this.view.set('version',
         SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
