@@ -81,8 +81,21 @@ DG.AttributeStats = SC.Object.extend(
     },
 
     attributeDidChange:function () {
+      var tAttributes = this.get('attributes'),
+          tFirstAttr = (tAttributes.length > 0) ? tAttributes[0] : null,
+          tType = SC.none(tFirstAttr) ? null : tFirstAttr.get('type');
+      switch( tType) {
+        case 'numeric':
+          tType = DG.Analysis.EAttributeType.eNumeric;
+          break;
+        case 'categorical':
+          tType = DG.Analysis.EAttributeType.eCategorical;
+          break;
+        default:
+          tType = null;
+      }
       this.invalidateCaches();
-      this.set( 'attributeType', null ); // When the attributes are first assigned, we don't know its type
+      this.set( 'attributeType', tType );
     }.observes( 'attributes' ),
 
     /**
