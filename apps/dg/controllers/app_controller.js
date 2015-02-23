@@ -328,7 +328,7 @@ DG.appController = SC.Object.create((function () // closure
       // Currently, we must close any open document before opening another
       if (!responseIsError && bodyMayBeJSON) {
 
-        if ((openDeferred = this.openJsonDocument(body)) !== null) {
+        if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
           var docId = iResponse.headers()['Document-Id'];
           if (docId) {
             shouldShowAlert = false;
@@ -372,7 +372,7 @@ DG.appController = SC.Object.create((function () // closure
      @param    {String}    iDocText -- The JSON-formatted document text
      @returns  {Boolean}   True on success, false on failure
      */
-    openJsonDocument: function (iDocText) {
+    openJsonDocument: function (iDocText, saveImmediately) {
       console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
@@ -393,6 +393,14 @@ DG.appController = SC.Object.create((function () // closure
           DG.currDocumentController().setDocument(newDocument);
           SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
           SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
+
+          if (saveImmediately) {
+            // Trigger a save first thing
+            this.invokeLater(function() {
+              DG.dirtyCurrentDocument();
+              this.autoSaveDocument();
+            }.bind(this));
+          }
         }
 
         if (this.setOpenedDocumentUnshared) {
@@ -846,7 +854,7 @@ DG.appController = SC.Object.create((function () // closure
         function handleRead() {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result);
+              that.openJsonDocument(this.result, true);
             }
             else if( iType === 'TEXT') {
               that.importText(this.result, iFile.name);
