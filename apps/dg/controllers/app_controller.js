@@ -1267,14 +1267,16 @@ DG.appController = SC.Object.create((function () // closure
      Update the url in the browser bar to reflect the latest document information
      */
     updateUrlBar: function() {
-      if (DG.authorizationController.getPath('currLogin.status') === 0) {
-        // we haven't logged in yet, so leave the url alone
+      var docName = DG.currDocumentController().get('documentName');
+
+      if (DG.authorizationController.getPath('currLogin.status') === 0 || docName === SC.String.loc('DG.Document.defaultDocumentName')) {
+        // we haven't logged in yet or we're still on a brand-new document, so leave the url alone
         return;
       }
       var currentParams = $.deparam.querystring(),
           recordid = DG.currDocumentController().get('externalDocumentId'),
-          docName = DG.currDocumentController().get('documentName'),
           currUser = DG.authorizationController.getPath('currLogin.user');
+
       delete currentParams.runAsGuest;
       if (!SC.none(recordid)) {
         delete currentParams.doc;
