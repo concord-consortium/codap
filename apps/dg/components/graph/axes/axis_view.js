@@ -462,12 +462,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           if (this.get('orientation') === 'vertical2') {
             var tDragAttr = iDrag.data.attribute,
                 tCurrAttr = this.get('plottedAttribute'),
-                tCurrXAttr = this.getPath('xAttributeDescription.attribute'),
-                tY1Attr = this.getPath('otherYAttributeDescription.attribute');
+                tXDescription = this.get('xAttributeDescription'),
+                tCurrXAttr = tXDescription ? tXDescription.get('attribute') : DG.Analysis.kNullAttribute,
+                tY1Description = this.get('otherYAttributeDescription'),
+                tY1Attr = tY1Description ? tY1Description.get('attribute') : DG.Analysis.kNullAttribute;
             return (tCurrXAttr !== DG.Analysis.kNullAttribute) &&
                 (tY1Attr !== DG.Analysis.kNullAttribute) &&
                 (tY1Attr !== tDragAttr) &&
-                (tCurrAttr !== tDragAttr);
+                (tCurrAttr !== tDragAttr) &&
+                tXDescription.get('isNumeric') &&
+                tY1Description.get('isNumeric');
           }
           else
             return DG.GraphDropTarget.isValidAttribute.call(this, iDrag)
