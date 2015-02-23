@@ -679,7 +679,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       // The origin is supposed to be the point that the drag view will slide back to,
       // but this is not working.
       origin: { x: iEvent.clientX, y: iEvent.clientY },
-      data: { collection: column.collection,
+      data: { context: column.context,
+              collection: column.collection,
               attribute: column.attribute,
               text: tAttributeName }  // For use by clients like the text box
     });

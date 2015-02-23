@@ -113,7 +113,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iIndex {Number}
      */
     removePlotAtIndex: function( iIndex) {
-      DG.assert( iIndex < this._plots.length);
+      DG.assert( iIndex < this._plots.length,
+        'Attempt to remove non-existent plot');
       var tPlot = this._plots[ iIndex];
       this._plots.splice( iIndex, 1);
       tPlot.destroy();
@@ -389,7 +390,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           this.set( iAxisKey, tNewAxis );
           tAxisToDestroy.destroy();
 
-          tConfig.setAttributeAndCollectionClient( iDescKey, null);
+          tConfig.setAttributeAndCollectionClient( iDescKey, null,
+              DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
           // The role of the attribute placement description on the axis whose attribute is removed must be secondary
           // and the other axis role must now be primary
           switch( this.getPath( 'dataConfiguration.' + tOtherDesc + '.attributeType' ) ) {
@@ -429,7 +431,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       var tConfig = this.get( 'dataConfiguration' ),
           tAttributes = tConfig.getPath( iDescKey + '.attributes');
 
-      if( tAttributes.length === 1)
+      if( tAttributes.length === 0)
+        return;
+      else if( tAttributes.length === 1)
         removeLastAttribute();
       else
         removeIndexedAttribute();

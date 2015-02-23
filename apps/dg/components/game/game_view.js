@@ -30,39 +30,30 @@ sc_require('libraries/iframe-phone');
 DG.GameView = SC.WebView.extend(
 /** @scope DG.GameView.prototype */ {
 
-  // Bind the 'value' property of the WebView, which determines
-  // the URL of the page that is displayed, to the 'currentURL'
-  // property of the global DG.gameSelectionController. If we
-  // ever wanted to support multiple game instances in a single
-  // document, we would need to bind to something like a
-  // providerContext.currentUrl, where providerContext is an
-  // instance of the DG.ProviderContext class, and a single
-  // document can contain multiple DG.ProviderContext instances.
-  valueBinding: 'DG.gameSelectionController.currentUrl',
-
   // Setup iframePhone communication with the child iframe before it loads, so that connection
   // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
   valueDidChange: function() {
-    var value = this.get('value');
+    var tValue = this.get('value'),
+      tController = this.controller;
 
-    if (value !== this._previousValue) {
+    if (tValue !== this._previousValue) {
 
       // First discontinue listening to old game.
-      if (DG.gamePhone) {
-        DG.gamePhone.disconnect();
+      if (tController.gamePhone) {
+        tController.gamePhone.disconnect();
       }
 
       // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
-      DG.set('isGamePhoneInUse', false);
+      tController.set('isGamePhoneInUse', false);
 
-      DG.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
+      tController.gamePhone = new iframePhone.IframePhoneRpcEndpoint(
 
         // TODO put this handler function somewhere appropriate rather than inlining it in (what is
         // at notionally) view code?
 
         function(command, callback) {
-          DG.set('isGamePhoneInUse', true);
-          DG.doCommand(command, function(ret) {
+          tController.set('isGamePhoneInUse', true);
+          tController.dispatchCommand(command, function(ret) {
             // Analysis shows that the object returned by DG.doCommand may contain Error values, which
             // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
             // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
@@ -86,35 +77,49 @@ DG.GameView = SC.WebView.extend(
               if (e instanceof window.DOMException && e.name === 'DataCloneError') {
                 callback({ success: false });
               }
-            }            
+            }
           });
-        },
+        }.bind(this),
         'codap-game',
         this.$('iframe')[0],
-        DG.gameSelectionController.getPath('currentGame.origin')
+        this.extractOrigin(tValue)
       );
 
       // Let games/interactives know that they are talking to CODAP, specifically (rather than any
       // old iframePhone supporting page) and can use its API.
-      DG.gamePhone.call({ message: "codap-present" });
+      tController.gamePhone.call({ message: "codap-present" });
     }
 
-    this._previousValue = value;
+    this._previousValue = tValue;
 
   }.observes('value'),
 
   destroy: function() {
-    DG.gameSelectionController.gameViewWillClose();
+    this.controller.gameViewWillClose();
     sc_super();
+  },
+
+    /**
+     * If the URL is a web URL return the origin.
+     *
+     * The origin is scheme://domain_name.port
+     */
+  extractOrigin: function(url) {
+    var re = /([^:]*:\/\/[^\/]*)\//;
+    if (/^http.*/i.test(url)) {
+      return re.exec(url)[1];
+    }
   },
 
   iframeDidLoad: function()
   {
     var iframe = this.$('iframe')[0];
-
+    if (this.value) {
+      this.valueDidChange();
+    }
     if (iframe && iframe.contentWindow) {
       var contentWindow = iframe.contentWindow,
-          target = DG.currGameController;
+        target = this.controller;
 
       // Allow the iframe to take over the entire screen (requested by InquirySpace)
       $(iframe ).attr('allowfullscreen', true)
@@ -178,6 +183,7 @@ DG.GameView = SC.WebView.extend(
       } catch (e) {
         // e should be a SecurityError but I haven't found documentation regarding how standard
         // that error type is.
+        console.error(e);
       }
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");

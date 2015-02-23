@@ -42,12 +42,8 @@ DG.DocumentArchiver = SC.Object.extend(
     return DG.Document.createDocument(docArchive);
   },
 
-  /**
-   *
-   * @param iText - csv or tab-delimited
-   * @returns {DG.Document}
-   */
-  importTextIntoDocument: function( iText) {
+  importCSV: function (iText, iFileName) {
+
     // trims empty columns from right side of
     function trimTrailingColumns(arr) {
       var newArr = [];
@@ -67,32 +63,34 @@ DG.DocumentArchiver = SC.Object.extend(
     }
     function parseText() {
       var tValuesArray,
-          tCollectionRow,
-          tChildName = 'children',// Child Collection Name: should be first
-                                  // line of CSV
-          tAttrNamesRow,// Column Header Names: should be second row
-          tDoc = {
-            name: 'DG.Document.defaultDocumentName'.loc(),
-            components: [],
-            contexts: [
-              {
-                "type": "DG.DataContext",
-                "document": 1,
-                "collections": [
-                  {
-                    "attrs": [],
-                    "cases": []
-                  }
-                ]
+        tCollectionRow,
+        tChildName = 'children',// Child Collection Name: should be first
+                                // line of CSV
+        tAttrNamesRow,// Column Header Names: should be second row
+        tDoc = {
+          name: 'DG.Document.defaultDocumentName'.loc(),
+          components: [],
+          contexts: [
+            {
+              "type": "DG.DataContext",
+              "collections": [
+                {
+                  "attrs": [],
+                  "cases": []
+                }
+              ],
+              "contextStorage": {
+                "gameUrl": iFileName
               }
-            ],
-            appName: DG.APPNAME,
-            appVersion: DG.VERSION,
-            appBuildNum: DG.BUILD_NUM,
-            globalValues: []
-          },
-          tAttrsArray = tDoc.contexts[0].collections[0].attrs,
-          tCasesArray = tDoc.contexts[0].collections[0].cases;
+            }
+          ],
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          globalValues: []
+        },
+        tAttrsArray = tDoc.contexts[0].collections[0].attrs,
+        tCasesArray = tDoc.contexts[0].collections[0].cases;
 
       CSV.RELAXED = true;
       CSV.IGNORE_RECORD_LENGTH = true;
@@ -138,6 +136,15 @@ DG.DocumentArchiver = SC.Object.extend(
     } // parseText
 
     var docArchive = parseText( );
+    return docArchive;
+  },
+  /**
+   *
+   * @param iText - csv or tab-delimited
+   * @returns {DG.Document}
+   */
+  importTextIntoDocument: function( iText, iName) {
+    var docArchive = this.importCSV(iText, iName);
 
     return DG.Document.createDocument(docArchive);
   },
@@ -150,17 +157,15 @@ DG.DocumentArchiver = SC.Object.extend(
   importURLIntoDocument: function (iURL) {
     var tDoc = {
       name: 'DG.Document.defaultDocumentName'.loc(),
+      guid: 1,
       components: [
         {
           "type": "DG.GameView",
           "componentStorage": {
             "currentGameName": "",
-            "currentGameUrl": iURL,
-            allowInitGameOverride: true
+            "currentGameUrl": iURL
           }
         }
-      ],
-      contexts: [
       ],
       appName: DG.APPNAME,
       appVersion: DG.VERSION,
@@ -183,18 +188,18 @@ DG.DocumentArchiver = SC.Object.extend(
     // Prepare the context-specific storage for saving.
     // Start by saving the state of the current game in the appropriate context.
     // Callback below executes after the state has been saved
-    DG.gameSelectionController.saveCurrentGameState(function() {
+    DG.currDocumentController().saveCurrentGameState(function() {
       var docController = DG.currDocumentController();      
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
-                                          function( iContextID, iContext) {
-                                            iContext.willSaveContext();
-                                          });
+        function( iContextID, iContext) {
+          iContext.willSaveContext();
+        });
       if( docController) {
         // Prepare the component-specific storage for saving
         DG.ObjectMap.forEach( docController.componentControllersMap,
-                              function( iComponentID, iController) {
-                                iController.willSaveComponent();
-                              });
+          function( iComponentID, iController) {
+            iController.willSaveComponent();
+          });
       }
 
       callback(iDocument.toArchive(fullData));
@@ -204,15 +209,15 @@ DG.DocumentArchiver = SC.Object.extend(
   saveDataContexts: function( iDocument, callback, saveAll) {
     var model,
         deferred = $.Deferred();
-    DG.gameSelectionController.saveCurrentGameState(function() {
+    DG.currDocumentController().saveCurrentGameState(function() {
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
-                                          function( iContextID, iContext) {
-                                            iContext.willSaveContext();
-                                            model = iContext.get('model');
-                                            if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
-                                              callback(model, model.toArchive(true));
-                                            }
-                                          });
+        function( iContextID, iContext) {
+          iContext.willSaveContext();
+          model = iContext.get('model');
+          if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
+            callback(model, model.toArchive(true));
+          }
+        });
       deferred.resolve();
     });
     return deferred;

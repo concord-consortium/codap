@@ -44,7 +44,11 @@ DG.CollectionClient = SC.Object.extend(
   name: function() {
     return this.getPath('collection.collectionRecord.name');
   }.property('collection').cacheable(),
-  
+
+  defaults: function () {
+    return this.getPath('collection.collectionRecord.defaults');
+  }.property('collection,collectionRecord').cacheable(),
+
   attrsController: null,
 
   casesController: null,
@@ -562,6 +566,14 @@ DG.CollectionClient = SC.Object.extend(
     });
     this.didDeleteCases();
   },
+
+    /**
+     * Returns labels for this collection, if any have been set.
+     * @returns {Object}
+     */
+    getCollectionLabels: function () {
+      return this.getPath('collection.collectionRecord.labels');
+    },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.
