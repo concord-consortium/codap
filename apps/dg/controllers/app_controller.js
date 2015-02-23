@@ -509,7 +509,12 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName') && !SC.none(DG.currDocumentController().get('externalId'))) {
+      if ( DG.authorizationController.get('isSaveEnabled')
+            && iOriginalName
+            && iNewName !== iOriginalName
+            && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
+            && !SC.none(DG.currDocumentController().get('externalId'))
+          ) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }

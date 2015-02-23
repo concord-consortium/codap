@@ -47,7 +47,7 @@ DG.mainPage = SC.Page.design((function() {
           fontWeight: SC.BOLD_WEIGHT,
           textAlign: SC.ALIGN_LEFT,
           needsEllipsis: YES,
-          isEditableBinding: 'DG.authorizationController.isSaveEnabled',
+          isEditable: YES,
           valueBinding: 'DG._currDocumentController.documentName',
           toolTipBinding: 'DG._currDocumentController.documentName',
           originalValue: null,
