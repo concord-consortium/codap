@@ -124,6 +124,12 @@ DG.DataContextRecord.createContext = function( iProperties) {
     var response = DG.authorizationController.openDocumentSynchronously(iProperties.externalDocumentId);
 
     if (SC.ok(response)) {
+      var docId = response.headers()['Document-Id'];
+      if (docId) {
+        // make sure we always have the most up-to-date externalDocumentId,
+        // since the document server can change it for permissions reasons.
+        iProperties.externalDocumentId = ''+docId;
+      }
       shadowCopy = $.extend(true, shadowCopy, response.get('body'));
       iProperties = $.extend(response.get('body'), iProperties);
     } else {
@@ -131,6 +137,9 @@ DG.DataContextRecord.createContext = function( iProperties) {
     }
   }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';
+  if (!iProperties.document) {
+    iProperties.document = DG.currDocumentController().content;
+  }
   iProperties.document = DG.store.resolve(iProperties.document);
   tContext = DG.DataContextRecord.create(iProperties);
   tContext.updateSavedShadowCopy(shadowCopy);

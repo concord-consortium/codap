@@ -114,7 +114,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true, 
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
             target: this, 
-            action: 'closeDocumentWithConfirmation' },
+            action: 'closeCurrentDocument' },
           { 
             isSeparator: YES },
           { 
@@ -237,7 +237,9 @@ DG.appController = SC.Object.create((function () // closure
       this.openSaveDialog = null;
 
       var openDocumentAfterConfirmation = function () {
-        DG.authorizationController.openDocument(docID, this);
+        DG.busyCursor.show( function() {
+          DG.authorizationController.openDocument(docID, this);
+        }.bind(this));
         DG.logUser("openDocument: '%@'", docName);
       }.bind(this);
 
@@ -335,6 +337,7 @@ DG.appController = SC.Object.create((function () // closure
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
       }
+      DG.busyCursor.hide();
       if (shouldShowAlert) {
         // Should handle errors here -- alert the user, etc.
         DG.AlertPane.error({
@@ -401,23 +404,29 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iText - either CSV or tab-delimited
+     * @param iText String  either CSV or tab-delimited
+     * @param iName String  document name
      * @returns {Boolean}
      */
-    importText: function( iText) {
-      // Currently, we must close any open document before opening another
-      this.closeDocument();
+    importText: function( iText, iName) {
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-          newDocument;
+          newDocument, context, contextRecord,
+          documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importTextIntoDocument( iText);
+      newDocument = archiver.importCSV( iText, iName);
+      // set the id of the current document into the data context.
+      newDocument.contexts[0].document = documentController.get('documentID');
+      // Create the context record.
+      contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
+      // create the context
+      context = documentController.createDataContextForModel(contextRecord);
+      context.restoreFromStorage(contextRecord.contextStorage);
 
-      DG.currDocumentController().setDocument(newDocument);
-
-      DG.mainPage.toggleCaseTable();  // This will show the case table
+      // add case table
+      documentController.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
 
       return true;
     },
@@ -429,38 +438,41 @@ DG.appController = SC.Object.create((function () // closure
      */
     importURL: function (iURL) {
 
-      var embedInteractive = function () {
+      var addInteractive = function () {
+        var tDoc = DG.currDocumentController(),
+          tComponent = DG.Component.createComponent({
+            "type": "DG.GameView",
+            "document": tDoc.get('content') ,
+            "componentStorage": {
+              "currentGameName": "",
+              "currentGameUrl": iURL,
+              allowInitGameOverride: true
+            }
+          });
+        tDoc.createComponentAndView( tComponent);
+      }.bind(this);
+      //embedInteractive = function () {
             // Currently, we must close any open document before opening a new data interactive
-            this.closeDocument();
+            //this.closeDocument();
 
             // Create document-specific store.
-            var archiver = DG.DocumentArchiver.create({}),
-                newDocument;
+            //var archiver = DG.DocumentArchiver.create({}),
+              //  newDocument;
 
             // Make a data interactive iFrame using the given URL
-            newDocument = archiver.importURLIntoDocument(iURL);
+            //newDocument = archiver.importURLIntoDocument(iURL);
 
-            DG.currDocumentController().setDocument(newDocument);
-          }.bind(this),
+            //DG.currDocumentController().setDocument(newDocument);
+          //}.bind(this),
+          // add interactive to existing document
+          //,
+          //embedWebView = function () {
+          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          //      iURL, 'Web Page',
+          //      {width: 600, height: 400});
+          //}.bind(this);
 
-          embedWebView = function () {
-            DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-                iURL, 'Web Page',
-                {width: 600, height: 400});
-          }.bind(this);
-
-
-      DG.AlertPane.plain({
-        message: 'DG.AppController.dropURLDialog.message',
-        description: 'DG.AppController.dropURLDialog.description',
-        buttons: [
-          {title: 'DG.AppController.dropURLDialog.ignore', localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedDI', action: embedInteractive, localize: YES},
-          {title: 'DG.AppController.dropURLDialog.embedWV', action: embedWebView, localize: YES}
-        ],
-        localize: YES
-      });
-
+      addInteractive();
       return true;
     },
 
@@ -486,7 +498,7 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')) {
+      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName') && !SC.none(DG.currDocumentController().get('externalId'))) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }
@@ -697,6 +709,18 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Closes the current document with confirmation.
+     *
+     * We interpose this between the menu item and closeDocumentWithConfirmation
+     * to correct the argument.
+     *
+     * @param {SC.Menu} sender: unused by the function.
+     */
+    closeCurrentDocument: function (sender) {
+      this.closeDocumentWithConfirmation(null);
+    },
+
+    /**
      Closes the document after confirming with the user that that is desired.
      */
     closeDocumentWithConfirmation: function (iDefaultGameName) {
@@ -745,10 +769,13 @@ DG.appController = SC.Object.create((function () // closure
       // Create a new empty document
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
 
-      // New documents generally start with a default game
-      // TODO: Eliminate redundancy with DG.authorizationController....
-      DG.gameSelectionController.setDefaultGame(iDefaultGameName);
-      DG.mainPage.addGameIfNotPresent();
+      /**
+       * If we are still in the GamesMenu world, we need to find the new game.
+       */
+      if (!SC.none(iDefaultGameName)){
+        DG.gameSelectionController.setDefaultGame(iDefaultGameName);
+        DG.mainPage.addGameIfNotPresent();
+      }
     },
 
     /**
@@ -819,7 +846,7 @@ DG.appController = SC.Object.create((function () // closure
               that.openJsonDocument(this.result);
             }
             else if( iType === 'TEXT') {
-              that.importText( this.result);
+              that.importText(this.result, iFile.name);
             }
             if (iDialog)
               iDialog.close();
@@ -827,19 +854,21 @@ DG.appController = SC.Object.create((function () // closure
           catch (er) {
             console.log(er);
             if (iDialog) {
-              iDialog.showAlert();
+              iDialog.showAlert( er);
             }
           }
+          DG.busyCursor.hide();
         }
-
-        var reader = new FileReader();
         var that = this;
-        if (iFile) {
-          reader.onabort = handleAbnormal;
-          reader.onerror = handleAbnormal;
-          reader.onload = handleRead;
-          reader.readAsText(iFile);
-        }
+        DG.busyCursor.show( function() {
+          var reader = new FileReader();
+          if (iFile) {
+            reader.onabort = handleAbnormal;
+            reader.onerror = handleAbnormal;
+            reader.onload = handleRead;
+            reader.readAsText(iFile);
+          }
+        });
       }.bind( this);
 
       var cancelCloseDocument = function () {
@@ -866,7 +895,9 @@ DG.appController = SC.Object.create((function () // closure
         });
       }
       else {
-        importFile();
+        DG.busyCursor.show(function() {
+          importFile();
+        });
       }
       if( iDialog)
         iDialog.close();
@@ -929,7 +960,7 @@ DG.appController = SC.Object.create((function () // closure
             });
           }
         }
-      });
+      }, true);
     },
 
     /**
@@ -1045,8 +1076,7 @@ DG.appController = SC.Object.create((function () // closure
       return this.copyLink(currDocId);
     }.property(),
 
-    showCopyLink: function(newDocId) {
-      var destination = this.copyLink(newDocId);
+    showCopyLink: function(destination) {
       var sheetPane = SC.PanelPane.create({
         layout: { top: 0, centerX: 0, width: 340, height: 140 },
         contentView: SC.View.extend({
@@ -1088,16 +1118,7 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     copyLink: function(newDocId) {
-      var currLoc = '' + window.location,
-          parts = currLoc.split('?'),
-          currQuery = DG.queryString.parse(parts[1] ? parts[1] : ''),
-        newLoc;
-
-      currQuery.recordid = encodeURIComponent(newDocId);
-
-      newLoc = parts[0] + '?' + DG.queryString.stringify(currQuery);
-
-      return newLoc;
+      return $.param.querystring(window.location.href, {recordid: newDocId} );
     }.property(),
 
     /**
@@ -1241,6 +1262,34 @@ DG.appController = SC.Object.create((function () // closure
         { centerX: 0, centerY: 0, width: 600, height: 400 });
 
     },
+
+    /**
+     Update the url in the browser bar to reflect the latest document information
+     */
+    updateUrlBar: function() {
+      if (DG.authorizationController.getPath('currLogin.status') === 0) {
+        // we haven't logged in yet, so leave the url alone
+        return;
+      }
+      var currentParams = $.deparam.querystring(),
+          recordid = DG.currDocumentController().get('externalDocumentId'),
+          docName = DG.currDocumentController().get('documentName'),
+          currUser = DG.authorizationController.getPath('currLogin.user');
+      delete currentParams.runAsGuest;
+      if (!SC.none(recordid)) {
+        delete currentParams.doc;
+        delete currentParams.owner;
+        currentParams.recordid = recordid;
+      } else {
+        delete currentParams.recordid;
+        if (currUser !== 'guest') {
+          currentParams.owner = currUser;
+        }
+        currentParams.doc = docName;
+      }
+      var newUrl = $.param.querystring(window.location.href, currentParams, 2); // Completely replace the current query string
+      window.history.replaceState("codap", docName + " - CODAP", newUrl);
+    }.observes('DG.authorizationController.currLogin.user', 'DG._currDocumentController.documentName', 'DG._currDocumentController.externalDocumentId'),
 
     /**
      Open a new tab with the CODAP website.

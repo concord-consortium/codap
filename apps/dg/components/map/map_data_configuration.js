@@ -41,9 +41,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                                   area: DG.AttributePlacementDescription.create()
                                 },
         tPlace,
-        tDefaults = DG.currDocumentController().collectionDefaults(),
-        tChildCollectionClient = tDefaults && tDefaults.collectionClient,
-        tParentCollectionClient = tDefaults && tDefaults.parentCollectionClient,
+        tChildCollectionClient, tParentCollectionClient,
         tCaptionName, tLatName, tLongName, tAreaName,
         tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
         kLatNames = ['latitude', 'lat', 'Latitude', 'Lat', 'LAT'],
@@ -51,6 +49,28 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
         kAreaNames = ['boundary', 'area', 'polygon', 'Boundary', 'Area', 'Polygon'];
 
     sc_super();
+
+    var findGISCollection = function() {
+      var tMapContexts = DG.currDocumentController().get('contexts').filter( function( iContext) {
+        return [ iContext.get('childCollection'), iContext.get('parentCollection')].some( function( iCollection) {
+          var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
+              tFoundLat = kLatNames.some(function (iName) {
+                return tAttrNames.indexOf(iName) >= 0;
+              }),
+              tFoundLong = kLongNames.some(function (iName) {
+                return tAttrNames.indexOf(iName) >= 0;
+              }),
+              tFoundArea = kAreaNames.some(function (iName) {
+                return tAttrNames.indexOf(iName) >= 0;
+              });
+          return (tFoundLat && tFoundLong) || tFoundArea;
+        });
+      });
+      if( tMapContexts.length === 1) {
+        tChildCollectionClient = tMapContexts[0].get('childCollection');
+        tParentCollectionClient = tMapContexts[0].get('parentCollection');
+      }
+    }.bind( this);
     
     /**
         Utility function for use in confuguring the attribute descriptions
@@ -96,6 +116,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');
     }.bind( this);
 
+    // TODO: Refactor the following to use some of the techniques above in findGISCollection
     var lookForMapAttributes = function( iCollectionClient) {
       var tFoundOne = false,
           tAttrNames = iCollectionClient && iCollectionClient.getAttributeNames();
@@ -135,6 +156,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       return tFoundOne;
     }.bind( this);
+
+    findGISCollection();
 
     if (!lookForMapAttributes( tChildCollectionClient)) {
       lookForMapAttributes( tParentCollectionClient);

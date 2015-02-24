@@ -126,7 +126,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iPlotIndex {Number}
      */
     removePlotAtIndex: function( iPlotIndex) {
-      DG.assert( iPlotIndex < this._plots.length);
+      DG.assert( iPlotIndex < this._plots.length,
+        'Attempt to remove non-existent plot');
       var tPlot = this._plots[ iPlotIndex];
       this._plots.splice( iPlotIndex, 1);
       tPlot.destroy();
@@ -489,24 +490,25 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             this.set(iAxisKey, tNewAxis);
             tAxisToDestroy.destroy();
 
-            tConfig.setAttributeAndCollectionClient(iDescKey, null);
-            // The role of the attribute placement description on the axis whose attribute is removed must be secondary
-            // and the other axis role must now be primary
-            switch (this.getPath('dataConfiguration.' + tOtherDesc + '.attributeType')) {
-              case DG.Analysis.EAttributeType.eNumeric:
-                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
-                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
-                break;
-              case DG.Analysis.EAttributeType.eCategorical:
-                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
-                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
-                break;
-              default:
-                tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
-                tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
-            }
-            tConfig.get(iDescKey).set('role', tSecondaryRole);
-            tConfig.get(tOtherDesc).set('role', tPrimaryRole);
+          tConfig.setAttributeAndCollectionClient( iDescKey, null,
+              DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
+          // The role of the attribute placement description on the axis whose attribute is removed must be secondary
+          // and the other axis role must now be primary
+          switch( this.getPath( 'dataConfiguration.' + tOtherDesc + '.attributeType' ) ) {
+            case DG.Analysis.EAttributeType.eNumeric:
+              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
+              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
+              break;
+            case DG.Analysis.EAttributeType.eCategorical:
+              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
+              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
+              break;
+            default:
+              tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
+              tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
+          }
+          tConfig.get( iDescKey ).set( 'role', tSecondaryRole );
+          tConfig.get( tOtherDesc ).set( 'role', tPrimaryRole );
 
             if (iAxisKey === 'y2Axis') {
               if( tY2Plot) {
@@ -537,6 +539,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       var tConfig = this.get('dataConfiguration'),
           tAttributes = tConfig.getPath(iDescKey + '.attributes');
 
+      if( tAttributes.length === 0)
+        return;
       if (tAttributes.length === 1) {
         // If we are removing the last x or y-axis attribute and there is a y2-axis attribute, remove the latter first.
         if( ((iAxisKey === 'yAxis') || (iAxisKey === 'xAxis')) && this.getY2Plot())

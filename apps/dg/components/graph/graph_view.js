@@ -99,6 +99,7 @@ DG.GraphView = SC.View.extend(
       if( !SC.none( iCurrentPoints))
         iPlotView.set('cachedPointCoordinates', iCurrentPoints);
     iPlotView.endPropertyChanges();
+
     iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
     this.invokeLast( this.drawPlots);
     });
@@ -411,6 +412,11 @@ DG.GraphView = SC.View.extend(
     this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
+
+  handleLegendModelChange: function() {
+    var tLegendModel = this.getPath('model.legend');
+    this.setPath('legendView.model', tLegendModel);
+  }.observes('.model.legend'),
   
   /**
     When my plot model changes, we need to respond by changing its corresponding view.

@@ -44,7 +44,11 @@ DG.CollectionClient = SC.Object.extend(
   name: function() {
     return this.getPath('collection.collectionRecord.name');
   }.property('collection').cacheable(),
-  
+
+  defaults: function () {
+    return this.getPath('collection.collectionRecord.defaults');
+  }.property('collection,collectionRecord').cacheable(),
+
   attrsController: null,
 
   casesController: null,
@@ -313,9 +317,13 @@ DG.CollectionClient = SC.Object.extend(
         if (!SC.none( iProperties.colormap)) {
           tAttribute.set('colormap', SC.clone( iProperties.colormap));
         }
+        // copy 'blockDisplayOfEmptyCategories' property
+        if (!SC.none( iProperties.blockDisplayOfEmptyCategories)) {
+          tAttribute.set('blockDisplayOfEmptyCategories', iProperties.blockDisplayOfEmptyCategories);
+        }
         // copy 'editable' property
         if (!SC.none( iProperties.editable)) {
-          tAttribute.set('colormap', iProperties.editable);
+          tAttribute.set('editable', iProperties.editable);
         }
         // Eventually we should copy all properties here.
       }
@@ -558,6 +566,14 @@ DG.CollectionClient = SC.Object.extend(
     });
     this.didDeleteCases();
   },
+
+    /**
+     * Returns labels for this collection, if any have been set.
+     * @returns {Object}
+     */
+    getCollectionLabels: function () {
+      return this.getPath('collection.collectionRecord.labels');
+    },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.

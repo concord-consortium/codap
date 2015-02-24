@@ -56,7 +56,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
           attrSpec = tDefaults['plot' + iAttrInfix + 'Attr'],
           isAttrNumeric = tDefaults['plot' + iAttrInfix + 'AttrIsNumeric'];
           
-      DG.assert( attrDesc);
+      DG.assert( attrDesc, 'Check for missing attribute description.');
       
       // Configure the attribute description for the specified default attribute
       if( attrSpec) {
@@ -74,13 +74,13 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
                           ? DG.Analysis.EAnalysisRole.eNone
                           : isAttrNumeric ? iNumericRole : iCategoricalRole);
       }
-      
+      //
       // Null out the attribute description when no default attribute is specified.
       else {
         attrDesc.set('collectionClient', null);
         attrDesc.removeAllAttributes();
       }
-      
+
       // We must set these up manually, because the infrastructure isn't in place by
       // the time sc_super() (i.e. SC.Object.init()) is called.
       attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');

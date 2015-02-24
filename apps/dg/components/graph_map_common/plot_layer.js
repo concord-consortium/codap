@@ -595,7 +595,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       tLayerManager = this.get('layerManager' ),
       tCases = this.getPath('model.cases');
 
-    if(!tCases)
+    if(!tCases || !tSelection)
       return;
 
     tCases.forEach( function( iCase, iIndex) {
@@ -767,7 +767,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @param iColorString {String}
    */
   updatePlottedElement: function( iPlottedElement, iViewX, iViewY, iRadius, iColorString, iAnimate, iCallback ) {
-    var tAttrs = {cx: iViewX, cy: iViewY, r: iRadius},
+    var tAttrs = {cx: iViewX, cy: iViewY, r: iRadius, fill: iColorString,
+          'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity},
         tColor = DG.color( iColorString ),
         tStrokeColor;
     if( tColor.rgb) {
@@ -796,7 +797,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     
     if( iAnimate) {
       // note: animating color does not look good (interaction with other plot changes), so update immediately
-      iPlottedElement.attr( {fill: iColorString, stroke: tStrokeColor });
+      iPlottedElement.attr( {stroke: tStrokeColor });
       
       // Hover animation changes the transform which affects positioning.
       // If we're trying to animate position, we simply complete the hover animation.

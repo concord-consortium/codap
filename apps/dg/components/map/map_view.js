@@ -74,7 +74,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       /**
        * SC.ImageButtonView
        */
-//      marqueeTool: null,
+      marqueeTool: null,
 
       paper: function() {
         return this.getPath('mapPointView.paper');
@@ -115,7 +115,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 40, height: 16, top: 25, right: 15 },
+          layout: { width: 40, height: 16, top: 33, right: 48 },
+          toolTip: 'DG.MapView.gridControlHint'.loc(),
           minimum: 0,
           maximum: 1,
           step: 0,
@@ -124,14 +125,27 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         });
         this.appendChild( this.gridControl );
 
-//        this.marqueeTool = SC.ImageButtonView.create({
-//          controlSize: SC.SMALL_CONTROL_SIZE,
-//          //classNames: ['my-image-button'],
-//          layout: { width: 18, height: 18, right: 180, top: 5 },
-//          image: static_url('images/map_marquee.png')
-//        });
-//        this.appendChild( this.marqueeTool);
+        this.marqueeTool = SC.ImageButtonView.create({
+          buttonBehavior: SC.PUSH_BEHAVIOR,
+          layout: { right: 10, top: 25, width: 32, height: 32 },
+          toolTip: 'DG.MapView.marqueeHint'.loc(),
+          image: 'map-marquee',
+          action: 'setMarqueeMode',
+          isVisible: false
+        });
+        this.appendChild( this.marqueeTool);
       },
+
+      setMarqueeMode: function() {
+        this.setPath('mapPointView.isInMarqueeMode', true);
+      },
+
+      marqueeModeChanged: function() {
+        var tImage = this.getPath('mapPointView.isInMarqueeMode') ?
+            'map-marquee-selected' :
+            'map-marquee';
+        this.setPath('marqueeTool.image', tImage);
+      }.observes('mapPointView.isInMarqueeMode'),
 
       changeBaseMap: function() {
         this.setPath('model.baseMapLayerName', this.backgroundControl.get('value'));
@@ -167,6 +181,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           if (tMakeVisible !== false)
             tMakeVisible = true;
           tMapPointView.set('isVisible', tMakeVisible);
+          this.setPath('marqueeTool.isVisible', tMakeVisible);
           this.setPath('model.pointsShouldBeVisible', tMakeVisible);
         }
         else {
@@ -178,7 +193,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible');
         this.setPath('mapPointView.isVisible', tPointsAreVisible);
-        this.setPath('mapGridLayer.showTips', !tPointsAreVisible);
+        this.setPath('marqueeTool.isVisible', tPointsAreVisible);
+        this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
 
       addAreaLayer: function () {
@@ -209,7 +225,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             {
               mapSource: this,
               model: tGridModel,
-              showTips: !this.getPath('model.pointsShouldBeVisible')
+              showTips: true /* !this.getPath('model.pointsShouldBeVisible') */
             }));
         // The size of any points depends on whether the grid is visible or not
         if( !this.get('mapPointView'))

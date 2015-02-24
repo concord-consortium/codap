@@ -120,16 +120,7 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: kInfobarHeight, height: kToolbarHeight },
-      childViews: 'resetButton logoutButton'.w(),
-
-      resetButton: SC.ButtonView.design({
-        layout: { centerY:0, height:24, left:0, width:100 },
-        localize: true,
-        title: 'DG.AppController.resetData.title', // "Reset Data..."
-        target: 'DG.appController',
-        action: 'deleteAllCaseData',
-        toolTip: 'DG.AppController.resetData.toolTip' // "Delete all data from completed games"
-      }),
+      childViews: 'logoutButton'.w(),
 
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
@@ -173,7 +164,6 @@ DG.mainPage = SC.Page.design((function() {
         DG.currDocumentController().set('guideButton', this.guideButton);
         // move existing buttons, left-justified after tool buttons
         tLeft += kSpacer; // extra space to right of gear
-        tLeft = kSpacer + moveHorizontal( this.resetButton, tLeft );
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
       }
       
@@ -245,6 +235,17 @@ DG.mainPage = SC.Page.design((function() {
           tType = tNewType;
         }
 
+        var tAlertDialog = {
+          showAlert: function( iError) {
+            DG.AlertPane.show( {
+              message: 'DG.AppController.dropFile.error'.loc( iError.message)
+            });
+          },
+          close: function() {
+            // Do nothing
+          }
+        };
+
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
@@ -257,12 +258,12 @@ DG.mainPage = SC.Page.design((function() {
             adjustTypeBasedOnSuffix();
 
           if( tType === 'application/json') {
-            DG.appController.importFileWithConfirmation(tFile, 'JSON');
+            DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
           }
           else if( (tType === 'text/csv')
               || (tType === 'text/plain')
               || (tType === 'text/tab-separated-values')) {
-            DG.appController.importFileWithConfirmation(tFile, 'TEXT');
+            DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
           }
         }
         else if( !SC.empty(tURI)) {
@@ -374,41 +375,8 @@ DG.mainPage = SC.Page.design((function() {
      * DG.mainPage methods
      */
 
-    docView: SC.outlet('mainPane.scrollView.contentView'),
+    docView: SC.outlet('mainPane.scrollView.contentView')
 
-    /*
-      updateLayout()
-      Lays out the views to accommodate the dimensions of the game.
-      Observes DG.gameSelectionController.menuPane.selectedItem so
-      that it triggers primarily on user selection of a new game.
-     */
-    updateLayout: function() {
-      var mainPane = this.get('mainPane');
-      if (!mainPane)
-        return;
-
-      // Auto-update the size for user selection of a new game,
-      // but not for restore of a game from document (which sets
-      // the 'selectedItem' to null).
-      var gameView = DG.currDocumentController().get('gameView');
-      if( gameView) {
-        var requestedDimensions = DG.gameSelectionController.get('requestedDimensions');
-        if( !requestedDimensions) {
-          // If specific dimensions were not requested (e.g. not restoring),
-          // then we use the default dimensions specified in the DG.GameSpec.
-          var gameSize = DG.gameSelectionController.get('currentDimensions'),
-              newWidth = gameSize.width + DG.ViewUtilities.horizontalPadding(),
-              newHeight = gameSize.height + DG.ViewUtilities.verticalPadding();
-          gameView.adjust('width', newWidth);
-          gameView.adjust('height', newHeight);
-        }
-      }
-      // If we don't have a game component but we do have a selected menu item,
-      // create the game component for the currently selected game.
-      else if( DG.gameSelectionController.getPath('menuPane.selectedItem')) {
-        this.addGameIfNotPresent();
-      }
-    }.observes('DG.gameSelectionController.currentDimensions')
 
   } // end compatible browser mainPage design
   
@@ -433,6 +401,10 @@ DG.mainPage = SC.Page.design((function() {
 DG.mainPage.toggleCalculator = function() {
   DG.currDocumentController().
       toggleComponent( this.get('docView'), 'calcView');
+};
+
+DG.mainPage.openCaseTablesForEachContext = function () {
+  DG.currDocumentController().openCaseTablesForEachContext();
 };
 
 DG.mainPage.toggleCaseTable = function() {
@@ -471,8 +443,8 @@ DG.mainPage.getComponentsOfType = function( aPrototype) {
   var docView = this.get('docView'),
       tComponentViews = docView && docView.get('childViews'),
       tDesiredViews = tComponentViews && tComponentViews.filter( function( aComponentView) {
-                        return aComponentView.contentIsInstanceOf( aPrototype);
-                      });
+            return aComponentView.contentIsInstanceOf( aPrototype);
+          });
   return tDesiredViews ? tDesiredViews.getEach('contentView') : [];
 };
 

@@ -22,6 +22,7 @@
 
 /* globals jiff */
 sc_require('libraries/jiff');
+sc_require('libraries/es6-promise-polyfill');
 
 /** @class
 
@@ -37,25 +38,43 @@ DG.DocumentController = SC.Object.extend(
    *  @property {DG.Document}
    */
   content: null,
-  
+
   /**
    *  The DataContexts which are managed by this controller.
    *  Bound to the document's 'contexts' property.
    *  @property {Array of DG.DataContextRecord}
    */
-  contexts: function() {
+  contextRecords: function() {
     return this.getPath('content.contexts');
   }.property(),
-  
+
+    contexts: null,
+
   /**
    *  The Components which are managed by this controller.
    *  Bound to the document's 'components' property.
-   *  @property {Array of DG.Component}
+   *  @property {Object} Hashmap of Components
    */
   components: function() {
     return this.getPath('content.components');
   }.property(),
-  
+
+    /**
+     * Returns an array of the GameControllers defined in this document.
+     */
+    dataInteractives: function() {
+      var componentControllers = this.get('componentControllersMap'),
+        result = [];
+      if (componentControllers) {
+        DG.ObjectMap.forEach(componentControllers, function (key, component) {
+          var type = component.getPath('model.type');
+          if (type === 'DG.GameView') {
+            result.push(component);
+          }
+        });
+      }
+      return result;
+    }.property('componentControllersMap'),
   /**
     Map from component ID to the component's controller
    */
@@ -178,7 +197,8 @@ DG.DocumentController = SC.Object.extend(
     sc_super();
     
     this._singletonViews = {};
-    
+    this.contexts = [];
+
     // If we were created with a 'content' property pointing to our document,
     // then use it; otherwise, create a new document.
     this.setDocument( this.get('content') || this.createDocument());
@@ -222,6 +242,7 @@ DG.DocumentController = SC.Object.extend(
     this.clearChangedObjects();
     this.set('changeCount', 0);
     this.updateSavedChangeCount();
+    this.set('externalDocumentId', null);
     this.set('ready', true);
   },
 
@@ -252,7 +273,9 @@ DG.DocumentController = SC.Object.extend(
    */
   updateSavedChangeCount: function() {
     // Game controller state affects the document state
-    DG.currGameController.updateSavedChangeCount();
+    this.dataInteractives().forEach( function (gameController) {
+      gameController.updateSavedChangeCount();
+    });
     this.set('savedChangeCount', this.get('changeCount'));
   },
 
@@ -297,6 +320,7 @@ DG.DocumentController = SC.Object.extend(
     iProperties.type = iModel.get('type');
     iProperties.model = iModel;
     var context = DG.DataContext.factory( iProperties);
+    this.get('contexts').push(context);
     return context;
   },
   
@@ -304,17 +328,27 @@ DG.DocumentController = SC.Object.extend(
     Creates an appropriate DG.DataContext for each DG.DataContextRecord in the document.
     Can be used after restoring a document, for instance.
    */
-  restoreDataContexts: function() {
-    var contexts = this.get('contexts') || [],
-        this_ = this;
-    DG.ObjectMap.forEach(contexts, function(key, iContextModel) {
-                        var newContext = this_.createDataContextForModel( iContextModel);
-                        if( newContext) {
-                          newContext.restoreFromStorage( iContextModel.get('contextStorage'));
-                        }
-                      });
+  restoreDataContexts: function () {
+    var contextRecords = this.get('contextRecords') || [];
+    DG.ObjectMap.forEach(contextRecords, function (key, iContextModel) {
+      var newContext = this.createDataContextForModel(iContextModel);
+      if (newContext) {
+        newContext.restoreFromStorage(iContextModel.get('contextStorage'));
+      }
+      //this.contexts.push(newContext);
+    }.bind(this));
   },
-  
+
+  createNewDataContext: function(iProps) {
+    var contextRecord = DG.DataContextRecord.createContext(iProps),
+        context = this.createDataContextForModel(contextRecord);
+    if (contextRecord.contextStorage) {
+      context.restoreFromStorage(contextRecord.contextStorage);
+    }
+    //this.contexts.push(context);
+    return context;
+  },
+
   /**
     Creates the specified component and its associated view.
     Clients should specify either iComponent or iComponentType.
@@ -412,9 +446,14 @@ DG.DocumentController = SC.Object.extend(
               {Object.plotYAttrIsNumeric}  {Boolean}  Whether the default Y axis attribute is numeric
    */
   collectionDefaults: function() {
-    var gameSpec = DG.gameSelectionController.get('currentGame'),
-        gameContext = gameSpec && DG.GameContext.getContextForGame( gameSpec),
-        defaults = gameContext && gameContext.collectionDefaults();
+    var gameContext,
+        defaults;
+    if (this.get('contexts').length === 1) {
+      gameContext = this.get('contexts')[0];
+      defaults = gameContext && gameContext.collectionDefaults();
+    } else {
+      defaults = DG.DataContext.collectionDefaults();
+    }
     return defaults;
   },
   
@@ -443,7 +482,7 @@ DG.DocumentController = SC.Object.extend(
       tComponent = DG.Component.createComponent( tComponentProperties);
     }
     
-    // If client specified a model, assocate it with the component in our map
+    // If client specified a model, associate it with the component in our map
     if( iParams.contentProperties && iParams.contentProperties.model)
       tComponent.set('content', iParams.contentProperties.model);
     
@@ -484,9 +523,9 @@ DG.DocumentController = SC.Object.extend(
       tComponentView = DG.ComponentView.restoreComponent( iParams.parentView, tLayout, 
                                                      iParams.componentClass.constructor,
                                                      iParams.contentProperties,
-                                                     iParams.title, iParams.isResizable);
-    }
-    else {
+                                                     iParams.title, iParams.isResizable,
+                                                     iParams.useLayout);
+    } else {
       DG.sounds.playCreate();
       tComponentView = DG.ComponentView.addComponent( iParams.parentView, tLayout,
                                                     iParams.componentClass.constructor,
@@ -516,50 +555,111 @@ DG.DocumentController = SC.Object.extend(
     
     return tComponentView;
   },
-  
-  addGame: function( iParentView, iComponent) {
-    var tGameParams = DG.gameSelectionController.get('currentDimensions') || { width: 0, height: 0 },
-        tGameName = DG.gameSelectionController.get('currentName') || '';
 
-    var tView = this.createComponentView(iComponent, {
-                              parentView: iParentView, 
-                              controller: DG.currGameController,
-                              componentClass: { type: 'DG.GameView', constructor: DG.GameView},
-                              contentProperties: {},             
-                              defaultLayout: { width: tGameParams.width, height: tGameParams.height },
-                              title: tGameName,
-                              isResizable: true}  // may change this to false in the future
-                            );
-    this._singletonViews.gameView = tView;
+    addGame: function (iParentView, iComponent) {
+      var tGameParams = {
+          width: 640, height: 480
+        },
+        tGameUrl = (iComponent && iComponent.getPath(
+          'componentStorage.currentGameUrl')),
+        tGameName = (iComponent && iComponent.getPath(
+            'componentStorage.currentGameName')) || 'Unknown Game',
+        tController = DG.GameController.create(),
+        tView = this.createComponentView(iComponent, {
+            parentView: iParentView,
+            controller: tController,
+            componentClass: {
+              type: 'DG.GameView', constructor: DG.GameView
+            },
+            contentProperties: {
+              controller: tController, value: tGameUrl, name: tGameName
+            },
+            defaultLayout: {
+              width: tGameParams.width,
+              height: tGameParams.height
+            },
+            title: tGameName,
+            isResizable: true,
+            useLayout: false
+          }  // may change this to false in the future
+        );
 
-    // Override default component view behavior.
-    // Do nothing until we figure out how to prevent reloading of Flash object.
-    tView.bringToFront = function() {};
-    tView.bind('title', 'DG.gameSelectionController.currentName');
-      
-    return tView;
-  },
+      // Override default component view behavior.
+      // Do nothing until we figure out how to prevent reloading of Flash object.
+      tView.bringToFront = function () { };
+
+      return tView;
+    },
   
   addCaseTable: function( iParentView, iComponent) {
-    var tView = this.createComponentView(iComponent, {
-                              parentView: iParentView, 
-                              controller: DG.CaseTableController.create(),
-                              componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-                              contentProperties: {},             
-                              defaultLayout: { width: 500, height: 200 },
-                              title: 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
-                              isResizable: true}
-                            );
-    this._singletonViews.caseTableView = tView;
+    function resolveContextLink(iComponent) {
+      var id = DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'context');
+      if (id) {
+        return iComponent.document.contexts[id];
+      }
+    }
+    var context = resolveContextLink(iComponent),
+      contextName = (context && context.contextStorage && context.contextStorage.gameName)
+        || 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+      tView = this.createComponentView(iComponent, {
+        parentView: iParentView,
+        controller: DG.CaseTableController.create(),
+        componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
+        contentProperties: {},
+        defaultLayout: { width: 500, height: 200 },
+        title: contextName,
+        isResizable: true}
+    );
     return tView;
   },
-  
+
+  /*
+     An alternate implementation of addCaseTable that adds the ability to pass
+     parameters. Needed for multiple data contexts.
+     */
+  addCaseTableP: function( iParentView, iComponent, iProperties) {
+
+    var props = SC.Object.create({
+      parentView: iParentView,
+      controller: DG.CaseTableController.create(iProperties),
+      componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
+      contentProperties: {},
+      defaultLayout: { width: 500, height: 200 },
+      title: iProperties.dataContext.gameName ||
+          'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+      isResizable: true}), tView;
+    DG.ObjectMap.copy(props, iProperties);
+    tView = this.createComponentView(iComponent, props);
+    return tView;
+  },
+
+  openCaseTablesForEachContext: function () {
+    var caseTables = this.findComponentsByType(DG.CaseTableController);
+    function haveCaseTableForContext (context) {
+      var ix;
+      for (ix = 0; ix < caseTables.length; ix += 1) {
+        if (caseTables[ix].dataContext === context) { return true; }
+      }
+      return false;
+    }
+    DG.DataContext.forEachContextInMap(null, function (id, context) {
+      if (!haveCaseTableForContext(context)) {
+        this.addCaseTableP(DG.mainPage.get('docView'),
+          null, {dataContext: context});
+      }
+    }.bind(this));
+  },
+
   addGraph: function( iParentView, iComponent) {
     SC.Benchmark.start('addGraph');
     var tGraphModel = DG.GraphModel.create(),
-        tGraphController = DG.GraphController.create();
-    // Default to current context. Will be replaced by referenced context in restored documents.
-    tGraphController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+      tGraphController = DG.GraphController.create(),
+      tContextIds = DG.DataContext.contextIDs(null);
+
+    if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
+      tGraphController.set('dataContext',
+        DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
+    }
     var tView = this.createComponentView(iComponent, {
                             parentView: iParentView, 
                             controller: tGraphController,
@@ -591,10 +691,15 @@ DG.DocumentController = SC.Object.extend(
   addMap: function( iParentView, iComponent) {
     var tMapModel = DG.MapModel.create(),
         tMapController = DG.MapController.create(),
-        tContext = DG.gameSelectionController.get('currentContext');
-    // Don't pass the data context in the constructor because it's a function property
-    tMapModel.set('dataContext',  tContext);
-    tMapController.set('dataContext', DG.gameSelectionController.get('currentContext'));
+        tContextIds = DG.DataContext.contextIDs(null),
+        tContext;
+
+    if (DG.ObjectMap.length(tContextIds) === 1) {
+      tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
+      // Don't pass the data context in the constructor because it's a function property
+      tMapModel.set('dataContext',  tContext);
+      tMapController.set('dataContext', tContext);
+    }
 
     // map as component
     var tView = this.createComponentView(iComponent, {
@@ -792,10 +897,10 @@ DG.DocumentController = SC.Object.extend(
     DG.globalsController.stopAnimation();
     DG.gameSelectionController.reset();
     DG.DataContext.clearContextMap();
-    
+
     DG.Document.destroyDocument(DG.activeDocument);
 
-    DG.gameSelectionController.reset();
+    this.contexts = [];
     this.closeAllComponents();
   },
   
@@ -807,7 +912,15 @@ DG.DocumentController = SC.Object.extend(
     // Reset the guide
     this.get('guideModel').reset();
   },
-  
+  findComponentsByType: function (iType) {
+    var tResults = [];
+    DG.ObjectMap.forEach(this.componentControllersMap, function (key, componentController) {
+      if (componentController.constructor === iType) {
+        tResults.push(componentController);
+      }
+    });
+    return tResults;
+  },
   removeComponentAssociatedWithView: function( iComponentView) {
     var tController = null,
         tComponentID = DG.ObjectMap.findKey( this.componentControllersMap,
@@ -875,9 +988,9 @@ DG.DocumentController = SC.Object.extend(
     Signature of `callback`:
     @param  {Object} docArchive an object representing the document suitable for JSON-conversion
   */
-  exportDocument: function(callback) {
+  exportDocument: function(callback, fullData) {
     var archiver = DG.DocumentArchiver.create({});
-    archiver.saveDocument( this.get('content'), callback);
+    archiver.saveDocument( this.get('content'), callback, fullData);
   },
 
   exportDataContexts: function(callback, exportAll) {
@@ -1010,11 +1123,15 @@ DG.DocumentController = SC.Object.extend(
     } else {
       var newDocId = body.id;
       if (isCopy) {
-        var win = window.open(DG.appController.copyLink(newDocId), '_blank');
+        var url = DG.appController.copyLink(newDocId);
+        if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+          url = $.param.querystring(url, {runAsGuest: 'true'});
+        }
+        var win = window.open(url, '_blank');
         if (win) {
           win.focus();
         } else {
-          DG.appController.showCopyLink(newDocId);
+          DG.appController.showCopyLink(url);
         }
       } else {
         this.set('externalDocumentId', ''+newDocId);
@@ -1132,8 +1249,83 @@ DG.DocumentController = SC.Object.extend(
         localize: true,
         message: errorMessage});
     }
-  }
-});
+  },
+    /**
+     Saves the current state of the current game into the 'savedGameState'
+     property of the current game's context. Uses the 'doCommandFunc' property
+     passed by the game as part of the 'initGame' command.
+
+     @param {function} done A callback.
+     */
+    saveCurrentGameState: function(done) {
+
+
+      var gameControllers = this.get('dataInteractives'),
+          promises = [];
+      if (gameControllers) {
+        gameControllers.forEach(function (gameController) {
+          var gameContext = gameController.get('context'),
+            doAppCommandFunc = gameController.get('doCommandFunc'),
+            saveCommand = { operation: "saveState" },
+            tGameElement = gameController.findCurrentGameElement( gameController.get('gameEmbedID')),
+            result;
+          // create an array of promises, one for each data interactive.
+          // issue the request in the promise.
+          promises.push(new Promise(function (resolve, reject) {
+            try {
+              if( gameContext) {
+                if( doAppCommandFunc ) {
+                  // for JavaScript games we can call directly with Objects as arguments
+                  result = doAppCommandFunc(saveCommand);
+                  if (result && result.success) {
+                    gameContext.set('savedGameState', result.state);
+                  }
+                  resolve(result);
+                } else if (tGameElement && tGameElement.doCommandFunc ) {
+                  result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
+                  if (typeof result === 'string') {
+                    result = JSON.parse(result);
+                  }
+                  if (result && result.success) {
+                    gameContext.set('savedGameState', result.state);
+                  }
+                  resolve(result);
+                } else if (gameController.get('isGamePhoneInUse')) {
+                  // async path
+                  gameController.gamePhone.call(saveCommand, function(result) {
+                    if( result && result.success) {
+                      gameContext.set('savedGameState', result.state);
+                    }
+                    resolve(result);
+                  });
+                } else {
+                  DG.logWarn("No channel to Data Interactive: " +
+                  gameContext.get('gameName'));
+                  resolve({success:false});
+                }
+              }
+            } catch (ex) {
+              DG.logWarn("Exception saving game context(" + gameContext.get('gameName') + "): " + ex);
+              resolve({success:false});
+            }
+          }));
+        });
+        // when all promises in the array of promises complete, then call the callback
+        Promise.all(promises).then(function (value) {
+          DG.logInfo('saveCurrentGameState complete.');
+          done();},
+          function (reason) {
+            DG.logWarn('saveCurrentGameState failed: ' + reason);
+            done();
+        });
+      }
+
+      // For consistency with gamePhone case, make sure that done callback is invoked in a later
+      // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
+      //this.invokeLater(function() { done(); } );
+    }
+
+  });
 
 DG.currDocumentController = function() {
   if( !DG._currDocumentController) {

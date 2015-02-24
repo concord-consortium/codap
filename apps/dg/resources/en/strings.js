@@ -173,6 +173,7 @@ SC.stringsFor('English', {
   'DG.AppController.dropURLDialog.ignore' : 'Ignore',
   'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
   'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
+  'DG.AppController.dropFile.error' : 'Error: %@1',  // Error: <error text>
 
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
@@ -221,8 +222,8 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.fileMenu.toolTip' : "Save and open document (ctrl-s and ctrl-o)",
   'DG.ToolButtonData.gameMenu.title' : "Game",
   'DG.ToolButtonData.gameMenu.toolTip' : "Choose the game to play (ctrl-alt-shift-g)",
-  'DG.ToolButtonData.tableButton.title' : "Table",
-  'DG.ToolButtonData.tableButton.toolTip' : "Open/close the case table (ctrl-alt-t)",
+  'DG.ToolButtonData.tableButton.title' : "Tables",
+  'DG.ToolButtonData.tableButton.toolTip' : "Open a case table for each data set(ctrl-alt-t)",
   'DG.ToolButtonData.graphButton.title' : "Graph",
   'DG.ToolButtonData.graphButton.toolTip' : "Make a graph (ctrl-alt-g)",
   'DG.ToolButtonData.sliderButton.title' : "Slider",
@@ -395,6 +396,8 @@ SC.stringsFor('English', {
     'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
     'DG.MapView.hideGrid': "Hide Grid",  // "Hide Grid"
     'DG.MapView.showPoints': "Show Points",  // "Show Points"
-    'DG.MapView.hidePoints': "Hide Points"  // "Hide Points"
+    'DG.MapView.hidePoints': "Hide Points",  // "Hide Points"
+    'DG.MapView.marqueeHint': "Marquee tool—drag select points in map",  // "Marquee tool—drag select points in map"
+    'DG.MapView.gridControlHint': "Change size of grid rectangles"  // "Change size of grid rectangles"
   }
 ) ;

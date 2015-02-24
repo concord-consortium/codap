@@ -323,23 +323,28 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if (tIsVertical) {
               tLoc.x = tLabelExtent.x / 4 + 2;
               tLoc.y = tPosition - tLabelExtent.y / 2;
-              tPosition -= tLabelExtent.y + 4;
+              tPosition -= tLabelExtent.y;
               if (tV2)
                 tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
             }
             else {  // horizontal
               tLoc.x = tPosition + tLabelExtent.x / 2;
               tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
-              tPosition += tLabelExtent.x + 4;
+              tPosition += tLabelExtent.x;
             }
-            tNode.set('loc', tLoc);
+            tNode.attr( { x: tLoc.x, y: tLoc.y } );
+            DG.RenderingUtilities.rotateText( tNode, tRotation, tLoc.x, tLoc.y);
           });
         },
 
         /**
          Graph controller observes this property to detect that a drag has taken place.
-         @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
-                axisOrientation:{String} }}
+         @property{{
+          context:{DG.DataContext},
+          collection:{DG.CollectionRecord},
+          attribute:{DG.Attribute},
+          text:{String},
+          axisOrientation:{String} }}
          */
         dragData: null,
 
