@@ -185,14 +185,17 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
         }
       }
       obj = {
-          name: this.name,
-          areParentChildLinksConfigured: this.areParentChildLinksConfigured,
-          parent: parentID,
-          guid: this.id,
-          labels: this.labels,
-          attrs: [],
-          cases: []
-        };
+        areParentChildLinksConfigured: this.areParentChildLinksConfigured,
+        attrs: [],
+        cases: [],
+        caseName: this.caseName,
+        childAttrName: this.childAttrName,
+        collapseChildren: this.collapseChildren,
+        guid: this.id,
+        labels: this.labels,
+        name: this.name,
+        parent: parentID
+      };
       this.attrs.forEach(function (attr) {
         obj.attrs.push(attr.toArchive());
       });
