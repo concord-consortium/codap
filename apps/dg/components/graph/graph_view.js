@@ -39,6 +39,7 @@ DG.GraphView = SC.View.extend(
   
   xAxisView: null,
   yAxisView: null,
+  y2AxisView: null,
   yAxisMultiTarget: null,
   legendView: null,
   plotBackgroundView: null,
@@ -86,12 +87,13 @@ DG.GraphView = SC.View.extend(
    * @param iCurrentPoints
    */
 
-  setPlotViewProperties: function( iPlotView, iPlotModel, iCurrentPoints) {
+  setPlotViewProperties: function( iPlotView, iPlotModel, iYAxisKey, iCurrentPoints) {
+    iYAxisKey = iYAxisKey || 'yAxisView';
     iPlotView.beginPropertyChanges();
       iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
       iPlotView.setIfChanged('model', iPlotModel);
-      iPlotView.setIfChanged( 'xAxisView', this.xAxisView);
-      iPlotView.setIfChanged( 'yAxisView', this.yAxisView);
+      iPlotView.setIfChanged( 'xAxisView', this.get('xAxisView'));
+      iPlotView.setIfChanged( 'yAxisView', this.get(iYAxisKey));
       iPlotView.setIfChanged('parentView', this);
       iPlotView.setupAxes();  // special requirements set up here
       if( !SC.none( iCurrentPoints))
@@ -99,7 +101,7 @@ DG.GraphView = SC.View.extend(
     iPlotView.endPropertyChanges();
 
     iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
-      this.invokeLast( this.drawPlots);
+    this.invokeLast( this.drawPlots);
     });
   },
 
@@ -123,10 +125,10 @@ DG.GraphView = SC.View.extend(
 
     var tXAxis = this.getPath( 'model.xAxis'),
         tYAxis = this.getPath( 'model.yAxis'),
-        tXSetup = { orientation: 'horizontal' },
-        tYSetup = { orientation: 'vertical' },
-        tXAxisView = getAxisViewClass( tXAxis).create( tXSetup),
-        tYAxisView = getAxisViewClass( tYAxis).create( tYSetup),
+        tY2Axis = this.getPath( 'model.y2Axis'),
+        tXAxisView = getAxisViewClass( tXAxis).create( { orientation: 'horizontal' }),
+        tYAxisView = getAxisViewClass( tYAxis).create( { orientation: 'vertical' }),
+        tY2AxisView = getAxisViewClass( tY2Axis).create( { orientation: 'vertical2' }),
         tBackgroundView = DG.PlotBackgroundView.create( { xAxisView: tXAxisView, yAxisView: tYAxisView,
                                                           graphModel: this.get('model') } ),
         tPlots = this.getPath('model.plots' ),
@@ -134,20 +136,31 @@ DG.GraphView = SC.View.extend(
 
     sc_super();
 
-    this.createMultiTarget();
     this._plotViews = [];
 
     this.set('xAxisView', tXAxisView);
     this.appendChild( tXAxisView);
     this.set('yAxisView', tYAxisView);
     this.appendChild( tYAxisView);
+
+    // y2AxisView must be 'under' plotBackgroundView for dragging to work properly when there is no
+    // attribute on y2 axis.
+    this.set('y2AxisView', tY2AxisView);
+    this.appendChild( tY2AxisView);
+    tY2AxisView.set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
+    tY2AxisView.set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+    tYAxisView.set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
+
     this.set('plotBackgroundView', tBackgroundView);
     this.appendChild( tBackgroundView);
     tXAxisView.set('otherAxisView', tYAxisView);
     tYAxisView.set('otherAxisView', tXAxisView);
+    tY2AxisView.set('otherAxisView', tXAxisView);
 
     this.set('legendView', tLegendView);
     this.appendChild( tLegendView);
+
+    this.createMultiTarget();
 
     if(DG.IS_INQUIRY_SPACE_BUILD) {
       var tNumberToggleView = DG.NumberToggleView.create( { model: this.getPath('model.numberToggle')});
@@ -165,10 +178,14 @@ DG.GraphView = SC.View.extend(
 
     tXAxisView.set('model', tXAxis);
     tYAxisView.set('model', tYAxis);
+
+    tY2AxisView.set('model', tY2Axis);
+
     tPlots.forEach( function( iPlotModel) {
       var tPlotView = this.mapPlotModelToPlotView( iPlotModel).create();
       this.addPlotView( tPlotView);
-      this.setPlotViewProperties( tPlotView, iPlotModel);
+      this.setPlotViewProperties( tPlotView, iPlotModel,
+          iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
     }.bind(this));
     tLegendView.set('model', this.getPath('model.legend'));
 
@@ -261,23 +278,29 @@ DG.GraphView = SC.View.extend(
 
     var tXAxisView = this.get('xAxisView'),
         tYAxisView = this.get('yAxisView'),
+        tY2AxisView = this.get('y2AxisView'),
+        tY2AttributeID = this.getPath('model.dataConfiguration.y2AttributeID'),
+        tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tPlotBackground = this.get('plotBackgroundView' ),
         tPlotViews = this.get('plotViews'),
         tLegendView = this.get('legendView'),
         tNumberToggleView = this.get('numberToggleView'),
         tRescaleButton = this.get('rescaleButton'),
-        tShowNumberToggle = !SC.none( tNumberToggleView) && tNumberToggleView.shouldShow(),
-        tXHeight = SC.none(tXAxisView) ? 0 : tXAxisView.get('desiredExtent'),
-        tYWidth = SC.none(tYAxisView) ? 0 : tYAxisView.get('desiredExtent'),
-        tLegendHeight = SC.none( tLegendView) ? 0 : tLegendView.get('desiredExtent' ),
+        tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
+        tXHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
+        tYWidth = !tYAxisView ? 0 : tYAxisView.get('desiredExtent'),
+        tSpaceForY2 = (!tY2AxisView || !tHasY2Attribute) ? 0 : tY2AxisView.get('desiredExtent'),
+        tY2DesiredWidth = !tY2AxisView ? 0 : tY2AxisView.get('desiredExtent'),
+        tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent' ),
         tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent' ) : 0;
 
     if( !SC.none( tXAxisView) && !SC.none( tYAxisView) && ( tPlotViews.length > 0)) {
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
-        tXAxisView.set( 'layout', { left: tYWidth, bottom: tLegendHeight, height: tXHeight });
-        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tLegendHeight, width: tYWidth });
-        tPlotBackground.set( 'layout', { left: tYWidth, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
+        tXAxisView.set( 'layout', { left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight });
+        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tYWidth });
+        tY2AxisView.set( 'layout', { right: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tY2DesiredWidth });
+        tPlotBackground.set( 'layout', { left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
         tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
         if(tNumberToggleView)
           tNumberToggleView.set( 'layout', { left: tYWidth, height: tNumberToggleHeight });
@@ -285,12 +308,17 @@ DG.GraphView = SC.View.extend(
       else {
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
         tXAxisView.adjust('left', tYWidth);
+        tXAxisView.adjust('right', tSpaceForY2);
         tXAxisView.adjust('bottom', tLegendHeight);
         tXAxisView.adjust('height', tXHeight);
         tYAxisView.adjust('bottom', tLegendHeight);
         tYAxisView.adjust('width', tYWidth);
         tYAxisView.adjust('top', tNumberToggleHeight);
+        tY2AxisView.adjust('bottom', tLegendHeight);
+        tY2AxisView.adjust('width', tY2DesiredWidth);
+        tY2AxisView.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('left', tYWidth);
+        tPlotBackground.adjust('right', tSpaceForY2);
         tPlotBackground.adjust('top', tNumberToggleHeight);
         tPlotBackground.adjust('bottom', tXHeight + tLegendHeight);
         tLegendView.adjust('height', tLegendHeight);
@@ -334,8 +362,18 @@ DG.GraphView = SC.View.extend(
           tViewClass = tView && tView.constructor,
           tNewViewClass, tNewView,
           tPlotView = this_.get('plotView'),
-          tSetup = (iAxisViewKey === 'xAxisView') ? { orientation: 'horizontal' } :
-                              { orientation: 'vertical' };
+          tSetup;
+      switch( iAxisViewKey) {
+        case 'xAxisView':
+          tSetup = { orientation: 'horizontal' };
+          break;
+        case 'yAxisView':
+          tSetup = { orientation: 'vertical' };
+          break;
+        case 'y2AxisView':
+          tSetup = { orientation: 'vertical2' };
+          break;
+      }
       switch( tModelClass) {
         case DG.AxisModel:
           tNewViewClass = DG.AxisView;
@@ -366,10 +404,12 @@ DG.GraphView = SC.View.extend(
     
     handleOneAxis( 'model.xAxis', 'xAxisView');
     handleOneAxis( 'model.yAxis', 'yAxisView');
+    handleOneAxis( 'model.y2Axis', 'y2AxisView');
     this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
     this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
+    this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
-  }.observes('.model.xAxis', '.model.yAxis'),
+  }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
 
   handleLegendModelChange: function() {
     var tLegendModel = this.getPath('model.legend');
@@ -395,7 +435,7 @@ DG.GraphView = SC.View.extend(
     if( !SC.none(tNewView)) {
       if( !SC.none( tCurrentView))
         tCurrentPoints = tCurrentView.get('cachedPointCoordinates');
-      this.setPlotViewProperties( tNewView, tPlot, tCurrentPoints);
+      this.setPlotViewProperties( tNewView, tPlot, 'yAxisView', tCurrentPoints);
       // If we don't call doDraw immediately, we don't get the between-plot animation.
       if( tNewView.readyToDraw())
         tNewView.doDraw();
@@ -420,29 +460,32 @@ DG.GraphView = SC.View.extend(
       tPlotView = DG.ScatterPlotView.create();
       this.addPlotView( tPlotView);
       this.renderLayout( this.renderContext(this.get('tagName')), false );
-      this.setPlotViewProperties( tPlotView, tPlotModel);
+      this.setPlotViewProperties( tPlotView, tPlotModel, 'yAxisView');
     }
   }.observes('model.attributeAdded'),
 
   /**
-   * An attribute has been removed from the vertical axis. But there is at least one attribute
-   * left on that axis. We don't know which one was removed, so we remove the last plotview and
-   * reset the properties of the remaining plotviews.
+   * An attribute has been added to the second vertical axis. There are now multiple plot models.
+   * For now, this only works with scatterplots, so we know we have to construct a
+   * ScatterPlotView.
+   * Note that we're assuming that if an attribute was just added, it must be the last, and
+   * we can bind the new scatterplot view to the last plot.
    */
-//  handleAttributeRemoved: function() {
-//    var tPlots = this.getPath('model.plots' ),
-//        tNumPlots = tPlots.length,
-//        tLastPlotView = this._plotViews.pop();
-//    tLastPlotView.removePlottedElements( true /* animate */);
-//    tLastPlotView.destroy();
-//    DG.assert( tNumPlots === this._plotViews.length);
-//
-//    this._plotViews.forEach( function( iPlotView, iIndex) {
-//      if( iIndex < tNumPlots) {
-//        iPlotView.set('model', tPlots[ iIndex]);
-//      }
-//    });
-//  }.observes('model.attributeRemoved'),
+  handleY2AttributeAdded: function() {
+    var tPlotModel = this.getPath('model.lastPlot' ),
+        tPlotView;
+    if( !SC.none( tPlotModel)) {
+      this.handleAxisModelChange();
+      tPlotView = DG.ScatterPlotView.create();
+      this.addPlotView( tPlotView);
+      this.renderLayout( this.renderContext(this.get('tagName')), false );
+      this.setPlotViewProperties( tPlotView, tPlotModel, 'y2AxisView');
+      // The y2AxisView needs to know how many attribute descriptions there are on the other y-axis so that
+      // it can properly set the color of the label.
+      this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+      this.get('yAxisView').set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
+    }
+  }.observes('model.y2AttributeAdded'),
 
   /**
    * An attribute has been removed from the vertical axis. But there is at least one attribute
@@ -482,7 +525,7 @@ DG.GraphView = SC.View.extend(
    */
   handleAxisOrLegendLayoutChange: function() {
     this.renderLayout( this.renderContext( this.get('tagName')));
-  }.observes('*xAxisView.desiredExtent', '*yAxisView.desiredExtent', '*legendView.desiredExtent'),
+  }.observes('*xAxisView.desiredExtent', '*yAxisView.desiredExtent', '*legendView.desiredExtent', '*y2AxisView.desiredExtent'),
 
   /**
    * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
@@ -535,6 +578,7 @@ DG.GraphView = SC.View.extend(
     tMulti.set('attributeDescription', this.getPath('model.yAxis.attributeDescription'));
     tMulti.set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     tMulti.set('layout', { left: 0, top: 0, width: tExtent.width, height: tExtent.height });
+    tMulti.set('isVisible', false); // Start out hidden
 
     this.set('yAxisMultiTarget', tMulti);
   }

@@ -58,7 +58,17 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
      @property{Number}
      */
     axisLineCoordinate: function() {
-      return (this.get('orientation') === 'vertical') ? this.get('drawWidth') : 0;
+      var tCoord;
+      switch( this.get('orientation')) {
+        case 'vertical':
+          tCoord = this.get('drawWidth');
+          break;
+        case 'vertical2':
+        case 'horizontal':
+          tCoord = 0;
+          break;
+      }
+      return tCoord;
     }.property('drawWidth'),
 
     /**
@@ -86,6 +96,10 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tStart = { x: tPixelMin, y: tCoord + 1 };
           tStop = { x: tPixelMax, y: tCoord + 1 };
           break;
+        case 'vertical2':
+          tStart = { x: tCoord + 1, y: tPixelMin };
+          tStop = { x: tCoord + 1, y: tPixelMax };
+          break;
       }
       return this._paper.line( tStart.x, tStart.y, tStop.x, tStop.y)
         .attr( { stroke: DG.PlotUtilities.kAxisColor,
@@ -106,7 +120,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tPixelMax = this.get('pixelMax');
         // In order to do the computation, we have to adjust for the coordinates of the ends
         // of the axes, knowing the thePixel is in plot view coordinates, not axis view coordinates.
-        if( this.get('orientation') === 'vertical') {
+        if( this.get('isVertical')) {
           iCoord = Math.min( Math.max( tPixelMax + 1, iCoord), tPixelMin - 1);
           tCell = Math.floor( (iCoord - tPixelMax) * tNumCells / ( tPixelMin - tPixelMax));
         }
@@ -167,6 +181,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelX, tLabelY;
         switch( this_.get('orientation')) {
           case 'vertical':
+          case 'vertical2':
             this_._elementsToClear.push(
               this_._paper.line( tBaseline, tCoord + tTickOffset, tBaseline - kTickLength, tCoord + tTickOffset)
                 .attr( { stroke: DG.PlotUtilities.kAxisColor }));
