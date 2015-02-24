@@ -605,7 +605,7 @@ DG.GameController = DG.ComponentController.extend(
         tGameContext.applyChange( change);
         ret.success = true;
       }
-      if( (iArgs.log === undefined) || iArgs.log) {
+      if( iArgs.values && ((iArgs.log === undefined) || iArgs.log)) {
         DG.logUser("%@: %@ [%@]", iAction, collection.get('name'),
                                   iArgs.values ? iArgs.values.join(", ") : "");
       }
