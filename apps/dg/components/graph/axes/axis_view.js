@@ -323,17 +323,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if (tIsVertical) {
               tLoc.x = tLabelExtent.x / 4 + 2;
               tLoc.y = tPosition - tLabelExtent.y / 2;
-              tPosition -= tLabelExtent.y;
+              tPosition -= tLabelExtent.y + 4;
               if (tV2)
                 tLoc.x = tDrawWidth - tLabelExtent.x / 2 - 2;
             }
             else {  // horizontal
               tLoc.x = tPosition + tLabelExtent.x / 2;
               tLoc.y = tDrawHeight - tLabelExtent.y / 2 - 2;
-              tPosition += tLabelExtent.x;
+              tPosition += tLabelExtent.x + 4;
             }
-            tNode.attr( { x: tLoc.x, y: tLoc.y } );
-            DG.RenderingUtilities.rotateText( tNode, tRotation, tLoc.x, tLoc.y);
+            tNode.set('loc', tLoc);
           });
         },
 

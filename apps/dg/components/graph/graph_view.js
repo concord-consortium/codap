@@ -136,7 +136,6 @@ DG.GraphView = SC.View.extend(
 
     sc_super();
 
-    this.createMultiTarget();
     this._plotViews = [];
 
     this.set('xAxisView', tXAxisView);
