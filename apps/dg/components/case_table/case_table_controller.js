@@ -80,7 +80,9 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         if( this.get('dataContext'))
           this.dataContextDidChange();
-        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
+        this.invokeLast(function() {
+          this.view.set('status', this.getCaseCountMessage());
+        }.bind(this));
       },
       
       /**
@@ -376,8 +378,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           componentView = this.view;
         if( hierTableView) {
           hierTableView.updateRowCount();
-          componentView.set('status', this.getCaseCountMessage());
         }
+        componentView.set('status', this.getCaseCountMessage());
       },
       
       /**
