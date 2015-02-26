@@ -66,8 +66,12 @@ DG.Analytics.categoryForEvent = function(event) {
   }
 };
 
+DG.Analytics._analyticsEnabled = function() {
+  return typeof(ga) !== "undefined" && ga !== null;
+};
+
 DG.Analytics.trackEvent = function(category, action, label, value) {
-  if (!ga) return;
+  if (!this._analyticsEnabled()) return;
 
   var evt = ['send', 'event', category, action];
   if (label) {
@@ -80,13 +84,13 @@ DG.Analytics.trackEvent = function(category, action, label, value) {
 };
 
 DG.Analytics.trackTimingStart = function(category) {
-  if (!ga) return;
+  if (!this._analyticsEnabled()) return;
 
   _timeStart[category] = new Date().getTime();
 };
 
 DG.Analytics.trackTimingEnd = function(category) {
-  if (!ga || !_timeStart[category]) return;
+  if (!this._analyticsEnabled() || !_timeStart[category]) return;
 
   var timeSpent = new Date().getTime() - _timeStart[category];
   _timeStart[category] = null;
