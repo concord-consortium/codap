@@ -21,12 +21,14 @@ config :dg,
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
   config :dg,
+         :google_analytics_id => "UA-6899787-45",
          :layout => 'dg:lib/index.rhtml'
 end
 
 # Debug build (e.g. sc-server) configuration
 mode :debug do
   config :dg ,
+         :google_analytics_id => nil,
          :javascript_libs => [# these urls will be inserted as the src of <script> tags in the <head> element
          ]
 #          :layout => 'sproutcore:lib/index.rhtml',
