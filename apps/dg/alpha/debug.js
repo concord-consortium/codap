@@ -132,6 +132,14 @@ DG.Debug = SC.Object.create( (function() {
     logServerLevel: SC.LOGGER_LEVEL_INFO,
 
     /**
+      Controls the logging level to Google Analytics.
+      Analogous to SC.Logger.logOutputLevel and SC.Logger.logRecordingLevel.
+
+      @property: {Constant}
+     */
+    googleAnalyticsLevel: SC.LOGGER_LEVEL_INFO,
+
+    /**
       Previous message logging function
       Called from our intervening message log handler.
     */
@@ -334,33 +342,57 @@ DG.Debug = SC.Object.create( (function() {
       // Let SC.Logger log the message normally
       this._prevHandleLogMessage.call( SC.Logger, scType, iAutoFormat, iMessage, iOriginalArgs);
 
-      // Log the message to the server as well, if appropriate
-      if( DG.Debug._shouldLogTypeToServer( scType)) {
-        try {
-          // Pass along any properties that were passed in the last argument as
-          // metaArgs
-          var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
-                  ? iOriginalArgs[ iOriginalArgs.length - 1]
-                  : undefined,
-              metaArgs = typeof lastArg === 'object' ? lastArg : {},
-              messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
-              activityName = DG.currDocumentController().documentName,
-              messageType = messageParts.shift(),
-              messageArgs = messageParts.join(':').trim();
+      var shouldLogToServer = DG.Debug._shouldLogTypeToServer( scType),
+          shouldLogToGA = DG.Debug._shouldLogTypeToGoogleAnalytics(scType);
+      if (shouldLogToServer || shouldLogToGA) {
+        // Pass along any properties that were passed in the last argument as
+        // metaArgs
+        var lastArg = (iOriginalArgs && (iOriginalArgs.length > 0))
+                ? iOriginalArgs[ iOriginalArgs.length - 1]
+                : undefined,
+            metaArgs = typeof lastArg === 'object' ? lastArg : {},
+            messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
+            activityName = DG.currDocumentController().documentName,
+            messageType = messageParts.shift(),
+            messageArgs = messageParts.join(':').trim();
 
-          DG.logToServer( messageType, {
-                type: iType,
-                args: messageArgs,
-                activity: activityName,
-                application: 'CODAP'
-              }, metaArgs);
-        } catch(ex) {
-          if (console && console.log) {
-            console.log('Log to server failed: ' + ex);
+        // Log the message to the server as well, if appropriate
+        if ( shouldLogToServer ) {
+          try {
+            DG.logToServer( messageType, {
+                  type: iType,
+                  args: messageArgs,
+                  activity: activityName,
+                  application: 'CODAP'
+                }, metaArgs);
+          } catch(ex) {
+            if (console && console.log) {
+              console.log('Log to server failed: ' + ex);
+            }
           }
+        }
+
+        if ( shouldLogToGA ) {
+          DG.Analytics.trackEvent(DG.Analytics.categoryForEvent(messageType), messageType, messageArgs);
         }
       }
 
+    },
+
+    /** @private
+      Private function used to decide when to log to Google Analytics.
+      Analogous to SC.Logger._shouldOutputType and SC.Logger._shouldRecordType.
+
+      @param {String}  iType  The name of the type in question from among
+                                standard Sproutcore log types.
+      @returns {Boolean}
+    */
+    _shouldLogTypeToGoogleAnalytics: function( iType) {
+      var logLevelMapping = SC.Logger._LOG_LEVEL_MAPPING,
+          level           = logLevelMapping[iType]                      || 0,
+          currentLevel    = logLevelMapping[this.get('googleAnalyticsLevel')] || 0;
+
+      return (level <= currentLevel);
     },
 
     /** @private

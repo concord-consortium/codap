@@ -314,6 +314,7 @@ DG.appController = SC.Object.create((function () // closure
     receivedOpenDocumentResponse: function (iResponse) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
+        openDeferred,
         responseIsError = iResponse.get('isError'),
         headers = iResponse.get('headers'),
         body = iResponse.get('body'),
@@ -327,11 +328,13 @@ DG.appController = SC.Object.create((function () // closure
       // Currently, we must close any open document before opening another
       if (!responseIsError && bodyMayBeJSON) {
 
-        if (this.openJsonDocument(body)) {
+        if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
           var docId = iResponse.headers()['Document-Id'];
           if (docId) {
             shouldShowAlert = false;
-            DG.currDocumentController().set('externalDocumentId', ''+docId);
+            openDeferred.done(function() {
+              DG.currDocumentController().set('externalDocumentId', ''+docId);
+            });
           }
         }
         // If we failed to open/parse the document successfully,
@@ -369,7 +372,7 @@ DG.appController = SC.Object.create((function () // closure
      @param    {String}    iDocText -- The JSON-formatted document text
      @returns  {Boolean}   True on success, false on failure
      */
-    openJsonDocument: function (iDocText) {
+    openJsonDocument: function (iDocText, saveImmediately) {
       console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
@@ -381,25 +384,33 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-        newDocument;
+          // Parse the document contents from the retrieved docText.
+          deferred = archiver.openDocument(DG.store, iDocText);
+      deferred.done(function(newDocument) {
+        if (newDocument) {
+          console.log('In app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
+          DG.currDocumentController().setDocument(newDocument);
+          SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
 
-      // Parse the document contents from the retrieved docText.
-      newDocument = archiver.openDocument(DG.store, iDocText);
-      if (newDocument) {
-        console.log('In app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
-        DG.currDocumentController().setDocument(newDocument);
-        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
-      }
+          if (saveImmediately) {
+            // Trigger a save first thing
+            this.invokeLater(function() {
+              DG.dirtyCurrentDocument();
+              this.autoSaveDocument();
+            }.bind(this));
+          }
+        }
 
-      if (this.setOpenedDocumentUnshared) {
-        DG.currDocumentController().setPath('content._permissions', 0);
-        this.setOpenedDocumentUnshared = NO;
-      }
-      SC.Benchmark.end('app_controller:openJsonDocument');
-      SC.Benchmark.log('app_controller:openJsonDocument');
-      return true;
+        if (this.setOpenedDocumentUnshared) {
+          DG.currDocumentController().setPath('content._permissions', 0);
+          this.setOpenedDocumentUnshared = NO;
+        }
+        SC.Benchmark.end('app_controller:openJsonDocument');
+        SC.Benchmark.log('app_controller:openJsonDocument');
+      }.bind(this));
+      return deferred;
     },
 
     /**
@@ -498,7 +509,12 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName') && !SC.none(DG.currDocumentController().get('externalId'))) {
+      if ( DG.authorizationController.get('isSaveEnabled')
+            && iOriginalName
+            && iNewName !== iOriginalName
+            && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
+            && !SC.none(DG.currDocumentController().get('externalId'))
+          ) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }
@@ -843,7 +859,7 @@ DG.appController = SC.Object.create((function () // closure
         function handleRead() {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result);
+              that.openJsonDocument(this.result, true);
             }
             else if( iType === 'TEXT') {
               that.importText(this.result, iFile.name);
@@ -1267,14 +1283,13 @@ DG.appController = SC.Object.create((function () // closure
      Update the url in the browser bar to reflect the latest document information
      */
     updateUrlBar: function() {
-      var docName = DG.currDocumentController().get('documentName');
-
-      if (DG.authorizationController.getPath('currLogin.status') === 0 || docName === SC.String.loc('DG.Document.defaultDocumentName')) {
-        // we haven't logged in yet or we're still on a brand-new document, so leave the url alone
+      if (DG.authorizationController.getPath('currLogin.status') === 0) {
+        // we haven't logged in yet, so leave the url alone
         return;
       }
       var currentParams = $.deparam.querystring(),
           recordid = DG.currDocumentController().get('externalDocumentId'),
+          docName = DG.currDocumentController().get('documentName'),
           currUser = DG.authorizationController.getPath('currLogin.user');
 
       delete currentParams.runAsGuest;
@@ -1284,10 +1299,16 @@ DG.appController = SC.Object.create((function () // closure
         currentParams.recordid = recordid;
       } else {
         delete currentParams.recordid;
-        if (currUser !== 'guest') {
-          currentParams.owner = currUser;
+        if (docName === SC.String.loc('DG.Document.defaultDocumentName')) {
+          //  We're still on a brand-new document, so we don't need to put any info into the url yet.
+          delete currentParams.doc;
+          delete currentParams.owner;
+        } else {
+          if (currUser !== 'guest') {
+            currentParams.owner = currUser;
+          }
+          currentParams.doc = docName;
         }
-        currentParams.doc = docName;
       }
       var newUrl = $.param.querystring(window.location.href, currentParams, 2); // Completely replace the current query string
       window.history.replaceState("codap", docName + " - CODAP", newUrl);
