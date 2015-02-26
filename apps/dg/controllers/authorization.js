@@ -376,7 +376,7 @@ return {
     } else {
       this.urlForPostRequests( serverUrl(url) )
         .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
         .timeoutAfter(60000)
         .send(JSON.stringify(iDocumentArchive));
     }
