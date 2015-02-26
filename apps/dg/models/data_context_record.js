@@ -121,19 +121,16 @@ DG.DataContextRecord.createContext = function( iProperties) {
   if( SC.none( iProperties)) iProperties = {};
   if( !SC.none( iProperties.externalDocumentId)) {
     // We should be loading this info from an external document.
-    var response = DG.authorizationController.openDocumentSynchronously(iProperties.externalDocumentId);
+    var body = DG.ExternalDocumentCache.fetch(iProperties.externalDocumentId);
 
-    if (SC.ok(response)) {
-      var docId = response.headers()['Document-Id'];
-      if (docId) {
-        // make sure we always have the most up-to-date externalDocumentId,
-        // since the document server can change it for permissions reasons.
-        iProperties.externalDocumentId = ''+docId;
+    if (body) {
+      if (!SC.none(body.externalDocumentId)) {
+        delete iProperties.externalDocumentId;
       }
-      shadowCopy = $.extend(true, shadowCopy, response.get('body'));
-      iProperties = $.extend(response.get('body'), iProperties);
+      shadowCopy = $.extend(true, shadowCopy, body);
+      iProperties = $.extend(body, iProperties);
     } else {
-      // FIXME What do we do for an error?
+      // FIXME What do we do when the document wasn't pre-fetched?
     }
   }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';

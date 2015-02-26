@@ -343,6 +343,7 @@ return {
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
+        parentDocumentId = DG.currDocumentController().get('externalDocumentId'),
         deferred = $.Deferred();
 
     if (!isCopying && !SC.none(externalDocumentId)) {
@@ -353,6 +354,10 @@ return {
       }
     } else {
       url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
+
+    if (!SC.none(parentDocumentId)) {
+      url += '&parentDocumentId=%@'.fmt(parentDocumentId);
     }
 
     if (DG.runKey) {
@@ -442,20 +447,51 @@ return {
       .send();
   },
 
-  openDocumentSynchronously: function(iDocumentId) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordid=' + iDocumentId;
+  loadExternalDocuments: function(iDocumentIds) {
+    var deferreds = [],
+        baseUrl = DG.documentServer + 'document/open'
+          + '?username=' + this.getPath('currLogin.user')
+          + '&sessiontoken=' + this.getPath('currLogin.sessionID'),
+        i, len;
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
+      baseUrl += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    return this.urlForGetRequests(serverUrl(url))
-      .async(NO)
-      .json(YES)
-      .send();
+    var sendRequest = function(id) {
+      var url = baseUrl + '&recordid=' + iDocumentIds[i],
+          deferred = $.Deferred();
+
+      this.urlForGetRequests(serverUrl(url))
+        .json(YES)
+        .notify(null, function(response) { this.receivedLoadExternalDocumentResponse(id, response); }.bind(this))
+        .notify(null, function() { deferred.resolve(); })
+        .send();
+
+      return deferred;
+    }.bind(this);
+
+    for (i = 0, len = iDocumentIds.length; i < len; i++) {
+      deferreds.push(sendRequest(iDocumentIds[i]));
+    }
+
+    return deferreds;
+  },
+
+  receivedLoadExternalDocumentResponse: function(id, response) {
+    // FIXME What should we do on failure?
+    if (SC.ok(response)) {
+      var body = response.get('body');
+      var docId = response.headers()['Document-Id'];
+      if (docId) {
+        // make sure we always have the most up-to-date externalDocumentId,
+        // since the document server can change it for permissions reasons.
+        body.externalDocumentId = ''+docId;
+      }
+      DG.ExternalDocumentCache.cache(id, body);
+    } else {
+      DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
+    }
   },
 
   revertCurrentDocument: function(iReceiver) {

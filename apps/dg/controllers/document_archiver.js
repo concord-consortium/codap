@@ -35,11 +35,19 @@ DG.DocumentArchiver = SC.Object.extend(
     Open the specified document text as a new document, returning the newly-created document.
    */
   openDocument: function( iStore, iDocText) {
-    var docArchive = SC.json.decode( iDocText),
-        dataSource = DG.ModelStore.create();
+    var deferred = $.Deferred(),
+    externalDocIds = DG.StringUtilities.scan(iDocText, /"externalDocumentId": ?"?(\d+)"?/g, function(m) { return m[1]; }),
+        deferreds = DG.authorizationController.loadExternalDocuments(externalDocIds);
 
-    DG.store = dataSource;
-    return DG.Document.createDocument(docArchive);
+    $.when.apply($, deferreds).done(function() {
+      var docArchive = SC.json.decode( iDocText),
+          dataSource = DG.ModelStore.create();
+
+      DG.store = dataSource;
+      deferred.resolve(DG.Document.createDocument(docArchive));
+      DG.ExternalDocumentCache.clear();
+    }.bind(this));
+    return deferred;
   },
 
   importCSV: function (iText, iFileName) {
