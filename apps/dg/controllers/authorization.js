@@ -343,6 +343,7 @@ return {
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
+        parentDocumentId = DG.currDocumentController().get('externalDocumentId'),
         deferred = $.Deferred();
 
     if (!isCopying && !SC.none(externalDocumentId)) {
@@ -353,6 +354,10 @@ return {
       }
     } else {
       url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
+
+    if (!SC.none(parentDocumentId)) {
+      url += '&parentDocumentId=%@'.fmt(parentDocumentId);
     }
 
     if (DG.runKey) {
