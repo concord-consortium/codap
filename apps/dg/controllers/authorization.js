@@ -653,7 +653,6 @@ return {
     Logs the specified message, along with any additional properties, to the server.
 
     description and signature TODO
-
    */
   logToServer: function(event, iProperties, iMetaArgs) {
     function extract(obj, prop) {
@@ -666,8 +665,7 @@ return {
         time = new Date(),
         eventValue,
         parameters,
-        body,
-        request;
+        body;
 
     if( !shouldLog) {
       // The logging path below indirectly triggers SproutCore notifications.
@@ -705,31 +703,14 @@ return {
     };
 
     if (DG.logServerUrl) {
-      request = this.urlForJSONPostRequests(DG.logServerUrl);
-      request.attachIdentifyingHeaders = NO;
-
-      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true.
-      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin
-      // to '*' (correctly, to accept logs from any domain).
-      // It is a security violation to send credentials (cookies, etc) to a server with a permissive ACAO header.
-      //
-      // When we update to Sproutcore >= 1.11, we will be able to replace the monkey patch below by
-      // setting the new allowCredentials property of SC.Request to false.
-
-      // save the monkey patch
-      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;
-      // undo the monkey patch
-      SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
-
-      this.invokeLater(function() {
-        // Put the monkey patch back in place later.
-        // By doing this in an invoke later, we don't accidentally break document server saving
-        // if the log request fails (mixed-content blocking or another error).
-        SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
+      $.ajax(DG.logServerUrl, {
+        type: 'POST',
+        contentType: 'application/json',
+        data: SC.json.encode(body),
+        xhrFields: {
+          withCredentials: false
+        }
       });
-
-      // send the request, hopefully with <xhr object>.withCredentials == false
-      request.send(body);
     }
   },
 

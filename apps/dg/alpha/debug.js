@@ -352,7 +352,7 @@ DG.Debug = SC.Object.create( (function() {
                 : undefined,
             metaArgs = typeof lastArg === 'object' ? lastArg : {},
             messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
-            activityName = DG.currDocumentController().documentName,
+            activityName = DG.getPath('currDocumentController.documentName'),
             messageType = messageParts.shift(),
             messageArgs = messageParts.join(':').trim();
 
