@@ -484,6 +484,8 @@ return {
         body.externalDocumentId = ''+docId;
       }
       DG.ExternalDocumentCache.cache(id, body);
+    } else {
+      DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
     }
   },
 
