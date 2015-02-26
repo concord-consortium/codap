@@ -314,6 +314,7 @@ DG.appController = SC.Object.create((function () // closure
     receivedOpenDocumentResponse: function (iResponse) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
+        openDeferred,
         responseIsError = iResponse.get('isError'),
         headers = iResponse.get('headers'),
         body = iResponse.get('body'),
@@ -327,11 +328,13 @@ DG.appController = SC.Object.create((function () // closure
       // Currently, we must close any open document before opening another
       if (!responseIsError && bodyMayBeJSON) {
 
-        if (this.openJsonDocument(body)) {
+        if ((openDeferred = this.openJsonDocument(body)) !== null) {
           var docId = iResponse.headers()['Document-Id'];
           if (docId) {
             shouldShowAlert = false;
-            DG.currDocumentController().set('externalDocumentId', ''+docId);
+            openDeferred.done(function() {
+              DG.currDocumentController().set('externalDocumentId', ''+docId);
+            });
           }
         }
         // If we failed to open/parse the document successfully,
@@ -381,25 +384,25 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-        newDocument;
+          // Parse the document contents from the retrieved docText.
+          deferred = archiver.openDocument(DG.store, iDocText);
+      deferred.done(function(newDocument) {
+        if (newDocument) {
+          console.log('In app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
+          DG.currDocumentController().setDocument(newDocument);
+          SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
+        }
 
-      // Parse the document contents from the retrieved docText.
-      newDocument = archiver.openDocument(DG.store, iDocText);
-      if (newDocument) {
-        console.log('In app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
-        DG.currDocumentController().setDocument(newDocument);
-        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
-      }
-
-      if (this.setOpenedDocumentUnshared) {
-        DG.currDocumentController().setPath('content._permissions', 0);
-        this.setOpenedDocumentUnshared = NO;
-      }
-      SC.Benchmark.end('app_controller:openJsonDocument');
-      SC.Benchmark.log('app_controller:openJsonDocument');
-      return true;
+        if (this.setOpenedDocumentUnshared) {
+          DG.currDocumentController().setPath('content._permissions', 0);
+          this.setOpenedDocumentUnshared = NO;
+        }
+        SC.Benchmark.end('app_controller:openJsonDocument');
+        SC.Benchmark.log('app_controller:openJsonDocument');
+      }.bind(this));
+      return deferred;
     },
 
     /**
