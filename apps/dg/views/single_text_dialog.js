@@ -31,6 +31,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
 /** @scope DG.SingleTextDialog.prototype */ {
 
   isModal: true,
+  // Use to opt in to allowing HTML in the prompt
+  escapePromptHTML: true,
 
   layout: { width: 400, height: 120, centerX: 0, centerY: 0 },
 
@@ -38,9 +40,11 @@ DG.SingleTextDialog = SC.PalettePane.extend(
 
     childViews: 'promptView editView okButton cancelButton'.w(),
     promptView: SC.LabelView.extend({
+      displayProperties: ['escapeHTML'],
       layout: { top: 10, left: 5, right: 5, height:24 },
       localize: true,
-      value: ''
+      value: '',
+      escapeHTMLBinding: '.parentView.parentView.escapePromptHTML'
     }),
     editView: SC.TextFieldView.design({
       layout: { top: 40, left: 5, right: 5, height:24 },

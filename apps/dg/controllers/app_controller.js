@@ -964,9 +964,27 @@ DG.appController = SC.Object.create((function () // closure
         };
         if (docArchive) {
           docJson = SC.json.encode(docArchive);
+
+          // Notes:
+          // 1. FileSaver.js (window.saveAs) doesn't work with Safari;
+          //      root cause is http://caniuse.com/#search=download
+          // 2. Downloadify (flash based alternative to FileSaver) is somehow
+          //      broken by SC event system -- its flash widget doesn't get
+          //      click events when embedded in the SC application
+          // 3. Browsers don't seem to want data uri hrefs to be clickable, but
+          //      they nevertheless can easily be saved by a user's right-click
+          // 4. window.open won't work here because we get called asynchronously
+          //      via a promise resolution. (Popup blockers generally block
+          //      window.open unless it is in the context of an event handler
+          //      for a user generated event, such as a click.)
+
           if (!SC.empty(docJson)) {
+            var dataUri = "data:application/json;charset=utf-8;base64,"+btoa(docJson);
             tDialog = DG.CreateSingleTextDialog({
-              prompt: 'DG.AppController.exportDocument.prompt',
+              prompt: 'DG.AppController.exportDocument.prompt'.loc() +
+                " (Safari users may need to &#x2318;-click <a href=\"" + dataUri +
+                "\">this link</a>)",
+              escapePromptHTML: false,
               textValue: docArchive.name + '.json',
               okTarget: null,
               okAction: onOK,
@@ -974,6 +992,17 @@ DG.appController = SC.Object.create((function () // closure
               okTooltip: 'DG.AppController.exportDocument.okTooltip',
               cancelVisible: true
             });
+
+            // Right-clicking the download link is treated as a mousedown by the
+            // SC draggability logic, resulting in the dialog pane "sticking" to
+            // the mouse after right-clicking to get at the "download as"
+            // context menu option. Use a capture-phase event handler to drop
+            // the mousedown event. Note jQuery (at least as of version used
+            // here) doesn't support capturing so we use W3C API.
+
+            tDialog('a')[0].addEventListener('mousedown', function(e) {
+              e.stopPropagation();
+            }, true);
           }
         }
       }, true);
