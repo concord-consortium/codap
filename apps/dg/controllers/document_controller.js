@@ -1102,8 +1102,14 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
-    var body = JSON.parse(iResponse.get('body')),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
+    var body;
+    try {
+      body = JSON.parse(iResponse.get('body'));
+    } catch(e) {
+      // expected a json response, but got something else!
+      body = {valid: false, message: 'error.general'};
+    }
+    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false,
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
@@ -1142,8 +1148,14 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
-    var body = JSON.parse(iResponse.get('body')),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+    var body;
+    try {
+      body = JSON.parse(iResponse.get('body'));
+    } catch (e) {
+      // expected a json response, but got something else!
+      body = {valid: false, message: 'error.general'};
+    }
+    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
         DG.authorizationController.sessionTimeoutPrompt();
