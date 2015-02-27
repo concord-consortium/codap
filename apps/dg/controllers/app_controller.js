@@ -91,17 +91,17 @@ DG.appController = SC.Object.create((function () // closure
 
     fileMenuItems: function () {
       var stdItems = [
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
-            target: this, 
+            target: this,
             action: 'openDocument',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' 
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
           },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
-            target: this, 
+            target: this,
             action: 'copyDocument',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
           {
@@ -110,55 +110,55 @@ DG.appController = SC.Object.create((function () // closure
             target: this,
             action: 'revertDocumentToOriginal',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
-            target: this, 
+            target: this,
             action: 'closeCurrentDocument' },
-          { 
+          {
             isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
-            target: this, 
+            target: this,
             action: 'loadManager',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
-            target: this, 
+            target: this,
             action: 'exportCaseData' }
         ],
         docServerItems = [
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
-            target: this, 
+            target: this,
             action: 'showShareLink',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
           }
         ],
         devItems = [
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.importDocument', // "Import JSON Document..."
-            target: this, 
+            target: this,
             action: 'importDocument' },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
-            target: this, 
+            target: this,
             action: 'exportDocument' }
         ], finalItems;
         finalItems = stdItems.concat([]);
-        if (DG.documentServer) { 
-          finalItems = finalItems.concat( docServerItems ); 
+        if (DG.documentServer) {
+          finalItems = finalItems.concat( docServerItems );
         }
-        if (this._fileMenuIncludesDevItems) { 
-          finalItems = finalItems.concat( devItems ); 
+        if (this._fileMenuIncludesDevItems) {
+          finalItems = finalItems.concat( devItems );
         }
         return finalItems;
     }.property(),
@@ -657,7 +657,7 @@ DG.appController = SC.Object.create((function () // closure
       } else {
         url = 'http://' +
             DG.getDrupalSubdomain() +
-            DG.authorizationController.getLoginCookieDomain() + 
+            DG.authorizationController.getLoginCookieDomain() +
             ('DG.AppController.manageDocumentsURL'.loc());
       }
       window.open(url, 'document_manager');
