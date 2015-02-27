@@ -1089,7 +1089,12 @@ DG.DocumentController = SC.Object.extend(
           if( DG.assert( !SC.none(docArchive))) {
             if (needsSave) {
               var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-              save.done(function() { saveInProgress.resolve(); });
+              save.done(function(success) {
+                if (!success) {
+                  DG.dirtyCurrentDocument();
+                }
+                saveInProgress.resolve();
+              });
             } else {
               this.invokeLater(function() { saveInProgress.resolve(); });
             }
@@ -1113,7 +1118,7 @@ DG.DocumentController = SC.Object.extend(
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt();
+        DG.authorizationController.sessionTimeoutPrompt(deferred);
       } else {
         var errorMessage = messageBase + body.message;
         if (errorMessage.loc() === errorMessage)
@@ -1122,7 +1127,7 @@ DG.DocumentController = SC.Object.extend(
           localize: true,
           message: errorMessage,
           buttons: [
-            {title: "OK", action: function() { DG.dirtyCurrentDocument(); deferred.resolve(false); } }
+            {title: "OK", action: function() { deferred.resolve(false); } }
           ]
         });
       }
@@ -1158,7 +1163,7 @@ DG.DocumentController = SC.Object.extend(
     var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt();
+        DG.authorizationController.sessionTimeoutPrompt(deferred);
       } else {
         var errorMessage = 'DG.AppController.saveDocument.' + body.message;
         if (errorMessage.loc() === errorMessage)

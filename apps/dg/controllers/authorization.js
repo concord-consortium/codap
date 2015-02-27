@@ -595,7 +595,7 @@ return {
     }
   },
 
-  sessionTimeoutPrompt: function() {
+  sessionTimeoutPrompt: function(deferred) {
     DG.AlertPane.error({
       localize: true,
       message: 'DG.Authorization.sessionExpired.message',
@@ -612,6 +612,7 @@ return {
           localize: true,
           title: 'DG.Authorization.sessionExpired.ignoreButtonText',
           toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
+          action: function() { if(deferred) { deferred.resolve(false); } },
           isCancel: true
         },
       ]
