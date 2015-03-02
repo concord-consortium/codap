@@ -218,7 +218,11 @@ DG.DocumentController = SC.Object.extend(
     @returns  {DG.Document} --   The newly-created document
    */
   createDocument: function( iName) {
-    return DG.Document.createDocument({ name: iName || SC.String.loc('DG.Document.defaultDocumentName') });
+    var doc = DG.Document.createDocument({ name: iName || SC.String.loc('DG.Document.defaultDocumentName') });
+    if (SC.none(iName)) {
+      doc.set('_isPlaceholder', true);
+    }
+    return doc;
   },
   
   /**

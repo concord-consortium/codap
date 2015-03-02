@@ -17,6 +17,7 @@
 // ==========================================================================
 
 DG.splash = SC.Object.create({
+  isShowing: false,
 
   showSplash: function () {
     if (DG.Browser.isCompatibleBrowser()) {
@@ -40,9 +41,11 @@ DG.splash = SC.Object.create({
             acceptsKeyPane: true,
             close: function() {
               this.remove();
+              DG.splash.set('isShowing', false);
             }
           }).append();
       tSplash.contentView.becomeFirstResponder();
+      this.set('isShowing', true);
       this.invokeLater(function () {
         if(tSplash) { tSplash.close(); }
       }, 4000);
