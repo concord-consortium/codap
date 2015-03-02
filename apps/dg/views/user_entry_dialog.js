@@ -23,19 +23,13 @@
   @extends SC.PanelPane
 */
 DG.UserEntryDialog = SC.PanelPane.extend({
-  layout: { width: 400, height: 400, centerX: 0, centerY: 0},
+  layout: { width: 600, height: 400, centerX: 0, centerY: 0},
   contentView: SC.View.design({
-    layout: { top: 10, right: 10, left: 10, bottom: 10, zIndex: 0 },
-    childViews: function() {
-      var children = 'welcomeHeader welcomeInstructions openFile openNew'.w();
-      if (DG.authorizationController.get('isSaveEnabled')) {
-        children.push('documentServer');
-      }
-      return children;
-    }.property(),
+    layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
+    childViews: 'welcomeHeader welcomeInstructions choiceViews choiceButtons'.w(),
 
     welcomeHeader: SC.LabelView.design({
-      layout: { left: 0, right: 0, top: 0, height: 24 },
+      layout: { left: 10, right: 0, top: 10, height: 24 },
       controlSize: SC.LARGE_CONTROL_SIZE,
       fontWeight: SC.BOLD_WEIGHT,
       textAlign: SC.ALIGN_CENTER,
@@ -44,39 +38,83 @@ DG.UserEntryDialog = SC.PanelPane.extend({
     }),
 
     welcomeInstructions: SC.LabelView.design({
-      layout: { left: 0, right: 0, top: 39, height: 18 },
+      layout: { left: 10, right: 0, top: 49, height: 18 },
       textAlign: SC.ALIGN_LEFT,
       localize: true,
       value: DG.getVariantString('DG.UserEntryDialog.welcome2')
     }),
 
-    openNew: SC.ButtonView.design({
-      layout: { left: 0, right: 0, top: 72, height: 44 },
+    choiceButtons: SC.SegmentedView.design({
+      layout: { left: 10, top: 82, height: 72*3, width: 250 },
       controlSize: SC.JUMBO_CONTROL_SIZE,
-      localize: true,
-      title: DG.getVariantString('DG.UserEntryDialog.openNewButton'),
-      action: function() {
-        DG.setPath('currDocumentController.content._isPlaceholder', false);
-      }
+      layoutDirection: SC.LAYOUT_VERTICAL,
+      _openNewText: DG.getVariantString('DG.UserEntryDialog.openNewButton').loc(),
+      _openFileText: DG.getVariantString('DG.UserEntryDialog.openFileButton').loc(),
+      _cloudBrowseText: DG.getVariantString('DG.UserEntryDialog.documentServerButton').loc(),
+      init: function() {
+        sc_super();
+        this.set('value', [this._openNewText]);
+      },
+      items: function() {
+        var items = [
+          this._openNewText,
+          this._openFileText
+        ];
+        if (DG.authorizationController.get('isSaveEnabled')) {
+          items.push(this._cloudBrowseText);
+        }
+        return items;
+      }.property(),
+      value: null,
+      valueChanged: function() {
+        var val = this.get('value');
+        switch(val) {
+          case this._cloudBrowseText:
+            this.setPath('parentView.choiceViews.nowShowing', 'cloudBrowseView');
+            break;
+          case this._openFileText:
+            this.setPath('parentView.choiceViews.nowShowing', 'openFileView');
+            break;
+          case this._openNewText:
+            this.setPath('parentView.choiceViews.nowShowing', 'openNewView');
+            break;
+          default:
+            this.setPath('parentView.choiceViews.nowShowing', 'openNewView');
+        }
+      }.observes('value')
     }),
 
-    openFile: SC.ButtonView.design({
-      layout: { left: 0, right: 0, top: 121, height: 44 },
-      controlSize: SC.JUMBO_CONTROL_SIZE,
-      localize: true,
-      title: DG.getVariantString('DG.UserEntryDialog.openFileButton'),
-      target: 'DG.appController',
-      action: 'importDocument'
+    choiceViews: SC.WellView.design({
+      layout: { left: 265, right: 10, top: 82, height: 72*3, zIndex: 5 },
+      init: function() {
+        sc_super();
+        this.set('nowShowing', 'openNewView');
+      },
+      openNewView: SC.LabelView.design({
+        layout: { left: 0, right: 0, top: 0, bottom: 0 },
+        controlSize: SC.JUMBO_CONTROL_SIZE,
+        value: 'Open New'
+      }),
+      openFileView: SC.LabelView.design({
+        layout: { left: 0, right: 0, top: 0, bottom: 0 },
+        controlSize: SC.JUMBO_CONTROL_SIZE,
+        value: 'Open File'
+      }),
+      cloudBrowseView: SC.LabelView.design({
+        layout: { left: 0, right: 0, top: 0, bottom: 0 },
+        controlSize: SC.JUMBO_CONTROL_SIZE,
+        value: 'Browse Cloud'
+      })
     }),
 
-    documentServer: SC.ButtonView.design({
-      layout: { left: 0, right: 0, top: 170, height: 44 },
-      controlSize: SC.JUMBO_CONTROL_SIZE,
-      localize: true,
-      title: DG.getVariantString('DG.UserEntryDialog.documentServerButton'),
-      target: 'DG.appController',
-      action: 'openDocument'
-    })
+    isAppended: false,
+    didAppendToDocument: function() {
+      this.set('isAppended', true);
+    },
+
+    willRemoveFromDocument: function() {
+      this.set('isAppended', false);
+    }
   })
 });
 

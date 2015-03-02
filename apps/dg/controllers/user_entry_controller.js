@@ -46,7 +46,10 @@ DG.userEntryController = SC.Object.create( (function() {
       var d = this.get('_dialog');
       if (!SC.none(d)) {
         if (this.get('_status') !== 0 && this.get('_isPlaceholder')) {
-          d.append();
+          if (!d.get('isAppended')) {
+            d.append();
+            d.setPath('contentView.choiceButtons.value', [d.getPath('contentView.choiceButtons._openNewText')]);
+          }
         } else {
           d.remove();
         }
