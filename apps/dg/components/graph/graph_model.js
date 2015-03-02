@@ -102,7 +102,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     /**
-     * If not already present, adds the given attribute to my array.
+     * If not already present, adds the given plot to my array.
      * @param iPlot
      */
     addPlot: function( iPlot) {
@@ -111,7 +111,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         // TODO: Clumsy way to transfer setting for connectingLine. Fix it!
         if( tFirstPlot.isAdornmentVisible('connectingLine'))
           iPlot.toggleAdornmentVisibility('connectingLine');
-        this._plots.push( iPlot);
+        if( iPlot.get('verticalAxisIsY2')) {
+          this._plots.push( iPlot);
+        }
+        else {
+          var tYAttrIndex = iPlot.get('yAttributeIndex');
+          this._plots.splice(tYAttrIndex, 0, iPlot);
+        }
       }
     },
 
@@ -131,8 +137,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       var tPlot = this._plots[ iPlotIndex];
       this._plots.splice( iPlotIndex, 1);
       tPlot.destroy();
+      var tActualYIndex = 0;
       this._plots.forEach( function( iPlot, iIndex) {
-        iPlot.setIfChanged( 'yAttributeIndex', iIndex);
+        // Only plots for attributes on regular y-axis need their yAttributeIndex updated
+        if( !iPlot.get('verticalAxisIsY2')) {
+          iPlot.setIfChanged('yAttributeIndex', tActualYIndex);
+          tActualYIndex++;
+        }
       });
     },
 
@@ -274,17 +285,24 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     /**
       Sets the attribute for the specified axis.
       @param  {DG.DataContext}      iDataContext -- The data context for this graph
-      @param  {Object}              iAttrRef -- The attribute to set for the axis
-              {DG.CollectionClient} iAttrRef.collection -- The collection that contains the attribute
-              {DG.Attribute}        iAttrRef.attribute -- The attribute to set for the axis
+      @param  {Object}              iAttrRefs -- The attribute to set for the axis
+             {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
+             {DG.Attribute}        iAttrRefs.attributes -- The array of attributes to set for the axis
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
-    addAttributeToAxis: function( iDataContext, iAttrRef) {
-      DG.logUser("addAxisAttribute: { attribute: %@ }", iAttrRef.attribute.get('name'));
+    addAttributeToAxis: function( iDataContext, iAttrRefs) {
+      DG.logUser("addAxisAttribute: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
 
       var tYAttrDescription = this.getPath('dataConfiguration.yAttributeDescription' ),
           tAttrIndex = tYAttrDescription.get('attributes' ).length;
-      tYAttrDescription.addAttribute( iAttrRef.attribute);
+
+      if( tAttrIndex === 0) {
+        // We aren't adding after all. Happens when foreign context is brought to multi-attribute place
+        this.changeAttributeForAxis( iDataContext, iAttrRefs, 'vertical');
+        return;
+      }
+
+      tYAttrDescription.addAttribute( iAttrRefs.attributes[0]);
 
       // The only plot we can currently make with multiple attributes is a scatterplot
       var tPlot = DG.ScatterPlotModel.create();
@@ -317,15 +335,21 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     /**
       Sets the attribute for the specified axis.
       @param  {DG.DataContext}      iDataContext -- The data context for this graph
-      @param  {Object}              iAttrRef -- The attribute to set for the axis
-              {DG.CollectionClient} iAttrRef.collection -- The collection that contains the attribute
-              {DG.Attribute}        iAttrRef.attribute -- The attribute to set for the axis
+      @param  {Object}              iAttrRefs -- The attribute to set for the axis
+             {DG.CollectionClient} iAttrRefs.collection -- The collection that contains the attribute
+             {DG.Attribute}        iAttrRefs.attributes -- The array of attributes to set for the axis
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
-    changeAttributeForY2Axis: function( iDataContext, iAttrRef) {
+    changeAttributeForY2Axis: function( iDataContext, iAttrRefs) {
+
+      if( this.getPath('dataConfiguration.yAttributeDescription.attributes').length === 0) {
+        // We aren't adding after all. Happens when foreign context is brought to multi-attribute place
+        this.changeAttributeForAxis( iDataContext, iAttrRefs, 'vertical');
+        return;
+      }
 
       var setNewBounds = function() {
-        var tAttribute = iAttrRef.attribute,
+        var tAttribute = iAttrRefs.attributes[0],
             tAxis = this.get('y2Axis');
 
         var tDataConfiguration = this.get('dataConfiguration'),
@@ -333,12 +357,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
 
-      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRef.attribute.get('name'));
+      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
 
       var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
       tY2AttrDescription.removeAllAttributes();
-      tY2AttrDescription.addAttribute( iAttrRef.attribute);
-      tY2AttrDescription.set('collectionClient', iAttrRef.collection);
+      tY2AttrDescription.addAttribute( iAttrRefs.attributes[0]);
+      tY2AttrDescription.set('collectionClient', iAttrRefs.collection);
 
       this.privSyncAxisWithAttribute( 'y2AttributeDescription', 'y2Axis' );
 
@@ -490,29 +514,29 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             this.set(iAxisKey, tNewAxis);
             tAxisToDestroy.destroy();
 
-          tConfig.setAttributeAndCollectionClient( iDescKey, null,
-              DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
-          // The role of the attribute placement description on the axis whose attribute is removed must be secondary
-          // and the other axis role must now be primary
-          switch( this.getPath( 'dataConfiguration.' + tOtherDesc + '.attributeType' ) ) {
-            case DG.Analysis.EAttributeType.eNumeric:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
-              break;
-            case DG.Analysis.EAttributeType.eCategorical:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
-              break;
-            default:
-              tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
-              tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
-          }
-          tConfig.get( iDescKey ).set( 'role', tSecondaryRole );
-          tConfig.get( tOtherDesc ).set( 'role', tPrimaryRole );
+            tConfig.setAttributeAndCollectionClient(iDescKey, null,
+                DG.Analysis.EAnalysisRole.eNone, DG.Analysis.EAttributeType.eNone);
+            // The role of the attribute placement description on the axis whose attribute is removed must be secondary
+            // and the other axis role must now be primary
+            switch (this.getPath('dataConfiguration.' + tOtherDesc + '.attributeType')) {
+              case DG.Analysis.EAttributeType.eNumeric:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryNumeric;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryNumeric;
+                break;
+              case DG.Analysis.EAttributeType.eCategorical:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eSecondaryCategorical;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.ePrimaryCategorical;
+                break;
+              default:
+                tSecondaryRole = DG.Analysis.EAnalysisRole.eNone;
+                tPrimaryRole = DG.Analysis.EAnalysisRole.eNone;
+            }
+            tConfig.get(iDescKey).set('role', tSecondaryRole);
+            tConfig.get(tOtherDesc).set('role', tPrimaryRole);
 
             if (iAxisKey === 'y2Axis') {
-              if( tY2Plot) {
-                this.removePlot( tY2Plot);
+              if (tY2Plot) {
+                this.removePlot(tY2Plot);
                 this.notifyPropertyChange('attributeRemoved');
               }
             }

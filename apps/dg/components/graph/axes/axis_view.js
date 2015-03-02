@@ -141,10 +141,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         orientation: null,
 
-        isVertical: function () {
-          return this.get('orientation').indexOf('vertical') >= 0;
-        }.property('orientation'),
-
         /**
          * @property {DG.Attribute}
          */
@@ -246,7 +242,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             }
             else {
               tNode = this_._labelNodes[ tLabelCount];
-              tNode.setIfChanged('numColors', tNumAttributes);
+              tNode.beginPropertyChanges();
+                tNode.setIfChanged('colorIndex', tBaseLabelIndex + iIndex);
+                tNode.setIfChanged('numColors', tNumAttributes);
+              tNode.endPropertyChanges();
             }
 
             tChangeHappened = (iLabel !== tNode.get('text'));

@@ -87,17 +87,18 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
      * A dragged attribute is valid for a drop if there is already at least one attribute
      * and the dragged attribute is not one of them. There must also be an attribute on the
      * 'other' axis since we only support multiple attributes for scatter plots for now.
-     * TODO: It's not valid unless both axes are numeric
      * @param iDrag
      * @return {Boolean}
      */
     isValidAttribute: function( iDrag) {
       var tDragAttr = iDrag.data.attribute,
           tCurrAttr = this.get('plottedAttribute' ),
-          tOtherAttr = this.get('otherPlottedAttribute');
+          tOtherAttr = this.get('otherPlottedAttribute'),
+          tOtherDescr = this.get('otherAttributeDescription');
       return (tOtherAttr !== DG.Analysis.kNullAttribute) &&
              (tCurrAttr !== DG.Analysis.kNullAttribute) &&
-             (tCurrAttr !== tDragAttr);
+             (tCurrAttr !== tDragAttr) &&
+              tOtherDescr.get('isNumeric');
     },
 
     // Draw an orange frame to show we're a drop target.

@@ -72,12 +72,23 @@ DG.GraphView = SC.View.extend(
   }.property(),
 
   /**
-   * If not already present, adds the given attribute to my array.
+   * If not already present, adds the given plotView to my array.
+   * We have to put the new plotView in the same position in the array that the
+   * new plot is in the array of plots my model holds onto.
    * @param iPlotView
    */
   addPlotView: function( iPlotView) {
-    if( !this._plotViews.contains( iPlotView))
-      this._plotViews.push( iPlotView);
+    if( !this._plotViews.contains( iPlotView)) {
+      var tNewPlot = iPlotView.get('model'),
+          tPlots = this.getPath('model.plots'),
+          tPlotViews = this._plotViews,
+          tIndexOfNewPlot = -1;
+      tPlots.forEach( function( iPlot, iPlotIndex) {
+        if( iPlot === tNewPlot)
+          tIndexOfNewPlot = iPlotIndex;
+      });
+      this._plotViews.splice( tIndexOfNewPlot, 0, iPlotView);
+    }
   },
 
   /**
@@ -408,6 +419,8 @@ DG.GraphView = SC.View.extend(
     this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
     this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
     this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
+    this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+    this.get('y2AxisView').set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
 
@@ -446,6 +459,20 @@ DG.GraphView = SC.View.extend(
     }
   }.observes('.model.plot'),
 
+  plotWithoutView: function() {
+    var tPlots = this.getPath('model.plots'),
+        tPlotViews = this._plotViews,
+        tPlotWithoutView;
+    tPlots.forEach( function( iPlot) {
+      if( !tPlotViews.some( function( iPlotView) {
+            return iPlot === iPlotView.get('model');
+          })) {
+        tPlotWithoutView = iPlot;
+      }
+    });
+    return tPlotWithoutView;
+  },
+
   /**
    * An attribute has been added to the vertical axis. There are now multiple plot models.
    * For now, this only works with scatterplots, so we know we have to construct a
@@ -454,10 +481,10 @@ DG.GraphView = SC.View.extend(
    * we can bind the new scatterplot view to the last plot.
    */
   handleAttributeAdded: function() {
-    var tPlotModel = this.getPath('model.lastPlot' ),
+    var tPlotModel = this.plotWithoutView(),
         tPlotView;
     if( !SC.none( tPlotModel)) {
-      tPlotView = DG.ScatterPlotView.create();
+      tPlotView = DG.ScatterPlotView.create( { model: tPlotModel });
       this.addPlotView( tPlotView);
       this.renderLayout( this.renderContext(this.get('tagName')), false );
       this.setPlotViewProperties( tPlotView, tPlotModel, 'yAxisView');
@@ -476,13 +503,14 @@ DG.GraphView = SC.View.extend(
         tPlotView;
     if( !SC.none( tPlotModel)) {
       this.handleAxisModelChange();
-      tPlotView = DG.ScatterPlotView.create();
+      tPlotView = DG.ScatterPlotView.create( { model: tPlotModel });
       this.addPlotView( tPlotView);
       this.renderLayout( this.renderContext(this.get('tagName')), false );
       this.setPlotViewProperties( tPlotView, tPlotModel, 'y2AxisView');
       // The y2AxisView needs to know how many attribute descriptions there are on the other y-axis so that
       // it can properly set the color of the label.
       this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+      this.get('y2AxisView').set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
       this.get('yAxisView').set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
     }
   }.observes('model.y2AttributeAdded'),

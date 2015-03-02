@@ -163,6 +163,12 @@ DG.PlotView = DG.PlotLayer.extend(
     this.set('numPlots', iNumPlots);
     if( !this._areAdornmentsInitialized)
       this.initializeAdornments();
+
+    if( this.getPath('model.isAnimating')) {
+      // In some situations we get both animation and transferred points coordinates. The first is sufficient
+      this.set('transferredPointCoordinates', null);
+    }
+
   },
 
   /**
