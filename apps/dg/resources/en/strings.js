@@ -31,6 +31,13 @@ SC.stringsFor('English', {
                                             "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
                                             "DG is not actively supported on other browsers at this time.",
 
+  // DG.UserEntryDialog
+  'DG.UserEntryDialog.welcome': 'Welcome to CODAP',
+  'DG.UserEntryDialog.welcome2': 'What would you like to do?',
+  'DG.UserEntryDialog.openNewButton': 'Start a new document...',
+  'DG.UserEntryDialog.openFileButton': 'Open a local file...',
+  'DG.UserEntryDialog.documentServerButton': 'Browse the CODAP Cloud...',
+
   // DG.Authorization
   'DG.Authorization.guestUserName'            : "guest",
   'DG.Authorization.guestPassword'            : "",
