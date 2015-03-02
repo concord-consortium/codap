@@ -154,7 +154,7 @@ SC.stringsFor('English', {
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
   'DG.AppController.showWebSiteTitle' : 'About CODAP',
-  'DG.AppController.showHelpURL' : 'play.codap.concord.org/support', // path on Drupal website
+  'DG.AppController.showHelpURL' : 'codap.concord.org/help', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
   'DG.AppController.showAboutTitle' : 'About CODAP',
@@ -272,6 +272,7 @@ SC.stringsFor('English', {
   'DG.TableController.gearMenuItems.newAttribute' : "New Attribute in %@...",
   'DG.TableController.gearMenuItems.setScoreFormula' : "Set Score Formula...",
   'DG.TableController.gearMenuItems.deleteCases' : "Delete Selected Cases",
+  'DG.TableController.gearMenuItems.selectAll' : "Select All Cases",
   'DG.TableController.newAttrDlg.defaultAttrName' : "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint' : "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint' : "If desired, type a formula for computing values of this attribute",

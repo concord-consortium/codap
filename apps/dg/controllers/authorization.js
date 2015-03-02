@@ -343,6 +343,7 @@ return {
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var url,
         externalDocumentId = contextModel.get('externalDocumentId'),
+        parentDocumentId = DG.currDocumentController().get('externalDocumentId'),
         deferred = $.Deferred();
 
     if (!isCopying && !SC.none(externalDocumentId)) {
@@ -353,6 +354,10 @@ return {
       }
     } else {
       url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+    }
+
+    if (!SC.none(parentDocumentId)) {
+      url += '&parentDocumentId=%@'.fmt(parentDocumentId);
     }
 
     if (DG.runKey) {
@@ -371,7 +376,7 @@ return {
     } else {
       this.urlForPostRequests( serverUrl(url) )
         .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
+        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
         .timeoutAfter(60000)
         .send(JSON.stringify(iDocumentArchive));
     }
@@ -442,20 +447,51 @@ return {
       .send();
   },
 
-  openDocumentSynchronously: function(iDocumentId) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordid=' + iDocumentId;
+  loadExternalDocuments: function(iDocumentIds) {
+    var deferreds = [],
+        baseUrl = DG.documentServer + 'document/open'
+          + '?username=' + this.getPath('currLogin.user')
+          + '&sessiontoken=' + this.getPath('currLogin.sessionID'),
+        i, len;
 
     if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
+      baseUrl += '&runKey=%@'.fmt(DG.runKey);
     }
 
-    return this.urlForGetRequests(serverUrl(url))
-      .async(NO)
-      .json(YES)
-      .send();
+    var sendRequest = function(id) {
+      var url = baseUrl + '&recordid=' + iDocumentIds[i],
+          deferred = $.Deferred();
+
+      this.urlForGetRequests(serverUrl(url))
+        .json(YES)
+        .notify(null, function(response) { this.receivedLoadExternalDocumentResponse(id, response); }.bind(this))
+        .notify(null, function() { deferred.resolve(); })
+        .send();
+
+      return deferred;
+    }.bind(this);
+
+    for (i = 0, len = iDocumentIds.length; i < len; i++) {
+      deferreds.push(sendRequest(iDocumentIds[i]));
+    }
+
+    return deferreds;
+  },
+
+  receivedLoadExternalDocumentResponse: function(id, response) {
+    // FIXME What should we do on failure?
+    if (SC.ok(response)) {
+      var body = response.get('body');
+      var docId = response.headers()['Document-Id'];
+      if (docId) {
+        // make sure we always have the most up-to-date externalDocumentId,
+        // since the document server can change it for permissions reasons.
+        body.externalDocumentId = ''+docId;
+      }
+      DG.ExternalDocumentCache.cache(id, body);
+    } else {
+      DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
+    }
   },
 
   revertCurrentDocument: function(iReceiver) {
@@ -559,7 +595,7 @@ return {
     }
   },
 
-  sessionTimeoutPrompt: function() {
+  sessionTimeoutPrompt: function(deferred) {
     DG.AlertPane.error({
       localize: true,
       message: 'DG.Authorization.sessionExpired.message',
@@ -576,6 +612,7 @@ return {
           localize: true,
           title: 'DG.Authorization.sessionExpired.ignoreButtonText',
           toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
+          action: function() { if(deferred) { deferred.resolve(false); } },
           isCancel: true
         },
       ]
@@ -617,7 +654,6 @@ return {
     Logs the specified message, along with any additional properties, to the server.
 
     description and signature TODO
-
    */
   logToServer: function(event, iProperties, iMetaArgs) {
     function extract(obj, prop) {
@@ -630,8 +666,7 @@ return {
         time = new Date(),
         eventValue,
         parameters,
-        body,
-        request;
+        body;
 
     if( !shouldLog) {
       // The logging path below indirectly triggers SproutCore notifications.
@@ -669,31 +704,14 @@ return {
     };
 
     if (DG.logServerUrl) {
-      request = this.urlForJSONPostRequests(DG.logServerUrl);
-      request.attachIdentifyingHeaders = NO;
-
-      // Temporarily remove core.js monkey patch that sets the withCredentials property of the raw XHR object to true.
-      // The withCredentials property would cause the logging request to fail, because the log manager sets Access-Control-Allow-Origin
-      // to '*' (correctly, to accept logs from any domain).
-      // It is a security violation to send credentials (cookies, etc) to a server with a permissive ACAO header.
-      //
-      // When we update to Sproutcore >= 1.11, we will be able to replace the monkey patch below by
-      // setting the new allowCredentials property of SC.Request to false.
-
-      // save the monkey patch
-      var scMonkeyPatchedCreateRequest = SC.XHRResponse.prototype.createRequest;
-      // undo the monkey patch
-      SC.XHRResponse.prototype.createRequest = SC.XHRResponse.prototype.oldCreateRequest;
-
-      this.invokeLater(function() {
-        // Put the monkey patch back in place later.
-        // By doing this in an invoke later, we don't accidentally break document server saving
-        // if the log request fails (mixed-content blocking or another error).
-        SC.XHRResponse.prototype.createRequest = scMonkeyPatchedCreateRequest;
+      $.ajax(DG.logServerUrl, {
+        type: 'POST',
+        contentType: 'application/json',
+        data: SC.json.encode(body),
+        xhrFields: {
+          withCredentials: false
+        }
       });
-
-      // send the request, hopefully with <xhr object>.withCredentials == false
-      request.send(body);
     }
   },
 

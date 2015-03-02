@@ -80,7 +80,9 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         if( this.get('dataContext'))
           this.dataContextDidChange();
-        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
+        this.invokeLast(function() {
+          this.view.set('status', this.getCaseCountMessage());
+        }.bind(this));
       },
       
       /**
@@ -376,8 +378,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           componentView = this.view;
         if( hierTableView) {
           hierTableView.updateRowCount();
-          componentView.set('status', this.getCaseCountMessage());
         }
+        componentView.set('status', this.getCaseCountMessage());
       },
       
       /**
@@ -407,6 +409,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
             target: this, itemAction: this.newChildAttribute });
         }
+        tItems.push({ title: 'DG.TableController.gearMenuItems.selectAll', localize: true,
+          target: this, itemAction: this.selectAll });
         tItems.push({ title: 'DG.TableController.gearMenuItems.deleteCases', localize: true,
                       target: this, itemAction: this.deleteSelectedCases, isEnabled: tDeleteIsEnabled });
         return tItems;
@@ -435,6 +439,17 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.view.set('status', this.getCaseCountMessage());
       }.observes('view'),
 
+      selectAll: function () {
+        var tContext = this.get('dataContext'),
+          tCollection = tContext && tContext.get('parentCollection'),// todo
+        tChange = {
+          operation: 'selectCases',
+          collection: tCollection,
+          cases: null,// null selects all
+          select: true
+        };
+        tContext.applyChange( tChange);
+      },
       /**
         Deletes the currently selected cases from their collections.
        */

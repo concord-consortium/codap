@@ -28,6 +28,26 @@ DG.StringUtilities = {
    */
   guaranteePrefix: function( iString, iPrefix) {
     return (iString.indexOf(iPrefix) === 0) ? iString : iPrefix + iString;
+  },
+
+  /**
+   * Returns a set of regexp results arrays from matches within the string.
+   * If iResultsMapper is defined, then it returns a set of return values from that function.
+   * @param iString {String}
+   * @param iRegexp {RegExp}
+   * @param iResultsMapper {Function} (optional)
+   */
+  scan: function ( iString, iRegexp, iResultsMapper ) {
+    if (!iRegexp.global) throw "regexp must have global flag set";
+    var m, results = [];
+    while ((m = iRegexp.exec(iString)) !== null) {
+      if (iResultsMapper === null) {
+        results.push(m);
+      } else {
+        results.push(iResultsMapper.call(window, m));
+      }
+    }
+    return results;
   }
 };
 

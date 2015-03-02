@@ -91,17 +91,17 @@ DG.appController = SC.Object.create((function () // closure
 
     fileMenuItems: function () {
       var stdItems = [
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
-            target: this, 
+            target: this,
             action: 'openDocument',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' 
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
           },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
-            target: this, 
+            target: this,
             action: 'copyDocument',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
           {
@@ -110,55 +110,55 @@ DG.appController = SC.Object.create((function () // closure
             target: this,
             action: 'revertDocumentToOriginal',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
-            target: this, 
+            target: this,
             action: 'closeCurrentDocument' },
-          { 
+          {
             isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
-            target: this, 
+            target: this,
             action: 'loadManager',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
-            target: this, 
+            target: this,
             action: 'exportCaseData' }
         ],
         docServerItems = [
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
-            target: this, 
+            target: this,
             action: 'showShareLink',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
           }
         ],
         devItems = [
           { isSeparator: YES },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.importDocument', // "Import JSON Document..."
-            target: this, 
+            target: this,
             action: 'importDocument' },
-          { 
-            localize: true, 
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
-            target: this, 
+            target: this,
             action: 'exportDocument' }
         ], finalItems;
         finalItems = stdItems.concat([]);
-        if (DG.documentServer) { 
-          finalItems = finalItems.concat( docServerItems ); 
+        if (DG.documentServer) {
+          finalItems = finalItems.concat( docServerItems );
         }
-        if (this._fileMenuIncludesDevItems) { 
-          finalItems = finalItems.concat( devItems ); 
+        if (this._fileMenuIncludesDevItems) {
+          finalItems = finalItems.concat( devItems );
         }
         return finalItems;
     }.property(),
@@ -314,6 +314,7 @@ DG.appController = SC.Object.create((function () // closure
     receivedOpenDocumentResponse: function (iResponse) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
+        openDeferred,
         responseIsError = iResponse.get('isError'),
         headers = iResponse.get('headers'),
         body = iResponse.get('body'),
@@ -327,11 +328,13 @@ DG.appController = SC.Object.create((function () // closure
       // Currently, we must close any open document before opening another
       if (!responseIsError && bodyMayBeJSON) {
 
-        if (this.openJsonDocument(body)) {
+        if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
           var docId = iResponse.headers()['Document-Id'];
           if (docId) {
             shouldShowAlert = false;
-            DG.currDocumentController().set('externalDocumentId', ''+docId);
+            openDeferred.done(function() {
+              DG.currDocumentController().set('externalDocumentId', ''+docId);
+            });
           }
         }
         // If we failed to open/parse the document successfully,
@@ -369,7 +372,7 @@ DG.appController = SC.Object.create((function () // closure
      @param    {String}    iDocText -- The JSON-formatted document text
      @returns  {Boolean}   True on success, false on failure
      */
-    openJsonDocument: function (iDocText) {
+    openJsonDocument: function (iDocText, saveImmediately) {
       console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
@@ -381,25 +384,33 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var archiver = DG.DocumentArchiver.create({}),
-        newDocument;
+          // Parse the document contents from the retrieved docText.
+          deferred = archiver.openDocument(DG.store, iDocText);
+      deferred.done(function(newDocument) {
+        if (newDocument) {
+          console.log('In app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
+          DG.currDocumentController().setDocument(newDocument);
+          SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
+          SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
 
-      // Parse the document contents from the retrieved docText.
-      newDocument = archiver.openDocument(DG.store, iDocText);
-      if (newDocument) {
-        console.log('In app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.start('app_controller:openJsonDocument:setting document controller');
-        DG.currDocumentController().setDocument(newDocument);
-        SC.Benchmark.end('app_controller:openJsonDocument:setting document controller');
-        SC.Benchmark.log('app_controller:openJsonDocument:setting document controller');
-      }
+          if (saveImmediately) {
+            // Trigger a save first thing
+            this.invokeLater(function() {
+              DG.dirtyCurrentDocument();
+              this.autoSaveDocument();
+            }.bind(this));
+          }
+        }
 
-      if (this.setOpenedDocumentUnshared) {
-        DG.currDocumentController().setPath('content._permissions', 0);
-        this.setOpenedDocumentUnshared = NO;
-      }
-      SC.Benchmark.end('app_controller:openJsonDocument');
-      SC.Benchmark.log('app_controller:openJsonDocument');
-      return true;
+        if (this.setOpenedDocumentUnshared) {
+          DG.currDocumentController().setPath('content._permissions', 0);
+          this.setOpenedDocumentUnshared = NO;
+        }
+        SC.Benchmark.end('app_controller:openJsonDocument');
+        SC.Benchmark.log('app_controller:openJsonDocument');
+      }.bind(this));
+      return deferred;
     },
 
     /**
@@ -498,7 +509,12 @@ DG.appController = SC.Object.create((function () // closure
 
     _originalDocumentName: null,
     renameDocument: function(iOriginalName, iNewName) {
-      if (iOriginalName && iNewName !== iOriginalName && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName') && !SC.none(DG.currDocumentController().get('externalId'))) {
+      if ( DG.authorizationController.get('isSaveEnabled')
+            && iOriginalName
+            && iNewName !== iOriginalName
+            && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
+            && !SC.none(DG.currDocumentController().get('externalId'))
+          ) {
         this.set('_originalDocumentName', iOriginalName);
         DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
       }
@@ -641,7 +657,7 @@ DG.appController = SC.Object.create((function () // closure
       } else {
         url = 'http://' +
             DG.getDrupalSubdomain() +
-            DG.authorizationController.getLoginCookieDomain() + 
+            DG.authorizationController.getLoginCookieDomain() +
             ('DG.AppController.manageDocumentsURL'.loc());
       }
       window.open(url, 'document_manager');
@@ -843,7 +859,7 @@ DG.appController = SC.Object.create((function () // closure
         function handleRead() {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result);
+              that.openJsonDocument(this.result, true);
             }
             else if( iType === 'TEXT') {
               that.importText(this.result, iFile.name);
@@ -948,9 +964,27 @@ DG.appController = SC.Object.create((function () // closure
         };
         if (docArchive) {
           docJson = SC.json.encode(docArchive);
+
+          // Notes:
+          // 1. FileSaver.js (window.saveAs) doesn't work with Safari;
+          //      root cause is http://caniuse.com/#search=download
+          // 2. Downloadify (flash based alternative to FileSaver) is somehow
+          //      broken by SC event system -- its flash widget doesn't get
+          //      click events when embedded in the SC application
+          // 3. Browsers don't seem to want data uri hrefs to be clickable, but
+          //      they nevertheless can easily be saved by a user's right-click
+          // 4. window.open won't work here because we get called asynchronously
+          //      via a promise resolution. (Popup blockers generally block
+          //      window.open unless it is in the context of an event handler
+          //      for a user generated event, such as a click.)
+
           if (!SC.empty(docJson)) {
+            var dataUri = "data:application/json;charset=utf-8;base64,"+btoa(docJson);
             tDialog = DG.CreateSingleTextDialog({
-              prompt: 'DG.AppController.exportDocument.prompt',
+              prompt: 'DG.AppController.exportDocument.prompt'.loc() +
+                " (Safari users may need to &#x2318;-click <a href=\"" + dataUri +
+                "\">this link</a>)",
+              escapePromptHTML: false,
               textValue: docArchive.name + '.json',
               okTarget: null,
               okAction: onOK,
@@ -958,6 +992,17 @@ DG.appController = SC.Object.create((function () // closure
               okTooltip: 'DG.AppController.exportDocument.okTooltip',
               cancelVisible: true
             });
+
+            // Right-clicking the download link is treated as a mousedown by the
+            // SC draggability logic, resulting in the dialog pane "sticking" to
+            // the mouse after right-clicking to get at the "download as"
+            // context menu option. Use a capture-phase event handler to drop
+            // the mousedown event. Note jQuery (at least as of version used
+            // here) doesn't support capturing so we use W3C API.
+
+            tDialog('a')[0].addEventListener('mousedown', function(e) {
+              e.stopPropagation();
+            }, true);
           }
         }
       }, true);
@@ -1275,6 +1320,7 @@ DG.appController = SC.Object.create((function () // closure
           recordid = DG.currDocumentController().get('externalDocumentId'),
           docName = DG.currDocumentController().get('documentName'),
           currUser = DG.authorizationController.getPath('currLogin.user');
+
       delete currentParams.runAsGuest;
       if (!SC.none(recordid)) {
         delete currentParams.doc;
@@ -1282,10 +1328,16 @@ DG.appController = SC.Object.create((function () // closure
         currentParams.recordid = recordid;
       } else {
         delete currentParams.recordid;
-        if (currUser !== 'guest') {
-          currentParams.owner = currUser;
+        if (docName === SC.String.loc('DG.Document.defaultDocumentName')) {
+          //  We're still on a brand-new document, so we don't need to put any info into the url yet.
+          delete currentParams.doc;
+          delete currentParams.owner;
+        } else {
+          if (currUser !== 'guest') {
+            currentParams.owner = currUser;
+          }
+          currentParams.doc = docName;
         }
-        currentParams.doc = docName;
       }
       var newUrl = $.param.querystring(window.location.href, currentParams, 2); // Completely replace the current query string
       window.history.replaceState("codap", docName + " - CODAP", newUrl);
