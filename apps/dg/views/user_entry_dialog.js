@@ -121,10 +121,60 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         controlSize: SC.JUMBO_CONTROL_SIZE,
         value: 'Open File'
       }),
-      cloudBrowseView: SC.LabelView.design({
+
+      cloudBrowseView: SC.View.design({
         layout: { left: 0, right: 0, top: 0, bottom: 0 },
-        controlSize: SC.JUMBO_CONTROL_SIZE,
-        value: 'Browse Cloud'
+        childViews: 'promptView documentListView okButton'.w(),
+
+        promptView: SC.LabelView.design({
+          layout: { top: 10, left: 5, right: 5, height:24 },
+          localize: true,
+          value: 'DG.AppController.openDocument.prompt'   // "Choose a document
+        }),
+
+        documentListView: SC.SelectFieldView.design({
+          layout: { top: 40, left: 5, right: 5, height:24 },
+          _listController: null,
+          init: function() {
+            sc_super();
+            this.set('objects', DG.DocumentListController.create());
+          },
+          nameKey: 'name',
+          valueKey: 'id',
+          disableSort: true // clients should pass the array sorted appropriately
+        }),
+
+        okButton: SC.ButtonView.design({
+          layout: { bottom:5, right: 5, height:24, width: 90 },
+          titleMinWidth: 0,
+          localize: true,
+          title: 'DG.AppController.openDocument.okTitle',  // "Open"
+          target: 'DG.userEntryController',
+          action: 'openExistingDocument',
+          toolTip: 'DG.AppController.openDocument.okTooltip',  // "Open",
+          isDefault: true
+        }),
+
+        documentName: function() {
+          var docList = this.getPath('documentListView.objects'),
+              i, docCount = docList && docList.get('length'),
+              docID = this.getPath('documentListView.fieldValue'),
+              docEntry;
+          for( i = 0; i < docCount; ++i) {
+            docEntry = docList.objectAt( i);
+            if( docEntry.id === docID)
+              return docEntry.name;
+          }
+          return null;
+        }.property('*documentListView.fieldValue'),
+
+        documentID: function() {
+          return this.getPath('documentListView.fieldValue');
+        }.property('*documentListView.fieldValue'),
+
+        close: function() {
+          // NOOP. Implemented to mimic the expected dialog API used in DG.appController.openDocumentFromDialog
+        }
       })
     }),
 

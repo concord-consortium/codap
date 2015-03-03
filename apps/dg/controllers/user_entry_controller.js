@@ -65,6 +65,12 @@ DG.userEntryController = SC.Object.create( (function() {
       this._dialog.setPath('contentView.choiceViews.contentView.titleField.value', null);
       DG.currDocumentController().setPath('content._isPlaceholder', false);
       DG.dirtyCurrentDocument();
+    },
+
+    openExistingDocument: function() {
+      var dialog = this._dialog.getPath('contentView.choiceViews.contentView');
+      DG.appController.openSaveDialog = dialog;
+      DG.appController.openDocumentFromDialog();
     }
 
   }; // return from function closure
