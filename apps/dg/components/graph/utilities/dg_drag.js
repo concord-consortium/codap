@@ -35,10 +35,11 @@ DG.Drag = SC.Drag.extend({
         tLoc = { x: iEvent.pageX, y: iEvent.pageY },
         tResult = null;
     tTargets.forEach( function( iTarget) {
-      if( iTarget.constructor === DG.AxisMultiTarget) {
-        var tFrame = iTarget.convertFrameToView( iTarget.get('frame'), null);
-        if( SC.pointInRect( tLoc, tFrame))
+      if( (iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {
+        var tFrame = iTarget.parentView.convertFrameToView( iTarget.get('frame'), null);
+        if( SC.pointInRect( tLoc, tFrame)) {
           tResult = iTarget;
+        }
       }
     });
     if( !SC.none( tResult))

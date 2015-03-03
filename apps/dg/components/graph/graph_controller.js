@@ -42,6 +42,7 @@ DG.GraphController = DG.DataDisplayController.extend(
       }.property('dataDisplayModel'),
       xAxisView: null,
       yAxisView: null,
+      y2AxisView: null,
       plotView: null,
       axisMultiTarget: null,
 
@@ -63,9 +64,11 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         this.storeDimension( dataConfiguration, storage, 'x');
         this.storeDimension( dataConfiguration, storage, 'y');
+        this.storeDimension( dataConfiguration, storage, 'y2');
 
         storeAxis('x');
         storeAxis('y');
+        storeAxis('y2');
 
         if( plotModels) {
           storage.plotModels = [];
@@ -130,6 +133,7 @@ DG.GraphController = DG.DataDisplayController.extend(
         if( graphView) {
           this.set('xAxisView', graphView.get('xAxisView'));
           this.set('yAxisView', graphView.get('yAxisView'));
+          this.set('y2AxisView', graphView.get('y2AxisView'));
           this.set('plotView', graphView.get('plotBackgroundView'));
           this.set('legendView', graphView.get('legendView'));
           this.set('axisMultiTarget', graphView.get('yAxisMultiTarget'));
@@ -159,6 +163,20 @@ DG.GraphController = DG.DataDisplayController.extend(
       },
 
       /**
+       * If the given drag data has a data context different than our own, we must reset the
+       * graph model. (I.e. until such time as we are able to handle multiple contexts on one graph.)
+       * @param iDragData
+       */
+      handlePossibleForeignDataContext: function( iDragData) {
+        var tDragContext = iDragData.context;
+
+        if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
+          this.get('graphModel').reset();
+          this.set('dataContext', tDragContext);
+        }
+      },
+
+      /**
        An axis view has received a drop of an attribute. Our job is the tell the graph
        model which attribute and collection client to change so that we move into the
        desired configuration of attributes.
@@ -166,12 +184,7 @@ DG.GraphController = DG.DataDisplayController.extend(
       axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
-        var tDragContext = iDragData.context;
-
-        if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
-          this.get('graphModel').reset();
-          this.set('dataContext', tDragContext);
-        }
+        this.handlePossibleForeignDataContext( iDragData);
 
         var tDataContext = this.get('dataContext'),
             tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
@@ -195,6 +208,8 @@ DG.GraphController = DG.DataDisplayController.extend(
       multiTargetDidAcceptDrop: function( iAxisMultiTarget, iKey, iDragData) {
         if( SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
+        this.handlePossibleForeignDataContext( iDragData);
+
         var tDataContext = this.get('dataContext'),
             tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
 
@@ -203,10 +218,29 @@ DG.GraphController = DG.DataDisplayController.extend(
         this.get('graphModel').addAttributeToAxis(
                   tDataContext,
                   { collection: tCollectionClient,
-                    attribute: iDragData.attribute });
+                    attributes: [iDragData.attribute] });
         DG.dirtyCurrentDocument();
-      }.observes('*axisMultiTarget.dragData')
+      }.observes('*axisMultiTarget.dragData'),
 
+      /**
+        The Y2 axis has received a drop of an attribute. We respond by creating a new scatterplot that
+       uses the existing x-axis and the Y2 axis.
+      */
+      y2AxisDidAcceptDrop: function( iY2Axis, iKey, iDragData) {
+        if( SC.none(iDragData)) // The over-notification caused by the * in the observes
+          return;       // means we get here at times there isn't any drag data.
+        this.handlePossibleForeignDataContext( iDragData);
+
+        var tDataContext = this.get('dataContext'),
+            tCollectionClient = getCollectionClientFromDragData( tDataContext, iDragData);
+
+        iY2Axis.dragData = null;
+
+        this.get('graphModel').changeAttributeForY2Axis(
+                  tDataContext,
+                  { collection: tCollectionClient,
+                    attributes: [iDragData.attribute] });
+      }.observes('*y2AxisView.dragData')
     };
 
   }()) // function closure

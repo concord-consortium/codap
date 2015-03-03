@@ -94,13 +94,28 @@ DG.NumericPlotModelMixin =
       }
       return false;
     }
+
+    function axisForPlace( iPlace) {
+      var tPlace = iPlace;
+      if( this_.get('verticalAxisIsY2')) {
+        switch( iPlace) {
+          case DG.GraphTypes.EPlace.eY:
+              tPlace = DG.GraphTypes.EPlace.eY2;
+            break;
+          case DG.GraphTypes.EPlace.eY2:
+              tPlace = DG.GraphTypes.EPlace.eUndefined;
+            break;
+        }
+      }
+      return this_.getAxisForPlace( tPlace);
+    }
   
     // Body of rescaleAxesFromData
     if( SC.none( iAnimatePoints))
       iAnimatePoints = true;
 
     iPlaces.forEach( function( iPlace) {
-      setNewBounds( iPlace, this_.getAxisForPlace( iPlace));
+      setNewBounds( iPlace, axisForPlace( iPlace));
     });
     
     // Only animate if the bounds have changed
@@ -111,7 +126,7 @@ DG.NumericPlotModelMixin =
                                         // can be animated to new coordinates
       // We'll go through both iPlaces and tOldBoundsArray in reverse order
       while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
-        setOldBounds( this_.getAxisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+        setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
       }
       
       if( SC.none( this.plotAnimator))

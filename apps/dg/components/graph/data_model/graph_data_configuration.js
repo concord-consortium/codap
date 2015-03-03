@@ -36,6 +36,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     var attributeDescriptions = {
                                   x: DG.AttributePlacementDescription.create(),
                                   y: DG.AttributePlacementDescription.create(),
+                                  y2: DG.AttributePlacementDescription.create(),
                                   legend: DG.AttributePlacementDescription.create()
                                 },
         tPlace,
@@ -89,6 +90,8 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
                              DG.Analysis.EAnalysisRole.ePrimaryCategorical);
     configAttrDesc('y', 'Y', DG.Analysis.EAnalysisRole.eSecondaryNumeric,
                              DG.Analysis.EAnalysisRole.eSecondaryCategorical);
+    configAttrDesc('y2', 'Y2', DG.Analysis.EAnalysisRole.eSecondaryNumeric,
+                             DG.Analysis.EAnalysisRole.eSecondaryCategorical);
     configAttrDesc('legend', 'Legend', DG.Analysis.EAnalysisRole.eLegendNumeric,
                                        DG.Analysis.EAnalysisRole.eLegendCategorical);
 
@@ -102,6 +105,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     // initialized attribute descriptions in attributesByPlace.
     this.attributesByPlace[ DG.GraphTypes.EPlace.eX][0] = attributeDescriptions.x;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
+    this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
   }
 
