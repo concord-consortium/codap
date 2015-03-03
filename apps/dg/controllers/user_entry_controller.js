@@ -54,7 +54,18 @@ DG.userEntryController = SC.Object.create( (function() {
           d.remove();
         }
       }
-    }.observes('_status', '_isPlaceholder', '_dialog')
+    }.observes('_status', '_isPlaceholder', '_dialog'),
+
+    openNewDocument: function() {
+      var title = this._dialog.getPath('contentView.choiceViews.contentView.titleField.value');
+      if (SC.none(title) || title.length === 0) {
+        title = SC.String.loc('DG.Document.defaultDocumentName');
+      }
+      DG.currDocumentController().set('documentName', title);
+      this._dialog.setPath('contentView.choiceViews.contentView.titleField.value', null);
+      DG.currDocumentController().setPath('content._isPlaceholder', false);
+      DG.dirtyCurrentDocument();
+    }
 
   }; // return from function closure
 }())); // function closure

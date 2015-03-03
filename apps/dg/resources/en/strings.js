@@ -32,11 +32,14 @@ SC.stringsFor('English', {
                                             "DG is not actively supported on other browsers at this time.",
 
   // DG.UserEntryDialog
-  'DG.UserEntryDialog.welcome': 'Welcome to CODAP',
-  'DG.UserEntryDialog.welcome2': 'What would you like to do?',
-  'DG.UserEntryDialog.openNewButton': 'Start a new document...',
-  'DG.UserEntryDialog.openFileButton': 'Open a local file...',
-  'DG.UserEntryDialog.documentServerButton': 'Browse the CODAP Cloud...',
+  'DG.UserEntryDialog.welcome'                 : 'Welcome to CODAP',
+  'DG.UserEntryDialog.welcome2'                : 'What would you like to do?',
+  'DG.UserEntryDialog.openNew.option'          : 'Start a new document...',
+  'DG.UserEntryDialog.openNew.prompt'          : 'Please provide a title for your new document:',
+  'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
+  'DG.UserEntryDialog.openNew.button'          : 'OK',
+  'DG.UserEntryDialog.openFile.option'         : 'Open a local file...',
+  'DG.UserEntryDialog.documentServer.option'   : 'Browse the CODAP Cloud...',
 
   // DG.Authorization
   'DG.Authorization.guestUserName'            : "guest",

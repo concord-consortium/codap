@@ -48,9 +48,9 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       layout: { left: 10, top: 82, height: 72*3, width: 250 },
       controlSize: SC.JUMBO_CONTROL_SIZE,
       layoutDirection: SC.LAYOUT_VERTICAL,
-      _openNewText: DG.getVariantString('DG.UserEntryDialog.openNewButton').loc(),
-      _openFileText: DG.getVariantString('DG.UserEntryDialog.openFileButton').loc(),
-      _cloudBrowseText: DG.getVariantString('DG.UserEntryDialog.documentServerButton').loc(),
+      _openNewText: DG.getVariantString('DG.UserEntryDialog.openNew.option').loc(),
+      _openFileText: DG.getVariantString('DG.UserEntryDialog.openFile.option').loc(),
+      _cloudBrowseText: DG.getVariantString('DG.UserEntryDialog.documentServer.option').loc(),
       init: function() {
         sc_super();
         this.set('value', [this._openNewText]);
@@ -90,11 +90,32 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         sc_super();
         this.set('nowShowing', 'openNewView');
       },
-      openNewView: SC.LabelView.design({
-        layout: { left: 0, right: 0, top: 0, bottom: 0 },
-        controlSize: SC.JUMBO_CONTROL_SIZE,
-        value: 'Open New'
+      openNewView: SC.View.design({
+        layout: {top: 0, left: 0, right: 0, bottom: 0},
+        childViews: 'titleLabel titleField okButton'.w(),
+
+        titleLabel: SC.LabelView.design({
+          layout: { top: 10, left: 5, right: 5, height:24 },
+          localize: true,
+          value: DG.getVariantString('DG.UserEntryDialog.openNew.prompt')
+        }),
+
+        titleField: SC.TextFieldView.design({
+          layout: { top: 40, left: 5, right: 5, height:24 },
+          localize: true,
+          hint: DG.getVariantString('DG.UserEntryDialog.openNew.titleFieldHint')
+        }),
+
+        okButton: SC.ButtonView.design({
+          layout: { bottom:5, right: 5, height:24, width: 90 },
+          localize: true,
+          title: DG.getVariantString('DG.UserEntryDialog.openNew.button'),
+          target: 'DG.userEntryController',
+          action: 'openNewDocument',
+          isDefault: true
+        })
       }),
+
       openFileView: SC.LabelView.design({
         layout: { left: 0, right: 0, top: 0, bottom: 0 },
         controlSize: SC.JUMBO_CONTROL_SIZE,
