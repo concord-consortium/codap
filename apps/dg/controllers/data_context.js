@@ -497,14 +497,19 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
   doDeleteCases: function( iChange) {
-  
+
     iChange.ids = [];
     iChange.collectionIDs = {};
   
     var deleteCaseAndChildren = function( iCase) {
-      var tChildren = iCase.get('children');
-      if( tChildren && tChildren.length)
-        tChildren.forEach( deleteCaseAndChildren);
+      var tChildren= iCase.get('children'), ix;
+      // we remove children in reverse order because removal from this list
+      // is immediate and would otherwise corrupt the list.
+      if( tChildren && tChildren.length) {
+        for (ix = tChildren.length - 1; ix >= 0; ix--) {
+          deleteCaseAndChildren(tChildren[ix]);
+        }
+      }
 
       iChange.ids.push( iCase.get('id'));
       

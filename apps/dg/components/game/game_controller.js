@@ -236,6 +236,10 @@ DG.GameController = DG.ComponentController.extend(
         tRet = this.handleCreateCases( tCmdObj.args);
         break;
 
+      case 'deleteCases':
+        tRet = this.handleDeleteCases(tCmdObj.args);
+        break;
+
       case 'deleteAllCaseData':
         tRet = this.handleDeleteAllCaseData( tCmdObj.args);
         break;
@@ -584,6 +588,28 @@ DG.GameController = DG.ComponentController.extend(
     },
 
     /**
+     * Deletes named cases.
+     * @param {array} caseIDs
+     * @returns {{success: boolean}}
+     */
+    doDeleteCases: function (iCaseIDs) {
+      var tGameContext = this.get('context'),
+        cases = [],
+        change = {
+          operation: 'deleteCases',
+          cases: cases
+        };
+      iCaseIDs.forEach(function (iCaseID) {
+        var tCase = tGameContext.getCaseByID(iCaseID);
+        if (tCase) {
+          cases.push(tCase);
+        }
+      });
+      tGameContext.applyChange( change);
+
+      return {success: true}
+    },
+      /**
       Update the values of an existing case.
       @param {String} iAction   Command being executed (e.g. 'openCase',
          'createCase')
@@ -666,6 +692,13 @@ DG.GameController = DG.ComponentController.extend(
       return this.doCreateCases('createCases', iArgs);
     },
 
+    /**
+     * Delete identified cases. If parent cases, delete children.
+     * @param {Object} iArgs {caseIDs: [Number, ...]}
+     */
+    handleDeleteCases: function (iArgs) {
+      return this.doDeleteCases(iArgs.caseIDs);
+    },
 
     /**
        Delete all case data not associated with the current game case.
@@ -736,17 +769,7 @@ DG.GameController = DG.ComponentController.extend(
         }
       }
       tDeletedCaseIDs = DG.store.destroyAllRecordsOfType( DG.Case, tCaseIDsToPreserve);
-      DG.store.commitRecords();
 
-      // Note that for efficiency, the record deletion above is carried out
-      // for all cases at once rather than game-by-game or context-by-context.
-      // Therefore, this notification may be insufficient in a situation in
-      // which data are being cleared from multiple game contexts. We have
-      // said that in the future a document may only contain data from a
-      // single game, however, so we're not putting effort into solving
-      // that problem at the moment. The only current symptom should be that
-      // graphs which are showing data from a different game (e.g. after
-      // switching games with a graph showing) might not refresh immediately.
       var tChange = {
             operation: 'deleteCases',
             // signal that the action has already been completed
