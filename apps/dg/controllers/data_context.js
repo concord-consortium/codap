@@ -1061,7 +1061,14 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   collectionDefaults: function() {
 
-    return DG.DataContext.collectionDefaults();
+    return {
+      collectionClient: this.get('childCollection'),
+      parentCollectionClient: this.get('parentCollection'),
+      plotXAttr: null,
+      plotXAttrIsNumeric: true,
+      plotYAttr: null,
+      plotYAttrIsNumeric: true
+    };
   },
   
   /**
