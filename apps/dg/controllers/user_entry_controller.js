@@ -71,6 +71,12 @@ DG.userEntryController = SC.Object.create( (function() {
       var dialog = this._dialog.getPath('contentView.choiceViews.contentView');
       DG.appController.openSaveDialog = dialog;
       DG.appController.openDocumentFromDialog();
+    },
+
+    openFile: function() {
+      var dialog = this._dialog.getPath('contentView.choiceViews.contentView'),
+          v = dialog.get('value');
+      DG.appController.importFileWithConfirmation( v[0], 'JSON', dialog);
     }
 
   }; // return from function closure

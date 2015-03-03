@@ -117,9 +117,57 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       }),
 
       openFileView: SC.LabelView.design({
-        layout: { left: 0, right: 0, top: 0, bottom: 0 },
-        controlSize: SC.JUMBO_CONTROL_SIZE,
-        value: 'Open File'
+        layout: {top: 0, left: 0, right: 0, bottom: 0},
+        childViews: 'promptView editView alertView okButton'.w(),
+        promptView: SC.LabelView.extend({
+          layout: { top: 10, left: 5, right: 5, height:24 },
+          localize: true,
+          value: 'DG.AppController.importDocument.prompt'
+        }),
+        editView: DG.FileImportView.design({
+          layout: { top: 40, left: 5, right: 5, height:24 },
+          value: '',
+          isTextArea: false,
+          spellCheckEnabled: false,
+          action: function () {
+            this.get('parentView').hideAlert();
+          }
+        }),
+        // alertView: Initially invisible, only exposed if invalid file
+        // uploaded
+        alertView: SC.LabelView.extend({
+          layout: { top: 70, left: 5, right: 5, height:24 },
+          classNames: ['dg-alert'],
+          localize: true,
+          isVisible: NO,
+          value: 'DG.AppController.importDocument.alert'
+        }),
+        okButton: SC.ButtonView.design({
+          layout: { bottom:5, right: 5, height:24, width: 90 },
+          titleMinWidth: 0,
+          localize: true,
+          title: 'DG.AppController.importDocument.okTitle',  // "OK"
+          toolTip: 'DG.AppController.importDocument.okTooltip',
+          target: 'DG.userEntryController',
+          action: 'openFile',
+          isDefault: true
+        }),
+
+        showAlert: function () {
+          this.setPath('alertView.isVisible', YES);
+        },
+
+        hideAlert: function () {
+          this.setPath('alertView.isVisible', NO);
+        },
+
+        value: function() {
+          return this.getPath('editView.files');
+        }.property(),
+
+        close: function() {
+          // NOOP. Implemented to mimic the expected dialog API used in DG.appController.importFileWithConfirmation
+        }
       }),
 
       cloudBrowseView: SC.View.design({
