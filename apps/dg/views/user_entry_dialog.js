@@ -34,23 +34,23 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       fontWeight: SC.BOLD_WEIGHT,
       textAlign: SC.ALIGN_CENTER,
       localize: true,
-      value: DG.getVariantString('DG.UserEntryDialog.welcome')
+      value: 'DG.UserEntryDialog.welcome'
     }),
 
     welcomeInstructions: SC.LabelView.design({
       layout: { left: 10, right: 0, top: 49, height: 18 },
       textAlign: SC.ALIGN_LEFT,
       localize: true,
-      value: DG.getVariantString('DG.UserEntryDialog.welcome2')
+      value: 'DG.UserEntryDialog.welcome2'
     }),
 
     choiceButtons: SC.SegmentedView.design({
       layout: { left: 10, top: 82, height: 72*3, width: 250 },
       controlSize: SC.JUMBO_CONTROL_SIZE,
       layoutDirection: SC.LAYOUT_VERTICAL,
-      _openNewText: DG.getVariantString('DG.UserEntryDialog.openNew.option').loc(),
-      _openFileText: DG.getVariantString('DG.UserEntryDialog.openFile.option').loc(),
-      _cloudBrowseText: DG.getVariantString('DG.UserEntryDialog.documentServer.option').loc(),
+      _openNewText: 'DG.UserEntryDialog.openNew.option'.loc(),
+      _openFileText: 'DG.UserEntryDialog.openFile.option'.loc(),
+      _cloudBrowseText: 'DG.UserEntryDialog.documentServer.option'.loc(),
       init: function() {
         sc_super();
         this.set('value', [this._openNewText]);
@@ -97,19 +97,20 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         titleLabel: SC.LabelView.design({
           layout: { top: 10, left: 5, right: 5, height:24 },
           localize: true,
-          value: DG.getVariantString('DG.UserEntryDialog.openNew.prompt')
+          value: 'DG.UserEntryDialog.openNew.prompt'
         }),
 
         titleField: SC.TextFieldView.design({
           layout: { top: 40, left: 5, right: 5, height:24 },
           localize: true,
-          hint: DG.getVariantString('DG.UserEntryDialog.openNew.titleFieldHint')
+          hint: 'DG.UserEntryDialog.openNew.titleFieldHint'
         }),
 
         okButton: SC.ButtonView.design({
           layout: { bottom:5, right: 5, height:24, width: 90 },
           localize: true,
-          title: DG.getVariantString('DG.UserEntryDialog.openNew.button'),
+          title: 'DG.UserEntryDialog.openNew.button',
+          toolTip: 'DG.UserEntryDialog.openNew.buttonTooltip',
           target: 'DG.userEntryController',
           action: 'openNewDocument',
           isDefault: true
@@ -122,7 +123,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         promptView: SC.LabelView.extend({
           layout: { top: 10, left: 5, right: 5, height:24 },
           localize: true,
-          value: 'DG.AppController.importDocument.prompt'
+          value: 'DG.UserEntryDialog.openFile.prompt'
         }),
         editView: DG.FileImportView.design({
           layout: { top: 40, left: 5, right: 5, height:24 },
@@ -146,8 +147,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           layout: { bottom:5, right: 5, height:24, width: 90 },
           titleMinWidth: 0,
           localize: true,
-          title: 'DG.AppController.importDocument.okTitle',  // "OK"
-          toolTip: 'DG.AppController.importDocument.okTooltip',
+          title: 'DG.UserEntryDialog.openFile.button',  // "OK"
+          toolTip: 'DG.UserEntryDialog.openFile.buttonTooltip',
           target: 'DG.userEntryController',
           action: 'openFile',
           isDefault: true

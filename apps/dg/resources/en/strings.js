@@ -38,7 +38,11 @@ SC.stringsFor('English', {
   'DG.UserEntryDialog.openNew.prompt'          : 'Please provide a title for your new document:',
   'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
   'DG.UserEntryDialog.openNew.button'          : 'OK',
+  'DG.UserEntryDialog.openNew.buttonTooltip'   : 'Create a new document with the specified title',
   'DG.UserEntryDialog.openFile.option'         : 'Open a local file...',
+  'DG.UserEntryDialog.openFile.prompt'         : 'Select a document to open:',
+  'DG.UserEntryDialog.openFile.button'         : 'Open',
+  'DG.UserEntryDialog.openFile.buttonTooltip'  : 'Open the specified document',
   'DG.UserEntryDialog.documentServer.option'   : 'Browse the CODAP Cloud...',
 
   // DG.Authorization
