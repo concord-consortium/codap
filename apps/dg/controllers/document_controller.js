@@ -1329,12 +1329,16 @@ DG.DocumentController = SC.Object.extend(
         });
         // when all promises in the array of promises complete, then call the callback
         Promise.all(promises).then(function (value) {
-          DG.logInfo('saveCurrentGameState complete.');
-          done();},
+            DG.logInfo('saveCurrentGameState complete.');
+            done();
+          },
           function (reason) {
             DG.logWarn('saveCurrentGameState failed: ' + reason);
             done();
-        });
+          }
+        ).catch(function(reason) {
+            DG.logWarn(reason);
+          });
       }
 
       // For consistency with gamePhone case, make sure that done callback is invoked in a later
