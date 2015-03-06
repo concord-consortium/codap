@@ -616,7 +616,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
-              {String}  .operation - "deleteCases"
+              {String}  .operation - "deleteAttributes"
               {DG.CollectionClient} .collection - Collection whose attributes(s) are changed
               {Array of Object} .attrs - Array of attributes to delete
     @returns  {Object}
