@@ -982,7 +982,7 @@ DG.appController = SC.Object.create((function () // closure
             var dataUri = "data:application/json;charset=utf-8;base64,"+btoa(docJson);
             tDialog = DG.CreateSingleTextDialog({
               prompt: 'DG.AppController.exportDocument.prompt'.loc() +
-                " (Safari users may need to &#x2318;-click <a href=\"" + dataUri +
+                " (Safari users may need to control-click <a href=\"" + dataUri +
                 "\">this link</a>)",
               escapePromptHTML: false,
               textValue: docArchive.name + '.json',
@@ -1000,7 +1000,7 @@ DG.appController = SC.Object.create((function () // closure
             // the mousedown event. Note jQuery (at least as of version used
             // here) doesn't support capturing so we use W3C API.
 
-            tDialog('a')[0].addEventListener('mousedown', function(e) {
+            tDialog.$('a')[0].addEventListener('mousedown', function(e) {
               e.stopPropagation();
             }, true);
           }
