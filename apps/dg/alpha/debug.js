@@ -433,7 +433,15 @@ SC.Logger._shouldOutputType = function(type) {
  */
 DG.Debug._prevOutputMessage = SC.Logger._outputMessage;
 SC.Logger._outputMessage = function(type, timestampStr, indentation, message, originalArguments) {
-  DG.Debug._currentMessage = message;
+  // be careful to place a string in _currentMessage. Otherwise we can fail badly
+  // trying to report a minor error.
+  if (typeof message === 'string') {
+    DG.Debug._currentMessage = message;
+  } else if (message.toString) {
+    DG.Debug._currentMessage = message.toString();
+  } else {
+    DG.Debug._currentMessage = '';
+  }
   if( DG.Debug._prevShouldOutputType.call( SC.Logger, type))
     DG.Debug._prevOutputMessage.call( SC.Logger, type, timestampStr, indentation, message, originalArguments);
 };
