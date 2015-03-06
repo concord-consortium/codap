@@ -183,7 +183,7 @@ DG.GameView = SC.WebView.extend(
       } catch (e) {
         // e should be a SecurityError but I haven't found documentation regarding how standard
         // that error type is.
-        console.error(e);
+        DG.logInfo("Testing iframe origin:" + e);
       }
     } else {
       DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
