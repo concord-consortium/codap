@@ -81,7 +81,7 @@ DG.GraphView = SC.View.extend(
     if( !this._plotViews.contains( iPlotView)) {
       var tNewPlot = iPlotView.get('model'),
           tPlots = this.getPath('model.plots'),
-          tPlotViews = this._plotViews,
+          //tPlotViews = this._plotViews,
           tIndexOfNewPlot = -1;
       tPlots.forEach( function( iPlot, iPlotIndex) {
         if( iPlot === tNewPlot)

@@ -607,7 +607,7 @@ DG.GameController = DG.ComponentController.extend(
       });
       tGameContext.applyChange( change);
 
-      return {success: true}
+      return {success: true};
     },
       /**
       Update the values of an existing case.

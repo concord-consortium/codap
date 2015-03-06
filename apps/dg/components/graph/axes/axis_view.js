@@ -89,10 +89,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 var tBox = this._textElement.getBBox(),
                     tCenter;
                 if (this.rotation !== 0) {
-                  tCenter = { cx: this.loc.x + 1, cy: this.loc.y - tYOffset + tBox.height / 2 + this.kCircleRadius + 2 }
+                  tCenter = { cx: this.loc.x + 1, cy: this.loc.y - tYOffset + tBox.height / 2 + this.kCircleRadius + 2 };
                 }
                 else {
-                  tCenter = { cx: this.loc.x - (tBox.width / 2 + this.kCircleRadius + 2), cy: this.loc.y }
+                  tCenter = { cx: this.loc.x - (tBox.width / 2 + this.kCircleRadius + 2), cy: this.loc.y };
                 }
                 this._circleElement.attr( tCenter);
               }
@@ -225,7 +225,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tOtherYAttributes = this.getPath('otherYAttributeDescription.attributes'),
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
               tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
-              tLabels, tNumAttributes, tDescription, tNode;
+              tLabels, tNumAttributes, tNode;
           if (SC.none(this._paper))
             return [];
 
@@ -305,7 +305,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tDrawWidth = this.get('drawWidth'),
               tDrawHeight = this.get('drawHeight'),
               tIsVertical = this.get('isVertical'),
-              tRotation = tIsVertical ? -90 : 0,
+              //tRotation = tIsVertical ? -90 : 0,
               tTotalLength = 0,
               tLayout = tNodes.map(function (iNode) {
                 var tExtent = iNode.extent();
@@ -477,7 +477,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 tY1Description.get('isNumeric');
           }
           else
-            return DG.GraphDropTarget.isValidAttribute.call(this, iDrag)
+            return DG.GraphDropTarget.isValidAttribute.call(this, iDrag);
         }
       };
     }()));

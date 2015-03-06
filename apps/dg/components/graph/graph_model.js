@@ -349,7 +349,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
 
       var setNewBounds = function() {
-        var tAttribute = iAttrRefs.attributes[0],
+        var //tAttribute = iAttrRefs.attributes[0],
             tAxis = this.get('y2Axis');
 
         var tDataConfiguration = this.get('dataConfiguration'),
@@ -588,7 +588,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var tDataContext = this.getPath('dataConfiguration.dataContext'),
+      var //tDataContext = this.getPath('dataConfiguration.dataContext'),
           xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
           tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
           tPrevXAxis = this.get('xAxis'),

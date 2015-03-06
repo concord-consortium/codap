@@ -53,7 +53,7 @@
 
   "evil": false,      // allow eval
 
-  "expr": false,      // allow use of expressions where normally you would expect to see assignments or function calls
+  "expr": true,      // allow use of expressions where normally you would expect to see assignments or function calls
 
   "funcscope": false, // allow vars declared inside controls structures to be used outside
 
