@@ -121,7 +121,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           maximum: 1,
           step: 0,
           value: this.getPath('model.gridModel.gridMultiplier') / 1.8 - 0.1,
-          isVisible: false
+          isVisible: false,
+          mouseUp: function( iEvent) {
+            sc_super();
+            DG.logUser('changeGridMultiplier: %@', 0.1 + 1.9 * this.get('value'));
+          }
         });
         this.appendChild( this.gridControl );
 
@@ -138,6 +142,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       setMarqueeMode: function() {
         this.setPath('mapPointView.isInMarqueeMode', true);
+        DG.logUser('marqueeToolSelect');
       },
 
       marqueeModeChanged: function() {
@@ -148,8 +153,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapPointView.isInMarqueeMode'),
 
       changeBaseMap: function() {
-        this.setPath('model.baseMapLayerName', this.backgroundControl.get('value'));
+        var tBackground = this.backgroundControl.get('value');
+        this.setPath('model.baseMapLayerName', tBackground);
         DG.dirtyCurrentDocument();
+        DG.logUser('changeMapBackground: %@', tBackground);
       },
 
       changeGridSize: function() {
@@ -290,10 +297,18 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         var tMap = this.getPath('mapLayer.map'),
             tModel = this.get('model'),
             tCenter = tMap.getCenter(),
-            tZoom = tMap.getZoom();
+            tZoom = tMap.getZoom(),
+            tEventType = this.getPath('mapLayer.lastEventType');
         tModel.set('center', tCenter);
         tModel.set('zoom', tZoom);
         DG.dirtyCurrentDocument();
+        switch( tEventType) {
+          case 'zoomend':
+          case 'dragstart':
+          case 'dragend':
+            DG.logUser('mapEvent: %@ at {center: %@, zoom: %@}', tEventType, tCenter, tZoom);
+        }
+        this.setPath('mapLayer.lastEventType', null);
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {

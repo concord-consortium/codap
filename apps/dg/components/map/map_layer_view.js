@@ -53,6 +53,12 @@ DG.MapLayerView = SC.View.extend(
       displayChangeCount: 0,
 
       /**
+       * Set along with displayChangeCount so that event can be logged
+       * @property(String}
+       */
+      lastEventType: null,
+
+      /**
        * Property that can be observed by parent view
        */
       clickCount: 0,
@@ -112,6 +118,7 @@ DG.MapLayerView = SC.View.extend(
             tNewLayer;
 
         var onDisplayChangeEvent = function (iEvent) {
+              this.set('lastEventType', iEvent.type);
               this.incrementProperty('displayChangeCount');
             }.bind(this),
 
@@ -127,9 +134,12 @@ DG.MapLayerView = SC.View.extend(
           tMap.removeLayer( this.get('baseMapLabels'));
         tNewLayer = L.esri.basemapLayer( tNewLayerName);
         this._map.addLayer(tNewLayer, true /*add at bottom */)
+            .on('dragstart', onDisplayChangeEvent)
             .on('drag', onDisplayChangeEvent)
+            .on('dragend', onDisplayChangeEvent)
             .on('move', onDisplayChangeEvent)
             .on('zoomend', onDisplayChangeEvent)
+            .on('moveend', onDisplayChangeEvent)
             .on('click', onClick);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
