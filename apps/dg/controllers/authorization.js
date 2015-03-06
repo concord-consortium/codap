@@ -554,7 +554,7 @@ return {
       var currLogin = this.get('currLogin'),
           isValid = loginData.valid,
           sessionID = loginData.sessiontoken,
-          isLoggingEnabled = loginData.enableLogging,
+          isLoggingEnabled = true,  //loginData.enableLogging,
           isSaveEnabled = loginData.enableSave,
           realUsername = loginData.username,
           privileges = loginData.privileges;

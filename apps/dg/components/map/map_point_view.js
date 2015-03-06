@@ -86,6 +86,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         .attr( { fill: DG.PlotUtilities.kMarqueeColor,
           stroke: DG.RenderingUtilities.kTransparent });
     this.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( this.marqueeContext.marquee);
+    DG.logUser('marqueeDrag: start');
     return true;
   },
 
@@ -135,6 +136,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.getPath('layerManager').removeElement( this.marqueeContext.marquee);
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
+    DG.logUser('marqueeDrag: end');
     return true;
   },
 
