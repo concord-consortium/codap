@@ -95,8 +95,8 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
             target: this,
-            action: 'openDocument',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
+            action: 'closeCurrentDocument',
+            isEnabled: YES
           },
           {
             localize: true,
