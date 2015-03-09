@@ -23,7 +23,7 @@
   @extends SC.PanelPane
 */
 DG.UserEntryDialog = SC.PanelPane.extend({
-  layout: { width: 600, height: 400, centerX: 0, centerY: 0},
+  layout: { width: 600, height: 310, centerX: 0, centerY: 0},
   contentView: SC.View.design({
     layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
     childViews: 'welcomeHeader welcomeInstructions choiceViews choiceButtons'.w(),
