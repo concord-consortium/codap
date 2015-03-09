@@ -180,16 +180,21 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           value: 'DG.AppController.openDocument.prompt'   // "Choose a document
         }),
 
-        documentListView: SC.SelectFieldView.design({
-          layout: { top: 40, left: 5, right: 5, height:24 },
-          _listController: null,
-          init: function() {
-            sc_super();
-            this.set('objects', DG.DocumentListController.create());
-          },
-          nameKey: 'name',
-          valueKey: 'id',
-          disableSort: true // clients should pass the array sorted appropriately
+        documentListView: SC.ScrollView.extend({
+          classNames: ['my-scroll-view'],
+          layout: { top: 40, left: 5, right: 5, height: 113 },
+          contentView: SC.ListView.extend({
+            classNames: ['my-list-view'],
+            rowHeight: 24,
+            contentValueKey: 'name',
+            init: function() {
+              sc_super();
+              this.set('content', DG.DocumentListController.create({ allowsMultipleSelection: NO }));
+            },
+            fieldValue: function() {
+              return this.getPath('selection.firstObject.id');
+            }.property('selection')
+          })
         }),
 
         okButton: SC.ButtonView.design({
@@ -204,9 +209,9 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         }),
 
         documentName: function() {
-          var docList = this.getPath('documentListView.objects'),
+          var docList = this.getPath('documentListView.contentView.content'),
               i, docCount = docList && docList.get('length'),
-              docID = this.getPath('documentListView.fieldValue'),
+              docID = this.getPath('documentListView.contentView.fieldValue'),
               docEntry;
           for( i = 0; i < docCount; ++i) {
             docEntry = docList.objectAt( i);
@@ -214,11 +219,11 @@ DG.UserEntryDialog = SC.PanelPane.extend({
               return docEntry.name;
           }
           return null;
-        }.property('*documentListView.fieldValue'),
+        }.property('*documentListView.contentView.fieldValue'),
 
         documentID: function() {
-          return this.getPath('documentListView.fieldValue');
-        }.property('*documentListView.fieldValue'),
+          return this.getPath('documentListView.contentView.fieldValue');
+        }.property('*documentListView.contentView.fieldValue'),
 
         close: function() {
           // NOOP. Implemented to mimic the expected dialog API used in DG.appController.openDocumentFromDialog
