@@ -48,20 +48,19 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       layout: { left: 10, top: 82, height: 72*3, width: 250 },
       controlSize: SC.JUMBO_CONTROL_SIZE,
       layoutDirection: SC.LAYOUT_VERTICAL,
-      _openNewText: 'DG.UserEntryDialog.openNew.option'.loc(),
-      _openFileText: 'DG.UserEntryDialog.openFile.option'.loc(),
-      _cloudBrowseText: 'DG.UserEntryDialog.documentServer.option'.loc(),
       init: function() {
         sc_super();
-        this.set('value', [this._openNewText]);
+        this.set('value', ['new']);
       },
+      itemTitleKey: 'title',
+      itemValueKey: 'value',
       items: function() {
         var items = [
-          this._openNewText,
-          this._openFileText
+          { title: 'DG.UserEntryDialog.openNew.option'.loc(), value: 'new' },
+          { title: 'DG.UserEntryDialog.openFile.option'.loc(), value: 'file' }
         ];
         if (DG.authorizationController.get('isSaveEnabled')) {
-          items.push(this._cloudBrowseText);
+          items.push({ title: 'DG.UserEntryDialog.documentServer.option'.loc(), value: 'cloud' });
         }
         return items;
       }.property(),
@@ -69,13 +68,13 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       valueChanged: function() {
         var val = this.get('value');
         switch(val) {
-          case this._cloudBrowseText:
+          case 'cloud':
             this.setPath('parentView.choiceViews.nowShowing', 'cloudBrowseView');
             break;
-          case this._openFileText:
+          case 'file':
             this.setPath('parentView.choiceViews.nowShowing', 'openFileView');
             break;
-          case this._openNewText:
+          case 'new':
             this.setPath('parentView.choiceViews.nowShowing', 'openNewView');
             break;
           default:
