@@ -153,6 +153,17 @@ DG.appController = SC.Object.create((function () // closure
             target: this,
             action: 'exportDocument' }
         ], finalItems;
+
+        if (!DG.AUTOSAVE) {
+          stdItems.splice(1, 0, {
+            localize: true,
+            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
+            target: this,
+            action: 'saveDocument',
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
+          );
+        }
+
         finalItems = stdItems.concat([]);
         if (DG.documentServer) {
           finalItems = finalItems.concat( docServerItems );
@@ -343,7 +354,7 @@ DG.appController = SC.Object.create((function () // closure
           if (triggerSave) {
             openDeferred.done(function() {
               DG.dirtyCurrentDocument();
-              this.autoSaveDocument();
+              this.autoSaveDocument(true);
             }.bind(this));
           }
         }
@@ -407,7 +418,7 @@ DG.appController = SC.Object.create((function () // closure
             // Trigger a save first thing
             this.invokeLater(function() {
               DG.dirtyCurrentDocument();
-              this.autoSaveDocument();
+              this.autoSaveDocument(true);
             }.bind(this));
           }
         }
@@ -512,7 +523,7 @@ DG.appController = SC.Object.create((function () // closure
           okAction: 'saveDocumentFromDialog'
         });
       } else {
-        this.autoSaveDocument();
+        this.autoSaveDocument(true);
       }
     },
 
@@ -627,16 +638,20 @@ DG.appController = SC.Object.create((function () // closure
     /**
      Callback function which saves the current document.
      */
-    autoSaveDocument: function () {
-      if (DG.authorizationController.get('isSaveEnabled')) {
+    autoSaveDocument: function (forceSave) {
+      if ((forceSave === true || DG.AUTOSAVE === true) && DG.authorizationController.get('isSaveEnabled')) {
         var docName = DG.currDocumentController().get('documentName'),
           documentPermissions = DG.currDocumentController().get('documentPermissions');
 
         if (!SC.empty(docName)
-          && docName !== SC.String.loc('DG.Document.defaultDocumentName')
-          && DG.currDocumentController().get('hasUnsavedChanges')) {
-          DG.currDocumentController().saveDocument(docName, documentPermissions);
-          DG.logInfo("autoSaveDocument: '%@'", docName);
+          && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
+          if (DG.currDocumentController().get('hasUnsavedChanges')) {
+            DG.currDocumentController().saveDocument(docName, documentPermissions);
+            var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
+            DG.logInfo(msg, docName);
+          } else {
+            this.triggerSaveNotification();
+          }
         }
       }
     },
@@ -1098,7 +1113,7 @@ DG.appController = SC.Object.create((function () // closure
             action: function() {
               DG.dirtyCurrentDocument();
               this.invokeNext(function() {
-                DG.appController.autoSaveDocument();
+                DG.appController.autoSaveDocument(true);
               });
             }
           }),
