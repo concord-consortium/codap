@@ -435,7 +435,7 @@ return {
     }
 
     this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .notify(iReceiver, 'receivedOpenDocumentResponse', true, false)
       .send();
   },
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
@@ -450,7 +450,7 @@ return {
     }
 
     this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .notify(iReceiver, 'receivedOpenDocumentResponse', true, false)
       .send();
   },
 
@@ -517,7 +517,7 @@ return {
     }
 
     this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
+      .notify(iReceiver, 'receivedOpenDocumentResponse', true, true)
       .send();
   },
 

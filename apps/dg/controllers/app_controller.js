@@ -311,7 +311,7 @@ DG.appController = SC.Object.create((function () // closure
     /**
      openDocument callback function after the document content has been loaded.
      */
-    receivedOpenDocumentResponse: function (iResponse, expectDocumentId) {
+    receivedOpenDocumentResponse: function (iResponse, expectDocumentId, triggerSave) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
         openDeferred,
@@ -339,6 +339,12 @@ DG.appController = SC.Object.create((function () // closure
             openDeferred.done(function() {
               DG.currDocumentController().set('externalDocumentId', ''+docId);
             });
+          }
+          if (triggerSave) {
+            openDeferred.done(function() {
+              DG.dirtyCurrentDocument();
+              this.autoSaveDocument();
+            }.bind(this));
           }
         }
         // If we failed to open/parse the document successfully,
