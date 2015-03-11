@@ -1089,7 +1089,12 @@ DG.DocumentController = SC.Object.extend(
           if( DG.assert( !SC.none(docArchive))) {
             if (needsSave) {
               var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-              save.done(function() { saveInProgress.resolve(); });
+              save.done(function(success) {
+                if (!success) {
+                  DG.dirtyCurrentDocument();
+                }
+                saveInProgress.resolve();
+              });
             } else {
               this.invokeLater(function() { saveInProgress.resolve(); });
             }
@@ -1102,12 +1107,18 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
-    var body = JSON.parse(iResponse.get('body')),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false,
+    var body;
+    try {
+      body = JSON.parse(iResponse.get('body'));
+    } catch(e) {
+      // expected a json response, but got something else!
+      body = {valid: false, message: 'error.general'};
+    }
+    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false,
         messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt();
+        DG.authorizationController.sessionTimeoutPrompt(deferred);
       } else {
         var errorMessage = messageBase + body.message;
         if (errorMessage.loc() === errorMessage)
@@ -1116,7 +1127,7 @@ DG.DocumentController = SC.Object.extend(
           localize: true,
           message: errorMessage,
           buttons: [
-            {title: "OK", action: function() { DG.dirtyCurrentDocument(); deferred.resolve(false); } }
+            {title: "OK", action: function() { deferred.resolve(false); } }
           ]
         });
       }
@@ -1142,11 +1153,17 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
-    var body = JSON.parse(iResponse.get('body')),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
+    var body;
+    try {
+      body = JSON.parse(iResponse.get('body'));
+    } catch (e) {
+      // expected a json response, but got something else!
+      body = {valid: false, message: 'error.general'};
+    }
+    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
     if( isError) {
       if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt();
+        DG.authorizationController.sessionTimeoutPrompt(deferred);
       } else {
         var errorMessage = 'DG.AppController.saveDocument.' + body.message;
         if (errorMessage.loc() === errorMessage)
@@ -1312,12 +1329,16 @@ DG.DocumentController = SC.Object.extend(
         });
         // when all promises in the array of promises complete, then call the callback
         Promise.all(promises).then(function (value) {
-          DG.logInfo('saveCurrentGameState complete.');
-          done();},
+            DG.logInfo('saveCurrentGameState complete.');
+            done();
+          },
           function (reason) {
             DG.logWarn('saveCurrentGameState failed: ' + reason);
             done();
-        });
+          }
+        ).catch(function(reason) {
+            DG.logWarn(reason);
+          });
       }
 
       // For consistency with gamePhone case, make sure that done callback is invoked in a later

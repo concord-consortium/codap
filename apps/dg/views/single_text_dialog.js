@@ -1,9 +1,9 @@
 // ==========================================================================
 //                          DG.SingleTextDialog
-// 
+//
 //  Implements a dialog with a single text field and Ok and Cancel buttons
 //  Has options to hide the cancel button, and make the text field multi-line.
-//  
+//
 //  Authors:  William Finzer
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -31,6 +31,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
 /** @scope DG.SingleTextDialog.prototype */ {
 
   isModal: true,
+  // Use to opt in to allowing HTML in the prompt
+  escapePromptHTML: true,
 
   layout: { width: 400, height: 120, centerX: 0, centerY: 0 },
 
@@ -38,9 +40,11 @@ DG.SingleTextDialog = SC.PalettePane.extend(
 
     childViews: 'promptView editView okButton cancelButton'.w(),
     promptView: SC.LabelView.extend({
+      displayProperties: ['escapeHTML'],
       layout: { top: 10, left: 5, right: 5, height:24 },
       localize: true,
-      value: ''
+      value: '',
+      escapeHTMLBinding: '.parentView.parentView.escapePromptHTML'
     }),
     editView: SC.TextFieldView.design({
       layout: { top: 40, left: 5, right: 5, height:24 },
@@ -70,22 +74,22 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       isCancel: true
     })
   }),
-  
+
   value: function() {
     return this.getPath('contentView.editView.value');
   }.property(),
-  
+
   init: function() {
     sc_super();
-    
+
     // By default, cancel simply closes the dialog
     this.setPath('contentView.cancelButton.target', this);
     this.setPath('contentView.cancelButton.action', 'close');
   },
-  
+
   /**
     Close the open/save dialog.
-    
+
     Call this function from your okButton/cancelButton action handlers.
     (The default cancelButton handler simply calls this method directly.)
    */
@@ -98,7 +102,7 @@ DG.SingleTextDialog = SC.PalettePane.extend(
 
 /**
   Brings up the open/save dialog with the properties specified by the client.
-  
+
   @param {Object} iProperties   Configuration properties for open/save dialog.
                                 Clients should set the 'documentNameValue' to the default name
                                 to display in the dialog, and the 'okTarget' and 'okAction'
@@ -106,7 +110,7 @@ DG.SingleTextDialog = SC.PalettePane.extend(
                                 Additional options include the titles of the buttons, tooltips
                                 displayed for the dialog items, etc.
                                 See the kParamMap below for details.
-  
+
   @returns  {DG.SingleTextDialog} the created dialog
  */
 DG.CreateSingleTextDialog = function( iProperties) {
@@ -122,14 +126,14 @@ DG.CreateSingleTextDialog = function( iProperties) {
         okTarget: 'okButton.target',
         okAction: 'okButton.action',
         okTooltip: 'okButton.toolTip',
-        
+
         cancelTitle: 'cancelButton.title',
         cancelVisible: 'cancelButton.isVisible',
         cancelTooltip: 'cancelButton.toolTip'
       },
       tContentView = tDialog.get('contentView'),
       tEditView = tContentView.editView;
-  
+
   // Loop through client-specified properties, applying them to the
   // appropriate property via its path given in the kParamMap.
   DG.ObjectMap.forEach( iProperties,

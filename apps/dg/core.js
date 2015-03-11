@@ -141,10 +141,12 @@ DG = SC.Application.create((function () // closure
     var regexS = "[\\?&]" + iParam + "=([^&]*)";
     var regex = new RegExp(regexS);
     var results = regex.exec(window.location.href);
+    var encoded;
     if (SC.none(results)) {
       return iDefault;
     } else {
-      return decodeURIComponent(results[1]);
+      encoded = results[1].replace(/[+]/g, '%20');
+      return decodeURIComponent(encoded);
     }
   };
 
@@ -189,7 +191,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0283',
+    BUILD_NUM: '0288',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions

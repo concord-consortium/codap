@@ -337,7 +337,10 @@ DG.Debug = SC.Object.create( (function() {
     _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
 
       // Map DG-specific types to standard SC.Logger types
-      var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
+      //var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
+      var scType = iType;
+      if (iType === DG.LOGGER_LEVEL_USER) { scType = SC.LOGGER_LEVEL_INFO; }
+      else if (iType === DG.LOGGER_LEVEL_INFO) { scType = SC.LOGGER_LEVEL_DEBUG; }
 
       // Let SC.Logger log the message normally
       this._prevHandleLogMessage.call( SC.Logger, scType, iAutoFormat, iMessage, iOriginalArgs);
@@ -352,7 +355,7 @@ DG.Debug = SC.Object.create( (function() {
                 : undefined,
             metaArgs = typeof lastArg === 'object' ? lastArg : {},
             messageParts = DG.Debug._currentMessage? DG.Debug._currentMessage.split(":"): [],
-            activityName = DG.currDocumentController().documentName,
+            activityName = DG.getPath('currDocumentController.documentName'),
             messageType = messageParts.shift(),
             messageArgs = messageParts.join(':').trim();
 
@@ -433,7 +436,15 @@ SC.Logger._shouldOutputType = function(type) {
  */
 DG.Debug._prevOutputMessage = SC.Logger._outputMessage;
 SC.Logger._outputMessage = function(type, timestampStr, indentation, message, originalArguments) {
-  DG.Debug._currentMessage = message;
+  // be careful to place a string in _currentMessage. Otherwise we can fail badly
+  // trying to report a minor error.
+  if (typeof message === 'string') {
+    DG.Debug._currentMessage = message;
+  } else if (message.toString) {
+    DG.Debug._currentMessage = message.toString();
+  } else {
+    DG.Debug._currentMessage = '';
+  }
   if( DG.Debug._prevShouldOutputType.call( SC.Logger, type))
     DG.Debug._prevOutputMessage.call( SC.Logger, type, timestampStr, indentation, message, originalArguments);
 };

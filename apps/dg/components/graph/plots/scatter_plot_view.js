@@ -195,12 +195,13 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
   
   createCircle: function( iDatum, iIndex, iAnimate) {
-    var this_ = this;
+    var this_ = this,
+        tXVarID = this_.getPath('model.xVarID'),
+        tYPath = 'model.' + (this.getPath('model.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
+        tYVarID = this.getPath(tYPath);
 
     function changeCaseValues( iDeltaValues) {
-      var tXVarID = this_.getPath('model.xVarID'),
-          tYVarID = this_.getPath('model.yVarID'),
-          tChange = {
+      var tChange = {
             operation: 'updateCases',
             cases: [],
             attributeIDs: [ tXVarID, tYVarID],
@@ -220,8 +221,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
     
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoords) {
       var tCase = this_.getPath('model.cases')[ iCaseIndex],
-          tXVarID = this_.getPath('model.xVarID'),
-          tYVarID = this_.getPath('model.yVarID'),
           tDeltaX = tCase.getNumValue( tXVarID) - iStartWorldCoords.x,
           tDeltaY = tCase.getNumValue( tYVarID) - iStartWorldCoords.y;
       if((tDeltaX !== 0) || (tDeltaY !== 0))
@@ -270,8 +269,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   var tNewX = this_.get('xAxisView').coordinateToData( this.ox + dx),
                       tNewY = this_.get('yAxisView').coordinateToData( this.oy + dy),
                       tCase = this_.getPath('model.cases')[ this.index],
-                      tOldX = tCase.getNumValue( this_.getPath('model.xVarID')),
-                      tOldY = tCase.getNumValue( this_.getPath('model.yVarID')),
+                      tOldX = tCase.getNumValue( tXVarID),
+                      tOldY = tCase.getNumValue( tYVarID),
                       tCurrTransform = this.transform();
                   // Note that we ignore invalid values. Matt managed to convert some dragged values
                   // to NaNs during testing, which then couldn't animate back to their original
@@ -293,8 +292,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
               // Save the initial world coordinates
-              this.wx = tCase.getNumValue( this_.getPath('model.xVarID'));
-              this.wy = tCase.getNumValue( this_.getPath('model.yVarID'));
+              this.wx = tCase.getNumValue( tXVarID);
+              this.wy = tCase.getNumValue( tYVarID);
               this.animate({opacity: kOpaque }, DG.PlotUtilities.kDataTipShowTime, "bounce");
             },
             function() {  // end

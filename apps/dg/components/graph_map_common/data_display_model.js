@@ -276,7 +276,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           tName = (tAttribute === DG.Analysis.kNullAttribute) ? '' : tAttribute.get( 'name'),
           tResourceName = isForSubmenu ? 'attribute_' : 'removeAttribute_',
           tTitle = ('DG.DataDisplayMenu.' + tResourceName + iXYorLegend).loc( tName ),
-          tAction = ((iXYorLegend==='x'||iXYorLegend==='y') ? this.removeAttribute : this.removeLegendAttribute );
+          tAction;
+      switch( iXYorLegend) {
+        case 'x':
+        case 'y':
+        case 'y2':
+          tAction = this.removeAttribute;
+          break;
+        case 'legend':
+          tAction = this.removeLegendAttribute;
+          break;
+      }
       return {
         title: tTitle,
         target: this,
@@ -365,6 +375,12 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       DG.logUser("plotAxisAttributeChangeType: { axis: %@, attribute: %@ }",
           iAxisKey, tDataConfiguration.getPath( iDescKey + '.attribute.name'));
+
+      // We're handling a case specific to graphs here for convenience
+      if( !iTreatAsNumeric && this.getY2Plot && this.getY2Plot()) {
+        this.removeAttribute('y2AttributeDescription', 'y2Axis', 0);
+      }
+
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
       tDataConfiguration.setAttributeType( iDescKey, iTreatAsNumeric );

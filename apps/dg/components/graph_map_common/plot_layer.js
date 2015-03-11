@@ -204,6 +204,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   */
   init: function() {
     sc_super();
+    if( this.get('model')) {
+      // Required for initialization.
+      this.modelDidChange();
+    }
     this._plottedElements = [];
   },
 

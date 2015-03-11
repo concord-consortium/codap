@@ -152,7 +152,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               function() {
                 this_.addAxisHandler( tView);
               });
-      }.observes('xAxisView', 'yAxisView', 'legendView'),
+      }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
 
       setupAttributeMenu: function( event, iAxisView, iAttrIndex) {
         var tDataDisplayModel = this.get('dataDisplayModel'),
@@ -164,8 +164,24 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tPreferMatrix = (tOrientation === 'horizontal') ?
                     [ 0, 2, 1, 3, 0 ] :
                     [ 0, 1, 3, 2, 0],
-            tAxisKey = ((iAxisView.instanceOf( DG.LegendView)) ? 'legend':((tOrientation === 'horizontal') ? 'x':'y')),
+            tAxisKey = '',
             tMenuItems;
+
+        if( iAxisView.instanceOf( DG.LegendView))
+          tAxisKey = 'legend';
+        else {
+          switch( tOrientation) {
+            case 'horizontal':
+              tAxisKey = 'x';
+              break;
+            case 'vertical':
+              tAxisKey = 'y';
+              break;
+            case 'vertical2':
+              tAxisKey = 'y2';
+              break;
+          }
+        }
 
         tMenuItems = this.getAttributeMenuItems();
         // WARNING: before we added this separator, the "Remove Attribute" menu item had a bug where it would not respond correctly
@@ -175,7 +191,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
         tMenuItems.push( { isSeparator: YES } );
         var kNotForSubmenu = false;
         tMenuItems.push( tDataDisplayModel.createRemoveAttributeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
-        tMenuItems.push( tDataDisplayModel.createChangeAttributeTypeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
+        if( tAxisKey !== 'y2')
+          tMenuItems.push( tDataDisplayModel.createChangeAttributeTypeMenuItem( tAxisKey, kNotForSubmenu, iAttrIndex ));
         this.attributeMenu.set( 'items', tMenuItems);
         this.attributeMenu.selectedAxis = tOrientation;
         this.attributeMenu.isLegend = iAxisView.instanceOf( DG.LegendView);

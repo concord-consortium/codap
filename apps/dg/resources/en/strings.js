@@ -154,7 +154,7 @@ SC.stringsFor('English', {
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
   'DG.AppController.showWebSiteTitle' : 'About CODAP',
-  'DG.AppController.showHelpURL' : 'play.codap.concord.org/support', // path on Drupal website
+  'DG.AppController.showHelpURL' : 'codap.concord.org/help', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
   'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
   'DG.AppController.showAboutTitle' : 'About CODAP',
@@ -272,6 +272,7 @@ SC.stringsFor('English', {
   'DG.TableController.gearMenuItems.newAttribute' : "New Attribute in %@...",
   'DG.TableController.gearMenuItems.setScoreFormula' : "Set Score Formula...",
   'DG.TableController.gearMenuItems.deleteCases' : "Delete Selected Cases",
+  'DG.TableController.gearMenuItems.selectAll' : "Select All Cases",
   'DG.TableController.newAttrDlg.defaultAttrName' : "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint' : "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint' : "If desired, type a formula for computing values of this attribute",
@@ -362,10 +363,12 @@ SC.stringsFor('English', {
    // DG.GraphModel
    'DG.DataDisplayMenu.attribute_x': "X: %@", // %@ = attribute name
    'DG.DataDisplayMenu.attribute_y': "Y: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.attribute_y2': "Y: %@", // %@ = attribute name
    'DG.DataDisplayMenu.attribute_legend': "Legend: %@", // %@ = attribute name
    'DG.DataDisplayMenu.remove': "Remove Attribute",
    'DG.DataDisplayMenu.removeAttribute_x': "Remove X: %@", // %@ = attribute name
    'DG.DataDisplayMenu.removeAttribute_y': "Remove Y: %@", // %@ = attribute name
+   'DG.DataDisplayMenu.removeAttribute_y2': "Remove Y: %@", // %@ = attribute name
    'DG.DataDisplayMenu.removeAttribute_legend': "Remove Legend: %@", // %@ = attribute name
    'DG.DataDisplayMenu.treatAsCategorical': "Treat as Categorical",
    'DG.DataDisplayMenu.treatAsNumeric': "Treat as Numeric",
@@ -383,6 +386,9 @@ SC.stringsFor('English', {
    'DG.GraphView.dropInPlot': "Color points by values of %@",  // %@ is attribute name
    'DG.GraphView.zoomTip': "Double-click to zoom in.\nShift-double-click to zoom out",  // %@ is attribute name
    'DG.GraphView.rescale': "Rescale to data",  // Rescale to data
+
+   // DG.AxisView
+   'DG.AxisView.labelTooltip': "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
 
     // DG.DataTip
     'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@",

@@ -29,7 +29,7 @@ DG.Core = {
     @returns  {Object}  The class object corresponding to the specified name
    */
   classFromClassName: function( iClassName) {
-    var parts = iClassName.split('.'),
+    var parts = iClassName ? iClassName.split('.') : [],
         i, partCount = parts.length,
         obj = window;
     for( i = 0; i < partCount; ++i) {

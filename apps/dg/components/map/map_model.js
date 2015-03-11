@@ -184,6 +184,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
         var tGrid = this.get('gridModel');
         tGrid.set('visible', !tGrid.get( 'visible'));
         DG.dirtyCurrentDocument();
+        DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
       }.bind(this);
 
       var hideShowPoints = function() {
@@ -192,6 +193,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           tPointsVisible = true;
         this.set('pointsShouldBeVisible', !tPointsVisible);
         DG.dirtyCurrentDocument();
+        DG.logUser('mapAction: {mapAction: %@}', (this.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
       }.bind(this);
 
       if( this.get('hasLatLongAttributes')) {
