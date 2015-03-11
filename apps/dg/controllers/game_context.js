@@ -236,7 +236,7 @@ DG.GameContext = DG.DataContext.extend(
     // At the point at which we're restoring the context(s), the game may not
     // have been loaded yet. We need to cache the game state locally until we
     // receive some indication that the game is ready for the restored state.
-    if( iContextStorage.gameState) {
+    if( iContextStorage && iContextStorage.gameState) {
       // Copy _links_ from iContextStorage into gameState
       if( iContextStorage._links_) {
         DG.ObjectMap.forEach( iContextStorage._links_,
