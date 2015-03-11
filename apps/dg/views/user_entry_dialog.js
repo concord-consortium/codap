@@ -23,7 +23,7 @@
   @extends SC.PanelPane
 */
 DG.UserEntryDialog = SC.PanelPane.extend({
-  layout: { width: 600, height: 310, centerX: 0, centerY: 0},
+  layout: { width: 900, height: 310, centerX: 0, centerY: 0},
   contentView: SC.View.design({
     layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
     childViews: 'welcomeHeader welcomeInstructions choiceViews choiceButtons'.w(),
@@ -57,6 +57,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       items: function() {
         var items = [
           { title: 'DG.UserEntryDialog.openNew.option'.loc(), value: 'new' },
+          { title: 'DG.UserEntryDialog.openExample.option'.loc(), value: 'example' },
           { title: 'DG.UserEntryDialog.openFile.option'.loc(), value: 'file' }
         ];
         if (DG.authorizationController.get('isSaveEnabled')) {
@@ -73,6 +74,9 @@ DG.UserEntryDialog = SC.PanelPane.extend({
             break;
           case 'file':
             this.setPath('parentView.choiceViews.nowShowing', 'openFileView');
+            break;
+          case 'example':
+            this.setPath('parentView.choiceViews.nowShowing', 'openExampleView');
             break;
           case 'new':
             this.setPath('parentView.choiceViews.nowShowing', 'openNewView');
@@ -168,6 +172,72 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         close: function() {
           // NOOP. Implemented to mimic the expected dialog API used in DG.appController.importFileWithConfirmation
         }
+      }),
+
+      openExampleView: SC.View.design({
+        layout: { left: 0, right: 0, top: 0, bottom: 0 },
+        childViews: 'promptView exampleListView okButton'.w(),
+
+        promptView: SC.LabelView.design({
+          layout: { top: 10, left: 5, right: 5, height:24 },
+          localize: true,
+          value: 'DG.UserEntryDialog.openExample.prompt'   // "Choose an example to open:"
+        }),
+
+        exampleListView: SC.ScrollView.extend({
+          layout: { top: 40, left: 5, right: 5, height: 115 },
+          contentView: SC.ListView.extend({
+            layout: {top: 0, left: 0, right: 0, bottom: 0 },
+            rowHeight: 48,
+            rowSpacing: 4,
+            init: function() {
+              sc_super();
+              this.set('content', DG.ExampleListController.create({ allowsMultipleSelection: NO }));
+            },
+            exampleView: SC.View.extend(SC.ContentDisplay, {
+              classNameBindings: ['status'],
+              contentDisplayProperties: 'name description'.w(),
+              childViews: 'nameView descriptionView'.w(),
+              status: function() {
+                var isSelected = this.get('isSelected'),
+                    isEnabled = this.get('isEnabled');
+
+                if (isEnabled && isSelected) {
+                  return 'sel';
+                } else if (!isEnabled) {
+                  return 'disabled';
+                } else {
+                  return '';
+                }
+              }.property('isSelected', 'isEnabled'),
+
+              nameView: SC.LabelView.extend({
+                layout: { left: 3, width: 145, top: 0, bottom: 0 },
+                controlSize: SC.LARGE_CONTROL_SIZE,
+                valueBinding: SC.Binding.oneWay('*parentView.content.name')
+              }),
+
+              descriptionView: SC.LabelView.extend({
+                layout: { left: 152, right: 3, top: 0, bottom: 0 },
+                controlSize: SC.SMALL_CONTROL_SIZE,
+                valueBinding: SC.Binding.oneWay('*parentView.content.description')
+              })
+            })
+          })
+        }),
+
+        okButton: SC.ButtonView.design({
+          layout: { bottom:5, right: 5, height:24, width: 90 },
+          titleMinWidth: 0,
+          localize: true,
+          title: 'DG.UserEntryDialog.openExample.okTitle',  // "Open"
+          target: 'DG.userEntryController',
+          action: 'openExample',
+          toolTip: 'DG.UserEntryDialog.openExample.okTooltip',  // "Open the specified example",
+          isDefault: true
+        }),
+
+        selectedBinding: SC.Binding.oneWay('*exampleListView.contentView.selection.firstObject')
       }),
 
       cloudBrowseView: SC.View.design({

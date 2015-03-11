@@ -44,6 +44,10 @@ SC.stringsFor('English', {
   'DG.UserEntryDialog.openFile.button'         : 'Open',
   'DG.UserEntryDialog.openFile.buttonTooltip'  : 'Open the specified document',
   'DG.UserEntryDialog.documentServer.option'   : 'Browse the CODAP Cloud...',
+  'DG.UserEntryDialog.openExample.option'      : 'Example Documents',
+  'DG.UserEntryDialog.openExample.prompt'      : 'Choose an example to open:',
+  'DG.UserEntryDialog.openExample.okTitle'     : 'Open',
+  'DG.UserEntryDialog.openExample.okTooltip'   : 'Open the specified example',
 
   // DG.Authorization
   'DG.Authorization.guestUserName'            : "guest",
@@ -206,6 +210,7 @@ SC.stringsFor('English', {
   'DG.OpenSaveDialog.documentPermissions.toolTip' : "Allow other users to access this document?",
   'DG.OpenSaveDialog.loading' : "Loading document list...",
   'DG.OpenSaveDialog.noDocuments' : "No documents found",
+  'DG.OpenSaveDialog.noExamples' : "No examples found",
   'DG.OpenSaveDialog.error.noResponse' : "Error retrieving document list",
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients

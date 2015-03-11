@@ -73,6 +73,20 @@ DG.userEntryController = SC.Object.create( (function() {
       DG.appController.openDocumentFromDialog();
     },
 
+    openExample: function() {
+      var selected = this._dialog.getPath('contentView.choiceViews.contentView.selected');
+
+      DG.authorizationController.urlForGetRequests( selected.location )
+      .notify(this, 'receivedOpenExampleResponse')
+      .send();
+
+      DG.logUser("openExample: '%@'", selected.location);
+    },
+
+    receivedOpenExampleResponse: function(iResponse) {
+      DG.appController.receivedOpenDocumentResponse(iResponse, false);
+    },
+
     openFile: function() {
       var dialog = this._dialog.getPath('contentView.choiceViews.contentView'),
           v = dialog.get('value');

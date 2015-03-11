@@ -311,7 +311,7 @@ DG.appController = SC.Object.create((function () // closure
     /**
      openDocument callback function after the document content has been loaded.
      */
-    receivedOpenDocumentResponse: function (iResponse) {
+    receivedOpenDocumentResponse: function (iResponse, expectDocumentId) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
         openDeferred,
@@ -322,6 +322,10 @@ DG.appController = SC.Object.create((function () // closure
         bodyMayBeJSON = (body && (body[0]!== '<')); // some servers may return
                                                     // an error page without
                                                     // setting error status
+
+      if (expectDocumentId === false) {
+        shouldShowAlert = false;
+      }
 
       DG.log('Document content-type: ' + contentType);
 

@@ -417,6 +417,13 @@ return {
       .send();
   },
 
+  exampleList: function(iReceiver) {
+    var url = 'https://codap-resources.concord.org/examples/index.json';
+    this.urlForGetRequests( url )
+      .notify(iReceiver, 'receivedExampleListResponse')
+      .send();
+  },
+
   openDocument: function(iDocumentId, iReceiver) {
     var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
