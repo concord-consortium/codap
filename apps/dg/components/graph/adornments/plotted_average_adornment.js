@@ -106,6 +106,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       this.valueAxisView = this.getPath('parentView.primaryAxisView');
       this.updateTextToModel( iFractionFromTop );
       this.textElement.show();
+      this.backgrndRect.show();
       this.textShowingForID = iElementID;
     } else {
       // hide until next time
@@ -113,6 +114,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       this.valueString = '';
       this.valueAxisView = null;
       this.textElement.hide();
+      this.backgrndRect.hide();
       this.textShowingForID = undefined;
     }
   },
@@ -228,7 +230,10 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
       tSymbol.toFront(); // keep averages on top of cases
       tCover.toFront();  // keep cover on top of average symbol
-      if( this.textElement ) { this.textElement.toFront(); } // keep text in front of case circles
+      if( this.textElement ) {
+        this.backgrndRect.toFront();
+        this.textElement.toFront();
+      } // keep text in front of case circles
 
       // if mouse is now over an element with text showing, update the text now.
       if( this.textShowingForID === tCover.id ) {
