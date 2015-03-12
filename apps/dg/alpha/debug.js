@@ -337,7 +337,10 @@ DG.Debug = SC.Object.create( (function() {
     _handleLogMessage: function( iType, iAutoFormat, iMessage, iOriginalArgs) {
 
       // Map DG-specific types to standard SC.Logger types
-      var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
+      //var scType = (iType === DG.LOGGER_LEVEL_USER ? SC.LOGGER_LEVEL_INFO : iType);
+      var scType = iType;
+      if (iType === DG.LOGGER_LEVEL_USER) { scType = SC.LOGGER_LEVEL_INFO; }
+      else if (iType === DG.LOGGER_LEVEL_INFO) { scType = SC.LOGGER_LEVEL_DEBUG; }
 
       // Let SC.Logger log the message normally
       this._prevHandleLogMessage.call( SC.Logger, scType, iAutoFormat, iMessage, iOriginalArgs);

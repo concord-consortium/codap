@@ -627,7 +627,7 @@ DG.appController = SC.Object.create((function () // closure
           && docName !== SC.String.loc('DG.Document.defaultDocumentName')
           && DG.currDocumentController().get('hasUnsavedChanges')) {
           DG.currDocumentController().saveDocument(docName, documentPermissions);
-          DG.logUser("autoSaveDocument: '%@'", docName);
+          DG.logInfo("autoSaveDocument: '%@'", docName);
         }
       }
     },

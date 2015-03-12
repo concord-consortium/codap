@@ -125,7 +125,8 @@ DG.DataContextRecord.createContext = function( iProperties) {
 
     if (body) {
       if (!SC.none(body.externalDocumentId)) {
-        delete iProperties.externalDocumentId;
+        iProperties.externalDocumentId = body.externalDocumentId;
+        delete body.externalDocumentId;
       }
       shadowCopy = $.extend(true, shadowCopy, body);
       iProperties = $.extend(body, iProperties);
