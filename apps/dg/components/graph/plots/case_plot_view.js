@@ -98,7 +98,7 @@ DG.CasePlotView = DG.PlotView.extend(
           tPaper = this.get('paper'),
           tCircle = tPaper.circle( tPaper.width / 2, tPaper.height / 2, this._pointRadius )
             .attr( { cursor: "pointer" } )
-            .addClass( DG.PlotUtilities.kColoredDotClassName )
+            .addClass( DG.PlotUtilities.kDotClassName )
             .hover( function ( event ) {  // over
               // Note that Firefox can come through here repeatedly so we have to check for existence
               if( !tIsDragging && SC.none( tInitialTransform)) {
