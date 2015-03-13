@@ -1366,8 +1366,8 @@ DG.appController = SC.Object.create((function () // closure
      Update the url in the browser bar to reflect the latest document information
      */
     updateUrlBar: function() {
-      if (DG.authorizationController.getPath('currLogin.status') === 0) {
-        // we haven't logged in yet, so leave the url alone
+      if (DG.authorizationController.getPath('currLogin.status') === 0 || !DG.authorizationController.get('isSaveEnabled')) {
+        // we haven't logged in yet or we can't save, so leave the url alone
         return;
       }
       var currentParams = $.deparam.querystring(),
@@ -1382,11 +1382,9 @@ DG.appController = SC.Object.create((function () // closure
         currentParams.recordid = recordid;
       } else {
         delete currentParams.recordid;
-        if (docName === SC.String.loc('DG.Document.defaultDocumentName')) {
-          //  We're still on a brand-new document, so we don't need to put any info into the url yet.
-          delete currentParams.doc;
-          delete currentParams.owner;
-        } else {
+        delete currentParams.doc;
+        delete currentParams.owner;
+        if (docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
           if (currUser !== 'guest') {
             currentParams.owner = currUser;
           }
