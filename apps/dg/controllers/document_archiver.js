@@ -46,6 +46,7 @@ DG.DocumentArchiver = SC.Object.extend(
       DG.store = dataSource;
       deferred.resolve(DG.Document.createDocument(docArchive));
       DG.ExternalDocumentCache.clear();
+      DG.busyCursor.hide();
     }.bind(this));
     return deferred;
   },

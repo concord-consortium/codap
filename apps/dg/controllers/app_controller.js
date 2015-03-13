@@ -340,7 +340,6 @@ DG.appController = SC.Object.create((function () // closure
         // If we failed to open/parse the document successfully,
         // then we may need to create a new untitled document.
       }
-      DG.busyCursor.hide();
       if (shouldShowAlert) {
         // Should handle errors here -- alert the user, etc.
         DG.AlertPane.error({
