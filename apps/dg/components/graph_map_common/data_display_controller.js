@@ -61,13 +61,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
       createComponentStorage: function() {
         var storage = { _links_: {} },
             dataContext = this.get('dataContext'),
-            dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration');
+            dataConfiguration = this.getPath('dataDisplayModel.dataConfiguration'),
+            hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' );
 
         if( dataContext)
           storage._links_.context = dataContext.toLink();
 
         this.storeDimension( dataConfiguration, storage, 'legend');
 
+        if( hiddenCases) {
+          storage._links_.hiddenCases = hiddenCases.map( function( iCase) {
+            return iCase.toLink();
+          });
+        }
         return storage;
       },
 

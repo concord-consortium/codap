@@ -221,6 +221,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
+      // CODAP builds prior to 0289 stored hidden cases not as links, but as simple case IDs.
+      // More recent builds store links, which we now convert on restore.
+      var tHiddenCasesLinks = iStorage._links_ && iStorage._links_.hiddenCases;
+      if( SC.isArray( tHiddenCasesLinks)) {
+        var tLinkCount = DG.ArchiveUtils.getLinkCount( iStorage, 'hiddenCases'),
+            tIndex;
+        iStorage.hiddenCases = [];
+        for( tIndex = 0; tIndex < tLinkCount; tIndex++) {
+          iStorage.hiddenCases.push( DG.ArchiveUtils.getLinkID( iStorage, 'hiddenCases', tIndex));
+        }
+      }
       this.get('dataConfiguration').restoreHiddenCases( iStorage.hiddenCases);
     },
 
