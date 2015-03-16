@@ -79,19 +79,49 @@ DG.DefaultStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  save: function(iDocumentIdOrName, iContent) {
-    return new Promise().reject(new Error('Cannot save with DefaultStorage.'));
+  save: function(options) {
+    return new Promise(function(resolve, reject) {
+      var url,
+          documentContent = JSON.stringify(options.content);
+      if (!SC.none(options.id)) {
+        url = '/DataGames/api/document/save?username=%@&sessiontoken=%@&recordid=%@'.fmt(
+          DG.authorizationController.getPath('currLogin.user'),
+          encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID')),
+          options.id
+        );
+      } else if (!SC.none(options.name)) {
+        url = '/DataGames/api/document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
+          DG.authorizationController.getPath('currLogin.user'),
+          encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID')),
+          encodeURIComponent(options.name)
+        );
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' in the options!"));
+        return;
+      }
+
+      this._urlForPostRequests(url)
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .timeoutAfter(60000)
+        .send(documentContent);
+    }.bind(this));
   },
 
-  revert: function(iDocumentId, iOldName, iNewName) {
+  revert: function(options) {
     return new Promise().reject(new Error('Cannot revert with DefaultStorage.'));
   },
 
-  rename: function(iDocumentId, iOldName, iNewName) {
+  rename: function(options) {
     return new Promise().reject(new Error('Cannot rename with DefaultStorage.'));
   },
 
-  delete: function(iDocumentId) {
+  delete: function(options) {
     return new Promise().reject(new Error('Cannot delete with DefaultStorage.'));
   }
 });

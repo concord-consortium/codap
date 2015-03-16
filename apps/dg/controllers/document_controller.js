@@ -1027,7 +1027,7 @@ DG.DocumentController = SC.Object.extend(
     @param {String} iDocumentId   The unique Id of the document as known to the server.
   */
   saveDocument: function( iDocumentId, iDocumentPermissions) {
-    var deferreds = [],
+    var promises = [],
       existingSaveInProgress = this.get('saveInProgress'),
       saveInProgress,
       exportDeferred;
@@ -1049,22 +1049,23 @@ DG.DocumentController = SC.Object.extend(
       // FIXME If we toggle splitting on and off, we'll need to change this test
       if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
         this.clearChangedObject(context);
-        var d,
+        var p,
             cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)), // Strips all keys with undefined values
             should_skip = this._skipPatchNextTime.indexOf(context) !== -1;
         // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
         if (DG.USE_DIFFERENTIAL_SAVING && !should_skip && !SC.none(context.get('externalDocumentId'))) {
           var differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
-          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
+          if (differences.length === 0) { return; }
+          p = DG.authorizationController.saveExternalDataContext(context, iDocumentId, differences, this, false, true);
         } else {
-          d = DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this);
+          p = DG.authorizationController.saveExternalDataContext(context, iDocumentId, docArchive, this);
           if (SC.none(context.get('externalDocumentId'))) {
             // This will change the main document by replacing the data context with an id, so we need to make sure the parent saves, too.
             DG.dirtyCurrentDocument();
           }
         }
-        d.done(function(success) {
+        p.then(function(success) {
           if (success) {
             if (DG.USE_DIFFERENTIAL_SAVING || should_skip) {
               context.updateSavedShadowCopy(cleaned_docArchive);
@@ -1076,11 +1077,11 @@ DG.DocumentController = SC.Object.extend(
             DG.dirtyCurrentDocument(context);
           }
         }.bind(this));
-        deferreds.push(d);
+        promises.push(p);
       }
     }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
     exportDeferred.done(function() {
-      $.when.apply($, deferreds).done(function() {
+      Promise.all(promises).then(function() {
         // FIXME What should we do if a data context fails to save?
         this.exportDocument(function(docArchive) {
           var needsSave = this.objectHasUnsavedChanges(this.get('content'));
@@ -1092,8 +1093,7 @@ DG.DocumentController = SC.Object.extend(
 
           if( DG.assert( !SC.none(docArchive))) {
             if (needsSave) {
-              var save = DG.authorizationController.saveDocument(iDocumentId, docArchive, this);
-              save.done(function(success) {
+              DG.authorizationController.saveDocument(iDocumentId, docArchive, this).then(function(success) {
                 if (!success) {
                   DG.dirtyCurrentDocument();
                 }
@@ -1110,92 +1110,96 @@ DG.DocumentController = SC.Object.extend(
     }.bind(this));
   },
 
-  receivedSaveDocumentResponse: function(iResponse, deferred, isCopy) {
-    var body;
-    try {
-      body = JSON.parse(iResponse.get('body'));
-    } catch(e) {
-      // expected a json response, but got something else!
-      body = {valid: false, message: 'error.general'};
-    }
-    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false,
-        messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
-    if( isError) {
-      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt(deferred);
-      } else {
-        var errorMessage = messageBase + body.message;
-        if (errorMessage.loc() === errorMessage)
-          errorMessage = messageBase + 'error.general';
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage,
-          buttons: [
-            {title: "OK", action: function() { deferred.resolve(false); } }
-          ]
-        });
+  receivedSaveDocumentResponse: function(iResponse, isCopy) {
+    return new Promise(function(resolve, reject) {
+      var body;
+      try {
+        body = JSON.parse(iResponse.get('body'));
+      } catch(e) {
+        // expected a json response, but got something else!
+        body = {valid: false, message: 'error.general'};
       }
-    } else {
-      var newDocId = body.id;
-      if (isCopy) {
-        var url = DG.appController.copyLink(newDocId);
-        if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
-          url = $.param.querystring(url, {runAsGuest: 'true'});
-        }
-        var win = window.open(url, '_blank');
-        if (win) {
-          win.focus();
+      var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false,
+          messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
+      if( isError) {
+        if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
+          DG.authorizationController.sessionTimeoutPrompt(resolve);
         } else {
-          DG.appController.showCopyLink(url);
+          var errorMessage = messageBase + body.message;
+          if (errorMessage.loc() === errorMessage)
+            errorMessage = messageBase + 'error.general';
+          DG.AlertPane.error({
+            localize: true,
+            message: errorMessage,
+            buttons: [
+              {title: "OK", action: function() { resolve(false); } }
+            ]
+          });
         }
       } else {
-        this.set('externalDocumentId', ''+newDocId);
-        DG.appController.triggerSaveNotification();
+        var newDocId = body.id;
+        if (isCopy) {
+          var url = DG.appController.copyLink(newDocId);
+          if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+            url = $.param.querystring(url, {runAsGuest: 'true'});
+          }
+          var win = window.open(url, '_blank');
+          if (win) {
+            win.focus();
+          } else {
+            DG.appController.showCopyLink(url);
+          }
+        } else {
+          this.set('externalDocumentId', ''+newDocId);
+          DG.appController.triggerSaveNotification();
+        }
+        resolve(true);
       }
-      deferred.resolve(true);
-    }
+    }.bind(this));
   },
 
-  receivedSaveExternalDataContextResponse: function(iResponse, deferred, isCopy, contextModel) {
-    var body;
-    try {
-      body = JSON.parse(iResponse.get('body'));
-    } catch (e) {
-      // expected a json response, but got something else!
-      body = {valid: false, message: 'error.general'};
-    }
-    var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
-    if( isError) {
-      if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-        DG.authorizationController.sessionTimeoutPrompt(deferred);
-      } else {
-        var errorMessage = 'DG.AppController.saveDocument.' + body.message;
-        if (errorMessage.loc() === errorMessage)
-          errorMessage = 'DG.AppController.saveDocument.error.general';
-        if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
-          this._skipPatchNextTime.push(contextModel);
-        }
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage,
-          buttons: [
-            {title: "OK", action: function() { deferred.resolve(false); } }
-          ]
-        });
+  receivedSaveExternalDataContextResponse: function(iResponse, isCopy, contextModel) {
+    return new Promise(function(resolve, reject) {
+      var body;
+      try {
+        body = JSON.parse(iResponse.get('body'));
+      } catch (e) {
+        // expected a json response, but got something else!
+        body = {valid: false, message: 'error.general'};
       }
-    } else {
-      var newDocId = body.id;
-      SC.run(function() {
-        if (isCopy) {
-          contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+      var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
+      if( isError) {
+        if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
+          DG.authorizationController.sessionTimeoutPrompt(resolve);
+        } else {
+          var errorMessage = 'DG.AppController.saveDocument.' + body.message;
+          if (errorMessage.loc() === errorMessage)
+            errorMessage = 'DG.AppController.saveDocument.error.general';
+          if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+            this._skipPatchNextTime.push(contextModel);
+          }
+          DG.AlertPane.error({
+            localize: true,
+            message: errorMessage,
+            buttons: [
+              {title: "OK", action: function() { resolve(false); } }
+            ]
+          });
         }
-        contextModel.set('externalDocumentId', ''+newDocId);
+      } else {
+        var newDocId = body.id;
+        SC.run(function() {
+          if (isCopy) {
+            contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+          }
+          contextModel.set('externalDocumentId', ''+newDocId);
 
-        this.invokeLater(function() {
-          deferred.resolve(true);
-        });
-      }.bind(this));
-    }
+          this.invokeLater(function() {
+            resolve(true);
+          });
+        }.bind(this));
+      }
+    }.bind(this));
   },
 
   /**
@@ -1236,8 +1240,7 @@ DG.DocumentController = SC.Object.extend(
             docArchive._permissions = iDocumentPermissions;
 
           if (DG.assert(!SC.none(docArchive))) {
-            var deferred = DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true);
-            $.when(deferred).then(function() {
+            DG.authorizationController.saveDocument(iDocumentId, docArchive, this, true).then(function() {
               // Set the externalDocumentIds back
               DG.DataContext.forEachContextInMap( this.getPath('content.id'),
                                             function( iContextID, iContext) {

@@ -18,9 +18,6 @@
 
 sc_require('models/authorization_model');
 
-/* globals pako */
-sc_require('libraries/pako-deflate');
-
 sc_require('utilities/storage/default_storage');
 sc_require('utilities/storage/document_server_storage');
 
@@ -318,75 +315,44 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
-                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
-        deferred = $.Deferred();
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    if (DG.USE_COMPRESSION) {
-      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Encoding', 'deflate')
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
-        .timeoutAfter(60000)
-        .send(compressedDocumentArchive);
-    } else {
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
-        .timeoutAfter(60000)
-        .send(JSON.stringify(iDocumentArchive));
-    }
-
-    return deferred;
+    return this.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
+      function(response) {
+        return iReceiver.receivedSaveDocumentResponse.call(iReceiver, response, isCopying);
+      })
+    .catch(
+      function(response) {
+        return iReceiver.receivedSaveDocumentResponse.call(iReceiver, response, isCopying);
+      }
+    );
   },
 
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
-    var url,
+    var opts = {content: iDocumentArchive},
         externalDocumentId = contextModel.get('externalDocumentId'),
-        parentDocumentId = DG.currDocumentController().get('externalDocumentId'),
-        deferred = $.Deferred();
+        parentDocumentId = DG.currDocumentController().get('externalDocumentId');
 
     if (!isCopying && !SC.none(externalDocumentId)) {
+      opts.id = externalDocumentId;
       if (isDifferential) {
-        url = DG.documentServer + 'document/patch?recordid=%@'.fmt(externalDocumentId);
-      } else {
-        url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+        opts.differential = true;
       }
     } else {
-      url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+      opts.name = '%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
     }
 
     if (!SC.none(parentDocumentId)) {
-      url += '&parentDocumentId=%@'.fmt(parentDocumentId);
+      opts.params = {parentDocumentId: parentDocumentId};
     }
 
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-
-    if (DG.USE_COMPRESSION) {
-      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Encoding', 'deflate')
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
-        .timeoutAfter(60000)
-        .send(compressedDocumentArchive);
-    } else {
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
-        .timeoutAfter(60000)
-        .send(JSON.stringify(iDocumentArchive));
-    }
-
-    return deferred;
+    return this.get('storageInterface').save(opts).then(
+      function(response) {
+        return iReceiver.receivedSaveExternalDataContextResponse.call(iReceiver, response, isCopying, contextModel);
+      })
+    .catch(
+      function(response) {
+        return iReceiver.receivedSaveExternalDataContextResponse.call(iReceiver, response, isCopying, contextModel);
+      }
+    );
   },
 
   /**
@@ -571,7 +537,7 @@ return {
     }
   },
 
-  sessionTimeoutPrompt: function(deferred) {
+  sessionTimeoutPrompt: function(resolve) {
     DG.AlertPane.error({
       localize: true,
       message: 'DG.Authorization.sessionExpired.message',
@@ -588,7 +554,7 @@ return {
           localize: true,
           title: 'DG.Authorization.sessionExpired.ignoreButtonText',
           toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
-          action: function() { if(deferred) { deferred.resolve(false); } },
+          action: function() { if(resolve) { resolve(false); } },
           isCancel: true
         },
       ]

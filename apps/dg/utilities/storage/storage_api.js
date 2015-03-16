@@ -39,7 +39,7 @@ DG.StorageAPI = SC.Object.extend({
     return new Promise().reject(new Error('Cannot open with StorageAPI.'));
   },
 
-  save: function(iDocumentIdOrName, iContent) {
+  save: function(options) {
     return new Promise().reject(new Error('Cannot save with StorageAPI.'));
   },
 
@@ -47,11 +47,11 @@ DG.StorageAPI = SC.Object.extend({
     return new Promise().reject(new Error('Cannot revert with StorageAPI'));
   },
 
-  rename: function(iDocumentId, iOldName, iNewName) {
+  rename: function(options) {
     return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
   },
 
-  delete: function(iDocumentId) {
+  delete: function(options) {
     return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
   },
 

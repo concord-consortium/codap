@@ -18,6 +18,9 @@
 
 sc_require('utilities/storage/storage_api');
 
+/* globals pako */
+sc_require('libraries/pako-deflate');
+
 /** @class
 
   Interface class for interacting with the CODAP Document Server.
@@ -32,7 +35,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     return new Promise(function(resolve, reject) {
       var url = '%@document/all'.fmt(DG.documentServer);
       if (DG.runKey) {
-        url = this._appendParams({runKey: DG.runKey});
+        url = this._appendParams(url, {runKey: DG.runKey});
       }
       this._urlForGetRequests(url)
         .notify(null, function(response) {
@@ -77,8 +80,51 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  save: function(iDocumentIdOrName, iContent) {
-    return new Promise().reject(new Error('Cannot save with StorageAPI.'));
+  save: function(options) {
+    return new Promise(function(resolve, reject) {
+      var url,
+          params = options.params || {},
+          documentContent = JSON.stringify(options.content),
+          req;
+
+      if (options.differential) {
+        url = '%@document/patch'.fmt(DG.documentServer);
+      } else {
+        url = '%@document/save'.fmt(DG.documentServer);
+      }
+
+      if (!SC.none(options.id)) {
+        params.recordid = options.id;
+      } else if (!SC.none(options.name)) {
+        params.recordname = options.name;
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' in the options!"));
+        return;
+      }
+      if (DG.runKey) {
+        params.runKey = DG.runKey;
+      }
+
+      url = this._appendParams(url, params);
+
+      req = this._urlForPostRequests(url)
+              .header('Content-Type', 'application/x-codap-document');
+
+      if (DG.USE_COMPRESSION) {
+        documentContent = pako.deflate(documentContent);
+        req = req.header('Content-Encoding', 'deflate');
+      }
+
+      req.notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .timeoutAfter(60000)
+        .send(documentContent);
+    }.bind(this));
   },
 
   revert: function(options) {
