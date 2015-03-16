@@ -365,15 +365,15 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   deleteDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/delete?recordid=%@'.fmt( iDocumentId );
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedDeleteDocumentResponse')
-      .send();
+    this.get('storageInterface').delete({id: iDocumentId}).then(
+      function(response) {
+        iReceiver.receivedDeleteDocumentResponse.call(iReceiver, response);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedDeleteDocumentResponse.call(iReceiver, response);
+      }
+    );
   },
 
   documentList: function(iReceiver) {

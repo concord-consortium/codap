@@ -164,7 +164,35 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  delete: function(iDocumentId) {
-    return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
+  delete: function(options) {
+    return new Promise(function(resolve, reject) {
+      var url = '%@document/delete'.fmt(DG.documentServer),
+          params = options.params || {};
+
+      if (!SC.none(options.id)) {
+        params.recordid = options.id;
+      } else if (!SC.none(options.name)) {
+        params.recordname = options.name;
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' in the options!"));
+        return;
+      }
+      if (DG.runKey) {
+        params.runKey = DG.runKey;
+      }
+      params.newRecordname = options.newName;
+
+      url = this._appendParams(url, params);
+
+      this._urlForGetRequests(url)
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .send();
+    }.bind(this));
   }
 });
