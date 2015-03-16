@@ -485,39 +485,27 @@ return {
   revertCurrentDocument: function(iReceiver) {
     if (!DG.currDocumentController().get('canBeReverted')) { return; }
 
-    var url = DG.documentServer + 'document/open';
-    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
-    url += '&original=true';
-
-    if (this.getPath('currLogin.user') !== 'guest') {
-      url += '&owner=' + this.getPath('currLogin.user');
-    }
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse', true, true)
-      .send();
+    this.get('storageInterface').revert(DG.currDocumentController().get('externalDocumentId')).then(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, true);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, true);
+      }
+    );
   },
 
   renameDocument: function(iOriginalName, iNewName, iReceiver) {
-    var url = DG.documentServer + 'document/rename';
-    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
-    url += '&newRecordname=' + iNewName;
-
-    if (this.getPath('currLogin.user') !== 'guest') {
-      url += '&owner=' + this.getPath('currLogin.user');
-    }
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedRenameDocumentResponse')
-      .send();
+    this.get('storageInterface').rename({id: DG.currDocumentController().get('externalDocumentId'), newName: iNewName}).then(
+      function(response) {
+        iReceiver.receivedRenameDocumentResponse.call(iReceiver, response);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedRenameDocumentResponse.call(iReceiver, response);
+      }
+    );
   },
 
   /**

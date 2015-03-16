@@ -32,7 +32,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     return new Promise(function(resolve, reject) {
       var url = '%@document/all'.fmt(DG.documentServer);
       if (DG.runKey) {
-        url += '?runKey=%@'.fmt(DG.runKey);
+        url = this._appendParams({runKey: DG.runKey});
       }
       this._urlForGetRequests(url)
         .notify(null, function(response) {
@@ -48,18 +48,23 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
 
   open: function(options) {
     return new Promise(function(resolve, reject) {
-      var url;
+      var url = '%@document/open'.fmt(DG.documentServer),
+          params = options.params || {};
       if (!SC.none(options.id)) {
-        url = '%@document/open?recordid=%@'.fmt(DG.documentServer, options.id);
+        params.recordid = options.id;
       } else if (!SC.none(options.name) && !SC.none(options.owner)) {
-        url = '%@document/open?&recordname=%@&owner=%@'.fmt(DG.documentServer, options.name, options.owner);
+        params.recordname = options.name;
+        params.owner = options.owner;
       } else {
         reject(new Error("Must supply either 'id' or 'name' and 'owner' in the options!"));
         return;
       }
       if (DG.runKey) {
-        url += '&runKey=%@'.fmt(DG.runKey);
+        params.runKey = DG.runKey;
       }
+
+      url = this._appendParams(url, params);
+
       this._urlForGetRequests(url)
         .notify(null, function(response) {
           if (SC.ok(response)) {
@@ -76,8 +81,41 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     return new Promise().reject(new Error('Cannot save with StorageAPI.'));
   },
 
-  rename: function(iDocumentId, iOldName, iNewName) {
-    return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
+  revert: function(options) {
+    options.params = {original: 'true'};
+    return this.open(options);
+  },
+
+  rename: function(options) {
+    return new Promise(function(resolve, reject) {
+      var url = '%@document/rename'.fmt(DG.documentServer),
+          params = options.params || {};
+      if (!SC.none(options.id)) {
+        params.recordid = options.id;
+      } else if (!SC.none(options.name) && !SC.none(options.owner)) {
+        params.recordname = options.name;
+        params.owner = options.owner;
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' and 'owner' in the options!"));
+        return;
+      }
+      if (DG.runKey) {
+        params.runKey = DG.runKey;
+      }
+      params.newRecordname = options.newName;
+
+      url = this._appendParams(url, params);
+
+      this._urlForGetRequests(url)
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .send();
+    }.bind(this));
   },
 
   delete: function(iDocumentId) {

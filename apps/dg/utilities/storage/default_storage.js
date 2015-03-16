@@ -83,6 +83,10 @@ DG.DefaultStorage = DG.StorageAPI.extend({
     return new Promise().reject(new Error('Cannot save with DefaultStorage.'));
   },
 
+  revert: function(iDocumentId, iOldName, iNewName) {
+    return new Promise().reject(new Error('Cannot revert with DefaultStorage.'));
+  },
+
   rename: function(iDocumentId, iOldName, iNewName) {
     return new Promise().reject(new Error('Cannot rename with DefaultStorage.'));
   },

@@ -43,6 +43,10 @@ DG.StorageAPI = SC.Object.extend({
     return new Promise().reject(new Error('Cannot save with StorageAPI.'));
   },
 
+  revert: function(options) {
+    return new Promise().reject(new Error('Cannot revert with StorageAPI'));
+  },
+
   rename: function(iDocumentId, iOldName, iNewName) {
     return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
   },
@@ -66,5 +70,9 @@ DG.StorageAPI = SC.Object.extend({
   _urlForJSONGetRequests: function(iUrl) {
     return this._urlForGetRequests(iUrl).json();
   },
+
+  _appendParams: function(url, params) {
+    return $.param.querystring(url, params);
+  }
 
 });
