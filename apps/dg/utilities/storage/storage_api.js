@@ -35,19 +35,19 @@ DG.StorageAPI = SC.Object.extend({
     return new Promise().reject(new Error('Cannot list with StorageAPI.'));
   },
 
-  open: function(id) {
+  open: function(options) {
     return new Promise().reject(new Error('Cannot open with StorageAPI.'));
   },
 
-  save: function(id, content) {
+  save: function(iDocumentIdOrName, iContent) {
     return new Promise().reject(new Error('Cannot save with StorageAPI.'));
   },
 
-  rename: function(id, oldName, newName) {
+  rename: function(iDocumentId, iOldName, iNewName) {
     return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
   },
 
-  delete: function(id) {
+  delete: function(iDocumentId) {
     return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
   },
 

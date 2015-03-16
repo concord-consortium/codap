@@ -47,13 +47,26 @@ DG.DefaultStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  open: function(id) {
+  open: function(options) {
     return new Promise(function(resolve, reject) {
-      var url = '/DataGames/api/document/open?username=%@&sessiontoken=%@&recordid=%@'.fmt(
-        DG.authorizationController.getPath('currLogin.user'),
-        encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID')),
-        id
-      );
+      var url;
+      if (!SC.none(options.id)) {
+        url = '/DataGames/api/document/open?username=%@&sessiontoken=%@&recordid=%@'.fmt(
+          DG.authorizationController.getPath('currLogin.user'),
+          encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID')),
+          options.id
+        );
+      } else if (!SC.none(options.name) && !SC.none(options.owner)) {
+        url = '/DataGames/api/document/open?username=%@&sessiontoken=%@&recordname=%@&owner=%@'.fmt(
+          DG.authorizationController.getPath('currLogin.user'),
+          encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID')),
+          options.name,
+          options.owner
+        );
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' and 'owner' in the options!"));
+        return;
+      }
       this._urlForGetRequests(url)
         .notify(null, function(response) {
           if (SC.ok(response)) {
@@ -66,15 +79,15 @@ DG.DefaultStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  save: function(id, content) {
-    return new Promise().reject(new Error('Cannot save with StorageAPI.'));
+  save: function(iDocumentIdOrName, iContent) {
+    return new Promise().reject(new Error('Cannot save with DefaultStorage.'));
   },
 
-  rename: function(id, oldName, newName) {
-    return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
+  rename: function(iDocumentId, iOldName, iNewName) {
+    return new Promise().reject(new Error('Cannot rename with DefaultStorage.'));
   },
 
-  delete: function(id) {
-    return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
+  delete: function(iDocumentId) {
+    return new Promise().reject(new Error('Cannot delete with DefaultStorage.'));
   }
 });

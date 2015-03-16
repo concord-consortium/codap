@@ -46,9 +46,17 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  open: function(id) {
+  open: function(options) {
     return new Promise(function(resolve, reject) {
-      var url = '%@document/open?recordid=%@'.fmt(DG.documentServer, id);
+      var url;
+      if (!SC.none(options.id)) {
+        url = '%@document/open?recordid=%@'.fmt(DG.documentServer, options.id);
+      } else if (!SC.none(options.name) && !SC.none(options.owner)) {
+        url = '%@document/open?&recordname=%@&owner=%@'.fmt(DG.documentServer, options.name, options.owner);
+      } else {
+        reject(new Error("Must supply either 'id' or 'name' and 'owner' in the options!"));
+        return;
+      }
       if (DG.runKey) {
         url += '&runKey=%@'.fmt(DG.runKey);
       }
@@ -64,15 +72,15 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
     }.bind(this));
   },
 
-  save: function(id, content) {
+  save: function(iDocumentIdOrName, iContent) {
     return new Promise().reject(new Error('Cannot save with StorageAPI.'));
   },
 
-  rename: function(id, oldName, newName) {
+  rename: function(iDocumentId, iOldName, iNewName) {
     return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
   },
 
-  delete: function(id) {
+  delete: function(iDocumentId) {
     return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
   }
 });

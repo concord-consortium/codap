@@ -430,7 +430,7 @@ return {
   },
 
   openDocument: function(iDocumentId, iReceiver) {
-    this.get('storageInterface').open(iDocumentId).then(
+    this.get('storageInterface').open({id: iDocumentId}).then(
       function(response) {
         iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
       })
@@ -442,66 +442,44 @@ return {
   },
 
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordname=' + iDocumentName;
-    url += '&owner=' + iDocumentOwner;
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse', true, false)
-      .send();
+    this.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      }
+    );
   },
 
   loadExternalDocuments: function(iDocumentIds) {
-    var deferreds = [],
-        baseUrl = DG.documentServer + 'document/open'
-          + '?username=' + this.getPath('currLogin.user')
-          + '&sessiontoken=' + this.getPath('currLogin.sessionID'),
-        i, len;
-
-    if (DG.runKey) {
-      baseUrl += '&runKey=%@'.fmt(DG.runKey);
-    }
+    var promises = [], i, len;
 
     var sendRequest = function(id) {
-      var url = baseUrl + '&recordid=' + iDocumentIds[i],
-          deferred = $.Deferred();
-
-      this.urlForGetRequests(serverUrl(url))
-        .json(YES)
-        .notify(null, function(response) { this.receivedLoadExternalDocumentResponse(id, response); }.bind(this))
-        .notify(null, function() { deferred.resolve(); })
-        .send();
-
-      return deferred;
+      return this.get('storageInterface').open({id: id}).then(
+        function(response) {
+          var body = JSON.parse(response.get('body'));
+          var docId = response.headers()['Document-Id'];
+          if (docId) {
+            // make sure we always have the most up-to-date externalDocumentId,
+            // since the document server can change it for permissions reasons.
+            body.externalDocumentId = ''+docId;
+          }
+          DG.ExternalDocumentCache.cache(id, body);
+        })
+      .catch(
+        function(response) {
+          DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
+        }
+      );
     }.bind(this);
 
     for (i = 0, len = iDocumentIds.length; i < len; i++) {
-      deferreds.push(sendRequest(iDocumentIds[i]));
+      promises.push(sendRequest(iDocumentIds[i]));
     }
 
-    return deferreds;
-  },
-
-  receivedLoadExternalDocumentResponse: function(id, response) {
-    // FIXME What should we do on failure?
-    if (SC.ok(response)) {
-      var body = response.get('body');
-      var docId = response.headers()['Document-Id'];
-      if (docId) {
-        // make sure we always have the most up-to-date externalDocumentId,
-        // since the document server can change it for permissions reasons.
-        body.externalDocumentId = ''+docId;
-      }
-      DG.ExternalDocumentCache.cache(id, body);
-    } else {
-      DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
-    }
+    return promises;
   },
 
   revertCurrentDocument: function(iReceiver) {
