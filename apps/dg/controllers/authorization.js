@@ -21,6 +21,9 @@ sc_require('models/authorization_model');
 /* globals pako */
 sc_require('libraries/pako-deflate');
 
+sc_require('utilities/storage/default_storage');
+sc_require('utilities/storage/document_server_storage');
+
 /**
   Logs the specified message, along with any additional properties, to the server.
 
@@ -83,8 +86,10 @@ return {
     this.set('currLogin', DG.Authorization.create({}));
 
     if (DG.documentServer) {
+      this.set('storageInterface', DG.DocumentServerStorage.create());
       this.loadLoginFromDocumentServer();
     } else if( DG.Browser.isCompatibleBrowser()) {
+      this.set('storageInterface', DG.DefaultStorage.create());
       this.loadLoginCookie();
     }
   },
@@ -406,15 +411,15 @@ return {
   },
 
   documentList: function(iReceiver) {
-    var url = DG.documentServer + 'document/all';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-    this.urlForGetRequests( serverUrl(url))
-      .notify(iReceiver, 'receivedDocumentListResponse')
-      .send();
+    this.get('storageInterface').list().then(
+      function(response) {
+        iReceiver.receivedDocumentListResponse.call(iReceiver, response);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedDocumentListResponse.call(iReceiver, response);
+      }
+    );
   },
 
   exampleList: function(iReceiver) {
@@ -425,19 +430,17 @@ return {
   },
 
   openDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordid=' + iDocumentId;
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse', true, false)
-      .send();
+    this.get('storageInterface').open(iDocumentId).then(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      })
+    .catch(
+      function(response) {
+        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      }
+    );
   },
+
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
     var url = DG.documentServer + 'document/open';
     url += '?username=' + this.getPath('currLogin.user');
