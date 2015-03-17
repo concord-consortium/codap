@@ -309,12 +309,12 @@ return {
 
   documentList: function(iReceiver) {
     this.get('storageInterface').list().then(
-      function(response) {
-        iReceiver.receivedDocumentListResponse.call(iReceiver, response);
+      function(body) {
+        iReceiver.receivedDocumentListSuccess.call(iReceiver, body);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedDocumentListResponse.call(iReceiver, response);
+      function(errorCode) {
+        iReceiver.receivedDocumentListFailure.call(iReceiver, errorCode);
       }
     );
   },

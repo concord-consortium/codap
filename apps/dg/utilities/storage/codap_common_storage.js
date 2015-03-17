@@ -37,7 +37,7 @@ DG.CODAPCommonStorage = {
       }
     } catch(e) {
       // expected a json response, but got something else!
-      reject('error.general');
+      reject('error.parseError');
     }
   },
 
