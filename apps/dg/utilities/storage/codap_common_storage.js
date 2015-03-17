@@ -70,6 +70,8 @@ DG.CODAPCommonStorage = {
         status = iResponse.get('status');
     if (status === 401 || status === 403) {
       return 'error.sessionExpired';
+    } else if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+      return 'error.invalidPatch';
     } else if (SC.none(body.message) || SC.empty(body.message)) {
       return 'error.general';
     }

@@ -247,12 +247,12 @@ return {
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
     return this.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
-      function(response) {
-        return iReceiver.receivedSaveDocumentResponse.call(iReceiver, response, isCopying);
+      function(body) {
+        return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
       })
     .catch(
-      function(response) {
-        return iReceiver.receivedSaveDocumentResponse.call(iReceiver, response, isCopying);
+      function(errorCode) {
+        return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
       }
     );
   },
@@ -276,12 +276,12 @@ return {
     }
 
     return this.get('storageInterface').save(opts).then(
-      function(response) {
-        return iReceiver.receivedSaveExternalDataContextResponse.call(iReceiver, response, isCopying, contextModel);
+      function(body) {
+        return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
       })
     .catch(
-      function(response) {
-        return iReceiver.receivedSaveExternalDataContextResponse.call(iReceiver, response, isCopying, contextModel);
+      function(errorCode) {
+        return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
       }
     );
   },

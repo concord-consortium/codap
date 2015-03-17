@@ -139,13 +139,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
       }
 
       this._urlForPostRequests(url)
-        .notify(null, function(response) {
-          if (SC.ok(response)) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        })
+        .notify(this, '_handleResponse', resolve, reject)
         .timeoutAfter(60000)
         .send(documentContent);
     }.bind(this));

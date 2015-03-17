@@ -1110,95 +1110,74 @@ DG.DocumentController = SC.Object.extend(
     }.bind(this));
   },
 
-  receivedSaveDocumentResponse: function(iResponse, isCopy) {
-    return new Promise(function(resolve, reject) {
-      var body;
-      try {
-        body = JSON.parse(iResponse.get('body'));
-      } catch(e) {
-        // expected a json response, but got something else!
-        body = {valid: false, message: 'error.general'};
+  notifyStorageFailure: function(messageBase, errorCode, resolve) {
+      if (errorCode === 'error.sessionExpired') {
+        DG.authorizationController.sessionTimeoutPrompt(resolve);
+      } else {
+        var errorMessage = messageBase + errorCode;
+        if (errorMessage.loc() === errorMessage)
+          errorMessage = messageBase + 'error.general';
+        DG.AlertPane.error({
+          localize: true,
+          message: errorMessage,
+          buttons: [
+            {title: "OK", action: function() { resolve(false); } }
+          ]
+        });
       }
-      var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false,
-          messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
-      if( isError) {
-        if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-          DG.authorizationController.sessionTimeoutPrompt(resolve);
+  },
+
+  receivedSaveDocumentSuccess: function(body, isCopy) {
+    return new Promise(function(resolve, reject) {
+      var newDocId = body.id;
+      if (isCopy) {
+        var url = DG.appController.copyLink(newDocId);
+        if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+          url = $.param.querystring(url, {runAsGuest: 'true'});
+        }
+        var win = window.open(url, '_blank');
+        if (win) {
+          win.focus();
         } else {
-          var errorMessage = messageBase + body.message;
-          if (errorMessage.loc() === errorMessage)
-            errorMessage = messageBase + 'error.general';
-          DG.AlertPane.error({
-            localize: true,
-            message: errorMessage,
-            buttons: [
-              {title: "OK", action: function() { resolve(false); } }
-            ]
-          });
+          DG.appController.showCopyLink(url);
         }
       } else {
-        var newDocId = body.id;
-        if (isCopy) {
-          var url = DG.appController.copyLink(newDocId);
-          if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
-            url = $.param.querystring(url, {runAsGuest: 'true'});
-          }
-          var win = window.open(url, '_blank');
-          if (win) {
-            win.focus();
-          } else {
-            DG.appController.showCopyLink(url);
-          }
-        } else {
-          this.set('externalDocumentId', ''+newDocId);
-          DG.appController.triggerSaveNotification();
-        }
-        resolve(true);
+        this.set('externalDocumentId', ''+newDocId);
+        DG.appController.triggerSaveNotification();
       }
+      resolve(true);
     }.bind(this));
   },
 
-  receivedSaveExternalDataContextResponse: function(iResponse, isCopy, contextModel) {
+  receivedSaveDocumentFailure: function(errorCode, isCopy) {
     return new Promise(function(resolve, reject) {
-      var body;
-      try {
-        body = JSON.parse(iResponse.get('body'));
-      } catch (e) {
-        // expected a json response, but got something else!
-        body = {valid: false, message: 'error.general'};
-      }
-      var isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false || body.valid === false;
-      if( isError) {
-        if (body.message === 'error.sessionExpired' || iResponse.get('status') === 401 || iResponse.get('status') === 403) {
-          DG.authorizationController.sessionTimeoutPrompt(resolve);
-        } else {
-          var errorMessage = 'DG.AppController.saveDocument.' + body.message;
-          if (errorMessage.loc() === errorMessage)
-            errorMessage = 'DG.AppController.saveDocument.error.general';
-          if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
-            this._skipPatchNextTime.push(contextModel);
-          }
-          DG.AlertPane.error({
-            localize: true,
-            message: errorMessage,
-            buttons: [
-              {title: "OK", action: function() { resolve(false); } }
-            ]
-          });
-        }
-      } else {
-        var newDocId = body.id;
-        SC.run(function() {
-          if (isCopy) {
-            contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
-          }
-          contextModel.set('externalDocumentId', ''+newDocId);
+      var messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
+      this.notifyStorageFailure(messageBase, errorCode, resolve);
+    }.bind(this));
+  },
 
-          this.invokeLater(function() {
-            resolve(true);
-          });
-        }.bind(this));
+  receivedSaveExternalDataContextSuccess: function(body, isCopy, contextModel) {
+    return new Promise(function(resolve, reject) {
+      var newDocId = body.id;
+      SC.run(function() {
+        if (isCopy) {
+          contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+        }
+        contextModel.set('externalDocumentId', ''+newDocId);
+
+        this.invokeLater(function() {
+          resolve(true);
+        });
+      }.bind(this));
+    }.bind(this));
+  },
+
+  receivedSaveExternalDataContextFailure: function(errorCode, isCopy, contextModel) {
+    return new Promise(function(resolve, reject) {
+      if (errorCode === 'error.invalidPatch') {
+        this._skipPatchNextTime.push(contextModel);
       }
+      this.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
     }.bind(this));
   },
 

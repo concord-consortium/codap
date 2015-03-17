@@ -152,13 +152,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         req = req.header('Content-Encoding', 'deflate');
       }
 
-      req.notify(null, function(response) {
-          if (SC.ok(response)) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        })
+      req.notify(this, '_handleResponse', resolve, reject)
         .timeoutAfter(60000)
         .send(documentContent);
     }.bind(this));
