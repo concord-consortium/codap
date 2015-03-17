@@ -17,6 +17,8 @@
 // ==========================================================================
 
 sc_require('utilities/storage/storage_api');
+sc_require('utilities/storage/codap_common_storage');
+
 sc_require('controllers/authorization');
 
 /** @class
@@ -25,7 +27,7 @@ sc_require('controllers/authorization');
 
  @extends SC.Object
  */
-DG.DefaultStorage = DG.StorageAPI.extend({
+DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   canSave: YES,
   isLoggedIn: NO,
 

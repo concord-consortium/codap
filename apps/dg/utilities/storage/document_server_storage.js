@@ -17,6 +17,7 @@
 // ==========================================================================
 
 sc_require('utilities/storage/storage_api');
+sc_require('utilities/storage/codap_common_storage');
 
 /* globals pako */
 sc_require('libraries/pako-deflate');
@@ -27,7 +28,7 @@ sc_require('libraries/pako-deflate');
 
  @extends SC.Object
  */
-DG.DocumentServerStorage = DG.StorageAPI.extend({
+DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   canSave: YES,
   isLoggedIn: NO,
 

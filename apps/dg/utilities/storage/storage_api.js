@@ -63,28 +63,6 @@ DG.StorageAPI = SC.Object.extend({
 
   delete: function(options) {
     return Promise.reject(new Error('Cannot delete with StorageAPI.'));
-  },
-
-  // General Helper methods.
-
-  _urlForGetRequests: function(iUrl) {
-    return SC.Request.getUrl(iUrl);
-  },
-
-  _urlForPostRequests: function(iUrl) {
-    return SC.Request.postUrl(iUrl);
-  },
-
-  _urlForJSONPostRequests: function(iUrl) {
-    return this._urlForPostRequests(iUrl).json();
-  },
-
-  _urlForJSONGetRequests: function(iUrl) {
-    return this._urlForGetRequests(iUrl).json();
-  },
-
-  _appendParams: function(url, params) {
-    return $.param.querystring(url, params);
   }
 
 });
