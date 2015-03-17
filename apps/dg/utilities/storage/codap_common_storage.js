@@ -49,14 +49,6 @@ DG.CODAPCommonStorage = {
     return SC.Request.postUrl(iUrl);
   },
 
-  _urlForJSONPostRequests: function(iUrl) {
-    return this._urlForPostRequests(iUrl).json();
-  },
-
-  _urlForJSONGetRequests: function(iUrl) {
-    return this._urlForGetRequests(iUrl).json();
-  },
-
   _appendParams: function(url, params) {
     return $.param.querystring(url, params);
   },

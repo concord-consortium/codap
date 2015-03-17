@@ -33,36 +33,16 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
 
   login: function(options) {
     return new Promise(function(resolve, reject) {
-      this._urlForJSONPostRequests('/DataGames/api/auth/login')
-        .notify(null, function(response) {
-          var body = response.get('body');
-          if (SC.ok(response)) {
-            resolve(body);
-          } else {
-            // if the server gets a 500 error(server script error),
-            // then there will be no message return
-            var errorCode = (body && body.message) || "";
-            reject(errorCode);
-          }
-        })
+      this._urlForPostRequests('/DataGames/api/auth/login')
+        .notify(this, '_handleResponse', resolve, reject)
         .send(options);
     }.bind(this));
   },
 
   logout: function(options) {
     return new Promise(function(resolve, reject) {
-      this._urlForJSONPostRequests('/DataGames/api/auth/logout')
-        .notify(null, function(response) {
-          var body = response.get('body');
-          if (SC.ok(response)) {
-            resolve(body);
-          } else {
-            // if the server gets a 500 error(server script error),
-            // then there will be no message return
-            var errorCode = (body && body.message) || "";
-            reject(errorCode);
-          }
-        })
+      this._urlForPostRequests('/DataGames/api/auth/logout')
+        .notify(this, '_handleResponse', resolve, reject)
         .send(options);
     }.bind(this));
   },

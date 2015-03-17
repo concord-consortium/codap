@@ -39,9 +39,14 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         url = this._appendParams(url, {runKey: DG.runKey});
       }
 
-      this._urlForJSONGetRequests(url)
+      this._urlForGetRequests(url)
         .notify(null, function(response) {
-          var body = response.get('body');
+          var body;
+          try {
+            body = JSON.parse(response.get('body'));
+          } catch(e) {
+            body = {message: 'error.parseError'};
+          }
           if (SC.ok(response)) {
             resolve(body);
           } else {
