@@ -297,12 +297,12 @@ return {
    */
   deleteDocument: function(iDocumentId, iReceiver) {
     this.get('storageInterface').delete({id: iDocumentId}).then(
-      function(response) {
-        iReceiver.receivedDeleteDocumentResponse.call(iReceiver, response);
+      function(body) {
+        iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedDeleteDocumentResponse.call(iReceiver, response);
+      function(errorCode) {
+        iReceiver.receivedDeleteDocumentFailure.call(iReceiver, errorCode);
       }
     );
   },

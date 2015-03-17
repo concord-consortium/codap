@@ -1241,17 +1241,12 @@ DG.DocumentController = SC.Object.extend(
     DG.authorizationController.deleteDocument(iDocumentId, this);
   },
 
-  receivedDeleteDocumentResponse: function(iResponse) {
-    var body = iResponse.get('body'),
-        isError = !SC.ok(iResponse) || iResponse.get('isError') || iResponse.getPath('response.valid') === false;
-    if( isError) {
-      var errorMessage = 'DG.AppController.deleteDocument.' + body.message;
-      if (errorMessage.loc() === errorMessage)
-        errorMessage = 'DG.AppController.deleteDocument.error.general';
-      DG.AlertPane.error({
-        localize: true,
-        message: errorMessage});
-    }
+  receivedDeleteDocumentSuccess: function(body) {
+    // We don't need to do anything
+  },
+
+  receivedDeleteDocumentFailure: function(errorCode) {
+    this.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
   },
     /**
      Saves the current state of the current game into the 'savedGameState'

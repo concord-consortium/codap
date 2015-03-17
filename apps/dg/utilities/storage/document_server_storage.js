@@ -216,13 +216,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
       url = this._appendParams(url, params);
 
       this._urlForGetRequests(url)
-        .notify(null, function(response) {
-          if (SC.ok(response)) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        })
+        .notify(this, '_handleResponse', resolve, reject)
         .send();
     }.bind(this));
   }
