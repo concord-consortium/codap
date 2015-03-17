@@ -48,13 +48,6 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
   @extends SC.Object
 */
 DG.authorizationController = SC.Controller.create( (function() {
-  var serverUrl = function(iRelativeUrl) {
-    if (iRelativeUrl.match('://')) {
-      return iRelativeUrl;
-    } else {
-    return '/DataGames/api/' + iRelativeUrl;
-    }
-  };
 
 return {
 /** @scope DG.authorizationController.prototype */
@@ -91,22 +84,6 @@ return {
     }
   },
 
-  urlForGetRequests: function(iUrl) {
-    return SC.Request.getUrl(iUrl);
-  },
-
-  urlForPostRequests: function(iUrl) {
-    return SC.Request.postUrl(iUrl);
-  },
-
-  urlForJSONPostRequests: function(iUrl) {
-    return this.urlForPostRequests(iUrl).json();
-  },
-
-  urlForJSONGetRequests: function(iUrl) {
-    return this.urlForGetRequests(iUrl).json();
-  },
-
   sendLoginAsGuestRequest: function() {
     this.setPath('currLogin.user', 'guest');
     var save = (!!DG.documentServer && !!DG.runKey) || false;
@@ -125,39 +102,20 @@ return {
       // Set the user so we can update the UI while waiting for a server response
       this.setPath('currLogin.user', iUser);
       this.setPath('currLogin.failedLoginAttempt', false);
-      var body = { username: iUser, password: iPassword, sessiontoken: iSessionID };
       if (iSessionID) {
         this.get('currLogin').set('sessionID', iSessionID);
       }
-      if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
-          .notify(this, 'receiveLoginResponse')
-          .send({});
-      } else {
-        this.urlForJSONPostRequests(serverUrl('auth/login'))
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
-      }
-    }
-  },
 
-  /**
-   * Send a request to obtain a token to be used instead of
-   * re-authenticating again for each further request before logging out.
-   */
-  sendTokenRequest: function( iUser, iPhrase, iPass ) {
-      this.setPath('currLogin.user', iUser);
-      var body = { username: iUser, phrase: iPhrase, pass: iPass};
-      //response from server is same as with login requests
-      if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
-          .notify(this, 'receiveLoginResponse')
-          .send({});
-      } else {
-        this.urlForJSONPostRequests(serverUrl('auth/login'))
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
-      }
+      this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
+        function(response) {
+          this.receiveLoginResponse.call(this, response);
+        }.bind(this))
+      .catch(
+        function(response) {
+          this.receiveLoginResponse.call(this, response);
+        }.bind(this)
+      );
+    }
   },
 
   /**
@@ -168,9 +126,15 @@ return {
    */
   sendLogoutRequest: function( iUser, iSessionID ) {
     if (!SC.empty( iUser )) {
-      var body = { username: iUser, sessiontoken: iSessionID };
-      this.urlForJSONPostRequests(serverUrl('auth/logout'))
-        .send(body);
+      this.get('storageInterface').logout({username: iUser, sessiontoken: iSessionID}).then(
+        function(response) {
+          // Don't bother doing anything
+        })
+      .catch(
+        function(response) {
+          // Don't bother doing anything
+        }
+      );
     }
   },
 
@@ -271,39 +235,6 @@ return {
   },
 
   /**
-    Return the "path" of the document, which we conceive as analogous to a unix "/" delimited path,
-    except we'll use a ':', since "/" is overloaded with meaning in a url context (even when escaped).
-    We'll return an absolute path, prefixing relative paths with the username - this will help
-    ensure uniqueness of the path, so that it can be used as an id. Note that the "path" interpretation
-    is not known to the server - to the server, this is just used as a unique Id.
-
-    @private
-    @param iDocumentId{String} A string to use as the document id.
-  */
-  _documentPath: function(iDocumentId) {
-    var path = iDocumentId;
-
-    // Prefix non-relative paths with user name.
-    if( !/^:/.test( path))
-      path = ':' + this.getPath('currLogin.user') + ':' + iDocumentId;
-
-    return path;
-  },
-
-  /**
-    Url for server get / save document
-    @private
-    @param iDocumentId{String} A string to use as the document id.
-  */
-  _documentUrl : function(iDocumentId) {
-    var url = serverUrl('document');
-    url += '/' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    url += '/' + encodeURIComponent(this._documentPath(iDocumentId));
-
-    return url;
-  },
-
-  /**
     Saves the specified document object to the server.
 
     @param    iDocumentId       The ID of the document object
@@ -390,7 +321,7 @@ return {
 
   exampleList: function(iReceiver) {
     var url = 'https://codap-resources.concord.org/examples/index.json';
-    this.urlForGetRequests( url )
+    SC.Request.getUrl( url )
       .notify(iReceiver, 'receivedExampleListResponse')
       .send();
   },

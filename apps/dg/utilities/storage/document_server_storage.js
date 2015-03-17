@@ -31,6 +31,29 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
   canSave: YES,
   isLoggedIn: NO,
 
+  login: function() {
+    return new Promise(function(resolve, reject) {
+      var url = '%@user/info'.fmt(DG.documentServer);
+      if (DG.runKey) {
+        url = this._appendParams(url, {runKey: DG.runKey});
+      }
+
+      this._urlForJSONGetRequests(url)
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .send();
+    }.bind(this));
+  },
+
+  logout: function() {
+    return Promise.reject(new Error('Cannot logout with Document Server.'));
+  },
+
   list: function() {
     return new Promise(function(resolve, reject) {
       var url = '%@document/all'.fmt(DG.documentServer);

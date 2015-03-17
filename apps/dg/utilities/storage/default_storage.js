@@ -29,6 +29,34 @@ DG.DefaultStorage = DG.StorageAPI.extend({
   canSave: YES,
   isLoggedIn: NO,
 
+  login: function(options) {
+    return new Promise(function(resolve, reject) {
+      this._urlForJSONPostRequests('/DataGames/api/auth/login')
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .send(options);
+    }.bind(this));
+  },
+
+  logout: function(options) {
+    return new Promise(function(resolve, reject) {
+      this._urlForJSONPostRequests('/DataGames/api/auth/logout')
+        .notify(null, function(response) {
+          if (SC.ok(response)) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
+        })
+        .send(options);
+    }.bind(this));
+  },
+
   list: function() {
     return new Promise(function(resolve, reject) {
       var url = '/DataGames/api/document/all?username=%@&sessiontoken=%@'.fmt(

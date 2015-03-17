@@ -33,6 +33,14 @@ DG.StorageAPI = SC.Object.extend({
   canSave: NO,
   isLoggedIn: NO,
 
+  login: function() {
+    return Promise.reject(new Error('Cannot login with StorageAPI.'));
+  },
+
+  logout: function() {
+    return Promise.reject(new Error('Cannot logout with StorageAPI.'));
+  },
+
   list: function() {
     return Promise.reject(new Error('Cannot list with StorageAPI.'));
   },
