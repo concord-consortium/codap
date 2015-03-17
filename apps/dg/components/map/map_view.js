@@ -204,6 +204,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
 
+      /**
+       * Something about the points (aside from visibility) changed. Take appropriate action.
+       */
+      pointsDidChange: function() {
+        this.getPath('mapGridLayer.model').rectArrayMustChange();
+      }.observes('mapPointView.pointsDidChange'),
+
       addAreaLayer: function () {
         if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
           return;
