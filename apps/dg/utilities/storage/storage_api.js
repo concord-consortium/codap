@@ -28,32 +28,36 @@
  */
 DG.StorageAPI = SC.Object.extend({
 
+  // API Functions.
+  // If you created a new Storage class, you should override these functions.
   canSave: NO,
   isLoggedIn: NO,
 
   list: function() {
-    return new Promise().reject(new Error('Cannot list with StorageAPI.'));
+    return Promise.reject(new Error('Cannot list with StorageAPI.'));
   },
 
   open: function(options) {
-    return new Promise().reject(new Error('Cannot open with StorageAPI.'));
+    return Promise.reject(new Error('Cannot open with StorageAPI.'));
   },
 
   save: function(options) {
-    return new Promise().reject(new Error('Cannot save with StorageAPI.'));
+    return Promise.reject(new Error('Cannot save with StorageAPI.'));
   },
 
   revert: function(options) {
-    return new Promise().reject(new Error('Cannot revert with StorageAPI'));
+    return Promise.reject(new Error('Cannot revert with StorageAPI'));
   },
 
   rename: function(options) {
-    return new Promise().reject(new Error('Cannot rename with StorageAPI.'));
+    return Promise.reject(new Error('Cannot rename with StorageAPI.'));
   },
 
   delete: function(options) {
-    return new Promise().reject(new Error('Cannot delete with StorageAPI.'));
+    return Promise.reject(new Error('Cannot delete with StorageAPI.'));
   },
+
+  // General Helper methods.
 
   _urlForGetRequests: function(iUrl) {
     return SC.Request.getUrl(iUrl);

@@ -114,14 +114,14 @@ DG.DefaultStorage = DG.StorageAPI.extend({
   },
 
   revert: function(options) {
-    return new Promise().reject(new Error('Cannot revert with DefaultStorage.'));
+    return Promise.reject(new Error('Cannot revert with DefaultStorage.'));
   },
 
   rename: function(options) {
-    return new Promise().reject(new Error('Cannot rename with DefaultStorage.'));
+    return Promise.reject(new Error('Cannot rename with DefaultStorage.'));
   },
 
   delete: function(options) {
-    return new Promise().reject(new Error('Cannot delete with DefaultStorage.'));
+    return Promise.reject(new Error('Cannot delete with DefaultStorage.'));
   }
 });
