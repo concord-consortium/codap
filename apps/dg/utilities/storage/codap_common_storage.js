@@ -33,6 +33,10 @@ DG.CODAPCommonStorage = {
       if (this._isError(iResponse)) {
         reject(this._extractMessage(iResponse));
       } else {
+        var docId = iResponse.headers()['Document-Id'];
+        if (docId) {
+          body.externalDocumentId = ''+docId;
+        }
         resolve(body);
       }
     } catch(e) {

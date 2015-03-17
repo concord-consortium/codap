@@ -328,24 +328,24 @@ return {
 
   openDocument: function(iDocumentId, iReceiver) {
     this.get('storageInterface').open({id: iDocumentId}).then(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
     );
   },
 
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
     this.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, false);
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
     );
   },
@@ -355,19 +355,12 @@ return {
 
     var sendRequest = function(id) {
       return this.get('storageInterface').open({id: id}).then(
-        function(response) {
-          var body = JSON.parse(response.get('body'));
-          var docId = response.headers()['Document-Id'];
-          if (docId) {
-            // make sure we always have the most up-to-date externalDocumentId,
-            // since the document server can change it for permissions reasons.
-            body.externalDocumentId = ''+docId;
-          }
+        function(body) {
           DG.ExternalDocumentCache.cache(id, body);
         })
       .catch(
-        function(response) {
-          DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
+        function(errorCode) {
+          DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
         }
       );
     }.bind(this);
@@ -383,12 +376,12 @@ return {
     if (!DG.currDocumentController().get('canBeReverted')) { return; }
 
     this.get('storageInterface').revert(DG.currDocumentController().get('externalDocumentId')).then(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, true);
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedOpenDocumentResponse.call(iReceiver, response, true, true);
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
     );
   },

@@ -322,58 +322,39 @@ DG.appController = SC.Object.create((function () // closure
     /**
      openDocument callback function after the document content has been loaded.
      */
-    receivedOpenDocumentResponse: function (iResponse, expectDocumentId, triggerSave) {
-      var shouldShowAlert = true,
-        alertDescription = 'DG.AppController.openDocument.error.general',
-        openDeferred,
-        responseIsError = iResponse.get('isError'),
-        headers = iResponse.get('headers'),
-        body = iResponse.get('body'),
-        contentType = headers['Content-Type'],
-        bodyMayBeJSON = (body && (body[0]!== '<')); // some servers may return
-                                                    // an error page without
-                                                    // setting error status
+    receivedOpenDocumentSuccess: function (body, triggerSave) {
+      var openDeferred;
 
-      if (expectDocumentId === false) {
-        shouldShowAlert = false;
+      var docId = body.externalDocumentId;
+      delete body.externalDocumentId;
+
+      if (typeof(body) !== 'string') {
+        body = JSON.stringify(body);
       }
 
-      DG.log('Document content-type: ' + contentType);
-
-      // Currently, we must close any open document before opening another
-      if (!responseIsError && bodyMayBeJSON) {
-
-        if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
-          var docId = iResponse.headers()['Document-Id'];
-          if (docId) {
-            shouldShowAlert = false;
-            openDeferred.done(function() {
-              DG.currDocumentController().set('externalDocumentId', ''+docId);
-            });
-          }
-          if (triggerSave) {
-            openDeferred.done(function() {
-              DG.dirtyCurrentDocument();
-              this.autoSaveDocument(true);
-            }.bind(this));
-          }
+      if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
+        if (docId) {
+          openDeferred.done(function() {
+            DG.currDocumentController().set('externalDocumentId', ''+docId);
+          });
         }
-        // If we failed to open/parse the document successfully,
-        // then we may need to create a new untitled document.
+        if (triggerSave) {
+          openDeferred.done(function() {
+            DG.dirtyCurrentDocument();
+            this.autoSaveDocument(true);
+          }.bind(this));
+        }
       }
-      if (shouldShowAlert) {
-        // Should handle errors here -- alert the user, etc.
-        DG.AlertPane.error({
-          localize: true,
-          message: alertDescription,
-          delegate: SC.Object.create({
-            alertPaneDidDismiss: function (pane, status) {
-              // Could do something more here on dismissal,
-              // e.g. create a new document if necessary
-            }
-          })
-        });
-      }
+
+      DG.busyCursor.hide();
+    },
+
+    /**
+     openDocument callback function when there was an error.
+     */
+    receivedOpenDocumentFailure: function (errorCode) {
+      DG.busyCursor.hide();
+      this.notifyStorageFailure('DG.AppController.openDocument.', errorCode);
     },
 
     /**

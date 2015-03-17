@@ -80,13 +80,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         return;
       }
       this._urlForGetRequests(url)
-        .notify(null, function(response) {
-          if (SC.ok(response)) {
-            resolve(response);
-          } else {
-            reject(response);
-          }
-        })
+        .notify(this, '_handleResponse', resolve, reject)
         .send();
     }.bind(this));
   },
