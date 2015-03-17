@@ -107,12 +107,12 @@ return {
       }
 
       this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
-        function(response) {
-          this.receiveLoginResponse.call(this, response);
+        function(body) {
+          this.receiveLoginSuccess(body);
         }.bind(this))
       .catch(
-        function(response) {
-          this.receiveLoginResponse.call(this, response);
+        function(errorCode) {
+          this.receiveLoginFailure(errorCode);
         }.bind(this)
       );
     }
@@ -127,11 +127,11 @@ return {
   sendLogoutRequest: function( iUser, iSessionID ) {
     if (!SC.empty( iUser )) {
       this.get('storageInterface').logout({username: iUser, sessiontoken: iSessionID}).then(
-        function(response) {
+        function(body) {
           // Don't bother doing anything
         })
       .catch(
-        function(response) {
+        function(errorCode) {
           // Don't bother doing anything
         }
       );
@@ -496,31 +496,18 @@ return {
     window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
   },
 
-  receiveLoginResponse: function(iResponse) {
-    var currLogin = this.get('currLogin'),
-        status, body;
-    if (SC.ok(iResponse)) {
-      status = iResponse.get('status');
-      body = iResponse.get('body');
-      return this.logIn(body, status);
-    } else {
-
-      // if the server gets a 500 error(server script error),
-      // then there will be no message return
-      var errorCode = (body && body.message) || "";
-      if (DG.documentServer && iResponse.get('status') === 401) {
-        if (DG.runAsGuest) {
-          return DG.authorizationController.sendLoginAsGuestRequest();
-        } else {
-          errorCode = 'error.notLoggedIn';
-        }
-      }
-      // If we get here, then we didn't log in successfully.
-      currLogin
-        .clear()
-        .set('errorCode', errorCode)
-        .set('failedLoginAttempt', true);
+  receiveLoginSuccess: function(body) {
+    if (SC.none(body.skipLogin)) {
+      this.logIn(body, 200);
     }
+  },
+
+  receiveLoginFailure: function(errorCode) {
+    var currLogin = this.get('currLogin');
+    currLogin
+      .clear()
+      .set('errorCode', errorCode)
+      .set('failedLoginAttempt', true);
   },
 
   /**

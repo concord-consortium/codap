@@ -40,10 +40,23 @@ DG.DocumentServerStorage = DG.StorageAPI.extend({
 
       this._urlForJSONGetRequests(url)
         .notify(null, function(response) {
+          var body = response.get('body');
           if (SC.ok(response)) {
-            resolve(response);
+            resolve(body);
           } else {
-            reject(response);
+            // if the server gets a 500 error(server script error),
+            // then there will be no message return
+            var errorCode = (body && body.message) || "";
+            if (response.get('status') === 401) {
+              if (DG.runAsGuest) {
+                DG.authorizationController.sendLoginAsGuestRequest();
+                resolve({skipLogin: true});
+                return;
+              } else {
+                errorCode = 'error.notLoggedIn';
+              }
+            }
+            reject(errorCode);
           }
         })
         .send();
