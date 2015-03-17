@@ -1362,6 +1362,23 @@ DG.appController = SC.Object.create((function () // closure
 
     },
 
+    notifyStorageFailure: function(messageBase, errorCode, resolve) {
+        if (errorCode === 'error.sessionExpired') {
+          DG.authorizationController.sessionTimeoutPrompt(resolve);
+        } else {
+          var errorMessage = messageBase + errorCode;
+          if (errorMessage.loc() === errorMessage)
+            errorMessage = messageBase + 'error.general';
+          DG.AlertPane.error({
+            localize: true,
+            message: errorMessage,
+            buttons: [
+              {title: "OK", action: function() { if (!SC.none(resolve)) { resolve(false); } } }
+            ]
+          });
+        }
+    },
+
     /**
      Update the url in the browser bar to reflect the latest document information
      */

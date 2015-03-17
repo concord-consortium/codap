@@ -1110,23 +1110,6 @@ DG.DocumentController = SC.Object.extend(
     }.bind(this));
   },
 
-  notifyStorageFailure: function(messageBase, errorCode, resolve) {
-      if (errorCode === 'error.sessionExpired') {
-        DG.authorizationController.sessionTimeoutPrompt(resolve);
-      } else {
-        var errorMessage = messageBase + errorCode;
-        if (errorMessage.loc() === errorMessage)
-          errorMessage = messageBase + 'error.general';
-        DG.AlertPane.error({
-          localize: true,
-          message: errorMessage,
-          buttons: [
-            {title: "OK", action: function() { resolve(false); } }
-          ]
-        });
-      }
-  },
-
   receivedSaveDocumentSuccess: function(body, isCopy) {
     return new Promise(function(resolve, reject) {
       var newDocId = body.id;
@@ -1152,7 +1135,7 @@ DG.DocumentController = SC.Object.extend(
   receivedSaveDocumentFailure: function(errorCode, isCopy) {
     return new Promise(function(resolve, reject) {
       var messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
-      this.notifyStorageFailure(messageBase, errorCode, resolve);
+      DG.appController.notifyStorageFailure(messageBase, errorCode, resolve);
     }.bind(this));
   },
 
@@ -1177,7 +1160,7 @@ DG.DocumentController = SC.Object.extend(
       if (errorCode === 'error.invalidPatch') {
         this._skipPatchNextTime.push(contextModel);
       }
-      this.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
+      DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
     }.bind(this));
   },
 
@@ -1246,7 +1229,7 @@ DG.DocumentController = SC.Object.extend(
   },
 
   receivedDeleteDocumentFailure: function(errorCode) {
-    this.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
+    DG.appController.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
   },
     /**
      Saves the current state of the current game into the 'savedGameState'
