@@ -638,12 +638,14 @@ DG.appController = SC.Object.create((function () // closure
     logout: function () {
 
       var logoutAfterConfirmation = function () {
-        // Close the current document
-        this.closeDocument();
+        // Clear the current document if we're not a guest.
+        if (DG.authorizationController.getPath('currLogin.user') !== 'guest') {
+          // Close the current document
+          this.closeDocument();
 
-        // Create a new empty document
-        DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
-
+          // Create a new empty document
+          DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
+        }
         // Log out, bringing up the login dialog
         DG.authorizationController.logout();
       }.bind(this);
