@@ -32,6 +32,93 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   canSave: YES,
   isLoggedIn: NO,
 
+  // Pop up a dialog for logging in to this storage backend.
+  promptLogin: function() {
+    var kVSpace = 2,
+        top = 0,
+        height = 0,
+        nextTop = function(n) { top += (height + n); return top; },
+        lastHeight = function(n) { height = n; return height; };
+
+    var sheetPane = SC.PanelPane.create({
+      layout: { top: 0, centerX: 0, width: 340, height: 140 },
+      contentView: SC.View.extend({
+        childViews: 'labelView loginButton loginAsGuestButton statusLabel'.w(),
+
+        labelView: SC.LabelView.design({
+          layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(54) },
+          controlSize: SC.LARGE_CONTROL_SIZE,
+          fontWeight: SC.BOLD_WEIGHT,
+          textAlign: SC.ALIGN_CENTER,
+          value: 'DG.Authorization.loginPane.dialogTitle',            // "Data Games Login"
+          localize: YES
+        }),
+
+        statusLabel: SC.LabelView.design({
+          escapeHTML: NO,
+          layout: { top: nextTop( kVSpace ), left: 0, right: 0, height: lastHeight(48) },
+          textAlign: SC.ALIGN_CENTER,
+          valueBinding: 'DG.authorizationController.currLogin.statusMsg'
+        }),
+
+        loginAsGuestButton: SC.ButtonView.design({
+          layout: { top: nextTop( kVSpace ), height: lastHeight(24), right:130, width:125 },
+          title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
+          localize: YES,
+          target: 'DG.authorizationController',
+          action: 'sendLoginAsGuestRequest',
+          isDefault: NO
+        }),
+
+        loginButton: SC.ButtonView.design({
+          layout: { top: top, height: lastHeight(24), right:20, width:100 },
+          title: 'DG.Authorization.loginPane.login',                // "Log in"
+          localize: YES,
+          target: this,
+          action: '_showLoginFrame',
+          isDefault: YES
+        })
+       })
+     });
+
+    sheetPane.append();
+    return sheetPane;
+  },
+
+  _showLoginFrame: function() {
+    var panel = SC.PanelPane.create({
+      layout: { width: 1000, height: 480, centerX: 0, centerY: 0},
+      contentView: SC.WebView.design({
+        classNames: ['document-server-login'],
+        layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
+        value: function() {
+          var url = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
+          return url;
+        }.property()
+      })
+    });
+    panel.append();
+    var timer = SC.Timer.schedule({
+      interval: 200,
+      repeats: YES,
+      action: function() {
+        try {
+          /* This is a bit of a hack. Accessing an iframe's location throws a security exception
+           * when the url is cross-origin. Since the Document Server forwards us back to the parent
+           * window's location after authenticating (not cross-origin), we can detect when the
+           * authentication process is complete and react.
+           */
+          var href = $('.document-server-login iframe')[0].contentWindow.location.href;
+          if (href === window.location.href) {
+            timer.invalidate();
+            panel.remove();
+            this.sendLoginRequest('user');
+          }
+        } catch(e) {}
+      }.bind(DG.authorizationController)
+    });
+  },
+
   login: function() {
     return new Promise(function(resolve, reject) {
       var url = '%@user/info'.fmt(DG.documentServer);

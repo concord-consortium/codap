@@ -33,6 +33,11 @@ DG.StorageAPI = SC.Object.extend({
   canSave: NO,
   isLoggedIn: NO,
 
+  // Pop up a dialog for logging in to this storage backend.
+  promptLogin: function() {
+    DG.logError('promptLogin is not implemented in StorageAPI');
+  },
+
   login: function() {
     return Promise.reject(new Error('Cannot login with StorageAPI.'));
   },
