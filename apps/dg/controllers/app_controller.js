@@ -521,49 +521,16 @@ DG.appController = SC.Object.create((function () // closure
       }
     },
 
-    receivedRenameDocumentResponse: function(iResponse) {
-      var shouldShowAlert = true,
-        alertDescription = null, msgKey;
-      // Currently, we must close any open document before opening another
-      if (SC.ok(iResponse) && !iResponse.get('isError')) {
-          DG.dirtyCurrentDocument();
-          this.saveDocument();
-          this.set('_originalDocumentName', null);
-          return;
-      }
+    receivedRenameDocumentSuccess: function(body) {
+      DG.dirtyCurrentDocument();
+      this.saveDocument();
+      this.set('_originalDocumentName', null);
+    },
+
+    receivedRenameDocumentFailure: function(errorCode) {
       // We got an error. Revert the rename.
       DG.currDocumentController().set('documentName', this.get('_originalDocumentName'));
-
-      try {
-        // Handle error response from server
-        msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
-      }
-      catch(error) {
-        msgKey = '';
-      }
-
-      if (msgKey.loc() === msgKey)
-        msgKey = 'DG.AppController.renameDocument.error.general';
-      // Note that we currently only support a single message rather than message & description.
-      // We could use a convention like a '\n' in the string to delineate the separate message
-      // and description without requiring the server to return two strings (for instance).
-      // We leave this as a possible future nicety for a subsequent release so as not to hold
-      // up the initial release for what is essentially a cosmetic improvement.
-      alertDescription = msgKey;
-      if (shouldShowAlert) {
-        // Should handle errors here -- alert the user, etc.
-        DG.AlertPane.error({
-          localize: true,
-          message: alertDescription,
-          delegate: SC.Object.create({
-            alertPaneDidDismiss: function (pane, status) {
-              // Could do something more here on dismissal,
-              // e.g. create a new document if necessary
-            }
-          })
-        });
-      }
-
+      this.notifyStorageFailure('DG.AppController.renameDocument.', errorCode);
     },
 
     copyDocument: function () {

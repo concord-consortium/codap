@@ -388,12 +388,12 @@ return {
 
   renameDocument: function(iOriginalName, iNewName, iReceiver) {
     this.get('storageInterface').rename({id: DG.currDocumentController().get('externalDocumentId'), newName: iNewName}).then(
-      function(response) {
-        iReceiver.receivedRenameDocumentResponse.call(iReceiver, response);
+      function(body) {
+        iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
       })
     .catch(
-      function(response) {
-        iReceiver.receivedRenameDocumentResponse.call(iReceiver, response);
+      function(errorCode) {
+        iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
       }
     );
   },
