@@ -186,7 +186,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         tShowSquaresItem = this.get( 'areSquaresVisible') ? "Hide Squares" : "Show Squares"
       ;
     return [
-        { title: "Rescale to Data", target: this_, itemAction: this_.rescaleAxesFromData,
+        { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
+            target: this_, itemAction: this_.rescaleAxesFromData,
             args: [ true /* allowAxisRescale */, false /* No need to animate points independently */,
                     true /* log it */]},
         { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
