@@ -72,8 +72,14 @@ DG.MapController = DG.DataDisplayController.extend(
         @property { Array of menu items }
       */
       gearMenuItems: function() {
+        var tResult = [
+          { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
+            isEnabled: true, target: this.mapView, itemAction: this.mapView.fitBounds }
+        ];
         var tMap = this.getPath('mapModel');
-        return SC.none( tMap) ? [] : tMap.getGearMenuItems();
+        if( tMap)
+          tResult = tResult.concat(tMap.getGearMenuItems());
+        return tResult;
       }.property('mapModel')
 
     };
