@@ -179,9 +179,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         if( this.getPath('model.hasLatLongAttributes')) {
           if (!this.getPath('model.centerAndZoomBeingRestored')) {
-            var tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
-            if (tBounds.isValid())
-              this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+            this.fitBounds();
           }
           // if model's pointsShouldBeVisible has not previously been set or it is set to true, we make the
           //  the pointView visible.
@@ -221,9 +219,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             }));
         this.setPath('mapAreaLayer.model', this.get('model'));
         if( !this.getPath('model.centerAndZoomBeingRestored')) {
-          var tBounds = this.getPath('model.dataConfiguration').getAreaBounds();
-          if ( tBounds.isValid())
-            this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          this.fitBounds();
         }
         this.get('mapAreaLayer').addFeatures();
       },
@@ -249,6 +245,21 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
 
         this.gridVisibilityChanged();
+      },
+
+      /**
+       * Cause the map to shrink or expand to encompass the data
+       */
+      fitBounds: function() {
+        var tBounds;
+        if( this.getPath('model.areaVarID')) {
+          tBounds = this.getPath('model.dataConfiguration').getAreaBounds();
+        }
+        if (this.getPath('model.hasLatLongAttributes')) {
+          tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
+        }
+        if ( tBounds.isValid())
+          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
       },
 
       gridVisibilityChanged: function() {

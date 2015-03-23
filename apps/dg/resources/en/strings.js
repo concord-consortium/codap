@@ -312,6 +312,8 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.cancelBtnTooltip' : "Dismiss the dialog without making any changes",
   'DG.GuideConfigView.httpWarning' : "The URL must start with either http:// or https://",
 
+  'DG.DataDisplayModel.rescaleToData' : "Rescale to Data",
+
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
   'DG.CellLinearAxisView.lowerPanelTooltip' : "Drag to change axis lower bound",
@@ -323,7 +325,6 @@ SC.stringsFor('English', {
   'DG.PlotModel.hideCount' : "Hide Count",
 
   // DG.DotPlotModel
-  'DG.DotPlotModel.rescaleToData' : "Rescale to Data",
   'DG.DotPlotModel.showMovableValue' : "Show Movable Value",
   'DG.DotPlotModel.hideMovableValue' : "Hide Movable Value",
   'DG.DotPlotModel.showMean' : "Show Mean",
