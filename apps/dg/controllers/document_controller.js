@@ -1336,9 +1336,7 @@ DG.DocumentController = SC.Object.extend(
             DG.logWarn('saveCurrentGameState failed: ' + reason);
             done();
           }
-        ).catch(function(reason) {
-            DG.logWarn(reason);
-          });
+        );
       }
 
       // For consistency with gamePhone case, make sure that done callback is invoked in a later
