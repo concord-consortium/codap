@@ -313,6 +313,8 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.httpWarning' : "The URL must start with either http:// or https://",
 
   'DG.DataDisplayModel.rescaleToData' : "Rescale to Data",
+  'DG.DataDisplayModel.ShowConnectingLine' : "Show Connecting Lines",
+  'DG.DataDisplayModel.HideConnectingLine' : "Hide Connecting Lines",
 
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
@@ -339,8 +341,6 @@ SC.stringsFor('English', {
   'DG.DotPlotModel.plotValue' : "Plot Value",
 
   // DG.ScatterPlotModel
-  'DG.ScatterPlotModel.ShowConnectingLine' : "Show Connecting Lines",
-  'DG.ScatterPlotModel.HideConnectingLine' : "Hide Connecting Lines",
   'DG.ScatterPlotModel.UnlockIntercept' : "Unlock Intercept",
   'DG.ScatterPlotModel.LockIntercept' : "Lock Intercept at Zero",
 

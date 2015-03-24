@@ -47,9 +47,27 @@ DG.MapModel = DG.DataDisplayModel.extend(
     pointsShouldBeVisible: null,
 
     /**
+     * Reflects (and determines) whether the points are to be connected by lines
+     * {@property Boolean}
+     */
+    linesShouldBeVisible: false,
+
+    /**
      * {@property DG.MapGridModel}
      */
     gridModel: null,
+
+    _connectingLineModel: null,
+
+    connectingLineModel: function() {
+      if( !this._connectingLineModel) {
+        this._connectingLineModel = DG.ConnectingLineModel.create( {
+          plotModel: this.get('dataConfiguration'),
+          sortOnXValues: false
+        });
+      }
+      return this._connectingLineModel;
+    }.property(),
 
     /**
      * Set to true during restore as flag to use to know whether to fit bounds or not
@@ -196,6 +214,14 @@ DG.MapModel = DG.DataDisplayModel.extend(
         DG.logUser('mapAction: {mapAction: %@}', (this.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
       }.bind(this);
 
+      var hideShowLines = function() {
+        var tLinesVisible = this.get('linesShouldBeVisible');
+        this.set('linesShouldBeVisible', !tLinesVisible);
+        this.setPath('connectingLineModel.isVisible', !tLinesVisible);
+        DG.dirtyCurrentDocument();
+        DG.logUser('mapAction: {mapAction: %@}', (this.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
+      }.bind(this);
+
       if( this.get('hasLatLongAttributes')) {
         var tHideShowGridTitle = this.getPath('gridModel.visible') ?
                 'DG.MapView.hideGrid'.loc() : 'DG.MapView.showGrid'.loc(),
@@ -204,8 +230,16 @@ DG.MapModel = DG.DataDisplayModel.extend(
         tMenuItems = tMenuItems.concat( [
                       { title: tHideShowGridTitle, isEnabled: true, target: this, itemAction: hideShowGrid },
                       { title: tHideShowPointsTitle, isEnabled: true, target: this, itemAction: hideShowPoints }
-                    ]).
-            concat( [{ isSeparator: YES }]).
+                    ]);
+        if( this.get('pointsShouldBeVisible')) {
+          var tHideShowLinesTitle = (this.get('linesShouldBeVisible') ?
+              'DG.DataDisplayModel.HideConnectingLine' :
+              'DG.DataDisplayModel.ShowConnectingLine').loc();
+          tMenuItems = tMenuItems.concat( [{ isSeparator: YES },
+            { title: tHideShowLinesTitle, isEnabled: true, target: this, itemAction: hideShowLines }]);
+        }
+
+        tMenuItems = tMenuItems.concat( [{ isSeparator: YES }]).
             concat( this.createHideShowSelectionMenuItems());
       };
 
@@ -220,6 +254,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tPointsVisible = this.get('pointsShouldBeVisible');
       if( tPointsVisible !== null)
         tStorage.pointsShouldBeVisible = tPointsVisible;
+      tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible')
       tStorage.grid = this.get('gridModel').createStorage();
 
       return tStorage;
@@ -240,6 +275,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
         this.set('centerAndZoomBeingRestored', true);
         if( iStorage.mapModelStorage.pointsShouldBeVisible !== null)
           this.set('pointsShouldBeVisible', iStorage.mapModelStorage.pointsShouldBeVisible);
+        if( iStorage.mapModelStorage.linesShouldBeVisible !== null)
+          this.set('linesShouldBeVisible', iStorage.mapModelStorage.linesShouldBeVisible);
         this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
       }
     }

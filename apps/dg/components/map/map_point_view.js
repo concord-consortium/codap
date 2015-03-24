@@ -67,6 +67,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
     var ln = DG.LayerNames;
     this.get('layerManager').addNamedLayer( ln.kBackground )
+                  .addNamedLayer( ln.kConnectingLines )
                   .addNamedLayer( ln.kPoints )
                   .addNamedLayer( ln.kSelectedPoints )
                   .addNamedLayer( ln.kAdornments )
