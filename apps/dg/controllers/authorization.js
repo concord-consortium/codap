@@ -109,8 +109,7 @@ return {
       this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
         function(body) {
           this.receiveLoginSuccess(body);
-        }.bind(this))
-      .catch(
+        }.bind(this),
         function(errorCode) {
           this.receiveLoginFailure(errorCode);
         }.bind(this)
@@ -129,8 +128,7 @@ return {
       this.get('storageInterface').logout({username: iUser, sessiontoken: iSessionID}).then(
         function(body) {
           // Don't bother doing anything
-        })
-      .catch(
+        },
         function(errorCode) {
           // Don't bother doing anything
         }
@@ -249,8 +247,7 @@ return {
     return this.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
       function(body) {
         return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
-      })
-    .catch(
+      },
       function(errorCode) {
         return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
       }
@@ -278,8 +275,7 @@ return {
     return this.get('storageInterface').save(opts).then(
       function(body) {
         return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
-      })
-    .catch(
+      },
       function(errorCode) {
         return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
       }
@@ -299,8 +295,7 @@ return {
     this.get('storageInterface').delete({id: iDocumentId}).then(
       function(body) {
         iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedDeleteDocumentFailure.call(iReceiver, errorCode);
       }
@@ -311,8 +306,7 @@ return {
     this.get('storageInterface').list().then(
       function(body) {
         iReceiver.receivedDocumentListSuccess.call(iReceiver, body);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedDocumentListFailure.call(iReceiver, errorCode);
       }
@@ -330,8 +324,7 @@ return {
     this.get('storageInterface').open({id: iDocumentId}).then(
       function(body) {
         iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
@@ -342,8 +335,7 @@ return {
     this.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
       function(body) {
         iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
@@ -357,8 +349,7 @@ return {
       return this.get('storageInterface').open({id: id}).then(
         function(body) {
           DG.ExternalDocumentCache.cache(id, body);
-        })
-      .catch(
+        },
         function(errorCode) {
           DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
         }
@@ -378,8 +369,7 @@ return {
     this.get('storageInterface').revert(DG.currDocumentController().get('externalDocumentId')).then(
       function(body) {
         iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
       }
@@ -390,8 +380,7 @@ return {
     this.get('storageInterface').rename({id: DG.currDocumentController().get('externalDocumentId'), newName: iNewName}).then(
       function(body) {
         iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
-      })
-    .catch(
+      },
       function(errorCode) {
         iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
       }
