@@ -95,8 +95,8 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
             target: this,
-            action: 'openDocument',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled'
+            action: 'closeCurrentDocument',
+            isEnabled: YES
           },
           {
             localize: true,
@@ -126,6 +126,11 @@ DG.appController = SC.Object.create((function () // closure
           { isSeparator: YES },
           {
             localize: true,
+            title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
+            target: this,
+            action: 'importData' },
+          {
+            localize: true,
             title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
             target: this,
             action: 'exportCaseData' }
@@ -142,11 +147,6 @@ DG.appController = SC.Object.create((function () // closure
         ],
         devItems = [
           { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.importDocument', // "Import JSON Document..."
-            target: this,
-            action: 'importDocument' },
           {
             localize: true,
             title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
@@ -311,7 +311,7 @@ DG.appController = SC.Object.create((function () // closure
     /**
      openDocument callback function after the document content has been loaded.
      */
-    receivedOpenDocumentResponse: function (iResponse) {
+    receivedOpenDocumentResponse: function (iResponse, expectDocumentId) {
       var shouldShowAlert = true,
         alertDescription = 'DG.AppController.openDocument.error.general',
         openDeferred,
@@ -322,6 +322,10 @@ DG.appController = SC.Object.create((function () // closure
         bodyMayBeJSON = (body && (body[0]!== '<')); // some servers may return
                                                     // an error page without
                                                     // setting error status
+
+      if (expectDocumentId === false) {
+        shouldShowAlert = false;
+      }
 
       DG.log('Document content-type: ' + contentType);
 
@@ -916,6 +920,36 @@ DG.appController = SC.Object.create((function () // closure
       }
       if( iDialog)
         iDialog.close();
+    },
+
+    /**
+     Handler for the Import Data... menu command.
+     Puts up a dialog with which the user can specify a file to be imported.
+     */
+    importData: function () {
+      var tDialog;
+
+      var importFileFromDialog = function () {
+        var v = tDialog.get('value');
+        this.importFileWithConfirmation( v[0], 'TEXT', tDialog);
+      }.bind(this);
+
+      var resetAlert = function () {
+        if (tDialog) {
+          tDialog.hideAlert();
+        }
+      }.bind(this);
+
+      tDialog = DG.CreateFileImportDialog({
+        prompt: 'DG.AppController.importData.prompt',
+        alert: 'DG.AppController.importData.alert',
+        textValue: '',
+        textAction: resetAlert,
+        okTarget: null,
+        okAction: importFileFromDialog,
+        okTitle: 'DG.AppController.importData.okTitle',
+        okTooltip: 'DG.AppController.importData.okTooltip'
+      });
     },
 
     /**

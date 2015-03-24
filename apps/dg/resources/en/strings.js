@@ -31,6 +31,24 @@ SC.stringsFor('English', {
                                             "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
                                             "DG is not actively supported on other browsers at this time.",
 
+  // DG.UserEntryDialog
+  'DG.UserEntryDialog.welcome'                 : 'Welcome to CODAP',
+  'DG.UserEntryDialog.welcome2'                : 'What would you like to do?',
+  'DG.UserEntryDialog.openNew.option'          : 'Start a New Document...',
+  'DG.UserEntryDialog.openNew.prompt'          : 'Please provide a title for your new document:',
+  'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
+  'DG.UserEntryDialog.openNew.button'          : 'OK',
+  'DG.UserEntryDialog.openNew.buttonTooltip'   : 'Create a new document with the specified title',
+  'DG.UserEntryDialog.openFile.option'         : 'Open a Local File...',
+  'DG.UserEntryDialog.openFile.prompt'         : 'Select a document to open:',
+  'DG.UserEntryDialog.openFile.button'         : 'Open',
+  'DG.UserEntryDialog.openFile.buttonTooltip'  : 'Open the specified document',
+  'DG.UserEntryDialog.documentServer.option'   : 'Browse the CODAP Cloud...',
+  'DG.UserEntryDialog.openExample.option'      : 'Example Documents',
+  'DG.UserEntryDialog.openExample.prompt'      : 'Choose an example to open:',
+  'DG.UserEntryDialog.openExample.okTitle'     : 'Open',
+  'DG.UserEntryDialog.openExample.okTooltip'   : 'Open the specified example',
+
   // DG.Authorization
   'DG.Authorization.guestUserName'            : "guest",
   'DG.Authorization.guestPassword'            : "",
@@ -81,6 +99,7 @@ SC.stringsFor('English', {
   'DG.AppController.fileMenuItems.copyDocument' : "Make a Copy...",
   'DG.AppController.fileMenuItems.documentManager' : "Manage Documents...",
   'DG.AppController.fileMenuItems.closeDocument' : "Close Document...",
+  'DG.AppController.fileMenuItems.importData' : "Import Data...",
   'DG.AppController.fileMenuItems.importDocument' : "Import CODAP Document...",
   'DG.AppController.fileMenuItems.exportDocument' : "Export CODAP Document...",
   'DG.AppController.fileMenuItems.exportCaseData' : "Export Case Data...",
@@ -138,6 +157,10 @@ SC.stringsFor('English', {
   'DG.AppController.importDocument.alert' : "Alert: The specified file is not a CODAP document.",
   'DG.AppController.importDocument.okTitle' : "Import",
   'DG.AppController.importDocument.okTooltip' : "Import the specified CODAP document",
+  'DG.AppController.importData.prompt' : "Select a data file to import:",
+  'DG.AppController.importData.alert' : "Alert: The specified file is not a data file.",
+  'DG.AppController.importData.okTitle' : "Import",
+  'DG.AppController.importData.okTooltip' : "Import the specified data",
   'DG.AppController.exportDocument.prompt' : "Filename:",
   'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
   'DG.AppController.exportCaseData.okTitle' : "Done",
@@ -187,6 +210,7 @@ SC.stringsFor('English', {
   'DG.OpenSaveDialog.documentPermissions.toolTip' : "Allow other users to access this document?",
   'DG.OpenSaveDialog.loading' : "Loading document list...",
   'DG.OpenSaveDialog.noDocuments' : "No documents found",
+  'DG.OpenSaveDialog.noExamples' : "No examples found",
   'DG.OpenSaveDialog.error.noResponse' : "Error retrieving document list",
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
