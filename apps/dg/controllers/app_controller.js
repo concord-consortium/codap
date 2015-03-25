@@ -153,6 +153,17 @@ DG.appController = SC.Object.create((function () // closure
             target: this,
             action: 'exportDocument' }
         ], finalItems;
+
+        if (!DG.AUTOSAVE) {
+          stdItems.splice(1, 0, {
+            localize: true,
+            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
+            target: this,
+            action: 'saveDocument',
+            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
+          );
+        }
+
         finalItems = stdItems.concat([]);
         if (DG.documentServer) {
           finalItems = finalItems.concat( docServerItems );
@@ -311,52 +322,39 @@ DG.appController = SC.Object.create((function () // closure
     /**
      openDocument callback function after the document content has been loaded.
      */
-    receivedOpenDocumentResponse: function (iResponse, expectDocumentId) {
-      var shouldShowAlert = true,
-        alertDescription = 'DG.AppController.openDocument.error.general',
-        openDeferred,
-        responseIsError = iResponse.get('isError'),
-        headers = iResponse.get('headers'),
-        body = iResponse.get('body'),
-        contentType = headers['Content-Type'],
-        bodyMayBeJSON = (body && (body[0]!== '<')); // some servers may return
-                                                    // an error page without
-                                                    // setting error status
+    receivedOpenDocumentSuccess: function (body, triggerSave) {
+      var openDeferred;
 
-      if (expectDocumentId === false) {
-        shouldShowAlert = false;
+      var docId = body.externalDocumentId;
+      delete body.externalDocumentId;
+
+      if (typeof(body) !== 'string') {
+        body = JSON.stringify(body);
       }
 
-      DG.log('Document content-type: ' + contentType);
-
-      // Currently, we must close any open document before opening another
-      if (!responseIsError && bodyMayBeJSON) {
-
-        if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
-          var docId = iResponse.headers()['Document-Id'];
-          if (docId) {
-            shouldShowAlert = false;
-            openDeferred.done(function() {
-              DG.currDocumentController().set('externalDocumentId', ''+docId);
-            });
-          }
+      if ((openDeferred = this.openJsonDocument(body, false)) !== null) {
+        if (docId) {
+          openDeferred.done(function() {
+            DG.currDocumentController().set('externalDocumentId', ''+docId);
+          });
         }
-        // If we failed to open/parse the document successfully,
-        // then we may need to create a new untitled document.
+        if (triggerSave) {
+          openDeferred.done(function() {
+            DG.dirtyCurrentDocument();
+            this.autoSaveDocument(true);
+          }.bind(this));
+        }
       }
-      if (shouldShowAlert) {
-        // Should handle errors here -- alert the user, etc.
-        DG.AlertPane.error({
-          localize: true,
-          message: alertDescription,
-          delegate: SC.Object.create({
-            alertPaneDidDismiss: function (pane, status) {
-              // Could do something more here on dismissal,
-              // e.g. create a new document if necessary
-            }
-          })
-        });
-      }
+
+      DG.busyCursor.hide();
+    },
+
+    /**
+     openDocument callback function when there was an error.
+     */
+    receivedOpenDocumentFailure: function (errorCode) {
+      DG.busyCursor.hide();
+      this.notifyStorageFailure('DG.AppController.openDocument.', errorCode);
     },
 
     /**
@@ -401,7 +399,7 @@ DG.appController = SC.Object.create((function () // closure
             // Trigger a save first thing
             this.invokeLater(function() {
               DG.dirtyCurrentDocument();
-              this.autoSaveDocument();
+              this.autoSaveDocument(true);
             }.bind(this));
           }
         }
@@ -506,7 +504,7 @@ DG.appController = SC.Object.create((function () // closure
           okAction: 'saveDocumentFromDialog'
         });
       } else {
-        this.autoSaveDocument();
+        this.autoSaveDocument(true);
       }
     },
 
@@ -523,49 +521,16 @@ DG.appController = SC.Object.create((function () // closure
       }
     },
 
-    receivedRenameDocumentResponse: function(iResponse) {
-      var shouldShowAlert = true,
-        alertDescription = null, msgKey;
-      // Currently, we must close any open document before opening another
-      if (SC.ok(iResponse) && !iResponse.get('isError')) {
-          DG.dirtyCurrentDocument();
-          this.saveDocument();
-          this.set('_originalDocumentName', null);
-          return;
-      }
+    receivedRenameDocumentSuccess: function(body) {
+      DG.dirtyCurrentDocument();
+      this.saveDocument();
+      this.set('_originalDocumentName', null);
+    },
+
+    receivedRenameDocumentFailure: function(errorCode) {
       // We got an error. Revert the rename.
       DG.currDocumentController().set('documentName', this.get('_originalDocumentName'));
-
-      try {
-        // Handle error response from server
-        msgKey = 'DG.AppController.renameDocument.' + SC.json.decode(iResponse.get('body')).message;
-      }
-      catch(error) {
-        msgKey = '';
-      }
-
-      if (msgKey.loc() === msgKey)
-        msgKey = 'DG.AppController.renameDocument.error.general';
-      // Note that we currently only support a single message rather than message & description.
-      // We could use a convention like a '\n' in the string to delineate the separate message
-      // and description without requiring the server to return two strings (for instance).
-      // We leave this as a possible future nicety for a subsequent release so as not to hold
-      // up the initial release for what is essentially a cosmetic improvement.
-      alertDescription = msgKey;
-      if (shouldShowAlert) {
-        // Should handle errors here -- alert the user, etc.
-        DG.AlertPane.error({
-          localize: true,
-          message: alertDescription,
-          delegate: SC.Object.create({
-            alertPaneDidDismiss: function (pane, status) {
-              // Could do something more here on dismissal,
-              // e.g. create a new document if necessary
-            }
-          })
-        });
-      }
-
+      this.notifyStorageFailure('DG.AppController.renameDocument.', errorCode);
     },
 
     copyDocument: function () {
@@ -621,16 +586,20 @@ DG.appController = SC.Object.create((function () // closure
     /**
      Callback function which saves the current document.
      */
-    autoSaveDocument: function () {
-      if (DG.authorizationController.get('isSaveEnabled')) {
+    autoSaveDocument: function (forceSave) {
+      if ((forceSave === true || DG.AUTOSAVE === true) && DG.authorizationController.get('isSaveEnabled')) {
         var docName = DG.currDocumentController().get('documentName'),
           documentPermissions = DG.currDocumentController().get('documentPermissions');
 
         if (!SC.empty(docName)
-          && docName !== SC.String.loc('DG.Document.defaultDocumentName')
-          && DG.currDocumentController().get('hasUnsavedChanges')) {
-          DG.currDocumentController().saveDocument(docName, documentPermissions);
-          DG.logInfo("autoSaveDocument: '%@'", docName);
+          && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
+          if (DG.currDocumentController().get('hasUnsavedChanges')) {
+            DG.currDocumentController().saveDocument(docName, documentPermissions);
+            var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
+            DG.logInfo(msg, docName);
+          } else {
+            this.triggerSaveNotification();
+          }
         }
       }
     },
@@ -669,12 +638,14 @@ DG.appController = SC.Object.create((function () // closure
     logout: function () {
 
       var logoutAfterConfirmation = function () {
-        // Close the current document
-        this.closeDocument();
+        // Clear the current document if we're not a guest.
+        if (DG.authorizationController.getPath('currLogin.user') !== 'guest') {
+          // Close the current document
+          this.closeDocument();
 
-        // Create a new empty document
-        DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
-
+          // Create a new empty document
+          DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
+        }
         // Log out, bringing up the login dialog
         DG.authorizationController.logout();
       }.bind(this);
@@ -1092,7 +1063,7 @@ DG.appController = SC.Object.create((function () // closure
             action: function() {
               DG.dirtyCurrentDocument();
               this.invokeNext(function() {
-                DG.appController.autoSaveDocument();
+                DG.appController.autoSaveDocument(true);
               });
             }
           }),
@@ -1341,12 +1312,29 @@ DG.appController = SC.Object.create((function () // closure
 
     },
 
+    notifyStorageFailure: function(messageBase, errorCode, resolve) {
+        if (errorCode === 'error.sessionExpired') {
+          DG.authorizationController.sessionTimeoutPrompt(resolve);
+        } else {
+          var errorMessage = messageBase + errorCode;
+          if (errorMessage.loc() === errorMessage)
+            errorMessage = messageBase + 'error.general';
+          DG.AlertPane.error({
+            localize: true,
+            message: errorMessage,
+            buttons: [
+              {title: "OK", action: function() { if (!SC.none(resolve)) { resolve(false); } } }
+            ]
+          });
+        }
+    },
+
     /**
      Update the url in the browser bar to reflect the latest document information
      */
     updateUrlBar: function() {
-      if (DG.authorizationController.getPath('currLogin.status') === 0) {
-        // we haven't logged in yet, so leave the url alone
+      if (DG.authorizationController.getPath('currLogin.status') === 0 || !DG.authorizationController.get('isSaveEnabled')) {
+        // we haven't logged in yet or we can't save, so leave the url alone
         return;
       }
       var currentParams = $.deparam.querystring(),
@@ -1361,11 +1349,9 @@ DG.appController = SC.Object.create((function () // closure
         currentParams.recordid = recordid;
       } else {
         delete currentParams.recordid;
-        if (docName === SC.String.loc('DG.Document.defaultDocumentName')) {
-          //  We're still on a brand-new document, so we don't need to put any info into the url yet.
-          delete currentParams.doc;
-          delete currentParams.owner;
-        } else {
+        delete currentParams.doc;
+        delete currentParams.owner;
+        if (docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
           if (currUser !== 'guest') {
             currentParams.owner = currUser;
           }

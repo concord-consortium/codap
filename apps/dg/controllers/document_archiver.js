@@ -37,9 +37,9 @@ DG.DocumentArchiver = SC.Object.extend(
   openDocument: function( iStore, iDocText) {
     var deferred = $.Deferred(),
     externalDocIds = DG.StringUtilities.scan(iDocText, /"externalDocumentId": ?"?(\d+)"?/g, function(m) { return m[1]; }),
-        deferreds = DG.authorizationController.loadExternalDocuments(externalDocIds);
+        promises = DG.authorizationController.loadExternalDocuments(externalDocIds);
 
-    $.when.apply($, deferreds).done(function() {
+    Promise.all(promises).then(function() {
       var docArchive = SC.json.decode( iDocText),
           dataSource = DG.ModelStore.create();
 

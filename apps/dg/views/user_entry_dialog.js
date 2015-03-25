@@ -54,6 +54,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       },
       itemTitleKey: 'title',
       itemValueKey: 'value',
+      isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled'),
       items: function() {
         var items = [
           { title: 'DG.UserEntryDialog.openNew.option'.loc(), value: 'new' },
@@ -64,7 +65,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           items.push({ title: 'DG.UserEntryDialog.documentServer.option'.loc(), value: 'cloud' });
         }
         return items;
-      }.property(),
+      }.property('isSaveEnabled'),
       value: null,
       valueChanged: function() {
         var val = this.get('value');

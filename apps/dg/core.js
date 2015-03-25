@@ -213,6 +213,14 @@ DG = SC.Application.create((function () // closure
 
     FORCE_SPLIT_DOCUMENT: true,
 
+    AUTOSAVE: (function() {
+      var runKey = getUrlParameter('runKey');
+      if (!SC.none(runKey) && runKey.length > 0) {
+        return true;
+      }
+      return false;
+    })(),
+
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
      * key if this is an SRRI build (also expected to be in in strings.js).

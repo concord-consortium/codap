@@ -18,8 +18,8 @@
 
 sc_require('models/authorization_model');
 
-/* globals pako */
-sc_require('libraries/pako-deflate');
+sc_require('utilities/storage/default_storage');
+sc_require('utilities/storage/document_server_storage');
 
 /**
   Logs the specified message, along with any additional properties, to the server.
@@ -48,13 +48,6 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
   @extends SC.Object
 */
 DG.authorizationController = SC.Controller.create( (function() {
-  var serverUrl = function(iRelativeUrl) {
-    if (iRelativeUrl.match('://')) {
-      return iRelativeUrl;
-    } else {
-    return '/DataGames/api/' + iRelativeUrl;
-    }
-  };
 
 return {
 /** @scope DG.authorizationController.prototype */
@@ -83,26 +76,12 @@ return {
     this.set('currLogin', DG.Authorization.create({}));
 
     if (DG.documentServer) {
+      this.set('storageInterface', DG.DocumentServerStorage.create());
       this.loadLoginFromDocumentServer();
     } else if( DG.Browser.isCompatibleBrowser()) {
+      this.set('storageInterface', DG.DefaultStorage.create());
       this.loadLoginCookie();
     }
-  },
-
-  urlForGetRequests: function(iUrl) {
-    return SC.Request.getUrl(iUrl);
-  },
-
-  urlForPostRequests: function(iUrl) {
-    return SC.Request.postUrl(iUrl);
-  },
-
-  urlForJSONPostRequests: function(iUrl) {
-    return this.urlForPostRequests(iUrl).json();
-  },
-
-  urlForJSONGetRequests: function(iUrl) {
-    return this.urlForGetRequests(iUrl).json();
   },
 
   sendLoginAsGuestRequest: function() {
@@ -123,39 +102,19 @@ return {
       // Set the user so we can update the UI while waiting for a server response
       this.setPath('currLogin.user', iUser);
       this.setPath('currLogin.failedLoginAttempt', false);
-      var body = { username: iUser, password: iPassword, sessiontoken: iSessionID };
       if (iSessionID) {
         this.get('currLogin').set('sessionID', iSessionID);
       }
-      if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
-          .notify(this, 'receiveLoginResponse')
-          .send({});
-      } else {
-        this.urlForJSONPostRequests(serverUrl('auth/login'))
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
-      }
-    }
-  },
 
-  /**
-   * Send a request to obtain a token to be used instead of
-   * re-authenticating again for each further request before logging out.
-   */
-  sendTokenRequest: function( iUser, iPhrase, iPass ) {
-      this.setPath('currLogin.user', iUser);
-      var body = { username: iUser, phrase: iPhrase, pass: iPass};
-      //response from server is same as with login requests
-      if (DG.documentServer) {
-        this.urlForJSONGetRequests(DG.documentServer + 'user/info' + (DG.runKey ? '?runKey=%@'.fmt(DG.runKey) : '') )
-          .notify(this, 'receiveLoginResponse')
-          .send({});
-      } else {
-        this.urlForJSONPostRequests(serverUrl('auth/login'))
-        .notify(this, 'receiveLoginResponse')
-        .send(body);
-      }
+      this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
+        function(body) {
+          this.receiveLoginSuccess(body);
+        }.bind(this),
+        function(errorCode) {
+          this.receiveLoginFailure(errorCode);
+        }.bind(this)
+      );
+    }
   },
 
   /**
@@ -166,9 +125,14 @@ return {
    */
   sendLogoutRequest: function( iUser, iSessionID ) {
     if (!SC.empty( iUser )) {
-      var body = { username: iUser, sessiontoken: iSessionID };
-      this.urlForJSONPostRequests(serverUrl('auth/logout'))
-        .send(body);
+      this.get('storageInterface').logout({username: iUser, sessiontoken: iSessionID}).then(
+        function(body) {
+          // Don't bother doing anything
+        },
+        function(errorCode) {
+          // Don't bother doing anything
+        }
+      );
     }
   },
 
@@ -269,39 +233,6 @@ return {
   },
 
   /**
-    Return the "path" of the document, which we conceive as analogous to a unix "/" delimited path,
-    except we'll use a ':', since "/" is overloaded with meaning in a url context (even when escaped).
-    We'll return an absolute path, prefixing relative paths with the username - this will help
-    ensure uniqueness of the path, so that it can be used as an id. Note that the "path" interpretation
-    is not known to the server - to the server, this is just used as a unique Id.
-
-    @private
-    @param iDocumentId{String} A string to use as the document id.
-  */
-  _documentPath: function(iDocumentId) {
-    var path = iDocumentId;
-
-    // Prefix non-relative paths with user name.
-    if( !/^:/.test( path))
-      path = ':' + this.getPath('currLogin.user') + ':' + iDocumentId;
-
-    return path;
-  },
-
-  /**
-    Url for server get / save document
-    @private
-    @param iDocumentId{String} A string to use as the document id.
-  */
-  _documentUrl : function(iDocumentId) {
-    var url = serverUrl('document');
-    url += '/' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    url += '/' + encodeURIComponent(this._documentPath(iDocumentId));
-
-    return url;
-  },
-
-  /**
     Saves the specified document object to the server.
 
     @param    iDocumentId       The ID of the document object
@@ -313,75 +244,42 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    var url = DG.documentServer + 'document/save?username=%@&sessiontoken=%@&recordname=%@'.fmt(
-                  this.getPath('currLogin.user'), this.getPath('currLogin.sessionID'), iDocumentId),
-        deferred = $.Deferred();
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    if (DG.USE_COMPRESSION) {
-      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Encoding', 'deflate')
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
-        .timeoutAfter(60000)
-        .send(compressedDocumentArchive);
-    } else {
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveDocumentResponse', deferred, isCopying)
-        .timeoutAfter(60000)
-        .send(JSON.stringify(iDocumentArchive));
-    }
-
-    return deferred;
+    return this.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
+      function(body) {
+        return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
+      },
+      function(errorCode) {
+        return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
+      }
+    );
   },
 
   saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
-    var url,
+    var opts = {content: iDocumentArchive},
         externalDocumentId = contextModel.get('externalDocumentId'),
-        parentDocumentId = DG.currDocumentController().get('externalDocumentId'),
-        deferred = $.Deferred();
+        parentDocumentId = DG.currDocumentController().get('externalDocumentId');
 
     if (!isCopying && !SC.none(externalDocumentId)) {
+      opts.id = externalDocumentId;
       if (isDifferential) {
-        url = DG.documentServer + 'document/patch?recordid=%@'.fmt(externalDocumentId);
-      } else {
-        url = DG.documentServer + 'document/save?recordid=%@'.fmt(externalDocumentId);
+        opts.differential = true;
       }
     } else {
-      url = DG.documentServer + 'document/save?recordname=%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+      opts.name = '%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
     }
 
     if (!SC.none(parentDocumentId)) {
-      url += '&parentDocumentId=%@'.fmt(parentDocumentId);
+      opts.params = {parentDocumentId: parentDocumentId};
     }
 
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-
-    if (DG.USE_COMPRESSION) {
-      var compressedDocumentArchive = pako.deflate(JSON.stringify(iDocumentArchive));
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Encoding', 'deflate')
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
-        .timeoutAfter(60000)
-        .send(compressedDocumentArchive);
-    } else {
-      this.urlForPostRequests( serverUrl(url) )
-        .header('Content-Type', 'application/x-codap-document')
-        .notify(iReceiver, 'receivedSaveExternalDataContextResponse', deferred, isCopying, contextModel)
-        .timeoutAfter(60000)
-        .send(JSON.stringify(iDocumentArchive));
-    }
-
-    return deferred;
+    return this.get('storageInterface').save(opts).then(
+      function(body) {
+        return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
+      },
+      function(errorCode) {
+        return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
+      }
+    );
   },
 
   /**
@@ -394,149 +292,99 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   deleteDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/delete?recordid=%@'.fmt( iDocumentId );
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests( serverUrl(url) )
-      .notify(iReceiver, 'receivedDeleteDocumentResponse')
-      .send();
+    this.get('storageInterface').deleteDoc({id: iDocumentId}).then(
+      function(body) {
+        iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
+      },
+      function(errorCode) {
+        iReceiver.receivedDeleteDocumentFailure.call(iReceiver, errorCode);
+      }
+    );
   },
 
   documentList: function(iReceiver) {
-    var url = DG.documentServer + 'document/all';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + encodeURIComponent(this.getPath('currLogin.sessionID'));
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-    this.urlForGetRequests( serverUrl(url))
-      .notify(iReceiver, 'receivedDocumentListResponse')
-      .send();
+    this.get('storageInterface').list().then(
+      function(body) {
+        iReceiver.receivedDocumentListSuccess.call(iReceiver, body);
+      },
+      function(errorCode) {
+        iReceiver.receivedDocumentListFailure.call(iReceiver, errorCode);
+      }
+    );
   },
 
   exampleList: function(iReceiver) {
     var url = 'https://codap-resources.concord.org/examples/index.json';
-    this.urlForGetRequests( url )
+    SC.Request.getUrl( url )
       .notify(iReceiver, 'receivedExampleListResponse')
       .send();
   },
 
   openDocument: function(iDocumentId, iReceiver) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordid=' + iDocumentId;
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
-      .send();
+    this.get('storageInterface').open({id: iDocumentId}).then(
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
+      },
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
+      }
+    );
   },
+
   openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
-    var url = DG.documentServer + 'document/open';
-    url += '?username=' + this.getPath('currLogin.user');
-    url += '&sessiontoken=' + this.getPath('currLogin.sessionID');
-    url += '&recordname=' + iDocumentName;
-    url += '&owner=' + iDocumentOwner;
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
-      .send();
+    this.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
+      },
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
+      }
+    );
   },
 
   loadExternalDocuments: function(iDocumentIds) {
-    var deferreds = [],
-        baseUrl = DG.documentServer + 'document/open'
-          + '?username=' + this.getPath('currLogin.user')
-          + '&sessiontoken=' + this.getPath('currLogin.sessionID'),
-        i, len;
-
-    if (DG.runKey) {
-      baseUrl += '&runKey=%@'.fmt(DG.runKey);
-    }
+    var promises = [], i, len;
 
     var sendRequest = function(id) {
-      var url = baseUrl + '&recordid=' + iDocumentIds[i],
-          deferred = $.Deferred();
-
-      this.urlForGetRequests(serverUrl(url))
-        .json(YES)
-        .notify(null, function(response) { this.receivedLoadExternalDocumentResponse(id, response); }.bind(this))
-        .notify(null, function() { deferred.resolve(); })
-        .send();
-
-      return deferred;
+      return this.get('storageInterface').open({id: id}).then(
+        function(body) {
+          DG.ExternalDocumentCache.cache(id, body);
+        },
+        function(errorCode) {
+          DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
+        }
+      );
     }.bind(this);
 
     for (i = 0, len = iDocumentIds.length; i < len; i++) {
-      deferreds.push(sendRequest(iDocumentIds[i]));
+      promises.push(sendRequest(iDocumentIds[i]));
     }
 
-    return deferreds;
-  },
-
-  receivedLoadExternalDocumentResponse: function(id, response) {
-    // FIXME What should we do on failure?
-    if (SC.ok(response)) {
-      var body = response.get('body');
-      var docId = response.headers()['Document-Id'];
-      if (docId) {
-        // make sure we always have the most up-to-date externalDocumentId,
-        // since the document server can change it for permissions reasons.
-        body.externalDocumentId = ''+docId;
-      }
-      DG.ExternalDocumentCache.cache(id, body);
-    } else {
-      DG.logError('openDocumentFailed:' + JSON.stringify({id: id, status: response.status, body: response.body, address: response.address}) );
-    }
+    return promises;
   },
 
   revertCurrentDocument: function(iReceiver) {
     if (!DG.currDocumentController().get('canBeReverted')) { return; }
 
-    var url = DG.documentServer + 'document/open';
-    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
-    url += '&original=true';
-
-    if (this.getPath('currLogin.user') !== 'guest') {
-      url += '&owner=' + this.getPath('currLogin.user');
-    }
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedOpenDocumentResponse')
-      .send();
+    this.get('storageInterface').revert(DG.currDocumentController().get('externalDocumentId')).then(
+      function(body) {
+        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
+      },
+      function(errorCode) {
+        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
+      }
+    );
   },
 
   renameDocument: function(iOriginalName, iNewName, iReceiver) {
-    var url = DG.documentServer + 'document/rename';
-    url += '?recordid=' + DG.currDocumentController().get('externalDocumentId');
-    url += '&newRecordname=' + iNewName;
-
-    if (this.getPath('currLogin.user') !== 'guest') {
-      url += '&owner=' + this.getPath('currLogin.user');
-    }
-
-    if (DG.runKey) {
-      url += '&runKey=%@'.fmt(DG.runKey);
-    }
-
-    this.urlForGetRequests(serverUrl(url))
-      .notify(iReceiver, 'receivedRenameDocumentResponse')
-      .send();
+    this.get('storageInterface').rename({id: DG.currDocumentController().get('externalDocumentId'), newName: iNewName}).then(
+      function(body) {
+        iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
+      },
+      function(errorCode) {
+        iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
+      }
+    );
   },
 
   /**
@@ -602,7 +450,7 @@ return {
     }
   },
 
-  sessionTimeoutPrompt: function(deferred) {
+  sessionTimeoutPrompt: function(resolve) {
     DG.AlertPane.error({
       localize: true,
       message: 'DG.Authorization.sessionExpired.message',
@@ -619,7 +467,7 @@ return {
           localize: true,
           title: 'DG.Authorization.sessionExpired.ignoreButtonText',
           toolTip: 'DG.Authorization.sessionExpired.ignoreButtonTooltip',
-          action: function() { if(deferred) { deferred.resolve(false); } },
+          action: function() { if(resolve) { resolve(false); } },
           isCancel: true
         },
       ]
@@ -627,34 +475,21 @@ return {
   },
 
   logInViaDocumentServer: function() {
-    window.location = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
+    this.get('storageInterface').promptLogin();
   },
 
-  receiveLoginResponse: function(iResponse) {
-    var currLogin = this.get('currLogin'),
-        status, body;
-    if (SC.ok(iResponse)) {
-      status = iResponse.get('status');
-      body = iResponse.get('body');
-      return this.logIn(body, status);
-    } else {
-
-      // if the server gets a 500 error(server script error),
-      // then there will be no message return
-      var errorCode = (body && body.message) || "";
-      if (DG.documentServer && iResponse.get('status') === 401) {
-        if (DG.runAsGuest) {
-          return DG.authorizationController.sendLoginAsGuestRequest();
-        } else {
-          errorCode = 'error.notLoggedIn';
-        }
-      }
-      // If we get here, then we didn't log in successfully.
-      currLogin
-        .clear()
-        .set('errorCode', errorCode)
-        .set('failedLoginAttempt', true);
+  receiveLoginSuccess: function(body) {
+    if (SC.none(body.skipLogin)) {
+      this.logIn(body, 200);
     }
+  },
+
+  receiveLoginFailure: function(errorCode) {
+    var currLogin = this.get('currLogin');
+    currLogin
+      .clear()
+      .set('errorCode', errorCode)
+      .set('failedLoginAttempt', true);
   },
 
   /**
@@ -723,12 +558,6 @@ return {
   },
 
   requireLogin : function() {
-
-    var kVSpace = 2;
-    var top = 0;
-    var height = 0;
-    var nextTop = function(n) { top += (height + n); return top; };
-    var lastHeight = function(n) { height = n; return height; };
     var currLogin = this.get('currLogin'),
         currEdit = this.get('currEdit'),
         isValid = currLogin && currLogin.get('isValid');
@@ -750,136 +579,7 @@ return {
       this.sendLoginRequest( pendingUser, null, pendingSession);
     }
 
-    if (DG.documentServer) {
-      this.sheetPane = SC.PanelPane.create({
-        layout: { top: 0, centerX: 0, width: 340, height: 140 },
-        contentView: SC.View.extend({
-          childViews: 'labelView loginButton loginAsGuestButton statusLabel'.w(),
-
-          labelView: SC.LabelView.design({
-            layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(54) },
-            controlSize: SC.LARGE_CONTROL_SIZE,
-            fontWeight: SC.BOLD_WEIGHT,
-            textAlign: SC.ALIGN_CENTER,
-            value: 'DG.Authorization.loginPane.dialogTitle',            // "Data Games Login"
-            localize: YES
-          }),
-
-          statusLabel: SC.LabelView.design({
-            escapeHTML: NO,
-            layout: { top: nextTop( kVSpace ), left: 0, right: 0, height: lastHeight(48) },
-            textAlign: SC.ALIGN_CENTER,
-            valueBinding: 'DG.authorizationController.currLogin.statusMsg'
-          }),
-
-          loginAsGuestButton: SC.ButtonView.design({
-            layout: { top: nextTop( kVSpace ), height: lastHeight(24), right:130, width:125 },
-            title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
-            localize: YES,
-            target: 'DG.authorizationController',
-            action: 'sendLoginAsGuestRequest',
-            isDefault: NO
-          }),
-
-          loginButton: SC.ButtonView.design({
-            layout: { top: top, height: lastHeight(24), right:20, width:100 },
-            title: 'DG.Authorization.loginPane.login',                // "Log in"
-            localize: YES,
-            target: 'DG.authorizationController',
-            action: 'logInViaDocumentServer',
-            isDefault: YES
-          })
-         })
-       });
-
-      this.sheetPane.append();
-    } else {
-    this.sheetPane = SC.PanelPane.create({
-
-      layout: { top: 0, centerX: 0, width: 340, height: 200 },
-      contentView: SC.View.extend({
-        childViews: 'labelView userLabel userText passwordLabel passwordText loginAsGuestButton loginButton statusLabel registerLink recoveryLink'.w(),
-
-        labelView: SC.LabelView.design({
-          layout: { top: nextTop(0), left: 0, right: 0, height: lastHeight(24) },
-          controlSize: SC.LARGE_CONTROL_SIZE,
-          fontWeight: SC.BOLD_WEIGHT,
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.Authorization.loginPane.dialogTitle',            // "CODAP Login"
-          localize: YES
-        }),
-
-        userLabel: SC.LabelView.design({
-          layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18)},
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.Authorization.loginPane.userLabel',              // "User"
-          localize: YES
-        }),
-
-        userText: SC.TextFieldView.design({
-          layout: { top: nextTop(kVSpace), centerX: 0, width: 200, height: lastHeight(20) },
-          autoCorrect: false,
-          autoCapitalize: false,
-          valueBinding: "DG.authorizationController.currEdit.user"
-        }),
-
-        passwordLabel: SC.LabelView.design({
-          layout: { top: nextTop(kVSpace), left: 0, right: 0, height: lastHeight(18) },
-          textAlign: SC.ALIGN_CENTER,
-          value: 'DG.Authorization.loginPane.passwordLabel',        // "Password"
-          localize: YES
-        }),
-
-        passwordText: SC.TextFieldView.design({
-          layout: { top: nextTop(kVSpace), centerX: 0, height: lastHeight(20), width: 200 },
-          type: 'password',
-          autoCorrect: false,
-          autoCapitalize: false,
-          valueBinding: "DG.authorizationController.currEdit.passwd"
-        }),
-
-        loginAsGuestButton: SC.ButtonView.design({
-          layout: { top: nextTop(6*kVSpace), height: lastHeight(24), left:20, width:125 },
-          title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
-          localize: YES,
-          target: 'DG.authorizationController',
-          action: 'sendLoginAsGuestRequest',
-          isDefault: NO
-        }),
-
-        loginButton: SC.ButtonView.design({
-          layout: { top: top, height: lastHeight(24), right:20, width:100 },
-          title: 'DG.Authorization.loginPane.login',                // "Login"
-          localize: YES,
-          target: 'DG.authorizationController',
-          action: 'sendLoginRequestFromDialog',
-          isDefault: YES
-        }),
-
-        statusLabel: SC.LabelView.design({
-          escapeHTML: NO,
-          layout: { top: nextTop( kVSpace), left: 0, right: 0, height: lastHeight(18) },
-          textAlign: SC.ALIGN_CENTER,
-          valueBinding: 'DG.authorizationController.currLogin.statusMsg'
-        }),
-
-        registerLink: SC.StaticContentView.design({
-          layout: { top: nextTop(kVSpace), left: 20, height: 18},
-          textAlign: SC.ALIGN_CENTER,
-          content: DG.getVariantString('DG.Authorization.loginPane.registerLink').loc( DG.getDrupalSubdomain()+this.getLoginCookieDomain())
-        }),
-
-        recoveryLink: SC.StaticContentView.design({
-          layout: { top: 148, left: 200, height: 18},
-          textAlign: SC.ALIGN_CENTER,
-          content: DG.getVariantString('DG.Authorization.loginPane.recoveryLink').loc( DG.getDrupalSubdomain()+this.getLoginCookieDomain())
-        })
-       })
-     });
-
-    this.sheetPane.append();
-    this.sheetPane.contentView.userText.becomeFirstResponder();
-    }
+    this.sheetPane = this.get('storageInterface').promptLogin();
   },
 
   _loginSessionDidChange: function() {
