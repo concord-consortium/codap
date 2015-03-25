@@ -191,7 +191,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0288',
+    BUILD_NUM: '0291',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -212,6 +212,14 @@ DG = SC.Application.create((function () // closure
     USE_COMPRESSION: true,
 
     FORCE_SPLIT_DOCUMENT: true,
+
+    AUTOSAVE: (function() {
+      var runKey = getUrlParameter('runKey');
+      if (!SC.none(runKey) && runKey.length > 0) {
+        return true;
+      }
+      return false;
+    })(),
 
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the

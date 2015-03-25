@@ -28,7 +28,7 @@ sc_require('components/graph_map_common/data_display_controller');
   @extends SC.DataDisplayController
 */
 DG.GraphController = DG.DataDisplayController.extend(
-/** @scope DG.GraphController.prototype */ 
+/** @scope DG.GraphController.prototype */
   (function() {
 
     function getCollectionClientFromDragData( iContext, iDragData) {
@@ -49,7 +49,6 @@ DG.GraphController = DG.DataDisplayController.extend(
       createComponentStorage: function() {
         var storage = sc_super(),
             dataConfiguration = this.getPath('graphModel.dataConfiguration'),
-            hiddenCases = dataConfiguration && dataConfiguration.get('hiddenCases' ),
             plotModels = this.getPath('graphModel.plots');
 
         var storeAxis = function( iDim) {
@@ -75,11 +74,6 @@ DG.GraphController = DG.DataDisplayController.extend(
           plotModels.forEach( function( iPlot) {
             storage.plotModels.push({ plotModelStorage: iPlot.createStorage(),
                                       plotClass: String( iPlot.constructor) });
-          });
-        }
-        if( hiddenCases) {
-          storage.hiddenCases = hiddenCases.map( function( iCase) {
-            return iCase.get('id');
           });
         }
         return storage;

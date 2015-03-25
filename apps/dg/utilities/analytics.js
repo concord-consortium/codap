@@ -36,6 +36,7 @@ DG.Analytics.categoryForEvent = function(event) {
     case "componentCreated":
     case "closeComponent":
     case "autoSaveDocument":
+    case "saveDocument":
       return DG.Analytics.Category.DOCUMENT;
     case "initGame":
     case "backToGame":

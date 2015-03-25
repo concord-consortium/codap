@@ -25,6 +25,7 @@ DG.LineLabelMixin =
   /**
     @property { Raphael text element }
   */
+  backgrndRect:null,
   textElement: null,
 
   /**
@@ -34,6 +35,8 @@ DG.LineLabelMixin =
   */
   createTextElement: function() {
     // Put the text below the hit segments in z-order so user can still hit the line
+    this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
+        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
     this.textElement = this.get('paper').text( 0, 0, '')
       .attr({ font: 'caption', 'text-anchor': 'start', opacity: 0 });
     return this.textElement;
@@ -53,19 +56,23 @@ DG.LineLabelMixin =
         tPaper = this.get('paper'),
         tValueString = this.get('valueString'),
         tTextElement = this.get('textElement'),
+        tBackgrnd = this.get('backgrndRect'),
         tTextBox, tAlign,
-        tTextAnchor = {} ;
-    
-    tTextElement.attr( { text: tValueString } );
+        tTextAnchor = {},
+        tBackgrndAnchor = {} ;
+
     tTextBox = tTextElement.getBBox();
-    
+    tTextElement.attr( { text: tValueString } );
+
     if( tAxisView.get('orientation') === 'horizontal') {
       tAlign = tTextElement.attr('text-anchor');
       tTextAnchor.y = iFractionFromTop * tPaper.height;
+      tBackgrndAnchor.y = tTextAnchor.y - tTextBox.height / 2;
       
       // Don't change the alignment unless the current alignment no longer works
       switch( tAlign) {
         case 'start':
+          tBackgrndAnchor.x = tValueCoord;
           if( tTextBox.width + kPadding < tPaper.width - tValueCoord) {
             tTextAnchor.x = tValueCoord + kPadding;
           }
@@ -77,6 +84,7 @@ DG.LineLabelMixin =
             tTextAnchor.x = kPadding;
           break;
         case 'end':
+          tBackgrndAnchor.x = tValueCoord - tTextBox.width;
           if( tTextBox.width + kPadding < tValueCoord) {
             tTextAnchor.x = tValueCoord - kPadding;
           }
@@ -92,16 +100,20 @@ DG.LineLabelMixin =
     else {
       tTextAnchor.y = tValueCoord;
       tTextAnchor.x = tPaper.width / 2;
+      tBackgrndAnchor.x = tTextAnchor.x - tTextBox.width / 2;
       tAlign = 'middle';
       if( tTextBox.height > tValueCoord) {
         tTextAnchor.y += tTextBox.height / 2;
+        tBackgrndAnchor.y = tValueCoord;
       }
       else {
         tTextAnchor.y -= tTextBox.height / 2;
+        tBackgrndAnchor.y = tValueCoord - tTextBox.height;
       }
     }
     
     tTextElement.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign });
+    tBackgrnd.attr( { x: tBackgrndAnchor.x, y: tBackgrndAnchor.y, width: tTextBox.width, height: tTextBox.height });
   }
 
 };

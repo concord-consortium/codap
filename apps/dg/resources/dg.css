@@ -63,6 +63,7 @@
 .data-dot-selected {
     fill: red !important;
     stroke-width: 2 !important;
+    pointer-events: all;
 }
 
 /* data dot with variable fill color */
@@ -75,6 +76,7 @@
 .data-dot-colored-selected {
     stroke: black !important;
     stroke-width: 2 !important;
+    pointer-events: all;
 }
 
 .axis-dot {

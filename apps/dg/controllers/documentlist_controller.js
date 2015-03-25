@@ -31,65 +31,57 @@ DG.DocumentListController = SC.ArrayController.extend(
   loadingMessage: 'DG.OpenSaveDialog.loading',
   noDocumentsMessage: 'DG.OpenSaveDialog.noDocuments',
   noResponseMessage: 'DG.OpenSaveDialog.error.noResponse',
- 
+
   init: function() {
     sc_super();
     this.set('content', []);
-    
+
     var loadingMessage = this.get('loadingMessage').loc();
     if( !SC.empty( loadingMessage))
       this.addObject({ name: loadingMessage, id: '' });
 
     DG.authorizationController.documentList( this);
   },
-  
-  receivedDocumentListResponse: function( iResponse) {
+
+  receivedDocumentListSuccess: function( serverText) {
     //clear the loading message
     this.set('content', []);
-    if (SC.ok(iResponse)) {
-      var  serverText = iResponse.get('body'),
-           docList = [],
-           response;
-      try {
-          response = serverText && SC.json.decode(serverText);
-      } catch (err) {
-          response = {
-              'valid' : false,
-              'message' : 'error.parseError'
-          };
-      }
-      if (response.valid === false) {
-        //display the error code from the server as human readable message
-        var error = response.message;
-        this.addObject({ name: ('DG.DocumentListController.' + error).loc(), id: ''});
-      } else if (response) {
-        response.forEach( function( iDoc) {
-                              if( iDoc.id && iDoc.name)
-                                docList.push( { name: iDoc.name, id: iDoc.id });
-                            });
-        if (docList.length === 0) {
-          var noDocumentsMessage = this.get('noDocumentsMessage').loc();
-          if( !SC.empty( noDocumentsMessage)) {
 
-            this.addObject({ name: noDocumentsMessage, id: '' });
-          }
-        } else {
-          docList.sort( function( iItem1, iItem2) {
-                          var canonical1 = iItem1.name.toLowerCase(),
-                              canonical2 = iItem2.name.toLowerCase();
-                          // Sort case-insensitive first so we get A,a,B,b,C,c,...
-                          // rather than A,B,C,...,a,b,c,...
-                          return canonical1.localeCompare( canonical2) ||
-                                  iItem1.name.localeCompare( iItem2.name);
-                        });
-          this.set('content', docList);
+      var docList = [];
+      serverText.forEach( function( iDoc) {
+                            if( iDoc.id && iDoc.name)
+                              docList.push( { name: iDoc.name, id: iDoc.id });
+                          });
+      if (docList.length === 0) {
+        var noDocumentsMessage = this.get('noDocumentsMessage').loc();
+        if( !SC.empty( noDocumentsMessage)) {
+
+          this.addObject({ name: noDocumentsMessage, id: '' });
         }
+      } else {
+        docList.sort( function( iItem1, iItem2) {
+                        var canonical1 = iItem1.name.toLowerCase(),
+                            canonical2 = iItem2.name.toLowerCase();
+                        // Sort case-insensitive first so we get A,a,B,b,C,c,...
+                        // rather than A,B,C,...,a,b,c,...
+                        return canonical1.localeCompare( canonical2) ||
+                                iItem1.name.localeCompare( iItem2.name);
+                      });
+        this.set('content', docList);
       }
-    } else {
-        //Error occured most likely due to interruption of connection to server
-        var noResponseMessage = this.get('noResponseMessage').loc();
-        this.addObject({ name: noResponseMessage, id: '' });
+  },
+
+  receivedDocumentListFailure: function( errorCode) {
+    //clear the loading message
+    this.set('content', []);
+
+    var messageKey = ('DG.DocumentListController.' + errorCode),
+        message = messageKey.loc();
+    if ( message === messageKey) {
+      //Error occured most likely due to interruption of connection to server
+      message = this.get('noResponseMessage').loc();
     }
+    this.addObject({ name: message, id: '' });
   }
 
 }) ;

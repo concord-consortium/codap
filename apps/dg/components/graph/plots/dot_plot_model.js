@@ -226,7 +226,7 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
    * @return {Array of menu items}
    */
   getGearMenuItems: function() {
-    var tRescaleItem = 'DG.DotPlotModel.rescaleToData'.loc(),
+    var tRescaleItem = 'DG.DataDisplayModel.rescaleToData'.loc(),
         tMovableValueItem = (this.isAdornmentVisible('movableValue') ?
             'DG.DotPlotModel.hideMovableValue' :
             'DG.DotPlotModel.showMovableValue').loc(),

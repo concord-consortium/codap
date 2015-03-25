@@ -178,7 +178,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      @return {Array of menu items}
      */
     getGearMenuItems: function() {
-      var tMenuItems;
+      var tMenuItems = [];
 
       var hideShowGrid = function() {
         var tGrid = this.get('gridModel');
@@ -201,15 +201,13 @@ DG.MapModel = DG.DataDisplayModel.extend(
                 'DG.MapView.hideGrid'.loc() : 'DG.MapView.showGrid'.loc(),
             tHideShowPointsTitle = (this.get('pointsShouldBeVisible') !== false) ? 'DG.MapView.hidePoints'.loc() :
                 'DG.MapView.showPoints'.loc();
-        tMenuItems = [
+        tMenuItems = tMenuItems.concat( [
                       { title: tHideShowGridTitle, isEnabled: true, target: this, itemAction: hideShowGrid },
                       { title: tHideShowPointsTitle, isEnabled: true, target: this, itemAction: hideShowPoints }
-                    ].
+                    ]).
             concat( [{ isSeparator: YES }]).
             concat( this.createHideShowSelectionMenuItems());
-      }
-      else
-        tMenuItems = [];
+      };
 
       return tMenuItems;
     },

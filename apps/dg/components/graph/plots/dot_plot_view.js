@@ -210,6 +210,9 @@ DG.DotPlotView = DG.PlotView.extend(
     tRC.primaryAxisPlace = tModel && tModel.get('primaryAxisPlace');
     tRC.primaryAxisView = this.get('primaryAxisView');
 
+    if( !tRC.primaryAxisView)
+      return null;
+
     return tRC;
   },
 

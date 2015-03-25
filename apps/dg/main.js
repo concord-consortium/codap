@@ -52,6 +52,14 @@ DG.main = function main() {
 
   DG.splash.showSplash();
 
+  var splashChanged = function() {
+    if (!DG.splash.get('isShowing')) {
+      DG.userEntryController.setup(); // Create the user entry dialog.
+      DG.splash.removeObserver('isShowing', splashChanged);
+    }
+  };
+  DG.splash.addObserver('isShowing', splashChanged);
+
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
     if (DG.documentServer) {
       DG.authorizationController.requireLogin();

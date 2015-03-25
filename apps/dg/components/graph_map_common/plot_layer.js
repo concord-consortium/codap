@@ -359,7 +359,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     // note: don't rely on tDataLength != tPlotElementLength test for this
     this.updateAdornments();
 
-    if( tDataLength !== tPlotElementLength) {
+    if( tRC && (tDataLength !== tPlotElementLength)) {
       // for any new cases
       if (tDataLength > tPlotElementLength) {
         if (tWantNewPointRadius) {

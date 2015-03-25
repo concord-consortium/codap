@@ -160,12 +160,22 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
       model: this.get('model'),
       mapSource: this
     }));
+    this.get('mapPointLayer').addObserver( 'plotDisplayDidChange', this, function() {
+      this.invokeLast( this.plottedPointsDidChange);
+    });
 
     // When the underlying map zooms, we want to be hidden during the zoom so user doesn't see
     // points momentarily in wrong place.
     this.getPath('mapLayer.map')
         .on('zoomstart', handleZoomStart)
         .on('zoomend', handleZoomEnd);
+  },
+
+  /**
+   * Something about the points changed. Let my dependents know.
+   */
+  plottedPointsDidChange: function() {
+    this.notifyPropertyChange('pointsDidChange');
   },
 
   modelDidChange: function () {

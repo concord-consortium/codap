@@ -376,7 +376,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           tController = tCollection && tCollection.get('casesController');
       if( tController) {
         var tSelection = tController.get('selection');
-        if( tSelection && !tSelection.contains( iCase))
+        if( tSelection && (!tSelection.contains( iCase) || (tSelection.length() > 1)))
           isSelectionChanged = true;
         tController.selectObject( iCase, extendForCollection( tCollection));
         tChildren.forEach( selectCaseAndChildren);
