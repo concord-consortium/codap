@@ -216,7 +216,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     return Promise.reject(new Error('Cannot rename with DefaultStorage.'));
   },
 
-  delete: function(options) {
+  deleteDoc: function(options) {
     return Promise.reject(new Error('Cannot delete with DefaultStorage.'));
   }
 });

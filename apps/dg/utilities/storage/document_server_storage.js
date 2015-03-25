@@ -269,7 +269,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     }.bind(this));
   },
 
-  delete: function(options) {
+  deleteDoc: function(options) {
     return new Promise(function(resolve, reject) {
       var url = '%@document/delete'.fmt(DG.documentServer),
           params = options.params || {};

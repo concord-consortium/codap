@@ -66,7 +66,7 @@ DG.StorageAPI = SC.Object.extend({
     return Promise.reject(new Error('Cannot rename with StorageAPI.'));
   },
 
-  delete: function(options) {
+  deleteDoc: function(options) {
     return Promise.reject(new Error('Cannot delete with StorageAPI.'));
   }
 

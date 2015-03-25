@@ -292,7 +292,7 @@ return {
                                 and perform any other appropriate tasks upon completion.
    */
   deleteDocument: function(iDocumentId, iReceiver) {
-    this.get('storageInterface').delete({id: iDocumentId}).then(
+    this.get('storageInterface').deleteDoc({id: iDocumentId}).then(
       function(body) {
         iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
       },
