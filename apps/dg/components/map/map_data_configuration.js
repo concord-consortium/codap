@@ -225,6 +225,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     return this.getPath('xAttributeDescription.attributeID');
   }.property('xAttributeDescription.attributeID').cacheable(),
 
+  // These two bindings help us with API for connecting line model
+  xVarIDBinding: '.longAttributeID',
+  yVarIDBinding: '.latAttributeID',
+
   hasLatLongAttributes: function() {
     return !SC.none(this.get('latAttributeID')) && !SC.none(this.get('longAttributeID'));
   }.property('latAttributeID', 'longAttributeID').cacheable(),

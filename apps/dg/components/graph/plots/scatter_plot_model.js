@@ -177,8 +177,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         tFunctionIsVisible = this.isAdornmentVisible('plottedFunction'),
         tMovableLineItem = tLineIsVisible ? "Hide Movable Line" : "Show Movable Line",
         tConnectingLineItem = (this.isAdornmentVisible('connectingLine') ?
-            'DG.ScatterPlotModel.HideConnectingLine' :
-            'DG.ScatterPlotModel.ShowConnectingLine').loc(),
+            'DG.DataDisplayModel.HideConnectingLine' :
+            'DG.DataDisplayModel.ShowConnectingLine').loc(),
         tInterceptLockedItem = ( this.get( 'isInterceptLocked') ?
             'DG.ScatterPlotModel.UnlockIntercept' :
             'DG.ScatterPlotModel.LockIntercept').loc(),
