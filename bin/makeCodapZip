@@ -63,6 +63,10 @@ for t in $files ; do
 done
 
 #
+# Add an empty config file.
+touch $WORK_DIR/codap-config.js
+
+#
 # Zip up
 ( cd `dirname $WORK_DIR`; zip -r $TMP_ZIP $BUILD_NUM )
 
