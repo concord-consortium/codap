@@ -40,6 +40,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * @property {DG.MapLayerView}
        */
       mapLayer: null,
+      mapBinding: '.mapLayer.map',
 
       /**
        * @property {DG.MapAreaLayer}
@@ -62,6 +63,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       legendView: null,
 
       /**
+       * @property {DG.MapConnectingLineAdornment}
+       */
+      connectingLineAdorn: null,
+
+      /**
        * SC.SegmentedView
        */
       backgroundControl: null,
@@ -78,6 +84,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       paper: function() {
         return this.getPath('mapPointView.paper');
+      }.property(),
+
+      layerManager: function() {
+        return this.getPath('mapPointView.layerManager');
       }.property(),
 
       init: function () {
@@ -188,6 +198,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           tMapPointView.set('isVisible', tMakeVisible);
           this.setPath('marqueeTool.isVisible', tMakeVisible);
           this.setPath('model.pointsShouldBeVisible', tMakeVisible);
+          if( tMakeVisible && this.getPath('model.linesShouldBeVisible')) {
+            this.lineVisibilityChanged();
+          }
         }
         else {
           tMapPointView.set('isVisible', false);
@@ -207,7 +220,28 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       pointsDidChange: function() {
         this.getPath('mapGridLayer.model').rectArrayMustChange();
+        this.updateConnectingLine();
       }.observes('mapPointView.pointsDidChange'),
+
+      /**
+       Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
+       because we don't want to destroy the adornment.
+       */
+      lineVisibilityChanged: function() {
+        var tMapModel = this.get('model' ),
+            tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
+            tAdorn = this.get('connectingLineAdorn');
+        if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
+          tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
+                                                          mapSource: this, layerName: DG.LayerNames.kConnectingLines });
+          this.set('connectingLineAdorn', tAdorn);
+        }
+
+        this.invokeLast( function() {
+          if( tAdorn)
+            tAdorn.updateVisibility();
+        });
+      }.observes('.model.linesShouldBeVisible'),
 
       addAreaLayer: function () {
         if( !this.getPath('model.areaVarID') || this.get('mapAreaLayer'))
@@ -307,9 +341,19 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.adjustLayout( this.renderContext( this.get('tagName')));
       }.observes('*legendView.desiredExtent'),
 
+      updateConnectingLine: function() {
+        var tConnectingLineAdorn = this.get('connectingLineAdorn');
+        if( tConnectingLineAdorn) {
+          tConnectingLineAdorn.invalidateModel();
+          tConnectingLineAdorn.updateVisibility();
+        }
+      },
+
       handleMapLayerDisplayChange: function() {
         var tMapPointView = this.get('mapPointView');
         if (tMapPointView) { tMapPointView.doDraw(); }
+
+        this.updateConnectingLine();
 
         // Store the map's center and zoom in my model for save and restore
         var tMap = this.getPath('mapLayer.map'),

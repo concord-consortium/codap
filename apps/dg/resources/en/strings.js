@@ -167,11 +167,11 @@ SC.stringsFor('English', {
   'DG.AppController.exportCaseData.okTooltip' : "Done with export",
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
-  'DG.AppController.feedbackDialog.dialogTitle' : "Report a Problem/Provide Feedback",
+  'DG.AppController.feedbackDialog.dialogTitle' : "Provide Feedback",
   'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
   'DG.AppController.feedbackDialog.messageText' : "Please let us know how we can continue to improve our product.\n Questions, bug reports and feature requests are all welcome. Thank you!",
-  'DG.AppController.feedbackDialog.subjectHint' : "Subject",
-  'DG.AppController.feedbackDialog.feedbackHint' : "Type in feedback here",
+  'DG.AppController.feedbackDialog.subjectHint' : "What is your feedback about",
+  'DG.AppController.feedbackDialog.feedbackHint' : "Details",
   'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
   'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
@@ -337,6 +337,8 @@ SC.stringsFor('English', {
   'DG.GuideConfigView.httpWarning' : "The URL must start with either http:// or https://",
 
   'DG.DataDisplayModel.rescaleToData' : "Rescale to Data",
+  'DG.DataDisplayModel.ShowConnectingLine' : "Show Connecting Lines",
+  'DG.DataDisplayModel.HideConnectingLine' : "Hide Connecting Lines",
 
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip' : "Drag to translate axis scale",
@@ -363,8 +365,6 @@ SC.stringsFor('English', {
   'DG.DotPlotModel.plotValue' : "Plot Value",
 
   // DG.ScatterPlotModel
-  'DG.ScatterPlotModel.ShowConnectingLine' : "Show Connecting Lines",
-  'DG.ScatterPlotModel.HideConnectingLine' : "Hide Connecting Lines",
   'DG.ScatterPlotModel.UnlockIntercept' : "Unlock Intercept",
   'DG.ScatterPlotModel.LockIntercept' : "Lock Intercept at Zero",
 
