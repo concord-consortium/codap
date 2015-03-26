@@ -1,2 +1,3 @@
 // Polyfill the Promise object.
-window.Promise = window.Promise || require('libraries/es6-promise-2.0.1.js');
+sc_require('es6-promise-2.0.1.js');
+window.Promise = window.Promise || ES6Promise.Promise;
