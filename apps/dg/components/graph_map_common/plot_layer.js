@@ -93,7 +93,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   /**
     The model on which this view is based.
-    @property { DG.PlotModel or DG.MapModel }
+    @property { DG.PlotModel|DG.MapModel }
   */
   model: null,
 
@@ -348,6 +348,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
         tLayerManager = this.get('layerManager' ),
         tIndex;
+    // We don't redraw if tCases is undefined. This can happen during the
+    // deletion of the plot model
+    if (tCases === undefined) { return; }
+
     this._elementOrderIsValid = false;
     // update the point radius before creating or updating plotted elements
     if( tWantNewPointRadius ) {
