@@ -510,7 +510,12 @@ DG.GameController = DG.ComponentController.extend(
       if( embeddedGameID ) {
         var i,j; // find first iFrame with embedded element ID==embeddedGameID (expect 0 or 1 match)
         for( i=0,j=iFrames.length; i<j && !gameElement; ++i ) {
-          gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+          try {
+            gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+          } catch (ex) {
+            // errors may occur here because of same origin restrictions, we
+            // expect that, so can ignore.
+          }
         }
       }
       return gameElement;
