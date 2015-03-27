@@ -345,7 +345,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         var tConnectingLineAdorn = this.get('connectingLineAdorn');
         if( tConnectingLineAdorn) {
           tConnectingLineAdorn.invalidateModel();
-          tConnectingLineAdorn.updateVisibility();
+          tConnectingLineAdorn.updateToModel( false /* do not animate */);
         }
       },
 

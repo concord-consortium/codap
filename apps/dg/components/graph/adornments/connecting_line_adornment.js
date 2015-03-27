@@ -99,10 +99,26 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
    * Create or update our lines, one for each parent present.
    * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
    */
-  updateLine: function( iAnimate ) {
+  updateLine: function (iAnimate) {
+    var tXAxisView = this.getPath('parentView.xAxisView'),
+        tYAxisView = this.getPath('parentView.yAxisView');
+
+    function getCoords( iX, iY) {
+      return {
+        x: tXAxisView.dataToCoordinate( iX),
+        y: tYAxisView.dataToCoordinate( iY)
+      }
+    }
+
+    this.doUpdateLine( iAnimate, getCoords);
+  },
+
+  /**
+   * Create or update our lines, one for each parent present.
+   * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
+   */
+  doUpdateLine: function( iAnimate, getCoordsFunc ) {
     var this_ = this,
-        tXAxisView = this.getPath('parentView.xAxisView'),
-        tYAxisView = this.getPath('parentView.yAxisView'),
         tArrayOfValuesArrays = this.getPath('model.values'),
         kCount = 10,  // This is fixed so we get same colors no matter how many lines there are
         tPaper = this.get('paper' ),
@@ -114,7 +130,6 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       }.bind( this));
       return;
     }
-    DG.assert( tXAxisView && tYAxisView ); // we expect to be on a scatterplot (numeric axes)
     if( !tArrayOfValuesArrays)
       return; // Can happen in scatterplot that has multiple attributes
 
@@ -126,12 +141,11 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
           tLine;
       // create a new path, connecting each sorted data point
       for( i=0; i<tNumValues; ++i ) {
-        x = tXAxisView.dataToCoordinate( iValues[i].x );
-        y = tYAxisView.dataToCoordinate( iValues[i].y );
+        var tCoords = getCoordsFunc( iValues[i].x, iValues[i].y);
         if( i===0 ) {
-          tPath = 'M%@,%@'.fmt( x, y ); // move to first line
+          tPath = 'M%@,%@'.fmt( tCoords.x, tCoords.y ); // move to first line
         } else {
-          tPath += ' L%@,%@'.fmt( x, y ); // draw to subsequent lines
+          tPath += ' L%@,%@'.fmt( tCoords.x, tCoords.y ); // draw to subsequent lines
         }
       }
       DG.assert( tPath );
