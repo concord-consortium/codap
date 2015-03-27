@@ -201,7 +201,7 @@ DG.mainPage = SC.Page.design((function() {
     },
 
     setupDragDrop: function() {
-
+      var isIE = (SC.browser.engine === SC.ENGINE.trident);
       var cancel = function( iEvent) {
             if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
             iEvent.dataTransfer.dropEffect = 'copy';
@@ -231,6 +231,9 @@ DG.mainPage = SC.Page.design((function() {
             case '.txt':
               tNewType = 'text/plain';
               break;
+            case '.json':
+              tNewType = 'application/json';
+              break;
           }
           tType = tNewType;
         }
@@ -250,7 +253,8 @@ DG.mainPage = SC.Page.design((function() {
 
         var tDataTransfer = iEvent.dataTransfer,
             tFiles = tDataTransfer.files,
-            tURI = tDataTransfer.getData('text/uri-list');
+            tURIType = isIE ? 'URL': 'text/uri-list';
+            tURI = tDataTransfer.getData(tURIType);
         if( tFiles && (tFiles.length > 0)) {
           var tFile = tFiles[0],  // We only deal with the first file
               tType = tFile.type;
