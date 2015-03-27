@@ -128,8 +128,10 @@ DG.PlotView = DG.PlotLayer.extend(
     Initialize the adornments from the set of adornment models.
    */
   initializeAdornments: function() {
-    if( this.plottedCountAdorn && this.plottedCountAdorn.wantVisible())
-      this.plottedCountAdorn.updateToModel();
+    /* TODO: for historical reasons, the implementation of the plotted count
+     * adornment is different from other adornments. it's state is managed
+     * separately. Should be unified. */
+    this.plottedCountChanged();
 
     var model = this.get('model'),
         adornmentModels = model && model._adornmentModels;
