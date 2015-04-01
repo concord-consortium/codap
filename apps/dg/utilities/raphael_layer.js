@@ -145,6 +145,18 @@ DG.RaphaelLayer = SC.Object.extend(
       return (!this._firstElement && !this._lastElement) ||
              ((this._firstElement && this._lastElement) &&
              (!this._firstElement.removed && !this._lastElement.removed));
+    },
+
+    hide: function() {
+      this.forEach( function( iElement) {
+        iElement.animate({ 'fill-opacity' : 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function () { this.hide(); });
+      });
+    },
+
+    show: function() {
+      this.forEach( function( iElement) {
+        iElement.show().animate({ 'fill-opacity' : 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+      });
     }
 
   } );

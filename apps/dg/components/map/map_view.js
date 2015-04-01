@@ -210,7 +210,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible');
-        this.setPath('mapPointView.isVisible', tPointsAreVisible);
+        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
+        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
         this.setPath('marqueeTool.isVisible', tPointsAreVisible);
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
