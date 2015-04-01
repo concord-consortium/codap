@@ -386,8 +386,10 @@ DG.GameController = DG.ComponentController.extend(
       function handleNewCollection(iCollectionArgs) {
         var tCollectionProperties = {
           name: iCollectionArgs.name,
+          caseName: iCollectionArgs.caseName,
           labels: iCollectionArgs.labels,
           defaults: iCollectionArgs.defaults,
+          collapseChildren: iCollectionArgs.collapseChildren,
           areParentChildLinksConfigured: true
         };
 
@@ -409,6 +411,7 @@ DG.GameController = DG.ComponentController.extend(
         }
       }
 
+      //DG.log('InitGame: ' + JSON.stringify(iArgs));
       // The game-specified arguments form the core of the new DG.GameSpec.
       var tCurrentGameName = this.getPath('context.gameName'),
         tCurrentGameUrl = this.getPath('context.gameUrl') ||
@@ -510,7 +513,12 @@ DG.GameController = DG.ComponentController.extend(
       if( embeddedGameID ) {
         var i,j; // find first iFrame with embedded element ID==embeddedGameID (expect 0 or 1 match)
         for( i=0,j=iFrames.length; i<j && !gameElement; ++i ) {
-          gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+          try {
+            gameElement = iFrames[i].contentWindow.document.getElementById( embeddedGameID);
+          } catch (ex) {
+            // errors may occur here because of same origin restrictions, we
+            // expect that, so can ignore.
+          }
         }
       }
       return gameElement;
@@ -785,36 +793,44 @@ DG.GameController = DG.ComponentController.extend(
       /**
       Create a collection.
       Returns the ID of the created collection.
-      @param {Object}       iArgs -- An object that specifies the properties of
+      @param {Object}       iCollectionArgs -- An object that specifies the properties of
          the collection
-              {String}          iArgs.name -- Name of the new collection
-              {Array of Object} iArgs.attrs -- Array of attribute specification objects
+              {String}          iCollectionArgs.name -- Name of the new collection
+              {Array of Object} iCollectionArgs.attrs -- Array of attribute specification objects
       @returns {Object}     { success: {Boolean}, collectionID: {Number} }
      */
-    handleCreateCollection: function( iArgs) {
-      var tGameContext = this.get('context'),
-          tCollectionProperties = { name: iArgs.name,
-                                    caseName: iArgs.caseName,
-                                    collapseChildren: iArgs.collapseChildren,
+    handleCreateCollection: function( iCollectionArgs) {
+        //DG.log('CreateCollection: ' + JSON.stringify(iCollectionArgs));
+        var tGameContext = this.get('context'),
+          tCollectionProperties = { name: iCollectionArgs.name,
+                                    caseName: iCollectionArgs.caseName,
+                                    labels: iCollectionArgs.labels,
+                                    defaults: iCollectionArgs.defaults,
+                                    collapseChildren: iCollectionArgs.collapseChildren,
                                     areParentChildLinksConfigured: true },
-          tGameCollections = tGameContext.get('collections');
-      if( tGameCollections && tGameCollections.length > 1) {
-        var tParentCollectionSpec = tGameCollections[ tGameCollections.length - 2],
-            tParentCollection = tParentCollectionSpec && tGameContext && tGameContext.getCollectionByName( tParentCollectionSpec.name);
+          tGameCollections = tGameContext.get('collections'),
+          tResult,
+          tCollection,
+          tCollectionSpec;
+      if( tGameCollections && tGameCollections.length > 0) {
+        tParentCollectionSpec = tGameCollections[ tGameCollections.length - 1],
+            tParentCollection = tParentCollectionSpec
+              && tGameContext
+              && tGameContext.getCollectionByName( tParentCollectionSpec.name);
         if( tParentCollection)
           tCollectionProperties.parent = tParentCollection.get('id');
       }
 
-      var tResult = tGameContext &&
+      tResult = tGameContext &&
                     tGameContext.applyChange({
                       operation: 'createCollection',
                       properties: tCollectionProperties,
-                      attributes: iArgs.attrs
-                    }),
-          tCollection = tResult && tResult.success && tResult.collection;
+                      attributes: iCollectionArgs.attrs
+                    });
+      tCollection = tResult && tResult.success && tResult.collection;
       if (tCollection) {
-        if( (iArgs.log === undefined) || iArgs.log)
-          DG.logUser("newCollectionCreated: %@ with %@ attributes", iArgs.name, iArgs.attrs.length);
+        if( (iCollectionArgs.log === undefined) || iCollectionArgs.log)
+          DG.logUser("newCollectionCreated: %@ with %@ attributes", iCollectionArgs.name, iCollectionArgs.attrs.length);
         return { success: true, collectionID: tCollection.get('id')};
       }
       else

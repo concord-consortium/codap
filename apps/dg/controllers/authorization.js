@@ -523,6 +523,11 @@ return {
 
     try {
       parameters = JSON.parse(eventValue);
+      // If the value of parameters is not an object, then wrap the value in
+      // an object. Otherwise the log manager will reject it.
+      if (typeof parameters !== 'object') {
+        parameters = {value: parameters};
+      }
     } catch(e) {
       parameters = {};
     }
