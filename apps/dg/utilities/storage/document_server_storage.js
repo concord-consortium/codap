@@ -86,18 +86,35 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   },
 
   _showLoginFrame: function() {
-    var panel = SC.PanelPane.create({
-      layout: { width: 1000, height: 480, centerX: 0, centerY: 0},
-      contentView: SC.WebView.design({
-        classNames: ['document-server-login'],
-        layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
-        value: function() {
-          var url = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
-          return url;
-        }.property()
-      })
-    });
-    panel.append();
+    function computeScreenLocation(w, h) {
+      // Fixes dual-screen position                         Most browsers      Firefox
+      var dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left;
+      var dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top;
+
+      var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+      var height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+      var left = ((width / 2) - (w / 2)) + dualScreenLeft;
+      var top = ((height / 2) - (h / 2)) + dualScreenTop;
+      return {left: left, top: top};
+    }
+    var url = DG.getVariantString('DG.Authorization.loginPane.documentStoreSignInHref').loc( DG.documentServer );
+    var width=1000;
+    var height = 480;
+    var position = computeScreenLocation(width, height);
+    var windowFeatures = [
+      'width=' + width,
+      'height=' + height,
+      'top=' + position.top || 200,
+      'left=' + position.left || 200,
+      'dependent=yes',
+      'resizable=no',
+      'location=no',
+      'dialog=yes',
+      'menubar=no'
+    ];
+    DG.log("WindowFeatures=[" + windowFeatures.join() + ']');
+    var panel = window.open(url, 'auth', windowFeatures.join());
     var timer = SC.Timer.schedule({
       interval: 200,
       repeats: YES,
@@ -108,10 +125,10 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
            * window's location after authenticating (not cross-origin), we can detect when the
            * authentication process is complete and react.
            */
-          var href = $('.document-server-login iframe')[0].contentWindow.location.href;
+          var href = panel.location.href;
           if (href === window.location.href) {
             timer.invalidate();
-            panel.remove();
+            panel.close();
             this.sendLoginRequest('user');
           }
         } catch(e) {}
