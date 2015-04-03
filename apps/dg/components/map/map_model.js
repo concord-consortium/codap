@@ -241,7 +241,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
         tMenuItems = tMenuItems.concat( [{ isSeparator: YES }]).
             concat( this.createHideShowSelectionMenuItems());
-      };
+      }
 
       return tMenuItems;
     },
@@ -254,7 +254,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tPointsVisible = this.get('pointsShouldBeVisible');
       if( tPointsVisible !== null)
         tStorage.pointsShouldBeVisible = tPointsVisible;
-      tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible')
+      tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible');
       tStorage.grid = this.get('gridModel').createStorage();
 
       return tStorage;

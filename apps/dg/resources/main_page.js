@@ -253,7 +253,7 @@ DG.mainPage = SC.Page.design((function() {
 
         var tDataTransfer = iEvent.dataTransfer,
             tFiles = tDataTransfer.files,
-            tURIType = isIE ? 'URL': 'text/uri-list';
+            tURIType = isIE ? 'URL': 'text/uri-list',
             tURI = tDataTransfer.getData(tURIType);
         if( tFiles && (tFiles.length > 0)) {
           var tFile = tFiles[0],  // We only deal with the first file

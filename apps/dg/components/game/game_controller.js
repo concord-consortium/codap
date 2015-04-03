@@ -811,7 +811,8 @@ DG.GameController = DG.ComponentController.extend(
           tGameCollections = tGameContext.get('collections'),
           tResult,
           tCollection,
-          tCollectionSpec;
+          tParentCollectionSpec,
+          tParentCollection;
       if( tGameCollections && tGameCollections.length > 0) {
         tParentCollectionSpec = tGameCollections[ tGameCollections.length - 1],
             tParentCollection = tParentCollectionSpec
