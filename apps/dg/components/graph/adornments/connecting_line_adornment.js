@@ -32,6 +32,16 @@ sc_require('components/graph/adornments/plot_adornment');
 DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
 /** @scope DG.ConnectingLineAdornment.prototype */
 {
+  /**
+   * @property {Number}
+   */
+  unselectedLineWidth: 3,
+
+  /**
+   * @property {Number}
+   */
+  selectedLineWidth: 6,
+
   _dataTip: null,     // {DG.LineDataTip}
 
   init: function() {
@@ -195,8 +205,6 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         tSelection = this.getPath('model.plotModel.selection');
     tArrayOfValuesArrays.forEach( function( iValues, iLineNum) {
       var
-          kUnselectedWidth = 3,
-          kSelectedWidth = 6,
           tNumValues = iValues ? iValues.length : 0,
           tAllSelected = true,
           tLine = this.myElements[ iLineNum],
@@ -207,7 +215,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
           if( !tAllSelected)
             break;
         }
-        tLine.attr({ 'stroke-width': (tAllSelected ? kSelectedWidth : kUnselectedWidth) });
+        tLine.attr({ 'stroke-width': (tAllSelected ? this.selectedLineWidth : this.unselectedLineWidth) });
       }
     }.bind( this));
   },

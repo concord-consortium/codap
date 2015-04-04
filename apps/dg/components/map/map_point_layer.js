@@ -25,7 +25,7 @@ sc_require('components/graph_map_common/plot_layer');
   @extends DG.PlotLayer
 */
 DG.MapPointLayer = DG.PlotLayer.extend(
-/** @scope DG.MapPointLayer.prototype */ 
+/** @scope DG.MapPointLayer.prototype */
 {
   autoDestroyProperties: [],
 
@@ -120,14 +120,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         tCoordY = tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
-    // show or hide if needed, then update if shown.
-    if( this.showHidePlottedElement( tCircle, tIsMissingCase)) {
-      this.updatePlottedElement( tCircle, tCoordX, tCoordY, this._pointRadius, iRC.calcCaseColorString( iCase ),
-        iAnimate, iCallback);
-      //tCircle.attr( {stroke: 'black'}); // updatePlottedElement tries to make a dark yellow border
-      return { cx: tCoordX, cy: tCoordY, r: this._pointRadius };
-    }
-    return null;
+    // show or hide if needed, then update
+    this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden());
+    this.updatePlottedElement( tCircle, tCoordX, tCoordY, this._pointRadius, iRC.calcCaseColorString( iCase ),
+      iAnimate, iCallback);
   },
   
   createCircle: function( iDatum, iIndex, iAnimate) {

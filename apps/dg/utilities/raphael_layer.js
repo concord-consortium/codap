@@ -31,6 +31,11 @@ sc_require('libraries/raphael');
 DG.RaphaelLayer = SC.Object.extend(
   {
     /**
+     * @property {Boolean}
+     */
+    isVisible: true,
+
+    /**
      * The layer that precedes this one; i.e. that is visibly 'below' this one. If null, we are the first layer.
      * @property {DG.RaphaelLayer}
      */
@@ -148,12 +153,14 @@ DG.RaphaelLayer = SC.Object.extend(
     },
 
     hide: function() {
+      this.set('isVisible', false);
       this.forEach( function( iElement) {
         iElement.animate({ 'fill-opacity' : 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function () { this.hide(); });
       });
     },
 
     show: function() {
+      this.set('isVisible', true);
       this.forEach( function( iElement) {
         iElement.show().animate({ 'fill-opacity' : 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
       });

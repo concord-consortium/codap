@@ -210,8 +210,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible');
-        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
-        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
+        //this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
+        //this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
         this.setPath('marqueeTool.isVisible', tPointsAreVisible);
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
@@ -234,7 +234,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tAdorn = this.get('connectingLineAdorn');
         if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
           tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
-                                                          mapSource: this, layerName: DG.LayerNames.kConnectingLines });
+                                                          mapSource: this, layerName: DG.LayerNames.kConnectingLines,
+                                                          unselectedLineWidth: 1, selectedLineWidth: 3 });
           this.set('connectingLineAdorn', tAdorn);
         }
 

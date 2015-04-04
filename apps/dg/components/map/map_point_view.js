@@ -145,14 +145,14 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     var tVisibleAtZoomStart;
 
     var handleZoomStart = function() {
-          tVisibleAtZoomStart = this.get('isVisible');
-          if( tVisibleAtZoomStart)
-            this.set('isVisible', false);
+          //tVisibleAtZoomStart = this.get('isVisible');
+          //if( tVisibleAtZoomStart)
+          //  this.set('isVisible', false);
         }.bind(this),
 
         handleZoomEnd = function() {
-          if( tVisibleAtZoomStart)
-            this.set('isVisible', true);
+          //if( tVisibleAtZoomStart)
+          //  this.set('isVisible', true);
         }.bind(this);
 
     sc_super();

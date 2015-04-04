@@ -59,6 +59,9 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
     _connectingLineModel: null,
 
+    /**
+     * @property {DG.ConnectingLineModel}
+     */
     connectingLineModel: function() {
       if( !this._connectingLineModel) {
         this._connectingLineModel = DG.ConnectingLineModel.create( {
