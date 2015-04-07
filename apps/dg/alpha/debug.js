@@ -440,7 +440,7 @@ SC.Logger._outputMessage = function(type, timestampStr, indentation, message, or
   // trying to report a minor error.
   if (typeof message === 'string') {
     DG.Debug._currentMessage = message;
-  } else if (message.toString) {
+  } else if (message && message.toString) {
     DG.Debug._currentMessage = message.toString();
   } else {
     DG.Debug._currentMessage = '';
