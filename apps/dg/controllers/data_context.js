@@ -672,15 +672,19 @@ DG.DataContext = SC.Object.extend((function() // closure
         childName = childCollection && childCollection.get('name'),
         parentName = parentCollection && parentCollection.get('name'),
         bothName = (parentName + '+' + childName ),
+        names = [],
         columnDelimiter = '\t',
         rowDelimiter = '\r\n';
 
-    DG.assert( childCollection && parentCollection, "exportCaseData collections not found");
-    if( !( childCollection && parentCollection )) return('');
+    //DG.assert( childCollection && parentCollection, "exportCaseData collections not found");
+    //if( !( childCollection && parentCollection )) return('');
 
     if( SC.empty( iWhichCollection )) {
+      if (parentName) {names.push(parentName);}
+      if (childName) {names.push(childName);}
+      if (parentName && childName) {names.push(bothName);}
       // return collection names as an array
-      return parentName +columnDelimiter+childName +columnDelimiter+(parentName + '+' + childName);
+      return names.join(columnDelimiter);
     }
 
     // else create a tab and newline delimited string of attribute names and case values.
