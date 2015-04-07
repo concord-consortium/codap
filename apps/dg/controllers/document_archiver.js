@@ -230,22 +230,6 @@ DG.DocumentArchiver = SC.Object.extend(
       deferred.resolve();
     });
     return deferred;
-  },
-
-  /**
-   * Copy the specified document case data in tab-delimited string form
-   * @param	{String} iWhichCollection 'parent' or 'child' (TODO: allow 'both' for flatted collection with all attributes)
-   * @param {DG.Document}	iDocument   The document whose contents are to be archived
-   * @returns {String}	The export string
-   */
-  exportCaseData: function( iDocument, iWhichCollection ) {
-    var caseDataString = '';
-
-    DG.DataContext.forEachContextInMap( iDocument.get('id'),
-      function( iContextID, iContext) {
-        caseDataString += iContext.exportCaseData( iWhichCollection );
-      });
-    return caseDataString;
   }
 
 });

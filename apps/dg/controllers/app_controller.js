@@ -128,12 +128,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
             target: this,
-            action: 'importData' },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
-            target: this,
-            action: 'exportCaseData' }
+            action: 'importData' }
         ],
         docServerItems = [
           { isSeparator: YES },
@@ -1010,31 +1005,6 @@ DG.appController = SC.Object.create((function () // closure
           }
         }
       }, true);
-    },
-
-    /**
-     Handler for the Export Case Data... menu command.
-     Displays a dialog, so user can select and copy the case data from the current document.
-     */
-    exportCaseData: function () {
-      // callback to get export string from one of the menu item titles
-      var exportCollection = function (whichCollection) {
-        return DG.currDocumentController().exportCaseData(whichCollection);
-      };
-      // get array of exportable collection names for menu titles
-      var tMenuItems = DG.currDocumentController().exportCaseData().split('\t'),
-        tStartingMenuItem = tMenuItems[0];
-
-      DG.CreateExportCaseDataDialog({
-        prompt: 'DG.AppController.exportCaseData.prompt',
-        textLimit: 1000000,
-        textValue: exportCollection(tStartingMenuItem),
-        collectionMenuTitle: tStartingMenuItem,
-        collectionMenuItems: tMenuItems,
-        collectionMenuItemAction: exportCollection,
-        okTitle: 'DG.AppController.exportDocument.okTitle',
-        okTooltip: 'DG.AppController.exportDocument.okTooltip'
-      });
     },
 
     showShareLink: function() {

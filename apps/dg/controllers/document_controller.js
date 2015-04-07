@@ -1002,17 +1002,6 @@ DG.DocumentController = SC.Object.extend(
     return archiver.saveDataContexts( this.get('content'), callback, exportAll);
   },
 
-    /**
-     * return an object with case data from this document.
-     * @return {String}
-     */
-  exportCaseData: function( iWhichCollection ) {
-    var archiver = DG.DocumentArchiver.create({}),
-        caseDataString = archiver.exportCaseData( this.get('content'), iWhichCollection );
-
-    return caseDataString;
-  },
-    
   saveInProgress: null,
   signalSaveInProgress: function() {
     var saveInProgress = $.Deferred();
