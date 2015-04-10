@@ -53,7 +53,7 @@ DG.GameView = SC.WebView.extend(
 
         function(command, callback) {
           tController.set('isGamePhoneInUse', true);
-          tController.dispatchCommand(command, function(ret) {
+          tController.doCommand(command, function(ret) {
             // Analysis shows that the object returned by DG.doCommand may contain Error values, which
             // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
             // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and

@@ -152,10 +152,10 @@ DG.GameController = DG.ComponentController.extend(
       return tOpenCaseIDs;
     },
 
-    doCommand: function( iCmd) {
+    doCommand: function( iCmd, iCallback) {
       //DG.logWarn("DG.currGameController.doCommand is deprecated. Use DG.doCommand instead.");
       var result;
-      SC.run( function() { result = this.dispatchCommand( iCmd);}.bind(this));
+      SC.run( function() { result = this.dispatchCommand( iCmd, iCallback);}.bind(this));
       return result;
     },
 
