@@ -722,9 +722,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       // The GraphModel response is operation-specific.
       switch( operation) {
+        case 'deleteCases':
+          this.get('dataConfiguration').synchHiddenCases();
+          this.dataDidChange( null, null, iChange);
+          break;
         case 'createCase':
         case 'createCases':
-        case 'deleteCases':
         case 'createCollection':
         case 'resetCollections':
           this.dataDidChange( null, null, iChange);

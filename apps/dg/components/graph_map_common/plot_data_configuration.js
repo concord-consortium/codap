@@ -587,7 +587,20 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this._casesCache = null;
     this.invalidateAxisDescriptionCaches();
   }.observes('hiddenCases'),
-  
+
+  /**
+   * Something has happened such that cases have been deleted. Some cases in our hiddenCases array
+   * may be among those deleted. We need to remove them.
+   */
+  synchHiddenCases: function () {
+    var tHidden = this.get('hiddenCases'),
+        tNewHidden = tHidden.filter(function (iCase) {
+          var tFound = DG.store.find(DG.Case, iCase.get('id'));
+          return !SC.none(tFound);
+        });
+    this.set('hiddenCases', tNewHidden);
+  },
+
   /**
     @property { Array of SC.Array }
   */
