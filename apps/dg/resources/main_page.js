@@ -130,12 +130,12 @@ DG.mainPage = SC.Page.design((function() {
         action: 'logout',
         userBinding: 'DG.authorizationController.currLogin.user',
         isVisible: function() {
-          return !DG.documentServer || this.get('user') === 'guest';
+          return DG.documentServer && this.get('user') === 'guest';
         }.property('user'),
         toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip'),  // "Log out the current user"
         userDidChange: function () {
           var user = this.get('user');
-          this.set('title', DG.documentServer || user === 'guest' ?
+          this.set('title', DG.documentServer && user === 'guest' ?
             'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'); // "Logout"
         }.observes('user')
       }),
