@@ -724,7 +724,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       switch( operation) {
         case 'deleteCases':
           this.get('dataConfiguration').synchHiddenCases();
-          // fallthrough deliberate
+          this.dataDidChange( null, null, iChange);
+          break;
         case 'createCase':
         case 'createCases':
         case 'createCollection':

@@ -209,7 +209,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
      * TODO: Handle change in the number of cases and changes in values of cases
      */
     rectArrayMustChange: function() {
-      this.initializeRectArray();
+      if( this.getPath('dataConfiguration.hasLatLongAttributes'))
+        this.initializeRectArray();
     }.observes('gridMultiplier', 'dataConfiguration.hiddenCases'),
 
     /**
