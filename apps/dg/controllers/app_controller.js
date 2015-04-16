@@ -978,7 +978,8 @@ DG.appController = SC.Object.create((function () // closure
           //      for a user generated event, such as a click.)
 
           if (!SC.empty(docJson)) {
-            var dataUri = "data:application/json;charset=utf-8;base64,"+btoa(docJson);
+            // We must conv
+            var dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(docJson);
             tDialog = DG.CreateSingleTextDialog({
               prompt: 'DG.AppController.exportDocument.prompt'.loc() +
                 " (Safari users may need to control-click <a href=\"" + dataUri +
