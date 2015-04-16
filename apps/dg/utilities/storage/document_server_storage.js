@@ -63,6 +63,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
 
         loginAsGuestButton: SC.ButtonView.design({
           layout: { top: nextTop( kVSpace ), height: lastHeight(24), right:130, width:125 },
+          classNames: ['dg-loginguest-button'],
           title: 'DG.Authorization.loginPane.loginAsGuest',         // "Login as guest"
           localize: YES,
           target: 'DG.authorizationController',
@@ -72,6 +73,7 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
 
         loginButton: SC.ButtonView.design({
           layout: { top: top, height: lastHeight(24), right:20, width:100 },
+          classNames:['dg-login-button'],
           title: 'DG.Authorization.loginPane.login',                // "Log in"
           localize: YES,
           target: this,
