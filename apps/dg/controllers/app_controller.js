@@ -978,7 +978,7 @@ DG.appController = SC.Object.create((function () // closure
           //      for a user generated event, such as a click.)
 
           if (!SC.empty(docJson)) {
-            // We must conv
+            // construct a data url to support export in Safari
             var dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(docJson);
             tDialog = DG.CreateSingleTextDialog({
               prompt: 'DG.AppController.exportDocument.prompt'.loc() +
