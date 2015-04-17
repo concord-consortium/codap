@@ -366,7 +366,8 @@ DG.appController = SC.Object.create((function () // closure
     /**
      Attempts to parse the specified iDocText as the contents of a saved document in JSON format.
      @param    {String}    iDocText -- The JSON-formatted document text
-     @returns  {Boolean}   True on success, false on failure
+     @param    {Boolean}   saveImmediately -- whether to save existing doc.
+     @returns  {{Deferred}}   A deferred object that will complete with a new document open (or error).
      */
     openJsonDocument: function (iDocText, saveImmediately) {
       console.log('In app_controller:openJsonDocument');
@@ -828,7 +829,10 @@ DG.appController = SC.Object.create((function () // closure
         function handleRead() {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result, true);
+              that.openJsonDocument(this.result, true).fail(function (ex) {
+                DG.logError('JSON file open failed: ' + iFile.name);
+                iDialog.showAlert(ex);
+              });
             }
             else if( iType === 'TEXT') {
               that.importText(this.result, iFile.name);

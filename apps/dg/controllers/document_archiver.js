@@ -40,11 +40,15 @@ DG.DocumentArchiver = SC.Object.extend(
         promises = DG.authorizationController.loadExternalDocuments(externalDocIds);
 
     Promise.all(promises).then(function() {
-      var docArchive = SC.json.decode( iDocText),
-          dataSource = DG.ModelStore.create();
+      try {
+        var docArchive = SC.json.decode( iDocText),
+            dataSource = DG.ModelStore.create();
 
-      DG.store = dataSource;
-      deferred.resolve(DG.Document.createDocument(docArchive));
+        DG.store = dataSource;
+        deferred.resolve(DG.Document.createDocument(docArchive));
+      } catch (ex) {
+        deferred.reject(ex);
+      }
       DG.ExternalDocumentCache.clear();
       DG.busyCursor.hide();
     }.bind(this));

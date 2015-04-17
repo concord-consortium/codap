@@ -112,7 +112,9 @@ DG.FileImportView = SC.TextFieldView.extend(
 
   files: function() {
     var v =this.$input().prop('files');
-    console.log('files: ' + v);
+    if (v) {
+      console.log('Files: ' + Array.prototype.map.call(v, function(f) {return f.name;}));
+    }
     return v;
   }.property()
 
