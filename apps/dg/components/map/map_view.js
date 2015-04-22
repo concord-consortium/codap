@@ -334,6 +334,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.get('mapAreaLayer').createVisualization();
       },
 
+      handleLegendModelChange: function() {
+        var tLegendModel = this.getPath('model.legend');
+        this.setPath('legendView.model', tLegendModel);
+      }.observes('.model.legend'),
+
       /**
        * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
        */
