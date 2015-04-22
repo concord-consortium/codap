@@ -39,7 +39,7 @@ SC.stringsFor('English', {
   'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
   'DG.UserEntryDialog.openNew.button'          : 'OK',
   'DG.UserEntryDialog.openNew.buttonTooltip'   : 'Create a new document with the specified title',
-  'DG.UserEntryDialog.openFile.option'         : 'Open a Local File...',
+  'DG.UserEntryDialog.openFile.option'         : 'Open a Local Document...',
   'DG.UserEntryDialog.openFile.prompt'         : 'Select a document to open:',
   'DG.UserEntryDialog.openFile.button'         : 'Open',
   'DG.UserEntryDialog.openFile.buttonTooltip'  : 'Open the specified document',

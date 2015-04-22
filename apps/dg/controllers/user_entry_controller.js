@@ -89,8 +89,17 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
 
     openFile: function() {
       var dialog = this._dialog.getPath('contentView.choiceViews.contentView'),
-          v = dialog.get('value');
-      DG.appController.importFileWithConfirmation( v[0], 'JSON', dialog);
+          fileList = dialog.get('value'),
+          file = fileList && fileList[0];
+
+      if (file) {
+        if ((file.type && file.type === 'application/json')
+          || (file.name && file.name.match( /.*\.json/i))) {
+          DG.appController.importFileWithConfirmation( file, 'JSON', dialog);
+        } else {
+          dialog.showAlert('File, ' + file.name + ' is not of type JSON');
+        }
+      }
     }
 
   }; // return from function closure
