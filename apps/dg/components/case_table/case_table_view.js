@@ -21,6 +21,8 @@
 // ==========================================================================
 /*global Slick */
 
+sc_require('components/case_table/table_drop_target');
+
 /** @class
 
   A CaseTableView contains a scrollable data grid view.
@@ -28,7 +30,7 @@
 
   @extends SC.View
 */
-DG.CaseTableView = SC.View.extend( (function() // closure
+DG.CaseTableView = SC.View.extend( DG.TableDropTarget, (function() // closure
 /** @scope DG.CaseTableView.prototype */ {
 
   /*

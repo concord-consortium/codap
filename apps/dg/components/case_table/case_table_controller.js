@@ -489,6 +489,61 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.view.set('status', this.getCaseCountMessage());
       }.observes('view'),
 
+      /**
+       * This is a prototype to demonstrate joining two collections.
+       * The dragData provides an attribute and a collection.
+       * For this demo, we are going to join the dragged collection with the parent collection
+       * using the first attribute in the parent as the key.
+       */
+      dragDataDidChange: function() {
+
+        function joinCollections( iSourceKeyAttr, iSourceCollRecord, iDestKeyAttr, iDestColl) {
+          var tDestCollRecord = iDestColl.getPath('collection.collectionRecord'),
+              tDestAttrID = iDestKeyAttr.get('id'),
+              tSourceAttrID = iSourceKeyAttr.get('id'),
+              tSourceDict = {},
+              tSourceAttrIDDict = {},
+              tDestAttrIDDict = {};
+          // First, we add all the attributes in the source collection that are not the source key
+          // to the destination collection
+          iSourceCollRecord.get('attrs').forEach( function( iAttr) {
+            if( iAttr !== iSourceKeyAttr) {
+              var tName = iAttr.get('name');
+              tSourceAttrIDDict[ iAttr.get('id')] = tName;
+              tDestAttrIDDict[ tName] = iDestColl.createAttribute({ name: tName}).get('id');
+            }
+          });
+          // Make a dictionary using the source collection whose keys are the values of the
+          // source key attribute and whose values are the corresponding cases.
+          iSourceCollRecord.get('cases').forEach( function( iCase) {
+            tSourceDict[iCase.getValue(tSourceAttrID)] = iCase;
+          });
+
+          // Now we go through all the destination cases. For each, we get the value of the
+          // destination key, and we attempt to find a case in the source collection whose value
+          // for the source key equals that value. If successful, then we copy the values of
+          // each of the other attributes from the source case into their corresponding attributes.
+          tDestCollRecord.get('cases').forEach( function( iDestCase) {
+            var tKey = iDestCase.getValue( tDestAttrID),
+                tSourceCase = tSourceDict[tKey];
+            DG.ObjectMap.forEach( tSourceAttrIDDict, function( iSourceAttrID, iSourceAttrName) {
+              var tSourceValue = tSourceCase.getValue( iSourceAttrID),
+                  tDestAttrID = tDestAttrIDDict[ iSourceAttrName];
+              iDestCase.setValue( tDestAttrID, tSourceValue);
+            });
+          });
+        }
+
+        var tDragData = this.getPath('view.contentView.dragData'),
+            tDataContext = this.get('dataContext'),
+            tParentCollection = tDataContext && tDataContext.get('parentCollection'),
+            tAttrsController = tParentCollection && tParentCollection.get('attrsController'),
+            tDestAttribute = tAttrsController && tAttrsController.firstObject();
+
+        joinCollections( tDragData.attribute, tDragData.collection,
+                            tDestAttribute, tParentCollection);
+      }.observes('view.contentView.dragData'),
+
       selectAll: function () {
         var tContext = this.get('dataContext'),
           tCollection = tContext && tContext.get('parentCollection'),// todo

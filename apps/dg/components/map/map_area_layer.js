@@ -189,7 +189,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
               DG.PlotUtilities.kMapAreaNoLegendUnselectedBorderColor,
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :
               DG.PlotUtilities.kMapAreaNoLegendUnselectedOpacity,
-          weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight
+          weight: tHasLegend ? 0 : DG.PlotUtilities.kMapAreaUnselectedBorderWeight
         });
         if( !tHasLegend) {
           tFeature.setStyle( {
@@ -243,7 +243,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         this.features[ iIndex] = L.geoJson(tFeature, {
           style: function (feature) {
             return {color: 'yellow',
-                    weight: 2,
+                    weight: 1,
                     fillColor: DG.PlotUtilities.kMapAreaNoLegendColor,
                     smoothFactor: 2};
           }

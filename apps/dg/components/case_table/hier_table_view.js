@@ -121,6 +121,12 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     return childTableViews;
   }.property(),
 
+    /**
+     * Set when a drag ends on one of my child tables. Observed by my controller.
+     * @property{Object}
+     */
+    dragData: null,
+
   /**
     Destruction method.
    */

@@ -71,7 +71,7 @@ DG.PlotUtilities = {
   kMapAreaWithLegendUnselectedBorderColor: 'yellow',
   kMapAreaWithLegendSelectedBorderColor: 'red',
   kMapAreaSelectedBorderWeight: 4,
-  kMapAreaUnselectedBorderWeight: 2,
+  kMapAreaUnselectedBorderWeight: 1,
 
 
   //  DG.PlotUtilities.lineToAxisIntercepts

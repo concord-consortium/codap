@@ -34,6 +34,14 @@
     font-size: 8pt !important;
 }
 
+.table-drop-frame {
+    border: 3px solid orange;
+}
+
+.table-drop-frame-fill {
+    background-color: yellow;
+}
+
 .calculator label {
     cursor: pointer;
 }
