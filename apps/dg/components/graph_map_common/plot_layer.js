@@ -20,6 +20,8 @@
 
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
+sc_require('libraries/RTree');
+/*global RTree:true */
 
 /** @class  DG.PlotLayer - The base class for plotting points using Raphael.
 
@@ -625,18 +627,46 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._elementOrderIsValid = true;
   },
 
+  _selectionTree: null,
+
+  preparePointSelection: function() {
+    var tCases = this.getPath('model.cases' );
+
+    this._selectionTree = new RTree();
+    this._plottedElements.forEach(function(iElement, iIndex){
+      this._selectionTree.insert({
+          x: iElement.attrs.cx,
+          y: iElement.attrs.cy,
+          w: 1,
+          h: 1
+        },
+        tCases[iIndex]
+      );
+    }.bind(this));
+  },
+  cleanUpPointSelection: function () {
+    this._selectionTree = null;
+  },
+
   /**
-    @param {{ x: {Number}, y: {Number}, width: {Number}, height: {Number} }}
+    @param {{ x: {Number}, y: {Number}, width: {Number}, height: {Number} }} iRect
     @return {Array} of DG.Case
   */
   getCasesForPointsInRect: function( iRect) {
-    var tCases = this.getPath('model.cases' ),
-        tSelected = [];
+    var tCases, tSelected, tRect;
 
-    this._plottedElements.forEach( function( iElement, iIndex) {
-            if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
-              tSelected.push( tCases[ iIndex]);
-          });
+    if (this._selectionTree) {
+      tRect = {x: iRect.x, y: iRect.y, w: iRect.width, h: iRect.height};
+      tSelected = this._selectionTree.search(tRect);
+    } else {
+      tCases = this.getPath('model.cases' );
+      tSelected = [];
+
+      this._plottedElements.forEach( function( iElement, iIndex) {
+        if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
+          tSelected.push( tCases[ iIndex]);
+      });
+    }
     return tSelected;
   },
 

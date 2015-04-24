@@ -88,6 +88,7 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
           stroke: DG.RenderingUtilities.kTransparent });
     this.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
+    this.get('mapPointLayer' ).preparePointSelection();
     return true;
   },
 
