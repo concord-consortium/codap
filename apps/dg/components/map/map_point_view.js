@@ -83,10 +83,12 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.marqueeContext = {};
     this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
         { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this);
-    this.marqueeContext.marquee = this._paper.rect( this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
+    this.marqueeContext.marquee = this._paper.rect(
+      this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
         .attr( { fill: DG.PlotUtilities.kMarqueeColor,
           stroke: DG.RenderingUtilities.kTransparent });
-    this.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( this.marqueeContext.marquee);
+    this.getPath('layerManager.' + DG.LayerNames.kAdornments )
+      .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
     this.get('mapPointLayer' ).preparePointSelection();
     return true;
