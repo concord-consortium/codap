@@ -706,15 +706,15 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   /**
     Graph controller observes this property to detect that a drag has taken place.
-    @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
+    @property {{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
               axisOrientation:{String} }}
   */
   dragData: null,
 
   /**
     Attempt to assign the given attribute to this axis.
-    @param {SC.Drag} 'data' property contains 'collection', 'attribute', 'text' properties
-    @param {SC.DRAG_LINK}
+    @param {SC.Drag} iDragObject 'data' property contains 'collection', 'attribute', 'text' properties
+    @param {SC.DRAG_LINK} iDragOp
   */
   performDragOperation: function( iDragObject, iDragOp) {
     this.set('dragData', iDragObject.data);
