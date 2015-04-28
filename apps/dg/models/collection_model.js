@@ -129,7 +129,7 @@ DG.Collection = SC.Object.extend(
     }
     caseIDToIndexMap[newCaseID] = caseCounts[parentID]++;
     this.casesRecords.pushObject(newCase);
-    this.updateCaseIDToIndexMap();
+    //this.updateCaseIDToIndexMap();
     return newCase;
   },
   
