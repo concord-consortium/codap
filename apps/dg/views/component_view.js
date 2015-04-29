@@ -165,25 +165,30 @@ DG.ComponentView = SC.View.extend(
           backgroundColor: 'gray',
           childViews: 'titleView statusView versionView closeBox gearView'.w(),
           titleView: SC.LabelView.design({
+            classNames: ['dg-title-view'],
             textAlign: SC.ALIGN_CENTER,
             value: ''
           }),
           statusView: SC.LabelView.design({
             textAlign: SC.ALIGN_LEFT,
+            classNames: ['dg-status-view'],
             layout: { left: 25 },
             value: ''
           }),
           versionView: SC.LabelView.design({
             textAlign: SC.ALIGN_RIGHT,
+            classNames:['dg-version-view'],
             layout: { right: 15 },
             value: ''
           }),
           closeBox: DG.TitleBarButtonView.design({
             layout: { left: 0, top: 0, width: kTitleBarHeight, height: kTitleBarHeight },
+            classNames:['dg-close-view'],
             scale: SC.SCALE_NONE
           }),
           gearView: DG.TitleBarGearView.design({
-            layout: { right: 5, centerY: 0, width: 16, height: 16 }
+            layout: { right: 5, centerY: 0, width: 16, height: 16 },
+            classNames:['dg-gear-view']
           }),
           dragAdjust: function (evt, info) {
             var tOuterView = this.viewToDrag(),
