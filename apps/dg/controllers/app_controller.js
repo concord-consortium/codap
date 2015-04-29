@@ -814,10 +814,18 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Read a file from the file system.
+     *
+     * Handles CODAP documents and 'TEXT' files
+     * (TEXT files here means comma or tab delimited data files.)
+     * Will present a confirmation dialog if the type indicates a CODAP document
+     * and the document is managed by the document server and has unsaved
+     * changes.
+     *
      * The file parameter may have come from a drop or a dialog box.
-     * @param iFile
-     * @param {String} 'JSON' or 'TEXT'
-     * @param optional
+     * @param {File} iFile
+     * @param {String} iType 'JSON' or 'TEXT'
+     * @param {{showAlert:function,close:function}} iDialog optional error alert.
      */
     importFileWithConfirmation: function( iFile, iType, iDialog) {
 
@@ -864,7 +872,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.logUser("cancelCloseDocument: '%@'", docName);
       };
 
-      if (DG.currDocumentController().get('hasUnsavedChanges')) {
+      if ((iType === 'JSON') && DG.currDocumentController().get('hasUnsavedChanges')) {
         var docName = DG.currDocumentController().get('documentName');
         DG.logUser("confirmCloseDocument?: '%@'", docName);
         DG.AlertPane.warn({
