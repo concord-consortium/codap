@@ -163,7 +163,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( childCollection) {
           // old-style notification support -- Remove once new-style notifications are completed.
           var this_ = this;
-          childCollection.casesController.addObserver('[]', this, 'caseCountDidChange');
+          //childCollection.casesController.addObserver('[]', this, 'caseCountDidChange');
           dataContext.forEachCollection( function( iCollection) {
                                           iCollection.attrsController.
                                             addObserver('[]', this_, 'attributeCountDidChange');

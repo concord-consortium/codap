@@ -121,7 +121,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   
   /**
     Array of row/case info objects.
-    @property   {Array of Object}
+    @property   {[Object]}
    */
   gridData: null,
   
@@ -553,13 +553,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var result = false, // Not handled with simple appending
         collection = this.get('collection'),
         caseCount = (collection && collection.getCaseCount()) || 0,
-        rowCount = this.get('totalRowCount');
+        rowCount = this.get('totalRowCount'),
+      dataView = this.gridDataView;
     if( caseCount >= rowCount) {
+      dataView.beginUpdate();
       for( var i = rowCount; i < caseCount; ++i) {
         var tCase = collection.casesController.objectAt( i);
         if( DG.assert( tCase)) this.appendRow( tCase);
       }
       result = true;  // handled with simple appending
+      dataView.endUpdate();
     }
     return result;
   },
