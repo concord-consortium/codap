@@ -155,7 +155,7 @@ DG.mainPage = SC.Page.design((function() {
             kButtonWidth = 40,
             tLeft = kSpacer;
         // create tool buttons, left-justified
-        DG.toolButtons.forEach( function( iButtonName ) {
+        DG.get('toolButtons').forEach( function( iButtonName ) {
           var tButton = DG.ToolButtonData[iButtonName];
           this[ iButtonName] = DG.IconButton.create( tButton);
           this[ iButtonName].set('layout', { left: tLeft, width: kButtonWidth });
