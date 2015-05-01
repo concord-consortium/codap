@@ -851,9 +851,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   /**
    * Show or hide the given plot element to match it's desired status.
-   * @param {} iPlottedElement, a Rafael element
+   * @param {Element} iPlottedElement, a Rafael element
    * @param {Boolean} iWantHidden, true if we want the element to be hidden
-   * @param {Boolean} optional parameter, true if we want to animate hiding
    * @return {Boolean} true if element is now shown.
    */
   showHidePlottedElement: function( iPlottedElement, iWantHidden /*, iAnimate*/ ) {

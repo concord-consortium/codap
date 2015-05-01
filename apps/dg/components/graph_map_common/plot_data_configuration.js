@@ -307,8 +307,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
     @param {Object}               iAttrRefs -- the attribute to set
            {DG.CollectionClient}  iAttrRefs.collection -- the collection containing the specified attribute
            {Array of DG.Attribute}iAttrRefs.attributes -- the attributes to set
-    @param {DG.Analysis.EAnalysisRole} Optional
-    @param {DG.Analysis.EAttributeType} Optional
+    @param {DG.Analysis.EAnalysisRole} iRole Optional
+    @param {DG.Analysis.EAttributeType} iType Optional
 
    //TODO: In the long run we need to be able to accommodate attributes from different levels
       in the collection hierarchy, so iAttrRefs will need to consist of an array of collection/attribute pairs.
