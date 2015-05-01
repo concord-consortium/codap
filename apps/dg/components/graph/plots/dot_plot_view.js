@@ -202,7 +202,7 @@ DG.DotPlotView = DG.PlotView.extend(
     var tRC = sc_super(),
         tModel = this.get('model');
 
-    // cache some more render parameters common to all cases, but unique to DotChartView.
+    // cache some more render parameters common to all cases, but unique to DotPlotView.
     tRC.categoryAxisView = this.get('secondaryAxisView');
     tRC.categoryAxisModel = tRC.categoryAxisView && tRC.categoryAxisView.get('model');
     tRC.categoryVarID = tModel && tModel.get('secondaryVarID');
@@ -218,14 +218,15 @@ DG.DotPlotView = DG.PlotView.extend(
 
   /**
    * Set the coordinates and other attributes of the case circle (a Rafael element in this._plottedElements).
-   * @param iRC {} case-invariant Render Context
-   * @param iCase {DG.Case} the case data
-   * @param iIndex {number} index of case in collection
-   * @param iAnimate {Boolean} (optional) want changes to be animated into place?
-   * @returns {cx {Number},cy {Number} final coordinates or null if not defined (hidden plot element)
+   * @param {{}} iRC case-invariant Render Context
+   * @param {DG.Case} iCase the case data
+   * @param {number} iIndex index of case in collection
+   * @param {Boolean} iAnimate (optional) want changes to be animated into place?
+   * @param {function} iCallback
+   * @returns {{cx:{Number},cy:{Number}}} final coordinates or null if not defined (hidden plot element)
    */
   setCircleCoordinate: function setCircleCoordinate( iRC, iCase, iIndex, iAnimate, iCallback ) {
-    DG.assert( iRC && iRC.categoryAxisView );
+    //DG.assert( iRC && iRC.categoryAxisView );
     DG.assert( iCase );
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
     var tCircle = this._plottedElements[ iIndex],
@@ -234,7 +235,7 @@ DG.DotPlotView = DG.PlotView.extend(
         tIsMissingCase =(!DG.isFinite( tScreenCoord) || iRC.primaryAxisPlace === DG.GraphTypes.EPlace.eUndefined);
 
     // show or hide if needed, then update if shown.
-    if( this.showHidePlottedElement(tCircle, tIsMissingCase)) {
+    if( this.showHidePlottedElement(tCircle, tIsMissingCase) && iRC.categoryAxisModel) {
 
       var tCellNumber = iRC.categoryAxisModel.cellNameToCellNumber( iCase.getStrValue( iRC.categoryVarID )),
           tCellCoord = SC.none(tCellNumber) ? 0 : iRC.categoryAxisView.cellToCoordinate( tCellNumber),
