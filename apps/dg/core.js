@@ -169,7 +169,8 @@ DG = SC.Application.create((function () // closure
   };
 
   var isDevBuild = function () {
-    return (window.location.href.indexOf('-dev.codap.concord.org') >= 0) ||
+    var devParam = getUrlParameter('dev');
+    return (devParam || window.location.href.indexOf('-dev.codap.concord.org') >= 0) ||
       (window.location.href.indexOf('localhost:4020') >= 0);
   };
 
@@ -343,18 +344,24 @@ DG = SC.Application.create((function () // closure
      */
     componentMode: getUrlParameter('componentMode', 'no'),
 
-    toolButtons: [
-      'fileMenu',
-      //'gameMenu',
-      'tableButton',
-      'graphButton',
-      'mapButton',
-      'sliderButton',
-      'calcButton',
-      'textButton',
-      'optionButton',
-      'guideButton'
-    ],
+    toolButtons: function () {
+      var menu = [
+        'fileMenu',
+        //'gameMenu',
+        'tableButton',
+        'graphButton',
+        'mapButton',
+        'sliderButton',
+        'calcButton',
+        'textButton',
+        'optionButton',
+        'guideButton'];
+      if (this.IS_DEV_BUILD) {
+        return menu.concat('newTableButton');
+      } else {
+        return menu;
+      }
+    }.property().cacheable(true),
 
     logServerUrl: 'http://cc-log-manager.herokuapp.com/api/logs',
 
