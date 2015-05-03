@@ -80,14 +80,26 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
    * @returns {boolean}
    */
   mouseDown: function( iEvent) {
+    var tDataContext = this.getPath('model.dataContext'),
+      tCollection = this.getPath('model.collectionClient');
     this.marqueeContext = {};
     this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
         { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, this);
-    this.marqueeContext.marquee = this._paper.rect( this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
+    this.marqueeContext.marquee = this._paper.rect(
+      this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
         .attr( { fill: DG.PlotUtilities.kMarqueeColor,
           stroke: DG.RenderingUtilities.kTransparent });
-    this.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( this.marqueeContext.marquee);
+    this.getPath('layerManager.' + DG.LayerNames.kAdornments )
+      .push( this.marqueeContext.marquee);
     DG.logUser('marqueeDrag: start');
+    this.get('mapPointLayer' ).preparePointSelection();
+    this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
+    tDataContext.applyChange({
+      operation: 'selectCases',
+      collection: tCollection,
+      cases: null,
+      select: false
+    });
     return true;
   },
 
@@ -102,33 +114,45 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
         tY = Math.min( this.marqueeContext.startPt.y, tCurrPt.y),
         tWidth = Math.abs( this.marqueeContext.startPt.x - tCurrPt.x),
         tHeight = Math.abs( this.marqueeContext.startPt.y - tCurrPt.y),
-        tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
+        tRect = { x: tX, y: tY, width: tWidth, height: tHeight},
+        tLast = this.marqueeContext.lastRect;
     this.marqueeContext.marquee.attr( tRect);
-    this.selectPointsInRect( tRect, tBaseSelection);
+    this.marqueeContext.lastRect = tRect;
+    this.selectPointsInRect( tRect, tBaseSelection, tLast);
     return true;
   },
 
-  selectPointsInRect: function( iRect, iBaseSelection) {
+  selectPointsInRect: function( iRect, iBaseSelection, iLast) {
     var tDataContext = this.getPath('model.dataContext'),
         tCollection = this.getPath('model.collectionClient');
     if( SC.none( tDataContext))
       return;
     iBaseSelection = iBaseSelection || [];
 
-    var tSelection = this.get('mapPointLayer' ).getCasesForPointsInRect( iRect),
-        tChange = {
+    //DG.log('Map rect: ' + JSON.stringify({iRect: iRect, iLast: iLast}));
+    var tSelection = this.get('mapPointLayer' ).getCasesForDelta( iRect, iLast),
+        tDeselection = this.get('mapPointLayer').getCasesForDelta(iLast, iRect),
+        tSelectChange = {
                     operation: 'selectCases',
                     collection: tCollection,
                     cases: iBaseSelection.concat( tSelection),
-                    select: true
-                  };
+                    select: true,
+                    extend: true
+        },
+        tDeselectChange = {
+          operation: 'selectCases',
+          collection: tCollection,
+          cases: iBaseSelection.concat( tDeselection),
+          select: false,
+          extend: true
+        };
 
-    // If there are no cases to select, then simply deselect all
-    if( tChange.cases.length === 0) {
-      tChange.cases = null;
-      tChange.select = false;
+    if (tSelectChange.cases.length !== 0) {
+      tDataContext.applyChange( tSelectChange);
     }
-    tDataContext.applyChange( tChange);
+    if (tDeselectChange.cases.length !== 0) {
+      tDataContext.applyChange( tDeselectChange);
+    }
   },
 
   mouseUp: function( iEvent) {
@@ -138,6 +162,8 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     this.marqueeContext = null;
     this.set('isInMarqueeMode', false);
     DG.logUser('marqueeDrag: end');
+    this.get('mapPointLayer' ).cleanUpPointSelection();
+
     return true;
   },
 

@@ -366,7 +366,7 @@ return {
   revertCurrentDocument: function(iReceiver) {
     if (!DG.currDocumentController().get('canBeReverted')) { return; }
 
-    this.get('storageInterface').revert(DG.currDocumentController().get('externalDocumentId')).then(
+    this.get('storageInterface').revert({id:DG.currDocumentController().get('externalDocumentId')}).then(
       function(body) {
         iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
       },

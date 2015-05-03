@@ -124,6 +124,7 @@ DG.mainPage = SC.Page.design((function() {
 
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
+        classNames:['dg-toolshelflogin-button'],
         localize: true,
         title: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'), // "Logout"
         target: 'DG.appController',

@@ -20,6 +20,8 @@
 
 sc_require('alpha/destroyable');
 sc_require('components/graph/utilities/plot_utilities');
+sc_require('libraries/RTree');
+/*global RTree:true */
 
 /** @class  DG.PlotLayer - The base class for plotting points using Raphael.
 
@@ -625,18 +627,130 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._elementOrderIsValid = true;
   },
 
+  _selectionTree: null,
+
+  preparePointSelection: function() {
+    var tCases = this.getPath('model.cases' );
+
+    this._selectionTree = new RTree();
+    this._plottedElements.forEach(function(iElement, iIndex){
+      this._selectionTree.insert({
+          x: iElement.attrs.cx,
+          y: iElement.attrs.cy,
+          w: 1,
+          h: 1
+        },
+        tCases[iIndex]
+      );
+    }.bind(this));
+  },
+  cleanUpPointSelection: function () {
+    this._selectionTree = null;
+  },
   /**
-    @param {{ x: {Number}, y: {Number}, width: {Number}, height: {Number} }}
+   * Gets the cases which are in iNewRect ignoring those in the region defined by
+   * iLastRect.
+   * This function is usable for incremental selection.
+   * @param iNewRect
+   * @param iLastRect
+   */
+  getCasesForDelta: function(iNewRect, iLastRect) {
+    /**
+     * Returns the intersection of the two rectangles. Zero area intersections
+     * (adjacencies) are handled as if they where not intersections.
+     *
+     * @param {{x:number,y:number,width:number,height:number}} iA
+     * @param {{x:number,y:number,width:number,height:number}} iB
+     * @return {[{x:number,y:number,width:number,height:number}]|null}
+     */
+    function rectangleIntersect(iA, iB) {
+      var left = Math.max(iA.x, iB.x);
+      var right = Math.min(iA.x + iA.width, iB.x + iB.width);
+      var top = Math.max(iA.y, iB.y);
+      var bottom = Math.min(iA.y + iA.height, iB.y + iB.height);
+
+      if (right - left <= 0 || bottom - top <= 0) return null;
+      return {x:left, y: top, width: right - left, height: bottom - top};
+    }
+    /**
+     * Returns an array of zero, one, or more rectangles that represent the
+     * remainder of the first rectangle after the intersection with the second
+     * rectangle is removed. If the rectangle do not intersect, then the whole of
+     * the firs rectangle is returned.
+     *
+     * @param {{x:number,y:number,width:number,height:number}} iA
+     * @param {{x:number,y:number,width:number,height:number}} iB
+     * @return {[{x:number,y:number,width:number,height:number}]}
+     */
+    function rectangleSubtract(iA, iB) {
+      var intersectRect = rectangleIntersect(iA, iB);
+      var result = [];
+      var intersectLR;
+      var rectangleALR;
+
+      if (intersectRect) {
+        intersectLR = {x:intersectRect.x + intersectRect.width, y:intersectRect.y + intersectRect.height};
+        rectangleALR = {x:iA.x + iA.width, y:iA.y + iA.height};
+        if (iA.x < intersectRect.x) {
+          result.push({
+            x: iA.x, y: iA.y, width: intersectRect.x - iA.x, height: iA.height
+          });
+        }
+        if (intersectLR.x < rectangleALR.x) {
+          result.push({
+            x: intersectLR.x, y: iA.y, width: rectangleALR.x - intersectLR.x, height: iA.height
+          });
+        }
+        if (iA.y < intersectRect.y) {
+          result.push({
+            x: intersectRect.x, y: iA.y, width: intersectRect.width, height: intersectRect.y - iA.y
+          });
+        }
+        if (intersectLR.y < rectangleALR.y) {
+          result.push({
+            x: intersectRect.x, y: intersectLR.y, width: intersectRect.width, height: rectangleALR.y - intersectLR.y
+          });
+        }
+      } else {
+        result.push(iA);
+      }
+
+      return result;
+    }
+    var rects = rectangleSubtract(iNewRect, iLastRect);
+    var selected = [];
+
+
+    rects.forEach(function (iRect) {
+      var tRect;
+      var tSelected;
+      tRect = {x: iRect.x, y: iRect.y, w: iRect.width, h: iRect.height};
+      tSelected = this._selectionTree.search(tRect);
+      if (tSelected && tSelected.length>0) {
+        selected = selected.concat(tSelected);
+      }
+    }.bind(this));
+    return selected;
+  },
+  /**
+    @param {{ x: {Number}, y: {Number}, width: {Number}, height: {Number} }} iRect
     @return {Array} of DG.Case
   */
   getCasesForPointsInRect: function( iRect) {
-    var tCases = this.getPath('model.cases' ),
-        tSelected = [];
+    var tCases, tSelected, tRect;
 
-    this._plottedElements.forEach( function( iElement, iIndex) {
-            if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
-              tSelected.push( tCases[ iIndex]);
-          });
+    if (this._selectionTree) {
+      tRect = {x: iRect.x, y: iRect.y, w: iRect.width, h: iRect.height};
+      tSelected = this._selectionTree.search(tRect);
+    } else {
+      tCases = this.getPath('model.cases' );
+      tSelected = [];
+
+      this._plottedElements.forEach( function( iElement, iIndex) {
+        if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
+          tSelected.push( tCases[ iIndex]);
+      });
+    }
     return tSelected;
   },
 
@@ -676,15 +790,15 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   /**
     Graph controller observes this property to detect that a drag has taken place.
-    @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
+    @property {{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
               axisOrientation:{String} }}
   */
   dragData: null,
 
   /**
     Attempt to assign the given attribute to this axis.
-    @param {SC.Drag} 'data' property contains 'collection', 'attribute', 'text' properties
-    @param {SC.DRAG_LINK}
+    @param {SC.Drag} iDragObject 'data' property contains 'collection', 'attribute', 'text' properties
+    @param {SC.DRAG_LINK} iDragOp
   */
   performDragOperation: function( iDragObject, iDragOp) {
     this.set('dragData', iDragObject.data);
@@ -737,9 +851,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   /**
    * Show or hide the given plot element to match it's desired status.
-   * @param {} iPlottedElement, a Rafael element
+   * @param {Element} iPlottedElement, a Rafael element
    * @param {Boolean} iWantHidden, true if we want the element to be hidden
-   * @param {Boolean} optional parameter, true if we want to animate hiding
    * @return {Boolean} true if element is now shown.
    */
   showHidePlottedElement: function( iPlottedElement, iWantHidden /*, iAnimate*/ ) {
