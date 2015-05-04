@@ -161,7 +161,10 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           isDefault: true
         }),
 
-        showAlert: function () {
+        showAlert: function (msg) {
+          if (msg) {
+            this.setPath('alertView.value', msg);
+          }
           this.setPath('alertView.isVisible', YES);
         },
 

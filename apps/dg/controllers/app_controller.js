@@ -353,14 +353,100 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Tests the JSON text for validity as a possible document.  This is a placeholder function
-     for future DG Document structure validation.
+     Tests the JSON text for validity as a possible document.  Logs a warning
+     in case of an invalid document.
+
+     The following assertions are tested:
+
+     (1) The document is valid JSON. that is: it parses correctly
+     (2) The document looks like a valid CODAP document. It has all mandatory
+     top level elements and no unexpected top level elements.
+     (3) all internal links can be resolved.
+
      @param    {String}    iDocText -- The JSON-formatted document text
-     @returns  {Boolean}   True on success, false on failure
+     @returns  {[String]}   An array of error messages, zero length, if none.
      */
     isValidJsonDocument: function (iDocText) {
-      // Is there some other form of validation that is more appropriate?
-      return true;
+      function visit(key, value, fn) {
+        if (Array.isArray(value)) {
+          value.forEach(function (item) {
+            visit(key, item, fn);
+          });
+        } else if (typeof value === 'object') {
+          DG.ObjectMap.forEach(value, function (key, item) {
+            visit(key, item, fn);
+          });
+        } else {
+          fn(key, value);
+        }
+      }
+      function validateInternalRefs(doc) {
+        var symbols = [];
+        var references = [];
+        visit('doc', doc, function (key, value) {
+          if (key === 'guid') {
+            symbols.push(Number(value));
+          } else if (key === 'id') {
+              references.push(Number(value));
+          }
+        });
+        return references.map(function (ref) {
+            var rslt = (symbols.indexOf(Number(ref)) >= 0);
+            if (!rslt) {
+              errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
+            }
+            return rslt;
+          }).reduce(function (prior, value) {
+            return prior && value;
+          }, true);
+      }
+      var expectedProperties = [
+        'appBuildNum',
+        'appName',
+        'appVersion',
+        'components',
+        'contexts',
+        'globalValues',
+        'guid',
+        'name',
+        '_permissions'
+      ];
+      var requiredProperties = [
+        'name'
+      ];
+      var errors = [];
+      var doc;
+      try {
+        doc = JSON.parse(iDocText);
+      } catch (ex) {
+        errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
+      }
+      if (doc) {
+        requiredProperties.map(function (prop) {
+            var rslt = doc.hasOwnProperty(prop);
+            if (!rslt) {
+              errors.push('DG.AppController.validateDocument.missingRequiredProperty'.loc(prop));
+            }
+            return rslt;
+          }).reduce(function(prev, isPresent) {
+            return prev && isPresent;
+          },
+          true
+        );
+        DG.ObjectMap.keys(doc).map(function (prop) {
+            var rslt = expectedProperties.indexOf(prop) >= 0;
+            if (!rslt) {
+              errors.push('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
+        }
+            return rslt;
+          }).reduce(function(prev, isPresent) {
+            return prev && isPresent;
+          },
+          true
+        );
+        validateInternalRefs(doc);
+      }
+      return errors;
     },
 
     /**
@@ -370,11 +456,15 @@ DG.appController = SC.Object.create((function () // closure
      @returns  {{Deferred}}   A deferred object that will complete with a new document open (or error).
      */
     openJsonDocument: function (iDocText, saveImmediately) {
-      console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
 
       // Does it look like it could be a valid document?
-      if (!this.isValidJsonDocument(iDocText)) return false;
+      var validationErrors = this.isValidJsonDocument(iDocText);
+      if (validationErrors.length) {
+        return $.Deferred().reject(
+          'DG.AppController.validateDocument.invalidDocument'.loc(
+            JSON.stringify(validationErrors)));
+      }
 
       // Currently, we must close any open document before opening another
       this.closeDocument();
@@ -834,12 +924,16 @@ DG.appController = SC.Object.create((function () // closure
           console.log("Abort or error on file read.");
         }
 
-        function handleRead() {
+        var handleRead = function () {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result, true).fail(function (ex) {
-                DG.logError('JSON file open failed: ' + iFile.name);
-                iDialog.showAlert(ex);
+              that.openJsonDocument(this.result, true).then(function() {
+                DG.log('Opened: ' + iFile.name);
+              },
+              function (msg) {
+                  DG.logError('JSON file open failed: ' + iFile.name);
+                  DG.logError(msg);
+                  iDialog.showAlert(msg);
               });
             }
             else if( iType === 'TEXT') {
@@ -855,7 +949,8 @@ DG.appController = SC.Object.create((function () // closure
             }
           }
           DG.busyCursor.hide();
-        }
+        };
+
         var that = this;
         DG.busyCursor.show( function() {
           var reader = new FileReader();
