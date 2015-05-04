@@ -137,8 +137,8 @@ DG.ObjectMap = {
     Boolean matchFunc( iKey, iValue) { ... }
     where iKey is the key/name of the property and iValue is its value.
 
-    @param {Object} iObject   The object whose properties names should be returned
-    @param {String | Function}  String to match against the property names OR
+    @param {Object}             iObject   The object whose properties names should be returned
+    @param {String | Function}  iMatch String to match against the property names OR
                     Function to apply until the first match is found
     @returns {String}       Property name/key of first match or undefined
    */
