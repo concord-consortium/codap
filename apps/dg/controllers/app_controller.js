@@ -390,15 +390,11 @@ DG.appController = SC.Object.create((function () // closure
               references.push(Number(value));
           }
         });
-        return references.map(function (ref) {
-            var rslt = (symbols.indexOf(Number(ref)) >= 0);
-            if (!rslt) {
+        return references.forEach(function (ref) {
+            if (symbols.indexOf(Number(ref)) < 0) {
               errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
             }
-            return rslt;
-          }).reduce(function (prior, value) {
-            return prior && value;
-          }, true);
+          });
       }
       var expectedProperties = [
         'appBuildNum',
@@ -422,27 +418,17 @@ DG.appController = SC.Object.create((function () // closure
         errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
       }
       if (doc) {
-        requiredProperties.map(function (prop) {
-            var rslt = doc.hasOwnProperty(prop);
-            if (!rslt) {
+        requiredProperties.forEach(function (prop) {
+          if (!doc.hasOwnProperty(prop)) {
               errors.push('DG.AppController.validateDocument.missingRequiredProperty'.loc(prop));
             }
-            return rslt;
-          }).reduce(function(prev, isPresent) {
-            return prev && isPresent;
-          },
-          true
+          }
         );
-        DG.ObjectMap.keys(doc).map(function (prop) {
-            var rslt = expectedProperties.indexOf(prop) >= 0;
-            if (!rslt) {
+        DG.ObjectMap.keys(doc).forEach(function (prop) {
+          if (expectedProperties.indexOf(prop) < 0) {
               errors.push('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
-        }
-            return rslt;
-          }).reduce(function(prev, isPresent) {
-            return prev && isPresent;
-          },
-          true
+            }
+          }
         );
         validateInternalRefs(doc);
       }
@@ -565,10 +551,8 @@ DG.appController = SC.Object.create((function () // closure
           // add interactive to existing document
           //,
           //embedWebView = function () {
-          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          //      iURL, 'Web Page',
-          //      {width: 600, height: 400});
-          //}.bind(this);
+          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'),
+          // null, iURL, 'Web Page', {width: 600, height: 400}); }.bind(this);
 
       addInteractive();
       return true;
@@ -581,11 +565,16 @@ DG.appController = SC.Object.create((function () // closure
       if (DG.currDocumentController().get('documentName') === SC.String.loc('DG.Document.defaultDocumentName')) {
         this.openSaveDialog = DG.CreateOpenSaveDialog({
           dialogType: DG.OpenSaveDialog.kSaveDialog,
-          prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for your document:"
+          prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for
+                                                          // your document:"
           documentNameValue: DG.currDocumentController().get('documentName'),
           documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
           okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
-          okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+          okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the
+                                                                // document
+                                                                // with the
+                                                                // specified
+                                                                // name"
           okTarget: this,
           okAction: 'saveDocumentFromDialog'
         });
@@ -622,11 +611,15 @@ DG.appController = SC.Object.create((function () // closure
     copyDocument: function () {
       this.openSaveDialog = DG.CreateOpenSaveDialog({
         dialogType: DG.OpenSaveDialog.kSaveDialog,
-        prompt: 'DG.AppController.copyDocument.prompt', // "Choose a name for your document:"
+        prompt: 'DG.AppController.copyDocument.prompt', // "Choose a name for
+                                                        // your document:"
         documentNameValue: DG.currDocumentController().get('documentName'),
         documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
         okTitle: 'DG.AppController.copyDocument.okTitle', // "Save"
-        okTooltip: 'DG.AppController.copyDocument.okTooltip', // "Save the document with the specified name"
+        okTooltip: 'DG.AppController.copyDocument.okTooltip', // "Save the
+                                                              // document with
+                                                              // the specified
+                                                              // name"
         okTarget: this,
         okAction: 'copyDocumentFromDialog'
       });
@@ -773,7 +766,8 @@ DG.appController = SC.Object.create((function () // closure
       DG.mainPage.closeAllComponents();
 
       // Finish whatever we were in the middle of
-      if (DG.store) // We can get here without a store if we are opening a document specified as url param
+      if (DG.store) // We can get here without a store if we are opening a document
+              // specified as url param
         DG.store.commitRecords();
 
       // Destroy the document and its contents
@@ -860,7 +854,8 @@ DG.appController = SC.Object.create((function () // closure
     revertDocumentToOriginal: function () {
       var _this = this;
       function doRevert() {
-        DG.logUser("Reverted to original"); // deleted by user action, not game action
+        DG.logUser("Reverted to original"); // deleted by user action, not game
+                                            // action
         DG.authorizationController.revertCurrentDocument(_this);
       }
 
@@ -884,7 +879,8 @@ DG.appController = SC.Object.create((function () // closure
     deleteAllCaseData: function () {
 
       function doDelete() {
-        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
+        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not
+                                                 // game action
         DG.doCommand({action: 'deleteAllCaseData'});
         DG.dirtyCurrentDocument();
       }
@@ -908,14 +904,16 @@ DG.appController = SC.Object.create((function () // closure
      *
      * Handles CODAP documents and 'TEXT' files
      * (TEXT files here means comma or tab delimited data files.)
-     * Will present a confirmation dialog if the type indicates a CODAP document
+     * Will present a confirmation dialog if the type indicates a CODAP
+     * document
      * and the document is managed by the document server and has unsaved
      * changes.
      *
      * The file parameter may have come from a drop or a dialog box.
      * @param {File} iFile
      * @param {String} iType 'JSON' or 'TEXT'
-     * @param {{showAlert:function,close:function}} iDialog optional error alert.
+     * @param {{showAlert:function,close:function}} iDialog optional error
+     *   alert.
      */
     importFileWithConfirmation: function( iFile, iType, iDialog) {
 
@@ -1169,7 +1167,8 @@ DG.appController = SC.Object.create((function () // closure
             isVisibleBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
             didAppendToDocument: function() {
               // Force always have all text selected
-              // HACK, but I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
+              // HACK, but I can't figure out how to use SC.TextSelection to do
+              // what I want, so using jQuery directly.
               $("#shareLinkField textarea").mouseup(function(e) {
                 e.preventDefault();
                 $("#shareLinkField textarea").select();
@@ -1179,7 +1178,9 @@ DG.appController = SC.Object.create((function () // closure
             visibilityChanged: function() {
               if (this.get('isVisible')) {
                 //var linkView = this.get('_view_layer');
-                // HACK, once again I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
+                // HACK, once again I can't figure out how to use
+                // SC.TextSelection to do what I want, so using jQuery
+                // directly.
                 $("#shareLinkField textarea").focus();
                 $("#shareLinkField textarea").select();
               }
@@ -1444,7 +1445,8 @@ DG.appController = SC.Object.create((function () // closure
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
-      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
+      //var windowFeatures =
+      // "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
           'http://' +  ('DG.AppController.showWebSiteURL'.loc()),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'

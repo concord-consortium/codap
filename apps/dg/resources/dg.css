@@ -364,7 +364,7 @@ input.editor-text {
     outline: none !important;
 }
 
-.dg-alert {
+.dg-alert, .dg-alert textarea {
     color: red;
 }
 

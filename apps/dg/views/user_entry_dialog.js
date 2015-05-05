@@ -143,11 +143,12 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         }),
         // alertView: Initially invisible, only exposed if invalid file
         // uploaded
-        alertView: SC.LabelView.extend({
-          layout: { top: 70, left: 5, right: 5, height:24 },
+        alertView: SC.TextFieldView.extend({
+          layout: { top: 70, left: 5, right: 5, height:48 },
           classNames: ['dg-alert'],
           localize: true,
           isVisible: NO,
+          isTextArea: YES,
           value: 'DG.AppController.importDocument.alert'
         }),
         okButton: SC.ButtonView.design({
