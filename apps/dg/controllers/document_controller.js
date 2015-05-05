@@ -663,6 +663,39 @@ DG.DocumentController = SC.Object.extend(
       }.bind(this));
     },
 
+    addFlexTable: function( iParentView, iComponent, iProperties) {
+
+      var props = SC.Object.create({
+        parentView: iParentView,
+        controller: DG.FlexTableController.create(iProperties),
+        componentClass: { type: 'DG.FlexTableView', constructor: DG.FlexTableView},
+        contentProperties: {},
+        defaultLayout: { width: 500, height: 200 },
+        title: iProperties.dataContext.gameName ||
+        'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
+        isResizable: true}), tView;
+      DG.ObjectMap.copy(props, iProperties);
+      tView = this.createComponentView(iComponent, props);
+      return tView;
+    },
+
+    openNewCaseTablesForEachContext: function () {
+      var caseTables = this.findComponentsByType(DG.FlexTableController);
+      function haveCaseTableForContext (context) {
+        var ix;
+        for (ix = 0; ix < caseTables.length; ix += 1) {
+          if (caseTables[ix].dataContext === context) { return true; }
+        }
+        return false;
+      }
+      DG.DataContext.forEachContextInMap(null, function (id, context) {
+        if (!haveCaseTableForContext(context)) {
+          this.addFlexTable(DG.mainPage.get('docView'),
+            null, {dataContext: context});
+        }
+      }.bind(this));
+    },
+
     addGraph: function( iParentView, iComponent) {
       SC.Benchmark.start('addGraph');
       var tGraphModel = DG.GraphModel.create(),
