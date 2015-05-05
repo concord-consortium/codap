@@ -412,6 +412,10 @@ DG.mainPage.openCaseTablesForEachContext = function () {
   DG.currDocumentController().openCaseTablesForEachContext();
 };
 
+DG.mainPage.openNewCaseTablesForEachContext = function () {
+  DG.currDocumentController().openNewCaseTablesForEachContext();
+};
+
 DG.mainPage.toggleCaseTable = function() {
 
   DG.currDocumentController().
