@@ -59,6 +59,7 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
     }.observes('_status', '_isPlaceholder', '_dialog'),
 
     openNewDocument: function() {
+      DG.appController.closeAndNewDocument();
       var title = this._dialog.getPath('contentView.choiceViews.contentView.titleField.value');
       if (SC.none(title) || title.length === 0) {
         title = SC.String.loc('DG.Document.defaultDocumentName');
@@ -97,7 +98,7 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
           || (file.name && file.name.match( /.*\.json/i))) {
           DG.appController.importFileWithConfirmation( file, 'JSON', dialog);
         } else {
-          dialog.showAlert('File, ' + file.name + ' is not of type JSON');
+          dialog.showAlert(new Error('File, ' + file.name + ' is not of type JSON'));
         }
       }
     }
