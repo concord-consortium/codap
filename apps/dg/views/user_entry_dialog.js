@@ -162,9 +162,15 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           isDefault: true
         }),
 
-        showAlert: function (msg) {
-          if (msg) {
-            this.setPath('alertView.value', msg);
+        /**
+         * Show an alert message. If an error is passed will show its (assumed
+         * localized) message. If not will display the default.
+         *
+         * @param error {Error} a Javascript Error object
+         */
+        showAlert: function (error) {
+          if (error) {
+            this.setPath('alertView.value', error);
           }
           this.setPath('alertView.isVisible', YES);
         },
