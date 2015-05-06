@@ -339,6 +339,9 @@ DG.appController = SC.Object.create((function () // closure
             this.autoSaveDocument(true);
           }.bind(this));
         }
+        openDeferred.fail(function () {
+          this.notifyStorageFailure('DG.AppController.openDocument.', 'error.general');
+        });
       }
 
       DG.busyCursor.hide();
@@ -353,89 +356,6 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Tests the JSON text for validity as a possible document.  Logs a warning
-     in case of an invalid document.
-
-     The following assertions are tested:
-
-     (1) The document is valid JSON. that is: it parses correctly
-     (2) The document looks like a valid CODAP document. It has all mandatory
-     top level elements and no unexpected top level elements.
-     (3) all internal links can be resolved.
-
-     @param    {String}    iDocText -- The JSON-formatted document text
-     @returns  {[String]}   An array of error messages, zero length, if none.
-     */
-    isValidJsonDocument: function (iDocText) {
-      function visit(key, value, fn) {
-        if (Array.isArray(value)) {
-          value.forEach(function (item) {
-            visit(key, item, fn);
-          });
-        } else if (typeof value === 'object') {
-          DG.ObjectMap.forEach(value, function (key, item) {
-            visit(key, item, fn);
-          });
-        } else {
-          fn(key, value);
-        }
-      }
-      function validateInternalRefs(doc) {
-        var symbols = [];
-        var references = [];
-        visit('doc', doc, function (key, value) {
-          if (key === 'guid') {
-            symbols.push(Number(value));
-          } else if (key === 'id') {
-              references.push(Number(value));
-          }
-        });
-        return references.forEach(function (ref) {
-            if (symbols.indexOf(Number(ref)) < 0) {
-              errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
-            }
-          });
-      }
-      var expectedProperties = [
-        'appBuildNum',
-        'appName',
-        'appVersion',
-        'components',
-        'contexts',
-        'globalValues',
-        'guid',
-        'name',
-        '_permissions'
-      ];
-      var requiredProperties = [
-        'name'
-      ];
-      var errors = [];
-      var doc;
-      try {
-        doc = JSON.parse(iDocText);
-      } catch (ex) {
-        errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
-      }
-      if (doc) {
-        requiredProperties.forEach(function (prop) {
-          if (!doc.hasOwnProperty(prop)) {
-              errors.push('DG.AppController.validateDocument.missingRequiredProperty'.loc(prop));
-            }
-          }
-        );
-        DG.ObjectMap.keys(doc).forEach(function (prop) {
-          if (expectedProperties.indexOf(prop) < 0) {
-              errors.push('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
-            }
-          }
-        );
-        validateInternalRefs(doc);
-      }
-      return errors;
-    },
-
-    /**
      Attempts to parse the specified iDocText as the contents of a saved document in JSON format.
      @param    {String}    iDocText -- The JSON-formatted document text
      @param    {Boolean}   saveImmediately -- whether to save existing doc.
@@ -443,14 +363,6 @@ DG.appController = SC.Object.create((function () // closure
      */
     openJsonDocument: function (iDocText, saveImmediately) {
       SC.Benchmark.start('app_controller:openJsonDocument');
-
-      // Does it look like it could be a valid document?
-      var validationErrors = this.isValidJsonDocument(iDocText);
-      if (validationErrors.length) {
-        return $.Deferred().reject(
-          'DG.AppController.validateDocument.invalidDocument'.loc(
-            JSON.stringify(validationErrors)));
-      }
 
       // Currently, we must close any open document before opening another
       this.closeDocument();
@@ -565,16 +477,11 @@ DG.appController = SC.Object.create((function () // closure
       if (DG.currDocumentController().get('documentName') === SC.String.loc('DG.Document.defaultDocumentName')) {
         this.openSaveDialog = DG.CreateOpenSaveDialog({
           dialogType: DG.OpenSaveDialog.kSaveDialog,
-          prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for
-                                                          // your document:"
+          prompt: 'DG.AppController.saveDocument.prompt', // "Choose a name for your document:"
           documentNameValue: DG.currDocumentController().get('documentName'),
           documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
           okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
-          okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the
-                                                                // document
-                                                                // with the
-                                                                // specified
-                                                                // name"
+          okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
           okTarget: this,
           okAction: 'saveDocumentFromDialog'
         });
@@ -611,15 +518,11 @@ DG.appController = SC.Object.create((function () // closure
     copyDocument: function () {
       this.openSaveDialog = DG.CreateOpenSaveDialog({
         dialogType: DG.OpenSaveDialog.kSaveDialog,
-        prompt: 'DG.AppController.copyDocument.prompt', // "Choose a name for
-                                                        // your document:"
+        prompt: 'DG.AppController.copyDocument.prompt', // "Choose a name for your document:"
         documentNameValue: DG.currDocumentController().get('documentName'),
         documentPermissionValue: DG.currDocumentController().get('documentPermissions'),
         okTitle: 'DG.AppController.copyDocument.okTitle', // "Save"
-        okTooltip: 'DG.AppController.copyDocument.okTooltip', // "Save the
-                                                              // document with
-                                                              // the specified
-                                                              // name"
+        okTooltip: 'DG.AppController.copyDocument.okTooltip', // "Save the document with the specified name"
         okTarget: this,
         okAction: 'copyDocumentFromDialog'
       });
@@ -766,8 +669,7 @@ DG.appController = SC.Object.create((function () // closure
       DG.mainPage.closeAllComponents();
 
       // Finish whatever we were in the middle of
-      if (DG.store) // We can get here without a store if we are opening a document
-              // specified as url param
+      if (DG.store) // We can get here without a store if we are opening a document specified as url param
         DG.store.commitRecords();
 
       // Destroy the document and its contents
@@ -854,8 +756,7 @@ DG.appController = SC.Object.create((function () // closure
     revertDocumentToOriginal: function () {
       var _this = this;
       function doRevert() {
-        DG.logUser("Reverted to original"); // deleted by user action, not game
-                                            // action
+        DG.logUser("Reverted to original"); // deleted by user action, not game action
         DG.authorizationController.revertCurrentDocument(_this);
       }
 
@@ -879,8 +780,7 @@ DG.appController = SC.Object.create((function () // closure
     deleteAllCaseData: function () {
 
       function doDelete() {
-        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not
-                                                 // game action
+        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
         DG.doCommand({action: 'deleteAllCaseData'});
         DG.dirtyCurrentDocument();
       }
@@ -904,16 +804,14 @@ DG.appController = SC.Object.create((function () // closure
      *
      * Handles CODAP documents and 'TEXT' files
      * (TEXT files here means comma or tab delimited data files.)
-     * Will present a confirmation dialog if the type indicates a CODAP
-     * document
+     * Will present a confirmation dialog if the type indicates a CODAP document
      * and the document is managed by the document server and has unsaved
      * changes.
      *
      * The file parameter may have come from a drop or a dialog box.
      * @param {File} iFile
      * @param {String} iType 'JSON' or 'TEXT'
-     * @param {{showAlert:function,close:function}} iDialog optional error
-     *   alert.
+     * @param {{showAlert:function,close:function}} iDialog optional error alert.
      */
     importFileWithConfirmation: function( iFile, iType, iDialog) {
 
@@ -931,7 +829,7 @@ DG.appController = SC.Object.create((function () // closure
               function (msg) {
                   DG.logError('JSON file open failed: ' + iFile.name);
                   DG.logError(msg);
-                  iDialog.showAlert(msg);
+                  iDialog.showAlert(new Error(msg));
               });
             }
             else if( iType === 'TEXT') {
@@ -1167,8 +1065,7 @@ DG.appController = SC.Object.create((function () // closure
             isVisibleBinding: SC.Binding.oneWay('DG._currDocumentController.documentPermissions').bool(),
             didAppendToDocument: function() {
               // Force always have all text selected
-              // HACK, but I can't figure out how to use SC.TextSelection to do
-              // what I want, so using jQuery directly.
+              // HACK, but I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
               $("#shareLinkField textarea").mouseup(function(e) {
                 e.preventDefault();
                 $("#shareLinkField textarea").select();
@@ -1178,9 +1075,7 @@ DG.appController = SC.Object.create((function () // closure
             visibilityChanged: function() {
               if (this.get('isVisible')) {
                 //var linkView = this.get('_view_layer');
-                // HACK, once again I can't figure out how to use
-                // SC.TextSelection to do what I want, so using jQuery
-                // directly.
+                // HACK, once again I can't figure out how to use SC.TextSelection to do what I want, so using jQuery directly.
                 $("#shareLinkField textarea").focus();
                 $("#shareLinkField textarea").select();
               }
@@ -1445,8 +1340,7 @@ DG.appController = SC.Object.create((function () // closure
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
-      //var windowFeatures =
-      // "location=yes,scrollbars=yes,status=yes,titlebar=yes";
+      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
           'http://' +  ('DG.AppController.showWebSiteURL'.loc()),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'

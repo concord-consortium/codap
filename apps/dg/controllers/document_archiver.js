@@ -30,7 +30,94 @@
 DG.DocumentArchiver = SC.Object.extend(
 /** @scope DG.DocumentArchiver.prototype */ {
 
-  
+    /**
+     Tests the JSON text for validity as a possible document.
+
+     The following assertions are tested:
+
+     (1) The document is valid JSON. that is: it parses correctly
+     (2) The document looks like a valid CODAP document. It has all mandatory
+     top level elements and no unexpected top level elements.
+     (3) all internal links can be resolved.
+
+     @param    {String}    iDocument -- The JSON-formatted document text
+     @returns  {[String]}   An array of error messages, zero length, if none.
+     */
+    isValidJsonDocument: function (iDocument) {
+      //function visit(key, value, fn) {
+      //  if (Array.isArray(value)) {
+      //    value.forEach(function (item) {
+      //      visit(key, item, fn);
+      //    });
+      //  } else if (typeof value === 'object') {
+      //    DG.ObjectMap.forEach(value, function (key, item) {
+      //      visit(key, item, fn);
+      //    });
+      //  } else {
+      //    fn(key, value);
+      //  }
+      //}
+
+      //function validateInternalRefs(doc) {
+      //  var symbols = [];
+      //  var references = [];
+      //  visit('doc', doc, function (key, value) {
+      //    if (key === 'guid') {
+      //      symbols.push(Number(value));
+      //    } else if (key === 'id') {
+      //      references.push(Number(value));
+      //    }
+      //  });
+      //  references.forEach(function (ref) {
+      //    if (symbols.indexOf(Number(ref)) < 0) {
+      //      errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
+      //    }
+      //  });
+      //}
+      var expectedProperties = [
+        'appBuildNum',
+        'appName',
+        'appVersion',
+        'components',
+        'contexts',
+        'globalValues',
+        'guid',
+        'name',
+        '_permissions'
+      ];
+      var requiredProperties = [
+        'name'
+      ];
+      var errors = [];
+      var doc;
+      if (typeof iDocument === 'string') {
+        try {
+          doc = JSON.parse(iDocument);
+        } catch (ex) {
+          errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
+        }
+      } else {
+        doc = iDocument;
+      }
+      if (doc) {
+        requiredProperties.forEach(function (prop) {
+            if (!doc.hasOwnProperty(prop)) {
+              errors.push('DG.AppController.validateDocument.missingRequiredProperty'.loc(prop));
+            }
+          }
+        );
+        DG.ObjectMap.keys(doc).forEach(function (prop) {
+            if (expectedProperties.indexOf(prop) < 0) {
+              errors.push('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
+            }
+          }
+        );
+        //validateInternalRefs(doc);
+      }
+      DG.log('Document validation: ' + (errors.length? JSON.stringify(errors): 'No Errors'));
+      return errors;
+    },
+
   /**
     Open the specified document text as a new document, returning the newly-created document.
    */
@@ -42,10 +129,17 @@ DG.DocumentArchiver = SC.Object.extend(
     Promise.all(promises).then(function() {
       try {
         var docArchive = SC.json.decode( iDocText),
-            dataSource = DG.ModelStore.create();
+          validationErrors;
 
-        DG.store = dataSource;
-        deferred.resolve(DG.Document.createDocument(docArchive));
+        validationErrors = this.isValidJsonDocument(docArchive);
+        if (validationErrors.length > 0) {
+          deferred.reject('DG.AppController.validateDocument.invalidDocument'.loc(
+            JSON.stringify(validationErrors)));
+        }
+        else {
+          DG.store = DG.ModelStore.create();
+          deferred.resolve(DG.Document.createDocument(docArchive));
+        }
       } catch (ex) {
         deferred.reject(ex);
       }
