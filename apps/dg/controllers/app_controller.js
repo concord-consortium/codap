@@ -339,9 +339,9 @@ DG.appController = SC.Object.create((function () // closure
             this.autoSaveDocument(true);
           }.bind(this));
         }
-        openDeferred.fail(function () {
-          this.notifyStorageFailure('DG.AppController.openDocument.', 'error.general');
-        });
+        openDeferred.fail(function (failure) {
+          this.notifyStorageFailure('', failure.message);
+        }.bind(this));
       }
 
       DG.busyCursor.hide();
@@ -1291,8 +1291,8 @@ DG.appController = SC.Object.create((function () // closure
           DG.authorizationController.sessionTimeoutPrompt(resolve);
         } else {
           var errorMessage = messageBase + errorCode;
-          if (errorMessage.loc() === errorMessage)
-            errorMessage = messageBase + 'error.general';
+          //if (errorMessage.loc() === errorMessage)
+          //  errorMessage = messageBase + 'error.general';
           DG.AlertPane.error({
             localize: true,
             message: errorMessage,

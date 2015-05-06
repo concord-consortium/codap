@@ -44,36 +44,40 @@ DG.DocumentArchiver = SC.Object.extend(
      @returns  {[String]}   An array of error messages, zero length, if none.
      */
     isValidJsonDocument: function (iDocument) {
-      //function visit(key, value, fn) {
-      //  if (Array.isArray(value)) {
-      //    value.forEach(function (item) {
-      //      visit(key, item, fn);
-      //    });
-      //  } else if (typeof value === 'object') {
-      //    DG.ObjectMap.forEach(value, function (key, item) {
-      //      visit(key, item, fn);
-      //    });
-      //  } else {
-      //    fn(key, value);
-      //  }
-      //}
+      function visit(key, value, fn) {
+        if (Array.isArray(value)) {
+          value.forEach(function (item) {
+            visit(key, item, fn);
+          });
+        } else if (typeof value === 'object') {
+          DG.ObjectMap.forEach(value, function (key, item) {
+            visit(key, item, fn);
+          });
+        } else {
+          fn(key, value);
+        }
+      }
 
-      //function validateInternalRefs(doc) {
-      //  var symbols = [];
-      //  var references = [];
-      //  visit('doc', doc, function (key, value) {
-      //    if (key === 'guid') {
-      //      symbols.push(Number(value));
-      //    } else if (key === 'id') {
-      //      references.push(Number(value));
-      //    }
-      //  });
-      //  references.forEach(function (ref) {
-      //    if (symbols.indexOf(Number(ref)) < 0) {
-      //      errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
-      //    }
-      //  });
-      //}
+      function validateInternalRefs(iDocument) {
+        var parts = subDocs.copy(false);
+        var symbols = [];
+        var references = [];
+        parts.unshift(iDocument);
+        parts.forEach(function (documentPart) {
+          visit('doc', documentPart, function (key, value) {
+            if (key === 'guid') {
+              symbols.push(Number(value));
+            } else if (key === 'id') {
+              references.push(Number(value));
+            }
+          });
+        });
+        references.forEach(function (ref) {
+          if (symbols.indexOf(Number(ref)) < 0) {
+            errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
+          }
+        });
+      }
       var expectedProperties = [
         'appBuildNum',
         'appName',
@@ -90,6 +94,8 @@ DG.DocumentArchiver = SC.Object.extend(
       ];
       var errors = [];
       var doc;
+      var subDocs = [];
+
       if (typeof iDocument === 'string') {
         try {
           doc = JSON.parse(iDocument);
@@ -99,6 +105,23 @@ DG.DocumentArchiver = SC.Object.extend(
       } else {
         doc = iDocument;
       }
+
+      if (DG.ExternalDocumentCache) {
+        subDocs = DG.ExternalDocumentCache.fetchAll().map(function (iFragment) {
+          var parsedFragment = {};
+          if (typeof iDocument === 'string') {
+            try {
+              parsedFragment = JSON.parse(iFragment);
+            } catch (ex) {
+              errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
+            }
+          } else {
+            parsedFragment = iFragment;
+          }
+          return parsedFragment;
+        });
+      }
+
       if (doc) {
         requiredProperties.forEach(function (prop) {
             if (!doc.hasOwnProperty(prop)) {
@@ -112,7 +135,7 @@ DG.DocumentArchiver = SC.Object.extend(
             }
           }
         );
-        //validateInternalRefs(doc);
+        validateInternalRefs(doc);
       }
       DG.log('Document validation: ' + (errors.length? JSON.stringify(errors): 'No Errors'));
       return errors;
@@ -133,8 +156,8 @@ DG.DocumentArchiver = SC.Object.extend(
 
         validationErrors = this.isValidJsonDocument(docArchive);
         if (validationErrors.length > 0) {
-          deferred.reject('DG.AppController.validateDocument.invalidDocument'.loc(
-            JSON.stringify(validationErrors)));
+          deferred.reject(new Error('DG.AppController.validateDocument.invalidDocument'.loc(
+            JSON.stringify(validationErrors))));
         }
         else {
           DG.store = DG.ModelStore.create();
