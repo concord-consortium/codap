@@ -53,7 +53,9 @@ DG.main = function main() {
   DG.splash.showSplash();
 
   var splashChanged = function() {
-    if (!DG.splash.get('isShowing')) {
+    if (!DG.splash.get('isShowing')
+        && !SC.empty(DG.startingDocName)
+        && !SC.empty(DG.startingDocId)) {
       DG.userEntryController.setup(); // Create the user entry dialog.
       DG.splash.removeObserver('isShowing', splashChanged);
     }
