@@ -465,6 +465,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   expandCollapseAll: function( iExpand) {
     var dataView = this.get('gridDataView');
     DG.assert( dataView);
+    dataView.beginUpdate();
     DG.ObjectMap.forEach( this.parentIDGroups,
                           function( iParentID, iChildInfo) {
                             iChildInfo.isCollapsed = !iExpand;
@@ -473,6 +474,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                             else
                               dataView.collapseGroup( iParentID);
                           });
+    dataView.endUpdate();
   },
   
   /**
