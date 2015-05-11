@@ -225,6 +225,7 @@ SC.stringsFor('English', {
   // DG.DocumentController
   'DG.DocumentController.calculatorTitle' : "Calculator",
   'DG.DocumentController.caseTableTitle' : "Case Table",
+  'DG.DocumentController.flexTableTitle' : "Flex Table",
   'DG.DocumentController.graphTitle' : "Graph",
   'DG.DocumentController.sliderTitle' : "Slider",
   'DG.DocumentController.textTitle' : "Text",
