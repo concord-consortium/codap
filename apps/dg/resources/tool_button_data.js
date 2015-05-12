@@ -60,7 +60,7 @@ DG.ToolButtonData = {
     iconName: static_url('images/table.png'),
     depressedIconName: static_url('images/table_depressed.png'),
     target: 'DG.mainPage',
-    action: 'openNewCaseTablesForEachContext',
+    action: 'openFlexCaseTablesForEachContext',
     toolTip: 'DG.ToolButtonData.newTableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
     localize: true,
     //isEnabled: false

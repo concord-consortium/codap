@@ -29,10 +29,78 @@ sc_require('controllers/component_controller');
  @extends DG.ComponentController
  */
 DG.FlexTableController = DG.ComponentController.extend(
-  /** @scope DG.CaseTableController.prototype */
+  /** @scope DG.FlexTableController.prototype */
   (function() {
     return {
+      /**
+       The table will reflect the contents of this data context.
+       @property   {DG.DataContext} or derived class
+       */
+      dataContext: null,
 
+      collectionClient: null,
+
+      view: null,
+
+      contentView: null,
+
+      /**
+       Initialization function.
+       */
+      init: function() {
+        sc_super();
+      },
+      /**
+       Destruction function.
+       */
+      destroy: function() {
+        //var dataContext = this.get('dataContext');
+        //if( dataContext)
+        //  dataContext.removeObserver('changeCount', this, 'contextDataDidChange');
+        sc_super();
+      },
+
+      viewDidChange: function() {
+        var tComponentView = this.get('view'),
+          tContentView = tComponentView.get('contentView');
+        this.set('contentView', tContentView);
+
+        if( tContentView) {
+          tContentView.bind('dataContext', this, 'dataContext');
+        }
+      }.observes('view'),
+
+      columns: function () {
+        var attributeIDs = this.collectionClient.getAttributeIDs();
+        var columns = [];
+        columns.push({caption: 'id', field: 'recid', hidden: true});
+        this.contentView.reset();
+        attributeIDs.forEach(function (id) {
+          var attr = this.collectionClient.getAttributeByID(id);
+          columns.push({caption: attr.name, field: id, size: '10%'});
+        }.bind(this));
+        return columns;
+      }.property('collectionClient').cacheable(),
+
+      records: function () {
+        var cases = [];
+        var attributeIDs = this.collectionClient.getAttributeIDs();
+        var caseCount = this.collectionClient.getCaseCount();
+        var ix, tCase, obj, jx;
+
+        for (ix = 0; ix < caseCount; ix += 1) {
+          tCase = this.collectionClient.getCaseAt(ix);
+          obj = {recid: tCase.id};
+          jx;
+          for (jx = 0; jx < attributeIDs.length; jx += 1) {
+            var attributeID = attributeIDs[jx];
+            obj[attributeID] = tCase.getValue(attributeID);
+          }
+          cases.push(obj);
+        }
+
+        return cases;
+      }.property('collectionClient')
     };
   }())
 );
