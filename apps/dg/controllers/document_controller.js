@@ -622,7 +622,7 @@ DG.DocumentController = SC.Object.extend(
           defaultLayout: { width: 500, height: 200 },
           title: contextName,
           isResizable: true}
-      );
+        );
       return tView;
     },
 
@@ -679,7 +679,7 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    openNewCaseTablesForEachContext: function () {
+    openFlexCaseTablesForEachContext: function () {
       var caseTables = this.findComponentsByType(DG.FlexTableController);
       function haveCaseTableForContext (context) {
         var ix;
@@ -688,10 +688,12 @@ DG.DocumentController = SC.Object.extend(
         }
         return false;
       }
-      DG.DataContext.forEachContextInMap(null, function (id, context) {
+      DG.DataContext.forEachContextInMap(null, function (contextID, context) {
+        var collection = context.get('collections')[0],
+          collectionID = collection.id;
         if (!haveCaseTableForContext(context)) {
           this.addFlexTable(DG.mainPage.get('docView'),
-            null, {dataContext: context});
+            null, {dataContext: context, collectionClient: context.getCollectionByID(collectionID)});
         }
       }.bind(this));
     },
