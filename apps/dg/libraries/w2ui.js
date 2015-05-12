@@ -1827,7 +1827,7 @@ w2utils.event = {
         var index = [-1, -1];
         if ($.fn.w2colorPalette == null) {
             $.fn.w2colorPalette = [
-                ['000000', '666666', '999999', 'BBBBBB', 'DDDDDD', 'EEEEEE', 'F3F3F3', 'FFFFFF'],
+                ['000000', '888888', 'BBBBBB', 'DDDDDD', 'EEEEEE', 'F7F7F7', 'FFFFFF', ''],
                 ['FF011B', 'FF9838', 'FFFD59', '01FD55', '00FFFE', '006CE7', '9B24F4', 'FF21F5'],
                 ['FFEAEA', 'FCEFE1', 'FCF5E1', 'EBF7E7', 'E9F3F5', 'ECF4FC', 'EAE6F4', 'F5E7ED'],
                 ['F4CCCC', 'FCE5CD', 'FFF2CC', 'D9EAD3', 'D0E0E3', 'CFE2F3', 'D9D1E9', 'EAD1DC'],
@@ -1836,7 +1836,7 @@ w2utils.event = {
                 ['CC0814', 'E69138', 'F1C232', '6AA84F', '45818E', '3D85C6', '674EA7', 'A54D79'],
                 ['99050C', 'B45F17', 'BF901F', '37761D', '124F5C', '0A5394', '351C75', '741B47'],
                 // ['660205', '783F0B', '7F6011', '274E12', '0C343D', '063762', '20124D', '4C1030'],
-                ['F2F2F2', 'F2F2F2', 'F2F2F2', 'F2F2F2'] // custom colors (up to 4)
+                ['F2F2F2', 'F2F2F2', 'F2F2F2', 'F2F2F2', 'F2F2F2'] // custom colors (up to 4)
             ];
         }
         var pal = $.fn.w2colorPalette;
@@ -1919,8 +1919,8 @@ w2utils.event = {
                 html += '<tr>';
                 for (var j = 0; j < pal[i].length; j++) {
                     html += '<td>'+
-                            '    <div class="color" style="background-color: #'+ pal[i][j] +';" name="'+ pal[i][j] +'" index="'+ i + ':' + j +'">'+
-                            '        '+ (color == pal[i][j] ? '&#149;' : '&nbsp;') +
+                            '    <div class="color '+ (pal[i][j] == '' ? 'no-color' : '') +'" style="background-color: #'+ pal[i][j] +';" ' + 
+                            '       name="'+ pal[i][j] +'" index="'+ i + ':' + j +'">'+ (color == pal[i][j] ? '&#149;' : '&nbsp;') +
                             '    </div>'+
                             '</td>';
                     if (color == pal[i][j]) index = [i, j];
@@ -10199,7 +10199,7 @@ var w2confirm = function (msg, title, callBack) {
         options.no_style     = options.btn_no.style || options.no_style;
         options.no_callBack  = options.btn_no.callBack || options.no_callBack;
     }
-    if ($('#w2ui-popup').length > 0 && w2popup.status != 'closing') {
+    if ($('#w2ui-popup').length > 0 && w2popup.status != 'closing' && w2popup.get()) {
         if (options.width > w2popup.get().width) options.width = w2popup.get().width;
         if (options.height > (w2popup.get().height - 50)) options.height = w2popup.get().height - 50;
           w2popup.message({
@@ -10298,6 +10298,7 @@ var w2confirm = function (msg, title, callBack) {
 *   - added tab.style
 *   - added tooltipShow, tooltipHide methods
 *   - added tooltip property and tab.tooltip
+*   - added tooltip property and tab.class
 *
 ************************************************************************/
 
@@ -10561,7 +10562,8 @@ var w2confirm = function (msg, title, callBack) {
                                '</div>';
                 }
                 var tabHTML = closable +
-                    '    <div class="w2ui-tab'+ (this.active === tab.id ? ' active' : '') + (tab.closable ? ' closable' : '') +'" '+
+                    '    <div class="w2ui-tab'+ (this.active === tab.id ? ' active' : '') + (tab.closable ? ' closable' : '') 
+                                + (tab['class'] ? ' ' + tab['class'] : '') +'" '+
                     '        title="'+ (this.tooltip == 'normal' && tab.tooltip != null ? tab.tooltip : '') +'" style="'+ tab.style +'" '+ 
                     '        onmouseover = "' + (!tab.disabled ? "w2ui['"+ this.name +"'].tooltipShow('"+ tab.id +"', event);" : "") + '"'+
                     '        onmouseout  = "' + (!tab.disabled ? "w2ui['"+ this.name +"'].tooltipHide('"+ tab.id +"', event);" : "") + '"'+                    
@@ -14474,11 +14476,15 @@ var w2confirm = function (msg, title, callBack) {
             var pholder;
             // clean up & init
             $(obj.helpers.focus).remove();
+            // remember original tabindex
+            var tabIndex = $(obj.el).attr('tabIndex');
+            if (tabIndex && tabIndex != -1) obj.el._tabIndex = tabIndex;
+            if (obj.el._tabIndex) tabIndex = obj.el._tabIndex;
             // build helper
             var html =
                 '<div class="w2ui-field-helper">'+
                 '    <div class="w2ui-icon icon-search" style="opacity: 0"></div>'+
-                '    <input type="text" autocomplete="off">'+
+                '    <input type="text" autocomplete="off" tabIndex="'+ tabIndex +'">'+
                 '<div>';
             $(obj.el).attr('tabindex', -1).before(html);
             var helper = $(obj.el).prev();
@@ -15619,7 +15625,7 @@ var w2confirm = function (msg, title, callBack) {
             setTimeout(function () { w2utils.unlock(box, speed); }, 25); // needed timer so if server fast, it will not flash
         },
 
-        goto: function (page) {
+        'goto': function (page) {
             if (typeof page != 'undefined') this.page = page;
             // if it was auto size, resize it
             if ($(this.box).data('auto-size') === true) $(this.box).height(0);
@@ -15863,7 +15869,9 @@ var w2confirm = function (msg, title, callBack) {
                             value_previous = $.extend(true, {}, cv); // clone object
                         }
                     }
-                    if (field.type == 'toggle') value_new = ($(this).prop('checked') ? 1 : 0);
+                    if (['toggle', 'checkbox'].indexOf(field.type) != -1) {
+                        value_new = ($(this).prop('checked') ? true : false);
+                    }
                     // clean extra chars
                     if (['int', 'float', 'percent', 'money', 'currency'].indexOf(field.type) != -1) {
                         value_new = $(this).data('w2field').clean(value_new);
