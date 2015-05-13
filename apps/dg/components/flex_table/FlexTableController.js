@@ -91,7 +91,6 @@ DG.FlexTableController = DG.ComponentController.extend(
         for (ix = 0; ix < caseCount; ix += 1) {
           tCase = this.collectionClient.getCaseAt(ix);
           obj = {recid: tCase.id};
-          jx;
           for (jx = 0; jx < attributeIDs.length; jx += 1) {
             var attributeID = attributeIDs[jx];
             obj[attributeID] = tCase.getValue(attributeID);
