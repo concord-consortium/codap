@@ -808,7 +808,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     var viewport = this._slickGrid.getViewport();
     var range = getRange(rowIndices);
-    DG.log(JSON.stringify({min:range.min, max:range.max, top: viewport.top, bottom:viewport.bottom}));
     if (range.max < viewport.top) {// need to move up
       this._slickGrid.scrollRowIntoView(range.max, true);
     } else if (range.min >= viewport.bottom) {
