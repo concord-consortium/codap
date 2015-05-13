@@ -500,11 +500,21 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       deleteSelectedCases: function() {
         var tContext = this.get('dataContext'),
+            tCases = tContext.getSelectedCases(),
             tChange;
         if (tContext) {
+          // We deselect the cases before deleting them for performance
+          // reasons. Deleting selected cases is much less efficient because
+          // of list reconstruction.
+          tChange = {
+            operation: 'selectCases',
+            select: false,
+            cases: tCases
+          };
+          tContext.applyChange( tChange);
           tChange = {
             operation: 'deleteCases',
-            cases: tContext.getSelectedCases()
+            cases: tCases
           };
           tContext.applyChange( tChange);
         }
