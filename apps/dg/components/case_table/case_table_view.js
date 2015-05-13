@@ -368,6 +368,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   /**
     SproutCore render method.
+   * @param {SC.RenderContext} iContext
+   * @param {boolean} iFirstTime
    */
   render: function( iContext, iFirstTime) {
     sc_super();
@@ -784,6 +786,35 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     this._slickGrid.render();
   },
+
+  /**
+   * Scrolls the grid to make at least a part of the range of rows in the
+   * current view.
+   * @param {[number]} rowIndices
+   */
+  scrollToView: function (rowIndices) {
+    function getRange(a) {
+      var range = {min: undefined, max: undefined};
+      a.forEach(function (val) {
+        if (range.min === undefined) {
+          range.min = range.max = val;
+        }
+        else {
+          range.min = Math.min(range.min, val);
+          range.max = Math.max(range.max, val);
+        }
+      });
+      return range;
+    }
+    var viewport = this._slickGrid.getViewport();
+    var range = getRange(rowIndices);
+    DG.log(JSON.stringify({min:range.min, max:range.max, top: viewport.top, bottom:viewport.bottom}));
+    if (range.max < viewport.top) {// need to move up
+      this._slickGrid.scrollRowIntoView(range.max, true);
+    } else if (range.min >= viewport.bottom) {
+      this._slickGrid.scrollRowToTop(range.min);
+    }
+  },
   
   /**
     Sets the set of selected rows.
@@ -792,6 +823,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   setSelectedRows: function( iSelectedRows) {
     if( this._slickGrid) {
       this._slickGrid.setSelectedRows( iSelectedRows);
+      if (iSelectedRows.length > 0) {
+        this.scrollToView(iSelectedRows);
+      }
       this._slickGrid.render();
     }
   },
