@@ -29,14 +29,33 @@
 DG.FlexTableView = SC.View.extend( (function() {
 /** @scope DG.FlexTableView.prototype */
   return {
+    /** @param {[string]} classNames Array of css classes. */
     classNames: ['dg-flex-table'],
+
+    /** @param {{left: number, right: number, top: number, bottom: number}}
+     *  layout Layout geometry. */
     layout: { left: 0, right: 0, top: 0, bottom: 0 },
+
+    /** @param {{SC.View}} childViews None that sproutcore manages. */
     childViews: [],
-    /** @param {DG.FlexTableController} */
+
+    container: null,
+
+    /** @param {[{W2UI.w2grid}]} grids Array of grids */
+    grids: null,
+
+    /** @param {DG.FlexTableController} controller */
     controllerBinding: '.parentView.parentView.controller',
 
+    /**
+     * init
+     *
+     * Implements SC.view method. Initializes this object.
+     */
     init: function () {
       sc_super();
+
+      this.grids = [];
     },
 
     render: function( iContext, iFirstTime) {
@@ -54,7 +73,6 @@ DG.FlexTableView = SC.View.extend( (function() {
       }
       else if( !this._grid) {
         this.initGridView();
-        //this.set('gridWidth', this._grid.getContentSize().width);
       }
 
       // SlickGrid adds to the set of CSS classes. We need to capture these
@@ -69,16 +87,74 @@ DG.FlexTableView = SC.View.extend( (function() {
       //if( this._grid)
       //  iContext.classNames( this.$().attr("class"), YES);
     },
+
     initGridView: function () {
       var gridSelector = "#" + this.get('layerId');
-      $(gridSelector).append('<div class="w2ui-grid" style="height: 450px"></div>');
-      this._grid = $('.w2ui-grid', gridSelector).w2grid({
-        name   : 'myGrid',
-        columns: this.getPath('controller.columns'),
-        records: this.getPath('controller.records')
-      });
+
+      this.container = this.createLayout(gridSelecter, 0);
+
+      this.createGrid(
+        { num: 0, layout: this.container, panel: 'main'},
+        this.collectionName,
+        this.getPath('controller.columns'),
+        this.getPath('controller.records')
+      );
+
       this._grid.refresh();
     },
+
+    /**
+     * Creates a container for the grids.
+     *
+     * @param {{jQuery}} rootSelector
+     * @param {number} iNum
+     * @returns {w2layout}
+     */
+    createLayout: function(iLayoutContainer, iNum) {
+      var tID = 'layout_' + iNum,
+        tDiv = '<div id="' + tID + '" style="height:100%"></div>',
+        panelStyle = 'border: 1px solid #dfdfdf; padding: 0px;',
+        tNewLayout;
+      iLayoutContainer.append(tDiv);
+
+      tNewLayout = $('#'+tID).w2layout({
+        name: tID,
+        number: iNum,
+        panels: [
+          { type: 'left', size: 20, style: panelStyle },
+          { type: 'main', style: panelStyle }
+        ]
+      });
+
+      var tGridID = 'grid_' + iNum,
+        tGridDiv = '<div id="' + tGridID + '" class="dgGrid"></div>';
+      tNewLayout.content('main', tGridDiv);
+      return tNewLayout;
+    },
+
+    createGrid: function( iSpecs, iGroupName, iColumns, iRecords) {
+      var tName = 'grid_' + iSpecs.num,
+        tNewGrid =
+          $('#'+tName).w2grid({
+            name: tName,
+            number: iSpecs.num,
+            location: { layout: iSpecs.layout, panel: iSpecs.panel },
+            reorderColumns: true,
+            columnGroups: [
+              { caption: iGroupName, span: iColumns.length }
+            ],
+            columns: iColumns,
+            records: iRecords,
+            onExpand: this.doNothing.bind(this)
+          });
+      this.grids.push( tNewGrid);
+
+      tNewGrid.on('columnDragOver', this.handleColumnDragOver.bind(this));
+      tNewGrid.on('columnDragEnd', this.handleSplit.bind(this));
+
+      return tNewGrid;
+    },
+
     viewDidResize: function () {
       this.invokeLast(
         function() {
