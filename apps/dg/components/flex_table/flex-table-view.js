@@ -43,7 +43,7 @@ DG.FlexTableView = SC.View.extend( (function() {
     container: null,
 
     collectionName: function () {
-      this.collection.get('name');
+      return this.controller.get('collectionName');
     }.property('collection').cacheable(),
 
     /** @param {[{w2grid}]} grids Array of grids */
@@ -100,7 +100,7 @@ DG.FlexTableView = SC.View.extend( (function() {
 
       this.createGrid(
         { num: 0, layout: this.container, panel: 'main'},
-        this.collectionName,
+        this.get('collectionName'),
         this.getPath('controller.columns'),
         this.getPath('controller.records')
       );
@@ -130,7 +130,7 @@ DG.FlexTableView = SC.View.extend( (function() {
       });
 
       var tGridID = 'grid_' + iNum,
-        tGridDiv = '<div id="' + tGridID + '" class="dgGrid"></div>';
+        tGridDiv = '<div id="' + tGridID + '" style="height: 500px" class="dgGrid"></div>';
       tNewLayout.content('main', tGridDiv);
       return tNewLayout;
     },
@@ -147,8 +147,8 @@ DG.FlexTableView = SC.View.extend( (function() {
               { caption: iGroupName, span: iColumns.length }
             ],
             columns: iColumns,
-            records: iRecords,
-            onExpand: this.doNothing.bind(this)
+            records: iRecords//,
+            //onExpand: this.doNothing.bind(this)
           });
       this.grids.push( tNewGrid);
       tNewGrid.refresh();
@@ -161,33 +161,33 @@ DG.FlexTableView = SC.View.extend( (function() {
 
 
     doNothing: function( iEventData) {
-      if (w2ui.hasOwnProperty('subgrid-' + iEventData.recid)) {
-        w2ui['subgrid-' + iEventData.recid].destroy();
-      }
-
-      $('#'+ iEventData.box_id)
-        .css({ margin: '0px', padding: '0px', width: '100%' })
-        .animate({ height: '105px' }, 100);
-
-      setTimeout(function () {
-        $('#'+ iEventData.box_id).w2grid({
-          name: 'subgrid-' + iEventData.recid,
-          show: { columnHeaders: false },
-          fixedBody: true,
-          columns: [
-            { field: 'lname', caption: 'Last Name', size: '30%' },
-            { field: 'fname', caption: 'First Name', size: '30%' },
-            { field: 'email', caption: 'Email', size: '40%' },
-            { field: 'sdate', caption: 'Start Date', size: '90px' }
-          ],
-          records: [
-            { recid: 6, fname: 'Francis', lname: 'Gatos', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
-            { recid: 7, fname: 'Mark', lname: 'Welldo', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
-            { recid: 8, fname: 'Thomas', lname: 'Bahh', email: 'jdoe@gmail.com', sdate: '4/3/2012' }
-          ]
-        });
-        w2ui['subgrid-' + iEventData.recid].resize();
-      }, 300);
+      //if (w2ui.hasOwnProperty('subgrid-' + iEventData.recid)) {
+      //  w2ui['subgrid-' + iEventData.recid].destroy();
+      //}
+      //
+      //$('#'+ iEventData.box_id)
+      //  .css({ margin: '0px', padding: '0px', width: '100%' })
+      //  .animate({ height: '105px' }, 100);
+      //
+      //setTimeout(function () {
+      //  $('#'+ iEventData.box_id).w2grid({
+      //    name: 'subgrid-' + iEventData.recid,
+      //    show: { columnHeaders: false },
+      //    fixedBody: true,
+      //    columns: [
+      //      { field: 'lname', caption: 'Last Name', size: '30%' },
+      //      { field: 'fname', caption: 'First Name', size: '30%' },
+      //      { field: 'email', caption: 'Email', size: '40%' },
+      //      { field: 'sdate', caption: 'Start Date', size: '90px' }
+      //    ],
+      //    records: [
+      //      { recid: 6, fname: 'Francis', lname: 'Gatos', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
+      //      { recid: 7, fname: 'Mark', lname: 'Welldo', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
+      //      { recid: 8, fname: 'Thomas', lname: 'Bahh', email: 'jdoe@gmail.com', sdate: '4/3/2012' }
+      //    ]
+      //  });
+      //  w2ui['subgrid-' + iEventData.recid].resize();
+      //}, 300);
     },
     handleSplit: function( iEventData) {
 
