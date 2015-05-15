@@ -40,6 +40,10 @@ DG.FlexTableController = DG.ComponentController.extend(
 
       collectionClient: null,
 
+      collectionName: function() {
+        return this.collectionClient.get('name');
+      }.property('collectionClient').cacheable(),
+
       view: null,
 
       contentView: null,
