@@ -142,7 +142,7 @@ DG.FlexTableView = SC.View.extend( (function() {
             name: tName,
             number: iSpecs.num,
             location: { layout: iSpecs.layout, panel: iSpecs.panel },
-            //reorderColumns: true,
+            reorderColumns: true,
             columnGroups: [
               { caption: iGroupName, span: iColumns.length }
             ],
