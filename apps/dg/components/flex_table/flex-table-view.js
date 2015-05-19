@@ -26,7 +26,7 @@
 
  @extends SC.View
  */
-/*globals: SC:true*/
+/*global SC:true, w2ui:true */
 DG.FlexTableView = SC.View.extend( (function() {
 /** @scope DG.FlexTableView.prototype */
   return {
@@ -100,10 +100,13 @@ DG.FlexTableView = SC.View.extend( (function() {
     },
 
     initGridView: function () {
-      this.container = this.createLayout(0);
+      var layoutNum = DG.layoutNum || 0;
+
+      DG.layoutNum = layoutNum + 1;
+      this.container = this.createLayout(layoutNum);
 
       this.createGrid(
-        { num: 0, layout: this.container, panel: 'main'},
+        { num: layoutNum, layout: this.container, panel: 'main'},
         this.get('collectionName'),
         this.getPath('controller.columns'),
         this.getPath('controller.records')
@@ -132,8 +135,8 @@ DG.FlexTableView = SC.View.extend( (function() {
         name: tID,
         number: iNum,
         panels: [
-          { type: 'left', size: 20, style: panelStyle },
-          { type: 'main', style: panelStyle }
+          { type: 'left', size: 20, style: panelStyle, resizable: true },
+          { type: 'main', style: panelStyle, resizable: true}
         ]
       });
 
@@ -154,7 +157,6 @@ DG.FlexTableView = SC.View.extend( (function() {
             columnGroups: [
               { caption: iGroupName, span: iColumns.length }
             ],
-
             columns: iColumns,
             records: iRecords//,
             //onExpand: this.doNothing.bind(this)
@@ -173,7 +175,12 @@ DG.FlexTableView = SC.View.extend( (function() {
     },
 
     handleSplit: function( iEventData) {
+      SC.run(function() {
+        this._handleSplit(iEventData);
+      }.bind(this));
+    },
 
+    _handleSplit: function (iEventData) {
       var isParentPanel = function( iLayout1, iPanel1, iLayout2, iPanel2) {
         return (iLayout1.number > iLayout2.number) ||
           ((iLayout1.number === iLayout2.number) && (iPanel1 === 'left') && (iPanel2 === 'main'));
@@ -204,7 +211,7 @@ DG.FlexTableView = SC.View.extend( (function() {
               iRec.childIDs.forEach( function( iChildID) {
                 tExistingRec.childIDs.push( iChildID);
                 tChildGrid.get( iChildID).parentID = tExistingRec.recid;
-              })
+              });
             }
             else {
               tHash[ tKey] = iRec;
@@ -288,10 +295,10 @@ DG.FlexTableView = SC.View.extend( (function() {
             tResultArray.push( tNewSib);
           });
           // A sanity check here would be to make sure none of the records in iParentRecords have any children
-          iParentRecords.forEach( function( iRec) {
-            if( iRec.childIDs.length > 0)
-              debugger;
-          });
+          //iParentRecords.forEach( function( iRec) {
+          //  if( iRec.childIDs.length > 0)
+          //    debugger;
+          //});
 
           return tResultArray;
         }.bind(this);
@@ -306,13 +313,13 @@ DG.FlexTableView = SC.View.extend( (function() {
           tSourceLayout.sizeTo( tSourcePanel, tSourceWidth - tColWidth);
         }
         else {
-          var tNum = this.grids.length,
+          var tNum = DG.layoutNum++,
             tNewID = 'grid_' + tNum,
             tNewDiv = '<div id="' + tNewID + '" style="height: 100%" class="dgGrid"></div>';
 
           // We create a new layout, stash the existing layout with its grid in the main panel, leaving the new
           // left panel for an additional level of hierarchy.
-          var tNewLayout = this.createLayout( tNum);
+          var tNewLayout = this.createLayout( tNum );
           tNewLayout.content('main', tDestLayout.box);
           tDestLayout.containerLayout = tNewLayout; // for use in deletion
 
@@ -420,7 +427,12 @@ DG.FlexTableView = SC.View.extend( (function() {
       tDestGrid.refresh();
     },
 
-    handleColumnDragOver: function( iEventData) {
+    handleColumnDragOver: function (iEventData) {
+      SC.run(function () {
+        this._handleColumnDragOver(iEventData);
+      }.bind(this));
+    },
+    _handleColumnDragOver: function( iEventData) {
       this.turnOffHighlighting();
 
       var tGrid = this.gridContainingEvent( iEventData.originalEvent);
@@ -503,7 +515,7 @@ DG.FlexTableView = SC.View.extend( (function() {
             tSearches.push( { field: 'parentID', value: iChildID, operator: 'is'});
 //          searchForRecsWithID( tNextGrid, iChildID, iGrid.get( iChildID).childIDs);
           });
-          tNextGrid.search( tSearches, 'OR')
+          tNextGrid.search( tSearches, 'OR');
         }
       };
 
@@ -541,20 +553,19 @@ DG.FlexTableView = SC.View.extend( (function() {
     },
 
     viewDidResize: function () {
-      this.invokeLast(
-        function() {
-          this.container && this.container.resize();
-        }.bind(this)
-      );
+      this.container && this.container.resize();
     },
 
     /**
-     Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
+     Destroys the w2ui object.
      */
     _destroy: function() {
+      this.grids.forEach(function (grid) {
+        grid.destroy();
+      }.bind(this));
+      this.grids = [];
       this.container.destroy();
     },
-
     /**
      Called when the component is about to be destroyed.
      */
