@@ -370,6 +370,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                         });
     
     this.gridData = rowData;
+    this.gridDataView.beginUpdate();
     this.gridDataView.setItems( rowData);
     
     function getLabelForSetOfCases() {
@@ -397,7 +398,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                 this.gridDataView.collapseGroup( iParentID);
                             }.bind(this));
     }
-    
+    this.gridDataView.endUpdate();
+
     return rowData;
   },
   
