@@ -49,8 +49,14 @@ DG.FlexTableView = SC.View.extend( (function() {
     /** @param {[{w2grid}]} grids Array of grids */
     grids: null,
 
+    nextID: 0,
+
     /** @param {DG.FlexTableController} controller */
     controllerBinding: '.parentView.parentView.controller',
+
+    containerSelector: function () {
+      return '#' + this.get('layerId');
+    }.property().cacheable(),
 
     /**
      * init
@@ -73,12 +79,12 @@ DG.FlexTableView = SC.View.extend( (function() {
       // we simply call displayDidChange() to make sure we get a second call to
       // render(), by which time the <div> has been created and we can pass it
       // to w2ui.grid.
-      if( iFirstTime) {
-        this.displayDidChange();
-      }
-      else if( !this.container) {
-        this.initGridView();
-      }
+      //if( iFirstTime) {
+      //  this.displayDidChange();
+      //}
+      //else if( !this.container) {
+      //  this.invokeNext(this.initGridView);
+      //}
 
       // SlickGrid adds to the set of CSS classes. We need to capture these
       // and add them to the context or else the context will overwrite
@@ -94,9 +100,7 @@ DG.FlexTableView = SC.View.extend( (function() {
     },
 
     initGridView: function () {
-      var gridSelector = "#" + this.get('layerId');
-
-      this.container = this.createLayout($(gridSelector), 0);
+      this.container = this.createLayout(0);
 
       this.createGrid(
         { num: 0, layout: this.container, panel: 'main'},
@@ -106,19 +110,23 @@ DG.FlexTableView = SC.View.extend( (function() {
       );
     },
 
+    didCreateLayer: function() {
+      this.invokeNext(this.initGridView);
+    },
+
     /**
      * Creates a container for the grids.
      *
-     * @param {{jQuery}} iLayoutContainer
      * @param {number} iNum
      * @returns {w2layout}
      */
-    createLayout: function(iLayoutContainer, iNum) {
-      var tID = 'layout_' + iNum,
+    createLayout: function(iNum) {
+      var tLayoutContainer = $(this.get('containerSelector')),
+        tID = 'layout_' + iNum,
         tDiv = '<div id="' + tID + '" style="height:100%"></div>',
         panelStyle = 'border: 1px solid #dfdfdf; padding: 0px;',
         tNewLayout;
-      iLayoutContainer.append(tDiv);
+      tLayoutContainer.append(tDiv);
 
       tNewLayout = $('#'+tID).w2layout({
         name: tID,
@@ -130,7 +138,7 @@ DG.FlexTableView = SC.View.extend( (function() {
       });
 
       var tGridID = 'grid_' + iNum,
-        tGridDiv = '<div id="' + tGridID + '" style="height: 500px" class="dgGrid"></div>';
+        tGridDiv = '<div id="' + tGridID + '" style="height: 100%" class="dgGrid"></div>';
       tNewLayout.content('main', tGridDiv);
       return tNewLayout;
     },
@@ -146,6 +154,7 @@ DG.FlexTableView = SC.View.extend( (function() {
             columnGroups: [
               { caption: iGroupName, span: iColumns.length }
             ],
+
             columns: iColumns,
             records: iRecords//,
             //onExpand: this.doNothing.bind(this)
@@ -161,34 +170,8 @@ DG.FlexTableView = SC.View.extend( (function() {
 
 
     doNothing: function( iEventData) {
-      //if (w2ui.hasOwnProperty('subgrid-' + iEventData.recid)) {
-      //  w2ui['subgrid-' + iEventData.recid].destroy();
-      //}
-      //
-      //$('#'+ iEventData.box_id)
-      //  .css({ margin: '0px', padding: '0px', width: '100%' })
-      //  .animate({ height: '105px' }, 100);
-      //
-      //setTimeout(function () {
-      //  $('#'+ iEventData.box_id).w2grid({
-      //    name: 'subgrid-' + iEventData.recid,
-      //    show: { columnHeaders: false },
-      //    fixedBody: true,
-      //    columns: [
-      //      { field: 'lname', caption: 'Last Name', size: '30%' },
-      //      { field: 'fname', caption: 'First Name', size: '30%' },
-      //      { field: 'email', caption: 'Email', size: '40%' },
-      //      { field: 'sdate', caption: 'Start Date', size: '90px' }
-      //    ],
-      //    records: [
-      //      { recid: 6, fname: 'Francis', lname: 'Gatos', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
-      //      { recid: 7, fname: 'Mark', lname: 'Welldo', email: 'jdoe@gmail.com', sdate: '4/3/2012' },
-      //      { recid: 8, fname: 'Thomas', lname: 'Bahh', email: 'jdoe@gmail.com', sdate: '4/3/2012' }
-      //    ]
-      //  });
-      //  w2ui['subgrid-' + iEventData.recid].resize();
-      //}, 300);
     },
+
     handleSplit: function( iEventData) {
 
       var isParentPanel = function( iLayout1, iPanel1, iLayout2, iPanel2) {
@@ -325,7 +308,7 @@ DG.FlexTableView = SC.View.extend( (function() {
         else {
           var tNum = this.grids.length,
             tNewID = 'grid_' + tNum,
-            tNewDiv = '<div id="' + tNewID + '" class="dgGrid"></div>';
+            tNewDiv = '<div id="' + tNewID + '" style="height: 100%" class="dgGrid"></div>';
 
           // We create a new layout, stash the existing layout with its grid in the main panel, leaving the new
           // left panel for an additional level of hierarchy.
@@ -335,12 +318,12 @@ DG.FlexTableView = SC.View.extend( (function() {
 
           tDestLayout.content(tDestPanel, tNewDiv);
           $('#' + tNewID).width( tColWidth);
-          tDestGrid = this.createGrid( { num: tNum, layout: tDestLayout, panel: tDestPanel}, tDraggedCol.caption + 's',
-            [tDraggedCol], tNewRecords);
-          tDestGrid.childGrid = tSourceGrid;
-          this.fixGroupHeader( tSourceGrid);
-          tDestGrid.on({ type: 'select', grid: tDestGrid }, this.handleSelection.bind(this));
-          tDestGrid.on({ type: 'unselect', grid: tDestGrid }, this.handleUnSelection.bind(this));
+            tDestGrid = this.createGrid( { num: tNum, layout: tDestLayout, panel: tDestPanel}, tDraggedCol.caption + 's',
+              [tDraggedCol], tNewRecords);
+            tDestGrid.childGrid = tSourceGrid;
+            this.fixGroupHeader( tSourceGrid);
+            tDestGrid.on({ type: 'select', grid: tDestGrid }, this.handleSelection.bind(this));
+            tDestGrid.on({ type: 'unselect', grid: tDestGrid }, this.handleUnSelection.bind(this));
 
           this.container = tNewLayout;
         }
@@ -541,7 +524,11 @@ DG.FlexTableView = SC.View.extend( (function() {
       }
     },
 
-    sizeChanged: function() {
+    /**
+     * Deletes all the resources that are managed by this view and recreates
+     * them.
+     */
+    resetFromScratch: function() {
       $('#layoutContainer').empty();
       var tIndex = 0;
       while( w2ui['layout_' + tIndex] || w2ui['grid_' + tIndex]) {
