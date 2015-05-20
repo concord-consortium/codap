@@ -52,14 +52,16 @@ DG.main = function main() {
 
   DG.splash.showSplash();
 
-  var splashChanged = function() {
-    if (!DG.splash.get('isShowing')
-        && SC.empty(DG.startingDocName)
-        && SC.empty(DG.startingDocId)) {
-      DG.userEntryController.setup(); // Create the user entry dialog.
-      DG.splash.removeObserver('isShowing', splashChanged);
-    }
-  };
+  var documentLoaded = false,
+    splashChanged = function() {
+      if (!DG.splash.get('isShowing')
+          && !documentLoaded
+          && SC.empty(DG.startingDocName)
+          && SC.empty(DG.startingDocId)) {
+        DG.userEntryController.setup(); // Create the user entry dialog.
+        DG.splash.removeObserver('isShowing', splashChanged);
+      }
+    };
   DG.splash.addObserver('isShowing', splashChanged);
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
@@ -76,9 +78,11 @@ DG.main = function main() {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+      documentLoaded = true;
     } else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
+      documentLoaded = true;
     }
   }
   // set initial game in title
