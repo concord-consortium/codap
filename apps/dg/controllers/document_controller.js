@@ -379,7 +379,7 @@ DG.DocumentController = SC.Object.extend(
       case 'DG.GameView':
         this.addGame( docView, iComponent);
         break;
-        case 'DG.TableView':
+      case 'DG.TableView':
         // If there is no component, we are creating new components.
         // We currently create case tables for each context, rather than creating
         // them on a context-by-context basis. This may change, for now this means
@@ -391,6 +391,9 @@ DG.DocumentController = SC.Object.extend(
           this.openCaseTablesForEachContext( );
         }
         break;
+      case 'DG.FlexTableView':
+          this.openFlexCaseTablesForEachContext();
+          break;
       case 'DG.GraphView':
         this.addGraph( docView, iComponent);
         break;

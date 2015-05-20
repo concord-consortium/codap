@@ -103,7 +103,33 @@ DG.FlexTableController = DG.ComponentController.extend(
         }
 
         return cases;
-      }.property('collectionClient')
+      }.property('collectionClient'),
+
+      createComponentStorage: function() {
+        var storage = {},
+          dataContext = this.get('dataContext'),
+          collection = this.get('collectionClient');
+        if( dataContext) {
+          this.addLink( storage, 'context', dataContext);
+        }
+        if ( collection ) {
+          this.addLink( storage, 'collection', collection);
+        }
+        return storage;
+      },
+
+      restoreComponentStorage: function( iStorage, iDocumentID) {
+        var contextID = this.getLinkID( iStorage, 'context'),
+          dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
+          collectionID = this.getLinkID( iStorage, 'collection'),
+          collection = collectionID && dataContext && dataContext.getCollectionByID(collectionID);
+        if( dataContext) {
+          this.set('dataContext', dataContext);
+        }
+        if (collection) {
+          this.set('collectionClient', collection);
+        }
+      }
     };
   }())
 );
