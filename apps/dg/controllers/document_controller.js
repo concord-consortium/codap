@@ -379,13 +379,16 @@ DG.DocumentController = SC.Object.extend(
       case 'DG.GameView':
         this.addGame( docView, iComponent);
         break;
-        case 'DG.TableView':
+      case 'DG.TableView':
         // We currently create case tables for each context, rather than creating
         // them on a context-by-context basis. This may change, for now this means
           // if we are asked to create *a* case table we will create all case
           // tables.
         this.openCaseTablesForEachContext( );
         break;
+      case 'DG.FlexTableView':
+          this.openFlexCaseTablesForEachContext();
+          break;
       case 'DG.GraphView':
         this.addGraph( docView, iComponent);
         break;
