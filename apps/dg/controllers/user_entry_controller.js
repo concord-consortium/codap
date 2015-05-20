@@ -67,7 +67,9 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
       DG.currDocumentController().set('documentName', title);
       this._dialog.setPath('contentView.choiceViews.contentView.titleField.value', null);
       DG.currDocumentController().setPath('content._isPlaceholder', false);
-      DG.dirtyCurrentDocument();
+      if (DG.AUTOSAVE) {
+        DG.dirtyCurrentDocument();
+      }
     },
 
     openExistingDocument: function() {
