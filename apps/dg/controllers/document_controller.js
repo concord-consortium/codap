@@ -380,11 +380,16 @@ DG.DocumentController = SC.Object.extend(
         this.addGame( docView, iComponent);
         break;
         case 'DG.TableView':
+        // If there is no component, we are creating new components.
         // We currently create case tables for each context, rather than creating
         // them on a context-by-context basis. This may change, for now this means
           // if we are asked to create *a* case table we will create all case
           // tables.
-        this.openCaseTablesForEachContext( );
+        if (iComponent) {
+          this.addCaseTable(docView, iComponent);
+        } else {
+          this.openCaseTablesForEachContext( );
+        }
         break;
       case 'DG.GraphView':
         this.addGraph( docView, iComponent);
