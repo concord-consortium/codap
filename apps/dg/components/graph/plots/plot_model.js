@@ -216,7 +216,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     Destruction method
    */
   destroy: function() {
-    this.set('isAnimating', false);
     // Detach the axes
     this.set('xAxis', null);
     this.set('yAxis', null);

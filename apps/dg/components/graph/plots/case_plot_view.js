@@ -171,7 +171,7 @@ DG.CasePlotView = DG.PlotView.extend(
             this._plottedElements.push(tPoint);
             this.setCircleCoordinate(tRC, tCase, tLoopIndex, true);
           }
-          this.invokeLater( animateSomePoints, 1);
+          this.invokeLater( animateSomePoints, 0);
         }
         else
           this.setPath( 'model.isAnimating', false);
