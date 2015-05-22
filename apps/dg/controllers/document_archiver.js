@@ -183,7 +183,7 @@ DG.DocumentArchiver = SC.Object.extend(
           do {
             value = row.pop();
           } while(value === '');
-          if (value) row.push(value);
+          if (!SC.empty(value)) row.push(value);
         }
         if (row.length) {
           newArr.push(row);
