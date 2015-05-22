@@ -158,7 +158,8 @@ DG.CasePlotView = DG.PlotView.extend(
       animateSomePoints = function() {
         // If the user closes the graph component while the animation is happening, we're likely to
         // crash because we no longer have paper to draw points on. Detect and bail!
-        if( !this.get('paper'))
+        // If the user drags an attribute to an axis during animation, this can destroy our model. Likewise, bail.
+        if( !this.get('paper') || !this.get('model'))
           return;
 
         var tStopIndex = tLoopIndex + tIncrementBy;
@@ -170,7 +171,7 @@ DG.CasePlotView = DG.PlotView.extend(
             this._plottedElements.push(tPoint);
             this.setCircleCoordinate(tRC, tCase, tLoopIndex, true);
           }
-          this.invokeLater( animateSomePoints, 10);
+          this.invokeLater( animateSomePoints, 1);
         }
         else
           this.setPath( 'model.isAnimating', false);
