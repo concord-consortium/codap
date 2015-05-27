@@ -70,10 +70,13 @@ DG.DocumentArchiver = SC.Object.extend(
               symbols.push(Number(value));
               return true;
             } else if (key === '_links_') {
-              DG.ObjectMap.forEach(value, function(k, v) {
-                references.push(Number(v.id));
+              visit(key, value, function (k, v) {
+                if (k === 'id') {
+                  references.push(Number(v));
+                }
+                return true;
               });
-              return true;
+              return false;
             } else if (key === 'contextStorage') { // context storage is private to data interactive
               return false;
             }
