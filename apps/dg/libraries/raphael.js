@@ -6138,12 +6138,40 @@
                             pn.insertBefore(hl, node);
                             hl.appendChild(node);
                             pn = hl;
+                          // [KHS 20111006]
+                          // The SVG standard way of handling titles/tooltips is to put them in
+                          // a <title> child element rather than a title attribute. For IE9
+                          // (and perhaps other modern browsers), we must add/update the <title>
+                          // element as well as the title attribute.
+                          if( att === "title") {
+                            var titleText = document.createTextNode(value),
+                                titleNode = $("title");
+                            titleNode.appendChild( titleText);
+                            pn.appendChild( titleNode);
+                            didCreateTitleElt = true;
+                            // [/KHS 20111006]
+                          }
                         }
                         if (att == "target") {
                             pn.setAttributeNS(xlink, "show", value == "blank" ? "new" : value);
                         } else {
                             pn.setAttributeNS(xlink, att, value);
                         }
+                        // [KCPT KHS 2011-10-06]
+                        // In this path, we update an existing <title> element.
+                        if( !didCreateTitleElt && (att === "title")) {
+                          for( var child = pn.firstChild; child; child = child.nextSibling) {
+                            if( child.tagName === "title") {
+                              var oldTextChild = child.firstChild,
+                                  newTextChild = document.createTextNode( value);
+                              if( oldTextChild)
+                                child.replaceChild( newTextChild, oldTextChild);
+                              else
+                                child.appendChild( newTextChild);
+                            }
+                          }
+                        }
+                        // [/KCPT KHS 2011-10-06]
                         break;
                     case "cursor":
                         node.style.cursor = value;
