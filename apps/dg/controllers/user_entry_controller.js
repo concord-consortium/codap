@@ -81,13 +81,14 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
     openExample: function() {
       var selected = this._dialog.getPath('contentView.choiceViews.contentView.selected');
 
-      this._urlForGetRequests( selected.location )
-      .notify(this, '_handleResponse',
-        function(body) { DG.appController.receivedOpenDocumentSuccess(body, false); },
-        function(errorCode) { DG.appController.receivedOpenDocumentFailure(errorCode, false); })
-      .send();
-
-      DG.logUser("openExample: '%@'", selected.location);
+      if (selected) {
+        this._urlForGetRequests( selected.location )
+        .notify(this, '_handleResponse',
+          function(body) { DG.appController.receivedOpenDocumentSuccess(body, false); },
+          function(errorCode) { DG.appController.receivedOpenDocumentFailure(errorCode, false); })
+        .send();
+        DG.logUser("openExample: '%@'", selected.location);
+      }
     },
 
     openFile: function() {

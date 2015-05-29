@@ -45,16 +45,17 @@ DG.DocumentArchiver = SC.Object.extend(
      */
     isValidJsonDocument: function (iDocument) {
       function visit(key, value, fn) {
-        if (Array.isArray(value)) {
-          value.forEach(function (item) {
-            visit(key, item, fn);
-          });
-        } else if (typeof value === 'object') {
-          DG.ObjectMap.forEach(value, function (key, item) {
-            visit(key, item, fn);
-          });
-        } else {
-          fn(key, value);
+        var rtn = fn(key, value);
+        if (rtn !== false) {
+          if (Array.isArray(value)) {
+            value.forEach(function (item) {
+              visit(key, item, fn);
+            });
+          } else if (typeof value === 'object') {
+            DG.ObjectMap.forEach(value, function (key, item) {
+              visit(key, item, fn);
+            });
+          }
         }
       }
 
@@ -67,9 +68,19 @@ DG.DocumentArchiver = SC.Object.extend(
           visit('doc', documentPart, function (key, value) {
             if (key === 'guid') {
               symbols.push(Number(value));
-            } else if (key === 'id') {
-              references.push(Number(value));
+              return true;
+            } else if (key === '_links_') {
+              visit(key, value, function (k, v) {
+                if (k === 'id') {
+                  references.push(Number(v));
+                }
+                return true;
+              });
+              return false;
+            } else if (key === 'contextStorage') { // context storage is private to data interactive
+              return false;
             }
+
           });
         });
         references.forEach(function (ref) {

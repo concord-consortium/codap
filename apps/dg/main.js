@@ -54,10 +54,13 @@ DG.main = function main() {
 
   var documentLoaded = false,
     splashChanged = function() {
+      // When the splash screen times out, we will display the user entry dialog
+      // unless the url contained information about the document to open
       if (!DG.splash.get('isShowing')
           && !documentLoaded
           && SC.empty(DG.startingDocName)
-          && SC.empty(DG.startingDocId)) {
+          && SC.empty(DG.startingDocId)
+          && SC.empty(DG.runKey)) {
         DG.userEntryController.setup(); // Create the user entry dialog.
         DG.splash.removeObserver('isShowing', splashChanged);
       }
