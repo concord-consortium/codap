@@ -160,6 +160,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               .attr( { fill: DG.PlotUtilities.kMarqueeColor,
                     stroke: DG.RenderingUtilities.kTransparent });
       this_.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( tMarquee);
+      this_.get('parentView' ).prepareToSelectPoints( );
     }
 
     function continueMarquee( idX, idY) {
@@ -186,6 +187,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       var tNumCases = this_.getPath( 'graphModel.casesController.selection.length');
       if( tNumCases > 0)  // We must have something > 0
         DG.logUser("marqueeSelection: %@", tNumCases);
+      this_.get('parentView' ).completeSelection();
+
     }
 
     function showCursor( iEvent) {

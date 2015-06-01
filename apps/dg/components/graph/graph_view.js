@@ -221,6 +221,17 @@ DG.GraphView = SC.View.extend(
     });
   },
 
+  prepareToSelectPoints: function () {
+    this.get('plotViews').forEach( function( iPlotView) {
+      iPlotView.preparePointSelection();
+    });
+  },
+  completeSelection: function () {
+    this.get('plotViews').forEach( function( iPlotView) {
+      iPlotView.cleanUpPointSelection();
+    });
+  },
+
   /**
    * Give each plotView a chance
    * Note that it would be more natural for the graph view to tell the graph model to select the cases than
