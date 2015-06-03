@@ -609,21 +609,25 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       return;
 
     tCases.forEach( function( iCase, iIndex) {
-      var tIsSelected, tElement, tFrom, tTo;
+      var tIsSelected, tElement, tFrom, tTo, tClass;
         // We sometimes get here with fewer plotted elements than cases,
         // perhaps when newly added cases don't have plottable values.
-       if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
-          tElement = tPlottedElements[ iIndex];
-          tIsSelected = tSelection.containsObject( iCase);
-          tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
-          tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
-          DG.PlotUtilities.kDotClasses.forEach( function( iClass) {
-            tElement.removeClass( iClass);
+      if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
+        tElement = tPlottedElements[ iIndex];
+        tIsSelected = tSelection.containsObject( iCase);
+        tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
+        tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
+        tClass = this_.getPlottedElementClass( tIsSelected, tIsColored );
+        if (!tElement.hasClass(tClass)) {
+          DG.PlotUtilities.kDotClasses.forEach(function (iClass) {
+            tElement.removeClass(iClass);
           });
-          tElement.addClass(    this_.getPlottedElementClass( tIsSelected, tIsColored ));
-          tLayerManager.moveElementFromTo( tElement, tFrom, tTo);
-       }
-      });
+          tElement.addClass(this_.getPlottedElementClass(tIsSelected,
+            tIsColored));
+          tLayerManager.moveElementFromTo(tElement, tFrom, tTo);
+        }
+      }
+    });
     this._elementOrderIsValid = true;
   },
 

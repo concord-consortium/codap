@@ -98,6 +98,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tY2AttributeID = this.getPath('graphModel.dataConfiguration.y2AttributeID'),
         tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tMarquee,
+        tLastRect,
         tStartPt,
         tBaseSelection = [];//,
 //        tToolTip;
@@ -159,6 +160,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
               .attr( { fill: DG.PlotUtilities.kMarqueeColor,
                     stroke: DG.RenderingUtilities.kTransparent });
+      tLastRect = {x: tStartPt.x, y: tStartPt.y, width: 0, height: 0};
       this_.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( tMarquee);
       this_.get('parentView' ).prepareToSelectPoints( );
     }
@@ -173,7 +175,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tHeight = Math.abs( idY),
         tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
-      this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection);
+      this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection, tLastRect);
+      tLastRect = tRect;
     }
 
     function endMarquee( idX, idY) {

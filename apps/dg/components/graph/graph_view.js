@@ -239,34 +239,42 @@ DG.GraphView = SC.View.extend(
    * @param iRect
    * @param iBaseSelection
    */
-  selectPointsInRect: function( iRect, iBaseSelection) {
-    var tSelection = [];
+  selectPointsInRect: function( iRect, iBaseSelection, iLast) {
     iBaseSelection = iBaseSelection || [];
+    var tDataContext = this.getPath('model.dataContext');
+    var tCollection = this.getPath('model.collectionClient');
+    var tSelectChange = {
+          operation: 'selectCases',
+          collection: tCollection,
+          cases: iBaseSelection,
+          select: true,
+          extend: true
+        };
+    var tDeselectChange = {
+          operation: 'selectCases',
+          collection: tCollection,
+          cases: [],
+          select: false,
+          extend: true
+        };
 
-    var tDataContext = this.getPath('model.dataContext'),
-        tCollection = this.getPath('model.collectionClient');
     if( SC.none( tDataContext))
       return;
 
     this.get('plotViews').forEach( function( iPlotView) {
-      var tPlotSelection = iPlotView.getCasesForPointsInRect( iRect);
-      tSelection = tSelection.concat( tPlotSelection);
+      var tPlotSelection = iPlotView.getCasesForDelta( iRect, iLast);
+      tSelectChange.cases = tSelectChange.cases.concat( tPlotSelection);
+      var tPlotDeselection = iPlotView.getCasesForDelta(iLast, iRect);
+      tDeselectChange.cases = tDeselectChange.cases.concat( tPlotDeselection);
     });
-    var tChange = {
-          operation: 'selectCases',
-          collection: tCollection,
-          cases: iBaseSelection.concat( tSelection),
-          select: true
-        };
 
-    // If there are no cases to select, then simply deselect all
-    if( tChange.cases.length === 0) {
-      tChange.cases = null;
-      tChange.select = false;
+    if (tSelectChange.cases.length !== 0) {
+      tDataContext.applyChange( tSelectChange);
     }
-    tDataContext.applyChange( tChange);
-
-  },
+    if (tDeselectChange.cases.length !== 0) {
+      tDataContext.applyChange( tDeselectChange);
+    }
+   },
   
   /**
    * Pass to first plotview
