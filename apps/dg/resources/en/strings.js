@@ -26,6 +26,10 @@ SC.stringsFor('English', {
   // mainPage.js
   'DG.mainPage.mainPane.logoutButton.title' : "Logout",
   'DG.mainPage.mainPane.logoutButton.toolTip' : "Log out the current user",
+  'DG.mainPage.mainPane.undoButton.title' : "Undo",
+  'DG.mainPage.mainPane.undoButton.toolTip' : "Undo the last action",
+  'DG.mainPage.mainPane.redoButton.title' : "Redo",
+  'DG.mainPage.mainPane.redoButton.toolTip' : "Redo the last undone action",
   'DG.mainPage.mainPane.versionString' : "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
   'DG.mainPage.mainPane.messageView.value' : "Unfortunately, DG is not currently supported on your browser. " +
                                             "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
