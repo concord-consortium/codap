@@ -80,6 +80,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
    * @returns {boolean}
    */
   mouseDown: function( iEvent) {
+    if (!this.get('isInMarqueeMode')) {
+      return;
+    }
     var tDataContext = this.getPath('model.dataContext'),
       tCollection = this.getPath('model.collectionClient');
     this.marqueeContext = {};
