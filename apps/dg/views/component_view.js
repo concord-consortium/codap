@@ -77,7 +77,20 @@ DG.DragBorderView = SC.View.extend(
         tContainer.set('frameNeedsUpdate', true);
         if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
             (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
-          DG.dirtyCurrentDocument();
+          DG.UndoHistory.execute(DG.Command.create({
+            name: "component.move",
+            undoText: "component move",
+            redoText: "component move",
+            execute: function() { DG.dirtyCurrentDocument(); },
+            undo: function() {
+              this.viewToDrag().set('layout', tOldLayout);
+              tContainer.set('frameNeedsUpdate', true);
+            }.bind(this),
+            redo: function() {
+              this.viewToDrag().set('layout', tNewLayout);
+              tContainer.set('frameNeedsUpdate', true);
+            }.bind(this)
+          }));
         }
         return YES; // handled!
       },
