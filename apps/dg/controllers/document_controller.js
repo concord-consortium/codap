@@ -1333,6 +1333,11 @@ DG.gameCollectionWithName = function( iGameName, iCollectionName) {
  * A global convenience function for dirtying the document.
  */
 DG.dirtyCurrentDocument = function(changedObject) {
+  // Tell the UndoHistory that something changed the document.
+  // If this didn't occur inside a Command.execute, then it will clear
+  // the undo stack.
+  DG.UndoHistory.documentWasChanged();
+
   if (SC.none(changedObject)) {
     changedObject = DG.currDocumentController().get('content');
   }
