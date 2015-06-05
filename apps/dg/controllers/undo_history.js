@@ -34,21 +34,24 @@ DG.UndoHistory = SC.Object.create((function() {
     _undoStack: [],
     _redoStack: [],
 
+    _executeInProgress: false,
+
     execute: function(command) {
+      this._executeInProgress = true;
       command.execute(); // TODO Probably catch errors here... ?
+      this._executeInProgress = false;
+
       if (command.isUndoable) {
         this._undoStack.push(command);
+        // Since we're not using set/get to access the stacks, notify changes manually.
+        this.notifyPropertyChange('_undoStack');
       } else {
         // We've hit an not-undoable command, so clear our undo stack
-        this._undoStack.length = 0;
+        this._clearUndo();
       }
       // Clear the redo stack every time we add a new command. We *don't* support applying changes
       // from a different change tree to the current tree.
-      this._redoStack.length = 0;
-
-      // Since we're not using set/get to access the stacks, notify changes manually.
-      this.notifyPropertyChange('_undoStack');
-      this.notifyPropertyChange('_redoStack');
+      this._clearRedo();
     },
 
     canUndo: function() {
@@ -90,6 +93,25 @@ DG.UndoHistory = SC.Object.create((function() {
 
       // Since we're not using set/get to access the stacks, notify changes manually.
       this.notifyPropertyChange('_undoStack');
+      this.notifyPropertyChange('_redoStack');
+    },
+
+    documentWasChanged: function() {
+      if (this._executeInProgress) { return; } // This is fine, we're doing it as part of a Command
+
+      // Otherwise, this wasn't part of a command, so this change is not able to be undone.
+      // Clear the stacks
+      this._clearUndo();
+      this._clearRedo();
+    },
+
+    _clearUndo: function() {
+      this._undoStack.length = 0;
+      this.notifyPropertyChange('_undoStack');
+    },
+
+    _clearRedo: function() {
+      this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
     }
 
