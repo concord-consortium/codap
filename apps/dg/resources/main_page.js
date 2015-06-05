@@ -120,7 +120,29 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: kInfobarHeight, height: kToolbarHeight },
-      childViews: 'logoutButton'.w(),
+      childViews: 'undoButton redoButton logoutButton'.w(),
+
+      undoButton: SC.ButtonView.design({
+        layout: { centerY:0, height:24, left:0, width:80 },
+        classNames:['dg-toolshelf-undo-button'],
+        localize: true,
+        title: 'DG.mainPage.mainPane.undoButton.title', // "Undo"
+        toolTip: 'DG.mainPage.mainPane.undoButton.toolTip',  // "Undo the last action"
+        target: 'DG.UndoHistory',
+        action: 'undo',
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo')
+      }),
+
+      redoButton: SC.ButtonView.design({
+        layout: { centerY:0, height:24, left:0, width:80 },
+        classNames:['dg-toolshelf-redo-button'],
+        localize: true,
+        title: 'DG.mainPage.mainPane.redoButton.title', // "Redo"
+        toolTip: 'DG.mainPage.mainPane.redoButton.toolTip',  // "Redo the last undone action"
+        target: 'DG.UndoHistory',
+        action: 'redo',
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo')
+      }),
 
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
@@ -165,6 +187,9 @@ DG.mainPage = SC.Page.design((function() {
         DG.currDocumentController().set('guideButton', this.guideButton);
         // move existing buttons, left-justified after tool buttons
         tLeft += kSpacer; // extra space to right of gear
+        tLeft = kSpacer + moveHorizontal( this.undoButton, tLeft );
+        tLeft = kSpacer + moveHorizontal( this.redoButton, tLeft );
+        tLeft += kSpacer; // extra space to right of redo
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
       }
       
