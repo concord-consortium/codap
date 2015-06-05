@@ -37,9 +37,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _executeInProgress: false,
 
     execute: function(command) {
-      this._executeInProgress = true;
-      command.execute(); // TODO Probably catch errors here... ?
-      this._executeInProgress = false;
+      this._wrapAndRun(command.execute); // TODO Probably catch errors here... ?
 
       if (command.isUndoable) {
         this._undoStack.push(command);
@@ -67,7 +65,7 @@ DG.UndoHistory = SC.Object.create((function() {
 
     undo: function() {
       var command = this._undoStack.pop();
-      command.undo(); // TODO Probably catch errors here... ?
+      this._wrapAndRun(command.undo); // TODO Probably catch errors here... ?
       this._redoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -88,7 +86,7 @@ DG.UndoHistory = SC.Object.create((function() {
 
     redo: function() {
       var command = this._redoStack.pop();
-      command.redo(); // TODO Probably catch errors here... ?
+      this._wrapAndRun(command.redo); // TODO Probably catch errors here... ?
       this._undoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -97,12 +95,22 @@ DG.UndoHistory = SC.Object.create((function() {
     },
 
     documentWasChanged: function() {
-      if (this._executeInProgress) { return; } // This is fine, we're doing it as part of a Command
+      if (this._executeInProgress) { return; } // This is fine, we're doing it as part of a Command action
 
       // Otherwise, this wasn't part of a command, so this change is not able to be undone.
       // Clear the stacks
       this._clearUndo();
       this._clearRedo();
+    },
+
+    // Wraps a command in a way so that documentWasChanged calls don't clear the stack
+    _wrapAndRun: function(cmd) {
+      this._executeInProgress = true;
+      try {
+        cmd();
+      } finally {
+        this._executeInProgress = false;
+      }
     },
 
     _clearUndo: function() {
