@@ -361,6 +361,13 @@ DG.mainPage = SC.Page.design((function() {
         case 'alt_ctrl_shift_t':
           DG.mainPage.addText();
           break;
+        case 'ctrl_z':
+          DG.UndoHistory.undo();
+          break;
+        case 'ctrl_y':
+        case 'ctrl_shift_z':
+          DG.UndoHistory.redo();
+          break;
         default:
           tResult = sc_super();
       }
