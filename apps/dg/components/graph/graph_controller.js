@@ -201,19 +201,60 @@ DG.GraphController = DG.DataDisplayController.extend(
           return;       // means we get here at times there isn't any drag data.
         this.handlePossibleForeignDataContext( iDragData);
 
+        var iOrientation = iAxis.get('orientation'),
+            tDescKey, tAxisKey;
+        switch( iOrientation) {
+          case 'horizontal':
+            tDescKey = 'xAttributeDescription';
+            tAxisKey = 'xAxis';
+            break;
+          case 'vertical':
+            tDescKey = 'yAttributeDescription';
+            tAxisKey = 'yAxis';
+            break;
+          case 'vertical2':
+            tDescKey = 'y2AttributeDescription';
+            tAxisKey = 'y2Axis';
+            break;
+        }
+
         var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+            prevDataContext = this.getPath('graphModel.dataConfiguration.dataContext'),
+            prevCollectionClient = this.getPath('graphModel.dataConfiguration.'+tDescKey+'.collectionClient'),
+            prevAttribute = this.getPath('graphModel.dataConfiguration.'+tDescKey+'.attribute');
 
         iAxis.dragData = null;
 
-        this.get('graphModel').changeAttributeForAxis(
-            tDataContext,
-            {
-              collection: tCollectionClient,
-              attributes: [iDragData.attribute]
-            },
-            iAxis.get('orientation'));
-        DG.dirtyCurrentDocument();
+        DG.UndoHistory.execute(DG.Command.create({
+          execute: function() {
+            this.get('graphModel').changeAttributeForAxis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [iDragData.attribute]
+                },
+                iOrientation);
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          undo: function() {
+            if (prevAttribute === -1) {
+              this.get('graphModel').removeAttribute(tDescKey, tAxisKey, 0);
+            } else {
+              this.get('graphModel').changeAttributeForAxis(
+                  prevDataContext,
+                  {
+                    collection: prevCollectionClient,
+                    attributes: [prevAttribute]
+                  },
+                  iOrientation);
+            }
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          redo: function() {
+            this.execute();
+          }
+        }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
