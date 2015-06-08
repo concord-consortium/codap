@@ -64,6 +64,9 @@ DG.UndoHistory = SC.Object.create((function() {
     }.property('_undoStack'),
 
     undo: function() {
+      if (this._undoStack.length === 0) {
+        return;
+      }
       var command = this._undoStack.pop();
       this._wrapAndRun(command, command.undo); // TODO Probably catch errors here... ?
       this._redoStack.push(command);
@@ -85,6 +88,9 @@ DG.UndoHistory = SC.Object.create((function() {
     }.property('_redoStack'),
 
     redo: function() {
+      if (this._redoStack.length === 0) {
+        return;
+      }
       var command = this._redoStack.pop();
       this._wrapAndRun(command, command.redo); // TODO Probably catch errors here... ?
       this._undoStack.push(command);
