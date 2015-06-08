@@ -37,7 +37,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _executeInProgress: false,
 
     execute: function(command) {
-      this._wrapAndRun(command.execute); // TODO Probably catch errors here... ?
+      this._wrapAndRun(command, command.execute); // TODO Probably catch errors here... ?
 
       if (command.isUndoable) {
         this._undoStack.push(command);
@@ -65,7 +65,7 @@ DG.UndoHistory = SC.Object.create((function() {
 
     undo: function() {
       var command = this._undoStack.pop();
-      this._wrapAndRun(command.undo); // TODO Probably catch errors here... ?
+      this._wrapAndRun(command, command.undo); // TODO Probably catch errors here... ?
       this._redoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -86,7 +86,7 @@ DG.UndoHistory = SC.Object.create((function() {
 
     redo: function() {
       var command = this._redoStack.pop();
-      this._wrapAndRun(command.redo); // TODO Probably catch errors here... ?
+      this._wrapAndRun(command, command.redo); // TODO Probably catch errors here... ?
       this._undoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -104,10 +104,10 @@ DG.UndoHistory = SC.Object.create((function() {
     },
 
     // Wraps a command in a way so that documentWasChanged calls don't clear the stack
-    _wrapAndRun: function(cmd) {
+    _wrapAndRun: function(cmd, func) {
       this._executeInProgress = true;
       try {
-        cmd();
+        func.call(cmd);
       } finally {
         this._executeInProgress = false;
       }
