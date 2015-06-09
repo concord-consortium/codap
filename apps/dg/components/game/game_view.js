@@ -105,7 +105,7 @@ DG.GameView = SC.WebView.extend(
      * The origin is scheme://domain_name.port
      */
   extractOrigin: function(url) {
-    var re = /([^:]*:\/\/[^\/]*)\//;
+    var re = /([^:]*:\/\/[^\/]*)/;
     if (/^http.*/i.test(url)) {
       return re.exec(url)[1];
     }

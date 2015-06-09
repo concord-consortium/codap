@@ -103,7 +103,7 @@ DG.LayerManager = function( iPaper) {
         iFromLayer.prepareToMoveOrRemove( iElement);
         iToLayer.push( iElement);
       }
-      this.testValidity();
+      //this.testValidity();
     },
 
     /**
@@ -115,7 +115,7 @@ DG.LayerManager = function( iPaper) {
         iLayer.prepareToMoveOrRemove( iElement);
       });
       iElement.remove();
-      this.testValidity();
+      //this.testValidity();
     },
 
     testValidity: function() {
