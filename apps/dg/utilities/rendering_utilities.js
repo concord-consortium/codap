@@ -71,7 +71,6 @@ DG.RenderingUtilities = {
       tExtent = { x: tBox.width, y: tBox.height };
     tText.remove();
     return tExtent;
-    //return { x: 6 * iText.length, y: 12 };
   },
 
   /**
