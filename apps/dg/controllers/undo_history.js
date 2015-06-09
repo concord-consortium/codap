@@ -31,11 +31,28 @@
 DG.UndoHistory = SC.Object.create((function() {
 /** @scope DG.UndoHistory.prototype */
   return {
+    /** @private
+      A list of commands available to be undone. The last item in the array is the next item
+      to be undone. This makes it easy to use pop() when undoing things and push() to add new commands on.
+     */
     _undoStack: [],
+
+    /** @private
+      A list of commands available to be redone. The last item in the array is the next item
+      to be redone. This makes it easy to use pop() when redoing things and push() to add new commands on.
+     */
     _redoStack: [],
 
+    /** @private
+      A flag so that we can know if calls to documentWasChanged happened inside of a command function or not.
+     */
     _executeInProgress: false,
 
+    /**
+      Registers a command which can be undone and redone at a later point. The command is immediately executed,
+      and then added to the stack for later.
+      @param    {DG.Command}  command -- An instance of DG.Command, which provides methods for doing, undoing and redoing an action.
+     */
     execute: function(command) {
       this._wrapAndRun(command, command.execute); // TODO Probably catch errors here... ?
 
@@ -52,10 +69,18 @@ DG.UndoHistory = SC.Object.create((function() {
       this._clearRedo();
     },
 
+    /**
+     *  A flag indicating whether we have any commands to undo.
+     *  @property {Boolean}
+     */
     canUndo: function() {
       return this._undoStack.length > 0;
     }.property('_undoStack'),
 
+    /**
+     *  The next command which will be undone.
+     *  @property {DG.Command}
+     */
     nextUndoCommand: function() {
       if (this._undoStack.length === 0) {
         return null;
@@ -63,7 +88,12 @@ DG.UndoHistory = SC.Object.create((function() {
       return this._undoStack[this._undoStack.length-1];
     }.property('_undoStack'),
 
+    /**
+      Undoes the most recently executed command and adds that command to the redo stack.
+     */
     undo: function() {
+      // You can get here directly from a keyboard shortcut, so rather than check if we
+      // have anything to undo outside of this function, we'll just double-check here.
       if (this._undoStack.length === 0) {
         return;
       }
@@ -76,10 +106,18 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
     },
 
+    /**
+     *  A flag indicating whether we have any commands to redo.
+     *  @property {Boolean}
+     */
     canRedo: function() {
       return this._redoStack.length > 0;
     }.property('_redoStack'),
 
+    /**
+     *  The next command which will be redone.
+     *  @property {DG.Command}
+     */
     nextRedoCommand: function() {
       if (this._redoStack.length === 0) {
         return null;
@@ -87,7 +125,12 @@ DG.UndoHistory = SC.Object.create((function() {
       return this._redoStack[this._redoStack.length-1];
     }.property('_redoStack'),
 
+    /**
+      Redoes the most recently undone command and adds that command to the undo stack.
+     */
     redo: function() {
+      // You can get here directly from a keyboard shortcut, so rather than check if we
+      // have anything to redo outside of this function, we'll just double-check here.
       if (this._redoStack.length === 0) {
         return;
       }
@@ -100,6 +143,11 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
     },
 
+    /**
+      This method is called automatically by DG.dirtyCurrentDocument. If a document is dirtied
+      as part of a command execution, then we ignore it. Otherwise, we clear the undo and redo stacks
+      since a document-changing action took place which can't be undone.
+     */
     documentWasChanged: function() {
       if (this._executeInProgress) { return; } // This is fine, we're doing it as part of a Command action
 
@@ -109,7 +157,11 @@ DG.UndoHistory = SC.Object.create((function() {
       this._clearRedo();
     },
 
-    // Wraps a command in a way so that documentWasChanged calls don't clear the stack
+    /** @private
+      Helper method to run a function in a certain context. All calls to documentWasChanged will be ignored during its execution.
+      @param    {DG.Command}   cmd -- An instance of DG.Command, which is used as the context for the function execution.
+      @param    {Function}    func -- A function to be executed.
+     */
     _wrapAndRun: function(cmd, func) {
       this._executeInProgress = true;
       try {
@@ -119,11 +171,17 @@ DG.UndoHistory = SC.Object.create((function() {
       }
     },
 
+    /** @private
+      Helper function for clearing the undo stack.
+     */
     _clearUndo: function() {
       this._undoStack.length = 0;
       this.notifyPropertyChange('_undoStack');
     },
 
+    /** @private
+      Helper function for clearing the redo stack.
+     */
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
@@ -132,6 +190,13 @@ DG.UndoHistory = SC.Object.create((function() {
   }; // return from function closure
 })()); // function closure
 
+
+/** @class
+  A prototype for the commands to be passed into DG.UndoHistory.
+  Note: As long as an object conforms to this API, the DG.UndoHistory doesn't technically care if it's an
+  instance of DG.Command or not.
+  @extends SC.Object
+*/
 DG.Command = SC.Object.extend((function() {
   return {
 
