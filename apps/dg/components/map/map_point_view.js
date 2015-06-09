@@ -60,6 +60,14 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
   marqueeContext: null,
 
   /**
+   * We should be able to accomplish the following with binding, but it didn't work,
+   * possibly because of the classNameBindings. So we use brute force.
+   */
+  marqueeModeDidChange: function() {
+    this.setPath('mapPointLayer.isInMarqueeMode', this.get('isInMarqueeMode'));
+  }.observes('isInMarqueeMode'),
+
+  /**
    * Subclasses can override calling sc_super() and then adding layers at will.
    */
   initLayerManager: function() {
@@ -76,9 +84,6 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
   /**
    * Handles a marquee mouse down.
-   * Todo: We should only receive this event when we are in marquee mode.
-   * Todo: This is governed by the css. For unknown reasons this is no longer
-   * Todo: working, so we add an explicit check.
    * @param {{clientX:number, clientY:number}} iEvent
    * @returns {boolean}
    */
