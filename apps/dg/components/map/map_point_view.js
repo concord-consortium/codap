@@ -76,9 +76,6 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
 
   /**
    * Handles a marquee mouse down.
-   * Todo: We should only receive this event when we are in marquee mode.
-   * Todo: This is governed by the css. For unknown reasons this is no longer
-   * Todo: working, so we add an explicit check.
    * @param {{clientX:number, clientY:number}} iEvent
    * @returns {boolean}
    */
