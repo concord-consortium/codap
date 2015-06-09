@@ -318,20 +318,10 @@ DG.GraphView = SC.View.extend(
       }
       else {
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
-        tXAxisView.adjust('left', tYWidth);
-        tXAxisView.adjust('right', tSpaceForY2);
-        tXAxisView.adjust('bottom', tLegendHeight);
-        tXAxisView.adjust('height', tXHeight);
-        tYAxisView.adjust('bottom', tLegendHeight);
-        tYAxisView.adjust('width', tYWidth);
-        tYAxisView.adjust('top', tNumberToggleHeight);
-        tY2AxisView.adjust('bottom', tLegendHeight);
-        tY2AxisView.adjust('width', tY2DesiredWidth);
-        tY2AxisView.adjust('top', tNumberToggleHeight);
-        tPlotBackground.adjust('left', tYWidth);
-        tPlotBackground.adjust('right', tSpaceForY2);
-        tPlotBackground.adjust('top', tNumberToggleHeight);
-        tPlotBackground.adjust('bottom', tXHeight + tLegendHeight);
+        tXAxisView.adjust({left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
+        tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth, top: tNumberToggleHeight});
+        tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth, top: tNumberToggleHeight});
+        tPlotBackground.adjust({left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight});
         tLegendView.adjust('height', tLegendHeight);
         if(tNumberToggleView)
           tNumberToggleView.adjust('height', tNumberToggleHeight);

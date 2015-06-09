@@ -25,7 +25,7 @@ sc_require('libraries/raphael');
 DG.RenderingUtilities = {
 
   /* jshint -W064 */  // Missing 'new' prefix when invoking a constructor. (W064)
-  _blankCanvas: Raphael(0, 0, 0, 0),
+  _blankCanvas: Raphael(0, 0, 500, 500),
   /* jshint +W064 */
   
   kTransparent: "rgba(255, 255, 255, 0)",
@@ -43,9 +43,13 @@ DG.RenderingUtilities = {
     // Browsers can fill with zeroes or NaNs if they can't do measurement. Because NaN is "falsy" the following works
     tTextHeight = tTextBox.height || iDefaultHeight,
     tTextWidth = tTextBox.width;
-    // Sometimes tTextHeight and tTextWidth come out 0. Estimate heuristically.
-    if( !tTextWidth)
-      tTextWidth = (tTextHeight / 2) * iTextElement.attr('text').length;
+    // Sometimes tTextHeight and tTextWidth come out 0. Draw offscreen.
+    if( !tTextWidth) {
+      var tExtent = this.textExtent(iTextElement.attr('text'), iTextElement.attr('font-family'),
+                                    iTextElement.attr('font-size'));
+      tTextWidth = tExtent.x;
+      tTextHeight = tExtent.y;
+    }
     return { width: tTextWidth, height: tTextHeight };
   },
 
@@ -60,13 +64,14 @@ DG.RenderingUtilities = {
     @param {String} the string to be rendered
     @return {Point as in {x, y} } length of the string in pixels
   */
-  textExtentOnCanvas: function( iCanvas, iText) {
-//    var tText = iCanvas.text( 10000, 10000, iText),
-//      tBox = tText.getBBox(),
-//      tExtent = { x: tBox.width, y: tBox.height };
-//    tText.remove();
-//    return tExtent;
-    return { x: 6 * iText.length, y: 12 };
+  textExtentOnCanvas: function( iCanvas, iText, iFontFamily, iFontSize) {
+    var tText = iCanvas.text( -500, -5000, iText)
+            .attr({'font-family': iFontFamily, 'font-size': iFontSize}),
+      tBox = tText.getBBox(),
+      tExtent = { x: tBox.width, y: tBox.height };
+    tText.remove();
+    return tExtent;
+    //return { x: 6 * iText.length, y: 12 };
   },
 
   /**
@@ -74,8 +79,8 @@ DG.RenderingUtilities = {
    @param {String} the string to be rendered
     @return {Point as in {x, y} } length of the string in pixels
   */
-  textExtent: function( iText) {
-    return this.textExtentOnCanvas( this._blankCanvas, iText);
+  textExtent: function( iText, iFontFamily, iFontSize) {
+    return this.textExtentOnCanvas( this._blankCanvas, iText, iFontFamily, iFontSize);
   },
 
   /**
