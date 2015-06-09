@@ -127,9 +127,13 @@ DG.mainPage = SC.Page.design((function() {
         classNames:['dg-toolshelf-undo-button'],
         localize: true,
         title: 'DG.mainPage.mainPane.undoButton.title', // "Undo"
-        toolTip: 'DG.mainPage.mainPane.undoButton.toolTip',  // "Undo the last action"
+        toolTip: function() {
+          var cmd = this.get('nextUndoCommand');
+          return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip');  // "Undo the last action"
+        }.property('nextUndoCommand'),
         target: 'DG.UndoHistory',
         action: 'undo',
+        nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo')
       }),
 
@@ -138,9 +142,13 @@ DG.mainPage = SC.Page.design((function() {
         classNames:['dg-toolshelf-redo-button'],
         localize: true,
         title: 'DG.mainPage.mainPane.redoButton.title', // "Redo"
-        toolTip: 'DG.mainPage.mainPane.redoButton.toolTip',  // "Redo the last undone action"
+        toolTip: function() {
+          var cmd = this.get('nextRedoCommand');
+          return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip');  // "Redo the last undone action"
+        }.property('nextRedoCommand'),
         target: 'DG.UndoHistory',
         action: 'redo',
+        nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo')
       }),
 

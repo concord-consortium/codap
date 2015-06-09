@@ -272,6 +272,19 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.guideMenu.toolTip' : "Show the guide for this activity and navigate within it",
   'DG.ToolButtonData.guideMenu.showGuide' : "Show Guide",
 
+  // Undo / Redo
+  'DG.Undo.componentMove': "Undo moving the component",
+  'DG.Undo.componentResize': "Undo resizing the component",
+  'DG.Undo.axisDilate': "Undo rescaling the axis",
+  'DG.Undo.axisDrag': "Undo dragging the axis",
+  'DG.Undo.axisAttributeChange': "Undo changing the axis attribute",
+
+  'DG.Redo.componentMove': "Redo moving the component",
+  'DG.Redo.componentResize': "Redo resizing the component",
+  'DG.Redo.axisDilate': "Redo rescaling the axis",
+  'DG.Redo.axisDrag': "Redo dragging the axis",
+  'DG.Redo.axisAttributeChange': "Redo changing the axis attribute",
+
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",
   'DG.DataContext.pluralCaseName': "cases",
