@@ -189,30 +189,3 @@ DG.UndoHistory = SC.Object.create((function() {
 
   }; // return from function closure
 })()); // function closure
-
-
-/** @class
-  A prototype for the commands to be passed into DG.UndoHistory.
-  Note: As long as an object conforms to this API, the DG.UndoHistory doesn't technically care if it's an
-  instance of DG.Command or not.
-  @extends SC.Object
-*/
-DG.Command = SC.Object.extend((function() {
-  return {
-
-    // Metadata to define
-    name: null,
-    undoString: null,
-    redoString: null,
-
-    isUndoable: true,
-
-    // Functions to override
-    execute: function() {},
-    undo: function() {},
-    redo: function() {
-      this.execute();
-    }
-
-  }; // return from function closure
-})()); // function closure
