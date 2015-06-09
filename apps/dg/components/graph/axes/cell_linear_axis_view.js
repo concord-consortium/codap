@@ -270,9 +270,13 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
           var newLowerBound = this_.getPath('model.lowerBound'),
               newUpperBound = this_.getPath('model.upperBound'),
               oldLowerBound = this_._lowerBoundAtDragStart,
-              oldUpperBound = this_._upperBoundAtDragStart;
+              oldUpperBound = this_._upperBoundAtDragStart,
+              wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound);
           DG.logUser("dragEnd: { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
           DG.UndoHistory.execute(DG.Command.create({
+            name: (wasDilate ? 'graph.axis.dilate' : 'graph.axis.drag'),
+            undoString: (wasDilate ? 'DG.Undo.axisDilate' : 'DG.Undo.axisDrag'),
+            redoString: (wasDilate ? 'DG.Redo.axisDilate' : 'DG.Redo.axisDrag'),
             execute: function() { DG.dirtyCurrentDocument(); },
             undo: function() {
               DG.logUser("resetting bounds (undo): { lower: %@, upper: %@ }", oldLowerBound, oldUpperBound);

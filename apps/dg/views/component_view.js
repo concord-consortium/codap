@@ -69,7 +69,8 @@ DG.DragBorderView = SC.View.extend(
       mouseUp: function (evt) {
         var tContainer = this.viewToDrag().get('parentView'),
             tOldLayout = this._mouseDownInfo,
-            tNewLayout = this.viewToDrag().get('layout');
+            tNewLayout = this.viewToDrag().get('layout'),
+            isResize = (!SC.none(this.getPath('cursor.cursorStyle'))) && this.getPath('cursor.cursorStyle').indexOf('-resize') !== -1;
         // apply one more time to set final position
         this.mouseDragged(evt);
         this._mouseDownInfo = null; // cleanup info
@@ -77,10 +78,11 @@ DG.DragBorderView = SC.View.extend(
         tContainer.set('frameNeedsUpdate', true);
         if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
             (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
+
           DG.UndoHistory.execute(DG.Command.create({
-            name: "component.move",
-            undoText: "component move",
-            redoText: "component move",
+            name: (isResize ? 'component.resize' : 'component.move'),
+            undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
+            redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
             execute: function() { DG.dirtyCurrentDocument(); },
             undo: function() {
               this.viewToDrag().set('layout', tOldLayout);

@@ -227,6 +227,9 @@ DG.GraphController = DG.DataDisplayController.extend(
         iAxis.dragData = null;
 
         DG.UndoHistory.execute(DG.Command.create({
+          name: 'axis.attributeChange',
+          undoString: 'DG.Undo.axisAttributeChange',
+          redoString: 'DG.Redo.axisAttributeChange',
           execute: function() {
             this.get('graphModel').changeAttributeForAxis(
                 tDataContext,
