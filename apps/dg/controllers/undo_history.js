@@ -54,7 +54,12 @@ DG.UndoHistory = SC.Object.create((function() {
       @param    {DG.Command}  command -- An instance of DG.Command, which provides methods for doing, undoing and redoing an action.
      */
     execute: function(command) {
-      this._wrapAndRun(command, command.execute); // TODO Probably catch errors here... ?
+      try {
+        this._wrapAndRun(command, command.execute); // Just let exceptions bubble up, but clear the stacks...
+      } finally {
+        this._clearUndo();
+        this._clearRedo();
+      }
 
       if (command.isUndoable) {
         this._undoStack.push(command);
@@ -98,7 +103,20 @@ DG.UndoHistory = SC.Object.create((function() {
         return;
       }
       var command = this._undoStack.pop();
-      this._wrapAndRun(command, command.undo); // TODO Probably catch errors here... ?
+      try {
+        this._wrapAndRun(command, command.undo);
+      } catch (e) {
+        // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
+        // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
+        // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
+        DG.AlertPane.error({
+          localize: true,
+          message: 'DG.Undo.exceptionOccurred',
+          buttons: [
+            {title: "OK", action: function() { this._clearUndo(); this._clearRedo(); }.bind(this) }
+          ]
+        });
+      }
       this._redoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -135,7 +153,20 @@ DG.UndoHistory = SC.Object.create((function() {
         return;
       }
       var command = this._redoStack.pop();
-      this._wrapAndRun(command, command.redo); // TODO Probably catch errors here... ?
+      try {
+        this._wrapAndRun(command, command.redo);
+      } catch (e) {
+        // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
+        // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
+        // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
+        DG.AlertPane.error({
+          localize: true,
+          message: 'DG.Redo.exceptionOccurred',
+          buttons: [
+            {title: "OK", action: function() { this._clearUndo(); this._clearRedo(); }.bind(this) }
+          ]
+        });
+      }
       this._undoStack.push(command);
 
       // Since we're not using set/get to access the stacks, notify changes manually.
@@ -164,6 +195,7 @@ DG.UndoHistory = SC.Object.create((function() {
      */
     _wrapAndRun: function(cmd, func) {
       this._executeInProgress = true;
+      // We'll catch exceptions higher up, so only clean up after ourselves here...
       try {
         func.call(cmd);
       } finally {
