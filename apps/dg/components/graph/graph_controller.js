@@ -199,64 +199,40 @@ DG.GraphController = DG.DataDisplayController.extend(
       axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
-        this.handlePossibleForeignDataContext( iDragData);
-
-        var iOrientation = iAxis.get('orientation'),
-            tDescKey, tAxisKey;
-        switch( iOrientation) {
-          case 'horizontal':
-            tDescKey = 'xAttributeDescription';
-            tAxisKey = 'xAxis';
-            break;
-          case 'vertical':
-            tDescKey = 'yAttributeDescription';
-            tAxisKey = 'yAxis';
-            break;
-          case 'vertical2':
-            tDescKey = 'y2AttributeDescription';
-            tAxisKey = 'y2Axis';
-            break;
-        }
-
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
-            prevDataContext = this.getPath('graphModel.dataConfiguration.dataContext'),
-            prevCollectionClient = this.getPath('graphModel.dataConfiguration.'+tDescKey+'.collectionClient'),
-            prevAttribute = this.getPath('graphModel.dataConfiguration.'+tDescKey+'.attribute');
-
-        iAxis.dragData = null;
-
+        var _beforeData, _afterData;
         DG.UndoHistory.execute(DG.Command.create({
           name: 'axis.attributeChange',
           undoString: 'DG.Undo.axisAttributeChange',
           redoString: 'DG.Redo.axisAttributeChange',
           execute: function() {
+            _beforeData = this.createComponentStorage();
+
+            this.handlePossibleForeignDataContext( iDragData);
+
+            var tDataContext = this.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+
+            iAxis.dragData = null;
+
             this.get('graphModel').changeAttributeForAxis(
                 tDataContext,
                 {
                   collection: tCollectionClient,
                   attributes: [iDragData.attribute]
                 },
-                iOrientation);
+                iAxis.get('orientation'));
             DG.dirtyCurrentDocument();
+
+            _afterData = this.createComponentStorage();
           }.bind(this),
           undo: function() {
-            if (prevAttribute === -1) {
-              this.get('graphModel').removeAttribute(tDescKey, tAxisKey, 0);
-            } else {
-              this.get('graphModel').changeAttributeForAxis(
-                  prevDataContext,
-                  {
-                    collection: prevCollectionClient,
-                    attributes: [prevAttribute]
-                  },
-                  iOrientation);
-            }
+            this.restoreComponentStorage(_beforeData);
             DG.dirtyCurrentDocument();
           }.bind(this),
           redo: function() {
-            this.execute();
-          }
+            this.restoreComponentStorage(_afterData);
+            DG.dirtyCurrentDocument();
+          }.bind(this)
         }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
