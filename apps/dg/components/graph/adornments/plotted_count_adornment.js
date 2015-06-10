@@ -32,8 +32,8 @@ sc_require('components/graph/adornments/value_axis_view_mixin');
 DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
 /** @scope DG.PlottedCountAdornment.prototype */
 {
-  marginX: 10,
-  marginY: 15,
+  marginX: 2,
+  marginY: 2,
   textColor: '#315B7D',
   numCellsOnX: 1,
   numCellsOnY: 1,
@@ -87,9 +87,12 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
     }
     var tPaper = this.get('paper'),
         tLayer = this.get('layer' ),
-        tCellHeight = (this.numCellsOnY ? tPaper.height/this.numCellsOnY : tPaper.height ),
-        tCellWidth = (this.numCellsOnX ? tPaper.width/this.numCellsOnX : tPaper.width );
-    var tValue, tAttrs, tTextElem, tIsNewElement, i;
+        tCellHeight = this.getPath('yAxisView.fullCellWidth'),
+        tCellWidth = this.getPath('xAxisView.fullCellWidth'),
+        tTempElement = tPaper.text(-100, 0, 'test'),
+        tYOffset = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11).height,
+        tValue, tAttrs, tTextElem, tIsNewElement, i;
+    tTempElement.remove();
 
     // for each count value (one per cell of plot), add/update a text element
     for( i=0; i<tNumValues; ++i ) {
@@ -102,7 +105,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       DG.assert( tValue.primaryCell === tIndexPrimary && tValue.secondaryCell === tIndexSecondary, "unexpected cell arrangement");
       tAttrs = { // position in upper-right of cell, with margin
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
-          y: this.marginY + (tIndexY*tCellHeight ),
+          y: this.marginY + tYOffset/3 + (tIndexY*tCellHeight ),
           text: tValue.count.toString(),
           title: this.getTitle( tValue.count, tValue.percent )
       };
