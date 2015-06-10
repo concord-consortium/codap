@@ -47,7 +47,7 @@ DG.LookupAggFns = {
         var iCase = iEvalContext._case_,
             parentCase = iCase && iCase.get('parent'),
             siblings = parentCase ? parentCase.get('children')
-                                  : iContext && iContext.getPath('collection.cases'),
+                                  : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
             firstCase = siblings && siblings.firstObject(),
             tmpEvalContext = firstCase
@@ -89,7 +89,7 @@ DG.LookupAggFns = {
         var iCase = iEvalContext._case_,
             parentCase = iCase && iCase.get('parent'),
             siblings = parentCase ? parentCase.get('children')
-                                  : iContext && iContext.getPath('collection.cases'),
+                                  : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
             lastCase = siblings && siblings.lastObject(),
             tmpEvalContext = lastCase
@@ -134,7 +134,7 @@ DG.LookupAggFns = {
         var iCase = iEvalContext._case_,
           parentCase = iCase && iCase.get('parent'),
           siblings = parentCase ? parentCase.get('children')
-                : iContext && iContext.getPath('collection.cases'),
+                : (iContext && iContext.getPath('collection.cases')),
           caseCount = siblings && siblings.get('length'),
           thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
           nextCase = siblings && (thisCaseIndex < caseCount)
@@ -173,7 +173,7 @@ DG.LookupAggFns = {
         var iCase = iEvalContext._case_,
           parentCase = iCase && iCase.get('parent'),
           siblings = parentCase ? parentCase.get('children')
-                  : iContext && iContext.getPath('collection.cases'),
+                  : (iContext && iContext.getPath('collection.cases')),
           thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
           prevCase = siblings && (thisCaseIndex >= 2)
                             ? siblings.objectAt( thisCaseIndex - 2)  // 0-based index
