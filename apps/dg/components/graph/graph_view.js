@@ -337,8 +337,16 @@ DG.GraphView = SC.View.extend(
       }
       else {
         // adjust() method avoids triggering observers if layout parameter is already at correct value.
+        var tCurrXHeight = tXAxisView.get('height');
         tXAxisView.adjust({left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
+        if( tCurrXHeight !== tXHeight)
+          tXAxisView.notifyPropertyChange('drawHeight');
+
+        var tCurrYWidth = tYAxisView.get('width');
         tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth, top: tNumberToggleHeight});
+        if( tCurrYWidth !== tYWidth)
+          tYAxisView.notifyPropertyChange('drawWidth');
+
         tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth, top: tNumberToggleHeight});
         tPlotBackground.adjust({left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight});
         tLegendView.adjust('height', tLegendHeight);
