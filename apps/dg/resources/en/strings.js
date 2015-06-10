@@ -273,12 +273,14 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.guideMenu.showGuide' : "Show Guide",
 
   // Undo / Redo
+  'DG.Undo.exceptionOccurred': "An error occurred while trying to undo.",
   'DG.Undo.componentMove': "Undo moving the component",
   'DG.Undo.componentResize': "Undo resizing the component",
   'DG.Undo.axisDilate': "Undo rescaling the axis",
   'DG.Undo.axisDrag': "Undo dragging the axis",
   'DG.Undo.axisAttributeChange': "Undo changing the axis attribute",
 
+  'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
   'DG.Redo.componentResize': "Redo resizing the component",
   'DG.Redo.axisDilate': "Redo rescaling the axis",
