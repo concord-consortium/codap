@@ -444,11 +444,13 @@ DG.PlotView = DG.PlotLayer.extend(
       this.plottedCountAdorn.destroy();
       this.plottedCountAdorn = null;
     }
-    if( tCountModel && this.get('paper') ) {
-      this.plottedCountAdorn = DG.PlottedCountAdornment.create( {
-             parentView: this, valueAxisView: this.get('primaryAxisView'),
-             model: tCountModel, paperSource: this.get('paperSource'),
-             layerName: DG.LayerNames.kAdornments });
+    if (tCountModel && this.get('paper')) {
+      this.plottedCountAdorn = DG.PlottedCountAdornment.create({
+        parentView: this, valueAxisView: this.get('primaryAxisView'),
+        xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView'),
+        model: tCountModel, paperSource: this.get('paperSource'),
+        layerName: DG.LayerNames.kAdornments
+      });
       this.plottedCountAdorn.updateToModel();
     }
   }.observes('.model.plottedCount'),
