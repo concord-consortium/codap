@@ -290,6 +290,7 @@ DG.GraphView = SC.View.extend(
    */
   handleBackgroundDblClick: function( iEvent) {
     this.get('plotView').handleBackgroundDblClick( iEvent);
+  this.convertToImage();
   },
 
 /**
@@ -626,6 +627,69 @@ DG.GraphView = SC.View.extend(
     tMulti.set('isVisible', false); // Start out hidden
 
     this.set('yAxisMultiTarget', tMulti);
+  },
+
+  convertToImage: function() {
+
+    var saveImage = function (img) {
+      var saveImageFromDialog = function () {
+        var docName = tDialog.get('value');
+
+        if (!SC.empty(docName)) {
+          docName = docName.trim();
+          window.saveAs(pngObject, docName);
+        }
+
+        // Close the open/save dialog.
+        tDialog.close();
+      };
+      tDialog = this.openSaveDialog = DG.CreateSingleTextDialog({
+        prompt: 'DG.AppController.exportDocument.prompt'.loc() +
+        " (Safari users may need to control-click <a href=\"" + canvasDataURL +
+        "\">this link</a>)",
+        escapePromptHTML: false,
+        okTarget: this,
+        okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
+        okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+        okAction: function () {
+          saveImageFromDialog();
+        },
+        cancelVisible: true
+      });
+    }.bind(this);
+
+    function makeCanvasOfImage(img, width, height) {
+      var canvas = $( "<canvas>").prop({width: width, height: height})[0];
+      var ctx = canvas.getContext( "2d" );
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage( img, 0, 0, width, height);
+      return canvas;
+    }
+
+    var tDialog;
+    var paperSource = this.getPath('plotBackgroundView');
+    var paper = paperSource.get('paper');
+    var dataURL = paperSource.toDataURL();
+    var canvas, canvasDataURL, canvasData, canvasAsArray, pngObject;
+    var img = $('<img/>')[0];
+    DG.log('GraphView: svg URL: ' + dataURL);
+
+    $(img).on('load', function() {
+      canvas = makeCanvasOfImage(img, paper.width, paper.height);
+      canvasDataURL = canvas.toDataURL( "image/png" );
+      canvasData = atob( canvasDataURL.substring( "data:image/png;base64,".length ) );
+      canvasAsArray = new Uint8Array(canvasData.length);
+
+      for( var i = 0, len = canvasData.length; i < len; ++i ) {
+        canvasAsArray[i] = canvasData.charCodeAt(i);
+      }
+
+      pngObject = new Blob([ canvasAsArray.buffer ], {type: "image/png"} );
+      saveImage(pngObject);
+    }.bind(this));
+
+    $(img).prop('src', dataURL);
   }
 
 });

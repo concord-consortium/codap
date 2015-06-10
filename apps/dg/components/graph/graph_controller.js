@@ -141,8 +141,21 @@ DG.GraphController = DG.DataDisplayController.extend(
       */
       gearMenuItems: function() {
         var tGraph = this.getPath('graphModel');
-        return SC.none( tGraph) ? [] : tGraph.getGearMenuItems();
+        var this_ = this;
+        var tGearMenuItems = SC.none( tGraph) ? [] : tGraph.getGearMenuItems();
+        tGearMenuItems.push({
+          title: "Make snapshot",
+          target: this_, itemAction: this_.makePngImage
+        });
+        return tGearMenuItems;
       }.property('graphModel'),
+
+      makePngImage: function() {
+        DG.log('In makePngImage');
+        var componentView = this.get('view'),
+          graphView = componentView && componentView.get('contentView');
+        graphView.convertToImage();
+      },
 
       rescaleAxes: function() {
         this.graphModel.rescaleAxes();

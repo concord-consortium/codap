@@ -255,6 +255,15 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
       return YES; // Don't let a containing view capture it
     },
     // This is part of a hack to prevent both scroll view and raphael view from responding to touch
-    touchPriority: YES
+    touchPriority: YES,
 
+    /**
+     * Converts the current state to an SVG data URL.
+     * @returns {string}
+     */
+    toDataURL: function() {
+      var svgEl = this.get('paper').canvas;
+      var svgData = new XMLSerializer().serializeToString( svgEl );
+      return "data:image/svg+xml;base64," + window.btoa( window.unescape(window.encodeURIComponent(svgData)) );
+    }
 });
