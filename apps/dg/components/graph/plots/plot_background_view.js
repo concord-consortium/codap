@@ -250,10 +250,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if(tLinesAreVertical) {
         tYCoord = tYView.cellToCoordinate(0);
         tTop = tYCoord - tPrimaryCellWidth / 2;
+        tHeight *= tNumPrimaryCells;
       }
       else{
         tXCoord = tXView.cellToCoordinate(0);
         tLeft = tXCoord - tSecCellWidth / 2;
+        tWidth *= tNumSecCells;
       }
       for (tIndex = 0; tIndex < tNumCellsToDraw; tIndex++) {
         var tLine;
