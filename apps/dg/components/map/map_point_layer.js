@@ -35,6 +35,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     return this.getPath('mapSource.mapLayer.map');
   }.property(),
 
+  isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
+
   /**
    * Augment my base class by checking to make sure we have the attributes we need.
    * @returns {boolean}
@@ -178,7 +180,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         .attr( { cursor: 'pointer' })
         .addClass( DG.PlotUtilities.kColoredDotClassName)
         .hover( function (event) {  // over
-          if( !tIsDragging && SC.none( tInitialTransform)) {
+          if( !tIsDragging && SC.none( tInitialTransform) && !this_.get('isInMarqueeMode')) {
                 tInitialTransform = '';
                 if( this.hoverAnimation)
                   this.stop( this.hoverAnimation);

@@ -939,7 +939,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     } else {
       // Counteract any transform effect, e.g. from a hover animation
       var currTransform = iPlottedElement.transform(),
-          currTransformIsIdentity = SC.empty( currTransform) || (currTransform.toString() === 's1');
+          currTransformIsIdentity = SC.empty( currTransform) || (SC.isArray( currTransform) && currTransform.length === 0)
+              || (currTransform.toString() === 's1');
       if( !currTransformIsIdentity)
         iPlottedElement.transform( '');
 
