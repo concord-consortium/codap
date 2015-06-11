@@ -290,7 +290,6 @@ DG.GraphView = SC.View.extend(
    */
   handleBackgroundDblClick: function( iEvent) {
     this.get('plotView').handleBackgroundDblClick( iEvent);
-  this.convertToImage();
   },
 
 /**
@@ -628,5 +627,6 @@ DG.GraphView = SC.View.extend(
 
     this.set('yAxisMultiTarget', tMulti);
   }
+
 });
 
