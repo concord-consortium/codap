@@ -285,6 +285,7 @@ SC.stringsFor('English', {
   'DG.Undo.toggleComponent.delete.mapView': "Undo hiding the map",
   'DG.Undo.toggleComponent.add.caseTableView': "Undo showing the case table",
   'DG.Undo.toggleComponent.delete.caseTableView': "Undo hiding the case table",
+  'DG.Undo.caseTable.open': "Undo showing case tables",
 
   'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
@@ -298,6 +299,7 @@ SC.stringsFor('English', {
   'DG.Redo.toggleComponent.delete.mapView': "Redo hiding the map",
   'DG.Redo.toggleComponent.add.caseTableView': "Redo showing the case table",
   'DG.Redo.toggleComponent.delete.caseTableView': "Redo hiding the case table",
+  'DG.Redo.caseTable.open': "Redo showing case tables",
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",

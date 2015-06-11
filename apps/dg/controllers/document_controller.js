@@ -652,7 +652,8 @@ DG.DocumentController = SC.Object.extend(
     },
 
     openCaseTablesForEachContext: function () {
-      var caseTables = this.findComponentsByType(DG.CaseTableController);
+      var caseTables = this.findComponentsByType(DG.CaseTableController),
+          docController = this, newViews;
       function haveCaseTableForContext (context) {
         var ix;
         for (ix = 0; ix < caseTables.length; ix += 1) {
@@ -660,12 +661,33 @@ DG.DocumentController = SC.Object.extend(
         }
         return false;
       }
-      DG.DataContext.forEachContextInMap(null, function (id, context) {
-        if (!haveCaseTableForContext(context)) {
-          this.addCaseTableP(DG.mainPage.get('docView'),
-            null, {dataContext: context});
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'caseTable.display',
+        undoString: 'DG.Undo.caseTable.open',
+        redoString: 'DG.Redo.caseTable.open',
+        execute: function() {
+          newViews = [];
+          DG.DataContext.forEachContextInMap(null, function (id, context) {
+            if (!haveCaseTableForContext(context)) {
+              newViews.push(this.addCaseTableP(DG.mainPage.get('docView'),
+                null, {dataContext: context}));
+            }
+          }.bind(docController));
+          if (newViews.length === 0) {
+            this.causedChange = false;
+          }
+        },
+        undo: function() {
+          var containerView;
+          newViews.forEach(function(view) {
+            containerView = view.parentView;
+            containerView.removeComponentView(view);
+          });
+        },
+        redo: function() {
+          this.execute();
         }
-      }.bind(this));
+      }));
     },
 
     addGraph: function( iParentView, iComponent) {
