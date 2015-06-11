@@ -256,5 +256,4 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
     },
     // This is part of a hack to prevent both scroll view and raphael view from responding to touch
     touchPriority: YES
-
 });
