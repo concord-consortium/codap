@@ -279,6 +279,12 @@ SC.stringsFor('English', {
   'DG.Undo.axisDilate': "Undo rescaling the axis",
   'DG.Undo.axisDrag': "Undo dragging the axis",
   'DG.Undo.axisAttributeChange': "Undo changing the axis attribute",
+  'DG.Undo.toggleComponent.add.calcView': "Undo showing the calculator",
+  'DG.Undo.toggleComponent.delete.calcView': "Undo hiding the calculator",
+  'DG.Undo.toggleComponent.add.mapView': "Undo showing the map",
+  'DG.Undo.toggleComponent.delete.mapView': "Undo hiding the map",
+  'DG.Undo.toggleComponent.add.caseTableView': "Undo showing the case table",
+  'DG.Undo.toggleComponent.delete.caseTableView': "Undo hiding the case table",
 
   'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
@@ -286,6 +292,12 @@ SC.stringsFor('English', {
   'DG.Redo.axisDilate': "Redo rescaling the axis",
   'DG.Redo.axisDrag': "Redo dragging the axis",
   'DG.Redo.axisAttributeChange': "Redo changing the axis attribute",
+  'DG.Redo.toggleComponent.add.calcView': "Redo showing the calculator",
+  'DG.Redo.toggleComponent.delete.calcView': "Redo hiding the calculator",
+  'DG.Redo.toggleComponent.add.mapView': "Redo showing the map",
+  'DG.Redo.toggleComponent.delete.mapView': "Redo hiding the map",
+  'DG.Redo.toggleComponent.add.caseTableView': "Redo showing the case table",
+  'DG.Redo.toggleComponent.delete.caseTableView': "Redo hiding the case table",
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",

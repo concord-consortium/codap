@@ -884,26 +884,84 @@ DG.DocumentController = SC.Object.extend(
     }.observes('guideButton', 'guideMenuPane'),
 
     toggleComponent: function( iDocView, iComponentName) {
-      var componentView = this._singletonViews[ iComponentName];
+      var componentView = this._singletonViews[ iComponentName],
+          componentArchive;
       // If it already exists, then delete it.
       if( componentView) {
-        this.removeComponentAssociatedWithView( componentView);
-        componentView.destroy();
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'component.toggle.delete',
+          undoString: 'DG.Undo.toggleComponent.delete.' + iComponentName,
+          redoString: 'DG.Redo.toggleComponent.delete.' + iComponentName,
+          isUndoable: iComponentName === 'calcView', // mapView isn't actually a toggle/singleton anymore, and caseTableView doesn't call through this anymore
+          execute: function() {
+            componentArchive = this._archiveComponent(iComponentName);
+            this._deleteComponent(iComponentName);
+          }.bind(this),
+          undo: function() {
+            this._addComponent(iComponentName, iDocView, componentArchive);
+          }.bind(this),
+          redo: function() {
+            this._deleteComponent(iComponentName);
+          }.bind(this)
+        }));
       }
       // If it doesn't exist, then create it.
       else {
-        switch( iComponentName) {
-          case 'calcView':
-            this.addCalculator( iDocView);
-            break;
-          case 'caseTableView':
-            this.addCaseTable( iDocView);
-            break;
-          case 'mapView':
-            this.addMap( iDocView);
-            break;
-        }
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'component.toggle.add',
+          undoString: 'DG.Undo.toggleComponent.add.' + iComponentName,
+          redoString: 'DG.Redo.toggleComponent.add.' + iComponentName,
+          isUndoable: iComponentName === 'calcView', // mapView isn't actually a toggle/singleton anymore, and caseTableView doesn't call through this anymore
+          execute: function() {
+            this._addComponent(iComponentName, iDocView);
+          }.bind(this),
+          undo: function() {
+            componentArchive = this._archiveComponent(iComponentName);
+            this._deleteComponent(iComponentName);
+          }.bind(this),
+          redo: function() {
+            this._addComponent(iComponentName, iDocView, componentArchive);
+          }.bind(this)
+        }));
       }
+    },
+
+    /**
+     * Helper for toggleComponent. Creates a new component and adds it to the view/document.
+     */
+    _addComponent: function(iComponentName, iDocView, componentArchive) {
+      var component = componentArchive ? DG.Component.createComponent(componentArchive) : null;
+      switch( iComponentName) {
+        case 'calcView':
+          this.addCalculator( iDocView, component);
+          break;
+        case 'caseTableView':
+          this.addCaseTable( iDocView, component);
+          break;
+        case 'mapView':
+          this.addMap( iDocView, component);
+          break;
+      }
+    },
+
+    /**
+     * Helper for toggleComponent. Saves a component's state in preparation for being deleted,
+     * so we can restore it later.
+     */
+    _archiveComponent: function(iComponentName) {
+      var component = this._singletonViews[ iComponentName].getPath('controller.model'),
+          componentArchive = component.toArchive();
+      componentArchive.document = component.get('document');
+      return componentArchive;
+    },
+
+    /**
+     * Helper for toggleComponent. Finds the right component and removes it from the view/document.
+     */
+    _deleteComponent: function(iComponentName) {
+      var componentView = this._singletonViews[ iComponentName];
+      this.removeComponentAssociatedWithView( componentView);
+      componentView.destroy();
     },
 
     closeDocument: function() {
