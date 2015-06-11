@@ -144,7 +144,7 @@ DG.GraphController = DG.DataDisplayController.extend(
         var this_ = this;
         var tGearMenuItems = SC.none( tGraph) ? [] : tGraph.getGearMenuItems();
         tGearMenuItems.push({
-          title: "Make snapshot",
+          title: 'DG.DataDisplayMenu.snapshot',
           target: this_, itemAction: this_.makePngImage
         });
         return tGearMenuItems;
@@ -167,6 +167,13 @@ DG.GraphController = DG.DataDisplayController.extend(
             + window.btoa(window.unescape(window.encodeURIComponent(svgData)));
         };
 
+        /**
+         * Create a canvas element with a white background. Not yet appended to
+         * the DOM.
+         * @param {number} width
+         * @param {number} height
+         * @returns {Canvas}
+         */
         var makeCanvasEl = function (width, height) {
           var canvas = $( "<canvas>").prop({width: width, height: height})[0];
           var ctx = canvas.getContext( "2d" );
@@ -175,11 +182,25 @@ DG.GraphController = DG.DataDisplayController.extend(
           return canvas;
         };
 
+        /**
+         * Add an image to the canvas at the specified location.
+         * @param {Canvas} canvas DOM Element
+         * @param {img} image DOM Element
+         * @param {number} x
+         * @param {number} y
+         * @param {number} width
+         * @param {number} height
+         */
         var addImageToCanvas = function (canvas, image, x, y, width, height) {
           var ctx = canvas.getContext( "2d" );
           ctx.drawImage( image, x, y, width, height);
         };
 
+        /**
+         * Convert a canvas object to a blob.
+         * @param canvas
+         * @returns {*}
+         */
         var makeCanvasBlob = function(canvas) {
           var canvasDataURL = canvas.toDataURL( "image/png" );
           var canvasData = atob( canvasDataURL.substring( "data:image/png;base64,".length ) );
@@ -243,8 +264,9 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         var canvas = makeCanvasEl(width, height);
         var promises = [];
-        var canvasBlob = null;
 
+        // for each svg we calculate its geometry, then add it to the canvas
+        // through a promise.
         svgs.forEach(function (svg) {
           var width = svg.offsetWidth || svg.width.baseVal.value;
           var height = svg.offsetHeight || svg.height.baseVal.value;
@@ -252,15 +274,24 @@ DG.GraphController = DG.DataDisplayController.extend(
           var top = svg.offsetParent? svg.offsetParent.offsetTop: (svg.parentElement? svg.parentElement.offsetTop: 0);
           var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
           imgPromise.then(function(img) {
-            addImageToCanvas(canvas, img, left, top, width, height);
-          });
+              addImageToCanvas(canvas, img, left, top, width, height);
+            },
+            function (error) {
+              DG.logError(error);
+            }
+          );
           promises.push(imgPromise);
         });
 
+        // when all promises have been fulfilled we make a blob, then invoke the
+        // save image dialog.
         Promise.all(promises).then(function () {
-          return makeCanvasBlob(canvas);
-        }).then(function (blob) {
-          canvasBlob = blob;
+            return makeCanvasBlob(canvas);
+          },
+          function (error) {
+            DG.logError(error);
+          }
+        ).then(function (blob) {
           saveImage(blob);
         });
       },
