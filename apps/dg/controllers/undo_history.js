@@ -63,6 +63,10 @@ DG.UndoHistory = SC.Object.create((function() {
         throw e;
       }
 
+      // If the command didn't actually change anything, then don't add this to the stack
+      // and don't invalidate either stack.
+      if (!command.causedChange) { return; }
+
       if (command.isUndoable) {
         this._undoStack.push(command);
         // Since we're not using set/get to access the stacks, notify changes manually.

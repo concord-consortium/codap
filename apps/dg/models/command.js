@@ -40,6 +40,11 @@ DG.Command = SC.Object.extend((function() {
 
     isUndoable: true,
 
+    // Set this to false inside execute() if you want to skip adding this to the undo stack,
+    // but don't want to invalidate the current stack. Useful for when you don't know beforehand whether or
+    // not the execute() action will actually make a change.
+    causedChange: true,
+
     // Functions to override
     execute: function() {},
     undo: function() {},
