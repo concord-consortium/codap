@@ -247,10 +247,10 @@ DG.GraphController = DG.DataDisplayController.extend(
         var canvasBlob = null;
 
         svgs.forEach(function (svg) {
-          var width = svg.offsetWidth;
-          var height = svg.offsetHeight;
-          var left = svg.offsetParent? svg.offsetParent.offsetLeft: 0;
-          var top = svg.offsetParent? svg.offsetParent.offsetTop: 0;
+          var width = svg.offsetWidth || svg.width.baseVal.value;
+          var height = svg.offsetHeight || svg.height.baseVal.value;
+          var left = svg.offsetParent? svg.offsetParent.offsetLeft: (svg.parentElement? svg.parentElement.offsetLeft: 0);
+          var top = svg.offsetParent? svg.offsetParent.offsetTop: (svg.parentElement? svg.parentElement.offsetTop: 0);
           var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
           imgPromise.then(function(img) {
             addImageToCanvas(canvas, img, left, top, width, height);
