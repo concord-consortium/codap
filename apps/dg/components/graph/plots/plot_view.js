@@ -447,7 +447,6 @@ DG.PlotView = DG.PlotLayer.extend(
     if (tCountModel && this.get('paper')) {
       this.plottedCountAdorn = DG.PlottedCountAdornment.create({
         parentView: this, valueAxisView: this.get('primaryAxisView'),
-        xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView'),
         model: tCountModel, paperSource: this.get('paperSource'),
         layerName: DG.LayerNames.kAdornments
       });

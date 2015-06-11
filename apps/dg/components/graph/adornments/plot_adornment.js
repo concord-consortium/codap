@@ -47,13 +47,17 @@ DG.PlotAdornment = SC.Object.extend(
     Provides x-coordinates
     @property { DG.AxisView }
   */
-  xAxisView: null,
+  xAxisView: function() {
+    return this.getPath('paperSource.xAxisView');
+  }.property('paperSource.xAxisView' ).cacheable(),
 
   /**
     Provides y-coordinates
     @property { DG.AxisView }
   */
-  yAxisView: null,
+  yAxisView: function() {
+    return this.getPath('paperSource.yAxisView');
+  }.property('paperSource.yAxisView' ).cacheable(),
 
   /**
     We need to know this view in order to transform from window to view coordinates.
