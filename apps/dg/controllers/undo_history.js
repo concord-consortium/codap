@@ -109,6 +109,7 @@ DG.UndoHistory = SC.Object.create((function() {
         // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
         // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
         // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
+        DG.Debug.logError("Exception occurred while undoing: " + e.message);
         DG.AlertPane.error({
           localize: true,
           message: 'DG.Undo.exceptionOccurred',
@@ -159,6 +160,7 @@ DG.UndoHistory = SC.Object.create((function() {
         // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
         // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
         // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
+        DG.Debug.logError("Exception occurred while redoing: " + e.message);
         DG.AlertPane.error({
           localize: true,
           message: 'DG.Redo.exceptionOccurred',
