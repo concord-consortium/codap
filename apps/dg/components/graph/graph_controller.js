@@ -227,12 +227,11 @@ DG.GraphController = DG.DataDisplayController.extend(
             // Close the open/save dialog.
             tDialog.close();
           };
-          var tDialog = this.openSaveDialog = DG.CreateSingleTextDialog({
+          var tDialog = DG.CreateSingleTextDialog({
             prompt: 'DG.AppController.exportDocument.prompt'.loc() +
             " (Safari users may need to control-click <a href=\"" + pngObject +
             "\">this link</a>)",
             escapePromptHTML: false,
-            okTarget: this,
             okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
             okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
             okAction: function () {
@@ -240,7 +239,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             },
             cancelVisible: true
           });
-        }.bind(this);
+        };
 
         var canvas = makeCanvasEl(width, height);
         var promises = [];
