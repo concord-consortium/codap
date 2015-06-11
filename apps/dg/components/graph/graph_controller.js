@@ -151,10 +151,119 @@ DG.GraphController = DG.DataDisplayController.extend(
       }.property('graphModel'),
 
       makePngImage: function() {
-        DG.log('In makePngImage');
-        var componentView = this.get('view'),
-          graphView = componentView && componentView.get('contentView');
-        graphView.convertToImage();
+        var componentView = this.get('view');
+        var graphView = componentView && componentView.get('contentView');
+        var svgElements = graphView.$('svg');
+        var width = graphView.getPath('frame.width');
+        var height = graphView.getPath('frame.height');
+        this.convertToImage(svgElements, 0, 0, width, height);
+      },
+
+      convertToImage: function(svgs, x, y, width, height) {
+
+        var makeDataURLFromSVGElement = function (svgEl) {
+          var svgData = new XMLSerializer().serializeToString( svgEl );
+          return "data:image/svg+xml;base64,"
+            + window.btoa(window.unescape(window.encodeURIComponent(svgData)));
+        };
+
+        var makeCanvasEl = function (width, height) {
+          var canvas = $( "<canvas>").prop({width: width, height: height})[0];
+          var ctx = canvas.getContext( "2d" );
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, width, height);
+          return canvas;
+        };
+
+        var addImageToCanvas = function (canvas, image, x, y, width, height) {
+          var ctx = canvas.getContext( "2d" );
+          ctx.drawImage( image, x, y, width, height);
+        };
+
+        var makeCanvasBlob = function(canvas) {
+          var canvasDataURL = canvas.toDataURL( "image/png" );
+          var canvasData = atob( canvasDataURL.substring( "data:image/png;base64,".length ) );
+          var canvasAsArray = new Uint8Array(canvasData.length);
+
+          for( var i = 0, len = canvasData.length; i < len; ++i ) {
+            canvasAsArray[i] = canvasData.charCodeAt(i);
+          }
+
+          return new Blob([ canvasAsArray.buffer ], {type: "image/png"} );
+        };
+
+        /**
+         * @returns a promise of an image.
+         * @param dataURL
+         */
+        var makeSVGImage = function (dataURL) {
+          var promise = new Promise(function (resolve, reject) {
+              try{
+              var img = $('<img/>')[0];
+              img.onload = function () {
+                resolve(img);
+              };
+              img.src = dataURL;
+              } catch (ex) {
+                reject(ex);
+              }
+            }
+          );
+          return promise;
+        };
+
+        var saveImage = function (pngObject) {
+          var saveImageFromDialog = function () {
+            var rawDocName = tDialog.get('value');
+            var docName = (/.*\.png$/.test(rawDocName))
+              ? rawDocName
+              : (rawDocName + '.png');
+
+            if (!SC.empty(docName)) {
+              docName = docName.trim();
+              window.saveAs(pngObject, docName);
+            }
+
+            // Close the open/save dialog.
+            tDialog.close();
+          };
+          var tDialog = this.openSaveDialog = DG.CreateSingleTextDialog({
+            prompt: 'DG.AppController.exportDocument.prompt'.loc() +
+            " (Safari users may need to control-click <a href=\"" + pngObject +
+            "\">this link</a>)",
+            escapePromptHTML: false,
+            okTarget: this,
+            okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
+            okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+            okAction: function () {
+              saveImageFromDialog();
+            },
+            cancelVisible: true
+          });
+        }.bind(this);
+
+        var canvas = makeCanvasEl(width, height);
+        var promises = [];
+        var canvasBlob = null;
+
+        svgs.forEach(function (svg) {
+          var width = svg.offsetWidth;
+          var height = svg.offsetHeight;
+          var left = svg.offsetParent? svg.offsetParent.offsetLeft: 0;
+          var top = svg.offsetParent? svg.offsetParent.offsetTop: 0;
+          var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
+          imgPromise.then(function(img) {
+            addImageToCanvas(canvas, img, left, top, width, height);
+          });
+          promises.push(imgPromise);
+        });
+
+        Promise.all(promises).then(function () {
+          return makeCanvasBlob(canvas);
+        }).then(function (blob) {
+          canvasBlob = blob;
+          saveImage(blob);
+        });
       },
 
       rescaleAxes: function() {
