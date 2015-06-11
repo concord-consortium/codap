@@ -41,8 +41,8 @@ DG.RenderingUtilities = {
   getExtentForTextElement: function( iTextElement, iDefaultHeight) {
     var tTextBox = iTextElement.getBBox(),
     // Browsers can fill with zeroes or NaNs if they can't do measurement. Because NaN is "falsy" the following works
-    tTextHeight = tTextBox.height || iDefaultHeight,
-    tTextWidth = tTextBox.width;
+    tTextHeight = (tTextBox && tTextBox.height) || iDefaultHeight,
+    tTextWidth = tTextBox ?tTextBox.width : 0;
     // Sometimes tTextHeight and tTextWidth come out 0. Draw offscreen.
     if( !tTextWidth) {
       var tExtent = this.textExtent(iTextElement.attr('text'), iTextElement.attr('font-family'),
