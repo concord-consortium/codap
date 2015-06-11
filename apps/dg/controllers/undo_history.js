@@ -55,10 +55,12 @@ DG.UndoHistory = SC.Object.create((function() {
      */
     execute: function(command) {
       try {
-        this._wrapAndRun(command, command.execute); // Just let exceptions bubble up, but clear the stacks...
-      } finally {
+        this._wrapAndRun(command, command.execute);
+      } catch(e) {
+        // Just let exceptions bubble up, but clear the stacks...
         this._clearUndo();
         this._clearRedo();
+        throw e;
       }
 
       if (command.isUndoable) {
