@@ -914,7 +914,6 @@ DG.DocumentController = SC.Object.extend(
           name: 'component.toggle.delete',
           undoString: 'DG.Undo.toggleComponent.delete.' + iComponentName,
           redoString: 'DG.Redo.toggleComponent.delete.' + iComponentName,
-          isUndoable: iComponentName === 'calcView', // caseTableView doesn't call through this anymore
           execute: function() {
             componentArchive = this._archiveComponent(iComponentName);
             this._deleteComponent(iComponentName);
@@ -933,7 +932,6 @@ DG.DocumentController = SC.Object.extend(
           name: 'component.toggle.add',
           undoString: 'DG.Undo.toggleComponent.add.' + iComponentName,
           redoString: 'DG.Redo.toggleComponent.add.' + iComponentName,
-          isUndoable: iComponentName === 'calcView', // and caseTableView doesn't call through this anymore
           execute: function() {
             this._addComponent(iComponentName, iDocView);
           }.bind(this),
@@ -956,9 +954,6 @@ DG.DocumentController = SC.Object.extend(
       switch( iComponentName) {
         case 'calcView':
           this.addCalculator( iDocView, component);
-          break;
-        case 'caseTableView':
-          this.addCaseTable( iDocView, component);
           break;
       }
     },

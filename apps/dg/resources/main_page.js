@@ -358,7 +358,7 @@ DG.mainPage = SC.Page.design((function() {
           DG.mainPage.toggleCalculator();
           break;
         case 'alt_ctrl_t':
-          DG.mainPage.toggleCaseTable();
+          DG.mainPage.openCaseTablesForEachContext();
           break;
         case 'alt_ctrl_g':
           DG.mainPage.addGraph();
@@ -450,12 +450,6 @@ DG.mainPage.toggleCalculator = function() {
 
 DG.mainPage.openCaseTablesForEachContext = function () {
   DG.currDocumentController().openCaseTablesForEachContext();
-};
-
-DG.mainPage.toggleCaseTable = function() {
-
-  DG.currDocumentController().
-      toggleComponent( this.get('docView'), 'caseTableView');
 };
 
 DG.mainPage.addMap = function() {
