@@ -73,7 +73,7 @@ DG.ToolButtonData = {
     iconName: static_url('images/map.png'),
     depressedIconName: static_url('images/map_depressed.png'),
     target: 'DG.mainPage',
-    action: 'toggleMap',
+    action: 'addMap',
     toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
     localize: true,
     //isEnabled: false
