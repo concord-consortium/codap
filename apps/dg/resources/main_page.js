@@ -458,10 +458,8 @@ DG.mainPage.toggleCaseTable = function() {
       toggleComponent( this.get('docView'), 'caseTableView');
 };
 
-DG.mainPage.toggleMap = function() {
-
-  DG.currDocumentController().
-      toggleComponent( this.get('docView'), 'mapView');
+DG.mainPage.addMap = function() {
+  DG.currDocumentController().addMap( this.get('docView'));
 };
 
 DG.mainPage.addSlider = function() {
