@@ -67,6 +67,10 @@ DG.UndoHistory = SC.Object.create((function() {
       // and don't invalidate either stack.
       if (!command.causedChange) { return; }
 
+      // _executeInProgress will still be true if this is a nested call to execute. In that case, don't
+      // append to the stack (we'll assume the outer-most Command knows how to undo all of its side effects).
+      if (this._executeInProgress) { return; }
+
       if (command.isUndoable) {
         this._undoStack.push(command);
         // Since we're not using set/get to access the stacks, notify changes manually.
@@ -202,12 +206,18 @@ DG.UndoHistory = SC.Object.create((function() {
       @param    {Function}    func -- A function to be executed.
      */
     _wrapAndRun: function(cmd, func) {
-      this._executeInProgress = true;
-      // We'll catch exceptions higher up, so only clean up after ourselves here...
-      try {
+      // Check if we're executing nested inside of another call to execute.
+      // If we are, don't touch _executeInProgress.
+      if (this._executeInProgress) {
         func.call(cmd);
-      } finally {
-        this._executeInProgress = false;
+      } else {
+        this._executeInProgress = true;
+        // We'll catch exceptions higher up, so only clean up after ourselves here...
+        try {
+          func.call(cmd);
+        } finally {
+          this._executeInProgress = false;
+        }
       }
     },
 
