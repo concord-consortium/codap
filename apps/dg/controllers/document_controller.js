@@ -716,7 +716,14 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addText: function( iParentView, iComponent) {
-      var tView = this.createComponentView(iComponent, {
+      var tView, docController = this;
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "textComponent.create",
+        undoString: 'DG.Undo.textComponent.create',
+        redoString: 'DG.Redo.textComponent.create',
+        execute: function() {
+          tView = docController.createComponentView(iComponent, {
                                 parentView: iParentView,
                                 controller: DG.TextComponentController.create(),
                                 componentClass: { type: 'DG.TextView', constructor: DG.TextView},
@@ -725,6 +732,11 @@ DG.DocumentController = SC.Object.extend(
                                 title: 'DG.DocumentController.textTitle'.loc(), // "Text"
                                 isResizable: true}
                               );
+        },
+        undo: function() {
+          tView.parentView.removeComponentView(tView);
+        }
+      }));
       return tView;
     },
 

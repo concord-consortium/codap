@@ -288,6 +288,7 @@ SC.stringsFor('English', {
   'DG.Undo.hideUnselectedCases': "Undo hiding unselected cases",
   'DG.Undo.showAllCases': "Undo showing all cases",
   'DG.Undo.map.create': "Undo adding map",
+  'DG.Undo.textComponent.create': "Undo adding text object",
 
   'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
@@ -304,6 +305,7 @@ SC.stringsFor('English', {
   'DG.Redo.hideUnselectedCases': "Redo hiding unselected cases",
   'DG.Redo.showAllCases': "Redo showing all cases",
   'DG.Redo.map.create': "Redo adding map",
+  'DG.Redo.textComponent.create': "Redo adding text object",
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",
