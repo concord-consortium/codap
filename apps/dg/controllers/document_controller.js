@@ -729,28 +729,40 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addMap: function( iParentView, iComponent) {
-      var tMapModel = DG.MapModel.create(),
-          tMapController = DG.MapController.create(),
-          tContextIds = DG.DataContext.contextIDs(null),
-          tContext;
+      var tView, docController = this;
 
-      if (DG.ObjectMap.length(tContextIds) === 1) {
-        tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
-        // Don't pass the data context in the constructor because it's a function property
-        tMapModel.set('dataContext',  tContext);
-        tMapController.set('dataContext', tContext);
-      }
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "map.create",
+        undoString: 'DG.Undo.map.create',
+        redoString: 'DG.Redo.map.create',
+        execute: function() {
+          var tMapModel = DG.MapModel.create(),
+              tMapController = DG.MapController.create(),
+              tContextIds = DG.DataContext.contextIDs(null),
+              tContext;
 
-      // map as component
-      var tView = this.createComponentView(iComponent, {
-                                parentView: iParentView,
-                                controller: tMapController,
-                                componentClass: { type: 'DG.MapView', constructor: DG.MapView},
-                                contentProperties: { model: tMapModel },
-                                defaultLayout: { width: 700, height: 450 },
-                                title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
-                                isResizable: true}
-                              );
+          if (DG.ObjectMap.length(tContextIds) === 1) {
+            tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
+            // Don't pass the data context in the constructor because it's a function property
+            tMapModel.set('dataContext',  tContext);
+            tMapController.set('dataContext', tContext);
+          }
+
+          // map as component
+          tView = docController.createComponentView(iComponent, {
+                                    parentView: iParentView,
+                                    controller: tMapController,
+                                    componentClass: { type: 'DG.MapView', constructor: DG.MapView},
+                                    contentProperties: { model: tMapModel },
+                                    defaultLayout: { width: 700, height: 450 },
+                                    title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
+                                    isResizable: true}
+                                  );
+        },
+        undo: function() {
+          tView.parentView.removeComponentView(tView);
+        }
+      }));
       return tView;
     },
 
