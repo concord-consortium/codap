@@ -691,27 +691,39 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addGraph: function( iParentView, iComponent) {
-      SC.Benchmark.start('addGraph');
-      var tGraphModel = DG.GraphModel.create(),
-        tGraphController = DG.GraphController.create(),
-        tContextIds = DG.DataContext.contextIDs(null);
+      var tView, docController = this;
 
-      if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
-        tGraphController.set('dataContext',
-          DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
-      }
-      var tView = this.createComponentView(iComponent, {
-                              parentView: iParentView,
-                              controller: tGraphController,
-                              componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
-                              contentProperties: { model: tGraphModel },
-                              defaultLayout: { width: 300, height: 300 },
-                              title: 'DG.DocumentController.graphTitle'.loc(),  // "Graph"
-                              isResizable: true}
-                            );
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graphComponent.create",
+        undoString: 'DG.Undo.graphComponent.create',
+        redoString: 'DG.Redo.graphComponent.create',
+        execute: function() {
+          SC.Benchmark.start('addGraph');
+          var tGraphModel = DG.GraphModel.create(),
+            tGraphController = DG.GraphController.create(),
+            tContextIds = DG.DataContext.contextIDs(null);
 
-      SC.Benchmark.end('addGraph');
-      SC.Benchmark.log('addGraph');
+          if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
+            tGraphController.set('dataContext',
+              DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
+          }
+          tView = docController.createComponentView(iComponent, {
+                                  parentView: iParentView,
+                                  controller: tGraphController,
+                                  componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
+                                  contentProperties: { model: tGraphModel },
+                                  defaultLayout: { width: 300, height: 300 },
+                                  title: 'DG.DocumentController.graphTitle'.loc(),  // "Graph"
+                                  isResizable: true}
+                                );
+
+          SC.Benchmark.end('addGraph');
+          SC.Benchmark.log('addGraph');
+        },
+        undo: function() {
+          tView.parentView.removeComponentView(tView);
+        }
+      }));
       return tView;
     },
 
