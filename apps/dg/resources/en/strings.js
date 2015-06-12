@@ -408,6 +408,7 @@ SC.stringsFor('English', {
    'DG.DataDisplayMenu.hideSelectedSing': "Hide Selected Case",
    'DG.DataDisplayMenu.hideUnselectedSing': "Hide Unselected Case",
    'DG.DataDisplayMenu.showAll': "Show All Cases",
+   'DG.DataDisplayMenu.snapshot': "Make Snapshot",
 
    // DG.GraphView
    'DG.GraphView.replaceAttribute': "Replace %@ with %@",  // both %@ are attribute names
