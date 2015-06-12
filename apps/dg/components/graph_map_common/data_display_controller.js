@@ -294,7 +294,159 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ]});
         DG.dirtyCurrentDocument();
-      }.observes('*plotView.dragData', '*legendView.dragData', '*mapView.dragData')
+      }.observes('*plotView.dragData', '*legendView.dragData', '*mapView.dragData'),
+
+      convertToImage: function(svgs, x, y, width, height) {
+
+        var makeDataURLFromSVGElement = function (svgEl) {
+          var svgData = new XMLSerializer().serializeToString( svgEl );
+          return "data:image/svg+xml;base64,"
+            + window.btoa(window.unescape(window.encodeURIComponent(svgData)));
+        };
+
+        /**
+         * Create a canvas element with a white background. Not yet appended to
+         * the DOM.
+         * @param {number} width
+         * @param {number} height
+         * @returns {Canvas}
+         */
+        var makeCanvasEl = function (width, height) {
+          var canvas = $( "<canvas>").prop({width: width, height: height})[0];
+          var ctx = canvas.getContext( "2d" );
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, width, height);
+          return canvas;
+        };
+
+        /**
+         * Add an image to the canvas at the specified location.
+         * @param {Canvas} canvas DOM Element
+         * @param {img} image DOM Element
+         * @param {number} x
+         * @param {number} y
+         * @param {number} width
+         * @param {number} height
+         */
+        var addImageToCanvas = function (canvas, image, x, y, width, height) {
+          var ctx = canvas.getContext( "2d" );
+          ctx.drawImage( image, x, y, width, height);
+        };
+
+        /**
+         * Convert a canvas object to a blob.
+         * @param canvas
+         * @returns {*}
+         */
+        var makeCanvasBlob = function(canvas) {
+          var canvasDataURL = canvas.toDataURL( "image/png" );
+          var canvasData = atob( canvasDataURL.substring( "data:image/png;base64,".length ) );
+          var canvasAsArray = new Uint8Array(canvasData.length);
+
+          for( var i = 0, len = canvasData.length; i < len; ++i ) {
+            canvasAsArray[i] = canvasData.charCodeAt(i);
+          }
+
+          return new Blob([ canvasAsArray.buffer ], {type: "image/png"} );
+        };
+
+        /**
+         * @returns a promise of an image.
+         * @param dataURL
+         */
+        var makeSVGImage = function (dataURL) {
+          var promise = new Promise(function (resolve, reject) {
+              try{
+                var img = $('<img/>')[0];
+                img.onload = function () {
+                  resolve(img);
+                };
+                img.src = dataURL;
+              } catch (ex) {
+                reject(ex);
+              }
+            }
+          );
+          return promise;
+        };
+
+        var saveImage = function (pngObject) {
+          var saveImageFromDialog = function () {
+            var rawDocName = tDialog.get('value');
+            var docName = (/.*\.png$/.test(rawDocName))
+              ? rawDocName
+              : (rawDocName + '.png');
+
+            if (!SC.empty(docName)) {
+              docName = docName.trim();
+              window.saveAs(pngObject, docName);
+            }
+
+            // Close the open/save dialog.
+            tDialog.close();
+          };
+          var tDialog = DG.CreateSingleTextDialog({
+            prompt: 'DG.AppController.exportDocument.prompt'.loc() +
+            " (Safari users may need to control-click <a href=\"" + pngObject +
+            "\">this link</a>)",
+            escapePromptHTML: false,
+            okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
+            okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
+            okAction: function () {
+              saveImageFromDialog();
+            },
+            cancelVisible: true
+          });
+        };
+
+        var canvas = makeCanvasEl(width, height);
+        var promises = [];
+
+        //if (imgs) {
+        //  imgs.forEach(function (img) {
+        //    var width = img.width;
+        //    var height = img.height;
+        //    var left = img.offsetParent? img.offsetParent.offsetLeft: (img.parentElement? img.parentElement.offsetLeft: 0);
+        //    var top = img.offsetParent? img.offsetParent.offsetTop: (img.parentElement? img.parentElement.offsetTop: 0);
+        //    // copy image? I don't think it is necessary
+        //    addImageToCanvas(canvas, img, left, top, width, height);
+        //  });
+        //}
+
+        // for each svg we calculate its geometry, then add it to the canvas
+        // through a promise.
+        if (svgs) {
+          svgs.forEach(function (svg) {
+            var width = svg.offsetWidth || svg.width.baseVal.value;
+            var height = svg.offsetHeight || svg.height.baseVal.value;
+            var left = svg.offsetParent? svg.offsetParent.offsetLeft: (svg.parentElement? svg.parentElement.offsetLeft: 0);
+            var top = svg.offsetParent? svg.offsetParent.offsetTop: (svg.parentElement? svg.parentElement.offsetTop: 0);
+            var imgPromise = makeSVGImage(makeDataURLFromSVGElement(svg));
+            imgPromise.then(function(img) {
+                addImageToCanvas(canvas, img, left, top, width, height);
+              },
+              function (error) {
+                DG.logError(error);
+              }
+            );
+            promises.push(imgPromise);
+          });
+        }
+
+        // when all promises have been fulfilled we make a blob, then invoke the
+        // save image dialog.
+        Promise.all(promises).then(function () {
+            return makeCanvasBlob(canvas);
+          },
+          function (error) {
+            DG.logError(error);
+          }
+        ).then(function (blob) {
+            saveImage(blob);
+          });
+      }
+
+
     };
 
   }()) // function closure
