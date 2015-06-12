@@ -82,6 +82,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       marqueeTool: null,
 
+      selection: null,
+      selectionBinding: '*model.casesController.selection',
+
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
@@ -196,8 +199,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           if (tMakeVisible !== false)
             tMakeVisible = true;
           tMapPointView.set('isVisible', tMakeVisible);
-          this.setPath('marqueeTool.isVisible', tMakeVisible);
-          this.setPath('model.pointsShouldBeVisible', tMakeVisible);
+          this.setPathIfChanged('marqueeTool.isVisible', tMakeVisible);
+          this.setPathIfChanged('model.pointsShouldBeVisible', tMakeVisible);
           if( tMakeVisible && this.getPath('model.linesShouldBeVisible')) {
             this.lineVisibilityChanged();
           }
@@ -209,10 +212,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       pointVisibilityChanged: function() {
-        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible');
-        //this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
-        //this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
-        this.setPath('marqueeTool.isVisible', tPointsAreVisible);
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible');
+        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
+        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
+        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible);
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
 
@@ -397,7 +401,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         DG.GraphDropTarget.dragEnded.apply( this, arguments);
         if( !this.getPath('model.hasLatLongAttributes'))
           this.setPath('mapPointView.isVisible', false);
-      }
+      },
+
+      /**
+
+       */
+      selectionDidChange: function() {
+        var tAdorn = this.get('connectingLineAdorn');
+        if( tAdorn) {
+          tAdorn.updateSelection();
+        }
+      }.observes('selection'),
 
     }
 );

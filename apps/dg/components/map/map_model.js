@@ -44,7 +44,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      * Reflects (and determines) whether the mapPointView subview is showing
      * {@property Boolean}
      */
-    pointsShouldBeVisible: null,
+    pointsShouldBeVisible: true,
 
     /**
      * Reflects (and determines) whether the points are to be connected by lines
