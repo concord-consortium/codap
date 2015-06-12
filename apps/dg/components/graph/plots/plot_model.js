@@ -181,6 +181,23 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     return !SC.none( this.plottedCount) && this.plottedCount.get('isVisible');
   }.property('plottedCount'),
 
+  triggerTogglePlottedCount: function() {
+    var isShowCount = !this.plottedCount || !this.plottedCount.get('isVisible');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleCount",
+      undoString: (isShowCount ? 'DG.Undo.graph.showcount' : 'DG.Undo.graph.hidecount'),
+      redoString: (isShowCount ? 'DG.Redo.graph.showcount' : 'DG.Redo.graph.hidecount'),
+      execute: function() {
+        this.togglePlottedCount();
+        DG.dirtyCurrentDocument();
+      }.bind(this),
+      undo: function() {
+        this.togglePlottedCount();
+        DG.dirtyCurrentDocument();
+      }.bind(this),
+    }));
+  },
+
   /**
     If we need to make a count model, do so. In any event toggle its visibility.
   */
@@ -432,7 +449,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
           'DG.PlotModel.hideCount' :
           'DG.PlotModel.showCount').loc();
     return [
-      { title:tShowHideCountTitle, target:this, itemAction:this.togglePlottedCount }
+      { title:tShowHideCountTitle, target:this, itemAction:this.triggerTogglePlottedCount }
     ];
   },
 

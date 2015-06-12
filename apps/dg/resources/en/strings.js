@@ -286,6 +286,8 @@ SC.stringsFor('English', {
   'DG.Undo.toggleComponent.add.caseTableView': "Undo showing the case table",
   'DG.Undo.toggleComponent.delete.caseTableView': "Undo hiding the case table",
   'DG.Undo.caseTable.open': "Undo showing case tables",
+  'DG.Undo.graph.showcount': "Undo showing graph count",
+  'DG.Undo.graph.hidecount': "Undo hiding graph count",
 
   'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
@@ -300,6 +302,8 @@ SC.stringsFor('English', {
   'DG.Redo.toggleComponent.add.caseTableView': "Redo showing the case table",
   'DG.Redo.toggleComponent.delete.caseTableView': "Redo hiding the case table",
   'DG.Redo.caseTable.open': "Redo showing case tables",
+  'DG.Redo.graph.showcount': "Redo showing graph count",
+  'DG.Redo.graph.hidecount': "Redo hiding graph count",
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",
