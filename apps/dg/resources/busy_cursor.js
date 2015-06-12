@@ -35,7 +35,7 @@ DG.busyCursor = SC.Object.create({
       tMainPane.appendChild( tCover);
     }
     tCover.set('isVisible', true);
-    this.invokeNext(iFunction);
+    this.invokeLater(iFunction, 0);
   },
 
   /**

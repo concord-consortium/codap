@@ -239,8 +239,8 @@ DG.Attribute = DG.BaseModel.extend(
         description: this.description,
         colormap: this.colormap || undefined,
         blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
-        editable: this.formula? this.editable: undefined,
-        formula: this.formula? this.formula: undefined,
+        editable: !SC.none(this.formula)? this.editable: undefined,
+        formula: !SC.none(this.formula)? this.formula: undefined,
         guid: this.id,
         precision: this.precision
       };

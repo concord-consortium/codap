@@ -163,7 +163,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( childCollection) {
           // old-style notification support -- Remove once new-style notifications are completed.
           var this_ = this;
-          childCollection.casesController.addObserver('[]', this, 'caseCountDidChange');
+          //childCollection.casesController.addObserver('[]', this, 'caseCountDidChange');
           dataContext.forEachCollection( function( iCollection) {
                                           iCollection.attrsController.
                                             addObserver('[]', this_, 'attributeCountDidChange');
@@ -390,7 +390,33 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( hierTableView)
           hierTableView.updateColumnInfo();
       },
-      
+
+      /**
+       Handler for the Export Case Data... menu command.
+       Displays a dialog, so user can select and copy the case data from the current document.
+       */
+      exportCaseData: function () {
+        // callback to get export string from one of the menu item titles
+        var exportCollection = function (whichCollection) {
+          return tDataContext.exportCaseData(whichCollection);
+        };
+        // get array of exportable collection names for menu titles
+        var tDataContext = this.get('dataContext'),
+          tMenuItems = tDataContext.exportCaseData().split('\t'),
+          tStartingMenuItem = tMenuItems[0];
+
+        DG.CreateExportCaseDataDialog({
+          prompt: 'DG.AppController.exportCaseData.prompt',
+          textLimit: 1000000,
+          textValue: exportCollection(tStartingMenuItem),
+          collectionMenuTitle: tStartingMenuItem,
+          collectionMenuItems: tMenuItems,
+          collectionMenuItemAction: exportCollection,
+          okTitle: 'DG.AppController.exportDocument.okTitle',
+          okTooltip: 'DG.AppController.exportDocument.okTooltip'
+        });
+      },
+
       gearMenuItems: function() {
         var tDataContext = this.get('dataContext'),
             tChildCollection = tDataContext && tDataContext.get('childCollection'),
@@ -406,13 +432,32 @@ DG.CaseTableController = DG.ComponentController.extend(
                         target: this, itemAction: this.newParentAttribute });
         }
         if( !SC.empty( tChildCollectionName)) {
-          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
-            target: this, itemAction: this.newChildAttribute });
+          tItems.push({
+            title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
+            target: this,
+            itemAction: this.newChildAttribute
+          });
         }
-        tItems.push({ title: 'DG.TableController.gearMenuItems.selectAll', localize: true,
-          target: this, itemAction: this.selectAll });
-        tItems.push({ title: 'DG.TableController.gearMenuItems.deleteCases', localize: true,
-                      target: this, itemAction: this.deleteSelectedCases, isEnabled: tDeleteIsEnabled });
+        tItems.push({
+          title: 'DG.TableController.gearMenuItems.selectAll',
+          localize: true,
+          target: this,
+          itemAction: this.selectAll
+        });
+        tItems.push({
+          title: 'DG.TableController.gearMenuItems.deleteCases',
+          localize: true,
+          target: this,
+          itemAction: this.deleteSelectedCases,
+          isEnabled: tDeleteIsEnabled
+        });
+        tItems.push({
+          title: 'DG.TableController.gearMenuItems.exportCaseData', // "Export Case Data..."
+          localize: true,
+          target: this,
+          itemAction: this.exportCaseData
+        });
+
         return tItems;
       }.property(),
       
@@ -455,11 +500,21 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       deleteSelectedCases: function() {
         var tContext = this.get('dataContext'),
+            tCases = tContext.getSelectedCases(),
             tChange;
         if (tContext) {
+          // We deselect the cases before deleting them for performance
+          // reasons. Deleting selected cases is much less efficient because
+          // of list reconstruction.
+          tChange = {
+            operation: 'selectCases',
+            select: false,
+            cases: tCases
+          };
+          tContext.applyChange( tChange);
           tChange = {
             operation: 'deleteCases',
-            cases: tContext.getSelectedCases()
+            cases: tCases
           };
           tContext.applyChange( tChange);
         }

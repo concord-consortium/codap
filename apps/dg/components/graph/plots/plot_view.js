@@ -163,8 +163,11 @@ DG.PlotView = DG.PlotLayer.extend(
   doDraw: function doDraw( iIndex, iNumPlots) {
     this.set('plotIndex', iIndex);
     this.set('numPlots', iNumPlots);
-    if( !this._areAdornmentsInitialized)
+    if( !this._areAdornmentsInitialized) {
       this.initializeAdornments();
+    } else {
+      this.updateAdornments();
+    }
 
     if( this.getPath('model.isAnimating')) {
       // In some situations we get both animation and transferred points coordinates. The first is sufficient
@@ -441,11 +444,12 @@ DG.PlotView = DG.PlotLayer.extend(
       this.plottedCountAdorn.destroy();
       this.plottedCountAdorn = null;
     }
-    if( tCountModel && this.get('paper') ) {
-      this.plottedCountAdorn = DG.PlottedCountAdornment.create( {
-             parentView: this, valueAxisView: this.get('primaryAxisView'),
-             model: tCountModel, paperSource: this.get('paperSource'),
-             layerName: DG.LayerNames.kAdornments });
+    if (tCountModel && this.get('paper')) {
+      this.plottedCountAdorn = DG.PlottedCountAdornment.create({
+        parentView: this, valueAxisView: this.get('primaryAxisView'),
+        model: tCountModel, paperSource: this.get('paperSource'),
+        layerName: DG.LayerNames.kAdornments
+      });
       this.plottedCountAdorn.updateToModel();
     }
   }.observes('.model.plottedCount'),

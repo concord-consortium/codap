@@ -59,6 +59,7 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
     }.observes('_status', '_isPlaceholder', '_dialog'),
 
     openNewDocument: function() {
+      DG.appController.closeAndNewDocument();
       var title = this._dialog.getPath('contentView.choiceViews.contentView.titleField.value');
       if (SC.none(title) || title.length === 0) {
         title = SC.String.loc('DG.Document.defaultDocumentName');
@@ -66,7 +67,9 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
       DG.currDocumentController().set('documentName', title);
       this._dialog.setPath('contentView.choiceViews.contentView.titleField.value', null);
       DG.currDocumentController().setPath('content._isPlaceholder', false);
-      DG.dirtyCurrentDocument();
+      if (DG.AUTOSAVE) {
+        DG.dirtyCurrentDocument();
+      }
     },
 
     openExistingDocument: function() {
@@ -78,19 +81,29 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
     openExample: function() {
       var selected = this._dialog.getPath('contentView.choiceViews.contentView.selected');
 
-      this._urlForGetRequests( selected.location )
-      .notify(this, '_handleResponse',
-        function(body) { DG.appController.receivedOpenDocumentSuccess(body, false); },
-        function(errorCode) { DG.appController.receivedOpenDocumentFailure(errorCode, false); })
-      .send();
-
-      DG.logUser("openExample: '%@'", selected.location);
+      if (selected) {
+        this._urlForGetRequests( selected.location )
+        .notify(this, '_handleResponse',
+          function(body) { DG.appController.receivedOpenDocumentSuccess(body, false); },
+          function(errorCode) { DG.appController.receivedOpenDocumentFailure(errorCode, false); })
+        .send();
+        DG.logUser("openExample: '%@'", selected.location);
+      }
     },
 
     openFile: function() {
       var dialog = this._dialog.getPath('contentView.choiceViews.contentView'),
-          v = dialog.get('value');
-      DG.appController.importFileWithConfirmation( v[0], 'JSON', dialog);
+          fileList = dialog.get('value'),
+          file = fileList && fileList[0];
+
+      if (file) {
+        if ((file.type && file.type === 'application/json')
+          || (file.name && file.name.match( /.*\.json/i))) {
+          DG.appController.importFileWithConfirmation( file, 'JSON', dialog);
+        } else {
+          dialog.showAlert(new Error('File, ' + file.name + ' is not of type JSON'));
+        }
+      }
     }
 
   }; // return from function closure

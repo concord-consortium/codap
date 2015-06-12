@@ -98,6 +98,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tY2AttributeID = this.getPath('graphModel.dataConfiguration.y2AttributeID'),
         tHasY2Attribute = tY2AttributeID && (tY2AttributeID !== DG.Analysis.kNullAttribute),
         tMarquee,
+        tLastRect,
         tStartPt,
         tBaseSelection = [];//,
 //        tToolTip;
@@ -159,7 +160,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
               .attr( { fill: DG.PlotUtilities.kMarqueeColor,
                     stroke: DG.RenderingUtilities.kTransparent });
+      tLastRect = {x: tStartPt.x, y: tStartPt.y, width: 0, height: 0};
       this_.getPath('layerManager.' + DG.LayerNames.kAdornments ).push( tMarquee);
+      this_.get('parentView' ).prepareToSelectPoints( );
     }
 
     function continueMarquee( idX, idY) {
@@ -172,7 +175,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tHeight = Math.abs( idY),
         tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
-      this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection);
+      this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection, tLastRect);
+      tLastRect = tRect;
     }
 
     function endMarquee( idX, idY) {
@@ -186,6 +190,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       var tNumCases = this_.getPath( 'graphModel.casesController.selection.length');
       if( tNumCases > 0)  // We must have something > 0
         DG.logUser("marqueeSelection: %@", tNumCases);
+      this_.get('parentView' ).completeSelection();
+
     }
 
     function showCursor( iEvent) {
@@ -230,40 +236,45 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           tYView = this.get('yAxisView'),
           tNumSecCells = tXView.getPath('model.numberOfCells'),
           tNumPrimaryCells = tYView.getPath('model.numberOfCells'),
+          tLinesAreVertical = tNumSecCells > tNumPrimaryCells,
+          tNumCellsToDraw = Math.max( tNumSecCells, tNumPrimaryCells),
           tSecCellWidth = tXView.get('fullCellWidth'),
           tPrimaryCellWidth = tYView.get('fullCellWidth'),
-          tIsVertical = this.getPath('model.orientation') === 'vertical',
-          tHeight = tIsVertical ? tSecCellWidth : tPrimaryCellWidth,
-          tWidth = tIsVertical ? tPrimaryCellWidth : tSecCellWidth,
-          tSecIndex, tPrimaryIndex,
+          tHeight = tPrimaryCellWidth,
+          tWidth = tSecCellWidth,
+          tIndex,
           tXCoord, tYCoord, tLeft, tTop;
       if(SC.none( tPaper))
         return;
 
-      for( tPrimaryIndex = 0; tPrimaryIndex < tNumPrimaryCells; tPrimaryIndex++) {
-        if( tIsVertical){
-          tXCoord = tYView.cellToCoordinate( tPrimaryIndex);
-          tLeft = tXCoord - tPrimaryCellWidth / 2;
+      if(tLinesAreVertical) {
+        tYCoord = tYView.cellToCoordinate(0);
+        tTop = tYCoord - tPrimaryCellWidth / 2;
+        tHeight *= tNumPrimaryCells;
+      }
+      else{
+        tXCoord = tXView.cellToCoordinate(0);
+        tLeft = tXCoord - tSecCellWidth / 2;
+        tWidth *= tNumSecCells;
+      }
+      for (tIndex = 0; tIndex < tNumCellsToDraw; tIndex++) {
+        var tLine;
+        if(tLinesAreVertical) {
+          if( tIndex === 0)
+            continue;
+          tXCoord = tXView.cellToCoordinate(tIndex);
+          tLeft = tXCoord - tSecCellWidth / 2;
+          tLine = tPaper.line(tLeft, tTop, tLeft, tTop + tHeight);
         }
         else {
-          tYCoord = tYView.cellToCoordinate( tPrimaryIndex);
+          if( tIndex === tNumCellsToDraw - 1)
+            continue;
+          tYCoord = tYView.cellToCoordinate(tIndex);
           tTop = tYCoord - tPrimaryCellWidth / 2;
+          tLine = tPaper.line(tLeft, tTop + tHeight, tLeft + tWidth, tTop + tHeight);
         }
-        for( tSecIndex = 0; tSecIndex < tNumSecCells; tSecIndex++) {
-          if( tIsVertical) {
-            tYCoord = tXView.cellToCoordinate( tSecIndex);
-            tTop = tYCoord - tSecCellWidth / 2;
-          }
-          else {
-            tXCoord = tXView.cellToCoordinate( tSecIndex);
-            tLeft = tXCoord - tSecCellWidth / 2;
-          }
-          if( (tPrimaryIndex + tSecIndex) / 2 !== Math.floor((tPrimaryIndex + tSecIndex) / 2))
-            tBackgroundLayer.push(
-              tPaper.rect( tLeft, tTop, tWidth, tHeight)
-                .attr( { fill: DG.PlotUtilities.kPlotCellFill, opacity: 0.8,
-                  stroke:DG.RenderingUtilities.kTransparent} ));
-        }
+        tBackgroundLayer.push(
+            tLine.attr({stroke: DG.PlotUtilities.kRuleColor, 'stroke-width': 1}));
       }
     }.bind( this); // drawCellBands
 

@@ -14,6 +14,13 @@ DG.ExternalDocumentCache = {
 
   fetch: function( iDocumentId ) {
     return this._externalDocumentCache[iDocumentId];
+  },
+
+  /**
+   * returns all cached document elements as an array.
+   */
+  fetchAll: function () {
+    return DG.ObjectMap.values(this._externalDocumentCache);
   }
 
 };

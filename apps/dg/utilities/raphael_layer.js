@@ -30,6 +30,7 @@ sc_require('libraries/raphael');
  */
 DG.RaphaelLayer = SC.Object.extend(
   {
+    _map: {},
     /**
      * @property {Boolean}
      */
@@ -67,6 +68,7 @@ DG.RaphaelLayer = SC.Object.extend(
         iElement.remove();
       });
       this._firstElement = this._lastElement = null;
+      this._map = {};
     },
 
     /**
@@ -75,6 +77,7 @@ DG.RaphaelLayer = SC.Object.extend(
      * @return {Raphael Element } The original element
      */
     push: function( iElement) {
+      this._map[iElement]=true;
       DG.assert( iElement);
       if( !this._lastElement) {
         // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.
@@ -136,14 +139,15 @@ DG.RaphaelLayer = SC.Object.extend(
      * @return {Boolean}
      */
     contains: function( iElement) {
-      var tElement;
-      for( tElement = this._firstElement;
-           tElement && tElement.prev !== this._lastElement;
-           tElement = tElement.next) {
-        if( tElement === iElement)
-          return true;
-      }
-      return false;
+      return this._map[iElement];
+      //var tElement;
+      //for( tElement = this._firstElement;
+      //     tElement && tElement.prev !== this._lastElement;
+      //     tElement = tElement.next) {
+      //  if( tElement === iElement)
+      //    return true;
+      //}
+      //return false;
     },
 
     isValid: function() {

@@ -128,12 +128,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
             target: this,
-            action: 'importData' },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.exportCaseData', // "Export Case Data..."
-            target: this,
-            action: 'exportCaseData' }
+            action: 'importData' }
         ],
         docServerItems = [
           { isSeparator: YES },
@@ -344,6 +339,9 @@ DG.appController = SC.Object.create((function () // closure
             this.autoSaveDocument(true);
           }.bind(this));
         }
+        openDeferred.fail(function (failure) {
+          this.notifyStorageFailure('', failure.message);
+        }.bind(this));
       }
 
       DG.busyCursor.hide();
@@ -358,27 +356,13 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Tests the JSON text for validity as a possible document.  This is a placeholder function
-     for future DG Document structure validation.
-     @param    {String}    iDocText -- The JSON-formatted document text
-     @returns  {Boolean}   True on success, false on failure
-     */
-    isValidJsonDocument: function (iDocText) {
-      // Is there some other form of validation that is more appropriate?
-      return true;
-    },
-
-    /**
      Attempts to parse the specified iDocText as the contents of a saved document in JSON format.
      @param    {String}    iDocText -- The JSON-formatted document text
-     @returns  {Boolean}   True on success, false on failure
+     @param    {Boolean}   saveImmediately -- whether to save existing doc.
+     @returns  {{Deferred}}   A deferred object that will complete with a new document open (or error).
      */
     openJsonDocument: function (iDocText, saveImmediately) {
-      console.log('In app_controller:openJsonDocument');
       SC.Benchmark.start('app_controller:openJsonDocument');
-
-      // Does it look like it could be a valid document?
-      if (!this.isValidJsonDocument(iDocText)) return false;
 
       // Currently, we must close any open document before opening another
       this.closeDocument();
@@ -479,10 +463,8 @@ DG.appController = SC.Object.create((function () // closure
           // add interactive to existing document
           //,
           //embedWebView = function () {
-          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          //      iURL, 'Web Page',
-          //      {width: 600, height: 400});
-          //}.bind(this);
+          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'),
+          // null, iURL, 'Web Page', {width: 600, height: 400}); }.bind(this);
 
       addInteractive();
       return true;
@@ -818,10 +800,18 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Read a file from the file system.
+     *
+     * Handles CODAP documents and 'TEXT' files
+     * (TEXT files here means comma or tab delimited data files.)
+     * Will present a confirmation dialog if the type indicates a CODAP document
+     * and the document is managed by the document server and has unsaved
+     * changes.
+     *
      * The file parameter may have come from a drop or a dialog box.
-     * @param iFile
-     * @param {String} 'JSON' or 'TEXT'
-     * @param optional
+     * @param {File} iFile
+     * @param {String} iType 'JSON' or 'TEXT'
+     * @param {{showAlert:function,close:function}} iDialog optional error alert.
      */
     importFileWithConfirmation: function( iFile, iType, iDialog) {
 
@@ -830,10 +820,17 @@ DG.appController = SC.Object.create((function () // closure
           console.log("Abort or error on file read.");
         }
 
-        function handleRead() {
+        var handleRead = function () {
           try {
             if( iType === 'JSON') {
-              that.openJsonDocument(this.result, true);
+              that.openJsonDocument(this.result, true).then(function() {
+                DG.log('Opened: ' + iFile.name);
+              },
+              function (msg) {
+                  DG.logError('JSON file open failed: ' + iFile.name);
+                  DG.logError(msg);
+                  iDialog.showAlert(new Error(msg));
+              });
             }
             else if( iType === 'TEXT') {
               that.importText(this.result, iFile.name);
@@ -848,7 +845,8 @@ DG.appController = SC.Object.create((function () // closure
             }
           }
           DG.busyCursor.hide();
-        }
+        };
+
         var that = this;
         DG.busyCursor.show( function() {
           var reader = new FileReader();
@@ -865,7 +863,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.logUser("cancelCloseDocument: '%@'", docName);
       };
 
-      if (DG.currDocumentController().get('hasUnsavedChanges')) {
+      if ((iType === 'JSON') && DG.currDocumentController().get('hasUnsavedChanges')) {
         var docName = DG.currDocumentController().get('documentName');
         DG.logUser("confirmCloseDocument?: '%@'", docName);
         DG.AlertPane.warn({
@@ -983,7 +981,8 @@ DG.appController = SC.Object.create((function () // closure
           //      for a user generated event, such as a click.)
 
           if (!SC.empty(docJson)) {
-            var dataUri = "data:application/json;charset=utf-8;base64,"+btoa(docJson);
+            // construct a data url to support export in Safari
+            var dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(docJson);
             tDialog = DG.CreateSingleTextDialog({
               prompt: 'DG.AppController.exportDocument.prompt'.loc() +
                 " (Safari users may need to control-click <a href=\"" + dataUri +
@@ -1010,31 +1009,6 @@ DG.appController = SC.Object.create((function () // closure
           }
         }
       }, true);
-    },
-
-    /**
-     Handler for the Export Case Data... menu command.
-     Displays a dialog, so user can select and copy the case data from the current document.
-     */
-    exportCaseData: function () {
-      // callback to get export string from one of the menu item titles
-      var exportCollection = function (whichCollection) {
-        return DG.currDocumentController().exportCaseData(whichCollection);
-      };
-      // get array of exportable collection names for menu titles
-      var tMenuItems = DG.currDocumentController().exportCaseData().split('\t'),
-        tStartingMenuItem = tMenuItems[0];
-
-      DG.CreateExportCaseDataDialog({
-        prompt: 'DG.AppController.exportCaseData.prompt',
-        textLimit: 1000000,
-        textValue: exportCollection(tStartingMenuItem),
-        collectionMenuTitle: tStartingMenuItem,
-        collectionMenuItems: tMenuItems,
-        collectionMenuItemAction: exportCollection,
-        okTitle: 'DG.AppController.exportDocument.okTitle',
-        okTooltip: 'DG.AppController.exportDocument.okTooltip'
-      });
     },
 
     showShareLink: function() {
@@ -1317,8 +1291,8 @@ DG.appController = SC.Object.create((function () // closure
           DG.authorizationController.sessionTimeoutPrompt(resolve);
         } else {
           var errorMessage = messageBase + errorCode;
-          if (errorMessage.loc() === errorMessage)
-            errorMessage = messageBase + 'error.general';
+          //if (errorMessage.loc() === errorMessage)
+          //  errorMessage = messageBase + 'error.general';
           DG.AlertPane.error({
             localize: true,
             message: errorMessage,

@@ -453,7 +453,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
       if( !this.movableLineAdorn) {
         var tAdorn = DG.MovableLineAdornment.create( {
                           parentView: this, model: tMovableLine, paperSource: this.get('paperSource'),
-                          xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView'),
                           layerName: DG.LayerNames.kAdornments } );
         tAdorn.createElements();
         this.movableLineAdorn = tAdorn;
@@ -519,8 +518,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( SC.none( this.functionAdorn)) {
       this.functionAdorn = DG.PlottedFunctionAdornment.create({
                 parentView: this, model: tPlottedFunction, paperSource: this.get('paperSource'),
-                layerName: DG.LayerNames.kAdornments,
-                xAxisView: this.get('xAxisView'), yAxisView: this.get('yAxisView')
+                layerName: DG.LayerNames.kAdornments
               });
     }
     this.functionAdorn.updateVisibility();

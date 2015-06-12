@@ -176,7 +176,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       } // measureOneCell
 
       // iLabelSpec has form { element: {Raphael element}, coord: {Number}, height: {Number}, width: {Number} }
-      function drawOneCell( iLabelSpec) {
+      function drawOneCell( iLabelSpec, iIndex) {
         var tCoord = iLabelSpec.coord,
             tLabelX, tLabelY;
         switch( this_.get('orientation')) {
@@ -200,6 +200,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             tLabelY = tBaseline + kTickLength + kAxisGap + iLabelSpec.height / 3;
             if( tRotation === -90) {
               tAnchor = 'end';
+              if( iIndex === 0)
+                tLabelX += iLabelSpec.height / 3;
             }
             break;
         }

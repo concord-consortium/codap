@@ -83,6 +83,18 @@ if (!Raphael.el.addClass) {
     }
 }
 
+if (!Raphael.el.hasClass) {
+  Raphael.el.hasClass = function (myClass) {
+    var classNameEl = this.node.className;
+    var classes = classNameEl.baseVal;
+    if (classes.indexOf(myClass) < 0) {
+      return false;
+    } else {
+      return new RegExp('\b' + myClass + '\b').test(classes);
+    }
+
+  }
+}
 
 /**
  * Remove the given class name from those belonging to the receiver.
@@ -94,15 +106,22 @@ if (!Raphael.el.addClass) {
 if (!Raphael.el.removeClass) {
   Raphael.el.removeClass = function (myClass) {
     function removeWord(str, word) {
-      if (!str) {
-        return str;
+      var rslt, words, wordIndex;
+      if (str === word) {
+        rslt = '';
+      } else if (!str) {
+        rslt = str;
+      } else {
+        words = str.split(" ");
+        wordIndex = words.indexOf(word);
+        if (wordIndex >= 0) {
+          words.splice(wordIndex, 1)
+          rslt = words.join(' ');
+        } else {
+          rslt = str;
+        }
       }
-      var words = str.split(" ");
-      var wordIndex = words.indexOf(word);
-      if (wordIndex >= 0) {
-        words.splice(wordIndex, 1);
-      }
-      return words.join(" ");
+      return rslt;
     }
     var classes = this.node.className.baseVal;
 

@@ -32,7 +32,18 @@ sc_require('components/graph/adornments/plot_adornment_model');
 DG.PlottedAverageModel = DG.PlotAdornmentModel.extend(
 /** @scope DG.PlottedAverageModel.prototype */
 {
-  values: null,       // [{ mean|median }], one element per cell on secondary axis
+  _values: null,       // [{ mean|median }], one element per cell on secondary axis
+
+  values: function( iKey, iValue) {
+    if( iValue) {
+      this._values = iValue;
+    }
+    if( !this._values) {
+      this.recomputeValue();
+    }
+    return this._values;
+  }.property(),
+
   precision: 0,       // decimal precision of attribute being averaged
 
   /**
@@ -158,6 +169,8 @@ DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
    */
   recomputeValue: function() {
     var tValues = this.computeSumCountMean();
+    if( !tValues)
+      return;
 
     // compute st.dev. of cases in each cell
     tValues.forEach( function( iValue ) {
@@ -236,9 +249,11 @@ DG.PlottedMedianModel = DG.PlottedQuantileModel.extend(
   recomputeValue: function() {
     var tValues = this.collectCellValsAndMedian();
 
-    this.set( 'values', tValues ); // we expect view to observe this change
-    this._needsComputing = false;
-    //DG.log("DG.PlottedMedianModel.recomputeValue() done");
+    if( tValues) {
+      this.set('values', tValues); // we expect view to observe this change
+      this._needsComputing = false;
+      //DG.log("DG.PlottedMedianModel.recomputeValue() done");
+    }
   }
 });
 DG.PlotAdornmentModel.registry.plottedMedian = DG.PlottedMedianModel;
@@ -251,6 +266,8 @@ DG.PlottedIQRModel = DG.PlottedQuantileModel.extend(
    */
   recomputeValue: function() {
     var tValues = this.collectCellValsAndMedian();
+    if( !tValues)
+      return;
 
     // also compute IQR
     tValues.forEach( function( iValue ) {

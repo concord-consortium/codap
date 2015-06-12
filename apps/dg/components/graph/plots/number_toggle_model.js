@@ -93,10 +93,13 @@ DG.NumberToggleModel = SC.Object.extend(
    * @property{Integer}
    */
   numberOfToggleIndices: function() {
+    var dataConfiguration = this.get('dataConfiguration'),
+      allCases = (dataConfiguration && dataConfiguration.get('allCases')),
+      allCasesLength = allCases? allCases.length(): 0;
     if( this.get('indicesRepresentChildren'))
       return this.get('numberOfParents');
-    else  // There are no parents, so each case gets an index
-      return this.getPath('dataConfiguration.allCases' ).length();
+    else // There are no parents, so each case gets an index
+      return allCasesLength;
   }.property('*dataConfiguration.allCases'),
 
   /**
@@ -115,7 +118,10 @@ DG.NumberToggleModel = SC.Object.extend(
    * @return{Boolean}
    */
   allCasesAreVisible: function() {
-    return this.getPath('dataConfiguration.cases').length === this.getPath('dataConfiguration.allCases').length();
+    var dataConfiguration = this.get('dataConfiguration'),
+      allCases = dataConfiguration && dataConfiguration.get('allCases'),
+      allCasesLength = allCases? allCases.length(): 0;
+    return this.getPath('dataConfiguration.cases').length === allCasesLength;
   },
 
   /**

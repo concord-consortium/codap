@@ -153,7 +153,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tValuesArray = this.getPath('model.values'),
         tNumValues = tValuesArray && tValuesArray.length,
         tNumElements = this.myElements.length;
-    DG.assert( tNumValues > 0 ); // or tNumValues === number of cells
+    if( !tSecondaryAxisView || !tNumValues)
+      return; // Happens during transition after secondary attribute removed but before new axis created
     var tPaper = this.get('paper'),
         tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
         p = { x:0, y:0, symSize:this.symSize, cellHeight:tCellHeight-this.cellGap },

@@ -23,13 +23,13 @@
   @extends SC.PanelPane
 */
 DG.UserEntryDialog = SC.PanelPane.extend({
-  layout: { width: 900, height: 310, centerX: 0, centerY: 0},
+  layout: {width: 900, height: 310, centerX: 0, centerY: 0},
   contentView: SC.View.design({
-    layout: { top: 0, right: 0, left: 0, bottom: 0, zIndex: 0 },
+    layout: {top: 0, right: 0, left: 0, bottom: 0, zIndex: 0},
     childViews: 'welcomeHeader welcomeInstructions choiceViews choiceButtons'.w(),
 
     welcomeHeader: SC.LabelView.design({
-      layout: { left: 10, right: 0, top: 10, height: 24 },
+      layout: {left: 10, right: 0, top: 10, height: 24},
       controlSize: SC.LARGE_CONTROL_SIZE,
       fontWeight: SC.BOLD_WEIGHT,
       textAlign: SC.ALIGN_CENTER,
@@ -62,7 +62,10 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           { title: 'DG.UserEntryDialog.openFile.option'.loc(), value: 'file' }
         ];
         if (DG.authorizationController.get('isSaveEnabled')) {
-          items.push({ title: 'DG.UserEntryDialog.documentServer.option'.loc(), value: 'cloud' });
+          items.push({
+            title: 'DG.UserEntryDialog.documentServer.option'.loc(),
+            value: 'cloud'
+          });
         }
         return items;
       }.property('isSaveEnabled'),
@@ -89,8 +92,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
     }),
 
     choiceViews: SC.WellView.design({
-      layout: { left: 265, right: 10, top: 82, height: 72*3, zIndex: 5 },
-      init: function() {
+      layout: {left: 265, right: 10, top: 82, height: 72 * 3, zIndex: 5},
+      init: function () {
         sc_super();
         this.set('nowShowing', 'openNewView');
       },
@@ -140,11 +143,12 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         }),
         // alertView: Initially invisible, only exposed if invalid file
         // uploaded
-        alertView: SC.LabelView.extend({
-          layout: { top: 70, left: 5, right: 5, height:24 },
+        alertView: SC.TextFieldView.extend({
+          layout: { top: 70, left: 5, right: 5, height:48 },
           classNames: ['dg-alert'],
           localize: true,
           isVisible: NO,
+          isTextArea: YES,
           value: 'DG.AppController.importDocument.alert'
         }),
         okButton: SC.ButtonView.design({
@@ -158,7 +162,16 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           isDefault: true
         }),
 
-        showAlert: function () {
+        /**
+         * Show an alert message. If an error is passed will show its (assumed
+         * localized) message. If not will display the default.
+         *
+         * @param error {Error} a Javascript Error object
+         */
+        showAlert: function (error) {
+          if (error) {
+            this.setPath('alertView.value', error);
+          }
           this.setPath('alertView.isVisible', YES);
         },
 
@@ -251,25 +264,38 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           value: 'DG.AppController.openDocument.prompt'   // "Choose a document
         }),
 
-        documentListView: SC.ScrollView.extend({
-          classNames: ['my-scroll-view'],
-          layout: { top: 40, left: 5, right: 5, height: 113 },
-          contentView: SC.ListView.extend({
-            classNames: ['my-list-view'],
-            rowHeight: 24,
-            contentValueKey: 'name',
-            init: function() {
-              sc_super();
-              this.set('content', DG.DocumentListController.create({ allowsMultipleSelection: NO }));
-            },
-            fieldValue: function() {
-              return this.getPath('selection.firstObject.id');
-            }.property('selection')
-          })
+        documentListView: SC.SelectView.extend({
+          displayProperties: ['items.content'],
+          layout: {width: 150, height: 24, centerX: 0, centerY: 0},
+          itemTitleKey: 'name',
+          itemValueKey: 'id',
+          emptyName: 'DG.UserEntryDialog.openFile.prompt', // "Select a document to open..."
+          //itemIconKey: 'icon',
+          init: function () {
+            sc_super();
+            this.set('items',
+              DG.DocumentListController.create({allowsMultipleSelection: NO}));
+          }
+          //classNames: ['my-scroll-view'],
+          //layout: { top: 40, left: 5, right: 5, height: 113 },
+          //hasHorizontalScroller: false,
+          //contentView: SC.ListView.extend({
+          //  layout: {top: 0, left: 0, right: 0, bottom: 0 },
+          //  classNames: ['my-list-view'],
+          //  rowHeight: 24,
+          //  contentValueKey: 'name',
+          //  init: function() {
+          //    sc_super();
+          //    this.set('content', DG.DocumentListController.create({ allowsMultipleSelection: NO }));
+          //  },
+          //  fieldValue: function() {
+          //    return this.getPath('selection.firstObject.id');
+          //  }.property('selection')
+          //})
         }),
 
         okButton: SC.ButtonView.design({
-          layout: { bottom:5, right: 5, height:24, width: 90 },
+          layout: {bottom: 5, right: 5, height: 24, width: 90},
           titleMinWidth: 0,
           localize: true,
           title: 'DG.AppController.openDocument.okTitle',  // "Open"
@@ -279,21 +305,19 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           isDefault: true
         }),
 
-        documentName: function() {
-          var docList = this.getPath('documentListView.contentView.content'),
-              i, docCount = docList && docList.get('length'),
-              docID = this.getPath('documentListView.contentView.fieldValue'),
-              docEntry;
-          for( i = 0; i < docCount; ++i) {
-            docEntry = docList.objectAt( i);
-            if( docEntry.id === docID)
+        documentName: function () {
+          var docList = this.getPath('documentListView.items.content'), i, docCount = docList &&
+              docList.get('length'), docID = this.getPath('documentListView.value'), docEntry;
+          for (i = 0; i < docCount; ++i) {
+            docEntry = docList.objectAt(i);
+            if (docEntry.id === docID)
               return docEntry.name;
           }
           return null;
-        }.property('*documentListView.contentView.fieldValue'),
+        }.property('*documentListView.value'),
 
-        documentID: function() {
-          return this.getPath('documentListView.contentView.fieldValue');
+        documentID: function () {
+          return this.getPath('documentListView.value');
         }.property('*documentListView.contentView.fieldValue'),
 
         close: function() {

@@ -307,8 +307,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
     @param {Object}               iAttrRefs -- the attribute to set
            {DG.CollectionClient}  iAttrRefs.collection -- the collection containing the specified attribute
            {Array of DG.Attribute}iAttrRefs.attributes -- the attributes to set
-    @param {DG.Analysis.EAnalysisRole} Optional
-    @param {DG.Analysis.EAttributeType} Optional
+    @param {DG.Analysis.EAnalysisRole} iRole Optional
+    @param {DG.Analysis.EAttributeType} iType Optional
 
    //TODO: In the long run we need to be able to accommodate attributes from different levels
       in the collection hierarchy, so iAttrRefs will need to consist of an array of collection/attribute pairs.
@@ -587,7 +587,20 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this._casesCache = null;
     this.invalidateAxisDescriptionCaches();
   }.observes('hiddenCases'),
-  
+
+  /**
+   * Something has happened such that cases have been deleted. Some cases in our hiddenCases array
+   * may be among those deleted. We need to remove them.
+   */
+  synchHiddenCases: function () {
+    var tHidden = this.get('hiddenCases'),
+        tNewHidden = tHidden.filter(function (iCase) {
+          var tFound = DG.store.find(DG.Case, iCase.get('id'));
+          return !SC.none(tFound);
+        });
+    this.set('hiddenCases', tNewHidden);
+  },
+
   /**
     @property { Array of SC.Array }
   */

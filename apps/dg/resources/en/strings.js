@@ -39,7 +39,7 @@ SC.stringsFor('English', {
   'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
   'DG.UserEntryDialog.openNew.button'          : 'OK',
   'DG.UserEntryDialog.openNew.buttonTooltip'   : 'Create a new document with the specified title',
-  'DG.UserEntryDialog.openFile.option'         : 'Open a Local File...',
+  'DG.UserEntryDialog.openFile.option'         : 'Open a Local Document...',
   'DG.UserEntryDialog.openFile.prompt'         : 'Select a document to open:',
   'DG.UserEntryDialog.openFile.button'         : 'Open',
   'DG.UserEntryDialog.openFile.buttonTooltip'  : 'Open the specified document',
@@ -102,7 +102,6 @@ SC.stringsFor('English', {
   'DG.AppController.fileMenuItems.importData' : "Import Data...",
   'DG.AppController.fileMenuItems.importDocument' : "Import CODAP Document...",
   'DG.AppController.fileMenuItems.exportDocument' : "Export CODAP Document...",
-  'DG.AppController.fileMenuItems.exportCaseData' : "Export Case Data...",
   'DG.AppController.fileMenuItems.showShareLink' : "Share Document...",
   'DG.AppController.closeDocument.warnMessage' : "Close the current document without saving?",
   'DG.AppController.closeDocument.warnDescription' : "This action is not undoable.",
@@ -197,6 +196,11 @@ SC.stringsFor('English', {
   'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
   'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
   'DG.AppController.dropFile.error' : 'Error: %@1',  // Error: <error text>
+    'DG.AppController.validateDocument.missingRequiredProperty' : 'Required property not found: %@1',
+    'DG.AppController.validateDocument.unexpectedProperty' : 'Unexpected top-level property: %@1',
+    'DG.AppController.validateDocument.unresolvedID' : 'Unresolved id: %@1',
+    'DG.AppController.validateDocument.parseError' : 'Parse error: %@1',
+    'DG.AppController.validateDocument.invalidDocument' : 'Invalid JSON Document: %@1',
 
 
   // DG.OpenSaveDialog - Generally defaults which can be overridden by clients
@@ -297,6 +301,7 @@ SC.stringsFor('English', {
   'DG.TableController.gearMenuItems.setScoreFormula' : "Set Score Formula...",
   'DG.TableController.gearMenuItems.deleteCases' : "Delete Selected Cases",
   'DG.TableController.gearMenuItems.selectAll' : "Select All Cases",
+  'DG.TableController.gearMenuItems.exportCaseData' : "Export Case Data...",
   'DG.TableController.newAttrDlg.defaultAttrName' : "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint' : "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint' : "If desired, type a formula for computing values of this attribute",

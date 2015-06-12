@@ -162,7 +162,7 @@ DG.CollectionClient = SC.Object.extend(
 
   /**
     Returns an array with the names of the attributes in the collection.
-    @returns    {Array of String}   The array of attribute names
+    @returns    {[string]}   The array of attribute names
    */
   getAttributeNames: function() {
     return this.attrsController.getEach('name');
@@ -457,7 +457,7 @@ DG.CollectionClient = SC.Object.extend(
   
   /**
     Apples the specified function to each case in the collection.
-    @param    {Function}            The function to apply to each case
+    @param    {Function}  iFunction The function to apply to each case
     @returns  {DG.CollectionClient} this, for method chaining
    */
   forEachCase: function( iFunction) {

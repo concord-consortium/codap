@@ -353,6 +353,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         tController = tCollection && tCollection.get('casesController'),
         tExtend = iChange.extend || false,
         tCollectionExtendMap = {},
+      tCollectionSelectionMap = {},
         isSelectionChanged = false,
         this_ = this;
     
@@ -368,7 +369,33 @@ DG.DataContext = SC.Object.extend((function() // closure
       // After the first one, always return true
       return true;
     }
-    
+
+    function addSelectionToCollectionMap(iCollection, iCase) {
+      var collectionID = iCollection.get('id').toString();
+      if( tCollectionSelectionMap[ collectionID ] === undefined) {
+        tCollectionSelectionMap[ collectionID ] = {collection:iCollection, cases: []};
+      }
+      tCollectionSelectionMap[ collectionID].cases.push(iCase);
+    }
+
+    function doSelectByCollection() {
+      DG.ObjectMap.forEach(tCollectionSelectionMap, function (iCollectionID, iCaseMap) {
+        var tCollection = iCaseMap.collection,
+          tCases = iCaseMap.cases,
+          tController = tCollection.get('casesController');
+        tController.selectObjects( tCases, extendForCollection( tCollection));
+      });
+    }
+
+    function doDeselectByCollection() {
+      DG.ObjectMap.forEach(tCollectionSelectionMap, function (iCollectionID, iCaseMap) {
+        var tCollection = iCaseMap.collection,
+          tCases = iCaseMap.cases,
+            tController = tCollection.get('casesController');
+        tController.deselectObjects( tCases);
+      });
+    }
+
     // utility function for recursively selecting a case and its children
     function selectCaseAndChildren( iCase) {
       var tChildren = iCase.get('children'),
@@ -378,7 +405,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         var tSelection = tController.get('selection');
         if( tSelection && (!tSelection.contains( iCase) || (tSelection.length() > 1)))
           isSelectionChanged = true;
-        tController.selectObject( iCase, extendForCollection( tCollection));
+        //tController.selectObject( iCase, extendForCollection( tCollection));
+        addSelectionToCollectionMap(tCollection, iCase);
         tChildren.forEach( selectCaseAndChildren);
       }
     }
@@ -392,7 +420,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         var tSelection = tController.get('selection');
         if( tSelection && tSelection.contains( iCase))
           isSelectionChanged = true;
-        tController.deselectObject( iCase);
+        //tController.deselectObject( iCase);
+        addSelectionToCollectionMap(tCollection, iCase);
         tChildren.forEach( deselectCaseAndChildren);
       }
     }
@@ -403,8 +432,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         tFunction = iChange.select ? selectCaseAndChildren : deselectCaseAndChildren;
     
     // Apply the appropriate function to the specified cases
-    if( tCases && tFunction)
+    if( tCases && tFunction) {
       tCases.forEach( tFunction);
+      if (iChange.select) {
+        doSelectByCollection();
+      } else {
+        doDeselectByCollection();
+      }
+    }
     
     // If we are only selecting cases in child collection(s), we should
     // deselect any parent level cases when we're not extending.
@@ -672,15 +707,19 @@ DG.DataContext = SC.Object.extend((function() // closure
         childName = childCollection && childCollection.get('name'),
         parentName = parentCollection && parentCollection.get('name'),
         bothName = (parentName + '+' + childName ),
+        names = [],
         columnDelimiter = '\t',
         rowDelimiter = '\r\n';
 
-    DG.assert( childCollection && parentCollection, "exportCaseData collections not found");
-    if( !( childCollection && parentCollection )) return('');
+    //DG.assert( childCollection && parentCollection, "exportCaseData collections not found");
+    //if( !( childCollection && parentCollection )) return('');
 
     if( SC.empty( iWhichCollection )) {
+      if (parentName) {names.push(parentName);}
+      if (childName) {names.push(childName);}
+      if (parentName && childName) {names.push(bothName);}
       // return collection names as an array
-      return parentName +columnDelimiter+childName +columnDelimiter+(parentName + '+' + childName);
+      return names.join(columnDelimiter);
     }
 
     // else create a tab and newline delimited string of attribute names and case values.

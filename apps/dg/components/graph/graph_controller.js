@@ -167,6 +167,9 @@ DG.GraphController = DG.DataDisplayController.extend(
         if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
           this.get('graphModel').reset();
           this.set('dataContext', tDragContext);
+          var tConfig = this.getPath('graphModel.dataConfiguration');
+          tConfig.set('dataContext', tDragContext);
+          tConfig.invalidateCaches();
         }
       },
 

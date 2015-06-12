@@ -60,7 +60,7 @@ DG.Analytics.categoryForEvent = function(event) {
     case "Login":
       return DG.Analytics.Category.SESSION;
     default:
-      if (event.search(/Hide .* selected cases/) !== -1) {
+      if (event && event.search(/Hide .* selected cases/) !== -1) {
         return DG.Analytics.Category.DATA;
       }
       return DG.Analytics.Category.GENERAL;

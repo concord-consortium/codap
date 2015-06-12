@@ -44,8 +44,7 @@ DG.MapController = DG.DataDisplayController.extend(
       mapView: null,
 
       createComponentStorage: function() {
-        var storage = sc_super(),
-            dataConfiguration = this.getPath('mapModel.dataConfiguration');
+        var storage = sc_super();
 
         storage.mapModelStorage = this.get('mapModel').createStorage();
         return storage;

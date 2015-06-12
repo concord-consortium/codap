@@ -120,6 +120,9 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.observes('dataConfiguration.legendAttributeDescription.attribute'),
 
     handleOneDataContextChange: function( iNotifier, iChange) {
+      if( iChange && iChange.operation === 'deleteCases')
+        this.get('dataConfiguration').synchHiddenCases();
+
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.
       // It would be better not to be dealing with indices at all, but
@@ -244,7 +247,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
         tMenuItems = tMenuItems.concat( [{ isSeparator: YES }]).
             concat( this.createHideShowSelectionMenuItems());
-      };
+      }
 
       return tMenuItems;
     },
@@ -257,7 +260,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tPointsVisible = this.get('pointsShouldBeVisible');
       if( tPointsVisible !== null)
         tStorage.pointsShouldBeVisible = tPointsVisible;
-      tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible')
+      tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible');
       tStorage.grid = this.get('gridModel').createStorage();
 
       return tStorage;
