@@ -779,19 +779,35 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addSlider: function( iParentView, iComponent) {
-      var modelProps = {};
-      if( !iComponent || !iComponent.get('componentStorage'))
-        modelProps.content = this.createGlobalValue();
-      var tSliderModel = DG.SliderModel.create( modelProps),
-          tView = this.createComponentView(iComponent, {
+      var tView, sliderController, docController = this;
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "sliderComponent.create",
+        undoString: 'DG.Undo.sliderComponent.create',
+        redoString: 'DG.Redo.sliderComponent.create',
+        execute: function() {
+          var modelProps = {};
+          if( !iComponent || !iComponent.get('componentStorage'))
+            modelProps.content = docController.createGlobalValue();
+          var tSliderModel = DG.SliderModel.create( modelProps);
+          sliderController = DG.SliderController.create();
+          tView = docController.createComponentView(iComponent, {
                                 parentView: iParentView,
-                                controller: DG.SliderController.create(),
+                                controller: sliderController,
                                 componentClass: { type: 'DG.SliderView', constructor: DG.SliderView},
                                 contentProperties: { model: tSliderModel },
                                 defaultLayout: { width: 300, height: 60 },
                                 title: 'DG.DocumentController.sliderTitle'.loc(), // "Slider"
                                 isResizable: true}
                               );
+        },
+        undo: function() {
+          // Store the component so that when we redo, we'll get the same global variable (v1, v2, etc.)
+          sliderController.willSaveComponent();
+          iComponent = sliderController.get('model');
+          tView.parentView.removeComponentView(tView);
+        }
+      }));
       return tView;
     },
 
