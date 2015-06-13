@@ -298,8 +298,24 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
       convertToImage: function(svgs, x, y, width, height) {
 
+        var getCSSText = function () {
+          var text = [], ix, jx;
+          for (ix = 0; ix < document.styleSheets.length; ix += 1) {
+            var styleSheet = document.styleSheets[ix];
+            var rules = styleSheet.rules || styleSheet.cssRules;
+            for (jx = 0; jx < rules.length; jx += 1) {
+              var rule = rules[jx];
+              text.push(rule.cssText);
+            }
+          }
+          return text.join('\n');
+        };
+
         var makeDataURLFromSVGElement = function (svgEl) {
-          var svgData = new XMLSerializer().serializeToString( svgEl );
+          var svgClone = $(svgEl).clone();
+          var css = $('<style>').text(getCSSText());
+          svgClone.prepend(css);
+          var svgData = new XMLSerializer().serializeToString( svgClone[0] );
           return "data:image/svg+xml;base64,"
             + window.btoa(window.unescape(window.encodeURIComponent(svgData)));
         };
