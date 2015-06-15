@@ -114,14 +114,34 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     If we need to make a movable line, do so. In any event toggle whether its intercept is locked.
   */
   toggleInterceptLocked: function() {
-    if( SC.none( this.movableLine)) {
-      this.createMovableLine(); // Default is to be unlocked
+    var this_ = this;
+
+    function toggle() {
+      if( SC.none( this_.movableLine)) {
+        this_.createMovableLine(); // Default is to be unlocked
+      }
+      else {
+        this_.movableLine.toggleInterceptLocked();
+        this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
+      }
+      DG.logUser("lockIntercept: %@", this_.movableLine.get('isInterceptLocked'));
     }
-    else {
-      this.movableLine.toggleInterceptLocked();
-      this.movableLine.recomputeSlopeAndInterceptIfNeeded( this.get('xAxis'), this.get('yAxis'));
-    }
-    DG.logUser("lockIntercept: %@", this.movableLine.get('isInterceptLocked'));
+
+    var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleLockIntercept",
+      undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
+      redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
+      execute: function() {
+        this._undoData = this_.movableLine.createStorage();
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        this_.movableLine.restoreStorage(this._undoData);
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
