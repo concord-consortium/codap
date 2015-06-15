@@ -119,10 +119,9 @@ DG.NumericPlotModelMixin =
     });
     
     // Only animate if the bounds have changed
-    if( boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
-      if( iAnimatePoints)
-        DG.sounds.playMixup();
-        this.set('isAnimating', true);  // Signals view that axes are in new state and points
+    if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+      DG.sounds.playMixup();
+      this.set('isAnimating', true);    // Signals view that axes are in new state and points
                                         // can be animated to new coordinates
       // We'll go through both iPlaces and tOldBoundsArray in reverse order
       while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
