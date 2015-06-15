@@ -81,14 +81,33 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     If we need to make a movable line, do so. In any event toggle its visibility.
   */
   toggleMovableLine: function() {
-    if( SC.none( this.movableLine)) {
-      this.createMovableLine(); // Default is to be visible
+    var this_ = this;
+
+    function toggle() {
+      if( SC.none( this_.movableLine)) {
+        this_.createMovableLine(); // Default is to be visible
+      }
+      else {
+        this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
+        this_.movableLine.set('isVisible', !this_.movableLine.get('isVisible'));
+      }
+      DG.logUser("toggleMovableLine: %@", this_.movableLine.get('isVisible') ? "show" : "hide");
     }
-    else {
-      this.movableLine.recomputeSlopeAndInterceptIfNeeded( this.get('xAxis'), this.get('yAxis'));
-      this.movableLine.set('isVisible', !this.movableLine.get('isVisible'));
-    }
-    DG.logUser("toggleMovableLine: %@", this.movableLine.get('isVisible') ? "show" : "hide");
+
+    var willShow = !this.movableLine || !this.movableLine.get('isVisible');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleMovableLine",
+      undoString: (willShow ? 'DG.Undo.graph.showMovableLine' : 'DG.Undo.graph.hideMovableLine'),
+      redoString: (willShow ? 'DG.Redo.graph.showMovableLine' : 'DG.Redo.graph.hideMovableLine'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
@@ -109,28 +128,85 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     If we need to make a plotted function, do so. In any event toggle its visibility.
   */
   togglePlotFunction: function() {
-    this.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
-    if( this.isAdornmentVisible('plottedFunction')) {
-      var plottedFunction = this.getAdornmentModel('plottedFunction');
-      if( plottedFunction)
-        plottedFunction.set('dataConfiguration', this.get('dataConfiguration'));
+    var this_ = this;
+
+    function toggle() {
+      this_.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
+      if( this_.isAdornmentVisible('plottedFunction')) {
+        var plottedFunction = this_.getAdornmentModel('plottedFunction');
+        if( plottedFunction)
+          plottedFunction.set('dataConfiguration', this_.get('dataConfiguration'));
+      }
     }
+
+    var willShow = !this.isAdornmentVisible('plottedFunction');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.togglePlotFunction",
+      undoString: (willShow ? 'DG.Undo.graph.showPlotFunction' : 'DG.Undo.graph.hidePlotFunction'),
+      redoString: (willShow ? 'DG.Redo.graph.showPlotFunction' : 'DG.Redo.graph.hidePlotFunction'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     If we need to make a connecting line, do so. In any event toggle its visibility.
   */
   toggleConnectingLine: function() {
-    var tAdornModel = this.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
-    if( tAdornModel && tAdornModel.get('isVisible'))
-      tAdornModel.recomputeValue(); // initialize
+    var this_ = this;
+
+    function toggle() {
+      var tAdornModel = this_.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
+      if( tAdornModel && tAdornModel.get('isVisible'))
+        tAdornModel.recomputeValue(); // initialize
+    }
+
+    var willShow = !this.isAdornmentVisible('connectingLine');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleConnectingLine",
+      undoString: (willShow ? 'DG.Undo.graph.showConnectingLine' : 'DG.Undo.graph.hideConnectingLine'),
+      redoString: (willShow ? 'DG.Redo.graph.showConnectingLine' : 'DG.Redo.graph.hideConnectingLine'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     Convenience method for toggling Boolean property
   */
   toggleShowSquares: function() {
-    this.set('areSquaresVisible', !this.get('areSquaresVisible'));
+    var this_ = this;
+
+    function toggle() {
+      this_.set('areSquaresVisible', !this_.get('areSquaresVisible'));
+    }
+
+    var willShow = !this.get('areSquaresVisible');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleShowSquares",
+      undoString: (willShow ? 'DG.Undo.graph.showSquares' : 'DG.Undo.graph.hideSquares'),
+      redoString: (willShow ? 'DG.Redo.graph.showSquares' : 'DG.Redo.graph.hideSquares'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   handleDataConfigurationChange: function() {
