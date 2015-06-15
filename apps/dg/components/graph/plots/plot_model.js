@@ -181,41 +181,43 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     return !SC.none( this.plottedCount) && this.plottedCount.get('isVisible');
   }.property('plottedCount'),
 
-  triggerTogglePlottedCount: function() {
+  /**
+    If we need to make a count model, do so. In any event toggle its visibility.
+  */
+  togglePlottedCount: function() {
+    var this_ = this;
+
+    function toggle() {
+      if( SC.none( this_.plottedCount)) {
+        this_.beginPropertyChanges();
+          this_.set('plottedCount', DG.PlottedCountModel.create({plotModel: this_}));
+          this_.setAdornmentModel('plottedCount', this_.get('plottedCount')); // Add to list of adornments
+          this_.plottedCount.recomputeValue(); // initialize
+        this_.endPropertyChanges();  // Default is to be visible
+      }
+      else {
+        var tWantVisible = !this_.plottedCount.get('isVisible');
+        this_.plottedCount.set('isVisible', tWantVisible );
+      }
+      DG.logUser("togglePlottedCount: %@", this_.plottedCount.get('isVisible') ? "show" : "hide");
+    }
+
     var isShowCount = !this.plottedCount || !this.plottedCount.get('isVisible');
     DG.UndoHistory.execute(DG.Command.create({
       name: "graph.toggleCount",
       undoString: (isShowCount ? 'DG.Undo.graph.showcount' : 'DG.Undo.graph.hidecount'),
       redoString: (isShowCount ? 'DG.Redo.graph.showcount' : 'DG.Redo.graph.hidecount'),
       execute: function() {
-        this.togglePlottedCount();
+        toggle();
         DG.dirtyCurrentDocument();
       }.bind(this),
       undo: function() {
-        this.togglePlottedCount();
+        toggle();
         DG.dirtyCurrentDocument();
       }.bind(this),
     }));
   },
 
-  /**
-    If we need to make a count model, do so. In any event toggle its visibility.
-  */
-  togglePlottedCount: function() {
-    if( SC.none( this.plottedCount)) {
-      this.beginPropertyChanges();
-        this.set('plottedCount', DG.PlottedCountModel.create({plotModel: this}));
-        this.setAdornmentModel('plottedCount', this.get('plottedCount')); // Add to list of adornments
-        this.plottedCount.recomputeValue(); // initialize
-      this.endPropertyChanges();  // Default is to be visible
-    }
-    else {
-      var tWantVisible = !this.plottedCount.get('isVisible');
-      this.plottedCount.set('isVisible', tWantVisible );
-    }
-    DG.logUser("togglePlottedCount: %@", this.plottedCount.get('isVisible') ? "show" : "hide");
-  },
-  
   /**
     Initialization method
    */
@@ -449,7 +451,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
           'DG.PlotModel.hideCount' :
           'DG.PlotModel.showCount').loc();
     return [
-      { title:tShowHideCountTitle, target:this, itemAction:this.triggerTogglePlottedCount }
+      { title:tShowHideCountTitle, target:this, itemAction:this.togglePlottedCount }
     ];
   },
 
