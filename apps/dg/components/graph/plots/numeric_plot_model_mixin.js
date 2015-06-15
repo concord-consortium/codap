@@ -114,24 +114,45 @@ DG.NumericPlotModelMixin =
     if( SC.none( iAnimatePoints))
       iAnimatePoints = true;
 
-    iPlaces.forEach( function( iPlace) {
-      setNewBounds( iPlace, axisForPlace( iPlace));
-    });
-    
-    // Only animate if the bounds have changed
-    if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
-      DG.sounds.playMixup();
-      this.set('isAnimating', true);    // Signals view that axes are in new state and points
-                                        // can be animated to new coordinates
-      // We'll go through both iPlaces and tOldBoundsArray in reverse order
-      while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
-        setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'axis.rescaleFromData',
+      undoString: 'DG.Undo.axisRescaleFromData',
+      redoString: 'DG.Redo.axisRescaleFromData',
+      execute: function() {
+
+        iPlaces.forEach( function( iPlace) {
+          setNewBounds( iPlace, axisForPlace( iPlace));
+        });
+
+        this._undoData = tOldBoundsArray;
+        // Only animate if the bounds have changed
+        if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+          DG.sounds.playMixup();
+          this_.set('isAnimating', true);    // Signals view that axes are in new state and points
+                                            // can be animated to new coordinates
+          // We'll go through both iPlaces and tOldBoundsArray in reverse order
+          while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
+            setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+          }
+
+          if( SC.none( this_.plotAnimator))
+            this_.plotAnimator = DG.GraphAnimator.create( { plot: this_ });
+          this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this_, this_.onRescaleIsComplete);
+        }
+      },
+      undo: function() {
+        var command = this;
+        iPlaces.forEach( function( iPlace, i) {
+          var iAxis = axisForPlace( iPlace),
+              data  = command._undoData[i];
+          if (iAxis && data)
+            iAxis.setLowerAndUpperBounds( data.lower, data.upper);
+        });
+        this_.onRescaleIsComplete();
+
+        DG.dirtyCurrentDocument();
       }
-      
-      if( SC.none( this.plotAnimator))
-        this.plotAnimator = DG.GraphAnimator.create( { plot: this });
-      this.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this, this.onRescaleIsComplete);
-    }
+    }));
   },
 
     /**
