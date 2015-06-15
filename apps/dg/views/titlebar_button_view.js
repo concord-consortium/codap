@@ -98,9 +98,25 @@ DG.TitleBarButtonView = SC.ImageView.extend(
           this.closeIt();
         },
         closeIt: function() {
-          var tComponentView = this.parentView.viewToDrag(),
-            tContainerView = tComponentView.parentView;
-          tContainerView.removeComponentView( tComponentView);
+          var tComponent, tController,
+              tComponentView = this.parentView.viewToDrag();
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'component.close',
+            undoString: 'DG.Undo.component.close',
+            redoString: 'DG.Redo.component.close',
+            execute: function() {
+              var tContainerView = tComponentView.parentView;
+
+              tController = tComponentView.get('controller');
+              tController.willSaveComponent();
+              tComponent = tController.get('model');
+
+              tContainerView.removeComponentView( tComponentView);
+            }.bind(this),
+            undo: function() {
+              tComponentView = DG.currDocumentController().createComponentAndView(tComponent);
+            }
+          }));
         }
     };
   }()) // function closure
