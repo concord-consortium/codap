@@ -368,7 +368,8 @@ DG.DocumentController = SC.Object.extend(
     createComponentAndView: function( iComponent, iComponentType) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
-          didCreateComponent = true;
+          didCreateComponent = true,
+          tView = null;
 
       switch( type) {
       case 'DG.FlashView':  // For backward compatibility
@@ -377,40 +378,40 @@ DG.DocumentController = SC.Object.extend(
         // fallthrough intentional
         /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
       case 'DG.GameView':
-        this.addGame( docView, iComponent);
+        tView = this.addGame( docView, iComponent);
         break;
-        case 'DG.TableView':
+      case 'DG.TableView':
         // If there is no component, we are creating new components.
         // We currently create case tables for each context, rather than creating
         // them on a context-by-context basis. This may change, for now this means
           // if we are asked to create *a* case table we will create all case
           // tables.
         if (iComponent) {
-          this.addCaseTable(docView, iComponent);
+          tView = this.addCaseTable(docView, iComponent);
         } else {
           this.openCaseTablesForEachContext( );
         }
         break;
       case 'DG.GraphView':
-        this.addGraph( docView, iComponent);
+        tView = this.addGraph( docView, iComponent);
         break;
       case 'DG.SliderView':
-        this.addSlider( docView, iComponent);
+        tView = this.addSlider( docView, iComponent);
         break;
       case 'DG.Calculator':
-        this.addCalculator( docView, iComponent);
+        tView = this.addCalculator( docView, iComponent);
         break;
       case 'DG.TextView':
-        this.addText( docView, iComponent);
+        tView = this.addText( docView, iComponent);
         break;
       case 'DG.MapView':
-        this.addMap( docView, iComponent);
+        tView = this.addMap( docView, iComponent);
         break;
       case 'SC.WebView':
-        this.addWebView( docView, iComponent);
+        tView = this.addWebView( docView, iComponent);
         break;
       case 'DG.GuideView':
-        this.addGuideView( docView, iComponent);
+        tView = this.addGuideView( docView, iComponent);
         break;
       default:
         didCreateComponent = false;
@@ -422,6 +423,8 @@ DG.DocumentController = SC.Object.extend(
 
       if( didCreateComponent)
         DG.dirtyCurrentDocument();
+
+      return tView;
     },
 
     /**
