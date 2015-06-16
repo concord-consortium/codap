@@ -90,14 +90,39 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     @param    {String}    iToggleLogString -- Name of action logged to server
    */
   toggleAverage: function( iAdornmentKey, iToggleLogString ) {
-    var avg = this.toggleAdornmentVisibility( iAdornmentKey, iToggleLogString );
-    if( avg ) {
-      if( avg.get('isVisible')) {
-        avg.recomputeValue();     // initialize
-      } else {
-        avg.setComputingNeeded(); // make sure we recompute when made visible again
+    var this_ = this;
+
+    function toggle() {
+      var avg = this_.toggleAdornmentVisibility( iAdornmentKey, iToggleLogString );
+      if( avg ) {
+        if( avg.get('isVisible')) {
+          avg.recomputeValue();     // initialize
+        } else {
+          avg.setComputingNeeded(); // make sure we recompute when made visible again
+        }
       }
+      return !avg || avg.get('isVisible');
     }
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph."+iToggleLogString,  // e.g. graph.togglePlottedMean
+      undoString: null,
+      execute: function() {
+        var wasShown = toggle(),
+
+            verb     = wasShown ? "show" : "hide",
+            action   = iToggleLogString.replace("toggle", verb);
+
+        this.set('undoString', 'DG.Undo.graph.'+action); // e.g. DG.Undo.graph.showPlottedMean
+        this.set('redoString', 'DG.Redo.graph.'+action);
+
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+    }));
   },
 
   /**
