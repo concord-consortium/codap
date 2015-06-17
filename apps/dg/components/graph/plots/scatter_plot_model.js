@@ -284,7 +284,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     return [
         { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
             target: this_, itemAction: this_.rescaleAxesFromData,
-            args: [ true /* allowAxisRescale */, false /* No need to animate points independently */,
+            args: [ true /* allowAxisRescale */, true /* Animate action */,
                     true /* log it */]},
         { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
         { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
