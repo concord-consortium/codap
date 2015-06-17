@@ -273,7 +273,7 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         tMenu1 = [
               { title: tRescaleItem, target: this, itemAction: this.rescaleAxesFromData,
                   args: [ true /* allowAxisRescale */,
-                          false /* No need to animate points independently */,
+                          true /* Animate action */,
                           true /* log it */]},
               { title: tMovableValueItem, target: this, itemAction: this.toggleMovableValue },
               { title: tPlotValueItem, target: this, itemAction: this.togglePlotValue }
