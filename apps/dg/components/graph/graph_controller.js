@@ -222,10 +222,9 @@ DG.GraphController = DG.DataDisplayController.extend(
                 },
                 iAxis.get('orientation'));
             DG.dirtyCurrentDocument();
-
-            _afterData = this.createComponentStorage();
           }.bind(this),
           undo: function() {
+            _afterData = this.createComponentStorage();
             this.restoreComponentStorage(_beforeData);
             DG.dirtyCurrentDocument();
           }.bind(this),
