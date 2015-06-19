@@ -246,11 +246,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     @param{Boolean} Default is true
     @param{Boolean} Default is false
   */
-  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt) {
+  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt, isUserAction) {
     if( iAnimatePoints === undefined)
       iAnimatePoints = true;
     this.doRescaleAxesFromData( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY, DG.GraphTypes.EPlace.eY2],
-                                iAllowScaleShrinkage, iAnimatePoints);
+                                iAllowScaleShrinkage, iAnimatePoints, isUserAction);
     if( iLogIt)
       DG.logUser("rescaleScatterplot");
   },
@@ -285,7 +285,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
             target: this_, itemAction: this_.rescaleAxesFromData,
             args: [ true /* allowAxisRescale */, true /* Animate action */,
-                    true /* log it */]},
+                    true /* log it */, true /* user action */]},
         { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
         { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
         { title: tInterceptLockedItem, target: this_, itemAction: this.toggleInterceptLocked,

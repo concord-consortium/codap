@@ -57,7 +57,7 @@ DG.NumericPlotModelMixin =
     @param{Boolean} Default is false
     @param{Boolean} Default is true
   */
-  doRescaleAxesFromData: function( iPlaces, iAllowScaleShrinkage, iAnimatePoints) {
+  doRescaleAxesFromData: function( iPlaces, iAllowScaleShrinkage, iAnimatePoints, iUserAction) {
     var this_ = this,
       tAxisInfoArray = [],
       tOldBoundsArray = [];
@@ -118,6 +118,7 @@ DG.NumericPlotModelMixin =
       name: 'axis.rescaleFromData',
       undoString: 'DG.Undo.axisRescaleFromData',
       redoString: 'DG.Redo.axisRescaleFromData',
+      causedChange: iUserAction,        // if this was not triggered by user, don't add to undo stack
       execute: function() {
 
         iPlaces.forEach( function( iPlace) {
