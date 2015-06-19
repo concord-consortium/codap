@@ -310,6 +310,7 @@ SC.stringsFor('English', {
   'DG.Undo.textComponent.create': "Undo adding text object",
   'DG.Undo.sliderComponent.create': "Undo adding a slider",
   'DG.Undo.graphComponent.create': "Undo adding a graph",
+  'DG.Undo.data.deleteCases': "Undo deleting cases",
 
   'DG.Redo.exceptionOccurred': "An error occurred while trying to redo.",
   'DG.Redo.componentMove': "Redo moving the component",
@@ -348,6 +349,7 @@ SC.stringsFor('English', {
   'DG.Redo.textComponent.create': "Redo adding text object",
   'DG.Redo.sliderComponent.create': "Redo adding a slider",
   'DG.Redo.graphComponent.create': "Redo adding a graph",
+  'DG.Redo.data.deleteCases': "Redo deleting cases",
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",
