@@ -762,8 +762,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   /**
     Synchronizes the number of table rows with the number of cases.
     Tries to do so efficiently, but has to rebuild the table in some cases.
+
+    @param  {Boolean} Whether to force a re-indexing of the rows
    */
-  updateRowCount: function() {
+  updateRowCount: function( forceRedraw) {
     var adapter = this.get('gridAdapter'),
         handled = false;
 
@@ -772,7 +774,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if( adapter)
       handled = adapter.updateRowCount();
     
-    if( handled) {
+    if( handled && !forceRedraw) {
       // Simple append
       this._slickGrid.updateRowCount();
       this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength());

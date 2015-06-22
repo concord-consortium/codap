@@ -337,11 +337,13 @@ DG.HierTableView = SC.SplitView.extend( (function() {
 
   /**
     Updates the row count for each subtable view.
+
+    @param  {Boolean} Whether to force a re-indexing of the rows
    */
-  updateRowCount: function() {
+  updateRowCount: function( forceRedraw) {
     var childTableViews = this.get('childTableViews') || [];
     childTableViews.forEach( function( iTableView) {
-                                iTableView.updateRowCount();
+                                iTableView.updateRowCount( forceRedraw);
                             });
   },
   
