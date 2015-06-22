@@ -316,6 +316,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var css = $('<style>').text(getCSSText());
           svgClone.prepend(css);
           var svgData = new XMLSerializer().serializeToString( svgClone[0] );
+          // The use of unescape and encodeURIComponent are part of a well-
+          // known hack work around btoa's handling of unicode characters.
+          // see, eg:
+          // http://ecmanaut.blogspot.com/2006/07/encoding-decoding-utf8-in-javascript.html
           return "data:image/svg+xml;base64,"
             + window.btoa(window.unescape(window.encodeURIComponent(svgData)));
         };
