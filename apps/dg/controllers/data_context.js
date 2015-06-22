@@ -556,7 +556,12 @@ DG.DataContext = SC.Object.extend((function() // closure
       // We store the set of deleted cases for later undoing.
       // We need to store the values separately, because when iCase.destroy is called
       // on the case, the values map is deleted
-      deletedCases.push( {case: iCase, values: iCase._valuesMap});
+      // We also store the original index separately
+      deletedCases.push( {
+        case: iCase,
+        values: iCase._valuesMap,
+        index: iCase.collection.caseIDToIndexMap[iCase.get("id")]
+      });
 
       tCollection.deleteCase( iCase);
       // keep track of the affected collections
@@ -586,6 +591,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         for (var i = this._undoData.length - 1; i >= 0; i--) {
           var oldCase       = this._undoData[i].case,
               oldValuesMap  = this._undoData[i].values,
+              oldIndex      = this._undoData[i].index,
               values        = [],
               iChange;
 
@@ -600,7 +606,8 @@ DG.DataContext = SC.Object.extend((function() // closure
             operation: "createCase",
             properties: {
               collection: oldCase.collection,
-              parent: oldCase.parent
+              parent: oldCase.parent,
+              index: oldIndex
             },
             values: values,
             collection: this_.getCollectionForCase(oldCase)
