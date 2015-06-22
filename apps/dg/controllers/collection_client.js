@@ -433,6 +433,11 @@ DG.CollectionClient = SC.Object.extend(
   
   /**
     Creates a new case with the specified initial properties.
+
+    If the properties object contains an `index` property, the new case will
+    be inserted at the appropriate index. Otherwise, it will be added to
+    the end of the cases array.
+
     @param    {Object}    iProperties -- Initial properties for the newly-created DG.Case
     @returns  {DG.Case}   The newly-created DG.Case object
    */

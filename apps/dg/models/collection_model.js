@@ -111,6 +111,11 @@ DG.Collection = SC.Object.extend(
 
   /**
    * Creates a new case in this collection with the specified properties.
+   *
+   * If the properties object contains an `index` property, the new case will
+   * be inserted at the appropriate index. Otherwise, it will be added to
+   * the end of the cases array.
+   *
    * @param   {Object}  Properties of the newly created case
    * @returns {DG.Case}
    */
@@ -118,21 +123,50 @@ DG.Collection = SC.Object.extend(
     iProperties = iProperties || {};
     // Relate it to its parent collection
     iProperties.collection = this.collectionRecord;
-    
-    var newCase = DG.Case.createCase( iProperties),
-        newCaseID = newCase.get('id'),
-        parentID = newCase.getPath('parent.id'),
+
+    var newCase = DG.Case.createCase( iProperties);
+
+    if ( SC.none(iProperties.index)) {
+      this.addCase(newCase);
+    } else {
+      this.insertCase(newCase, iProperties.index);
+    }
+
+    return newCase;
+  },
+
+  /**
+   * Adds a new case to the collection.
+
+   * @param   {DG.Case}  The newly created case
+   */
+  addCase: function( iCase) {
+    var caseID = iCase.get('id'),
+        parentID = iCase.getPath('parent.id'),
         caseIDToIndexMap = this.collectionRecord.get('caseIDToIndexMap'),
         caseCounts = this.collectionRecord.get('caseCounts');
     if( SC.none(caseCounts[parentID])) {
       caseCounts[parentID] = 0;
     }
-    caseIDToIndexMap[newCaseID] = caseCounts[parentID]++;
-    this.casesRecords.pushObject(newCase);
-    //this.updateCaseIDToIndexMap();
-    return newCase;
+
+    caseIDToIndexMap[caseID] = caseCounts[parentID]++;
+    this.casesRecords.pushObject(iCase);
   },
-  
+
+  /**
+   * Inserts a new case to the collection, at the specified location.
+   *
+   * Any views of this collection should render the case as if it had been created
+   * at that point in the history.
+   *
+   * @param   {DG.Case}  The newly created case
+   * @param   {Integer}  The index at which the case will be inserted
+   */
+  insertCase: function( iCase, idx) {
+    this.casesRecords.insertAt(idx, iCase);
+    this.updateCaseIDToIndexMap();
+  },
+
   /**
    * Deletes the specified case from this collection.
    * Clients should call updateCaseIDToIndexMap() after deleting cases.
