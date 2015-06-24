@@ -1055,6 +1055,39 @@ DG.GameController = DG.ComponentController.extend(
     },
 
     /**
+      Saves the current state of the DataInteractive (if the DataInteractive supports this).
+
+      This should be assumed to be asynchronous, as it will generally use iFramePhone,
+      although it's possible for it to return synchronously.
+
+      @param {Function} callback     A function which will be called with a results object:
+                                     {success: bool, state: state}
+    */
+    saveGameState: function(callback) {
+      var doAppCommandFunc = this.get('doCommandFunc'),
+          saveCommand = { operation: "saveState" },
+          tGameElement = this.findCurrentGameElement( this.get('gameEmbedID')),
+          result;
+
+      if ( doAppCommandFunc ) {
+        // for JavaScript games we can call directly with Objects as arguments
+        result = doAppCommandFunc(saveCommand);
+        callback(result);
+      } else if (tGameElement && tGameElement.doCommandFunc ) {
+        result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
+        if (typeof result === 'string') {
+          result = JSON.parse(result);
+        }
+        callback(result);
+      } else if (this.get('isGamePhoneInUse')) {
+        // async path
+        this.gamePhone.call(saveCommand, callback);
+      } else {
+        callback({success:false});
+      }
+    },
+
+    /**
      *  Returns an object that should be stored with the document when the document is saved.
      *  @returns  {Object}  An object whose properties should be stored with the document.
      */
