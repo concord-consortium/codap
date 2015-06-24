@@ -60,7 +60,7 @@ DG.main = function main() {
           && !documentLoaded
           && SC.empty(DG.startingDocName)
           && SC.empty(DG.startingDocId)
-          && SC.empty(DG.runKey)) {
+      ) {
         DG.userEntryController.setup(); // Create the user entry dialog.
         DG.splash.removeObserver('isShowing', splashChanged);
       }
