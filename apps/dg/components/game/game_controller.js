@@ -1087,6 +1087,12 @@ DG.GameController = DG.ComponentController.extend(
       }
     },
 
+    restoreGameState: function(state) {
+      if (this.get('context')) {
+        this.get('context').restoreFromStorage(state);
+      }
+    },
+
     /**
      *  Returns an object that should be stored with the document when the document is saved.
      *  @returns  {Object}  An object whose properties should be stored with the document.

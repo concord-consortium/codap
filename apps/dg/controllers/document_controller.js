@@ -1067,7 +1067,7 @@ DG.DocumentController = SC.Object.extend(
       });
       return tResults;
     },
-    removeComponentAssociatedWithView: function( iComponentView) {
+    removeComponentAssociatedWithView: function( iComponentView, iSkipDirtyingDocument) {
       var tController = null,
           tComponentID = DG.ObjectMap.findKey( this.componentControllersMap,
                                                 function( iComponentID, iController) {
@@ -1095,8 +1095,12 @@ DG.DocumentController = SC.Object.extend(
           tController.set('model', null);
           tController.set('view', null);
         }
-        // Closing a component should dirty the document.
-        DG.dirtyCurrentDocument();
+
+        // Closing a component should generally dirty the document, unless
+        // we're explicitly chosing not to
+        if (!iSkipDirtyingDocument) {
+          DG.dirtyCurrentDocument();
+        }
       }
       // the view will be destroyed elsewhere
     },

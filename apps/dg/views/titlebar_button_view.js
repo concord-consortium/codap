@@ -99,7 +99,8 @@ DG.TitleBarButtonView = SC.ImageView.extend(
         },
         closeIt: function() {
           var tComponent, tController,
-              tComponentView = this.parentView.viewToDrag();
+              tComponentView = this.parentView.viewToDrag(),
+              tState;
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
@@ -111,10 +112,26 @@ DG.TitleBarButtonView = SC.ImageView.extend(
               tController.willSaveComponent();
               tComponent = tController.get('model');
 
-              tContainerView.removeComponentView( tComponentView);
-            }.bind(this),
+              if (tController.saveGameState) {
+                // If we are a GameController, try to save state.
+                // Since this is an asynchronous operation, we have to hold off closing the component
+                // until it is complete (or it will fail).
+                // Also, since closing the document will happen after this command executes, dirtying the
+                // document will clear the undo history, so we must force it not to dirty.
+                tController.saveGameState(function(result) {
+                  tState = result.state;
+                  tContainerView.removeComponentView( tComponentView, true);
+                });
+              } else {
+                tContainerView.removeComponentView( tComponentView);
+              }
+            },
             undo: function() {
               tComponentView = DG.currDocumentController().createComponentAndView(tComponent);
+
+              if (tController.restoreGameState && tState) {
+                tController.restoreGameState({gameState: tState});
+              }
             }
           }));
         }
