@@ -1,8 +1,8 @@
 // ==========================================================================
 //                        DG.DocumentController
-//  
+//
 //  A controller for a single document.
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -1363,57 +1363,32 @@ DG.DocumentController = SC.Object.extend(
     },
     /**
      Saves the current state of the current game into the 'savedGameState'
-     property of the current game's context. Uses the 'doCommandFunc' property
-     passed by the game as part of the 'initGame' command.
+     property of the current game's context.
 
      @param {function} done A callback.
      */
     saveCurrentGameState: function(done) {
-
-
       var gameControllers = this.get('dataInteractives'),
           promises = [];
       if (gameControllers) {
         gameControllers.forEach(function (gameController) {
           var gameContext = gameController.get('context'),
-            doAppCommandFunc = gameController.get('doCommandFunc'),
-            saveCommand = { operation: "saveState" },
-            tGameElement = gameController.findCurrentGameElement( gameController.get('gameEmbedID')),
-            result;
+              result;
+
           // create an array of promises, one for each data interactive.
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if( gameContext) {
-                if( doAppCommandFunc ) {
-                  // for JavaScript games we can call directly with Objects as arguments
-                  result = doAppCommandFunc(saveCommand);
+              if( gameContext && gameController.saveGameState) {
+                gameController.saveGameState(function(result) {
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
+                  } else {
+                    DG.logWarn("No channel to Data Interactive: " + gameContext.get('gameName'));
+                    result = {success:false};
                   }
                   resolve(result);
-                } else if (tGameElement && tGameElement.doCommandFunc ) {
-                  result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
-                  if (typeof result === 'string') {
-                    result = JSON.parse(result);
-                  }
-                  if (result && result.success) {
-                    gameContext.set('savedGameState', result.state);
-                  }
-                  resolve(result);
-                } else if (gameController.get('isGamePhoneInUse')) {
-                  // async path
-                  gameController.gamePhone.call(saveCommand, function(result) {
-                    if( result && result.success) {
-                      gameContext.set('savedGameState', result.state);
-                    }
-                    resolve(result);
-                  });
-                } else {
-                  DG.logWarn("No channel to Data Interactive: " +
-                  gameContext.get('gameName'));
-                  resolve({success:false});
-                }
+                });
               } else {
                 // This would occur if there is no means of communicating with
                 // a data interactive. We immediately resolve.
