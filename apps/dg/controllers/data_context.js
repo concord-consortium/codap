@@ -540,6 +540,10 @@ DG.DataContext = SC.Object.extend((function() // closure
     iChange.collectionIDs = {};
   
     var deleteCaseAndChildren = function( iCase) {
+      if (iCase.get("isDestroyed"))
+        // case has already been destroyed. (Happens when we select parents and children and delete all)
+        return;
+
       var tChildren= iCase.get('children'), ix;
       // we remove children in reverse order because removal from this list
       // is immediate and would otherwise corrupt the list.
