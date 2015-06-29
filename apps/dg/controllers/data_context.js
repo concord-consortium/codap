@@ -592,12 +592,16 @@ DG.DataContext = SC.Object.extend((function() // closure
         DG.dirtyCurrentDocument();
       },
       undo: function() {
+        var oldCaseToNewCaseMap = {};
+
         for (var i = this._undoData.length - 1; i >= 0; i--) {
           var oldCase       = this._undoData[i].case,
               oldValuesMap  = this._undoData[i].values,
               oldIndex      = this._undoData[i].index,
+              oldCollection = this_.getCollectionForCase(oldCase),
+              parent        = oldCase.parent,
               values        = [],
-              iChange;
+              parent, iChange, result;
 
           // Case-creation expects an array of values, which later gets changed into a map.
           // We need to go backwards to make an array from the original case's map
@@ -605,22 +609,33 @@ DG.DataContext = SC.Object.extend((function() // closure
             values.push(value);
           });
 
+          // If we have deleted and then re-created the parent, we need to find the new one
+          if (parent && oldCaseToNewCaseMap[parent]) {
+            parent = oldCaseToNewCaseMap[parent];
+          }
+
           // Create the change object that will re-insert a new case identical to the old deleted case
           iChange = {
             operation: "createCase",
             properties: {
               collection: oldCase.collection,
-              parent: oldCase.parent,
+              parent: parent,
               index: oldIndex
             },
             values: values,
-            collection: this_.getCollectionForCase(oldCase)
+            collection: oldCollection
 
           }
 
           // We need to go all the way back to the applyChange method, instead of shortcutting to
           // the doCreateCases method, in order to trigger all the necessary observers
-          this_.applyChange( iChange);
+          result = this_.applyChange( iChange);
+          if (oldCollection.collection) {
+            var cases = oldCollection.collection.casesRecords.filterProperty("id", result.caseID);
+            if (cases.length) {
+              oldCaseToNewCaseMap[oldCase.toString()] = cases[0];
+            }
+          }
         }
 
         DG.dirtyCurrentDocument();
