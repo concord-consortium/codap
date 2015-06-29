@@ -119,7 +119,9 @@ DG.TitleBarButtonView = SC.ImageView.extend(
                 // Also, since closing the document will happen after this command executes, dirtying the
                 // document will clear the undo history, so we must force it not to dirty.
                 tController.saveGameState(function(result) {
-                  tState = result.state;
+                  if (result && result.success) {
+                    tState = result.state;
+                  }
                   tContainerView.removeComponentView( tComponentView, true);
                 });
               } else {
