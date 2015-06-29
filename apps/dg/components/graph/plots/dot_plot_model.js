@@ -188,11 +188,12 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     @param{Boolean} Default is false
     @param{Boolean} Default is true
     @param{Boolean} Default is false
+    @param{Boolean} Default is false
   */
-  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt) {
+  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt, iUserAction) {
     if( iAnimatePoints === undefined)
       iAnimatePoints = true;
-    this.doRescaleAxesFromData( [ this.get('primaryAxisPlace')], iAllowScaleShrinkage, iAnimatePoints);
+    this.doRescaleAxesFromData( [ this.get('primaryAxisPlace')], iAllowScaleShrinkage, iAnimatePoints, iUserAction);
     if( iLogIt)
       DG.logUser("rescaleDotPlot");
   },
