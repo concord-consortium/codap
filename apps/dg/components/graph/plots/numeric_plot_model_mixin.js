@@ -125,7 +125,9 @@ DG.NumericPlotModelMixin =
           setNewBounds( iPlace, axisForPlace( iPlace));
         });
 
-        this._undoData = tOldBoundsArray;
+        // we store clones of the data, because if/when we animate, the two arrays we need are emptied
+        this._undoData = { bounds: tOldBoundsArray.slice(), places: iPlaces.slice() };
+
         // Only animate if the bounds have changed
         if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
           DG.sounds.playMixup();
@@ -142,14 +144,15 @@ DG.NumericPlotModelMixin =
         }
       },
       undo: function() {
-        var command = this;
-        iPlaces.forEach( function( iPlace, i) {
-          var iAxis = axisForPlace( iPlace),
-              data  = command._undoData[i];
-          if (iAxis && data)
-            iAxis.setLowerAndUpperBounds( data.lower, data.upper);
-        });
-        this_.onRescaleIsComplete();
+        if (this._undoData) {
+          this._undoData.places.forEach( function( iPlace, i) {
+            var iAxis = axisForPlace( iPlace),
+                data  = this._undoData.bounds[i];
+            if (iAxis && data)
+              iAxis.setLowerAndUpperBounds( data.lower, data.upper);
+          }.bind(this));
+          this_.onRescaleIsComplete();
+        }
 
         DG.dirtyCurrentDocument();
       }
