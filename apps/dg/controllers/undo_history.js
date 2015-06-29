@@ -31,6 +31,9 @@
 DG.UndoHistory = SC.Object.create((function() {
 /** @scope DG.UndoHistory.prototype */
   return {
+
+    enabledBinding: SC.Binding.oneWay('DG.enableUndoHistory'),
+
     /** @private
       A list of commands available to be undone. The last item in the array is the next item
       to be undone. This makes it easy to use pop() when undoing things and push() to add new commands on.
@@ -109,7 +112,7 @@ DG.UndoHistory = SC.Object.create((function() {
     undo: function() {
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to undo outside of this function, we'll just double-check here.
-      if (this._undoStack.length === 0) {
+      if (!this.get('enabled') || this._undoStack.length === 0) {
         return;
       }
       var command = this._undoStack.pop();
@@ -160,7 +163,7 @@ DG.UndoHistory = SC.Object.create((function() {
     redo: function() {
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to redo outside of this function, we'll just double-check here.
-      if (this._redoStack.length === 0) {
+      if (!this.get('enabled') || this._redoStack.length === 0) {
         return;
       }
       var command = this._redoStack.pop();

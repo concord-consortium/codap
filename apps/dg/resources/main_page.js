@@ -134,7 +134,8 @@ DG.mainPage = SC.Page.design((function() {
         target: 'DG.UndoHistory',
         action: 'undo',
         nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
-        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo')
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
+        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled')
       }),
 
       redoButton: SC.ButtonView.design({
@@ -149,7 +150,8 @@ DG.mainPage = SC.Page.design((function() {
         target: 'DG.UndoHistory',
         action: 'redo',
         nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
-        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo')
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
+        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled')
       }),
 
       logoutButton: SC.ButtonView.design({
