@@ -227,6 +227,23 @@ DG.FormulaContext = SC.Object.extend( (function() {
     },
 
     /**
+      Returns the great circle distance between the two lat/long points on the earth's surface.
+      @param    {Number}  The latitude in degrees of the first point
+      @param    {Number}  The longitude in degrees of the first point
+      @param    {Number}  The latitude in degrees of the second point
+      @param    {Number}  The longitude in degrees of the second point
+      @returns  {Number}  The distance in kilometers between the two points
+     */
+    'greatCircleDistance': function(lat1, long1, lat2, long2) {
+    	var deltaLat = lat2 - lat1,
+    		deltaLong = long2 - long1,
+    		a = Math.pow(Math.sin((Math.PI / 180) * deltaLat/2), 2) + 
+    			Math.cos(lat1 * Math.PI / 180) * Math.cos (lat2 * Math.PI / 180) * 
+    				Math.pow(Math.sin((Math.PI / 180) * deltaLong/2), 2);
+    	return 6371*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    },
+
+    /**
       Returns a string treating the argument as seconds in an epoch
       @param    {Number}  A number of seconds in the epoch beginning Jan 1, 1970
       @returns  {String}  A date
@@ -288,6 +305,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     'round': { min:1, max:2 },
     'string': { min:1, max:1 },
     'trunc': { min:1, max:1 },
+    'greatCircleDistance': { min:4, max:4 },
     'secondsToDate': { min:1, max:1 },
     'month': { min:1, max:1 }
   },

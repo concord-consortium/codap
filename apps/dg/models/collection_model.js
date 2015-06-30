@@ -124,7 +124,7 @@ DG.Collection = SC.Object.extend(
         parentID = newCase.getPath('parent.id'),
         caseIDToIndexMap = this.collectionRecord.get('caseIDToIndexMap'),
         caseCounts = this.collectionRecord.get('caseCounts');
-    if( caseCounts[parentID] === null) {
+    if( SC.none(caseCounts[parentID])) {
       caseCounts[parentID] = 0;
     }
     caseIDToIndexMap[newCaseID] = caseCounts[parentID]++;
@@ -181,7 +181,7 @@ DG.Collection = SC.Object.extend(
                       if( !iCase.get('isDestroyed')) {
                         var caseID = iCase.get('id'),
                             parentID = iCase.getPath('parent.id');
-                        if( caseIndices[parentID] == null)
+                        if( SC.none(caseIndices[parentID]))
                           caseIndices[parentID] = 0;
                         map[caseID] = caseIndices[parentID]++;
                       }

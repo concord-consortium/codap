@@ -78,7 +78,9 @@ DG.MapGridLayer = SC.Object.extend(
             tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count));
             SC.Timer.schedule( { target: this,
               action: function() {
-                if( tPopup)
+                // Note the funky check for _map. We have to do this because the grid size slider dragging can
+                // be over the grid rectangles and the rectangles may not yet be assigned a map.
+                if( tPopup && tRectangles[ tLocalIndex]._map)
                   tRectangles[ tLocalIndex].bindPopup( tPopup).openPopup();
               },
               interval: 500 });

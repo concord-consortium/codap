@@ -205,7 +205,7 @@ DG.DocumentArchiver = SC.Object.extend(
     function parseText() {
       var tValuesArray,
         tCollectionRow,
-        tChildName = 'children',// Child Collection Name: should be first
+        tChildName = 'cases',// Child Collection Name: should be first
                                 // line of CSV
         tAttrNamesRow,// Column Header Names: should be second row
         tDoc = {

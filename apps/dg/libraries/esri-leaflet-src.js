@@ -1,11 +1,23 @@
-/*! Esri-Leaflet - v0.0.1-beta.5 - 2014-06-17
-*   Copyright (c) 2014 Environmental Systems Research Institute, Inc.
+/*! esri-leaflet - v1.0.0-rc.8 - 2015-06-01
+*   Copyright (c) 2015 Environmental Systems Research Institute, Inc.
 *   Apache License*/
+(function (factory) {
+  //define an AMD module that relies on 'leaflet'
+  if (typeof define === 'function' && define.amd) {
+    define(['leaflet'], function (L) {
+      return factory(L);
+    });
+  //define a common js module that relies on 'leaflet'
+  } else if (typeof module === 'object' && typeof module.exports === 'object') {
+    module.exports = factory(require('leaflet'));
+  }
 
-  sc_require('libraries/leaflet-src');
-
-  L.esri = {
-  VERSION: '0.0.1-beta.5',
+  if(typeof window !== 'undefined' && window.L){
+    factory(window.L);
+  }
+}(function (L) {
+var EsriLeaflet = { //jshint ignore:line
+  VERSION: '1.0.0-rc.8',
   Layers: {},
   Services: {},
   Controls: {},
@@ -16,7 +28,20 @@
     pointerEvents: document.documentElement.style.pointerEvents === ''
   }
 };
-(function(L){
+
+if(typeof window !== 'undefined' && window.L){
+  window.L.esri = EsriLeaflet;
+}
+
+
+(function(EsriLeaflet){
+
+  // normalize request animation frame
+  var raf = window.requestAnimationFrame ||
+     window.webkitRequestAnimationFrame ||
+     window.mozRequestAnimationFrame ||
+     window.msRequestAnimationFrame ||
+     function(cb) { return window.setTimeout(cb, 1000 / 60); };
 
   // shallow object clone for feature properties and attributes
   // from http://jsperf.com/cloning-an-object/2
@@ -30,14 +55,6 @@
     return target;
   }
 
-  // checks if the first and last points of a ring are equal and closes the ring
-  function closeRing(coordinates) {
-    if (!pointsEqual(coordinates[0], coordinates[coordinates.length - 1])) {
-      coordinates.push(coordinates[0]);
-    }
-    return coordinates;
-  }
-
   // checks if 2 x,y points are equal
   function pointsEqual(a, b) {
     for (var i = 0; i < a.length; i++) {
@@ -48,6 +65,13 @@
     return true;
   }
 
+  // checks if the first and last points of a ring are equal and closes the ring
+  function closeRing(coordinates) {
+    if (!pointsEqual(coordinates[0], coordinates[coordinates.length - 1])) {
+      coordinates.push(coordinates[0]);
+    }
+    return coordinates;
+  }
 
   // determine if polygon ring coordinates are clockwise. clockwise signifies outer ring, counter-clockwise an inner ring
   // or hole. this logic was found at http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-
@@ -125,6 +149,9 @@
   function convertRingsToGeoJSON(rings){
     var outerRings = [];
     var holes = [];
+    var x; // iterator
+    var outerRing; // current outer ring being evaluated
+    var hole; // current hole being evaluated
 
     // for each ring
     for (var r = 0; r < rings.length; r++) {
@@ -141,30 +168,51 @@
       }
     }
 
+    var uncontainedHoles = [];
+
     // while there are holes left...
     while(holes.length){
       // pop a hole off out stack
-      var hole = holes.pop();
-      var matched = false;
+      hole = holes.pop();
 
       // loop over all outer rings and see if they contain our hole.
-      for (var x = outerRings.length - 1; x >= 0; x--) {
-        var outerRing = outerRings[x][0];
+      var contained = false;
+      for (x = outerRings.length - 1; x >= 0; x--) {
+        outerRing = outerRings[x][0];
         if(coordinatesContainCoordinates(outerRing, hole)){
           // the hole is contained push it into our polygon
           outerRings[x].push(hole);
-
-          // we matched the hole
-          matched = true;
-
-          // stop checking to see if other outer rings contian this hole
+          contained = true;
           break;
         }
       }
 
-      // no outer rings contain this hole turn it into and outer ring (reverse it)
-      if(!matched){
-        outerRings.push([ hole.reverse() ]);
+      // ring is not contained in any outer ring
+      // sometimes this happens https://github.com/Esri/esri-leaflet/issues/320
+      if(!contained){
+        uncontainedHoles.push(hole);
+      }
+    }
+
+    // if we couldn't match any holes using contains we can try intersects...
+    while(uncontainedHoles.length){
+      // pop a hole off out stack
+      hole = uncontainedHoles.pop();
+
+      // loop over all outer rings and see if any intersect our hole.
+      var intersects = false;
+      for (x = outerRings.length - 1; x >= 0; x--) {
+        outerRing = outerRings[x][0];
+        if(arrayIntersectsArray(outerRing, hole)){
+          // the hole is contained push it into our polygon
+          outerRings[x].push(hole);
+          intersects = true;
+          break;
+        }
+      }
+
+      if(!intersects) {
+        outerRings.push([hole.reverse()]);
       }
     }
 
@@ -224,14 +272,15 @@
   }
 
   // convert an extent (ArcGIS) to LatLngBounds (Leaflet)
-  L.esri.Util.extentToBounds = function(extent){
+  EsriLeaflet.Util.extentToBounds = function(extent){
     var sw = new L.LatLng(extent.ymin, extent.xmin);
     var ne = new L.LatLng(extent.ymax, extent.xmax);
     return new L.LatLngBounds(sw, ne);
   };
 
   // convert an LatLngBounds (Leaflet) to extent (ArcGIS)
-  L.esri.Util.boundsToExtent = function(bounds) {
+  EsriLeaflet.Util.boundsToExtent = function(bounds) {
+    bounds = L.latLngBounds(bounds);
     return {
       'xmin': bounds.getSouthWest().lng,
       'ymin': bounds.getSouthWest().lat,
@@ -243,7 +292,7 @@
     };
   };
 
-  L.esri.Util.arcgisToGeojson = function (arcgis, idAttribute){
+  EsriLeaflet.Util.arcgisToGeojson = function (arcgis, idAttribute){
     var geojson = {};
 
     if(typeof arcgis.x === 'number' && typeof arcgis.y === 'number'){
@@ -272,7 +321,7 @@
 
     if(arcgis.geometry || arcgis.attributes) {
       geojson.type = 'Feature';
-      geojson.geometry = (arcgis.geometry) ? L.esri.Util.arcgisToGeojson(arcgis.geometry) : null;
+      geojson.geometry = (arcgis.geometry) ? EsriLeaflet.Util.arcgisToGeojson(arcgis.geometry) : null;
       geojson.properties = (arcgis.attributes) ? clone(arcgis.attributes) : null;
       if(arcgis.attributes) {
         geojson.id =  arcgis.attributes[idAttribute] || arcgis.attributes.OBJECTID || arcgis.attributes.FID;
@@ -283,7 +332,7 @@
   };
 
   // GeoJSON -> ArcGIS
-  L.esri.Util.geojsonToArcGIS = function(geojson, idAttribute){
+  EsriLeaflet.Util.geojsonToArcGIS = function(geojson, idAttribute){
     idAttribute = idAttribute || 'OBJECTID';
     var spatialReference = { wkid: 4326 };
     var result = {};
@@ -317,7 +366,7 @@
       break;
     case 'Feature':
       if(geojson.geometry) {
-        result.geometry = L.esri.Util.geojsonToArcGIS(geojson.geometry, idAttribute);
+        result.geometry = EsriLeaflet.Util.geojsonToArcGIS(geojson.geometry, idAttribute);
       }
       result.attributes = (geojson.properties) ? clone(geojson.properties) : {};
       if(geojson.id){
@@ -327,13 +376,13 @@
     case 'FeatureCollection':
       result = [];
       for (i = 0; i < geojson.features.length; i++){
-        result.push(L.esri.Util.geojsonToArcGIS(geojson.features[i], idAttribute));
+        result.push(EsriLeaflet.Util.geojsonToArcGIS(geojson.features[i], idAttribute));
       }
       break;
     case 'GeometryCollection':
       result = [];
       for (i = 0; i < geojson.geometries.length; i++){
-        result.push(L.esri.Util.geojsonToArcGIS(geojson.geometries[i], idAttribute));
+        result.push(EsriLeaflet.Util.geojsonToArcGIS(geojson.geometries[i], idAttribute));
       }
       break;
     }
@@ -341,7 +390,7 @@
     return result;
   };
 
-  L.esri.Util.responseToFeatureCollection = function(response, idAttribute){
+  EsriLeaflet.Util.responseToFeatureCollection = function(response, idAttribute){
     var objectIdField;
 
     if(idAttribute){
@@ -366,16 +415,17 @@
     var features = response.features || response.results;
     if(features.length){
       for (var i = features.length - 1; i >= 0; i--) {
-        featureCollection.features.push(L.esri.Util.arcgisToGeojson(features[i], objectIdField));
+        featureCollection.features.push(EsriLeaflet.Util.arcgisToGeojson(features[i], objectIdField));
       }
     }
 
     return featureCollection;
   };
 
-    // trim whitespace and add a tailing slash is needed to a url
-  L.esri.Util.cleanUrl = function(url){
-    url = url.replace(/\s\s*/g, '');
+    // trim url whitespace and add a trailing slash if needed
+  EsriLeaflet.Util.cleanUrl = function(url){
+    //trim leading and trailing spaces, but not spaces inside the url
+    url = url.replace(/^\s+|\s+$|\A\s+|\s+\z/g, '');
 
     //add a trailing slash to the url if the user omitted it
     if(url[url.length-1] !== '/'){
@@ -385,14 +435,58 @@
     return url;
   };
 
-})(L);
-(function(L){
+  EsriLeaflet.Util.isArcgisOnline = function(url){
+    /* hosted feature services can emit geojson natively.
+    our check for 'geojson' support will need to be revisted
+    once the functionality makes its way to ArcGIS Server*/
+    return (/\.arcgis\.com.*?FeatureServer/g).test(url);
+  };
+
+  EsriLeaflet.Util.geojsonTypeToArcGIS = function (geoJsonType) {
+    var arcgisGeometryType;
+    switch (geoJsonType) {
+    case 'Point':
+      arcgisGeometryType = 'esriGeometryPoint';
+      break;
+    case 'MultiPoint':
+      arcgisGeometryType = 'esriGeometryMultipoint';
+      break;
+    case 'LineString':
+      arcgisGeometryType = 'esriGeometryPolyline';
+      break;
+    case 'MultiLineString':
+      arcgisGeometryType = 'esriGeometryPolyline';
+      break;
+    case 'Polygon':
+      arcgisGeometryType = 'esriGeometryPolygon';
+      break;
+    case 'MultiPolygon':
+      arcgisGeometryType = 'esriGeometryPolygon';
+      break;
+    }
+    return arcgisGeometryType;
+  };
+
+  EsriLeaflet.Util.requestAnimationFrame = L.Util.bind(raf, window);
+
+  EsriLeaflet.Util.warn = function (message) {
+    if(console && console.warn) {
+      console.warn(message);
+    }
+  };
+
+})(EsriLeaflet);
+
+(function(EsriLeaflet){
+
   var callbacks = 0;
+
+  window._EsriLeafletCallbacks = {};
 
   function serialize(params){
     var data = '';
 
-    params.f = 'json';
+    params.f = params.f || 'json';
 
     for (var key in params){
       if(params.hasOwnProperty(key)){
@@ -404,7 +498,9 @@
           data += '&';
         }
 
-        if(type === '[object Array]' || type === '[object Object]'){
+        if (type === '[object Array]'){
+          value = (Object.prototype.toString.call(param[0]) === '[object Object]') ? JSON.stringify(param) : param.join(',');
+        } else if (type === '[object Object]') {
           value = JSON.stringify(param);
         } else if (type === '[object Date]'){
           value = param.valueOf();
@@ -422,7 +518,9 @@
   function createRequest(callback, context){
     var httpRequest = new XMLHttpRequest();
 
-    httpRequest.onerror = function() {
+    httpRequest.onerror = function(e) {
+      httpRequest.onreadystatechange = L.Util.falseFn;
+
       callback.call(context, {
         error: {
           code: 500,
@@ -434,6 +532,7 @@
     httpRequest.onreadystatechange = function(){
       var response;
       var error;
+
       if (httpRequest.readyState === 4) {
         try {
           response = JSON.parse(httpRequest.responseText);
@@ -441,7 +540,7 @@
           response = null;
           error = {
             code: 500,
-            message: 'Could not parse response as JSON.'
+            message: 'Could not parse response as JSON. This could also be caused by a CORS or XMLHttpRequest error.'
           };
         }
 
@@ -449,6 +548,8 @@
           error = response.error;
           response = null;
         }
+
+        httpRequest.onerror = L.Util.falseFn;
 
         callback.call(context, error, response);
       }
@@ -458,7 +559,36 @@
   }
 
   // AJAX handlers for CORS (modern browsers) or JSONP (older browsers)
-  L.esri.Request = {
+  EsriLeaflet.Request = {
+    request: function(url, params, callback, context){
+      var paramString = serialize(params);
+      var httpRequest = createRequest(callback, context);
+      var requestLength = (url + '?' + paramString).length;
+
+      // request is less then 2000 characters and the browser supports CORS, make GET request with XMLHttpRequest
+      if(requestLength <= 2000 && L.esri.Support.CORS){
+        httpRequest.open('GET', url + '?' + paramString);
+        httpRequest.send(null);
+
+      // request is less more then 2000 characters and the browser supports CORS, make POST request with XMLHttpRequest
+      } else if (requestLength > 2000 && L.esri.Support.CORS){
+        httpRequest.open('POST', url);
+        httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        httpRequest.send(paramString);
+
+      // request is less more then 2000 characters and the browser does not support CORS, make a JSONP request
+      } else if(requestLength <= 2000 && !L.esri.Support.CORS){
+        return L.esri.Request.get.JSONP(url, params, callback, context);
+
+      // request is longer then 2000 characters and the browser does not support CORS, log a warning
+      } else {
+        EsriLeaflet.Util.warn('a request to ' + url + ' was longer then 2000 characters and this browser cannot make a cross-domain post request. Please use a proxy http://esri.github.io/esri-leaflet/api-reference/request.html');
+        return;
+      }
+
+      return httpRequest;
+    },
+
     post: {
       XMLHTTP: function (url, params, callback, context) {
         var httpRequest = createRequest(callback, context);
@@ -480,19 +610,17 @@
         return httpRequest;
       },
       JSONP: function(url, params, callback, context){
-        L.esri._callback = L.esri._callback || {};
-
         var callbackId = 'c' + callbacks;
 
-        params.callback = 'L.esri._callback.'+callbackId;
+        params.callback = 'window._EsriLeafletCallbacks.' + callbackId;
 
         var script = L.DomUtil.create('script', null, document.body);
         script.type = 'text/javascript';
         script.src = url + '?' +  serialize(params);
         script.id = callbackId;
 
-        L.esri._callback[callbackId] = function(response){
-          if(L.esri._callback[callbackId] !== true){
+        window._EsriLeafletCallbacks[callbackId] = function(response){
+          if(window._EsriLeafletCallbacks[callbackId] !== true){
             var error;
             var responseType = Object.prototype.toString.call(response);
 
@@ -512,39 +640,52 @@
             }
 
             callback.call(context, error, response);
-            L.esri._callback[callbackId] = true;
+            window._EsriLeafletCallbacks[callbackId] = true;
           }
         };
 
         callbacks++;
 
-        return L.esri._callback[callbackId];
+        return {
+          id: callbackId,
+          url: script.src,
+          abort: function(){
+            window._EsriLeafletCallbacks._callback[callbackId]({
+              code: 0,
+              message: 'Request aborted.'
+            });
+          }
+        };
       }
     }
-
   };
 
-  // Choose the correct AJAX handler depending on CORS support
-  L.esri.get = (L.esri.Support.CORS) ? L.esri.Request.get.CORS : L.esri.Request.get.JSONP;
+  // choose the correct AJAX handler depending on CORS support
+  EsriLeaflet.get = (EsriLeaflet.Support.CORS) ? EsriLeaflet.Request.get.CORS : EsriLeaflet.Request.get.JSONP;
 
-  // Always use XMLHttpRequest for posts
-  L.esri.post = L.esri.Request.post.XMLHTTP;
+  // always use XMLHttpRequest for posts
+  EsriLeaflet.post = EsriLeaflet.Request.post.XMLHTTP;
 
-})(L);
-L.esri.Services.Service = L.Class.extend({
+  // expose a common request method the uses GET\POST based on request length
+  EsriLeaflet.request = EsriLeaflet.Request.request;
+
+})(EsriLeaflet);
+
+EsriLeaflet.Services.Service = L.Class.extend({
 
   includes: L.Mixin.Events,
 
   options: {
     proxy: false,
-    useCors: true
+    useCors: EsriLeaflet.Support.CORS
   },
 
-  initialize: function (url, options) {
-    this.url = L.esri.Util.cleanUrl(url);
+  initialize: function (options) {
+    options = options || {};
     this._requestQueue = [];
     this._authenticating = false;
-    options =  L.Util.setOptions(this, options);
+    L.Util.setOptions(this, options);
+    this.options.url = EsriLeaflet.Util.cleanUrl(this.options.url);
   },
 
   get: function (path, params, callback, context) {
@@ -553,6 +694,10 @@ L.esri.Services.Service = L.Class.extend({
 
   post: function (path, params, callback, context) {
     return this._request('post', path, params, callback, context);
+  },
+
+  request: function (path, params, callback, context) {
+    return this._request('request', path, params, callback, context);
   },
 
   metadata: function (callback, context) {
@@ -568,7 +713,7 @@ L.esri.Services.Service = L.Class.extend({
 
   _request: function(method, path, params, callback, context){
     this.fire('requeststart', {
-      url: this.url + path,
+      url: this.options.url + path,
       params: params,
       method: method
     });
@@ -581,13 +726,14 @@ L.esri.Services.Service = L.Class.extend({
 
     if (this._authenticating) {
       this._requestQueue.push([method, path, params, callback, context]);
+      return;
     } else {
-      var url = (this.options.proxy) ? this.options.proxy + '?' + this.url + path : this.url + path;
+      var url = (this.options.proxy) ? this.options.proxy + '?' + this.options.url + path : this.options.url + path;
 
-      if(method === 'get' && !this.options.useCors){
-        return L.esri.Request.get.JSONP(url, params, wrappedCallback);
+      if((method === 'get' || method === 'request') && !this.options.useCors){
+        return EsriLeaflet.Request.get.JSONP(url, params, wrappedCallback);
       } else {
-        return L.esri[method](url, params, wrappedCallback);
+        return EsriLeaflet[method](url, params, wrappedCallback);
       }
     }
   },
@@ -610,7 +756,7 @@ L.esri.Services.Service = L.Class.extend({
 
         if(error) {
           this.fire('requesterror', {
-            url: this.url + path,
+            url: this.options.url + path,
             params: params,
             message: error.message,
             code: error.code,
@@ -618,7 +764,7 @@ L.esri.Services.Service = L.Class.extend({
           });
         } else {
           this.fire('requestsuccess', {
-            url: this.url + path,
+            url: this.options.url + path,
             params: params,
             response: response,
             method: method
@@ -626,7 +772,7 @@ L.esri.Services.Service = L.Class.extend({
         }
 
         this.fire('requestend', {
-          url: this.url + path,
+          url: this.options.url + path,
           params: params,
           method: method
         });
@@ -645,37 +791,45 @@ L.esri.Services.Service = L.Class.extend({
 
 });
 
-L.esri.Services.service = function(url, params){
-  return new L.esri.Services.Service(url, params);
+EsriLeaflet.Services.service = function(params){
+  return new EsriLeaflet.Services.Service(params);
 };
-L.esri.Services.FeatureLayer = L.esri.Services.Service.extend({
+
+EsriLeaflet.Services.FeatureLayer = EsriLeaflet.Services.Service.extend({
 
   options: {
     idAttribute: 'OBJECTID'
   },
 
   query: function(){
-    return new L.esri.Tasks.Query(this);
+    return new EsriLeaflet.Tasks.Query(this);
   },
 
   addFeature: function(feature, callback, context) {
     delete feature.id;
 
-    feature = L.esri.Util.geojsonToArcGIS(feature);
+    feature = EsriLeaflet.Util.geojsonToArcGIS(feature);
 
     return this.post('addFeatures', {
       features: [feature]
     }, function(error, response){
-      callback.call(this, error || response.addResults[0].error, response.addResults[0]);
+      var result = (response && response.addResults) ? response.addResults[0] : undefined;
+      if(callback){
+        callback.call(context, error || response.addResults[0].error, result);
+      }
     }, context);
   },
 
   updateFeature: function(feature, callback, context) {
-    feature = L.esri.Util.geojsonToArcGIS(feature, this.options.idAttribute);
+    feature = EsriLeaflet.Util.geojsonToArcGIS(feature, this.options.idAttribute);
+
     return this.post('updateFeatures', {
       features: [feature]
     }, function(error, response){
-      callback.call(context, error || response.updateResults[0].error, response.updateResults[0]);
+      var result = (response && response.updateResults) ? response.updateResults[0] : undefined;
+      if(callback){
+        callback.call(context, error || response.updateResults[0].error, result);
+      }
     }, context);
   },
 
@@ -683,266 +837,590 @@ L.esri.Services.FeatureLayer = L.esri.Services.Service.extend({
     return this.post('deleteFeatures', {
       objectIds: id
     }, function(error, response){
-      callback.call(context, error || response.deleteResults[0].error, response.deleteResults[0]);
+      var result = (response && response.deleteResults) ? response.deleteResults[0] : undefined;
+      if(callback){
+        callback.call(context, error || response.deleteResults[0].error, result);
+      }
+    }, context);
+  },
+
+  deleteFeatures: function(ids, callback, context) {
+    return this.post('deleteFeatures', {
+      objectIds: ids
+    }, function(error, response){
+      // pass back the entire array
+      var result = (response && response.deleteResults) ? response.deleteResults : undefined;
+      if(callback){
+        callback.call(context, error || response.deleteResults[0].error, result);
+      }
     }, context);
   }
-
 });
 
-L.esri.Services.featureLayer = function(url, options) {
-  return new L.esri.Services.FeatureLayer(url, options);
+EsriLeaflet.Services.featureLayer = function(options) {
+  return new EsriLeaflet.Services.FeatureLayer(options);
 };
-L.esri.Services.MapService = L.esri.Services.Service.extend({
+
+EsriLeaflet.Services.MapService = EsriLeaflet.Services.Service.extend({
 
   identify: function () {
-    return new L.esri.Tasks.Identify(this);
+    return new EsriLeaflet.Tasks.identifyFeatures(this);
+  },
+
+  find: function () {
+    return new EsriLeaflet.Tasks.Find(this);
+  },
+
+  query: function () {
+    return new EsriLeaflet.Tasks.Query(this);
   }
 
 });
 
-L.esri.Services.mapService = function(url, params){
-  return new L.esri.Services.MapService(url, params);
+EsriLeaflet.Services.mapService = function(params){
+  return new EsriLeaflet.Services.MapService(params);
 };
-L.esri.Tasks.Identify = L.Class.extend({
+
+EsriLeaflet.Services.ImageService = EsriLeaflet.Services.Service.extend({
+
+  query: function () {
+    return new EsriLeaflet.Tasks.Query(this);
+  },
+
+  identify: function() {
+    return new EsriLeaflet.Tasks.IdentifyImage(this);
+  }
+});
+
+EsriLeaflet.Services.imageService = function(params){
+  return new EsriLeaflet.Services.ImageService(params);
+};
+
+EsriLeaflet.Tasks.Task = L.Class.extend({
+
+  options: {
+    proxy: false,
+    useCors: EsriLeaflet.Support.CORS
+  },
+
+  //Generate a method for each methodName:paramName in the setters for this task.
+  generateSetter: function(param, context){
+    return L.Util.bind(function(value){
+      this.params[param] = value;
+      return this;
+    }, context);
+  },
 
   initialize: function(endpoint){
-    if(endpoint.url && endpoint.get){
+    // endpoint can be either a url (and options) for an ArcGIS Rest Service or an instance of EsriLeaflet.Service
+    if(endpoint.request && endpoint.options){
       this._service = endpoint;
-      this.url = endpoint.url;
+      L.Util.setOptions(this, endpoint.options);
     } else {
-      this.url = L.esri.Util.cleanUrl(endpoint);
+      L.Util.setOptions(this, endpoint);
+      this.options.url = L.esri.Util.cleanUrl(endpoint.url);
     }
 
-    this._params = {
-      sr: 4326,
-      layers: 'all',
-      tolerance: 3
-    };
-  },
+    // clone default params into this object
+    this.params = L.Util.extend({}, this.params || {});
 
-  on: function(map){
-    var extent = L.esri.Util.boundsToExtent(map.getBounds());
-    var size = map.getSize();
-    this._params.imageDisplay = [size.x, size.y, 96].join(',');
-    this._params.mapExtent=([extent.xmin, extent.ymin, extent.xmax, extent.ymax]).join(',');
-    return this;
-  },
-
-  at: function(latlng){
-    this._params.geometry = ([latlng.lng, latlng.lat]).join(',');
-    this._params.geometryType = 'esriGeometryPoint';
-    return this;
-  },
-
-  layerDef: function (id, where){
-    this._params.layerDefs = (this._params.layerDefs) ? this._params.layerDefs + ';' : '';
-    this._params.layerDefs += ([id, where]).join(':');
-    return this;
-  },
-
-  between: function(start, end){
-    this._params.time = ([start.valueOf(), end.valueOf()]).join(',');
-    return this;
-  },
-
-  layers: function (string){
-    this._params.layers = string;
-    return this;
-  },
-
-  precision: function(num){
-    this._params.geometryPrecision = num;
-    return this;
-  },
-
-  simplify: function(map, factor){
-    var mapWidth = Math.abs(map.getBounds().getWest() - map.getBounds().getEast());
-    this._params.maxAllowableOffset = (mapWidth / map.getSize().y) * (1 - factor);
-    return this;
+    // generate setter methods based on the setters object implimented a child class
+    if(this.setters){
+      for (var setter in this.setters){
+        var param = this.setters[setter];
+        this[setter] = this.generateSetter(param, this);
+      }
+    }
   },
 
   token: function(token){
-    this._params.token = token;
-    return this;
-  },
-
-  tolerance: function(tolerance){
-    this._params.tolerance = tolerance;
-    return this;
-  },
-
-  run: function (callback, context){
-    this._request(function(error, response){
-      callback.call(context, error, (response && L.esri.Util.responseToFeatureCollection(response)), response);
-    }, context);
-  },
-
-  _request: function(callback, context){
     if(this._service){
-      this._service.get('identify', this._params, callback, context);
+      this._service.authenticate(token);
     } else {
-      L.esri.get(this.url + 'identify', this._params, callback, context);
+      this.params.token = token;
+    }
+    return this;
+  },
+
+  request: function(callback, context){
+    if(this._service){
+      return this._service.request(this.path, this.params, callback, context);
+    } else {
+      return this._request('request', this.path, this.params, callback, context);
+    }
+  },
+
+  _request: function(method, path, params, callback, context){
+    var url = (this.options.proxy) ? this.options.proxy + '?' + this.options.url + path : this.options.url + path;
+    if((method === 'get' || method === 'request') && !this.options.useCors){
+      return EsriLeaflet.Request.get.JSONP(url, params, callback, context);
+    } else{
+      return EsriLeaflet[method](url, params, callback, context);
     }
   }
-
 });
 
-L.esri.Tasks.identify = function(url, params){
-  return new L.esri.Tasks.Identify(url, params);
-};
-L.esri.Tasks.Query = L.Class.extend({
-
-  initialize: function(endpoint){
-
-    if(endpoint.url && endpoint.get){
-      this._service = endpoint;
-      this.url = endpoint.url;
-    } else {
-      this.url = L.esri.Util.cleanUrl(endpoint);
-    }
-
-    this._params = {
-      where: '1=1',
-      outSr: 4326,
-      outFields: '*'
-    };
+EsriLeaflet.Tasks.Query = EsriLeaflet.Tasks.Task.extend({
+  setters: {
+    'offset': 'offset',
+    'limit': 'limit',
+    'fields': 'outFields',
+    'precision': 'geometryPrecision',
+    'featureIds': 'objectIds',
+    'returnGeometry': 'returnGeometry',
+    'token': 'token'
   },
 
-  within: function(bounds){
-    this._params.geometry = L.esri.Util.boundsToExtent(bounds);
-    this._params.geometryType = 'esriGeometryEnvelope';
-    this._params.spatialRel = 'esriSpatialRelIntersects';
+  path: 'query',
+
+  params: {
+    returnGeometry: true,
+    where: '1=1',
+    outSr: 4326,
+    outFields: '*'
+  },
+
+  within: function(geometry){
+    this._setGeometry(geometry);
+    this.params.spatialRel = 'esriSpatialRelContains'; // will make code read layer within geometry, to the api this will reads geometry contains layer
     return this;
   },
 
+  intersects: function(geometry){
+    this._setGeometry(geometry);
+    this.params.spatialRel = 'esriSpatialRelIntersects';
+    return this;
+  },
+
+  contains: function(geometry){
+    this._setGeometry(geometry);
+    this.params.spatialRel = 'esriSpatialRelWithin'; // will make code read layer contains geometry, to the api this will reads geometry within layer
+    return this;
+  },
+
+  // crosses: function(geometry){
+  //   this._setGeometry(geometry);
+  //   this.params.spatialRel = 'esriSpatialRelCrosses';
+  //   return this;
+  // },
+
+  // touches: function(geometry){
+  //   this._setGeometry(geometry);
+  //   this.params.spatialRel = 'esriSpatialRelTouches';
+  //   return this;
+  // },
+
+  overlaps: function(geometry){
+    this._setGeometry(geometry);
+    this.params.spatialRel = 'esriSpatialRelOverlaps';
+    return this;
+  },
+
+  // only valid for Feature Services running on ArcGIS Server 10.3 or ArcGIS Online
   nearby: function(latlng, radius){
-    this._params.geometry = ([latlng.lng,latlng.lat]).join(',');
-    this._params.geometryType = 'esriGeometryPoint';
-    this._params.spatialRel = 'esriSpatialRelIntersects';
-    this._params.units = 'esriSRUnit_Meter';
-    this._params.distance = radius;
-    this._params.inSr = 4326;
+    latlng = L.latLng(latlng);
+    this.params.geometry = [latlng.lng, latlng.lat];
+    this.params.geometryType = 'esriGeometryPoint';
+    this.params.spatialRel = 'esriSpatialRelIntersects';
+    this.params.units = 'esriSRUnit_Meter';
+    this.params.distance = radius;
+    this.params.inSr = 4326;
     return this;
   },
 
   where: function(string){
-    this._params.where = string.replace(/"/g, '\'');
-    return this;
-  },
-
-  offset: function(offset){
-    this._params.offset = offset;
-    return this;
-  },
-
-  limit: function(limit){
-    this._params.limit = limit;
+    // instead of converting double-quotes to single quotes, pass as is, and provide a more informative message if a 400 is encountered
+    this.params.where = string;
     return this;
   },
 
   between: function(start, end){
-    this._params.time = ([start.valueOf(), end.valueOf()]).join();
-    return this;
-  },
-
-  fields: function(array){
-    this._params.outFields = array.join(',');
-    return this;
-  },
-
-  precision: function(num){
-    this._params.geometryPrecision = num;
+    this.params.time = [start.valueOf(), end.valueOf()];
     return this;
   },
 
   simplify: function(map, factor){
     var mapWidth = Math.abs(map.getBounds().getWest() - map.getBounds().getEast());
-    this._params.maxAllowableOffset = (mapWidth / map.getSize().y) * factor;
+    this.params.maxAllowableOffset = (mapWidth / map.getSize().y) * factor;
     return this;
   },
 
   orderBy: function(fieldName, order){
     order = order || 'ASC';
-    this._params.orderByFields = (this._params.orderByFields) ? this._params.orderByFields + ',' : '';
-    this._params.orderByFields += ([fieldName, order]).join(' ');
-    return this;
-  },
-
-  featureIds: function(ids){
-    this._params.objectIds = ids.join(',');
-    return this;
-  },
-
-  token: function(token){
-    this._params.token = token;
+    this.params.orderByFields = (this.params.orderByFields) ? this.params.orderByFields + ',' : '';
+    this.params.orderByFields += ([fieldName, order]).join(' ');
     return this;
   },
 
   run: function(callback, context){
     this._cleanParams();
-    this._request(function(error, response){
-      callback.call(context, error, (response && L.esri.Util.responseToFeatureCollection(response)), response);
-    }, context);
-    return this;
+
+    // if the service is hosted on arcgis online request geojson directly
+    if(EsriLeaflet.Util.isArcgisOnline(this.options.url)){
+      this.params.f = 'geojson';
+
+      return this.request(function(error, response){
+        this._trapSQLerrors(error);
+        callback.call(context, error, response, response);
+      }, this);
+
+    // otherwise convert it in the callback then pass it on
+    } else {
+      return this.request(function(error, response){
+        this._trapSQLerrors(error);
+        callback.call(context, error, (response && EsriLeaflet.Util.responseToFeatureCollection(response)), response);
+      }, this);
+    }
   },
 
   count: function(callback, context){
     this._cleanParams();
-    this._params.returnCountOnly = true;
-    this._request(function(error, response){
+    this.params.returnCountOnly = true;
+    return this.request(function(error, response){
       callback.call(this, error, (response && response.count), response);
     }, context);
-    return this;
   },
 
   ids: function(callback, context){
     this._cleanParams();
-    this._params.returnIdsOnly = true;
-    this._request(function(error, response){
+    this.params.returnIdsOnly = true;
+    return this.request(function(error, response){
       callback.call(this, error, (response && response.objectIds), response);
     }, context);
+  },
+
+  // only valid for Feature Services running on ArcGIS Server 10.3 or ArcGIS Online
+  bounds: function(callback, context){
+    this._cleanParams();
+    this.params.returnExtentOnly = true;
+    return this.request(function(error, response){
+      callback.call(context, error, (response && response.extent && EsriLeaflet.Util.extentToBounds(response.extent)), response);
+    }, context);
+  },
+
+  // only valid for image services
+  pixelSize: function(point){
+    point = L.point(point);
+    this.params.pixelSize = [point.x,point.y];
     return this;
   },
 
-  bounds: function(callback, context){
-    this._cleanParams();
-    this._params.returnExtentOnly = true;
-    this._request(function(error, response){
-      callback.call(context, error, (response && response.extent && L.esri.Util.extentToBounds(response.extent)), response);
-    }, context);
+  // only valid for map services
+  layer: function(layer){
+    this.path = layer + '/query';
     return this;
+  },
+
+  _trapSQLerrors: function(error){
+    if (error){
+      if (error.code === '400'){
+        EsriLeaflet.Util.warn('one common syntax error in query requests is encasing string values in double quotes instead of single quotes');
+      }
+    }
   },
 
   _cleanParams: function(){
-    delete this._params.returnIdsOnly;
-    delete this._params.returnExtentOnly;
-    delete this._params.returnCountOnly;
+    delete this.params.returnIdsOnly;
+    delete this.params.returnExtentOnly;
+    delete this.params.returnCountOnly;
   },
 
-  _request: function(callback, context){
-    if(this._service){
-      this._service.get('query', this._params, callback, context);
-    } else {
-      L.esri.get(this.url + 'query', this._params, callback, context);
+  _setGeometry: function(geometry) {
+    this.params.inSr = 4326;
+
+    // convert bounds to extent and finish
+    if ( geometry instanceof L.LatLngBounds ) {
+      // set geometry + geometryType
+      this.params.geometry = EsriLeaflet.Util.boundsToExtent(geometry);
+      this.params.geometryType = 'esriGeometryEnvelope';
+      return;
     }
+
+    // convert L.Marker > L.LatLng
+    if(geometry.getLatLng){
+      geometry = geometry.getLatLng();
+    }
+
+    // convert L.LatLng to a geojson point and continue;
+    if (geometry instanceof L.LatLng) {
+      geometry = {
+        type: 'Point',
+        coordinates: [geometry.lng, geometry.lat]
+      };
+    }
+
+    // handle L.GeoJSON, pull out the first geometry
+    if ( geometry instanceof L.GeoJSON ) {
+      //reassign geometry to the GeoJSON value  (we are assuming that only one feature is present)
+      geometry = geometry.getLayers()[0].feature.geometry;
+      this.params.geometry = EsriLeaflet.Util.geojsonToArcGIS(geometry);
+      this.params.geometryType = EsriLeaflet.Util.geojsonTypeToArcGIS(geometry.type);
+    }
+
+    // Handle L.Polyline and L.Polygon
+    if (geometry.toGeoJSON) {
+      geometry = geometry.toGeoJSON();
+    }
+
+    // handle GeoJSON feature by pulling out the geometry
+    if ( geometry.type === 'Feature' ) {
+      // get the geometry of the geojson feature
+      geometry = geometry.geometry;
+    }
+
+    // confirm that our GeoJSON is a point, line or polygon
+    if ( geometry.type === 'Point' ||  geometry.type === 'LineString' || geometry.type === 'Polygon') {
+      this.params.geometry = EsriLeaflet.Util.geojsonToArcGIS(geometry);
+      this.params.geometryType = EsriLeaflet.Util.geojsonTypeToArcGIS(geometry.type);
+      return;
+    }
+
+    // warn the user if we havn't found a
+    /* global console */
+    EsriLeaflet.Util.warn('invalid geometry passed to spatial query. Should be an L.LatLng, L.LatLngBounds or L.Marker or a GeoJSON Point Line or Polygon object');
+
+    return;
+  }
+});
+
+EsriLeaflet.Tasks.query = function(params){
+  return new EsriLeaflet.Tasks.Query(params);
+};
+
+EsriLeaflet.Tasks.Find = EsriLeaflet.Tasks.Task.extend({
+  setters: {
+    // method name > param name
+    'contains': 'contains',
+    'text': 'searchText',
+    'fields': 'searchFields', // denote an array or single string
+    'spatialReference': 'sr',
+    'sr': 'sr',
+    'layers': 'layers',
+    'returnGeometry': 'returnGeometry',
+    'maxAllowableOffset': 'maxAllowableOffset',
+    'precision': 'geometryPrecision',
+    'dynamicLayers': 'dynamicLayers',
+    'returnZ' : 'returnZ',
+    'returnM' : 'returnM',
+    'gdbVersion' : 'gdbVersion',
+    'token' : 'token'
+  },
+
+  path: 'find',
+
+  params: {
+    sr: 4326,
+    contains: true,
+    returnGeometry: true,
+    returnZ: true,
+    returnM: false
+  },
+
+  layerDefs: function (id, where) {
+    this.params.layerDefs = (this.params.layerDefs) ? this.params.layerDefs + ';' : '';
+    this.params.layerDefs += ([id, where]).join(':');
+    return this;
+  },
+
+  simplify: function(map, factor){
+    var mapWidth = Math.abs(map.getBounds().getWest() - map.getBounds().getEast());
+    this.params.maxAllowableOffset = (mapWidth / map.getSize().y) * factor;
+    return this;
+  },
+
+  run: function (callback, context) {
+    return this.request(function(error, response){
+      callback.call(context, error, (response && EsriLeaflet.Util.responseToFeatureCollection(response)), response);
+    }, context);
+  }
+});
+
+EsriLeaflet.Tasks.find = function (params) {
+  return new EsriLeaflet.Tasks.Find(params);
+};
+
+EsriLeaflet.Tasks.Identify = EsriLeaflet.Tasks.Task.extend({
+  path: 'identify',
+
+  between: function(start, end){
+    this.params.time = [start.valueOf(), end.valueOf()];
+    return this;
+  }
+});
+
+
+EsriLeaflet.Tasks.IdentifyImage = EsriLeaflet.Tasks.Identify.extend({
+  setters: {
+    'setMosaicRule': 'mosaicRule',
+    'setRenderingRule': 'renderingRule',
+    'setPixelSize': 'pixelSize',
+    'returnCatalogItems': 'returnCatalogItems',
+    'returnGeometry': 'returnGeometry'
+  },
+
+  params: {
+    returnGeometry: false
+  },
+
+  at: function(latlng){
+    latlng = L.latLng(latlng);
+    this.params.geometry = JSON.stringify({
+      x: latlng.lng,
+      y: latlng.lat,
+      spatialReference:{
+        wkid: 4326
+      }
+    });
+    this.params.geometryType = 'esriGeometryPoint';
+    return this;
+  },
+
+  getMosaicRule: function() {
+    return this.params.mosaicRule;
+  },
+
+  getRenderingRule: function() {
+    return this.params.renderingRule;
+  },
+
+  getPixelSize: function() {
+    return this.params.pixelSize;
+  },
+
+  run: function (callback, context){
+    return this.request(function(error, response){
+      callback.call(context, error, (response && this._responseToGeoJSON(response)), response);
+    }, this);
+  },
+
+  // get pixel data and return as geoJSON point
+  // populate catalog items (if any)
+  // merging in any catalogItemVisibilities as a propery of each feature
+  _responseToGeoJSON: function(response) {
+    var location = response.location;
+    var catalogItems = response.catalogItems;
+    var catalogItemVisibilities = response.catalogItemVisibilities;
+    var geoJSON =  {
+      'pixel': {
+        'type': 'Feature',
+        'geometry': {
+          'type': 'Point',
+          'coordinates': [location.x, location.y]
+        },
+        'crs': {
+          'type': 'EPSG',
+          'properties': {
+            'code': location.spatialReference.wkid
+          }
+        },
+        'properties': {
+          'OBJECTID': response.objectId,
+          'name': response.name,
+          'value': response.value
+        },
+        'id': response.objectId
+      }
+    };
+    if (response.properties && response.properties.Values) {
+      geoJSON.pixel.properties.values = response.properties.Values;
+    }
+    if (catalogItems && catalogItems.features) {
+      geoJSON.catalogItems = EsriLeaflet.Util.responseToFeatureCollection(catalogItems);
+      if (catalogItemVisibilities && catalogItemVisibilities.length === geoJSON.catalogItems.features.length) {
+        for (var i = catalogItemVisibilities.length - 1; i >= 0; i--) {
+          geoJSON.catalogItems.features[i].properties.catalogItemVisibility = catalogItemVisibilities[i];
+        }
+      }
+    }
+    return geoJSON;
   }
 
 });
 
-L.esri.Tasks.query = function(url, params){
-  return new L.esri.Tasks.Query(url, params);
+EsriLeaflet.Tasks.identifyImage = function(params){
+  return new EsriLeaflet.Tasks.IdentifyImage(params);
 };
-(function(L){
+
+EsriLeaflet.Tasks.IdentifyFeatures = EsriLeaflet.Tasks.Identify.extend({
+  setters: {
+    'layers': 'layers',
+    'precision': 'geometryPrecision',
+    'tolerance': 'tolerance',
+    'returnGeometry': 'returnGeometry'
+  },
+
+  params: {
+    sr: 4326,
+    layers: 'all',
+    tolerance: 3,
+    returnGeometry: true
+  },
+
+  on: function(map){
+    var extent = EsriLeaflet.Util.boundsToExtent(map.getBounds());
+    var size = map.getSize();
+    this.params.imageDisplay = [size.x, size.y, 96];
+    this.params.mapExtent = [extent.xmin, extent.ymin, extent.xmax, extent.ymax];
+    return this;
+  },
+
+  at: function(latlng){
+    latlng = L.latLng(latlng);
+    this.params.geometry = [latlng.lng, latlng.lat];
+    this.params.geometryType = 'esriGeometryPoint';
+    return this;
+  },
+
+  layerDef: function (id, where){
+    this.params.layerDefs = (this.params.layerDefs) ? this.params.layerDefs + ';' : '';
+    this.params.layerDefs += ([id, where]).join(':');
+    return this;
+  },
+
+  simplify: function(map, factor){
+    var mapWidth = Math.abs(map.getBounds().getWest() - map.getBounds().getEast());
+    this.params.maxAllowableOffset = (mapWidth / map.getSize().y) * (1 - factor);
+    return this;
+  },
+
+  run: function (callback, context){
+    return this.request(function(error, response){
+      // immediately invoke with an error
+      if(error) {
+        callback.call(context, error, undefined, response);
+        return;
+
+      // ok no error lets just assume we have features...
+      } else {
+        var featureCollection = EsriLeaflet.Util.responseToFeatureCollection(response);
+        response.results = response.results.reverse();
+        for (var i = 0; i < featureCollection.features.length; i++) {
+          var feature = featureCollection.features[i];
+          feature.layerId = response.results[i].layerId;
+        }
+        callback.call(context, undefined, featureCollection, response);
+      }
+    });
+  }
+});
+
+EsriLeaflet.Tasks.identifyFeatures = function(params){
+  return new EsriLeaflet.Tasks.IdentifyFeatures(params);
+};
+
+(function(EsriLeaflet){
 
   var tileProtocol = (window.location.protocol !== 'https:') ? 'http:' : 'https:';
 
-  L.esri.Layers.BasemapLayer = L.TileLayer.extend({
+  EsriLeaflet.Layers.BasemapLayer = L.TileLayer.extend({
     statics: {
       TILES: {
         Streets: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
           attributionUrl: 'https://static.arcgis.com/attribution/World_Street_Map',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 19,
             subdomains: ['server', 'services'],
@@ -953,6 +1431,8 @@ L.esri.Tasks.query = function(url, params){
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
           attributionUrl: 'https://static.arcgis.com/attribution/World_Topo_Map',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 19,
             subdomains: ['server', 'services'],
@@ -963,6 +1443,8 @@ L.esri.Tasks.query = function(url, params){
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}',
           attributionUrl: 'https://static.arcgis.com/attribution/Ocean_Basemap',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 16,
             subdomains: ['server', 'services'],
@@ -972,6 +1454,8 @@ L.esri.Tasks.query = function(url, params){
         OceansLabels: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             //pane: 'esri-label',
             minZoom: 1,
             maxZoom: 16,
@@ -981,6 +1465,8 @@ L.esri.Tasks.query = function(url, params){
         NationalGeographic: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 16,
             subdomains: ['server', 'services'],
@@ -988,26 +1474,32 @@ L.esri.Tasks.query = function(url, params){
           }
         },
         DarkGray: {
-          urlTemplate: tileProtocol + '//tiles{s}.arcgis.com/tiles/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Dark_Gray_Base_Beta/MapServer/tile/{z}/{y}/{x}',
+          urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
-            maxZoom: 10,
-            subdomains: ['1', '2'],
+            maxZoom: 16,
+            subdomains: ['server', 'services'],
             attribution: 'Esri, DeLorme, HERE'
           }
         },
         DarkGrayLabels: {
-          urlTemplate: tileProtocol + '//tiles{s}.arcgis.com/tiles/P3ePLMYs2RVChkJx/arcgis/rest/services/World_Dark_Gray_Reference_Beta/MapServer/tile/{z}/{y}/{x}',
+          urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             //pane: 'esri-label',
             minZoom: 1,
-            maxZoom: 10,
-            subdomains: ['1', '2']
+            maxZoom: 16,
+            subdomains: ['server', 'services']
           }
         },
         Gray: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 16,
             subdomains: ['server', 'services'],
@@ -1017,6 +1509,8 @@ L.esri.Tasks.query = function(url, params){
         GrayLabels: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             //pane: 'esri-label',
             minZoom: 1,
             maxZoom: 16,
@@ -1026,6 +1520,8 @@ L.esri.Tasks.query = function(url, params){
         Imagery: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 19,
             subdomains: ['server', 'services'],
@@ -1035,6 +1531,8 @@ L.esri.Tasks.query = function(url, params){
         ImageryLabels: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             //pane: 'esri-label',
             minZoom: 1,
             maxZoom: 19,
@@ -1045,6 +1543,8 @@ L.esri.Tasks.query = function(url, params){
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
           //pane: 'esri-label',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 19,
             subdomains: ['server', 'services']
@@ -1053,16 +1553,20 @@ L.esri.Tasks.query = function(url, params){
         ShadedRelief: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 13,
             subdomains: ['server', 'services'],
-            attribution: 'ESRI, NAVTEQ, DeLorme'
+            attribution: 'Esri, NAVTEQ, DeLorme'
           }
         },
         ShadedReliefLabels: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places_Alternate/MapServer/tile/{z}/{y}/{x}',
-//          pane: 'esri-label',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
+            //pane: 'esri-label',
             minZoom: 1,
             maxZoom: 12,
             subdomains: ['server', 'services']
@@ -1071,6 +1575,8 @@ L.esri.Tasks.query = function(url, params){
         Terrain: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: false,
+            logoPosition: 'bottomright',
             minZoom: 1,
             maxZoom: 13,
             subdomains: ['server', 'services'],
@@ -1080,6 +1586,8 @@ L.esri.Tasks.query = function(url, params){
         TerrainLabels: {
           urlTemplate: tileProtocol + '//{s}.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}',
           options: {
+            hideLogo: true,
+            logoPosition: 'bottomright',
             //pane: 'esri-label',
             minZoom: 1,
             maxZoom: 13,
@@ -1094,8 +1602,8 @@ L.esri.Tasks.query = function(url, params){
       // set the config variable with the appropriate config object
       if (typeof key === 'object' && key.urlTemplate && key.options){
         config = key;
-      } else if(typeof key === 'string' && L.esri.BasemapLayer.TILES[key]){
-        config = L.esri.BasemapLayer.TILES[key];
+      } else if(typeof key === 'string' && EsriLeaflet.BasemapLayer.TILES[key]){
+        config = EsriLeaflet.BasemapLayer.TILES[key];
       } else {
         throw new Error('L.esri.BasemapLayer: Invalid parameter. Use one of "Streets", "Topographic", "Oceans", "OceansLabels", "NationalGeographic", "Gray", "GrayLabels", "DarkGray", "DarkGrayLabels", "Imagery", "ImageryLabels", "ImageryTransportation", "ShadedRelief", "ShadedReliefLabels", "Terrain" or "TerrainLabels"');
       }
@@ -1110,9 +1618,17 @@ L.esri.Tasks.query = function(url, params){
       if(config.attributionUrl){
         this._getAttributionData(config.attributionUrl);
       }
+      this._logo = new EsriLeaflet.Controls.Logo({
+        position: this.options.logoPosition
+      });
     },
     onAdd: function(map){
-      // if(this.options.pane && L.esri.Support.pointerEvents){
+      if(!this.options.hideLogo && !map._hasEsriLogo){
+        this._logo.addTo(map);
+        map._hasEsriLogo = true;
+      }
+
+      // if(this.options.pane && EsriLeaflet.Support.pointerEvents){
       //   this._initPane();
       // }
 
@@ -1121,13 +1637,18 @@ L.esri.Tasks.query = function(url, params){
       map.on('moveend', this._updateMapAttribution, this);
     },
     onRemove: function(map){
+      // check to make sure the logo hasn't already been removed
+      if(this._logo && this._logo._container){
+        map.removeControl(this._logo);
+        map._hasEsriLogo = false;
+      }
+
       L.TileLayer.prototype.onRemove.call(this, map);
 
       map.off('moveend', this._updateMapAttribution, this);
     },
     getAttribution:function(){
-      var logo = '<a href="https://developers.arcgis.com" style="border: none;"><img src="http://js.arcgis.com/3.9/js/esri/images/map/logo-med.png" style="position:absolute; top:-38px; right:2px; border: none;"></a>';
-      var attribution = '<span class="esri-attributions" style="line-height:14px; vertical-align: -3px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; display:inline-block;">' + this.options.attribution + '</span>' + logo;
+      var attribution = '<span class="esri-attributions" style="line-height:14px; vertical-align: -3px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; display:inline-block;">' + this.options.attribution + '</span>'/* + logo*/;
       return attribution;
     },
     // _initPane: function(){
@@ -1138,8 +1659,9 @@ L.esri.Tasks.query = function(url, params){
     //   }
     // },
     _getAttributionData: function(url){
-      L.esri.get(url, {}, function(error, attributions){
+      L.esri.Request.get.JSONP(url, {}, L.Util.bind(function(error, attributions){
         this._attributions = [];
+
         for (var c = 0; c < attributions.contributors.length; c++) {
           var contributor = attributions.contributors[c];
           for (var i = 0; i < contributor.coverageAreas.length; i++) {
@@ -1161,7 +1683,7 @@ L.esri.Tasks.query = function(url, params){
         });
 
         this._updateMapAttribution();
-      }, this);
+      }, this));
     },
     _updateMapAttribution: function(){
       if(this._map && this._map.attributionControl && this._attributions){
@@ -1187,40 +1709,25 @@ L.esri.Tasks.query = function(url, params){
     }
   });
 
-  L.esri.BasemapLayer = L.esri.Layers.BasemapLayer;
+  EsriLeaflet.BasemapLayer = EsriLeaflet.Layers.BasemapLayer;
 
-  L.esri.Layers.basemapLayer = function(key, options){
-    return new L.esri.Layers.BasemapLayer(key, options);
+  EsriLeaflet.Layers.basemapLayer = function(key, options){
+    return new EsriLeaflet.Layers.BasemapLayer(key, options);
   };
 
-  L.esri.basemapLayer = function(key, options){
-    return new L.esri.Layers.BasemapLayer(key, options);
+  EsriLeaflet.basemapLayer = function(key, options){
+    return new EsriLeaflet.Layers.BasemapLayer(key, options);
   };
 
-})(L);
-/* globals L */
+})(EsriLeaflet);
 
-L.esri.Layers.DynamicMapLayer = L.Class.extend({
-
+EsriLeaflet.Layers.RasterLayer =  L.Class.extend({
   includes: L.Mixin.Events,
 
   options: {
     opacity: 1,
     position: 'front',
-    updateInterval: 150,
-    layers: false,
-    layerDefs: false,
-    timeOptions: false,
-    format: 'png24',
-    transparent: true,
     f: 'image'
-  },
-
-  initialize: function (url, options) {
-    this.url = L.esri.Util.cleanUrl(url);
-    this._service = new L.esri.Services.MapService(this.url, options);
-    this._service.on('authenticationrequired requeststart requestend requesterror requestsuccess', this._propagateEvent, this);
-    L.Util.setOptions(this, options);
   },
 
   onAdd: function (map) {
@@ -1234,63 +1741,23 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
       this.options.imageSR = sr;
     }
 
+    map.on('moveend', this._update, this);
+
+    // if we had an image loaded and it matches the
+    // current bounds show the image otherwise remove it
+    if(this._currentImage && this._currentImage._bounds.equals(this._map.getBounds())){
+      map.addLayer(this._currentImage);
+    } else if(this._currentImage) {
+      this._map.removeLayer(this._currentImage);
+      this._currentImage = null;
+    }
+
+    this._update();
+
     if(this._popup){
       this._map.on('click', this._getPopupData, this);
       this._map.on('dblclick', this._resetPopupState, this);
     }
-
-    // @TODO remove at Leaflet 0.8
-    this._map.addEventListener(this.getEvents(), this);
-
-    this._update();
-  },
-
-  onRemove: function () {
-    if (this._currentImage) {
-      this._map.removeLayer(this._currentImage);
-    }
-
-    if(this._popup){
-      this._map.off('click', this._getPopupData, this);
-      this._map.off('dblclick', this._resetPopupState, this);
-    }
-
-    // @TODO remove at Leaflet 0.8
-    this._map.removeEventListener(this.getEvents(), this);
-  },
-
-  addTo: function(map){
-    map.addLayer(this);
-    return this;
-  },
-
-  removeFrom: function(map){
-    map.removeLayer(this);
-    return this;
-  },
-
-  getEvents: function(){
-    var events = {
-      moveend: this._update
-    };
-
-    return events;
-  },
-
-  bringToFront: function(){
-    this.options.position = 'front';
-    if(this._currentImage){
-      this._currentImage.bringToFront();
-    }
-    return this;
-  },
-
-  bringToBack: function(){
-    this.options.position = 'back';
-    if(this._currentImage){
-      this._currentImage.bringToBack();
-    }
-    return this;
   },
 
   bindPopup: function(fn, popupOptions){
@@ -1315,6 +1782,50 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
     return this;
   },
 
+  onRemove: function (map) {
+    if (this._currentImage) {
+      this._map.removeLayer(this._currentImage);
+    }
+
+    if(this._popup){
+      this._map.off('click', this._getPopupData, this);
+      this._map.off('dblclick', this._resetPopupState, this);
+    }
+
+    this._map.off('moveend', this._update, this);
+    this._map = null;
+  },
+
+  addTo: function(map){
+    map.addLayer(this);
+    return this;
+  },
+
+  removeFrom: function(map){
+    map.removeLayer(this);
+    return this;
+  },
+
+  bringToFront: function(){
+    this.options.position = 'front';
+    if(this._currentImage){
+      this._currentImage.bringToFront();
+    }
+    return this;
+  },
+
+  bringToBack: function(){
+    this.options.position = 'back';
+    if(this._currentImage){
+      this._currentImage.bringToBack();
+    }
+    return this;
+  },
+
+  getAttribution: function () {
+    return this.options.attribution;
+  },
+
   getOpacity: function(){
     return this.options.opacity;
   },
@@ -1323,6 +1834,158 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
     this.options.opacity = opacity;
     this._currentImage.setOpacity(opacity);
     return this;
+  },
+
+  getTimeRange: function(){
+    return [this.options.from, this.options.to];
+  },
+
+  setTimeRange: function(from, to){
+    this.options.from = from;
+    this.options.to = to;
+    this._update();
+    return this;
+  },
+
+  metadata: function(callback, context){
+    this._service.metadata(callback, context);
+    return this;
+  },
+
+  authenticate: function(token){
+    this._service.authenticate(token);
+    return this;
+  },
+
+  _renderImage: function(url, bounds){
+    if(this._map){
+      // create a new image overlay and add it to the map
+      // to start loading the image
+      // opacity is 0 while the image is loading
+      var image = new L.ImageOverlay(url, bounds, {
+        opacity: 0
+      }).addTo(this._map);
+
+      // once the image loads
+      image.once('load', function(e){
+        var newImage = e.target;
+        var oldImage = this._currentImage;
+
+        // if the bounds of this image matches the bounds that
+        // _renderImage was called with and we have a map with the same bounds
+        // hide the old image if there is one and set the opacity
+        // of the new image otherwise remove the new image
+        if(newImage._bounds.equals(bounds) && newImage._bounds.equals(this._map.getBounds())){
+          this._currentImage = newImage;
+
+          if(this.options.position === 'front'){
+            this.bringToFront();
+          } else {
+            this.bringToBack();
+          }
+
+          if(this._map && this._currentImage._map){
+            this._currentImage.setOpacity(this.options.opacity);
+          } else {
+            this._currentImage._map.removeLayer(this._currentImage);
+          }
+
+          if(oldImage && this._map) {
+            this._map.removeLayer(oldImage);
+          }
+
+          if(oldImage && oldImage._map){
+            oldImage._map.removeLayer(oldImage);
+          }
+        } else {
+          this._map.removeLayer(newImage);
+        }
+
+        this.fire('load', {
+          bounds: bounds
+        });
+
+      }, this);
+
+      this.fire('loading', {
+        bounds: bounds
+      });
+    }
+  },
+
+  _update: function () {
+    if(!this._map){
+      return;
+    }
+
+    var zoom = this._map.getZoom();
+    var bounds = this._map.getBounds();
+
+    if(this._animatingZoom){
+      return;
+    }
+
+    if (this._map._panTransition && this._map._panTransition._inProgress) {
+      return;
+    }
+
+    if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
+      return;
+    }
+    var params = this._buildExportParams();
+
+    this._requestExport(params, bounds);
+  },
+
+  // TODO: refactor these into raster layer
+  _renderPopup: function(latlng, error, results, response){
+    latlng = L.latLng(latlng);
+    if(this._shouldRenderPopup && this._lastClick.equals(latlng)){
+      //add the popup to the map where the mouse was clicked at
+      var content = this._popupFunction(error, results, response);
+      if (content) {
+        this._popup.setLatLng(latlng).setContent(content).openOn(this._map);
+      }
+    }
+  },
+
+  _resetPopupState: function(e){
+    this._shouldRenderPopup = false;
+    this._lastClick = e.latlng;
+  },
+
+  // from https://github.com/Leaflet/Leaflet/blob/v0.7.2/src/layer/FeatureGroup.js
+  // @TODO remove at Leaflet 0.8
+  _propagateEvent: function (e) {
+    e = L.extend({
+      layer: e.target,
+      target: this
+    }, e);
+    this.fire(e.type, e);
+  }
+});
+
+EsriLeaflet.Layers.DynamicMapLayer = EsriLeaflet.Layers.RasterLayer.extend({
+
+  options: {
+    updateInterval: 150,
+    layers: false,
+    layerDefs: false,
+    timeOptions: false,
+    format: 'png24',
+    transparent: true,
+    f: 'json'
+  },
+
+  initialize: function (url, options) {
+    options = options || {};
+    options.url = EsriLeaflet.Util.cleanUrl(url);
+    this._service = new EsriLeaflet.Services.MapService(options);
+    this._service.on('authenticationrequired requeststart requestend requesterror requestsuccess', this._propagateEvent, this);
+    if ((options.proxy || options.token) && options.f !== 'json'){
+      options.f = 'json';
+    }
+    L.Util.setOptions(this, options);
   },
 
   getLayers: function(){
@@ -1355,29 +2018,16 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
     return this;
   },
 
-  getTimeRange: function(){
-    return [this.options.from, this.options.to];
-  },
-
-  setTimeRange: function(from, to){
-    this.options.from = from;
-    this.options.to = to;
-    this._update();
-    return this;
-  },
-
-  metadata: function(callback, context){
-    this._service.metadata(callback, context);
-    return this;
+  query: function(){
+    return this._service.query();
   },
 
   identify: function(){
     return this._service.identify();
   },
 
-  authenticate: function(token){
-    this._service.authenticate(token);
-    return this;
+  find: function(){
+    return this._service.find();
   },
 
   _getPopupData: function(e){
@@ -1391,6 +2041,8 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
 
     if(this.options.layers){
       identifyRequest.layers('visible:' + this.options.layers.join(','));
+    } else {
+      identifyRequest.layers('visible');
     }
 
     identifyRequest.run(callback);
@@ -1400,26 +2052,19 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
     this._lastClick = e.latlng;
   },
 
-  _renderPopup: function(latlng, error, featureCollection, response){
-    if(this._shouldRenderPopup && this._lastClick.equals(latlng)){
-      //add the popup to the map where the mouse was clicked at
-      var content = this._popupFunction(error, featureCollection, response);
-      if (content) {
-        this._popup.setLatLng(latlng).setContent(content).openOn(this._map);
-      }
-    }
-  },
-
-  _resetPopupState: function(e){
-    this._shouldRenderPopup = false;
-    this._lastClick = e.latlng;
-  },
-
   _buildExportParams: function () {
     var bounds = this._map.getBounds();
     var size = this._map.getSize();
     var ne = this._map.options.crs.project(bounds._northEast);
     var sw = this._map.options.crs.project(bounds._southWest);
+
+    //ensure that we don't ask ArcGIS Server for a taller image than we have actual map displaying
+    var top = this._map.latLngToLayerPoint(bounds._northEast);
+    var bottom = this._map.latLngToLayerPoint(bounds._southWest);
+
+    if (top.y > 0 || bottom.y < size.y){
+      size.y = bottom.y - top.y;
+    }
 
     var params = {
       bbox: [sw.x, sw.y, ne.x, ne.y].join(','),
@@ -1454,105 +2099,268 @@ L.esri.Layers.DynamicMapLayer = L.Class.extend({
     return params;
   },
 
-  _renderImage: function(url, bounds){
-    var image = new L.ImageOverlay(url, bounds, {
-      opacity: 0
-    }).addTo(this._map);
-
-    image.once('load', function(e){
-      var newImage = e.target;
-      var oldImage = this._currentImage;
-
-      if(newImage._bounds.equals(bounds)){
-        this._currentImage = newImage;
-
-        if(this.options.position === 'front'){
-          this.bringToFront();
-        } else {
-          this.bringToBack();
-        }
-
-        this._currentImage.setOpacity(this.options.opacity);
-
-        if(oldImage){
-          this._map.removeLayer(oldImage);
-        }
-      } else {
-        this._map.removeLayer(newImage);
-      }
-
-      this.fire('load', {
-        bounds: bounds
-      });
-
-    }, this);
-
-    this.fire('loading', {
-      bounds: bounds
-    });
-  },
-
-  _update: function () {
-    if(!this._map){
-      return;
-    }
-
-    var zoom = this._map.getZoom();
-    var bounds = this._map.getBounds();
-
-    if(this._animatingZoom){
-      return;
-    }
-
-    if (this._map._panTransition && this._map._panTransition._inProgress) {
-      return;
-    }
-
-    if (zoom > this.options.maxZoom || zoom < this.options.minZoom) {
-      return;
-    }
-    var params = this._buildExportParams();
-
+  _requestExport: function (params, bounds) {
     if(this.options.f === 'json'){
       this._service.get('export', params, function(error, response){
         this._renderImage(response.href, bounds);
       }, this);
     } else {
       params.f = 'image';
-      this._renderImage(this.url + 'export' + L.Util.getParamString(params), bounds);
+      this._renderImage(this.options.url + 'export' + L.Util.getParamString(params), bounds);
     }
-  },
-
-  // from https://github.com/Leaflet/Leaflet/blob/v0.7.2/src/layer/FeatureGroup.js
-  // @TODO remove at Leaflet 0.8
-  _propagateEvent: function (e) {
-    e = L.extend({
-      layer: e.target,
-      target: this
-    }, e);
-    this.fire(e.type, e);
   }
 });
 
-L.esri.DynamicMapLayer = L.esri.Layers.DynamicMapLayer;
+EsriLeaflet.DynamicMapLayer = EsriLeaflet.Layers.DynamicMapLayer;
 
-L.esri.Layers.dynamicMapLayer = function(key, options){
-  return new L.esri.Layers.DynamicMapLayer(key, options);
+EsriLeaflet.Layers.dynamicMapLayer = function(url, options){
+  return new EsriLeaflet.Layers.DynamicMapLayer(url, options);
 };
 
-L.esri.dynamicMapLayer = function(key, options){
-  return new L.esri.Layers.DynamicMapLayer(key, options);
+EsriLeaflet.dynamicMapLayer = function(url, options){
+  return new EsriLeaflet.Layers.DynamicMapLayer(url, options);
 };
-/* globals L */
 
-L.esri.Layers.TiledMapLayer = L.TileLayer.extend({
+EsriLeaflet.Layers.ImageMapLayer = EsriLeaflet.Layers.RasterLayer.extend({
+
+  options: {
+    updateInterval: 150,
+    format: 'jpgpng',
+    transparent: true
+  },
+
+  query: function(){
+    return this._service.query();
+  },
+
+  identify: function(){
+    return this._service.identify();
+  },
+
+  initialize: function (url, options) {
+    options = options || {};
+    options.url = EsriLeaflet.Util.cleanUrl(url);
+    this._service = new EsriLeaflet.Services.ImageService(options);
+    this._service.on('authenticationrequired requeststart requestend requesterror requestsuccess', this._propagateEvent, this);
+    L.Util.setOptions(this, options);
+  },
+
+  setPixelType: function (pixelType) {
+    this.options.pixelType = pixelType;
+    this._update();
+    return this;
+  },
+
+  getPixelType: function () {
+    return this.options.pixelType;
+  },
+
+  setBandIds: function (bandIds) {
+    if (L.Util.isArray(bandIds)) {
+      this.options.bandIds = bandIds.join(',');
+    } else {
+      this.options.bandIds = bandIds.toString();
+    }
+    this._update();
+    return this;
+  },
+
+  getBandIds: function () {
+    return this.options.bandIds;
+  },
+
+  setNoData: function (noData, noDataInterpretation) {
+    if (L.Util.isArray(noData)) {
+      this.options.noData = noData.join(',');
+    } else {
+      this.options.noData = noData.toString();
+    }
+    if (noDataInterpretation) {
+      this.options.noDataInterpretation = noDataInterpretation;
+    }
+    this._update();
+    return this;
+  },
+
+  getNoData: function () {
+    return this.options.noData;
+  },
+
+  getNoDataInterpretation: function () {
+    return this.options.noDataInterpretation;
+  },
+
+  setRenderingRule: function(renderingRule) {
+    this.options.renderingRule = renderingRule;
+    this._update();
+  },
+
+  getRenderingRule: function() {
+    return this.options.renderingRule;
+  },
+
+  setMosaicRule: function(mosaicRule) {
+    this.options.mosaicRule = mosaicRule;
+    this._update();
+  },
+
+  getMosaicRule: function() {
+    return this.options.mosaicRule;
+  },
+
+  _getPopupData: function(e){
+    var callback = L.Util.bind(function(error, results, response) {
+      setTimeout(L.Util.bind(function(){
+        this._renderPopup(e.latlng, error, results, response);
+      }, this), 300);
+    }, this);
+
+    var identifyRequest = this.identify().at(e.latlng);
+
+    // set mosaic rule for identify task if it is set for layer
+    if (this.options.mosaicRule) {
+      identifyRequest.setMosaicRule(this.options.mosaicRule);
+      // @TODO: force return catalog items too?
+    }
+
+    // @TODO: set rendering rule? Not sure,
+    // sometimes you want raw pixel values
+    // if (this.options.renderingRule) {
+    //   identifyRequest.setRenderingRule(this.options.renderingRule);
+    // }
+
+    identifyRequest.run(callback);
+
+    // set the flags to show the popup
+    this._shouldRenderPopup = true;
+    this._lastClick = e.latlng;
+  },
+
+  _buildExportParams: function () {
+    var bounds = this._map.getBounds();
+    var size = this._map.getSize();
+    var ne = this._map.options.crs.project(bounds._northEast);
+    var sw = this._map.options.crs.project(bounds._southWest);
+
+    var params = {
+      bbox: [sw.x, sw.y, ne.x, ne.y].join(','),
+      size: size.x + ',' + size.y,
+      format: this.options.format,
+      transparent: this.options.transparent,
+      bboxSR: this.options.bboxSR,
+      imageSR: this.options.imageSR
+    };
+
+    if (this.options.from && this.options.to) {
+      params.time = this.options.from.valueOf() + ',' + this.options.to.valueOf();
+    }
+
+    if (this.options.pixelType) {
+      params.pixelType = this.options.pixelType;
+    }
+
+    if (this.options.interpolation) {
+      params.interpolation = this.options.interpolation;
+    }
+
+    if (this.options.compressionQuality) {
+      params.compressionQuality = this.options.compressionQuality;
+    }
+
+    if (this.options.bandIds) {
+      params.bandIds = this.options.bandIds;
+    }
+
+    if (this.options.noData) {
+      params.noData = this.options.noData;
+    }
+
+    if (this.options.noDataInterpretation) {
+      params.noDataInterpretation = this.options.noDataInterpretation;
+    }
+
+    if (this._service.options.token) {
+      params.token = this._service.options.token;
+    }
+
+    if(this.options.renderingRule) {
+      params.renderingRule = JSON.stringify(this.options.renderingRule);
+    }
+
+    if(this.options.mosaicRule) {
+      params.mosaicRule = JSON.stringify(this.options.mosaicRule);
+    }
+
+    return params;
+  },
+
+  _requestExport: function (params, bounds) {
+    if (this.options.f === 'json') {
+      this._service.get('exportImage', params, function(error, response){
+        this._renderImage(response.href, bounds);
+      }, this);
+    } else {
+      params.f = 'image';
+      this._renderImage(this.options.url + 'exportImage' + L.Util.getParamString(params), bounds);
+    }
+  }
+});
+
+EsriLeaflet.ImageMapLayer = EsriLeaflet.Layers.ImageMapLayer;
+
+EsriLeaflet.Layers.imageMapLayer = function (url, options) {
+  return new EsriLeaflet.Layers.ImageMapLayer(url, options);
+};
+
+EsriLeaflet.imageMapLayer = function (url, options) {
+  return new EsriLeaflet.Layers.ImageMapLayer(url, options);
+};
+
+
+EsriLeaflet.Layers.TiledMapLayer = L.TileLayer.extend({
+  options: {
+    zoomOffsetAllowance: 0.1,
+    correctZoomLevels: true
+  },
+
+  statics: {
+    MercatorZoomLevels: {
+      '0':156543.03392799999,
+      '1':78271.516963999893,
+      '2':39135.758482000099,
+      '3':19567.879240999901,
+      '4':9783.9396204999593,
+      '5':4891.9698102499797,
+      '6':2445.9849051249898,
+      '7':1222.9924525624899,
+      '8':611.49622628138002,
+      '9':305.74811314055802,
+      '10':152.874056570411,
+      '11':76.437028285073197,
+      '12':38.218514142536598,
+      '13':19.109257071268299,
+      '14':9.5546285356341496,
+      '15':4.7773142679493699,
+      '16':2.38865713397468,
+      '17':1.1943285668550501,
+      '18':0.59716428355981699,
+      '19':0.29858214164761698,
+      '20':0.14929107082381,
+      '21':0.07464553541191,
+      '22':0.0373227677059525,
+      '23':0.0186613838529763
+    }
+  },
+
   initialize: function(url, options){
+    options = options || {};
+    options.url = EsriLeaflet.Util.cleanUrl(url);
     options = L.Util.setOptions(this, options);
 
     // set the urls
-    this.url = L.esri.Util.cleanUrl(url);
+    //this.url = L.esri.Util.cleanUrl(url);
     this.tileUrl = L.esri.Util.cleanUrl(url) + 'tile/{z}/{y}/{x}';
-    this._service = new L.esri.Services.MapService(this.url, options);
+    this._service = new L.esri.Services.MapService(options);
     this._service.on('authenticationrequired requeststart requestend requesterror requestsuccess', this._propagateEvent, this);
 
     //if this is looking at the AGO tiles subdomain insert the subdomain placeholder
@@ -1561,8 +2369,56 @@ L.esri.Layers.TiledMapLayer = L.TileLayer.extend({
       options.subdomains = ['1', '2', '3', '4'];
     }
 
+    if(this.options.token) {
+      this.tileUrl += ('?token=' + this.options.token);
+    }
+
     // init layer by calling TileLayers initialize method
     L.TileLayer.prototype.initialize.call(this, this.tileUrl, options);
+  },
+
+  getTileUrl: function (tilePoint) {
+    return L.Util.template(this.tileUrl, L.extend({
+      s: this._getSubdomain(tilePoint),
+      z: this._lodMap[tilePoint.z] || tilePoint.z, // try lod map first, then just defualt to zoom level
+      x: tilePoint.x,
+      y: tilePoint.y
+    }, this.options));
+  },
+
+  onAdd: function(map){
+    if (!this._lodMap && this.options.correctZoomLevels) {
+      this._lodMap = {}; // make sure we always have an lod map even if its empty
+      this.metadata(function(error, metadata) {
+        if(!error) {
+          var sr = metadata.spatialReference.latestWkid || metadata.spatialReference.wkid;
+
+          if (sr === 102100 || sr === 3857) {
+            //create the zoom level data
+            var arcgisLODs = metadata.tileInfo.lods;
+            var correctResolutions = EsriLeaflet.Layers.TiledMapLayer.MercatorZoomLevels;
+
+            for(var i = 0; i < arcgisLODs.length; i++) {
+              var arcgisLOD = arcgisLODs[i];
+              for(var ci in correctResolutions) {
+                var correctRes = correctResolutions[ci];
+
+                if(this._withinPercentage(arcgisLOD.resolution, correctRes, this.options.zoomOffsetAllowance)) {
+                  this._lodMap[ci] = arcgisLOD.level;
+                  break;
+                }
+              }
+            }
+          } else {
+            EsriLeaflet.Util.warn('L.esri.TiledMapLayer is using a non-mercator spatial reference. Support may be available through Proj4Leaflet http://esri.github.io/esri-leaflet/examples/non-mercator-projection.html');
+          }
+        }
+
+        L.TileLayer.prototype.onAdd.call(this, map);
+      }, this);
+    } else {
+      L.TileLayer.prototype.onAdd.call(this, map);
+    }
   },
 
   metadata: function(callback, context){
@@ -1575,6 +2431,9 @@ L.esri.Layers.TiledMapLayer = L.TileLayer.extend({
   },
 
   authenticate: function(token){
+    var tokenQs = '?token=' + token;
+    this.tileUrl = (this.options.token) ? this.tileUrl.replace(/\?token=(.+)/g, tokenQs) : this.tileUrl + tokenQs;
+    this.options.token = token;
     this._service.authenticate(token);
     return this;
   },
@@ -1587,6 +2446,11 @@ L.esri.Layers.TiledMapLayer = L.TileLayer.extend({
       target: this
     }, e);
     this.fire(e.type, e);
+  },
+
+  _withinPercentage: function (a, b, percentage) {
+    var diff = Math.abs((a/b) - 1);
+    return diff < percentage;
   }
 });
 
@@ -1599,7 +2463,8 @@ L.esri.Layers.tiledMapLayer = function(url, options){
 L.esri.tiledMapLayer = function(url, options){
   return new L.esri.Layers.TiledMapLayer(url, options);
 };
-L.esri.Layers.FeatureGrid = L.Class.extend({
+
+EsriLeaflet.Layers.FeatureGrid = L.Class.extend({
 
   includes: L.Mixin.Events,
 
@@ -1631,7 +2496,8 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
   getEvents: function () {
     var events = {
       viewreset: this._reset,
-      moveend: this._update
+      moveend: this._update,
+      zoomend : this._onZoom
     };
 
     return events;
@@ -1645,6 +2511,20 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
   removeFrom: function(map){
     map.removeLayer(this);
     return this;
+  },
+
+  _onZoom : function () {
+    var zoom = this._map.getZoom();
+
+    if (zoom > this.options.maxZoom ||
+        zoom < this.options.minZoom) {
+      this.removeFrom(this._map);
+      this._map.addEventListener('zoomend', this.getEvents().zoomend, this);
+    } else if (!this._map.hasLayer(this)) {
+      this._map.removeEventListener('zoomend', this.getEvents().zoomend, this);
+      this.addTo(this._map);
+    }
+
   },
 
   _reset: function () {
@@ -1693,18 +2573,23 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
 
     var bounds = this._map.getPixelBounds(),
         zoom = this._map.getZoom(),
-        cellSize = this._getCellSize();
+        cellSize = this._getCellSize(),
+        cellPadding = [cellSize/2,cellSize/2];
+        // cellPadding = [0,0]
 
     if (zoom > this.options.maxZoom ||
         zoom < this.options.minZoom) { return; }
 
     // cell coordinates range for the current view
-    var cellBounds = L.bounds(
-      bounds.min.divideBy(cellSize).floor(),
-      bounds.max.divideBy(cellSize).floor());
+    var topLeft = bounds.min.subtract(cellPadding).divideBy(cellSize).floor();
+    topLeft.x = Math.max(topLeft.x, 0);
+    topLeft.y = Math.max(topLeft.y, 0);
 
-    this._addCells(cellBounds);
+    var cellBounds = L.bounds(topLeft, bounds.max.add(cellPadding).divideBy(cellSize).floor());
+
+    // remove any present cells that are off the specified bounds
     this._removeOtherCells(cellBounds);
+    this._addCells(cellBounds);
   },
 
   _addCells: function (bounds) {
@@ -1905,9 +2790,10 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
   // }
 
 });
-(function(L){
 
-  L.esri.Layers.FeatureManager = L.esri.Layers.FeatureGrid.extend({
+(function(EsriLeaflet){
+
+  EsriLeaflet.Layers.FeatureManager = EsriLeaflet.Layers.FeatureGrid.extend({
 
     /**
      * Options
@@ -1929,13 +2815,27 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
      */
 
     initialize: function (url, options) {
-      L.esri.Layers.FeatureGrid.prototype.initialize.call(this, options);
+      EsriLeaflet.Layers.FeatureGrid.prototype.initialize.call(this, options);
 
+      options = options || {};
+      options.url = EsriLeaflet.Util.cleanUrl(url);
       options = L.setOptions(this, options);
 
-      this.url = L.esri.Util.cleanUrl(url);
+      this._service = new EsriLeaflet.Services.FeatureLayer(options);
 
-      this._service = new L.esri.Services.FeatureLayer(this.url, options);
+      //use case insensitive regex to look for common fieldnames used for indexing
+      /*global console */
+      if (this.options.fields[0] !== '*'){
+        var oidCheck = false;
+        for (var i = 0; i < this.options.fields.length; i++){
+          if (this.options.fields[i].match(/^(OBJECTID|FID|OID|ID)$/i)){
+            oidCheck = true;
+          }
+        }
+        if (oidCheck === false) {
+          EsriLeaflet.Util.warn('no known esriFieldTypeOID field detected in fields Array.  Please add an attribute field containing unique IDs to ensure the layer can be drawn correctly.');
+        }
+      }
 
       // Leaflet 0.8 change to new propagation
       this._service.on('authenticationrequired requeststart requestend requesterror requestsuccess', function (e) {
@@ -1955,6 +2855,7 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
       this._cache = {};
       this._currentSnapshot = []; // cache of what layers should be active
       this._activeRequests = 0;
+      this._pendingRequests = [];
     },
 
     /**
@@ -1962,11 +2863,15 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
      */
 
     onAdd: function(map){
-      return L.esri.Layers.FeatureGrid.prototype.onAdd.call(this, map);
+      return EsriLeaflet.Layers.FeatureGrid.prototype.onAdd.call(this, map);
     },
 
     onRemove: function(map){
-      return L.esri.Layers.FeatureGrid.prototype.onRemove.call(this, map);
+      return EsriLeaflet.Layers.FeatureGrid.prototype.onRemove.call(this, map);
+    },
+
+    getAttribution: function () {
+      return this.options.attribution;
     },
 
     /**
@@ -1987,49 +2892,68 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
         });
       }
 
-      this._buildQuery(bounds).run(function(error, featureCollection, response){
+      return this._buildQuery(bounds).run(function(error, featureCollection, response){
         if(response && response.exceededTransferLimit){
           this.fire('drawlimitexceeded');
         }
 
-        //deincriment the request counter
+        //deincriment the request counter now that we have created features
         this._activeRequests--;
 
         if(!error && featureCollection.features.length){
-          this._addFeatures(featureCollection.features, coords);
+          // schedule adding features until the next animation frame
+          EsriLeaflet.Util.requestAnimationFrame(L.Util.bind(function(){
+            this._addFeatures(featureCollection.features, coords);
+
+            // if there are no more active requests fire a load event for this view
+            if(this._activeRequests <= 0){
+              this.fire('load', {
+                bounds: bounds
+              });
+            }
+          }, this));
         }
 
         if(callback){
           callback.call(this, error, featureCollection);
         }
-
-        // if there are no more active requests fire a load event for this view
-        if(this._activeRequests <= 0){
-          this.fire('load', {
-            bounds: bounds
-          });
-        }
       }, this);
     },
 
+    _cacheKey: function (coords){
+      return coords.z + ':' + coords.x + ':' +coords.y;
+    },
+
     _addFeatures: function(features, coords){
-      this._cache[coords] = this._cache[coords] || [];
+      var key = this._cacheKey(coords);
+      this._cache[key] = this._cache[key] || [];
 
       for (var i = features.length - 1; i >= 0; i--) {
         var id = features[i].id;
-        this._cache[coords].push(id);
         this._currentSnapshot.push(id);
+        this._cache[key].push(id);
+        /*
+        should we refactor the code in FeatureManager.setWhere()
+        so that we can reuse it to make sure that we remove features
+        on the client that are removed from the service?
+        */
+
       }
 
       if(this.options.timeField){
         this._buildTimeIndexes(features);
       }
 
+      var zoom = this._map.getZoom();
+
+      if (zoom > this.options.maxZoom ||
+          zoom < this.options.minZoom) { return; }
+
       this.createLayers(features);
     },
 
     _buildQuery: function(bounds){
-      var query = this._service.query().within(bounds).where(this.options.where).fields(this.options.fields).precision(this.options.precision);
+      var query = this._service.query().intersects(bounds).where(this.options.where).fields(this.options.fields).precision(this.options.precision);
 
       if(this.options.simplifyFactor){
         query.simplify(this._map, this.options.simplifyFactor);
@@ -2046,24 +2970,38 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
      * Where Methods
      */
 
-    setWhere: function(where){
+    setWhere: function(where, callback, context){
+
       this.options.where = (where && where.length) ? where : '1=1';
+
       var oldSnapshot = [];
-      var newShapshot = [];
+      var newSnapshot = [];
       var pendingRequests = 0;
+      var requestError = null;
       var requestCallback = L.Util.bind(function(error, featureCollection){
+        if(error){
+          requestError = error;
+        }
+
         if(featureCollection){
           for (var i = featureCollection.features.length - 1; i >= 0; i--) {
-            newShapshot.push(featureCollection.features[i].id);
+            newSnapshot.push(featureCollection.features[i].id);
           }
         }
 
         pendingRequests--;
 
         if(pendingRequests <= 0){
-          this._currentSnapshot = newShapshot;
-          this.removeLayers(oldSnapshot);
-          this.addLayers(newShapshot);
+          this._currentSnapshot = newSnapshot;
+          // schedule adding features until the next animation frame
+          EsriLeaflet.Util.requestAnimationFrame(L.Util.bind(function(){
+            this.removeLayers(oldSnapshot);
+            this.addLayers(newSnapshot);
+            if(callback) {
+              callback.call(context, requestError);
+            }
+          }, this));
+
         }
       }, this);
 
@@ -2093,12 +3031,22 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
       return [this.options.from, this.options.to];
     },
 
-    setTimeRange: function(from, to){
+    setTimeRange: function(from, to, callback, context){
       var oldFrom = this.options.from;
       var oldTo = this.options.to;
-
-      var requestCallback = L.Util.bind(function(){
+      var pendingRequests = 0;
+      var requestError = null;
+      var requestCallback = L.Util.bind(function(error){
+        if(error){
+          requestError = error;
+        }
         this._filterExistingFeatures(oldFrom, oldTo, from, to);
+
+        pendingRequests--;
+
+        if(callback && pendingRequests <= 0){
+          callback.call(context, requestError);
+        }
       }, this);
 
       this.options.from = from;
@@ -2108,6 +3056,7 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
 
       if(this.options.timeFilterMode === 'server') {
         for(var key in this._activeCells){
+          pendingRequests++;
           var coords = this._keyToCellCoords(key);
           var bounds = this._cellCoordsToBounds(coords);
           this._requestFeatures(bounds, key, requestCallback);
@@ -2120,6 +3069,14 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
         var coords = this._keyToCellCoords(key);
         var bounds = this._cellCoordsToBounds(coords);
         this._requestFeatures(bounds, key);
+      }
+
+      if(this.redraw){
+        this.once('load', function(){
+          this.eachFeature(function(layer){
+            this._redraw(layer.feature.id);
+          }, this);
+        }, this);
       }
     },
 
@@ -2136,8 +3093,11 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
         }
       }
 
-      this.removeLayers(layersToRemove);
-      this.addLayers(layersToAdd);
+      // schedule adding features until the next animation frame
+      EsriLeaflet.Util.requestAnimationFrame(L.Util.bind(function(){
+        this.removeLayers(layersToRemove);
+        this.addLayers(layersToAdd);
+      }, this));
     },
 
     _getFeaturesInTimeRange: function(start, end){
@@ -2230,27 +3190,74 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
       return this._service.query();
     },
 
+    _getMetadata: function(callback){
+      if(this._metadata){
+        var error;
+        callback(error, this._metadata);
+      } else {
+        this.metadata(L.Util.bind(function(error, response) {
+          this._metadata = response;
+          callback(error, this._metadata);
+        }, this));
+      }
+    },
+
     addFeature: function(feature, callback, context){
-      this._service.addFeature(feature, function(error, response){
-        this.refresh();
-        callback.call(context, error, response);
-      }, this);
-      return this;
+      this._getMetadata(L.Util.bind(function(error, metadata){
+        this._service.addFeature(feature, L.Util.bind(function(error, response){
+          if(!error){
+            // assign ID from result to appropriate objectid field from service metadata
+            feature.properties[metadata.objectIdField] = response.objectId;
+
+            // we also need to update the geojson id for createLayers() to function
+            feature.id = response.objectId;
+            this.createLayers([feature]);
+          }
+
+          if(callback){
+            callback.call(context, error, response);
+          }
+        }, this));
+      }, this));
     },
 
     updateFeature: function(feature, callback, context){
-      return this._service.updateFeature(feature, function(error, response){
-        this.refresh();
-        callback.call(context, error, response);
+      this._service.updateFeature(feature, function(error, response){
+        if(!error){
+          this.removeLayers([feature.id], true);
+          this.createLayers([feature]);
+        }
+
+        if(callback){
+          callback.call(context, error, response);
+        }
       }, this);
     },
 
     deleteFeature: function(id, callback, context){
-      return this._service.deleteFeature(id, function(error, response){
-        this.removeLayers([response.objectId]);
-        callback.call(context, error, response);
+      this._service.deleteFeature(id, function(error, response){
+        if(!error && response.objectId){
+          this.removeLayers([response.objectId], true);
+        }
+        if(callback){
+          callback.call(context, error, response);
+        }
+      }, this);
+    },
+
+    deleteFeatures: function(ids, callback, context){
+      return this._service.deleteFeatures(ids, function(error, response){
+        if(!error && response.length > 0){
+          for (var i=0; i<response.length; i++){
+            this.removeLayers([response[i].objectId], true);
+          }
+        }
+        if(callback){
+          callback.call(context, error, response);
+        }
       }, this);
     }
+
   });
 
   /**
@@ -2313,11 +3320,16 @@ L.esri.Layers.FeatureGrid = L.Class.extend({
     this.values = this.values.concat(items);
   };
 
-}(L));
-L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
+})(EsriLeaflet);
+
+EsriLeaflet.Layers.FeatureLayer = EsriLeaflet.Layers.FeatureManager.extend({
 
   statics: {
     EVENTS: 'click dblclick mouseover mouseout mousemove contextmenu popupopen popupclose'
+  },
+
+  options: {
+    cacheLayers: true
   },
 
   /**
@@ -2325,7 +3337,7 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
    */
 
   initialize: function (url, options) {
-    L.esri.Layers.FeatureManager.prototype.initialize.call(this, url, options);
+    EsriLeaflet.Layers.FeatureManager.prototype.initialize.call(this, url, options);
 
     options = L.setOptions(this, options);
 
@@ -2339,20 +3351,63 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
    */
 
   onAdd: function(map){
-    return L.esri.Layers.FeatureManager.prototype.onAdd.call(this, map);
+    map.on('zoomstart zoomend', function(e){
+      this._zooming = (e.type === 'zoomstart');
+    }, this);
+    return EsriLeaflet.Layers.FeatureManager.prototype.onAdd.call(this, map);
   },
 
   onRemove: function(map){
-
     for (var i in this._layers) {
       map.removeLayer(this._layers[i]);
     }
 
-    return L.esri.Layers.FeatureManager.prototype.onRemove.call(this, map);
+    return EsriLeaflet.Layers.FeatureManager.prototype.onRemove.call(this, map);
+  },
+
+  createNewLayer: function(geojson){
+    // @TODO Leaflet 0.8
+    //newLayer = L.GeoJSON.geometryToLayer(geojson, this.options);
+    return L.GeoJSON.geometryToLayer(geojson, this.options.pointToLayer, L.GeoJSON.coordsToLatLng, this.options);
+  },
+
+  _updateLayer: function(layer, geojson){
+    // convert the geojson coordinates into a Leaflet LatLng array/nested arrays
+    // pass it to setLatLngs to update layer geometries
+    var latlngs = [];
+    var coordsToLatLng = this.options.coordsToLatLng || L.GeoJSON.coordsToLatLng;
+
+    // copy new attributes, if present
+    if (geojson.properties) {
+      layer.feature.properties = geojson.properties;
+    }
+
+    switch(geojson.geometry.type){
+      case 'Point':
+        latlngs = L.GeoJSON.coordsToLatLng(geojson.geometry.coordinates);
+        layer.setLatLng(latlngs);
+        break;
+      case 'LineString':
+        latlngs = L.GeoJSON.coordsToLatLngs(geojson.geometry.coordinates, 0, coordsToLatLng);
+        layer.setLatLngs(latlngs);
+        break;
+      case 'MultiLineString':
+        latlngs = L.GeoJSON.coordsToLatLngs(geojson.geometry.coordinates, 1, coordsToLatLng);
+        layer.setLatLngs(latlngs);
+        break;
+      case 'Polygon':
+        latlngs = L.GeoJSON.coordsToLatLngs(geojson.geometry.coordinates, 1, coordsToLatLng);
+        layer.setLatLngs(latlngs);
+        break;
+      case 'MultiPolygon':
+        latlngs = L.GeoJSON.coordsToLatLngs(geojson.geometry.coordinates, 2, coordsToLatLng);
+        layer.setLatLngs(latlngs);
+        break;
+    }
   },
 
   /**
-   * Feature Managment Methods
+   * Feature Management Methods
    */
 
   createLayers: function(features){
@@ -2367,21 +3422,25 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
         this._map.addLayer(layer);
       }
 
-      if (layer && layer.setLatLngs) {
-        // @TODO Leaflet 0.8
-        //newLayer = L.GeoJSON.geometryToLayer(geojson, this.options);
-
-        var updateGeo = L.GeoJSON.geometryToLayer(geojson, this.options.pointToLayer, L.GeoJSON.coordsToLatLng, this.options);
-        layer.setLatLngs(updateGeo.getLatLngs());
+      // update geomerty if neccessary
+      if (layer && (layer.setLatLngs || layer.setLatLng)) {
+        this._updateLayer(layer, geojson);
       }
 
-      if(!layer){
-        // @TODO Leaflet 0.8
-        //newLayer = L.GeoJSON.geometryToLayer(geojson, this.options);
 
-        newLayer = L.GeoJSON.geometryToLayer(geojson, this.options.pointToLayer, L.GeoJSON.coordsToLatLng, this.options);
+      if(!layer){
+        newLayer =  this.createNewLayer(geojson);
         newLayer.feature = geojson;
-        newLayer.defaultOptions = newLayer.options;
+
+        if (this.options.style) {
+          newLayer._originalStyle = this.options.style;
+        }
+
+        // circleMarker check
+        else if (newLayer.setStyle) {
+          newLayer._originalStyle = newLayer.options;
+        }
+
         newLayer._leaflet_id = this._key + '_' + geojson.id;
 
         this._leafletIds[newLayer._leaflet_id] = geojson.id;
@@ -2390,11 +3449,11 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
         // @TODO Leaflet 0.8
         // newLayer.addEventParent(this);
 
-        newLayer.on(L.esri.Layers.FeatureLayer.EVENTS, this._propagateEvent, this);
+        newLayer.on(EsriLeaflet.Layers.FeatureLayer.EVENTS, this._propagateEvent, this);
 
         // bind a popup if we have one
         if(this._popup && newLayer.bindPopup){
-          newLayer.bindPopup(this._popup(newLayer.feature, newLayer));
+          newLayer.bindPopup(this._popup(newLayer.feature, newLayer), this._popupOptions);
         }
 
         if(this.options.onEachFeature){
@@ -2406,35 +3465,14 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
 
         // style the layer
         this.resetStyle(newLayer.feature.id);
+
+        this.fire('createfeature', {
+          feature: newLayer.feature
+        });
+
         // add the layer if it is within the time bounds or our layer is not time enabled
         if(!this.options.timeField || (this.options.timeField && this._featureWithinTimeRange(geojson)) ){
           this._map.addLayer(newLayer);
-        }
-      }
-    }
-  },
-
-  cellEnter: function(bounds, coords){
-    var key = this._cellCoordsToKey(coords);
-    var layers = this._cache[key];
-    if(layers){
-      for (var i = layers.length - 1; i >= 0; i--) {
-        var layer = this.getFeature(layers[i]);
-        if(!this._map.hasLayer(layer)){
-          this._map.addLayer(layer);
-        }
-      }
-    }
-  },
-
-  cellLeave: function(bounds, coords){
-    var key = this._cellCoordsToKey(coords);
-    var layers = this._cache[key];
-    if(layers){
-      for (var i = layers.length - 1; i >= 0; i--) {
-        var layer = this.getFeature(layers[i]);
-        if(this._map.hasLayer(layer)){
-          this._map.removeLayer(layer);
         }
       }
     }
@@ -2444,17 +3482,72 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
     for (var i = ids.length - 1; i >= 0; i--) {
       var layer = this._layers[ids[i]];
       if(layer){
+        this.fire('addfeature', {
+          feature: layer.feature
+        });
         this._map.addLayer(layer);
       }
     }
   },
 
-  removeLayers: function(ids){
+  removeLayers: function(ids, permanent){
     for (var i = ids.length - 1; i >= 0; i--) {
-      var layer = this._layers[ids[i]];
+      var id = ids[i];
+      var layer = this._layers[id];
       if(layer){
+        this.fire('removefeature', {
+          feature: layer.feature,
+          permanent: permanent
+        });
         this._map.removeLayer(layer);
       }
+      if(layer && permanent){
+        delete this._layers[id];
+      }
+    }
+  },
+
+  cellEnter: function(bounds, coords){
+    if(!this._zooming){
+      EsriLeaflet.Util.requestAnimationFrame(L.Util.bind(function(){
+        var cacheKey = this._cacheKey(coords);
+        var cellKey = this._cellCoordsToKey(coords);
+        var layers = this._cache[cacheKey];
+        if(this._activeCells[cellKey] && layers){
+          this.addLayers(layers);
+        }
+      }, this));
+    }
+  },
+
+  cellLeave: function(bounds, coords){
+    if(!this._zooming){
+      EsriLeaflet.Util.requestAnimationFrame(L.Util.bind(function(){
+        var cacheKey = this._cacheKey(coords);
+        var cellKey = this._cellCoordsToKey(coords);
+        var layers = this._cache[cacheKey];
+        var mapBounds = this._map.getBounds();
+        if(!this._activeCells[cellKey] && layers){
+          var removable = true;
+
+          for (var i = 0; i < layers.length; i++) {
+            var layer = this._layers[layers[i]];
+            if(layer && layer.getBounds && mapBounds.intersects(layer.getBounds())){
+              removable = false;
+            }
+          }
+
+          if(removable){
+            this.removeLayers(layers, !this.options.cacheLayers);
+          }
+
+          if(!this.options.cacheLayers && removable){
+            delete this._cache[cacheKey];
+            delete this._cells[cellKey];
+            delete this._activeCells[cellKey];
+          }
+        }
+      }, this));
     }
   },
 
@@ -2466,14 +3559,14 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
     var layer = this._layers[id];
 
     if(layer){
-      layer.options = layer.defaultOptions;
-      this.setFeatureStyle(layer.feature.id, this.options.style);
+      this.setFeatureStyle(layer.feature.id, layer._originalStyle);
     }
 
     return this;
   },
 
   setStyle: function (style) {
+    this.options.style = style;
     this.eachFeature(function (layer) {
       this.setFeatureStyle(layer.feature.id, style);
     }, this);
@@ -2486,9 +3579,17 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
     if (typeof style === 'function') {
       style = style(layer.feature);
     }
-    if (layer.setStyle) {
+
+    if (!style && !layer.defaultOptions) {
+      style = L.Path.prototype.options;
+      style.fill = true; //not set by default
+    }
+
+    if (layer && layer.setStyle) {
       layer.setStyle(style);
     }
+
+    return this;
   },
 
   /**
@@ -2497,6 +3598,7 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
 
   bindPopup: function (fn, options) {
     this._popup = fn;
+    this._popupOptions = options;
     for (var i in this._layers) {
       var layer = this._layers[i];
       var popupContent = this._popup(layer.feature, layer);
@@ -2508,7 +3610,16 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
   unbindPopup: function () {
     this._popup =  false;
     for (var i in this._layers) {
-      this._layers[i].unbindPopup();
+      var layer = this._layers[i];
+      if (layer.unbindPopup) {
+        layer.unbindPopup();
+      } else if (layer.getLayers) {
+        var groupLayers = layer.getLayers();
+        for (var j in groupLayers) {
+          var gLayer = groupLayers[j];
+          gLayer.unbindPopup();
+        }
+      }
     }
     return this;
   },
@@ -2528,6 +3639,40 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
     return this._layers[id];
   },
 
+  redraw: function (id) {
+    if (id) {
+      this._redraw(id);
+    }
+    return this;
+  },
+
+  _redraw: function(id) {
+    var layer = this._layers[id];
+    var geojson = layer.feature;
+
+    // if this looks like a marker
+    if (layer && layer.setIcon && this.options.pointToLayer) {
+      // update custom symbology, if necessary
+      if (this.options.pointToLayer){
+        var getIcon = this.options.pointToLayer(geojson, L.latLng(geojson.geometry.coordinates[1], geojson.geometry.coordinates[0]));
+        var updatedIcon = getIcon.options.icon;
+        layer.setIcon(updatedIcon);
+      }
+    }
+
+    // looks like a vector marker (circleMarker)
+    if (layer && layer.setStyle && this.options.pointToLayer) {
+      var getStyle = this.options.pointToLayer(geojson, L.latLng(geojson.geometry.coordinates[1], geojson.geometry.coordinates[0]));
+      var updatedStyle = getStyle.options;
+      this.setFeatureStyle(geojson.id, updatedStyle);
+    }
+
+    // looks like a path (polygon/polyline)
+    if(layer && layer.setStyle && this.options.style) {
+      this.resetStyle(geojson.id);
+    }
+  },
+
   // from https://github.com/Leaflet/Leaflet/blob/v0.7.2/src/layer/FeatureGroup.js
   // @TODO remove at Leaflet 0.8
   _propagateEvent: function (e) {
@@ -2537,12 +3682,56 @@ L.esri.Layers.FeatureLayer = L.esri.Layers.FeatureManager.extend({
   }
 });
 
-L.esri.FeatureLayer = L.esri.Layers.FeatureLayer;
+EsriLeaflet.FeatureLayer = EsriLeaflet.Layers.FeatureLayer;
 
-L.esri.Layers.featureLayer = function(key, options){
-  return new L.esri.Layers.FeatureLayer(key, options);
+EsriLeaflet.Layers.featureLayer = function(url, options){
+  return new EsriLeaflet.Layers.FeatureLayer(url, options);
 };
 
-L.esri.featureLayer = function(key, options){
-  return new L.esri.Layers.FeatureLayer(key, options);
+EsriLeaflet.featureLayer = function(url, options){
+  return new EsriLeaflet.Layers.FeatureLayer(url, options);
 };
+
+EsriLeaflet.Controls.Logo = L.Control.extend({
+  options: {
+    position: 'bottomright',
+    marginTop: 0,
+    marginLeft: 0,
+    marginBottom: 0,
+    marginRight: 0
+  },
+
+  onAdd: function () {
+    var div = L.DomUtil.create('div', 'esri-leaflet-logo');
+    div.style.marginTop = this.options.marginTop;
+    div.style.marginLeft = this.options.marginLeft;
+    div.style.marginBottom = this.options.marginBottom;
+    div.style.marginRight = this.options.marginRight;
+    div.innerHTML = this._adjustLogo(this._map._size);
+
+    this._map.on('resize', function(e){
+      div.innerHTML = this._adjustLogo(e.newSize);
+    }, this);
+
+    return div;
+  },
+
+  _adjustLogo: function (mapSize) {
+    if (mapSize.x <= 600 || mapSize.y <= 600){
+      return '<a href="https://developers.arcgis.com" style="border: none;"><img src="https://js.arcgis.com/3.13/esri/images/map/logo-sm.png" alt="Powered by Esri" style="border: none;"></a>';
+    }
+    else {
+      return '<a href="https://developers.arcgis.com" style="border: none;"><img src="https://js.arcgis.com/3.13/esri/images/map/logo-med.png" alt="Powered by Esri" style="border: none;"></a>';
+    }
+  }
+
+});
+
+EsriLeaflet.Controls.logo = function(options){
+  return new L.esri.Controls.Logo(options);
+};
+
+
+  return EsriLeaflet;
+}));
+//# sourceMappingURL=esri-leaflet-src.js.map

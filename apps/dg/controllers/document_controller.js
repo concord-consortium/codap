@@ -1286,6 +1286,10 @@ DG.DocumentController = SC.Object.extend(
                   gameContext.get('gameName'));
                   resolve({success:false});
                 }
+              } else {
+                // This would occur if there is no means of communicating with
+                // a data interactive. We immediately resolve.
+                resolve({success:true});
               }
             } catch (ex) {
               DG.logWarn("Exception saving game context(" + gameContext.get('gameName') + "): " + ex);
