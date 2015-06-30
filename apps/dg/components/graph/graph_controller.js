@@ -253,7 +253,25 @@ DG.GraphController = DG.DataDisplayController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attributes: [iDragData.attribute] });
-      }.observes('*y2AxisView.dragData')
+      }.observes('*y2AxisView.dragData'),
+
+      /**
+       Our base class can handle this except for the situation in which this is the first attribute being dropped,
+       in which case we want to override the default behavior and simulate drop on the x-axis, which is probably
+       what the user intended, but missed.
+       */
+      plotOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
+        var tDataConfig = this.getPath('graphModel.dataConfiguration');
+        if( !tDataConfig.get('xAttributeID') &&
+            !tDataConfig.get('yAttributeID') &&
+            !tDataConfig.get('legendAttributeID')) {
+          iView.dragData = null;  // So we don't come back around
+          this.axisViewDidAcceptDrop( this.get('xAxisView'), iKey, iDragData);
+        }
+        else
+          sc_super();
+      }.observes('*plotView.dragData')
+
     };
 
   }()) // function closure
