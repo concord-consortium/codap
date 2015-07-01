@@ -193,6 +193,8 @@ DG.GraphController = DG.DataDisplayController.extend(
        An axis view has received a drop of an attribute. Our job is the tell the graph
        model which attribute and collection client to change so that we move into the
        desired configuration of attributes.
+       Note that we need the '*' in the observes because the views are swapped out when the
+       graph gets reconfigured.
        */
       axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
