@@ -155,7 +155,29 @@ DG.NumericPlotModelMixin =
         }
 
         DG.dirtyCurrentDocument();
-      }
+      },
+      redo: function() {
+        if (this._undoData) {
+          this._undoData.places.forEach( function( iPlace) {
+            setNewBounds( iPlace, axisForPlace( iPlace));
+          });
+
+          // Only animate if the bounds have changed
+          if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+            DG.sounds.playMixup();
+            this_.set('isAnimating', true);    // Signals view that axes are in new state and points
+                                               // can be animated to new coordinates
+            // We'll go through both iPlaces and tOldBoundsArray in reverse order
+            while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
+              setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+            }
+
+            if( SC.none( this_.plotAnimator))
+              this_.plotAnimator = DG.GraphAnimator.create( { plot: this_ });
+            this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this_, this_.onRescaleIsComplete);
+          }
+        }
+      },
     }));
   },
 
