@@ -376,6 +376,7 @@ DG.GameController = DG.ComponentController.extend(
         // Once all the collections and attributes are created,
         // we're ready to play the game.
         this.set('gameIsReady', true);
+        this.notifyPropertyChange('gameIsReady');
 
         if ((iArgs.log === undefined) || iArgs.log)
           DG.logUser("initGame: '%@', Collections: [%@]", tCurrentGameName,
@@ -527,6 +528,12 @@ DG.GameController = DG.ComponentController.extend(
       }
       return gameElement;
     },
+
+    notifyGameAboutExternalUndo: function() {
+      if (this.get('gameIsReady') && DG.UndoHistory.get('enabled')) {
+        this.gamePhone.call({ operation: "externalUndoAvailable" });
+      }
+    }.observes('gameIsReady'),
 
     /**
       Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
