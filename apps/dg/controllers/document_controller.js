@@ -841,6 +841,7 @@ DG.DocumentController = SC.Object.extend(
     closeGuideView: function() {
       var tGuideComponentView = this._singletonViews.guideView;
       if( tGuideComponentView) {
+        DG.logUser("closeComponent: Guide - %@", tGuideComponentView.get('title'));
         tGuideComponentView.set('isVisible', false);
       }
     },

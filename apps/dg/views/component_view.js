@@ -290,8 +290,14 @@ DG.ComponentView = SC.View.extend(
           }
         }),
 
-      title: null,
-      titleBinding: '.containerView.titlebar.titleView.value',
+      _title: '',
+      title: function( iKey, iValue) {
+        if( iValue) {
+          this.setPath('containerView.titlebar.titleView.value', iValue);
+          this._title = iValue;
+        }
+        return this._title;
+      }.property(),
 
       version: null,
       versionBinding: '.containerView.titlebar.versionView.value',

@@ -38,10 +38,9 @@ DG.GuideController = DG.ComponentController.extend(
     guideMenuPane: null,
 
     updateViewTitle: function() {
-      var tTitle = this.getPath('guideModel.title'),
-          tCurrentItemTitle = this.getPath('guideModel.currentItemTitle' );
-      this.setPath('view.title', tTitle + (SC.empty( tCurrentItemTitle) ? '' : ' - ' + tCurrentItemTitle));
-    }.observes('guideModel.title', 'guideModel.currentItemTitle'),
+      var tTitle = this.getPath('guideModel.title');
+      this.setPath('view.title', tTitle);
+    }.observes('guideModel.title'),
 
     modelContentsDidChange: function() {
       var tTitle = this.getPath('guideModel.title' ),
@@ -125,6 +124,7 @@ DG.GuideController = DG.ComponentController.extend(
       if( !SC.none( this.tempIsVisible))
         this.setPath('view.isVisible', this.tempIsVisible);
       this.tempIsVisible = undefined;
+      this.updateViewTitle();
     }.observes('view'),
 
     createComponentStorage:function () {
