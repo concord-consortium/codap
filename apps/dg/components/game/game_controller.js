@@ -253,6 +253,10 @@ DG.GameController = DG.ComponentController.extend(
         tRet = this.handleReset( tCmdObj.args);
         break;
 
+      case 'undoableActionPerformed':
+        tRet = this.handleUndoableAction();
+        break;
+
       /*
        * Old API
        */
@@ -732,6 +736,28 @@ DG.GameController = DG.ComponentController.extend(
       // Destroy the collections: not just the cases within, but the attribute
       // definitions, too.
       this.doResetCollections();
+    },
+
+    /**
+      The DataInteractive performed an undoable action
+
+      We don't perform any action, because the external game has already performed the
+      action. We simply store this new command in the stack, and the undo/redo of this
+      command call undo/redo on the game.
+    */
+    handleUndoableAction: function() {
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'interactive.undableAction',
+        undoString: 'DG.Undo.interativeUndoableAction',
+        redoString: 'DG.Redo.interativeUndoableAction',
+        execute: function() {},
+        undo: function() {
+          this.gamePhone.call({ operation: "undoAction" });
+        }.bind(this),
+        redo: function() {
+          this.gamePhone.call({ operation: "redoAction" });
+        }.bind(this)
+      }));
     },
 
         /**
