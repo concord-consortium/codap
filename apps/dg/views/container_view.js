@@ -111,13 +111,13 @@ DG.ContainerView = SC.View.extend(
         return { x: 0, y: 0, width: tWidth, height: tHeight };
       }.property('frameNeedsUpdate').cacheable(),
       
-      removeComponentView: function( iComponentView) {
+      removeComponentView: function( iComponentView, iSkipDirtyingDocument) {
         var tCloseAction = iComponentView.get('closeAction');
         if( tCloseAction) {
           tCloseAction.action.apply( tCloseAction.target, tCloseAction.args );
         }
         else {
-          DG.currDocumentController().removeComponentAssociatedWithView( iComponentView);
+          DG.currDocumentController().removeComponentAssociatedWithView( iComponentView, iSkipDirtyingDocument);
           iComponentView.destroy();
         }
       },

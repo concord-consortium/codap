@@ -267,8 +267,28 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         function endDrag() {
           this_._dragPanel.hide();
           this_._isDragging = false;
-          DG.logUser("dragEnd: { lower: %@, upper: %@ }",
-            this_.getPath('model.lowerBound'), this_.getPath('model.upperBound'));
+          var newLowerBound = this_.getPath('model.lowerBound'),
+              newUpperBound = this_.getPath('model.upperBound'),
+              oldLowerBound = this_._lowerBoundAtDragStart,
+              oldUpperBound = this_._upperBoundAtDragStart,
+              wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound);
+          DG.logUser("dragEnd: { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: (wasDilate ? 'graph.axis.dilate' : 'graph.axis.drag'),
+            undoString: (wasDilate ? 'DG.Undo.axisDilate' : 'DG.Undo.axisDrag'),
+            redoString: (wasDilate ? 'DG.Redo.axisDilate' : 'DG.Redo.axisDrag'),
+            execute: function() { DG.dirtyCurrentDocument(); },
+            undo: function() {
+              DG.logUser("resetting bounds (undo): { lower: %@, upper: %@ }", oldLowerBound, oldUpperBound);
+              this_.get('model').setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
+              DG.dirtyCurrentDocument();
+            },
+            redo: function() {
+              DG.logUser("resetting bounds (redo): { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
+              this_.get('model').setLowerAndUpperBounds(newLowerBound, newUpperBound);
+              DG.dirtyCurrentDocument();
+            }
+          }));
         }
 
         function beginTranslate( iWindowX, iWindowY) {
@@ -299,6 +319,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             this_._dilationAnchorCoord =
                     this_.get( 'isVertical') ? tPoint.y : tPoint.x;
             this_._lowerBoundAtDragStart = this_.getPath('model.lowerBound');
+            this_._upperBoundAtDragStart = this_.getPath('model.upperBound');
             beginDrag();
           }
         }
@@ -327,6 +348,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             this_._dilationAnchorCoord =
                     this_.get( 'isVertical') ? tPoint.y : tPoint.x;
             this_._upperBoundAtDragStart = this_.getPath('model.upperBound');
+            this_._lowerBoundAtDragStart = this_.getPath('model.lowerBound');
             beginDrag();
           }
         }

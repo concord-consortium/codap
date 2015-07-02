@@ -390,7 +390,9 @@ DG = SC.Application.create((function () // closure
 
     iUser: getUrlParameter('username'),
     iPassword: getUrlParameter('password'),
-    iSessionID: getUrlParameter('sessionid')
+    iSessionID: getUrlParameter('sessionid'),
+
+    enableUndoHistory: getUrlParameter('undo') === 'true'
 
   }; // end return from closure
 
