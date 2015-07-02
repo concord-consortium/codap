@@ -579,7 +579,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       // on the case, the values map is deleted
       // We also store the original index separately
       deletedCases.push( {
-        case: iCase,
+        oldCase: iCase,
         values: iCase._valuesMap,
         index: iCase.collection.caseIDToIndexMap[iCase.get("id")]
       });
@@ -610,7 +610,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       },
       undo: function() {
         for (var i = this._undoData.length - 1; i >= 0; i--) {
-          var oldCase       = this._undoData[i].case,
+          var oldCase       = this._undoData[i].oldCase,
               oldValuesMap  = this._undoData[i].values,
               oldIndex      = this._undoData[i].index,
               oldCollection = this_.getCollectionForCase(oldCase),
