@@ -302,7 +302,23 @@ DG.DataContext = SC.Object.extend((function() // closure
               {Number}              result.caseID -- the case ID of the newly created case
    */
   doCreateCases: function( iChange) {
+    /**
+     * returns true if either the collection is a child collection or the parentKey
+     * resolves to an existing parent.
+     */
+    var validateParent = function (collection, parentKey) {
+      var rslt = true;
+      var parentCollectionID = collection.getParentCollectionID();
+      if (parentCollectionID) {
+        rslt = !SC.none(this.getCaseByID(parentKey));
+        if (!rslt) {
+          DG.logWarn('Cannot create case with invalid or deleted parent: ' + parentKey);
+        }
+      }
+      return rslt;
+    }.bind(this);
     var collection,
+        valuesArrays,
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
           var newCase = collection.createCase( iChange.properties);
@@ -326,8 +342,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection = iChange.collection;
     }
 
-    if( collection) {
-      var valuesArrays = iChange.values || [ [] ];
+    if( collection && validateParent(collection, iChange.properties.parent)) {
+      valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
       if( result.caseIDs && (result.caseIDs.length > 0)) {
         result.caseID = result.caseIDs[0];
