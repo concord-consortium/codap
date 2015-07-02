@@ -127,11 +127,24 @@ DG.LayerManager = function( iPaper) {
       }
     },
 
+    /**
+     * The layer manager is valid
+     *  - each layer is valid
+     *  - no element appears more than once
+     */
     testValidity: function() {
       // @if (debug)
       this.forEach( function( iLayer) {
         if( !iLayer.isValid())
           DG.logError('Invalid layer: ' + iLayer.name);
+      });
+      var tFoundDuplicate = false,
+          tMap = {};
+      this.forEach( function( iLayer) {
+        iLayer.forEach( function( iElement) {
+          tFoundDuplicate |= tMap[ iElement.id];
+          tMap[ iElement.id] = true;
+        });
       });
       // @endif
     }

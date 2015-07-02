@@ -30,7 +30,9 @@ sc_require('libraries/raphael');
  */
 DG.RaphaelLayer = SC.Object.extend(
   {
-    _map: {},
+    name: null,
+
+    _map: null,
     /**
      * @property {Boolean}
      */
@@ -60,6 +62,14 @@ DG.RaphaelLayer = SC.Object.extend(
      */
     _paper: null,
 
+    init: function() {
+      sc_super();
+      if( SC.empty( this.name))
+        this.name = 'unnamed';
+      this._firstElement = this._lastElement = null;
+      this._map = {};
+    },
+
     /**
      * Remove all elements belonging to me.
      */
@@ -77,8 +87,8 @@ DG.RaphaelLayer = SC.Object.extend(
      * @return {Raphael Element } The original element
      */
     push: function( iElement) {
-      this._map[iElement]=true;
       DG.assert( iElement);
+      this._map[iElement.id]=true;
       if( !this._lastElement) {
         // We have no elements, so this becomes our first. We need to insert after previous layer's last Element.
         // But if there is no previous layer with a last element, then the given element moves to the paper's back.
@@ -102,7 +112,7 @@ DG.RaphaelLayer = SC.Object.extend(
         this._firstElement = iElement;
       }
       DG.assert( iElement.next || (iElement === this._lastElement));
-      DG.assert( this.isValid());
+      //DG.assert( this.isValid());
       return iElement;
     },
 
@@ -123,6 +133,8 @@ DG.RaphaelLayer = SC.Object.extend(
       else if( iElement === this._lastElement) {
         this._lastElement = iElement.prev;
       }
+      if( this._map[ iElement.id])
+        delete this._map[ iElement.id];
     },
 
     forEach: function( iCallback) {
@@ -139,21 +151,32 @@ DG.RaphaelLayer = SC.Object.extend(
      * @return {Boolean}
      */
     contains: function( iElement) {
-      return this._map[iElement];
-      //var tElement;
-      //for( tElement = this._firstElement;
-      //     tElement && tElement.prev !== this._lastElement;
-      //     tElement = tElement.next) {
-      //  if( tElement === iElement)
-      //    return true;
-      //}
-      //return false;
+      return this._map[iElement.id];
     },
 
+    /**
+     * A layer is valid if
+     *  - it is empty, or there is both a first and last element, neither of which is "removed"
+     *  - and if not empty you can navigate from first to last elements
+     * @returns {boolean|null}
+     */
     isValid: function() {
-      return (!this._firstElement && !this._lastElement) ||
-             ((this._firstElement && this._lastElement) &&
-             (!this._firstElement.removed && !this._lastElement.removed));
+      var tIsValid = true;
+      if(!this._firstElement && !this._lastElement)
+        return true;
+      if(!this._firstElement || !this._lastElement || this._firstElement.removed || this._lastElement.removed)
+        tIsValid = false;
+      else {
+        var tFoundLast = false;
+        this.forEach( function( iElement) {
+          tIsValid &= this._map[iElement.id];
+          tFoundLast |= iElement === this._lastElement;
+        }.bind( this));
+        tIsValid &= tFoundLast;
+      }
+      if( !tIsValid)
+        console.log('Invalid layer: ' + this.name);
+      return tIsValid;
     },
 
     hide: function() {
