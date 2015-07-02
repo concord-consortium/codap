@@ -600,7 +600,7 @@ DG.DataContext = SC.Object.extend((function() // closure
               oldCollection = this_.getCollectionForCase(oldCase),
               parent        = oldCase.parent,
               values        = [],
-              parent, iChange, result;
+              iChange, result;
 
           // Case-creation expects an array of values, which later gets changed into a map.
           // We need to go backwards to make an array from the original case's map
@@ -624,7 +624,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             values: values,
             collection: oldCollection
 
-          }
+          };
 
           // We need to go all the way back to the applyChange method, instead of shortcutting to
           // the doCreateCases method, in order to trigger all the necessary observers

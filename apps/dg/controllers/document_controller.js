@@ -1376,8 +1376,7 @@ DG.DocumentController = SC.Object.extend(
           promises = [];
       if (gameControllers) {
         gameControllers.forEach(function (gameController) {
-          var gameContext = gameController.get('context'),
-              result;
+          var gameContext = gameController.get('context');
 
           // create an array of promises, one for each data interactive.
           // issue the request in the promise.
