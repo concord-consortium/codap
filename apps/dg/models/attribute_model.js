@@ -20,10 +20,17 @@ sc_require('models/model_store');
 sc_require('models/base_model');
 
 /** @class
-
-  Represents an attribute of a collection.
-
- @extends SC.BaseModel
+ *
+ * Describes the named constituent data values of a case. An attribute may be
+ * 'nominal' or 'numeric', meaning the data value will either be interpreted as
+ * string valued or numeric. An attribute may be a formula, meaning that the
+ * attribute's corresponding data value would be computed.
+ * An attribute may be editable or not. Some properties of attributes affect
+ * how the corresponding values are displayed. For example, 'precision' affects
+ * the formatting of numeric attributes, and 'colormap' affects the color's used
+ * when the attribute is displayed in a graph legend.
+ *
+ * @extends SC.BaseModel
  */
 DG.Attribute = DG.BaseModel.extend(
   /** @scope DG.Attribute.prototype */ {
@@ -68,7 +75,8 @@ DG.Attribute = DG.BaseModel.extend(
     collection: null,
 
     /**
-     * Number of decimal places to use for display
+     * Number of decimal places to use for display.
+     * Applicable only to numeric values.
      * @property {Number}
      */
     precision: 2,
