@@ -98,9 +98,44 @@ DG.TitleBarButtonView = SC.ImageView.extend(
           this.closeIt();
         },
         closeIt: function() {
-          var tComponentView = this.parentView.viewToDrag(),
-            tContainerView = tComponentView.parentView;
-          tContainerView.removeComponentView( tComponentView);
+          var tComponent, tController,
+              tComponentView = this.parentView.viewToDrag(),
+              tState;
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'component.close',
+            undoString: 'DG.Undo.component.close',
+            redoString: 'DG.Redo.component.close',
+            execute: function() {
+              var tContainerView = tComponentView.parentView;
+
+              tController = tComponentView.get('controller');
+              tController.willSaveComponent();
+              tComponent = tController.get('model');
+
+              if (tController.saveGameState) {
+                // If we are a GameController, try to save state.
+                // Since this is an asynchronous operation, we have to hold off closing the component
+                // until it is complete (or it will fail).
+                // Also, since closing the document will happen after this command executes, dirtying the
+                // document will clear the undo history, so we must force it not to dirty.
+                tController.saveGameState(function(result) {
+                  if (result && result.success) {
+                    tState = result.state;
+                  }
+                  tContainerView.removeComponentView( tComponentView, true);
+                });
+              } else {
+                tContainerView.removeComponentView( tComponentView);
+              }
+            },
+            undo: function() {
+              tComponentView = DG.currDocumentController().createComponentAndView(tComponent);
+
+              if (tController.restoreGameState && tState) {
+                tController.restoreGameState({gameState: tState});
+              }
+            }
+          }));
         }
     };
   }()) // function closure

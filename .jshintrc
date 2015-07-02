@@ -61,7 +61,7 @@
 
   "laxcomma": true,   // allow comma-first coding style
 
-  "loopfunc": false,  // allow functions defined in loops
+  "loopfunc": true,  // allow functions defined in loops
 
   "multistr": false,  // suppress warnings about multi-line strings
 

@@ -375,9 +375,14 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       caseCountDidChange: function( iChange) {
         var hierTableView = this.getPath('view.contentView'),
-          componentView = this.view;
+            componentView = this.view,
+
+            // if the change event includes an index, then we're inserting a new row in an
+            // arbitrary location, so we need to force the table to re-index the rows
+            forceRedraw   = iChange.properties && !SC.none(iChange.properties.index);
+
         if( hierTableView) {
-          hierTableView.updateRowCount();
+          hierTableView.updateRowCount(forceRedraw);
         }
         componentView.set('status', this.getCaseCountMessage());
       },

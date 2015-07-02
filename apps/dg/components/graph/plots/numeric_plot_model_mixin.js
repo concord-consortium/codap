@@ -57,7 +57,7 @@ DG.NumericPlotModelMixin =
     @param{Boolean} Default is false
     @param{Boolean} Default is true
   */
-  doRescaleAxesFromData: function( iPlaces, iAllowScaleShrinkage, iAnimatePoints) {
+  doRescaleAxesFromData: function( iPlaces, iAllowScaleShrinkage, iAnimatePoints, iUserAction) {
     var this_ = this,
       tAxisInfoArray = [],
       tOldBoundsArray = [];
@@ -114,25 +114,71 @@ DG.NumericPlotModelMixin =
     if( SC.none( iAnimatePoints))
       iAnimatePoints = true;
 
-    iPlaces.forEach( function( iPlace) {
-      setNewBounds( iPlace, axisForPlace( iPlace));
-    });
-    
-    // Only animate if the bounds have changed
-    if( boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
-      if( iAnimatePoints)
-        DG.sounds.playMixup();
-        this.set('isAnimating', true);  // Signals view that axes are in new state and points
-                                        // can be animated to new coordinates
-      // We'll go through both iPlaces and tOldBoundsArray in reverse order
-      while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
-        setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
-      }
-      
-      if( SC.none( this.plotAnimator))
-        this.plotAnimator = DG.GraphAnimator.create( { plot: this });
-      this.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this, this.onRescaleIsComplete);
-    }
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'axis.rescaleFromData',
+      undoString: 'DG.Undo.axisRescaleFromData',
+      redoString: 'DG.Redo.axisRescaleFromData',
+      causedChange: iUserAction,        // if this was not triggered by user, don't add to undo stack
+      execute: function() {
+
+        iPlaces.forEach( function( iPlace) {
+          setNewBounds( iPlace, axisForPlace( iPlace));
+        });
+
+        // we store clones of the data, because if/when we animate, the two arrays we need are emptied
+        this._undoData = { bounds: tOldBoundsArray.slice(), places: iPlaces.slice() };
+
+        // Only animate if the bounds have changed
+        if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+          DG.sounds.playMixup();
+          this_.set('isAnimating', true);    // Signals view that axes are in new state and points
+                                            // can be animated to new coordinates
+          // We'll go through both iPlaces and tOldBoundsArray in reverse order
+          while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
+            setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+          }
+
+          if( SC.none( this_.plotAnimator))
+            this_.plotAnimator = DG.GraphAnimator.create( { plot: this_ });
+          this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this_, this_.onRescaleIsComplete);
+        }
+      },
+      undo: function() {
+        if (this._undoData) {
+          this._undoData.places.forEach( function( iPlace, i) {
+            var iAxis = axisForPlace( iPlace),
+                data  = this._undoData.bounds[i];
+            if (iAxis && data)
+              iAxis.setLowerAndUpperBounds( data.lower, data.upper);
+          }.bind(this));
+          this_.onRescaleIsComplete();
+        }
+
+        DG.dirtyCurrentDocument();
+      },
+      redo: function() {
+        if (this._undoData) {
+          this._undoData.places.forEach( function( iPlace) {
+            setNewBounds( iPlace, axisForPlace( iPlace));
+          });
+
+          // Only animate if the bounds have changed
+          if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+            DG.sounds.playMixup();
+            this_.set('isAnimating', true);    // Signals view that axes are in new state and points
+                                               // can be animated to new coordinates
+            // We'll go through both iPlaces and tOldBoundsArray in reverse order
+            while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
+              setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
+            }
+
+            if( SC.none( this_.plotAnimator))
+              this_.plotAnimator = DG.GraphAnimator.create( { plot: this_ });
+            this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this_, this_.onRescaleIsComplete);
+          }
+        }
+      },
+    }));
   },
 
     /**

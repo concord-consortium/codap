@@ -294,7 +294,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   { collection: tCollectionClient,
                     attributes: [ iDragData.attribute ]});
         DG.dirtyCurrentDocument();
-      }.observes('*plotView.dragData', '*legendView.dragData', '*mapView.dragData'),
+      }.observes('*legendView.dragData', '*mapView.dragData'),
 
       convertToImage: function(svgs, x, y, width, height) {
 

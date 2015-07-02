@@ -120,7 +120,39 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.ToolbarView.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: kInfobarHeight, height: kToolbarHeight },
-      childViews: 'logoutButton'.w(),
+      childViews: 'undoButton redoButton logoutButton'.w(),
+
+      undoButton: SC.ButtonView.design({
+        layout: { centerY:0, height:24, left:0, width:80 },
+        classNames:['dg-toolshelf-undo-button'],
+        localize: true,
+        title: 'DG.mainPage.mainPane.undoButton.title', // "Undo"
+        toolTip: function() {
+          var cmd = this.get('nextUndoCommand');
+          return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip');  // "Undo the last action"
+        }.property('nextUndoCommand'),
+        target: 'DG.UndoHistory',
+        action: 'undo',
+        nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
+        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled')
+      }),
+
+      redoButton: SC.ButtonView.design({
+        layout: { centerY:0, height:24, left:0, width:80 },
+        classNames:['dg-toolshelf-redo-button'],
+        localize: true,
+        title: 'DG.mainPage.mainPane.redoButton.title', // "Redo"
+        toolTip: function() {
+          var cmd = this.get('nextRedoCommand');
+          return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip');  // "Redo the last undone action"
+        }.property('nextRedoCommand'),
+        target: 'DG.UndoHistory',
+        action: 'redo',
+        nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
+        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled')
+      }),
 
       logoutButton: SC.ButtonView.design({
         layout: { centerY:0, height:24, left:0, width:80 },
@@ -165,6 +197,9 @@ DG.mainPage = SC.Page.design((function() {
         DG.currDocumentController().set('guideButton', this.guideButton);
         // move existing buttons, left-justified after tool buttons
         tLeft += kSpacer; // extra space to right of gear
+        tLeft = kSpacer + moveHorizontal( this.undoButton, tLeft );
+        tLeft = kSpacer + moveHorizontal( this.redoButton, tLeft );
+        tLeft += kSpacer; // extra space to right of redo
         tLeft = kSpacer + moveHorizontal( this.logoutButton, tLeft );
       }
       
@@ -325,7 +360,7 @@ DG.mainPage = SC.Page.design((function() {
           DG.mainPage.toggleCalculator();
           break;
         case 'alt_ctrl_t':
-          DG.mainPage.toggleCaseTable();
+          DG.mainPage.openCaseTablesForEachContext();
           break;
         case 'alt_ctrl_g':
           DG.mainPage.addGraph();
@@ -335,6 +370,13 @@ DG.mainPage = SC.Page.design((function() {
           break;
         case 'alt_ctrl_shift_t':
           DG.mainPage.addText();
+          break;
+        case 'ctrl_z':
+          DG.UndoHistory.undo();
+          break;
+        case 'ctrl_y':
+        case 'ctrl_shift_z':
+          DG.UndoHistory.redo();
           break;
         default:
           tResult = sc_super();
@@ -412,16 +454,8 @@ DG.mainPage.openCaseTablesForEachContext = function () {
   DG.currDocumentController().openCaseTablesForEachContext();
 };
 
-DG.mainPage.toggleCaseTable = function() {
-
-  DG.currDocumentController().
-      toggleComponent( this.get('docView'), 'caseTableView');
-};
-
-DG.mainPage.toggleMap = function() {
-
-  DG.currDocumentController().
-      toggleComponent( this.get('docView'), 'mapView');
+DG.mainPage.addMap = function() {
+  DG.currDocumentController().addMap( this.get('docView'));
 };
 
 DG.mainPage.addSlider = function() {

@@ -305,6 +305,20 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     this._backgroundForClick.attr( { width: this.get('drawWidth'),
                                     height: this.get('drawHeight') } );
 
+  },
+
+  // We override to customize our dropHintString based on whether there are attributes or not
+  dragStarted: function( iDrag) {
+    // Call our mixin method first because it sets dropHintString
+    DG.GraphDropTarget.dragStarted.call(this, iDrag);
+
+    // Override mixin's setting
+    var tDataConfig = this.getPath('graphModel.dataConfiguration'),
+        tIsNotEmpty = tDataConfig && (tDataConfig.get('xAttributeID') ||
+            tDataConfig.get('yAttributeID') || tDataConfig.get('legendAttributeID')),
+        tHintString = (tIsNotEmpty ? 'DG.GraphView.dropInPlot' : 'DG.GraphView.addToEmptyX')
+            .loc( iDrag.data.attribute.get('name' ));
+    this.set('dropHintString', tHintString);
   }
 
 });

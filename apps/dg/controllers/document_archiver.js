@@ -1,6 +1,6 @@
 // ==========================================================================
 //                        DG.DocumentArchiver
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -258,7 +258,7 @@ DG.DocumentArchiver = SC.Object.extend(
 
         tAttrNamesRow.forEach(function (iName) {
           tAttrsArray.push( {
-            name: iName
+            name: String(iName)
           });
         });
 
@@ -325,12 +325,12 @@ DG.DocumentArchiver = SC.Object.extend(
     @param  {Object} docArchive      An object suitable for JSON encoding
    */
   saveDocument: function( iDocument, callback, fullData) {
-    
+
     // Prepare the context-specific storage for saving.
     // Start by saving the state of the current game in the appropriate context.
     // Callback below executes after the state has been saved
     DG.currDocumentController().saveCurrentGameState(function() {
-      var docController = DG.currDocumentController();      
+      var docController = DG.currDocumentController();
       DG.DataContext.forEachContextInMap( iDocument.get('id'),
         function( iContextID, iContext) {
           iContext.willSaveContext();
@@ -365,4 +365,3 @@ DG.DocumentArchiver = SC.Object.extend(
   }
 
 });
-

@@ -193,25 +193,46 @@ DG.GraphController = DG.DataDisplayController.extend(
        An axis view has received a drop of an attribute. Our job is the tell the graph
        model which attribute and collection client to change so that we move into the
        desired configuration of attributes.
+       Note that we need the '*' in the observes because the views are swapped out when the
+       graph gets reconfigured.
        */
       axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
-        this.handlePossibleForeignDataContext( iDragData);
+        var _beforeData, _afterData;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'axis.attributeChange',
+          undoString: 'DG.Undo.axisAttributeChange',
+          redoString: 'DG.Redo.axisAttributeChange',
+          execute: function() {
+            _beforeData = this.createComponentStorage();
 
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+            this.handlePossibleForeignDataContext( iDragData);
 
-        iAxis.dragData = null;
+            var tDataContext = this.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
-        this.get('graphModel').changeAttributeForAxis(
-            tDataContext,
-            {
-              collection: tCollectionClient,
-              attributes: [iDragData.attribute]
-            },
-            iAxis.get('orientation'));
-        DG.dirtyCurrentDocument();
+            iAxis.dragData = null;
+
+            this.get('graphModel').changeAttributeForAxis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [iDragData.attribute]
+                },
+                iAxis.get('orientation'));
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          undo: function() {
+            _afterData = this.createComponentStorage();
+            this.restoreComponentStorage(_beforeData);
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          redo: function() {
+            this.restoreComponentStorage(_afterData);
+            DG.dirtyCurrentDocument();
+          }.bind(this)
+        }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
@@ -253,7 +274,25 @@ DG.GraphController = DG.DataDisplayController.extend(
                   tDataContext,
                   { collection: tCollectionClient,
                     attributes: [iDragData.attribute] });
-      }.observes('*y2AxisView.dragData')
+      }.observes('*y2AxisView.dragData'),
+
+      /**
+       Our base class can handle this except for the situation in which this is the first attribute being dropped,
+       in which case we want to override the default behavior and simulate drop on the x-axis, which is probably
+       what the user intended, but missed.
+       */
+      plotOrLegendViewDidAcceptDrop: function( iView, iKey, iDragData) {
+        var tDataConfig = this.getPath('graphModel.dataConfiguration');
+        if( !tDataConfig.get('xAttributeID') &&
+            !tDataConfig.get('yAttributeID') &&
+            !tDataConfig.get('legendAttributeID')) {
+          iView.dragData = null;  // So we don't come back around
+          this.axisViewDidAcceptDrop( this.get('xAxisView'), iKey, iDragData);
+        }
+        else
+          sc_super();
+      }.observes('*plotView.dragData')
+
     };
 
   }()) // function closure
