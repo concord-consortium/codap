@@ -534,6 +534,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doDeleteCases: function( iChange) {
     var deletedCases = [],
+        oldCaseToNewCaseMap = {},
         this_ = this;
 
     iChange.ids = [];
@@ -592,8 +593,6 @@ DG.DataContext = SC.Object.extend((function() // closure
         DG.dirtyCurrentDocument();
       },
       undo: function() {
-        var oldCaseToNewCaseMap = {};
-
         for (var i = this._undoData.length - 1; i >= 0; i--) {
           var oldCase       = this._undoData[i].case,
               oldValuesMap  = this._undoData[i].values,
@@ -639,6 +638,22 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
 
         DG.dirtyCurrentDocument();
+      },
+      redo: function() {
+        // create a new change object, based on the old one, without modifying
+        // the old change object (in case we undo and redo again later)
+        var newChange = SC.clone(iChange);
+        newChange.cases = iChange.cases.slice();
+        newChange.ids.length = 0;
+        delete newChange.result;
+
+        // find the new cases that were created by undo, and delete those (the originals are gone)
+        for (var i = 0; i < iChange.cases.length; i++) {
+          if (oldCaseToNewCaseMap[iChange.cases[i]]) {
+            newChange.cases[i] = oldCaseToNewCaseMap[iChange.cases[i]];
+          }
+        }
+        this_.applyChange( newChange);
       }
     }));
 
