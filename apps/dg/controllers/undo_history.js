@@ -119,17 +119,7 @@ DG.UndoHistory = SC.Object.create((function() {
       try {
         this._wrapAndRun(command, command.undo);
       } catch (e) {
-        // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
-        // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
-        // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
-        DG.Debug.logError("Exception occurred while undoing: " + e.message);
-        DG.AlertPane.error({
-          localize: true,
-          message: 'DG.Undo.exceptionOccurred',
-          buttons: [
-            {title: "OK", action: function() { this._clearUndo(); this._clearRedo(); }.bind(this) }
-          ]
-        });
+        this.showErrorAlert(true, e);
       }
       this._redoStack.push(command);
 
@@ -170,17 +160,7 @@ DG.UndoHistory = SC.Object.create((function() {
       try {
         this._wrapAndRun(command, command.redo);
       } catch (e) {
-        // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
-        // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
-        // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
-        DG.Debug.logError("Exception occurred while redoing: " + e.message);
-        DG.AlertPane.error({
-          localize: true,
-          message: 'DG.Redo.exceptionOccurred',
-          buttons: [
-            {title: "OK", action: function() { this._clearUndo(); this._clearRedo(); }.bind(this) }
-          ]
-        });
+        this.showErrorAlert(false, e);
       }
       this._undoStack.push(command);
 
@@ -199,8 +179,29 @@ DG.UndoHistory = SC.Object.create((function() {
 
       // Otherwise, this wasn't part of a command, so this change is not able to be undone.
       // Clear the stacks
+      this.clearUndoRedoHistory();
+    },
+
+    clearUndoRedoHistory: function() {
       this._clearUndo();
       this._clearRedo();
+    },
+
+    // Something went wrong. We shouldn't ever reach here, because if we do, it's because of a programming error.
+    // BUT, if it does happen, display an error dialog to the user, and then clear the undo/redo stacks.
+    // Odds are pretty high that the entire app is going to be messed up too, but there's not much we can do about that.
+    showErrorAlert: function(wasUndo, err) {
+      if (!err || !err.message) {
+        err = {message: "Unknown error"};
+      }
+      DG.Debug.logError("Exception occurred while " + (wasUndo ? "undoing: " : "redoing: ") + err.message);
+      DG.AlertPane.error({
+        localize: true,
+        message: (wasUndo ? 'DG.Undo.exceptionOccurred' : 'DG.Redo.exceptionOccurred'),
+        buttons: [
+          {title: "OK", action: function() { this.clearUndoRedoHistory(); }.bind(this) }
+        ]
+      });
     },
 
     /** @private

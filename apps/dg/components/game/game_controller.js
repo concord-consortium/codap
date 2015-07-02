@@ -759,12 +759,19 @@ DG.GameController = DG.ComponentController.extend(
         redoString: 'DG.Redo.interativeUndoableAction',
         execute: function() {},
         undo: function() {
-          this.gamePhone.call({ operation: "undoAction" });
+          this.gamePhone.call({ operation: "undoAction" }, this.handleUndoRedoCompleted);
         }.bind(this),
         redo: function() {
-          this.gamePhone.call({ operation: "redoAction" });
+          this.gamePhone.call({ operation: "redoAction" }, this.handleUndoRedoCompleted);
         }.bind(this)
       }));
+    },
+
+    handleUndoRedoCompleted: function(ret) {
+      if (ret && ret.success === false) {
+        // The Data Interactive was not able to successfully undo or redo an action
+        DG.UndoHistory.showErrorAlert(true, {message: "Data Interactive error"});
+      }
     },
 
         /**
