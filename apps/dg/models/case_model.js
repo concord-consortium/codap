@@ -78,6 +78,7 @@ DG.Case = DG.BaseModel.extend(
         this.parent.children.pushObject(this);
       }
       this._valuesMap = {};
+      this.setValueMapFromArray();
     },
 
     verify: function () {
@@ -257,14 +258,9 @@ DG.Case = DG.BaseModel.extend(
     },
 
     /**
-     Override to update the _valuesMap when records are loaded.
-     During runtime, the _valuesMap, which maps from attrID to value,
-     is the definitive contents of the case. In this method, we copy
-     the contents of the 'values' property (which maps from attrName
-     to value) to the _valuesMap. It is expected to be called during
-     the load/restore process.
+     * Set the value map from the value array. Called during initialization.
      */
-    didLoadRecord: function() {
+    setValueMapFromArray: function() {
       var collection = this.get('collection'),
         valuesMap = {};
       DG.ObjectMap.
@@ -314,7 +310,6 @@ DG.Case.createCase = function( iProperties) {
     iProperties.parent = DG.store.resolve(parent);
   }
   newCase = DG.Case.create(iProperties || {});
-  newCase.didLoadRecord();
   return newCase;
 };
 

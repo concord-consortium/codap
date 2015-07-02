@@ -237,6 +237,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'deleteCases':
         result = this.doDeleteCases( iChange);
+        shouldDirtyDoc = false;
         break;
       case 'selectCases':
         result = this.doSelectCases( iChange);
@@ -301,7 +302,23 @@ DG.DataContext = SC.Object.extend((function() // closure
               {Number}              result.caseID -- the case ID of the newly created case
    */
   doCreateCases: function( iChange) {
+    /**
+     * returns true if either the collection is a child collection or the parentKey
+     * resolves to an existing parent.
+     */
+    var validateParent = function (collection, parentKey) {
+      var rslt = true;
+      var parentCollectionID = collection.getParentCollectionID();
+      if (parentCollectionID) {
+        rslt = !SC.none(this.getCaseByID(parentKey));
+        if (!rslt) {
+          DG.logWarn('Cannot create case with invalid or deleted parent: ' + parentKey);
+        }
+      }
+      return rslt;
+    }.bind(this);
     var collection,
+        valuesArrays,
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
           var newCase = collection.createCase( iChange.properties);
@@ -325,8 +342,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection = iChange.collection;
     }
 
-    if( collection) {
-      var valuesArrays = iChange.values || [ [] ];
+    if( collection && validateParent(collection, iChange.properties.parent)) {
+      valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
       if( result.caseIDs && (result.caseIDs.length > 0)) {
         result.caseID = result.caseIDs[0];
@@ -532,11 +549,18 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
   doDeleteCases: function( iChange) {
+    var deletedCases = [],
+        oldCaseToNewCaseMap = {},
+        this_ = this;
 
     iChange.ids = [];
     iChange.collectionIDs = {};
   
     var deleteCaseAndChildren = function( iCase) {
+      if (iCase.get("isDestroyed"))
+        // case has already been destroyed. (Happens when we select parents and children and delete all)
+        return;
+
       var tChildren= iCase.get('children'), ix;
       // we remove children in reverse order because removal from this list
       // is immediate and would otherwise corrupt the list.
@@ -549,19 +573,106 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.ids.push( iCase.get('id'));
       
       var tCollection = this.getCollectionForCase( iCase);
+
+      // We store the set of deleted cases for later undoing.
+      // We need to store the values separately, because when iCase.destroy is called
+      // on the case, the values map is deleted
+      // We also store the original index separately
+      deletedCases.push( {
+        case: iCase,
+        values: iCase._valuesMap,
+        index: iCase.collection.caseIDToIndexMap[iCase.get("id")]
+      });
+
       tCollection.deleteCase( iCase);
       // keep track of the affected collections
       iChange.collectionIDs[ tCollection.get('id')] = tCollection;
     }.bind( this);
-    
-    iChange.cases.forEach( deleteCaseAndChildren);
 
-    // Call didDeleteCases() for each affected collection
-    DG.ObjectMap.forEach( iChange.collectionIDs,
-                          function( iCollectionID, iCollection) {
-                            if( iCollection)
-                              iCollection.didDeleteCases();
-                          });
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "data.deleteCases",
+      undoString: 'DG.Undo.data.deleteCases',
+      redoString: 'DG.Redo.data.deleteCases',
+      execute: function() {
+        // Delete each case
+        iChange.cases.forEach( deleteCaseAndChildren);
+
+        // Call didDeleteCases() for each affected collection
+        DG.ObjectMap.forEach( iChange.collectionIDs, function( iCollectionID, iCollection) {
+          if( iCollection)
+            iCollection.didDeleteCases();
+        });
+
+        // Store the set of deleted cases, along with their values
+        this._undoData = deletedCases;
+
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        for (var i = this._undoData.length - 1; i >= 0; i--) {
+          var oldCase       = this._undoData[i].case,
+              oldValuesMap  = this._undoData[i].values,
+              oldIndex      = this._undoData[i].index,
+              oldCollection = this_.getCollectionForCase(oldCase),
+              parent        = oldCase.parent,
+              values        = [],
+              iChange, result;
+
+          // Case-creation expects an array of values, which later gets changed into a map.
+          // We need to go backwards to make an array from the original case's map
+          DG.ObjectMap.forEach( oldValuesMap, function( id, value) {
+            values.push(value);
+          });
+
+          // If we have deleted and then re-created the parent, we need to find the new one
+          if (parent && oldCaseToNewCaseMap[parent]) {
+            parent = oldCaseToNewCaseMap[parent];
+          }
+
+          // Create the change object that will re-insert a new case identical to the old deleted case
+          iChange = {
+            operation: "createCase",
+            properties: {
+              collection: oldCase.collection,
+              parent: parent,
+              index: oldIndex
+            },
+            values: values,
+            collection: oldCollection
+
+          };
+
+          // We need to go all the way back to the applyChange method, instead of shortcutting to
+          // the doCreateCases method, in order to trigger all the necessary observers
+          result = this_.applyChange( iChange);
+          if (oldCollection.collection) {
+            var cases = oldCollection.collection.casesRecords.filterProperty("id", result.caseID);
+            if (cases.length) {
+              oldCaseToNewCaseMap[oldCase.toString()] = cases[0];
+            }
+          }
+        }
+
+        DG.dirtyCurrentDocument();
+      },
+      redo: function() {
+        // create a new change object, based on the old one, without modifying
+        // the old change object (in case we undo and redo again later)
+        var newChange = SC.clone(iChange);
+        newChange.cases = iChange.cases.slice();
+        newChange.ids.length = 0;
+        delete newChange.result;
+
+        // find the new cases that were created by undo, and delete those (the originals are gone)
+        for (var i = 0; i < iChange.cases.length; i++) {
+          if (oldCaseToNewCaseMap[iChange.cases[i]]) {
+            newChange.cases[i] = oldCaseToNewCaseMap[iChange.cases[i]];
+          }
+        }
+        this_.applyChange( newChange);
+      }
+    }));
+
     return { success: true };
   },
   

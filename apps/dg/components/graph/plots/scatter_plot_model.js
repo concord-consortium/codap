@@ -81,56 +81,152 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     If we need to make a movable line, do so. In any event toggle its visibility.
   */
   toggleMovableLine: function() {
-    if( SC.none( this.movableLine)) {
-      this.createMovableLine(); // Default is to be visible
+    var this_ = this;
+
+    function toggle() {
+      if( SC.none( this_.movableLine)) {
+        this_.createMovableLine(); // Default is to be visible
+      }
+      else {
+        this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
+        this_.movableLine.set('isVisible', !this_.movableLine.get('isVisible'));
+      }
+      DG.logUser("toggleMovableLine: %@", this_.movableLine.get('isVisible') ? "show" : "hide");
     }
-    else {
-      this.movableLine.recomputeSlopeAndInterceptIfNeeded( this.get('xAxis'), this.get('yAxis'));
-      this.movableLine.set('isVisible', !this.movableLine.get('isVisible'));
-    }
-    DG.logUser("toggleMovableLine: %@", this.movableLine.get('isVisible') ? "show" : "hide");
+
+    var willShow = !this.movableLine || !this.movableLine.get('isVisible');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleMovableLine",
+      undoString: (willShow ? 'DG.Undo.graph.showMovableLine' : 'DG.Undo.graph.hideMovableLine'),
+      redoString: (willShow ? 'DG.Redo.graph.showMovableLine' : 'DG.Redo.graph.hideMovableLine'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     If we need to make a movable line, do so. In any event toggle whether its intercept is locked.
   */
   toggleInterceptLocked: function() {
-    if( SC.none( this.movableLine)) {
-      this.createMovableLine(); // Default is to be unlocked
+    var this_ = this;
+
+    function toggle() {
+      if( SC.none( this_.movableLine)) {
+        this_.createMovableLine(); // Default is to be unlocked
+      }
+      else {
+        this_.movableLine.toggleInterceptLocked();
+        this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
+      }
+      DG.logUser("lockIntercept: %@", this_.movableLine.get('isInterceptLocked'));
     }
-    else {
-      this.movableLine.toggleInterceptLocked();
-      this.movableLine.recomputeSlopeAndInterceptIfNeeded( this.get('xAxis'), this.get('yAxis'));
-    }
-    DG.logUser("lockIntercept: %@", this.movableLine.get('isInterceptLocked'));
+
+    var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleLockIntercept",
+      undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
+      redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
+      execute: function() {
+        this._undoData = this_.movableLine.createStorage();
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        this_.movableLine.restoreStorage(this._undoData);
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     If we need to make a plotted function, do so. In any event toggle its visibility.
   */
   togglePlotFunction: function() {
-    this.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
-    if( this.isAdornmentVisible('plottedFunction')) {
-      var plottedFunction = this.getAdornmentModel('plottedFunction');
-      if( plottedFunction)
-        plottedFunction.set('dataConfiguration', this.get('dataConfiguration'));
+    var this_ = this;
+
+    function toggle() {
+      this_.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
+      if( this_.isAdornmentVisible('plottedFunction')) {
+        var plottedFunction = this_.getAdornmentModel('plottedFunction');
+        if( plottedFunction)
+          plottedFunction.set('dataConfiguration', this_.get('dataConfiguration'));
+      }
     }
+
+    var willShow = !this.isAdornmentVisible('plottedFunction');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.togglePlotFunction",
+      undoString: (willShow ? 'DG.Undo.graph.showPlotFunction' : 'DG.Undo.graph.hidePlotFunction'),
+      redoString: (willShow ? 'DG.Redo.graph.showPlotFunction' : 'DG.Redo.graph.hidePlotFunction'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     If we need to make a connecting line, do so. In any event toggle its visibility.
   */
   toggleConnectingLine: function() {
-    var tAdornModel = this.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
-    if( tAdornModel && tAdornModel.get('isVisible'))
-      tAdornModel.recomputeValue(); // initialize
+    var this_ = this;
+
+    function toggle() {
+      var tAdornModel = this_.toggleAdornmentVisibility('connectingLine', 'toggleConnectingLine');
+      if( tAdornModel && tAdornModel.get('isVisible'))
+        tAdornModel.recomputeValue(); // initialize
+    }
+
+    var willShow = !this.isAdornmentVisible('connectingLine');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleConnectingLine",
+      undoString: (willShow ? 'DG.Undo.graph.showConnectingLine' : 'DG.Undo.graph.hideConnectingLine'),
+      redoString: (willShow ? 'DG.Redo.graph.showConnectingLine' : 'DG.Redo.graph.hideConnectingLine'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   /**
     Convenience method for toggling Boolean property
   */
   toggleShowSquares: function() {
-    this.set('areSquaresVisible', !this.get('areSquaresVisible'));
+    var this_ = this;
+
+    function toggle() {
+      this_.set('areSquaresVisible', !this_.get('areSquaresVisible'));
+    }
+
+    var willShow = !this.get('areSquaresVisible');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleShowSquares",
+      undoString: (willShow ? 'DG.Undo.graph.showSquares' : 'DG.Undo.graph.hideSquares'),
+      redoString: (willShow ? 'DG.Redo.graph.showSquares' : 'DG.Redo.graph.hideSquares'),
+      execute: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      },
+      undo: function() {
+        toggle();
+        DG.dirtyCurrentDocument();
+      }
+    }));
   },
 
   handleDataConfigurationChange: function() {
@@ -150,11 +246,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     @param{Boolean} Default is true
     @param{Boolean} Default is false
   */
-  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt) {
+  rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt, isUserAction) {
     if( iAnimatePoints === undefined)
       iAnimatePoints = true;
     this.doRescaleAxesFromData( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY, DG.GraphTypes.EPlace.eY2],
-                                iAllowScaleShrinkage, iAnimatePoints);
+                                iAllowScaleShrinkage, iAnimatePoints, isUserAction);
     if( iLogIt)
       DG.logUser("rescaleScatterplot");
   },
@@ -188,8 +284,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     return [
         { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
             target: this_, itemAction: this_.rescaleAxesFromData,
-            args: [ true /* allowAxisRescale */, false /* No need to animate points independently */,
-                    true /* log it */]},
+            args: [ true /* allowAxisRescale */, true /* Animate action */,
+                    true /* log it */, true /* user action */]},
         { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
         { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
         { title: tInterceptLockedItem, target: this_, itemAction: this.toggleInterceptLocked,

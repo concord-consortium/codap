@@ -253,6 +253,10 @@ DG.GameController = DG.ComponentController.extend(
         tRet = this.handleReset( tCmdObj.args);
         break;
 
+      case 'undoableActionPerformed':
+        tRet = this.handleUndoableAction();
+        break;
+
       /*
        * Old API
        */
@@ -372,6 +376,7 @@ DG.GameController = DG.ComponentController.extend(
         // Once all the collections and attributes are created,
         // we're ready to play the game.
         this.set('gameIsReady', true);
+        this.notifyPropertyChange('gameIsReady');
 
         if ((iArgs.log === undefined) || iArgs.log)
           DG.logUser("initGame: '%@', Collections: [%@]", tCurrentGameName,
@@ -523,6 +528,12 @@ DG.GameController = DG.ComponentController.extend(
       }
       return gameElement;
     },
+
+    notifyGameAboutExternalUndo: function() {
+      if (this.get('gameIsReady') && DG.UndoHistory.get('enabled')) {
+        this.gamePhone.call({ operation: "externalUndoAvailable" });
+      }
+    }.observes('gameIsReady'),
 
     /**
       Returns the ID of the created case for passing to further 'openCase' or 'createCase' calls.
@@ -732,6 +743,35 @@ DG.GameController = DG.ComponentController.extend(
       // Destroy the collections: not just the cases within, but the attribute
       // definitions, too.
       this.doResetCollections();
+    },
+
+    /**
+      The DataInteractive performed an undoable action
+
+      We don't perform any action, because the external game has already performed the
+      action. We simply store this new command in the stack, and the undo/redo of this
+      command call undo/redo on the game.
+    */
+    handleUndoableAction: function() {
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'interactive.undableAction',
+        undoString: 'DG.Undo.interativeUndoableAction',
+        redoString: 'DG.Redo.interativeUndoableAction',
+        execute: function() {},
+        undo: function() {
+          this.gamePhone.call({ operation: "undoAction" }, this.handleUndoRedoCompleted);
+        }.bind(this),
+        redo: function() {
+          this.gamePhone.call({ operation: "redoAction" }, this.handleUndoRedoCompleted);
+        }.bind(this)
+      }));
+    },
+
+    handleUndoRedoCompleted: function(ret) {
+      if (ret && ret.success === false) {
+        // The Data Interactive was not able to successfully undo or redo an action
+        DG.UndoHistory.showErrorAlert(true, {message: "Data Interactive error"});
+      }
     },
 
         /**
@@ -1052,6 +1092,45 @@ DG.GameController = DG.ComponentController.extend(
                               action: processQueue,
                               interval: 20
                             });
+    },
+
+    /**
+      Saves the current state of the DataInteractive (if the DataInteractive supports this).
+
+      This should be assumed to be asynchronous, as it will generally use iFramePhone,
+      although it's possible for it to return synchronously.
+
+      @param {Function} callback     A function which will be called with a results object:
+                                     {success: bool, state: state}
+    */
+    saveGameState: function(callback) {
+      var doAppCommandFunc = this.get('doCommandFunc'),
+          saveCommand = { operation: "saveState" },
+          tGameElement = this.findCurrentGameElement( this.get('gameEmbedID')),
+          result;
+
+      if ( doAppCommandFunc ) {
+        // for JavaScript games we can call directly with Objects as arguments
+        result = doAppCommandFunc(saveCommand);
+        callback(result);
+      } else if (tGameElement && tGameElement.doCommandFunc ) {
+        result = tGameElement.doCommandFunc( SC.json.encode( saveCommand ));
+        if (typeof result === 'string') {
+          result = JSON.parse(result);
+        }
+        callback(result);
+      } else if (this.get('isGamePhoneInUse')) {
+        // async path
+        this.gamePhone.call(saveCommand, callback);
+      } else {
+        callback({success:false});
+      }
+    },
+
+    restoreGameState: function(state) {
+      if (this.get('context')) {
+        this.get('context').restoreFromStorage(state);
+      }
     },
 
     /**
