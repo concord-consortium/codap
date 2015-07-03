@@ -349,8 +349,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
 
       var setNewBounds = function() {
-        var //tAttribute = iAttrRefs.attributes[0],
-            tAxis = this.get('y2Axis');
+        var tAxis = this.get('y2Axis');
+        if( !tAxis || !tAxis.get('isNumeric'))
+          return;
 
         var tDataConfiguration = this.get('dataConfiguration'),
             tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( DG.GraphTypes.EPlace.eY2);
