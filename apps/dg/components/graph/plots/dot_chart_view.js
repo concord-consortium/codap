@@ -78,6 +78,8 @@ DG.DotChartView = DG.PlotView.extend(
     // Override because we're going to do the work in updatePoints
     this.get('model').invalidateCaches();
     this.updatePoints();
+    this._elementOrderIsValid = false;
+    this.selectionDidChange();
     this.installCleanup();  // Call explicitly since we're not calling sc_super
   },
 
