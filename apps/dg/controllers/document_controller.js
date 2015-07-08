@@ -193,12 +193,12 @@ DG.DocumentController = SC.Object.extend(
       return this.get('canBeCopied');
     }.property('canBeCopied'),
 
-      /**
-       * Set when save is in progress
-       */
-      saveInProgress: null,
+    /**
+     * Set when save is in progress
+     */
+    saveInProgress: null,
 
-      init: function() {
+    init: function() {
       sc_super();
 
       this._singletonViews = {};

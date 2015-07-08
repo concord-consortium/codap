@@ -342,6 +342,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection = iChange.collection;
     }
 
+    if (!iChange.properties) {
+      iChange.properties = {};
+    }
+
     if( collection && validateParent(collection, iChange.properties.parent)) {
       valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
