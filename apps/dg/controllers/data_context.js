@@ -280,8 +280,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attributes.forEach( function( iAttrSpec) {
                             tCollection.guaranteeAttribute( iAttrSpec);
                           });
-      // Important to flush here in case caller is going to use the attributes before we return to the runLoop
-      DG.store.flush();
+      tCollection.reorderAttributes(iChange.attributes.getEach('name'));
       return { success: true, collection: tCollection };
     }
     return { success: false };

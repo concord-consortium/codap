@@ -414,6 +414,7 @@ DG.GameController = DG.ComponentController.extend(
             tCollection.guaranteeAttribute(iAttrArgs);
           });
         }
+        tCollection.reorderAttributes(iCollectionArgs.attrs.getEach('name'));
       }
 
       //DG.log('InitGame: ' + JSON.stringify(iArgs));
