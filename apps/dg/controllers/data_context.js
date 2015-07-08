@@ -280,6 +280,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attributes.forEach( function( iAttrSpec) {
                             tCollection.guaranteeAttribute( iAttrSpec);
                           });
+      // if this is a recreation of the collection make sure the ordering corresponds
+      // to DI expectations.
       tCollection.reorderAttributes(iChange.attributes.getEach('name'));
       return { success: true, collection: tCollection };
     }
