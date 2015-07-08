@@ -236,6 +236,7 @@ DG.SliderView = SC.View.extend(
           this.get('model').encompassValue();
           DG.logUser("sliderThumbDrag: { name: %@, newValue: %@ }",
                         this.getPath('model.name'), this.getPath('model.value'));
+          DG.dirtyCurrentDocument();
         }
         tDraggingThumb = false;
       },

@@ -81,14 +81,13 @@ DG.SliderController = DG.ComponentController.extend(
 
     if( tAnimator.get('isAnimating')) {
       tAnimator.endAnimation();
-      DG.dirtyCurrentDocument();
       DG.logUser("sliderEndAnimation: %@", this.getPath('sliderModel.name'));
     }
     else {
       tAnimator.animate();
-      DG.dirtyCurrentDocument();
       DG.logUser("sliderBeginAnimation: %@", this.getPath('sliderModel.name'));
     }
+    DG.dirtyCurrentDocument();
   },
   
   stopAnimation: function() {
