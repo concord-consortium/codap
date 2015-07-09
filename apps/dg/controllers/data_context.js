@@ -306,6 +306,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     /**
      * returns true if either the collection is a child collection or the parentKey
      * resolves to an existing parent.
+     * @param parentKey {number}
      */
     var validateParent = function (collection, parentKey) {
       var rslt = true;
@@ -320,6 +321,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this);
     var collection,
         valuesArrays,
+        parentIsValid = true,
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
           var newCase = collection.createCase( iChange.properties);
@@ -347,7 +349,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.properties = {};
     }
 
-    if( collection && validateParent(collection, iChange.properties.parent)) {
+    if (typeof iChange.properties.parent !== 'object') {
+      parentIsValid = validateParent(collection, iChange.properties.parent);
+    }
+    if( collection && parentIsValid) {
       valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
       if( result.caseIDs && (result.caseIDs.length > 0)) {
