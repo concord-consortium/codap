@@ -30,6 +30,12 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
   return {  // return from closure
 
     /**
+     * The id of the model object.
+     * @property {number}
+     */
+    id: null,
+
+    /**
      * The name of the collection
      * @property {String}
      */

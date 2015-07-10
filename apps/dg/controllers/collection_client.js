@@ -34,7 +34,7 @@ DG.CollectionClient = SC.Object.extend(
    * @property {Number}
    */
   id: function() {
-    return this.getPath('collection.collectionRecord.id');
+    return this.collection && this.collection.get('id');
   }.property('collection').cacheable(),
   
   /**
@@ -42,7 +42,7 @@ DG.CollectionClient = SC.Object.extend(
    * @property {String}
    */
   name: function() {
-    return this.getPath('collection.collectionRecord.name');
+    return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
 
   defaults: function () {

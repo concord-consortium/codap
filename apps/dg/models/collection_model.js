@@ -31,6 +31,13 @@ DG.Collection = SC.Object.extend(
     return this.collectionRecord && this.collectionRecord.get('id');
   }.property('collectionRecord').cacheable(),
 
+    /**
+     * The name of the collection with which this object is associated.
+     * @property {String}
+     */
+    name: function() {
+      return this.collectionRecord && this.collectionRecord.get('name');
+    }.property('collection').cacheable(),
 
   /**
    * Array of attribute records returned from a find of the attrsQuery.
