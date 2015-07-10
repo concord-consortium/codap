@@ -171,10 +171,8 @@ DG.CollectionClient = SC.Object.extend(
     reorderAttributes: function(iAttributeNameList) {
       var nameListLength = iAttributeNameList.length;
       this.collection.attrsRecords.sort(function(attr1, attr2) {
-        var n1 = attr1.name,
-          n2 = attr2.name,
-          ix1 = iAttributeNameList.indexOf(n1),
-          ix2 = iAttributeNameList.indexOf(n2);
+        var ix1 = iAttributeNameList.indexOf(attr1.name),
+          ix2 = iAttributeNameList.indexOf(attr2.name);
         if (SC.none(ix1)) {ix1 = nameListLength;}
         if (SC.none(ix2)) {ix2 = nameListLength;}
         return ix1 - ix2;
