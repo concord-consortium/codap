@@ -173,9 +173,11 @@ DG.CollectionClient = SC.Object.extend(
       this.collection.attrsRecords.sort(function(attr1, attr2) {
         var n1 = attr1.name,
           n2 = attr2.name,
-          ix1 = iAttributeNameList.indexOf(n1) || nameListLength,
-          ix2 = iAttributeNameList.indexOf(n2) || nameListLength;
-        return ix2 - ix1;
+          ix1 = iAttributeNameList.indexOf(n1),
+          ix2 = iAttributeNameList.indexOf(n2);
+        if (SC.none(ix1)) {ix1 = nameListLength;}
+        if (SC.none(ix2)) {ix2 = nameListLength;}
+        return ix1 - ix2;
       });
     },
   /**
