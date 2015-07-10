@@ -280,8 +280,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attributes.forEach( function( iAttrSpec) {
                             tCollection.guaranteeAttribute( iAttrSpec);
                           });
-      // Important to flush here in case caller is going to use the attributes before we return to the runLoop
-      DG.store.flush();
+      // if this is a recreation of the collection make sure the ordering corresponds
+      // to DI expectations.
+      tCollection.reorderAttributes(iChange.attributes.getEach('name'));
       return { success: true, collection: tCollection };
     }
     return { success: false };
@@ -305,6 +306,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     /**
      * returns true if either the collection is a child collection or the parentKey
      * resolves to an existing parent.
+     * @param parentKey {number}
      */
     var validateParent = function (collection, parentKey) {
       var rslt = true;
@@ -319,6 +321,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this);
     var collection,
         valuesArrays,
+        parentIsValid = true,
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
           var newCase = collection.createCase( iChange.properties);
@@ -342,7 +345,14 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection = iChange.collection;
     }
 
-    if( collection && validateParent(collection, iChange.properties.parent)) {
+    if (!iChange.properties) {
+      iChange.properties = {};
+    }
+
+    if (typeof iChange.properties.parent !== 'object') {
+      parentIsValid = validateParent(collection, iChange.properties.parent);
+    }
+    if( collection && parentIsValid) {
       valuesArrays = iChange.values || [ [] ];
       valuesArrays.forEach( createOneCase);
       if( result.caseIDs && (result.caseIDs.length > 0)) {
@@ -579,7 +589,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       // on the case, the values map is deleted
       // We also store the original index separately
       deletedCases.push( {
-        case: iCase,
+        oldCase: iCase,
         values: iCase._valuesMap,
         index: iCase.collection.caseIDToIndexMap[iCase.get("id")]
       });
@@ -610,7 +620,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       },
       undo: function() {
         for (var i = this._undoData.length - 1; i >= 0; i--) {
-          var oldCase       = this._undoData[i].case,
+          var oldCase       = this._undoData[i].oldCase,
               oldValuesMap  = this._undoData[i].values,
               oldIndex      = this._undoData[i].index,
               oldCollection = this_.getCollectionForCase(oldCase),

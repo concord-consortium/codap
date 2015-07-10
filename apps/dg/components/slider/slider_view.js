@@ -154,10 +154,23 @@ DG.SliderView = SC.View.extend(
         this.appendChild( this.valueView );
       },
 
-      willDestroy: function() {
+      _destroy: function () {
         var controller = this.get('controller');
         if( controller)
           controller.stopAnimation();
+        this.model.destroy(); // so that it can unlink observers
+      },
+
+      willDestroy: function() {
+        console.log('SliderView.willDestroy');
+        this._destroy;
+        sc_super();
+      },
+
+      destroy: function () {
+        console.log('SliderView.destroy');
+        this._destroy;
+        sc_super();
       },
 
       viewDidResize: function() {
@@ -223,6 +236,7 @@ DG.SliderView = SC.View.extend(
           this.get('model').encompassValue();
           DG.logUser("sliderThumbDrag: { name: %@, newValue: %@ }",
                         this.getPath('model.name'), this.getPath('model.value'));
+          DG.dirtyCurrentDocument();
         }
         tDraggingThumb = false;
       },
