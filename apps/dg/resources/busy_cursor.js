@@ -36,6 +36,9 @@ DG.busyCursor = SC.Object.create({
     }
     tCover.set('isVisible', true);
     this.invokeLater(iFunction, 0);
+    SC.run( function() {
+      SC.Event.simulateEvent( DG.mainPage.mainPane.$()[0], 'mousemove');
+    }, this, true /* start a new run loop */);
   },
 
   /**
