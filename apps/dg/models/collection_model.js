@@ -39,6 +39,14 @@ DG.Collection = SC.Object.extend(
       return this.collectionRecord && this.collectionRecord.get('name');
     }.property('collection').cacheable(),
 
+    defaults: function () {
+      return this.collectionRecord && this.collectionRecord.get('defaults');
+    }.property('collectionRecord').cacheable(),
+
+    labels: function () {
+      return this.collectionRecord && this.collectionRecord.get('labels');
+    }.property('collectionRecord').cacheable(),
+
   /**
    * Array of attribute records returned from a find of the attrsQuery.
    * Assigned in the init() function with a call to DG.store.find().

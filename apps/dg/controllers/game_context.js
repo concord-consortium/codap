@@ -162,8 +162,7 @@ DG.GameContext = DG.DataContext.extend(
     @returns  {Object}              The 'labels' portion of the collection specification
    */
   getLabelsForCollection: function( iCollection) {
-    var labels = iCollection.getCollectionLabels();
-    return labels;
+    return iCollection.get('labels');
   },
   
   /**

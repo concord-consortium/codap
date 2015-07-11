@@ -46,10 +46,18 @@ DG.CollectionClient = SC.Object.extend(
   }.property('collection').cacheable(),
 
   defaults: function () {
-    return this.getPath('collection.collectionRecord.defaults');
-  }.property('collection,collectionRecord').cacheable(),
+    return this.collection && this.collection.get('defaults');
+  }.property('collection').cacheable(),
 
-  attrsController: null,
+    /**
+     * Returns labels for this collection, if any have been set.
+     * @returns {Object}
+     */
+    labels: function () {
+      return this.collection && this.collection.get('labels');
+    }.property('collection').cacheable(),
+
+    attrsController: null,
 
   casesController: null,
   
@@ -596,14 +604,6 @@ DG.CollectionClient = SC.Object.extend(
     });
     this.didDeleteCases();
   },
-
-    /**
-     * Returns labels for this collection, if any have been set.
-     * @returns {Object}
-     */
-    getCollectionLabels: function () {
-      return this.getPath('collection.collectionRecord.labels');
-    },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.

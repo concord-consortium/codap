@@ -42,6 +42,25 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
     name: '',
 
     /**
+     * Default axes for the collection
+     * @property {defaults: { xAttr: string, yAttr: string }}
+     */
+    defaults: undefined,
+
+    /**
+     * Labels for the collection
+     *
+     * @param {{
+     *           singleCase: string,
+     *           pluralCase: string,
+     *           singleCaseWithArticle: string,
+     *           setOfCases: string,
+     *           setOfCasesWithArticle: string
+     *         }}
+     */
+    labels: undefined,
+
+    /**
      * A description of/comment for the collection.
      * @property {String}
      */
