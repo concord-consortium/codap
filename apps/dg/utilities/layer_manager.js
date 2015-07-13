@@ -146,6 +146,8 @@ DG.LayerManager = function( iPaper) {
           tMap[ iElement.id] = true;
         });
       });
+      if( tFoundDuplicate)
+        DG.logError('Found duplicate element');
       // @endif
     }
 
