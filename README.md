@@ -102,7 +102,7 @@ This should run the CODAP application and bring up the login dialog.
 
 ## Introducing Data into CODAP ##
 
-Data can be introduced into CODAP in a variety of ways. For example, in modular browsers a a CSV or tab-delimited .txt(simple text) can be dragged and dropped into the CODAP workspace. Third party data sets/activities can also be dropped into the workspace. These are called [data interactives](http://concord-consortium.github.io/codap-data-interactives/). There are [examples](http://concord.org/projects/codap#cc2)s of data games on the project page.
+Data can be introduced into CODAP in a variety of ways. For example, in modular browsers a CSV or tab-delimited .txt(simple text) can be dragged and dropped into the CODAP workspace. Third party data sets/activities can also be dropped into the workspace. These are called [data interactives](http://concord-consortium.github.io/codap-data-interactives/). There are [examples](http://concord.org/projects/codap#cc2) of data games on the project page.
 
 
 ## Modifying the CODAP Source ##
