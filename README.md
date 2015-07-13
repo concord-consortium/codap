@@ -34,7 +34,7 @@ CODAP utilizes the SproutCore framework which requires Ruby 1.9.2+ for its build
 
 ####Instructions for Macs:####
 
-1. Install Ruby 1.9.2+
+1. Install Ruby 1.9.3+
 
     Mac OS X versions up to 10.8 shipped with Ruby 1.8.7. Mac OS X version 10.9 shipped with Ruby 2.0. The easiest way to install newer Ruby versions is to use rvm, the Ruby Version Manager. Using rvm to install Ruby, in turn, requires the presence of Xcode and its command line tools on Mac OS X. Thus, upgrading to Ruby 1.9.2+ may require the following:
 
@@ -100,9 +100,10 @@ This runs the [SproutCore server](http://guides.sproutcore.com/build_tools.html#
 
 This should run the CODAP application and bring up the login dialog.
 
-## Configure CODAP Login ##
+## Introducing Data into CODAP ##
 
-By default, the CODAP application proxies to http://dg.ccssgames.com. Guest access is available, but a user account is required to be able to save and restore documents. It's free to [create a user account](http://play.ccssgames.com/user/register), if desired.
+Data can be introduced into CODAP in a variety of ways. For example, in modular browsers a CSV or tab-delimited .txt(simple text) can be dragged and dropped into the CODAP workspace. Third party data sets/activities can also be dropped into the workspace. These are called [data interactives](http://concord-consortium.github.io/codap-data-interactives/). There are [examples](http://concord.org/projects/codap#cc2) of data games on the project page.
+
 
 ## Modifying the CODAP Source ##
 
