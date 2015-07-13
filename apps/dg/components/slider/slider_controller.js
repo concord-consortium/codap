@@ -87,12 +87,15 @@ DG.SliderController = DG.ComponentController.extend(
       tAnimator.animate();
       DG.logUser("sliderBeginAnimation: %@", this.getPath('sliderModel.name'));
     }
+    DG.dirtyCurrentDocument();
   },
   
   stopAnimation: function() {
     var tAnimator = this.get('valueAnimator');
-    if( tAnimator && tAnimator.get('isAnimating'))
+    if( tAnimator && tAnimator.get('isAnimating')) {
       tAnimator.endAnimation();
+      DG.dirtyCurrentDocument();
+    }
   },
 
   /**

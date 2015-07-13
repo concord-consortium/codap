@@ -158,7 +158,26 @@ DG.CollectionClient = SC.Object.extend(
                             this.didCreateAttribute( iAttribute);
                           }.bind( this));
   },
-  
+
+    /**
+     * Reorders the attributes according to the order specified by the attribute
+     * list. The attribute list is an array of attribute names. All names in the
+     * list must be present as named attributes or the reordering will be
+     * abandoned. There may be attributes not specified in the list. These will
+     * be ordered after the attributes named in the list in their present order.
+     *
+     * @param {[String]} iAttributeNameList an array of attribute names
+     */
+    reorderAttributes: function(iAttributeNameList) {
+      var nameListLength = iAttributeNameList.length;
+      this.collection.attrsRecords.sort(function(attr1, attr2) {
+        var ix1 = iAttributeNameList.indexOf(attr1.name),
+          ix2 = iAttributeNameList.indexOf(attr2.name);
+        if (SC.none(ix1)) {ix1 = nameListLength;}
+        if (SC.none(ix2)) {ix2 = nameListLength;}
+        return ix1 - ix2;
+      });
+    },
   /**
     Returns an array with the IDs of the attributes in the collection.
    */
