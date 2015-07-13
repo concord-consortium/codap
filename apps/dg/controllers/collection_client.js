@@ -45,6 +45,10 @@ DG.CollectionClient = SC.Object.extend(
     return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
 
+    collapseChildren: function () {
+      return this.collection && this.collection.get('collapseChildren');
+    }.property('collection').cacheable(),
+
   defaults: function () {
     return this.collection && this.collection.get('defaults');
   }.property('collection').cacheable(),
@@ -115,19 +119,18 @@ DG.CollectionClient = SC.Object.extend(
    * @param {DG.CollectionClient} iParentCollection
    */
   setParentCollection: function( iParentCollection) {
-    var childRecord = this.getPath('collection.collectionRecord'),
-        parentRecord = iParentCollection.getPath('collection.collectionRecord');
-    if( childRecord && parentRecord) {
-      childRecord.set('parent', parentRecord);
-      childRecord.set('areParentChildLinksConfigured', true);
-      parentRecord.set('areParentChildLinksConfigured', true);
-      DG.store.commitRecords();
+    var childCollection = this.get('collection'),
+        parentCollection = iParentCollection.get('collection');
+    if( childCollection && parentCollection) {
+      childCollection.set('parent', parentCollection);
+      childCollection.set('areParentChildLinksConfigured', true);
+      parentCollection.set('areParentChildLinksConfigured', true);
     }
   },
 
     getParentCollectionID: function () {
-      var collectionRecord = this.getPath('collection.collectionRecord');
-      var parent = collectionRecord && collectionRecord.parent;
+      var collectionModel = this.get('collection');
+      var parent = collectionModel && collectionModel.parent;
       return (parent && parent.id);
     },
   /**

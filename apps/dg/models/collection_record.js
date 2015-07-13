@@ -36,37 +36,6 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
     id: null,
 
     /**
-     * The name of the collection
-     * @property {String}
-     */
-    name: '',
-
-    /**
-     * Default axes for the collection
-     * @property {defaults: { xAttr: string, yAttr: string }}
-     */
-    defaults: undefined,
-
-    /**
-     * Labels for the collection
-     *
-     * @param {{
-     *           singleCase: string,
-     *           pluralCase: string,
-     *           singleCaseWithArticle: string,
-     *           setOfCases: string,
-     *           setOfCasesWithArticle: string
-     *         }}
-     */
-    labels: undefined,
-
-    /**
-     * A description of/comment for the collection.
-     * @property {String}
-     */
-    description: '',
-
-    /**
      * A relational link back to the owning data context.
      * @property {DG.DataContextRecord}
      */
@@ -80,7 +49,7 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
 
     /**
      * A relational link to the subcollections of this collection.
-     * @property {Array of DG.CollectionRecord}
+     * @property {[DG.CollectionRecord]}
      */
     children: null,
 
@@ -97,13 +66,13 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
     /**
      * A relational link to the attributes of this collection.
      *  Note that "attributes" is a reserved property name in SproutCore.
-     * @property {Array of DG.Attribute}
+     * @property {[DG.Attribute]}
      */
     attrs: null,
 
     /**
      * A relational link to the cases of this collection.
-     * @property {Array of DG.Case}
+     * @property {[DG.Case]}
      */
     cases: null,
 
@@ -118,6 +87,56 @@ DG.CollectionRecord = DG.BaseModel.extend( (function() // closure
      * @property {Object} of {String}:{Number}
      */
     caseCounts: null,
+
+    /**
+     * If present, the name of an individual case.
+     * @property {String}
+     */
+    caseName: null,
+
+    /**
+     * ToDo: define
+     * @property {String}
+     */
+    childAttrName: null,
+
+    /**
+     * Whether tabular representations of a child table should collapse
+     * all the children of a single parent to a single row.
+     * @property {Boolean}
+     */
+    collapseChildren: null,
+
+    /**
+     * Default axes for the collection
+     * @property {{defaults: { xAttr: string, yAttr: string }}}
+     */
+    defaults: undefined,
+
+    /**
+     * A description of/comment for the collection.
+     * @property {String}
+     */
+    description: '',
+
+    /**
+     * Labels for the collection
+     *
+     * @param {{
+     *           singleCase: string,
+     *           pluralCase: string,
+     *           singleCaseWithArticle: string,
+     *           setOfCases: string,
+     *           setOfCasesWithArticle: string
+     *         }}
+     */
+    labels: undefined,
+
+    /**
+     * The name of the collection
+     * @property {String}
+     */
+    name: '',
 
     init: function () {
       this.attrs = [];

@@ -25,11 +25,43 @@
 DG.Collection = SC.Object.extend(
 /** @scope DG.Collection.prototype */ {
 
-  collectionRecord: null,// DG.CollectionRecord
-  
-  id: function() {
-    return this.collectionRecord && this.collectionRecord.get('id');
-  }.property('collectionRecord').cacheable(),
+    collectionRecord: null,// DG.CollectionRecord
+
+    id: function() {
+      return this.collectionRecord && this.collectionRecord.get('id');
+    }.property('collectionRecord').cacheable(),
+
+    /**
+     * Whether tabular representations of a child table should collapse
+     * all the children of a single parent to a single row.
+     * @property {Boolean}
+     */
+    collapseChildren: function () {
+      return this.collectionRecord && this.collectionRecord.get('collapseChildren');
+    }.property('collectionRecord').cacheable(),
+
+    /**
+     * Default axes for the collection
+     * @property {{defaults: { xAttr: string, yAttr: string }}}
+     */
+    defaults: function () {
+      return this.collectionRecord && this.collectionRecord.get('defaults');
+    }.property('collectionRecord').cacheable(),
+
+    /**
+     * Labels for the collection
+     *
+     * @param {{
+     *           singleCase: string,
+     *           pluralCase: string,
+     *           singleCaseWithArticle: string,
+     *           setOfCases: string,
+     *           setOfCasesWithArticle: string
+     *         }}
+     */
+    labels: function () {
+      return this.collectionRecord && this.collectionRecord.get('labels');
+    }.property('collectionRecord').cacheable(),
 
     /**
      * The name of the collection with which this object is associated.
@@ -39,25 +71,25 @@ DG.Collection = SC.Object.extend(
       return this.collectionRecord && this.collectionRecord.get('name');
     }.property('collection').cacheable(),
 
-    defaults: function () {
-      return this.collectionRecord && this.collectionRecord.get('defaults');
-    }.property('collectionRecord').cacheable(),
+    /**
+     * A relational link back to the parent collection (if any).
+     * @property {DG.Collection}
+     */
+    parent: function() {
+      return this.collectionRecord && this.collectionRecord.get('parent');
+    }.property('collection').cacheable(),
 
-    labels: function () {
-      return this.collectionRecord && this.collectionRecord.get('labels');
-    }.property('collectionRecord').cacheable(),
-
-  /**
+    /**
    * Array of attribute records returned from a find of the attrsQuery.
    * Assigned in the init() function with a call to DG.store.find().
-   * @property {SC.RecordArray of DG.AttributeRecords}
+   * @property {[DG.Attribute]}
    */
   attrsRecords: null,
   
   /**
    * Array of case records returned from a find of the casesQuery.
    * Assigned in the init() function with a call to DG.store.find().
-   * @property {SC.RecordArray of DG.Cases}
+   * @property {[DG.Case]}
    */
   casesRecords: null,
   
@@ -68,9 +100,6 @@ DG.Collection = SC.Object.extend(
   
     sc_super();
 
-//    this.attrsRecords = DG.store.find(this.attrsQuery);
-//
-//    this.casesRecords = DG.store.find(this.casesQuery);
     this.set('attrsRecords', this.collectionRecord.attrs);
     this.set('casesRecords', this.collectionRecord.cases);
     this.updateCaseIDToIndexMap();
@@ -131,7 +160,7 @@ DG.Collection = SC.Object.extend(
    * be inserted at the appropriate index. Otherwise, it will be added to
    * the end of the cases array.
    *
-   * @param   {Object}  Properties of the newly created case
+   * @param   {Object}  iProperties Properties of the newly created case
    * @returns {DG.Case}
    */
   createCase: function( iProperties) {
@@ -153,7 +182,7 @@ DG.Collection = SC.Object.extend(
   /**
    * Adds a new case to the collection.
 
-   * @param   {DG.Case}  The newly created case
+   * @param   {DG.Case}  iCase The newly created case
    */
   addCase: function( iCase) {
     var caseID = iCase.get('id'),
@@ -174,8 +203,8 @@ DG.Collection = SC.Object.extend(
    * Any views of this collection should render the case as if it had been created
    * at that point in the history.
    *
-   * @param   {DG.Case}  The newly created case
-   * @param   {Integer}  The index at which the case will be inserted
+   * @param   {DG.Case}  iCase The newly created case
+   * @param   {number}  idx   The index at which the case will be inserted
    */
   insertCase: function( iCase, idx) {
     this.casesRecords.insertAt(idx, iCase);
@@ -194,7 +223,7 @@ DG.Collection = SC.Object.extend(
 
   /**
    * Returns an array of ids for the attributes in the collection.
-   * @returns {Array of Number}
+   * @returns {[Number]}
    */
   getAttributeIDs: function() {
     return this.attrsRecords.getEach('id');
@@ -202,7 +231,7 @@ DG.Collection = SC.Object.extend(
   
   /**
    * Returns an array of names for the attributes in the collection.
-   * @returns {Array of String}
+   * @returns {[String]}
    */
   getAttributeNames: function() {
     return this.attrsRecords.getEach('name');
@@ -211,7 +240,7 @@ DG.Collection = SC.Object.extend(
   /**
    * Returns an array of ids for the cases in the collection, 
    *  suitable for use by clients like Protovis.
-   * @returns {Array of Number}
+   * @returns {[Number]}
    */
   getCaseIDs: function() {
     return this.casesRecords.getEach('id');
@@ -251,3 +280,12 @@ DG.Collection = SC.Object.extend(
   }
   
 }) ;
+
+DG.Collection.createCollection = function( iProperties) {
+  var collectionRecord = DG.CollectionRecord.createCollection(iProperties);
+  return DG.Collection.create({ collectionRecord: collectionRecord });
+};
+
+DG.Collection.destroyCollection = function (iCollection) {
+  iCollection.destroy();
+};

@@ -47,7 +47,7 @@ DG.GameContext = DG.DataContext.extend(
   
   /**
    * The dimensions of the currently selected game {width,height}.
-   * @property {Object}
+   * @property {{width: number, height}}
    */
   gameDimensions: null,
   
@@ -72,7 +72,7 @@ DG.GameContext = DG.DataContext.extend(
    *  In particular, games using the old API often create their
    *  collections in child --> parent order, and need to be reversed
    *  in this function.
-   *  @property {Array} of DG.CollectionRecords
+   *  @property {[DG.CollectionRecord]}
    */
   collections: function() {
     var srcCollections = this.getPath('model.collections'),

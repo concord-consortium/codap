@@ -329,7 +329,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var dataContext = this.get('dataContext'),
         collection = this.get('collection'),
         collapseChildren = (collection &&
-                            collection.getPath('collection.collectionRecord.collapseChildren')) || false,
+                            collection.get('collapseChildren')) || false,
         parentRows = [],      // array of parent IDs in order
         rowDataByParent = {}, // map of parentID --> child case row info
         rowData = [],
@@ -518,7 +518,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     // Create the map entry if it doesn't already exist
     if( !parentGroupInfo) {
       parentGroupInfo = this.parentIDGroups[ parentID] = {};
-      parentGroupInfo.isCollapsed = this.getPath('collection.collection.collectionRecord.collapseChildren')
+      parentGroupInfo.isCollapsed = this.get('collapseChildren')
                                           || false;
     }
     

@@ -85,7 +85,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
    *  The collections for which this controller is responsible.
    *  Bound to the 'collections' property of the model.
-   *  @property {Array of DG.CollectionRecords}
+   *  @property {[DG.CollectionRecords]}
    */
   collections: function() {
     return DG.ObjectMap.values(this.getPath('model.collections'));
@@ -1008,9 +1008,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {DG.CollectionClient} The newly-created collection
    */
   createCollection: function( iProperties) {
-    var newCollection = this.get('model').createCollection( iProperties || {}),
-        newCollectionClient = this.addCollection( newCollection);
-    DG.store.commitRecords();
+    var //newCollection = this.get('model').createCollection( iProperties || {}),
+      tProperties = iProperties || {},
+        newCollectionClient;
+
+    tProperties.context = this.get('model');
+    newCollectionClient = this.addCollection( DG.Collection.createCollection(tProperties));
     this.didCreateCollection( newCollectionClient);
     return newCollectionClient;
   },
@@ -1039,20 +1042,24 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Creates and connects a DG.Collection model and DG.CollectionClient controller for the
     specified DG.CollectionRecord.
-    @param    {DG.CollectionRecord}   iCollectionRecord -- The collection record to create the
+    @param    {DG.Collection || DG.CollectionRecord}   iCollection -- The collection record to create the
                                                            model and controller for.
     @returns  {DG.CollectionClient}   The newly-created collection client
    */
-  addCollection: function( iCollectionRecord) {
-    var theID = iCollectionRecord && iCollectionRecord.get('id'),
-        theCollection = theID && DG.Collection.create({ collectionRecord: iCollectionRecord }),
+  addCollection: function( iCollection) {
+    function getCollection(iCollectionRecord) {
+      return DG.Collection.create({ collectionRecord: iCollectionRecord });
+    }
+    var
+      theID = iCollection && iCollection.get('id'),
+        theCollection = (theID && (iCollection.type === 'DG.CollectionRecord'))
+          ? getCollection(iCollection)
+          : iCollection,
         theCollectionClient = theCollection && DG.CollectionClient.create({});
     if (theCollectionClient && theCollection && theID) {
       theCollectionClient.setTargetCollection(theCollection);
-      // Note: We 'get' the 'id' again, because it may have changed from a
-      // temporary 'id' to a permanent 'id' since theID was extracted.
-      this._collectionClients[ theCollectionClient.get('id')] = theCollectionClient;
-      this.didAddCollection( theCollectionClient);
+      this._collectionClients[ theID ] = theCollectionClient;
+      this.didAddCollection( theCollectionClient );
     }
     return theCollectionClient;
   },
