@@ -41,7 +41,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     /**
      * A relational link to the collections in this document.
-     * @property {Array of DG.CollectionRecord}
+     * @property {[DG.Collection]}
      */
     collections: null,
 
@@ -81,7 +81,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
     destroy: function() {
       if (this.collections) {
         DG.ObjectMap.forEach(this.collections, function( iCollection) {
-          DG.CollectionRecord.destroyCollection( iCollection);
+          DG.Collection.destroyCollection( iCollection);
         });
       }
       delete this.document.contexts[this.id];
@@ -91,7 +91,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
     createCollection: function( iProperties) {
       iProperties = iProperties || {};
       iProperties.context = this;
-      return DG.CollectionRecord.createCollection( iProperties);
+      return DG.Collection.createCollection( iProperties);
     },
 
     toArchive: function (fullData) {
@@ -157,7 +157,7 @@ DG.DataContextRecord.createContext = function( iProperties) {
   if (iProperties.collections) {
     iProperties.collections.forEach(function (iProps) {
       iProps.context = tContext;
-      DG.CollectionRecord.createCollection(iProps);
+      DG.Collection.createCollection(iProps);
     });
   }
   DG.log('Create context: ');

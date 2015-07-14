@@ -469,6 +469,9 @@ DG.appController = SC.Object.create((function () // closure
         SC.Benchmark.end('app_controller:openJsonDocument');
         SC.Benchmark.log('app_controller:openJsonDocument');
       }.bind(this));
+      deferred.fail(function(msg) {
+        DG.logError(msg);
+      });
       return deferred;
     },
 
