@@ -42,11 +42,7 @@ test('test DG.Case', function () {
       description: 'A child collection'
     },
     tContext = DG.activeDocument.createContext({}),
-    tParentCollection = tContext.createCollection(tPropsParentCollection),
-    tParentCollectionModel = DG.Collection.create({
-      collectionRecord: tParentCollection
-    }),
-    tChildCollection,
+    tParentCollectionModel = tContext.createCollection(tPropsParentCollection),
     tChildCollectionModel,
     tParentAttrs = [],
     tChildAttrs = [],
@@ -54,11 +50,8 @@ test('test DG.Case', function () {
     tChildCase = [],
     tID;
 
-  tPropsChildCollection.parent = tParentCollection;
-  tChildCollection = tContext.createCollection(tPropsChildCollection);
-  tChildCollectionModel = DG.Collection.create({
-    collectionRecord: tChildCollection
-  });
+  tPropsChildCollection.parent = tParentCollectionModel;
+  tChildCollectionModel = tContext.createCollection(tPropsChildCollection);
 
   // preparation
   tParentAttrs[0] = tParentCollectionModel.createAttribute({name: 'attrP1'});

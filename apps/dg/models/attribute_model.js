@@ -123,7 +123,7 @@ DG.Attribute = DG.BaseModel.extend(
           ', in attribute: ' + this.id);
       }
       if (!(this.collection.recordType
-        && this.collection.recordType() === DG.CollectionRecord) ) {
+        && this.collection.recordType() === DG.Collection) ) {
         DG.logWarn('Unexpected collection RecordType: '
           + this.collection.recordTypeString());
       }

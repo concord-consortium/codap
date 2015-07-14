@@ -615,8 +615,8 @@ DG.CollectionClient = SC.Object.extend(
               {Number}  linkObject.id -- the id of the collection record
    */
   toLink: function() {
-    var collectionRecord = this.getPath('collection.collectionRecord');
-    return collectionRecord && collectionRecord.toLink();
+    var collection = this.getPath('collection');
+    return collection && collection.toLink();
   },
   
   debugLog: function(iPrompt) {
