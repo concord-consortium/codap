@@ -35,6 +35,9 @@ SC.stringsFor('English', {
                                             "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
                                             "DG is not actively supported on other browsers at this time.",
 
+    'DG.core.defaultLogServerLoginURL': 'http://cc-log-manager.herokuapp.com/api/logs',
+    'DG.core.defaultLogServerLoginURL.secure': 'https://cc-log-manager.herokuapp.com/api/logs',
+
   // DG.UserEntryDialog
   'DG.UserEntryDialog.welcome'                 : 'Welcome to CODAP',
   'DG.UserEntryDialog.welcome2'                : 'What would you like to do?',

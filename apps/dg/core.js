@@ -356,9 +356,13 @@ DG = SC.Application.create((function () // closure
       'guideButton'
     ],
 
-    logServerUrl: 'http://cc-log-manager.herokuapp.com/api/logs',
-
-//    logServerUrl: 'http://localhost:3000/api/logs',
+    logServerUrl: function () {
+      if (location.protocol.toLowerCase() === 'http') {
+        return SC.String.loc('DG.core.defaultLogServerLoginURL');
+      } else {
+        return SC.String.loc('DG.core.defaultLogServerLoginURL.secure');
+      }
+    }.property().cacheable(),
 
     /**
      More useful alternative to JavaScript built-in typeof operator.

@@ -503,6 +503,7 @@ return {
       obj[prop] = undefined;
       return p;
     }
+
     var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
                     (!DG.documentServer && iMetaArgs && iMetaArgs.force),
         time = new Date(),
@@ -517,41 +518,41 @@ return {
       return;
     }
 
-    this.currLogin.incrementProperty('logIndex');
+    if (DG.get('logServerUrl')) {
+      this.currLogin.incrementProperty('logIndex');
 
-    eventValue = extract(iProperties, 'args');
+      eventValue = extract(iProperties, 'args');
 
-    try {
-      parameters = JSON.parse(eventValue);
-      // If the value of parameters is not an object, then wrap the value in
-      // an object. Otherwise the log manager will reject it.
-      if (typeof parameters !== 'object') {
-        parameters = {value: parameters};
+      try {
+        parameters = JSON.parse(eventValue);
+        // If the value of parameters is not an object, then wrap the value in
+        // an object. Otherwise the log manager will reject it.
+        if (typeof parameters !== 'object') {
+          parameters = {value: parameters};
+        }
+      } catch(e) {
+        parameters = {};
       }
-    } catch(e) {
-      parameters = {};
-    }
 
-    // hack to deal with pgsql 'varying' type length limitation
+      // hack to deal with pgsql 'varying' type length limitation
 
-    if (eventValue && eventValue.length > 255) {
-      eventValue = eventValue.substr(0, 255);
-    }
+      if (eventValue && eventValue.length > 255) {
+        eventValue = eventValue.substr(0, 255);
+      }
 
-    body = {
-      activity:    extract(iProperties, 'activity') || 'Unknown',
-      application: extract(iProperties, 'application'),
-      username:    this.getPath('currLogin.user'),
-      session:     this.getPath('currLogin.sessionID'),
-      // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
-      time:        time.getTime(),
-      event:       event,
-      event_value: eventValue,
-      parameters:  parameters
-    };
+      body = {
+        activity:    extract(iProperties, 'activity') || 'Unknown',
+        application: extract(iProperties, 'application'),
+        username:    this.getPath('currLogin.user'),
+        session:     this.getPath('currLogin.sessionID'),
+        // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
+        time:        time.getTime(),
+        event:       event,
+        event_value: eventValue,
+        parameters:  parameters
+      };
 
-    if (DG.logServerUrl) {
-      $.ajax(DG.logServerUrl, {
+      $.ajax(DG.get('logServerUrl'), {
         type: 'POST',
         contentType: 'application/json',
         data: SC.json.encode(body),
