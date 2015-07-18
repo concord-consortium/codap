@@ -357,7 +357,7 @@ DG = SC.Application.create((function () // closure
     ],
 
     logServerUrl: function () {
-      if (location.protocol.toLowerCase() === 'http') {
+      if (window.location.protocol.toLowerCase() === 'http') {
         return SC.String.loc('DG.core.defaultLogServerLoginURL');
       } else {
         return SC.String.loc('DG.core.defaultLogServerLoginURL.secure');
