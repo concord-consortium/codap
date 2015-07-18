@@ -316,6 +316,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var css = $('<style>').text(getCSSText());
           svgClone.prepend(css);
           var svgData = new XMLSerializer().serializeToString( svgClone[0] );
+          // Raphael overspecifies the url for the gradient. It prepends the
+          // windows.location.href. This causes problems with the data url,
+          // because we are no longer in this namespace. So, we remove.
+          svgData = svgData.replace(
+            new RegExp('url\\(\''+ window.location.href + '#', 'g'), 'url(\'#');
           // The use of unescape and encodeURIComponent are part of a well-
           // known hack work around btoa's handling of unicode characters.
           // see, eg:
