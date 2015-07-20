@@ -320,7 +320,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // windows.location.href. This causes problems with the data url,
           // because we are no longer in this namespace. So, we remove.
           svgData = svgData.replace(
-            new RegExp('url\\(\''+ window.location.href + '#', 'g'), 'url(\'#');
+            new RegExp('url\\(\'[^#]*#', 'g'), 'url(\'#');
           // The use of unescape and encodeURIComponent are part of a well-
           // known hack work around btoa's handling of unicode characters.
           // see, eg:
