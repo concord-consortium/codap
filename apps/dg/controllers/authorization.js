@@ -315,7 +315,6 @@ return {
 
   exampleList: function(iReceiver) {
     var url = 'https://codap-resources.concord.org/examples/index.json';
-    //var url = '/examples/index.json'; local copy of index.json
 
     SC.Request.getUrl( url )
       .notify(iReceiver, 'receivedExampleListResponse')

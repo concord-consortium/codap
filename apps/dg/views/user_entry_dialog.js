@@ -227,8 +227,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
 
               nameView: SC.LabelView.extend({
                 layout: { left: 3, width: 145, top: 0, bottom: 0 },
-                //controlSize: SC.REGULAR_CONTROL_SIZE,
-                tagName:'b style="color:#E75204" ',
+                classNames: ["dg-example-name"],
                 valueBinding: SC.Binding.oneWay('*parentView.content.name')
               }),
 
