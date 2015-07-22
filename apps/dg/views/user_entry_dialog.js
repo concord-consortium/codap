@@ -202,7 +202,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           layout: { top: 40, left: 5, right: 5, height: 115 },
           contentView: SC.ListView.extend({
             layout: {top: 0, left: 0, right: 0, bottom: 0 },
-            rowHeight: 48,
+            rowHeight: 19,
             rowSpacing: 4,
             init: function() {
               sc_super();
@@ -227,7 +227,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
 
               nameView: SC.LabelView.extend({
                 layout: { left: 3, width: 145, top: 0, bottom: 0 },
-                controlSize: SC.LARGE_CONTROL_SIZE,
+                //controlSize: SC.REGULAR_CONTROL_SIZE,
+                tagName:'b style="color:#E75204" ',
                 valueBinding: SC.Binding.oneWay('*parentView.content.name')
               }),
 
