@@ -36,3 +36,4 @@ end
 
 # proxy for local dev.
 proxy '/DataGames', :to => 'dg.ccssgames.com'
+#proxy '/examples', :to => 'localhost:80'
