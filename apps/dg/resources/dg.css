@@ -393,3 +393,12 @@ input.editor-text {
 .sc-text-field-view.inline-editor {
     z-index: 20;
 }
+
+.dg-example-name{
+    font-weight: bold;
+    color: #E75204;
+}
+
+.sel .dg-example-name {
+    color: inherit;
+}
