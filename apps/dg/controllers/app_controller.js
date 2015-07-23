@@ -566,7 +566,13 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Callback function which saves the current document.
+     * Callback function which saves the current document.
+     *
+     * This can be called from an autoSave timer or from a user request, if the
+     * save location is known.
+     *
+     * @param {boolean} forceSave Set when save was initiated from a user
+     * request. Causes the save to occur, if conditions make it possible.
      */
     autoSaveDocument: function (forceSave) {
       if ((forceSave === true || DG.AUTOSAVE === true) && DG.authorizationController.get('isSaveEnabled')) {
@@ -575,12 +581,10 @@ DG.appController = SC.Object.create((function () // closure
 
         if (!SC.empty(docName)
           && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
-          if (DG.currDocumentController().get('hasUnsavedChanges')) {
+          if (forceSave || DG.currDocumentController().get('hasUnsavedChanges')) {
             DG.currDocumentController().saveDocument(docName, documentPermissions);
             var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
             DG.logInfo(msg, docName);
-          } else {
-            this.triggerSaveNotification();
           }
         }
       }
