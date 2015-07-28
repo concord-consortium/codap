@@ -170,7 +170,7 @@ DG.Browser = {
    */
   customCursorStr: function( iUrl, iXHotSpot, iYHotSpot, iDefault) {
     iDefault = iDefault || 'auto';
-    return ( SC.browser.name === SC.BROWSER.ie
+    return ( SC.browser.engine === SC.ENGINE.trident
                  ? 'url(' + iUrl + '), ' + iDefault
                  : 'url(' + iUrl + ') ' + iXHotSpot + ' ' + iYHotSpot + ', ' + iDefault);
   }
