@@ -153,6 +153,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.appendChild( this.marqueeTool);
       },
 
+      destroy: function() {
+        this.model.destroy(); // so that it can unlink observers
+        sc_super();
+      },
+
       setMarqueeMode: function() {
         this.setPath('mapPointView.isInMarqueeMode', true);
         DG.logUser('marqueeToolSelect');
