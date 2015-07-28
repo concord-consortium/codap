@@ -937,6 +937,7 @@ DG.DocumentController = SC.Object.extend(
             tGuideModel.set('items', tDialog.get('items'));
           tGuideModel.endPropertyChanges();
           tDialog.close();
+          DG.dirtyCurrentDocument( tGuideModel);
         }.bind(this);
 
       tDialog = DG.CreateGuideConfigurationView( {
