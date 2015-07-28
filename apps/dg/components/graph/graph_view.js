@@ -438,6 +438,7 @@ DG.GraphView = SC.View.extend(
     this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
     this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
     this.get('y2AxisView').set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
+    this.get('yAxisMultiTarget').set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
   }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
 
