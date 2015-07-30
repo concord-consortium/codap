@@ -27,21 +27,28 @@ DG.CODAPCommonStorage = {
   // General Helper methods for the Document Server / General backends.
 
   _handleResponse: function(iResponse, resolve, reject) {
+    var body,
+        docId;
     try {
-      var body = JSON.parse(iResponse.get('body'));
-
       if (this._isError(iResponse)) {
         reject(this._extractMessage(iResponse));
       } else {
-        var docId = iResponse.headers()['Document-Id'];
+        try {
+          body = JSON.parse(iResponse.get('body'));
+        } catch(e) {
+          // expected a json response, but got something else!
+          reject('error.parseError');
+          return;
+        }
+        docId = iResponse.headers()['Document-Id'];
         if (docId) {
           body.externalDocumentId = ''+docId;
         }
         resolve(body);
       }
     } catch(e) {
-      // expected a json response, but got something else!
-      reject('error.parseError');
+      // unknown response, but got something else!
+      reject('error: ' + e);
     }
   },
 
