@@ -130,7 +130,7 @@ SC.stringsFor('English', {
   'DG.AppController.openDocument.error.general' : "The document could not be opened because an error occurred.",
   'DG.AppController.openDocument.error.notFound' : "The document could not be found.",
   'DG.AppController.openDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
-  'DG.AppController.openDocument.error.permissions' : "The document could not be opened. Please have the owner make it a shared document in order to access it.",
+  'DG.AppController.openDocument.error.permissions' : "The document could not be opened because you do not have the required permission.",
   'DG.AppController.saveDocument.error.writeFailed' : "An error occurred when trying to save the document.",
   'DG.AppController.saveDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
   'DG.AppController.saveDocument.error.general' : "The document could not be saved because an error occurred.",
