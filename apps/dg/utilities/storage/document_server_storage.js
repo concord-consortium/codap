@@ -128,12 +128,14 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
            * authentication process is complete and react.
            */
           var href = panel.location.href;
-          if (href === window.location.href) {
-            timer.invalidate();
-            panel.close();
-            this.sendLoginRequest('user');
+          if (href !== window.location.href) {
+            DG.log("Login panel has foreign location: " + href );
           }
-        } catch(e) {}
+          timer.invalidate();
+          panel.close();
+          this.sendLoginRequest('user');
+        } catch(e) {
+        }
       }.bind(DG.authorizationController)
     });
   },
