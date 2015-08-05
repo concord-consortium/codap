@@ -167,12 +167,12 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
       this._urlForGetRequests(url)
         .notify(null, function(response) {
           var body;
+          try {
+            body = JSON.parse(response.get('body'));
+          } catch(e) {
+            body = {message: 'error.parseError'};
+          }
           if (SC.ok(response)) {
-            try {
-              body = JSON.parse(response.get('body'));
-            } catch(e) {
-              body = {message: 'error.parseError'};
-            }
             resolve(body);
           } else {
             // if the server gets a 500 error(server script error),
@@ -185,6 +185,9 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
                 return;
               } else {
                 errorCode = 'error.notLoggedIn';
+                // After the first log in attempt, we will log in as guest
+                // dismissing the login dialog and giving control back to the
+                // user.
                 DG.runAsGuest = true;
               }
             }

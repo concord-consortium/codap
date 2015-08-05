@@ -583,10 +583,13 @@ DG.appController = SC.Object.create((function () // closure
           && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
           if (forceSave || DG.currDocumentController().get('hasUnsavedChanges')) {
             DG.authorizationController.checkLogin().then(function() {
-              DG.currDocumentController().saveDocument(docName, documentPermissions);
-              var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
-              DG.logInfo(msg, docName);
-            });
+                DG.currDocumentController().saveDocument(docName, documentPermissions);
+                var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
+                DG.logInfo(msg, docName);
+              },
+              function (msg) {
+               DG.logWarn("SaveDocument failure: " + msg);
+              });
           }
         }
       }
