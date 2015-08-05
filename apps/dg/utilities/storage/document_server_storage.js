@@ -157,6 +157,14 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     });
   },
 
+  /**
+   * Get User Information.
+   *
+   * Contrary to the name this method does not log in a user, but tests if the
+   * user is logged in.
+   *
+   * @returns {*}
+   */
   login: function() {
     return new Promise(function(resolve, reject) {
       var url = '%@user/info'.fmt(DG.documentServer);
