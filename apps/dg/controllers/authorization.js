@@ -97,6 +97,24 @@ return {
     this.sendLoginRequest( this.getPath('currEdit.user'), this.getPath('currEdit.passwd'));
   },
 
+  /**
+   * Checks whether this instance's idea of who is logged in corresponds to
+   * the document server's idea. Returns a Promise that resolves to true if
+   * the user is logged in and has the same username as the current user, and
+   * otherwise rejects with a reason string.
+   * @return {Promise}
+   */
+  checkLogin: function () {
+    var storageInterface = this.get('storageInterface');
+    return storageInterface.login();
+  },
+  /**
+   * Sends a login request to the document store.
+   * @param iUser
+   * @param iPassword
+   * @param iSessionID
+   * @returns {Promise}
+   */
   sendLoginRequest: function( iUser, iPassword, iSessionID) {
     if (!SC.empty( iUser)) {
       // Set the user so we can update the UI while waiting for a server response
@@ -106,7 +124,7 @@ return {
         this.get('currLogin').set('sessionID', iSessionID);
       }
 
-      this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
+      return this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
         function(body) {
           this.receiveLoginSuccess(body);
         }.bind(this),
