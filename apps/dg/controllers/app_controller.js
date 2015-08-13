@@ -582,9 +582,14 @@ DG.appController = SC.Object.create((function () // closure
         if (!SC.empty(docName)
           && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
           if (forceSave || DG.currDocumentController().get('hasUnsavedChanges')) {
-            DG.currDocumentController().saveDocument(docName, documentPermissions);
-            var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
-            DG.logInfo(msg, docName);
+            DG.authorizationController.checkLogin().then(function() {
+                DG.currDocumentController().saveDocument(docName, documentPermissions);
+                var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
+                DG.logInfo(msg, docName);
+              },
+              function (msg) {
+               DG.logWarn("SaveDocument failure: " + msg);
+              });
           }
         }
       }
@@ -693,7 +698,7 @@ DG.appController = SC.Object.create((function () // closure
      * @param {SC.Menu} sender: unused by the function.
      */
     closeCurrentDocument: function (sender) {
-      this.closeDocumentWithConfirmation(null);
+        this.closeDocumentWithConfirmation(null);
     },
 
     /**

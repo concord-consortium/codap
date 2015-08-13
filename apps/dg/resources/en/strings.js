@@ -132,6 +132,7 @@ SC.stringsFor('English', {
   'DG.AppController.openDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
   'DG.AppController.openDocument.error.permissions' : "The document could not be opened because you do not have the required permission.",
   'DG.AppController.saveDocument.error.writeFailed' : "An error occurred when trying to save the document.",
+  'DG.AppController.saveDocument.error.permissions' : "The document could not be saved. Try exporting locally (File/Export CODAP Document) or logging in and then saving.",
   'DG.AppController.saveDocument.error.documentDatabaseConnectFailed' : "An error occurred while trying to connect to the database.",
   'DG.AppController.saveDocument.error.general' : "The document could not be saved because an error occurred.",
   'DG.AppController.saveDocument.prompt' : "Choose a name for the document:",

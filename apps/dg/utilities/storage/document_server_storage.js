@@ -117,6 +117,8 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     ];
     DG.log("WindowFeatures=[" + windowFeatures.join() + ']');
     var panel = window.open(url, 'auth', windowFeatures.join());
+    var exceptionCount = 0;
+    var unknownHrefCount = 0;
     var timer = SC.Timer.schedule({
       interval: 200,
       repeats: YES,
@@ -132,12 +134,37 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
             timer.invalidate();
             panel.close();
             this.sendLoginRequest('user');
+          } else {
+            // If we have reached the document server once, but we have not
+            // been redirected back to CODAP or if we time out trying to access
+            // the document server, we bail. We have not
+            if (exceptionCount > 0 || unknownHrefCount > 25) {
+              DG.warn("Attempt to log in to Document Server failed");
+              timer.invalidate();
+              panel.close();
+              this.sendLoginRequest('user');
+            } else {
+              // If we can see URL, then we assume the iframe hasn't completed
+              // the load of the document server page (in chrome this is an
+              // 'about' page url.
+              unknownHrefCount += 1;
+            }
           }
-        } catch(e) {}
+        } catch(e) {
+          exceptionCount += 1;
+        }
       }.bind(DG.authorizationController)
     });
   },
 
+  /**
+   * Get User Information.
+   *
+   * Contrary to the name this method does not log in a user, but tests if the
+   * user is logged in.
+   *
+   * @returns {*}
+   */
   login: function() {
     return new Promise(function(resolve, reject) {
       var url = '%@user/info'.fmt(DG.documentServer);
@@ -166,6 +193,10 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
                 return;
               } else {
                 errorCode = 'error.notLoggedIn';
+                // After the first log in attempt, we will log in as guest
+                // dismissing the login dialog and giving control back to the
+                // user.
+                DG.runAsGuest = true;
               }
             }
             reject(errorCode);

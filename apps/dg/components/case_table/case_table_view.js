@@ -258,6 +258,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     
     $(gridSelector).show();
 
+    $(gridSelector).bind('wheel', function (ev) {
+      ev.stopPropagation();
+    });
+    $(gridSelector).bind('DOMMouseScroll', function (ev) {
+      ev.stopPropagation();
+    });
+    $(gridSelector).bind('MozMousePixelScroll', function (ev) {
+      ev.stopPropagation();
+    });
+
     // Let clients know when there's a new _slickGrid
     this.notifyPropertyChange('gridView');
   },
@@ -556,7 +566,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Handle touch-drag events, which are sent repeatedly during a drag.
     For header cells, drag the attribute name
     For body cells, selects all rows touched by the drag.
-    @param    {Object}    The touch event
+    @param    {Object}    iEvent The touch event
    */
   touchesDragged: function( iEvent, iTouches) {
     var touchStartRow = this._touchStartCell && this._touchStartCell.row;
