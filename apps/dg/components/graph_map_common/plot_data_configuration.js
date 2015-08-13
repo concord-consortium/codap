@@ -31,6 +31,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     @property   {DG.DataContext}
    */
   dataContext: null,
+
+  dataContextDidChange: function() {
+    this.invalidateCaches();
+  }.observes('dataContext'),
   
   /**
     The outer array is indexed by DG.GraphTypes.EPlace
@@ -45,7 +49,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var tResult = (this.chooseChildCollection( this.get('xCollectionClient'), this.get('yCollectionClient')) ||
                     this.get('legendCollectionClient'));
     if( !tResult) {
+      // We first try for the child collection
       tResult = this.getPath( 'dataContext.childCollection');
+      // But if it has zero cases we'll settle for the parent collection
+      if( tResult && tResult.getPath('casesController.arrangedObjects').length() === 0) {
+        tResult = this.getPath( 'dataContext.parentCollection');
+      }
     }
     return tResult;
   }.property('xCollectionClient','yCollectionClient', 'legendCollectionClient', 'dataContext'),
