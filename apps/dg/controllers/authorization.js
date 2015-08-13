@@ -272,7 +272,18 @@ return {
     );
   },
 
-  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
+  /**
+   * Saves an external data context to the connected cloud storage.
+   *
+   * @param contextModel
+   * @param {string} iDocumentName
+   * @param iDocumentArchive
+   * @param {object} iReceiver  The object receiving the result of the save.
+   * @param {boolean} isCopying Whether we are copying the current document.
+   * @param {boolean} isDifferential
+   * @returns {Promise}
+   */
+  saveExternalDataContext: function(contextModel, iDocumentName, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var opts = {content: iDocumentArchive},
         externalDocumentId = contextModel.get('externalDocumentId'),
         parentDocumentId = DG.currDocumentController().get('externalDocumentId');
@@ -283,10 +294,10 @@ return {
         opts.differential = true;
       }
     } else {
-      opts.name = '%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
+      opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
     }
 
-    if (!SC.none(parentDocumentId)) {
+    if (!isCopying && !SC.none(parentDocumentId)) {
       opts.params = {parentDocumentId: parentDocumentId};
     }
 

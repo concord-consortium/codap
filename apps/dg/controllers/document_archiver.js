@@ -347,21 +347,41 @@ DG.DocumentArchiver = SC.Object.extend(
     });
   },
 
+    /**
+     * Save the data contexts.
+     *
+     * Todo: The logic of which this method is a part requires major overhaul.
+     * Todo: The method calls saveCurrentGameState, to fill in parts of the
+     * Todo: data context state, but this is also called in saveDocument, above.
+     * Todo: It needs to be called only once. We are mixing callbacks and
+     * Todo: promises for event synchronisation. This doesn't make sense.
+     * Todo: The name for this method is no longer descriptive. The test for
+     * Todo: externalDocumentId looks suspicious. Finally, reference to
+     * Todo: DG.DataContext and DG.currDocumentController, create needless
+     * Todo: dependence on global singletons and make the code more fragile.
+     *
+     * @param {DG.Document} iDocument The current document.
+     * @param {function} callback Callback actually performs the send operation.
+     * @param {boolean} saveAll   Whether to force saving.
+     * @returns {Promise} Fulfilled on completion of all POSTs to server.
+     */
   saveDataContexts: function( iDocument, callback, saveAll) {
-    var model,
-        deferred = $.Deferred();
-    DG.currDocumentController().saveCurrentGameState(function() {
-      DG.DataContext.forEachContextInMap( iDocument.get('id'),
-        function( iContextID, iContext) {
-          iContext.willSaveContext();
-          model = iContext.get('model');
-          if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
-            callback(model, model.toArchive(true));
-          }
-        });
-      deferred.resolve();
-    });
-    return deferred;
+    return DG.currDocumentController().saveCurrentGameState()
+      .then(function() {
+        var model;
+        var promises = [];
+        DG.DataContext.forEachContextInMap( iDocument.get('id'),
+          function( iContextID, iContext) {
+            iContext.willSaveContext();
+            model = iContext.get('model');
+            if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
+              promises.push(callback(model, model.toArchive(true)));
+            }
+          });
+        return Promise.all(promises);
+      }, function (msg) {
+        DG.logWarn('DocumentArchiver.saveDataContexts: ' + msg);
+      });
   }
 
 });
