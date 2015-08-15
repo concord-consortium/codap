@@ -322,7 +322,7 @@ DG.appController = SC.Object.create((function () // closure
           this.openJsonDocument(doc);
         }.bind(this), function (msg) {
           DG.logWarn(msg);
-        })
+        });
       }
     },
 
