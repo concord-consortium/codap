@@ -71,6 +71,7 @@ DG.CODAPCommonStorage = {
   _extractMessage: function(iResponse) {
     var body = iResponse.get('body'),
         status = iResponse.get('status');
+    DG.log("Raw response status: " + status + " body: " + body);
     if (status === 401) {
       return 'error.sessionExpired';
     } else if (status === 403) {
@@ -78,6 +79,8 @@ DG.CODAPCommonStorage = {
     } else if (status === 404) {
       return 'error.notFound';
     } else if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+      return 'error.invalidPatch';
+    } else if (typeof body === 'string' && body.indexOf('Invalid patch JSON' >= 0)) {
       return 'error.invalidPatch';
     } else if (SC.none(body.message) || SC.empty(body.message)) {
       return 'error.general';
