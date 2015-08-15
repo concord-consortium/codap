@@ -247,6 +247,24 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     }.bind(this));
   },
 
+  /**
+   * Saves a document to the Concord Document Server.
+   * @param options {{
+   *                  content: object,
+   *                  differential: boolean,
+   *                  id: number,
+   *                  name: string,
+   *                  params: {
+   *                    newRecordname:string,
+   *                    original:*,
+   *                    parentDocumentId:number,
+   *                    recordid:number,
+   *                    recordname:string,
+   *                    runKey:string
+   *                  },
+   *                }}
+   * @returns {undefined}
+   */
   save: function(options) {
     return new Promise(function(resolve, reject) {
       var url,
