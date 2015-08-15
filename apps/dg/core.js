@@ -270,6 +270,8 @@ DG = SC.Application.create((function () // closure
      */
     startingDocName: getUrlParameter('doc'),
 
+    startingDocUrl: getUrlParameter('url'),
+
     /**
      * startingDataInteractive can be passed as a Url parameter named 'di'
      * Expects the URL of an executable page. For now, it will only have

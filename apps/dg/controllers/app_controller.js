@@ -312,6 +312,20 @@ DG.appController = SC.Object.create((function () // closure
       // FIXME How do we determine whether it should get set unshared or not?
     },
 
+    openDocumentFromUrl: function (iURL) {
+      if (iURL) {
+        $.ajax(iURL, {
+          type: 'GET',
+          contentType: 'text/plain'
+        }).then(function(data) {
+          var doc = (typeof data === 'string')?data:JSON.stringify(data);
+          this.openJsonDocument(doc);
+        }.bind(this), function (msg) {
+          DG.logWarn(msg);
+        })
+      }
+    },
+
     setOpenedDocumentUnshared: NO,
 
     /**

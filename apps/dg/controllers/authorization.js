@@ -275,13 +275,15 @@ return {
   /**
    * Saves an external data context to the connected cloud storage.
    *
-   * @param contextModel
+   * @param {*} contextModel
    * @param {string} iDocumentName
-   * @param iDocumentArchive
-   * @param {object} iReceiver  The object receiving the result of the save.
-   * @param {boolean} isCopying Whether we are copying the current document.
-   * @param {boolean} isDifferential
-   * @returns {Promise}
+   * @param {*} iDocumentArchive
+   * @param {object} iReceiver        The object receiving the result of the save.
+   * @param {boolean} isCopying       Whether we are copying the current document.
+   * @param {boolean} isDifferential  Whether we are copying the entire document
+   *                                  or just the delta.
+   * @returns {Promise}               Fullfilled after the handler for the response
+   *                                  completes
    */
   saveExternalDataContext: function(contextModel, iDocumentName, iDocumentArchive, iReceiver, isCopying, isDifferential) {
     var opts = {content: iDocumentArchive},
@@ -652,8 +654,10 @@ return {
     else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-    } else if ( !SC.empty( DG.startingDataInteractive)) {
+    } else if ( !SC.empty( DG.get('startingDataInteractive'))) {
       openDataInteractive(DG.get('startingDataInteractive'));
+    } else if ( !SC.empty( DG.startingDocUrl)) {
+      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
     } else {
       DG.gameSelectionController.setDefaultGame();
       DG.mainPage.addGameIfNotPresent();

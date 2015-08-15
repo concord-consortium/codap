@@ -60,6 +60,7 @@ DG.main = function main() {
           && !documentLoaded
           && SC.empty(DG.startingDocName)
           && SC.empty(DG.startingDocId)
+          && SC.empty(DG.startingDocUrl)
       ) {
         DG.userEntryController.setup(); // Create the user entry dialog.
         DG.splash.removeObserver('isShowing', splashChanged);
@@ -85,6 +86,9 @@ DG.main = function main() {
     } else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
+      documentLoaded = true;
+    } else if ( !SC.empty(DG.startingDocUrl)) {
+      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
       documentLoaded = true;
     }
   }
