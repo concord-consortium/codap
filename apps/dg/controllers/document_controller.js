@@ -1176,8 +1176,8 @@ DG.DocumentController = SC.Object.extend(
         // Ensure that _permissions matches the main document
         var savePromise;
         var needsSave = false;
-        var cleaned_docArchive;
-        var should_skip;
+        var cleanedDocArchive;
+        var shouldSkipPatch;
         var differences;
         // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
@@ -1191,11 +1191,11 @@ DG.DocumentController = SC.Object.extend(
         // FIXME If we toggle splitting on and off, we'll need to change this test
         if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
           this.clearChangedObject(context);
-          cleaned_docArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
-          should_skip = this._skipPatchNextTime.indexOf(context) !== -1;
+          cleanedDocArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
+          shouldSkipPatch = this._skipPatchNextTime.indexOf(context) !== -1;
 
-          if (DG.USE_DIFFERENTIAL_SAVING && !should_skip && !SC.none(context.get('externalDocumentId'))) {
-            differences = jiff.diff(context.savedShadowCopy(), cleaned_docArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
+          if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(context.get('externalDocumentId'))) {
+            differences = jiff.diff(context.savedShadowCopy(), cleanedDocArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
             if (differences.length === 0) { return; }
             savePromise = DG.authorizationController.saveExternalDataContext(context, iDocumentName, differences, this, false, true);
           } else {
@@ -1203,10 +1203,11 @@ DG.DocumentController = SC.Object.extend(
           }
           savePromise.then(function(success) {
             if (success) {
-              if (DG.USE_DIFFERENTIAL_SAVING || should_skip) {
-                context.updateSavedShadowCopy(cleaned_docArchive);
+              if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
+                context.updateSavedShadowCopy(cleanedDocArchive);
               }
-              if (should_skip) {
+              // remove this context from the skip list.
+              if (shouldSkipPatch) {
                 this._skipPatchNextTime.splice(this._skipPatchNextTime.indexOf(context), 1);
               }
             } else {
@@ -1217,34 +1218,34 @@ DG.DocumentController = SC.Object.extend(
         return savePromise;
       }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
       exportPromise.then(function() {
-        // FIXME What should we do if a data context fails to save?
-        this.exportDocument(function(docArchive) {
-          var needsSave = this.objectHasUnsavedChanges(this.get('content'));
-          if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
-            docArchive._permissions = iDocumentPermissions;
-            this.setPath('content._permissions', iDocumentPermissions);
-            needsSave = true;
-          }
-
-          if( DG.assert( !SC.none(docArchive))) {
-            if (needsSave) {
-              DG.authorizationController.saveDocument(iDocumentName, docArchive, this).then(function(success) {
-                if (!success) {
-                  DG.dirtyCurrentDocument();
-                }
-                saveInProgress.resolve();
-              });
-            } else {
-              this.invokeLater(function() { saveInProgress.resolve(); });
+          // FIXME What should we do if a data context fails to save?
+          this.exportDocument(function(docArchive) {
+            var needsSave = this.objectHasUnsavedChanges(this.get('content'));
+            if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
+              docArchive._permissions = iDocumentPermissions;
+              this.setPath('content._permissions', iDocumentPermissions);
+              needsSave = true;
             }
-          }
 
-          this.clearChangedObject(this.get('content'));
-        }.bind(this));
-      }.bind(this));
-      exportPromise.else(function (msg) {
-        DG.logWarn('DocumentController.saveDocument: ' + msg);
-      });
+            if( DG.assert( !SC.none(docArchive))) {
+              if (needsSave) {
+                DG.authorizationController.saveDocument(iDocumentName, docArchive, this).then(function(success) {
+                  if (!success) {
+                    DG.dirtyCurrentDocument();
+                  }
+                  saveInProgress.resolve();
+                });
+              } else {
+                this.invokeLater(function() { saveInProgress.resolve(); });
+              }
+            }
+            this.clearChangedObject(this.get('content'));
+          }.bind(this));
+        }.bind(this),
+        function (msg) {
+          DG.logWarn('DocumentController.saveDocument: ' + msg);
+        }
+      );
     },
 
     receivedSaveDocumentSuccess: function(body, isCopy) {
@@ -1310,7 +1311,7 @@ DG.DocumentController = SC.Object.extend(
       var deferreds = [],
         existingSaveInProgress = this.get('saveInProgress'),
         saveInProgress,
-        exportDeferred;
+        exportPromise;
       if (!SC.none(existingSaveInProgress)) {
         existingSaveInProgress.done(function() { this.copyDocument(iDocumentName, iDocumentPermissions); }.bind(this));
         return;
@@ -1321,7 +1322,7 @@ DG.DocumentController = SC.Object.extend(
       DG.USE_DIFFERENTIAL_SAVING = false;
       saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
 
-      exportDeferred = this.exportDataContexts(function(context, docArchive) {
+      exportPromise = this.exportDataContexts(function(context, docArchive) {
         if( DG.assert( !SC.none(docArchive))) {
           // Ensure that _permissions matches the main document
           if( !SC.none( iDocumentPermissions)) {
@@ -1330,7 +1331,7 @@ DG.DocumentController = SC.Object.extend(
           deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentName, docArchive, this, true));
         }
       }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
-      exportDeferred.then(function() {
+      exportPromise.then(function() {
         $.when.apply($, deferreds).done(function() {
           // FIXME What do we do when a data context fails to save?
           this.exportDocument( function( docArchive) {
