@@ -449,7 +449,8 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iURL - For the moment, we're assuming it's the URL of a data interactive
+     * @param iURL - the URL of a data interactive or json document. If path extension
+     * is json, assume it is the later.
      * @returns {Boolean}
      */
     importURL: function (iURL) {
@@ -467,26 +468,16 @@ DG.appController = SC.Object.create((function () // closure
           });
         tDoc.createComponentAndView( tComponent);
       }.bind(this);
-      //embedInteractive = function () {
-            // Currently, we must close any open document before opening a new data interactive
-            //this.closeDocument();
 
-            // Create document-specific store.
-            //var archiver = DG.DocumentArchiver.create({}),
-              //  newDocument;
+      // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
+      var urlParser = document.createElement('a');
+      urlParser.href = iURL;
 
-            // Make a data interactive iFrame using the given URL
-            //newDocument = archiver.importURLIntoDocument(iURL);
-
-            //DG.currDocumentController().setDocument(newDocument);
-          //}.bind(this),
-          // add interactive to existing document
-          //,
-          //embedWebView = function () {
-          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'),
-          // null, iURL, 'Web Page', {width: 600, height: 400}); }.bind(this);
-
-      addInteractive();
+      if (urlParser.pathname.match(/.*\.json$/)) {
+        this.openDocumentFromUrl(iURL);
+      } else {
+        addInteractive();
+      }
       return true;
     },
 
