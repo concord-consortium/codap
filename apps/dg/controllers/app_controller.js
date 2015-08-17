@@ -312,14 +312,20 @@ DG.appController = SC.Object.create((function () // closure
       // FIXME How do we determine whether it should get set unshared or not?
     },
 
+    /**
+     * Opens a document from a URL.
+     *
+     * @param {string} iURL The url of a CODAP document.
+     * @return {Deferred|undefined}
+     */
     openDocumentFromUrl: function (iURL) {
       if (iURL) {
         $.ajax(iURL, {
           type: 'GET',
           contentType: 'text/plain'
         }).then(function(data) {
-          var doc = (typeof data === 'string')?data:JSON.stringify(data);
-          this.openJsonDocument(doc);
+          var doc = (typeof data === 'string')? data: JSON.stringify(data);
+          return this.openJsonDocument(doc);
         }.bind(this), function (msg) {
           DG.logWarn(msg);
         });
