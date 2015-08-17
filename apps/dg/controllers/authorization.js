@@ -658,9 +658,6 @@ return {
       openDataInteractive(DG.get('startingDataInteractive'));
     } else if ( !SC.empty( DG.startingDocUrl)) {
       DG.appController.openDocumentFromUrl(DG.startingDocUrl);
-    } else {
-      DG.gameSelectionController.setDefaultGame();
-      DG.mainPage.addGameIfNotPresent();
     }
     if (SC.browser.name === SC.BROWSER.firefox) {
       // BZ506-508 Refer to a Firefox-only bug in which the app initially appears
