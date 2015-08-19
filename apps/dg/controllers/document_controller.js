@@ -1192,7 +1192,12 @@ DG.DocumentController = SC.Object.extend(
         if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
           this.clearChangedObject(context);
           cleanedDocArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
-          shouldSkipPatch = this._skipPatchNextTime.indexOf(context) !== -1;
+
+          // If we are opening from a shared document, the first save of
+          // each context should be a full save.
+          shouldSkipPatch = this._skipPatchNextTime.indexOf(context) !== -1
+            || context._openedFromSharedDocument;
+          delete context._openedFromSharedDocument;
 
           if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(context.get('externalDocumentId'))) {
             differences = jiff.diff(context.savedShadowCopy(), cleanedDocArchive, function(obj) { return obj.guid || JSON.stringify(obj); });

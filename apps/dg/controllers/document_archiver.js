@@ -98,7 +98,9 @@ DG.DocumentArchiver = SC.Object.extend(
         'globalValues',
         'guid',
         'name',
-        '_permissions'
+        '_permissions',
+        '_openedFromSharedDocument' // this is an annotation we may create in
+                                    // CodapCommonStorage
       ];
       var requiredProperties = [
         'name'
