@@ -28,6 +28,7 @@ DG.CODAPCommonStorage = {
 
   _handleResponse: function(iResponse, resolve, reject) {
     var body,
+        responseHeaders = iResponse.headers(),
         docId;
     try {
       if (this._isError(iResponse)) {
@@ -40,9 +41,19 @@ DG.CODAPCommonStorage = {
           reject('error.parseError');
           return;
         }
-        docId = iResponse.headers()['Document-Id'];
+        docId = responseHeaders['Document-Id'];
         if (docId) {
           body.externalDocumentId = ''+docId;
+        }
+        // The document server will set the following header when
+        // it is opening a document from a shared document. The current
+        // behavior (08/2015) is that if a document of the same name exists
+        // in the user's directory, the shared document will be opened, but
+        // the document ID will be changed to the user's document id. We need
+        // to know this to know to skip differential saving the first time
+        // round and do a full save.
+        if (responseHeaders['X-Codap-Will-Overwrite']) {
+          body._openedFromSharedDocument = true;
         }
         resolve(body);
       }
@@ -71,6 +82,7 @@ DG.CODAPCommonStorage = {
   _extractMessage: function(iResponse) {
     var body = iResponse.get('body'),
         status = iResponse.get('status');
+    DG.log("Raw response status: " + status + " body: " + body);
     if (status === 401) {
       return 'error.sessionExpired';
     } else if (status === 403) {
@@ -78,6 +90,8 @@ DG.CODAPCommonStorage = {
     } else if (status === 404) {
       return 'error.notFound';
     } else if (!SC.none(body.errors) && !SC.none(body.errors[0]) && body.errors[0].slice(0, 19) === "Invalid patch JSON ") {
+      return 'error.invalidPatch';
+    } else if (typeof body === 'string' && body.indexOf('Invalid patch JSON' >= 0)) {
       return 'error.invalidPatch';
     } else if (SC.none(body.message) || SC.empty(body.message)) {
       return 'error.general';
