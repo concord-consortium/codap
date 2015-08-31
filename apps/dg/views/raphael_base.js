@@ -155,6 +155,10 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
     If this function returns false, doDraw() and didDraw() are skipped.
    */
   willDraw: function willDraw() {
+    // It can happen that _elementsToClear has gotten nulled out. Protect against that
+    if( !this._elementsToClear)
+      return;
+
     // Clear elements that get regenerated each time
     this._elementsToClear.forEach( function( iElement) {
                                       iElement.remove();
@@ -172,6 +176,10 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
     Derived classes override to perform any end-of drawing tasks.
    */
   didDraw: function didDraw() {
+    // It can happen that _elementsToClear has gotten nulled out. Protect against that
+    if( !this._elementsToClear)
+      return;
+
     // The elements to clear need to be in the background. We do it in reverse order
     // so that things drawn last will remain on top
     var tIndex, tLength = this._elementsToClear.length;
