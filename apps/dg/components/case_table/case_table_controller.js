@@ -526,11 +526,13 @@ DG.CaseTableController = DG.ComponentController.extend(
           tDestCollRecord.get('cases').forEach( function( iDestCase) {
             var tKey = iDestCase.getValue( tDestAttrID),
                 tSourceCase = tSourceDict[tKey];
-            DG.ObjectMap.forEach( tSourceAttrIDDict, function( iSourceAttrID, iSourceAttrName) {
-              var tSourceValue = tSourceCase.getValue( iSourceAttrID),
-                  tDestAttrID = tDestAttrIDDict[ iSourceAttrName];
-              iDestCase.setValue( tDestAttrID, tSourceValue);
-            });
+            if( tSourceCase) {
+              DG.ObjectMap.forEach(tSourceAttrIDDict, function (iSourceAttrID, iSourceAttrName) {
+                var tSourceValue = tSourceCase.getValue(iSourceAttrID),
+                    tDestAttrID = tDestAttrIDDict[iSourceAttrName];
+                iDestCase.setValue(tDestAttrID, tSourceValue);
+              });
+            }
           });
         }
 

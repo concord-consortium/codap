@@ -897,7 +897,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   parentCollection: function() {
     var collectionCount = this.get('collectionCount');
-    return( collectionCount ? this.getCollectionAtIndex( collectionCount - 2) : null);
+    return( collectionCount ? this.getCollectionAtIndex( Math.max( 0, collectionCount - 2)) : null);
   }.property('_collectionClients','_collectionClients.[]'),
   
   /**

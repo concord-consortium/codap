@@ -145,7 +145,7 @@ DG.Case = DG.BaseModel.extend(
 
         // one last chance if we've got a parent
         var tParent = this.get('parent');
-        if( tParent)
+        if( tParent && tParent.getValue)
           return tParent.getValue( iAttrID);
       }
       // if we get here, return value is undefined
