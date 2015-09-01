@@ -20,16 +20,25 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* globals jiff */
-sc_require('libraries/jiff');
 sc_require('libraries/es6-promise-polyfill');
 
 /** @class
-
-  Coordinating controller for the document.
-
-  @extends SC.Object
-*/
+ *
+ * Coordinating controller for the document. This class centralizes access to
+ * operations affecting the document that the user is viewing and interacting
+ * with in CODAP. It provides the means to create new top level objects, such
+ * as data contexts or components. One can destroy or find these objects. It
+ * provides the ability to restore these objects accurately from a serializable
+ * representation of these objects or to create a serializable representation,
+ * but it does not provide the means to persist or restore them to or from
+ * an external location.
+ *
+ * An instance of CODAP will only manage one document at a time, so this object
+ * is effectively a singleton, though not managed as only. Any object can find
+ * the current document by calling DG.currDocumentController.
+ *
+ * @extends SC.Object
+ */
 DG.DocumentController = SC.Object.extend(
  /** @scope DG.DocumentController.prototype */ {
 
@@ -42,13 +51,17 @@ DG.DocumentController = SC.Object.extend(
     /**
      *  The DataContexts which are managed by this controller.
      *  Bound to the document's 'contexts' property.
-     *  @property {Array of DG.DataContextRecord}
+     *  @property {{contextID: DG.DataContextRecord}} A hash map mapping
+     *  contextIDs to DataContext records
      */
     contextRecords: function() {
       return this.getPath('content.contexts');
     }.property(),
 
-      contexts: null,
+    /**
+     * @property {[DG.DataContext]} Indexed sequentially.
+     */
+    contexts: null,
 
     /**
      *  The Components which are managed by this controller.
@@ -59,10 +72,10 @@ DG.DocumentController = SC.Object.extend(
       return this.getPath('content.components');
     }.property(),
 
-      /**
-       * Returns an array of the GameControllers defined in this document.
-       */
-      dataInteractives: function() {
+    /**
+     * Returns an array of the GameControllers defined in this document.
+     */
+    dataInteractives: function() {
         var componentControllers = this.get('componentControllersMap'),
           result = [];
         if (componentControllers) {
@@ -75,6 +88,7 @@ DG.DocumentController = SC.Object.extend(
         }
         return result;
       }.property('componentControllersMap'),
+
     /**
       Map from component ID to the component's controller
      */
@@ -217,10 +231,13 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-      Creates a DG.Document with the specified name.
-      If no name is passed in, uses the default document name.
-      @param    {String}  iName -- [Optional] The name of the newly created document
-      @returns  {DG.Document} --   The newly-created document
+     * Creates a DG.Document with the specified name.
+     * If no name is passed in, uses the default document name.
+     * @param    {String}  iName -- [Optional] The name of the newly created document
+     * @returns  {DG.Document} --   The newly-created document
+     *
+     * TODO: Move to DocumentArchiver. This seems like a suspect path for creating
+     * TODO: a new document.
      */
     createDocument: function( iName) {
       var doc = DG.Document.createDocument({ name: iName || SC.String.loc('DG.Document.defaultDocumentName') });
@@ -231,8 +248,13 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-      Sets the document to be managed by this controller.
-      @param    {DG.Document} iDocument -- The document to be associated with this controller
+     * Sets the document to be managed by this controller.
+     * @param    {DG.Document} iDocument -- The document to be associated with
+     * this controller
+     *
+     * TODO: This method is part of a convoluted and solipsistic process to open
+     * TODO: a new document. Shouldn't a document be created from outside itself?
+     *
      */
     setDocument: function( iDocument) {
 
@@ -670,7 +692,7 @@ DG.DocumentController = SC.Object.extend(
         redoString: 'DG.Redo.caseTable.open',
         execute: function() {
           newViews = [];
-          DG.DataContext.forEachContextInMap(null, function (id, context) {
+          docController.contexts.forEach(function (context) {
             if (!haveCaseTableForContext(context)) {
               newViews.push(this.addCaseTableP(DG.mainPage.get('docView'),
                 null, {dataContext: context}));
@@ -1131,23 +1153,9 @@ DG.DocumentController = SC.Object.extend(
       return DG.globalsController.createGlobalValue( iProperties);
     },
 
-    /**
-      Returns an object which contains the contents of the document suitable for conversion
-      to JSON and sending to the server.
-
-      Signature of `callback`:
-      @param  {Object} docArchive an object representing the document suitable for JSON-conversion
-    */
-    exportDocument: function(callback, fullData) {
-      var archiver = DG.DocumentArchiver.create({});
-      archiver.saveDocument( this.get('content'), callback, fullData);
-    },
-
-    exportDataContexts: function(callback, exportAll) {
-      var archiver = DG.DocumentArchiver.create({});
-      return archiver.saveDataContexts( this.get('content'), callback, exportAll);
-    },
-
+    /*
+     *  todo: move to DocumentArchiver
+     */
     signalSaveInProgress: function() {
       var saveInProgress = $.Deferred();
       saveInProgress.done(function() { this.set('saveInProgress', null); }.bind(this));
@@ -1156,233 +1164,26 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-     * Archive the document into durable form, and save it.
+     * Ensures that that the state of all components, data contexts and
+     * data contexts are current and up-to-date.
      *
-     * @param {String} iDocumentName            The unique Id of the document as
-     *                                        known to the server.
-     * @param {integer} iDocumentPermissions  Encodes document permissions. So far,
-     *                                        0: unshared, 1: shared
+     * Saves the current state of all the current Data Interactives into the
+     * 'savedGameState' property of the current game's context.
+     * Getting state of interactives may be asynchronous, so returns a promise
+     * that is fulfilled with a streamable archive.
+     *
+     * @param {boolean} fullData  Whether to make an archive of the full document
+     *                            or to omit parts savable separately (e.g.
+     *                            data contexts.
+     *
+     * @return {Promise} fulfilled when all data interactives have reported their
+     * states. The promise is fulfilled with a return value of the streamable
+     * document archive.
      */
-    saveDocument: function( iDocumentName, iDocumentPermissions) {
-      var existingSaveInProgress = this.get('saveInProgress'),
-        saveInProgress,
-        exportPromise;
-      if (!SC.none(existingSaveInProgress)) {
-        return;
-      }
-      saveInProgress = this.signalSaveInProgress();
-      this.updateSavedChangeCount();
-      exportPromise = this.exportDataContexts(function(context, docArchive) {
-        // Ensure that _permissions matches the main document
-        var savePromise;
-        var needsSave = false;
-        var cleanedDocArchive;
-        var shouldSkipPatch;
-        var differences;
-        // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
-
-        if( !SC.none( iDocumentPermissions)) {
-          if (docArchive._permissions !== iDocumentPermissions) {
-            needsSave = true;
-          }
-          docArchive._permissions = iDocumentPermissions;
-        }
-
-        // FIXME If we toggle splitting on and off, we'll need to change this test
-        if( DG.assert( !SC.none(docArchive)) && (needsSave || this.objectHasUnsavedChanges(context) || SC.none(context.get('externalDocumentId'))) ) {
-          this.clearChangedObject(context);
-          cleanedDocArchive = JSON.parse(JSON.stringify(docArchive)); // Strips all keys with undefined values
-
-          // If we are opening from a shared document, the first save of
-          // each context should be a full save.
-          shouldSkipPatch = this._skipPatchNextTime.indexOf(context) !== -1
-            || context._openedFromSharedDocument;
-          delete context._openedFromSharedDocument;
-
-          if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(context.get('externalDocumentId'))) {
-            differences = jiff.diff(context.savedShadowCopy(), cleanedDocArchive, function(obj) { return obj.guid || JSON.stringify(obj); });
-            if (differences.length === 0) { return; }
-            savePromise = DG.authorizationController.saveExternalDataContext(context, iDocumentName, differences, this, false, true);
-          } else {
-            savePromise = DG.authorizationController.saveExternalDataContext(context, iDocumentName, docArchive, this);
-          }
-          savePromise.then(function(success) {
-            if (success) {
-              if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
-                context.updateSavedShadowCopy(cleanedDocArchive);
-              }
-              // remove this context from the skip list.
-              if (shouldSkipPatch) {
-                this._skipPatchNextTime.splice(this._skipPatchNextTime.indexOf(context), 1);
-              }
-            } else {
-              DG.dirtyCurrentDocument(context);
-            }
-          }.bind(this));
-        }
-        return savePromise;
-      }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
-      exportPromise.then(function() {
-          // FIXME What should we do if a data context fails to save?
-          this.exportDocument(function(docArchive) {
-            var needsSave = this.objectHasUnsavedChanges(this.get('content'));
-            if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
-              docArchive._permissions = iDocumentPermissions;
-              this.setPath('content._permissions', iDocumentPermissions);
-              needsSave = true;
-            }
-
-            if( DG.assert( !SC.none(docArchive))) {
-              if (needsSave) {
-                DG.authorizationController.saveDocument(iDocumentName, docArchive, this).then(function(success) {
-                  if (!success) {
-                    DG.dirtyCurrentDocument();
-                  }
-                  saveInProgress.resolve();
-                });
-              } else {
-                this.invokeLater(function() { saveInProgress.resolve(); });
-              }
-            }
-            this.clearChangedObject(this.get('content'));
-          }.bind(this));
-        }.bind(this),
-        function (msg) {
-          DG.logWarn('DocumentController.saveDocument: ' + msg);
-        }
-      );
-    },
-
-    receivedSaveDocumentSuccess: function(body, isCopy) {
-      return new Promise(function(resolve, reject) {
-        var newDocId = body.id;
-        if (isCopy) {
-          var url = DG.appController.copyLink(newDocId);
-          if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
-            url = $.param.querystring(url, {runAsGuest: 'true'});
-          }
-          var win = window.open(url, '_blank');
-          if (win) {
-            win.focus();
-          } else {
-            DG.appController.showCopyLink(url);
-          }
-        } else {
-          this.set('externalDocumentId', ''+newDocId);
-          DG.appController.triggerSaveNotification();
-        }
-        resolve(true);
-      }.bind(this));
-    },
-
-    receivedSaveDocumentFailure: function(errorCode, isCopy) {
-      return new Promise(function(resolve, reject) {
-        var messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
-        DG.appController.notifyStorageFailure(messageBase, errorCode, resolve);
-      }.bind(this));
-    },
-
-    receivedSaveExternalDataContextSuccess: function(body, isCopy, contextModel) {
-      return new Promise(function(resolve, reject) {
-        var newDocId = body.id;
-        SC.run(function() {
-          if (isCopy) {
-            contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
-          }
-          contextModel.set('externalDocumentId', ''+newDocId);
-
-          this.invokeLater(function() {
-            resolve(true);
-          });
-        }.bind(this));
-      }.bind(this));
-    },
-
-    receivedSaveExternalDataContextFailure: function(errorCode, isCopy, contextModel) {
-      return new Promise(function(resolve, reject) {
-        if (errorCode === 'error.invalidPatch') {
-          this._skipPatchNextTime.push(contextModel);
-        }
-        DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
-      }.bind(this));
-    },
-
-    /**
-      Archive the document into durable form, and save it.
-
-      @param {String} iDocumentName   The unique Id of the document as known to the server.
-    */
-    copyDocument: function( iDocumentName, iDocumentPermissions) {
-      var deferreds = [],
-        existingSaveInProgress = this.get('saveInProgress'),
-        saveInProgress,
-        exportPromise;
-      if (!SC.none(existingSaveInProgress)) {
-        existingSaveInProgress.done(function() { this.copyDocument(iDocumentName, iDocumentPermissions); }.bind(this));
-        return;
-      }
-      saveInProgress = this.signalSaveInProgress();
-
-      var oldDifferentialSaving = DG.USE_DIFFERENTIAL_SAVING;
-      DG.USE_DIFFERENTIAL_SAVING = false;
-      saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
-
-      exportPromise = this.exportDataContexts(function(context, docArchive) {
-        if( DG.assert( !SC.none(docArchive))) {
-          // Ensure that _permissions matches the main document
-          if( !SC.none( iDocumentPermissions)) {
-            docArchive._permissions = iDocumentPermissions;
-          }
-          deferreds.push(DG.authorizationController.saveExternalDataContext(context, iDocumentName, docArchive, this, true));
-        }
-      }.bind(this), DG.FORCE_SPLIT_DOCUMENT); // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
-      exportPromise.then(function() {
-        $.when.apply($, deferreds).done(function() {
-          // FIXME What do we do when a data context fails to save?
-          this.exportDocument( function( docArchive) {
-            docArchive.name = iDocumentName;
-            if (!SC.none(iDocumentPermissions))
-              docArchive._permissions = iDocumentPermissions;
-
-            if (DG.assert(!SC.none(docArchive))) {
-              DG.authorizationController.saveDocument(iDocumentName, docArchive, this, true).then(function() {
-                // Set the externalDocumentIds back
-                DG.DataContext.forEachContextInMap( this.getPath('content.id'),
-                                              function( iContextID, iContext) {
-                                                var model = iContext.get('model');
-                                                if ( !SC.none(model.get('externalDocumentId'))) {
-                                                  model.set('externalDocumentId', model.get('oldExternalDocumentId'));
-                                                  model.set('oldExternalDocumentId', null);
-                                                }
-                                              });
-                saveInProgress.resolve();
-              }.bind(this));
-            }
-          }.bind(this));
-        }.bind(this));
-      }.bind(this));
-    },
-
-    deleteDocument: function(iDocumentId) {
-      DG.authorizationController.deleteDocument(iDocumentId, this);
-    },
-
-    receivedDeleteDocumentSuccess: function(body) {
-      // We don't need to do anything
-    },
-
-    receivedDeleteDocumentFailure: function(errorCode) {
-      DG.appController.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
-    },
-    /**
-     Saves the current state of the current game into the 'savedGameState'
-     property of the current game's context.
-
-     @param {function} done A callback.
-     */
-    saveCurrentGameState: function(done) {
+    captureCurrentDocumentState: function(fullData) {
       var gameControllers = this.get('dataInteractives'),
-          promises = [];
+          promises = [],
+          returnPromise;
       if (gameControllers) {
         gameControllers.forEach(function (gameController) {
           var gameContext = gameController.get('context');
@@ -1391,46 +1192,43 @@ DG.DocumentController = SC.Object.extend(
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if( gameContext && gameController.saveGameState) {
-                gameController.saveGameState(function(result) {
+              if (gameContext && gameController.saveGameState) {
+                gameController.saveGameState(function (result) {
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
                   } else {
                     DG.logWarn("No channel to Data Interactive: " + gameContext.get('gameName'));
-                    result = {success:false};
+                    result = {success: false};
                   }
                   resolve(result);
                 });
               } else {
                 // This would occur if there is no means of communicating with
                 // a data interactive. We immediately resolve.
-                resolve({success:true});
+                resolve({success: true});
               }
             } catch (ex) {
               DG.logWarn("Exception saving game context(" + gameContext.get('gameName') + "): " + ex);
-              resolve({success:false});
+              resolve({success: false});
             }
           }));
         });
-        if (!SC.empty(done)) {
-          // when all promises in the array of promises complete, then call the callback
-          return Promise.all(promises).then(function (value) {
-              DG.logInfo('saveCurrentGameState complete.');
-              done();
-            },
-            function (reason) {
-              DG.logWarn('saveCurrentGameState failed: ' + reason);
-              done();
-            }
-          );
-        } else {
-          return Promise.all(promises);
-        }
       }
 
-      // For consistency with gamePhone case, make sure that done callback is invoked in a later
-      // turn of the event loop. Also, don't bind it to 'this' (but don't override its this-binding)
-      //this.invokeLater(function() { done(); } );
+      this.contexts.forEach(function (iContext) {
+        iContext.willSaveContext();
+      });
+      // Prepare the component-specific storage for saving
+      DG.ObjectMap.forEach( this.componentControllersMap,
+          function( iComponentID, iController) {
+            iController.willSaveComponent();
+          });
+
+      returnPromise = Promise.all(promises).then(function () {
+        return Promise.resolve(this.get('content').toArchive(fullData));
+      }.bind(this));
+
+      return returnPromise;
     }
   }
 );

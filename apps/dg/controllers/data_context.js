@@ -1306,12 +1306,16 @@ DG.DataContext.registry['DG.DataContext'] = function( iProperties) {
   ignoring the documentID and assuming that all entries in the map
   are from the same (current) document.
   @property {Object}  A map from contextID ==> context.
+ TODO: Deprecate this data structure and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext._contextMap = {};
 
 /**
   Clear the contents of the contextMap.
   @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
+ TODO: Deprecate this method and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext.clearContextMap = function( iDocumentID) {
   DG.DataContext._contextMap = {};
@@ -1321,6 +1325,8 @@ DG.DataContext.clearContextMap = function( iDocumentID) {
   Store the specified context in the contextMap.
   @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
   @param  {DG.DataContext}  iContext -- The context to be stored in the map
+ TODO: Deprecate this method and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext.storeContextInMap = function( iDocumentID, iContext) {
   if( iContext) {
@@ -1334,23 +1340,19 @@ DG.DataContext.storeContextInMap = function( iDocumentID, iContext) {
   Retrieve the specified context from the contextMap.
   @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
   @param  {Number}  iContextIS -- The ID of the context to be retrieved from the map
+ TODO: Deprecate this method and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext.retrieveContextFromMap = function( iDocumentID, iContextID) {
   return DG.DataContext._contextMap[ iContextID];
 };
 
 /**
-  Executes the specified function for each context in the contextMap.
-  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
-  @param  {Function}iFunction -- The function to be applied to each context in the map.
- */
-DG.DataContext.forEachContextInMap = function( iDocumentID, iFunction) {
-  DG.ObjectMap.forEach( DG.DataContext._contextMap, iFunction);
-};
-
-/**
  Returns an array of keys to known data contexts.
  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
+
+ TODO: Deprecate this method and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext.contextIDs = function(iDocumentID) {
   return DG.ObjectMap.keys(DG.DataContext._contextMap);
@@ -1366,6 +1368,9 @@ DG.DataContext.contextIDs = function(iDocumentID) {
   collection should really have access to the context as well.
   @param    {DG.CollectionClient} iCollectionClient -- The collection whose context is to be found
   @returns  {DG.DataContext}      The collection's DG.DataContext or null
+
+ TODO: Deprecate this method and remove references: We should be getting context
+ TODO: information via the DocumentController.
  */
 DG.DataContext.getContextFromCollection = function( iCollectionClient) {
   var collectionRecord = iCollectionClient &&

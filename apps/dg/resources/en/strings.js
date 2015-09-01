@@ -168,6 +168,7 @@ SC.stringsFor('English', {
   'DG.AppController.importData.alert' : "Alert: The specified file is not a data file.",
   'DG.AppController.importData.okTitle' : "Import",
   'DG.AppController.importData.okTooltip' : "Import the specified data",
+    'DG.AppController.exampleList.ExampleListURL' : 'https://codap-resources.concord.org/examples/index.json',
   'DG.AppController.exportDocument.prompt' : "Filename:",
   'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
   'DG.AppController.exportCaseData.okTitle' : "Done",

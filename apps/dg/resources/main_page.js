@@ -351,7 +351,7 @@ DG.mainPage = SC.Page.design((function() {
           break;
         case 'ctrl_s':
           if( DG.authorizationController.getPath('currLogin.isSaveEnabled'))
-            DG.appController.saveDocument();
+            DG.appController.saveCODAPDocument();
           break;
         case 'alt_ctrl_shift_g':
           DG.gameSelectionController.menuPane.popup();

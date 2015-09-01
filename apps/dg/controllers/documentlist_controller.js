@@ -36,8 +36,19 @@ DG.DocumentListController = SC.ArrayController.extend(
     sc_super();
     this.set('content', []);
 
-    DG.authorizationController.documentList( this);
+    this.documentList(this );
   },
+
+    documentList: function(iReceiver) {
+      DG.authorizationController.get('storageInterface').list().then(
+        function(body) {
+          iReceiver.receivedDocumentListSuccess.call(iReceiver, body);
+        },
+        function(errorCode) {
+          iReceiver.receivedDocumentListFailure.call(iReceiver, errorCode);
+        }
+      );
+    },
 
   receivedDocumentListSuccess: function( serverText) {
     this.set('content', []);
