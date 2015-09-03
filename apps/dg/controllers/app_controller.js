@@ -538,7 +538,7 @@ DG.appController = SC.Object.create((function () // closure
         && iOriginalName
         && iNewName !== iOriginalName
         && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
-        && !SC.none(DG.currDocumentController().get('externalId'))
+        && !SC.none(DG.currDocumentController().get('externalDocumentId'))
       ) {
         this.set('_originalDocumentName', iOriginalName);
         this.doRenameDocument(iOriginalName, iNewName, this);
