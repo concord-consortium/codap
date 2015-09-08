@@ -388,7 +388,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         this.appendChild(childTableView);
         childTableViews.push(childTableView);
 
-        if (divider) setUpDividerView(childTableViews[ix-1].get('gridAdapter'),
+        if (divider) setUpDividerView(childTableViews[ix-1],
             childTableView, divider);
       } else if (childTableView) {
         this.removeChildTableView(childTableView);
