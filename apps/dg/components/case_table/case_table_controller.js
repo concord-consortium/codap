@@ -173,29 +173,19 @@ DG.CaseTableController = DG.ComponentController.extend(
       }.observes('dataContext'),
 
       getCaseCountMessage: function () {
-        var dataContext = this.get('dataContext'),
-          parentCollection, childCollection, parentCount, childCount,
-          tStatusMessage = "";
-        if (dataContext) {
-          parentCollection = this.getPath('dataContext.parentCollection');
-          childCollection = this.getPath('dataContext.childCollection');
-          parentCount = parentCollection? parentCollection.getCaseCount(): 0;
-          childCount = childCollection? childCollection.getCaseCount(): 0;
-          if (parentCollection) {
-            tStatusMessage = dataContext.getCaseCountString(parentCollection, parentCount);
-            if (childCollection) {
-              tStatusMessage += '/';
-            }
-          }
-          if (childCollection) {
-            tStatusMessage += dataContext.getCaseCountString(childCollection,
-              childCount);
-          }
-          if (SC.empty(tStatusMessage)) {
-            DG.logWarn('No status message for case table: no collections');
-          }
-        } else {
-          DG.logWarn('No status message for case table: no context');
+        var dataContext = this.get('dataContext');
+        var collectionRecords = dataContext.get('collections');
+        var messages = [];
+        var tStatusMessage = "";
+
+        collectionRecords.forEach(function (collectionRecord) {
+          var collectionClient = dataContext.getCollectionByName(collectionRecord.get('name'));
+          var message = dataContext.getCaseCountString(collectionClient, collectionClient.getCaseCount() || 0);
+          messages.push(message);
+        });
+        tStatusMessage = messages.join('/');
+        if (SC.empty(tStatusMessage)) {
+          DG.logWarn('No status message for case table: no collections');
         }
 
         //DG.logInfo("UpdateStatus: "  + tStatusMessage);
