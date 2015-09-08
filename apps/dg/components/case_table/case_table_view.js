@@ -129,7 +129,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   gridWidthChange: function() {
     return this._gridWidth - this._prevGridWidth;
   }.property(),
-  
+
+    gridWidthDidChange: function() {
+      this.get('parentView').gridWidthDidChange(this);
+    }.observes('gridWidth'),
+
+    sizeDidChange: function() {
+      this.get('parentView').childTableLayoutDidChange(this);
+    }.observes('size'),
   /**
     The number of rows in the table. This property is updated as rows are added/removed.
     Clients may observe or bind to it to be notified when the rowCount changes.
