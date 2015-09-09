@@ -61,7 +61,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
   /**
     Child views currently limited to two subtables, but should be extensible down the road.
    */
-  childViews: [ /*'parentTableView', */'slopView' ],
+  childViews: [ 'slopView' ],
   
   /**
     The left table showing the parent cases.
@@ -227,7 +227,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       if( tComponentWidth)
         tComponentView.adjust('width', tComponentWidth + 1);
     }
-  }/*.observes('.parentTableView.gridView')*/,
+  },
 
   /**
     Observer function called when the overall gridWidth of the parent table changes.
@@ -256,7 +256,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         this.invokeOnce('_scsv_tile');
       }
     }
-  }/*.observes('.childViews*[].gridWidth')*/,
+  },
   
   childTableLayoutDidChange: function( iNotifier) {
     var caseTableViews = this.get('childTableViews');
@@ -271,16 +271,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         view.displayDidChange();
       });
     }.bind(this));
-    //var parentTable = this.get('parentTableView'),
-    //    dividerView = this.get('relationDividerView'),
-    //    childTable = this.get('childTableView');
-    //// Force a repaint when layout changes. Not clear why invokeLater() is required,
-    //// but other options (e.g. invokeOnce(), invokeLast()) don't generate the necessary
-    //// updates at least on WebKit browsers.
-    //if( parentTable) this.invokeLater( function() { parentTable.displayDidChange(); });
-    //if( dividerView) this.invokeLater( function() { dividerView.displayDidChange(); });
-    //if( childTable) this.invokeLater( function() { childTable.displayDidChange(); });
-  }/*.observes('.parentTableView.size')*/,
+  },
   
   /**
     Respond to a resize of a table column. There are special cases here that
@@ -328,7 +319,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     this.get('dividerViews').forEach(function (view) {
       view.displayDidChange();
     });
-  }/*.observes('.parentTableView.rowCount')*/,
+  },
   
   /**
     Observer function called when the parent table is scrolled.
@@ -352,8 +343,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         view.displayDidChange();
       });
     }.bind( this));
-  }/*.observes('.parentTableView.expandCollapseCount')*/,
-  
+  },
   /**
     Attaches the specified set of DG.CaseTableAdapters to the individual child table views.
     @param  {[DG.CaseTableAdapter]} iAdapters
@@ -477,6 +467,8 @@ DG.HierTableView = SC.SplitView.extend( (function() {
    */
   splitViewResizeChildrenToFit: function(splitView, contentSize) {
     var frameSize = this.get('_frameSize'),
+        // We reverse the order of the child tables to start from the right
+        // child later...
         caseTableViews = this.get('childTableViews').reverse(),
         viewParams = caseTableViews.map(function (view) {
           return {
