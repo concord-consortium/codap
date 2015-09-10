@@ -23,10 +23,12 @@ sc_require('models/model_store');
 sc_require('models/base_model');
 
 /** @class
-
-  Represents a user document.
-
- @extends SC.BaseModel
+ * Represents a data context.
+ *
+ * A data context is bound to a single source of data, e.g. a data interactive.
+ * It manages a Data Set.
+ *
+ * @extends SC.BaseModel
  */
 DG.DataContextRecord = DG.BaseModel.extend(
   /** @scope DG.DataContextRecord.prototype */ {
@@ -40,7 +42,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
     document: null,
 
     /**
-     * A relational link to the collections in this document.
+     * A relational link to the collections in this context.
      * @property {[DG.Collection]}
      */
     collections: null,
@@ -56,6 +58,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
     }.property(),
 
       /**
+       * The base data set for the collections in this context.
+       * @property {DG.DataSet}
+       */
+      dataSet: null,
+
+    /**
      * Per-component storage, in a component specific format.
      * @property {JSON}
      */
@@ -65,6 +73,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     init: function () {
       this.collections = {};
+      this.dataSet = DG.DataSet.create({dataContextRecord: this});
       sc_super();
     },
 

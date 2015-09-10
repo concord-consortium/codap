@@ -92,7 +92,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
     /**
      * Map of parent case IDs to number of cases with that parent
-     * @property {Object} of {String}:{Number}
+     * @property {Object}
      */
     caseCounts: null,
 
@@ -231,6 +231,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       iProperties.collection = this;
       attr = DG.Attribute.createAttribute(iProperties);
       this.attrs.pushObject(attr);
+      this.context.dataSet.addAttributes([attr]);
       return attr;
     },
 
@@ -436,14 +437,14 @@ DG.Collection.createCollection = function( iProperties) {
   if (iProperties.attrs) {
     iProperties.attrs.forEach(function (iAttr) {
       iAttr.collection = tCollection;
-      tCollection.attrs.pushObject(DG.Attribute.createAttribute(iAttr));
+      tCollection.createAttribute(iAttr);
     });
   }
 
   if (iProperties.cases) {
     iProperties.cases.forEach(function (iCase) {
       iCase.collection = tCollection;
-      tCollection.cases.pushObject(DG.Case.createCase(iCase));
+      tCollection.createCase(iCase);
     });
   }
 

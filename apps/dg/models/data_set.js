@@ -68,24 +68,48 @@ DG.DataSet = SC.Object.extend((function() // closure
   var attributes = [];
 
   return {
+    /*
+     * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
+     */
+    dataContextRecord: null,
+
+
     /**
-     * Adds attributes. Ideally this is an initialization step, but may be done
+     * Adds attributes. Ideally this is an initialization step, but may be called
      * at any time.
-     * @param {[DG.Attribute]|DG.Attribute} attributes An array or a single attribute.
+     * @param {[DG.Attribute]|DG.Attribute} newAttributes An array or a single attribute.
      */
     addAttributes: function (newAttributes) {
       var attrs = Array.isArray(newAttributes)? newAttributes : [newAttributes];
-      attributes = attributes.concat(attrs);
+      attrs.forEach(function (attr) {
+        if (attr.constructor === DG.Attribute) {
+          attributes.push(attr);
+        } else {
+          DG.logWarn('Attempt to add non-attribute to Data Set for Context: ' +
+              this.dataContextRecord.id);
+        }
+      });
     },
 
     /**
-     * Adds a dataItem.
-     * @param {DG.DataItem} dataItem  An array of values indexed by attribute ids.
-     * @return {number} item index.
+     * Adds a dataItem provided as an array of values or as a DG.DataItem.
+     *
+     * @param {DG.DataItem|[*]} dataItem  An array of values indexed by attribute ids.
+     * @return {number|null} item index or null.
      */
     addDataItem: function (dataItem) {
-      var ix = dataItems.push(dataItem);
-      dataItem.itemIndex = ix;
+      var di;
+      var ix;
+      if (dataItem.constructor === DG.DataItem) {
+        di = dataItem;
+      } if (Array.isArray(dataItem)) {
+        di = DG.DataItem.create({data:dataItem});
+      }
+      if (di) {
+        ix = di.push(dataItem) - 1; // push returns new array length.
+                                    // We want the index of the last element
+        di.itemIndex = ix;
+      }
       return  ix;
     },
 
@@ -163,6 +187,8 @@ DG.DataSet = SC.Object.extend((function() // closure
         }
       }
     }
+
+
 
 
   };
