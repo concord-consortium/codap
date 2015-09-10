@@ -68,13 +68,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     cases: null,
 
     /**
-     * Array of attribute records returned from a find of the attrsQuery.
-     * Assigned in the init() function with a call to DG.store.find().
-     * @property {[DG.Attribute]}
-     */
-    attrsRecords: null,
-
-    /**
      * Array of case records returned from a find of the casesQuery.
      * Assigned in the init() function with a call to DG.store.find().
      * @property {[DG.Case]}
@@ -163,7 +156,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       this.attrs = [];
       this.cases = [];
       this.children = [];
-      this.set('attrsRecords', this.attrs);
       this.set('casesRecords', this.cases);
       this.updateCaseIDToIndexMap();
     },
@@ -238,7 +230,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       // Relate it to its parent collection
       iProperties.collection = this;
       attr = DG.Attribute.createAttribute(iProperties);
-      this.attrsRecords.pushObject(attr);
+      this.attrs.pushObject(attr);
       return attr;
     },
 
@@ -331,7 +323,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @returns {[Number]}
      */
     getAttributeIDs: function () {
-      return this.attrsRecords.getEach('id');
+      return this.attrs.getEach('id');
     },
 
     /**
@@ -339,7 +331,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @returns {[String]}
      */
     getAttributeNames: function () {
-      return this.attrsRecords.getEach('name');
+      return this.attrs.getEach('name');
     },
 
     /**
