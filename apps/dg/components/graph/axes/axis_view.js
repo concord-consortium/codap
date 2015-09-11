@@ -33,6 +33,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
       var LabelNode = SC.Object.extend(
           {
+            classNames: 'axis-view'.w(),
             paper: null,
             text: null,
             description: null,
@@ -356,28 +357,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           this.set('dragData', iDragObject.data);
           return SC.DRAG_LINK;
         },
-
-        /**
-         @property { Number }  Takes into account any borders the parent views may have
-         [SCBUG]
-         */
-        drawWidth: function () {
-          var tWidth = this.get('frame').width;
-          if (this.get('orientation') === 'horizontal')
-            tWidth -= 2 * DG.ViewUtilities.kBorderWidth;
-          return tWidth;
-        }.property('frame'),
-
-        /**
-         @property { Number }  Takes into account any borders the parent views may have
-         [SCBUG]
-         */
-        drawHeight: function () {
-          var tHeight = this.get('frame').height;
-          if (this.get('isVertical'))
-            tHeight -= 2 * DG.ViewUtilities.kBorderWidth;
-          return tHeight;
-        }.property('frame'),
 
         numberOfCells: function () {
           return this.getPath('model.numberOfCells');

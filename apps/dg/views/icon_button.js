@@ -31,6 +31,7 @@ sc_require('views/image_view');
 DG.IconButton = SC.View.extend(
 /** @scope DG.IconButton.prototype */
   (function() {
+    var kTopOffset = 5;
     return {
       // if the property 'disabled' is set a class of the same name is set on the
       // button
@@ -38,7 +39,8 @@ DG.IconButton = SC.View.extend(
       iconName: null,
       depressedIconName: null,
       title: null,
-      iconExtent: { width: 32, height: 32 },
+      iconExtent: { width: 29, height: 20 },
+      showBlip: false,  // If true, will show indicator that click will bring up palette
       childViews: 'iconView labelView'.w(),
         iconView: DG.ImageView.design({
           classNames: 'icon-button',
@@ -46,7 +48,7 @@ DG.IconButton = SC.View.extend(
           altTextBinding: '.parentView.title',
           localizeBinding: '.parentView.localize',
           value: function() {
-            if( this.getPath( 'parentView.isMouseOver') && 
+            if( this.getPath( 'parentView.isMouseOver') &&
                 this.getPath( 'parentView.isMouseDown'))
               return this.getPath('parentView.depressedIconName');
             else
@@ -56,7 +58,6 @@ DG.IconButton = SC.View.extend(
         }),
         labelView: SC.LabelView.design({
           classNames: ['icon-label'],
-          layout: { bottom: 0, height: 15 },
           textAlign: SC.ALIGN_CENTER,
           valueBinding: '.parentView.title',
           localizeBinding: '.parentView.localize'
@@ -64,11 +65,37 @@ DG.IconButton = SC.View.extend(
       
       init: function() {
         sc_super();
+        var tTitleIsEmpty = SC.empty( this.get('title')),
+            tLabelHeight = tTitleIsEmpty ? 0 : 15;
         this.iconView.set('layout',
-          { top: 0, centerX: 0, height: this.iconExtent.width, width: this.iconExtent.height });
-        this.labelView.set('isVisible', !SC.empty( this.get('title')));
+          { top: kTopOffset, centerX: 0, height: this.iconExtent.height, width: this.iconExtent.width });
+        this.labelView.adjust('top', this.iconExtent.height + kTopOffset);
+        this.labelView.adjust('height', tLabelHeight);
+        this.labelView.set('isVisible', !tTitleIsEmpty);
+        //this.adjust('height', this.iconExtent.height + kTopOffset + tLabelHeight);
+
+        if( this.get('showBlip')) {
+          this.iconView.set('layout',
+              { top: 0, right: 0, height: this.iconExtent.height, width: this.iconExtent.width })
+          this.adjust('width', this.iconExtent.width + 3);
+          this.adjust('height', this.iconExtent.height + 3);
+          this.appendChild(DG.ImageView.create({
+            classNames: 'icon-button-blip'.w(),
+            layout: { left: 0, bottom: 0, width: 3, height: 3 }
+          }));
+        }
+
         // Preload depressed icon image
         SC.imageQueue.loadImage( this.depressedIconName);
+      },
+
+      /**
+       * When part of a FlowedLayout, our height can get messed with, and this can cause a popup to
+       * displayed in an inconvenient place.
+       */
+      adjustHeight: function() {
+        this.adjust('height', this.getPath('iconView.layout').height +
+            this.getPath('labelView.layout').height + kTopOffset);
       },
       
       isEnabled: true,
@@ -123,8 +150,13 @@ DG.IconButton = SC.View.extend(
         var action = this.get('action');
         var target = this.get('target') || null;
         var pane   = this.get('pane');
-        var responder = pane ? pane.get('rootResponder') : null ;
-        if (responder) responder.sendAction(action, target, this, pane);
+        if( action instanceof Function) {
+          action.call( target)
+        }
+        else {
+          var responder = pane ? pane.get('rootResponder') : null;
+          if (responder) responder.sendAction(action, target, this, pane);
+        }
       },
       touchStart: function( iTouch) {
         this.beginPropertyChanges();

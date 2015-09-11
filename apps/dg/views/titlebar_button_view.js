@@ -22,59 +22,38 @@
 
 /** @class
 
-  DG.TitleBarButtonView shows a close button for a component view.
+    DG.TitleBarButtonView is a base class for the close and minimize buttons in a component view's title bar.
 
-  @extends SC.ImageView
-*/
-DG.TitleBarButtonView = SC.ImageView.extend(
-/** @scope DG.TitleBarButtonView.prototype */ 
-  (function() {
-    var tClose = static_url('images/closeicon.png'),
-        tClose_cross = static_url('images/closeicon_cross.png'),
-        tClose_cross_dark = static_url('images/closeicon_cross_dark.png');
-
-    // We only need to preload once, so do it here.
-    SC.imageQueue.loadImage( tClose_cross);
-    SC.imageQueue.loadImage( tClose_cross_dark);
+ @extends SC.View
+ */
+DG.TitleBarButtonView = SC.View.extend(
+    /** @scope DG.TitleBarButtonView.prototype */
+    (function () {
 
     return {
-        value: function() {
-          if( this.get( 'isMouseOver')) {
-            if( this.get( 'isActive'))
-              return tClose_cross_dark;
-            else
-              return tClose_cross;
-          }
-          else if( this.get( 'isMouseDown'))
-            return tClose_cross;
-          else
-            return tClose;
-        }.property( 'isMouseDown', 'isActive', 'isMouseOver').cacheable(),
-        preloadIcons: function() {
-        },
         isMouseDown: NO,
         isMouseOver: NO,
         isActive: NO,
-        mouseMoved: function( evt) {
-          this.mouseOver( evt);
+        mouseMoved: function (evt) {
+          this.mouseOver(evt);
           return YES;
         },
-        mouseOver: function(evt) {
-          if( this.get( 'isMouseDown')) {
-            this.set( 'isActive', YES);
+        mouseOver: function (evt) {
+          if (this.get('isMouseDown')) {
+            this.set('isActive', YES);
           }
-          this.set( 'isMouseOver', YES);
+          this.set('isMouseOver', YES);
           return YES;
         },
-        mouseExited: function(evt) {
-          this.set( 'isActive', NO);
-          this.set( 'isMouseOver', NO);
+        mouseExited: function (evt) {
+          this.set('isActive', NO);
+          this.set('isMouseOver', NO);
           return YES;
         },
-        mouseDown: function(evt) {
-          if( !this.get( 'isMouseDown')) {
-            this.set( 'isMouseDown', YES);
-            this.set( 'isActive', YES);
+        mouseDown: function (evt) {
+          if (!this.get('isMouseDown')) {
+            this.set('isMouseDown', YES);
+            this.set('isActive', YES);
           }
           return YES; // so we get other events
         },
@@ -83,7 +62,7 @@ DG.TitleBarButtonView = SC.ImageView.extend(
             this.set( 'isActive', NO);
             this.set( 'isMouseOver', NO);
             this.set( 'isMouseDown', NO);
-            this.closeIt();
+            this.doIt();
           }
           else {
             this.set( 'isMouseDown', NO);
@@ -95,9 +74,29 @@ DG.TitleBarButtonView = SC.ImageView.extend(
           return YES;
         },
         touchEnd: function( iTouch) {
-          this.closeIt();
+          this.doIt();
         },
-        closeIt: function() {
+        isVisible: SC.platform.touch,  // Always show minimize on touch devices
+        doIt: null
+    };
+  }()) // function closure
+);
+/** @class
+
+    DG.TitleBarCloseButton is a base class for the close and minimize buttons in a component view's title bar.
+
+ @extends DG.TitleBarButtonView
+ */
+DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
+    /** @scope DG.TitleBarButtonView.prototype */
+    (function () {
+      SC.imageQueue.loadImage(static_url('images/icon-ex.svg'));
+      SC.imageQueue.loadImage(static_url('images/icon-ex-hover.svg'));
+      SC.imageQueue.loadImage(static_url('images/icon-ex-active.svg'));
+
+    return {
+        classNames: 'close-icon'.w(),
+        doIt: function() {
           var tComponent, tController,
               tComponentView = this.parentView.viewToDrag(),
               tState;
@@ -136,6 +135,42 @@ DG.TitleBarButtonView = SC.ImageView.extend(
               }
             }
           }));
+        }
+    };
+  }()) // function closure
+);
+/** @class
+
+    DG.TitleBarMinimizeButton is a base class for the close and minimize buttons in a component view's title bar.
+
+ @extends DG.TitleBarButtonView
+ */
+DG.TitleBarMinimizeButton = DG.TitleBarButtonView.extend(
+    /** @scope DG.TitleBarButtonView.prototype */
+    (function () {
+      SC.imageQueue.loadImage(static_url('images/icon-minimize.svg'));
+      SC.imageQueue.loadImage(static_url('images/icon-minimize-hover.svg'));
+      SC.imageQueue.loadImage(static_url('images/icon-minimize-active.svg'));
+
+    return {
+        classNames: 'min-icon'.w(),
+        doIt: function() {
+          var tComponentView = this.parentView.viewToDrag();
+/*
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'component.minimize',
+            undoString: 'DG.Undo.component.minimize',
+            redoString: 'DG.Redo.component.minimize',
+            execute: function() {
+*/
+              tComponentView.toggleMinimization( tComponentView);
+/*
+            },
+            undo: function() {
+              this.execute();
+            }
+          }));
+*/
         }
     };
   }()) // function closure

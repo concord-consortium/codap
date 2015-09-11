@@ -29,7 +29,7 @@ sc_require('controllers/component_controller');
   @extends DG.ComponentController
 */
 DG.CaseTableController = DG.ComponentController.extend(
-/** @scope DG.CaseTableController.prototype */ 
+/** @scope DG.CaseTableController.prototype */
   (function() {
     return {
 
@@ -50,19 +50,19 @@ DG.CaseTableController = DG.ComponentController.extend(
         @property   {DG.DataContext} or derived class
        */
       dataContext: null,
-      
+
       /**
         @private
         Used internally to track changes to the data context.
        */
       _prevDataContext: null,
-      
+
       /**
         The set of DG.CaseTableAdapters for the subtables in parent-->child order.
         @property {Array of DG.CaseTableAdapter}
        */
       caseTableAdapters: null,
-      
+
       /**
         The content view for this controller, i.e. the DG.HierTableView.
         @property {DG.HierTableView}
@@ -70,7 +70,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       contentView: null,
 
       newAttributeDialog: null,
-      
+
       /**
         Initialization function.
        */
@@ -84,7 +84,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           this.view.set('status', this.getCaseCountMessage());
         }.bind(this));
       },
-      
+
       /**
         Destruction function.
        */
@@ -95,7 +95,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.caseTableAdapters = null;
         sc_super();
       },
-      
+
       /**
         Builds an appropriate DG.CaseTableAdapter for each collection.
        */
@@ -104,9 +104,9 @@ DG.CaseTableController = DG.ComponentController.extend(
             collectionRecords = this.getPath('dataContext.collections') || [],
             prevAdapters = this.caseTableAdapters,
             newAdapters = [];
-        
+
         this.caseTableAdapters = newAdapters;
-        
+
         // Utility function for identifying existing adapters for the specified collection
         function findAdapterForCollection( iCollectionID) {
           var i, count;
@@ -119,7 +119,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           return null;
         }
-        
+
         // Utility function for finding or creating (if necessary) an appropriate
         // adapter for the specified collection.
         function guaranteeAdapterForCollectionRecord( iCollectionRecord) {
@@ -136,18 +136,18 @@ DG.CaseTableController = DG.ComponentController.extend(
           // add the new/found adapter to the adapter array
           newAdapters.push( adapter);
         }
-        
+
         collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
       },
-      
+
       /**
         Configure the table for the new data context.
        */
       dataContextDidChange: function() {
         var dataContext = this.get('dataContext');
-        
+
         this.updateTableAdapters();
-        
+
         var contentView = this.getPath('view.contentView');
         if( contentView) contentView.setCaseTableAdapters( this.get('caseTableAdapters'));
 
@@ -199,14 +199,14 @@ DG.CaseTableController = DG.ComponentController.extend(
           this.addLink( storage, 'context', dataContext);
         return storage;
       },
-      
+
       restoreComponentStorage: function( iStorage, iDocumentID) {
         var contextID = this.getLinkID( iStorage, 'context'),
             dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
         if( dataContext)
           this.set('dataContext', dataContext);
       },
-      
+
       /**
         Process commands such as those dispatched by the SlickGrid column header menus.
         @param  {Object}  iArgs
@@ -228,7 +228,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           break;
         }
       },
-      
+
       /**
         Observer function called when the data context notifies that it has changed.
        */
@@ -236,7 +236,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var changes = this.getPath('dataContext.newChanges'),
             // most changes are sufficient to require aggregate invalidation
             invalidateAggregates = true;
-        
+
         /**
           Process each change that has occurred since the last notification.
          */
@@ -278,7 +278,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             DG.logWarn('Unhandled operation: ' + iChange.operation);
           }
         }.bind( this);
-        
+
         // Process all changes that have occurred since the last notification.
         if( changes) {
           changes.forEach( function( iChange) {
@@ -313,7 +313,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( hierTableView)
           hierTableView.updateSelectedRows();
       },
-      
+
       /**
         Called when the data context notifies that case values have changed.
         @param  {Object}  An object describing the nature of the change
@@ -326,7 +326,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                                                 });
         }
       },
-      
+
       /**
         Called when the data context notifies that attribute properties have changed.
         @param  {Object}  An object describing the nature of the change
@@ -336,7 +336,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             adapters = this.get('caseTableAdapters'),
             updatedAdapters = [],
             attributes = iChange && iChange.result && iChange.result.attrs;
-        
+
         function processAdapter( iAdapter) {
           if( attributes) {
             attributes.forEach( function( iAttribute) {
@@ -345,7 +345,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                                 });
           }
         }
-        
+
         if( adapters) {
           adapters.forEach( processAdapter);
           if( hierTableView) {
@@ -359,7 +359,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
         }
       },
-      
+
       /**
         Called when the array observer indicates that the number of cases has changed.
        */
@@ -376,7 +376,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
         componentView.set('status', this.getCaseCountMessage());
       },
-      
+
       /**
         Called when the array observer indicates that the number of attributes has changed.
        */
@@ -449,24 +449,24 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         return tItems;
       }.property(),
-      
+
       modelDidChange: function() {
       }.observes('model'),
-      
+
       viewDidChange: function() {
         var tComponentView = this.get('view'),
             tContentView = tComponentView.get('contentView');
         this.set('contentView', tContentView);
-        
+
         if( !this.getPath('caseTableAdapters.length'))
           this.updateTableAdapters();
-        
+
         if( tContentView) {
           tContentView.bind('dataContext', this, 'dataContext');
-          
+
           tContentView.setCaseTableAdapters( this.get('caseTableAdapters') || []);
         }
-        
+
         var gearView = this.getPath('view.containerView.titlebar.gearView');
         if( gearView)
           gearView.set('contentView', tComponentView);
@@ -608,7 +608,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tDialog;
         if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
           return;
-        
+
         function doRenameAttribute( iAttrID, iAttrName) {
           var change = {
                           operation: 'updateAttributes',
@@ -640,7 +640,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             });
           }
         }
-        
+
         tDialog = DG.CreateSingleTextDialog( {
                         prompt: 'DG.TableController.renameAttributePrompt',
                         textValue: tAttrName,
@@ -659,7 +659,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
             tCollectionRecord = tAttrRef && tAttrRef.collection,
             tAttrName = tAttrRef && tAttrRef.attribute.get('name');
-      
+
         function doDeleteAttribute() {
           var change = {
                           operation: 'deleteAttributes',
@@ -668,7 +668,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                         };
           tDataContext.applyChange( change);
         }
-      
+
         DG.AlertPane.warn({
           message: 'DG.TableController.deleteAttribute.confirmMessage'.loc( tAttrName),
           description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
@@ -699,7 +699,116 @@ DG.CaseTableController = DG.ComponentController.extend(
         // for now we use the newAttribute() method which will replace one attribute formula with another
         // if the new attribute has the same name as the old.
         this.newAttribute({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
+      },
+
+      showDeletePopup: function() {
+        var tDataContext = this.get('dataContext'),
+            //tCases = tModel.get('cases'),
+            tSelection = tDataContext && tDataContext.getSelectedCases(),
+            tDeleteIsEnabled = tSelection && tSelection.get('length') > 0,
+            //tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
+            tItems = [
+              {
+                title: 'DG.Inspector.selection.selectAll',
+                localize: true,
+                target: this,
+                action: 'selectAll'
+              },
+              {
+                title: 'DG.Inspector.selection.deleteSelectedCases',
+                localize: true,
+                target: this,
+                action: 'deleteSelectedCases',
+                isEnabled: tDeleteIsEnabled
+              }/*,
+              {
+                title: 'DG.Inspector.selection.deleteUnselectedCases',
+                localize: true,
+                target: this,
+                action: 'deleteUnselectedCases',
+                isEnabled: tDeleteUnselectedIsEnabled
+              }*/
+            ],
+            tMenu = SC.MenuPane.create({
+              classNames: 'delete-popup'.w(),
+              layout: {width: 200, height: 150},
+              items: tItems
+            });
+        tMenu.popup(this.get('inspectorButtons')[0]);
+      },
+
+      showAttributesPopup: function() {
+        var tDataContext = this.get('dataContext'),
+            tChildCollection = tDataContext && tDataContext.get('childCollection'),
+            tChildCollectionName = tChildCollection && tChildCollection.get('name'),
+            tParentCollection = tDataContext && tDataContext.get('parentCollection'),
+            tParentCollectionName = tParentCollection && tParentCollection.get('name'),
+            tNewAttrMenuItemStringKey = 'DG.Inspector.newAttribute',
+            tItems = [];
+        if (!SC.empty(tParentCollectionName)) {
+          tItems.push({
+            title: tNewAttrMenuItemStringKey.loc(tParentCollectionName),
+            target: this,
+            action: 'newParentAttribute'
+          });
+        }
+        if( !SC.empty( tChildCollectionName)) {
+          tItems.push({
+            title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
+            target: this,
+            action: 'newChildAttribute'
+          });
+        }
+        tItems.push({
+          title: 'DG.Inspector.exportCaseData', // "Export Case Data..."
+          localize: true,
+          target: this,
+          action: 'exportCaseData'
+        });
+
+        SC.MenuPane.create({
+          classNames: 'attributes-popup'.w(),
+          layout: {width: 200, height: 150},
+          items: tItems
+        }).popup(this.get('inspectorButtons')[1]);
+      },
+
+      /**
+       *
+       * @returns {Array}
+       */
+      createInspectorButtons: function() {
+        var tButtons = sc_super();
+        tButtons.push(DG.IconButton.create({
+              layout: {width: 32},
+              classNames: 'table-trash'.w(),
+              iconName: static_url('images/icon-trash.svg'),
+              depressedIconName: static_url('images/icon-trash.svg'),
+              showBlip: true,
+              target: this,
+              action: 'showDeletePopup',
+              toolTip: 'DG.Inspector.delete.toolTip',
+              localize: true,
+              iconExtent: {width: 32, height: 32}
+            })
+        );
+        tButtons.push(DG.IconButton.create({
+              layout: {width: 32},
+              classNames: 'table-attributes'.w(),
+              iconName: static_url('images/icon-values.svg'),
+              depressedIconName: static_url('images/icon-values.svg'),
+              showBlip: true,
+              target: this,
+              action: 'showAttributesPopup',
+              toolTip: 'DG.Inspector.attributes.toolTip',
+              localize: true,
+              iconExtent: {width: 32, height: 32}
+            })
+        );
+        return tButtons;
       }
+
+
 
     };
   }()) // function closure

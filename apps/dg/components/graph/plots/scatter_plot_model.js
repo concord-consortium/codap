@@ -263,40 +263,51 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     this.doDilation( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY], iFixedPoint, iFactor);
   },
 
-  /**
-    Note that this is not a property because caller needs to assign "this".
-    @return {Array of menu items}
-  */
-  getGearMenuItems: function() {
-    var this_ = this,
-        tLineIsVisible = this.get( 'isMovableLineVisible'),
-        tFunctionIsVisible = this.isAdornmentVisible('plottedFunction'),
-        tMovableLineItem = tLineIsVisible ? "Hide Movable Line" : "Show Movable Line",
-        tConnectingLineItem = (this.isAdornmentVisible('connectingLine') ?
-            'DG.DataDisplayModel.HideConnectingLine' :
-            'DG.DataDisplayModel.ShowConnectingLine').loc(),
-        tInterceptLockedItem = ( this.get( 'isInterceptLocked') ?
-            'DG.ScatterPlotModel.UnlockIntercept' :
-            'DG.ScatterPlotModel.LockIntercept').loc(),
-        tPlotFunctionItem = tFunctionIsVisible ? "Hide Plotted Function" : "Plot Function",
-        tShowSquaresItem = this.get( 'areSquaresVisible') ? "Hide Squares" : "Show Squares"
-      ;
-    return [
-        { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
-            target: this_, itemAction: this_.rescaleAxesFromData,
-            args: [ true /* allowAxisRescale */, true /* Animate action */,
-                    true /* log it */, true /* user action */]},
-        { title: tConnectingLineItem, target: this_, itemAction: this.toggleConnectingLine },
-        { title: tMovableLineItem, target: this_, itemAction: this.toggleMovableLine },
-        { title: tInterceptLockedItem, target: this_, itemAction: this.toggleInterceptLocked,
-            isEnabled: tLineIsVisible },
-        { title: tPlotFunctionItem, target: this_, itemAction: this.togglePlotFunction },
-        { title: tShowSquaresItem, target: this_, itemAction: this.toggleShowSquares,
-            isEnabled: tLineIsVisible || tFunctionIsVisible }
-      ].concat( sc_super()).concat([
-        { isSeparator: YES }
-      ]);
-  },
+  checkboxDescriptions: function() {
+    var this_ = this;
+    return sc_super().concat([
+      {
+        title: 'DG.Inspector.graphConnectingLine',
+        value: this_.isAdornmentVisible('connectingLine'),
+        classNames: 'graph-connectingLine-check'.w(),
+        valueDidChange: function () {
+          this_.toggleConnectingLine();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphMovableLine',
+        value: this_.get('isMovableLineVisible'),
+        classNames: 'graph-movableLine-check'.w(),
+        valueDidChange: function () {
+          this_.toggleMovableLine();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphInterceptLocked',
+        value: this_.get('isInterceptLocked'),
+        classNames: 'graph-interceptLocked-check'.w(),
+        valueDidChange: function () {
+          this_.toggleInterceptLocked();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphSquares',
+        value: this_.get('areSquaresVisible'),
+        classNames: 'graph-squares-check'.w(),
+        valueDidChange: function () {
+          this_.toggleShowSquares();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedFunction',
+        value: this_.isAdornmentVisible('plottedFunction'),
+        classNames: 'graph-plottedFunction-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlotFunction();
+        }.observes('value')
+      }
+    ]);
+  }.property(),
 
   /**
    * @return { Object } with properties specific to a given subclass

@@ -34,7 +34,10 @@ DG.PlotUtilities = {
   kPointRadiusLogBase: 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   kPointRadiusMax: 10,
   kPointRadiusMin: 5,
+  kDefaultPointColor: '#e6805b',
+  kDefaultStrokeColor: 'white',
   kDefaultPointOpacity: 0.85,
+  kDefaultStrokeOpacity: 0.85,
   kDefaultStripWidth: 4,
   kMarqueeColor: "rgba(128, 128, 128, 0.3)",
   kDotClassName: 'data-dot',
@@ -60,17 +63,19 @@ DG.PlotUtilities = {
   kDataCreateTransform: 's2',   // scale 2 times on create
 
   // Constants for maps
-  kMapAreaNoLegendColor: 'blue',
-  kMapAreaNoLegendSelectedColor: 'red',
-  kMapAreaNoLegendUnselectedOpacity: 0.7,
-  kMapAreaNoLegendSelectedOpacity: 1,
+  kDefaultMapFillOpacity: '0.5',
+  kDefaultMapStrokeColor: 'white',
+  kDefaultMapStrokeOpacity: '0.6',
+  kMapAreaNoLegendColor: '#FF3E00',
+  kMapAreaNoLegendSelectedColor: '#1a7a93',
+  kMapAreaNoLegendUnselectedOpacity: 0.5,
+  kMapAreaNoLegendSelectedOpacity: 0.7,
   kMapAreaWithLegendSelectedOpacity: 0.9,
   kMapAreaWithLegendUnselectedOpacity: 0.9,
-  kMapAreaNoLegendUnselectedBorderColor: 'yellow',
   kMapAreaNoLegendSelectedBorderColor: 'black',
-  kMapAreaWithLegendUnselectedBorderColor: 'yellow',
-  kMapAreaWithLegendSelectedBorderColor: 'red',
-  kMapAreaSelectedBorderWeight: 4,
+  kMapAreaWithLegendUnselectedBorderColor: 'white',
+  kMapAreaWithLegendSelectedBorderColor: 'black',
+  kMapAreaSelectedBorderWeight: 2,
   kMapAreaUnselectedBorderWeight: 2,
 
 
@@ -323,9 +328,9 @@ DG.PlotUtilities = {
   },
 
   doCreateCircleAnimation: function( iCircle) {
-    iCircle.attr( { 'fill-opacity': 0, 'stroke-opacity': 0 });
-    iCircle.animate({ 'fill-opacity': this.kDefaultPointOpacity, 'stroke-opacity': 1 },
-      this.kDefaultAnimationTime, '<>');
+    //iCircle.attr( { 'fill-opacity': 0, 'stroke-opacity': 0 });
+    //iCircle.animate({ 'fill-opacity': this.kDefaultPointOpacity, 'stroke-opacity': 1 },
+    //  this.kDefaultAnimationTime, '<>');
 //    iCircle.animate( {
 //      "25%": { transform: this.kDataCreateTransform, easing: "<" },
 //      "100%": { transform: "", easing: ">" }

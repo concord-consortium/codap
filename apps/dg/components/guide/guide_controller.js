@@ -69,7 +69,7 @@ DG.GuideController = DG.ComponentController.extend(
     showGuide: function() {
       var tComponentView = this.get('view');
       tComponentView.setPath('isVisible', true);
-      tComponentView.bringToFront();
+      tComponentView.select();
       tComponentView.scrollToVisible();
     },
 

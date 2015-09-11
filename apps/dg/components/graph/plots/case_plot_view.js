@@ -78,8 +78,9 @@ DG.CasePlotView = DG.PlotView.extend(
 
       // show or hide if needed, then update if shown.
       if( this.showHidePlottedElement( tCircle, tIsMissingCase)) {
-        this.updatePlottedElement( tCircle, tCoordX, tCoordY, tRadius, iRC.calcCaseColorString( iCase ),
-          iAnimate, iCallback);
+        var tAttrs = {cx: tCoordX, cy: tCoordY, r: tRadius, fill: iRC.calcCaseColorString( iCase ),
+                      stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+        this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
         return { cx: tCoordX, cy: tCoordY, r: tRadius };
       }
       return null;
@@ -190,6 +191,7 @@ DG.CasePlotView = DG.PlotView.extend(
           tRC = this.createRenderContext(),
           tIndex;
 
+      this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
       if( this._mustCreatePlottedElements ) {
         var tLoopIndex = 0;
         this._plottedElements.forEach( function( iElement ) {
@@ -197,7 +199,6 @@ DG.CasePlotView = DG.PlotView.extend(
         } );
         this._plottedElements.length = 0;
 
-        this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         tIncrementBy = Math.ceil( tCases.length / 50);
         this.setPath( 'model.isAnimating', true); // So the animation can finish
         animateSomePoints();  // will loop through all points using invokeLater

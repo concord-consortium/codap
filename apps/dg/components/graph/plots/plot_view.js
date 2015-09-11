@@ -417,6 +417,10 @@ DG.PlotView = DG.PlotLayer.extend(
       yVarID: tModel.get(tYVarIDKey),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
+      pointColor: tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
+      strokeColor: tModel.getStrokeColor ? tModel.getStrokeColor() : DG.PlotUtilities.kDefaultStrokeColor,
+      transparency: tModel.getTransparency ? tModel.getTransparency() : DG.PlotUtilities.kDefaultPointOpacity,
+      strokeTransparency: tModel.getStrokeTransparency ? tModel.getStrokeTransparency() : DG.PlotUtilities.kDefaultStrokeOpacity,
       attrColor: SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
                  DG.ColorUtilities.calcAttributeColorFromIndex( this.get('plotIndex'), this.get('numPlots')),
 
@@ -428,8 +432,9 @@ DG.PlotView = DG.PlotLayer.extend(
       calcCaseColorString: function( iCase ) {
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, this.attrColor );
-        return tCaseColor.colorString;
+            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
+                this.attrColor || this.pointColor );
+        return tCaseColor.colorString || tCaseColor;
       }
     };
   },

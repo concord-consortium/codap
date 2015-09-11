@@ -78,9 +78,12 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       legendName: tLegendDesc.getPath('attribute.name'),
+      areaTransparency: tModel.get('areaTransparency'),
+      areaStrokeColor: tModel.get('areaStrokeColor'),
+      areaStrokeTransparency: tModel.get('areaStrokeTransparency'),
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
-          return DG.PlotUtilities.kMapAreaNoLegendColor;
+          return tModel.get('areaColor');
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
@@ -129,7 +132,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       }
     }.bind( this));
     this.updateSelection();
-  },
+  }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency' ),
 
   /**
    Handle changes in assignment of legend attribute.
@@ -159,7 +162,8 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     // Points are 'colored' if there is a legend or if there is more than one plot
         tHasLegend = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
             DG.Analysis.kNullAttribute),
-        tCases = this.getPath('model.cases');
+        tCases = this.getPath('model.cases'),
+        tRC = this.createRenderContext();
 
     if(!tCases)
       return;
@@ -186,16 +190,13 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       else {
         tFeature.setStyle( {
           color: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedBorderColor :
-              DG.PlotUtilities.kMapAreaNoLegendUnselectedBorderColor,
+              tRC.areaStrokeColor,
+          opacity: tRC.areaStrokeTransparency,
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :
-              DG.PlotUtilities.kMapAreaNoLegendUnselectedOpacity,
-          weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight
+              tRC.areaTransparency,
+          weight: DG.PlotUtilities.kMapAreaUnselectedBorderWeight,
+          fillColor: tRC.calcCaseColorString( iCase)
         });
-        if( !tHasLegend) {
-          tFeature.setStyle( {
-            fillColor: DG.PlotUtilities.kMapAreaNoLegendColor
-          });
-        }
       }
     }.bind( this));
   },

@@ -592,6 +592,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       return;   // because this can get called by pending changes after I have been destroyed
     if( this._elementOrderIsValid)
       return;
+    if( !this.get('paper'))
+      return;
 
     var this_ = this,
       tPlottedElements = this._plottedElements,
@@ -832,6 +834,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     // This step function avoids excessive plot resizing with every change in number of cases.
     var tDataConfiguration = this.getPath('model.dataConfiguration' ),
         tDataLength = tDataConfiguration ? tDataConfiguration.getCaseCount() : 0,
+        tMultiplierFunc = this.get('model').getPointSizeMultiplier,
+        tMultiplier = tMultiplierFunc ? tMultiplierFunc.call( this.get('model')) : 1,
         tRadius = DG.PlotUtilities.kPointRadiusMax,
         tMinSize = DG.PlotUtilities.kPointRadiusMin,
         tPower = DG.PlotUtilities.kPointRadiusLogBase;
@@ -840,9 +844,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       --tRadius;
       if( tRadius <= tMinSize ) break;
     }
-    DG.assert( tRadius > 0 && Math.round(tRadius)===tRadius ); // must be positive integer
-    //if( tRadius !== this._pointRadius ) DG.log("CalcPointRadius() r=" + tRadius + " for "+tDataLength +" cases.");
-    return tRadius;
+    return Math.max( 1, tRadius * tMultiplier);
   },
 
   /**
@@ -885,27 +887,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * Update the position of the plotted element.
    * Assumes but does not require that the element is visible (see showHidePlottedElement())
    * @param iPlottedElement {}
+   * @param iAttrs {{cx:Number, cy:Number, r:Number, fill:String, stroke:String,
+   *                  'fill-opacity':Number, 'stroke-opacity':Number}}
    * @param iAnimate {Boolean}
-   * @param iViewX {Number}
-   * @param iViewY {Number}
-   * @param iRadius {Number}
-   * @param iColorString {String}
+   * @param iCallback {Function}
    */
-  updatePlottedElement: function( iPlottedElement, iViewX, iViewY, iRadius, iColorString, iAnimate, iCallback ) {
-    var tAttrs = {cx: iViewX, cy: iViewY, r: iRadius, fill: iColorString,
-          'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity},
-        tColor = DG.color( iColorString ),
-        tStrokeColor;
-    if( tColor.rgb) {
-      tStrokeColor = tColor.darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
-    }
-    else {  // tColor would not have been able to 'darker'
-      // Kludge!
-      // Assume iColorString is missing leading '#'. This was encountered through an improper color map
-      // created by Analytics. Still could fail of course.
-      tStrokeColor = DG.color('#' + iColorString).darker(DG.PlotUtilities.kStrokeDarkerFactor ).color;
-    }
-
+  updatePlottedElement: function( iPlottedElement, iAttrs, iAnimate, iCallback ) {
     // Any prior positional animation is no longer valid
     if( iPlottedElement.posAnimation) {
       iPlottedElement.stop( iPlottedElement.posAnimation);
@@ -922,7 +909,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     
     if( iAnimate) {
       // note: animating color does not look good (interaction with other plot changes), so update immediately
-      iPlottedElement.attr( {stroke: tStrokeColor });
+      iPlottedElement.attr( {stroke: iAttrs.stroke, 'stroke-opacity': iAttrs['stroke-opacity'] });
       
       // Hover animation changes the transform which affects positioning.
       // If we're trying to animate position, we simply complete the hover animation.
@@ -933,7 +920,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       }
       
       // Set up the position animation and start the animation
-      iPlottedElement.posAnimation = Raphael.animation( tAttrs, DG.PlotUtilities.kDefaultAnimationTime,
+      iPlottedElement.posAnimation = Raphael.animation( iAttrs, DG.PlotUtilities.kDefaultAnimationTime,
                                                         '<>', completeAnimation);
       iPlottedElement.animate( iPlottedElement.posAnimation);
     } else {
@@ -944,10 +931,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       if( !currTransformIsIdentity)
         iPlottedElement.transform( '');
 
-      // Make the attribute changes we came here to make
-      tAttrs.fill = iColorString;
-      tAttrs.stroke = tStrokeColor;
-      iPlottedElement.attr( tAttrs);
+      iPlottedElement.attr( iAttrs);
       // Some points got made but never had a chance to finish their creation animation
 //      if( iPlottedElement.attr('stroke-opacity') < 1 ) {
 //        iPlottedElement.animate( {'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'stroke-opacity': 1 },

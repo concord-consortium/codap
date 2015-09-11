@@ -566,14 +566,14 @@ DG.DocumentController = SC.Object.extend(
         tComponentView = DG.ComponentView.restoreComponent( iParams.parentView, tLayout,
                                                        iParams.componentClass.constructor,
                                                        iParams.contentProperties,
-                                                       iParams.title, iParams.isResizable,
+                                                       iParams.isResizable,
                                                        iParams.useLayout);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent( iParams.parentView, tLayout,
                                                       iParams.componentClass.constructor,
                                                       iParams.contentProperties,
-                                                      iParams.title, iParams.isResizable,
+                                                      iParams.isResizable,
                                                       iParams.useLayout,
                                                       iParams.isVisible);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
@@ -587,14 +587,16 @@ DG.DocumentController = SC.Object.extend(
         }
       }
 
-      // Tell the controller about the new view, whose layout we will need when archiving.
-      if( iParams.controller) {
-        iParams.controller.set('view', tComponentView);
-        tComponentView.set('controller', iParams.controller);
-      }
+      if( tComponentView) {
+        // Tell the controller about the new view, whose layout we will need when archiving.
+        if (iParams.controller) {
+          iParams.controller.set('view', tComponentView);
+          tComponentView.set('controller', iParams.controller);
+        }
+        tComponentView.set('model', tComponent);
 
-      if( tComponentView)
         DG.dirtyCurrentDocument();
+      }
 
       return tComponentView;
     },
@@ -642,15 +644,12 @@ DG.DocumentController = SC.Object.extend(
         }
       }
       var context = resolveContextLink(iComponent),
-        contextName = (context && context.contextStorage && context.contextStorage.gameName)
-          || 'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
         tView = this.createComponentView(iComponent, {
           parentView: iParentView,
           controller: DG.CaseTableController.create(),
           componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-          contentProperties: {},
+          contentProperties: {model: context }, // Temporarily using context as model in order to get a title
           defaultLayout: { width: 500, height: 200 },
-          title: contextName,
           isResizable: true}
       );
       return tView;
@@ -666,10 +665,8 @@ DG.DocumentController = SC.Object.extend(
         parentView: iParentView,
         controller: DG.CaseTableController.create(iProperties),
         componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-        contentProperties: {},
+        contentProperties: {model: iProperties.dataContext.get('model') }, // Temporarily using context as model in order to get a title
         defaultLayout: { width: 500, height: 200 },
-        title: iProperties.dataContext.gameName ||
-            'DG.DocumentController.caseTableTitle'.loc(),  // "Case Table"
         isResizable: true}), tView;
       DG.ObjectMap.copy(props, iProperties);
       tView = this.createComponentView(iComponent, props);
@@ -738,7 +735,6 @@ DG.DocumentController = SC.Object.extend(
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
                                   contentProperties: { model: tGraphModel },
                                   defaultLayout: { width: 300, height: 300 },
-                                  title: 'DG.DocumentController.graphTitle'.loc(),  // "Graph"
                                   isResizable: true}
                                 );
 
@@ -833,7 +829,6 @@ DG.DocumentController = SC.Object.extend(
                                 componentClass: { type: 'DG.SliderView', constructor: DG.SliderView},
                                 contentProperties: { model: tSliderModel },
                                 defaultLayout: { width: 300, height: 60 },
-                                title: 'DG.DocumentController.sliderTitle'.loc(), // "Slider"
                                 isResizable: true}
                               );
         },

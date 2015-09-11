@@ -238,8 +238,9 @@ DG.DotChartView = DG.PlotView.extend(
       }
       DG.assert( isFinite(tCoordX) && isFinite(tCoordY));
 
-      this.updatePlottedElement( tCircle, tCoordX, tCoordY, tRadius, iRC.calcCaseColorString( iCase ),
-        iAnimate, iCallback);
+      var tAttrs = {cx: tCoordX, cy: tCoordY, r: tRadius, fill: iRC.calcCaseColorString( iCase ),
+                    stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+      this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
       return { cx: tCoordX, cy: tCoordY, r: tRadius };
     }
     return null;
@@ -307,9 +308,9 @@ DG.DotChartView = DG.PlotView.extend(
     if( !tCases)
       return; // We can get here before things are linked up during restore
 
+    this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
     if( this._mustCreatePlottedElements) {
       this.removePlottedElements();
-      this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
       tCases.forEach( this.callCreateCircle, this);
       this._mustCreatePlottedElements = false;
     }

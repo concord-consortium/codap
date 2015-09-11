@@ -237,6 +237,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
     return this.getPath('areaAttributeDescription.attributeID');
   }.property('areaAttributeDescription.attributeID').cacheable(),
 
+  hasAreaAttribute: function() {
+    return !SC.none(this.get('areaAttributeID'));
+  }.property('areaAttributeID').cacheable(),
+
   /**
    @property { DG.AttributePlacementDescription }
    */

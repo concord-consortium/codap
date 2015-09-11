@@ -149,10 +149,16 @@ DG.AttributePlacementDescription = SC.Object.extend(
     @property {Boolean}
   */
   isNumeric: function() {
-    var tAttributeType = this.get('attributeType');
-    return tAttributeType === DG.Analysis.EAttributeType.eNumeric;
+    return this.get('attributeType') === DG.Analysis.EAttributeType.eNumeric;
   }.property('attributeType'),
   
+  /**
+    @property {Boolean}
+  */
+  isCategorical: function() {
+    return this.get('attributeType') === DG.Analysis.EAttributeType.eCategorical;
+  }.property('attributeType'),
+
   /**
     @property {Boolean}
    */
