@@ -61,55 +61,83 @@ DG.HierTableView = SC.SplitView.extend( (function() {
   /**
     Child views currently limited to two subtables, but should be extensible down the road.
    */
-  childViews: [ 'parentTableView', 'relationDividerView', 'childTableView', 'slopView' ],
+  childViews: [ 'slopView' ],
   
   /**
     The left table showing the parent cases.
    */
   parentTableView: DG.CaseTableView.extend( SC.SplitChild, {
-                                              name: 'parentTableView', 
-                                              minimumSize: kMinTableWidth,
-                                              autoResizeStyle: SC.RESIZE_AUTOMATIC,
-                                              compensatesForMovement: YES
-                                            }),
-  /**
-    The space between the tables showing the case relations.
-   */
-  relationDividerView: DG.RelationDividerView.extend( SC.SplitChild, {
-                                              name: 'relationDividerView',
-                                              minimumSize: DG.RDV_DIVIDER_WIDTH,
-                                              maximumSize: DG.RDV_DIVIDER_WIDTH,
-                                              size: DG.RDV_DIVIDER_WIDTH,
-                                              autoResizeStyle: SC.FIXED_SIZE,
-                                              compensatesForMovement: NO,
-                                              allowsIndirectAdjustments: NO
-                                            }),
-  /**
-    The right table showing the child cases.
-   */
-  childTableView: DG.CaseTableView.extend( SC.SplitChild, {
-                                              name: 'childTableView',
-                                              minimumSize: kMinTableWidth,
-                                              autoResizeStyle: SC.RESIZE_MANUAL,
-                                              compensatesForMovement: function() {
-                                                var slopSize = this.getPath('parentView.slopView.size');
-                                                // We only compensate if the slop view can't
-                                                return slopSize <= kMinSlop;
-                                              }.property()
-                                          }),
+    name: 'parentTableView',
+    minimumSize: kMinTableWidth,
+    autoResizeStyle: SC.RESIZE_AUTOMATIC,
+    compensatesForMovement: YES
+  }),
+
   slopView: SC.View.extend( SC.SplitChild, {
-                                name: 'slopView',
-                                minimumSize: kMinSlop,
-                                size: kMinSlop,
-                                autoResizeStyle: SC.RESIZE_MANUAL,
-                                compensatesForMovement: YES,
-                                
-                                backgroundColor: kColumnHeaderBackgroundColor
-                            }),
-  
+      name: 'slopView',
+      minimumSize: kMinSlop,
+      size: kMinSlop,
+      autoResizeStyle: SC.RESIZE_MANUAL,
+      compensatesForMovement: YES,
+
+      backgroundColor: kColumnHeaderBackgroundColor
+  }),
+
+  relationDividerView: DG.RelationDividerView.extend ( SC.SplitChild, {
+    name: 'relationDividerView',
+    minimumSize: DG.RDV_DIVIDER_WIDTH,
+    maximumSize: DG.RDV_DIVIDER_WIDTH,
+    size: DG.RDV_DIVIDER_WIDTH,
+    autoResizeStyle: SC.FIXED_SIZE,
+    compensatesForMovement: NO,
+    allowsIndirectAdjustments: NO
+  }),
+
+   childTableView: DG.CaseTableView.extend ( SC.SplitChild, {
+      name: 'childTableView',
+      minimumSize: kMinTableWidth,
+      autoResizeStyle: SC.RESIZE_MANUAL,
+      compensatesForMovement: function () {
+        var slopSize = this.getPath('parentView.slopView.size');
+        // We only compensate if the slop view can't
+        return slopSize <= kMinSlop;
+      }.property()
+    }),
+
+    makeRelationDividerView: function () {
+      return  this.relationDividerView.create({});
+    },
+
+    makeChildTableView: function () {
+      if (this.get('childTableViews').length === 0) {
+        return this.parentTableView.create({});
+      } else {
+        return this.childTableView.create({});
+      }
+    },
+
+    /**
+     * Removes the child table view and, if present, its divider.
+     * @param {DG.CaseTableView} view
+     */
+    removeChildTableView: function (view) {
+      var viewIx = this.childViews.indexOf(view);
+      var childCount = this.childViews.length;
+      var dividerView;
+      if (viewIx > 0) {
+        dividerView = this.childViews[viewIx - 1];
+      } else if (viewIx === 0 && childCount > 2) {
+        dividerView = this.childViews[viewIx + 1];
+      }
+      if (dividerView) {
+        this.removeChild(dividerView);
+      }
+      this.removeChild(view);
+    },
+
   /**
     An array of child table view object, one for each subtable.
-    @property   {Array of DG.CaseTableView}
+    @property   {[DG.CaseTableView]}
    */
   childTableViews: function() {
     var childViews = this.get('childViews') || [],
@@ -120,6 +148,16 @@ DG.HierTableView = SC.SplitView.extend( (function() {
                         });
     return childTableViews;
   }.property(),
+
+    dividerViews: function () {
+      var childViews = this.get('childViews') || [],
+          dividerViews = [];
+      childViews.forEach( function( iChildView) {
+        if( iChildView.kindOf( DG.RelationDividerView))
+          dividerViews.push( iChildView);
+      });
+      return dividerViews;
+    }.property(),
 
   /**
     Destruction method.
@@ -176,7 +214,9 @@ DG.HierTableView = SC.SplitView.extend( (function() {
    */
   _klugeAdjust: false,
   gridViewDidChange: function( iNotifier) {
-    this.get('relationDividerView').displayDidChange();
+    this.get('dividerViews').forEach(function (view) {
+      view.displayDidChange();
+    });
 
     // adjusting the width fixes initial redraw problems in Safari
     if( !this._klugeAdjust) {
@@ -187,7 +227,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       if( tComponentWidth)
         tComponentView.adjust('width', tComponentWidth + 1);
     }
-  }.observes('.parentTableView.gridView','.childTableView.gridView'),
+  },
 
   /**
     Observer function called when the overall gridWidth of the parent table changes.
@@ -216,19 +256,22 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         this.invokeOnce('_scsv_tile');
       }
     }
-  }.observes('.parentTableView.gridWidth','.childTableView.gridWidth'),
+  },
   
   childTableLayoutDidChange: function( iNotifier) {
-    var parentTable = this.get('parentTableView'),
-        dividerView = this.get('relationDividerView'),
-        childTable = this.get('childTableView');
-    // Force a repaint when layout changes. Not clear why invokeLater() is required,
-    // but other options (e.g. invokeOnce(), invokeLast()) don't generate the necessary
-    // updates at least on WebKit browsers.
-    if( parentTable) this.invokeLater( function() { parentTable.displayDidChange(); });
-    if( dividerView) this.invokeLater( function() { dividerView.displayDidChange(); });
-    if( childTable) this.invokeLater( function() { childTable.displayDidChange(); });
-  }.observes('.parentTableView.size','.childTableView.size'),
+    var caseTableViews = this.get('childTableViews');
+    var dividerViews = this.get('dividerViews');
+    caseTableViews.forEach(function (view) {
+      this.invokeLater(function () {
+        view.displayDidChange();
+      });
+    }.bind(this));
+    dividerViews.forEach(function (view) {
+      this.invokeLater(function () {
+        view.displayDidChange();
+      });
+    }.bind(this));
+  },
   
   /**
     Respond to a resize of a table column. There are special cases here that
@@ -273,8 +316,10 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     Observer function called when the number of rows in the parent table changes.
    */
   rowCountDidChange: function() {
-    this.relationDividerView.displayDidChange();
-  }.observes('.parentTableView.rowCount','.childTableView.rowCount'),
+    this.get('dividerViews').forEach(function (view) {
+      view.displayDidChange();
+    });
+  },
   
   /**
     Observer function called when the parent table is scrolled.
@@ -283,36 +328,63 @@ DG.HierTableView = SC.SplitView.extend( (function() {
    */
   tableDidScroll: function() {
     SC.run( function() {
-      this.relationDividerView.displayDidChange();
+      this.get('dividerViews').forEach(function (view) {
+        view.displayDidChange();
+      });
     }.bind( this));
-  }.observes('.parentTableView.scrollPos','.childTableView.scrollPos'),
+  }/*.observes('.parentTableView.scrollPos')*/,
   
   /**
     Observer function called when a row is expanded/collapsed.
    */
   tableDidExpandCollapse: function() {
     SC.run( function() {
-      this.relationDividerView.displayDidChange();
+      this.get('dividerViews').forEach(function (view) {
+        view.displayDidChange();
+      });
     }.bind( this));
-  }.observes('.parentTableView.expandCollapseCount','.childTableView.expandCollapseCount'),
-  
+  },
   /**
     Attaches the specified set of DG.CaseTableAdapters to the individual child table views.
-    @param  {Array of DG.CaseTableAdapter}
+    @param  {[DG.CaseTableAdapter]} iAdapters
    */
   setCaseTableAdapters: function( iAdapters) {
-    var childTableViews = this.get('childTableViews');
-    childTableViews.forEach( function( iTableView, iIndex) {
-                              var adapter = iAdapters.objectAt( iIndex);
-                              iTableView.setIfChanged('gridAdapter', adapter);
-                            });
-    var parentTable = this.get('parentTableView'),
-        childTable = this.get('childTableView'),
-        relationView = this.get('relationDividerView');
-    if( relationView && parentTable && childTable) {
-      relationView.set('leftTable', parentTable);
-      relationView.set('rightTable', childTable);
+    function setUpDividerView(parentTable, childTable, relationView) {
+      if( relationView && parentTable && childTable) {
+        relationView.set('leftTable', parentTable);
+        relationView.set('rightTable', childTable);
+      }
     }
+    var childTableViews = this.get('childTableViews');
+    var dividerViews = this.get('dividerViews');
+    var m = Math.max(childTableViews.length, iAdapters.length);
+    var ix;
+    var childTableView, adapter, divider;
+    this.removeChild(this.slopView);
+    for (ix = 0; ix < m; ix += 1) {
+      childTableView = childTableViews[ix];
+      adapter = iAdapters[ix];
+      if (childTableView && adapter) {
+        childTableView.setIfChanged('gridAdapter', adapter);
+        if (ix > 0) setUpDividerView(childTableViews[ix-1], childTableView, dividerViews[ix-1]);
+      } else if (adapter) {
+        if (ix > 0) {
+          divider = this.makeRelationDividerView();
+          this.appendChild(divider);
+          dividerViews.push(divider);
+        }
+        childTableView = this.makeChildTableView();
+        childTableView.setIfChanged('gridAdapter', adapter);
+        this.appendChild(childTableView);
+        childTableViews.push(childTableView);
+
+        if (divider) setUpDividerView(childTableViews[ix-1],
+            childTableView, divider);
+      } else if (childTableView) {
+        this.removeChildTableView(childTableView);
+      }
+    }
+    this.appendChild(this.slopView);
   },
   
   /**
@@ -395,12 +467,16 @@ DG.HierTableView = SC.SplitView.extend( (function() {
    */
   splitViewResizeChildrenToFit: function(splitView, contentSize) {
     var frameSize = this.get('_frameSize'),
-        parentTable = this.get('parentTableView'),
-        parentSize = parentTable && parentTable.get('size'),
-        parentMax = parentTable && parentTable.get('gridWidth'),
-        childTable = this.get('childTableView'),
-        childSize = childTable && childTable.get('size'),
-        childMax = childTable && childTable.get('gridWidth'),
+        // We reverse the order of the child tables to start from the right
+        // child later...
+        caseTableViews = this.get('childTableViews').reverse(),
+        viewParams = caseTableViews.map(function (view) {
+          return {
+            view: view,
+            size: view.get('size'),
+            max: view.get('gridWidth')
+          };
+        }),
         slopView = this.get('slopView'),
         slopSize = slopView && slopView.get('size'),
         slopAvailable = (slopSize - kMinSlop) || 0,
@@ -422,21 +498,26 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       adjustmentRequired = this.splitViewAdjustChildToFit( this, slopView, adjustmentRequired - additionalAdjustment, frameSize);
       adjustmentRequired += additionalAdjustment;
     }
-    // then adjust child table if not fully visible
-    if( (adjustmentRequired !== 0) && (childSize < childMax))
-      adjustmentRequired = this.splitViewAdjustChildToFit( this, childTable, adjustmentRequired);
-    // then adjust parent table if not fully visible
-    if( (adjustmentRequired !== 0) && (parentSize < parentMax))
-      adjustmentRequired = this.splitViewAdjustChildToFit( this, parentTable, adjustmentRequired);
+    // then adjust tables, starting from rightmost child
+    viewParams.forEach(function (params, ix) {
+      if( (adjustmentRequired !== 0) && (params.size < params.max) ) {
+        adjustmentRequired = this.splitViewAdjustChildToFit(this, params.view, adjustmentRequired);
+      }
+    }.bind(this));
     // then increase slop if necessary
     if( adjustmentRequired > 0)
       adjustmentRequired = this.splitViewAdjustChildToFit( this, slopView, adjustmentRequired, frameSize);
     // if we're still not done, adjust the parent table even if fully visible
-    if( adjustmentRequired !== 0)
-      adjustmentRequired = this.splitViewAdjustChildToFit( this, parentTable, adjustmentRequired);
-    // if we're still not done, adjust the child table even if fully visible
-    if( adjustmentRequired !== 0)
-      adjustmentRequired = this.splitViewAdjustChildToFit( this, childTable, adjustmentRequired);
+
+    if( adjustmentRequired !== 0) {
+      viewParams.reverse();
+      viewParams.forEach(function (params, ix) {
+        if (adjustmentRequired !== 0) {
+          adjustmentRequired = this.splitViewAdjustChildToFit(this, params.view,
+              adjustmentRequired);
+        }
+      }.bind(this));
+    }
   }
   
   }; // end return from closure

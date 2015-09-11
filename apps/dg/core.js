@@ -191,7 +191,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0304',
+    BUILD_NUM: '0306',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -269,6 +269,8 @@ DG = SC.Application.create((function () // closure
      *
      */
     startingDocName: getUrlParameter('doc'),
+
+    startingDocUrl: getUrlParameter('url'),
 
     /**
      * startingDataInteractive can be passed as a Url parameter named 'di'

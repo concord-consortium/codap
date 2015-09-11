@@ -16,6 +16,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('controllers/document_archiver');
+
 /** @class
 
   Top-level coordinating controller for the DG application.
@@ -47,6 +49,8 @@ DG.appController = SC.Object.create((function () // closure
     guideMenuPane: null,
 
     autoSaveTimer: null,
+
+    documentArchiver: DG.DocumentArchiver.create({}),
 
     /**
      * Initialization function.
@@ -81,11 +85,14 @@ DG.appController = SC.Object.create((function () // closure
       // https://developer.mozilla.org/en-US/docs/DOM/window.onbeforeunload
       // http://bytes.com/topic/javascript/insights/825556-using-onbeforeunload-javascript-event
       // https://bugzilla.mozilla.org/show_bug.cgi?id=588292 for discussion of Firefox functionality.
+      // TODO: This confirmation message can cause an unescapable loop if
+      // TODO: saving fails. Need a way out in these circumstances.
       window.onbeforeunload = function (iEvent) {
         if (DG.currDocumentController().get('hasUnsavedChanges'))
           return 'DG.AppController.beforeUnload.confirmationMessage'.loc();
       };
     },
+
     // always include dev items, for now. jms 7/3/2014
     _fileMenuIncludesDevItems: true, //DG.IS_DEV_BUILD,
 
@@ -154,7 +161,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
             target: this,
-            action: 'saveDocument',
+            action: 'saveCODAPDocument',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
           );
         }
@@ -244,7 +251,7 @@ DG.appController = SC.Object.create((function () // closure
 
       var openDocumentAfterConfirmation = function () {
         DG.busyCursor.show( function() {
-          DG.authorizationController.openDocument(docID, this);
+          this.doOpenDocument(docID);
         }.bind(this));
         DG.logUser("openDocument: '%@'", docName);
       }.bind(this);
@@ -284,38 +291,19 @@ DG.appController = SC.Object.create((function () // closure
       SC.Benchmark.log('openDocumentFromDialog: '+docName);
     },
 
-    /**
-     * Called when the name of the desired document is given other than through
-     * user dialog box.
-     *
-     * @param {String} iName Name of the document
-     * @param {String} iOwner Owner of the document
-     */
-    openDocumentNamed: function (iName, iOwner) {
-      if (iName) {  // try to open the document the user chose
-        DG.authorizationController.openDocumentByName(iName, iOwner, this);
-        DG.logUser("openDocument: '%@'", iName);
-      }
-
-      if (iOwner && iOwner !== DG.authorizationController.getPath('currLogin.user')) {
-        this.setOpenedDocumentUnshared = YES;
-      }
+    doOpenDocument: function(iDocumentId) {
+      DG.authorizationController.get('storageInterface').open({id: iDocumentId}).then(
+        function(body) {
+          this.receivedOpenDocumentSuccess(body, false);
+        }.bind(this),
+        function(errorCode) {
+          this.receivedOpenDocumentFailure(errorCode);
+        }.bind(this)
+      );
     },
 
-    openDocumentWithId: function (iId) {
-      if (iId) {
-        DG.authorizationController.openDocument(iId, this);
-        DG.currDocumentController().set('externalDocumentId', ''+iId);
-        DG.logUser("openDocument: '%@' (id)", iId);
-      }
-
-      // FIXME How do we determine whether it should get set unshared or not?
-    },
-
-    setOpenedDocumentUnshared: NO,
-
     /**
-     openDocument callback function after the document content has been loaded.
+     * openDocument callback function after the document content has been loaded.
      */
     receivedOpenDocumentSuccess: function (body, triggerSave) {
       var openDeferred;
@@ -356,6 +344,67 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Called when the name of the desired document is given other than through
+     * user dialog box.
+     *
+     * @param {String} iName Name of the document
+     * @param {String} iOwner Owner of the document
+     */
+    openDocumentNamed: function (iName, iOwner) {
+      if (iName) {  // try to open the document the user chose
+        this.doOpenDocumentByName(iName, iOwner, this);
+        DG.logUser("openDocument: '%@'", iName);
+      }
+
+      if (iOwner && iOwner !== DG.authorizationController.getPath('currLogin.user')) {
+        this.setOpenedDocumentUnshared = YES;
+      }
+    },
+
+    doOpenDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
+      DG.authorizationController.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
+        function(body) {
+          iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
+        },
+        function(errorCode) {
+          iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
+        }
+      );
+    },
+
+    openDocumentWithId: function (iId) {
+      if (iId) {
+        this.doOpenDocument(iId);
+        DG.currDocumentController().set('externalDocumentId', ''+iId);
+        DG.logUser("openDocument: '%@' (id)", iId);
+      }
+
+      // FIXME How do we determine whether it should get set unshared or not?
+    },
+
+    setOpenedDocumentUnshared: NO,
+
+    /**
+     * Opens a document from a URL.
+     *
+     * @param {string} iURL The url of a CODAP document.
+     * @return {Deferred|undefined}
+     */
+    openDocumentFromUrl: function (iURL) {
+      if (iURL) {
+        $.ajax(iURL, {
+          type: 'GET',
+          contentType: 'text/plain'
+        }).then(function(data) {
+          var doc = (typeof data === 'string')? data: JSON.stringify(data);
+          return this.openJsonDocument(doc);
+        }.bind(this), function (msg) {
+          DG.logWarn(msg);
+        });
+      }
+    },
+
+    /**
      Attempts to parse the specified iDocText as the contents of a saved document in JSON format.
      @param    {String}    iDocText -- The JSON-formatted document text
      @param    {Boolean}   saveImmediately -- whether to save existing doc.
@@ -368,9 +417,8 @@ DG.appController = SC.Object.create((function () // closure
       this.closeDocument();
 
       // Create document-specific store.
-      var archiver = DG.DocumentArchiver.create({}),
-          // Parse the document contents from the retrieved docText.
-          deferred = archiver.openDocument(DG.store, iDocText);
+      // Parse the document contents from the retrieved docText.
+      var deferred = this.documentArchiver.openDocument(DG.store, iDocText);
       deferred.done(function(newDocument) {
         if (newDocument) {
           console.log('In app_controller:openJsonDocument:setting document controller');
@@ -407,16 +455,18 @@ DG.appController = SC.Object.create((function () // closure
     importText: function( iText, iName) {
 
       // Create document-specific store.
-      var archiver = DG.DocumentArchiver.create({}),
-          newDocument, context, contextRecord,
+      var newDocument, context, contextRecord,
           documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = archiver.importCSV( iText, iName);
+      newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
+
       // set the id of the current document into the data context.
       newDocument.contexts[0].document = documentController.get('documentID');
+
       // Create the context record.
       contextRecord = DG.DataContextRecord.createContext(newDocument.contexts[0]);
+
       // create the context
       context = documentController.createDataContextForModel(contextRecord);
       context.restoreFromStorage(contextRecord.contextStorage);
@@ -429,7 +479,8 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iURL - For the moment, we're assuming it's the URL of a data interactive
+     * @param iURL - the URL of a data interactive or json document. If path extension
+     * is json, assume it is the later.
      * @returns {Boolean}
      */
     importURL: function (iURL) {
@@ -447,33 +498,23 @@ DG.appController = SC.Object.create((function () // closure
           });
         tDoc.createComponentAndView( tComponent);
       }.bind(this);
-      //embedInteractive = function () {
-            // Currently, we must close any open document before opening a new data interactive
-            //this.closeDocument();
 
-            // Create document-specific store.
-            //var archiver = DG.DocumentArchiver.create({}),
-              //  newDocument;
+      // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
+      var urlParser = document.createElement('a');
+      urlParser.href = iURL;
 
-            // Make a data interactive iFrame using the given URL
-            //newDocument = archiver.importURLIntoDocument(iURL);
-
-            //DG.currDocumentController().setDocument(newDocument);
-          //}.bind(this),
-          // add interactive to existing document
-          //,
-          //embedWebView = function () {
-          //  DG.currDocumentController().addWebView(DG.mainPage.get('docView'),
-          // null, iURL, 'Web Page', {width: 600, height: 400}); }.bind(this);
-
-      addInteractive();
+      if (urlParser.pathname.match(/.*\.json$/)) {
+        this.openDocumentFromUrl(iURL);
+      } else {
+        addInteractive();
+      }
       return true;
     },
 
     /**
      Allows the user to save the current document contents with a user-specified document name.
      */
-    saveDocument: function () {
+    saveCODAPDocument: function () {
       if (DG.currDocumentController().get('documentName') === SC.String.loc('DG.Document.defaultDocumentName')) {
         this.openSaveDialog = DG.CreateOpenSaveDialog({
           dialogType: DG.OpenSaveDialog.kSaveDialog,
@@ -491,21 +532,38 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     _originalDocumentName: null,
+
     renameDocument: function(iOriginalName, iNewName) {
       if ( DG.authorizationController.get('isSaveEnabled')
-            && iOriginalName
-            && iNewName !== iOriginalName
-            && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
-            && !SC.none(DG.currDocumentController().get('externalId'))
-          ) {
+        && iOriginalName
+        && iNewName !== iOriginalName
+        && iOriginalName !== SC.String.loc('DG.Document.defaultDocumentName')
+        && !SC.none(DG.currDocumentController().get('externalDocumentId'))
+      ) {
         this.set('_originalDocumentName', iOriginalName);
-        DG.authorizationController.renameDocument(iOriginalName, iNewName, this);
+        this.doRenameDocument(iOriginalName, iNewName, this);
       }
+    },
+
+    doRenameDocument: function(iOriginalName, iNewName, iReceiver) {
+      var currentDocument = DG.currDocumentController();
+
+      DG.authorizationController.get('storageInterface').rename({
+        id: currentDocument.get('externalDocumentId'),
+        newName: iNewName
+      }).then(
+        function(body) {
+          iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
+        },
+        function(errorCode) {
+          iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
+        }
+      );
     },
 
     receivedRenameDocumentSuccess: function(body) {
       DG.dirtyCurrentDocument();
-      this.saveDocument();
+      this.saveCODAPDocument();
       this.set('_originalDocumentName', null);
     },
 
@@ -538,8 +596,8 @@ DG.appController = SC.Object.create((function () // closure
       if (!SC.empty(docName)) {
         docName = docName.trim();
         DG.currDocumentController().set('documentName', docName);
-        DG.currDocumentController().saveDocument(docName, documentPermissions);
-        DG.logUser("saveDocument: '%@'", docName);
+        this.documentArchiver.saveDocument(docName, documentPermissions);
+        DG.logUser("saveDocumentFromDialog: '%@'", docName);
       }
 
       // Close the open/save dialog.
@@ -556,7 +614,7 @@ DG.appController = SC.Object.create((function () // closure
 
       if (!SC.empty(docName)) {
         docName = docName.trim();
-        DG.currDocumentController().copyDocument(docName, documentPermissions);
+        this.documentArchiver.copyDocument(docName, documentPermissions);
         DG.logUser("copyDocument: '%@'", docName);
       }
 
@@ -583,10 +641,10 @@ DG.appController = SC.Object.create((function () // closure
           && docName !== SC.String.loc('DG.Document.defaultDocumentName')) {
           if (forceSave || DG.currDocumentController().get('hasUnsavedChanges')) {
             DG.authorizationController.checkLogin().then(function() {
-                DG.currDocumentController().saveDocument(docName, documentPermissions);
+                this.documentArchiver.saveDocument(docName, documentPermissions);
                 var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
                 DG.logInfo(msg, docName);
-              },
+              }.bind(this),
               function (msg) {
                DG.logWarn("SaveDocument failure: " + msg);
               });
@@ -695,7 +753,7 @@ DG.appController = SC.Object.create((function () // closure
      * We interpose this between the menu item and closeDocumentWithConfirmation
      * to correct the argument.
      *
-     * @param {SC.Menu} sender: unused by the function.
+     * @param {object} sender: unused by the function.
      */
     closeCurrentDocument: function (sender) {
         this.closeDocumentWithConfirmation(null);
@@ -766,7 +824,7 @@ DG.appController = SC.Object.create((function () // closure
       var _this = this;
       function doRevert() {
         DG.logUser("Reverted to original"); // deleted by user action, not game action
-        DG.authorizationController.revertCurrentDocument(_this);
+        _this.revertCurrentDocument(_this);
       }
 
       DG.AlertPane.warn({
@@ -781,6 +839,58 @@ DG.appController = SC.Object.create((function () // closure
         ],
         localize: YES
       });
+    },
+
+    revertCurrentDocument: function(iReceiver) {
+      var currentDocument = DG.currDocumentController();
+
+      if (!currentDocument.get('canBeReverted')) {
+        DG.log('Revert request on current document, but document cannot be reverted');
+        return;
+      }
+
+      DG.authorizationController.get('storageInterface').revert({
+        id:currentDocument.get('externalDocumentId')
+      }).then(
+        function(body) {
+          iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
+        },
+        function(errorCode) {
+          iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
+        }
+      );
+    },
+
+    deleteDocument: function(iDocumentId) {
+      this.doDeleteDocument(iDocumentId, this);
+    },
+
+    /**
+     Deletes the specified document object to the server.
+
+     @param    iDocumentId       The ID of the document object
+     @param    iReceiver         The receiver object whose receivedDeleteDocumentResponse()
+     method will be called when the response from the server
+     is received. The called method should check for errors
+     and perform any other appropriate tasks upon completion.
+     */
+    doDeleteDocument: function(iDocumentId, iReceiver) {
+      DG.authorizationController.get('storageInterface').deleteDoc({id: iDocumentId}).then(
+        function(body) {
+          iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
+        },
+        function(errorCode) {
+          iReceiver.receivedDeleteDocumentFailure.call(iReceiver, errorCode);
+        }
+      );
+    },
+
+    receivedDeleteDocumentSuccess: function(body) {
+      // We don't need to do anything
+    },
+
+    receivedDeleteDocumentFailure: function(errorCode) {
+      DG.appController.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
     },
 
     /**
@@ -964,7 +1074,7 @@ DG.appController = SC.Object.create((function () // closure
      Handler for the Export JSON Document... menu command.
      */
     exportDocument: function () {
-      DG.currDocumentController().exportDocument(function(docArchive) {
+      this.documentArchiver.exportDocument(function(docArchive) {
         var docJson,
         tDialog = null,
         onOK = function () {

@@ -173,29 +173,19 @@ DG.CaseTableController = DG.ComponentController.extend(
       }.observes('dataContext'),
 
       getCaseCountMessage: function () {
-        var dataContext = this.get('dataContext'),
-          parentCollection, childCollection, parentCount, childCount,
-          tStatusMessage = "";
-        if (dataContext) {
-          parentCollection = this.getPath('dataContext.parentCollection');
-          childCollection = this.getPath('dataContext.childCollection');
-          parentCount = parentCollection? parentCollection.getCaseCount(): 0;
-          childCount = childCollection? childCollection.getCaseCount(): 0;
-          if (parentCollection) {
-            tStatusMessage = dataContext.getCaseCountString(parentCollection, parentCount);
-            if (childCollection) {
-              tStatusMessage += '/';
-            }
-          }
-          if (childCollection) {
-            tStatusMessage += dataContext.getCaseCountString(childCollection,
-              childCount);
-          }
-          if (SC.empty(tStatusMessage)) {
-            DG.logWarn('No status message for case table: no collections');
-          }
-        } else {
-          DG.logWarn('No status message for case table: no context');
+        var dataContext = this.get('dataContext');
+        var collectionRecords = dataContext.get('collections');
+        var messages = [];
+        var tStatusMessage = "";
+
+        collectionRecords.forEach(function (collectionRecord) {
+          var collectionClient = dataContext.getCollectionByName(collectionRecord.get('name'));
+          var message = dataContext.getCaseCountString(collectionClient, collectionClient.getCaseCount() || 0);
+          messages.push(message);
+        });
+        tStatusMessage = messages.join('/');
+        if (SC.empty(tStatusMessage)) {
+          DG.logWarn('No status message for case table: no collections');
         }
 
         //DG.logInfo("UpdateStatus: "  + tStatusMessage);
@@ -424,25 +414,19 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       gearMenuItems: function() {
         var tDataContext = this.get('dataContext'),
-            tChildCollection = tDataContext && tDataContext.get('childCollection'),
-            tChildCollectionName = tChildCollection && tChildCollection.get('name'),
-            tParentCollection = tDataContext && tDataContext.get('parentCollection'),
-            tParentCollectionName = tParentCollection && tParentCollection.get('name'),
+            collectionRecords = tDataContext.get('collections') || [],
             tSelection = tDataContext && tDataContext.getSelectedCases(),
             tDeleteIsEnabled = tSelection && tSelection.get('length'),
             tNewAttrMenuItemStringKey = 'DG.TableController.gearMenuItems.newAttribute',
             tItems = [];
-        if( !SC.empty( tParentCollectionName)) {
-          tItems.push({ title: tNewAttrMenuItemStringKey.loc( tParentCollectionName),
-                        target: this, itemAction: this.newParentAttribute });
-        }
-        if( !SC.empty( tChildCollectionName)) {
+        collectionRecords.forEach(function (collection) {
           tItems.push({
-            title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
+            title: tNewAttrMenuItemStringKey.loc( collection.name),
             target: this,
-            itemAction: this.newChildAttribute
+            args: [{collection: tDataContext.getCollectionByName(collection.name)}],
+            itemAction: this.newAttribute
           });
-        }
+        }.bind(this));
         tItems.push({
           title: 'DG.TableController.gearMenuItems.selectAll',
           localize: true,
@@ -525,22 +509,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
       },
 
-      // The following two functions pass the name of the DG.GameSpec property which specifies
-      // the collection to operate on to the newAttribute() method, which will pass it on to
-      // the new attribute dialog, which will hang on to it until we reference it in the
-      // applyNewAttribute() method.
-      newChildAttribute: function() {
-        var tDataContext = this.get('dataContext'),
-            tChildCollection = tDataContext && tDataContext.get('childCollection');
-        this.newAttribute({ collection: tChildCollection });
-      },
-
-      newParentAttribute: function() {
-        var tDataContext = this.get('dataContext'),
-            tParentCollection = tDataContext && tDataContext.get('parentCollection');
-        this.newAttribute({ collection: tParentCollection });
-      },
-
       /**
        * Method to create a new attribute with formula.
        * NOTE: this method will also replace the formula of an existing attribute of the same name (case sensitive)
@@ -549,10 +517,8 @@ DG.CaseTableController = DG.ComponentController.extend(
        * @param iDefaultAttrFormula {string} --(optional) default attribute formula string for the new attribute dialog
        */
       newAttribute: function( iProperties, iDefaultAttrName, iDefaultAttrFormula ) {
-        var tParentCollection = this.getPath('dataContext.parentCollection'),
-            tParentAttrNames = tParentCollection && tParentCollection.collection.getAttributeNames(),
-            tChildCollection = this.getPath('dataContext.childCollection'),
-            tChildAttrNames = tChildCollection && tChildCollection.collection.getAttributeNames(),
+        var tDataContext = this.get('dataContext'),
+            collectionRecords = tDataContext.get('collections'),
             tGlobalNames = DG.globalsController.getGlobalValueNames(),
             tOperandsMenu = [],
                             // Eventually, we will want some form of unique name generator
@@ -565,9 +531,11 @@ DG.CaseTableController = DG.ComponentController.extend(
             tOperandsMenu.push('--');
           tOperandsMenu = tOperandsMenu.concat( iNamesArray.sort());
         }
-        
-        appendArrayOfNamesToMenu( tParentAttrNames);
-        appendArrayOfNamesToMenu( tChildAttrNames);
+
+        collectionRecords.forEach(function (collectionRecord) {
+          var collectionContext = tDataContext.getCollectionByName(collectionRecord.name);
+          appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames());
+        });
         appendArrayOfNamesToMenu( tGlobalNames);
         appendArrayOfNamesToMenu([ 'e', 'π' ]);
 

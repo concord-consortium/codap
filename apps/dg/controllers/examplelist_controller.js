@@ -40,10 +40,18 @@ DG.ExampleListController = SC.ArrayController.extend(
     if( !SC.empty( loadingMessage))
       this.addObject({ name: loadingMessage, description: '', location: '' });
 
-    DG.authorizationController.exampleList( this);
+    this.exampleList( this);
   },
 
-  receivedExampleListResponse: function( iResponse) {
+    exampleList: function(iReceiver) {
+      var url = 'DG.AppController.exampleList.ExampleListURL'.loc();
+
+      SC.Request.getUrl( url )
+        .notify(iReceiver, 'receivedExampleListResponse')
+        .send();
+    },
+
+    receivedExampleListResponse: function( iResponse) {
     //clear the loading message
     this.set('content', []);
     if (SC.ok(iResponse)) {

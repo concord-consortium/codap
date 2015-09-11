@@ -251,162 +251,6 @@ return {
   },
 
   /**
-    Saves the specified document object to the server.
-
-    @param    iDocumentId       The ID of the document object
-    @param    iDocumentArchive  The document object to be archived. This should be
-                                a JavaScript object suitable for JSON-encoding.
-    @param    iReceiver         The receiver object whose receivedSaveDocumentResponse()
-                                method will be called when the response from the server
-                                is received. The called method should check for errors
-                                and perform any other appropriate tasks upon completion.
-   */
-  saveDocument: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-    return this.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
-      function(body) {
-        return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
-      },
-      function(errorCode) {
-        return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
-      }
-    );
-  },
-
-  saveExternalDataContext: function(contextModel, iDocumentId, iDocumentArchive, iReceiver, isCopying, isDifferential) {
-    var opts = {content: iDocumentArchive},
-        externalDocumentId = contextModel.get('externalDocumentId'),
-        parentDocumentId = DG.currDocumentController().get('externalDocumentId');
-
-    if (!isCopying && !SC.none(externalDocumentId)) {
-      opts.id = externalDocumentId;
-      if (isDifferential) {
-        opts.differential = true;
-      }
-    } else {
-      opts.name = '%@-context-%@'.fmt(iDocumentId, SC.guidFor(contextModel));
-    }
-
-    if (!SC.none(parentDocumentId)) {
-      opts.params = {parentDocumentId: parentDocumentId};
-    }
-
-    return this.get('storageInterface').save(opts).then(
-      function(body) {
-        return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
-      },
-      function(errorCode) {
-        return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
-      }
-    );
-  },
-
-  /**
-    Deletes the specified document object to the server.
-
-    @param    iDocumentId       The ID of the document object
-    @param    iReceiver         The receiver object whose receivedDeleteDocumentResponse()
-                                method will be called when the response from the server
-                                is received. The called method should check for errors
-                                and perform any other appropriate tasks upon completion.
-   */
-  deleteDocument: function(iDocumentId, iReceiver) {
-    this.get('storageInterface').deleteDoc({id: iDocumentId}).then(
-      function(body) {
-        iReceiver.receivedDeleteDocumentSuccess.call(iReceiver, body);
-      },
-      function(errorCode) {
-        iReceiver.receivedDeleteDocumentFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  documentList: function(iReceiver) {
-    this.get('storageInterface').list().then(
-      function(body) {
-        iReceiver.receivedDocumentListSuccess.call(iReceiver, body);
-      },
-      function(errorCode) {
-        iReceiver.receivedDocumentListFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  exampleList: function(iReceiver) {
-    var url = 'https://codap-resources.concord.org/examples/index.json';
-
-    SC.Request.getUrl( url )
-      .notify(iReceiver, 'receivedExampleListResponse')
-      .send();
-  },
-
-  openDocument: function(iDocumentId, iReceiver) {
-    this.get('storageInterface').open({id: iDocumentId}).then(
-      function(body) {
-        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
-      },
-      function(errorCode) {
-        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  openDocumentByName: function(iDocumentName, iDocumentOwner, iReceiver) {
-    this.get('storageInterface').open({name: iDocumentName, owner: iDocumentOwner}).then(
-      function(body) {
-        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, false);
-      },
-      function(errorCode) {
-        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  loadExternalDocuments: function(iDocumentIds) {
-    var promises = [], i, len;
-
-    var sendRequest = function(id) {
-      return this.get('storageInterface').open({id: id}).then(
-        function(body) {
-          DG.ExternalDocumentCache.cache(id, body);
-        },
-        function(errorCode) {
-          DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
-        }
-      );
-    }.bind(this);
-
-    for (i = 0, len = iDocumentIds.length; i < len; i++) {
-      promises.push(sendRequest(iDocumentIds[i]));
-    }
-
-    return promises;
-  },
-
-  revertCurrentDocument: function(iReceiver) {
-    if (!DG.currDocumentController().get('canBeReverted')) { return; }
-
-    this.get('storageInterface').revert({id:DG.currDocumentController().get('externalDocumentId')}).then(
-      function(body) {
-        iReceiver.receivedOpenDocumentSuccess.call(iReceiver, body, true);
-      },
-      function(errorCode) {
-        iReceiver.receivedOpenDocumentFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  renameDocument: function(iOriginalName, iNewName, iReceiver) {
-    this.get('storageInterface').rename({id: DG.currDocumentController().get('externalDocumentId'), newName: iNewName}).then(
-      function(body) {
-        iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
-      },
-      function(errorCode) {
-        iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
-      }
-    );
-  },
-
-  /**
     Sends a request to expire the session connected the session
     token in the database.
 
@@ -628,7 +472,7 @@ return {
         DG.currDocumentController().closeDocument();
 
         // Make a data interactive iFrame using the given URL
-        newDocument = archiver.importURLIntoDocument(iURL);
+        newDocument = archiver.createNewDocumentWithDataInteractiveURL(iURL);
 
         DG.currDocumentController().setDocument(newDocument);
       }
@@ -641,11 +485,10 @@ return {
     else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-    } else if ( !SC.empty( DG.startingDataInteractive)) {
+    } else if ( !SC.empty( DG.get('startingDataInteractive'))) {
       openDataInteractive(DG.get('startingDataInteractive'));
-    } else {
-      DG.gameSelectionController.setDefaultGame();
-      DG.mainPage.addGameIfNotPresent();
+    } else if ( !SC.empty( DG.startingDocUrl)) {
+      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
     }
     if (SC.browser.name === SC.BROWSER.firefox) {
       // BZ506-508 Refer to a Firefox-only bug in which the app initially appears

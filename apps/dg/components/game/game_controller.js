@@ -1186,7 +1186,7 @@ DG.GameController = DG.ComponentController.extend(
         // If it wasn't written out with the document, look for one
         // associated with a game of the correct name, or for the
         // first context as a last resort.
-        DG.DataContext.forEachContextInMap(iDocumentID, function (iContextID, iContext) {
+        DG.currDocumentController().contexts.forEach(function (iContext) {
             // Look for a context with matching game name.
             // Note that at the moment, 'gameName' is a computed
             // property which relies on the 'gameSpec' property
