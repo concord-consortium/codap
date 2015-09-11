@@ -262,6 +262,45 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @returns {DG.Case}
      */
     createCase: function (iProperties) {
+      // derives a composed parentID a dotted concatenation of ancestor ids
+      function composeData(myCase) {
+        var parent = myCase.parent;
+        if (!SC.none(parent)) {
+          return $.extend({}, composeData(parent), myCase._valuesMap);
+        } else {
+          return myCase._valuesMap;
+        }
+      }
+      function composeID(myCase) {
+        if (!SC.none(myCase)) {
+          var composedID = composeID(myCase.parent);
+          return composedID
+              ? composedID + '.' + myCase.id
+              : String(myCase.id);
+        }
+      }
+      function updateDataSet(dataSet, myCase) {
+        var composedParentID = composeID(myCase.parent);
+        var dataItem;
+        // if we have no parents, we add the row directly
+        if (SC.none(composedParentID)) {
+          dataSet.addDataItem(myCase._valuesMap, String(myCase.id));
+        } else {
+          // if we have a parent we try to get its partial record directly from
+          // the data set. We are going to update it and amend the id.
+          dataItem = dataSet.getDataItemByID(composedParentID);
+          if (!SC.none(dataItem)) {
+            dataItem.id = composedParentID + '.' + myCase.id;
+            dataItem.updateData(myCase._valuesMap);
+          } else {
+            // We are a new case based off an existing parent case so we compose
+            // the data from the ancestor cases and add our data. Our ID is composed
+            // from our id and the parent ID.
+            dataSet.addDataItem(composeData(myCase), composedParentID + '.' + myCase.id);
+          }
+        }
+
+      }
       iProperties = iProperties || {};
       // Relate it to its parent collection
       iProperties.collection = this;
@@ -273,6 +312,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       } else {
         this.insertCase(newCase, iProperties.index);
       }
+
+      updateDataSet(this.context.dataSet, newCase);
 
       return newCase;
     },

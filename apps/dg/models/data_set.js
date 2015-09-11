@@ -59,18 +59,31 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     data: null,
 
+    updateData: function (dataMap) {
+      DG.ObjectMap.forEach(dataMap, function(key, value) {
+        var ix;
+        for (ix = 0; ix < attributes.length; ix += 1) {
+          if (String(attributes[ix].id) === key) {
+            this.data[ix] = value;
+          }
+        }
+      }.bind(this));
+    },
+
     toArchive: function () {
       // Todo
     }
   });
 
-  var dataItems = [];
   var attributes = [];
 
   return {
-    /*
-     * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
-     */
+
+   dataItems: [],
+
+  /*
+   * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
+   */
     dataContextRecord: null,
 
 
@@ -92,25 +105,43 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
-     * Adds a dataItem provided as an array of values or as a DG.DataItem.
+     * Adds a dataItem provided as an array of values, a map of attribute keys to values,
+     * or as a DG.DataItem.
      *
-     * @param {DG.DataItem|[*]} dataItem  An array of values indexed by attribute ids.
-     * @return {number|null} item index or null.
+     * @param {DG.DataItem|{}|[*]} dataItem  A data item, a map of attribute
+     * keys to values, or an array of values indexed in attribute order.
+     * @param {string} id (optional)
+     * @return {DG.DataItem} the item.
      */
-    addDataItem: function (dataItem) {
+    addDataItem: function (dataItem, id) {
+      function mapToArray(dataMap) {
+        var ar = [];
+        DG.ObjectMap.forEach(dataMap, function(key, value) {
+          var ix;
+          for (ix = 0; ix < attributes.length; ix += 1) {
+            if (String(attributes[ix].id) === key) {
+              ar[ix] = value;
+            }
+          }
+        });
+        return ar;
+      }
       var di;
       var ix;
       if (dataItem.constructor === DG.DataItem) {
         di = dataItem;
-      } if (Array.isArray(dataItem)) {
+      } else if (Array.isArray(dataItem)) {
         di = DG.DataItem.create({data:dataItem});
+      } else if (typeof dataItem === 'object') {
+        di = DG.DataItem.create({data:mapToArray(dataItem)});
       }
       if (di) {
-        ix = di.push(dataItem) - 1; // push returns new array length.
+        ix = this.dataItems.push(di) - 1; // push returns new array length.
                                     // We want the index of the last element
         di.itemIndex = ix;
+        di.id = id;
       }
-      return  ix;
+      return  di;
     },
 
     /**
@@ -134,8 +165,8 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     undeleteDataItem: function (itemIndex) {
       var item;
-      if (itemIndex >= 0 && itemIndex < dataItems.length) {
-        item = dataItems[itemIndex];
+      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
+        item = this.dataItems[itemIndex];
         item.deleted = false;
       }
       return item;
@@ -146,9 +177,9 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {number} Count of dataItems retrieved.
      */
     cleanDeletedDataItems: function () {
-      dataItems.forEach(function(item, ix) {
+      this.dataItems.forEach(function(item, ix) {
         if (item.deleted) {
-          delete dataItems[ix];
+          delete this.dataItems[ix];
         }
       });
     },
@@ -163,8 +194,8 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     value: function(itemIndex, attributeID, value) {
       var item, ret;
-      if (itemIndex >= 0 && itemIndex < dataItems.length) {
-        item = dataItems[itemIndex];
+      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
+        item = this.dataItems[itemIndex];
         if (item && !item.deleted) {
           if (value) {
             item[attributeID] = value;
@@ -180,15 +211,17 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     getDataItem: function (itemIndex) {
       var item;
-      if (itemIndex >= 0 && itemIndex < dataItems.length) {
-        item = dataItems[itemIndex];
+      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
+        item = this.dataItems[itemIndex];
         if (!item.deleted) {
           return item;
         }
       }
+    },
+
+    getDataItemByID: function (itemID) {
+      return this.dataItems.find(function(item) { return item.id === itemID; });
     }
-
-
 
 
   };
