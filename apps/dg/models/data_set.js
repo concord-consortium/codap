@@ -29,63 +29,18 @@
 
 DG.DataSet = SC.Object.extend((function() // closure
 /** @scope DG.DataSet.prototype */ {
-  DG.DataItem = SC.Object.extend({
-    /*
-     * A 'given' ID for the DataItem. Items are also identified by their
-     * index in the data set.
-     * @property {string}
-     */
-    id: null,
-
-    /*
-     * The internally assigned row index of this DataItem.
-     * @property {number}
-     */
-    itemIndex: null,
-
-    /*
-     * Identifies the dataSet to which this DataItem belongs.
-     * @property {number}
-     */
-    dataSetID: null,
-    /*
-     * Whether this item has been deleted.
-     * @property {boolean}
-     */
-    deleted: false,
-    /*
-     * A compact array of values, indexed by the data set's attribute map.
-     * @property {[*]}
-     */
-    data: null,
-
-    updateData: function (dataMap) {
-      DG.ObjectMap.forEach(dataMap, function(key, value) {
-        var ix;
-        for (ix = 0; ix < attributes.length; ix += 1) {
-          if (String(attributes[ix].id) === key) {
-            this.data[ix] = value;
-          }
-        }
-      }.bind(this));
-    },
-
-    toArchive: function () {
-      // Todo
-    }
-  });
-
-  var attributes = [];
 
   return {
 
-   dataItems: [],
+    dataItems: [],
 
-  /*
-   * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
-   */
+    /*
+     * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
+     */
     dataContextRecord: null,
 
+
+    attributes: [],
 
     /**
      * Adds attributes. Ideally this is an initialization step, but may be called
@@ -96,12 +51,12 @@ DG.DataSet = SC.Object.extend((function() // closure
       var attrs = Array.isArray(newAttributes)? newAttributes : [newAttributes];
       attrs.forEach(function (attr) {
         if (attr.constructor === DG.Attribute) {
-          attributes.push(attr);
+          this.attributes.push(attr);
         } else {
           DG.logWarn('Attempt to add non-attribute to Data Set for Context: ' +
               this.dataContextRecord.id);
         }
-      });
+      }.bind(this));
     },
 
     /**
@@ -114,26 +69,26 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {DG.DataItem} the item.
      */
     addDataItem: function (dataItem, id) {
-      function mapToArray(dataMap) {
+      var mapToArray = function (dataMap) {
         var ar = [];
         DG.ObjectMap.forEach(dataMap, function(key, value) {
           var ix;
-          for (ix = 0; ix < attributes.length; ix += 1) {
-            if (String(attributes[ix].id) === key) {
+          for (ix = 0; ix < this.attributes.length; ix += 1) {
+            if (String(this.attributes[ix].id) === key) {
               ar[ix] = value;
             }
           }
-        });
+        }.bind(this));
         return ar;
-      }
+      }.bind(this);
       var di;
       var ix;
       if (dataItem.constructor === DG.DataItem) {
         di = dataItem;
       } else if (Array.isArray(dataItem)) {
-        di = DG.DataItem.create({data:dataItem});
+        di = DG.DataItem.create({dataSet: this, data:dataItem});
       } else if (typeof dataItem === 'object') {
-        di = DG.DataItem.create({data:mapToArray(dataItem)});
+        di = DG.DataItem.create({dataSet: this, data:mapToArray(dataItem)});
       }
       if (di) {
         ix = this.dataItems.push(di) - 1; // push returns new array length.
@@ -226,3 +181,50 @@ DG.DataSet = SC.Object.extend((function() // closure
 
   };
 })());
+
+DG.DataItem = SC.Object.extend({
+  /*
+   * A 'given' ID for the DataItem. Items are also identified by their
+   * index in the data set.
+   * @property {string}
+   */
+  id: null,
+
+  /*
+   * The internally assigned row index of this DataItem.
+   * @property {number}
+   */
+  itemIndex: null,
+
+  /*
+   * Identifies the dataSet to which this DataItem belongs.
+   * @property {DG.DataSet}
+   */
+  dataSet: null,
+  /*
+   * Whether this item has been deleted.
+   * @property {boolean}
+   */
+  deleted: false,
+  /*
+   * A compact array of values, indexed by the data set's attribute map.
+   * @property {[*]}
+   */
+  data: null,
+
+  updateData: function (dataMap) {
+    DG.ObjectMap.forEach(dataMap, function(key, value) {
+      var ix;
+      for (ix = 0; ix < this.dataSet.attributes.length; ix += 1) {
+        if (String(this.dataSet.attributes[ix].id) === key) {
+          this.data[ix] = value;
+        }
+      }
+    }.bind(this));
+  },
+
+  toArchive: function () {
+    // Todo
+  }
+});
+
