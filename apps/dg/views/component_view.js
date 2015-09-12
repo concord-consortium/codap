@@ -256,7 +256,7 @@ DG.ComponentView = SC.View.extend(
             versionView: SC.LabelView.design({
               textAlign: SC.ALIGN_RIGHT,
               classNames: ['dg-version-view'],
-              layout: {right: 15},
+              layout: {right: 2 * kTitleBarHeight, top: 5 },
               value: ''
             }),
             minimize: DG.TitleBarMinimizeButton.design({
@@ -454,8 +454,11 @@ DG.ComponentView = SC.View.extend(
 
           var tSavedHeight = this.get('savedHeight');
           if (this.get('isMinimized')) {
-            this.animate({height: tSavedHeight},
-                {duration: 0.4, timing: 'ease-in-out'});
+            this.animate({height: tSavedHeight - 1},
+                {duration: 0.4, timing: 'ease-in-out'},
+                function () {
+                  this.adjust('height', tSavedHeight);
+                }.bind(this));
             setBorderVisibility(true);
             this.set('savedHeight', null);
           }

@@ -208,10 +208,12 @@ DG.ContainerView = SC.View.extend(
 
       /* bringToFront - The given child view will be placed at the end of the list, thus
         rendered last and appearing in front of all others.
-        Note: For the flash view this has the very undesirable effect of causing the 
-          Flash object to be reloaded!
+        Note: For the data interactive this has the very undesirable effect of causing the
+          it to be reloaded!
       */
       bringToFront: function( iChildView) {
+        if( iChildView.get('contentView').constructor === DG.GameView)
+          return;
         var tSaved = iChildView.layoutDidChange;  // save this for after changes
         iChildView.layoutDidChange = null;  // prevent specious notification of resizing
         this.removeChild( iChildView);

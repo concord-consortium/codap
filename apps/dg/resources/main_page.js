@@ -145,8 +145,8 @@ DG.mainPage = SC.Page.design((function() {
         }),
 
         helpButton: DG.IconButton.design( {
-          layout: { width: 15 },
-          flowSpacing: { left: 5, top: 7, right: 5 },
+          layout: { width: 18 },
+          flowSpacing: { left: 5, top: 2, right: 5 },
           iconName: static_url('images/icon-help.svg'),
           depressedIconName: static_url('images/icon-help.svg'),
           target: 'DG.appController',
