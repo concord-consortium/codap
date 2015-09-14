@@ -77,9 +77,11 @@ DG.DocumentArchiver = SC.Object.extend(
         parts.forEach(function (documentPart) {
           visit('doc', documentPart, function (key, value) {
             if (key === 'guid') {
+              // store guids in symbol table
               symbols.push(Number(value));
               return true;
             } else if (key === '_links_') {
+              // store links as references
               visit(key, value, function (k, v) {
                 if (k === 'id') {
                   references.push(Number(v));
@@ -87,13 +89,19 @@ DG.DocumentArchiver = SC.Object.extend(
                 return true;
               });
               return false;
-            } else if (key === 'contextStorage') { // context storage is private to data interactive
+            } else if (key === 'parent') {
+              // store parents as references
+              references.push(Number(value));
+              return true;
+            } else if (key === 'contextStorage') {
+            // context storage is private to data interactive
               return false;
             }
 
           });
         });
         references.forEach(function (ref) {
+          // verify link is resolved
           if (symbols.indexOf(Number(ref)) < 0) {
             errors.push('DG.AppController.validateDocument.unresolvedID'.loc(ref));
           }
