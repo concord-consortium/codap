@@ -244,6 +244,27 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     /**
+      Gets the attribute for the specified axis.
+      @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
+     */
+    getAttributeForAxis: function(iOrientation) {
+      var tDescKey;
+      switch( iOrientation) {
+        case 'horizontal':
+          tDescKey = 'xAttributeDescription';
+          break;
+        case 'vertical':
+          tDescKey = 'yAttributeDescription';
+          break;
+        case 'vertical2':
+          tDescKey = 'y2AttributeDescription';
+          break;
+      }
+
+      return this.getPath('dataConfiguration.' + tDescKey + '.attribute');
+    },
+
+    /**
       Sets the attribute for the specified axis.
       @param  {DG.DataContext}      iDataContext -- The data context for this graph
       @param  {Object}              iAttrRefs --

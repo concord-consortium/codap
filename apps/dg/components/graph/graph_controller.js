@@ -199,21 +199,21 @@ DG.GraphController = DG.DataDisplayController.extend(
       axisViewDidAcceptDrop: function (iAxis, iKey, iDragData) {
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
-        var _beforeData, _afterData;
+
+        var tDataContext = this.get('dataContext'),
+            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
+            prevAttribute;
+
         DG.UndoHistory.execute(DG.Command.create({
           name: 'axis.attributeChange',
           undoString: 'DG.Undo.axisAttributeChange',
           redoString: 'DG.Redo.axisAttributeChange',
           execute: function() {
-            _beforeData = this.createComponentStorage();
-
             this.handlePossibleForeignDataContext( iDragData);
-
-            var tDataContext = this.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
             iAxis.dragData = null;
 
+            prevAttribute = this.get('graphModel').getAttributeForAxis(iAxis.get('orientation'));
             this.get('graphModel').changeAttributeForAxis(
                 tDataContext,
                 {
@@ -224,14 +224,18 @@ DG.GraphController = DG.DataDisplayController.extend(
             DG.dirtyCurrentDocument();
           }.bind(this),
           undo: function() {
-            _afterData = this.createComponentStorage();
-            this.restoreComponentStorage(_beforeData);
+            this.get('graphModel').changeAttributeForAxis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [prevAttribute]
+                },
+                iAxis.get('orientation'));
             DG.dirtyCurrentDocument();
           }.bind(this),
           redo: function() {
-            this.restoreComponentStorage(_afterData);
-            DG.dirtyCurrentDocument();
-          }.bind(this)
+            this.execute();
+          }
         }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
