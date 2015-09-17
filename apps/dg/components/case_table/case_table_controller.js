@@ -710,17 +710,42 @@ DG.CaseTableController = DG.ComponentController.extend(
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
             tCollectionRecord = tAttrRef && tAttrRef.collection,
-            tAttrName = tAttrRef && tAttrRef.attribute.get('name');
-      
+            tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
+            tAttrFormula = tAttrRef && tAttrRef.attribute.get('formula');
+
         function doDeleteAttribute() {
-          var change = {
-                          operation: 'deleteAttributes',
-                          collection: tCollectionRecord,
-                          attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-                        };
-          tDataContext.applyChange( change);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: "caseTable.deleteAttribute",
+            undoString: 'DG.Undo.caseTable.deleteAttribute',
+            redoString: 'DG.Redo.caseTable.deleteAttribute',
+            execute: function() {
+              var change = {
+                              operation: 'deleteAttributes',
+                              collection: tCollectionRecord,
+                              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+                            };
+              tDataContext.applyChange( change);
+            },
+            undo: function() {
+              var tChange = {
+                              operation: 'createAttributes',
+                              collection: tCollectionRecord,
+                              attrPropsArray: [{ name: tAttrName, formula: tAttrFormula }]
+                            };
+              tDataContext.applyChange( tChange);
+            },
+            redo: function() {
+              var tRef = tDataContext.getAttrRefByName( tAttrName),
+                  tChange = {
+                              operation: 'deleteAttributes',
+                              collection: tCollectionRecord,
+                              attrs: [{ id: tRef.attribute.get('id'), attribute: tRef.attribute }]
+                            };
+              tDataContext.applyChange( tChange);
+            }
+          }));
         }
-      
+
         DG.AlertPane.warn({
           message: 'DG.TableController.deleteAttribute.confirmMessage'.loc( tAttrName),
           description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
