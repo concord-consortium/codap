@@ -557,22 +557,57 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       applyNewAttribute: function() {
         var tContext = this.get('dataContext'),
-            tAttributeName = this.newAttributeDialog.get('attributeName');
+            tAttributeName = this.newAttributeDialog.get('attributeName'),
+            tRef = tContext.getAttrRefByName( tAttributeName),
+            tAttrFormula = tRef && tRef.attribute.get('formula'),
+            isNew = this.newAttributeDialog.get('attrNameIsEnabled');
         // Should also test for attribute name validity as well
         if( !SC.empty( tAttributeName)) {
           // Retrieve the name of the target collection that was passed by the client originally.
           var tCollection = this.newAttributeDialog.get('collection'),
-              tFormula = this.newAttributeDialog.get('formula'),
-              tChange = {
+              tFormula = this.newAttributeDialog.get('formula');
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: isNew ? "caseTable.createAttribute" : "caseTable.editAttributeFormula",
+            undoString: isNew ? 'DG.Undo.caseTable.createAttribute' : 'DG.Undo.caseTable.editAttributeFormula',
+            redoString: isNew ? 'DG.Redo.caseTable.createAttribute' : 'DG.Redo.caseTable.editAttributeFormula',
+            execute: function() {
+              var tChange = {
                           operation: 'createAttributes',
                           collection: tCollection,
                           attrPropsArray: [{ name: tAttributeName, formula: tFormula }]
                         },
+                  tResult = tContext && tContext.applyChange( tChange);
+              if( tResult.success) {
+                var action = isNew ? "attributeCreate" : "attributeEditFormula";
+                DG.logUser("%@: { name: '%@', collection: '%@', formula: '%@' }",
+                            action, tAttributeName, tCollection.get('name'), tFormula);
+              }
+            },
+            undo: function() {
+              var tChange, tResult, action;
+              if (isNew) {
+                tRef = tContext.getAttrRefByName( tAttributeName);
+                tChange = {
+                            operation: 'deleteAttributes',
+                            collection: tCollection,
+                            attrs: [{ id: tRef.attribute.get('id'), attribute: tRef.attribute }]
+                          };
+              } else {
+                tChange = {
+                            operation: 'createAttributes',
+                            collection: tCollection,
+                            attrPropsArray: [{ name: tAttributeName, formula: tAttrFormula }]
+                          };
+              }
               tResult = tContext && tContext.applyChange( tChange);
-          if( tResult.success) {
-            DG.logUser("attributeCreate: { name: '%@', collection: '%@', formula: '%@' }",
-                        tAttributeName, tCollection.get('name'), tFormula);
-          }
+              if( tResult.success) {
+                action = isNew ? "attributeCreate" : "attributeEditFormula";
+                DG.logUser("%@ (undo): { name: '%@', collection: '%@', formula: '%@' }",
+                            action, tAttributeName, tCollection.get('name'), tAttrFormula);
+              }
+            }
+          }));
         }
         else {
           // Alert if user doesn't enter an attribute name
