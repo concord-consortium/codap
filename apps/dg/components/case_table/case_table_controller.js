@@ -608,14 +608,31 @@ DG.CaseTableController = DG.ComponentController.extend(
             tDialog;
         if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
           return;
-        
-        function doRenameAttribute( iAttrID, iAttrName) {
-          var change = {
-                          operation: 'updateAttributes',
-                          collection: tCollectionRecord,
-                          attrPropsArray: [{ id: iAttrID, name: iAttrName }]
-                        };
-          tDataContext.applyChange( change);
+
+        function doRenameAttribute( iAttrID, iAttrName, iOldAttrName) {
+          DG.UndoHistory.execute(DG.Command.create({
+            name: "caseTable.renameAttribute",
+            undoString: 'DG.Undo.caseTable.renameAttribute',
+            redoString: 'DG.Redo.caseTable.renameAttribute',
+            execute: function() {
+              tAttrRef = tDataContext.getAttrRefByName( iOldAttrName);
+              var change = {
+                              operation: 'updateAttributes',
+                              collection: tCollectionRecord,
+                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iAttrName }]
+                            };
+              tDataContext.applyChange( change);
+            },
+            undo: function() {
+              tAttrRef = tDataContext.getAttrRefByName( iAttrName);
+              var change = {
+                              operation: 'updateAttributes',
+                              collection: tCollectionRecord,
+                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iOldAttrName }]
+                            };
+              tDataContext.applyChange( change);
+            }
+          }));
         }
 
         function handleRenameAttributeOK() {
@@ -630,7 +647,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           if( newAttrName && !tExistingAttr) {
             tDialog.close();
-            doRenameAttribute( iAttrID, newAttrName);
+            doRenameAttribute( iAttrID, newAttrName, tAttrName);
           }
           else if( tExistingAttr) {
             DG.AlertPane.info({
