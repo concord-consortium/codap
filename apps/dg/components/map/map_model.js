@@ -231,12 +231,30 @@ DG.MapModel = DG.DataDisplayModel.extend(
       }.bind(this);
 
       var hideShowPoints = function() {
-        var tPointsVisible = this.get('pointsShouldBeVisible');
-        if( tPointsVisible !== false)
-          tPointsVisible = true;
-        this.set('pointsShouldBeVisible', !tPointsVisible);
-        DG.dirtyCurrentDocument();
-        DG.logUser('mapAction: {mapAction: %@}', (this.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
+        var mapModel = this;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.togglePoints",
+          undoString: 'DG.Undo.map.showPoints',
+          redoString: 'DG.Redo.map.showPoints',
+          _firstTime: true,
+          execute: function() {
+            var tPointsVisible = mapModel.get('pointsShouldBeVisible');
+            if( tPointsVisible !== false)
+              tPointsVisible = true;
+            mapModel.set('pointsShouldBeVisible', !tPointsVisible);
+            DG.dirtyCurrentDocument();
+            DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
+            if (this._firstTime) {
+              this._firstTime = false;
+              this.set('name', !tPointsVisible ? 'map.showPoints' : 'map.hidePoints');
+              this.set('undoString', !tPointsVisible ? 'DG.Undo.map.showPoints' : 'DG.Undo.map.hidePoints');
+              this.set('redoString', !tPointsVisible ? 'DG.Redo.map.showPoints' : 'DG.Redo.map.hidePoints');
+            }
+          },
+          undo: function() {
+            this.execute();
+          }
+        }));
       }.bind(this);
 
       var hideShowLines = function() {
