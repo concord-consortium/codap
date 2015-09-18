@@ -258,11 +258,29 @@ DG.MapModel = DG.DataDisplayModel.extend(
       }.bind(this);
 
       var hideShowLines = function() {
-        var tLinesVisible = this.get('linesShouldBeVisible');
-        this.set('linesShouldBeVisible', !tLinesVisible);
-        this.setPath('connectingLineModel.isVisible', !tLinesVisible);
-        DG.dirtyCurrentDocument();
-        DG.logUser('mapAction: {mapAction: %@}', (this.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
+        var mapModel = this;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.toggleLines",
+          undoString: 'DG.Undo.map.showLines',
+          redoString: 'DG.Redo.map.showLines',
+          _firstTime: true,
+          execute: function() {
+            var tLinesVisible = mapModel.get('linesShouldBeVisible');
+            mapModel.set('linesShouldBeVisible', !tLinesVisible);
+            mapModel.setPath('connectingLineModel.isVisible', !tLinesVisible);
+            DG.dirtyCurrentDocument();
+            DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
+            if (this._firstTime) {
+              this._firstTime = false;
+              this.set('name', !tLinesVisible ? 'map.showLines' : 'map.hideLines');
+              this.set('undoString', !tLinesVisible ? 'DG.Undo.map.showLines' : 'DG.Undo.map.hideLines');
+              this.set('redoString', !tLinesVisible ? 'DG.Redo.map.showLines' : 'DG.Redo.map.hideLines');
+            }
+          },
+          undo: function() {
+            this.execute();
+          }
+        }));
       }.bind(this);
 
       if( this.get('hasLatLongAttributes')) {
