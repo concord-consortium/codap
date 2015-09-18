@@ -85,6 +85,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       selection: null,
       selectionBinding: '*model.casesController.selection',
 
+      _undoableChangeInProgress: false,
+
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
@@ -303,8 +305,25 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         if (this.getPath('model.hasLatLongAttributes')) {
           tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
         }
-        if ( tBounds.isValid())
-          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+        if ( tBounds && tBounds.isValid()) {
+          var oldCenter = this.getPath('mapLayer.map').getCenter(),
+              oldZoom = this.getPath('mapLayer.map').getZoom();
+          DG.UndoHistory.execute(DG.Command.create({
+            name: "map.fitBounds",
+            undoString: 'DG.Undo.map.fitBounds',
+            redoString: 'DG.Redo.map.fitBounds',
+            execute: function() {
+              this._undoableChangeInProgress = true;
+              this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+              this.get('mapLayer').checkIdle();
+            }.bind(this),
+            undo: function() {
+              this._undoableChangeInProgress = true;
+              this.getPath('mapLayer.map').setView(oldCenter, oldZoom);
+              this.get('mapLayer').checkIdle();
+            }.bind(this)
+          }));
+        }
       },
 
       gridVisibilityChanged: function() {
@@ -379,7 +398,16 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tEventType = this.getPath('mapLayer.lastEventType');
         tModel.set('center', tCenter);
         tModel.set('zoom', tZoom);
-        DG.dirtyCurrentDocument();
+        if (this._undoableChangeInProgress) {
+          DG.UndoHistory.execute(DG.Command.create({
+            causedChange: false,
+            execute: function() {
+              DG.dirtyCurrentDocument();
+            }
+          }));
+        } else {
+          DG.dirtyCurrentDocument();
+        }
         switch( tEventType) {
           case 'zoomend':
           case 'dragstart':
@@ -392,6 +420,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       handleClick: function() {
         this.get('model').selectAll(false);
       }.observes('mapLayer.clickCount'),
+
+      handleIdle: function() {
+        this._undoableChangeInProgress = false;
+      }.observes('mapLayer.idleCount'),
 
       /**
        * Override the two mixin methods because the drop target view is mapPointView

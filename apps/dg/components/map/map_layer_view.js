@@ -63,6 +63,11 @@ DG.MapLayerView = SC.View.extend(
        */
       clickCount: 0,
 
+      /**
+       * Property that can be observed by parent view, counts times the map returns to idle
+       */
+      idleCount: 0,
+
       init: function () {
         sc_super();
       },
@@ -112,6 +117,17 @@ DG.MapLayerView = SC.View.extend(
         }
       },
 
+      _idleTimeout: null,
+      checkIdle: function (iEvent) {
+        if (this._idleTimeout) {
+          clearTimeout(this._idleTimeout);
+        }
+        this._idleTimeout = setTimeout(function() {
+          this._idleTimeout = null;
+          this.incrementProperty('idleCount');
+        }.bind(this), 500);
+      },
+
       backgroundChanged: function() {
         var tMap = this.get('map'),
             tNewLayerName = this.getPath('model.baseMapLayerName'),
@@ -140,7 +156,8 @@ DG.MapLayerView = SC.View.extend(
             .on('move', onDisplayChangeEvent)
             .on('zoomend', onDisplayChangeEvent)
             .on('moveend', onDisplayChangeEvent)
-            .on('click', onClick);
+            .on('click', onClick)
+            .on('dragend zoomend movend', function() { this.checkIdle(); }.bind(this));
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
       }.observes('model.baseMapLayerName')
