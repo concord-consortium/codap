@@ -36,7 +36,11 @@ DG.DocumentListController = SC.ArrayController.extend(
     sc_super();
     this.set('content', []);
 
-    this.documentList(this );
+    var loadingMessage = this.get('loadingMessage').loc();
+    if( !SC.empty( loadingMessage))
+      this.addObject({ name: loadingMessage, id: '' });
+
+    this.documentList( this);
   },
 
     documentList: function(iReceiver) {
@@ -51,21 +55,41 @@ DG.DocumentListController = SC.ArrayController.extend(
     },
 
   receivedDocumentListSuccess: function( serverText) {
+    //clear the loading message
     this.set('content', []);
 
-    serverText.forEach( function( iDoc) {
-                          if( iDoc.id && iDoc.name)
-                            this.addObject( { name: iDoc.name, id: iDoc.id });
-    }.bind(this));
+      var docList = [];
+      serverText.forEach( function( iDoc) {
+                            if( iDoc.id && iDoc.name)
+                              docList.push( { name: iDoc.name, id: iDoc.id });
+                          });
+      if (docList.length === 0) {
+        var noDocumentsMessage = this.get('noDocumentsMessage').loc();
+        if( !SC.empty( noDocumentsMessage)) {
+
+          this.addObject({ name: noDocumentsMessage, id: '' });
+        }
+      } else {
+        docList.sort( function( iItem1, iItem2) {
+                        var canonical1 = iItem1.name.toLowerCase(),
+                            canonical2 = iItem2.name.toLowerCase();
+                        // Sort case-insensitive first so we get A,a,B,b,C,c,...
+                        // rather than A,B,C,...,a,b,c,...
+                        return canonical1.localeCompare( canonical2) ||
+                                iItem1.name.localeCompare( iItem2.name);
+                      });
+        this.set('content', docList);
+      }
   },
 
   receivedDocumentListFailure: function( errorCode) {
+    //clear the loading message
     this.set('content', []);
 
     var messageKey = ('DG.DocumentListController.' + errorCode),
         message = messageKey.loc();
     if ( message === messageKey) {
-      //Error occurred most likely due to interruption of connection to server
+      //Error occured most likely due to interruption of connection to server
       message = this.get('noResponseMessage').loc();
     }
     this.addObject({ name: message, id: '' });
