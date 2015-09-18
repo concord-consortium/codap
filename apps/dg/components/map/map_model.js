@@ -205,10 +205,29 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tMenuItems = [];
 
       var hideShowGrid = function() {
-        var tGrid = this.get('gridModel');
-        tGrid.set('visible', !tGrid.get( 'visible'));
-        DG.dirtyCurrentDocument();
-        DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
+        var mapModel = this;
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.toggleGrid",
+          undoString: 'DG.Undo.map.showGrid',
+          redoString: 'DG.Redo.map.showGrid',
+          _firstTime: true,
+          execute: function() {
+            var tGrid = mapModel.get('gridModel');
+            tGrid.set('visible', !tGrid.get( 'visible'));
+            DG.dirtyCurrentDocument();
+            DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
+            if (this._firstTime) {
+              this._firstTime = false;
+              var visible = tGrid.get('visible');
+              this.set('name', visible ? 'map.showGrid' : 'map.hideGrid');
+              this.set('undoString', visible ? 'DG.Undo.map.showGrid' : 'DG.Undo.map.hideGrid');
+              this.set('redoString', visible ? 'DG.Redo.map.showGrid' : 'DG.Redo.map.hideGrid');
+            }
+          },
+          undo: function() {
+            this.execute();
+          }
+        }));
       }.bind(this);
 
       var hideShowPoints = function() {
