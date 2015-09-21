@@ -118,10 +118,13 @@ DG.MapLayerView = SC.View.extend(
       },
 
       _idleTimeout: null,
-      checkIdle: function (iEvent) {
+      _clearIdle: function (iEvent) {
         if (this._idleTimeout) {
           clearTimeout(this._idleTimeout);
         }
+      },
+      _setIdle: function (iEvent) {
+        this._clearIdle();
         this._idleTimeout = setTimeout(function() {
           this._idleTimeout = null;
           this.incrementProperty('idleCount');
@@ -157,7 +160,8 @@ DG.MapLayerView = SC.View.extend(
             .on('zoomend', onDisplayChangeEvent)
             .on('moveend', onDisplayChangeEvent)
             .on('click', onClick)
-            .on('dragend zoomend movend', function() { this.checkIdle(); }.bind(this));
+            .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
+            .on('dragend zoomend movend', function() { this._setIdle(); }.bind(this));
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
       }.observes('model.baseMapLayerName')

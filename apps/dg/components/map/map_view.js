@@ -85,7 +85,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       selection: null,
       selectionBinding: '*model.casesController.selection',
 
-      _undoableChangeInProgress: false,
+      _ignoreMapDisplayChange: false,
+      _mapDisplayChangeInProgress: false,
+      _mapDisplayChange: null,
 
       paper: function() {
         return this.getPath('mapPointView.paper');
@@ -306,23 +308,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
         }
         if ( tBounds && tBounds.isValid()) {
-          var oldCenter = this.getPath('mapLayer.map').getCenter(),
-              oldZoom = this.getPath('mapLayer.map').getZoom();
-          DG.UndoHistory.execute(DG.Command.create({
-            name: "map.fitBounds",
-            undoString: 'DG.Undo.map.fitBounds',
-            redoString: 'DG.Redo.map.fitBounds',
-            execute: function() {
-              this._undoableChangeInProgress = true;
-              this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
-              this.get('mapLayer').checkIdle();
-            }.bind(this),
-            undo: function() {
-              this._undoableChangeInProgress = true;
-              this.getPath('mapLayer.map').setView(oldCenter, oldZoom);
-              this.get('mapLayer').checkIdle();
-            }.bind(this)
-          }));
+          this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
         }
       },
 
@@ -390,24 +376,19 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.updateConnectingLine();
 
-        // Store the map's center and zoom in my model for save and restore
         var tMap = this.getPath('mapLayer.map'),
-            tModel = this.get('model'),
             tCenter = tMap.getCenter(),
             tZoom = tMap.getZoom(),
             tEventType = this.getPath('mapLayer.lastEventType');
-        tModel.set('center', tCenter);
-        tModel.set('zoom', tZoom);
-        if (this._undoableChangeInProgress) {
-          DG.UndoHistory.execute(DG.Command.create({
-            causedChange: false,
-            execute: function() {
-              DG.dirtyCurrentDocument();
-            }
-          }));
-        } else {
-          DG.dirtyCurrentDocument();
-        }
+
+
+        // Record the current values, which will be applied in handleIdle()
+        this._mapDisplayChangeInProgress = true;
+        this._mapDisplayChange = {
+          center: tCenter,
+          zoom: tZoom
+        };
+
         switch( tEventType) {
           case 'zoomend':
           case 'dragstart':
@@ -422,8 +403,68 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapLayer.clickCount'),
 
       handleIdle: function() {
-        this._undoableChangeInProgress = false;
+        var tModel = this.get('model'),
+            oldCenter = tModel.get('center'),
+            oldZoom = tModel.get('zoom');
+
+        if (this._ignoreMapDisplayChanges) {
+          this._ignoreMapDisplayChanges = false;
+          this._mapDisplayChange = null;
+          this._mapDisplayChangeInProgress = false;
+          return;
+        }
+
+        if (this._mapDisplayChange) {
+            var newCenter = this._mapDisplayChange.center,
+                newZoom = this._mapDisplayChange.zoom,
+                centerChanged = !newCenter.equals(oldCenter),
+                zoomChanged = newZoom !== oldZoom;
+
+          if (this._mapDisplayChangeInProgress && (centerChanged || zoomChanged)) {
+            var change = 'change';
+            if (centerChanged && zoomChanged) {
+              change = 'fitBounds';
+            } else if (centerChanged) {
+              change = 'pan';
+            } else {
+              change = 'zoom';
+            }
+            DG.UndoHistory.execute(DG.Command.create({
+              name: "map."+change,
+              undoString: 'DG.Undo.map.'+change,
+              redoString: 'DG.Redo.map.'+change,
+              execute: function() {
+                this.setPath('model.center', newCenter);
+                this.setPath('model.zoom', newZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this),
+              undo: function() {
+                // Tell the map to change, but also ignore any events until those changes are done...
+                var map = this.getPath('mapLayer.map');
+                this._ignoreMapDisplayChanges = true;
+                map.setView(oldCenter, oldZoom);
+                this.setPath('model.center', oldCenter);
+                this.setPath('model.zoom', oldZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this),
+              redo: function() {
+                // Tell the map to change, but also ignore any events until those changes are done...
+                var map = this.getPath('mapLayer.map');
+                this._ignoreMapDisplayChanges = true;
+                map.setView(newCenter, newZoom);
+                this.setPath('model.center', newCenter);
+                this.setPath('model.zoom', newZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this)
+            }));
+          }
+          this._mapDisplayChangeInProgress = false;
+        }
       }.observes('mapLayer.idleCount'),
+
+      _registerUndoCommand: function(newCenter, newZoom, oldCenter, oldZoom) {
+        console.log("Adding undo    - new: " + newCenter + "," + newZoom + "; old: " + oldCenter + "," + oldZoom);
+      },
 
       /**
        * Override the two mixin methods because the drop target view is mapPointView
