@@ -175,10 +175,30 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapPointView.isInMarqueeMode'),
 
       changeBaseMap: function() {
-        var tBackground = this.backgroundControl.get('value');
-        this.setPath('model.baseMapLayerName', tBackground);
-        DG.dirtyCurrentDocument();
-        DG.logUser('changeMapBackground: %@', tBackground);
+        var tBackground = this.backgroundControl.get('value'),
+            tOldBackground = this.getPath('model.baseMapLayerName');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.changeBaseMap",
+          undoString: 'DG.Undo.map.changeBaseMap',
+          redoString: 'DG.Redo.map.changeBaseMap',
+          execute: function() {
+            this.setPath('model.baseMapLayerName', tBackground);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground: %@', tBackground);
+          }.bind(this),
+          undo: function() {
+            this.setPath('model.baseMapLayerName', tOldBackground);
+            // this.setPath('backgroundControl.value', [tOldBackground]);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground (undo): %@', tOldBackground);
+          }.bind(this),
+          redo: function() {
+            this.setPath('model.baseMapLayerName', tBackground);
+            // this.setPath('backgroundControl.value', [tBackground]);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground (undo): %@', tBackground);
+          }.bind(this)
+        }));
       },
 
       changeGridSize: function() {
