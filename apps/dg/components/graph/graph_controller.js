@@ -200,43 +200,21 @@ DG.GraphController = DG.DataDisplayController.extend(
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
 
+        this.handlePossibleForeignDataContext( iDragData);
+
         var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData),
-            prevAttribute;
+            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
-        DG.UndoHistory.execute(DG.Command.create({
-          name: 'axis.attributeChange',
-          undoString: 'DG.Undo.axisAttributeChange',
-          redoString: 'DG.Redo.axisAttributeChange',
-          execute: function() {
-            this.handlePossibleForeignDataContext( iDragData);
+        iAxis.dragData = null;
 
-            iAxis.dragData = null;
-
-            prevAttribute = this.get('graphModel').getAttributeForAxis(iAxis.get('orientation'));
-            this.get('graphModel').changeAttributeForAxis(
-                tDataContext,
-                {
-                  collection: tCollectionClient,
-                  attributes: [iDragData.attribute]
-                },
-                iAxis.get('orientation'));
-            DG.dirtyCurrentDocument();
-          }.bind(this),
-          undo: function() {
-            this.get('graphModel').changeAttributeForAxis(
-                tDataContext,
-                {
-                  collection: tCollectionClient,
-                  attributes: [prevAttribute]
-                },
-                iAxis.get('orientation'));
-            DG.dirtyCurrentDocument();
-          }.bind(this),
-          redo: function() {
-            this.execute();
-          }
-        }));
+        this.get('graphModel').changeAttributeForAxis(
+          tDataContext,
+          {
+            collection: tCollectionClient,
+            attributes: [iDragData.attribute]
+          },
+          iAxis.get('orientation')
+        );
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
       /**
