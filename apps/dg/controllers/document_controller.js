@@ -753,7 +753,7 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addText: function( iParentView, iComponent) {
-      var tView, docController = this;
+      var tView, docController = this, textController = DG.TextComponentController.create();
 
       DG.UndoHistory.execute(DG.Command.create({
         name: "textComponent.create",
@@ -762,7 +762,7 @@ DG.DocumentController = SC.Object.extend(
         execute: function() {
           tView = docController.createComponentView(iComponent, {
                                 parentView: iParentView,
-                                controller: DG.TextComponentController.create(),
+                                controller: textController,
                                 componentClass: { type: 'DG.TextView', constructor: DG.TextView},
                                 contentProperties: { hint: "Type some notes here…" },
                                 defaultLayout: { width: 300, height: 100 },
