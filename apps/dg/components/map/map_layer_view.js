@@ -98,14 +98,33 @@ DG.MapLayerView = SC.View.extend(
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
               tParentView.addGridLayer();
+            }.bind(this),
+
+            onDisplayChangeEvent = function (iEvent) {
+              this.set('lastEventType', iEvent.type);
+              this.incrementProperty('displayChangeCount');
+            }.bind(this),
+
+            onClick = function (iEvent) {
+              this.incrementProperty('clickCount');
             }.bind(this);
+
 
         if (this._map) {
           // May need to resize here
         } else {
           this._map = L.map(this._layerID, { scrollWheelZoom: false })
               .setView(this.getPath('model.center'), this.getPath('model.zoom'));
-          this._map.on('layeradd', onLayerAdd);
+          this._map.on('layeradd', onLayerAdd)
+            .on('dragstart', onDisplayChangeEvent)
+            .on('drag', onDisplayChangeEvent)
+            .on('dragend', onDisplayChangeEvent)
+            .on('move', onDisplayChangeEvent)
+            .on('zoomend', onDisplayChangeEvent)
+            .on('moveend', onDisplayChangeEvent)
+            .on('click', onClick)
+            .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
+            .on('dragend zoomend movend', function() { this._setIdle(); }.bind(this));
           this.backgroundChanged(); // will initialize baseMap
         }
       },
@@ -136,15 +155,6 @@ DG.MapLayerView = SC.View.extend(
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
 
-        var onDisplayChangeEvent = function (iEvent) {
-              this.set('lastEventType', iEvent.type);
-              this.incrementProperty('displayChangeCount');
-            }.bind(this),
-
-            onClick = function (iEvent) {
-              this.incrementProperty('clickCount');
-            }.bind(this);
-
         if(!tNewLayerName)
           return;
         if( this.get('baseMapLayer'))
@@ -152,16 +162,7 @@ DG.MapLayerView = SC.View.extend(
         if( this.get('baseMapLabels'))
           tMap.removeLayer( this.get('baseMapLabels'));
         tNewLayer = L.esri.basemapLayer( tNewLayerName);
-        this._map.addLayer(tNewLayer, true /*add at bottom */)
-            .on('dragstart', onDisplayChangeEvent)
-            .on('drag', onDisplayChangeEvent)
-            .on('dragend', onDisplayChangeEvent)
-            .on('move', onDisplayChangeEvent)
-            .on('zoomend', onDisplayChangeEvent)
-            .on('moveend', onDisplayChangeEvent)
-            .on('click', onClick)
-            .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
-            .on('dragend zoomend movend', function() { this._setIdle(); }.bind(this));
+        this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
       }.observes('model.baseMapLayerName')
