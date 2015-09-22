@@ -212,6 +212,7 @@ DG.ContainerView = SC.View.extend(
           it to be reloaded!
       */
       bringToFront: function( iChildView) {
+        // Todo: Moving forward we want a data interactive to be allowed to come to the front.
         if( iChildView.get('contentView').constructor === DG.GameView)
           return;
         var tSaved = iChildView.layoutDidChange;  // save this for after changes

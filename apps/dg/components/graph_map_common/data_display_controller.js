@@ -121,7 +121,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         sc_super();
 
         // To Do: We need to have the menu dynamically compute its layout.
-        this.attributeMenu = SC.MenuPane.create( {
+        this.attributeMenu = DG.MenuPane.create( {
                   layout: { width: 200, height: 150 }
                 });
         this.attributeMenu.selectedAxis = null;
@@ -162,7 +162,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         }));
 
         var showHideShowPopup = function () {
-          var tMenu = SC.MenuPane.create({
+          var tMenu = DG.MenuPane.create({
                 classNames: 'display-hideshow-popup'.w(),
                 layout: {width: 200, height: 150}
               }),
@@ -186,7 +186,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         tResult.push(tHideShowButton);
 
         var showDeletePopup = function () {
-          var tMenu = SC.MenuPane.create({
+          var tMenu = DG.MenuPane.create({
                 classNames: 'display-delete-popup'.w(),
                 layout: {width: 200, height: 150}
               }),

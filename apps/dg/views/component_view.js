@@ -456,6 +456,8 @@ DG.ComponentView = SC.View.extend(
           if (this.get('isMinimized')) {
             this.animate({height: tSavedHeight - 1},
                 {duration: 0.4, timing: 'ease-in-out'},
+                // This fires after the animation and has the effect of causing a refresh. Map need this to get
+                // the correct portion of the map actually showing.
                 function () {
                   this.adjust('height', tSavedHeight);
                 }.bind(this));

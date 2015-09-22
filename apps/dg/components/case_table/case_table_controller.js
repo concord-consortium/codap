@@ -424,27 +424,27 @@ DG.CaseTableController = DG.ComponentController.extend(
             title: tNewAttrMenuItemStringKey.loc( collection.name),
             target: this,
             args: [{collection: tDataContext.getCollectionByName(collection.name)}],
-            itemAction: this.newAttribute
+            dgAction: this.newAttribute
           });
         }.bind(this));
         tItems.push({
           title: 'DG.TableController.gearMenuItems.selectAll',
           localize: true,
           target: this,
-          itemAction: this.selectAll
+          dgAction: this.selectAll
         });
         tItems.push({
           title: 'DG.TableController.gearMenuItems.deleteCases',
           localize: true,
           target: this,
-          itemAction: this.deleteSelectedCases,
+          dgAction: this.deleteSelectedCases,
           isEnabled: tDeleteIsEnabled
         });
         tItems.push({
           title: 'DG.TableController.gearMenuItems.exportCaseData', // "Export Case Data..."
           localize: true,
           target: this,
-          itemAction: this.exportCaseData
+          dgAction: this.exportCaseData
         });
 
         return tItems;
@@ -729,7 +729,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 isEnabled: tDeleteUnselectedIsEnabled
               }*/
             ],
-            tMenu = SC.MenuPane.create({
+            tMenu = DG.MenuPane.create({
               classNames: 'delete-popup'.w(),
               layout: {width: 200, height: 150},
               items: tItems
@@ -739,34 +739,25 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       showAttributesPopup: function() {
         var tDataContext = this.get('dataContext'),
-            tChildCollection = tDataContext && tDataContext.get('childCollection'),
-            tChildCollectionName = tChildCollection && tChildCollection.get('name'),
-            tParentCollection = tDataContext && tDataContext.get('parentCollection'),
-            tParentCollectionName = tParentCollection && tParentCollection.get('name'),
+            collectionRecords = tDataContext.get('collections') || [],
             tNewAttrMenuItemStringKey = 'DG.Inspector.newAttribute',
             tItems = [];
-        if (!SC.empty(tParentCollectionName)) {
+        collectionRecords.forEach(function (collection) {
           tItems.push({
-            title: tNewAttrMenuItemStringKey.loc(tParentCollectionName),
+            title: tNewAttrMenuItemStringKey.loc( collection.name),
             target: this,
-            action: 'newParentAttribute'
+            args: [{collection: tDataContext.getCollectionByName(collection.name)}],
+            dgAction: 'newAttribute'
           });
-        }
-        if( !SC.empty( tChildCollectionName)) {
-          tItems.push({
-            title: tNewAttrMenuItemStringKey.loc( tChildCollectionName),
-            target: this,
-            action: 'newChildAttribute'
-          });
-        }
+        }.bind(this));
         tItems.push({
           title: 'DG.Inspector.exportCaseData', // "Export Case Data..."
           localize: true,
           target: this,
-          action: 'exportCaseData'
+          dgAction: 'exportCaseData'
         });
 
-        SC.MenuPane.create({
+        DG.MenuPane.create({
           classNames: 'attributes-popup'.w(),
           layout: {width: 200, height: 150},
           items: tItems
