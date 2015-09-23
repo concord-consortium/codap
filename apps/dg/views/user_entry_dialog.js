@@ -261,21 +261,34 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           value: 'DG.AppController.openDocument.prompt'   // "Choose a document
         }),
 
-        documentListView: SC.ScrollView.extend({
-          classNames: ['my-scroll-view'],
-          layout: { top: 40, left: 5, right: 5, height: 113 },
-          contentView: SC.ListView.extend({
-            classNames: ['my-list-view'],
-            rowHeight: 24,
-            contentValueKey: 'name',
+        documentListView: SC.SelectView.extend({
+          displayProperties: ['items.content'],
+          layout: {width: 150, height: 24, centerX: 0, centerY: 0},
+          itemTitleKey: 'name',
+          itemValueKey: 'id',
+          emptyName: 'DG.UserEntryDialog.openFile.prompt', // "Select a document to open..."
+          //itemIconKey: 'icon',
             init: function() {
               sc_super();
-              this.set('content', DG.DocumentListController.create({ allowsMultipleSelection: NO }));
-            },
-            fieldValue: function() {
-              return this.getPath('selection.firstObject.id');
-            }.property('selection')
-          })
+            this.set('items',
+              DG.DocumentListController.create({allowsMultipleSelection: NO}));
+          }
+          //classNames: ['my-scroll-view'],
+          //layout: { top: 40, left: 5, right: 5, height: 113 },
+          //hasHorizontalScroller: false,
+          //contentView: SC.ListView.extend({
+          //  layout: {top: 0, left: 0, right: 0, bottom: 0 },
+          //  classNames: ['my-list-view'],
+          //  rowHeight: 24,
+          //  contentValueKey: 'name',
+          //  init: function() {
+          //    sc_super();
+          //    this.set('content', DG.DocumentListController.create({ allowsMultipleSelection: NO }));
+          //  },
+          //  fieldValue: function() {
+          //    return this.getPath('selection.firstObject.id');
+          //  }.property('selection')
+          //})
         }),
 
         okButton: SC.ButtonView.design({
@@ -290,20 +303,18 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         }),
 
         documentName: function() {
-          var docList = this.getPath('documentListView.contentView.content'),
-              i, docCount = docList && docList.get('length'),
-              docID = this.getPath('documentListView.contentView.fieldValue'),
-              docEntry;
+          var docList = this.getPath('documentListView.items.content'), i, docCount = docList &&
+              docList.get('length'), docID = this.getPath('documentListView.value'), docEntry;
           for( i = 0; i < docCount; ++i) {
             docEntry = docList.objectAt( i);
             if( docEntry.id === docID)
               return docEntry.name;
           }
           return null;
-        }.property('*documentListView.contentView.fieldValue'),
+        }.property('*documentListView.value'),
 
         documentID: function() {
-          return this.getPath('documentListView.contentView.fieldValue');
+          return this.getPath('documentListView.value');
         }.property('*documentListView.contentView.fieldValue'),
 
         close: function() {
