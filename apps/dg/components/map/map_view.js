@@ -86,6 +86,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       selectionBinding: '*model.casesController.selection',
 
       _ignoreMapDisplayChange: false,
+      _fitBoundsInProgress: false,
       _mapDisplayChangeInProgress: false,
       _mapDisplayChange: null,
 
@@ -358,7 +359,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
         }
         if ( tBounds && tBounds.isValid()) {
+          this._fitBoundsInProgress = true;
           this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          this.get('mapLayer')._setIdle();
         }
       },
 
@@ -472,8 +475,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
           if (this._mapDisplayChangeInProgress && (centerChanged || zoomChanged)) {
             var change = 'change';
-            if (centerChanged && zoomChanged) {
+            if (this._fitBoundsInProgress || (centerChanged && zoomChanged)) {
               change = 'fitBounds';
+              this._fitBoundsInProgress = false;
             } else if (centerChanged) {
               change = 'pan';
             } else {
@@ -511,10 +515,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           this._mapDisplayChangeInProgress = false;
         }
       }.observes('mapLayer.idleCount'),
-
-      _registerUndoCommand: function(newCenter, newZoom, oldCenter, oldZoom) {
-        console.log("Adding undo    - new: " + newCenter + "," + newZoom + "; old: " + oldCenter + "," + oldZoom);
-      },
 
       /**
        * Override the two mixin methods because the drop target view is mapPointView

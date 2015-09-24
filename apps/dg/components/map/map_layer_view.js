@@ -124,7 +124,7 @@ DG.MapLayerView = SC.View.extend(
             .on('moveend', onDisplayChangeEvent)
             .on('click', onClick)
             .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
-            .on('dragend zoomend movend', function() { this._setIdle(); }.bind(this));
+            .on('dragend zoomend moveend', function() { this._setIdle(); }.bind(this));
           this.backgroundChanged(); // will initialize baseMap
         }
       },
@@ -137,12 +137,12 @@ DG.MapLayerView = SC.View.extend(
       },
 
       _idleTimeout: null,
-      _clearIdle: function (iEvent) {
+      _clearIdle: function () {
         if (this._idleTimeout) {
           clearTimeout(this._idleTimeout);
         }
       },
-      _setIdle: function (iEvent) {
+      _setIdle: function () {
         this._clearIdle();
         this._idleTimeout = setTimeout(function() {
           this._idleTimeout = null;
