@@ -134,14 +134,20 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           controlSize: SC.SMALL_CONTROL_SIZE,
           layout: { width: 40, height: 16, top: 33, right: 48 },
           toolTip: 'DG.MapView.gridControlHint'.loc(),
-          minimum: 0,
-          maximum: 1,
+          minimum: 0.1,
+          maximum: 2.0,
           step: 0,
-          value: this.getPath('model.gridModel.gridMultiplier') / 1.8 - 0.1,
+          value: this.getPath('model.gridModel.gridMultiplier'),
+          persistedValue: this.getPath('model.gridModel.gridMultiplier'),
+          previousPersistedValue: this.getPath('model.gridModel.gridMultiplier'),
           isVisible: false,
           mouseUp: function( iEvent) {
             sc_super();
-            DG.logUser('changeGridMultiplier: %@', 0.1 + 1.9 * this.get('value'));
+            if (this.get('value') !== this.get('persistedValue')) {
+              this.set('previousPersistedValue', this.get('persistedValue'));
+              this.set('persistedValue', this.get('value'));
+              DG.logUser('changeGridMultiplier: %@', this.get('value'));
+            }
           }
         });
         this.appendChild( this.gridControl );
@@ -203,8 +209,32 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       changeGridSize: function() {
         var tControlValue = this.gridControl.get('value');
-        this.setPath('model.gridModel.gridMultiplier', 0.1 + 1.9 * tControlValue);
+        this.setPath('model.gridModel.gridMultiplier', tControlValue);
       }.observes('gridControl.value'),
+
+      changePersistedGridSize: function() {
+        var tControlValue = this.gridControl.get('persistedValue'),
+            tPreviousControlValue = this.gridControl.get('previousPersistedValue');
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.changeGridSize",
+          undoString: 'DG.Undo.map.changeGridSize',
+          redoString: 'DG.Redo.map.changeGridSize',
+          execute: function() {
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          undo: function() {
+            this.setPath('model.gridModel.gridMultiplier', tPreviousControlValue);
+            this.gridControl.set('value', tPreviousControlValue);
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          redo: function() {
+            this.setPath('model.gridModel.gridMultiplier', tControlValue);
+            this.gridControl.set('value', tControlValue);
+            DG.dirtyCurrentDocument();
+          }.bind(this)
+        }));
+      }.observes('gridControl.persistedValue'),
 
       addPointLayer: function () {
         if( this.get('mapPointView'))
