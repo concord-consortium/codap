@@ -33,6 +33,7 @@ DG.TextComponentController = DG.ComponentController.extend(
    *  @property {String}
    */
   theText: "",
+  previousValue: "",
 
   /**
    *  Returns the object to be JSONified for storage.
@@ -54,6 +55,37 @@ DG.TextComponentController = DG.ComponentController.extend(
   restoreComponentStorage: function( iComponentStorage, iDocumentID) {
     var theText = iComponentStorage.text || "";
     this.set('theText', theText);
+  },
+
+  commitEditing: function() {
+    var value = this.get('theText'),
+        previousValue = this.get('previousValue');
+    if (value !== previousValue) {
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'text.edit',
+        undoString: 'DG.Undo.text.edit',
+        redoString: 'DG.Redo.text.edit',
+        execute: function () {
+          DG.logUser("editTextObject: '%@'", value);
+          this.set('previousValue', value);
+          DG.dirtyCurrentDocument();
+        }.bind(this),
+        undo: function () {
+          // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
+          this.set('theText', previousValue);
+          this.set('previousValue', previousValue);
+          DG.logUser("editTextObject (undo): '%@'", previousValue);
+          DG.dirtyCurrentDocument();
+        }.bind(this),
+        redo: function () {
+          // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
+          this.set('theText', value);
+          this.set('previousValue', previousValue);
+          DG.logUser("editTextObject (redo): '%@'", value);
+          DG.dirtyCurrentDocument();
+        }.bind(this)
+      }));
+    }
   },
   
   /**

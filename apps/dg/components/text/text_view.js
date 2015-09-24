@@ -43,29 +43,7 @@ DG.TextView = SC.View.extend(
         commitEditing: function () {
           var result = sc_super();
           if (result) {
-            var prevValue = this.get('_prevValue'),
-                value = this.get('value');
-            DG.UndoHistory.execute(DG.Command.create({
-              name: 'text.edit',
-              undoString: 'DG.Undo.text.edit',
-              redoString: 'DG.Redo.text.edit',
-              execute: function() {
-                DG.logUser("editTextObject: '%@'", value);
-                DG.dirtyCurrentDocument();
-              }.bind(this),
-              undo: function() {
-                // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-                this._controller.set('theText', prevValue);
-                DG.logUser("editTextObject (undo): '%@'", prevValue);
-                DG.dirtyCurrentDocument();
-              }.bind(this),
-              redo: function() {
-                // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-                this._controller.set('theText', value);
-                DG.logUser("editTextObject (redo): '%@'", value);
-                DG.dirtyCurrentDocument();
-              }.bind(this)
-            }));
+            this._controller.commitEditing();
           }
           return result;
         }
