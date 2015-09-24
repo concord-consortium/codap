@@ -188,13 +188,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           }.bind(this),
           undo: function() {
             this.setPath('model.baseMapLayerName', tOldBackground);
-            // this.setPath('backgroundControl.value', [tOldBackground]);
+            this.setPath('backgroundControl.value', [tOldBackground]);
             DG.dirtyCurrentDocument();
             DG.logUser('changeMapBackground (undo): %@', tOldBackground);
           }.bind(this),
           redo: function() {
             this.setPath('model.baseMapLayerName', tBackground);
-            // this.setPath('backgroundControl.value', [tBackground]);
+            this.setPath('backgroundControl.value', [tBackground]);
             DG.dirtyCurrentDocument();
             DG.logUser('changeMapBackground (undo): %@', tBackground);
           }.bind(this)
