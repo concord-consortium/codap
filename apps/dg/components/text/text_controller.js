@@ -62,9 +62,9 @@ DG.TextComponentController = DG.ComponentController.extend(
         previousValue = this.get('previousValue');
     if (value !== previousValue) {
       DG.UndoHistory.execute(DG.Command.create({
-        name: 'text.edit',
-        undoString: 'DG.Undo.text.edit',
-        redoString: 'DG.Redo.text.edit',
+        name: 'textComponent.edit',
+        undoString: 'DG.Undo.textComponent.edit',
+        redoString: 'DG.Redo.textComponent.edit',
         execute: function () {
           DG.logUser("editTextObject: '%@'", value);
           this.set('previousValue', value);
