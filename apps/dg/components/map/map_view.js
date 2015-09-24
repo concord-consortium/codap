@@ -85,6 +85,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       selection: null,
       selectionBinding: '*model.casesController.selection',
 
+      _ignoreMapDisplayChange: false,
+      _fitBoundsInProgress: false,
+      _mapDisplayChangeInProgress: false,
+      _mapDisplayChange: null,
+
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
@@ -130,14 +135,20 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           controlSize: SC.SMALL_CONTROL_SIZE,
           layout: { width: 40, height: 16, top: 33, right: 48 },
           toolTip: 'DG.MapView.gridControlHint'.loc(),
-          minimum: 0,
-          maximum: 1,
+          minimum: 0.1,
+          maximum: 2.0,
           step: 0,
-          value: this.getPath('model.gridModel.gridMultiplier') / 1.8 - 0.1,
+          value: this.getPath('model.gridModel.gridMultiplier'),
+          persistedValue: this.getPath('model.gridModel.gridMultiplier'),
+          previousPersistedValue: this.getPath('model.gridModel.gridMultiplier'),
           isVisible: false,
           mouseUp: function( iEvent) {
             sc_super();
-            DG.logUser('changeGridMultiplier: %@', 0.1 + 1.9 * this.get('value'));
+            if (this.get('value') !== this.get('persistedValue')) {
+              this.set('previousPersistedValue', this.get('persistedValue'));
+              this.set('persistedValue', this.get('value'));
+              DG.logUser('changeGridMultiplier: %@', this.get('value'));
+            }
           }
         });
         this.appendChild( this.gridControl );
@@ -171,16 +182,60 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapPointView.isInMarqueeMode'),
 
       changeBaseMap: function() {
-        var tBackground = this.backgroundControl.get('value');
-        this.setPath('model.baseMapLayerName', tBackground);
-        DG.dirtyCurrentDocument();
-        DG.logUser('changeMapBackground: %@', tBackground);
+        var tBackground = this.backgroundControl.get('value'),
+            tOldBackground = this.getPath('model.baseMapLayerName');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.changeBaseMap",
+          undoString: 'DG.Undo.map.changeBaseMap',
+          redoString: 'DG.Redo.map.changeBaseMap',
+          execute: function() {
+            this.setPath('model.baseMapLayerName', tBackground);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground: %@', tBackground);
+          }.bind(this),
+          undo: function() {
+            this.setPath('model.baseMapLayerName', tOldBackground);
+            this.setPath('backgroundControl.value', [tOldBackground]);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground (undo): %@', tOldBackground);
+          }.bind(this),
+          redo: function() {
+            this.setPath('model.baseMapLayerName', tBackground);
+            this.setPath('backgroundControl.value', [tBackground]);
+            DG.dirtyCurrentDocument();
+            DG.logUser('changeMapBackground (undo): %@', tBackground);
+          }.bind(this)
+        }));
       },
 
       changeGridSize: function() {
         var tControlValue = this.gridControl.get('value');
-        this.setPath('model.gridModel.gridMultiplier', 0.1 + 1.9 * tControlValue);
+        this.setPath('model.gridModel.gridMultiplier', tControlValue);
       }.observes('gridControl.value'),
+
+      changePersistedGridSize: function() {
+        var tControlValue = this.gridControl.get('persistedValue'),
+            tPreviousControlValue = this.gridControl.get('previousPersistedValue');
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "map.changeGridSize",
+          undoString: 'DG.Undo.map.changeGridSize',
+          redoString: 'DG.Redo.map.changeGridSize',
+          execute: function() {
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          undo: function() {
+            this.setPath('model.gridModel.gridMultiplier', tPreviousControlValue);
+            this.gridControl.set('value', tPreviousControlValue);
+            DG.dirtyCurrentDocument();
+          }.bind(this),
+          redo: function() {
+            this.setPath('model.gridModel.gridMultiplier', tControlValue);
+            this.gridControl.set('value', tControlValue);
+            DG.dirtyCurrentDocument();
+          }.bind(this)
+        }));
+      }.observes('gridControl.persistedValue'),
 
       addPointLayer: function () {
         if( this.get('mapPointView'))
@@ -303,8 +358,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         if (this.getPath('model.hasLatLongAttributes')) {
           tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
         }
-        if ( tBounds.isValid())
+        if ( tBounds && tBounds.isValid()) {
+          this._fitBoundsInProgress = true;
           this.getPath('mapLayer.map').fitBounds(tBounds, this.kPadding);
+          this.get('mapLayer')._setIdle();
+        }
       },
 
       gridVisibilityChanged: function() {
@@ -371,15 +429,19 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.updateConnectingLine();
 
-        // Store the map's center and zoom in my model for save and restore
         var tMap = this.getPath('mapLayer.map'),
-            tModel = this.get('model'),
             tCenter = tMap.getCenter(),
             tZoom = tMap.getZoom(),
             tEventType = this.getPath('mapLayer.lastEventType');
-        tModel.set('center', tCenter);
-        tModel.set('zoom', tZoom);
-        DG.dirtyCurrentDocument();
+
+
+        // Record the current values, which will be applied in handleIdle()
+        this._mapDisplayChangeInProgress = true;
+        this._mapDisplayChange = {
+          center: tCenter,
+          zoom: tZoom
+        };
+
         switch( tEventType) {
           case 'zoomend':
           case 'dragstart':
@@ -392,6 +454,67 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       handleClick: function() {
         this.get('model').selectAll(false);
       }.observes('mapLayer.clickCount'),
+
+      handleIdle: function() {
+        var tModel = this.get('model'),
+            oldCenter = tModel.get('center'),
+            oldZoom = tModel.get('zoom');
+
+        if (this._ignoreMapDisplayChanges) {
+          this._ignoreMapDisplayChanges = false;
+          this._mapDisplayChange = null;
+          this._mapDisplayChangeInProgress = false;
+          return;
+        }
+
+        if (this._mapDisplayChange) {
+            var newCenter = this._mapDisplayChange.center,
+                newZoom = this._mapDisplayChange.zoom,
+                centerChanged = !newCenter.equals(oldCenter),
+                zoomChanged = newZoom !== oldZoom;
+
+          if (this._mapDisplayChangeInProgress && (centerChanged || zoomChanged)) {
+            var change = 'change';
+            if (this._fitBoundsInProgress || (centerChanged && zoomChanged)) {
+              change = 'fitBounds';
+              this._fitBoundsInProgress = false;
+            } else if (centerChanged) {
+              change = 'pan';
+            } else {
+              change = 'zoom';
+            }
+            DG.UndoHistory.execute(DG.Command.create({
+              name: "map."+change,
+              undoString: 'DG.Undo.map.'+change,
+              redoString: 'DG.Redo.map.'+change,
+              execute: function() {
+                this.setPath('model.center', newCenter);
+                this.setPath('model.zoom', newZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this),
+              undo: function() {
+                // Tell the map to change, but also ignore any events until those changes are done...
+                var map = this.getPath('mapLayer.map');
+                this._ignoreMapDisplayChanges = true;
+                map.setView(oldCenter, oldZoom);
+                this.setPath('model.center', oldCenter);
+                this.setPath('model.zoom', oldZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this),
+              redo: function() {
+                // Tell the map to change, but also ignore any events until those changes are done...
+                var map = this.getPath('mapLayer.map');
+                this._ignoreMapDisplayChanges = true;
+                map.setView(newCenter, newZoom);
+                this.setPath('model.center', newCenter);
+                this.setPath('model.zoom', newZoom);
+                DG.dirtyCurrentDocument();
+              }.bind(this)
+            }));
+          }
+          this._mapDisplayChangeInProgress = false;
+        }
+      }.observes('mapLayer.idleCount'),
 
       /**
        * Override the two mixin methods because the drop target view is mapPointView

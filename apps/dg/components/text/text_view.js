@@ -36,14 +36,16 @@ DG.TextView = SC.View.extend(
         layout: { left: 2, right: 2, top: 2, bottom: 2 },
         isEditable: true,
         isTextArea: true,
+        didCreateLayer: function() {
+          sc_super();
+          this._controller = this.getPath('parentView.parentView.parentView.controller');
+        },
         commitEditing: function () {
           var result = sc_super();
-          DG.logUser("editTextObject: '%@'", this.get('value'));
+          if (result) {
+            this._controller.commitEditing();
+          }
           return result;
-        },
-        fieldDidBlur: function() {
-          sc_super();
-          DG.dirtyCurrentDocument();
         }
       }),
 

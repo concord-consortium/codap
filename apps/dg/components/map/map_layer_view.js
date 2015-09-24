@@ -63,6 +63,11 @@ DG.MapLayerView = SC.View.extend(
        */
       clickCount: 0,
 
+      /**
+       * Property that can be observed by parent view, counts times the map returns to idle
+       */
+      idleCount: 0,
+
       init: function () {
         sc_super();
       },
@@ -93,14 +98,33 @@ DG.MapLayerView = SC.View.extend(
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
               tParentView.addGridLayer();
+            }.bind(this),
+
+            onDisplayChangeEvent = function (iEvent) {
+              this.set('lastEventType', iEvent.type);
+              this.incrementProperty('displayChangeCount');
+            }.bind(this),
+
+            onClick = function (iEvent) {
+              this.incrementProperty('clickCount');
             }.bind(this);
+
 
         if (this._map) {
           // May need to resize here
         } else {
           this._map = L.map(this._layerID, { scrollWheelZoom: false })
               .setView(this.getPath('model.center'), this.getPath('model.zoom'));
-          this._map.on('layeradd', onLayerAdd);
+          this._map.on('layeradd', onLayerAdd)
+            .on('dragstart', onDisplayChangeEvent)
+            .on('drag', onDisplayChangeEvent)
+            .on('dragend', onDisplayChangeEvent)
+            .on('move', onDisplayChangeEvent)
+            .on('zoomend', onDisplayChangeEvent)
+            .on('moveend', onDisplayChangeEvent)
+            .on('click', onClick)
+            .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
+            .on('dragend zoomend moveend', function() { this._setIdle(); }.bind(this));
           this.backgroundChanged(); // will initialize baseMap
         }
       },
@@ -112,19 +136,24 @@ DG.MapLayerView = SC.View.extend(
         }
       },
 
+      _idleTimeout: null,
+      _clearIdle: function () {
+        if (this._idleTimeout) {
+          clearTimeout(this._idleTimeout);
+        }
+      },
+      _setIdle: function () {
+        this._clearIdle();
+        this._idleTimeout = setTimeout(function() {
+          this._idleTimeout = null;
+          this.incrementProperty('idleCount');
+        }.bind(this), 500);
+      },
+
       backgroundChanged: function() {
         var tMap = this.get('map'),
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
-
-        var onDisplayChangeEvent = function (iEvent) {
-              this.set('lastEventType', iEvent.type);
-              this.incrementProperty('displayChangeCount');
-            }.bind(this),
-
-            onClick = function (iEvent) {
-              this.incrementProperty('clickCount');
-            }.bind(this);
 
         if(!tNewLayerName)
           return;
@@ -133,14 +162,7 @@ DG.MapLayerView = SC.View.extend(
         if( this.get('baseMapLabels'))
           tMap.removeLayer( this.get('baseMapLabels'));
         tNewLayer = L.esri.basemapLayer( tNewLayerName);
-        this._map.addLayer(tNewLayer, true /*add at bottom */)
-            .on('dragstart', onDisplayChangeEvent)
-            .on('drag', onDisplayChangeEvent)
-            .on('dragend', onDisplayChangeEvent)
-            .on('move', onDisplayChangeEvent)
-            .on('zoomend', onDisplayChangeEvent)
-            .on('moveend', onDisplayChangeEvent)
-            .on('click', onClick);
+        this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
       }.observes('model.baseMapLayerName')
