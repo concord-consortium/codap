@@ -746,20 +746,26 @@ DG.CaseTableController = DG.ComponentController.extend(
           }));
         }
 
-        DG.AlertPane.warn({
-          message: 'DG.TableController.deleteAttribute.confirmMessage'.loc( tAttrName),
-          description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
-          buttons: [
-            { title: 'DG.TableController.deleteAttribute.okButtonTitle',
-              action: doDeleteAttribute,
-              localize: YES
-            },
-            { title: 'DG.TableController.deleteAttribute.cancelButtonTitle',
-              localize: YES
-            }
-          ],
-          localize: false
-        });
+        if (DG.UndoHistory.get('enabled')) {
+          doDeleteAttribute();
+        } else {
+          DG.AlertPane.warn({
+            message: 'DG.TableController.deleteAttribute.confirmMessage'.loc(tAttrName),
+            description: 'DG.TableController.deleteAttribute.confirmDescription'.loc(),
+            buttons: [
+              {
+                title: 'DG.TableController.deleteAttribute.okButtonTitle',
+                action: doDeleteAttribute,
+                localize: YES
+              },
+              {
+                title: 'DG.TableController.deleteAttribute.cancelButtonTitle',
+                localize: YES
+              }
+            ],
+            localize: false
+          });
+        }
       },
 
       /**
