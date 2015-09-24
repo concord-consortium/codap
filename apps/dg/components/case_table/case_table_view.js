@@ -518,6 +518,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @returns  {Boolean}   YES, indicating that further touch events are desired
    */
   touchStart: function(touch) {
+    DG.ViewUtilities.componentViewForView( this).select();
     // Without this check for whether the click is in the visible part of the table,
     // we can get here for clicks that are actually handled by the platform scroll bar.
     // This is particularly bad, because we get the down but not the corresponding up

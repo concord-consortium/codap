@@ -63,7 +63,47 @@ DG.ContainerView = SC.View.extend(
           return iChildView instanceof DG.ComponentView;
         });
       }.property( 'childViews'),
-      
+
+      /**
+       * @property {Array of Object }
+       */
+      tileMenuItems: function() {
+
+        function componentViewToIcon(iView) {
+          switch( iView.get('contentView').constructor) {
+            case DG.TableView:
+              return static_url('images/icon-table.svg');
+              break;
+            case DG.GraphView:
+              return static_url('images/icon-graph.svg');
+              break;
+            case DG.MapView:
+              return static_url('images/icon-map.svg');
+              break;
+            case DG.SliderView:
+              return static_url('images/icon-slider.svg');
+              break;
+            case DG.Calculator:
+              return static_url('images/icon-calc.svg');
+              break;
+            case DG.TextView:
+              return static_url('images/icon-comment.svg');
+              break;
+          }
+        }
+
+        var tItems = [];
+        this.get('componentViews').forEach( function( iComponentView) {
+          tItems.push( {
+            title: iComponentView.get('title'),
+            target: iComponentView,
+            action: 'maximizeAndSelect',
+            icon: componentViewToIcon(iComponentView)
+          });
+        });
+        return tItems;
+      }.property(),
+
       /**
         Computes/returns the bounding rectangle for the view.
        */
@@ -117,6 +157,7 @@ DG.ContainerView = SC.View.extend(
           tCloseAction.action.apply( tCloseAction.target, tCloseAction.args );
         }
         else {
+          this.select(null);
           DG.currDocumentController().removeComponentAssociatedWithView( iComponentView, iSkipDirtyingDocument);
           iComponentView.destroy();
         }
@@ -140,12 +181,40 @@ DG.ContainerView = SC.View.extend(
         return this;
       },
 
+      /**
+       * @property{DG.ComponentView}
+       */
+      selectedChildView: null,
+
+      /**
+       * The given child view, if not minimized, will become the currently selected childView.
+       * @param iChildView
+       */
+      select: function( iChildView) {
+        var tCurrentSelected = this.get('selectedChildView'),
+            tIsMinimized = iChildView && iChildView.get('isMinimized');
+        if( iChildView) {
+          this.bringToFront( iChildView);
+        }
+        if( iChildView !== tCurrentSelected && !tIsMinimized) {
+          if( tCurrentSelected)
+            tCurrentSelected.set('isSelected', false);
+          this.set('selectedChildView', iChildView);
+          if( iChildView) {
+            iChildView.set('isSelected', true);
+          }
+        }
+      },
+
       /* bringToFront - The given child view will be placed at the end of the list, thus
         rendered last and appearing in front of all others.
-        Note: For the flash view this has the very undesirable effect of causing the 
-          Flash object to be reloaded!
+        Note: For the data interactive this has the very undesirable effect of causing the
+          it to be reloaded!
       */
       bringToFront: function( iChildView) {
+        // Todo: Moving forward we want a data interactive to be allowed to come to the front.
+        if( iChildView.get('contentView').constructor === DG.GameView)
+          return;
         var tSaved = iChildView.layoutDidChange;  // save this for after changes
         iChildView.layoutDidChange = null;  // prevent specious notification of resizing
         this.removeChild( iChildView);
@@ -181,6 +250,9 @@ DG.ContainerView = SC.View.extend(
                                       this.get('componentViews'));
         iView.adjust( 'left', tLoc.x);
         iView.adjust( 'top', tLoc.y);
+        this.invokeLast( function() {
+          this.select( iView);
+        }.bind( this));
       },
       
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.
@@ -192,6 +264,11 @@ DG.ContainerView = SC.View.extend(
         this.get('componentViews').forEach( function( iView) {
           iView.cover( iAction);
         });
+      },
+
+      mouseDown: function( iEvent) {
+        this.select(null);
+        return true;
       }
 
     };  // object returned closure

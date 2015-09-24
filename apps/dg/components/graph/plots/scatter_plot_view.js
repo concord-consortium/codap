@@ -187,8 +187,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
     // show or hide if needed, then update if shown.
     if( this.showHidePlottedElement( tCircle, tIsMissingCase)) {
-      this.updatePlottedElement( tCircle, tCoordX, tCoordY, this._pointRadius, iRC.calcCaseColorString( iCase ),
-        iAnimate, iCallback);
+      var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
+                    stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+      this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
       return { cx: tCoordX, cy: tCoordY, r: this._pointRadius };
     }
     return null;

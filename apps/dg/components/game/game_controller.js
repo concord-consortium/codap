@@ -97,6 +97,14 @@ DG.GameController = DG.ComponentController.extend(
       this.openCaseIDs = [];
     },
 
+      /**
+       * Break loops
+       */
+      destroy: function() {
+        this.setPath('model.content', null);
+        sc_super();
+      },
+
     /**
       Whether or not the document contains unsaved changes such that the user
       should be prompted to confirm when closing the document, for instance.
@@ -373,6 +381,13 @@ DG.GameController = DG.ComponentController.extend(
      */
     handleInitGame: function (iArgs, iCallback) {
       var finishInitGame = function () {
+        // Ordinarily a component controller's model.content is the model that store's the
+        // underlying state. But the model for a game controller (a Component) doesn't have
+        // a natural content. So, as a workaround, we make ourself its content so we can provide
+        // a default title.
+        this.set('defaultTitle', iArgs.name);
+        this.setPath('model.content', this);
+
         // Once all the collections and attributes are created,
         // we're ready to play the game.
         this.set('gameIsReady', true);

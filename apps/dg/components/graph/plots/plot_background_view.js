@@ -35,6 +35,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                       'xAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
                       'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells'],
 
+  classNames: 'plot-view'.w(),
+
   /**
    * @property {DG.GraphModel}
    */

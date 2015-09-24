@@ -221,6 +221,11 @@ DG.GraphView = SC.View.extend(
     });
   },
 
+  pointsDidChange: function() {
+    this.drawPlots();
+  }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
+      'model.transparency', 'model.strokeTransparency'),
+
   prepareToSelectPoints: function () {
     this.get('plotViews').forEach( function( iPlotView) {
       iPlotView.preparePointSelection();

@@ -161,7 +161,37 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     @property { DG.CaseValueAnimator }
   */
   caseValueAnimator: null,
-  
+
+  /**
+   * This function is set by the graph that owns me.
+   * @property{Function}
+   */
+  getPointColor: null,
+
+  /**
+   * This function is set by the graph that owns me.
+   * @property{Function}
+   */
+  getStrokeColor: null,
+
+  /**
+   * This function is set by the graph that owns me.
+   * @property{Function}
+   */
+  getStrokeTransparency: null,
+
+  /**
+   * This function is set by the graph that owns me.
+   * @property{Function}
+   */
+  getPointSizeMultiplier: null,
+
+  /**
+   * This function is set by the graph that owns me.
+   * @property{Function}
+   */
+  getTransparency: null,
+
   /**
     Key-value pairs for adornment models,
     e.g. _adornmentModels['plottedValue'] = plottedValueModel.
@@ -441,19 +471,19 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.caseValueAnimator.animate();
   },
 
-  /**
-    Note that this is not a property because caller needs to assign "this".
-    Default is to return empty array.
-    @return {Array of menu items}
-  */
-  getGearMenuItems: function() {
-    var tShowHideCountTitle = (this.get( 'isPlottedCountVisible' ) ?
-          'DG.PlotModel.hideCount' :
-          'DG.PlotModel.showCount').loc();
+  checkboxDescriptions: function() {
+    var this_ = this;
     return [
-      { title:tShowHideCountTitle, target:this, itemAction:this.togglePlottedCount }
+      {
+        title: 'DG.Inspector.graphCount',
+        value: this_.get('isPlottedCountVisible'),
+        classNames: 'graph-count-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedCount();
+        }.observes('value')
+      }
     ];
-  },
+  }.property(),
 
   /**
     Call the given function once for each case that has a value for each axis.

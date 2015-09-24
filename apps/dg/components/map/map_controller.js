@@ -27,7 +27,7 @@ sc_require('components/graph_map_common/data_display_controller');
   @extends SC.DataDisplayController
 */
 DG.MapController = DG.DataDisplayController.extend(
-/** @scope DG.MapController.prototype */ 
+/** @scope DG.MapController.prototype */
   (function() {
 
 /*
@@ -67,19 +67,64 @@ DG.MapController = DG.DataDisplayController.extend(
       }.observes('view'),
 
       /**
-      Get the menu items from the graph and its components.
-        @property { Array of menu items }
-      */
-      gearMenuItems: function() {
-        var tResult = [
-          { title: 'DG.DataDisplayModel.rescaleToData'.loc(),
-            isEnabled: true, target: this.mapView, itemAction: this.mapView.fitBounds }
-        ];
-        var tMap = this.getPath('mapModel');
-        if( tMap)
-          tResult = tResult.concat(tMap.getGearMenuItems());
-        return tResult;
-      }.property('mapModel')
+       * If I'm displaying points, then my superclass returns the right thing. But if I'm displaying boundaries,
+       * I have to do my own thing.
+       */
+      styleControls: function () {
+
+        if (this.getPath('mapModel.hasLatLongAttributes')) {
+          return sc_super();
+        }
+        else if (this.getPath('mapModel.areaVarID') != DG.Analysis.kNullAttribute) {
+
+          var this_ = this,
+              setColor = function (iColor) {
+                this_.setPath('mapModel.areaColor', iColor.toHexString());
+                this_.setPath('mapModel.areaTransparency', iColor.getAlpha());
+              },
+              setStroke = function (iColor) {
+                this_.setPath('mapModel.areaStrokeColor', iColor.toHexString());
+                this_.setPath('mapModel.areaStrokeTransparency', iColor.getAlpha());
+              },
+              getStylesLayer = function () {
+                return this_.stylesPane.layer();
+              },
+              kRowHeight = 20;
+          return [
+            DG.PickerControlView.create({
+              layout: {height: 2 * kRowHeight},
+              label: 'DG.Inspector.color',
+              controlView: DG.PickerColorControl.create({
+                layout: {width: 120},
+                classNames: 'map-fill-color'.w(),
+                initialColor: tinycolor(this.getPath('mapModel.areaColor'))
+                    .setAlpha(this.getPath('mapModel.areaTransparency')),
+                setColorFunc: setColor,
+                appendToLayerFunc: getStylesLayer
+              })
+            }),
+            DG.PickerControlView.create({
+              layout: {height: 2 * kRowHeight},
+              label: 'DG.Inspector.stroke',
+              controlView: DG.PickerColorControl.create({
+                layout: {width: 120},
+                classNames: 'map-areaStroke-color'.w(),
+                initialColor: tinycolor(this.getPath('mapModel.areaStrokeColor'))
+                    .setAlpha(this.getPath('mapModel.areaStrokeTransparency')),
+                setColorFunc: setStroke,
+                appendToLayerFunc: getStylesLayer
+              })
+            })
+          ];
+        }
+      }.property(),
+
+      /**
+       * Called from inspector rescale button
+       */
+      rescaleFunction: function() {
+        this.get('mapView').fitBounds();
+      }
 
     };
 

@@ -18,6 +18,21 @@
 //  limitations under the License.
 // ==========================================================================
 
+DG.SliderTypes = {
+
+  EAnimationDirection: {
+    eBackAndForth: 0,
+    eLowToHigh: 1,
+    eHighToLow: 2
+  },
+
+  EAnimationMode: {
+    eNonStop: 0,
+    eOnceOnly: 1
+  }
+
+};
+
 /** @class  DG.SliderModel - The model for a slider. Holds onto a global value.
 
  @extends SC.Object
@@ -41,8 +56,15 @@ DG.SliderModel = SC.Object.extend(
     name: null,
     nameBinding: '*content.name',
   
+    defaultTitle: function() {
+      return this.getPath('content.name');
+    }.property('content.name'),
+
     value: null,
     valueBinding: '*content.value',
+
+    animationDirection: null,
+    animationMode: null,
 
     /**
      * DG.GraphAnimator
@@ -58,6 +80,9 @@ DG.SliderModel = SC.Object.extend(
       var axisModel = DG.CellLinearAxisModel.create();
       axisModel.setDataMinAndMax( 0, 10);
       this.set('axis', axisModel);
+
+      this.animationDirection = DG.SliderTypes.EAnimationDirection.eLowToHigh;
+      this.animationMode = DG.SliderTypes.EAnimationMode.eOnceOnly;
     },
 
     destroy: function() {

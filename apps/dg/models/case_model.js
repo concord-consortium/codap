@@ -143,9 +143,10 @@ DG.Case = DG.BaseModel.extend(
           return this._valuesMap[iAttrID];
         }
 
-        // one last chance if we've got a parent
+        // one last chance if we've got a parent and it has 'getValue'
+        // Need for this seems to have been brought about by a particular import of boundary file data. Can't hurt.
         var tParent = this.get('parent');
-        if( tParent)
+        if( tParent /*&& tParent.getValue*/)
           return tParent.getValue( iAttrID);
       }
       // if we get here, return value is undefined

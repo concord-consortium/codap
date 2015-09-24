@@ -68,13 +68,19 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       updatedPositions: true,
+
+      pointColor: tModel.get( 'pointColor') || DG.PlotUtilities.kDefaultPointColor,
+      strokeColor: tModel.get( 'strokeColor') || DG.PlotUtilities.kDefaultStrokeColor,
+      transparency: tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity,
+      strokeTransparency: tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity,
+
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
-          return '#' + DG.ColorUtilities.simpleColorNames.yellow; // DG.ColorUtilities.kNoAttribCaseColor.colorString;
+          return this.pointColor;
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, this.attrColor );
+            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, this.pointColor );
         return tCaseColor.colorString;
       }
     };
@@ -110,7 +116,6 @@ DG.MapPointLayer = DG.PlotLayer.extend(
    * @param iCase {DG.Case} the case data
    * @param iIndex {number} index of case in collection
    * @param iAnimate {Boolean} (optional) want changes to be animated into place?
-   * @returns {cx {Number},cy {Number}} final coordinates or null if not defined (hidden plot element)
    */
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
     DG.assert( iRC && iRC.map && iRC.latVarID && iRC.longVarID );
@@ -122,10 +127,11 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         tCoordY = tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
-    // show or hide if needed, then update
-    this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden());
-    this.updatePlottedElement( tCircle, tCoordX, tCoordY, this._pointRadius, iRC.calcCaseColorString( iCase ),
-      iAnimate, iCallback);
+     // show or hide if needed, then update
+     this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden());
+     var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
+       stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+     this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
   },
   
   createCircle: function( iDatum, iIndex, iAnimate) {
@@ -258,7 +264,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       this.drawData();
       this.updateSelection();
     }
-  }.observes('plotDisplayDidChange'),
+  }.observes('plotDisplayDidChange', 'model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
+      'model.transparency', 'model.strokeTransparency'),
 
   updateSelection: function() {
     if( SC.none( this.get('map')))

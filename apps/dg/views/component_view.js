@@ -21,127 +21,128 @@
 // ==========================================================================
 
 sc_require('views/titlebar_button_view');
-sc_require('views/titlebar_gear_view');
 
 /** @class
 
-  DragBorderView is typically a thin view configured to lie on the border of a component
+    DragBorderView is typically a thin view configured to lie on the border of a component
  view. It implements the dragging functionality except for the actual change in the
  frame's layout.
 
  @extends SC.View
  */
 DG.DragBorderView = SC.View.extend(
-  (function () {
+    (function () {
 
-    return {
-      /** @scope DG.DragBorderView.prototype */
-      dragCursor: null,
-      cursor: function () {
-        if (this.parentView.get('isResizable'))
-          return this.dragCursor;
-        else
-          return null;
-      }.property('dragCursor').cacheable(),
-      mouseDown: function (evt) {
-        DG.globalEditorLock.commitCurrentEdit();
-        var tView = this.viewToDrag();
-        // Make sure the enclosing view will be movable
-        DG.ViewUtilities.convertViewLayoutToAbsolute(tView);
-        // A click on a border should bring the view to the front
-        tView.bringToFront();
-        if (!this.canBeDragged())
-          return NO;  // We won't get other events either
-        tView.get('parentView').coverUpComponentViews('cover');
+      return {
+        /** @scope DG.DragBorderView.prototype */
+        dragCursor: null,
+        cursor: function () {
+          if (this.parentView.get('isResizable'))
+            return this.dragCursor;
+          else
+            return null;
+        }.property('dragCursor').cacheable(),
+        mouseDown: function (evt) {
+          DG.globalEditorLock.commitCurrentEdit();
+          var tView = this.viewToDrag();
+          // Make sure the enclosing view will be movable
+          DG.ViewUtilities.convertViewLayoutToAbsolute(tView);
+          // A click on a border should bring the view to the front
+          tView.select();
+          if (!this.canBeDragged())
+            return NO;  // We won't get other events either
+          tView.get('parentView').coverUpComponentViews('cover');
 
-        var layout = this.viewToDrag().get('layout');
-        this._mouseDownInfo = {
-          pageX: evt.pageX, // save mouse pointer loc for later use
-          pageY: evt.pageY, // save mouse pointer loc for later use
-          left: layout.left,
-          top: layout.top,
-          height: layout.height,
-          width: layout.width
-        };
-        return YES; // so we get other events
-      },
+          var layout = this.viewToDrag().get('layout');
+          this._mouseDownInfo = {
+            pageX: evt.pageX, // save mouse pointer loc for later use
+            pageY: evt.pageY, // save mouse pointer loc for later use
+            left: layout.left,
+            top: layout.top,
+            height: layout.height,
+            width: layout.width
+          };
+          return YES; // so we get other events
+        },
 
-      mouseUp: function (evt) {
-        var tContainer = this.viewToDrag().get('parentView'),
-            tOldLayout = this._mouseDownInfo,
-            tNewLayout = this.viewToDrag().get('layout'),
-            isResize = (!SC.none(this.getPath('cursor.cursorStyle'))) && this.getPath('cursor.cursorStyle').indexOf('-resize') !== -1;
-        // apply one more time to set final position
-        this.mouseDragged(evt);
-        this._mouseDownInfo = null; // cleanup info
-        tContainer.coverUpComponentViews('uncover');
-        tContainer.set('frameNeedsUpdate', true);
-        if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
-            (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
+        mouseUp: function (evt) {
+          var tContainer = this.viewToDrag().get('parentView'),
+              tOldLayout = this._mouseDownInfo,
+              tNewLayout = this.viewToDrag().get('layout'),
+              isResize = (!SC.none(this.getPath('cursor.cursorStyle'))) && this.getPath('cursor.cursorStyle').indexOf('-resize') !== -1;
+          // apply one more time to set final position
+          this.mouseDragged(evt);
+          this._mouseDownInfo = null; // cleanup info
+          tContainer.coverUpComponentViews('uncover');
+          tContainer.set('frameNeedsUpdate', true);
+          if ((tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
+              (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
 
-          DG.UndoHistory.execute(DG.Command.create({
-            name: (isResize ? 'component.resize' : 'component.move'),
-            undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
-            redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
-            execute: function() { DG.dirtyCurrentDocument(); },
-            undo: function() {
-              this.viewToDrag().set('layout', tOldLayout);
-              tContainer.set('frameNeedsUpdate', true);
-            }.bind(this),
-            redo: function() {
-              this.viewToDrag().set('layout', tNewLayout);
-              tContainer.set('frameNeedsUpdate', true);
-            }.bind(this)
-          }));
+            DG.UndoHistory.execute(DG.Command.create({
+              name: (isResize ? 'component.resize' : 'component.move'),
+              undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
+              redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
+              execute: function () {
+                DG.dirtyCurrentDocument();
+              },
+              undo: function () {
+                this.viewToDrag().set('layout', tOldLayout);
+                tContainer.set('frameNeedsUpdate', true);
+              }.bind(this),
+              redo: function () {
+                this.viewToDrag().set('layout', tNewLayout);
+                tContainer.set('frameNeedsUpdate', true);
+              }.bind(this)
+            }));
+          }
+          return YES; // handled!
+        },
+
+        mouseDragged: function (evt) {
+          var info = this._mouseDownInfo;
+
+          if (info) {
+            this.dragAdjust(evt, info);
+            return YES; // event was handled!
+          }
+          else
+            return NO;
+        },
+        canBeDragged: function () {
+          return NO;  // default
+        },
+        touchStart: function (evt) {
+          return this.mouseDown(evt);
+        },
+        touchEnd: function (evt) {
+          return this.mouseUp(evt);
+        },
+        touchesDragged: function (evt, touches) {
+          return this.mouseDragged(evt);
+        },
+        dragAdjust: function (evt, info) {
+          // default is to do nothing
+        },
+        viewToDrag: function () {
+          return DG.ComponentView.findComponentViewParent(this);
+        },
+        getContainerWidth: function () {
+          return window.innerWidth; // go global
+        },
+        getContainerHeight: function () {
+          var tDocView = this.viewToDrag();
+          while (!SC.none(tDocView.parentView.parentView)) {
+            tDocView = tDocView.parentView;
+          }
+          return window.innerHeight - tDocView.get('frame').y;
         }
-        return YES; // handled!
-      },
-
-      mouseDragged: function (evt) {
-        var info = this._mouseDownInfo;
-
-        if (info) {
-          this.dragAdjust(evt, info);
-          return YES; // event was handled!
-        }
-        else
-          return NO;
-      },
-      canBeDragged: function () {
-        return NO;  // default
-      },
-      touchStart: function (evt) {
-        return this.mouseDown(evt);
-      },
-      touchEnd: function (evt) {
-        return this.mouseUp(evt);
-      },
-      touchesDragged: function (evt, touches) {
-        return this.mouseDragged(evt);
-      },
-      dragAdjust: function (evt, info) {
-        // default is to do nothing
-      },
-      viewToDrag: function () {
-        return DG.ComponentView.findComponentViewParent(this);
-      },
-      getContainerWidth: function () {
-        return window.innerWidth; // go global
-      },
-      getContainerHeight: function () {
-        var tDocView = this.viewToDrag();
-        while (!SC.none(tDocView.parentView.parentView)) {
-          tDocView = tDocView.parentView;
-        }
-        return window.innerHeight - tDocView.get('frame').y;
-      }
-    };
-  }())
+      };
+    }())
 );
 
 /** @class
 
-  ComponentView provides a draggable and resizable container for components such as plots and
+    ComponentView provides a draggable and resizable container for components such as plots and
  tables. The structure is as follows:
  - outerView
  - containerView is inset by the border width
@@ -152,260 +153,372 @@ DG.DragBorderView = SC.View.extend(
  @extends SC.View
  */
 DG.ComponentView = SC.View.extend(
-  /** @scope DG.ComponentView.prototype */
-  (function () {
-    var kTitleBarHeight = DG.ViewUtilities.kTitleBarHeight,
-      kMinSize = 50,
-      kDragWidth = DG.ViewUtilities.kDragWidth,
-      kBorderWidth = DG.ViewUtilities.kBorderWidth,
-      kRightBorderCursor = SC.Cursor.create({ cursorStyle: SC.E_RESIZE_CURSOR }),
-      kBottomBorderCursor = SC.Cursor.create({ cursorStyle: SC.S_RESIZE_CURSOR }),
-      kLeftBorderCursor = SC.Cursor.create({ cursorStyle: SC.W_RESIZE_CURSOR }),
-      kCornerBorderCursor = SC.Cursor.create({ cursorStyle: SC.SE_RESIZE_CURSOR })
-      ;
-    return {
-      classNames: ['component-view'],
-      isResizable: YES,
-      isClosable: YES,
-      contentView: SC.outlet('containerView.contentView'),
-      childViews: 'containerView borderRight borderBottom borderLeft borderTop borderCorner'.w(),
-      containerView: SC.View.design({
-        // By insetting the container view by half the drag width, we fix a "box model" problem
-        // on IE that prevents easy access to the drag views.
-        layout: { left: kDragWidth / 2, bottom: kDragWidth / 2, right: kDragWidth / 2 },
-        gearView: SC.outlet('titlebar.gearView'),
-        childViews: 'titlebar coverSheet'.w(),
-        titlebar: DG.DragBorderView.design({
-          layout: { height: kTitleBarHeight },
-          backgroundColor: 'gray',
-          childViews: 'titleView statusView versionView closeBox gearView'.w(),
-          titleView: SC.LabelView.design({
-            classNames: ['dg-title-view'],
-            textAlign: SC.ALIGN_CENTER,
-            value: ''
-          }),
-          statusView: SC.LabelView.design({
-            textAlign: SC.ALIGN_LEFT,
-            classNames: ['dg-status-view'],
-            layout: { left: 25 },
-            value: ''
-          }),
-          versionView: SC.LabelView.design({
-            textAlign: SC.ALIGN_RIGHT,
-            classNames:['dg-version-view'],
-            layout: { right: 15 },
-            value: ''
-          }),
-          closeBox: DG.TitleBarButtonView.design({
-            layout: { left: 0, top: 0, width: kTitleBarHeight, height: kTitleBarHeight },
-            classNames:['dg-close-view'],
-            scale: SC.SCALE_NONE
-          }),
-          gearView: DG.TitleBarGearView.design({
-            layout: { right: 5, centerY: 0, width: 16, height: 16 },
-            classNames:['dg-gear-view']
-          }),
-          dragAdjust: function (evt, info) {
-            var tOuterView = this.viewToDrag(),
-              tX = info.left + (evt.pageX - info.pageX),
-              tY = info.top + (evt.pageY - info.pageY),
-              tContainerWidth = this.getContainerWidth(),
-              tContainerHeight = this.getContainerHeight();
+    /** @scope DG.ComponentView.prototype */
+    (function () {
+      var kTitleBarHeight = DG.ViewUtilities.kTitleBarHeight,
+          kMinSize = 50,
+          kDragWidth = DG.ViewUtilities.kDragWidth,
+          kBorderWidth = DG.ViewUtilities.kBorderWidth,
+          kRightBorderCursor = SC.Cursor.create({cursorStyle: SC.E_RESIZE_CURSOR}),
+          kBottomBorderCursor = SC.Cursor.create({cursorStyle: SC.S_RESIZE_CURSOR}),
+          kLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.W_RESIZE_CURSOR}),
+          kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR})
+          ;
+      return {
+        classNames: ['component-view'],
+        classNameBindings: ['isSelected:component-view-selected'],
+        isResizable: YES,
+        isClosable: YES,
 
-            tX = Math.min(Math.max(tX, -info.width + kMinSize),
-                tContainerWidth - kMinSize);
-            tOuterView.adjust('left', tX);
+        /**
+         * @property {DG.ComponentController}
+         */
+        controller: null,
 
-            tY = Math.min(Math.max(tY, -kTitleBarHeight / 2),
-                tContainerHeight - kTitleBarHeight / 2);
-            tOuterView.adjust('top', tY);
-          },
-          canBeDragged: function () {
-            return YES;
-          }
-        }),
-        coverSheet: SC.View.design({
+        /**
+         * @property {Array of DG.InspectorButtonView}
+         */
+        inspectorButtons: function () {
+          return this.getPath('controller.inspectorButtons');
+        }.property('controller.inspectorButtons'),
+
+        /**
+         * Is this component view the one selected component view in the container?
+         * @property {Boolean}
+         */
+        isSelected: false,
+
+        isSelectedChanged: function () {
+          this.setPath('containerView.titlebar.isSelected', this.get('isSelected'));
+        }.observes('isSelected'),
+
+        savedHeight: null,
+
+        isMinimized: function () {
+          return !SC.none(this.savedHeight);
+        }.property('savedHeight'),
+
+        contentView: SC.outlet('containerView.contentView'),
+        childViews: 'containerView borderRight borderBottom borderLeft borderTop borderCorner'.w(),
+        containerView: SC.View.design({
+          layout: {left: 0, bottom: 0, right: 0},
+          childViews: 'titlebar coverSheet'.w(),
+          titlebar: DG.DragBorderView.design({
+            layout: {height: kTitleBarHeight},
+            classNames: ['titlebar'],
+            isSelected: false,
+            classNameBindings: ['isSelected:titlebar-selected'],
+            childViews: 'statusView versionView minimize closeBox titleView'.w(),
+            titleView: SC.LabelView.design(SC.AutoResize, {
+              classNames: ['titleview'],
+              isEditable: YES,
+              _value: null,
+              value: function (key, iValue) {
+                if (!SC.none(iValue)) {
+                  this._value = iValue;
+                }
+                if (SC.none(this._value)) {
+                  var tComponentView = DG.ComponentView.findComponentViewParent(this);
+                  this._value = tComponentView ? tComponentView.getPath('model.title') : '';
+                }
+                return this._value;
+              }.property(),
+              originalValue: null,
+              inlineEditorDidBeginEditing: function (editor, value) {
+                this.set('originalValue', value);
+              },
+              valueChanged: function () {
+                var tComponentView = DG.ComponentView.findComponentViewParent(this);
+                if (tComponentView) {
+                  tComponentView.setPath('model.title', this.get('value'));
+                  this.set('originalValue', null);
+                }
+                return true;
+              }.observes('value'),
+              mouseDown: function () {
+                return true;
+              },
+              mouseUp: function () {
+                this.click();
+                return true;
+              },
+              click: function () {
+                this.beginEditing();
+                return true;
+              }
+            }),
+            statusView: SC.LabelView.design({
+              textAlign: SC.ALIGN_LEFT,
+              classNames: ['dg-status-view'],
+              layout: {left: 5},
+              value: ''
+            }),
+            versionView: SC.LabelView.design({
+              textAlign: SC.ALIGN_RIGHT,
+              classNames: ['dg-version-view'],
+              layout: {right: 2 * kTitleBarHeight, top: 5 },
+              value: ''
+            }),
+            minimize: DG.TitleBarMinimizeButton.design({
+              layout: {right: kTitleBarHeight, top: 0, width: kTitleBarHeight, height: kTitleBarHeight},
+              classNames: ['dg-minimize-view'],
+            }),
+            closeBox: DG.TitleBarCloseButton.design({
+              layout: {right: 0, top: 0, width: kTitleBarHeight, height: kTitleBarHeight},
+              classNames: ['dg-close-view'],
+            }),
+            mouseEntered: function (evt) {
+              this.setPath('minimize.isVisible', true);
+              this.setPath('closeBox.isVisible', true);
+              return YES;
+            },
+            mouseExited: function (evt) {
+              this.setPath('minimize.isVisible', SC.platform.touch);
+              this.setPath('closeBox.isVisible', SC.platform.touch);
+              return YES;
+            },
+            dragAdjust: function (evt, info) {
+              var tOuterView = this.viewToDrag(),
+                  tX = DG.ViewUtilities.roundToGrid(info.left + (evt.pageX - info.pageX)),
+                  tY = DG.ViewUtilities.roundToGrid(info.top + (evt.pageY - info.pageY)),
+                  tContainerWidth = this.getContainerWidth(),
+                  tContainerHeight = this.getContainerHeight();
+
+              tX = Math.min(Math.max(tX, -info.width + kMinSize),
+                  tContainerWidth - kMinSize);
+              tOuterView.adjust('left', tX);
+
+              tY = Math.min(Math.max(tY, -kTitleBarHeight / 2),
+                  tContainerHeight - kTitleBarHeight / 2);
+              tOuterView.adjust('top', tY);
+            },
+            canBeDragged: function () {
+              return YES;
+            }
+          }),
+          coverSheet: SC.View.design({
             backgroundColor: DG.RenderingUtilities.kSeeThrough,
             isVisible: false
-        }),
-        classNames: ['component-border'],
-        setContentView: function (iContentView) {
-          this.set('contentView', iContentView);
-          this.get('gearView').set('contentView', iContentView);
-        }
+          }),
+          classNames: ['component-border'],
+          setContentView: function (iContentView) {
+            this.set('contentView', iContentView);
+          }
 
-      }), // containerView
-      borderRight: DG.DragBorderView.design(
-        { layout: { right: 0, width: kDragWidth },
-          dragCursor: kRightBorderCursor,
-          dragAdjust: function (evt, info) {
-            // Don't let user drag right edge off left of window
-            var tLoc = Math.max(evt.pageX, kMinSize),
-              tNewWidth = info.width + (tLoc - info.pageX);
-            // Don't let width of component become too small
-            tNewWidth = Math.max(tNewWidth, kMinSize);
-            this.parentView.adjust('width', tNewWidth);
-          },
-          canBeDragged: function () {
-            return this.parentView.get('isResizable');
+        }), // containerView
+        borderRight: DG.DragBorderView.design(
+            {
+              layout: {right: 0, width: kDragWidth},
+              dragCursor: kRightBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tLoc = Math.max(evt.pageX, kMinSize),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX));
+                // Don't let width of component become too small
+                tNewWidth = Math.max(tNewWidth, kMinSize);
+                this.parentView.adjust('width', tNewWidth);
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        borderBottom: DG.DragBorderView.design(
+            {
+              layout: {bottom: 0, height: kDragWidth},
+              dragCursor: kBottomBorderCursor,
+              dragAdjust: function (evt, info) {
+                var tNewHeight = info.height + (evt.pageY - info.pageY);
+                tNewHeight = DG.ViewUtilities.roundToGrid(Math.max(tNewHeight, kMinSize));
+                this.parentView.adjust('height', tNewHeight);
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        borderLeft: DG.DragBorderView.design(
+            {
+              layout: {left: 0, width: kDragWidth},
+              dragCursor: kLeftBorderCursor,
+              dragAdjust: function (evt, info) {
+                var tContainerWidth = this.getContainerWidth(),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
+                    tLoc;
+                tNewWidth = Math.max(tNewWidth, kMinSize);
+                tLoc = info.left + info.width - tNewWidth;
+                if (tLoc < tContainerWidth - kMinSize) {
+                  this.parentView.adjust('width', tNewWidth);
+                  this.parentView.adjust('left', tLoc);
+                }
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+        borderTop: DG.DragBorderView.design(
+            {
+              layout: {top: 0, height: 0},
+              canBeDragged: function () {
+                return false;
+              }
+            }),
+        borderCorner: DG.DragBorderView.design(
+            {
+              layout: {right: 0, width: 3 * kDragWidth, bottom: 0, height: 3 * kDragWidth},
+              dragCursor: kCornerBorderCursor,
+              dragAdjust: function (evt, info) {
+                // Don't let user drag right edge off left of window
+                var tLoc = Math.max(evt.pageX, kMinSize),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
+                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY));
+                // Don't let width or height of component become too small
+                tNewWidth = Math.max(tNewWidth, kMinSize);
+                this.parentView.adjust('width', tNewWidth);
+                tNewHeight = Math.max(tNewHeight, kMinSize);
+                this.parentView.adjust('height', tNewHeight);
+              },
+              canBeDragged: function () {
+                return this.parentView.get('isResizable');
+              }
+            }),
+
+        title: function (iKey, iValue) {
+          if (!SC.none(iValue))
+            this.setPath('containerView.titlebar.titleView.value', iValue);
+          return this.getPath('containerView.titlebar.titleView.value');
+        }.property(),
+
+        modelTitleChanged: function (iModel, iKey, iValue) {
+          if (!SC.none(iValue))
+            this.set('title', iValue);
+        }.observes('model.title'),
+
+        version: null,
+        versionBinding: '.containerView.titlebar.versionView.value',
+
+        status: null,
+        statusBinding: '.containerView.titlebar.statusView.value',
+
+        destroy: function () {
+          DG.logUser("closeComponent: %@", this.get('title'));
+          if (this.containerView.contentView)
+            this.containerView.contentView.destroy();
+          sc_super();
+        },
+
+        /**
+         * @property {Object} { action: {function}, target: {Object}, args: {Array}} or null
+         */
+        closeAction: function () {
+          return this.getPath('contentView.closeAction');
+        }.property(),
+
+        addContent: function (iView) {
+          var tFrame = iView.get('frame');
+          if (tFrame.width > 0)
+            this.adjust('width', tFrame.width + 2 * kBorderWidth);
+          if (tFrame.height > 0)
+            this.adjust('height', tFrame.height + 2 * kBorderWidth + kTitleBarHeight);
+          iView.set('layout', {top: kTitleBarHeight});
+          this.containerView.appendChild(iView);
+          this.containerView.setContentView(iView);
+        },
+        select: function () {
+          this.parentView.select(this);
+        },
+        bringToFront: function () {
+          this.parentView.bringToFront(this);
+        },
+        mouseDown: function (evt) {
+          this.select();
+          return true;
+        },
+        click: function (evt) {
+          this.select();
+          return true;
+        },
+
+        maximizeAndSelect: function () {
+          if (this.get('isMinimized')) {
+            this.toggleMinimization(true);
           }
-        }),
-      borderBottom: DG.DragBorderView.design(
-        { layout: { bottom: 0, height: kDragWidth },
-          dragCursor: kBottomBorderCursor,
-          dragAdjust: function (evt, info) {
-            var tNewHeight = info.height + (evt.pageY - info.pageY);
-            tNewHeight = Math.max(tNewHeight, kMinSize);
-            this.parentView.adjust('height', tNewHeight);
-          },
-          canBeDragged: function () {
-            return this.parentView.get('isResizable');
+          this.select();
+        },
+
+        toggleMinimization: function (iSkipDirtyingDocument) {
+
+          var setBorderVisibility = function (iVisibility) {
+            ['Bottom', 'Corner', 'Left', 'Right'].forEach(function (iLoc) {
+              this.setPath('border' + iLoc + '.isVisible', iVisibility);
+            }.bind(this));
+          }.bind(this);
+
+          var tSavedHeight = this.get('savedHeight');
+          if (this.get('isMinimized')) {
+            this.animate({height: tSavedHeight - 1},
+                {duration: 0.4, timing: 'ease-in-out'},
+                // This fires after the animation and has the effect of causing a refresh. Map need this to get
+                // the correct portion of the map actually showing.
+                function () {
+                  this.adjust('height', tSavedHeight);
+                }.bind(this));
+            setBorderVisibility(true);
+            this.set('savedHeight', null);
           }
-        }),
-      borderLeft: DG.DragBorderView.design(
-        { layout: { left: 0, width: kDragWidth },
-          dragCursor: kLeftBorderCursor,
-          dragAdjust: function (evt, info) {
-            var tContainerWidth = this.getContainerWidth(),
-              tNewWidth = info.width - (evt.pageX - info.pageX),
-              tLoc;
-            tNewWidth = Math.max(tNewWidth, kMinSize);
-            tLoc = info.left + info.width - tNewWidth;
-            if (tLoc < tContainerWidth - kMinSize) {
-              this.parentView.adjust('width', tNewWidth);
-              this.parentView.adjust('left', tLoc);
+          else {
+            this.savedHeight = this.get('layout').height;
+            this.animate({height: 25},
+                {duration: 0.4, timing: 'ease-in-out'});
+            setBorderVisibility(false);
+            if (this.get('isSelected')) {
+              this.parentView.select(null);
             }
-          },
-          canBeDragged: function () {
-            return this.parentView.get('isResizable');
           }
-        }),
-      borderTop: DG.DragBorderView.design(
-        { layout: { top: 0, height: 0 },
-          canBeDragged: function () {
-            return false;
-          }
-        }),
-      borderCorner: DG.DragBorderView.design(
-        { layout: { right: 0, width: 3 * kDragWidth, bottom: 0, height: 3 * kDragWidth },
-          dragCursor: kCornerBorderCursor,
-          dragAdjust: function (evt, info) {
-            // Don't let user drag right edge off left of window
-            var tLoc = Math.max(evt.pageX, kMinSize),
-              tNewWidth = info.width + (tLoc - info.pageX),
-              tNewHeight = info.height + (evt.pageY - info.pageY);
-            // Don't let width or height of component become too small
-            tNewWidth = Math.max(tNewWidth, kMinSize);
-            this.parentView.adjust('width', tNewWidth);
-            tNewHeight = Math.max(tNewHeight, kMinSize);
-            this.parentView.adjust('height', tNewHeight);
-          },
-          canBeDragged: function () {
-            return this.parentView.get('isResizable');
-          }
-        }),
+          if (!iSkipDirtyingDocument)
+            DG.dirtyCurrentDocument(this);
+        },
 
-      _title: '',
-      title: function( iKey, iValue) {
-        if( iValue) {
-          this.setPath('containerView.titlebar.titleView.value', iValue);
-          this._title = iValue;
+        contentIsInstanceOf: function (aPrototype) {
+          return this.get('contentView') instanceof aPrototype;
+        },
+
+        cover: function (iAction) {
+          var tContainer = this.get('containerView'),
+              tCover = tContainer.get('coverSheet');
+          tContainer.removeChild(tCover);
+          tContainer.appendChild(tCover);
+          tCover.set('isVisible', iAction === 'cover');
         }
-        return this._title;
-      }.property(),
-
-      version: null,
-      versionBinding: '.containerView.titlebar.versionView.value',
-
-      status: null,
-      statusBinding: '.containerView.titlebar.statusView.value',
-
-      destroy: function () {
-        DG.logUser("closeComponent: %@", this.get('title'));
-        if (this.containerView.contentView)
-          this.containerView.contentView.destroy();
-        sc_super();
-      },
-
-      /**
-       * @property {Object} { action: {function}, target: {Object}, args: {Array}} or null
-       */
-      closeAction: function () {
-        return this.getPath('contentView.closeAction');
-      }.property(),
-
-      addContent: function (iView) {
-        var tFrame = iView.get('frame');
-        if (tFrame.width > 0)
-          this.adjust('width', tFrame.width + 2 * kBorderWidth);
-        if (tFrame.height > 0)
-          this.adjust('height', tFrame.height + 2 * kBorderWidth + kTitleBarHeight);
-        iView.set('layout', { top: kTitleBarHeight });
-        this.containerView.appendChild(iView);
-        this.containerView.setContentView(iView);
-      },
-      bringToFront: function () {
-        this.parentView.bringToFront(this);
-      },
-      mouseDown: function(evt) {
-        this.bringToFront();
-        return false;
-      },
-      contentIsInstanceOf: function( aPrototype) {
-        return this.get('contentView') instanceof aPrototype;
-      },
-
-      cover: function (iAction) {
-        var tContainer = this.get('containerView'),
-          tCover = tContainer.get('coverSheet');
-        tContainer.removeChild(tCover);
-        tContainer.appendChild(tCover);
-        tCover.set('isVisible', iAction === 'cover');
-      }
-    };  // object returned closure
-  }()) // function closure
+      };  // object returned closure
+    }()) // function closure
 );
 
 DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
-                                              iContentProperties, iTitle,
-                                              iIsResizable, iIsVisible) {
+                                              iContentProperties, iIsResizable, iIsVisible) {
+  SC.Benchmark.start('createComponent: ' + iComponentClass);
 
-  var tComponentView = DG.ComponentView.create({ layout: iComponentLayout });
+  var tComponentView = DG.ComponentView.create({layout: iComponentLayout});
   tComponentView.addContent(iComponentClass.create(iContentProperties));
-
-  // The bindings are connected at the end of the run-loop.
-  // When init-time bindings are connected, the initial synchronization
-  // pulls the value from the remote property. Therefore, we must wait
-  // to set the title until after the binding has been connected.
-  tComponentView.invokeLast(function () {
-
-    if (!SC.empty(iTitle))
-      tComponentView.set('title', iTitle);
-    SC.Benchmark.start('createComponent: '+iTitle);
-    DG.logUser("componentCreated: %@", iTitle);
-    SC.Benchmark.end('createComponent: '+iTitle);
-    SC.Benchmark.log('createComponent: '+iTitle);
-  });
 
   if (!SC.none(iIsResizable))
     tComponentView.set('isResizable', iIsResizable);
   if (!SC.none(iIsVisible))
     tComponentView.set('isVisible', iIsVisible);
 
+  DG.logUser("componentCreated: %@", iComponentClass);
+  SC.Benchmark.end('createComponent: ' + iComponentClass);
+  SC.Benchmark.log('createComponent: ' + iComponentClass);
   return tComponentView;
 };
 
 DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
                                               iComponentClass, iContentProperties,
-                                              iTitle, iIsResizable,
+                                              iIsResizable,
                                               iUseLayoutForPosition, iIsVisible) {
 
   var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
-    iTitle, iIsResizable,
-    iIsVisible);
+      iIsResizable, iIsVisible);
   //default to use the existing layout if present, even when requested otherwise.
-  if (SC.none(iUseLayoutForPosition)&& !SC.none(iComponentLayout.left) &&
-    !SC.none(iComponentLayout.top)) {
+  if (SC.none(iUseLayoutForPosition) && !SC.none(iComponentLayout.left) && !SC.none(iComponentLayout.top)) {
     iUseLayoutForPosition = true;
   }
   if (!iUseLayoutForPosition) {
@@ -427,7 +540,8 @@ DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
  * @param iIsResizable
  * @param iUseLayoutForPosition - if true, forgo auto-positioning and just use the layout.
  */
-DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties, iTitle, iIsResizable, iUseLayoutForPosition, iIsVisible) {
+DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties,
+                                          iIsResizable, iUseLayoutForPosition, iIsVisible) {
   iUseLayoutForPosition = iUseLayoutForPosition || false;
   if (!SC.none(iComponentLayout.width))
     iComponentLayout.width += DG.ViewUtilities.horizontalPadding();
@@ -435,8 +549,7 @@ DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iCompone
     iComponentLayout.height += DG.ViewUtilities.verticalPadding();
 
   var tComponentView = this._createComponent(iComponentLayout, iComponentClass,
-    iContentProperties, iTitle, iIsResizable,
-    iIsVisible);
+      iContentProperties, iIsResizable, iIsVisible);
 
   if (!iUseLayoutForPosition)
     iSuperView.positionNewComponent(tComponentView);

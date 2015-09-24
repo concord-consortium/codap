@@ -45,7 +45,17 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     collections: null,
 
-    /**
+    defaultTitle: function() {
+      var tTitle = '';
+      DG.ObjectMap.forEach(this.collections, function (collectionKey){
+        if( !SC.empty( tTitle))
+          tTitle += ' / ';
+        tTitle += this.collections[collectionKey].get('name');
+      }.bind(this));
+      return tTitle;
+    }.property(),
+
+      /**
      * Per-component storage, in a component specific format.
      * @property {JSON}
      */

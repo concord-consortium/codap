@@ -21,78 +21,107 @@ sc_require('models/base_model');
 
 /** @class
 
-  Represents an individual component of a DG.Document.
+    Represents an individual component of a DG.Document.
 
  @extends DG.BaseModel
  */
 DG.Component = DG.BaseModel.extend(
-  /** @scope DG.Component.prototype */ {
+    /** @scope DG.Component.prototype */ {
 
-    /**
-     * A relational link back to the parent DG.Document
-     * @property {DG.Document}
-     */
-    document: null,
+      /**
+       * A relational link back to the parent DG.Document
+       * @property {DG.Document}
+       */
+      document: null,
 
-    /**
-     * Content is an arbitrary javascript object, serializable, and defined
-     * by the Component.
-     */
-    content: function (iKey, iValue) {
-      if (iValue !== undefined) {
-        DG.Component.setContent(this, iValue);
-        return this;
+      /**
+       * The title of this component. Can be edited by user.
+       * @property {String}
+       */
+      _title: null,
+      title: function( iKey, iValue) {
+        if( iValue !== undefined) {
+          this._title = iValue;
+        }
+        else if (SC.none(this._title)) {
+          this._title = this.getPath('content.defaultTitle');
+        }
+        return this._title;
+      }.property('*content.defaultTitle'),
+
+      defaultTitleChanged: function() {
+        this.set('title', this.getPath('content.defaultTitle'));
+      }.observes('*content.defaultTitle'),
+
+      /**
+       * Content is an arbitrary javascript object, serializable, and defined
+       * by the Component.
+       */
+      content: function (iKey, iValue) {
+        if (iValue !== undefined) {
+          DG.Component.setContent(this, iValue);
+        }
+        return DG.Component.getContent(this);
+      }.property(),
+
+
+      /**
+       * The type of the component (e.g. 'DG.CaseTable', 'DG.Graph', 'DG.Calculator', ...)
+       * @property {String}
+       */
+      type: '',
+
+      /**
+       * The bounds of the component in the document stored as an SC.Layout-formatted object.
+       * @property {JSON}
+       */
+      layout: null,
+
+      /**
+       * Per-component storage, in a component specific format.
+       * @property {JSON}
+       */
+      componentStorage: null,
+
+      init: function() {
+        sc_super();
+        var tStorage = this.get('componentStorage');
+        if( tStorage && tStorage.title)
+          this.set('title', tStorage.title);
+      },
+
+      destroy: function () {
+        if (this.document) {
+          delete this.document.components[this.id];
+        }
+        sc_super();
+      },
+      toArchive: function () {
+        var obj = {},
+            tStorage = this.get('componentStorage');
+        if( tStorage)
+          tStorage.title = this.get('title');
+        obj = {
+          type: this.type,
+          guid: this.id,
+          componentStorage: tStorage,
+          layout: this.layout
+        };
+        return obj;
+      },
+
+      verify: function () {
+        if (SC.empty(this.document)) {
+          DG.logWarn('Unattached component: ' + this.id);
+        }
+        if (typeof this.document === 'number') {
+          DG.logWarn('Unresolved reference to document id, ' + this.document +
+              ', in component: ' + this.id);
+        }
       }
-      return DG.Component.getContent(this);
-    }.property(),
-
-    /**
-     * The type of the component (e.g. 'DG.CaseTable', 'DG.Graph', 'DG.Calculator', ...)
-     * @property {String}
-     */
-    type: '',
-
-    /**
-     * The bounds of the component in the document stored as an SC.Layout-formatted object.
-     * @property {JSON}
-     */
-    layout: null,
-
-    /**
-     * Per-component storage, in a component specific format.
-     * @property {JSON}
-     */
-    componentStorage: null,
-
-    destroy: function () {
-      if (this.document) {
-        delete this.document.components[this.id];
-      }
-      sc_super();
-    },
-    toArchive: function() {
-      var obj = {};
-      obj = {
-        type: this.type,
-        guid: this.id,
-        componentStorage: this.componentStorage,
-        layout: this.layout
-      };
-      return obj;
-    },
-
-    verify: function () {
-      if (SC.empty(this.document)) {
-        DG.logWarn('Unattached component: ' + this.id);
-      }
-      if (typeof this.document === 'number') {
-        DG.logWarn('Unresolved reference to document id, ' + this.document +
-          ', in component: ' + this.id);
-      }
-    }
 
 
-  });
+    });
 
 /**
  Class-level map from DG.Component 'id's to content objects.
@@ -113,7 +142,7 @@ DG.Component.contentMap = {};
  */
 DG.Component.getContent = function (iComponent) {
   var componentID = iComponent && iComponent.id;
-  return componentID ? DG.Component.contentMap[ componentID] : undefined;
+  return componentID ? DG.Component.contentMap[componentID] : undefined;
 };
 
 /**
@@ -128,15 +157,15 @@ DG.Component.setContent = function (iComponent, iContent) {
   var componentID = iComponent && iComponent.id;
   if (!SC.none(componentID)) {
     if (iContent === undefined)
-      delete DG.Component.contentMap[ componentID];
-    else DG.Component.contentMap[ componentID] = iContent;
+      delete DG.Component.contentMap[componentID];
+    else DG.Component.contentMap[componentID] = iContent;
   }
 };
 
 
 DG.Component.createComponent = function (iProperties) {
   var tProperties = iProperties || {},
-    tComponent;
+      tComponent;
   tComponent = DG.Component.create(tProperties);
   if (iProperties.document) {
     iProperties.document.components[tComponent.get('id')] = tComponent;

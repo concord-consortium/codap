@@ -20,9 +20,14 @@
 
 DG.ViewUtilities = {
 
-  kTitleBarHeight: 20,  // for component views
+  kTitleBarHeight: 25,  // for component views
   kDragWidth: 8,  // for component views
   kBorderWidth: 4, // must correspond with .css constant
+  kGridSize: 5,
+
+  roundToGrid: function( iNumber) {
+    return DG.ViewUtilities.kGridSize * Math.round( iNumber / DG.ViewUtilities.kGridSize);
+  },
 
   /**
    * @returns {number} padding to add to interior of view to get view horizontal size.
@@ -106,7 +111,7 @@ DG.ViewUtilities = {
   */
   findEmptyLocationForRect: function( iItemRect, iContainerRect, iViews) {
     var
-      kGap = 5, // Also used to increment during search
+      kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
       tLoc = { x: kGap, y: kGap },
       tSuccess = false,
       tViewRects = iViews.map( function( iView) {

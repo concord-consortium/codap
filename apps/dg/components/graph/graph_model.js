@@ -444,7 +444,21 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      */
     hasNumericAxis: function() {
       return this.getPath('xAxis.isNumeric') || this.getPath('yAxis.isNumeric');
-    }.property(),
+    }.property('xAxis', 'yAxis'),
+
+    /**
+     * @return {Boolean}
+     */
+    canRescale: function() {
+      return this.get('hasNumericAxis') || this.get('plot').mixUp;
+    }.property('hasNumericAxis', 'plot'),
+
+    /**
+     * @return {Boolean}
+     */
+    canMixUp: function() {
+      return this.get('plot').mixUp;
+    }.property('plot'),
 
     rescaleAxesFromData: function( iShrink, iAnimate) {
       var tPlot = this.get('plot');
@@ -486,7 +500,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
          current plot and whether we made a new plot.
      */
     synchPlotWithAttributes: function() {
-      var tConfig = this.get( 'dataConfiguration' ),
+      var this_ = this,
+          tConfig = this.get( 'dataConfiguration' ),
         tXType = tConfig.get( 'xType' ),
         tYType = tConfig.get( 'yType' ),
         tCurrentPlot = this.get( 'plot' ),
@@ -512,8 +527,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tNewPlotClass = DG.PlotModel;
 
       tNewPlotClass.configureRoles( tConfig );
-      if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) )
-        tNewPlot = tOperativePlot = tNewPlotClass.create();
+      if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
+        tNewPlot = tOperativePlot = tNewPlotClass.create( this.getModelPointStyleAccessors());
+      }
       else
         tOperativePlot = tCurrentPlot;
 
@@ -643,7 +659,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var //tDataContext = this.getPath('dataConfiguration.dataContext'),
+      var this_ = this,
           xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
           tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
           tPrevXAxis = this.get('xAxis'),
@@ -664,7 +680,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         iPlots.forEach( function( iModelDesc, iIndex) {
           if( !iModelDesc.plotClass)
             return;
-          var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create(),
+          var tPlot = DG.Core.classFromClassName( iModelDesc.plotClass ).create( this.getModelPointStyleAccessors()),
           tActualYAttrIndex = iModelDesc.plotModelStorage.verticalAxisIsY2 ? tY2AttrIndex++ : tYAttrIndex++;
           tPlot.beginPropertyChanges();
           tPlot.setIfChanged( 'dataConfiguration', tDataConfig);
@@ -750,6 +766,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           concat( [{ isSeparator: YES }]).
           concat( this.createHideShowSelectionMenuItems());
     },
+
+    checkboxDescriptions: function() {
+      return this.getPath('plot.checkboxDescriptions');
+    }.property('plot'),
 
     /**
      * My plot model and my axes may have animations going on. If so, stop them.

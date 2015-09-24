@@ -17,6 +17,7 @@
 // ==========================================================================
 
 sc_require('controllers/document_archiver');
+sc_require('utilities/menu_pane');
 
 /** @class
 
@@ -24,6 +25,8 @@ sc_require('controllers/document_archiver');
 
  @extends SC.Object
  */
+sc_require('libraries/ext/menu');
+
 DG.appController = SC.Object.create((function () // closure
 /** @scope DG.appController.prototype */ {
 
@@ -57,15 +60,40 @@ DG.appController = SC.Object.create((function () // closure
      */
     init: function () {
       sc_super();
-      this.fileMenuPane = SC.MenuPane.create({
+      this.fileMenuPane = DG.MenuPane.create({
         items: this.get('fileMenuItems'),
         layout: { width: 165 }
       });
-      this.optionMenuPane = SC.MenuPane.create({
+      this.tileMenuPane = DG.MenuPane.create({
+        showTileList: function( iAnchor) {
+          this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
+          this.popup(iAnchor);
+        },
+        layout: { width: 150 },
+        menuItemDidChange: function() {
+          var tItemView = this.getPath('currentMenuItem.content.target'),
+              tPrevItemView = this.getPath('previousMenuItem.content.target');
+          if( tItemView) {
+            tItemView.get('parentView').bringToFront( tItemView);
+            tItemView.$().addClass('component-view-staging');
+          }
+          if( tPrevItemView && tPrevItemView !== tItemView)
+            tPrevItemView.$().removeClass('component-view-staging');
+        }.observes('currentMenuItem', 'previousMenuItem'),
+        willRemoveFromDocument: function() {
+          var tItem = this.get('currentMenuItem'),
+              tPrevItem = this.get('previousMenuItem');
+          if( tItem)
+            tItem.getPath('content.target').$().removeClass('component-view-staging');
+          if( tPrevItem)
+            tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
+        }
+      });
+      this.optionMenuPane = DG.MenuPane.create({
         items: this.get('optionMenuItems'),
         layout: { width: 150 }
       });
-      this.guideMenuPane = SC.MenuPane.create({
+      this.guideMenuPane = DG.MenuPane.create({
         layout: { width: 250 }
       });
 
@@ -102,40 +130,40 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
             target: this,
-            action: 'closeCurrentDocument',
+            dgAction: 'closeCurrentDocument',
             isEnabled: YES
           },
           {
             localize: true,
             title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
             target: this,
-            action: 'copyDocument',
+            dgAction: 'copyDocument',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
           {
             localize: true,
             title: 'DG.AppController.revertDocument.title', // "Revert to Original..."
             target: this,
-            action: 'revertDocumentToOriginal',
+            dgAction: 'revertDocumentToOriginal',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
           {
             localize: true,
             title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
             target: this,
-            action: 'closeCurrentDocument' },
+            dgAction: 'closeCurrentDocument' },
           {
             isSeparator: YES },
           {
             localize: true,
             title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
             target: this,
-            action: 'loadManager',
+            dgAction: 'loadManager',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
           { isSeparator: YES },
           {
             localize: true,
             title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
             target: this,
-            action: 'importData' }
+            dgAction: 'importData' }
         ],
         docServerItems = [
           { isSeparator: YES },
@@ -143,7 +171,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
             target: this,
-            action: 'showShareLink',
+            dgAction: 'showShareLink',
             isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
           }
         ],
@@ -153,7 +181,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
             target: this,
-            action: 'exportDocument' }
+            dgAction: 'exportDocument' }
         ], finalItems;
 
         if (!DG.AUTOSAVE) {
@@ -161,7 +189,7 @@ DG.appController = SC.Object.create((function () // closure
             localize: true,
             title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
             target: this,
-            action: 'saveCODAPDocument',
+            dgAction: 'saveCODAPDocument',
             isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
           );
         }
@@ -195,17 +223,15 @@ DG.appController = SC.Object.create((function () // closure
 
     optionMenuItems: function () {
       return [
-        { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
-          target: this, action: 'showHelp' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
-          target: this, action: 'reportProblem' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
-          target: this, action: 'showWebSite' },
-        { isSeparator: YES },
-        { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
-          target: this, action: 'configureGuide' },
         { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
-          target: this, action: 'viewWebPage' }
+          target: this, dgAction: 'viewWebPage' },
+        { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
+          target: this, dgAction: 'configureGuide' },
+        { isSeparator: YES },
+        { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
+          target: this, dgAction: 'showWebSite' },
+        { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
+          target: this, dgAction: 'reportProblem' }
       ];
     }.property(),
 
@@ -654,7 +680,7 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     triggerSaveNotification: function() {
-      var el = DG.getPath('mainPage.mainPane.infoBar.leftSide.saveNotification.layer');
+      var el = DG.getPath('mainPage.mainPane.navBar.leftSide.saveNotification.layer');
       var opacity = 1;
       var next = function(i) {
         if (opacity > 0) {

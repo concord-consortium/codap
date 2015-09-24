@@ -57,6 +57,11 @@ DG.MapModel = DG.DataDisplayModel.extend(
      */
     gridModel: null,
 
+    areaColor: DG.PlotUtilities.kMapAreaNoLegendColor,
+    areaTransparency: DG.PlotUtilities.kDefaultMapFillOpacity,
+    areaStrokeColor: DG.PlotUtilities.kDefaultMapStrokeColor,
+    areaStrokeTransparency: DG.PlotUtilities.kDefaultMapStrokeOpacity,
+
     _connectingLineModel: null,
 
     /**
@@ -174,6 +179,14 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.property('dataConfiguration.hasLatLongAttributes').cacheable(),
 
     /**
+     * We can rescale if we have some data to rescale to.
+     * @return {Boolean}
+     */
+    canRescale: function() {
+      return this.get('hasLatLongAttributes') || this.getPath('dataConfiguration.hasAreaAttribute');
+    }.property('hasNumericAxis', 'plot'),
+
+    /**
      * For now, we'll assume all changes affect us
      * @param iChange
      */
@@ -196,6 +209,40 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     _observedDataConfiguration: null,
+
+    checkboxDescriptions: function() {
+      var this_ = this,
+          tItems = [];
+      if( this.get('hasLatLongAttributes')) {
+        tItems = tItems.concat([
+          {
+            title: 'DG.Inspector.mapGrid',
+            value: this_.getPath('gridModel.visible'),
+            classNames: 'map-grid-check'.w(),
+            valueDidChange: function () {
+              this_.toggleGrid();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.mapPoints',
+            value: this_.get('pointsShouldBeVisible'),
+            classNames: 'map-points-check'.w(),
+            valueDidChange: function () {
+              this_.togglePoints();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.mapLines',
+            value: this_.get('linesShouldBeVisible'),
+            classNames: 'map-lines-check'.w(),
+            valueDidChange: function () {
+              this_.toggleLines();
+            }.observes('value')
+          }
+        ])
+      }
+      return tItems;
+    }.property(),
 
     /**
      Return the map's notion of gear menu items concatenated with mine.
@@ -284,27 +331,58 @@ DG.MapModel = DG.DataDisplayModel.extend(
       }.bind(this);
 
       if( this.get('hasLatLongAttributes')) {
-        var tHideShowGridTitle = this.getPath('gridModel.visible') ?
-                'DG.MapView.hideGrid'.loc() : 'DG.MapView.showGrid'.loc(),
-            tHideShowPointsTitle = (this.get('pointsShouldBeVisible') !== false) ? 'DG.MapView.hidePoints'.loc() :
-                'DG.MapView.showPoints'.loc();
-        tMenuItems = tMenuItems.concat( [
-                      { title: tHideShowGridTitle, isEnabled: true, target: this, itemAction: hideShowGrid },
-                      { title: tHideShowPointsTitle, isEnabled: true, target: this, itemAction: hideShowPoints }
-                    ]);
-        if( this.get('pointsShouldBeVisible')) {
-          var tHideShowLinesTitle = (this.get('linesShouldBeVisible') ?
-              'DG.DataDisplayModel.HideConnectingLine' :
-              'DG.DataDisplayModel.ShowConnectingLine').loc();
-          tMenuItems = tMenuItems.concat( [{ isSeparator: YES },
-            { title: tHideShowLinesTitle, isEnabled: true, target: this, itemAction: hideShowLines }]);
-        }
-
-        tMenuItems = tMenuItems.concat( [{ isSeparator: YES }]).
-            concat( this.createHideShowSelectionMenuItems());
+        tItems = tItems.concat([
+          {
+            title: 'DG.Inspector.mapGrid',
+            value: this_.getPath('gridModel.visible'),
+            classNames: 'map-grid-check'.w(),
+            valueDidChange: function () {
+              this_.toggleGrid();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.mapPoints',
+            value: this_.get('pointsShouldBeVisible'),
+            classNames: 'map-points-check'.w(),
+            valueDidChange: function () {
+              this_.togglePoints();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.mapLines',
+            value: this_.get('linesShouldBeVisible'),
+            classNames: 'map-lines-check'.w(),
+            valueDidChange: function () {
+              this_.toggleLines();
+            }.observes('value')
+          }
+        ])
       }
+      return tItems;
+    }.property(),
 
-      return tMenuItems;
+    toggleGrid: function() {
+      var tGrid = this.get('gridModel');
+      tGrid.set('visible', !tGrid.get( 'visible'));
+      DG.dirtyCurrentDocument();
+      DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
+    },
+
+    togglePoints: function() {
+      var tPointsVisible = this.get('pointsShouldBeVisible');
+      if( tPointsVisible !== false)
+        tPointsVisible = true;
+      this.set('pointsShouldBeVisible', !tPointsVisible);
+      DG.dirtyCurrentDocument();
+      DG.logUser('mapAction: {mapAction: %@}', (this.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
+    },
+
+    toggleLines: function() {
+      var tLinesVisible = this.get('linesShouldBeVisible');
+      this.set('linesShouldBeVisible', !tLinesVisible);
+      this.setPath('connectingLineModel.isVisible', !tLinesVisible);
+      DG.dirtyCurrentDocument();
+      DG.logUser('mapAction: {mapAction: %@}', (this.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
     },
 
     createStorage: function() {
@@ -317,6 +395,11 @@ DG.MapModel = DG.DataDisplayModel.extend(
         tStorage.pointsShouldBeVisible = tPointsVisible;
       tStorage.linesShouldBeVisible = this.get('linesShouldBeVisible');
       tStorage.grid = this.get('gridModel').createStorage();
+
+      tStorage.areaColor = this.get('areaColor');
+      tStorage.areaTransparency = this.get('areaTransparency');
+      tStorage.areaStrokeColor = this.get('areaStrokeColor');
+      tStorage.areaStrokeTransparency = this.get('areaStrokeTransparency');
 
       return tStorage;
     },
@@ -334,10 +417,20 @@ DG.MapModel = DG.DataDisplayModel.extend(
         this.set('zoom', iStorage.mapModelStorage.zoom);
         this.set('baseMapLayerName', iStorage.mapModelStorage.baseMapLayerName);
         this.set('centerAndZoomBeingRestored', true);
-        if( iStorage.mapModelStorage.pointsShouldBeVisible !== null)
+        if( !SC.none( iStorage.mapModelStorage.pointsShouldBeVisible))
           this.set('pointsShouldBeVisible', iStorage.mapModelStorage.pointsShouldBeVisible);
-        if( iStorage.mapModelStorage.linesShouldBeVisible !== null)
+        if( !SC.none( iStorage.mapModelStorage.linesShouldBeVisible))
           this.set('linesShouldBeVisible', iStorage.mapModelStorage.linesShouldBeVisible);
+
+        if( iStorage.mapModelStorage.areaColor)
+          this.set('areaColor', iStorage.mapModelStorage.areaColor);
+        if( iStorage.mapModelStorage.areaTransparency)
+          this.set('areaTransparency', iStorage.mapModelStorage.areaTransparency);
+        if( iStorage.mapModelStorage.areaStrokeColor)
+          this.set('areaStrokeColor', iStorage.mapModelStorage.areaStrokeColor);
+        if( iStorage.mapModelStorage.areaStrokeTransparency)
+          this.set('areaStrokeTransparency', iStorage.mapModelStorage.areaStrokeTransparency);
+
         this.get('gridModel').restoreStorage( iStorage.mapModelStorage.grid);
       }
     }

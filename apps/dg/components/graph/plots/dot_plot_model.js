@@ -246,51 +246,59 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     return tValueArray;
   },
 
-  /**
-   * Add items to the Plot's gear menu.
-   * Note that this is not a property because caller needs to assign "this".
-   * @return {Array of menu items}
-   */
-  getGearMenuItems: function() {
-    var tRescaleItem = 'DG.DataDisplayModel.rescaleToData'.loc(),
-        tMovableValueItem = (this.isAdornmentVisible('movableValue') ?
-            'DG.DotPlotModel.hideMovableValue' :
-            'DG.DotPlotModel.showMovableValue').loc(),
-        tPlottedMeanItem = (this.isAdornmentVisible('plottedMean') ?
-            'DG.DotPlotModel.hideMean' :
-            'DG.DotPlotModel.showMean').loc(),
-        tPlottedMedianItem = (this.isAdornmentVisible('plottedMedian') ?
-            'DG.DotPlotModel.hideMedian' :
-            'DG.DotPlotModel.showMedian').loc(),
-        tPlottedStDevItem = (this.isAdornmentVisible('plottedStDev') ?
-            'DG.DotPlotModel.hideStDev' :
-            'DG.DotPlotModel.showStDev').loc(),
-        tPlottedIQRItem = (this.isAdornmentVisible('plottedIQR') ?
-            'DG.DotPlotModel.hideIQR' :
-            'DG.DotPlotModel.showIQR').loc(),
-        tPlotValueItem = (this.isAdornmentVisible('plottedValue') ?
-            'DG.DotPlotModel.hidePlottedValue' :
-            'DG.DotPlotModel.plotValue').loc(),
-        tMenu1 = [
-              { title: tRescaleItem, target: this, itemAction: this.rescaleAxesFromData,
-                  args: [ true /* allowAxisRescale */,
-                          true /* Animate action */,
-                          true /* log it */,
-                          true /* user action */]},
-              { title: tMovableValueItem, target: this, itemAction: this.toggleMovableValue },
-              { title: tPlotValueItem, target: this, itemAction: this.togglePlotValue }
-            ],
-        tMenu2 = [
-              { isSeparator: YES },
-              { title: tPlottedMeanItem, target: this, itemAction: this.togglePlottedMean },
-              { title: tPlottedMedianItem, target: this, itemAction: this.togglePlottedMedian },
-              { title: tPlottedStDevItem, target: this, itemAction: this.togglePlottedStDev },
-              { title: tPlottedIQRItem, target: this, itemAction: this.togglePlottedIQR },
-              { isSeparator: YES }
-            ];
-    return tMenu1.concat( sc_super()).concat( tMenu2);
-  }
-
+  checkboxDescriptions: function() {
+    var this_ = this;
+    return sc_super().concat([
+      {
+        title: 'DG.Inspector.graphMovableValue',
+        value: this_.isAdornmentVisible('movableValue'),
+        classNames: 'graph-movableValue-check'.w(),
+        valueDidChange: function () {
+          this_.toggleMovableValue();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedMean',
+        value: this_.isAdornmentVisible('plottedMean'),
+        classNames: 'graph-plottedMean-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedMean();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedMedian',
+        value: this_.isAdornmentVisible('plottedMedian'),
+        classNames: 'graph-plottedMedian-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedMedian();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedStDev',
+        value: this_.isAdornmentVisible('plottedStDev'),
+        classNames: 'graph-plottedStDev-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedStDev();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedIQR',
+        value: this_.isAdornmentVisible('plottedIQR'),
+        classNames: 'graph-plottedIQR-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedIQR();
+        }.observes('value')
+      },
+      {
+        title: 'DG.Inspector.graphPlottedValue',
+        value: this_.isAdornmentVisible('plottedValue'),
+        classNames: 'graph-plottedValue-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlotValue();
+        }.observes('value')
+      }
+    ]);
+  }.property()
 });
 
 /**

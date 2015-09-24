@@ -36,12 +36,14 @@ DG.DataDisplayController = DG.ComponentController.extend(
       return iContext && !SC.none( collectionID) && iContext.getCollectionByID( collectionID);
     }
 
+
     return {
       dataContext: null,
       dataDisplayModel: null,
       legendView: null,
       attributeMenu: null,
       menuAnchorView: null,
+      stylesPane: null,
 
       storeDimension: function( iDataConfiguration, iStorage, iDim) {
         var tCollection = iDataConfiguration && iDataConfiguration.get(iDim + 'CollectionClient' ),
@@ -74,6 +76,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
             return iCase.toLink();
           });
         }
+        storage.pointColor = this.getPath('dataDisplayModel.pointColor');
+        storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
+        storage.pointSizeMultiplier = this.getPath('dataDisplayModel.pointSizeMultiplier');
+        storage.transparency = this.getPath('dataDisplayModel.transparency');
+        storage.strokeTransparency = this.getPath('dataDisplayModel.strokeTransparency');
         return storage;
       },
 
@@ -114,7 +121,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         sc_super();
 
         // To Do: We need to have the menu dynamically compute its layout.
-        this.attributeMenu = SC.MenuPane.create( {
+        this.attributeMenu = DG.MenuPane.create( {
                   layout: { width: 200, height: 150 }
                 });
         this.attributeMenu.selectedAxis = null;
@@ -126,6 +133,298 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     isVisible: false
                   });
       },
+
+      createInspectorButtons: function () {
+        var tResult = sc_super(),
+            this_ = this;
+        tResult.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-rescale'.w(),
+          iconName: static_url('images/icon-scaleData.svg'),
+          depressedIconName: static_url('images/icon-scaleData.svg'),
+          isEnabled: function() {
+            return this_.getPath( 'dataDisplayModel.canRescale');
+          }.property(),
+          target: this,
+          action: 'rescaleFunction',
+          toolTip: 'DG.Inspector.rescale.toolTip',  // "Rescale graph axes to encompass data"
+          localize: true,
+          iconExtent: {width: 32, height: 32},
+          init: function() {
+            sc_super();
+            this_.get('dataDisplayModel').addObserver('canRescale', this, 'plotDidChange');
+          },
+          plotDidChange: function() {
+            this.displayDidChange();
+            this.set('toolTip', this_.getPath('dataDisplayModel.canMixUp') ?
+                'DG.Inspector.mixUp.toolTip' : 'DG.Inspector.rescale.toolTip')
+          }
+        }));
+
+        var showHideShowPopup = function () {
+          var tMenu = DG.MenuPane.create({
+                classNames: 'display-hideshow-popup'.w(),
+                layout: {width: 200, height: 150}
+              }),
+              tMenuItems = this.get('dataDisplayModel').createHideShowSelectionMenuItems();
+          tMenu.set('items', tMenuItems);
+          tMenu.popup(tHideShowButton);
+        }.bind(this);
+
+        var tHideShowButton = DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-hideshow'.w(),
+          iconName: static_url('images/icon-hideShow.svg'),
+          depressedIconName: static_url('images/icon-hideShow.svg'),
+          showBlip: true,
+          target: this,
+          action: showHideShowPopup,
+          toolTip: 'DG.Inspector.hideShow.toolTip',  // "Show all cases or hide selected/unselected cases"
+          localize: true,
+          iconExtent: {width: 32, height: 20}
+        });
+        tResult.push(tHideShowButton);
+
+        var showDeletePopup = function () {
+          var tMenu = DG.MenuPane.create({
+                classNames: 'display-delete-popup'.w(),
+                layout: {width: 200, height: 150}
+              }),
+              tModel = this.get('dataDisplayModel'),
+              tSelection = tModel.get('selection'),
+              tCases = tModel.get('cases'),
+              tDeleteSelectedIsEnabled = tSelection && tSelection.get('length') !== 0,
+              tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
+          // TODO: Provide localization by defining in dg.strings
+              tMenuItems = [
+                {title: "Select All", target: tModel, action: 'selectAll', isEnabled: true},
+                {
+                  title: "Delete Selected Cases", target: tModel, action: 'deleteSelectedCases',
+                  isEnabled: tDeleteSelectedIsEnabled
+                },
+                {
+                  title: "Delete Unselected Cases", target: tModel, action: 'deleteUnselectedCases',
+                  isEnabled: tDeleteUnselectedIsEnabled
+                }
+              ];
+          tMenu.set('items', tMenuItems);
+          tMenu.popup(this.get('inspectorButtons')[2]);
+        }.bind(this);
+
+        tResult.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-trash'.w(),
+          iconName: static_url('images/icon-trash.svg'),
+          depressedIconName: static_url('images/icon-trash.svg'),
+          showBlip: true,
+          target: this,
+          action: showDeletePopup,
+          toolTip: 'DG.Inspector.delete.toolTip',
+          localize: true,
+          iconExtent: {width: 32, height: 32}
+        }));
+
+        tResult.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-values'.w(),
+          iconName: static_url('images/icon-values.svg'),
+          depressedIconName: static_url('images/icon-values.svg'),
+          showBlip: true,
+          target: this,
+          action: 'showValuesPane',
+          toolTip: 'DG.Inspector.displayValues.toolTip',
+          localize: true,
+          iconExtent: {width: 32, height: 32}
+        }));
+
+        tResult.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-styles'.w(),
+          iconName: static_url('images/icon-styles.svg'),
+          depressedIconName: static_url('images/icon-styles.svg'),
+          showBlip: true,
+          target: this,
+          action: 'showStylesPane',
+          toolTip: 'DG.Inspector.displayStyles.toolTip',
+          localize: true,
+          iconExtent: {width: 32, height: 29}
+        }));
+
+        tResult.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'display-styles'.w(),
+          iconName: static_url('images/icon-capture.png'),
+          depressedIconName: static_url('images/icon-capture.png'),
+          target: this,
+          action: 'makePngImage',
+          toolTip: 'DG.Inspector.makeImage.toolTip',
+          localize: true,
+          iconExtent: {width: 32, height: 32}
+        }));
+
+        return tResult;
+      },
+
+      /**
+       * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
+       * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
+       */
+      showValuesPane: function () {
+        var this_ = this,
+            kTitleHeight = 26,
+            kMargin = 20,
+            kLeading = 5,
+            kRowHeight = 20;
+        DG.InspectorPickerPane.create(
+            {
+              classNames: 'inspector-picker'.w(),
+              layout: {width: 200, height: 260},
+              contentView: SC.View.extend(SC.FlowedLayout,
+                  {
+                    layoutDirection: SC.LAYOUT_VERTICAL,
+                    isResizable: false,
+                    isClosable: false,
+                    defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                    canWrap: false,
+                    align: SC.ALIGN_TOP,
+                    layout: {right: 22 },
+                    childViews: 'title showLabel'.w(),
+                    title: DG.PickerTitleView.extend({
+                      layout: {height: kTitleHeight},
+                      flowSpacing: {left: 0, bottom: kLeading},
+                      title: 'DG.Inspector.values',
+                      localize: true,
+                      iconURL: static_url('images/icon-values.svg')
+                    }),
+                    showLabel: SC.LabelView.extend({
+                      layout: {height: kRowHeight},
+                      value: 'DG.Inspector.displayShow',
+                      localize: true
+                    }),
+                    init: function() {
+                      sc_super();
+                      this_.getPath('dataDisplayModel.checkboxDescriptions').forEach( function( iDesc) {
+                        iDesc.layout = {height: kRowHeight};
+                        iDesc.localize = true;
+                        this.appendChild( SC.CheckboxView.create(iDesc));
+                      }.bind( this));
+                    }
+                  }),
+              transitionIn: SC.View.SCALE_IN/*,
+             popup: function() {
+             var tFrame = this.getPath('contentView.frame'),
+             tBottom = tFrame.y + tFrame.height;
+             this.adjust({ height: tBottom + kLeading})
+             sc_super();
+             }*/
+            }).popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
+      },
+
+      /**
+       * The styles pane provides control over point size, color, and transparency.
+       */
+      showStylesPane: function () {
+        var this_ = this,
+            kTitleHeight = 26,
+            kMargin = 20,
+            kLeading = 5;
+
+        this.stylesPane = DG.InspectorPickerPane.create(
+            {
+              classNames: 'inspector-picker'.w(),
+              layout: {width: 250, height: 150},
+              contentView: SC.View.extend(SC.FlowedLayout,
+                  {
+                    layoutDirection: SC.LAYOUT_VERTICAL,
+                    isResizable: false,
+                    isClosable: false,
+                    defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                    canWrap: false,
+                    align: SC.ALIGN_TOP,
+                    layout: {right: 22},
+                    childViews: 'title'.w(),
+                    title: DG.PickerTitleView.extend({
+                      layout: {height: kTitleHeight},
+                      flowSpacing: {left: 0, bottom: kLeading},
+                      title: 'DG.Inspector.styles',
+                      localize: true,
+                      iconURL: static_url('images/icon-styles.svg')
+                    }),
+                    init: function () {
+                      sc_super();
+                      this_.get('styleControls').forEach(function (iControl) {
+                        this.appendChild( iControl);
+                      }.bind(this));
+                    }
+                  }),
+              transitionIn: SC.View.SCALE_IN,
+              popup: function() {
+                sc_super();
+                var tHeight = 0;
+                this.getPath('contentView.childViews').forEach( function( iView) {
+                  tHeight += iView.frame().height + kLeading;
+                });
+                this.adjust('height', tHeight);
+              }
+            });
+        this.stylesPane.popup(this.get('inspectorButtons')[4], SC.PICKER_POINTER);
+      },
+
+      styleControls: function () {
+        var this_ = this,
+            setColor = function( iColor) {
+              this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
+              this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+            },
+            setStroke = function( iColor) {
+              this_.setPath('dataDisplayModel.strokeColor', iColor.toHexString());
+              this_.setPath('dataDisplayModel.strokeTransparency', iColor.getAlpha());
+            },
+            getStylesLayer = function() {
+              return this_.stylesPane.layer();
+            },
+            kRowHeight = 20;
+        return [
+          DG.PickerControlView.create({
+            layout: {height: kRowHeight},
+            label: 'DG.Inspector.pointSize',
+            controlView: SC.SliderView.create({
+              layout: {width: 120},
+              classNames: 'graph-pointSize-slider'.w(),
+              controlSize: SC.SMALL_CONTROL_SIZE,
+              value: this.getPath('dataDisplayModel.pointSizeMultiplier'),
+              minimum: 0, maximum: 3, step: 0,
+              valueChanged: function () {
+                this_.setPath('dataDisplayModel.pointSizeMultiplier', this.get('value'));
+              }.observes('value')
+            })
+          }),
+          DG.PickerControlView.create({
+            layout: {height: 2 * kRowHeight},
+            label: 'DG.Inspector.color',
+            controlView: DG.PickerColorControl.create({
+              layout: {width: 120},
+              classNames: 'graph-point-color'.w(),
+              initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
+                  .setAlpha(this.getPath('dataDisplayModel.transparency')),
+              setColorFunc: setColor,
+              appendToLayerFunc: getStylesLayer
+            })
+          }),
+          DG.PickerControlView.create({
+            layout: {height: 2 * kRowHeight},
+            label: 'DG.Inspector.stroke',
+            controlView: DG.PickerColorControl.create({
+              layout: {width: 120},
+              classNames: 'graph-stroke-color'.w(),
+              initialColor: tinycolor(this.getPath('dataDisplayModel.strokeColor'))
+                  .setAlpha(this.getPath('dataDisplayModel.strokeTransparency')),
+              setColorFunc: setStroke,
+              appendToLayerFunc: getStylesLayer
+            })
+          })
+        ]
+      }.property(),
 
       addAxisHandler: function( iAxisView) {
         var this_ = this,

@@ -315,9 +315,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.set('mapAreaLayer', DG.MapAreaLayer.create(
             {
-              mapSource: this
+              mapSource: this,
+              model: this.get('model')
             }));
-        this.setPath('mapAreaLayer.model', this.get('model'));
         if( !this.getPath('model.centerAndZoomBeingRestored')) {
           this.fitBounds();
         }

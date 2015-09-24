@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('alpha/destroyable');
+sc_require('components/graph/utilities/plot_utilities');
 
 /** @class  DG.DataDisplayModel - The model for a for use in a display situation such as a graph or map.
 
@@ -38,6 +39,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      @property { DG.GraphDataConfiguration }
      */
     dataConfiguration: null,
+
+    /**
+     * @property {String}
+     */
+    defaultTitle: function() {
+      return this.getPath('dataConfiguration.defaultTitle');
+    }.property('*dataConfiguration.defaultTitle'),
+
+    defaultTitleChanged: function() {
+      this.notifyPropertyChange( 'defaultTitle', this.get('defaultTitle'));
+    }.observes('*dataConfiguration.defaultTitle'),
 
     /**
       @property { DG.CollectionClient }
@@ -73,6 +85,39 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      @property {Number}
      */
     _oldNumberOfCases: 0,
+
+    /**
+     * Point color default can be changed by user.
+     * @property {String} representing a color
+     */
+    pointColor: DG.PlotUtilities.kDefaultPointColor,
+
+    /**
+     * Stroke color default can be changed by user.
+     * @property {String} representing a color
+     */
+    strokeColor: DG.PlotUtilities.kDefaultStrokeColor,
+    strokeTransparency: DG.PlotUtilities.kDefaultStrokeOpacity,
+
+    /**
+     * Point size is computed at the view level and then multiplied by this number. Default is 1.
+     * @property {Number} between 0 and 2
+     */
+    pointSizeMultiplier: 1,
+
+    /**
+     * Needed for MapPointLayer that relies on this accessor in call to PlotLayer::CalcPointRadius
+     * @returns {Number}
+     */
+    getPointSizeMultiplier: function() {
+      return this.get('pointSizeMultiplier');
+    },
+
+    /**
+     * Point size is computed at the view level and then multiplied by this number. Default is 1.
+     * @property {Number} between 0 and 2
+     */
+    transparency: DG.PlotUtilities.kDefaultPointOpacity,
 
     /**
      Prepare dependencies.
@@ -233,6 +278,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         }
       }
       this.get('dataConfiguration').restoreHiddenCases( iStorage.hiddenCases);
+
+      if( !SC.none( iStorage.pointColor))
+        this.set('pointColor', iStorage.pointColor);
+      if( !SC.none( iStorage.strokeColor))
+        this.set('strokeColor', iStorage.strokeColor);
+      if( !SC.none( iStorage.pointSizeMultiplier))
+        this.set('pointSizeMultiplier', iStorage.pointSizeMultiplier);
+      if( !SC.none( iStorage.transparency))
+        this.set('transparency', iStorage.transparency);
+      if( !SC.none( iStorage.strokeTransparency))
+        this.set('strokeTransparency', iStorage.strokeTransparency);
     },
 
     handleOneDataContextChange: function( iNotifier, iChange) {
@@ -274,6 +330,27 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       for( i = 0; i < tNumChanges; i++) {
         this.handleOneDataContextChange( iNotifier, newChanges[ i]);
       }
+    },
+
+    getModelPointStyleAccessors: function() {
+      var this_ = this;
+      return {
+        getPointColor: function() {
+          return this_.get('pointColor');
+        },
+        getStrokeColor: function() {
+          return this_.get('strokeColor');
+        },
+        getPointSizeMultiplier: function() {
+          return this_.get('pointSizeMultiplier');
+        },
+        getTransparency: function() {
+          return this_.get('transparency');
+        },
+        getStrokeTransparency: function() {
+          return this_.get('strokeTransparency');
+        }
+      };
     },
 
     /** create a menu item that removes the attribute on the given axis/legend */
@@ -412,11 +489,11 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         // Note that these 'built' string keys will have to be specially handled by any
         // minifier we use
         { title: ('DG.DataDisplayMenu.hideSelected' + tHideSelectedNumber), isEnabled: tSomethingIsSelected,
-          target: this, itemAction: hideSelectedCases },
+          target: this, action: hideSelectedCases },
         { title: ('DG.DataDisplayMenu.hideUnselected' + tHideUnselectedNumber), isEnabled: tSomethingIsUnselected,
-          target: this, itemAction: hideUnselectedCases },
+          target: this, action: hideUnselectedCases },
         { title: 'DG.DataDisplayMenu.showAll', isEnabled: tSomethingHidden,
-          target: this, itemAction: showAllCases }
+          target: this, action: showAllCases }
       ];
     },
 

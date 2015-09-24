@@ -197,6 +197,20 @@ DG.ObjectMap = {
     var tValue = iKey ? iObject[ iKey] : undefined;
     delete iObject[ iKey];
     return tValue;
+  },
+
+  /**
+   * Assigns each 'own' property of iObj2 to iObj1.
+   *
+   * @param iObj1 {*}
+   * @param iObj2 {*}
+   * @returns {*}
+   */
+  join: function( iObj1, iObj2) {
+    DG.ObjectMap.forEach( iObj2, function( iKey, iValue) {
+      iObj1[ iKey] = iValue;
+    });
+    return iObj1;
   }
 
 };

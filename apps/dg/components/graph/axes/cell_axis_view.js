@@ -154,7 +154,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
 
       function measureOneCell( iCellNum, iCellName) {
         var tCoord = this_.cellToCoordinate( iCellNum),
-            tTextElement = this_._paper.text( 0, 0, iCellName),
+            tTextElement = this_._paper.text( 0, 0, iCellName)
+                .addClass('axis-tick-label'),
             tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
                                 tTextElement, DG.RenderingUtilities.kDefaultFontHeight);
 

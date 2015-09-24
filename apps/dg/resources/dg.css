@@ -14,6 +14,14 @@
  *  limitations under the License.
  */
 
+/* @import must be at top of file, otherwise CSS will not work */
+/*@import url("//hello.myfonts.net/count/2df7e5");*/
+
+@font-face {font-family: 'MuseoSans-500';src: url('webfonts/MuseoSans_500.otf') format('otf');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: url('webfonts/MuseoSans_500_Italic.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Regular';src: url('webfonts/Montserrat-Regular.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Bold';src: url('webfonts/Montserrat-Bold.otf') format('otf');}
+
 .dg-splash {
     background-color: white !important;
 }
@@ -30,7 +38,7 @@
 
 /* Default font for case tables */
 .dg-case-table {
-    font-family: arial !important;
+    font-family: 'Montserrat-Regular', sans-serif !important;
     font-size: 8pt !important;
 }
 
@@ -44,6 +52,100 @@
     cursor: pointer;
 }
 
+.icon-button-blip {
+    background-image: static_url('images/arrow-moreIconOptions.svg');
+}
+
+.navBar {
+    background-color: #005060;
+}
+
+.navBar .sc-view {
+    color: white;
+    font-family: 'Montserrat-Regular', sans-serif;
+    font-size: 10pt;
+}
+
+.navBar-version {
+    font-size: 9pt;
+}
+
+.navBar-status {
+    font-size: 9pt;
+}
+
+.doc-title {
+    text-align: left;
+    font-weight: bold;
+    cursor: text;
+    padding-left: 3px;
+}
+
+.doc-title:hover {
+    text-decoration: underline;
+}
+
+.right-side .sc-view {
+    font-size: 9pt;
+    color: rgba(255,255,255,0.5);
+}
+
+.draggable {
+    cursor: move;
+}
+
+.inspector-view{
+    background-color: #01879E;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.inspector-cover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.inspector-picker .sc-view{
+    background-color: rgba(231, 231, 231, 0.70);
+}
+
+.inspector-picker-title {
+    border-bottom: solid #C1C5C7 1px !important;
+    padding-left: 3px;
+    padding-top: 6px;
+}
+
+.inspector-picker .inspector-picker-icon {
+    background-color: #01879E;
+    padding: 4px 5px 5px 5px;
+}
+
+.inspector-picker-tag {
+    padding-left: 6px;
+    padding-top: 5px;
+}
+
+.inspector-picker-select {
+
+}
+
+.inspector-picker-color {
+    background-color: #0066bb;
+}
+
+.ace.menu .sc-menu-item.focus span, .ace.menu .sc-menu-item a:hover span {
+    color: #79B2BC;
+    text-decoration: underline;
+}
+
+.ace.menu .sc-menu-item.focus, .ace.menu .sc-menu-item a:hover {
+    background-image: none;
+    text-shadow: none;
+}
+
+.ace.menu .sc-menu-item.disabled a:hover span, .ace.menu .sc-menu-item.disabled.focus a:hover span {
+    text-decoration: none;
+}
+
 .drag-label {
     color: black;
     font-size: large !important;
@@ -51,32 +153,46 @@
 }
 
 .data-dot {
-    opacity: 0.85 !important;
+    /*stroke: white;*/
+    /*stroke-opacity: 0.6 !important;*/
+    /*fill: #e6805b;*/
+    /*opacity: 0.85 !important;*/
     pointer-events: all;
 }
 
 .data-dot:hover {
-    fill: red !important;
-    stroke: red !important;
+    fill: #a35b3a !important;
+    stroke: #a35b3a !important;
 }
 
 .data-dot-selected {
-    fill: red !important;
-    stroke-width: 2 !important;
+    fill: #1a7a93 !important;
+    stroke-width: 1 !important;
     pointer-events: all;
 }
 
 /* data dot with variable fill color */
 .data-dot-colored {
+    /*
     opacity: 0.85 !important;
-    stroke: #315B7D !important;
+    stroke: white !important;
+    */
     pointer-events: all;
 }
 
 .data-dot-colored-selected {
     stroke: black !important;
     stroke-width: 2 !important;
+    stroke-opacity: 1 !important;
     pointer-events: all;
+}
+
+.axis-view {
+    font-family: Montserrat-Regular;
+}
+
+.axis-tick-label {
+    font-family: Montserrat-Regular !important;
 }
 
 .axis-dot {
@@ -85,7 +201,7 @@
 }
 
 .axis-label {
-    font: caption !important;
+    font-family: Montserrat-Regular !important;
     /*fill: blue;*/
     cursor: pointer;
     font-size: 14px !important;
@@ -135,12 +251,11 @@
 
 .data-tip-text {
     text-align: left !important;
-    font-family: "lucida sans", helvetica, arial !important;
     font-size: 100% !important;
 }
 
 .legend-view {
-    background-color: white;
+    background-color: inherit;
 }
 
 .legend-key {
@@ -158,10 +273,87 @@
 }
 
 .sc-view.component-border {
-    border-left: 4px #999 solid;
-    border-top: 4px #666 solid;
-    border-bottom: 4px #ccc solid;
-    border-right: 4px #999 solid;
+    border: 1px white solid;
+}
+
+.component-view {
+    background-color: #f0f0f0;
+    box-shadow: 0px 1px 3px 0px rgba(0, 0, 0, 0.25);
+    border-radius:6px;
+}
+
+.component-view-selected {
+    box-shadow: 0px 1px 20px 0px rgba(0, 0, 0, 0.25);
+}
+
+.component-view-staging {
+    box-shadow: 0px 1px 20px 0px rgba(0, 0, 0, 0.40);
+}
+
+.titlebar {
+    background-color: #72bfca;
+    border-top-right-radius:6px;
+    border-top-left-radius:6px;
+    color: white;
+}
+
+.titlebar-selected {
+    background-color: #177991;
+}
+
+.titlebar:hover {
+    text-decoration: underline;
+}
+
+.min-icon {
+    background-image:  static_url('images/icon-minimize.svg');
+    background-size: 12px 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.min-icon:hover {
+    background-image:  static_url('images/icon-minimize-hover.svg');
+    background-size: 16px 16px;
+}
+
+.min-icon:active {
+    background-image:  static_url('images/icon-minimize-active.svg');
+}
+
+.close-icon {
+    background-image:  static_url('images/icon-ex.svg');
+    background-size: 12px 12px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.close-icon:hover {
+    background-image:  static_url('images/icon-ex-hover.svg');
+    background-size: 16px 16px;
+}
+
+.close-icon:active {
+    background-image:  static_url('images/icon-ex-active.svg');
+}
+
+.titleview {
+    cursor: text;
+    text-align: center;
+    vertical-align: middle;
+    top: 4px !important;
+    height: 15px;
+    font-size: 12px !important;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+
+.dg-status-view {
+    color: white;
+    top: 4px !important;
+    height: 15px;
+    font-size: 12px !important;
 }
 
 .sc-view .function-table-view {
@@ -189,15 +381,45 @@
 }
 
 body.dg .sc-view.doc-background {
-    background: static_url('images/dark_bg.jpg') !important;
+    background: static_url('images/bg-grid-grey.png') !important;
 }
 
+.sc-main {
+    font-family: 'MuseoSans-500', sans-serif;
+}
+
+.sc-view {
+    font-family: 'MuseoSans-500', sans-serif;
+}
 .sc-view.toolshelf-background {
-    background: static_url('images/toolshelf.png') repeat-x center top !important;
+    /*background: static_url('images/toolshelf.png') repeat-x center top !important;*/
+    background-color: #ececec;
+    border-bottom: 1px solid #dcdbd8;
+}
+
+.buttons {
+    background-color: white;
+    box-shadow: 0px 0px 0px 1px #888888;
 }
 
 .sc-view.icon-button {
     cursor: pointer;
+}
+
+.sc-view.toolshelf-button:hover {
+    box-shadow: 1px 1px 1px 0px #888888;
+}
+
+.sc-view.toolshelf-button:active {
+    box-shadow: 1px 1px 0px 1px #888888;
+}
+
+.sc-view.toolshelf-button:disabled {
+    box-shadow: none;
+}
+
+.icon-cover {
+    background-color: rgba(10, 121, 146, 0.49);
 }
 
 .sc-view.showText {
@@ -214,6 +436,11 @@ body.dg .sc-view.doc-background {
 
 .sc-segmented-view {
     z-index: inherit;
+}
+
+.sc-menu-item img {
+    left: 16px;
+    width: 16px;
 }
 
 .map-layer {
@@ -238,13 +465,17 @@ body.dg .sc-view.doc-background {
     pointer-events: all;
 }
 
+.plot-view {
+    background-color: white;
+}
+
 .graph-view {
-    background-color: #ffffff;
+    background-color: #F9F9F9;
 }
 
 .graph-drop-frame {
     stroke-width: 3;
-    stroke: orange;
+    stroke: #ffd080;
     stroke-opacity: 0.6;
 }
 

@@ -196,7 +196,8 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         this_.forEachTickDo( function( iSpot, iTickPixel) {
           var tNum, tLabelExtent, tWidth, tHeight;
               tLabelString = tFormat( iSpot);
-              tNum = this_._paper.text( 0, 0, tLabelString);
+              tNum = this_._paper.text( 0, 0, tLabelString)
+                  .addClass('axis-tick-label');
               this_._elementsToClear.push( tNum);
               tLabelExtent = DG.RenderingUtilities.getExtentForTextElement(
                                 tNum, DG.RenderingUtilities.kDefaultFontHeight);
