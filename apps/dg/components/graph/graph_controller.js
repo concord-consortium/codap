@@ -196,21 +196,43 @@ DG.GraphController = DG.DataDisplayController.extend(
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
 
-        this.handlePossibleForeignDataContext( iDragData);
+        var controller = this;
 
-        var tDataContext = this.get('dataContext'),
-            tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'axis.attributeChange',
+          undoString: 'DG.Undo.axisAttributeChange',
+          redoString: 'DG.Redo.axisAttributeChange',
+          _beforeStorage: null,
+          _afterStorage: null,
+          execute: function() {
+            this._beforeStorage = controller.createComponentStorage();
 
-        iAxis.dragData = null;
+            controller.handlePossibleForeignDataContext( iDragData);
 
-        this.get('graphModel').changeAttributeForAxis(
-            tDataContext,
-            {
-              collection: tCollectionClient,
-              attributes: [iDragData.attribute]
-            },
-            iAxis.get('orientation')
-        );
+            var tDataContext = controller.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+
+            iAxis.dragData = null;
+
+            controller.get('graphModel').changeAttributeForAxis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [iDragData.attribute]
+                },
+                iAxis.get('orientation')
+            );
+          },
+          undo: function() {
+            this._afterStorage = controller.createComponentStorage();
+            controller.restoreComponentStorage(this._beforeStorage);
+            DG.dirtyCurrentDocument();
+          },
+          redo: function() {
+            controller.restoreComponentStorage(this._afterStorage);
+            DG.dirtyCurrentDocument();
+          }
+        }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
 
         /**

@@ -720,11 +720,13 @@ DG.DocumentController = SC.Object.extend(
         name: "graphComponent.create",
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
+        _graphModel: null,
+        _graphController: null,
         execute: function() {
           SC.Benchmark.start('addGraph');
-          var tGraphModel = DG.GraphModel.create(),
-            tGraphController = DG.GraphController.create(),
-            tContextIds = DG.DataContext.contextIDs(null);
+          this._graphModel = this._graphModel || DG.GraphModel.create();
+          this._graphController = this._graphController || DG.GraphController.create();
+          var tContextIds = DG.DataContext.contextIDs(null);
 
           if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
             tGraphController.set('dataContext',
@@ -732,9 +734,9 @@ DG.DocumentController = SC.Object.extend(
           }
           tView = docController.createComponentView(iComponent, {
                                   parentView: iParentView,
-                                  controller: tGraphController,
+                                  controller: this._graphController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
-                                  contentProperties: { model: tGraphModel },
+                                  contentProperties: { model: this._graphModel },
                                   defaultLayout: { width: 300, height: 300 },
                                   isResizable: true}
                                 );

@@ -587,29 +587,53 @@ DG.DataDisplayController = DG.ComponentController.extend(
          Menu items set up by setupAttributeMenu()
          */
         attributeMenuItemChanged: function () {
-          var tNewItem = this.attributeMenu.selectedItem,
-              tCollectionClient = tNewItem && tNewItem.collection,
-              tAxisOrientation = this.attributeMenu.selectedAxis,
-              tAttrRefs,
-              tDataDisplayModel = this.get('dataDisplayModel'),
-              tDataContext = this.get('dataContext');
-          if (!tNewItem)
-            return;
-          if (tCollectionClient) {
-            // change attribute
-            tAttrRefs = {
-              collection: tCollectionClient,
-              attributes: [tCollectionClient.attrsController.objectAt(tNewItem.contentIndex)]
-            };
-            if (this.attributeMenu.isLegend)
-              tDataDisplayModel.changeAttributeForLegend(tDataContext, tAttrRefs);
-            else
-              tDataDisplayModel.changeAttributeForAxis(tDataContext, tAttrRefs, tAxisOrientation);
-          } else if (tNewItem.target === tDataDisplayModel) {
-            // remove or change attribute
-            tNewItem.itemAction.apply(tNewItem.target, tNewItem.args);
-          }
-          this.menuAnchorView.set('isVisible', false);
+          var controller = this;
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChange',
+            undoString: 'DG.Undo.axisAttributeChange',
+            redoString: 'DG.Redo.axisAttributeChange',
+            _beforeStorage: null,
+            _afterStorage: null,
+            execute: function() {
+              this._beforeStorage = controller.createComponentStorage();
+
+              var tNewItem = controller.attributeMenu.selectedItem,
+                tCollectionClient = tNewItem && tNewItem.collection,
+                tAxisOrientation = controller.attributeMenu.selectedAxis,
+                tAttrRefs,
+                tDataDisplayModel = controller.get('dataDisplayModel'),
+                tDataContext = controller.get('dataContext');
+              if(!tNewItem) {
+                this.set('causedChange', false);
+                return;
+              }
+              if(tCollectionClient) {
+                // change attribute
+                tAttrRefs = {
+                  collection: tCollectionClient,
+                  attributes: [tCollectionClient.attrsController.objectAt( tNewItem.contentIndex)]
+                };
+                if( controller.attributeMenu.isLegend)
+                  tDataDisplayModel.changeAttributeForLegend( tDataContext, tAttrRefs);
+                else
+                  tDataDisplayModel.changeAttributeForAxis( tDataContext, tAttrRefs, tAxisOrientation);
+              } else if ( tNewItem.target === tDataDisplayModel ) {
+                // remove or change attribute
+                tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
+              }
+              controller.menuAnchorView.set('isVisible', false);
+            },
+            undo: function() {
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+              DG.dirtyCurrentDocument();
+            },
+            redo: function() {
+              controller.restoreComponentStorage(this._afterStorage);
+              DG.dirtyCurrentDocument();
+            }
+          }));
         },
 
         /**
