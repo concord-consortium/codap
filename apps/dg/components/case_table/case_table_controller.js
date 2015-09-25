@@ -544,6 +544,8 @@ DG.CaseTableController = DG.ComponentController.extend(
                 var action = isNew ? "attributeCreate" : "attributeEditFormula";
                 DG.logUser("%@: { name: '%@', collection: '%@', formula: '%@' }",
                             action, tAttributeName, tCollection.get('name'), tFormula);
+              } else {
+                  this.set('causedChange', false);
               }
             },
             undo: function() {
@@ -567,6 +569,8 @@ DG.CaseTableController = DG.ComponentController.extend(
                 action = isNew ? "attributeCreate" : "attributeEditFormula";
                 DG.logUser("%@ (undo): { name: '%@', collection: '%@', formula: '%@' }",
                             action, tAttributeName, tCollection.get('name'), tAttrFormula);
+              } else {
+                  this.set('causedChange', false);
               }
             }
           }));

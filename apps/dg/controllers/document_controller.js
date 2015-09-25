@@ -729,7 +729,7 @@ DG.DocumentController = SC.Object.extend(
           var tContextIds = DG.DataContext.contextIDs(null);
 
           if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
-            tGraphController.set('dataContext',
+            this._graphController.set('dataContext',
               DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
           }
           tView = docController.createComponentView(iComponent, {

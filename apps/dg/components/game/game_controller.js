@@ -775,7 +775,7 @@ DG.GameController = DG.ComponentController.extend(
     */
     handleUndoableAction: function() {
       DG.UndoHistory.execute(DG.Command.create({
-        name: 'interactive.undableAction',
+        name: 'interactive.undoableAction',
         undoString: 'DG.Undo.interactiveUndoableAction',
         redoString: 'DG.Redo.interactiveUndoableAction',
         execute: function() {},
