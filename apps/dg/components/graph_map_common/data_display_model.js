@@ -421,17 +421,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
             DG.logUser("Hide %@ selected cases", tSelection.length);
             self.get('dataConfiguration' ).hideCases( tSelection );
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
             DG.logUser("Undo hide selected cases");
             self.get('dataConfiguration' ).showCases( this._undoData );
-            DG.dirtyCurrentDocument();
           },
           redo: function() {
             DG.logUser("Redo hide selected cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }
@@ -450,17 +447,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
             DG.logUser("Hide %@ unselected cases", tUnselected.length);
             self.get('dataConfiguration' ).hideCases( tUnselected );
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
             DG.logUser("Undo hide unselected cases");
             self.get('dataConfiguration' ).showCases( this._undoData );
-            DG.dirtyCurrentDocument();
           },
           redo: function() {
             DG.logUser("Redo hide unselected cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }
@@ -475,12 +469,10 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
             DG.logUser("Show all cases");
             self.get('dataConfiguration' ).showAllCases();
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
             DG.logUser("Undo show all cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }

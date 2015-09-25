@@ -278,16 +278,14 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             name: (wasDilate ? 'graph.axis.dilate' : 'graph.axis.drag'),
             undoString: (wasDilate ? 'DG.Undo.axisDilate' : 'DG.Undo.axisDrag'),
             redoString: (wasDilate ? 'DG.Redo.axisDilate' : 'DG.Redo.axisDrag'),
-            execute: function() { DG.dirtyCurrentDocument(); },
+            execute: function() { },
             undo: function() {
               DG.logUser("resetting bounds (undo): { lower: %@, upper: %@ }", oldLowerBound, oldUpperBound);
               this_.get('model').setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
-              DG.dirtyCurrentDocument();
             },
             redo: function() {
               DG.logUser("resetting bounds (redo): { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
               this_.get('model').setLowerAndUpperBounds(newLowerBound, newUpperBound);
-              DG.dirtyCurrentDocument();
             }
           }));
         }

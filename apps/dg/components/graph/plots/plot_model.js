@@ -239,11 +239,9 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       redoString: (isShowCount ? 'DG.Redo.graph.showcount' : 'DG.Redo.graph.hidecount'),
       execute: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }.bind(this),
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }.bind(this),
     }));
   },

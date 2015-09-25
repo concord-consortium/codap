@@ -68,21 +68,18 @@ DG.TextComponentController = DG.ComponentController.extend(
         execute: function () {
           DG.logUser("editTextObject: '%@'", value);
           this.set('previousValue', value);
-          DG.dirtyCurrentDocument();
         }.bind(this),
         undo: function () {
           // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
           this.set('theText', previousValue);
           this.set('previousValue', previousValue);
           DG.logUser("editTextObject (undo): '%@'", previousValue);
-          DG.dirtyCurrentDocument();
         }.bind(this),
         redo: function () {
           // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
           this.set('theText', value);
           this.set('previousValue', previousValue);
           DG.logUser("editTextObject (redo): '%@'", value);
-          DG.dirtyCurrentDocument();
         }.bind(this)
       }));
     }

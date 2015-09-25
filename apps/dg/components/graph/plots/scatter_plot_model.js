@@ -101,11 +101,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       redoString: (willShow ? 'DG.Redo.graph.showMovableLine' : 'DG.Redo.graph.hideMovableLine'),
       execute: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }
     }));
   },
@@ -135,11 +133,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       execute: function() {
         this._undoData = this_.movableLine.createStorage();
         toggle();
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         this_.movableLine.restoreStorage(this._undoData);
-        DG.dirtyCurrentDocument();
       }
     }));
   },
@@ -166,11 +162,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       redoString: (willShow ? 'DG.Redo.graph.showPlotFunction' : 'DG.Redo.graph.hidePlotFunction'),
       execute: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }
     }));
   },
@@ -194,11 +188,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       redoString: (willShow ? 'DG.Redo.graph.showConnectingLine' : 'DG.Redo.graph.hideConnectingLine'),
       execute: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }
     }));
   },
@@ -220,11 +212,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       redoString: (willShow ? 'DG.Redo.graph.showSquares' : 'DG.Redo.graph.hideSquares'),
       execute: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       }
     }));
   },

@@ -226,11 +226,9 @@ DG.GraphController = DG.DataDisplayController.extend(
           undo: function() {
             this._afterStorage = controller.createComponentStorage();
             controller.restoreComponentStorage(this._beforeStorage);
-            DG.dirtyCurrentDocument();
           },
           redo: function() {
             controller.restoreComponentStorage(this._afterStorage);
-            DG.dirtyCurrentDocument();
           }
         }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),

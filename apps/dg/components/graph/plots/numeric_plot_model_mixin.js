@@ -153,8 +153,6 @@ DG.NumericPlotModelMixin =
           }.bind(this));
           this_.onRescaleIsComplete();
         }
-
-        DG.dirtyCurrentDocument();
       },
       redo: function() {
         if (this._undoData) {

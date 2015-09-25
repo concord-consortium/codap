@@ -190,19 +190,16 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           redoString: 'DG.Redo.map.changeBaseMap',
           execute: function() {
             this.setPath('model.baseMapLayerName', tBackground);
-            DG.dirtyCurrentDocument();
             DG.logUser('changeMapBackground: %@', tBackground);
           }.bind(this),
           undo: function() {
             this.setPath('model.baseMapLayerName', tOldBackground);
             this.setPath('backgroundControl.value', [tOldBackground]);
-            DG.dirtyCurrentDocument();
             DG.logUser('changeMapBackground (undo): %@', tOldBackground);
           }.bind(this),
           redo: function() {
             this.setPath('model.baseMapLayerName', tBackground);
             this.setPath('backgroundControl.value', [tBackground]);
-            DG.dirtyCurrentDocument();
             DG.logUser('changeMapBackground (undo): %@', tBackground);
           }.bind(this)
         }));
@@ -221,18 +218,14 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           name: "map.changeGridSize",
           undoString: 'DG.Undo.map.changeGridSize',
           redoString: 'DG.Redo.map.changeGridSize',
-          execute: function() {
-            DG.dirtyCurrentDocument();
-          }.bind(this),
+          execute: function() { },
           undo: function() {
             this.setPath('model.gridModel.gridMultiplier', tPreviousControlValue);
             this.gridControl.set('value', tPreviousControlValue);
-            DG.dirtyCurrentDocument();
           }.bind(this),
           redo: function() {
             this.setPath('model.gridModel.gridMultiplier', tControlValue);
             this.gridControl.set('value', tControlValue);
-            DG.dirtyCurrentDocument();
           }.bind(this)
         }));
       }.observes('gridControl.persistedValue'),
@@ -494,7 +487,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               execute: function() {
                 this.setPath('model.center', newCenter);
                 this.setPath('model.zoom', newZoom);
-                DG.dirtyCurrentDocument();
               }.bind(this),
               undo: function() {
                 // Tell the map to change, but also ignore any events until those changes are done...
@@ -503,7 +495,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
                 map.setView(oldCenter, oldZoom);
                 this.setPath('model.center', oldCenter);
                 this.setPath('model.zoom', oldZoom);
-                DG.dirtyCurrentDocument();
               }.bind(this),
               redo: function() {
                 // Tell the map to change, but also ignore any events until those changes are done...
@@ -512,7 +503,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
                 map.setView(newCenter, newZoom);
                 this.setPath('model.center', newCenter);
                 this.setPath('model.zoom', newZoom);
-                DG.dirtyCurrentDocument();
               }.bind(this)
             }));
           }

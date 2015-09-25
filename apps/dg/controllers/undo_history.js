@@ -85,6 +85,8 @@ DG.UndoHistory = SC.Object.create((function() {
       // Clear the redo stack every time we add a new command. We *don't* support applying changes
       // from a different change tree to the current tree.
       this._clearRedo();
+
+      this._dirtyDocument();
     },
 
     /**
@@ -126,6 +128,8 @@ DG.UndoHistory = SC.Object.create((function() {
       // Since we're not using set/get to access the stacks, notify changes manually.
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
+
+      this._dirtyDocument();
     },
 
     /**
@@ -167,6 +171,8 @@ DG.UndoHistory = SC.Object.create((function() {
       // Since we're not using set/get to access the stacks, notify changes manually.
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
+
+      this._dirtyDocument();
     },
 
     /**
@@ -239,6 +245,16 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
+    },
+
+    _dirtyDocument: function() {
+      if (this._executeInProgress) {
+        DG.dirtyCurrentDocument();
+      } else {
+        this._executeInProgress = true;
+        DG.dirtyCurrentDocument();
+        this._executeInProgress = false;
+      }
     }
 
   }; // return from function closure
