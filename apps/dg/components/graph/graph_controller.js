@@ -196,15 +196,18 @@ DG.GraphController = DG.DataDisplayController.extend(
         if (SC.none(iDragData)) // The over-notification caused by the * in the observes
           return;       // means we get here at times there isn't any drag data.
 
-        var controller = this;
-
         DG.UndoHistory.execute(DG.Command.create({
           name: 'axis.attributeChange',
           undoString: 'DG.Undo.axisAttributeChange',
           redoString: 'DG.Redo.axisAttributeChange',
           _beforeStorage: null,
           _afterStorage: null,
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
           execute: function() {
+            var controller = this._controller();
             this._beforeStorage = controller.createComponentStorage();
 
             controller.handlePossibleForeignDataContext( iDragData);
@@ -226,11 +229,12 @@ DG.GraphController = DG.DataDisplayController.extend(
             this.log = 'Attribute dragged and dropped: %@, %@'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
           },
           undo: function() {
+            var controller = this._controller();
             this._afterStorage = controller.createComponentStorage();
             controller.restoreComponentStorage(this._beforeStorage);
           },
           redo: function() {
-            controller.restoreComponentStorage(this._afterStorage);
+            this._controller().restoreComponentStorage(this._afterStorage);
           }
         }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),

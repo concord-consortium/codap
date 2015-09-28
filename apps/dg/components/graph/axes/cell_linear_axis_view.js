@@ -272,18 +272,36 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               newUpperBound = this_.getPath('model.upperBound'),
               oldLowerBound = this_._lowerBoundAtDragStart,
               oldUpperBound = this_._upperBoundAtDragStart,
-              wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound);
+              wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound),
+              tAxisKey = null, tGraphModelId = null;
+          if      (tOrientation === 'horizontal') { tAxisKey = 'xAxisView'; }
+          else if (tOrientation === 'vertical')   { tAxisKey = 'yAxisView'; }
+          else                                    { tAxisKey = 'y2AxisView'; }
+
+          DG.ObjectMap.forEach(DG.currDocumentController().componentControllersMap, function(id, controller) {
+            if (controller.get(tAxisKey) === this_) {
+              tGraphModelId = id;
+            }
+          });
+
           DG.UndoHistory.execute(DG.Command.create({
             name: (wasDilate ? 'graph.axis.dilate' : 'graph.axis.drag'),
             undoString: (wasDilate ? 'DG.Undo.axisDilate' : 'DG.Undo.axisDrag'),
             redoString: (wasDilate ? 'DG.Redo.axisDilate' : 'DG.Redo.axisDrag'),
             log: "dragEnd: { lower: %@, upper: %@ }".fmt(newLowerBound, newUpperBound),
+            _componentId: tGraphModelId,
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            _model: function() {
+              return this._controller().getPath(tAxisKey+'.model');
+            },
             execute: function() { },
             undo: function() {
-              this_.get('model').setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
+              this._model().setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
             },
             redo: function() {
-              this_.get('model').setLowerAndUpperBounds(newLowerBound, newUpperBound);
+              this._model().setLowerAndUpperBounds(newLowerBound, newUpperBound);
             }
           }));
         }

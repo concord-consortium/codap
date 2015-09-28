@@ -97,20 +97,26 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
     return {
         classNames: 'close-icon'.w(),
         doIt: function() {
-          var tComponent, tController,
-              tComponentView = this.parentView.viewToDrag(),
+          var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
               tState;
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
             redoString: 'DG.Redo.component.close',
-            log: 'closeComponent: %@'.fmt(tComponentView.get('title')),
+            _componentId: tComponentId,
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            _model: null,
             execute: function() {
-              var tContainerView = tComponentView.parentView;
+              var tController = this._controller(),
+                  tComponentView = tController.get('view'),
+                  tContainerView = tComponentView.get('parentView');
 
-              tController = tComponentView.get('controller');
+              this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
+              this._model = tController.get('model');
+
               tController.willSaveComponent();
-              tComponent = tController.get('model');
 
               if (tController.saveGameState) {
                 // If we are a GameController, try to save state.
@@ -129,8 +135,9 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
               }
             },
             undo: function() {
-              tComponentView = DG.currDocumentController().createComponentAndView(tComponent);
+              DG.currDocumentController().createComponentAndView(this._model);
 
+              var tController = this._controller();
               if (tController.restoreGameState && tState) {
                 tController.restoreGameState({gameState: tState});
               }

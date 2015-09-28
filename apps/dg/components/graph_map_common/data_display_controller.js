@@ -587,15 +587,18 @@ DG.DataDisplayController = DG.ComponentController.extend(
          Menu items set up by setupAttributeMenu()
          */
         attributeMenuItemChanged: function () {
-          var controller = this;
-
           DG.UndoHistory.execute(DG.Command.create({
             name: 'axis.attributeChange',
             undoString: 'DG.Undo.axisAttributeChange',
             redoString: 'DG.Redo.axisAttributeChange',
             _beforeStorage: null,
             _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
             execute: function() {
+              var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
               var tNewItem = controller.attributeMenu.selectedItem,
@@ -626,11 +629,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
               this.log = 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
             undo: function() {
+              var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
             },
             redo: function() {
-              controller.restoreComponentStorage(this._afterStorage);
+              this._controller().restoreComponentStorage(this._afterStorage);
             }
           }));
         },

@@ -779,13 +779,22 @@ DG.GameController = DG.ComponentController.extend(
         undoString: 'DG.Undo.interactiveUndoableAction',
         redoString: 'DG.Redo.interactiveUndoableAction',
         log: 'Interactive action occurred',
+        _componentId: this.getPath('model.id'),
+        _controller: function() {
+          return DG.currDocumentController().componentControllersMap[this._componentId];
+        },
         execute: function() {},
         undo: function() {
-          this.gamePhone.call({ operation: "undoAction" }, this.handleUndoRedoCompleted);
-        }.bind(this),
+          // FIXME If the game component was removed and then re-added via an undo,
+          // then calling undo or redo here will likely fail because the game's undo stack would
+          // probably have been cleared.
+          var controller = this._controller();
+          controller.gamePhone.call({ operation: "undoAction" }, controller.handleUndoRedoCompleted);
+        },
         redo: function() {
-          this.gamePhone.call({ operation: "redoAction" }, this.handleUndoRedoCompleted);
-        }.bind(this)
+          var controller = this._controller();
+          controller.gamePhone.call({ operation: "redoAction" }, controller.handleUndoRedoCompleted);
+        }
       }));
     },
 

@@ -84,15 +84,23 @@ DG.DragBorderView = SC.View.extend(
               undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
               redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
               log: '%@ component "%@"'.fmt((isResize ? 'Resized' : 'Moved'), tViewToDrag.get('title')),
-              execute: function() { DG.dirtyCurrentDocument(); },
+              _componentId: tViewToDrag.getPath('controller.model.id'),
+              _controller: function() {
+                return DG.currDocumentController().componentControllersMap[this._componentId];
+              },
+              _oldLayout: null,
+              execute: function() {
+                this._oldLayout = this._controller().updateModelLayout();
+                if (!this._oldLayout) {
+                  this.causedChange = false;
+                }
+              },
               undo: function() {
-                tViewToDrag.set('layout', tOldLayout);
-                tContainer.set('frameNeedsUpdate', true);
-              }.bind(this),
+                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+              },
               redo: function() {
-                tViewToDrag.set('layout', tNewLayout);
-                tContainer.set('frameNeedsUpdate', true);
-              }.bind(this)
+                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+              }
             }));
           }
           return YES; // handled!

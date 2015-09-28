@@ -20,7 +20,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global Promise */
+/* globals Promise */
 sc_require('libraries/es6-promise-polyfill');
 
 /** @class
@@ -676,7 +676,8 @@ DG.DocumentController = SC.Object.extend(
 
     openCaseTablesForEachContext: function () {
       var caseTables = this.findComponentsByType(DG.CaseTableController),
-          docController = this, newViews;
+          docController = this,
+          newViews = {};
       function haveCaseTableForContext (context) {
         var ix;
         for (ix = 0; ix < caseTables.length; ix += 1) {
@@ -690,11 +691,11 @@ DG.DocumentController = SC.Object.extend(
         redoString: 'DG.Redo.caseTable.open',
         log: 'Create caseTable component',
         execute: function() {
-          newViews = [];
+          var view;
           docController.contexts.forEach(function (context) {
             if (!haveCaseTableForContext(context)) {
-              newViews.push(this.addCaseTableP(DG.mainPage.get('docView'),
-                null, {dataContext: context}));
+              view = this.addCaseTableP(DG.mainPage.get('docView'), newViews[context], {dataContext: context});
+              newViews[context] = view.getPath('controller.model');
             }
           }.bind(docController));
           if (newViews.length === 0) {
@@ -702,8 +703,10 @@ DG.DocumentController = SC.Object.extend(
           }
         },
         undo: function() {
-          var containerView;
-          newViews.forEach(function(view) {
+          var view, controller, containerView;
+          DG.ObjectMap.forEach(newViews, function(context, model) {
+            controller = docController.componentControllersMap[model.get('id')];
+            view = controller.get('view');
             containerView = view.parentView;
             containerView.removeComponentView(view);
           });
@@ -722,58 +725,61 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
         log: 'Create graph component',
-        _graphModel: null,
-        _graphController: null,
+        _component: null,
         execute: function() {
           SC.Benchmark.start('addGraph');
-          this._graphModel = this._graphModel || DG.GraphModel.create();
-          this._graphController = this._graphController || DG.GraphController.create();
-          var tContextIds = DG.DataContext.contextIDs(null);
+          var tContextIds = DG.DataContext.contextIDs(null),
+              tController = DG.GraphController.create();
 
-          if (SC.none(iComponent) && DG.ObjectMap.length(tContextIds) === 1) {
-            this._graphController.set('dataContext',
+          if (SC.none(iComponent) && SC.none(this._component) && DG.ObjectMap.length(tContextIds) === 1) {
+            tController.set('dataContext',
               DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
           }
-          tView = docController.createComponentView(iComponent, {
+          tView = docController.createComponentView(iComponent || this._component, {
                                   parentView: iParentView,
-                                  controller: this._graphController,
+                                  controller: tController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
-                                  contentProperties: { model: this._graphModel },
+                                  contentProperties: { model: DG.GraphModel.create() },
                                   defaultLayout: { width: 300, height: 300 },
                                   isResizable: true}
                                 );
+          this._component = tView.getPath('controller.model');
 
           SC.Benchmark.end('addGraph');
           SC.Benchmark.log('addGraph');
         },
         undo: function() {
-          tView.parentView.removeComponentView(tView);
+          var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+          view.parentView.removeComponentView(view);
         }
       }));
       return tView;
     },
 
     addText: function( iParentView, iComponent) {
-      var tView, docController = this, textController = DG.TextComponentController.create();
+      var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
         name: "textComponent.create",
         undoString: 'DG.Undo.textComponent.create',
         redoString: 'DG.Redo.textComponent.create',
         log: 'Create text component',
+        _component: null,
         execute: function() {
-          tView = docController.createComponentView(iComponent, {
+          tView = docController.createComponentView(iComponent || this._component, {
                                 parentView: iParentView,
-                                controller: textController,
+                                controller: DG.TextComponentController.create(),
                                 componentClass: { type: 'DG.TextView', constructor: DG.TextView},
                                 contentProperties: { hint: "Type some notes here…" },
                                 defaultLayout: { width: 300, height: 100 },
                                 title: 'DG.DocumentController.textTitle'.loc(), // "Text"
                                 isResizable: true}
                               );
+          this._component = tView.getPath('controller.model');
         },
         undo: function() {
-          tView.parentView.removeComponentView(tView);
+          var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+          view.parentView.removeComponentView(view);
         }
       }));
       return tView;
@@ -787,6 +793,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.map.create',
         redoString: 'DG.Redo.map.create',
         log: 'Create map component',
+        _component: null,
         execute: function() {
           var tMapModel = DG.MapModel.create(),
               tMapController = DG.MapController.create(),
@@ -801,7 +808,7 @@ DG.DocumentController = SC.Object.extend(
           }
 
           // map as component
-          tView = docController.createComponentView(iComponent, {
+          tView = docController.createComponentView(iComponent || this._component, {
                                     parentView: iParentView,
                                     controller: tMapController,
                                     componentClass: { type: 'DG.MapView', constructor: DG.MapView},
@@ -810,47 +817,56 @@ DG.DocumentController = SC.Object.extend(
                                     title: 'DG.DocumentController.mapTitle'.loc(), // "Map"
                                     isResizable: true}
                                   );
+          this._component = tView.getPath('controller.model');
         },
         undo: function() {
-          tView.parentView.removeComponentView(tView);
+          var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+          view.parentView.removeComponentView(view);
         }
       }));
       return tView;
     },
 
     addSlider: function( iParentView, iComponent) {
-      var tView, sliderController, modelProps = {}, docController = this;
+      var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
         name: "sliderComponent.create",
         undoString: 'DG.Undo.sliderComponent.create',
         redoString: 'DG.Redo.sliderComponent.create',
         log: 'Create slider component',
+        _global: null,
+        _component: null,
         execute: function() {
-          if( !iComponent || !iComponent.get('componentStorage'))
-            modelProps.content = docController.createGlobalValue();
-          var tSliderModel = DG.SliderModel.create( modelProps);
-          sliderController = DG.SliderController.create();
+          if (SC.none(this._global)) {
+            this._global = docController.createGlobalValue();
+          } else {
+            DG.globalsController.registerGlobalValue(this._global);
+          }
+
+          var tSliderModel = DG.SliderModel.create( {content: this._global} );
           tView = docController.createComponentView(iComponent, {
                                 parentView: iParentView,
-                                controller: sliderController,
+                                controller: DG.SliderController.create(),
                                 componentClass: { type: 'DG.SliderView', constructor: DG.SliderView},
                                 contentProperties: { model: tSliderModel },
                                 defaultLayout: { width: 300, height: 60 },
                                 isResizable: true}
                               );
+          this._component = tView.getPath('controller.model');
         },
         undo: function() {
-          // Store the component so that when we redo, we'll get the same global variable (v1, v2, etc.)
-          sliderController.willSaveComponent();
-          tView.parentView.removeComponentView(tView);
-          DG.globalsController.destroyGlobalValue(modelProps.content);
+          var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')];
+          var view = controller.get('view');
+          view.parentView.removeComponentView(view);
+          DG.globalsController.destroyGlobalValue(this._global);
         }
       }));
       return tView;
     },
 
     addCalculator: function( iParentView, iComponent) {
+      // No Undo wrapping for this here, as it's handled in toggleComponent()
       var tView = this.createComponentView(iComponent, {
                                 parentView: iParentView,
                                 controller: DG.ComponentController.create(),

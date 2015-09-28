@@ -31,6 +31,8 @@ DG.ComponentController = SC.Object.extend((function () // closure
 
     view: null,     // DG.ComponentView
 
+    _oldLayout: null,
+
     /**
      * Lazy initialization is responsibility of subclass
      * @property {Array of DG.InspectorButtonView}
@@ -118,10 +120,7 @@ DG.ComponentController = SC.Object.extend((function () // closure
         if (componentStorage)
           this.model.set('componentStorage', componentStorage);
 
-        // If our content knows about a frame object, we'll get that frames layout and store it.
-        var layout = this.getPath('view.layout');
-        if (layout)
-          this.model.set('layout', layout);
+        this.updateModelLayout();
       }
     },
 
@@ -133,6 +132,28 @@ DG.ComponentController = SC.Object.extend((function () // closure
       if (componentStorage)
         this.restoreComponentStorage(componentStorage, iDocumentID);
       // We don't restore the layout here - the layout is retrieved and used at view construction time.
+    },
+
+    updateModelLayout: function() {
+      // If our content knows about a frame object, we'll get that frames layout and store it.
+      var layout = this.getPath('view.layout'),
+          modelLayout = this.model.get('layout');
+      if( layout && (modelLayout && JSON.stringify(layout) !== JSON.stringify(modelLayout))) {
+        this.model.set('layout', layout);
+        return modelLayout;
+      }
+      return null;
+    },
+
+    revertModelLayout: function(newLayout) {
+      var prevLayout = this.model.get('layout');
+
+      this.model.set('layout', newLayout);
+      this.model.set('oldLayout', prevLayout);
+      this.setPath('view.layout', newLayout);
+      this.setPath('view.parentView.frameNeedsUpdate', true);
+
+      return prevLayout;
     }
 
   }; // end return from closure

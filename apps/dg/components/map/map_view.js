@@ -85,7 +85,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       selection: null,
       selectionBinding: '*model.casesController.selection',
 
-      _ignoreMapDisplayChange: false,
+      _ignoreMapDisplayChanges: false,
       _fitBoundsInProgress: false,
       _mapDisplayChangeInProgress: false,
       _mapDisplayChange: null,
@@ -162,6 +162,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           isVisible: false
         });
         this.appendChild( this.marqueeTool);
+
+        // Don't trigger undo events until the map has settled down initially
+        this._ignoreMapDisplayChanges = true;
       },
 
       destroy: function() {
@@ -189,20 +192,24 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           undoString: 'DG.Undo.map.changeBaseMap',
           redoString: 'DG.Redo.map.changeBaseMap',
           log: 'Map base layer changed: %@'.fmt(tBackground),
+          _componentId: this.getPath('controller.model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
           execute: function() {
-            this.setPath('model.baseMapLayerName', tBackground);
+            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
             DG.logUser('changeMapBackground: %@', tBackground);
-          }.bind(this),
+          },
           undo: function() {
-            this.setPath('model.baseMapLayerName', tOldBackground);
-            this.setPath('backgroundControl.value', [tOldBackground]);
+            this._controller().setPath('view.contentView.model.baseMapLayerName', tOldBackground);
+            this._controller().setPath('view.contentView.backgroundControl.value', [tOldBackground]);
             DG.logUser('changeMapBackground (undo): %@', tOldBackground);
-          }.bind(this),
+          },
           redo: function() {
-            this.setPath('model.baseMapLayerName', tBackground);
-            this.setPath('backgroundControl.value', [tBackground]);
+            this._controller().setPath('view.contentView.model.baseMapLayerName', tBackground);
+            this._controller().setPath('view.contentView.backgroundControl.value', [tBackground]);
             DG.logUser('changeMapBackground (undo): %@', tBackground);
-          }.bind(this)
+          }
         }));
       },
 
@@ -220,15 +227,19 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           undoString: 'DG.Undo.map.changeGridSize',
           redoString: 'DG.Redo.map.changeGridSize',
           log: "Map grid size changed: {from: %@, to: %@}".fmt(tPreviousControlValue, tControlValue),
+          _componentId: this.getPath('controller.model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
           execute: function() { },
           undo: function() {
-            this.setPath('model.gridModel.gridMultiplier', tPreviousControlValue);
-            this.gridControl.set('value', tPreviousControlValue);
-          }.bind(this),
+            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tPreviousControlValue);
+            this._controller().setPath('view.contentView.gridControl.value', tPreviousControlValue);
+          },
           redo: function() {
-            this.setPath('model.gridModel.gridMultiplier', tControlValue);
-            this.gridControl.set('value', tControlValue);
-          }.bind(this)
+            this._controller().setPath('view.contentView.model.gridModel.gridMultiplier', tControlValue);
+            this._controller().setPath('view.contentView.gridControl.value', tControlValue);
+          }
         }));
       }.observes('gridControl.persistedValue'),
 
@@ -481,26 +492,35 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               undoString: 'DG.Undo.map.'+change,
               redoString: 'DG.Redo.map.'+change,
               log: 'mapEvent: %@ at {center: %@, zoom: %@}'.fmt(change, newCenter, newZoom),
+              _componentId: this.getPath('controller.model.id'),
+              _controller: function() {
+                return DG.currDocumentController().componentControllersMap[this._componentId];
+              },
               execute: function() {
-                this.setPath('model.center', newCenter);
-                this.setPath('model.zoom', newZoom);
-              }.bind(this),
+                var view = this._controller().getPath('view.contentView');
+                view.setPath('model.center', newCenter);
+                view.setPath('model.zoom', newZoom);
+              },
               undo: function() {
                 // Tell the map to change, but also ignore any events until those changes are done...
-                var map = this.getPath('mapLayer.map');
-                this._ignoreMapDisplayChanges = true;
+                var controller = this._controller(),
+                    view = controller.getPath('view.contentView'),
+                    map = view.getPath('mapLayer.map');
+                view._ignoreMapDisplayChanges = true;
                 map.setView(oldCenter, oldZoom);
-                this.setPath('model.center', oldCenter);
-                this.setPath('model.zoom', oldZoom);
-              }.bind(this),
+                view.setPath('model.center', oldCenter);
+                view.setPath('model.zoom', oldZoom);
+              },
               redo: function() {
                 // Tell the map to change, but also ignore any events until those changes are done...
-                var map = this.getPath('mapLayer.map');
-                this._ignoreMapDisplayChanges = true;
+                var controller = this._controller(),
+                    view = controller.getPath('view.contentView'),
+                    map = view.getPath('mapLayer.map');
+                view._ignoreMapDisplayChanges = true;
                 map.setView(newCenter, newZoom);
-                this.setPath('model.center', newCenter);
-                this.setPath('model.zoom', newZoom);
-              }.bind(this)
+                view.setPath('model.center', newCenter);
+                view.setPath('model.zoom', newZoom);
+              }
             }));
           }
           this._mapDisplayChangeInProgress = false;
