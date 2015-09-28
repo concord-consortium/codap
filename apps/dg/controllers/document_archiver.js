@@ -686,7 +686,7 @@ DG.DocumentArchiver = SC.Object.extend(
               DG.appController.showCopyLink(url);
             }
           } else {
-            this.set('externalDocumentId', ''+newDocId);
+            DG.currDocumentController().set('externalDocumentId', ''+newDocId);
             DG.appController.triggerSaveNotification();
           }
           resolve(true);
