@@ -188,6 +188,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           name: "map.changeBaseMap",
           undoString: 'DG.Undo.map.changeBaseMap',
           redoString: 'DG.Redo.map.changeBaseMap',
+          log: 'Map base layer changed: %@'.fmt(tBackground),
           execute: function() {
             this.setPath('model.baseMapLayerName', tBackground);
             DG.logUser('changeMapBackground: %@', tBackground);
@@ -218,6 +219,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           name: "map.changeGridSize",
           undoString: 'DG.Undo.map.changeGridSize',
           redoString: 'DG.Redo.map.changeGridSize',
+          log: "Map grid size changed: {from: %@, to: %@}".fmt(tPreviousControlValue, tControlValue),
           execute: function() { },
           undo: function() {
             this.setPath('model.gridModel.gridMultiplier', tPreviousControlValue);
@@ -439,12 +441,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           zoom: tZoom
         };
 
-        switch( tEventType) {
-          case 'zoomend':
-          case 'dragstart':
-          case 'dragend':
-            DG.logUser('mapEvent: %@ at {center: %@, zoom: %@}', tEventType, tCenter, tZoom);
-        }
         this.setPath('mapLayer.lastEventType', null);
       }.observes('mapLayer.displayChangeCount'),
 
@@ -484,6 +480,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
               name: "map."+change,
               undoString: 'DG.Undo.map.'+change,
               redoString: 'DG.Redo.map.'+change,
+              log: 'mapEvent: %@ at {center: %@, zoom: %@}'.fmt(change, newCenter, newZoom),
               execute: function() {
                 this.setPath('model.center', newCenter);
                 this.setPath('model.zoom', newZoom);

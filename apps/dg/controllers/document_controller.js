@@ -688,6 +688,7 @@ DG.DocumentController = SC.Object.extend(
         name: 'caseTable.display',
         undoString: 'DG.Undo.caseTable.open',
         redoString: 'DG.Redo.caseTable.open',
+        log: 'Create caseTable component',
         execute: function() {
           newViews = [];
           docController.contexts.forEach(function (context) {
@@ -720,6 +721,7 @@ DG.DocumentController = SC.Object.extend(
         name: "graphComponent.create",
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
+        log: 'Create graph component',
         _graphModel: null,
         _graphController: null,
         execute: function() {
@@ -758,6 +760,7 @@ DG.DocumentController = SC.Object.extend(
         name: "textComponent.create",
         undoString: 'DG.Undo.textComponent.create',
         redoString: 'DG.Redo.textComponent.create',
+        log: 'Create text component',
         execute: function() {
           tView = docController.createComponentView(iComponent, {
                                 parentView: iParentView,
@@ -783,6 +786,7 @@ DG.DocumentController = SC.Object.extend(
         name: "map.create",
         undoString: 'DG.Undo.map.create',
         redoString: 'DG.Redo.map.create',
+        log: 'Create map component',
         execute: function() {
           var tMapModel = DG.MapModel.create(),
               tMapController = DG.MapController.create(),
@@ -821,6 +825,7 @@ DG.DocumentController = SC.Object.extend(
         name: "sliderComponent.create",
         undoString: 'DG.Undo.sliderComponent.create',
         redoString: 'DG.Redo.sliderComponent.create',
+        log: 'Create slider component',
         execute: function() {
           if( !iComponent || !iComponent.get('componentStorage'))
             modelProps.content = docController.createGlobalValue();
@@ -989,6 +994,7 @@ DG.DocumentController = SC.Object.extend(
           name: 'component.toggle.delete',
           undoString: 'DG.Undo.toggleComponent.delete.' + iComponentName,
           redoString: 'DG.Redo.toggleComponent.delete.' + iComponentName,
+          log: 'Remove toggle component: %@'.fmt(iComponentName),
           execute: function() {
             componentArchive = this._archiveComponent(iComponentName);
             this._deleteComponent(iComponentName);
@@ -1007,6 +1013,7 @@ DG.DocumentController = SC.Object.extend(
           name: 'component.toggle.add',
           undoString: 'DG.Undo.toggleComponent.add.' + iComponentName,
           redoString: 'DG.Redo.toggleComponent.add.' + iComponentName,
+          log: 'Add toggle component: %@'.fmt(iComponentName),
           execute: function() {
             this._addComponent(iComponentName, iDocView);
           }.bind(this),

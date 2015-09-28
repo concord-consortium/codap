@@ -542,7 +542,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                   tResult = tContext && tContext.applyChange( tChange);
               if( tResult.success) {
                 var action = isNew ? "attributeCreate" : "attributeEditFormula";
-                DG.logUser("%@: { name: '%@', collection: '%@', formula: '%@' }",
+                this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                             action, tAttributeName, tCollection.get('name'), tFormula);
               } else {
                   this.set('causedChange', false);
@@ -567,8 +567,6 @@ DG.CaseTableController = DG.ComponentController.extend(
               tResult = tContext && tContext.applyChange( tChange);
               if( tResult.success) {
                 action = isNew ? "attributeCreate" : "attributeEditFormula";
-                DG.logUser("%@ (undo): { name: '%@', collection: '%@', formula: '%@' }",
-                            action, tAttributeName, tCollection.get('name'), tAttrFormula);
               } else {
                   this.set('causedChange', false);
               }
@@ -615,6 +613,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             name: "caseTable.renameAttribute",
             undoString: 'DG.Undo.caseTable.renameAttribute',
             redoString: 'DG.Redo.caseTable.renameAttribute',
+            log: 'Rename attribute "%@"'.fmt(iAttrName),
             execute: function() {
               tAttrRef = tDataContext.getAttrRefByName( iOldAttrName);
               var change = {
@@ -684,6 +683,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             name: "caseTable.deleteAttribute",
             undoString: 'DG.Undo.caseTable.deleteAttribute',
             redoString: 'DG.Redo.caseTable.deleteAttribute',
+            log: 'Delete attribute "%@"'.fmt(tAttrName),
             execute: function() {
               var change = {
                               operation: 'deleteAttributes',

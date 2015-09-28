@@ -603,6 +603,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       name: "data.deleteCases",
       undoString: 'DG.Undo.data.deleteCases',
       redoString: 'DG.Redo.data.deleteCases',
+      log: 'Deleted %@ cases'.fmt(deletedCases.length),
       execute: function() {
         // Delete each case
         iChange.cases.forEach( deleteCaseAndChildren);

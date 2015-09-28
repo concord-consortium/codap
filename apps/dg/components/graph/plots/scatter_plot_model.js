@@ -91,7 +91,6 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
         this_.movableLine.set('isVisible', !this_.movableLine.get('isVisible'));
       }
-      DG.logUser("toggleMovableLine: %@", this_.movableLine.get('isVisible') ? "show" : "hide");
     }
 
     var willShow = !this.movableLine || !this.movableLine.get('isVisible');
@@ -99,6 +98,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       name: "graph.toggleMovableLine",
       undoString: (willShow ? 'DG.Undo.graph.showMovableLine' : 'DG.Undo.graph.hideMovableLine'),
       redoString: (willShow ? 'DG.Redo.graph.showMovableLine' : 'DG.Redo.graph.hideMovableLine'),
+      log: "toggleMovableLine: %@".fmt(willShow ? "show" : "hide"),
       execute: function() {
         toggle();
       },
@@ -122,7 +122,6 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         this_.movableLine.toggleInterceptLocked();
         this_.movableLine.recomputeSlopeAndInterceptIfNeeded( this_.get('xAxis'), this_.get('yAxis'));
       }
-      DG.logUser("lockIntercept: %@", this_.movableLine.get('isInterceptLocked'));
     }
 
     var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
@@ -130,6 +129,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       name: "graph.toggleLockIntercept",
       undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
       redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
+      log: "lockIntercept: %@".fmt(willLock),
       execute: function() {
         this._undoData = this_.movableLine.createStorage();
         toggle();
@@ -160,6 +160,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       name: "graph.togglePlotFunction",
       undoString: (willShow ? 'DG.Undo.graph.showPlotFunction' : 'DG.Undo.graph.hidePlotFunction'),
       redoString: (willShow ? 'DG.Redo.graph.showPlotFunction' : 'DG.Redo.graph.hidePlotFunction'),
+      log: "togglePlotFunction: %@".fmt(willShow ? "show" : "hide"),
       execute: function() {
         toggle();
       },
@@ -186,6 +187,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       name: "graph.toggleConnectingLine",
       undoString: (willShow ? 'DG.Undo.graph.showConnectingLine' : 'DG.Undo.graph.hideConnectingLine'),
       redoString: (willShow ? 'DG.Redo.graph.showConnectingLine' : 'DG.Redo.graph.hideConnectingLine'),
+      log: "toggleConnectingLine: %@".fmt(willShow ? "show" : "hide"),
       execute: function() {
         toggle();
       },
@@ -210,6 +212,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       name: "graph.toggleShowSquares",
       undoString: (willShow ? 'DG.Undo.graph.showSquares' : 'DG.Undo.graph.hideSquares'),
       redoString: (willShow ? 'DG.Redo.graph.showSquares' : 'DG.Redo.graph.hideSquares'),
+      log: "toggleShowSquares: %@".fmt(willShow ? "show" : "hide"),
       execute: function() {
         toggle();
       },

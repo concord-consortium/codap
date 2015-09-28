@@ -107,6 +107,7 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     DG.UndoHistory.execute(DG.Command.create({
       name: "graph."+iToggleLogString,  // e.g. graph.togglePlottedMean
       undoString: null,
+      log: iToggleLogString,
       execute: function() {
         var wasShown = toggle(),
 

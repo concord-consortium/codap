@@ -32,6 +32,10 @@ DG.UndoHistory = SC.Object.create((function() {
 /** @scope DG.UndoHistory.prototype */
   return {
 
+    EXECUTE: 1,
+    UNDO: 2,
+    REDO: 3,
+
     enabledBinding: SC.Binding.oneWay('DG.enableUndoHistory'),
 
     /** @private
@@ -86,6 +90,7 @@ DG.UndoHistory = SC.Object.create((function() {
       // from a different change tree to the current tree.
       this._clearRedo();
 
+      this._logAction(command, this.EXECUTE);
       this._dirtyDocument();
     },
 
@@ -129,6 +134,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
 
+      this._logAction(command, this.UNDO);
       this._dirtyDocument();
     },
 
@@ -172,6 +178,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
 
+      this._logAction(command, this.REDO);
       this._dirtyDocument();
     },
 
@@ -255,6 +262,22 @@ DG.UndoHistory = SC.Object.create((function() {
         DG.dirtyCurrentDocument();
         this._executeInProgress = false;
       }
+    },
+
+    _logAction: function(command, state) {
+      var logString = '';
+      if (state === this.UNDO) {
+        logString = 'Undo: ';
+      } else if (state === this.REDO) {
+        logString = 'Redo: ';
+      }
+      if (typeof(command.log) === 'function') {
+        logString += command.log(state);
+      } else {
+        logString += command.log;
+      }
+
+      DG.logUser(logString);
     }
 
   }; // return from function closure

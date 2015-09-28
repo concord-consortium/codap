@@ -623,6 +623,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
               }
               controller.menuAnchorView.set('isVisible', false);
+              this.log = 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
             undo: function() {
               this._afterStorage = controller.createComponentStorage();

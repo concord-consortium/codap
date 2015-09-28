@@ -292,7 +292,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
         execute: function() {
           var tGrid = mapModel.get('gridModel');
           tGrid.set('visible', !tGrid.get( 'visible'));
-          DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
+          this.log = 'mapAction: {mapAction: %@ }'.fmt(tGrid.get('visible') ? 'showGrid' : 'hideGrid');
           if (this._firstTime) {
             this._firstTime = false;
             var visible = tGrid.get('visible');
@@ -319,7 +319,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           if( tPointsVisible !== false)
             tPointsVisible = true;
           mapModel.set('pointsShouldBeVisible', !tPointsVisible);
-          DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
+          this.log = 'mapAction: {mapAction: %@}'.fmt(mapModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints');
           if (this._firstTime) {
             this._firstTime = false;
             this.set('name', !tPointsVisible ? 'map.showPoints' : 'map.hidePoints');
@@ -344,7 +344,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           var tLinesVisible = mapModel.get('linesShouldBeVisible');
           mapModel.set('linesShouldBeVisible', !tLinesVisible);
           mapModel.setPath('connectingLineModel.isVisible', !tLinesVisible);
-          DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
+          this.log = 'mapAction: {mapAction: %@}'.fmt(mapModel.get('linesShouldBeVisible') ? 'showLines' : 'hideLines');
           if (this._firstTime) {
             this._firstTime = false;
             this.set('name', !tLinesVisible ? 'map.showLines' : 'map.hideLines');

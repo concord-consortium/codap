@@ -778,6 +778,7 @@ DG.GameController = DG.ComponentController.extend(
         name: 'interactive.undoableAction',
         undoString: 'DG.Undo.interactiveUndoableAction',
         redoString: 'DG.Redo.interactiveUndoableAction',
+        log: 'Interactive action occurred',
         execute: function() {},
         undo: function() {
           this.gamePhone.call({ operation: "undoAction" }, this.handleUndoRedoCompleted);

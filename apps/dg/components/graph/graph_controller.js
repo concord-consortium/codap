@@ -222,6 +222,8 @@ DG.GraphController = DG.DataDisplayController.extend(
                 },
                 iAxis.get('orientation')
             );
+
+            this.log = 'Attribute dragged and dropped: %@, %@'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
           },
           undo: function() {
             this._afterStorage = controller.createComponentStorage();

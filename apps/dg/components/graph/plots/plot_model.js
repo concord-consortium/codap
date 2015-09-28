@@ -237,6 +237,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       name: "graph.toggleCount",
       undoString: (isShowCount ? 'DG.Undo.graph.showcount' : 'DG.Undo.graph.hidecount'),
       redoString: (isShowCount ? 'DG.Redo.graph.showcount' : 'DG.Redo.graph.hidecount'),
+      log: "togglePlottedCount: %@".fmt(isShowCount ? "show" : "hide"),
       execute: function() {
         toggle();
       }.bind(this),

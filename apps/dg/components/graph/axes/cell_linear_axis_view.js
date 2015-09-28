@@ -273,18 +273,16 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
               oldLowerBound = this_._lowerBoundAtDragStart,
               oldUpperBound = this_._upperBoundAtDragStart,
               wasDilate = (newLowerBound === oldLowerBound || newUpperBound === oldUpperBound);
-          DG.logUser("dragEnd: { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
           DG.UndoHistory.execute(DG.Command.create({
             name: (wasDilate ? 'graph.axis.dilate' : 'graph.axis.drag'),
             undoString: (wasDilate ? 'DG.Undo.axisDilate' : 'DG.Undo.axisDrag'),
             redoString: (wasDilate ? 'DG.Redo.axisDilate' : 'DG.Redo.axisDrag'),
+            log: "dragEnd: { lower: %@, upper: %@ }".fmt(newLowerBound, newUpperBound),
             execute: function() { },
             undo: function() {
-              DG.logUser("resetting bounds (undo): { lower: %@, upper: %@ }", oldLowerBound, oldUpperBound);
               this_.get('model').setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
             },
             redo: function() {
-              DG.logUser("resetting bounds (redo): { lower: %@, upper: %@ }", newLowerBound, newUpperBound);
               this_.get('model').setLowerAndUpperBounds(newLowerBound, newUpperBound);
             }
           }));

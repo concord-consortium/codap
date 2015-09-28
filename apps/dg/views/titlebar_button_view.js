@@ -104,6 +104,7 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
             redoString: 'DG.Redo.component.close',
+            log: 'closeComponent: %@'.fmt(tComponentView.get('title')),
             execute: function() {
               var tContainerView = tComponentView.parentView;
 
