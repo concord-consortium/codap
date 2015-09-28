@@ -30,6 +30,7 @@ DG.PickerColorControl = SC.View.extend(
     /** @scope DG.PickerColorControl.prototype */ {
       classNames: 'inspector-picker-color'.w(),
       initialColor: null, // Should be set by caller
+      colorKey: null, // Should be set by caller
       setColorFunc: null, // Should be set by caller
       appendToLayerFunc: null, // Should be set by caller
       render: function(iContext, iFirstTime) {
@@ -43,11 +44,11 @@ DG.PickerColorControl = SC.View.extend(
             showButtons: false,
             move: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor);
+                this.setColorFunc( iColor.toHexString(), this.colorKey);
             }.bind(this),
             change: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor);
+                this.setColorFunc( iColor.toHexString(), this.colorKey);
             }.bind(this)
           })
         }.bind(this));

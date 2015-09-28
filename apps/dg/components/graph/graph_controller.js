@@ -138,21 +138,6 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
         }.observes('view'),
 
-        /**
-         Get the menu items from the graph and its components.
-         @property { Array of menu items }
-         */
-        gearMenuItems: function () {
-          var tGraph = this.getPath('graphModel');
-          var this_ = this;
-          var tGearMenuItems = SC.none(tGraph) ? [] : tGraph.getGearMenuItems();
-          tGearMenuItems.push({
-            title: 'DG.DataDisplayMenu.snapshot',
-            target: this_, itemAction: this_.makePngImage
-          });
-          return tGearMenuItems;
-        }.property('graphModel'),
-
         makePngImage: function () {
           var componentView = this.get('view');
           var graphView = componentView && componentView.get('contentView');
@@ -297,15 +282,16 @@ DG.GraphController = DG.DataDisplayController.extend(
           var tControls = sc_super(),
               this_ = this,
               tLegendAttrDesc = this.getPath('graphModel.dataConfiguration.legendAttributeDescription'),
-              setColor = function (iColor) {
-                this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
+              tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+              setColor = function (iColor, iColorKey) {
+                tColorMap[ iColorKey] = iColor;
                 this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                this_.get('graphModel').propertyDidChange('pointColor');
               },
               getStylesLayer = function () {
                 return this_.stylesPane.layer();
               },
               kRowHeight = 20;
-/*
           if (tLegendAttrDesc.get('isCategorical')) {
             var tContentView = SC.View.create(SC.FlowedLayout,
                     {
@@ -330,8 +316,9 @@ DG.GraphController = DG.DataDisplayController.extend(
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
                   classNames: 'graph-point-color'.w(),
-                  initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
+                  initialColor: tinycolor(tColorMap[ iCategory])
                       .setAlpha(this.getPath('dataDisplayModel.transparency')),
+                  colorKey: iCategory,
                   setColorFunc: setColor,
                   appendToLayerFunc: getStylesLayer
                 })
@@ -339,7 +326,6 @@ DG.GraphController = DG.DataDisplayController.extend(
             }.bind(this));
             tControls.push(tScrollView);
           }
-*/
           return tControls;
         }.property()
       };

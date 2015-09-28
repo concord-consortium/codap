@@ -412,44 +412,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         });
       },
 
-      gearMenuItems: function() {
-        var tDataContext = this.get('dataContext'),
-            collectionRecords = tDataContext.get('collections') || [],
-            tSelection = tDataContext && tDataContext.getSelectedCases(),
-            tDeleteIsEnabled = tSelection && tSelection.get('length'),
-            tNewAttrMenuItemStringKey = 'DG.TableController.gearMenuItems.newAttribute',
-            tItems = [];
-        collectionRecords.forEach(function (collection) {
-          tItems.push({
-            title: tNewAttrMenuItemStringKey.loc( collection.name),
-            target: this,
-            args: [{collection: tDataContext.getCollectionByName(collection.name)}],
-            dgAction: this.newAttribute
-          });
-        }.bind(this));
-        tItems.push({
-          title: 'DG.TableController.gearMenuItems.selectAll',
-          localize: true,
-          target: this,
-          dgAction: this.selectAll
-        });
-        tItems.push({
-          title: 'DG.TableController.gearMenuItems.deleteCases',
-          localize: true,
-          target: this,
-          dgAction: this.deleteSelectedCases,
-          isEnabled: tDeleteIsEnabled
-        });
-        tItems.push({
-          title: 'DG.TableController.gearMenuItems.exportCaseData', // "Export Case Data..."
-          localize: true,
-          target: this,
-          dgAction: this.exportCaseData
-        });
-
-        return tItems;
-      }.property(),
-
       modelDidChange: function() {
       }.observes('model'),
 

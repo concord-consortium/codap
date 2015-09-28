@@ -111,6 +111,7 @@ DG.Attribute = DG.BaseModel.extend(
       if (typeof this.collection === 'number') {
         this.collection = DG.store.find(DG.Attribute, this.collection);
       }
+      this.colormap = {};
     },
 
     verify: function () {
