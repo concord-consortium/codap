@@ -812,10 +812,14 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   },
 
   showDataTip: function( iElement, iIndex) {
+    if( DG.NO_DATA_TIP_PREF)
+      return;
     this.get('dataTip').show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
   },
 
   hideDataTip: function() {
+    if( DG.NO_DATA_TIP_PREF)
+      return;
     var tDataTip = this.get('dataTip');
     if( tDataTip)
       tDataTip.hide();

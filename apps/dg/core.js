@@ -177,6 +177,11 @@ DG = SC.Application.create((function () // closure
     return (window.location.href.indexOf('-test.') >= 0);
   };
 
+  var noDataTipPref = function () {
+    var noDtParam = getUrlParameter('no_dt');
+    return !SC.empty(noDtParam) && noDtParam === 'true';
+  };
+
 
   return { // return from closure
 
@@ -251,6 +256,8 @@ DG = SC.Application.create((function () // closure
     },
 
     IS_DEV_BUILD: isDevBuild(),
+
+    NO_DATA_TIP_PREF: noDataTipPref(),
 
     // This is your application store.  You will use this store to access all
     // of your model data.  You can also set a data source on this store to
