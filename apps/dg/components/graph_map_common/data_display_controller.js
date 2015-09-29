@@ -372,6 +372,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
         styleControls: function () {
           var this_ = this,
+              tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
+              tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+              setCategoryColor = function (iColor, iColorKey) {
+                tColorMap[ iColorKey] = iColor.toHexString();
+                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                this_.get('dataDisplayModel').propertyDidChange('pointColor');
+              },
               setColor = function (iColor) {
                 this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
                 this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
@@ -383,7 +390,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
               getStylesLayer = function () {
                 return this_.stylesPane.layer();
               },
-              tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
               kRowHeight = 20,
               tResult = [
                 DG.PickerControlView.create({
@@ -431,6 +437,43 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 })
               })
           );
+          if (tLegendAttrDesc.get('isCategorical')) {
+            var tContentView = SC.View.create(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_VERTICAL,
+                      isResizable: false,
+                      isClosable: false,
+                      defaultFlowSpacing: {bottom: 5},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP,
+                    }
+                ),
+                tScrollView = SC.ScrollView.create({
+                  layout: {height: 100},
+                  hasHorizontalScroller: false,
+                  contentView: tContentView
+                }),
+                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
+            DG.ObjectMap.forEach( tCategoryMap, function( iCategory) {
+              var tInitialColor = tColorMap[ iCategory] ?
+                  tColorMap[ iCategory] :
+                  DG.ColorUtilities.calcCaseColor( iCategory, tLegendAttrDesc).colorString;
+              tInitialColor = tinycolor(tInitialColor).setAlpha(this.getPath('dataDisplayModel.transparency'));
+              tContentView.appendChild(DG.PickerControlView.create({
+                layout: {height: 2 * kRowHeight},
+                label: iCategory,
+                controlView: DG.PickerColorControl.create({
+                  layout: {width: 120},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tInitialColor,
+                  colorKey: iCategory,
+                  setColorFunc: setCategoryColor,
+                  appendToLayerFunc: getStylesLayer
+                })
+              }));
+            }.bind(this));
+            tResult.push(tScrollView);
+          }
           return tResult;
         }.property(),
 

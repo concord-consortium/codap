@@ -273,64 +273,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
           else
             sc_super();
-        }.observes('*plotView.dragData'),
-
-        /**
-         * If the legend is categorical, we append a color picker for each category in a scroll view.
-         */
-        styleControls: function () {
-          var tControls = sc_super(),
-              this_ = this,
-              tLegendAttrDesc = this.getPath('graphModel.dataConfiguration.legendAttributeDescription'),
-              tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
-              setColor = function (iColor, iColorKey) {
-                tColorMap[ iColorKey] = iColor.toHexString();
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
-                this_.get('graphModel').propertyDidChange('pointColor');
-              },
-              getStylesLayer = function () {
-                return this_.stylesPane.layer();
-              },
-              kRowHeight = 20;
-          if (tLegendAttrDesc.get('isCategorical')) {
-            var tContentView = SC.View.create(SC.FlowedLayout,
-                    {
-                      layoutDirection: SC.LAYOUT_VERTICAL,
-                      isResizable: false,
-                      isClosable: false,
-                      defaultFlowSpacing: {bottom: 5},
-                      canWrap: false,
-                      align: SC.ALIGN_TOP,
-                    }
-                ),
-                tScrollView = SC.ScrollView.create({
-                  layout: {height: 100},
-                  hasHorizontalScroller: false,
-                  contentView: tContentView
-                }),
-                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
-            DG.ObjectMap.forEach( tCategoryMap, function( iCategory) {
-              var tInitialColor = tColorMap[ iCategory] ?
-                      tColorMap[ iCategory] :
-                      DG.ColorUtilities.calcCaseColor( iCategory, tLegendAttrDesc).colorString;
-              tInitialColor = tinycolor(tInitialColor).setAlpha(this.getPath('dataDisplayModel.transparency'));
-              tContentView.appendChild(DG.PickerControlView.create({
-                layout: {height: 2 * kRowHeight},
-                label: iCategory,
-                controlView: DG.PickerColorControl.create({
-                  layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
-                  initialColor: tInitialColor,
-                  colorKey: iCategory,
-                  setColorFunc: setColor,
-                  appendToLayerFunc: getStylesLayer
-                })
-              }));
-            }.bind(this));
-            tControls.push(tScrollView);
-          }
-          return tControls;
-        }.property()
+        }.observes('*plotView.dragData')
       };
 
     }()) // function closure
