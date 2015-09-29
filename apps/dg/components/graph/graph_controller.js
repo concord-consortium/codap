@@ -284,7 +284,7 @@ DG.GraphController = DG.DataDisplayController.extend(
               tLegendAttrDesc = this.getPath('graphModel.dataConfiguration.legendAttributeDescription'),
               tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
               setColor = function (iColor, iColorKey) {
-                tColorMap[ iColorKey] = iColor;
+                tColorMap[ iColorKey] = iColor.toHexString();
                 this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
                 this_.get('graphModel').propertyDidChange('pointColor');
               },
@@ -310,14 +310,17 @@ DG.GraphController = DG.DataDisplayController.extend(
                 }),
                 tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
             DG.ObjectMap.forEach( tCategoryMap, function( iCategory) {
+              var tInitialColor = tColorMap[ iCategory] ?
+                      tColorMap[ iCategory] :
+                      DG.ColorUtilities.calcCaseColor( iCategory, tLegendAttrDesc).colorString;
+              tInitialColor = tinycolor(tInitialColor).setAlpha(this.getPath('dataDisplayModel.transparency'));
               tContentView.appendChild(DG.PickerControlView.create({
                 layout: {height: 2 * kRowHeight},
                 label: iCategory,
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
                   classNames: 'graph-point-color'.w(),
-                  initialColor: tinycolor(tColorMap[ iCategory])
-                      .setAlpha(this.getPath('dataDisplayModel.transparency')),
+                  initialColor: tInitialColor,
                   colorKey: iCategory,
                   setColorFunc: setColor,
                   appendToLayerFunc: getStylesLayer

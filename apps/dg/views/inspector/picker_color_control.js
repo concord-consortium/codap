@@ -44,11 +44,11 @@ DG.PickerColorControl = SC.View.extend(
             showButtons: false,
             move: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor.toHexString(), this.colorKey);
+                this.setColorFunc( iColor, this.colorKey);
             }.bind(this),
             change: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor.toHexString(), this.colorKey);
+                this.setColorFunc( iColor, this.colorKey);
             }.bind(this)
           })
         }.bind(this));

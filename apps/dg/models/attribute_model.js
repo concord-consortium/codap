@@ -281,6 +281,9 @@ DG.Attribute.createAttribute = function( iProperties) {
 
   iProperties.collection = collection;
   newAttribute = DG.Attribute.create(iProperties || {});
+  if( iProperties.colormap) {
+    newAttribute.colormap = SC.clone( iProperties.colormap);
+  }
 
   DG.store.commitRecords();
   DG.Attribute.idMap[ newAttribute.get('id')] = newAttribute;
