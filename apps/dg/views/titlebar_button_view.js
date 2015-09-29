@@ -128,7 +128,7 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
                   if (result && result.success) {
                     tState = result.state;
                   }
-                  tContainerView.removeComponentView( tComponentView, true);
+                  tContainerView.removeComponentView( tComponentView);
                 });
               } else {
                 tContainerView.removeComponentView( tComponentView);
