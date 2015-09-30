@@ -519,7 +519,7 @@ DG.DocumentController = SC.Object.extend(
 
       // If we're not restoring, then we must create it.
       if( !isRestoring) {
-        var tComponentProperties = { type: iParams.componentClass.type };
+        var tComponentProperties = { type: iParams.componentClass.type, id: iParams.contentProperties.id };
         // If we create it, hook it up to the document.
         if( !SC.none(this.content))
           tComponentProperties.document = this.content;
@@ -836,7 +836,7 @@ DG.DocumentController = SC.Object.extend(
         redoString: 'DG.Redo.sliderComponent.create',
         log: 'Create slider component',
         _global: null,
-        _component: null,
+        _componentId: null,
         execute: function() {
           if (SC.none(this._global)) {
             this._global = docController.createGlobalValue();
@@ -849,14 +849,14 @@ DG.DocumentController = SC.Object.extend(
                                 parentView: iParentView,
                                 controller: DG.SliderController.create(),
                                 componentClass: { type: 'DG.SliderView', constructor: DG.SliderView},
-                                contentProperties: { model: tSliderModel },
+                                contentProperties: { id: this._componentId, model: tSliderModel },
                                 defaultLayout: { width: 300, height: 60 },
                                 isResizable: true}
                               );
-          this._component = tView.getPath('controller.model');
+          this._componentId = tView.getPath('controller.model.id');
         },
         undo: function() {
-          var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')];
+          var controller = DG.currDocumentController().componentControllersMap[this._componentId];
           var view = controller.get('view');
           view.parentView.removeComponentView(view);
           DG.globalsController.destroyGlobalValue(this._global);
