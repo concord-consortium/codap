@@ -584,8 +584,11 @@ DG.GameController = DG.ComponentController.extend(
 
       ret = tGameContext.applyChange( change);
 
+/*    Logging createCase generates too much logging, so turn it off, at least when it comes from
+        a data interactive.
       if( ret.success && ((iArgs.log === undefined) || iArgs.log))
         DG.logUser("%@: %@ [%@]", iAction, iArgs.collection, iArgs.values.join(", "));
+*/
       return ret;
     },
 
