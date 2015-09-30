@@ -157,7 +157,6 @@ DG.GraphView = SC.View.extend(
     // y2AxisView must be 'under' plotBackgroundView for dragging to work properly when there is no
     // attribute on y2 axis.
     this.set('y2AxisView', tY2AxisView);
-    this.appendChild( tY2AxisView);
     tY2AxisView.set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
     tY2AxisView.set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
     tYAxisView.set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
@@ -198,6 +197,7 @@ DG.GraphView = SC.View.extend(
       this.setPlotViewProperties( tPlotView, iPlotModel,
           iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
     }.bind(this));
+    this.appendChild( tY2AxisView); // So it will be on top and drag-hilite will show over plot
     tLegendView.set('model', this.getPath('model.legend'));
 
     DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
