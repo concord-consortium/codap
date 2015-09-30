@@ -59,6 +59,7 @@ DG.MenuPane = SC.MenuPane.extend(
     }
     if( tAction)
       tAction.apply( tSelectedItem.get( 'target'), tArgs);
+    this.selectedItem = null;
   }.observes('selectedItem'),
 
   popup: function() {
