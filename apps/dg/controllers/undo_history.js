@@ -207,7 +207,7 @@ DG.UndoHistory = SC.Object.create((function() {
       if (!err || !err.message) {
         err = {message: "Unknown error"};
       }
-      DG.Debug.logErrorRaw("Exception occurred while " + (wasUndo ? "undoing: " : "redoing: "), err.stack);
+      DG.Debug.logErrorRaw("Exception occurred while %@: %@\n%@".fmt((wasUndo ? "undoing: " : "redoing: "), err.message, err.stack));
       DG.AlertPane.error({
         localize: true,
         message: (wasUndo ? 'DG.Undo.exceptionOccurred' : 'DG.Redo.exceptionOccurred'),
