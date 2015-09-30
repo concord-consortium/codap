@@ -77,7 +77,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       areaVarID: tModel.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
-      legendName: tLegendDesc.getPath('attribute.name'),
+      legendName: tLegendDesc && tLegendDesc.getPath('attribute.name'),
       areaTransparency: tModel.get('areaTransparency'),
       areaStrokeColor: tModel.get('areaStrokeColor'),
       areaStrokeTransparency: tModel.get('areaStrokeTransparency'),
