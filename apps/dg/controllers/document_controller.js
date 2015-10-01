@@ -930,27 +930,37 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addGuideView: function( iParentView, iComponent) {
-      if( this._singletonViews.guideView)
-        return; // only one allowed
-
-      var tModel = this.get('guideModel'),
-          tController = this.get('guideController' ),
-          tView = this.createComponentView(iComponent, {
-                              parentView: iParentView,
-                              controller: tController,
-                              componentClass: { type: 'DG.GuideView', constructor: DG.GuideView},
-                              contentProperties: { backgroundColor: 'white', guideModel: tModel,
-                                                    controller: tController
-                                ,
-                                                    closeAction: { action: this.closeGuideView, target: this }
-                              },
-                              defaultLayout: { width: 400, height: 200 },
-                              isResizable: true,
-                              useLayout: true,
-                              isVisible: false }
-                            );
-      this._singletonViews.guideView = tView;
-      return tView;
+      if( this._singletonViews.guideView) {
+        // only one allowed
+      } else {
+        var tModel = this.get('guideModel'),
+            tController = this.get('guideController'),
+            tView = this.createComponentView(iComponent, {
+                  parentView: iParentView,
+                  controller: tController,
+                  componentClass: {type: 'DG.GuideView', constructor: DG.GuideView},
+                  contentProperties: {
+                    backgroundColor: 'white', guideModel: tModel,
+                    controller: tController,
+                    closeAction: {action: this.closeGuideView, target: this}
+                  },
+                  defaultLayout: {width: 400, height: 200},
+                  isResizable: true,
+                  useLayout: true,
+                  isVisible: false
+                }
+            );
+        this._singletonViews.guideView = tView;
+      }
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'guide.show',
+        undoString: 'DG.Undo.guide.show',
+        redoString: 'DG.Redo.guide.show',
+        log: 'Show guide',
+        execute: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', true); },
+        undo: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', false); }
+      }));
+      return this._singletonViews.guideView;
     },
 
     /**
@@ -960,7 +970,6 @@ DG.DocumentController = SC.Object.extend(
     closeGuideView: function() {
       var tGuideComponentView = this._singletonViews.guideView;
       if( tGuideComponentView) {
-        DG.logUser("closeComponent: Guide - %@", tGuideComponentView.get('title'));
         tGuideComponentView.set('isVisible', false);
       }
     },

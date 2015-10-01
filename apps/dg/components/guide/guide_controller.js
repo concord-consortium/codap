@@ -67,20 +67,51 @@ DG.GuideController = DG.ComponentController.extend(
     }.observes('guideModel.title', 'guideModel.items'),
 
     showGuide: function() {
-      var tComponentView = this.get('view');
-      tComponentView.setPath('isVisible', true);
-      tComponentView.select();
-      tComponentView.scrollToVisible();
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'guide.show',
+        undoString: 'DG.Undo.guide.show',
+        redoString: 'DG.Redo.guide.show',
+        log: 'Show guide',
+        execute: function() {
+          // Guides are singletons that are never destroyed, so it's ok to reference the view directly
+          var tComponentView = this.get('view');
+          tComponentView.setPath('isVisible', true);
+          tComponentView.select();
+          tComponentView.scrollToVisible();
+        }.bind(this),
+        undo: function() {
+          this.setPath('view.isVisible', false);
+        }.bind(this)
+      }));
     },
 
     guideNavigation: function() {
-      var tUrl = this.getPath('guideMenuPane.selectedItem.url' ),
-          tItemTitle = this.getPath('guideMenuPane.selectedItem.title' );
-      this.setPath('guideModel.currentURL', tUrl);
-      this.setPath('guideModel.currentItemTitle', tItemTitle);
-      this.showGuide();
-      DG.logUser( "Guide icon navigation: { Title: %@, itemTitle: %@, url: %@ }",
-                  this.getPath('guideModel.title'), tItemTitle, tUrl);
+      var this_ = this,
+          tUrl = this_.getPath('guideMenuPane.selectedItem.url' ),
+          tItemTitle = this_.getPath('guideMenuPane.selectedItem.title' );
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'guide.navigate',
+        undoString: 'DG.Undo.guide.navigate',
+        redoString: 'DG.Redo.guide.navigate',
+        _previous: {
+          url: this_.getPath('guideModel.currentURL'),
+          title: this_.getPath('guideModel.currentItemTitle'),
+          wasVisible: this_.getPath('view.isVisible')
+        },
+        execute: function() {
+          // Guides are singletons that are never destroyed, so it's ok to reference the view directly
+          this_.setPath('guideModel.currentURL', tUrl);
+          this_.setPath('guideModel.currentItemTitle', tItemTitle);
+          this_.showGuide();
+          this.log = "Guide icon navigation: { Title: %@, itemTitle: %@, url: %@ }".fmt(this_.getPath('guideModel.title'), tItemTitle, tUrl);
+        },
+        undo: function() {
+          this_.setPath('guideModel.currentURL', this._previous.url);
+          this_.setPath('guideModel.currentItemTitle', this._previous.title);
+          this_.setPath('view.isVisible', this._previous.wasVisible);
+        }
+      }));
     },
 
     /**
@@ -90,11 +121,27 @@ DG.GuideController = DG.ComponentController.extend(
     gearMenuItems: function() {
       var tItems = this.getPath('guideModel.items' ),
           tMenuItems = [],
+          this_ = this,
           tAction = function( iItem) {
-            this.setPath('guideModel.currentURL', iItem.url);
-            this.setPath('guideModel.currentItemTitle', iItem.itemTitle);
-            DG.logUser( "Guide gear navigation: { Title: %@, itemTitle: %@, url: %@ }",
-                        this.getPath('guideModel.title'), iItem.itemTitle, iItem.url);
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'guide.navigate',
+              undoString: 'DG.Undo.guide.navigate',
+              redoString: 'DG.Redo.guide.navigate',
+              _previous: {
+                url: this_.getPath('guideModel.currentURL'),
+                title: this_.getPath('guideModel.currentItemTitle')
+              },
+              execute: function() {
+                // Guides are singletons that are never destroyed, so it's ok to reference the view directly
+                this_.setPath('guideModel.currentURL', iItem.url);
+                this_.setPath('guideModel.currentItemTitle', iItem.itemTitle);
+                this.log = "Guide gear navigation: { Title: %@, itemTitle: %@, url: %@ }".fmt(this_.getPath('guideModel.title'), iItem.itemTitle, iItem.url);
+              },
+              undo: function() {
+                this_.setPath('guideModel.currentURL', this._previous.url);
+                this_.setPath('guideModel.currentItemTitle', this._previous.title);
+              }
+            }));
           }.bind( this);
 
       tItems.forEach( function( iItem) {
