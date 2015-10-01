@@ -72,7 +72,11 @@ DG.TextComponentController = DG.ComponentController.extend(
           return DG.currDocumentController().componentControllersMap[this._componentId];
         },
         execute: function () {
-          this._controller().set('previousValue', value);
+          var controller = this._controller();
+          if (controller) {
+            // Controller is sometimes null when the component is just being created, so don't worry about it.
+            controller.set('previousValue', value);
+          }
         },
         undo: function () {
           // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
@@ -86,6 +90,11 @@ DG.TextComponentController = DG.ComponentController.extend(
         }
       }));
     }
+  },
+
+  willCloseComponent: function() {
+    sc_super();
+    this.commitEditing();
   },
   
   /**

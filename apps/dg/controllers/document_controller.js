@@ -778,7 +778,9 @@ DG.DocumentController = SC.Object.extend(
           this._component = tView.getPath('controller.model');
         },
         undo: function() {
-          var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+          var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')],
+              view = controller.get('view');
+          controller.willSaveComponent();
           view.parentView.removeComponentView(view);
         }
       }));
