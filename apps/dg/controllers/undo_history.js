@@ -78,7 +78,7 @@ DG.UndoHistory = SC.Object.create((function() {
       // append to the stack (we'll assume the outer-most Command knows how to undo all of its side effects).
       if (this._executeInProgress) { return; }
 
-      if (command.isUndoable) {
+      if (this.get('enabled') && command.isUndoable) {
         this._undoStack.push(command);
         // Since we're not using set/get to access the stacks, notify changes manually.
         this.notifyPropertyChange('_undoStack');
