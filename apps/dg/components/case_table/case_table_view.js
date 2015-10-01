@@ -830,9 +830,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var rowDistance = this.getMinScrollDistance(rowIndices);
     var viewport = this._slickGrid.getViewport();
     var top = Math.max(viewport.top - rowDistance, 0);
-    DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
-      viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
-    this.scrollAnimator.animate(this, viewport.top, top);
+    if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
+      this.scrollAnimator.animate(this, viewport.top, top);
+    }
+    //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
+    //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
   },
 
     /**
@@ -840,7 +842,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * region, if possible.
      */
     scrollToRow: function (rowIx) {
-      DG.log('Scrolling to row: ' + rowIx);
       this._slickGrid.scrollRowToTop(rowIx);
     },
 

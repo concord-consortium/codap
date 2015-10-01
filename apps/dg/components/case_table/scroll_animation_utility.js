@@ -112,9 +112,6 @@ DG.ScrollAnimationUtility = SC.Object.extend(
 
       tAnimationProportion = getAnimationProportion( tCurrProportion);
 
-      var tweenP = tween(iStart, iEnd, tAnimationProportion);
-      DG.log('this_.startValue, this.endValue, tCurrProportion, tweenP: ' + [this_.startValue, this.endValue, tCurrProportion, tweenP].join());
-
       this_.get('targetView').scrollToRow(tween(this_.startValue, this.endValue, tAnimationProportion));
 
       if( tCurrProportion < 1) {
