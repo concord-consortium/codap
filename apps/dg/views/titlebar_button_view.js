@@ -98,7 +98,14 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
         classNames: 'close-icon'.w(),
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
+              tController = DG.currDocumentController().componentControllersMap[tComponentId],
               tState;
+
+          // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
+          // Also, do this outside of the undo command, so that it can register its own
+          // separate undo command if desired.
+          tController.willCloseComponent();
+
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
@@ -109,8 +116,8 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
             },
             _model: null,
             execute: function() {
-              var tController = this._controller(),
-                  tComponentView = tController.get('view'),
+              tController = this._controller();
+              var tComponentView = tController.get('view'),
                   tContainerView = tComponentView.get('parentView');
 
               this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
@@ -137,7 +144,7 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
             undo: function() {
               DG.currDocumentController().createComponentAndView(this._model);
 
-              var tController = this._controller();
+              tController = this._controller();
               if (tController.restoreGameState && tState) {
                 tController.restoreGameState({gameState: tState});
               }

@@ -154,7 +154,13 @@ DG.ComponentController = SC.Object.extend((function () // closure
       this.setPath('view.parentView.frameNeedsUpdate', true);
 
       return prevLayout;
-    }
+    },
+
+    /* Notification that the user has clicked the close button on a component. This is an opportunity to finalize things,
+       however, the component will be closed as soon as this function returns, so only synchronous code is allowed. It is
+       executated outside of an Undo, so it may register a separate undo command, if desired.
+     */
+    willCloseComponent: function() { }
 
   }; // end return from closure
 
