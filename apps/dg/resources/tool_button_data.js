@@ -28,7 +28,8 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
     localize: true,
     isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready'),
-    iconExtent: { width: 27, height: 20 }
+    iconExtent: { width: 27, height: 20 },
+    classNames: ['dg-table-button']
   },
 
   graphButton: {
@@ -40,7 +41,8 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.graphButton.toolTip', // "Make a graph (ctrl-alt-g)"
     localize: true,
     isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready'),
-    iconExtent: { width: 22, height: 20 }
+    iconExtent: { width: 22, height: 20 },
+    classNames: ['dg-graph-button']
   },
 
   mapButton: {
@@ -52,7 +54,8 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.mapButton.toolTip', // "Make a map"
     localize: true,
     isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready'),
-    iconExtent: { width: 20, height: 20 }
+    iconExtent: { width: 20, height: 20 },
+    classNames: ['dg-map-button']
   },
 
   sliderButton: {
@@ -63,7 +66,8 @@ DG.ToolButtonData = {
     action: 'addSlider',
     toolTip: 'DG.ToolButtonData.sliderButton.toolTip',  // "Make a slider (ctrl-alt-s)"
     localize: true,
-    iconExtent: { width: 25, height: 21 }
+    iconExtent: { width: 25, height: 21 },
+    classNames: ['dg-slider-button']
   },
 
   calcButton: {
@@ -74,7 +78,8 @@ DG.ToolButtonData = {
     action: 'toggleCalculator',
     toolTip: 'DG.ToolButtonData.calcButton.toolTip',  // "Open/close the calculator (ctrl-alt-c)"
     localize: true,
-    iconExtent: { width: 16, height: 20 }
+    iconExtent: { width: 16, height: 20 },
+    classNames: ['dg-calc-button']
   },
 
   textButton: {
@@ -85,7 +90,8 @@ DG.ToolButtonData = {
     action: 'addText',
     toolTip: 'DG.ToolButtonData.textButton.toolTip',  // "Make a text object (ctrl-alt-shift-t)"
     localize: true,
-    iconExtent: { width: 22, height: 20 }
+    iconExtent: { width: 22, height: 20 },
+    classNames: ['dg-text-button']
   }
 
 };
@@ -106,7 +112,8 @@ DG.RightButtonData = {
     isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
     isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
     flowSpacing: { right: 0, top: 18 },
-    iconExtent: { width: 20, height: 20 }
+    iconExtent: { width: 20, height: 20 },
+    classNames: ['dg-undo-button']
   },
 
   redoButton: {
@@ -124,7 +131,8 @@ DG.RightButtonData = {
     isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
     isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
     flowSpacing: { right: 20, top: 18 },
-    iconExtent: { width: 20, height: 20 }
+    iconExtent: { width: 20, height: 20 },
+    classNames: ['dg-redo-button']
   },
 
   tileListButton: {
@@ -135,7 +143,8 @@ DG.RightButtonData = {
     action: 'showTileList',
     toolTip: 'DG.ToolButtonData.tileListMenu.toolTip',  // "Show the list of tiles in the document"
     localize: true,
-    iconExtent: { width: 30, height: 20 }
+    iconExtent: { width: 30, height: 20 },
+    classNames: ['dg-tilelist-button']
   },
 
   optionButton: {
@@ -146,7 +155,8 @@ DG.RightButtonData = {
     action: 'popup',
     toolTip: 'DG.ToolButtonData.optionMenu.toolTip',  // "View or change CODAP options"
     localize: true,
-    iconExtent: { width: 20, height: 20 }
+    iconExtent: { width: 20, height: 20 },
+    classNames: ['dg-option-button']
   },
 
   guideButton: {
@@ -158,8 +168,9 @@ DG.RightButtonData = {
     toolTip: 'DG.ToolButtonData.guideMenu.toolTip',  // "View or change CODAP options"
     localize: true,
     iconExtent: { width: 21, height: 20 },
-    isVisible: false
+    isVisible: false,
+    classNames: ['dg-guide-button']
   }
 
-}
+};
 
