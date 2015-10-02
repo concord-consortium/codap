@@ -917,16 +917,32 @@ DG.DocumentController = SC.Object.extend(
       iURL = iURL || '';
       iTitle = iTitle || '';
       iLayout = iLayout || { width: 600, height: 400 };
-      return this.createComponentView(iComponent, {
-                              parentView: iParentView,
-                              controller: DG.WebViewController.create(),
-                              componentClass: { type: 'SC.WebView', constructor: SC.WebView},
-                              contentProperties: { value: iURL, backgroundColor: 'white' },
-                              defaultLayout: iLayout,
-                              title: iTitle,
-                              isResizable: true,
-                              useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left) }
-                            );
+      var tView;
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'webView.show',
+        undoString: 'DG.Undo.webView.show',
+        redoString: 'DG.Redo.webView.show',
+        log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
+        _component: null,
+        execute: function() {
+          tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
+                parentView: iParentView,
+                controller: DG.WebViewController.create(),
+                componentClass: { type: 'SC.WebView', constructor: SC.WebView},
+                contentProperties: { value: iURL, backgroundColor: 'white' },
+                defaultLayout: iLayout,
+                title: iTitle,
+                isResizable: true,
+                useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left) }
+          );
+          this._component = tView.getPath('controller.model');
+        },
+        undo: function() {
+          var view = DG.currDocumentController().componentControllersMap[this._component.get('id')].get('view');
+          view.parentView.removeComponentView(view);
+        }
+      }));
+      return tView;
     },
 
     addGuideView: function( iParentView, iComponent) {
@@ -980,17 +996,47 @@ DG.DocumentController = SC.Object.extend(
     configureGuide: function() {
 
       var tDialog = null,
-          tGuideModel = this.get('guideModel');
+          tGuideModel = this.get('guideModel'),  // guideModel is a singleton, so it's ok to reference it directly.
 
-        var storeGuideModel = function () {
-          this.addGuideView( DG.mainPage.docView);  // Make sure we have one hooked up to model
-          tGuideModel.beginPropertyChanges();
-            tGuideModel.set('title', tDialog.get('title'));
-            tGuideModel.set('items', tDialog.get('items'));
-          tGuideModel.endPropertyChanges();
-          tDialog.close();
-          DG.dirtyCurrentDocument( tGuideModel);
-        }.bind(this);
+          storeGuideModel = function() {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'guide.configure',
+              undoString: 'DG.Undo.guide.configure',
+              redoString: 'DG.Redo.guide.configure',
+              log: 'Show guide',
+              _oldValues: {
+                title: tGuideModel.get('title'),
+                items: tGuideModel.get('items')
+              },
+              _newValues: {
+                title: tDialog.get('title'),
+                items: tDialog.get('items')
+              },
+              execute: function() {
+                if (tDialog) {
+                  // Only do this the first time we're executed.
+                  DG.currDocumentController().addGuideView(DG.mainPage.docView);  // Make sure we have one hooked up to model
+                }
+                tGuideModel.beginPropertyChanges();
+                tGuideModel.set('title', this._newValues.title);
+                tGuideModel.set('items', this._newValues.items);
+                tGuideModel.endPropertyChanges();
+                if (tDialog) {
+                  tDialog.close();
+                  tDialog = null;
+                }
+                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
+              },
+              undo: function() {
+                tGuideModel.beginPropertyChanges();
+                tGuideModel.set('title', this._oldValues.title);
+                tGuideModel.set('items', this._oldValues.items);
+                tGuideModel.endPropertyChanges();
+                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
+              }
+            }));
+          };
+
 
       tDialog = DG.CreateGuideConfigurationView( {
                       okTarget: null,
