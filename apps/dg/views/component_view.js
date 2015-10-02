@@ -209,7 +209,7 @@ DG.ComponentView = SC.View.extend(
             isSelected: false,
             classNameBindings: ['isSelected:titlebar-selected'],
             childViews: 'statusView versionView minimize closeBox titleView'.w(),
-            titleView: SC.LabelView.design(SC.AutoResize, {
+            titleView: DG.TextFieldView.design(SC.AutoResize, {
               classNames: ['titleview'],
               isEditable: YES,
               _value: null,
@@ -234,7 +234,8 @@ DG.ComponentView = SC.View.extend(
                   this.set('originalValue', null);
                 }
                 return true;
-              }.observes('value'),
+              }.observes('value')//,
+              /*
               mouseDown: function () {
                 return true;
               },
@@ -246,6 +247,7 @@ DG.ComponentView = SC.View.extend(
                 this.beginEditing();
                 return true;
               }
+*/
             }),
             statusView: SC.LabelView.design({
               textAlign: SC.ALIGN_LEFT,
