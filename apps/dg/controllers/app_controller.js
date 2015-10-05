@@ -579,7 +579,7 @@ DG.appController = SC.Object.create((function () // closure
         newName: iNewName
       }).then(
         function(body) {
-          iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body);
+          iReceiver.receivedRenameDocumentSuccess.call(iReceiver, body, iNewName);
         },
         function(errorCode) {
           iReceiver.receivedRenameDocumentFailure.call(iReceiver, errorCode);
@@ -587,16 +587,38 @@ DG.appController = SC.Object.create((function () // closure
       );
     },
 
-    receivedRenameDocumentSuccess: function(body) {
-      DG.dirtyCurrentDocument();
-      this.saveCODAPDocument();
-      this.set('_originalDocumentName', null);
+    receivedRenameDocumentSuccess: function(body, newName) {
+      var controller = this;
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'document.rename',
+        undoString: 'DG.Undo.document.rename',
+        redoString: 'DG.Redo.document.rename',
+        log: 'Renamed document: {from: "%@", to: "%@"}'.fmt(this.get('_originalDocumentName'), newName),
+        _originalName: this.get('_originalDocumentName'),
+        _newName: newName,
+        execute: function() {
+          this.causedChange = !controller.get('_skipUndoNextRename');
+          DG.dirtyCurrentDocument(); // Need this before calling saveCODAPDocument, even though it will get dirtied again automatically
+          controller.saveCODAPDocument();
+          controller.set('_originalDocumentName', null);
+        }, undo: function() {
+          controller.set('_skipUndoNextRename', true);
+          DG.currDocumentController().set('documentName', this._originalName);
+          controller.renameDocument(this._newName, this._originalName);
+        }, redo: function () {
+          controller.set('_skipUndoNextRename', true);
+          DG.currDocumentController().set('documentName', this._newName);
+          controller.renameDocument(this._originalName, this._newName);
+        }
+      }));
+      this.set('_skipUndoNextRename', false);
     },
 
     receivedRenameDocumentFailure: function(errorCode) {
       // We got an error. Revert the rename.
       DG.currDocumentController().set('documentName', this.get('_originalDocumentName'));
       this.notifyStorageFailure('DG.AppController.renameDocument.', errorCode);
+      this.set('_skipUndoNextRename', false);
     },
 
     copyDocument: function () {
