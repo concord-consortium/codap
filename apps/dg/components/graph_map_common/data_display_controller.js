@@ -635,6 +635,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             },
             redo: function() {
               this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
             }
           }));
         },
@@ -686,6 +687,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             },
             redo: function() {
               this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
             }
           }));
         }.observes('*legendView.dragData', '*mapView.dragData'),

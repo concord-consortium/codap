@@ -235,6 +235,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           },
           redo: function() {
             this._controller().restoreComponentStorage(this._afterStorage);
+            this._afterStorage = null;
           }
         }));
       }.observes('*xAxisView.dragData', '*yAxisView.dragData'),
