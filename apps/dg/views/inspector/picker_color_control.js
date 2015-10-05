@@ -34,7 +34,7 @@ DG.PickerColorControl = SC.View.extend(
       setColorFunc: null, // Should be set by caller
       appendToLayerFunc: null, // Should be set by caller
       render: function(iContext, iFirstTime) {
-        iContext.push('<input type="text" id="custom1" />')
+        iContext.push('<input type="text" id="custom1" />');
         this.invokeLast(function () {
           this.$('#custom1').spectrum({
             color: tinycolor(this.initialColor),

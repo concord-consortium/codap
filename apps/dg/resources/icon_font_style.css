@@ -1,16 +1,6 @@
-@font-face {
+[class^="moonicon-"], [class*=" moonicon-"] {
 	font-family: 'icomoon';
-	src:url('icon_fonts/icomoon.eot?99txfz');
-	src:url('icon_fonts/icomoon.eot?#iefix99txfz') format('embedded-opentype'),
-		url('icon_fonts/icomoon.ttf?99txfz') format('truetype'),
-		url('icon_fonts/icomoon.woff?99txfz') format('woff'),
-		url('icon_fonts/icomoon.svg?99txfz#icomoon') format('svg');
-	font-weight: normal;
-	font-style: normal;
-}
-
-[class^="icon-"], [class*=" icon-"] {
-	font-family: 'icomoon';
+    font-size: 25px;
 	speak: none;
 	font-style: normal;
 	font-weight: normal;
@@ -18,191 +8,197 @@
 	text-transform: none;
 	line-height: 1;
 
-	/* Better Font Rendering =========== */
+    /* Better Font Rendering =========== */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.icon-icon-table2:before {
+.moonicon-icon-table:before {
 	content: "\31";
 }
-.icon-icon-graph:before {
+.moonicon-icon-graph:before {
 	content: "\33";
 }
-.icon-icon-dataTool:before {
+.moonicon-icon-dataTool:before {
 	content: "\32";
 }
-.icon-icon-calc:before {
+.moonicon-icon-calc:before {
 	content: "\36";
 }
-.icon-icon-slider:before {
+.moonicon-icon-slider:before {
 	content: "\35";
 }
-.icon-icon-map:before {
+.moonicon-icon-map:before {
 	content: "\34";
 }
-.icon-icon-noteTool:before {
+.moonicon-icon-noteTool:before {
 	content: "\38";
 }
-.icon-icon-mediaTool:before {
+.moonicon-icon-mediaTool:before {
 	content: "\37";
 }
-.icon-arrow-undo:before {
+.moonicon-arrow-undo:before {
 	content: "\61";
 }
-.icon-arrow-redo:before {
+.moonicon-arrow-redo:before {
 	content: "\62";
 }
-.icon-icon-tileList:before {
+.moonicon-icon-tileList:before {
 	content: "\63";
+	font-size: 22px;
 }
-.icon-icon-comment:before {
+.moonicon-icon-comment:before {
 	content: "\e609";
 }
-.icon-icon-guide:before {
+.moonicon-icon-guide:before {
 	content: "\64";
 }
-.icon-icon-options:before {
+.moonicon-icon-options:before {
 	content: "\65";
 }
-.icon-icon-simulateTool:before {
+.moonicon-icon-simulateTool:before {
 	content: "\67";
 }
-.icon-icon-draw:before {
+.moonicon-icon-draw:before {
 	content: "\66";
 }
-.icon-icon-help:before {
+.moonicon-icon-help:before {
 	content: "\68";
+	font-size: 18px;
+	color: white;
 }
-.icon-icon-hideShow:before {
+.moonicon-icon-hideShow:before {
 	content: "\69";
+	font-size: 20px;
 }
-.icon-icon-scaleData:before {
+.moonicon-icon-scaleData:before {
 	content: "\6a";
+	font-size: 27px;
 }
-.icon-icon-search:before {
+.moonicon-icon-search:before {
 	content: "\6d";
 }
-.icon-icon-tileScreenshot:before {
+.moonicon-icon-tileScreenshot:before {
 	content: "\6c";
 }
-.icon-icon-trash:before {
+.moonicon-icon-trash:before {
 	content: "\e629";
 }
-.icon-icon-styles:before {
+.moonicon-icon-styles:before {
 	content: "\6e";
 }
-.icon-icon-values:before {
+.moonicon-icon-values:before {
 	content: "\6f";
 }
-.icon-icon-qualRel:before {
+.moonicon-icon-qualRel:before {
 	content: "\70";
 }
-.icon-arrow-moreIconOptions:before {
+.moonicon-arrow-moreIconOptions:before {
 	content: "\71";
 }
-.icon-paletteArrow-expand:before {
+.moonicon-paletteArrow-expand:before {
 	content: "\72";
 }
-.icon-paletteArrow-collapse:before {
+.moonicon-paletteArrow-collapse:before {
 	content: "\73";
 }
-.icon-arrow-expand:before {
+.moonicon-arrow-expand:before {
 	content: "\74";
+	font-size: 12px;
 }
-.icon-arrow-collapse:before {
+.moonicon-arrow-collapse:before {
 	content: "\75";
 }
-.icon-inspectorArrow-expand:before {
+.moonicon-inspectorArrow-expand:before {
 	content: "\76";
 }
-.icon-inspectorArrow-collapse:before {
+.moonicon-inspectorArrow-collapse:before {
 	content: "\77";
 }
-.icon-icon-swapAxis:before {
+.moonicon-icon-swapAxis:before {
 	content: "\78";
 }
-.icon-icon-ex:before {
+.moonicon-icon-ex:before {
 	content: "\79";
 }
-.icon-icon-minimize:before {
+.moonicon-icon-minimize:before {
 	content: "\7a";
 }
-.icon-icon-noteCanvas .path1:before {
+.moonicon-icon-noteCanvas .path1:before {
 	content: "\41";
 	color: rgb(251, 243, 144);
 }
-.icon-icon-noteCanvas .path2:before {
+.moonicon-icon-noteCanvas .path2:before {
 	content: "\42";
 	margin-left: -1.2666015625em;
 	color: rgb(13, 136, 158);
 }
-.icon-icon-noteCanvas-Hover .path1:before {
+.moonicon-icon-noteCanvas-Hover .path1:before {
 	content: "\43";
 	color: rgb(251, 243, 144);
 }
-.icon-icon-noteCanvas-Hover .path2:before {
+.moonicon-icon-noteCanvas-Hover .path2:before {
 	content: "\44";
 	margin-left: -1.2666015625em;
 	color: rgb(16, 38, 51);
 }
-.icon-icon-noteTile .path1:before {
+.moonicon-icon-noteTile .path1:before {
 	content: "\45";
 	color: rgb(251, 243, 144);
 }
-.icon-icon-noteTile .path2:before {
+.moonicon-icon-noteTile .path2:before {
 	content: "\46";
 	margin-left: -1.2666015625em;
 	color: rgb(13, 136, 158);
 }
-.icon-icon-noteTile-hover .path1:before {
+.moonicon-icon-noteTile-hover .path1:before {
 	content: "\48";
 	color: rgb(251, 243, 144);
 }
-.icon-icon-noteTile-hover .path2:before {
+.moonicon-icon-noteTile-hover .path2:before {
 	content: "\49";
 	margin-left: -1.2666015625em;
 	color: rgb(16, 38, 51);
 }
-.icon-icon-play:before {
+.moonicon-icon-play:before {
 	content: "\4a";
 }
-.icon-icon-controlsReset:before {
+.moonicon-icon-controlsReset:before {
 	content: "\4b";
 }
-.icon-icon-controlsBackward:before {
+.moonicon-icon-controlsBackward:before {
 	content: "\4d";
 }
-.icon-icon-controlsForward:before {
+.moonicon-icon-controlsForward:before {
 	content: "\4e";
 }
-.icon-icon-speedFast:before {
+.moonicon-icon-speedFast:before {
 	content: "\4f";
 }
-.icon-icon-speedSlow:before {
+.moonicon-icon-speedSlow:before {
 	content: "\50";
 }
-.icon-slider:before {
+.moonicon-slider:before {
 	content: "\51";
 }
-.icon-icon-smallSliderLines:before {
+.moonicon-icon-smallSliderLines:before {
 	content: "\52";
 }
-.icon-icon-alert:before {
+.moonicon-icon-alert:before {
 	content: "\53";
 }
-.icon-icon-checkmark:before {
+.moonicon-icon-checkmark:before {
 	content: "\54";
 }
-.icon-icon-info:before {
+.moonicon-icon-info:before {
 	content: "\55";
 }
-.icon-icon-saveGraph:before {
+.moonicon-icon-saveGraph:before {
 	content: "\56";
 }
-.icon-icon-link:before {
+.moonicon-icon-link:before {
 	content: "\57";
 }
-.icon-icon-marquee:before {
+.moonicon-icon-marquee:before {
 	content: "\58";
 }

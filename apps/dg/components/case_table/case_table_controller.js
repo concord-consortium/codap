@@ -818,27 +818,23 @@ DG.CaseTableController = DG.ComponentController.extend(
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
               classNames: 'table-trash'.w(),
-              iconName: static_url('images/icon-trash.svg'),
-              depressedIconName: static_url('images/icon-trash.svg'),
+              iconClass: 'moonicon-icon-trash',
               showBlip: true,
               target: this,
               action: 'showDeletePopup',
               toolTip: 'DG.Inspector.delete.toolTip',
-              localize: true,
-              iconExtent: {width: 32, height: 32}
+              localize: true
             })
         );
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
               classNames: 'table-attributes'.w(),
-              iconName: static_url('images/icon-values.svg'),
-              depressedIconName: static_url('images/icon-values.svg'),
+              iconClass: 'moonicon-icon-values',
               showBlip: true,
               target: this,
               action: 'showAttributesPopup',
               toolTip: 'DG.Inspector.attributes.toolTip',
-              localize: true,
-              iconExtent: {width: 32, height: 32}
+              localize: true
             })
         );
         return tButtons;

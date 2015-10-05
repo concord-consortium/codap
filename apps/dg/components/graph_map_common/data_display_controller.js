@@ -140,8 +140,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-rescale'.w(),
-            iconName: static_url('images/icon-scaleData.svg'),
-            depressedIconName: static_url('images/icon-scaleData.svg'),
+            iconClass: 'moonicon-icon-scaleData',
             isEnabled: function () {
               return this_.getPath('dataDisplayModel.canRescale');
             }.property(),
@@ -149,7 +148,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
             action: 'rescaleFunction',
             toolTip: 'DG.Inspector.rescale.toolTip',  // "Rescale graph axes to encompass data"
             localize: true,
-            iconExtent: {width: 32, height: 32},
             init: function () {
               sc_super();
               this_.get('dataDisplayModel').addObserver('canRescale', this, 'plotDidChange');
@@ -174,14 +172,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var tHideShowButton = DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-hideshow'.w(),
-            iconName: static_url('images/icon-hideShow.svg'),
-            depressedIconName: static_url('images/icon-hideShow.svg'),
+            iconClass: 'moonicon-icon-hideShow',
             showBlip: true,
             target: this,
             action: showHideShowPopup,
             toolTip: 'DG.Inspector.hideShow.toolTip',  // "Show all cases or hide selected/unselected cases"
-            localize: true,
-            iconExtent: {width: 32, height: 20}
+            localize: true
           });
           tResult.push(tHideShowButton);
 
@@ -214,52 +210,44 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-trash'.w(),
-            iconName: static_url('images/icon-trash.svg'),
-            depressedIconName: static_url('images/icon-trash.svg'),
+            iconClass: 'moonicon-icon-trash',
             showBlip: true,
             target: this,
             action: showDeletePopup,
             toolTip: 'DG.Inspector.delete.toolTip',
-            localize: true,
-            iconExtent: {width: 32, height: 32}
+            localize: true
           }));
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-values'.w(),
-            iconName: static_url('images/icon-values.svg'),
-            depressedIconName: static_url('images/icon-values.svg'),
+            iconClass: 'moonicon-icon-values',
             showBlip: true,
             target: this,
             action: 'showValuesPane',
             toolTip: 'DG.Inspector.displayValues.toolTip',
-            localize: true,
-            iconExtent: {width: 32, height: 32}
+            localize: true
           }));
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-styles'.w(),
-            iconName: static_url('images/icon-styles.svg'),
-            depressedIconName: static_url('images/icon-styles.svg'),
+            iconClass: 'moonicon-icon-styles',
             showBlip: true,
             target: this,
             action: 'showStylesPane',
             toolTip: 'DG.Inspector.displayStyles.toolTip',
-            localize: true,
-            iconExtent: {width: 32, height: 29}
+            localize: true
           }));
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'display-styles'.w(),
-            iconName: static_url('images/icon-capture.png'),
-            depressedIconName: static_url('images/icon-capture.png'),
+            iconClass: 'moonicon-icon-tileScreenshot',
             target: this,
             action: 'makePngImage',
             toolTip: 'DG.Inspector.makeImage.toolTip',
-            localize: true,
-            iconExtent: {width: 32, height: 32}
+            localize: true
           }));
 
           return tResult;

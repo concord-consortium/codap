@@ -31,7 +31,7 @@ sc_require('views/image_view');
 DG.IconButton = SC.View.extend(
 /** @scope DG.IconButton.prototype */
   (function() {
-    var kTopOffset = 5;
+    var kTopOffset = 0;
     return {
       // if the property 'disabled' is set a class of the same name is set on the
       // button
@@ -39,22 +39,11 @@ DG.IconButton = SC.View.extend(
       iconName: null,
       depressedIconName: null,
       title: null,
-      iconExtent: { width: 29, height: 20 },
+      iconExtent: { width: 34, height: 25 },
       showBlip: false,  // If true, will show indicator that click will bring up palette
       childViews: 'iconView labelView'.w(),
-        iconView: DG.ImageView.design({
-          classNames: 'icon-button',
-          textAlign: SC.ALIGN_CENTER,
-          altTextBinding: '.parentView.title',
-          localizeBinding: '.parentView.localize',
-          value: function() {
-            if( this.getPath( 'parentView.isMouseOver') &&
-                this.getPath( 'parentView.isMouseDown'))
-              return this.getPath('parentView.depressedIconName');
-            else
-              return this.getPath('parentView.iconName');
-          }.property( 'parentView.isMouseDown', 'parentView.isMouseOver',
-                      'parentView.iconName', 'parentView.depressedIconName').cacheable()
+        iconView: DG.FontIconView.design({
+          classNames: 'icon-button'
         }),
         labelView: SC.LabelView.design({
           classNames: ['icon-label'],
@@ -69,6 +58,7 @@ DG.IconButton = SC.View.extend(
             tLabelHeight = tTitleIsEmpty ? 0 : 15;
         this.iconView.set('layout',
           { top: kTopOffset, centerX: 0, height: this.iconExtent.height, width: this.iconExtent.width });
+        this.iconView.set('iconClass', this.iconClass);
         this.labelView.adjust('top', this.iconExtent.height + kTopOffset);
         this.labelView.adjust('height', tLabelHeight);
         this.labelView.set('isVisible', !tTitleIsEmpty);
