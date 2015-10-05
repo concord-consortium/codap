@@ -710,9 +710,6 @@ DG.DocumentController = SC.Object.extend(
             containerView = view.parentView;
             containerView.removeComponentView(view);
           });
-        },
-        redo: function() {
-          this.execute();
         }
       }));
     },
