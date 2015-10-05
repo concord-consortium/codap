@@ -123,6 +123,10 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
               this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
               this._model = tController.get('model');
 
+              // Some components (the graph in particular), won't restore correctly without calling willSaveComponent(),
+              // because sometimes not all of the info necessary to restore the view is actively held in the model.
+              // (In the graph's case, there is 'model' which relates to the view, and 'graphModel' which holds all of the
+              // configuration like axis ranges, legends, etc.)
               tController.willSaveComponent();
 
               if (tController.saveGameState) {
