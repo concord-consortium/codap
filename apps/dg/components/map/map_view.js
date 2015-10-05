@@ -165,6 +165,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
+        tMapLayer._setIdle();
       },
 
       destroy: function() {
