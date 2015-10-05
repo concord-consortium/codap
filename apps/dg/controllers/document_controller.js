@@ -666,7 +666,7 @@ DG.DocumentController = SC.Object.extend(
         parentView: iParentView,
         controller: DG.CaseTableController.create(iProperties),
         componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-        contentProperties: {model: iProperties.dataContext.get('model') }, // Temporarily using context as model in order to get a title
+        contentProperties: {model: iProperties.dataContext.get('model'), id: iProperties.id }, // Temporarily using context as model in order to get a title
         defaultLayout: { width: 500, height: 200 },
         isResizable: true}), tView;
       DG.ObjectMap.copy(props, iProperties);
@@ -694,8 +694,8 @@ DG.DocumentController = SC.Object.extend(
           var view;
           docController.contexts.forEach(function (context) {
             if (!haveCaseTableForContext(context)) {
-              view = this.addCaseTableP(DG.mainPage.get('docView'), newViews[context], {dataContext: context});
-              newViews[context] = view.getPath('controller.model');
+              view = this.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context, id: newViews[context]});
+              newViews[context] = view.getPath('controller.model.id');
             }
           }.bind(docController));
           if (newViews.length === 0) {
@@ -704,8 +704,8 @@ DG.DocumentController = SC.Object.extend(
         },
         undo: function() {
           var view, controller, containerView;
-          DG.ObjectMap.forEach(newViews, function(context, model) {
-            controller = docController.componentControllersMap[model.get('id')];
+          DG.ObjectMap.forEach(newViews, function(context, modelId) {
+            controller = docController.componentControllersMap[modelId];
             view = controller.get('view');
             containerView = view.parentView;
             containerView.removeComponentView(view);
