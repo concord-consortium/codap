@@ -169,10 +169,10 @@ DG.RaphaelLayer = SC.Object.extend(
       else {
         var tFoundLast = false;
         this.forEach( function( iElement) {
-          tIsValid &= this._map[iElement.id];
-          tFoundLast |= iElement === this._lastElement;
+          tIsValid = tIsValid && this._map[iElement.id];
+          tFoundLast = tFoundLast || (iElement === this._lastElement);
         }.bind( this));
-        tIsValid &= tFoundLast;
+        tIsValid = tIsValid && tFoundLast;
       }
       if( !tIsValid)
         console.log('Invalid layer: ' + this.name);

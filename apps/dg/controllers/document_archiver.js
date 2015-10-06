@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Promise */
 /**
  * @class DocumentArchiver
  *

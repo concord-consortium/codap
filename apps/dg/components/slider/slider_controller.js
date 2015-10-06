@@ -74,9 +74,9 @@ DG.SliderController = DG.ComponentController.extend(
             tSliderModel = this.get('sliderModel'),
             tDirection = tSliderModel.get('animationDirection');
         if (tDirection === DG.SliderTypes.EAnimationDirection.eLowToHigh)
-          this.set('animationSign', 1)
+          this.set('animationSign', 1);
         else if (tDirection === DG.SliderTypes.EAnimationDirection.eHighToLow)
-          this.set('animationSign', -1)
+          this.set('animationSign', -1);
         if (SC.none(tAnimator)) {
           tAnimator = DG.ValueAnimator.create({
             valueHolder: tSliderModel,

@@ -19,6 +19,7 @@
 sc_require('utilities/storage/storage_api');
 sc_require('utilities/storage/codap_common_storage');
 
+/* global Promise */
 /* globals pako */
 sc_require('libraries/pako-deflate');
 

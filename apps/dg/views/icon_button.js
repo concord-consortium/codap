@@ -66,7 +66,7 @@ DG.IconButton = SC.View.extend(
 
         if( this.get('showBlip')) {
           this.iconView.set('layout',
-              { top: 0, right: 0, height: this.iconExtent.height, width: this.iconExtent.width })
+              { top: 0, right: 0, height: this.iconExtent.height, width: this.iconExtent.width });
           this.adjust('width', this.iconExtent.width + 3);
           this.adjust('height', this.iconExtent.height + 3);
           this.appendChild(DG.ImageView.create({
@@ -141,7 +141,7 @@ DG.IconButton = SC.View.extend(
         var target = this.get('target') || null;
         var pane   = this.get('pane');
         if( action instanceof Function) {
-          action.call( target)
+          action.call( target);
         }
         else {
           var responder = pane ? pane.get('rootResponder') : null;

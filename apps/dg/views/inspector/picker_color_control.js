@@ -37,7 +37,7 @@ DG.PickerColorControl = SC.View.extend(
         iContext.push('<input type="text" id="custom1" />');
         this.invokeLast(function () {
           this.$('#custom1').spectrum({
-            color: tinycolor(this.initialColor),
+            color: tinycolor(this.initialColor), // jshint ignore:line
             appendTo: this.appendToLayerFunc(),
             showAlpha: true,
             showInitial: true,
@@ -50,7 +50,7 @@ DG.PickerColorControl = SC.View.extend(
               if( this.setColorFunc)
                 this.setColorFunc( iColor, this.colorKey);
             }.bind(this)
-          })
+          });
         }.bind(this));
       }
     });

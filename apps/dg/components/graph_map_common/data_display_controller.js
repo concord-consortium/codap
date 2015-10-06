@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global tinycolor, Promise */
+
 sc_require('controllers/component_controller');
 
 /** @class
@@ -155,7 +157,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             plotDidChange: function () {
               this.displayDidChange();
               this.set('toolTip', this_.getPath('dataDisplayModel.canMixUp') ?
-                  'DG.Inspector.mixUp.toolTip' : 'DG.Inspector.rescale.toolTip')
+                  'DG.Inspector.mixUp.toolTip' : 'DG.Inspector.rescale.toolTip');
             }
           }));
 

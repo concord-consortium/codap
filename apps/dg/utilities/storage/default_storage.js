@@ -16,6 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Promise */
 sc_require('utilities/storage/storage_api');
 sc_require('utilities/storage/codap_common_storage');
 

@@ -56,17 +56,17 @@ DG.InspectorView = DG.DraggableView.extend(
           var removeChildren = function() {
             var tChildren = this.get('childViews'),
                 tChild;
-            while( tChild = tChildren[0]) {
+            // We call removeChild for each member of the array. This has the side effect of modifying the array
+            while( tChild = tChildren[0]) {  // jshint ignore:line
               this.removeChild( tChild);
             }
           }.bind( this),
 
           adjustLayout = function() {
             var tChildren = this.get('childViews'),
-                tNumChildren = tChildren.length,
                 tCurrTop = kPadding;
             tChildren.forEach( function( iChild, iIndex) {
-              iChild.adjust( { left: kPadding, top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2 });
+              iChild.adjust( { top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2 });
               iChild.set('isVisible', true);
               tCurrTop += iChild.iconExtent.height + 2 * kPadding;
             });
@@ -91,7 +91,7 @@ DG.InspectorView = DG.DraggableView.extend(
         }.observes('targetComponent'),
 
         selectedComponentDidChange: function() {
-          this.set('targetComponent', this.getPath('componentContainer.selectedChildView'))
+          this.set('targetComponent', this.getPath('componentContainer.selectedChildView'));
         }.observes('*componentContainer.selectedChildView'),
 
         /**

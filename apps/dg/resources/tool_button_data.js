@@ -139,5 +139,5 @@ DG.RightButtonData = {
     isVisible: false
   }
 
-}
+};
 

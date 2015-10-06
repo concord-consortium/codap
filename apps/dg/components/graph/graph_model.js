@@ -501,8 +501,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
          current plot and whether we made a new plot.
      */
     synchPlotWithAttributes: function() {
-      var this_ = this,
-          tConfig = this.get( 'dataConfiguration' ),
+      var tConfig = this.get( 'dataConfiguration' ),
         tXType = tConfig.get( 'xType' ),
         tYType = tConfig.get( 'yType' ),
         tCurrentPlot = this.get( 'plot' ),
@@ -660,8 +659,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var this_ = this,
-          xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
+      var xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
           tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
           tPrevXAxis = this.get('xAxis'),
           tYAxisClass = DG.Core.classFromClassName( iStorage.yAxisClass),
