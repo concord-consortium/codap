@@ -45,6 +45,9 @@ DG.Command = SC.Object.extend((function() {
     // not the execute() action will actually make a change.
     causedChange: true,
 
+    // The object that should be passed to dirtyCurrentDocument(). Indicates what object changed.
+    changedObject: null,
+
     // Functions to override
     execute: function() {},
     undo: function() {},

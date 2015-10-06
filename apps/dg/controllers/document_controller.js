@@ -1017,6 +1017,7 @@ DG.DocumentController = SC.Object.extend(
               undoString: 'DG.Undo.guide.configure',
               redoString: 'DG.Redo.guide.configure',
               log: 'Show guide',
+              changedObject: tGuideModel,
               _oldValues: {
                 title: tGuideModel.get('title'),
                 items: tGuideModel.get('items')
@@ -1042,14 +1043,12 @@ DG.DocumentController = SC.Object.extend(
                   // The configuration is such that we must make sure the guide is visible
                   this_._singletonViews.guideView.set('isVisible', true);
                 }
-                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
               },
               undo: function() {
                 tGuideModel.beginPropertyChanges();
                 tGuideModel.set('title', this._oldValues.title);
                 tGuideModel.set('items', this._oldValues.items);
                 tGuideModel.endPropertyChanges();
-                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
                 if(SC.empty(this._oldValues.title) && this._oldValues.items.length === 0) {
                   // We're undoing the original making of the guide view just by hiding it
                   this_._singletonViews.guideView.set('isVisible', false);
