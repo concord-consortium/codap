@@ -610,8 +610,16 @@ DG.DocumentController = SC.Object.extend(
           'componentStorage.currentGameUrl')),
         tGameName = (iComponent && iComponent.getPath(
             'componentStorage.currentGameName')) || 'Unknown Game',
-        tController = DG.GameController.create(),
-        tView = this.createComponentView(iComponent, {
+        tView;
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'game.create',
+        undoString: 'DG.Undo.game.add',
+        redoString: 'DG.Redo.game.add',
+        log: 'addGame: {name: "%@", url: "%@"}'.fmt(tGameName, tGameUrl),
+        _component: null,
+        execute: function() {
+          var tController = DG.GameController.create();
+          tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
             parentView: iParentView,
             controller: tController,
             componentClass: {
@@ -626,9 +634,17 @@ DG.DocumentController = SC.Object.extend(
             },
             title: tGameName,
             isResizable: true,
-            useLayout: false
-          }  // may change this to false in the future
-        );
+            useLayout: false  // may change this to false in the future
+          });
+          this._component = tController.get('model');
+        },
+        undo: function() {
+          var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')],
+              view = controller.get('view');
+          controller.willSaveComponent();
+          view.parentView.removeComponentView(view);
+        }
+      }));
 
       // Override default component view behavior.
       // Do nothing until we figure out how to prevent reloading of Flash object.
