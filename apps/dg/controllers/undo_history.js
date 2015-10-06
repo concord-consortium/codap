@@ -193,6 +193,11 @@ DG.UndoHistory = SC.Object.create((function() {
       // Otherwise, this wasn't part of a command, so this change is not able to be undone.
       // Clear the stacks
       this.clearUndoRedoHistory();
+
+      // Also log the current stack so we can track these down one-by-one
+      if (this.get('enabled')) {
+        DG.Debug.logErrorRaw("Document dirtied outside of an Undo Command\n%@".fmt((new Error()).stack));
+      }
     },
 
     clearUndoRedoHistory: function() {
