@@ -1145,6 +1145,8 @@ DG.DocumentController = SC.Object.extend(
 
       this.contexts = [];
       this.closeAllComponents();
+
+      DG.UndoHistory.clearUndoRedoHistory();
     },
 
     closeAllComponents: function() {
