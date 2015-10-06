@@ -21,6 +21,8 @@
 // ==========================================================================
 /*global Slick */
 
+sc_require('components/case_table/scroll_animation_utility');
+
 /** @class
 
   A CaseTableView contains a scrollable data grid view.
@@ -168,6 +170,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @property   {Number}
    */
   expandCollapseCount: 0,
+
+  scrollAnimator: DG.ScrollAnimationUtility.create({
+  }),
   
   displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
   
@@ -822,31 +827,42 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * @param {[number]} rowIndices
    */
   scrollToView: function (rowIndices) {
-    function getRange(a) {
-      var range = {min: undefined, max: undefined};
-      a.forEach(function (val) {
-        if (range.min === undefined) {
-          range.min = range.max = val;
-        }
-        else {
-          range.min = Math.min(range.min, val);
-          range.max = Math.max(range.max, val);
-        }
-      });
-      return range;
-    }
+    var rowDistance = this.getMinScrollDistance(rowIndices);
     var viewport = this._slickGrid.getViewport();
-    var range = getRange(rowIndices);
-    if (range.max < viewport.top) {// need to move up
-      this._slickGrid.scrollRowIntoView(range.max, true);
-    } else if (range.min >= viewport.bottom) {
-      this._slickGrid.scrollRowToTop(range.min);
+    var top = Math.max(viewport.top - rowDistance, 0);
+    if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
+      this.scrollAnimator.animate(this, viewport.top, top);
     }
+    //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
+    //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
   },
-  
+
+    /**
+     * Scrolls the table so that the indicated row is at the top of the displayed
+     * region, if possible.
+     */
+    scrollToRow: function (rowIx) {
+      this._slickGrid.scrollRowToTop(rowIx);
+    },
+
+    /**
+     * Returns the minimum distance of an array of rows to the viewport middle in row units.
+     * @param  rowArray {[Number]}   Array of indices of rows
+     * @return {Number} number of rows distant
+     */
+    getMinScrollDistance: function (rowArray) {
+      var viewport = this._slickGrid.getViewport(); // viewport.top, .bottom: row units
+      var viewMiddle = (viewport.top + viewport.bottom - 2) / 2;
+      return rowArray.map(function (row) {
+            return (viewMiddle - row);
+          }).reduce(function(m, dist) {
+            return (Math.abs(m) > Math.abs(dist)?dist: m);
+          }, Number.MAX_VALUE);
+    },
+
   /**
-    Sets the set of selected rows.
-    @param  {Array of Number}   Array of indices of selected rows
+   * Sets the set of selected rows.
+   * @param  iSelectedRows {[Number]}   Array of indices of selected rows
    */
   setSelectedRows: function( iSelectedRows) {
     if( this._slickGrid) {
