@@ -288,6 +288,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.updateConnectingLine();
       }.observes('mapPointView.pointsDidChange'),
 
+      modelPointsDidChange: function() {
+        this.get('legendView').displayDidChange();
+      }.observes('model.pointColor', 'model.transparency'),
+
       /**
        Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
        because we don't want to destroy the adornment.

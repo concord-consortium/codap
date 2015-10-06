@@ -17,10 +17,14 @@
 /* @import must be at top of file, otherwise CSS will not work */
 /*@import url("//hello.myfonts.net/count/2df7e5");*/
 
-@font-face {font-family: 'MuseoSans-500';src: url('webfonts/MuseoSans_500.otf') format('otf');}
-@font-face {font-family: 'MuseoSans-500-Italic';src: url('webfonts/MuseoSans_500_Italic.otf') format('otf');}
-@font-face {font-family: 'Montserrat-Regular';src: url('webfonts/Montserrat-Regular.otf') format('otf');}
-@font-face {font-family: 'Montserrat-Bold';src: url('webfonts/Montserrat-Bold.otf') format('otf');}
+@font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.otf') format('otf');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.otf') format('otf');}
+@font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.ttf') format('truetype');}
+@font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.eot') format('embedded-opentype');}
+@font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.woff') format('woff');}
+@font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.svg') format('svg');}
 
 .dg-splash {
     background-color: white !important;
@@ -102,6 +106,10 @@
 
 .inspector-cover {
     background-color: rgba(255, 255, 255, 0.8);
+}
+
+.inspector-palette [class^="moonicon-"], .inspector-palette [class*=" moonicon-"] {
+    color: white;
 }
 
 .inspector-picker .sc-view{
@@ -404,6 +412,7 @@ body.dg .sc-view.doc-background {
 
 .sc-view.icon-button {
     cursor: pointer;
+    text-align: center;
 }
 
 .sc-view.toolshelf-button:hover {

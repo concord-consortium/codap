@@ -1147,10 +1147,12 @@ DG.appController = SC.Object.create((function () // closure
             // context menu option. Use a capture-phase event handler to drop
             // the mousedown event. Note jQuery (at least as of version used
             // here) doesn't support capturing so we use W3C API.
-
-            tDialog.$('a')[0].addEventListener('mousedown', function(e) {
-              e.stopPropagation();
-            }, true);
+            var tLink = tDialog.$('a')[0];
+            if(tLink) { // Test because we can get here before the link shows
+              tLink.addEventListener('mousedown', function (e) {
+                e.stopPropagation();
+              }, true);
+            }
           }
         }
       }, true);

@@ -38,6 +38,14 @@ DG.MovableValueModel = DG.PlotAdornmentModel.extend(
     @property { Boolean }
   */
   _needsComputing: true,
+
+  init: function() {
+    sc_super();
+    var tPlotModel = this.get('plotModel');
+    if( tPlotModel) {
+      this.recomputeValue( tPlotModel.get('primaryAxisModel'));
+    }
+  },
   
   /**
     True if we need to compute a new value to force within plot bounds

@@ -201,6 +201,8 @@ DG.AttributePlacementDescription = SC.Object.extend(
     var stats = this.get('attributeStats');
     if( stats)
       stats.invalidateCaches( iCases, iChange);
+    if( this._attributes.length === 0)
+      this.setPath('attributeStats.attributeType', DG.Analysis.EAttributeType.eNone);
   },
 
   casesForCategory: function( iCellName) {

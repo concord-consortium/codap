@@ -111,6 +111,7 @@ DG.Attribute = DG.BaseModel.extend(
       if (typeof this.collection === 'number') {
         this.collection = DG.store.find(DG.Attribute, this.collection);
       }
+      this.colormap = {};
     },
 
     verify: function () {
@@ -280,6 +281,9 @@ DG.Attribute.createAttribute = function( iProperties) {
 
   iProperties.collection = collection;
   newAttribute = DG.Attribute.create(iProperties || {});
+  if( iProperties.colormap) {
+    newAttribute.colormap = SC.clone( iProperties.colormap);
+  }
 
   DG.store.commitRecords();
   DG.Attribute.idMap[ newAttribute.get('id')] = newAttribute;
