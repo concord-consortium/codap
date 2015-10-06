@@ -249,37 +249,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
      @return {Array of menu items}
      */
     getGearMenuItems: function() {
-      var tItems = [],
-          this_ = this;
-      if( this.get('hasLatLongAttributes')) {
-        tItems = tItems.concat([
-          {
-            title: 'DG.Inspector.mapGrid',
-            value: this_.getPath('gridModel.visible'),
-            classNames: 'map-grid-check'.w(),
-            valueDidChange: function () {
-              this_.toggleGrid();
-            }.observes('value')
-          },
-          {
-            title: 'DG.Inspector.mapPoints',
-            value: this_.get('pointsShouldBeVisible'),
-            classNames: 'map-points-check'.w(),
-            valueDidChange: function () {
-              this_.togglePoints();
-            }.observes('value')
-          },
-          {
-            title: 'DG.Inspector.mapLines',
-            value: this_.get('linesShouldBeVisible'),
-            classNames: 'map-lines-check'.w(),
-            valueDidChange: function () {
-              this_.toggleLines();
-            }.observes('value')
-          }
-        ]);
-      }
-      return tItems;
+      return this.get('checkboxDescriptions');
     }.property(),
 
     toggleGrid: function() {
