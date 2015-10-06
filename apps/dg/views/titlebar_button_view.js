@@ -117,7 +117,7 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
             redoString: 'DG.Redo.component.minimize',
             execute: function() {
 */
-              tComponentView.toggleMinimization( tComponentView);
+              tComponentView.toggleMinimization();
 /*
             },
             undo: function() {

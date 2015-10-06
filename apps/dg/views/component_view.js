@@ -452,12 +452,12 @@ DG.ComponentView = SC.View.extend(
 
         maximizeAndSelect: function () {
           if (this.get('isMinimized')) {
-            this.toggleMinimization(true);
+            this.toggleMinimization();
           }
           this.select();
         },
 
-        toggleMinimization: function (iSkipDirtyingDocument) {
+        toggleMinimization: function () {
 
           var setBorderVisibility = function (iVisibility) {
             ['Bottom', 'Corner', 'Left', 'Right'].forEach(function (iLoc) {
@@ -486,8 +486,6 @@ DG.ComponentView = SC.View.extend(
               this.parentView.select(null);
             }
           }
-          if (!iSkipDirtyingDocument)
-            DG.dirtyCurrentDocument(this);
         },
 
         contentIsInstanceOf: function (aPrototype) {

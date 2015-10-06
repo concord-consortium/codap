@@ -391,7 +391,6 @@ DG.DocumentController = SC.Object.extend(
     createComponentAndView: function( iComponent, iComponentType) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
-          didCreateComponent = true,
           tView = null;
 
       switch( type) {
@@ -437,15 +436,11 @@ DG.DocumentController = SC.Object.extend(
         tView = this.addGuideView( docView, iComponent);
         break;
       default:
-        didCreateComponent = false;
         break;
       }
 
       if( iComponent)
         iComponent.didLoadRecord();
-
-      if( didCreateComponent)
-        DG.dirtyCurrentDocument();
 
       return tView;
     },
@@ -596,7 +591,7 @@ DG.DocumentController = SC.Object.extend(
         }
         tComponentView.set('model', tComponent);
 
-        DG.dirtyCurrentDocument();
+        DG.dirtyCurrentDocument(); // TODO We can remove this after we're sure all components get created via Undo
       }
 
       return tComponentView;
