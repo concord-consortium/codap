@@ -292,8 +292,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           break;
       }
 
-      DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }",
-                  iOrientation, newAttribute.get('name'));
       iAttrRefs.attributes[0] = newAttribute;
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
@@ -545,8 +543,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
                 tSecondaryRole, tPrimaryRole;
-
-            DG.logUser("attributeRemoved: %@", tName);
 
             this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 

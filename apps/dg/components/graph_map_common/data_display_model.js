@@ -380,6 +380,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         target: this,
         itemAction: tAction,
         isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+        log: "attributeRemoved: { attribute: %@, axis: %@ }".fmt(tName, iXYorLegend),
         args: [ tDescKey, tAxisKey, iAttrIndex ] };
     },
 
@@ -396,6 +397,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         target: this,
         itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
         isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
+        log: "plotAxisAttributeChangeType: { axis: %@, attribute: %@, numeric: %@ }".fmt( tAxisKey, (tAttribute && tAttribute.get('name')), !tIsNumeric),
         args: [ tDescKey, tAxisKey, !tIsNumeric ] };
     },
 
@@ -500,9 +502,6 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     changeAttributeType: function( iDescKey, iAxisKey, iTreatAsNumeric ) {
       var tDataConfiguration = this.get('dataConfiguration');
 
-      DG.logUser("plotAxisAttributeChangeType: { axis: %@, attribute: %@ }",
-          iAxisKey, tDataConfiguration.getPath( iDescKey + '.attribute.name'));
-
       // We're handling a case specific to graphs here for convenience
       if( !iTreatAsNumeric && this.getY2Plot && this.getY2Plot()) {
         this.removeAttribute('y2AttributeDescription', 'y2Axis', 0);
@@ -516,7 +515,6 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         this.privSyncAxisWithAttribute( iDescKey, iAxisKey );
       this.invalidate( null, true /* also invalidate plot caches */);
       this.set('aboutToChangeConfiguration', false ); // reset for next time
-      DG.dirtyCurrentDocument();
     },
 
     /**
@@ -528,10 +526,6 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      */
     changeAttributeForLegend: function( iDataContext, iAttrRefs) {
       var tAttribute = iAttrRefs && iAttrRefs.attributes[0];
-      if( tAttribute)
-        DG.logUser("legendAttributeChange: { to attribute %@ }", tAttribute.get('name'));
-      else
-        DG.logUser("legendAttributeRemoved:");
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
@@ -542,8 +536,6 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
-
-      DG.dirtyCurrentDocument();
     },
 
     /**

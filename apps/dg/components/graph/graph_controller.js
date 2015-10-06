@@ -226,7 +226,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                 iAxis.get('orientation')
             );
 
-            this.log = 'Attribute dragged and dropped: %@, %@'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+            this.log = 'plotAxisAttributeChange: { orientation: %@, attribute: %@ }'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
           },
           undo: function() {
             var controller = this._controller();
