@@ -305,7 +305,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
-      DG.dirtyCurrentDocument();
     },
 
     /**
@@ -383,8 +382,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( DG.GraphTypes.EPlace.eY2);
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
-
-      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
 
       var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
       tY2AttrDescription.removeAllAttributes();

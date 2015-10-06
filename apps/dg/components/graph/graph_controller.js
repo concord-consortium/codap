@@ -297,19 +297,47 @@ DG.GraphController = DG.DataDisplayController.extend(
         y2AxisDidAcceptDrop: function (iY2Axis, iKey, iDragData) {
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
-          this.handlePossibleForeignDataContext(iDragData);
 
-          var tDataContext = this.get('dataContext'),
-              tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChangeY2',
+            undoString: 'DG.Undo.axisAttributeChangeY2',
+            redoString: 'DG.Redo.axisAttributeChangeY2',
+            _beforeStorage: null,
+            _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            execute: function() {
+              var controller = this._controller();
+              this._beforeStorage = controller.createComponentStorage();
 
-          iY2Axis.dragData = null;
+              controller.handlePossibleForeignDataContext( iDragData);
 
-          this.get('graphModel').changeAttributeForY2Axis(
-              tDataContext,
-              {
-                collection: tCollectionClient,
-                attributes: [iDragData.attribute]
-              });
+              var tDataContext = controller.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+
+              iY2Axis.dragData = null;
+
+              controller.get('graphModel').changeAttributeForY2Axis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [iDragData.attribute]
+                });
+
+              this.log = 'changeAttributeOnSecondYAxis: { attribute: %@ }'.fmt(iDragData.attribute.get('name'));
+            },
+            undo: function() {
+              var controller = this._controller();
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+            },
+            redo: function() {
+              this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
+            }
+          }));
         }.observes('*y2AxisView.dragData'),
 
         /**
