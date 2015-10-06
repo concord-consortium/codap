@@ -247,20 +247,47 @@ DG.GraphController = DG.DataDisplayController.extend(
         multiTargetDidAcceptDrop: function (iAxisMultiTarget, iKey, iDragData) {
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
-          this.handlePossibleForeignDataContext(iDragData);
 
-          var tDataContext = this.get('dataContext'),
-              tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChangeMultiTarget',
+            undoString: 'DG.Undo.axisAttributeAdded',
+            redoString: 'DG.Redo.axisAttributeAdded',
+            _beforeStorage: null,
+            _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            execute: function() {
+              var controller = this._controller();
+              this._beforeStorage = controller.createComponentStorage();
 
-          iAxisMultiTarget.dragData = null;
+              controller.handlePossibleForeignDataContext( iDragData);
 
-          this.get('graphModel').addAttributeToAxis(
-              tDataContext,
-              {
-                collection: tCollectionClient,
-                attributes: [iDragData.attribute]
-              });
-          DG.dirtyCurrentDocument();
+              var tDataContext = controller.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+
+              iAxisMultiTarget.dragData = null;
+
+              controller.get('graphModel').addAttributeToAxis(
+                tDataContext,
+                {
+                  collection: tCollectionClient,
+                  attributes: [iDragData.attribute]
+                });
+
+              this.log = 'Attribute dragged and dropped: %@, %@'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+            },
+            undo: function() {
+              var controller = this._controller();
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+            },
+            redo: function() {
+              this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
+            }
+          }));
         }.observes('*axisMultiTarget.dragData'),
 
         /**
