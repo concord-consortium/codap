@@ -163,6 +163,10 @@ DG.IconButton = SC.View.extend(
         this.endPropertyChanges();
       },
 
+      toolTipDidChange: function() {
+        this.updateLayer();
+      }.observes('displayToolTip'),
+
       /**
         Install the toolTip
         @param {SC.RenderContext} context the render context instance
