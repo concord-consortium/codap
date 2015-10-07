@@ -73,22 +73,16 @@ DG.ContainerView = SC.View.extend(
           switch( iView.get('contentView').constructor) {
             case DG.TableView:
               return static_url('images/icon-table.svg');
-              break;
             case DG.GraphView:
               return static_url('images/icon-graph.svg');
-              break;
             case DG.MapView:
               return static_url('images/icon-map.svg');
-              break;
             case DG.SliderView:
               return static_url('images/icon-slider.svg');
-              break;
             case DG.Calculator:
               return static_url('images/icon-calc.svg');
-              break;
             case DG.TextView:
               return static_url('images/icon-comment.svg');
-              break;
           }
         }
 

@@ -138,21 +138,6 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
         }.observes('view'),
 
-        /**
-         Get the menu items from the graph and its components.
-         @property { Array of menu items }
-         */
-        gearMenuItems: function () {
-          var tGraph = this.getPath('graphModel');
-          var this_ = this;
-          var tGearMenuItems = SC.none(tGraph) ? [] : tGraph.getGearMenuItems();
-          tGearMenuItems.push({
-            title: 'DG.DataDisplayMenu.snapshot',
-            target: this_, itemAction: this_.makePngImage
-          });
-          return tGearMenuItems;
-        }.property('graphModel'),
-
         makePngImage: function () {
           var componentView = this.get('view');
           var graphView = componentView && componentView.get('contentView');
@@ -288,60 +273,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
           else
             sc_super();
-        }.observes('*plotView.dragData'),
-
-        /**
-         * If the legend is categorical, we append a color picker for each category in a scroll view.
-         */
-        styleControls: function () {
-          var tControls = sc_super(),
-              this_ = this,
-              tLegendAttrDesc = this.getPath('graphModel.dataConfiguration.legendAttributeDescription'),
-              setColor = function (iColor) {
-                this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
-              },
-              getStylesLayer = function () {
-                return this_.stylesPane.layer();
-              },
-              kRowHeight = 20;
-/*
-          if (tLegendAttrDesc.get('isCategorical')) {
-            var tContentView = SC.View.create(SC.FlowedLayout,
-                    {
-                      layoutDirection: SC.LAYOUT_VERTICAL,
-                      isResizable: false,
-                      isClosable: false,
-                      defaultFlowSpacing: {bottom: 5},
-                      canWrap: false,
-                      align: SC.ALIGN_TOP,
-                    }
-                ),
-                tScrollView = SC.ScrollView.create({
-                  layout: {height: 100},
-                  hasHorizontalScroller: false,
-                  contentView: tContentView
-                }),
-                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
-            DG.ObjectMap.forEach( tCategoryMap, function( iCategory) {
-              tContentView.appendChild(DG.PickerControlView.create({
-                layout: {height: 2 * kRowHeight},
-                label: iCategory,
-                controlView: DG.PickerColorControl.create({
-                  layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
-                  initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
-                      .setAlpha(this.getPath('dataDisplayModel.transparency')),
-                  setColorFunc: setColor,
-                  appendToLayerFunc: getStylesLayer
-                })
-              }));
-            }.bind(this));
-            tControls.push(tScrollView);
-          }
-*/
-          return tControls;
-        }.property()
+        }.observes('*plotView.dragData')
       };
 
     }()) // function closure

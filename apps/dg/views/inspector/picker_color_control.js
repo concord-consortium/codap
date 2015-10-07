@@ -30,26 +30,27 @@ DG.PickerColorControl = SC.View.extend(
     /** @scope DG.PickerColorControl.prototype */ {
       classNames: 'inspector-picker-color'.w(),
       initialColor: null, // Should be set by caller
+      colorKey: null, // Should be set by caller
       setColorFunc: null, // Should be set by caller
       appendToLayerFunc: null, // Should be set by caller
       render: function(iContext, iFirstTime) {
-        iContext.push('<input type="text" id="custom1" />')
+        iContext.push('<input type="text" id="custom1" />');
         this.invokeLast(function () {
           this.$('#custom1').spectrum({
-            color: tinycolor(this.initialColor),
+            color: tinycolor(this.initialColor), // jshint ignore:line
             appendTo: this.appendToLayerFunc(),
             showAlpha: true,
             showInitial: true,
             showButtons: false,
             move: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor);
+                this.setColorFunc( iColor, this.colorKey);
             }.bind(this),
             change: function (iColor) {
               if( this.setColorFunc)
-                this.setColorFunc( iColor);
+                this.setColorFunc( iColor, this.colorKey);
             }.bind(this)
-          })
+          });
         }.bind(this));
       }
     });

@@ -16,6 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Promise */
 /** @class
 
   Interface class for providing the basic skeleton API for storage interfaces.

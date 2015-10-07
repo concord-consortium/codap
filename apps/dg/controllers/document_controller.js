@@ -20,6 +20,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Promise */
 sc_require('libraries/es6-promise-polyfill');
 
 /** @class

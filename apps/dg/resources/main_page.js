@@ -24,7 +24,7 @@ DG.mainPage = SC.Page.design((function() {
   var kButtonWidth = 40,
       kToolbarHeight = 70,
       kInfobarHeight = 30,
-      kIconTopPadding = 18;
+      kIconTopPadding = 15;
 
   // begin compatible browser main page design
   return DG.Browser.isCompatibleBrowser() ? {
@@ -98,14 +98,12 @@ DG.mainPage = SC.Page.design((function() {
 
         navPopupButton: DG.IconButton.design( {
           layout: { width: 20 },
-          flowSpacing: { left: 0, top: 2, right: 5 },
-          iconName: static_url('images/caret-down.png'),
-          depressedIconName: static_url('images/caret-down.png'),
+          flowSpacing: { left: 0, top: -3, right: 5 },
+          iconClass: 'moonicon-arrow-expand',
           target: 'DG.appController.fileMenuPane',
           action: 'popup',
           toolTip: 'DG.Document.documentPopup.toolTip',  // "Open, Save, Close, Import, Export, ..."
-          localize: true,
-          iconExtent: { width: 12, height: 21 }
+          localize: true
         }),
 
         saveNotification: SC.LabelView.design(SC.AutoResize, {
@@ -146,14 +144,12 @@ DG.mainPage = SC.Page.design((function() {
 
         helpButton: DG.IconButton.design( {
           layout: { width: 18 },
-          flowSpacing: { left: 5, top: 2, right: 5 },
-          iconName: static_url('images/icon-help.svg'),
-          depressedIconName: static_url('images/icon-help.svg'),
+          flowSpacing: { left: 5, top: 0, right: 5 },
+          iconClass: 'moonicon-icon-help',
           target: 'DG.appController',
           action: 'showHelp',
           toolTip: 'DG.ToolButtonData.help.toolTip',  // "Open a web view showing help for CODAP"
-          localize: true,
-          iconExtent: { width: 15, height: 15 }
+          localize: true
         })
       })
     }),
@@ -175,7 +171,8 @@ DG.mainPage = SC.Page.design((function() {
           // create tool buttons, left-justified
           DG.toolButtons.forEach( function( iButtonName ) {
             var tButton = DG.ToolButtonData[iButtonName];
-            tButton.classNames = 'toolshelf-button'.w();
+            tButton.classNames = tButton.classNames || '';
+            tButton.classNames = (tButton.classNames + ' toolshelf-button').w();
             this[ iButtonName] = DG.IconButton.create( tButton);
             this[ iButtonName].set('layout', { width: kButtonWidth, height: 40 });
             this.appendChild( this[ iButtonName ]);

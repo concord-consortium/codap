@@ -166,7 +166,7 @@ DG.ColorUtilities.calcCaseColor = function( iCaseValue, iColorAttributeDescripti
       // get color from attribute's color map, or set to null
       newColor = DG.ColorUtilities.getCategoryColorFromColorMap( tColorMap, iCaseValue );
     }
-    if( newColor === null ) {
+    if( !newColor) {
       // calculate color using TinkerPlots color-space algorithm
       var tAttributeColor = DG.ColorUtilities.calcAttributeColor( iColorAttributeDescription);
       newColor = tIsNumeric ?
@@ -188,8 +188,9 @@ DG.ColorUtilities.getCategoryColorFromColorMap = function( iColorMap, iCaseValue
   if( iColorMap ) {
     var tColorValue = iColorMap[iCaseValue];
     if( typeof tColorValue === 'string') {
-      return { colorString : tColorValue };    // {string} Rafael-compatible color value
+      tColorValue = { colorString : tColorValue };    // {string} Rafael-compatible color value
     }
+    return tColorValue;
   }
   return null;
 };
@@ -276,107 +277,6 @@ DG.ColorUtilities.calcCategoryColor = function( iAttributeStats, iAttributeColor
     tCaseColor = DG.ColorUtilities.kMissingValueCaseColor;
   }
   
-  return tCaseColor;
-};
-
-/***************************************************************************
- * calcCaseColorFromData()  DEPRECATED
- *      Calculate a case color from the case value and color attribute stats
- *      (which are null if no color attribute).
- * @param iCaseValue
- * @param {Object} iColorData : (null ||
-        {
-            stats: { min: {number} max: {number}, categories: [] },
-            color: { h, s, b, colorString },
-            cases: []
-        })
- * @returns {DG.ColorUtilities.Color}
- */
-DG.ColorUtilities.calcCaseColorFromData = function( iCaseValue, iColorData ) {
-  var newColor, calcFunction;
-  if( iColorData ) {
-    calcFunction = iColorData.stats.isNumeric ?
-            DG.ColorUtilities.calcContinuousColorFromData :
-            DG.ColorUtilities.calcCategoryColorFromData ;
-    newColor = calcFunction(
-            iColorData.stats,
-            iColorData.color,
-            iCaseValue ); //iSelectedAttribute.cases[iCaseIndex] );
-  } else {
-    newColor = DG.ColorUtilities.kNoAttribCaseColor;
-  }
-  return newColor;
-};
-
-/**
- * calcContinuousColorFromData()  DEPRECATED
- *      Calculate the icon fill color for this numeric value of a continuous
- *      variable.  Creates a gradient from white for the lowest numeric value,
- *      to the attribute color for the highest numeric value. Returns the
- *      missing value color for any non-numeric case values.
- * @param iAttributeStats : stats data
- * @param {DG.ColorUtilities.hsbColor} iAttributeColor
- * @param iCaseValue
- * @returns {DG.ColorUtilities.Color}
- */
-DG.ColorUtilities.calcContinuousColorFromData = function( iAttributeStats, iAttributeColor, iCaseValue ) {
-
-  var tCaseColor = DG.ColorUtilities.kMissingValueCaseColor;  // was kMissingValueCaseColor in tp_
-  var tRange = iAttributeStats.max - iAttributeStats.min;
-  var tHue    = iAttributeColor.h,  // break color into components
-      tSaturation = iAttributeColor.s,
-      tBrightness = iAttributeColor.b,
-      tScale;
-
-  // if we have a valid numeric range and case value along that range
-  if ( isFinite( tRange ) && isFinite( iCaseValue )) {
-    //KCP_ASSERT( Compare::inRange( iCaseValue, iVarStats.GetMin(), iVarStats.GetMax() ));
-    // adjust saturation and brightness along gradient
-    tScale = (tRange > 0) ? ((iCaseValue - iAttributeStats.min) / tRange) : 1;
-    tSaturation *= tScale;
-    tBrightness = DG.ColorUtilities.gammaCorrect( 1.0 - ((1.0 - tBrightness) * tScale));
-    tCaseColor  = DG.ColorUtilities.hsb_to_PlatformColor( tHue, tSaturation, tBrightness );
-  }
-  return tCaseColor;
-};
-
-/***
- * CalcCategoryColorFromData()  DEPRECATED
- *      Calculate the icon fill color for this category value of a categorical
- *      variable.  Creates a gradient of hues, one per category value.
- *      Returns the missing value color for any non-numeric case values.
- * @param iAttributeStats
- * @param iAttributeColor
- * @param iCaseValue
- * @returns {DG.ColorUtilities.Color}
- */
-DG.ColorUtilities.calcCategoryColorFromData = function( iAttributeStats, iAttributeColor, iCaseValue )
-{
-  // get attribute's identifying color as basis for gradient
-  var tCategoryIndex = iAttributeStats.categories.indexOf( iCaseValue );
-  var tNumCategories = iAttributeStats.categories.length;
-  var tCaseColor;
-  var tHue    = iAttributeColor.h,
-      tSaturation = iAttributeColor.s,
-      tBrightness = iAttributeColor.b;
-  var tOldHue   = tHue;
-
-  // if we have a valid category
-  if ( tCategoryIndex >= 0 ) {
-    // categories vary by hue
-    if ( tNumCategories > 1 ) {
-      tHue = tCategoryIndex * DG.ColorUtilities.kCatHueSpread / tNumCategories;
-      tHue += tOldHue;      // shift colors so first category is desired hue;
-      tHue -= Math.floor(tHue); // get modulo to shift to [0-1] range
-    }
-    tSaturation = DG.ColorUtilities.kCatSaturation;
-    tBrightness = DG.ColorUtilities.kCatBrightness;
-    tCaseColor = DG.ColorUtilities.hsb_to_PlatformColor( tHue, tSaturation, tBrightness );
-  }
-  else {
-    tCaseColor = DG.ColorUtilities.kMissingValueCaseColor;
-  }
-
   return tCaseColor;
 };
 

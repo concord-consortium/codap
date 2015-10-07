@@ -117,7 +117,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       return {
         x: tXAxisView.dataToCoordinate( iX),
         y: tYAxisView.dataToCoordinate( iY)
-      }
+      };
     }
 
     this.doUpdateLine( iAnimate, getCoords);
@@ -147,7 +147,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       var tNumValues = iValues ? iValues.length : 0,
           tPath = 'M0,0', // use empty path if no points to connect
           tLineColor = DG.ColorUtilities.calcAttributeColorFromIndex( iLineNum % kCount, kCount).colorString,
-          i, x, y,
+          i,
           tLine;
       // create a new path, connecting each sorted data point
       for( i=0; i<tNumValues; ++i ) {

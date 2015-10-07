@@ -142,7 +142,7 @@ DG.LayerManager = function( iPaper) {
           tMap = {};
       this.forEach( function( iLayer) {
         iLayer.forEach( function( iElement) {
-          tFoundDuplicate |= tMap[ iElement.id];
+          tFoundDuplicate = tFoundDuplicate || tMap[ iElement.id];
           tMap[ iElement.id] = true;
         });
       });

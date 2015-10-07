@@ -239,7 +239,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
               this_.toggleLines();
             }.observes('value')
           }
-        ])
+        ]);
       }
       return tItems;
     }.property(),
@@ -249,87 +249,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
      @return {Array of menu items}
      */
     getGearMenuItems: function() {
-      var tMenuItems = [];
-
-      var hideShowGrid = function() {
-        var mapModel = this;
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "map.toggleGrid",
-          undoString: 'DG.Undo.map.showGrid',
-          redoString: 'DG.Redo.map.showGrid',
-          _firstTime: true,
-          execute: function() {
-            var tGrid = mapModel.get('gridModel');
-            tGrid.set('visible', !tGrid.get( 'visible'));
-            DG.dirtyCurrentDocument();
-            DG.logUser('mapAction: {mapAction: %@ }', (tGrid.get('visible') ? 'showGrid' : 'hideGrid'));
-            if (this._firstTime) {
-              this._firstTime = false;
-              var visible = tGrid.get('visible');
-              this.set('name', visible ? 'map.showGrid' : 'map.hideGrid');
-              this.set('undoString', visible ? 'DG.Undo.map.showGrid' : 'DG.Undo.map.hideGrid');
-              this.set('redoString', visible ? 'DG.Redo.map.showGrid' : 'DG.Redo.map.hideGrid');
-            }
-          },
-          undo: function() {
-            this.execute();
-          }
-        }));
-      }.bind(this);
-
-      var hideShowPoints = function() {
-        var mapModel = this;
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "map.togglePoints",
-          undoString: 'DG.Undo.map.showPoints',
-          redoString: 'DG.Redo.map.showPoints',
-          _firstTime: true,
-          execute: function() {
-            var tPointsVisible = mapModel.get('pointsShouldBeVisible');
-            if( tPointsVisible !== false)
-              tPointsVisible = true;
-            mapModel.set('pointsShouldBeVisible', !tPointsVisible);
-            DG.dirtyCurrentDocument();
-            DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('pointsShouldBeVisible') ? 'showPoints' : 'hidePoints'));
-            if (this._firstTime) {
-              this._firstTime = false;
-              this.set('name', !tPointsVisible ? 'map.showPoints' : 'map.hidePoints');
-              this.set('undoString', !tPointsVisible ? 'DG.Undo.map.showPoints' : 'DG.Undo.map.hidePoints');
-              this.set('redoString', !tPointsVisible ? 'DG.Redo.map.showPoints' : 'DG.Redo.map.hidePoints');
-            }
-          },
-          undo: function() {
-            this.execute();
-          }
-        }));
-      }.bind(this);
-
-      var hideShowLines = function() {
-        var mapModel = this;
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "map.toggleLines",
-          undoString: 'DG.Undo.map.showLines',
-          redoString: 'DG.Redo.map.showLines',
-          _firstTime: true,
-          execute: function() {
-            var tLinesVisible = mapModel.get('linesShouldBeVisible');
-            mapModel.set('linesShouldBeVisible', !tLinesVisible);
-            mapModel.setPath('connectingLineModel.isVisible', !tLinesVisible);
-            DG.dirtyCurrentDocument();
-            DG.logUser('mapAction: {mapAction: %@}', (mapModel.get('linesShouldBeVisible') ? 'showLines' : 'hideLines'));
-            if (this._firstTime) {
-              this._firstTime = false;
-              this.set('name', !tLinesVisible ? 'map.showLines' : 'map.hideLines');
-              this.set('undoString', !tLinesVisible ? 'DG.Undo.map.showLines' : 'DG.Undo.map.hideLines');
-              this.set('redoString', !tLinesVisible ? 'DG.Redo.map.showLines' : 'DG.Redo.map.hideLines');
-            }
-          },
-          undo: function() {
-            this.execute();
-          }
-        }));
-      }.bind(this);
-
+      var tItems = [],
+          this_ = this;
       if( this.get('hasLatLongAttributes')) {
         tItems = tItems.concat([
           {
@@ -356,7 +277,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
               this_.toggleLines();
             }.observes('value')
           }
-        ])
+        ]);
       }
       return tItems;
     }.property(),

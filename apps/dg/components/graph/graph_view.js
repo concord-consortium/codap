@@ -223,6 +223,7 @@ DG.GraphView = SC.View.extend(
 
   pointsDidChange: function() {
     this.drawPlots();
+    this.get('legendView').displayDidChange();
   }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
       'model.transparency', 'model.strokeTransparency'),
 

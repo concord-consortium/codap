@@ -359,7 +359,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       tYAttrDescription.addAttribute( iAttrRefs.attributes[0]);
 
       // The only plot we can currently make with multiple attributes is a scatterplot
-      var tPlot = DG.ScatterPlotModel.create();
+      var tPlot = DG.ScatterPlotModel.create(this.getModelPointStyleAccessors());
       tPlot.beginPropertyChanges();
       tPlot.setIfChanged( 'dataConfiguration', this.get('dataConfiguration') );
       tPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
@@ -423,7 +423,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       if( !this.getY2Plot()) {
         // The only plot we can currently make with Y2 axis is a scatterplot
-        var tPlot = DG.ScatterPlotModel.create( { verticalAxisIsY2: true });
+        var tProperties = $.extend( this.getModelPointStyleAccessors(), { verticalAxisIsY2: true }),
+            tPlot = DG.ScatterPlotModel.create( tProperties);
         tPlot.beginPropertyChanges();
         tPlot.setIfChanged('dataConfiguration', this.get('dataConfiguration'));
         tPlot.setIfChanged('xAxis', this.get('xAxis'));
@@ -500,8 +501,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
          current plot and whether we made a new plot.
      */
     synchPlotWithAttributes: function() {
-      var this_ = this,
-          tConfig = this.get( 'dataConfiguration' ),
+      var tConfig = this.get( 'dataConfiguration' ),
         tXType = tConfig.get( 'xType' ),
         tYType = tConfig.get( 'yType' ),
         tCurrentPlot = this.get( 'plot' ),
@@ -659,8 +659,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var this_ = this,
-          xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
+      var xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
           tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
           tPrevXAxis = this.get('xAxis'),
           tYAxisClass = DG.Core.classFromClassName( iStorage.yAxisClass),

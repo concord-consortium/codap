@@ -74,9 +74,9 @@ DG.SliderController = DG.ComponentController.extend(
             tSliderModel = this.get('sliderModel'),
             tDirection = tSliderModel.get('animationDirection');
         if (tDirection === DG.SliderTypes.EAnimationDirection.eLowToHigh)
-          this.set('animationSign', 1)
+          this.set('animationSign', 1);
         else if (tDirection === DG.SliderTypes.EAnimationDirection.eHighToLow)
-          this.set('animationSign', -1)
+          this.set('animationSign', -1);
         if (SC.none(tAnimator)) {
           tAnimator = DG.ValueAnimator.create({
             valueHolder: tSliderModel,
@@ -161,14 +161,12 @@ DG.SliderController = DG.ComponentController.extend(
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
               classNames: 'slider-values'.w(),
-              iconName: static_url('images/icon-values.svg'),
-              depressedIconName: static_url('images/icon-values.svg'),
+              iconClass: 'moonicon-icon-values',
               showBlip: true,
               target: this,
               action: 'showValuesPane',
               toolTip: 'DG.Inspector.sliderValues.toolTip',
-              localize: true,
-              iconExtent: {width: 32, height: 32}
+              localize: true
             })
         );
         return tButtons;

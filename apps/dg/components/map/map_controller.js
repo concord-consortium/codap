@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global tinycolor */
 sc_require('components/graph_map_common/data_display_controller');
 
 /** @class
@@ -75,7 +76,7 @@ DG.MapController = DG.DataDisplayController.extend(
         if (this.getPath('mapModel.hasLatLongAttributes')) {
           return sc_super();
         }
-        else if (this.getPath('mapModel.areaVarID') != DG.Analysis.kNullAttribute) {
+        else if (this.getPath('mapModel.areaVarID') !== DG.Analysis.kNullAttribute) {
 
           var this_ = this,
               setColor = function (iColor) {
