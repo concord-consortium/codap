@@ -119,6 +119,7 @@ DG.NumericPlotModelMixin =
       undoString: 'DG.Undo.axisRescaleFromData',
       redoString: 'DG.Redo.axisRescaleFromData',
       causedChange: iUserAction,        // if this was not triggered by user, don't add to undo stack
+      log: "Rescale axes from data",
       execute: function() {
 
         iPlaces.forEach( function( iPlace) {
@@ -153,8 +154,6 @@ DG.NumericPlotModelMixin =
           }.bind(this));
           this_.onRescaleIsComplete();
         }
-
-        DG.dirtyCurrentDocument();
       },
       redo: function() {
         if (this._undoData) {

@@ -97,19 +97,37 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
     return {
         classNames: 'close-icon'.w(),
         doIt: function() {
-          var tComponent, tController,
-              tComponentView = this.parentView.viewToDrag(),
+          var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
+              tController = DG.currDocumentController().componentControllersMap[tComponentId],
               tState;
+
+          // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
+          // Also, do this outside of the undo command, so that it can register its own
+          // separate undo command if desired.
+          tController.willCloseComponent();
+
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
             redoString: 'DG.Redo.component.close',
+            _componentId: tComponentId,
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            _model: null,
             execute: function() {
-              var tContainerView = tComponentView.parentView;
+              tController = this._controller();
+              var tComponentView = tController.get('view'),
+                  tContainerView = tComponentView.get('parentView');
 
-              tController = tComponentView.get('controller');
+              this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
+              this._model = tController.get('model');
+
+              // Some components (the graph in particular), won't restore correctly without calling willSaveComponent(),
+              // because sometimes not all of the info necessary to restore the view is actively held in the model.
+              // (In the graph's case, there is 'model' which relates to the view, and 'graphModel' which holds all of the
+              // configuration like axis ranges, legends, etc.)
               tController.willSaveComponent();
-              tComponent = tController.get('model');
 
               if (tController.saveGameState) {
                 // If we are a GameController, try to save state.
@@ -121,15 +139,16 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
                   if (result && result.success) {
                     tState = result.state;
                   }
-                  tContainerView.removeComponentView( tComponentView, true);
+                  tContainerView.removeComponentView( tComponentView);
                 });
               } else {
                 tContainerView.removeComponentView( tComponentView);
               }
             },
             undo: function() {
-              tComponentView = DG.currDocumentController().createComponentAndView(tComponent);
+              DG.currDocumentController().createComponentAndView(this._model);
 
+              tController = this._controller();
               if (tController.restoreGameState && tState) {
                 tController.restoreGameState({gameState: tState});
               }

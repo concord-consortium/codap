@@ -66,33 +66,41 @@ DG.DragBorderView = SC.View.extend(
         },
 
         mouseUp: function (evt) {
-          var tContainer = this.viewToDrag().get('parentView'),
+          var tViewToDrag = this.viewToDrag(),
+              tContainer = tViewToDrag.get('parentView'),
               tOldLayout = this._mouseDownInfo,
-              tNewLayout = this.viewToDrag().get('layout'),
+              tNewLayout = tViewToDrag.get('layout'),
               isResize = (!SC.none(this.getPath('cursor.cursorStyle'))) && this.getPath('cursor.cursorStyle').indexOf('-resize') !== -1;
           // apply one more time to set final position
           this.mouseDragged(evt);
           this._mouseDownInfo = null; // cleanup info
           tContainer.coverUpComponentViews('uncover');
           tContainer.set('frameNeedsUpdate', true);
-          if ((tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
+          if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
               (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
 
             DG.UndoHistory.execute(DG.Command.create({
               name: (isResize ? 'component.resize' : 'component.move'),
               undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
               redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
-              execute: function () {
-                DG.dirtyCurrentDocument();
+              log: '%@ component "%@"'.fmt((isResize ? 'Resized' : 'Moved'), tViewToDrag.get('title')),
+              _componentId: tViewToDrag.getPath('controller.model.id'),
+              _controller: function() {
+                return DG.currDocumentController().componentControllersMap[this._componentId];
               },
-              undo: function () {
-                this.viewToDrag().set('layout', tOldLayout);
-                tContainer.set('frameNeedsUpdate', true);
-              }.bind(this),
-              redo: function () {
-                this.viewToDrag().set('layout', tNewLayout);
-                tContainer.set('frameNeedsUpdate', true);
-              }.bind(this)
+              _oldLayout: null,
+              execute: function() {
+                this._oldLayout = this._controller().updateModelLayout();
+                if (!this._oldLayout) {
+                  this.causedChange = false;
+                }
+              },
+              undo: function() {
+                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+              },
+              redo: function() {
+                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+              }
             }));
           }
           return YES; // handled!
@@ -399,7 +407,6 @@ DG.ComponentView = SC.View.extend(
         statusBinding: '.containerView.titlebar.statusView.value',
 
         destroy: function () {
-          DG.logUser("closeComponent: %@", this.get('title'));
           if (this.containerView.contentView)
             this.containerView.contentView.destroy();
           sc_super();

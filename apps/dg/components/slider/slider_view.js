@@ -74,6 +74,12 @@ DG.SliderView = SC.View.extend(
       userEdit: false,
 
       /**
+       Stores the value of the slider before a mousedrag begins
+       @property { Number }
+       */
+      _previousValue: 0,
+
+      /**
        My model's value if there is one.
        @property { Number }
        */
@@ -110,6 +116,8 @@ DG.SliderView = SC.View.extend(
           { layout: { bottom: 0, height: kAxisHeight }, orientation: 'horizontal', isDropTarget: false } ) );
         this.appendChild( this.axisView );
         this.setPath( 'axisView.model', this.getPath( 'model.axis' ) );
+
+        this._previousValue = this.getPath('model.value');
 
         this.set( 'thumbView',
           DG.ImageView.create( {
@@ -214,6 +222,7 @@ DG.SliderView = SC.View.extend(
           thumbCoord: this.get('thumbCoord')
         };
         if( DG.ViewUtilities.ptInRect( tMouseDownInfo.viewPoint, tThumbFrame)) {
+          this._previousValue = this.getPath('model.value');
           tDraggingThumb = true;
           return YES;  // We handled it
         }
@@ -233,10 +242,38 @@ DG.SliderView = SC.View.extend(
 
       mouseUp: function() {
         if( tDraggingThumb) {
-          this.get('model').encompassValue();
-          DG.logUser("sliderThumbDrag: { name: %@, newValue: %@ }",
-                        this.getPath('model.name'), this.getPath('model.value'));
-          DG.dirtyCurrentDocument();
+          var this_ = this;
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'slider.change',
+            undoString: 'DG.Undo.slider.change',
+            redoString: 'DG.Redo.slider.change',
+            log: "sliderThumbDrag: { name: %@, newValue: %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
+            _componentId: this_.getPath('controller.model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            _view: function() {
+              return this._controller().get('sliderView');
+            },
+            _newValue: this_.getPath('model.value'),
+            _prevValue: this_._previousValue,
+            execute: function() {
+              this._view().get('model').encompassValue();
+              if (this._newValue === this._prevValue) {
+                this.causedChange = false;
+              }
+            },
+            undo: function() {
+              var view = this._view();
+              view.setPath('model.value', this._prevValue);
+              view.get('model').encompassValue();
+            },
+            redo: function() {
+              var view = this._view();
+              view.setPath('model.value', this._newValue);
+              view.get('model').encompassValue();
+            }
+          }));
         }
         tDraggingThumb = false;
       },

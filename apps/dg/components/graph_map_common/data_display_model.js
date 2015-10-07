@@ -416,22 +416,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           name: 'graph.display.hideSelectedCases',
           undoString: 'DG.Undo.hideSelectedCases',
           redoString: 'DG.Redo.hideSelectedCases',
+          log: "Hide %@ selected cases".fmt(tSelection.length),
           execute: function() {
             this._undoData = tSelection;
-
-            DG.logUser("Hide %@ selected cases", tSelection.length);
             self.get('dataConfiguration' ).hideCases( tSelection );
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
-            DG.logUser("Undo hide selected cases");
             self.get('dataConfiguration' ).showCases( this._undoData );
-            DG.dirtyCurrentDocument();
           },
           redo: function() {
-            DG.logUser("Redo hide selected cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }
@@ -441,6 +435,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           name: 'graph.display.hideUnselectedCases',
           undoString: 'DG.Undo.hideUnselectedCases',
           redoString: 'DG.Redo.hideUnselectedCases',
+          log: "Hide unselected cases",
           execute: function() {
             var tUnselected = DG.ArrayUtils.subtract( tCases, tSelection,
                 function( iCase) {
@@ -448,19 +443,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
                 });
             this._undoData = tUnselected;
 
-            DG.logUser("Hide %@ unselected cases", tUnselected.length);
+            this.log = "Hide %@ unselected cases".fmt(tUnselected.length);
             self.get('dataConfiguration' ).hideCases( tUnselected );
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
-            DG.logUser("Undo hide unselected cases");
             self.get('dataConfiguration' ).showCases( this._undoData );
-            DG.dirtyCurrentDocument();
           },
           redo: function() {
-            DG.logUser("Redo hide unselected cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }
@@ -470,17 +460,13 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           name: 'graph.display.showAllCases',
           undoString: 'DG.Undo.showAllCases',
           redoString: 'DG.Redo.showAllCases',
+          log: "Show all cases",
           execute: function() {
             this._undoData = self.getPath('dataConfiguration.hiddenCases');
-
-            DG.logUser("Show all cases");
             self.get('dataConfiguration' ).showAllCases();
-            DG.dirtyCurrentDocument();
           },
           undo: function() {
-            DG.logUser("Undo show all cases");
             self.get('dataConfiguration' ).hideCases( this._undoData );
-            DG.dirtyCurrentDocument();
           }
         }));
       }

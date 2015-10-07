@@ -32,6 +32,10 @@ DG.UndoHistory = SC.Object.create((function() {
 /** @scope DG.UndoHistory.prototype */
   return {
 
+    EXECUTE: 1,
+    UNDO: 2,
+    REDO: 3,
+
     enabledBinding: SC.Binding.oneWay('DG.enableUndoHistory'),
 
     /** @private
@@ -74,7 +78,7 @@ DG.UndoHistory = SC.Object.create((function() {
       // append to the stack (we'll assume the outer-most Command knows how to undo all of its side effects).
       if (this._executeInProgress) { return; }
 
-      if (command.isUndoable) {
+      if (this.get('enabled') && command.isUndoable) {
         this._undoStack.push(command);
         // Since we're not using set/get to access the stacks, notify changes manually.
         this.notifyPropertyChange('_undoStack');
@@ -85,6 +89,9 @@ DG.UndoHistory = SC.Object.create((function() {
       // Clear the redo stack every time we add a new command. We *don't* support applying changes
       // from a different change tree to the current tree.
       this._clearRedo();
+
+      this._logAction(command, this.EXECUTE);
+      this._dirtyDocument();
     },
 
     /**
@@ -126,6 +133,9 @@ DG.UndoHistory = SC.Object.create((function() {
       // Since we're not using set/get to access the stacks, notify changes manually.
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
+
+      this._logAction(command, this.UNDO);
+      this._dirtyDocument();
     },
 
     /**
@@ -167,6 +177,9 @@ DG.UndoHistory = SC.Object.create((function() {
       // Since we're not using set/get to access the stacks, notify changes manually.
       this.notifyPropertyChange('_undoStack');
       this.notifyPropertyChange('_redoStack');
+
+      this._logAction(command, this.REDO);
+      this._dirtyDocument();
     },
 
     /**
@@ -194,7 +207,7 @@ DG.UndoHistory = SC.Object.create((function() {
       if (!err || !err.message) {
         err = {message: "Unknown error"};
       }
-      DG.Debug.logErrorRaw("Exception occurred while " + (wasUndo ? "undoing: " : "redoing: "), err.stack);
+      DG.Debug.logErrorRaw("Exception occurred while %@: %@\n%@".fmt((wasUndo ? "undoing: " : "redoing: "), err.message, err.stack));
       DG.AlertPane.error({
         localize: true,
         message: (wasUndo ? 'DG.Undo.exceptionOccurred' : 'DG.Redo.exceptionOccurred'),
@@ -239,6 +252,32 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
+    },
+
+    _dirtyDocument: function() {
+      if (this._executeInProgress) {
+        DG.dirtyCurrentDocument();
+      } else {
+        this._executeInProgress = true;
+        DG.dirtyCurrentDocument();
+        this._executeInProgress = false;
+      }
+    },
+
+    _logAction: function(command, state) {
+      var logString = '';
+      if (state === this.UNDO) {
+        logString = 'Undo: ';
+      } else if (state === this.REDO) {
+        logString = 'Redo: ';
+      }
+      if (typeof(command.log) === 'function') {
+        logString += command.log(state);
+      } else {
+        logString += command.log;
+      }
+
+      DG.logUser(logString);
     }
 
   }; // return from function closure

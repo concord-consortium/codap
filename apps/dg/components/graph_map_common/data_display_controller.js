@@ -587,29 +587,57 @@ DG.DataDisplayController = DG.ComponentController.extend(
          Menu items set up by setupAttributeMenu()
          */
         attributeMenuItemChanged: function () {
-          var tNewItem = this.attributeMenu.selectedItem,
-              tCollectionClient = tNewItem && tNewItem.collection,
-              tAxisOrientation = this.attributeMenu.selectedAxis,
-              tAttrRefs,
-              tDataDisplayModel = this.get('dataDisplayModel'),
-              tDataContext = this.get('dataContext');
-          if (!tNewItem)
-            return;
-          if (tCollectionClient) {
-            // change attribute
-            tAttrRefs = {
-              collection: tCollectionClient,
-              attributes: [tCollectionClient.attrsController.objectAt(tNewItem.contentIndex)]
-            };
-            if (this.attributeMenu.isLegend)
-              tDataDisplayModel.changeAttributeForLegend(tDataContext, tAttrRefs);
-            else
-              tDataDisplayModel.changeAttributeForAxis(tDataContext, tAttrRefs, tAxisOrientation);
-          } else if (tNewItem.target === tDataDisplayModel) {
-            // remove or change attribute
-            tNewItem.itemAction.apply(tNewItem.target, tNewItem.args);
-          }
-          this.menuAnchorView.set('isVisible', false);
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChange',
+            undoString: 'DG.Undo.axisAttributeChange',
+            redoString: 'DG.Redo.axisAttributeChange',
+            _beforeStorage: null,
+            _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            execute: function() {
+              var controller = this._controller();
+              this._beforeStorage = controller.createComponentStorage();
+
+              var tNewItem = controller.attributeMenu.selectedItem,
+                tCollectionClient = tNewItem && tNewItem.collection,
+                tAxisOrientation = controller.attributeMenu.selectedAxis,
+                tAttrRefs,
+                tDataDisplayModel = controller.get('dataDisplayModel'),
+                tDataContext = controller.get('dataContext');
+              if(!tNewItem) {
+                this.set('causedChange', false);
+                return;
+              }
+              if(tCollectionClient) {
+                // change attribute
+                tAttrRefs = {
+                  collection: tCollectionClient,
+                  attributes: [tCollectionClient.attrsController.objectAt( tNewItem.contentIndex)]
+                };
+                if( controller.attributeMenu.isLegend)
+                  tDataDisplayModel.changeAttributeForLegend( tDataContext, tAttrRefs);
+                else
+                  tDataDisplayModel.changeAttributeForAxis( tDataContext, tAttrRefs, tAxisOrientation);
+              } else if ( tNewItem.target === tDataDisplayModel ) {
+                // remove or change attribute
+                tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
+              }
+              controller.menuAnchorView.set('isVisible', false);
+              this.log = 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
+            },
+            undo: function() {
+              var controller = this._controller();
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+            },
+            redo: function() {
+              this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
+            }
+          }));
         },
 
         /**
@@ -620,24 +648,48 @@ DG.DataDisplayController = DG.ComponentController.extend(
           if (SC.none(iDragData)) // The over-notification caused by the * in the observes
             return;       // means we get here at times there isn't any drag data.
 
-          var tDragContext = iDragData.context;
-          if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
-            this.get('dataDisplayModel').reset();
-            this.set('dataContext', tDragContext);
-          }
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'axis.attributeChange',
+            undoString: 'DG.Undo.axisAttributeChange',
+            redoString: 'DG.Redo.axisAttributeChange',
+            _beforeStorage: null,
+            _afterStorage: null,
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
+            execute: function() {
+              var controller = this._controller();
+              this._beforeStorage = controller.createComponentStorage();
 
-          var tDataContext = this.get('dataContext'),
-              tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+              var tDragContext = iDragData.context;
+              if (!SC.none(tDragContext) && (tDragContext !== controller.get('dataContext'))) {
+                controller.get('dataDisplayModel').reset();
+                controller.set('dataContext', tDragContext);
+              }
 
-          iView.dragData = null;
+              var tDataContext = controller.get('dataContext'),
+                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
-          this.get('dataDisplayModel').changeAttributeForLegend(
-              tDataContext,
-              {
-                collection: tCollectionClient,
-                attributes: [iDragData.attribute]
-              });
-          DG.dirtyCurrentDocument();
+              iView.dragData = null;
+
+              controller.get('dataDisplayModel').changeAttributeForLegend(
+                tDataContext,
+                { collection: tCollectionClient,
+                  attributes: [ iDragData.attribute ]});
+
+              this.log = 'Attribute dragged and dropped to plot or legend: %@'.fmt(iDragData.attribute.get('name'));
+            },
+            undo: function() {
+              var controller = this._controller();
+              this._afterStorage = controller.createComponentStorage();
+              controller.restoreComponentStorage(this._beforeStorage);
+            },
+            redo: function() {
+              this._controller().restoreComponentStorage(this._afterStorage);
+              this._afterStorage = null;
+            }
+          }));
         }.observes('*legendView.dragData', '*mapView.dragData'),
 
         convertToImage: function (svgs, x, y, width, height) {

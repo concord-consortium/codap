@@ -55,6 +55,7 @@ DG.TextComponentController = DG.ComponentController.extend(
   restoreComponentStorage: function( iComponentStorage, iDocumentID) {
     var theText = iComponentStorage.text || "";
     this.set('theText', theText);
+    this.set('previousValue', theText);
   },
 
   commitEditing: function() {
@@ -65,27 +66,35 @@ DG.TextComponentController = DG.ComponentController.extend(
         name: 'textComponent.edit',
         undoString: 'DG.Undo.textComponent.edit',
         redoString: 'DG.Redo.textComponent.edit',
+        log: "editTextObject: '%@'".fmt(value),
+        _componentId: this.getPath('model.id'),
+        _controller: function() {
+          return DG.currDocumentController().componentControllersMap[this._componentId];
+        },
         execute: function () {
-          DG.logUser("editTextObject: '%@'", value);
-          this.set('previousValue', value);
-          DG.dirtyCurrentDocument();
-        }.bind(this),
+          var controller = this._controller();
+          if (controller) {
+            // Controller is sometimes null when the component is just being created, so don't worry about it.
+            controller.set('previousValue', value);
+          }
+        },
         undo: function () {
           // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-          this.set('theText', previousValue);
-          this.set('previousValue', previousValue);
-          DG.logUser("editTextObject (undo): '%@'", previousValue);
-          DG.dirtyCurrentDocument();
-        }.bind(this),
+          this._controller().set('theText', previousValue);
+          this._controller().set('previousValue', previousValue);
+        },
         redo: function () {
           // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-          this.set('theText', value);
-          this.set('previousValue', previousValue);
-          DG.logUser("editTextObject (redo): '%@'", value);
-          DG.dirtyCurrentDocument();
-        }.bind(this)
+          this._controller().set('theText', value);
+          this._controller().set('previousValue', previousValue);
+        }
       }));
     }
+  },
+
+  willCloseComponent: function() {
+    sc_super();
+    this.commitEditing();
   },
   
   /**

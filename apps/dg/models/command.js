@@ -50,7 +50,12 @@ DG.Command = SC.Object.extend((function() {
     undo: function() {},
     redo: function() {
       this.execute();
-    }
+    },
+
+    // This can either be a string or a function which returns a string.
+    // The string gets sent to DG.logUser().
+    // log: function(stage) {}  -- stage will be one of DG.UndoHistory.EXECUTE, DG.UndoHistory.UNDO, DG.UndoHistory.REDO
+    log: 'unknown action'
 
   }; // return from function closure
 })()); // function closure

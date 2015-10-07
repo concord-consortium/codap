@@ -292,48 +292,20 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           break;
       }
 
-      DG.UndoHistory.execute(DG.Command.create({
-        name: 'axis.attributeChange',
-        undoString: 'DG.Undo.axisAttributeChange',
-        redoString: 'DG.Redo.axisAttributeChange',
-        execute: function() {
-          DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }",
-                      iOrientation, newAttribute.get('name'));
-          iAttrRefs.attributes[0] = newAttribute;
-          this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
+      DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }",
+                  iOrientation, newAttribute.get('name'));
+      iAttrRefs.attributes[0] = newAttribute;
+      this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
-          var dataConfiguration = this.get('dataConfiguration');
-          dataConfiguration.set('dataContext', iDataContext);
-          dataConfiguration.setAttributeAndCollectionClient( tDescKey, iAttrRefs);
+      var dataConfiguration = this.get('dataConfiguration');
+      dataConfiguration.set('dataContext', iDataContext);
+      dataConfiguration.setAttributeAndCollectionClient( tDescKey, iAttrRefs);
 
-          // Make sure correct kind of axis is installed
-          this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
-          this.invalidate();
-          this.set('aboutToChangeConfiguration', false ); // reset for next time
-          DG.dirtyCurrentDocument();
-        }.bind(this),
-        undo: function() {
-          // Handle the case where there was no previous attribute
-          if (oldAttribute === -1) {
-            this.removeAttribute(tDescKey, tAxisKey, 0); // FIXME Calculate the correct index?
-          } else {
-            DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }",
-                        iOrientation, oldAttribute.get('name'));
-            iAttrRefs.attributes[0] = oldAttribute;
-            this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
-
-            var dataConfiguration = this.get('dataConfiguration');
-            dataConfiguration.set('dataContext', iDataContext);
-            dataConfiguration.setAttributeAndCollectionClient( tDescKey, iAttrRefs);
-
-            // Make sure correct kind of axis is installed
-            this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
-            this.invalidate();
-            this.set('aboutToChangeConfiguration', false ); // reset for next time
-          }
-        DG.dirtyCurrentDocument();
-        }.bind(this)
-      }));
+      // Make sure correct kind of axis is installed
+      this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
+      this.invalidate();
+      this.set('aboutToChangeConfiguration', false ); // reset for next time
+      DG.dirtyCurrentDocument();
     },
 
     /**

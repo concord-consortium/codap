@@ -82,8 +82,25 @@ DG.Calculator = SC.View.extend( (function() // closure
     },
 
     clearValue: function() {
-      this.editView.set( 'value', '' );
-      this._justEvaled = NO;
+      var calculator = this,
+          currentValue = this.editView.get('value');
+      // Calculator is a singleton view, so it's ok to access the view directly from the Command
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'calculator.calculate',
+        undoString: 'DG.Undo.calculator.calculate',
+        redoString: 'DG.Redo.calculator.calculate',
+        log: "Calculator value cleared",
+        _redoValue: null,
+        execute: function() {
+          calculator.editView.set('value', this._redoValue || '');
+          calculator._justEvaled = NO;
+        },
+        undo: function() {
+          this._redoValue = calculator.editView.get('value');
+          calculator.editView.set('value', currentValue);
+          calculator._justEvaled = NO;
+        }
+      }));
     },
     insert: function( iToInsert ) {
       if( this._justEvaled && !isNaN( parseInt( iToInsert, 10 ) ) )
@@ -119,9 +136,24 @@ DG.Calculator = SC.View.extend( (function() // closure
         tValue = '#' + tValue;
       }
 
-      this.editView.set('value', this.formatForView( tValue));
-      this._justEvaled = YES;
-      DG.logUser( "Calculation done: %@ = %@", tCurrent, this.formatForExport( tValue));
+      var newValue = this.formatForView( tValue),
+          currentValue = this.editView.get('value'),
+          calculator = this;
+      // Calculator is a singleton view, so it's ok to access the view directly from the Command
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'calculator.calculate',
+        undoString: 'DG.Undo.calculator.calculate',
+        redoString: 'DG.Redo.calculator.calculate',
+        log: "Calculation done: %@ = %@".fmt(tCurrent, this.formatForExport( tValue)),
+        execute: function() {
+          calculator.editView.set('value', newValue);
+          calculator._justEvaled = YES;
+        },
+        undo: function() {
+          calculator.editView.set('value', currentValue);
+          calculator._justEvaled = NO;
+        }
+      }));
     },
 
     init: function() {

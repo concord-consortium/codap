@@ -107,6 +107,7 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     DG.UndoHistory.execute(DG.Command.create({
       name: "graph."+iToggleLogString,  // e.g. graph.togglePlottedMean
       undoString: null,
+      log: iToggleLogString,
       execute: function() {
         var wasShown = toggle(),
 
@@ -115,12 +116,9 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
 
         this.set('undoString', 'DG.Undo.graph.'+action); // e.g. DG.Undo.graph.showPlottedMean
         this.set('redoString', 'DG.Redo.graph.'+action);
-
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         toggle();
-        DG.dirtyCurrentDocument();
       },
     }));
   },

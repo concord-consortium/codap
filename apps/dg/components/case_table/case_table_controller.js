@@ -533,7 +533,12 @@ DG.CaseTableController = DG.ComponentController.extend(
             name: isNew ? "caseTable.createAttribute" : "caseTable.editAttributeFormula",
             undoString: isNew ? 'DG.Undo.caseTable.createAttribute' : 'DG.Undo.caseTable.editAttributeFormula',
             redoString: isNew ? 'DG.Redo.caseTable.createAttribute' : 'DG.Redo.caseTable.editAttributeFormula',
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
             execute: function() {
+              tRef = tContext.getAttrRefByName( tAttributeName);
               var tChange = {
                           operation: 'createAttributes',
                           collection: tCollection,
@@ -542,12 +547,15 @@ DG.CaseTableController = DG.ComponentController.extend(
                   tResult = tContext && tContext.applyChange( tChange);
               if( tResult.success) {
                 var action = isNew ? "attributeCreate" : "attributeEditFormula";
-                DG.logUser("%@: { name: '%@', collection: '%@', formula: '%@' }",
+                this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                             action, tAttributeName, tCollection.get('name'), tFormula);
+              } else {
+                  this.set('causedChange', false);
               }
             },
             undo: function() {
               var tChange, tResult, action;
+              tContext = this._controller().get('dataContext');
               if (isNew) {
                 tRef = tContext.getAttrRefByName( tAttributeName);
                 tChange = {
@@ -565,9 +573,13 @@ DG.CaseTableController = DG.ComponentController.extend(
               tResult = tContext && tContext.applyChange( tChange);
               if( tResult.success) {
                 action = isNew ? "attributeCreate" : "attributeEditFormula";
-                DG.logUser("%@ (undo): { name: '%@', collection: '%@', formula: '%@' }",
-                            action, tAttributeName, tCollection.get('name'), tAttrFormula);
+              } else {
+                  this.set('causedChange', false);
               }
+            },
+            redo: function() {
+              tContext = this._controller().get('dataContext');
+              this.execute();
             }
           }));
         }
@@ -598,7 +610,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       renameAttribute: function( iAttrID) {
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tCollectionRecord = tAttrRef && tAttrRef.collection,
             tCollectionClient = tDataContext && tAttrRef &&
                                 tDataContext.getCollectionForAttribute( tAttrRef.attribute),
             tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
@@ -606,31 +617,41 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
           return;
 
-        function doRenameAttribute( iAttrID, iAttrName, iOldAttrName) {
+        var doRenameAttribute = function( iAttrID, iAttrName, iOldAttrName) {
           DG.UndoHistory.execute(DG.Command.create({
             name: "caseTable.renameAttribute",
             undoString: 'DG.Undo.caseTable.renameAttribute',
             redoString: 'DG.Redo.caseTable.renameAttribute',
+            log: 'Rename attribute "%@"'.fmt(iAttrName),
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
             execute: function() {
               tAttrRef = tDataContext.getAttrRefByName( iOldAttrName);
               var change = {
                               operation: 'updateAttributes',
-                              collection: tCollectionRecord,
+                              collection: tAttrRef && tAttrRef.collection,
                               attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iAttrName }]
                             };
               tDataContext.applyChange( change);
             },
             undo: function() {
+              tDataContext = this._controller().get('dataContext');
               tAttrRef = tDataContext.getAttrRefByName( iAttrName);
               var change = {
                               operation: 'updateAttributes',
-                              collection: tCollectionRecord,
+                              collection: tAttrRef && tAttrRef.collection,
                               attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iOldAttrName }]
                             };
               tDataContext.applyChange( change);
+            },
+            redo: function() {
+              tDataContext = this._controller().get('dataContext');
+              this.execute();
             }
           }));
-        }
+        }.bind(this);
 
         function handleRenameAttributeOK() {
           // newAttrName: value of single-text-dialog: cannot be empty string
@@ -671,42 +692,49 @@ DG.CaseTableController = DG.ComponentController.extend(
       deleteAttribute: function( iAttrID) {
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tCollectionRecord = tAttrRef && tAttrRef.collection,
             tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
             tAttrFormula = tAttrRef && tAttrRef.attribute.get('formula');
 
-        function doDeleteAttribute() {
+        var doDeleteAttribute = function() {
           DG.UndoHistory.execute(DG.Command.create({
             name: "caseTable.deleteAttribute",
             undoString: 'DG.Undo.caseTable.deleteAttribute',
             redoString: 'DG.Redo.caseTable.deleteAttribute',
+            log: 'Delete attribute "%@"'.fmt(tAttrName),
+            _componentId: this.getPath('model.id'),
+            _controller: function() {
+              return DG.currDocumentController().componentControllersMap[this._componentId];
+            },
             execute: function() {
+              tAttrRef = tDataContext.getAttrRefByName( tAttrName);
               var change = {
                               operation: 'deleteAttributes',
-                              collection: tCollectionRecord,
+                              collection: tAttrRef && tAttrRef.collection,
                               attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
                             };
               tDataContext.applyChange( change);
             },
             undo: function() {
+              tDataContext = this._controller().get('dataContext');
               var tChange = {
                               operation: 'createAttributes',
-                              collection: tCollectionRecord,
+                              collection: tAttrRef && tAttrRef.collection,
                               attrPropsArray: [{ name: tAttrName, formula: tAttrFormula }]
                             };
               tDataContext.applyChange( tChange);
             },
             redo: function() {
-              var tRef = tDataContext.getAttrRefByName( tAttrName),
-                  tChange = {
+              tDataContext = this._controller().get('dataContext');
+              tAttrRef = tDataContext.getAttrRefByName( tAttrName);
+              var tChange = {
                               operation: 'deleteAttributes',
-                              collection: tCollectionRecord,
-                              attrs: [{ id: tRef.attribute.get('id'), attribute: tRef.attribute }]
+                              collection: tAttrRef && tAttrRef.collection,
+                              attrs: [{ id: tAttrRef.attribute.get('id'), attribute: tAttrRef.attribute }]
                             };
               tDataContext.applyChange( tChange);
             }
           }));
-        }
+        }.bind(this);
 
         if (DG.UndoHistory.get('enabled')) {
           doDeleteAttribute();

@@ -603,6 +603,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       name: "data.deleteCases",
       undoString: 'DG.Undo.data.deleteCases',
       redoString: 'DG.Redo.data.deleteCases',
+      log: 'Deleted %@ cases'.fmt(deletedCases.length),
       execute: function() {
         // Delete each case
         iChange.cases.forEach( deleteCaseAndChildren);
@@ -615,8 +616,6 @@ DG.DataContext = SC.Object.extend((function() // closure
 
         // Store the set of deleted cases, along with their values
         this._undoData = deletedCases;
-
-        DG.dirtyCurrentDocument();
       },
       undo: function() {
         for (var i = this._undoData.length - 1; i >= 0; i--) {
@@ -662,8 +661,6 @@ DG.DataContext = SC.Object.extend((function() // closure
             }
           }
         }
-
-        DG.dirtyCurrentDocument();
       },
       redo: function() {
         // create a new change object, based on the old one, without modifying
