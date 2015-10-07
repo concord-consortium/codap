@@ -103,12 +103,13 @@ DG.mainPage = SC.Page.design((function() {
           target: 'DG.appController.fileMenuPane',
           action: 'popup',
           toolTip: 'DG.Document.documentPopup.toolTip',  // "Open, Save, Close, Import, Export, ..."
-          localize: true
+          localize: true,
+          classNames: ['nav-popup-button']
         }),
 
         saveNotification: SC.LabelView.design(SC.AutoResize, {
-          classNames: ['invisible'],
-          layout: { height: 18},
+          classNames: ['invisible', 'nav-save-notice'],
+          layout: { height: 18 },
           textAlign: SC.ALIGN_LEFT,
           value: 'DG.mainPage.titleBar.saved',
           localize: true,
@@ -152,7 +153,8 @@ DG.mainPage = SC.Page.design((function() {
           target: 'DG.appController',
           action: 'showHelp',
           toolTip: 'DG.ToolButtonData.help.toolTip',  // "Open a web view showing help for CODAP"
-          localize: true
+          localize: true,
+          classNames: ['navBar-help']
         })
       })
     }),

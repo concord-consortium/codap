@@ -180,10 +180,10 @@ SC.stringsFor('English', {
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
   'DG.AppController.feedbackDialog.dialogTitle' : "Provide Feedback",
   'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
-  'DG.AppController.feedbackDialog.messageText' : "Please let us know how we can continue to improve our product.\n Questions, bug reports and feature requests are all welcome. Thank you!",
+  'DG.AppController.feedbackDialog.messageText' : "Please help us continue to improve our product. Questions, bug reports and feature requests are all welcome. Thank you!",
   'DG.AppController.feedbackDialog.subjectHint' : "What is your feedback about",
   'DG.AppController.feedbackDialog.feedbackHint' : "Details",
-  'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit feedback",
+  'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit",
   'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
   'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
