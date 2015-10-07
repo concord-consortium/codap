@@ -54,15 +54,16 @@ DG.UserEntryDialog = SC.PanelPane.extend({
       },
       itemTitleKey: 'title',
       itemValueKey: 'value',
+      itemLayerIdKey: 'id',
       isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled'),
       items: function() {
         var items = [
-          { title: 'DG.UserEntryDialog.openNew.option'.loc(), value: 'new' },
-          { title: 'DG.UserEntryDialog.openExample.option'.loc(), value: 'example' },
-          { title: 'DG.UserEntryDialog.openFile.option'.loc(), value: 'file' }
+          { title: 'DG.UserEntryDialog.openNew.option'.loc(), value: 'new', id: 'dg-user-entry-new-doc-button' },
+          { title: 'DG.UserEntryDialog.openExample.option'.loc(), value: 'example', id: 'dg-user-entry-example-button' },
+          { title: 'DG.UserEntryDialog.openFile.option'.loc(), value: 'file', id: 'dg-user-entry-open-local-doc-button' }
         ];
         if (DG.authorizationController.get('isSaveEnabled')) {
-          items.push({ title: 'DG.UserEntryDialog.documentServer.option'.loc(), value: 'cloud' });
+          items.push({ title: 'DG.UserEntryDialog.documentServer.option'.loc(), value: 'cloud', id: 'dg-user-entry-open-cloud-document' });
         }
         return items;
       }.property('isSaveEnabled'),
@@ -107,7 +108,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
         titleField: SC.TextFieldView.design({
           layout: { top: 40, left: 5, right: 5, height:24 },
           localize: true,
-          hint: 'DG.UserEntryDialog.openNew.titleFieldHint'
+          hint: 'DG.UserEntryDialog.openNew.titleFieldHint',
+          classNames: ['dg-user-entry-new-doc-title-field']
         }),
 
         okButton: SC.ButtonView.design({
@@ -117,7 +119,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           toolTip: 'DG.UserEntryDialog.openNew.buttonTooltip',
           target: 'DG.userEntryController',
           action: 'openNewDocument',
-          isDefault: true
+          isDefault: true,
+          classnames:['dg-ok-new-doc-button']
         })
       }),
 
@@ -156,7 +159,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           toolTip: 'DG.UserEntryDialog.openFile.buttonTooltip',
           target: 'DG.userEntryController',
           action: 'openFile',
-          isDefault: true
+          isDefault: true,
+          classNames: ['dg-ok-open-local-button']
         }),
 
         /**
@@ -245,7 +249,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           target: 'DG.userEntryController',
           action: 'openExample',
           toolTip: 'DG.UserEntryDialog.openExample.okTooltip',  // "Open the specified example",
-          isDefault: true
+          isDefault: true,
+          classNames:['dg-example-ok-button']
         }),
 
         selectedBinding: SC.Binding.oneWay('*exampleListView.contentView.selection.firstObject')
@@ -299,7 +304,8 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           target: 'DG.userEntryController',
           action: 'openExistingDocument',
           toolTip: 'DG.AppController.openDocument.okTooltip',  // "Open",
-          isDefault: true
+          isDefault: true,
+          classNames: ['dg-ok-open-cloud-doc-button']
         }),
 
         documentName: function() {
