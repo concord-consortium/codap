@@ -83,17 +83,21 @@ DG.ContainerView = SC.View.extend(
               return static_url('images/icon-calc.svg');
             case DG.TextView:
               return static_url('images/icon-comment.svg');
+            case DG.GuideView:
+              return static_url('images/icon-guide.svg');
           }
         }
 
         var tItems = [];
         this.get('componentViews').forEach( function( iComponentView) {
-          tItems.push( {
-            title: iComponentView.get('title'),
-            target: iComponentView,
-            action: 'maximizeAndSelect',
-            icon: componentViewToIcon(iComponentView)
-          });
+          if( iComponentView.get( 'isVisible')) {
+            tItems.push({
+              title: iComponentView.get('title'),
+              target: iComponentView,
+              action: 'maximizeAndSelect',
+              icon: componentViewToIcon(iComponentView)
+            });
+          }
         });
         return tItems;
       }.property(),
