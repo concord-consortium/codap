@@ -83,6 +83,10 @@ DG.GraphDropTarget =
     }
 
     if( this.isValidAttribute( iDrag)) {
+      if( this.get('orientation') === 'vertical2') {
+        this.set('isVisible', true);
+      }
+
       tFrame = { x: kWidth, y: kWidth,
                     width: tPaper.width - 2 * kWidth,
                     height: tPaper.height - 2 * kWidth };
@@ -110,6 +114,9 @@ DG.GraphDropTarget =
   dragEnded: function() {
     if( this.borderFrame)
       this.borderFrame.hide();
+    if( this.get('orientation') === 'vertical2') {
+      this.set('isVisible', false);
+    }
   },
   
   /**

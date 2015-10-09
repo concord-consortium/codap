@@ -198,6 +198,7 @@ DG.GraphView = SC.View.extend(
           iPlotModel.get('verticalAxisIsY2') ? 'y2AxisView' : 'yAxisView');
     }.bind(this));
     this.appendChild( tY2AxisView); // So it will be on top and drag-hilite will show over plot
+    tY2AxisView.set('isVisible', false);
     tLegendView.set('model', this.getPath('model.legend'));
 
     DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
@@ -354,6 +355,9 @@ DG.GraphView = SC.View.extend(
           tYAxisView.notifyPropertyChange('drawWidth');
 
         tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth, top: tNumberToggleHeight});
+        if( !tHasY2Attribute) {
+          tY2AxisView.set( 'isVisible', false);
+        }
         tPlotBackground.adjust({left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight});
         tLegendView.adjust('height', tLegendHeight);
         if(tNumberToggleView)
