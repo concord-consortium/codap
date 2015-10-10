@@ -659,6 +659,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
           tPlot.setIfChanged( 'y2Axis', this.get( 'y2Axis' ) );
           tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
+          tPlot.restoreStorage(iModelDesc.plotModelStorage);
           tPlot.endPropertyChanges();
           if( iIndex === 0)
             this.set('plot', tPlot);
