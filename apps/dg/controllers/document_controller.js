@@ -945,6 +945,14 @@ DG.DocumentController = SC.Object.extend(
     addGuideView: function( iParentView, iComponent) {
       if( this._singletonViews.guideView) {
         // only one allowed
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'guide.show',
+          undoString: 'DG.Undo.guide.show',
+          redoString: 'DG.Redo.guide.show',
+          log: 'Show guide',
+          execute: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', true); },
+          undo: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', false); }
+        }));
       } else {
         var tModel = this.get('guideModel'),
             tController = this.get('guideController'),
@@ -959,20 +967,11 @@ DG.DocumentController = SC.Object.extend(
                   },
                   defaultLayout: {width: 400, height: 200},
                   isResizable: true,
-                  useLayout: true,
-                  isVisible: false
+                  useLayout: true
                 }
             );
         this._singletonViews.guideView = tView;
       }
-      DG.UndoHistory.execute(DG.Command.create({
-        name: 'guide.show',
-        undoString: 'DG.Undo.guide.show',
-        redoString: 'DG.Redo.guide.show',
-        log: 'Show guide',
-        execute: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', true); },
-        undo: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', false); }
-      }));
       return this._singletonViews.guideView;
     },
 
@@ -992,7 +991,8 @@ DG.DocumentController = SC.Object.extend(
      */
     configureGuide: function() {
 
-      var tDialog = null,
+      var this_ = this,
+          tDialog = null,
           tGuideModel = this.get('guideModel'),  // guideModel is a singleton, so it's ok to reference it directly.
 
           storeGuideModel = function() {
@@ -1022,6 +1022,10 @@ DG.DocumentController = SC.Object.extend(
                   tDialog.close();
                   tDialog = null;
                 }
+                if(!SC.empty(this._newValues.title) || this._newValues.items.length !== 0) {
+                  // The configuration is such that we must make sure the guide is visible
+                  this_._singletonViews.guideView.set('isVisible', true);
+                }
                 DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
               },
               undo: function() {
@@ -1030,6 +1034,10 @@ DG.DocumentController = SC.Object.extend(
                 tGuideModel.set('items', this._oldValues.items);
                 tGuideModel.endPropertyChanges();
                 DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
+                if(SC.empty(this._oldValues.title) && this._oldValues.items.length === 0) {
+                  // We're undoing the original making of the guide view just by hiding it
+                  this_._singletonViews.guideView.set('isVisible', false);
+                }
               }
             }));
           };

@@ -503,7 +503,8 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
                                               iContentProperties, iIsResizable, iIsVisible) {
   SC.Benchmark.start('createComponent: ' + iComponentClass);
 
-  var tComponentView = DG.ComponentView.create({layout: iComponentLayout});
+  var tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
+      tComponentView = DG.ComponentView.create({layout: iComponentLayout, isVisible: tMakeItVisible });
   tComponentView.addContent(iComponentClass.create(iContentProperties));
 
   if (!SC.none(iIsResizable))
