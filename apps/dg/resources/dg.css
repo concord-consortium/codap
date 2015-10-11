@@ -366,6 +366,10 @@
     position: relative;
 }
 
+.titleview-empty {
+    background-color: white;
+}
+
 .dg-status-view {
     color: white;
     top: 4px !important;

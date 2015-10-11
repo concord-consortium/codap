@@ -270,11 +270,25 @@ DG.ComponentView = SC.View.extend(
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
+              if( SC.empty( this.getPath('titleView.value'))) {
+                var tTitleView = this.get('titleView');
+                tTitleView.get('classNames').push('titleview-empty');
+                tTitleView.displayDidChange();
+              }
               return YES;
             },
             mouseExited: function (evt) {
               this.setPath('minimize.isVisible', SC.platform.touch);
               this.setPath('closeBox.isVisible', SC.platform.touch);
+              if( SC.empty( this.getPath('titleView.value'))) {
+                var tTitleView = this.get('titleView'),
+                    tClassNames = tTitleView.get('classNames'),
+                    tIndex = tClassNames.indexOf( 'titleview-empty');
+                if( tIndex >= 0) {
+                  tClassNames.splice( tIndex, 1);
+                  tTitleView.displayDidChange();
+                }
+              }
               return YES;
             },
             dragAdjust: function (evt, info) {
