@@ -128,8 +128,7 @@
 
 .inspector-view{
     background-color: #01879E;
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
+    border-radius: 6px;
 }
 
 .inspector-cover {

@@ -46,42 +46,47 @@ DG.InspectorView = DG.DraggableView.extend(
         componentContainer: null,
         targetComponent: null,
 
-        init: function() {
+        init: function () {
           sc_super();
-          this.set('layout', { right: 0, top: kDefaultTop, height: kCellHeight, width: kCollapsedWidth });
+          this.set('layout', {right: 0, top: kDefaultTop, height: kCellHeight, width: kCollapsedWidth});
         },
 
-        targetComponentDidChange: function() {
+        targetComponentDidChange: function () {
 
-          var removeChildren = function() {
-            var tChildren = this.get('childViews'),
-                tChild;
-            // We call removeChild for each member of the array. This has the side effect of modifying the array
-            while( tChild = tChildren[0]) {  // jshint ignore:line
-              this.removeChild( tChild);
-            }
-          }.bind( this),
+          var removeChildren = function () {
+                var tChildren = this.get('childViews'),
+                    tChild;
+                // We call removeChild for each member of the array. This has the side effect of modifying the array
+                while (tChild = tChildren[0]) {  // jshint ignore:line
+                  this.removeChild(tChild);
+                }
+              }.bind(this),
 
-          adjustLayout = function() {
-            var tChildren = this.get('childViews'),
-                tCurrTop = kPadding;
-            tChildren.forEach( function( iChild, iIndex) {
-              iChild.adjust( { top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2 });
-              iChild.set('isVisible', true);
-              tCurrTop += iChild.iconExtent.height + 2 * kPadding;
-            });
-            this.animate('height', Math.max( kCellHeight, tCurrTop - kPadding), 0.4);
-          }.bind( this);
+              adjustLayout = function () {
+                var tChildren = this.get('childViews'),
+                    tCurrTop = kPadding;
+                tChildren.forEach(function (iChild, iIndex) {
+                  iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
+                  iChild.set('isVisible', true);
+                  tCurrTop += iChild.iconExtent.height + 2 * kPadding;
+                });
+                this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), 0.4);
+              }.bind(this);
 
+          var tTarget = this.get('targetComponent');
+          if (tTarget) {
+            tTarget.addObserver('layout', this, 'targetLayoutDidChange');
+          }
+          this.targetLayoutDidChange();
           removeChildren();
           var tWidth,
               tButtons = this.getPath('targetComponent.inspectorButtons');
-          if( tButtons && tButtons.length > 0) {
-            tButtons.forEach( function( iButton) {
-              if( !iButton.get('layout').top)
+          if (tButtons && tButtons.length > 0) {
+            tButtons.forEach(function (iButton) {
+              if (!iButton.get('layout').top)
                 iButton.set('isVisible', false);
-              this.appendChild( iButton);
-            }.bind( this));
+              this.appendChild(iButton);
+            }.bind(this));
             tWidth = kExpandedWidth;
           }
           else {
@@ -90,9 +95,28 @@ DG.InspectorView = DG.DraggableView.extend(
           this.animate('width', tWidth, 0.4, adjustLayout);
         }.observes('targetComponent'),
 
-        selectedComponentDidChange: function() {
+        selectedComponentDidChange: function () {
+          var tTarget = this.get('targetComponent');
+          if (tTarget) {
+            tTarget.removeObserver('layout', this, 'targetLayoutDidChange');
+          }
           this.set('targetComponent', this.getPath('componentContainer.selectedChildView'));
         }.observes('*componentContainer.selectedChildView'),
+
+        targetLayoutDidChange: function () {
+          var tTargetFrame = this.getPath('targetComponent.frame'),
+              tParentFrame = this.getPath('parentView.frame');
+          if (tTargetFrame) {
+            this.adjust('top', tTargetFrame.y + kDefaultTop + DG.ViewUtilities.kTitleBarHeight);
+            if (tParentFrame.x + tParentFrame.width - tTargetFrame.x - tTargetFrame.width >
+                tTargetFrame.x - tParentFrame.x) {
+              this.adjust('left', tTargetFrame.x + tTargetFrame.width);
+            }
+            else {
+              this.adjust('left', tTargetFrame.x - kExpandedWidth);
+            }
+          }
+        },
 
         /**
          * Called during drag
@@ -109,8 +133,8 @@ DG.InspectorView = DG.DraggableView.extend(
               tScrollFrame = tScrollView.get('frame'),
               tMouseMovedY = iEvent.pageY - iInfo.pageY,
               tNewTop = iInfo.top + tMouseMovedY;
-          tNewTop = Math.max( tScrollFrame.y, tNewTop);
-          tNewTop = Math.min( tNewTop, tScrollFrame.y + tScrollFrame.height - iInfo.height);
+          tNewTop = Math.max(tScrollFrame.y, tNewTop);
+          tNewTop = Math.min(tNewTop, tScrollFrame.y + tScrollFrame.height - iInfo.height);
           this.adjust('top', tNewTop);
         }
 
