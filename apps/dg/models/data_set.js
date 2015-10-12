@@ -16,9 +16,12 @@
 //  limitations under the License.
 // ==========================================================================
 
-/** @class
+
+sc_require('models/DataItem');
+
+/** @class DataSet
  *
- * An indexed collection of Attribute values.
+ * An indexed collection of DataItems, which are in turn .
  *
  * Values can be retrieved or modified by item index and Attribute id.
  * Rows may be added, deleted, or undeleted.
@@ -29,29 +32,107 @@
 
 DG.DataSet = SC.Object.extend((function() // closure
 /** @scope DG.DataSet.prototype */ {
-
   return {
-
-    dataItems: [],
-
-    /*
-     * @property {DG.DataContext} Each Data Set is bound to exactly one DataContext.
+    /**
+     *  An array of data in the data set.
+     * @type {[DG.DataItem]}
      */
-    dataContextRecord: null,
+    dataItems: null,
 
+    /**
+     * Attributes defined for this DataSet in the
+     * order for the dataItems value array.
+     *
+     * @type {[DG.Attribute]}
+     */
+    attrs: null,
 
-    attributes: [],
+    /**
+     *  Order of registered groups. This ordering
+     * is established by insertion and removal of groups. Groups are not moved,
+     * but are created at a position relative to other groups.
+     *
+     * ToDo: make into a cacheable method that derives values from collection
+     * ToDO: attributes.
+     *
+     * @type {[DG.Collection]}
+     */
+    collectionOrder: null,
+
+    init: function () {
+      this.dataItems = [];
+      this.attrs = [];
+      this.collectionOrder = [];
+    },
+
+    /**
+     * The rightmost collection.
+     * @type {DG.Collection}
+     */
+    baseCollection: function () {
+      var collections = this.get('collectionOrder');
+      return collections[collections.length - 1];
+    }.property('collectionOrder[]').cacheable(),
+
+    /**
+     * Inserts a group in the mapping before the existing group 'followerGroup'.
+     * If no followerGroup, appends group.
+     *
+     * @param {DG.Collection} collection
+     * @param {DG.Collection|null} followerCollection
+     */
+    registerCollection: function (collection, followerCollection) {
+      if (followerCollection) {
+        var insertLoc = this.collectionOrder.indexOf(followerCollection);
+        if (insertLoc >= 0) {
+          this.collectionOrder.insertAt(insertLoc, collection);
+        } else {
+          DG.logWarn('Inserting group, cannot find followerGroup');
+          this.collectionOrder.push(collection);
+        }
+      } else {
+        this.collectionOrder.push(collection);
+      }
+    },
+
+    /**
+     * The assignment of attributes to groups or the order of attributes within
+     * groups changed, so we need to adjust.
+     *
+     * We query the order within the groups and re-sort.
+     */
+    attributeOrderDidChange: function() {
+      this.attrs = [];
+      this.collectionOrder.forEach(function (group) {
+        group.attrs.forEach(function (attr) {
+          this.attrs.push(attr);
+        }.bind(this));
+      }.bind(this));
+      this.sortCollections();
+    },
+
+    resetCollections: function () {
+      // TODO
+    },
 
     /**
      * Adds attributes. Ideally this is an initialization step, but may be called
      * at any time.
+     *
+     * TODO: make a plain notification
+     * TODO re-sort collections
+     *
      * @param {[DG.Attribute]|DG.Attribute} newAttributes An array or a single attribute.
      */
     addAttributes: function (newAttributes) {
       var attrs = Array.isArray(newAttributes)? newAttributes : [newAttributes];
       attrs.forEach(function (attr) {
         if (attr.constructor === DG.Attribute) {
-          this.attributes.push(attr);
+          if (!this.attrs.contains(attr)) {
+            this.attrs.push(attr);
+          } else {
+            DG.logWarn('Duplicate add of attribute.');
+          }
         } else {
           DG.logWarn('Attempt to add non-attribute to Data Set for Context: ' +
               this.dataContextRecord.id);
@@ -73,8 +154,8 @@ DG.DataSet = SC.Object.extend((function() // closure
         var ar = [];
         DG.ObjectMap.forEach(dataMap, function(key, value) {
           var ix;
-          for (ix = 0; ix < this.attributes.length; ix += 1) {
-            if (String(this.attributes[ix].id) === key) {
+          for (ix = 0; ix < this.attrs.length; ix += 1) {
+            if (String(this.attrs[ix].id) === key) {
               ar[ix] = value;
             }
           }
@@ -101,8 +182,8 @@ DG.DataSet = SC.Object.extend((function() // closure
 
     /**
      * Marks an item for deletion.
-     * @param itemIndex
-     * @return {[*]} the deleted item.
+     * @param {integer} itemIndex
+     * @return {DG.DataItem} the deleted item.
      */
     deleteDataItem: function (itemIndex) {
       var item = this.getDataItem(itemIndex);
@@ -136,7 +217,7 @@ DG.DataSet = SC.Object.extend((function() // closure
         if (item.deleted) {
           delete this.dataItems[ix];
         }
-      });
+      }.bind(this));
     },
 
     /**
@@ -163,6 +244,9 @@ DG.DataSet = SC.Object.extend((function() // closure
 
     /**
      * Retrieves an existing DataItem.
+     *
+     * @param {integer} itemIndex
+     * @return {DG.DataItem|undefined}
      */
     getDataItem: function (itemIndex) {
       var item;
@@ -174,10 +258,30 @@ DG.DataSet = SC.Object.extend((function() // closure
       }
     },
 
+    /**
+     * Retrieves a DataItem by its given ID.
+     * @param {*} itemID
+     * @returns {DG.DataItem|undefined}
+     */
     getDataItemByID: function (itemID) {
       return this.dataItems.find(function(item) { return item.id === itemID; });
-    }
+    },
 
+    /**
+     * Returns a serializable version of this object.
+     * @returns {{dataItems: [DG.DataItem]}}
+     */
+    toArchive: function () {
+      return {
+        dataItems: this.dataItems.map(function (item) {
+          return {
+            values: item.values,
+            id: item.id,
+            itemIndex: item.itemIndex
+          };
+        })
+      };
+    }
 
   };
 })());
@@ -215,8 +319,8 @@ DG.DataItem = SC.Object.extend({
   updateData: function (dataMap) {
     DG.ObjectMap.forEach(dataMap, function(key, value) {
       var ix;
-      for (ix = 0; ix < this.dataSet.attributes.length; ix += 1) {
-        if (String(this.dataSet.attributes[ix].id) === key) {
+      for (ix = 0; ix < this.dataSet.attrs.length; ix += 1) {
+        if (String(this.dataSet.attrs[ix].id) === key) {
           this.data[ix] = value;
         }
       }
