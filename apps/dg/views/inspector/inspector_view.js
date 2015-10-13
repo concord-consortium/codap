@@ -104,17 +104,21 @@ DG.InspectorView = DG.DraggableView.extend(
         }.observes('*componentContainer.selectedChildView'),
 
         targetLayoutDidChange: function () {
-          var tTargetFrame = this.getPath('targetComponent.frame'),
-              tParentFrame = this.getPath('parentView.frame');
+          var tTargetFrame = this.getPath('targetComponent.frame')/*,
+              tParentFrame = this.getPath('parentView.frame')*/;
           if (tTargetFrame) {
             this.adjust('top', tTargetFrame.y + kDefaultTop + DG.ViewUtilities.kTitleBarHeight);
+/*
             if (tParentFrame.x + tParentFrame.width - tTargetFrame.x - tTargetFrame.width >
                 tTargetFrame.x - tParentFrame.x) {
+*/
               this.adjust('left', tTargetFrame.x + tTargetFrame.width);
+/*
             }
             else {
               this.adjust('left', tTargetFrame.x - kExpandedWidth);
             }
+*/
           }
         },
 
