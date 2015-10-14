@@ -1294,9 +1294,6 @@ DG.DocumentController = SC.Object.extend(
         });
       }
 
-      this.contexts.forEach(function (iContext) {
-        iContext.willSaveContext();
-      });
       // Prepare the component-specific storage for saving
       DG.ObjectMap.forEach( this.componentControllersMap,
           function( iComponentID, iController) {
@@ -1304,6 +1301,9 @@ DG.DocumentController = SC.Object.extend(
           });
 
       returnPromise = Promise.all(promises).then(function () {
+        this.contexts.forEach(function (iContext) {
+          iContext.willSaveContext();
+        });
         return Promise.resolve(this.get('content').toArchive(fullData));
       }.bind(this));
 
