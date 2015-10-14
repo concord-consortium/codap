@@ -423,14 +423,15 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @return {Boolean}
      */
     canRescale: function() {
-      return this.get('hasNumericAxis') || this.get('plot').mixUp;
+      return this.get('hasNumericAxis') || (this.get('plot') && this.get('plot').mixUp);
     }.property('hasNumericAxis', 'plot'),
 
     /**
      * @return {Boolean}
      */
     canMixUp: function() {
-      return this.get('plot').mixUp;
+      var tPlot = this.get('plot');
+      return tPlot && tPlot.mixUp;
     }.property('plot'),
 
     rescaleAxesFromData: function( iShrink, iAnimate) {
