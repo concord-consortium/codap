@@ -44,7 +44,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         }),
 
         showDropHint: function () {
-          this.labelView.set('value', 'drop attribute to create new collection');
+          this.labelView.set('value', 'DG.CaseTableDropTarget.dropMessage'.loc());
         },
 
         hideDropHint: function () {
