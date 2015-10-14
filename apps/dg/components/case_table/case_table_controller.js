@@ -866,8 +866,25 @@ DG.CaseTableController = DG.ComponentController.extend(
             })
         );
         return tButtons;
-      }
+      },
 
+      leftDropZoneDidAcceptDrop: function () {
+        var dropData = this.getPath('contentView.leftDropTarget.dropData');
+        if (!SC.none(dropData)) {
+          this.setPath('contentView.leftDropTarget.dropData', null);
+        }
+        DG.log('CaseTable observes left drop');
+
+      }.observes('contentView.leftDropTarget.dropData'),
+
+      rightDropZoneDidAcceptDrop: function () {
+        var dropData = this.getPath('contentView.rightDropTarget.dropData');
+        if (!SC.none(dropData)) {
+          this.setPath('contentView.rightDropTarget.dropData', null);
+        }
+        DG.log('CaseTable observes right drop');
+
+      }.observes('contentView.rightDropTarget.dropData')
 
 
     };

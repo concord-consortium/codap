@@ -252,6 +252,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'deleteAttributes':
         result = this.doDeleteAttributes( iChange);
         break;
+      case 'moveAttribute':
+        result = this.doMoveAttribute(iChange);
+        break;
       case 'resetCollections':
         result = this.doResetCollections( iChange );
         break;
@@ -765,8 +768,23 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attrPropsArray.forEach( updateAttribute);
     return result;
   },
-  
-  /**
+    /**
+     * Moves an attribute either within a collection or between collections.
+     *
+     * @param iChange {Object} Describes the change
+     *    {string} .operation                 -- "moveAttribute"
+     *    {DG.CollectionClient} .toCollection -- if present, the collection to
+     *                                           move the attribute to
+     *    {integer} .position                 -- the position to be occupied by
+     *                                           the attribute indexed from the
+     *                                           left. 0 means leftmost. If not
+     *                                           specified, placed rightmost.
+     * @return {Object}
+     *    {Boolean}               .success
+     */
+  doMoveAttribute: function( iChange) {
+  },
+      /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
               {String}  .operation - "deleteAttributes"

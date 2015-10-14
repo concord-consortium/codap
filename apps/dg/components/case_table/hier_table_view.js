@@ -20,6 +20,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('components/case_table/case_table_drop_target');
 sc_require('components/case_table/case_table_view');
 sc_require('components/case_table/relation_divider_view');
 
@@ -61,7 +62,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
   /**
     Child views currently limited to two subtables, but should be extensible down the road.
    */
-  childViews: [ 'slopView' ],
+  childViews: ['slopView' ],
   
   /**
     The left table showing the parent cases.
@@ -73,7 +74,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     compensatesForMovement: YES
   }),
 
-  slopView: SC.View.extend( SC.SplitChild, {
+    slopView: SC.View.extend( SC.SplitChild, {
       name: 'slopView',
       minimumSize: kMinSlop,
       size: kMinSlop,
@@ -103,6 +104,9 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         return slopSize <= kMinSlop;
       }.property()
     }),
+
+    leftDropTarget: DG.CaseTableDropTarget.create({name:'leftTarget'}),
+    rightDropTarget: DG.CaseTableDropTarget.create({name:'rightTarget'}),
 
     makeRelationDividerView: function () {
       return  this.relationDividerView.create({});
@@ -361,6 +365,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     var ix;
     var childTableView, adapter, divider;
     this.removeChild(this.slopView);
+    this.appendChild(this.leftDropTarget);
     for (ix = 0; ix < m; ix += 1) {
       childTableView = childTableViews[ix];
       adapter = iAdapters[ix];
@@ -384,6 +389,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         this.removeChildTableView(childTableView);
       }
     }
+    this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);
   },
   
