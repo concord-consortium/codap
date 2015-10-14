@@ -1,5 +1,5 @@
 // ==========================================================================
-//                          DG.TitleBarButtonView
+//                          DG.TitleBarCloseButton
 // 
 //  A button view that allows user to close a component view.
 //  
@@ -20,82 +20,20 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('views/mouse_and_touch_view');
+
 /** @class
 
-    DG.TitleBarButtonView is a base class for the close and minimize buttons in a component view's title bar.
+    DG.TitleBarCloseButton handles the close button in a component view's title bar.
 
  @extends SC.View
  */
-DG.TitleBarButtonView = SC.View.extend(
-    /** @scope DG.TitleBarButtonView.prototype */
+DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
+    /** @scope DG.MouseAndTouchView.prototype */
     (function () {
-
-    return {
-        isMouseDown: NO,
-        isMouseOver: NO,
-        isActive: NO,
-        mouseMoved: function (evt) {
-          this.mouseOver(evt);
-          return YES;
-        },
-        mouseOver: function (evt) {
-          if (this.get('isMouseDown')) {
-            this.set('isActive', YES);
-          }
-          this.set('isMouseOver', YES);
-          return YES;
-        },
-        mouseExited: function (evt) {
-          this.set('isActive', NO);
-          this.set('isMouseOver', NO);
-          return YES;
-        },
-        mouseDown: function (evt) {
-          if (!this.get('isMouseDown')) {
-            this.set('isMouseDown', YES);
-            this.set('isActive', YES);
-          }
-          return YES; // so we get other events
-        },
-        mouseUp: function(evt) {
-          if( this.get( 'isActive')) {
-            this.set( 'isActive', NO);
-            this.set( 'isMouseOver', NO);
-            this.set( 'isMouseDown', NO);
-            this.doIt();
-          }
-          else {
-            this.set( 'isMouseDown', NO);
-            this.mouseExited( evt);
-          }
-          return YES; // so we get other events
-        },
-        touchStart: function( iTouch) {
-          return YES;
-        },
-        touchEnd: function( iTouch) {
-          this.doIt();
-        },
-        isVisible: SC.platform.touch,  // Always show minimize on touch devices
-        doIt: null
-    };
-  }()) // function closure
-);
-/** @class
-
-    DG.TitleBarCloseButton is a base class for the close and minimize buttons in a component view's title bar.
-
- @extends DG.TitleBarButtonView
- */
-DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
-    /** @scope DG.TitleBarButtonView.prototype */
-    (function () {
-      SC.imageQueue.loadImage(static_url('images/icon-ex.svg'));
-      SC.imageQueue.loadImage(static_url('images/icon-ex-hover.svg'));
-      SC.imageQueue.loadImage(static_url('images/icon-ex-active.svg'));
-
     return {
         classNames: 'close-icon'.w(),
+        isVisible: false, // to start with
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
               tController = DG.currDocumentController().componentControllersMap[tComponentId],
@@ -160,19 +98,16 @@ DG.TitleBarCloseButton = DG.TitleBarButtonView.extend(
 );
 /** @class
 
-    DG.TitleBarMinimizeButton is a base class for the close and minimize buttons in a component view's title bar.
+    DG.TitleBarMinimizeButton handles the minimize button in a component view's title bar.
 
- @extends DG.TitleBarButtonView
+ @extends SC.View
  */
-DG.TitleBarMinimizeButton = DG.TitleBarButtonView.extend(
-    /** @scope DG.TitleBarButtonView.prototype */
+DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
+    /** @scope DG.MouseAndTouchView.prototype */
     (function () {
-      SC.imageQueue.loadImage(static_url('images/icon-minimize.svg'));
-      SC.imageQueue.loadImage(static_url('images/icon-minimize-hover.svg'));
-      SC.imageQueue.loadImage(static_url('images/icon-minimize-active.svg'));
-
     return {
         classNames: 'min-icon'.w(),
+        isVisible: false, // to start with
         doIt: function() {
           var tComponentView = this.parentView.viewToDrag();
 /*

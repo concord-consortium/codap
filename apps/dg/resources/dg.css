@@ -169,7 +169,6 @@
 }
 
 .data-dot:hover {
-    fill: #a35b3a !important;
     stroke: #a35b3a !important;
 }
 
@@ -313,36 +312,46 @@
     text-decoration: underline;
 }
 
+.min-icon:before {
+    font-family: 'icomoon';
+    content: "\7a";
+}
+
 .min-icon {
-    background-image:  static_url('images/icon-minimize.svg');
-    background-size: 12px 12px;
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 4px;
+    color: lightgrey;
+    text-align: center;
 }
 
 .min-icon:hover {
-    background-image:  static_url('images/icon-minimize-hover.svg');
-    background-size: 16px 16px;
+    top: 8px !important;
+    font-size: 6px;
+    color: white;
 }
 
 .min-icon:active {
-    background-image:  static_url('images/icon-minimize-active.svg');
+    color: darkgray;
+}
+
+.close-icon:before {
+    font-family: 'icomoon';
+    content: "\79";
 }
 
 .close-icon {
-    background-image:  static_url('images/icon-ex.svg');
-    background-size: 12px 12px;
-    background-repeat: no-repeat;
-    background-position: center;
+    font-size: 12px;
+    color: lightgrey;
+    text-align: center;
 }
 
 .close-icon:hover {
-    background-image:  static_url('images/icon-ex-hover.svg');
-    background-size: 16px 16px;
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
 }
 
 .close-icon:active {
-    background-image:  static_url('images/icon-ex-active.svg');
+    color: darkgray;
 }
 
 .titleview {
@@ -355,6 +364,10 @@
     margin-left: auto;
     margin-right: auto;
     position: relative;
+}
+
+.titleview-empty {
+    background-color: white;
 }
 
 .dg-status-view {

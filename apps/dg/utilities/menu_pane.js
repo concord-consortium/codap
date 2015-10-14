@@ -42,7 +42,7 @@ DG.MenuPane = SC.MenuPane.extend(
         kAvgCharWidth = 5,  // Use 5 pixels/character for estimation
         kWidthMargins = 60;
     this.get('items').forEach( function( iItem) {
-      if( iItem && iItem.title)
+      if( iItem && iItem.title && (typeof iItem.title === 'string'))
         tMaxCharCount = Math.max( tMaxCharCount, iItem.title.loc().length);
     });
     // Note: Currently we use a heuristic. Eventually we will probably need

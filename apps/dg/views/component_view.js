@@ -217,7 +217,7 @@ DG.ComponentView = SC.View.extend(
             isSelected: false,
             classNameBindings: ['isSelected:titlebar-selected'],
             childViews: 'statusView versionView minimize closeBox titleView'.w(),
-            titleView: SC.LabelView.design(SC.AutoResize, {
+            titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['titleview'],
               isEditable: YES,
               _value: null,
@@ -243,16 +243,8 @@ DG.ComponentView = SC.View.extend(
                 }
                 return true;
               }.observes('value'),
-              mouseDown: function () {
-                return true;
-              },
-              mouseUp: function () {
-                this.click();
-                return true;
-              },
-              click: function () {
+              doIt: function() {
                 this.beginEditing();
-                return true;
               }
             }),
             statusView: SC.LabelView.design({
@@ -268,21 +260,35 @@ DG.ComponentView = SC.View.extend(
               value: ''
             }),
             minimize: DG.TitleBarMinimizeButton.design({
-              layout: {right: kTitleBarHeight, top: 0, width: kTitleBarHeight, height: kTitleBarHeight},
+              layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
               classNames: ['dg-minimize-view'],
             }),
             closeBox: DG.TitleBarCloseButton.design({
-              layout: {right: 0, top: 0, width: kTitleBarHeight, height: kTitleBarHeight},
+              layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
               classNames: ['dg-close-view'],
             }),
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
+              if( SC.empty( this.getPath('titleView.value'))) {
+                var tTitleView = this.get('titleView');
+                tTitleView.get('classNames').push('titleview-empty');
+                tTitleView.displayDidChange();
+              }
               return YES;
             },
             mouseExited: function (evt) {
               this.setPath('minimize.isVisible', SC.platform.touch);
               this.setPath('closeBox.isVisible', SC.platform.touch);
+              if( SC.empty( this.getPath('titleView.value'))) {
+                var tTitleView = this.get('titleView'),
+                    tClassNames = tTitleView.get('classNames'),
+                    tIndex = tClassNames.indexOf( 'titleview-empty');
+                if( tIndex >= 0) {
+                  tClassNames.splice( tIndex, 1);
+                  tTitleView.displayDidChange();
+                }
+              }
               return YES;
             },
             dragAdjust: function (evt, info) {
@@ -503,7 +509,8 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
                                               iContentProperties, iIsResizable, iIsVisible) {
   SC.Benchmark.start('createComponent: ' + iComponentClass);
 
-  var tComponentView = DG.ComponentView.create({layout: iComponentLayout});
+  var tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
+      tComponentView = DG.ComponentView.create({layout: iComponentLayout, isVisible: tMakeItVisible });
   tComponentView.addContent(iComponentClass.create(iContentProperties));
 
   if (!SC.none(iIsResizable))
