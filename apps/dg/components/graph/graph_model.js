@@ -292,8 +292,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           break;
       }
 
-      DG.logUser("plotAxisAttributeChange: { orientation: %@, attribute: %@ }",
-                  iOrientation, newAttribute.get('name'));
       iAttrRefs.attributes[0] = newAttribute;
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
@@ -305,7 +303,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
-      DG.dirtyCurrentDocument();
     },
 
     /**
@@ -383,8 +380,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( DG.GraphTypes.EPlace.eY2);
         tAxis.setDataMinAndMax( tMinMax.min, tMinMax.max, true);
       }.bind(this);
-
-      DG.logUser("changeAttributeOnSecondYAxis: { attribute: %@ }", iAttrRefs.attributes[0].get('name'));
 
       var tY2AttrDescription = this.getPath('dataConfiguration.y2AttributeDescription' );
       tY2AttrDescription.removeAllAttributes();
@@ -549,8 +544,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
                 tSecondaryRole, tPrimaryRole;
-
-            DG.logUser("attributeRemoved: %@", tName);
 
             this.set('aboutToChangeConfiguration', true); // signals dependents to prepare
 

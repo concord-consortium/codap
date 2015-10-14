@@ -91,7 +91,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this._clearRedo();
 
       this._logAction(command, this.EXECUTE);
-      this._dirtyDocument();
+      this._dirtyDocument(command.changedObject);
     },
 
     /**
@@ -135,7 +135,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
 
       this._logAction(command, this.UNDO);
-      this._dirtyDocument();
+      this._dirtyDocument(command.changedObject);
     },
 
     /**
@@ -179,7 +179,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
 
       this._logAction(command, this.REDO);
-      this._dirtyDocument();
+      this._dirtyDocument(command.changedObject);
     },
 
     /**
@@ -193,6 +193,11 @@ DG.UndoHistory = SC.Object.create((function() {
       // Otherwise, this wasn't part of a command, so this change is not able to be undone.
       // Clear the stacks
       this.clearUndoRedoHistory();
+
+      // Also log the current stack so we can track these down one-by-one
+      if (this.get('enabled')) {
+        DG.Debug.logErrorRaw("Document dirtied outside of an Undo Command\n%@".fmt((new Error()).stack));
+      }
     },
 
     clearUndoRedoHistory: function() {
@@ -254,12 +259,12 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
     },
 
-    _dirtyDocument: function() {
+    _dirtyDocument: function(changedObject) {
       if (this._executeInProgress) {
-        DG.dirtyCurrentDocument();
+        DG.dirtyCurrentDocument(changedObject);
       } else {
         this._executeInProgress = true;
-        DG.dirtyCurrentDocument();
+        DG.dirtyCurrentDocument(changedObject);
         this._executeInProgress = false;
       }
     },

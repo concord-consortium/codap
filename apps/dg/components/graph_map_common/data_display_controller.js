@@ -617,16 +617,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   collection: tCollectionClient,
                   attributes: [tCollectionClient.attrsController.objectAt( tNewItem.contentIndex)]
                 };
-                if( controller.attributeMenu.isLegend)
-                  tDataDisplayModel.changeAttributeForLegend( tDataContext, tAttrRefs);
-                else
-                  tDataDisplayModel.changeAttributeForAxis( tDataContext, tAttrRefs, tAxisOrientation);
+                if(controller.attributeMenu.isLegend) {
+                  tNewItem.log = "legendAttributeChange: { to attribute %@ }".fmt(tAttrRefs.attributes[0].get('name'));
+                  tDataDisplayModel.changeAttributeForLegend(tDataContext, tAttrRefs);
+                } else {
+                  tNewItem.log = 'plotAxisAttributeChange: { orientation: %@, attribute: %@ }'.fmt(tAxisOrientation, tAttrRefs.attributes[0].get('name'));
+                  tDataDisplayModel.changeAttributeForAxis(tDataContext, tAttrRefs, tAxisOrientation);
+                }
               } else if ( tNewItem.target === tDataDisplayModel ) {
                 // remove or change attribute
                 tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
               }
               controller.menuAnchorView.set('isVisible', false);
-              this.log = 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
+              this.log = tNewItem.log || 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
             undo: function() {
               var controller = this._controller();
@@ -678,7 +681,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 { collection: tCollectionClient,
                   attributes: [ iDragData.attribute ]});
 
-              this.log = 'Attribute dragged and dropped to plot or legend: %@'.fmt(iDragData.attribute.get('name'));
+              this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
             },
             undo: function() {
               var controller = this._controller();

@@ -391,7 +391,6 @@ DG.DocumentController = SC.Object.extend(
     createComponentAndView: function( iComponent, iComponentType) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
-          didCreateComponent = true,
           tView = null;
 
       switch( type) {
@@ -437,15 +436,11 @@ DG.DocumentController = SC.Object.extend(
         tView = this.addGuideView( docView, iComponent);
         break;
       default:
-        didCreateComponent = false;
         break;
       }
 
       if( iComponent)
         iComponent.didLoadRecord();
-
-      if( didCreateComponent)
-        DG.dirtyCurrentDocument();
 
       return tView;
     },
@@ -596,7 +591,7 @@ DG.DocumentController = SC.Object.extend(
         }
         tComponentView.set('model', tComponent);
 
-        DG.dirtyCurrentDocument();
+        DG.dirtyCurrentDocument(); // TODO We can remove this after we're sure all components get created via Undo
       }
 
       return tComponentView;
@@ -610,8 +605,16 @@ DG.DocumentController = SC.Object.extend(
           'componentStorage.currentGameUrl')),
         tGameName = (iComponent && iComponent.getPath(
             'componentStorage.currentGameName')) || 'Unknown Game',
-        tController = DG.GameController.create(),
-        tView = this.createComponentView(iComponent, {
+        tView;
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'game.create',
+        undoString: 'DG.Undo.game.add',
+        redoString: 'DG.Redo.game.add',
+        log: 'addGame: {name: "%@", url: "%@"}'.fmt(tGameName, tGameUrl),
+        _component: null,
+        execute: function() {
+          var tController = DG.GameController.create();
+          tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
             parentView: iParentView,
             controller: tController,
             componentClass: {
@@ -626,9 +629,17 @@ DG.DocumentController = SC.Object.extend(
             },
             title: tGameName,
             isResizable: true,
-            useLayout: false
-          }  // may change this to false in the future
-        );
+            useLayout: false  // may change this to false in the future
+          });
+          this._component = tController.get('model');
+        },
+        undo: function() {
+          var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')],
+              view = controller.get('view');
+          controller.willSaveComponent();
+          view.parentView.removeComponentView(view);
+        }
+      }));
 
       // Override default component view behavior.
       // Do nothing until we figure out how to prevent reloading of Flash object.
@@ -1001,6 +1012,7 @@ DG.DocumentController = SC.Object.extend(
               undoString: 'DG.Undo.guide.configure',
               redoString: 'DG.Redo.guide.configure',
               log: 'Show guide',
+              changedObject: tGuideModel,
               _oldValues: {
                 title: tGuideModel.get('title'),
                 items: tGuideModel.get('items')
@@ -1026,14 +1038,12 @@ DG.DocumentController = SC.Object.extend(
                   // The configuration is such that we must make sure the guide is visible
                   this_._singletonViews.guideView.set('isVisible', true);
                 }
-                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
               },
               undo: function() {
                 tGuideModel.beginPropertyChanges();
                 tGuideModel.set('title', this._oldValues.title);
                 tGuideModel.set('items', this._oldValues.items);
                 tGuideModel.endPropertyChanges();
-                DG.dirtyCurrentDocument( tGuideModel); // FIXME Figure out how to tell DG.UndoHistory to dirty with this context...
                 if(SC.empty(this._oldValues.title) && this._oldValues.items.length === 0) {
                   // We're undoing the original making of the guide view just by hiding it
                   this_._singletonViews.guideView.set('isVisible', false);
