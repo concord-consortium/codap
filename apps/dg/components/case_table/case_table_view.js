@@ -832,6 +832,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var top = Math.max(viewport.top - rowDistance, 0);
     if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
       this.scrollAnimator.animate(this, viewport.top, top);
+    } else {
+      // this is a BIG HACK. We generate a small animation when the nearest
+      // selected point is already visible. We do this to avoid an issue
+      // that occurs when a user selects from the case table after a selection
+      // has occurred that does not involve the case table. This later issue
+      // is not well understood. Hence the hack.
+      this.scrollAnimator.animate(this, viewport.top-0.1, viewport.top);
+
     }
     //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
     //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
@@ -869,8 +877,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this._slickGrid.setSelectedRows( iSelectedRows);
       if (iSelectedRows.length > 0) {
         this.scrollToView(iSelectedRows);
+      } else {
+        this._slickGrid.render();
       }
-      this._slickGrid.render();
     }
   },
   
