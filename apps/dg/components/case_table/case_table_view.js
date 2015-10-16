@@ -52,6 +52,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   childViews: '_hiddenDragView'.w(),
 
+  isDropTarget: true,
+
   _hiddenDragView: SC.LabelView.design({
     classNames: 'drag-label'.w(),
     layout: { width: 100, height: 20, top: -50, left: 0 },
@@ -462,7 +464,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   /**
     Returns the touch position in view coordinates.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { x:, y: } location of the touch in view coordinates
    */
   touchPosInView: function( iTouch) {
@@ -471,7 +473,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   /**
     Returns the touch position in table body content coordinates.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { x:, y: } location of the touch in table body content coordinates
    */
   touchPosInBodyContent: function( iTouch) {
@@ -487,7 +489,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   /**
     Returns the cell in which the specified touch event occurred.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { row:, cell: } indices of the touched cell
    */
   cellFromTouch: function( iTouch) {
@@ -519,7 +521,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   /**
     Handle the initial touch-down event.
     For body cells, selects the clicked cell.
-    @param    {Object}    The touch event
+    @param    {Object}    touch The touch event
     @returns  {Boolean}   YES, indicating that further touch events are desired
    */
   touchStart: function(touch) {
@@ -588,7 +590,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Handle touch-drag events, which are sent repeatedly during a drag.
     For header cells, drag the attribute name
     For body cells, selects all rows touched by the drag.
+
     @param    {Object}    iEvent The touch event
+    @param    {[Object]}  iTouches An array of touches.
    */
   touchesDragged: function( iEvent, iTouches) {
     var touchStartRow = this._touchStartCell && this._touchStartCell.row;
@@ -655,7 +659,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   /**
     Ends the handling of this touch.
-    @param    {Object}    The touch event
+    @param    {Object}    touch The touch event
    */
   touchEnd: function(touch) {
     // Reset touch 
@@ -670,6 +674,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   /**
     Called when the table is scrolled.
     @param  {Slick.Event}   iEvent -- the event which triggered the scroll
+    @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
    */
   handleScroll: function( iEvent, iArgs) {
     this.set('scrollPos', iArgs);
@@ -888,8 +893,96 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         selection = adapter && adapter.getSelectedRows();
     if( selection)
       this.setSelectedRows( selection);
+    },
+
+    isValidAttribute: function( iDrag) {
+      var tDragAttr = iDrag.data.attribute;
+      return !SC.none( tDragAttr);
+    },
+
+    computeDragOperations: function( iDrag) {
+      if( this.isValidAttribute( iDrag))
+        return SC.DRAG_LINK;
+      else
+        return SC.DRAG_NONE;
+    },
+
+    dragStarted: function( iDrag) {
+      this.set('isDragInProgress', true);
+      DG.log('dragStarted');
+    },
+
+    dragEnded: function () {
+      this.set('isDragInProgress', false);
+      DG.log('dragEnded');
+    },
+
+    dragEntered: function( iDragObject, iEvent) {
+      this.set('isDragEntered', true);
+      DG.log('dragEntered');
+    },
+
+    dragInsertPoint: null,
+
+    dragUpdated: function( iDragObject, iEvent) {
+      var gridPosition =  this._slickGrid.getGridPosition();
+      var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
+
+      var cell = this._slickGrid.getCellFromPoint(loc.x, loc.y);
+      var column = cell.cell;
+      var cellBox = this._slickGrid.getCellNodeBox(0, cell.cell);
+      if (!cellBox) {
+        return;
+      }
+      var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
+      if (nearerBound === 'left' && column > 0) {
+        column -= 1;
+        nearerBound = 'right';
+      }
+      var headerNode = (column >=0 ) && this.$('.slick-header-column', this._slickGrid.getHeaderRow())[column];
+      if (this.dragInsertPoint)  {
+        if (this.dragInsertPoint.cell !== cell.cell || this.dragInsertPoint.nearerBound !== nearerBound) {
+          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
+        } else {
+          return;
+        }
+      }
+      if (column >= 0) {
+        this.dragInsertPoint = {
+          headerNode: headerNode,
+          cell: column,
+          nearerBound: nearerBound
+        };
+        this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-' + this.dragInsertPoint.nearerBound);
+        DG.log('dragUpdated: ' + JSON.stringify({
+              column: cell.cell,
+              location: iDragObject.location,
+              gridPosition: gridPosition,
+              loc: loc,
+              cellBox: cellBox,
+              nearerBound: nearerBound}));
+      }
+    },
+    dragExited: function( iDragObject, iEvent) {
+      if (this.dragInsertPoint) {
+        this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
+      }
+      this.dragInsertPoint = null;
+      this.set('isDragEntered', false);
+      DG.log('dragExited');
+    },
+
+    acceptDragOperation: function() {
+      return YES;
+    },
+
+    performDragOperation:function ( iDragObject, iDragOp ) {
+      this.set('dropData', iDragObject.data);
+      DG.log('Got drop: ' + iDragObject.data.attribute.name);
+      DG.log('Got dropOp: ' + iDragOp);
     }
-  
+
+
   }; // end return from closure
   
 }())); // end closure

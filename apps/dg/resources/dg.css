@@ -725,3 +725,15 @@ input.editor-text {
 .dg-table-drop-target-highlight  .sc-label-view {
     background-color: #ffffb3;
 }
+
+.slick-header-column.drag-insert-left {
+    border-left-color: black;
+    border-left-style: solid;
+    border-left-width: thick;
+}
+
+.slick-header-column.drag-insert-right {
+    border-right-color: black;
+    border-right-style: solid;
+    border-right-width: thick;
+}
