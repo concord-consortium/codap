@@ -74,9 +74,6 @@ DG.IconButton = SC.View.extend(
             layout: { left: 0, bottom: 0, width: 3, height: 3 }
           }));
         }
-
-        // Preload depressed icon image
-        SC.imageQueue.loadImage( this.depressedIconName);
       },
 
       /**
