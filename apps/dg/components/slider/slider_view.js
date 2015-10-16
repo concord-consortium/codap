@@ -145,7 +145,7 @@ DG.SliderView = SC.View.extend(
         this.appendChild( this.startButton );
 
         this.set('valueView',
-          SC.LabelView.create( {
+          SC.LabelView.create(DG.MouseAndTouchView, {
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + kThumbHeight },
             classNames: 'slider-label'.w(),
             isEditable: true,
@@ -153,10 +153,13 @@ DG.SliderView = SC.View.extend(
               sc_super();
               var tFrame = this.get('frame'),
                   kXGap = 4, kYGap = 5,
-                  tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap, y: kYGap - 2 }, this);
+                  tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap - 2, y: kYGap - 7 }, this);
               this.parentView.set('userEdit', true);
               iEditor.set('exampleFrame', { x: tOrigin.x, y: tOrigin.y,
                                             width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap });
+            },
+            doIt: function() {
+              this.beginEditing();
             }
         }));
         this.appendChild( this.valueView );
