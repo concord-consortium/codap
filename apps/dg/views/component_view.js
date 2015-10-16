@@ -76,7 +76,7 @@ DG.DragBorderView = SC.View.extend(
           this._mouseDownInfo = null; // cleanup info
           tContainer.coverUpComponentViews('uncover');
           tContainer.set('frameNeedsUpdate', true);
-          if( (tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
+          if ((tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
               (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
 
             DG.UndoHistory.execute(DG.Command.create({
@@ -85,20 +85,20 @@ DG.DragBorderView = SC.View.extend(
               redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
               log: '%@ component "%@"'.fmt((isResize ? 'Resized' : 'Moved'), tViewToDrag.get('title')),
               _componentId: tViewToDrag.getPath('controller.model.id'),
-              _controller: function() {
+              _controller: function () {
                 return DG.currDocumentController().componentControllersMap[this._componentId];
               },
               _oldLayout: null,
-              execute: function() {
+              execute: function () {
                 this._oldLayout = this._controller().updateModelLayout();
                 if (!this._oldLayout) {
                   this.causedChange = false;
                 }
               },
-              undo: function() {
+              undo: function () {
                 this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
               },
-              redo: function() {
+              redo: function () {
                 this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
               }
             }));
@@ -232,6 +232,19 @@ DG.ComponentView = SC.View.extend(
                 return this._value;
               }.property(),
               originalValue: null,
+              inlineEditorWillBeginEditing: function (iEditor, iValue, iEditable) {
+                sc_super();
+                this.stopShowingAsEmpty();
+                var tParent = this.get('parentView'),
+                    tFrame = tParent.get('frame'),
+                    kXGap = 4, kYGap = 5,
+                    tOrigin = DG.ViewUtilities.viewToWindowCoordinates({x: kXGap, y: kYGap}, tParent);
+                tParent.set('userEdit', true);
+                iEditor.set('exampleFrame', {
+                  x: tOrigin.x, y: tOrigin.y,
+                  width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
+                });
+              },
               inlineEditorDidBeginEditing: function (editor, value) {
                 this.set('originalValue', value);
               },
@@ -243,8 +256,25 @@ DG.ComponentView = SC.View.extend(
                 }
                 return true;
               }.observes('value'),
-              doIt: function() {
+              doIt: function () {
                 this.beginEditing();
+              },
+              showAsEmpty: function() {
+                if (SC.empty(this.get('value'))) {
+                  this.get('classNames').push('titleview-empty');
+                  this.displayDidChange();
+                }
+              },
+              stopShowingAsEmpty: function() {
+                var tClassNames = this.get('classNames'),
+                    tIndex = tClassNames.indexOf('titleview-empty');
+                if (tIndex >= 0 && !(SC.platform.touch && SC.empty(this.get('value')))) {
+                  tClassNames.splice(tIndex, 1);
+                  this.displayDidChange();
+                }
+                else if( SC.platform.touch) {
+                  this.showAsEmpty();
+                }
               }
             }),
             statusView: SC.LabelView.design({
@@ -256,7 +286,7 @@ DG.ComponentView = SC.View.extend(
             versionView: SC.LabelView.design({
               textAlign: SC.ALIGN_RIGHT,
               classNames: ['dg-version-view'],
-              layout: {right: 2 * kTitleBarHeight, top: 5 },
+              layout: {right: 2 * kTitleBarHeight, top: 5},
               value: ''
             }),
             minimize: DG.TitleBarMinimizeButton.design({
@@ -270,25 +300,13 @@ DG.ComponentView = SC.View.extend(
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
-              if( SC.empty( this.getPath('titleView.value'))) {
-                var tTitleView = this.get('titleView');
-                tTitleView.get('classNames').push('titleview-empty');
-                tTitleView.displayDidChange();
-              }
+              this.get('titleView').showAsEmpty();
               return YES;
             },
             mouseExited: function (evt) {
               this.setPath('minimize.isVisible', SC.platform.touch);
               this.setPath('closeBox.isVisible', SC.platform.touch);
-              if( SC.empty( this.getPath('titleView.value'))) {
-                var tTitleView = this.get('titleView'),
-                    tClassNames = tTitleView.get('classNames'),
-                    tIndex = tClassNames.indexOf( 'titleview-empty');
-                if( tIndex >= 0) {
-                  tClassNames.splice( tIndex, 1);
-                  tTitleView.displayDidChange();
-                }
-              }
+              this.get('titleView').stopShowingAsEmpty();
               return YES;
             },
             dragAdjust: function (evt, info) {
@@ -508,7 +526,7 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
   SC.Benchmark.start('createComponent: ' + iComponentClass);
 
   var tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
-      tComponentView = DG.ComponentView.create({layout: iComponentLayout, isVisible: tMakeItVisible });
+      tComponentView = DG.ComponentView.create({layout: iComponentLayout, isVisible: tMakeItVisible});
   tComponentView.addContent(iComponentClass.create(iContentProperties));
 
   if (!SC.none(iIsResizable))

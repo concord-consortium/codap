@@ -366,8 +366,10 @@
     position: relative;
 }
 
-.titleview-empty {
-    background-color: white;
+.titleview.titleview-empty {
+    border-bottom-color: white;
+    border-bottom-width: 2px;
+    width: 30px !important;
 }
 
 .dg-status-view {
