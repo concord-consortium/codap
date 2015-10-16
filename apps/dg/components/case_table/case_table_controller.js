@@ -266,6 +266,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'createAttributes':
           case 'deleteAttributes':
+          case 'moveAttribute':
             this.attributeCountDidChange( iChange);
             break;
           case 'updateAttributes':
@@ -329,7 +330,7 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       /**
         Called when the data context notifies that attribute properties have changed.
-        @param  {Object}  An object describing the nature of the change
+        @param  iChange {Object}  An object describing the nature of the change
        */
       doUpdateAttributes: function( iChange) {
         var hierTableView = this.getPath('view.contentView'),

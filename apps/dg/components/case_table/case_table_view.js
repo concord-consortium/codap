@@ -927,45 +927,58 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     dragUpdated: function( iDragObject, iEvent) {
       var gridPosition =  this._slickGrid.getGridPosition();
       var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
+      var originLoc = {x: iDragObject.origin.x - gridPosition.left, y:1};
 
       var cell = this._slickGrid.getCellFromPoint(loc.x, loc.y);
-      var column = cell.cell;
+      var originCell = this._slickGrid.getCellFromPoint(originLoc.x, originLoc.y);
+      var columnIndex = cell.cell;
       var cellBox = this._slickGrid.getCellNodeBox(0, cell.cell);
+      // It is possible to get a dragUpdated notification before a dragExited.
+      // So we exit.
       if (!cellBox) {
         return;
       }
       var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
-      if (nearerBound === 'left' && column > 0) {
-        column -= 1;
+      if (nearerBound === 'left' && columnIndex > 0) {
+        columnIndex -= 1;
         nearerBound = 'right';
       }
-      var headerNode = (column >=0 ) && this.$('.slick-header-column', this._slickGrid.getHeaderRow())[column];
+      var headerNode = (columnIndex >=0 ) && this.$('.slick-header-column',
+              this._slickGrid.getHeaderRow())[columnIndex];
       if (this.dragInsertPoint)  {
-        if (this.dragInsertPoint.cell !== cell.cell || this.dragInsertPoint.nearerBound !== nearerBound) {
-          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
+        if (this.dragInsertPoint.columnIndex !== columnIndex
+            || this.dragInsertPoint.nearerBound !== nearerBound) {
+          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
         } else {
           return;
         }
       }
-      if (column >= 0) {
+      if (iDragObject.source !== this
+          || nearerBound === 'left'
+          || columnIndex > originCell.cell
+          || columnIndex < originCell.cell - 1) {
         this.dragInsertPoint = {
           headerNode: headerNode,
-          cell: column,
+          columnIndex: columnIndex,
           nearerBound: nearerBound
         };
-        this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-' + this.dragInsertPoint.nearerBound);
-        DG.log('dragUpdated: ' + JSON.stringify({
-              column: cell.cell,
-              location: iDragObject.location,
-              gridPosition: gridPosition,
-              loc: loc,
-              cellBox: cellBox,
-              nearerBound: nearerBound}));
+      this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
+          + this.dragInsertPoint.nearerBound);
+      DG.log('dragUpdated: ' + JSON.stringify({
+            columnIndex: columnIndex,
+            location: iDragObject.location,
+            gridPosition: gridPosition,
+            loc: loc,
+            cellBox: cellBox,
+            nearerBound: nearerBound}));
       }
     },
+
     dragExited: function( iDragObject, iEvent) {
       if (this.dragInsertPoint) {
-        this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
+        this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+            + this.dragInsertPoint.nearerBound);
       }
       this.dragInsertPoint = null;
       this.set('isDragEntered', false);
@@ -977,9 +990,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     performDragOperation:function ( iDragObject, iDragOp ) {
-      this.set('dropData', iDragObject.data);
+      var dragData = iDragObject.data;
+      var attr = dragData.attribute;
+      var position;
+
+      // if we have an insert point, then we initiate the move.
+      // Otherwise we ignore the drop.
+      if (this.dragInsertPoint) {
+        position = (this.dragInsertPoint.nearerBound === 'right')
+            ? this.dragInsertPoint.columnIndex + 1
+            : this.dragInsertPoint.columnIndex;
+        this.gridAdapter.requestMoveAttribute(attr, position);
+      }
       DG.log('Got drop: ' + iDragObject.data.attribute.name);
-      DG.log('Got dropOp: ' + iDragOp);
     }
 
 

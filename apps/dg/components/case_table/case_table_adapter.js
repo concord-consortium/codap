@@ -698,8 +698,26 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                         dataView.updateItem( caseID, item);
                     });
     dataView.endUpdate();
-  }
-  
+  },
+
+    /**
+     * We want to move attribute, attr, from its collection to
+     * the indicated position (an index) in the current collection.
+     *
+     * @param {DG.Attribute} attr
+     * @param {number} position
+     */
+    requestMoveAttribute: function (attr, position) {
+      var tContext = this.get('dataContext'),
+          tCollection = this.get('collection'),
+          tChange = {
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: tCollection,
+            position: position
+          };
+      tContext.applyChange(tChange);
+    }
   }; // end return from closure
   
 }())); // end closure
