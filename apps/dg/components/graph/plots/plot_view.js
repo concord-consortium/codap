@@ -206,6 +206,9 @@ DG.PlotView = DG.PlotLayer.extend(
         tNewPointAttrs = [], // used if many-to-one animation
         tNewToOldCaseMap = [],
         tOldToNewCaseMap = [];
+    // During undo/redo we can get here without cases. Bail!
+    if( !tCases || !tRC)
+      return;
 
     function caseLocationSimple( iIndex ) {
       // assume a 1 to 1 correspondence of the current case indices to the new cases
@@ -292,7 +295,7 @@ DG.PlotView = DG.PlotLayer.extend(
         tParentCollectionClient = this.getPath('model.dataContext.parentCollection'),
         tParentNumCases = tParentCollectionClient ? tParentCollectionClient.getCaseCount() : 0,
         tChildNumCases = tChildCollectionClient ? tChildCollectionClient.getCaseCount() : 0,
-        tNewNumCases = tCases.length,
+        tNewNumCases = tCases ? tCases.length : 0,
         tOldNumCases = tTransferredPoints.length;
 
     function isParentToChildTransformation() {

@@ -490,6 +490,10 @@ DG.DotPlotView = DG.PlotView.extend(
         tPlotElementLength = this._plottedElements.length,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext();
+    // During undo/redo we can get here without cases. Bail!
+    if( !tCases || !tRC)
+      return;
+
     this.zeroBinArray();
     tCases.forEach( function( iCase, iIndex) {
       var tUseAnimation = true;
