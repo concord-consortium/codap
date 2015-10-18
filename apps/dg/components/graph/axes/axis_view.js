@@ -56,8 +56,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             numColorsChanged: function() {
               var tTextColor = 'blue',
                   tPointColor = 'lightblue';
-              if (this.colorIndex > 0) {
-                tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+              if( this.numColors > 1) {
+                if (this.colorIndex === 0) {
+                  tTextColor = DG.PlotUtilities.kDefaultPointColor;
+                }
+                else {
+                  tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+                }
                 tPointColor = tTextColor;
               }
               this._textElement.attr('fill', tTextColor);
