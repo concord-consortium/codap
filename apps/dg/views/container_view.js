@@ -69,22 +69,22 @@ DG.ContainerView = SC.View.extend(
        */
       tileMenuItems: function() {
 
-        function componentViewToIcon(iView) {
+        function componentViewToClassName(iView) {
           switch( iView.get('contentView').constructor) {
             case DG.TableView:
-              return static_url('images/icon-table.svg');
+              return 'tile-icon-table';
             case DG.GraphView:
-              return static_url('images/icon-graph.svg');
+              return 'tile-icon-graph';
             case DG.MapView:
-              return static_url('images/icon-map.svg');
+              return 'tile-icon-map';
             case DG.SliderView:
-              return static_url('images/icon-slider.svg');
+              return 'tile-icon-slider';
             case DG.Calculator:
-              return static_url('images/icon-calc.svg');
+              return 'tile-icon-calc';
             case DG.TextView:
-              return static_url('images/icon-comment.svg');
+              return 'tile-icon-comment';
             case DG.GuideView:
-              return static_url('images/icon-guide.svg');
+              return 'tile-icon-guide';
           }
         }
 
@@ -95,7 +95,7 @@ DG.ContainerView = SC.View.extend(
               title: iComponentView.get('title'),
               target: iComponentView,
               action: 'maximizeAndSelect',
-              icon: componentViewToIcon(iComponentView)
+              icon: componentViewToClassName(iComponentView)
             });
           }
         });

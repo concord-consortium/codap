@@ -354,6 +354,50 @@
     color: darkgray;
 }
 
+[class^="tile-icon-"], [class*=" tile-icon-"] {
+    font-family: 'icomoon';
+    font-size: 15px;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    padding-left: 15px;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.tile-icon-table:before {
+    content: "\31";
+}
+.tile-icon-graph:before {
+    content: "\33";
+}
+.tile-icon-dataTool:before {
+    content: "\32";
+}
+.tile-icon-calc:before {
+    content: "\36";
+}
+.tile-icon-slider:before {
+    content: "\35";
+}
+.tile-icon-map:before {
+    content: "\34";
+}
+.tile-icon-comment:before {
+    content: "\e609";
+}
+.tile-icon-mediaTool:before {
+    content: "\37";
+}
+.tile-icon-guide:before {
+    content: "\64";
+}
+
 .titleview {
     cursor: text;
     text-align: center;
