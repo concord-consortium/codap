@@ -355,7 +355,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
           else
             sc_super();
-        }.observes('*plotView.dragData')
+        }.observes('*plotView.dragData', '*legendView.dragData')
       };
 
     }()) // function closure
