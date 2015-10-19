@@ -37,7 +37,7 @@ DG.PlotUtilities = {
   kDefaultPointColor: '#e6805b',
   kDefaultStrokeColor: 'white',
   kDefaultPointOpacity: 0.85,
-  kDefaultStrokeOpacity: 0.85,
+  kDefaultStrokeOpacity: 0.4,
   kDefaultStripWidth: 4,
   kMarqueeColor: "rgba(128, 128, 128, 0.3)",
   kDotClassName: 'data-dot',
