@@ -311,8 +311,9 @@ DG.DocumentArchiver = SC.Object.extend(
           tAttrNamesRow = tValuesArray[0];
 
           if (Array.isArray(tCollectionRow)) {
-            // check if it looks like name row is missing
-            if ((tAttrNamesRow.length === tCollectionRow.length) && (tAttrNamesRow.length > 1)) {
+            // check if it looks like name row is missing. We conclude this
+            // if the first row (tCollectioRow) has at least as many columns defined as the next row.
+            if ((tAttrNamesRow.length <= tCollectionRow.length) && (tCollectionRow.length > 1)) {
               tAttrNamesRow = tCollectionRow;
             } else {
               tChildName = tCollectionRow[0];
