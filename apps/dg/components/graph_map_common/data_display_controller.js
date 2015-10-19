@@ -242,15 +242,17 @@ DG.DataDisplayController = DG.ComponentController.extend(
             localize: true
           }));
 
-          tResult.push(DG.IconButton.create({
-            layout: {width: 32},
-            classNames: 'display-styles'.w(),
-            iconClass: 'moonicon-icon-tileScreenshot',
-            target: this,
-            action: 'makePngImage',
-            toolTip: 'DG.Inspector.makeImage.toolTip',
-            localize: true
-          }));
+          if( this.makePngImage) {  // Not implemented for map yet
+            tResult.push(DG.IconButton.create({
+              layout: {width: 32},
+              classNames: 'display-styles'.w(),
+              iconClass: 'moonicon-icon-tileScreenshot',
+              target: this,
+              action: 'makePngImage',
+              toolTip: 'DG.Inspector.makeImage.toolTip',
+              localize: true
+            }));
+          }
 
           return tResult;
         },
