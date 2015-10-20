@@ -33,7 +33,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
       var LabelNode = SC.Object.extend(
           {
-            classNames: 'axis-view'.w(),
             paper: null,
             text: null,
             description: null,
@@ -135,6 +134,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
           'otherYAttributeDescription.attribute',
           'otherAxisView.desiredExtent'],
+        classNames: 'axis-view'.w(),
 
         /**
          The model on which this view is based.
