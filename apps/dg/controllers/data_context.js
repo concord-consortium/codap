@@ -322,6 +322,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
       return rslt;
     }.bind(this);
+
+
     var collection,
         valuesArrays,
         parentIsValid = true,
@@ -785,25 +787,46 @@ DG.DataContext = SC.Object.extend((function() // closure
      *    {Boolean}               .success
      */
   doMoveAttribute: function( iChange) {
-      function moveWithinCollection(name, collection, position) {
+      function moveWithinCollection(attr, collectionClient, position) {
+        var name = attr.name;
         var attributeNames;
         var ix;
-        attributeNames = collection.getAttributeNames();
+        attributeNames = collectionClient.getAttributeNames();
         ix = attributeNames.indexOf(name);
         if (ix !== -1) {
           attributeNames.splice(ix, 1);
           attributeNames.splice(position, 0, name);
-          collection.reorderAttributes(attributeNames);
+          collectionClient.reorderAttributes(attributeNames);
         } else {
           DG.logWarn('Reordering attribute, "' + name +
-              '", not in collection, "' + collection.name + '"');
+              '", not in collection, "' + collectionClient.name + '"');
         }
       }
 
+      function moveBetweenCollections(attr, fromCollectionClient, toCollectionClient, position) {
+        var topCollection = _this.getCollectionAtIndex(0);
+
+        // remove attribute from old collection
+        attr = fromCollectionClient.get('collection').removeAttribute(attr);
+
+        // add attribute to new collection
+        toCollectionClient.get('collection').addAttribute(attr, position);
+
+
+        // drop all cases
+        _this.forEachCollection(function (collection) { collection.deleteAllCases(); });
+
+        // starting with top collection, recreate cases
+        topCollection.get('collection').recreateCases();
+      }
+
+      // ----- begin method ------
       var attr = iChange.attr;
       var fromCollection = attr.get('collection');
+      var fromCollectionClient = this.getCollectionByID(fromCollection.id);
       var toCollectionClient = iChange.toCollection || fromCollection;
       var position = iChange.position;
+      var _this = this;
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection
@@ -811,7 +834,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       } else {
         // inter-collection moves are more complex: we need to reconstruct the
         // cases in the collection
-
+        moveBetweenCollections(attr, fromCollectionClient, toCollectionClient, position);
+        iChange.operation = 'resetCollections';
       }
   },
       /**

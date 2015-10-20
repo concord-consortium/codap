@@ -578,8 +578,6 @@ DG.CollectionClient = SC.Object.extend(
    */
   didDeleteCases: function() {
 
-    DG.store.commitRecords();
-
     this.get('collection').updateCaseIDToIndexMap();
   },
   
@@ -601,9 +599,11 @@ DG.CollectionClient = SC.Object.extend(
    */
   deleteAllCases: function() {
     var tCollection = this.get('collection'),
-        tController = this.get('casesController');
-    tController.forEach( function( aCase) {
-      tCollection.deleteCase( aCase);
+        tCases = tCollection.get('cases'),
+        tArray = tCases.concat();
+
+    tArray.forEach(function (aCase) {
+      tCollection.deleteCase(aCase);
     });
     this.didDeleteCases();
   },

@@ -262,6 +262,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     * Adds an existing attribute at a particular position in the sequence of
+     * attributes. If position is undefined, defaults to the last position.
+     *
+     * @param attr
+     * @param position
+     */
+    addAttribute: function (attr, position) {
+      attr.set('collection', this);
+      if (SC.none(position)) {
+        this.attrs.push(attr);
+      } else {
+        this.attrs.insertAt(position, attr);
+      }
+    },
+
+    /**
      Find the DG.Attribute with the specified name.
      @param    {String}        iName -- The name of the attribute to find
      @returns  {DG.Attribute}  The attribute with the specified name
@@ -298,7 +314,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       }
       function joinValues(values, parentItem) {
         var list = gatherLeftAttributeList(_this.get('parent'));
-        list.forEach(function(attrId) { values[attrId] = parentItem[attrId]; });
+        list.forEach(function(attrId) { values[attrId] = parentItem.values[attrId]; });
         return values;
       }
 
@@ -365,7 +381,79 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     deleteCase: function (iCase) {
       DG.Case.destroyCase(iCase);
-      this.updateCaseIDToIndexMap();
+      //this.updateCaseIDToIndexMap();
+    },
+
+    /**
+     * Recreates a set of cases in this collection from the DataSet. If no
+     * argument is provided, will recreate cases for all items, otherwise will create cases
+     * for this set only. In either situation will append to the collection's case
+     * array, as created.
+     *
+     * @param items {[DG.DataItem]}
+     */
+    recreateCases: function (items, parent) {
+      var childCollection = this.children[0];
+      var itemGroups = {};
+
+      if (SC.none(items)) {
+        items = this.dataSet.dataItems;
+      }
+
+      // make a hash-map of items with the hash-key being the attribute
+      // values for this collection's attributes and the values being arrays of items
+      items.forEach(function (item) {
+        var values = this.attrs.map(function (attr) { return item.values[attr.id];}).join();
+        var list = itemGroups[values] || [];
+        if (list.length === 0) {
+          itemGroups[values] = list;
+        }
+        list.push(item);
+      }.bind(this));
+
+      DG.ObjectMap.forEach(itemGroups, function(key, list) {
+        var theCase;
+        if (SC.none(childCollection)) {
+          list.forEach(function (item) {
+            // create a case
+            theCase = DG.Case.createCase({
+              parent: parent,
+              collection: this,
+              item: item
+            });
+            this.addCase(theCase);
+          }.bind(this));
+        } else {
+          // make a case for each hash entry in item order.
+          theCase = DG.Case.createCase({
+            parent: parent,
+            collection: this,
+            item: list[0]
+          });
+          this.addCase(theCase);
+
+          // call recreate cases on the child collection for each hash entry.
+          childCollection.recreateCases(list, theCase);
+        }
+      }.bind(this));
+    },
+
+    /**
+     * Removes an attribute from this collection. The attribute is not deleted.
+     * It is assumed the attribute will be added to a new collection.
+     *
+     * @param attr {DG.Attribute}
+     * @return {DG.Attribute}
+     */
+    removeAttribute: function (attr) {
+      var ix;
+      for (ix = 0; ix < this.attrs.length; ix += 1) {
+        if (this.attrs[ix].id === attr.id) {
+          break;
+        }
+      }
+      this.attrs.removeAt(ix, 1);
+      return attr;
     },
 
     /**
