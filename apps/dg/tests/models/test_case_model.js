@@ -73,8 +73,8 @@ test('test DG.Case', function () {
     values: ['5', 'e'], parent: tParentCase[1]});
   ok(tChildCase[0] && tChildCase[1] && tChildCase[2],
     'Can create child Cases.');
-  equals(tParentCase[0].children.length, 2, 'Parent has a reference to children.');
-  equals(tParentCase[1].children.length, 1, 'Parent has a reference to children.');
+  equals(tParentCase[0].get('children').length, 2, 'Parent has a reference to children.');
+  equals(tParentCase[1].get('children').length, 1, 'Parent has a reference to children.');
 
   // access
   tID = tParentCase[0].id;

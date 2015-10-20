@@ -41,6 +41,11 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     context: null,
 
+    /**
+     * A convenience member. The DataSet for this context.
+     * @type {DG.DataSet}
+     */
+    dataSet: null,
 
     /**
      * A relational link back to the parent collection (if any).
@@ -50,13 +55,21 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
     /**
      * A relational link to the subcollections of this collection.
+     *
+     * Note: in the current design there can be only one direct sub-
+     * collection of this collection.
+     *
      * @property {[DG.Collection]}
      */
     children: null,
 
     /**
      * A relational link to the attributes of this collection.
+     *
      *  Note that "attributes" is a reserved property name in SproutCore.
+     *
+     * This array also defines the order of attributes of the collection.
+     *
      * @property {[DG.Attribute]}
      */
     attrs: null,
@@ -76,6 +89,10 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
     /**
      * Map of case IDs to indices within parent cases
+     *
+     * ToDo: I think this property goes away. It is used in formulas.
+     * ToDo: propose implementing some other way.
+     *
      * @property {Object} of {String}:{Number}
      */
     caseIDToIndexMap: null,
@@ -86,12 +103,18 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * Note that this property is not a record attribute and is not
      * expected to be archived with the record. It's a temporary flag
      * for use until games using the old API are no longer supported.
+     *
+     * ToDo: Believe this property is removable.
+     *
      * @property {Boolean}
      */
     areParentChildLinksConfigured: false,
 
     /**
      * Map of parent case IDs to number of cases with that parent
+     *
+     * ToDo: Make dynamic?
+     *
      * @property {Object}
      */
     caseCounts: null,
@@ -111,6 +134,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     /**
      * Whether tabular representations of a child table should collapse
      * all the children of a single parent to a single row.
+     *
      * @property {Boolean}
      */
     collapseChildren: null,
@@ -156,6 +180,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       this.attrs = [];
       this.cases = [];
       this.children = [];
+      this.dataSet = this.context.dataSet;
+      this.dataSet.registerCollection(this, null);
       this.set('casesRecords', this.cases);
       this.updateCaseIDToIndexMap();
     },
@@ -231,7 +257,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       iProperties.collection = this;
       attr = DG.Attribute.createAttribute(iProperties);
       this.attrs.pushObject(attr);
-      this.context.dataSet.addAttributes([attr]);
+      this.dataSet.addAttributes([attr]);
       return attr;
     },
 
@@ -262,58 +288,54 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @returns {DG.Case}
      */
     createCase: function (iProperties) {
-      // derives a composed parentID a dotted concatenation of ancestor ids
-      function composeData(myCase) {
-        var parent = myCase.parent;
-        if (!SC.none(parent)) {
-          return $.extend({}, composeData(parent), myCase._valuesMap);
-        } else {
-          return myCase._valuesMap;
-        }
-      }
-      function composeID(myCase) {
-        if (!SC.none(myCase)) {
-          var composedID = composeID(myCase.parent);
-          return composedID
-              ? composedID + '.' + myCase.id
-              : String(myCase.id);
-        }
-      }
-      function updateDataSet(dataSet, myCase) {
-        var composedParentID = composeID(myCase.parent);
-        var dataItem;
-        // if we have no parents, we add the row directly
-        if (SC.none(composedParentID)) {
-          dataSet.addDataItem(myCase._valuesMap, String(myCase.id));
-        } else {
-          // if we have a parent we try to get its partial record directly from
-          // the data set. We are going to update it and amend the id.
-          dataItem = dataSet.getDataItemByID(composedParentID);
-          if (!SC.none(dataItem)) {
-            dataItem.id = composedParentID + '.' + myCase.id;
-            dataItem.updateData(myCase._valuesMap);
-          } else {
-            // We are a new case based off an existing parent case so we compose
-            // the data from the ancestor cases and add our data. Our ID is composed
-            // from our id and the parent ID.
-            dataSet.addDataItem(composeData(myCase), composedParentID + '.' + myCase.id);
-          }
-        }
 
+      function gatherLeftAttributeList (collection) {
+        if (SC.none(collection)) {
+          return [];
+        } else {
+          return gatherLeftAttributeList(collection.get('parent')).concat(collection.getAttributeIDs());
+        }
       }
+      function joinValues(values, parentItem) {
+        var list = gatherLeftAttributeList(_this.get('parent'));
+        list.forEach(function(attrId) { values[attrId] = parentItem[attrId]; });
+        return values;
+      }
+
       iProperties = iProperties || {};
+
+      var item;
+      var newCase;
+      var _this = this;
+      var dataSet = this.get('dataSet');
+      var values = this.mapAttributeNamesToIDs(iProperties.values);
+      var parent = iProperties.parent;
+
       // Relate it to its parent collection
       iProperties.collection = this;
 
-      var newCase = DG.Case.createCase(iProperties);
+      delete iProperties.values;
 
-      if (SC.none(iProperties.index)) {
-        this.addCase(newCase);
+      // if no parent then create item
+      // if parent and parent has children create item with parent's values and new values
+      // if parent and parent has no children add new values to parent item
+
+      if (SC.none(parent)) {
+        item = dataSet.addDataItem(values);
       } else {
-        this.insertCase(newCase, iProperties.index);
+        parent = DG.store.resolve(parent);
+        if (parent.get('children').length > 0) {
+          item = dataSet.addDataItem(joinValues(values, parent.item));
+        } else {
+          item = parent.get('item');
+          item.updateData(values);
+        }
       }
+      iProperties.item = item;
 
-      updateDataSet(this.context.dataSet, newCase);
+      newCase = DG.Case.createCase(iProperties);
+
+      this.addCase(newCase);
 
       return newCase;
     },
@@ -334,20 +356,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       caseIDToIndexMap[caseID] = caseCounts[parentID]++;
       this.casesRecords.pushObject(iCase);
-    },
-
-    /**
-     * Inserts a new case to the collection, at the specified location.
-     *
-     * Any views of this collection should render the case as if it had been created
-     * at that point in the history.
-     *
-     * @param   {DG.Case}  iCase The newly created case
-     * @param   {number}  idx   The index at which the case will be inserted
-     */
-    insertCase: function (iCase, idx) {
-      this.casesRecords.insertAt(idx, iCase);
-      this.updateCaseIDToIndexMap();
     },
 
     /**
@@ -376,23 +384,37 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       return this.attrs.getEach('name');
     },
 
+    mapAttributeNamesToIDs: function (dataMap) {
+      var valuesMap = {};
+      var attrs = this.attrs;
+      DG.ObjectMap.forEach(dataMap, function (iKey, iValue) {
+        var attr = attrs.findProperty('name', iKey);
+        if( !SC.none( attr)) {
+          valuesMap[attr.id] = iValue;
+        } else {
+          valuesMap[iKey] = iValue;
+        }
+      });
+      return valuesMap;
+    },
+
     /**
      * Returns an array of ids for the cases in the collection,
      *  suitable for use by clients like Protovis.
      * @returns {[Number]}
      */
     getCaseIDs: function () {
-      return this.casesRecords.getEach('id');
+      return this.cases.getEach('id');
     },
 
     /**
-     * Rebuilds the 'caseIDToIndexMap' and 'caseContents' properties.
+     * Rebuilds the 'caseIDToIndexMap' and 'caseCounts' properties.
      * This function should be called whenever the mapping between
      * case IDs and indices must change, e.g. after deleting cases.
      */
     updateCaseIDToIndexMap: function () {
       var caseIndices = {}, map = {};
-      this.casesRecords.forEach(function (iCase) {
+      this.cases.forEach(function (iCase) {
           if (!iCase.get('isDestroyed')) {
             var caseID = iCase.get('id'), parentID = iCase.getPath('parent.id');
             if (SC.none(caseIndices[parentID]))
@@ -433,7 +455,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         guid: this.id,
         labels: this.labels,
         name: this.name,
-        parent: parentID
+        parent: parentID,
+        type: 'DG.Collection'
       };
       this.attrs.forEach(function (attr) {
         obj.attrs.push(attr.toArchive());

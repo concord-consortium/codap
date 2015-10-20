@@ -144,40 +144,49 @@ DG.DataSet = SC.Object.extend((function() // closure
      * Adds a dataItem provided as an array of values, a map of attribute keys to values,
      * or as a DG.DataItem.
      *
-     * @param {DG.DataItem|{}|[*]} dataItem  A data item, a map of attribute
+     * @param {DG.DataItem|{}|[*]} data  A data item, a map of attribute
      * keys to values, or an array of values indexed in attribute order.
-     * @param {string} id (optional)
      * @return {DG.DataItem} the item.
      */
-    addDataItem: function (dataItem, id) {
-      var mapToArray = function (dataMap) {
-        var ar = [];
-        DG.ObjectMap.forEach(dataMap, function(key, value) {
-          var ix;
-          for (ix = 0; ix < this.attrs.length; ix += 1) {
-            if (String(this.attrs[ix].id) === key) {
-              ar[ix] = value;
-            }
+    addDataItem: function (data, id) {
+      /**
+       * Set the value map from the value array. Called during initialization.
+       *
+       */
+      var mapAttributeNamesToIDs = function (dataMap) {
+        var valuesMap = {};
+        var attrs = this.attrs;
+        DG.ObjectMap.forEach(dataMap, function (iKey, iValue) {
+          var attr = attrs.findProperty('name', iKey);
+          if( !SC.none( attr)) {
+            valuesMap[attr.id] = iValue;
+          } else {
+            valuesMap[iKey] = iValue;
           }
-        }.bind(this));
-        return ar;
+        });
+        return valuesMap;
       }.bind(this);
-      var di;
+
+      var dataItem;
       var ix;
-      if (dataItem.constructor === DG.DataItem) {
-        di = dataItem;
-      } else if (Array.isArray(dataItem)) {
-        di = DG.DataItem.create({dataSet: this, data:dataItem});
-      } else if (typeof dataItem === 'object') {
-        di = DG.DataItem.create({dataSet: this, data:mapToArray(dataItem)});
+
+      data = data || {};
+
+      if (data.constructor === DG.DataItem) {
+        dataItem = data;
+      } else if (typeof data === 'object') {
+        dataItem = DG.DataItem.create({
+          dataSet: this,
+          values: mapAttributeNamesToIDs(data)
+        });
       }
-      if (di) {
-        ix = this.dataItems.push(di) - 1; // push returns new array length.
+
+      if (dataItem) {
+        ix = this.dataItems.push(dataItem) - 1; // push returns new array length.
                                     // We want the index of the last element
-        di.itemIndex = ix;
-        di.id = id;
+        dataItem.itemIndex = ix;
       }
-      return  di;
+      return  dataItem;
     },
 
     /**
@@ -285,50 +294,3 @@ DG.DataSet = SC.Object.extend((function() // closure
 
   };
 })());
-
-DG.DataItem = SC.Object.extend({
-  /*
-   * A 'given' ID for the DataItem. Items are also identified by their
-   * index in the data set.
-   * @property {string}
-   */
-  id: null,
-
-  /*
-   * The internally assigned row index of this DataItem.
-   * @property {number}
-   */
-  itemIndex: null,
-
-  /*
-   * Identifies the dataSet to which this DataItem belongs.
-   * @property {DG.DataSet}
-   */
-  dataSet: null,
-  /*
-   * Whether this item has been deleted.
-   * @property {boolean}
-   */
-  deleted: false,
-  /*
-   * A compact array of values, indexed by the data set's attribute map.
-   * @property {[*]}
-   */
-  data: null,
-
-  updateData: function (dataMap) {
-    DG.ObjectMap.forEach(dataMap, function(key, value) {
-      var ix;
-      for (ix = 0; ix < this.dataSet.attrs.length; ix += 1) {
-        if (String(this.dataSet.attrs[ix].id) === key) {
-          this.data[ix] = value;
-        }
-      }
-    }.bind(this));
-  },
-
-  toArchive: function () {
-    // Todo
-  }
-});
-

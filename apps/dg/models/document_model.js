@@ -110,12 +110,12 @@ DG.Document.createDocument = function( iProperties) {
   var tDocument,
     tProperties = iProperties || {};
 
-  if(DG.activeDocument) {
-    DG.logError("Can't create another document without closing the first.");
-    DG.Document.destroyDocument(DG.activeDocument);
-    DG.activeDocument = null;
-    DG.store = null;
-  }
+  //if(DG.activeDocument) {
+  //  DG.logError("Can't create another document without closing the first.");
+  //  DG.Document.destroyDocument(DG.activeDocument);
+  //  DG.activeDocument = null;
+  //  DG.store = null;
+  //}
 
   /* A store must exist to create a document */
   DG.store = DG.ModelStore.create();
