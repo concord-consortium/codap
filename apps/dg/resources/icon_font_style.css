@@ -1,6 +1,6 @@
 [class^="moonicon-"], [class*=" moonicon-"] {
 	font-family: 'icomoon';
-    font-size: 25px;
+    font-size: 23px;
 	speak: none;
 	font-style: normal;
 	font-weight: normal;
@@ -80,6 +80,7 @@
 }
 .moonicon-icon-tileScreenshot:before {
 	content: "\6c";
+	font-size: 21px;
 }
 .moonicon-icon-trash:before {
 	content: "\e629";

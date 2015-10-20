@@ -590,6 +590,7 @@ DG.DocumentController = SC.Object.extend(
           tComponentView.set('controller', iParams.controller);
         }
         tComponentView.set('model', tComponent);
+        tComponent.set('layout', tComponentView.get('layout'));
 
         DG.dirtyCurrentDocument(); // TODO We can remove this after we're sure all components get created via Undo
       }

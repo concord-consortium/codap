@@ -98,7 +98,7 @@ DG.RightButtonData = {
     nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
     isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
     isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
-    flowSpacing: { right: 0, top: 18 },
+    flowSpacing: { right: 0, top: 17 },
     classNames: ['dg-undo-button']
   },
 
@@ -115,7 +115,7 @@ DG.RightButtonData = {
     nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
     isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
     isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
-    flowSpacing: { right: 20, top: 18 },
+    flowSpacing: { right: 20, top: 17 },
     classNames: ['dg-redo-button']
   },
 

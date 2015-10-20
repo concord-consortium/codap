@@ -143,6 +143,9 @@ DG.ComponentController = SC.Object.extend((function () // closure
         this.model.set('layout', layout);
         return modelLayout;
       }
+      else if( !modelLayout) {
+        this.setPath('model.layout', layout);
+      }
       return null;
     },
 

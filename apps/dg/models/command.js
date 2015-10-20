@@ -28,6 +28,9 @@
   A prototype for the commands to be passed into DG.UndoHistory.
   Note: As long as an object conforms to this API, the DG.UndoHistory doesn't technically care if it's an
   instance of DG.Command or not.
+
+  For documentation about how to use UndoHistory, please see /docs/undo.md
+
   @extends SC.Object
 */
 DG.Command = SC.Object.extend((function() {

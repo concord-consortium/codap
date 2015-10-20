@@ -23,10 +23,12 @@
 //  limitations under the License.
 // ==========================================================================
 
-
 /** @class
-
-  @extends SC.Object
+ * The main controller for Undo and Redo functionality.
+ *
+ * For documentation about how to use UndoHistory, please see /docs/undo.md
+ *
+ * @extends SC.Object
 */
 DG.UndoHistory = SC.Object.create((function() {
 /** @scope DG.UndoHistory.prototype */

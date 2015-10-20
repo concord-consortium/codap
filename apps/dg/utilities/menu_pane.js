@@ -29,6 +29,9 @@
  *
  *   @extends SC.Object
 */
+
+sc_require('utilities/menu_item');
+
 DG.MenuPane = SC.MenuPane.extend(
 /** @scope DG.MenuPane.prototype */ 
 {
@@ -36,6 +39,8 @@ DG.MenuPane = SC.MenuPane.extend(
    * @property {String | Function}
    */
   dgAction: null,
+
+  exampleView: DG.MenuItem,
 
   getDesiredMenuWidth: function() {
     var tMaxCharCount = 0,

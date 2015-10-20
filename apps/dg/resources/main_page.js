@@ -24,7 +24,7 @@ DG.mainPage = SC.Page.design((function() {
   var kButtonWidth = 40,
       kToolbarHeight = 70,
       kInfobarHeight = 30,
-      kIconTopPadding = 15;
+      kIconTopPadding = 17;
 
   // begin compatible browser main page design
   return DG.Browser.isCompatibleBrowser() ? {
@@ -161,7 +161,7 @@ DG.mainPage = SC.Page.design((function() {
 
       iconButtons: SC.View.design(SC.FlowedLayout, {
         classNames: 'buttons'.w(),
-        layout: { width: 0, top: 0, left: 0, height: kToolbarHeight - 1 },
+        layout: { width: 0, height: kToolbarHeight - 1 },
         align: SC.ALIGN_LEFT,
         canWrap: false,
         shouldResizeHeight: false,
@@ -169,8 +169,11 @@ DG.mainPage = SC.Page.design((function() {
         init: function() {
           sc_super();
           // create tool buttons, left-justified
-          DG.toolButtons.forEach( function( iButtonName ) {
+          DG.toolButtons.forEach( function( iButtonName, iIndex ) {
             var tButton = DG.ToolButtonData[iButtonName];
+            if( iIndex === 0) {
+              tButton.flowSpacing = { left: 10, top: kIconTopPadding, right: 5 };
+            }
             tButton.classNames = tButton.classNames || '';
             tButton.classNames = (tButton.classNames + ' toolshelf-button').w();
             this[ iButtonName] = DG.IconButton.create( tButton);

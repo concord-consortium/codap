@@ -276,7 +276,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   attributes: [iDragData.attribute]
                 });
 
-              this.log = 'Attribute dragged and dropped: %@, %@'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+              this.log = 'Attribute dragged and dropped: %@, %@'.fmt('vertical', iDragData.attribute.get('name'));
             },
             undo: function() {
               var controller = this._controller();
@@ -355,7 +355,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
           else
             sc_super();
-        }.observes('*plotView.dragData')
+        }.observes('*plotView.dragData', '*legendView.dragData')
       };
 
     }()) // function closure
