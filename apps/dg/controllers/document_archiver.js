@@ -453,8 +453,9 @@ DG.DocumentArchiver = SC.Object.extend(
           if( DG.assert( !SC.none(dataContextArchive))
               && (needsSave
                 || documentController.objectHasUnsavedChanges(context)
-                || SC.none(context.get('externalDocumentId')
-              )) ) {
+                || SC.none(context.get('externalDocumentId'))
+                || context._openedFromSharedDocument
+              ) ) {
             documentController.clearChangedObject(context);
             cleanedDocArchive = JSON.parse(JSON.stringify(dataContextArchive)); // Strips all keys with undefined values
 
@@ -500,7 +501,8 @@ DG.DocumentArchiver = SC.Object.extend(
          */
         var exportMainDocument = function(docArchive) {
           // determine if we need to save the main document
-          var needsSave = documentController.objectHasUnsavedChanges(documentController.get('content'));
+          var needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || documentController.get('content')._openedFromSharedDocument;
+          delete documentController.get('content')._openedFromSharedDocument;
           var reply;
           if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
             docArchive._permissions = iDocumentPermissions;
