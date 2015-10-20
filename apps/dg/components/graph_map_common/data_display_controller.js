@@ -140,9 +140,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var tResult = sc_super(),
               this_ = this;
           tResult.push(DG.IconButton.create({
-            layout: {width: 32},
+            layout: {width: 32, left: 0 },
             classNames: 'display-rescale'.w(),
             iconClass: 'moonicon-icon-scaleData',
+            iconExtent: { width: 30, height: 25 },
             isEnabled: function () {
               return this_.getPath('dataDisplayModel.canRescale');
             }.property(),
@@ -245,6 +246,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           if( this.makePngImage) {  // Not implemented for map yet
             tResult.push(DG.IconButton.create({
               layout: {width: 32},
+              iconExtent: { width: 30, height: 25 },
               classNames: 'display-styles'.w(),
               iconClass: 'moonicon-icon-tileScreenshot',
               target: this,
