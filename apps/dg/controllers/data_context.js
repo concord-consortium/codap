@@ -799,7 +799,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           collectionClient.reorderAttributes(attributeNames);
         } else {
           DG.logWarn('Reordering attribute, "' + name +
-              '", not in collection, "' + collectionClient.name + '"');
+              '", not in collection, "' + collectionClient.get('name') + '"');
         }
       }
 
@@ -830,7 +830,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection
-        moveWithinCollection(attr.name, toCollectionClient, position);
+        moveWithinCollection(attr, toCollectionClient, position);
       } else {
         // inter-collection moves are more complex: we need to reconstruct the
         // cases in the collection
