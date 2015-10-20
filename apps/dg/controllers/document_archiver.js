@@ -663,7 +663,14 @@ DG.DocumentArchiver = SC.Object.extend(
        and perform any other appropriate tasks upon completion.
        */
       streamDocumentToCloudStorage: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-        return DG.authorizationController.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
+        var saveOpts = { content: iDocumentArchive},
+            numericId = DG.currDocumentController().get('externalDocumentId');
+        if (isCopying || SC.none(numericId)) {
+          saveOpts.name = iDocumentId;
+        } else {
+          saveOpts.id = numericId;
+        }
+        return DG.authorizationController.get('storageInterface').save(saveOpts).then(
             function(body) {
               return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
             },
