@@ -82,8 +82,17 @@ DG.CODAPCommonStorage = {
   _extractMessage: function(iResponse) {
     var body = iResponse.get('body'),
         status = iResponse.get('status');
+    if (typeof(body) === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // Oh well...
+      }
+    }
     DG.log("Raw response status: " + status + " body: " + body);
-    if (status === 401) {
+    if (! (SC.none(body.message) || SC.empty(body.message))) {
+      return body.message;
+    } else if (status === 401) {
       return 'error.sessionExpired';
     } else if (status === 403) {
       return 'error.permissions';
