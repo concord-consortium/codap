@@ -52,7 +52,7 @@ DG.CODAPCommonStorage = {
         // the document ID will be changed to the user's document id. We need
         // to know this to know to skip differential saving the first time
         // round and do a full save.
-        if (responseHeaders['X-Codap-Will-Overwrite']) {
+        if (responseHeaders['X-Codap-Opened-From-Shared-Document']) {
           body._openedFromSharedDocument = true;
         }
         resolve(body);
