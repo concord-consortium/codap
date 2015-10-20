@@ -427,6 +427,7 @@ DG.DocumentArchiver = SC.Object.extend(
        *                                        0: unshared, 1: shared
        */
       saveDocument: function( iDocumentName, iDocumentPermissions) {
+        var originalDocId = DG.currDocumentController().get('externalDocumentId');
         /**
          * @param {DG.DataContext} context The related context.
          * @param {object} docArchive      An archive of the DataContextRecord.
@@ -440,6 +441,8 @@ DG.DocumentArchiver = SC.Object.extend(
           var cleanedDocArchive;
           var shouldSkipPatch;
           var differences;
+          var externalDocumentId = context.get('externalDocumentId');
+          var shouldPatchAnyway = false;
           // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
           if( !SC.none( iDocumentPermissions)) {
@@ -465,18 +468,21 @@ DG.DocumentArchiver = SC.Object.extend(
                 || context._openedFromSharedDocument;
             delete context._openedFromSharedDocument;
 
-            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(context.get('externalDocumentId'))) {
+            shouldPatchAnyway = context._forcePatch;
+            delete context._forcePatch;
+
+            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(externalDocumentId)) {
               differences = jiff.diff(context.savedShadowCopy(),
                   cleanedDocArchive, function(obj) {
                     return obj.guid || JSON.stringify(obj);
                   });
-              if (differences.length === 0) { return; }
+              if (differences.length === 0 && !shouldPatchAnyway) { return; }
               savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, differences, this, false, true);
             } else {
               savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, dataContextArchive, this);
             }
-            savePromise.then(function(success) {
-              if (success) {
+            savePromise.then(function(externalContextId) {
+              if (externalContextId) {
                 if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
                   context.updateSavedShadowCopy(cleanedDocArchive);
                 }
@@ -516,6 +522,14 @@ DG.DocumentArchiver = SC.Object.extend(
                   .then(function(success) {
                     if (!success) {
                       DG.dirtyCurrentDocument();
+                    } else if (originalDocId !== DG.currDocumentController().get('externalDocumentId')) {
+                      // Our doc id changed, so we need to re-save all of our contexts
+                      DG.currDocumentController().contexts.forEach(function(iContext) {
+                        var context = iContext.get('model');
+                        context._forcePatch = true;
+                        DG.dirtyCurrentDocument(context);
+                      });
+                      DG.currDocumentController().invokeLater(function() { console.log("triggering new save"); DG.appController.autoSaveDocument(true); });
                     }
                     saveInProgress.resolve(success);
                   });
