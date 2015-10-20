@@ -568,6 +568,20 @@ DG.appController = SC.Object.create((function () // closure
       ) {
         this.set('_originalDocumentName', iOriginalName);
         this.doRenameDocument(iOriginalName, iNewName, this);
+      } else if ( iOriginalName && iNewName !== iOriginalName) {
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'document.rename',
+          undoString: 'DG.Undo.document.rename',
+          redoString: 'DG.Redo.document.rename',
+          log: 'Renamed document: {from: "%@", to: "%@"}'.fmt(iOriginalName, iNewName),
+          execute: function() {},
+          undo: function() {
+            DG.currDocumentController().set('documentName', iOriginalName);
+          },
+          redo: function () {
+            DG.currDocumentController().set('documentName', iNewName);
+          }
+        }));
       }
     },
 
@@ -601,11 +615,13 @@ DG.appController = SC.Object.create((function () // closure
           DG.dirtyCurrentDocument(); // Need this before calling saveCODAPDocument, even though it will get dirtied again automatically
           controller.saveCODAPDocument();
           controller.set('_originalDocumentName', null);
-        }, undo: function() {
+        },
+        undo: function() {
           controller.set('_skipUndoNextRename', true);
           DG.currDocumentController().set('documentName', this._originalName);
           controller.renameDocument(this._newName, this._originalName);
-        }, redo: function () {
+        },
+        redo: function () {
           controller.set('_skipUndoNextRename', true);
           DG.currDocumentController().set('documentName', this._newName);
           controller.renameDocument(this._originalName, this._newName);
