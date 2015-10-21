@@ -61,6 +61,8 @@ DG.GraphController = DG.DataDisplayController.extend(
             }
           }.bind(this);
 
+          storage.isTransparent = this.getPath('graphModel.isTransparent');
+
           this.storeDimension(dataConfiguration, storage, 'x');
           this.storeDimension(dataConfiguration, storage, 'y');
           this.storeDimension(dataConfiguration, storage, 'y2');
@@ -355,7 +357,22 @@ DG.GraphController = DG.DataDisplayController.extend(
           }
           else
             sc_super();
-        }.observes('*plotView.dragData', '*legendView.dragData')
+        }.observes('*plotView.dragData', '*legendView.dragData'),
+
+        styleControls: function () {
+          var this_ = this,
+              tResult = sc_super();
+          tResult.push( SC.CheckboxView.create({
+            title: 'DG.Inspector.graphTransparency',
+            value: this_.getPath('graphModel.isTransparent'),
+            classNames: 'graph-transparent-check'.w(),
+            localize: true,
+            valueDidChange: function () {
+              this_.get('graphModel').toggleProperty('isTransparent');
+            }.observes('value')
+          }));
+          return tResult;
+        }.property()
       };
 
     }()) // function closure

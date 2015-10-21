@@ -32,6 +32,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     dataConfigurationClass: function() {
       return DG.GraphDataConfiguration;
     }.property(),
+
+    isTransparent: false, // part of model state that determines whether plot views are transparent
     
     /**
      * @property {DG.NumberToggleModel}
@@ -663,6 +665,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }.bind( this);
 
       sc_super();
+
+      if( !SC.none( iStorage.isTransparent))
+        this.set('isTransparent', iStorage.isTransparent);
 
       // Instantiate the attribute references
       xAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'xColl', 'xAttr');
