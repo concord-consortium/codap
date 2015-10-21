@@ -557,6 +557,9 @@ DG.DocumentArchiver = SC.Object.extend(
             exportPromise;
         if (!SC.none(existingSaveInProgress)) {
           DG.logWarn('Request to save, but save in progress: deferring.');
+          existingSaveInProgress.done(function() {
+            DG.appController.autoSaveDocument(true);
+          });
           return;
         }
 
