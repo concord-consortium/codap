@@ -279,13 +279,16 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         url = '%@document/save'.fmt(DG.documentServer);
       }
 
-      if (!SC.none(options.id)) {
-        params.recordid = options.id;
-      } else if (!SC.none(options.name)) {
-        params.recordname = options.name;
-      } else {
+      if (SC.none(options.id) && SC.none(options.name)) {
         reject(new Error("Must supply either 'id' or 'name' in the options!"));
         return;
+      }
+
+      if (!SC.none(options.id)) {
+        params.recordid = options.id;
+      }
+      if (!SC.none(options.name)) {
+        params.recordname = options.name;
       }
       if (DG.runKey) {
         params.runKey = DG.runKey;

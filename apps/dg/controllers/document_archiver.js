@@ -703,9 +703,9 @@ DG.DocumentArchiver = SC.Object.extend(
       streamDocumentToCloudStorage: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
         var saveOpts = { content: iDocumentArchive},
             numericId = DG.currDocumentController().get('externalDocumentId');
-        if (isCopying || SC.none(numericId)) {
-          saveOpts.name = iDocumentId;
-        } else {
+
+        saveOpts.name = iDocumentId;
+        if (!isCopying && !SC.none(numericId)) {
           saveOpts.id = numericId;
         }
         return DG.authorizationController.get('storageInterface').save(saveOpts).then(
@@ -776,9 +776,8 @@ DG.DocumentArchiver = SC.Object.extend(
           if (isDifferential) {
             opts.differential = true;
           }
-        } else {
-          opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
         }
+        opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
 
         if (!isCopying && !SC.none(parentDocumentId)) {
           opts.params = {parentDocumentId: parentDocumentId};
