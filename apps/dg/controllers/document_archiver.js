@@ -769,7 +769,7 @@ DG.DocumentArchiver = SC.Object.extend(
           iDocumentArchive, iReceiver, isCopying, isDifferential) {
         var opts = {content: iDocumentArchive},
             externalDocumentId = contextModel.get('externalDocumentId'),
-            parentDocumentId = DG.currDocumentController().get('externalDocumentId');
+            parentDocumentId = !DG.currDocumentController().get('content')._openedFromSharedDocument ? DG.currDocumentController().get('externalDocumentId') : null;
 
         if (!isCopying && !SC.none(externalDocumentId)) {
           opts.id = externalDocumentId;
