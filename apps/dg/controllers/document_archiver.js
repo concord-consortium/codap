@@ -442,6 +442,7 @@ DG.DocumentArchiver = SC.Object.extend(
           var shouldSkipPatch;
           var differences;
           var externalDocumentId = context.get('externalDocumentId');
+          var openedFromShared = false;
           var shouldPatchAnyway = false;
           // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
@@ -464,14 +465,14 @@ DG.DocumentArchiver = SC.Object.extend(
 
             // If we are opening from a shared document, the first save of
             // each context should be a full save.
-            shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1
-                || context._openedFromSharedDocument;
+            shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1;
+            openedFromShared = context._openedFromSharedDocument;
             delete context._openedFromSharedDocument;
 
             shouldPatchAnyway = context._forcePatch;
             delete context._forcePatch;
 
-            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(externalDocumentId)) {
+            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !openedFromShared && !SC.none(externalDocumentId)) {
               differences = jiff.diff(context.savedShadowCopy(),
                   cleanedDocArchive, function(obj) {
                     return obj.guid || JSON.stringify(obj);
@@ -483,6 +484,12 @@ DG.DocumentArchiver = SC.Object.extend(
             }
             var fail = function() {
               DG.dirtyCurrentDocument(context);
+              if (openedFromShared) {
+                context._openedFromSharedDocument = true;
+              }
+              if (shouldPatchAnyway) {
+                context._forcePatch = true;
+              }
             };
             savePromise.then(function(externalContextId) {
               if (externalContextId) {
@@ -510,7 +517,8 @@ DG.DocumentArchiver = SC.Object.extend(
          */
         var exportMainDocument = function(docArchive) {
           // determine if we need to save the main document
-          var needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || documentController.get('content')._openedFromSharedDocument;
+          var openedFromShared = documentController.get('content')._openedFromSharedDocument,
+              needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || openedFromShared;
           delete documentController.get('content')._openedFromSharedDocument;
           var reply;
           if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
@@ -537,6 +545,9 @@ DG.DocumentArchiver = SC.Object.extend(
                     saveInProgress.resolve(success);
                   }, function() {
                     DG.dirtyCurrentDocument();
+                    if (openedFromShared) {
+                      documentController.get('content')._openedFromSharedDocument = true;
+                    }
                     saveInProgress.resolve();
                   });
             } else {
