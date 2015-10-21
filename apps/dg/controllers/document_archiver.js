@@ -481,6 +481,9 @@ DG.DocumentArchiver = SC.Object.extend(
             } else {
               savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, dataContextArchive, this);
             }
+            var fail = function() {
+              DG.dirtyCurrentDocument(context);
+            };
             savePromise.then(function(externalContextId) {
               if (externalContextId) {
                 if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
@@ -491,9 +494,9 @@ DG.DocumentArchiver = SC.Object.extend(
                   documentController._skipPatchNextTime.splice(documentController._skipPatchNextTime.indexOf(context), 1);
                 }
               } else {
-                DG.dirtyCurrentDocument(context);
+                fail();
               }
-            }.bind(this));
+            }.bind(this), fail);
           }
           return savePromise;
         }.bind(this);
@@ -532,6 +535,9 @@ DG.DocumentArchiver = SC.Object.extend(
                       DG.currDocumentController().invokeLater(function() { console.log("triggering new save"); DG.appController.autoSaveDocument(true); });
                     }
                     saveInProgress.resolve(success);
+                  }, function() {
+                    DG.dirtyCurrentDocument();
+                    saveInProgress.resolve();
                   });
             } else {
               this.invokeLater(function() { saveInProgress.resolve(); });
@@ -565,6 +571,8 @@ DG.DocumentArchiver = SC.Object.extend(
         }.bind(this))
         .then(function() {
             return exportMainDocument(documentController.content.toArchive());
+        }, function() {
+          saveInProgress.resolve();
         })
         // at this point I want to call .catch, but the sproutcore js assemble
         // complains, so we call then with a null resolve function.
@@ -811,6 +819,7 @@ DG.DocumentArchiver = SC.Object.extend(
             this._skipPatchNextTime.push(contextModel);
           }
           DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
+          reject();
         }.bind(this));
       }
 
