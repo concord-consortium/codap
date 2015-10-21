@@ -540,7 +540,7 @@ DG.DocumentArchiver = SC.Object.extend(
                         context._forcePatch = true;
                         DG.dirtyCurrentDocument(context);
                       });
-                      DG.currDocumentController().invokeLater(function() { console.log("triggering new save"); DG.appController.autoSaveDocument(true); });
+                      DG.currDocumentController().invokeLater(function() { DG.appController.autoSaveDocument(true); });
                     }
                     saveInProgress.resolve(success);
                   }, function() {
