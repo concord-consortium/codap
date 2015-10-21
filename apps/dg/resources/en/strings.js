@@ -604,6 +604,7 @@ SC.stringsFor('English', {
       'DG.Inspector.displayShow': "Show …",  // "Show …"
 
       // Graph Inspector
+      'DG.Inspector.graphTransparency': "Transparent",  // "Transparent"
       'DG.Inspector.graphCount': "Count",  // "Count"
       'DG.Inspector.graphConnectingLine': "Connecting Lines",  // "Connecting Lines"
       'DG.Inspector.graphMovableLine': "Movable Line",  // "Movable Line"

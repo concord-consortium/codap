@@ -538,6 +538,10 @@ body.dg .sc-view.doc-background {
     background-color: white;
 }
 
+.plot-view-transparent {
+    background-color: transparent;
+}
+
 .graph-view {
 }
 

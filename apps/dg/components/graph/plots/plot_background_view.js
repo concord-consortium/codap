@@ -54,6 +54,11 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
+  init: function() {
+    sc_super();
+    this.transparencyDidChange(); // For initialization of transparency
+  },
+
   /**
    * Additional setup after creating the view
    */
@@ -321,7 +326,22 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tHintString = (tIsNotEmpty ? 'DG.GraphView.dropInPlot' : 'DG.GraphView.addToEmptyX')
             .loc( iDrag.data.attribute.get('name' ));
     this.set('dropHintString', tHintString);
-  }
+  },
+
+  transparencyDidChange: function() {
+    var kTransparentStyle = 'plot-view-transparent',
+        tIsTransparent = this.getPath('graphModel.isTransparent'),
+        tClassNames = this.get('classNames'),
+        tIndex = tClassNames.indexOf( kTransparentStyle),
+        tTransparentStyleIsPresent = tIndex >= 0;
+    if( tIsTransparent && !tTransparentStyleIsPresent) {
+      tClassNames.push(kTransparentStyle);
+    }
+    else if( !tIsTransparent && tTransparentStyleIsPresent) {
+      tClassNames.splice( tIndex, 1);
+    }
+    this.displayDidChange();
+  }.observes('graphModel.isTransparent')
 
 });
 
