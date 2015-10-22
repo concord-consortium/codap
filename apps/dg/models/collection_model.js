@@ -381,7 +381,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     deleteCase: function (iCase) {
       DG.Case.destroyCase(iCase);
-      //this.updateCaseIDToIndexMap();
+      this.updateCaseIDToIndexMap();
     },
 
     /**
@@ -391,6 +391,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * array, as created.
      *
      * @param items {[DG.DataItem]}
+     * @param parent {DG.Case} The parent case for this set of cases.
      */
     recreateCases: function (items, parent) {
       var childCollection = this.children[0];
