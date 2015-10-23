@@ -267,12 +267,14 @@ DG.CaseTableController = DG.ComponentController.extend(
           case 'createAttributes':
           case 'deleteAttributes':
           case 'moveAttribute':
+            this.caseCountDidChange( iChange);
             this.attributeCountDidChange( iChange);
             break;
           case 'updateAttributes':
             this.doUpdateAttributes( iChange);
             break;
           case 'resetCollections':
+            this.caseCountDidChange( iChange);
             this.doResetCollections( iChange );
             break;
           default:
@@ -871,23 +873,61 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       leftDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.leftDropTarget.dropData');
+        var context = this.dataContext;
+        var tChange = {
+          operation: 'createCollection',
+          properties: {
+            name: 'cases' + (new Date().getTime())
+          },
+          attributes: []
+        };
+        var rtn;
         if (!SC.none(dropData)) {
+          tChange.properties.children = [context.getCollectionAtIndex(0).collection];
+          rtn = context.applyChange(tChange);
+          if (rtn.success) {
+            tChange = {
+              operation: 'moveAttribute',
+              attr: dropData.attribute,
+              toCollection: rtn.collection
+            };
+            rtn = context.applyChange(tChange);
+          }
           this.setPath('contentView.leftDropTarget.dropData', null);
         }
         DG.log('CaseTable observes left drop');
-
       }.observes('contentView.leftDropTarget.dropData'),
 
       rightDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.rightDropTarget.dropData');
+        var context = this.dataContext;
+        var collectionCount = context.get('collectionCount');
+        var parentClient = context.getCollectionAtIndex(collectionCount-1);
+        var tChange = {
+          operation: 'createCollection',
+          properties: {
+            name: 'cases' + (new Date().getTime()),
+            parent: parentClient.get('collection')
+          },
+          attributes: []
+        };
+        var rtn;
+
         if (!SC.none(dropData)) {
-          this.setPath('contentView.rightDropTarget.dropData', null);
+          rtn = context.applyChange(tChange);
+          if (rtn.success) {
+            tChange = {
+              operation: 'moveAttribute',
+              attr: dropData.attribute,
+              toCollection: rtn.collection
+            };
+            rtn = context.applyChange(tChange);
+          }
+          this.setPath('contentView.leftDropTarget.dropData', null);
         }
         DG.log('CaseTable observes right drop');
 
       }.observes('contentView.rightDropTarget.dropData')
-
-
     };
   }()) // function closure
 );
