@@ -560,6 +560,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
 DG.Collection.createCollection = function( iProperties) {
   var tCollection;
+  var childCollection = null;
 
   if( SC.none( iProperties)) {
     iProperties = {};
@@ -569,15 +570,31 @@ DG.Collection.createCollection = function( iProperties) {
     iProperties.type = 'DG.Collection';
   }
 
+  if (iProperties.children) {
+    childCollection = iProperties.children[0];
+  }
+
   if (iProperties.parent) {
     iProperties.parent = DG.store.resolve(iProperties.parent);
   }
 
   tCollection = DG.Collection.create(iProperties);
 
+  // if child collection, link this collection in
+  if (childCollection) {
+    if (childCollection.get('parent')) {
+      childCollection.get('parent').children.push(tCollection);
+      tCollection.set('parent', childCollection.get('parent'));
+    }
+    tCollection.children.push(childCollection);
+    childCollection.set('parent', tCollection);
+
+  }
+
   if (iProperties.parent) {
     iProperties.parent.children.push(tCollection);
   }
+
   if (iProperties.context) {
     iProperties.context.collections[tCollection.id] = tCollection;
   }
