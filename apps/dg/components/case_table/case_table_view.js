@@ -45,7 +45,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   return {  // return from closure
   
   classNames: ['dg-case-table'],
-  
+
   layout: { left: 0, right: 0, top: 0, bottom: 0 },
   
   backgroundColor: "white",
@@ -909,17 +909,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     dragStarted: function( iDrag) {
       this.set('isDragInProgress', true);
-      DG.log('dragStarted');
     },
 
     dragEnded: function () {
       this.set('isDragInProgress', false);
-      DG.log('dragEnded');
     },
 
     dragEntered: function( iDragObject, iEvent) {
       this.set('isDragEntered', true);
-      DG.log('dragEntered');
     },
 
     dragInsertPoint: null,
@@ -982,7 +979,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
       this.dragInsertPoint = null;
       this.set('isDragEntered', false);
-      DG.log('dragExited');
     },
 
     acceptDragOperation: function() {
