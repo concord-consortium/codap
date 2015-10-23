@@ -20,9 +20,12 @@
 DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
       return {
+        name: null,
         classNames: 'dg-table-drop-target'.w(),
         layout: { width: 50 },
-        isDropTarget: true,
+        isDropTarget: function () {
+          return YES;
+        }.property(),
         isDragInProgress: false,
         isDragEntered: false,
         minimumSize: 10,
@@ -65,24 +68,20 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         dragStarted: function( iDrag) {
           this.set('isDragInProgress', true);
-          DG.log('dragStarted');
         },
 
         dragEnded: function () {
           this.set('isDragInProgress', false);
-          DG.log('dragEnded');
         },
 
         dragEntered: function( iDragObject, iEvent) {
           this.showDropHint();
           this.set('isDragEntered', true);
-          DG.log('dragEntered');
         },
 
         dragExited: function( iDragObject, iEvent) {
           this.hideDropHint();
           this.set('isDragEntered', false);
-          DG.log('dragExited');
         },
 
         acceptDragOperation: function() {
@@ -91,8 +90,6 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         performDragOperation:function ( iDragObject, iDragOp ) {
           this.set('dropData', iDragObject.data);
-          DG.log('Got drop: ' + iDragObject.data.attribute.name);
-          DG.log('Got dropOp: ' + iDragOp);
         }
       };
     }())
