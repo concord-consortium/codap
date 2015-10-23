@@ -196,7 +196,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0313',
+    BUILD_NUM: '0314',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -411,7 +411,7 @@ DG = SC.Application.create((function () // closure
     iPassword: getUrlParameter('password'),
     iSessionID: getUrlParameter('sessionid'),
 
-    enableUndoHistory: getUrlParameter('undo') === 'true'
+    enableUndoHistory: true //getUrlParameter('undo') === 'true'
 
   }; // end return from closure
 

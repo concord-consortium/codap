@@ -427,6 +427,7 @@ DG.DocumentArchiver = SC.Object.extend(
        *                                        0: unshared, 1: shared
        */
       saveDocument: function( iDocumentName, iDocumentPermissions) {
+        var originalDocId = DG.currDocumentController().get('externalDocumentId');
         /**
          * @param {DG.DataContext} context The related context.
          * @param {object} docArchive      An archive of the DataContextRecord.
@@ -440,6 +441,9 @@ DG.DocumentArchiver = SC.Object.extend(
           var cleanedDocArchive;
           var shouldSkipPatch;
           var differences;
+          var externalDocumentId = context.get('externalDocumentId');
+          var openedFromShared = false;
+          var shouldPatchAnyway = false;
           // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
           if( !SC.none( iDocumentPermissions)) {
@@ -453,29 +457,42 @@ DG.DocumentArchiver = SC.Object.extend(
           if( DG.assert( !SC.none(dataContextArchive))
               && (needsSave
                 || documentController.objectHasUnsavedChanges(context)
-                || SC.none(context.get('externalDocumentId')
-              )) ) {
+                || SC.none(context.get('externalDocumentId'))
+                || context._openedFromSharedDocument
+              ) ) {
             documentController.clearChangedObject(context);
             cleanedDocArchive = JSON.parse(JSON.stringify(dataContextArchive)); // Strips all keys with undefined values
 
             // If we are opening from a shared document, the first save of
             // each context should be a full save.
-            shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1
-                || context._openedFromSharedDocument;
+            shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1;
+            openedFromShared = context._openedFromSharedDocument;
             delete context._openedFromSharedDocument;
 
-            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !SC.none(context.get('externalDocumentId'))) {
+            shouldPatchAnyway = context._forcePatch;
+            delete context._forcePatch;
+
+            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !openedFromShared && !SC.none(externalDocumentId)) {
               differences = jiff.diff(context.savedShadowCopy(),
                   cleanedDocArchive, function(obj) {
                     return obj.guid || JSON.stringify(obj);
                   });
-              if (differences.length === 0) { return; }
+              if (differences.length === 0 && !shouldPatchAnyway) { return; }
               savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, differences, this, false, true);
             } else {
               savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, dataContextArchive, this);
             }
-            savePromise.then(function(success) {
-              if (success) {
+            var fail = function() {
+              DG.dirtyCurrentDocument(context);
+              if (openedFromShared) {
+                context._openedFromSharedDocument = true;
+              }
+              if (shouldPatchAnyway) {
+                context._forcePatch = true;
+              }
+            };
+            savePromise.then(function(externalContextId) {
+              if (externalContextId) {
                 if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
                   context.updateSavedShadowCopy(cleanedDocArchive);
                 }
@@ -484,9 +501,9 @@ DG.DocumentArchiver = SC.Object.extend(
                   documentController._skipPatchNextTime.splice(documentController._skipPatchNextTime.indexOf(context), 1);
                 }
               } else {
-                DG.dirtyCurrentDocument(context);
+                fail();
               }
-            }.bind(this));
+            }.bind(this), fail);
           }
           return savePromise;
         }.bind(this);
@@ -500,7 +517,9 @@ DG.DocumentArchiver = SC.Object.extend(
          */
         var exportMainDocument = function(docArchive) {
           // determine if we need to save the main document
-          var needsSave = documentController.objectHasUnsavedChanges(documentController.get('content'));
+          var openedFromShared = documentController.get('content')._openedFromSharedDocument,
+              needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || openedFromShared;
+          delete documentController.get('content')._openedFromSharedDocument;
           var reply;
           if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
             docArchive._permissions = iDocumentPermissions;
@@ -514,8 +533,22 @@ DG.DocumentArchiver = SC.Object.extend(
                   .then(function(success) {
                     if (!success) {
                       DG.dirtyCurrentDocument();
+                    } else if (originalDocId !== DG.currDocumentController().get('externalDocumentId')) {
+                      // Our doc id changed, so we need to re-save all of our contexts
+                      DG.currDocumentController().contexts.forEach(function(iContext) {
+                        var context = iContext.get('model');
+                        context._forcePatch = true;
+                        DG.dirtyCurrentDocument(context);
+                      });
+                      DG.currDocumentController().invokeLater(function() { DG.appController.autoSaveDocument(true); });
                     }
                     saveInProgress.resolve(success);
+                  }, function() {
+                    DG.dirtyCurrentDocument();
+                    if (openedFromShared) {
+                      documentController.get('content')._openedFromSharedDocument = true;
+                    }
+                    saveInProgress.resolve();
                   });
             } else {
               this.invokeLater(function() { saveInProgress.resolve(); });
@@ -535,6 +568,9 @@ DG.DocumentArchiver = SC.Object.extend(
             exportPromise;
         if (!SC.none(existingSaveInProgress)) {
           DG.logWarn('Request to save, but save in progress: deferring.');
+          existingSaveInProgress.done(function() {
+            DG.appController.autoSaveDocument(true);
+          });
           return;
         }
 
@@ -549,6 +585,8 @@ DG.DocumentArchiver = SC.Object.extend(
         }.bind(this))
         .then(function() {
             return exportMainDocument(documentController.content.toArchive());
+        }, function() {
+          saveInProgress.resolve();
         })
         // at this point I want to call .catch, but the sproutcore js assemble
         // complains, so we call then with a null resolve function.
@@ -663,7 +701,14 @@ DG.DocumentArchiver = SC.Object.extend(
        and perform any other appropriate tasks upon completion.
        */
       streamDocumentToCloudStorage: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-        return DG.authorizationController.get('storageInterface').save({name: iDocumentId, content: iDocumentArchive}).then(
+        var saveOpts = { content: iDocumentArchive},
+            numericId = DG.currDocumentController().get('externalDocumentId');
+
+        saveOpts.name = iDocumentId;
+        if (!isCopying && !SC.none(numericId)) {
+          saveOpts.id = numericId;
+        }
+        return DG.authorizationController.get('storageInterface').save(saveOpts).then(
             function(body) {
               return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
             },
@@ -724,16 +769,15 @@ DG.DocumentArchiver = SC.Object.extend(
           iDocumentArchive, iReceiver, isCopying, isDifferential) {
         var opts = {content: iDocumentArchive},
             externalDocumentId = contextModel.get('externalDocumentId'),
-            parentDocumentId = DG.currDocumentController().get('externalDocumentId');
+            parentDocumentId = !DG.currDocumentController().get('content')._openedFromSharedDocument ? DG.currDocumentController().get('externalDocumentId') : null;
 
         if (!isCopying && !SC.none(externalDocumentId)) {
           opts.id = externalDocumentId;
           if (isDifferential) {
             opts.differential = true;
           }
-        } else {
-          opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
         }
+        opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
 
         if (!isCopying && !SC.none(parentDocumentId)) {
           opts.params = {parentDocumentId: parentDocumentId};
@@ -788,6 +832,7 @@ DG.DocumentArchiver = SC.Object.extend(
             this._skipPatchNextTime.push(contextModel);
           }
           DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
+          reject();
         }.bind(this));
       }
 

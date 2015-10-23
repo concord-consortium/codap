@@ -52,7 +52,7 @@ DG.CODAPCommonStorage = {
         // the document ID will be changed to the user's document id. We need
         // to know this to know to skip differential saving the first time
         // round and do a full save.
-        if (responseHeaders['X-Codap-Will-Overwrite']) {
+        if (responseHeaders['X-Codap-Opened-From-Shared-Document']) {
           body._openedFromSharedDocument = true;
         }
         resolve(body);
@@ -82,8 +82,17 @@ DG.CODAPCommonStorage = {
   _extractMessage: function(iResponse) {
     var body = iResponse.get('body'),
         status = iResponse.get('status');
+    if (typeof(body) === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        // Oh well...
+      }
+    }
     DG.log("Raw response status: " + status + " body: " + body);
-    if (status === 401) {
+    if (! (SC.none(body.message) || SC.empty(body.message))) {
+      return body.message;
+    } else if (status === 401) {
       return 'error.sessionExpired';
     } else if (status === 403) {
       return 'error.permissions';
