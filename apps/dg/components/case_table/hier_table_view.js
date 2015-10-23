@@ -74,7 +74,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     compensatesForMovement: YES
   }),
 
-    slopView: SC.View.extend( SC.SplitChild, {
+    slopView: SC.View.create( SC.SplitChild, {
       name: 'slopView',
       minimumSize: kMinSlop,
       size: kMinSlop,
@@ -105,8 +105,8 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       }.property()
     }),
 
-    leftDropTarget: DG.CaseTableDropTarget.create({name:'leftTarget'}),
-    rightDropTarget: DG.CaseTableDropTarget.create({name:'rightTarget'}),
+    leftDropTarget: null,
+    rightDropTarget: null,
 
     makeRelationDividerView: function () {
       return  this.relationDividerView.create({});
@@ -361,33 +361,56 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     }
     var childTableViews = this.get('childTableViews');
     var dividerViews = this.get('dividerViews');
-    var m = Math.max(childTableViews.length, iAdapters.length);
-    var ix;
-    var childTableView, adapter, divider;
+    var adapterIsAssigned = [];
+    var childTableView;
+    var divider;
+
+    // Remove all the contents of the view. We are going to recreate the order.
+    childTableViews.forEach(function(view) {this.removeChild(view);}.bind(this));
+    dividerViews.forEach(function(view) {this.removeChild(view);}.bind(this));
     this.removeChild(this.slopView);
-    this.appendChild(this.leftDropTarget);
-    for (ix = 0; ix < m; ix += 1) {
-      childTableView = childTableViews[ix];
-      adapter = iAdapters[ix];
-      if (childTableView && adapter) {
-        childTableView.setIfChanged('gridAdapter', adapter);
-        if (ix > 0) setUpDividerView(childTableViews[ix-1], childTableView, dividerViews[ix-1]);
-      } else if (adapter) {
+    if (this.rightDropTarget) {
+      this.removeChild(this.rightDropTarget);
+    }
+
+    // find out which adapters are already mapped to views.
+    iAdapters.forEach(function (adapter, ix) {
+      adapterIsAssigned[ix] = !SC.none(childTableViews.findProperty('gridAdapter', adapter));
+    });
+
+    // if not mapped to views create new views
+    iAdapters.forEach(function (adapter, ix) {
+      if (!adapterIsAssigned[ix]) {
+        divider = null;
         if (ix > 0) {
           divider = this.makeRelationDividerView();
-          this.appendChild(divider);
-          dividerViews.push(divider);
+          dividerViews.insertAt(ix-1, divider);
         }
         childTableView = this.makeChildTableView();
-        childTableView.setIfChanged('gridAdapter', adapter);
-        this.appendChild(childTableView);
-        childTableViews.push(childTableView);
-
+        childTableView.set('gridAdapter', adapter);
+        childTableViews.insertAt(ix, childTableView);
         if (divider) setUpDividerView(childTableViews[ix-1],
             childTableView, divider);
-      } else if (childTableView) {
-        this.removeChildTableView(childTableView);
       }
+    }.bind(this));
+
+    // now we are going to rebuild the view, left first...
+    if (!this.childViews.findProperty('name', 'leftTarget')) {
+      this.leftDropTarget = DG.CaseTableDropTarget.create({name:'leftTarget'});
+      this.appendChild(this.leftDropTarget);
+    }
+
+    // now the table views and the dividers...
+    childTableViews.forEach(function (view, ix) {
+      this.appendChild(view);
+      if (dividerViews[ix]) {
+        this.appendChild(dividerViews[ix]);
+      }
+    }.bind(this));
+
+    // now the right-hand portions...
+    if (SC.none(this.rightDropTarget)) {
+      this.rightDropTarget = DG.CaseTableDropTarget.create({name:'rightTarget'});
     }
     this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);
