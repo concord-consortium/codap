@@ -184,6 +184,11 @@ DG.ComponentView = SC.View.extend(
         controller: null,
 
         /**
+         * @property {DG.ComponentModel}
+         */
+        model: null,
+
+        /**
          * @property {Array of DG.InspectorButtonView}
          */
         inspectorButtons: function () {
@@ -200,7 +205,11 @@ DG.ComponentView = SC.View.extend(
           this.setPath('containerView.titlebar.isSelected', this.get('isSelected'));
         }.observes('isSelected'),
 
+        /**
+         * @property{Number}
+         */
         savedHeight: null,
+        savedHeightBinding: 'model.savedHeight',
 
         isMinimized: function () {
           return !SC.none(this.savedHeight);

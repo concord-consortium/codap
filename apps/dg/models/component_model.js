@@ -73,9 +73,17 @@ DG.Component = DG.BaseModel.extend(
 
       /**
        * The bounds of the component in the document stored as an SC.Layout-formatted object.
-       * @property {JSON}
+       * @property {Object}
        */
       layout: null,
+
+      /**
+       * Is only a value when we are minimized
+       * If we are not minimized, this is null
+       * When we are minimized, this is the height of the component to return to when unminimized
+       * @property{Number}
+       */
+      savedHeight: null,
 
       /**
        * Per-component storage, in a component specific format.
@@ -105,7 +113,8 @@ DG.Component = DG.BaseModel.extend(
           type: this.type,
           guid: this.id,
           componentStorage: tStorage,
-          layout: this.layout
+          layout: this.layout,
+          savedHeight: this.get('savedHeight')
         };
         return obj;
       },
