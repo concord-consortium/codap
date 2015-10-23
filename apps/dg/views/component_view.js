@@ -205,15 +205,9 @@ DG.ComponentView = SC.View.extend(
           this.setPath('containerView.titlebar.isSelected', this.get('isSelected'));
         }.observes('isSelected'),
 
-        /**
-         * @property{Number}
-         */
-        savedHeight: null,
-        savedHeightBinding: 'model.savedHeight',
-
         isMinimized: function () {
-          return !SC.none(this.savedHeight);
-        }.property('savedHeight'),
+          return !SC.none(this.getPath('model.savedHeight'));
+        }.property('model.savedHeight'),
 
         contentView: SC.outlet('containerView.contentView'),
         childViews: 'containerView borderRight borderBottom borderLeft borderTop borderCorner'.w(),
@@ -492,8 +486,8 @@ DG.ComponentView = SC.View.extend(
             }.bind(this));
           }.bind(this);
 
-          var tSavedHeight = this.get('savedHeight');
           if (this.get('isMinimized')) {
+            var tSavedHeight = this.getPath('model.savedHeight');
             this.animate({height: tSavedHeight - 1},
                 {duration: 0.4, timing: 'ease-in-out'},
                 // This fires after the animation and has the effect of causing a refresh. Map need this to get
@@ -502,10 +496,10 @@ DG.ComponentView = SC.View.extend(
                   this.adjust('height', tSavedHeight);
                 }.bind(this));
             setBorderVisibility(true);
-            this.set('savedHeight', null);
+            this.setPath('model.savedHeight', null);
           }
           else {
-            this.savedHeight = this.get('layout').height;
+            this.setPath('model.savedHeight', this.get('layout').height);
             this.animate({height: 25},
                 {duration: 0.4, timing: 'ease-in-out'});
             setBorderVisibility(false);
