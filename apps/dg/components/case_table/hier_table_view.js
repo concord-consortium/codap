@@ -403,6 +403,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);
 
+    this.updateSelectedRows();
   },
   
   /**
