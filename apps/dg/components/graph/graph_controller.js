@@ -363,6 +363,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           var this_ = this,
               tResult = sc_super();
           tResult.push( SC.CheckboxView.create({
+            layout: {height: 25 },
             title: 'DG.Inspector.graphTransparency',
             value: this_.getPath('graphModel.isTransparent'),
             classNames: 'graph-transparent-check'.w(),
