@@ -962,13 +962,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         };
       this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
           + this.dragInsertPoint.nearerBound);
-      DG.log('dragUpdated: ' + JSON.stringify({
-            columnIndex: columnIndex,
-            location: iDragObject.location,
-            gridPosition: gridPosition,
-            loc: loc,
-            cellBox: cellBox,
-            nearerBound: nearerBound}));
+      //DG.log('dragUpdated: ' + JSON.stringify({
+      //      columnIndex: columnIndex,
+      //      location: iDragObject.location,
+      //      gridPosition: gridPosition,
+      //      loc: loc,
+      //      cellBox: cellBox,
+      //      nearerBound: nearerBound}));
       }
     },
 
