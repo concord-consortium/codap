@@ -319,8 +319,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     var tCollection = this.guaranteeCollection( iChange.properties);
     if (tCollection) {
       iChange.attributes.forEach( function( iAttrSpec) {
-                            tCollection.guaranteeAttribute( iAttrSpec);
-                          });
+        if (!SC.none(iAttrSpec.id) && !SC.none(iAttrSpec.collection)) {
+          this.moveAttribute(iAttrSpec, iAttrSpec.get('collection'), tCollection);
+        } else {
+          tCollection.guaranteeAttribute( iAttrSpec);
+        }
+      }.bind(this));
       // if this is a recreation of the collection make sure the ordering corresponds
       // to DI expectations.
       tCollection.reorderAttributes(iChange.attributes.getEach('name'));
@@ -808,6 +812,22 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attrPropsArray.forEach( updateAttribute);
     return result;
   },
+
+  moveAttribute:  function (attr, fromCollectionClient, toCollectionClient, position) {
+    var topCollection = this.getCollectionAtIndex(0);
+
+    // remove attribute from old collection
+    attr = attr.get('collection').removeAttribute(attr);
+
+    // add attribute to new collection
+    toCollectionClient.get('collection').addAttribute(attr, position);
+
+    // drop all cases
+    this.forEachCollection(function (collection) { collection.deleteAllCases(); });
+
+    // starting with top collection, recreate cases
+    topCollection.get('collection').recreateCases();
+  },
     /**
      * Moves an attribute either within a collection or between collections.
      *
@@ -824,7 +844,7 @@ DG.DataContext = SC.Object.extend((function() // closure
      * @return {Object}
      *    {Boolean}               .success
      */
-  doMoveAttribute: function( iChange) {
+    doMoveAttribute: function( iChange) {
       function moveWithinCollection(attr, collectionClient, position) {
         var name = attr.name;
         var attributeNames;
@@ -841,30 +861,12 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
       }
 
-      function moveBetweenCollections(attr, fromCollectionClient, toCollectionClient, position) {
-        var topCollection = _this.getCollectionAtIndex(0);
-
-        // remove attribute from old collection
-        attr = fromCollectionClient.get('collection').removeAttribute(attr);
-
-        // add attribute to new collection
-        toCollectionClient.get('collection').addAttribute(attr, position);
-
-
-        // drop all cases
-        _this.forEachCollection(function (collection) { collection.deleteAllCases(); });
-
-        // starting with top collection, recreate cases
-        topCollection.get('collection').recreateCases();
-      }
-
       // ----- begin method ------
       var attr = iChange.attr;
       var fromCollection = attr.get('collection');
       var fromCollectionClient = this.getCollectionByID(fromCollection.id);
       var toCollectionClient = iChange.toCollection || fromCollection;
       var position = iChange.position;
-      var _this = this;
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection
@@ -872,11 +874,13 @@ DG.DataContext = SC.Object.extend((function() // closure
       } else {
         // inter-collection moves are more complex: we need to reconstruct the
         // cases in the collection
-        moveBetweenCollections(attr, fromCollectionClient, toCollectionClient, position);
+        this.moveAttribute(attr, fromCollectionClient, toCollectionClient,
+            position);
         iChange.operation = 'resetCollections';
       }
-  },
-      /**
+    },
+
+    /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
               {String}  .operation - "deleteAttributes"

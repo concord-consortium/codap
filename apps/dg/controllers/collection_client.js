@@ -306,7 +306,6 @@ DG.CollectionClient = SC.Object.extend(
     @returns  {DG.Attribute}  The matching or newly-created DG.Attribute object
    */
   guaranteeAttribute: function( iProperties) {
-    var tAttribute = null;
 
     // This function side-effects iProperties by potentially changing the name and unit
     function makeNameLegal() {
@@ -324,11 +323,17 @@ DG.CollectionClient = SC.Object.extend(
       tName = tName.replace(/\W/g, '_');  // Replace white space with underscore
       iProperties.name = tName;
     }
-    
+
+    var tAttribute = null;
+
     // See if the attribute already exists
     iProperties = iProperties || {};
 
     makeNameLegal();
+
+    // if the property has an ID then it is an existing attribute, possibly from
+    // another collection. If so, we need to remove it from the other collection
+    // and add it here.
 
     if (!SC.empty( iProperties.name)) {
       tAttribute = this.getAttributeByName( iProperties.name);
@@ -417,7 +422,7 @@ DG.CollectionClient = SC.Object.extend(
     @returns  {DG.CollectionClient} this, for use in chaining method invocations
    */
   forEachAttribute: function( iFunction) {
-    this.attrsController.forEach( iFunction);
+    this.collection.attrs.forEach( iFunction);
     return this;
   },
 
