@@ -103,8 +103,18 @@ DG.DataContextRecord = DG.BaseModel.extend(
       return DG.Collection.createCollection( iProperties);
     },
 
+      /**
+       * Prepares a streamable version of this object. Streamable means it is
+       * JSON ready and has all persistent data for the object and its subobjects.
+       *
+       * In this case we take special care to avoid forward references among
+       * collections.
+       * @param fullData
+       * @returns {*}
+       */
     toArchive: function (fullData) {
       var obj;
+      var root;
       fullData = fullData || false;
       if ( fullData || SC.none(this.externalDocumentId) ) {
         obj = {
@@ -114,9 +124,20 @@ DG.DataContextRecord = DG.BaseModel.extend(
             collections: [],
             contextStorage: this.contextStorage
           };
-        DG.ObjectMap.forEach(this.collections, function (collectionKey){
-          obj.collections.push(this.collections[collectionKey].toArchive());
-        }.bind(this));
+
+        DG.ObjectMap.forEach(this.collections, function (collectionKey, collection){
+          if (SC.none(collection.parent)) {
+            root = collection;
+          }
+        });
+
+        while (root.children.length > 0) {
+          obj.collections.push(root.toArchive());
+          root = root.children[0];
+        }
+        if (!SC.none(root)) {
+          obj.collections.push(root.toArchive());
+        }
       } else {
         obj = {
           externalDocumentId: this.externalDocumentId
