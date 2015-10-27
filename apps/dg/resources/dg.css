@@ -203,6 +203,14 @@
     font-family: Montserrat-Regular !important;
 }
 
+.axis-cell-label-y {
+    cursor: static_url('cursors/TranslateY.cur') 8 8, auto;
+}
+
+.axis-cell-label-x {
+    cursor: static_url('cursors/TranslateX.cur') 8 8, auto;
+}
+
 .axis-dot {
     opacity: 0.85 !important;
     cursor: pointer;

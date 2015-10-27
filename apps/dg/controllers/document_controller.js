@@ -559,11 +559,13 @@ DG.DocumentController = SC.Object.extend(
          tLayout = tComponent.get('layout');
 
       if( isRestoring) {
+        var tRestoredTitle = iComponent.getPath('componentStorage.title');
         tComponentView = DG.ComponentView.restoreComponent( iParams.parentView, tLayout,
                                                        iParams.componentClass.constructor,
                                                        iParams.contentProperties,
                                                        iParams.isResizable,
                                                        iParams.useLayout);
+        iComponent.set('title', tRestoredTitle);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent( iParams.parentView, tLayout,

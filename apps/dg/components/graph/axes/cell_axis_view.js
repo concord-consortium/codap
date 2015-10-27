@@ -55,6 +55,11 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
     centering: false,
 
     /**
+     * @property { Object { cellBeingDragged: {Integer}, position: {Number}}}
+     */
+    dragInfo: null,
+
+    /**
      @property{Number}
      */
     axisLineCoordinate: function() {
@@ -135,6 +140,20 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
     },
 
     /**
+     Override base class to account for drag in progress
+     @return {Number} coordinate of the given cell.
+     */
+    cellToCoordinate: function (iCellNum) {
+      var tDragInfo = this.get('dragInfo');
+      if( tDragInfo && tDragInfo.draggingInProgress && iCellNum === tDragInfo.cellBeingDragged) {
+        return tDragInfo.position;
+      }
+      else {
+        return sc_super();
+      }
+    },
+
+    /**
      Since I'm a leaf class I implement doDraw.
      */
     doDraw: function doDraw() {
@@ -143,28 +162,62 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tBaseline = this_.get('axisLineCoordinate'),
           tOrientation = this.get('orientation'),
           tRotation = (tOrientation === 'horizontal') ? 0 : -90, // default to parallel to axis
+          tCursorClass = (tOrientation === 'horizontal') ? 'axis-cell-label-x' : 'axis-cell-label-y',
           tMaxHeight = DG.RenderingUtilities.kDefaultFontHeight,  // So there will be a default extent
           tCentering = this.get('centering'),
           tTickOffset = tCentering ? 0 : this.get('fullCellWidth') / 2,
           tAnchor = tCentering ? 'middle' : 'start',
           tMaxWidth = tMaxHeight,
-          tLabelSpecs = [],
+          tLabelSpecs = this.get('labelSpecs') || [],
           tCollision = false,
-          tPrevLabelEnd;
+          tPrevLabelEnd,
+          tDragStartCoord, tCellBeingDragged, tOriginalCellIndex;
+
+      var beginDrag = function ( iWindowX, iWindowY) {
+            tOriginalCellIndex = tCellBeingDragged = this.cellNum;
+            tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates( { x: iWindowX, y: iWindowY }, this_);
+            tDragStartCoord = (tOrientation === 'horizontal') ? tDragStartCoord.x : tDragStartCoord.y;
+          },
+          doDrag = function (iDeltaX, iDeltaY, iWindowX, iWindowY) {
+            var tModel = this_.get('model'),
+                tCurrentCoord = tDragStartCoord + ((tOrientation === 'horizontal') ? iDeltaX : iDeltaY),
+                tCategoryInCurrentCell = this_.whichCell( tCurrentCoord);
+            if( tCategoryInCurrentCell !== tCellBeingDragged) {
+              tModel.swapCategoriesByIndex( tCellBeingDragged, tCategoryInCurrentCell);
+              tCellBeingDragged = tCategoryInCurrentCell;
+            }
+            this_.set('dragInfo', {
+              cellBeingDragged: tCellBeingDragged, position: tCurrentCoord,
+              draggingInProgress: true
+            });
+            this_.displayDidChange();
+          },
+          endDrag = function ( iEvent) {
+            this_.set('dragInfo', null);
+          };
 
       function measureOneCell( iCellNum, iCellName) {
-        var tCoord = this_.cellToCoordinate( iCellNum),
-            tTextElement = this_._paper.text( 0, 0, iCellName)
-                .addClass('axis-tick-label'),
-            tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
-                                tTextElement, DG.RenderingUtilities.kDefaultFontHeight);
-
+        var tCoord = this_.cellToCoordinate(iCellNum);
         if( !isFinite( tCoord)) {
-          tTextElement.remove();
           return;
         }
-        tLabelSpecs.push( { element: tTextElement, coord: tCoord,
-                            height: tTextExtent.height, width: tTextExtent.width });
+        var tTextElement;
+        if( !tLabelSpecs[iCellNum]) {
+          tTextElement = this_._paper.text(0, 0, iCellName)
+              .addClass('axis-tick-label')
+              .addClass(tCursorClass)
+              .drag(doDrag, beginDrag, endDrag);
+        }
+        else {
+          tTextElement = tLabelSpecs[ iCellNum].element;
+          tTextElement.attr('text', iCellName);
+        }
+        var tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
+                                tTextElement, DG.RenderingUtilities.kDefaultFontHeight);
+
+        tTextElement.cellNum = iCellNum;
+        tLabelSpecs[iCellNum] = { element: tTextElement, coord: tCoord,
+                      height: tTextExtent.height, width: tTextExtent.width };
 
         tMaxHeight = Math.max( tMaxHeight, tTextExtent.height);
         tMaxWidth = Math.max( tMaxWidth, tTextExtent.width);
@@ -221,6 +274,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       if( tCollision) // labels must be perpendicular to axis
         tRotation = (tOrientation === 'horizontal') ? -90 : 0;
       tLabelSpecs.forEach( drawOneCell);
+
+      this.set('labelSpecs', tLabelSpecs);
 
       this.renderLabel();
       // By changing maxLabelExtent we can trigger notification that causes the graph to re-layout
