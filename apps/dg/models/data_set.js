@@ -96,31 +96,11 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
-     * The assignment of attributes to groups or the order of attributes within
-     * groups changed, so we need to adjust.
-     *
-     * We query the order within the groups and re-sort.
-     */
-    attributeOrderDidChange: function() {
-      this.attrs = [];
-      this.collectionOrder.forEach(function (group) {
-        group.attrs.forEach(function (attr) {
-          this.attrs.push(attr);
-        }.bind(this));
-      }.bind(this));
-      this.sortCollections();
-    },
-
-    resetCollections: function () {
-      // TODO
-    },
-
-    /**
      * Adds attributes. Ideally this is an initialization step, but may be called
      * at any time.
      *
-     * TODO: make a plain notification
-     * TODO re-sort collections
+     * TODO: consider making attribute resolution happen dynamically through
+     * TODO: the collection list, and not through the mechanism here.
      *
      * @param {[DG.Attribute]|DG.Attribute} newAttributes An array or a single attribute.
      */
@@ -148,7 +128,7 @@ DG.DataSet = SC.Object.extend((function() // closure
      * keys to values, or an array of values indexed in attribute order.
      * @return {DG.DataItem} the item.
      */
-    addDataItem: function (data, id) {
+    addDataItem: function (data) {
       /**
        * Set the value map from the value array. Called during initialization.
        *
