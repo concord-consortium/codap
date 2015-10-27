@@ -872,6 +872,20 @@ DG.CaseTableController = DG.ComponentController.extend(
         return tButtons;
       },
 
+      _makeUniqueCollectionName: function (candidateName) {
+        function pluralize(name) {
+          return name + 's';
+        }
+        var context = this.dataContext;
+        var name = pluralize(candidateName);
+        var ix = 0;
+        while (!SC.none(context.getCollectionByName(name))) {
+          ix += 1;
+          name = pluralize(candidateName) + ix;
+        }
+        return name;
+      },
+
       leftDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.leftDropTarget.dropData');
         var context = this.dataContext;
@@ -881,7 +895,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           tChange = {
             operation: 'createCollection',
             properties: {
-              name: 'cases' + (new Date().getTime()),
+              name: this._makeUniqueCollectionName(dropData.attribute.name),
               children: [context.getCollectionAtIndex(0).collection]
             },
             attributes: [dropData.attribute]
@@ -905,7 +919,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           tChange = {
             operation: 'createCollection',
             properties: {
-              name: 'cases' + (new Date().getTime()),
+              name: this._makeUniqueCollectionName(dropData.attribute.name),
               parent: parentClient.get('collection')
             },
             attributes: [dropData.attribute]
