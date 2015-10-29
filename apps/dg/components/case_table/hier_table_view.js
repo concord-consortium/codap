@@ -74,14 +74,13 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     compensatesForMovement: YES
   }),
 
-    slopView: SC.View.create( SC.SplitChild, {
-      name: 'slopView',
-      minimumSize: kMinSlop,
-      size: kMinSlop,
-      autoResizeStyle: SC.RESIZE_MANUAL,
-      compensatesForMovement: YES,
-
-      backgroundColor: kColumnHeaderBackgroundColor
+  slopView: SC.View.extend ( SC.SplitChild, {
+    name: 'slopView',
+    minimumSize: kMinSlop,
+    size: kMinSlop,
+    autoResizeStyle: SC.RESIZE_MANUAL,
+    compensatesForMovement: YES,
+    backgroundColor: kColumnHeaderBackgroundColor
   }),
 
   relationDividerView: DG.RelationDividerView.extend ( SC.SplitChild, {
@@ -139,19 +138,19 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       this.removeChild(view);
     },
 
-  /**
-    An array of child table view object, one for each subtable.
-    @property   {[DG.CaseTableView]}
-   */
-  childTableViews: function() {
-    var childViews = this.get('childViews') || [],
-        childTableViews = [];
-    childViews.forEach( function( iChildView) {
-                          if( iChildView.kindOf( DG.CaseTableView))
-                            childTableViews.push( iChildView);
-                        });
-    return childTableViews;
-  }.property(),
+    /**
+      An array of child table view object, one for each subtable.
+      @property   {[DG.CaseTableView]}
+     */
+    childTableViews: function() {
+      var childViews = this.get('childViews') || [],
+          childTableViews = [];
+      childViews.forEach( function( iChildView) {
+                            if( iChildView.kindOf( DG.CaseTableView))
+                              childTableViews.push( iChildView);
+                          });
+      return childTableViews;
+    }.property(),
 
     dividerViews: function () {
       var childViews = this.get('childViews') || [],
@@ -163,16 +162,16 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       return dividerViews;
     }.property(),
 
-  /**
-    Destruction method.
-   */
-  willDestroy: function() {
-    var childViews = this.get('childTableViews');
-    childViews.forEach( function( iView) {
-                          if( iView && iView.willDestroy)
-                            iView.willDestroy();
-                        });
-  },
+    /**
+      Destruction method.
+     */
+    willDestroy: function() {
+      var childViews = this.get('childTableViews');
+      childViews.forEach( function( iView) {
+                            if( iView && iView.willDestroy)
+                              iView.willDestroy();
+                          });
+    },
 
   /**
    * Returns a view instance to be used as a divider between two other views,
@@ -376,7 +375,10 @@ DG.HierTableView = SC.SplitView.extend( (function() {
 
     // now we are going to rebuild the view, left first...
     if (SC.none(this.leftDropTarget)) {
-      this.leftDropTarget = DG.CaseTableDropTarget.create({name:'leftTarget'});
+      this.leftDropTarget = DG.CaseTableDropTarget.create({
+        name:'leftTarget',
+        dataContext: this.model
+      });
     }
     this.appendChild(this.leftDropTarget);
 
@@ -398,7 +400,10 @@ DG.HierTableView = SC.SplitView.extend( (function() {
 
     // now the right-hand portions...
     if (SC.none(this.rightDropTarget)) {
-      this.rightDropTarget = DG.CaseTableDropTarget.create({name:'rightTarget'});
+      this.rightDropTarget = DG.CaseTableDropTarget.create({
+        name:'rightTarget',
+        dataContext: this.model
+      });
     }
     this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);

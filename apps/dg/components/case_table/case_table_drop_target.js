@@ -20,16 +20,51 @@
 DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
       return {
+        /**
+         * An arbitrary name
+         * @type {String}
+         */
         name: null,
+
+        /**
+         * The data context defining the valid attributes for a drop.
+         * @type {DG.DataContext}
+         */
+        dataContext: null,
+
+        /**
+         * @type {[string]}
+         */
         classNames: 'dg-table-drop-target'.w(),
+
+        /**
+         * @type {Object}
+         */
         layout: { width: 50 },
+
+        /**
+         * This is a drop target.
+         * @type {boolean}
+         */
         isDropTarget: function () {
           return YES;
         }.property(),
+
+        /**
+         * Whether drag is in progress
+         * @type {boolean}
+         */
         isDragInProgress: false,
+
+        /**
+         * Whether drag has entered this view
+         * @type {boolean}
+         */
         isDragEntered: false,
         minimumSize: 10,
         size: 30,
+
+
         dropData: null,
 
         childViews: 'labelView'.w(),
@@ -56,7 +91,8 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         isValidAttribute: function( iDrag) {
           var tDragAttr = iDrag.data.attribute;
-          return !SC.none( tDragAttr);
+          var dragContext = iDrag.data.context.model;
+          return !SC.none( tDragAttr )  && (dragContext === this.dataContext);
         },
 
         computeDragOperations: function( iDrag) {
@@ -67,7 +103,9 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
 
         dragStarted: function( iDrag) {
-          this.set('isDragInProgress', true);
+          if (this.isValidAttribute(iDrag)) {
+            this.set('isDragInProgress', true);
+          }
         },
 
         dragEnded: function () {

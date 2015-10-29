@@ -907,7 +907,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     isValidAttribute: function( iDrag) {
       var tDragAttr = iDrag.data.attribute;
-      return !SC.none( tDragAttr);
+      return !SC.none( tDragAttr) && this.gridAdapter.canAcceptDrop(iDrag.data.attribute);
     },
 
     computeDragOperations: function( iDrag) {
@@ -918,7 +918,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
     dragStarted: function( iDrag) {
-      this.set('isDragInProgress', true);
+      if (this.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
+        this.set('isDragInProgress', true);
+      }
     },
 
     dragEnded: function () {
