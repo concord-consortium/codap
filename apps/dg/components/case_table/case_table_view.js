@@ -142,10 +142,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.get('parentView').childTableLayoutDidChange(this);
     }.observes('size'),
     rowCountDidChange: function () {
-      this.get('parentView').rowCountDidChange(this);
+      // rowCount notification can happen while case tables are being rearranged
+      // this is a transient situation and we will recreate the full table after,
+      // so we can ignore, now.
+      if (!SC.none(this.get('parentView'))) {
+        this.get('parentView').rowCountDidChange(this);
+      }
     }.observes('rowCount'),
     tableDidScroll: function () {
-      this.get('parentView').tableDidScroll(this);
+      // scroll notification can happen while case tables are being rearranged
+      // this is a transient situation and we will recreate the full table after,
+      // so we can ignore, now.
+      if (!SC.none(this.get('parentView'))) {
+        this.get('parentView').tableDidScroll(this);
+      }
     }.observes('scrollPos'),
     tableDidExpandCollapse: function () {
       this.get('parentView').tableDidExpandCollapse(this);
