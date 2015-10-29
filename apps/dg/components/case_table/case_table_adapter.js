@@ -717,6 +717,22 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             position: position
           };
       tContext.applyChange(tChange);
+    },
+
+    /**
+     * Returns whether the attribute can be dropped in the case table associated
+     * with this adapter.
+     *
+     * Generally this is permitted if the attribute is a
+     * part of a collection in the case table's context.
+     *
+     * @param attr
+     * @returns {boolean}
+     */
+    canAcceptDrop: function (attr) {
+      var tContext = this.get('dataContext');
+      var collection = attr.collection;
+      return (!SC.none(tContext.getCollectionByID(collection.id)));
     }
   }; // end return from closure
   
