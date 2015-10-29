@@ -195,11 +195,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       this.attrs.forEach( function( iAttr) { DG.Attribute.destroyAttribute( iAttr); });
 
+      // remove link from parent
       if (this.parent) {
         ix = this.parent.children.indexOf(this);
         if (ix >= 0) {
-          this.parent.children.splice(ix, 1);
+          this.parent.children.removeAt(ix, 1);
         }
+      }
+
+      // link up child
+      if (this.children) {
+        this.children.forEach(function (child) {
+          if (this.parent) {
+            this.parent.children.pushObject(child);
+          }
+          child.parent = this.parent;
+        }.bind(this));
       }
       context = this.context;
       delete context.collections[this.id];
@@ -592,7 +603,7 @@ DG.Collection.createCollection = function( iProperties) {
   }
 
   if (iProperties.parent) {
-    iProperties.parent.children.push(tCollection);
+    DG.store.resolve(iProperties.parent).children.push(tCollection);
   }
 
   if (iProperties.context) {
