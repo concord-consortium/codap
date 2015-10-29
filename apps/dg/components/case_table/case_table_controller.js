@@ -276,7 +276,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'resetCollections':
             this.caseCountDidChange( iChange);
-            this.doResetCollections( iChange );
+            this.dataContextDidChange();
             break;
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
