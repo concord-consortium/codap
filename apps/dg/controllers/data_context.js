@@ -320,7 +320,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     if (tCollection) {
       iChange.attributes.forEach( function( iAttrSpec) {
         if (!SC.none(iAttrSpec.id) && !SC.none(iAttrSpec.collection)) {
-          this.moveAttribute(iAttrSpec, iAttrSpec.get('collection'), tCollection);
+          this.moveAttribute(iAttrSpec, tCollection);
         } else {
           tCollection.guaranteeAttribute( iAttrSpec);
         }
@@ -813,11 +813,16 @@ DG.DataContext = SC.Object.extend((function() // closure
     return result;
   },
 
-  moveAttribute:  function (attr, fromCollectionClient, toCollectionClient, position) {
+  moveAttribute:  function (attr, toCollectionClient, position) {
     var topCollection = this.getCollectionAtIndex(0);
+    var fromCollection = attr.get('collection');
 
     // remove attribute from old collection
-    attr = attr.get('collection').removeAttribute(attr);
+    attr = fromCollection.removeAttribute(attr);
+
+    if (fromCollection.get('attrs').length === 0) {
+      DG.Collection.destroyCollection(fromCollection);
+    }
 
     // add attribute to new collection
     toCollectionClient.get('collection').addAttribute(attr, position);
@@ -864,7 +869,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       // ----- begin method ------
       var attr = iChange.attr;
       var fromCollection = attr.get('collection');
-      var fromCollectionClient = this.getCollectionByID(fromCollection.id);
       var toCollectionClient = iChange.toCollection || fromCollection;
       var position = iChange.position;
 
@@ -874,7 +878,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       } else {
         // inter-collection moves are more complex: we need to reconstruct the
         // cases in the collection
-        this.moveAttribute(attr, fromCollectionClient, toCollectionClient,
+        this.moveAttribute(attr, toCollectionClient,
             position);
         iChange.operation = 'resetCollections';
       }
