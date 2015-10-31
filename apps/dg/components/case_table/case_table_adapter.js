@@ -329,7 +329,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var dataContext = this.get('dataContext'),
         collection = this.get('collection'),
         collapseChildren = (collection &&
-                            collection.getPath('collection.collectionRecord.collapseChildren')) || false,
+                            collection.get('collapseChildren')) || false,
         parentRows = [],      // array of parent IDs in order
         rowDataByParent = {}, // map of parentID --> child case row info
         rowData = [],
@@ -518,7 +518,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     // Create the map entry if it doesn't already exist
     if( !parentGroupInfo) {
       parentGroupInfo = this.parentIDGroups[ parentID] = {};
-      parentGroupInfo.isCollapsed = this.getPath('collection.collection.collectionRecord.collapseChildren')
+      parentGroupInfo.isCollapsed = this.get('collapseChildren')
                                           || false;
     }
     
@@ -698,8 +698,42 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                         dataView.updateItem( caseID, item);
                     });
     dataView.endUpdate();
-  }
-  
+  },
+
+    /**
+     * We want to move attribute, attr, from its collection to
+     * the indicated position (an index) in the current collection.
+     *
+     * @param {DG.Attribute} attr
+     * @param {number} position
+     */
+    requestMoveAttribute: function (attr, position) {
+      var tContext = this.get('dataContext'),
+          tCollection = this.get('collection'),
+          tChange = {
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: tCollection,
+            position: position
+          };
+      tContext.applyChange(tChange);
+    },
+
+    /**
+     * Returns whether the attribute can be dropped in the case table associated
+     * with this adapter.
+     *
+     * Generally this is permitted if the attribute is a
+     * part of a collection in the case table's context.
+     *
+     * @param attr
+     * @returns {boolean}
+     */
+    canAcceptDrop: function (attr) {
+      var tContext = this.get('dataContext');
+      var collection = attr.collection;
+      return (!SC.none(tContext.getCollectionByID(collection.id)));
+    }
   }; // end return from closure
   
 }())); // end closure

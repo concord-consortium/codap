@@ -34,7 +34,7 @@ DG.CollectionClient = SC.Object.extend(
    * @property {Number}
    */
   id: function() {
-    return this.getPath('collection.collectionRecord.id');
+    return this.collection && this.collection.get('id');
   }.property('collection').cacheable(),
   
   /**
@@ -42,14 +42,26 @@ DG.CollectionClient = SC.Object.extend(
    * @property {String}
    */
   name: function() {
-    return this.getPath('collection.collectionRecord.name');
+    return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
 
-  defaults: function () {
-    return this.getPath('collection.collectionRecord.defaults');
-  }.property('collection,collectionRecord').cacheable(),
+    collapseChildren: function () {
+      return this.collection && this.collection.get('collapseChildren');
+    }.property('collection').cacheable(),
 
-  attrsController: null,
+  defaults: function () {
+    return this.collection && this.collection.get('defaults');
+  }.property('collection').cacheable(),
+
+    /**
+     * Returns labels for this collection, if any have been set.
+     * @returns {Object}
+     */
+    labels: function () {
+      return this.collection && this.collection.get('labels');
+    }.property('collection').cacheable(),
+
+    attrsController: null,
 
   casesController: null,
   
@@ -107,19 +119,18 @@ DG.CollectionClient = SC.Object.extend(
    * @param {DG.CollectionClient} iParentCollection
    */
   setParentCollection: function( iParentCollection) {
-    var childRecord = this.getPath('collection.collectionRecord'),
-        parentRecord = iParentCollection.getPath('collection.collectionRecord');
-    if( childRecord && parentRecord) {
-      childRecord.set('parent', parentRecord);
-      childRecord.set('areParentChildLinksConfigured', true);
-      parentRecord.set('areParentChildLinksConfigured', true);
-      DG.store.commitRecords();
+    var childCollection = this.get('collection'),
+        parentCollection = iParentCollection.get('collection');
+    if( childCollection && parentCollection) {
+      childCollection.set('parent', parentCollection);
+      childCollection.set('areParentChildLinksConfigured', true);
+      parentCollection.set('areParentChildLinksConfigured', true);
     }
   },
 
     getParentCollectionID: function () {
-      var collectionRecord = this.getPath('collection.collectionRecord');
-      var parent = collectionRecord && collectionRecord.parent;
+      var collectionModel = this.get('collection');
+      var parent = collectionModel && collectionModel.parent;
       return (parent && parent.id);
     },
   /**
@@ -150,7 +161,7 @@ DG.CollectionClient = SC.Object.extend(
    */
   setTargetCollection: function( iCollection) {
     this.collection = iCollection;
-    this.attrsController.set('content', iCollection.attrsRecords);
+    this.attrsController.set('content', iCollection.attrs);
     this.casesController.set('content', iCollection.casesRecords);
     
     // When restoring documents, we need to process the restored attributes
@@ -170,7 +181,7 @@ DG.CollectionClient = SC.Object.extend(
      */
     reorderAttributes: function(iAttributeNameList) {
       var nameListLength = iAttributeNameList.length;
-      this.collection.attrsRecords.sort(function(attr1, attr2) {
+      this.collection.attrs.sort(function(attr1, attr2) {
         var ix1 = iAttributeNameList.indexOf(attr1.name),
           ix2 = iAttributeNameList.indexOf(attr2.name);
         if (ix1 < 0) {ix1 = nameListLength;}
@@ -295,7 +306,6 @@ DG.CollectionClient = SC.Object.extend(
     @returns  {DG.Attribute}  The matching or newly-created DG.Attribute object
    */
   guaranteeAttribute: function( iProperties) {
-    var tAttribute = null;
 
     // This function side-effects iProperties by potentially changing the name and unit
     function makeNameLegal() {
@@ -313,11 +323,17 @@ DG.CollectionClient = SC.Object.extend(
       tName = tName.replace(/\W/g, '_');  // Replace white space with underscore
       iProperties.name = tName;
     }
-    
+
+    var tAttribute = null;
+
     // See if the attribute already exists
     iProperties = iProperties || {};
 
     makeNameLegal();
+
+    // if the property has an ID then it is an existing attribute, possibly from
+    // another collection. If so, we need to remove it from the other collection
+    // and add it here.
 
     if (!SC.empty( iProperties.name)) {
       tAttribute = this.getAttributeByName( iProperties.name);
@@ -406,7 +422,7 @@ DG.CollectionClient = SC.Object.extend(
     @returns  {DG.CollectionClient} this, for use in chaining method invocations
    */
   forEachAttribute: function( iFunction) {
-    this.attrsController.forEach( iFunction);
+    this.collection.attrs.forEach( iFunction);
     return this;
   },
 
@@ -567,8 +583,6 @@ DG.CollectionClient = SC.Object.extend(
    */
   didDeleteCases: function() {
 
-    DG.store.commitRecords();
-
     this.get('collection').updateCaseIDToIndexMap();
   },
   
@@ -590,20 +604,14 @@ DG.CollectionClient = SC.Object.extend(
    */
   deleteAllCases: function() {
     var tCollection = this.get('collection'),
-        tController = this.get('casesController');
-    tController.forEach( function( aCase) {
-      tCollection.deleteCase( aCase);
+        tCases = tCollection.get('cases'),
+        tArray = tCases.concat();
+
+    tArray.forEach(function (aCase) {
+      tCollection.deleteCase(aCase);
     });
     this.didDeleteCases();
   },
-
-    /**
-     * Returns labels for this collection, if any have been set.
-     * @returns {Object}
-     */
-    getCollectionLabels: function () {
-      return this.getPath('collection.collectionRecord.labels');
-    },
 
   /**
     Returns a link object of the form { type: 'DG.CollectionRecord', id: collectionID }.
@@ -612,8 +620,8 @@ DG.CollectionClient = SC.Object.extend(
               {Number}  linkObject.id -- the id of the collection record
    */
   toLink: function() {
-    var collectionRecord = this.getPath('collection.collectionRecord');
-    return collectionRecord && collectionRecord.toLink();
+    var collection = this.getPath('collection');
+    return collection && collection.toLink();
   },
   
   debugLog: function(iPrompt) {

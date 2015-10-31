@@ -470,6 +470,9 @@ SC.stringsFor('English', {
       'DG.TableController.setScoreDlg.applyTooltip': "Set the formula for the '%@' attribute",
       'DG.TableController.setScoreDlg.formulaHint': "Type a formula for computing values of this attribute",
 
+      // DG.CaseTableDropTarget
+      'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
+
       // DG.AttributeFormulaView
       'DG.AttrFormView.attrNamePrompt': "Attribute Name:",
       'DG.AttrFormView.formulaPrompt': "Formula:",

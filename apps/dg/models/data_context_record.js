@@ -23,10 +23,12 @@ sc_require('models/model_store');
 sc_require('models/base_model');
 
 /** @class
-
-  Represents a user document.
-
- @extends SC.BaseModel
+ * Represents a data context.
+ *
+ * A data context is bound to a single source of data, e.g. a data interactive.
+ * It manages a Data Set.
+ *
+ * @extends SC.BaseModel
  */
 DG.DataContextRecord = DG.BaseModel.extend(
   /** @scope DG.DataContextRecord.prototype */ {
@@ -40,8 +42,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
     document: null,
 
     /**
-     * A relational link to the collections in this document.
-     * @property {Array of DG.CollectionRecord}
+     * A relational link to the collections in this context.
+     * @property {[DG.Collection]}
      */
     collections: null,
 
@@ -56,6 +58,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
     }.property(),
 
       /**
+       * The base data set for the collections in this context.
+       * @property {DG.DataSet}
+       */
+      dataSet: null,
+
+    /**
      * Per-component storage, in a component specific format.
      * @property {JSON}
      */
@@ -65,6 +73,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     init: function () {
       this.collections = {};
+      this.dataSet = DG.DataSet.create({dataContextRecord: this});
       sc_super();
     },
 
@@ -81,7 +90,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
     destroy: function() {
       if (this.collections) {
         DG.ObjectMap.forEach(this.collections, function( iCollection) {
-          DG.CollectionRecord.destroyCollection( iCollection);
+          DG.Collection.destroyCollection( iCollection);
         });
       }
       delete this.document.contexts[this.id];
@@ -91,11 +100,21 @@ DG.DataContextRecord = DG.BaseModel.extend(
     createCollection: function( iProperties) {
       iProperties = iProperties || {};
       iProperties.context = this;
-      return DG.CollectionRecord.createCollection( iProperties);
+      return DG.Collection.createCollection( iProperties);
     },
 
+      /**
+       * Prepares a streamable version of this object. Streamable means it is
+       * JSON ready and has all persistent data for the object and its subobjects.
+       *
+       * In this case we take special care to avoid forward references among
+       * collections.
+       * @param fullData
+       * @returns {*}
+       */
     toArchive: function (fullData) {
       var obj;
+      var root;
       fullData = fullData || false;
       if ( fullData || SC.none(this.externalDocumentId) ) {
         obj = {
@@ -105,9 +124,20 @@ DG.DataContextRecord = DG.BaseModel.extend(
             collections: [],
             contextStorage: this.contextStorage
           };
-        DG.ObjectMap.forEach(this.collections, function (collectionKey){
-          obj.collections.push(this.collections[collectionKey].toArchive());
-        }.bind(this));
+
+        DG.ObjectMap.forEach(this.collections, function (collectionKey, collection){
+          if (SC.none(collection.parent)) {
+            root = collection;
+          }
+        });
+
+        while (root.children.length > 0) {
+          obj.collections.push(root.toArchive());
+          root = root.children[0];
+        }
+        if (!SC.none(root)) {
+          obj.collections.push(root.toArchive());
+        }
       } else {
         obj = {
           externalDocumentId: this.externalDocumentId
@@ -157,7 +187,7 @@ DG.DataContextRecord.createContext = function( iProperties) {
   if (iProperties.collections) {
     iProperties.collections.forEach(function (iProps) {
       iProps.context = tContext;
-      DG.CollectionRecord.createCollection(iProps);
+      DG.Collection.createCollection(iProps);
     });
   }
   DG.log('Create context: ');

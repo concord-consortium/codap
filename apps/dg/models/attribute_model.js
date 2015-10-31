@@ -123,7 +123,7 @@ DG.Attribute = DG.BaseModel.extend(
           ', in attribute: ' + this.id);
       }
       if (!(this.collection.recordType
-        && this.collection.recordType() === DG.CollectionRecord) ) {
+        && this.collection.recordType() === DG.Collection) ) {
         DG.logWarn('Unexpected collection RecordType: '
           + this.collection.recordTypeString());
       }
@@ -248,8 +248,8 @@ DG.Attribute = DG.BaseModel.extend(
         description: this.description,
         colormap: this.colormap || undefined,
         blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
-        editable: !SC.none(this.formula)? this.editable: undefined,
-        formula: !SC.none(this.formula)? this.formula: undefined,
+        editable: this.hasFormula()? this.editable: undefined,
+        formula: this.hasFormula()? this.formula: undefined,
         guid: this.id,
         precision: this.precision
       };

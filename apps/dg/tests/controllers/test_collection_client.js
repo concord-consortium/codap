@@ -17,7 +17,10 @@ test("test DG.CollectionClient", function () {
     },
     tContext = DG.activeDocument.createContext({}),
     tCollectionRecord = tContext.createCollection(tProps),
-    tCollectionModel = DG.Collection.create({collectionRecord: tCollectionRecord}),
+    tCollectionModel = DG.Collection.create({
+      context: tContext,
+      collectionRecord: tCollectionRecord
+    }),
     tClient,
     tIDs,tNames, cases = [];
   tCollectionModel.createAttribute({ name: 'first' });

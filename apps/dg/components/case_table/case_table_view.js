@@ -45,12 +45,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   return {  // return from closure
   
   classNames: ['dg-case-table'],
-  
+
   layout: { left: 0, right: 0, top: 0, bottom: 0 },
   
   backgroundColor: "white",
 
   childViews: '_hiddenDragView'.w(),
+
+  isDropTarget: true,
 
   _hiddenDragView: SC.LabelView.design({
     classNames: 'drag-label'.w(),
@@ -140,10 +142,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.get('parentView').childTableLayoutDidChange(this);
     }.observes('size'),
     rowCountDidChange: function () {
-      this.get('parentView').rowCountDidChange(this);
+      // rowCount notification can happen while case tables are being rearranged
+      // this is a transient situation and we will recreate the full table after,
+      // so we can ignore, now.
+      if (!SC.none(this.get('parentView'))) {
+        this.get('parentView').rowCountDidChange(this);
+      }
     }.observes('rowCount'),
     tableDidScroll: function () {
-      this.get('parentView').tableDidScroll(this);
+      // scroll notification can happen while case tables are being rearranged
+      // this is a transient situation and we will recreate the full table after,
+      // so we can ignore, now.
+      if (!SC.none(this.get('parentView'))) {
+        this.get('parentView').tableDidScroll(this);
+      }
     }.observes('scrollPos'),
     tableDidExpandCollapse: function () {
       this.get('parentView').tableDidExpandCollapse(this);
@@ -462,7 +474,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   /**
     Returns the touch position in view coordinates.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { x:, y: } location of the touch in view coordinates
    */
   touchPosInView: function( iTouch) {
@@ -471,7 +483,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   /**
     Returns the touch position in table body content coordinates.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { x:, y: } location of the touch in table body content coordinates
    */
   touchPosInBodyContent: function( iTouch) {
@@ -487,7 +499,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   /**
     Returns the cell in which the specified touch event occurred.
-    @param    {Object}    The touch event
+    @param    {Object}    iTouch The touch event
     @returns  {Object}    The { row:, cell: } indices of the touched cell
    */
   cellFromTouch: function( iTouch) {
@@ -519,7 +531,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   /**
     Handle the initial touch-down event.
     For body cells, selects the clicked cell.
-    @param    {Object}    The touch event
+    @param    {Object}    touch The touch event
     @returns  {Boolean}   YES, indicating that further touch events are desired
    */
   touchStart: function(touch) {
@@ -588,7 +600,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Handle touch-drag events, which are sent repeatedly during a drag.
     For header cells, drag the attribute name
     For body cells, selects all rows touched by the drag.
+
     @param    {Object}    iEvent The touch event
+    @param    {[Object]}  iTouches An array of touches.
    */
   touchesDragged: function( iEvent, iTouches) {
     var touchStartRow = this._touchStartCell && this._touchStartCell.row;
@@ -655,7 +669,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   /**
     Ends the handling of this touch.
-    @param    {Object}    The touch event
+    @param    {Object}    touch The touch event
    */
   touchEnd: function(touch) {
     // Reset touch 
@@ -670,6 +684,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   /**
     Called when the table is scrolled.
     @param  {Slick.Event}   iEvent -- the event which triggered the scroll
+    @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
    */
   handleScroll: function( iEvent, iArgs) {
     this.set('scrollPos', iArgs);
@@ -888,8 +903,117 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         selection = adapter && adapter.getSelectedRows();
     if( selection)
       this.setSelectedRows( selection);
+    },
+
+    isValidAttribute: function( iDrag) {
+      var tDragAttr = iDrag.data.attribute;
+      return !SC.none( tDragAttr) && this.gridAdapter.canAcceptDrop(iDrag.data.attribute);
+    },
+
+    computeDragOperations: function( iDrag) {
+      if( this.isValidAttribute( iDrag))
+        return SC.DRAG_LINK;
+      else
+        return SC.DRAG_NONE;
+    },
+
+    dragStarted: function( iDrag) {
+      if (this.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
+        this.set('isDragInProgress', true);
+      }
+    },
+
+    dragEnded: function () {
+      this.set('isDragInProgress', false);
+    },
+
+    dragEntered: function( iDragObject, iEvent) {
+      this.set('isDragEntered', true);
+    },
+
+    dragInsertPoint: null,
+
+    dragUpdated: function( iDragObject, iEvent) {
+      var gridPosition =  this._slickGrid.getGridPosition();
+      var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
+      var originLoc = {x: iDragObject.origin.x - gridPosition.left, y:1};
+
+      var cell = this._slickGrid.getCellFromPoint(loc.x, loc.y);
+      var originCell = this._slickGrid.getCellFromPoint(originLoc.x, originLoc.y);
+      var columnIndex = cell.cell;
+      var cellBox = this._slickGrid.getCellNodeBox(0, cell.cell);
+      // It is possible to get a dragUpdated notification before a dragExited.
+      // So we exit.
+      if (!cellBox) {
+        return;
+      }
+      var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
+      if (nearerBound === 'left' && columnIndex > 0) {
+        columnIndex -= 1;
+        nearerBound = 'right';
+      }
+      var headerNode = (columnIndex >=0 ) && this.$('.slick-header-column',
+              this._slickGrid.getHeaderRow())[columnIndex];
+      if (this.dragInsertPoint)  {
+        if (this.dragInsertPoint.columnIndex !== columnIndex
+            || this.dragInsertPoint.nearerBound !== nearerBound) {
+          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
+        } else {
+          return;
+        }
+      }
+      if (iDragObject.source !== this
+          || nearerBound === 'left'
+          || columnIndex > originCell.cell
+          || columnIndex < originCell.cell - 1) {
+        this.dragInsertPoint = {
+          headerNode: headerNode,
+          columnIndex: columnIndex,
+          nearerBound: nearerBound
+        };
+      this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
+          + this.dragInsertPoint.nearerBound);
+      //DG.log('dragUpdated: ' + JSON.stringify({
+      //      columnIndex: columnIndex,
+      //      location: iDragObject.location,
+      //      gridPosition: gridPosition,
+      //      loc: loc,
+      //      cellBox: cellBox,
+      //      nearerBound: nearerBound}));
+      }
+    },
+
+    dragExited: function( iDragObject, iEvent) {
+      if (this.dragInsertPoint) {
+        this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+            + this.dragInsertPoint.nearerBound);
+      }
+      this.dragInsertPoint = null;
+      this.set('isDragEntered', false);
+    },
+
+    acceptDragOperation: function() {
+      return YES;
+    },
+
+    performDragOperation:function ( iDragObject, iDragOp ) {
+      var dragData = iDragObject.data;
+      var attr = dragData.attribute;
+      var position;
+
+      // if we have an insert point, then we initiate the move.
+      // Otherwise we ignore the drop.
+      if (this.dragInsertPoint) {
+        position = (this.dragInsertPoint.nearerBound === 'right')
+            ? this.dragInsertPoint.columnIndex + 1
+            : this.dragInsertPoint.columnIndex;
+        this.gridAdapter.requestMoveAttribute(attr, position);
+      }
+      DG.log('Got drop: ' + iDragObject.data.attribute.name);
     }
-  
+
+
   }; // end return from closure
   
 }())); // end closure

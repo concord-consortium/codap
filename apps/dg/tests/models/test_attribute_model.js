@@ -30,13 +30,11 @@ module('DG.Attribute', {
 
 test('test DG.Attribute', function() {
   var tContext = DG.activeDocument.createContext({}),
-    tCollectionRecord = tContext.createCollection({
+    tCollectionModel = tContext.createCollection({
       name: 'Collection',
       description: 'A collection',
       context: tContext
     }),
-    tCollectionModel = DG.Collection.create({
-      collectionRecord: tCollectionRecord}),
     tAttr = tCollectionModel.createAttribute({
       name: 'noFormula',
       precision: 5,
@@ -52,7 +50,7 @@ test('test DG.Attribute', function() {
   ok(!SC.empty(tAttr.id) && !SC.empty(tFormAttr.id), 'Attributes have IDs.');
 
   // access
-  ok(tCollectionRecord.getAttributeByName('noFormula'), 'Attributes should be gettable from CollectionRecord.');
+  ok(tCollectionModel.getAttributeByName('noFormula'), 'Attributes should be gettable from CollectionRecord.');
 
   tID = tAttr.id;
   tAnother = DG.Attribute.getAttributeByID(tID);
@@ -76,22 +74,16 @@ test('test DG.Attribute', function() {
 
 test('test DG.Attribute formulas', function() {
   var tContext = DG.activeDocument.createContext({}),
-    tParentCollectionRecord = tContext.createCollection({
+    tParentCollectionModel = tContext.createCollection({
       name: 'Parent',
       description: 'A collection',
       context: tContext
     }),
-    tChildCollectionRecord = tContext.createCollection({
+    tChildCollectionModel = tContext.createCollection({
       name: 'Child',
       description: 'A collection',
-      parent: tParentCollectionRecord,
+      parent: tParentCollectionModel,
       context: tContext
-    }),
-    tParentCollectionModel = DG.Collection.create({
-      collectionRecord: tParentCollectionRecord
-    }),
-    tChildCollectionModel = DG.Collection.create({
-      collectionRecord: tChildCollectionRecord
     }),
     formulaAttrSpecs = [
       {collection: tParentCollectionModel, name: 'ppCopy', formula: 'parentStr', expect: 'parent'},

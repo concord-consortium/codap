@@ -81,18 +81,56 @@ DG.DataContext = SC.Object.extend((function() // closure
   id: function() {
     return this.getPath('model.id');
   }.property('model','model.id'),
-  
-  /**
-   *  The collections for which this controller is responsible.
-   *  Bound to the 'collections' property of the model.
-   *  @property {Array of DG.CollectionRecords}
-   */
-  collections: function() {
-    return DG.ObjectMap.values(this.getPath('model.collections'));
-  }.property('model','model.collections'),
+
+    _collections : null,
+
+    /**
+     *  The collections for which this controller is responsible.
+     *  Clients expect the order of this array to be parent --> child.
+     *  This function is responsible for guaranteeing the order.
+     *  In particular, games using the old API often create their
+     *  collections in child --> parent order, and need to be reversed
+     *  in this function.
+     *
+     *  TODO: why can't model.collections be a compact array, too?
+     *
+     *  @property {[DG.Collection]}
+     */
+    collections: function() {
+      var srcCollections = this.getPath('model.collections'),
+          srcCollectionArray = DG.ObjectMap.values(srcCollections),
+          i, c,
+          collectionCount = srcCollectionArray.length;
+
+      // If our cache is up to date, just return it
+      if( this._collections && (this._collections.length === collectionCount))
+        return this._collections;
+
+      // Reset and restock the cached array
+      this._collections = [];
+
+// find the ur-parent, then follow it to all its children.
+      c = srcCollectionArray[0]; i = 0;
+      while (!SC.none(c.get('parent')) && i <= collectionCount) { c = c.get('parent'); i++; }
+      if (i > collectionCount) {
+        DG.logError('Circular parental links among collections in context: '  + this.name);
+      }
+      i = 0;
+      while (!SC.none(c) && i <= collectionCount) {
+        this._collections.pushObject(c);
+        c = c.get('children')[0];
+        i++;
+      }
+      if (i > collectionCount) {
+        DG.logError('Circular child links among collections in context: '  + this.name);
+      }
+
+      // Return the cached array in the proper order
+      return this._collections;
+    }.property('model','model.collections'),
 
   /**
-   *  Map of DG.CollectionClients, corresponding one-to-one to the DG.CollectionRecords.
+   *  Map of DG.CollectionClients, corresponding one-to-one to the DG.Collections.
    *  @property {Object} Map from collectionID to DG.CollectionClients
    */
   _collectionClients: null,
@@ -252,6 +290,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'deleteAttributes':
         result = this.doDeleteAttributes( iChange);
         break;
+      case 'moveAttribute':
+        result = this.doMoveAttribute(iChange);
+        break;
       case 'resetCollections':
         result = this.doResetCollections( iChange );
         break;
@@ -278,8 +319,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     var tCollection = this.guaranteeCollection( iChange.properties);
     if (tCollection) {
       iChange.attributes.forEach( function( iAttrSpec) {
-                            tCollection.guaranteeAttribute( iAttrSpec);
-                          });
+        if (!SC.none(iAttrSpec.id) && !SC.none(iAttrSpec.collection)) {
+          this.moveAttribute(iAttrSpec, tCollection);
+        } else {
+          tCollection.guaranteeAttribute( iAttrSpec);
+        }
+      }.bind(this));
       // if this is a recreation of the collection make sure the ordering corresponds
       // to DI expectations.
       tCollection.reorderAttributes(iChange.attributes.getEach('name'));
@@ -319,6 +364,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
       return rslt;
     }.bind(this);
+
+
     var collection,
         valuesArrays,
         parentIsValid = true,
@@ -765,8 +812,79 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.attrPropsArray.forEach( updateAttribute);
     return result;
   },
-  
-  /**
+
+  moveAttribute:  function (attr, toCollectionClient, position) {
+    var topCollection = this.getCollectionAtIndex(0);
+    var fromCollection = attr.get('collection');
+
+    // remove attribute from old collection
+    attr = fromCollection.removeAttribute(attr);
+
+    if (fromCollection.get('attrs').length === 0) {
+      DG.Collection.destroyCollection(fromCollection);
+    }
+
+    // add attribute to new collection
+    toCollectionClient.get('collection').addAttribute(attr, position);
+
+    // drop all cases
+    this.forEachCollection(function (collection) { collection.deleteAllCases(); });
+
+    // starting with top collection, recreate cases
+    topCollection.get('collection').recreateCases();
+  },
+    /**
+     * Moves an attribute either within a collection or between collections.
+     *
+     * @param iChange {Object} Describes the change
+     *    {string} .operatio            -- "moveAttribute"
+     *    {DG.Attribute} .attr          -- the attribute to move.
+     *    {DG.CollectionClient} .toCollection -- the collection to
+     *                                     move the attribute to. Defaults
+     *                                     to the existing collection.
+     *    {integer} .positi             -- the position to be occupied by
+     *                                     the attribute indexed from the
+     *                                     left. 0 means leftmost. If not
+     *                                     specified, placed rightmost.
+     * @return {Object}
+     *    {Boolean}               .success
+     */
+    doMoveAttribute: function( iChange) {
+      function moveWithinCollection(attr, collectionClient, position) {
+        var name = attr.name;
+        var attributeNames;
+        var ix;
+        attributeNames = collectionClient.getAttributeNames();
+        ix = attributeNames.indexOf(name);
+        if (ix !== -1) {
+          attributeNames.splice(ix, 1);
+          attributeNames.splice(position, 0, name);
+          collectionClient.reorderAttributes(attributeNames);
+        } else {
+          DG.logWarn('Reordering attribute, "' + name +
+              '", not in collection, "' + collectionClient.get('name') + '"');
+        }
+      }
+
+      // ----- begin method ------
+      var attr = iChange.attr;
+      var fromCollection = attr.get('collection');
+      var toCollectionClient = iChange.toCollection || fromCollection;
+      var position = iChange.position;
+
+      if (fromCollection === toCollectionClient.get('collection')) {
+        // if intra-collection move, we simply delegate to the collection
+        moveWithinCollection(attr, toCollectionClient, position);
+      } else {
+        // inter-collection moves are more complex: we need to reconstruct the
+        // cases in the collection
+        this.moveAttribute(attr, toCollectionClient,
+            position);
+        iChange.operation = 'resetCollections';
+      }
+    },
+
+    /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
               {String}  .operation - "deleteAttributes"
@@ -907,9 +1025,9 @@ DG.DataContext = SC.Object.extend((function() // closure
   getCollectionAtIndex: function( iIndex) {
     var collections = this.get('collections'),
         collectionCount = this.get('collectionCount'),
-        collectionRecord = (collections && (collectionCount > iIndex) && 
+        collection = (collections && (collectionCount > iIndex) &&
                             collections.objectAt( iIndex)) || null;
-    return collectionRecord && this._collectionClients[ collectionRecord.get('id')];
+    return collection && this._collectionClients[ collection.get('id')];
   },
   
   /**
@@ -920,11 +1038,11 @@ DG.DataContext = SC.Object.extend((function() // closure
   getCollectionByName: function( iName) {
     var collectionCount = this.get('collectionCount'),
         collections = this.get('collections'),
-        collectionRecord;
+        collection;
     for( var i = 0; i < collectionCount; ++i) {
-      collectionRecord = collections.objectAt(i);
-      if (collectionRecord && (collectionRecord.get('name') === iName)) {
-        return this._collectionClients[ collectionRecord.get('id')];
+      collection = collections.objectAt(i);
+      if (collection && (collection.get('name') === iName)) {
+        return this._collectionClients[ collection.get('id')];
       }
     }
     return null;
@@ -932,7 +1050,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   
   /**
    *  Returns the DG.CollectionClient with the specified ID.
-   *  @param    {Number}  iCollectionID -- The ID of the DG.CollectionRecord
+   *  @param    {Number}  iCollectionID -- The ID of the DG.collection
    *  @returns  {DG.CollectionClient | null}
    */
   getCollectionByID: function( iCollectionID) {
@@ -968,12 +1086,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     var childCollectionID = iCollection && iCollection.get('id'),
         collectionCount = this.get('collectionCount'),
         collections = this.get('collections'),
-        collectionRecord, collectionID,
+        collection, collectionID,
         prevCollectionID = null;
     for( var i = 0; i < collectionCount; ++i) {
-      collectionRecord = collections.objectAt( i);
-      collectionID = collectionRecord.get('id');
-      if( collectionRecord && (collectionID === childCollectionID))
+      collection = collections.objectAt( i);
+      collectionID = collection.get('id');
+      if( collection && (collectionID === childCollectionID))
         return this.getCollectionByID( prevCollectionID);
       prevCollectionID = collectionID;
     }
@@ -990,12 +1108,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     var childCollectionID = iCollection && iCollection.get('id'),
         collectionCount = this.get('collectionCount'),
         collections = this.get('collections'),
-        collectionRecord, collectionID,
+        collection, collectionID,
         prevCollectionID = null;
     for( var i = collectionCount-1; i >= 0; --i) {
-      collectionRecord = collections.objectAt( i);
-      collectionID = collectionRecord.get('id');
-      if( collectionRecord && (collectionID === childCollectionID))
+      collection = collections.objectAt( i);
+      collectionID = collection.get('id');
+      if( collection && (collectionID === childCollectionID))
         return this.getCollectionByID( prevCollectionID);
       prevCollectionID = collectionID;
     }
@@ -1008,9 +1126,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {DG.CollectionClient} The newly-created collection
    */
   createCollection: function( iProperties) {
-    var newCollection = this.get('model').createCollection( iProperties || {}),
-        newCollectionClient = this.addCollection( newCollection);
-    DG.store.commitRecords();
+    var //newCollection = this.get('model').createCollection( iProperties || {}),
+      tProperties = iProperties || {},
+        newCollectionClient;
+
+    tProperties.context = this.get('model');
+    newCollectionClient = this.addCollection( DG.Collection.createCollection(tProperties));
     this.didCreateCollection( newCollectionClient);
     return newCollectionClient;
   },
@@ -1038,21 +1159,25 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   /**
     Creates and connects a DG.Collection model and DG.CollectionClient controller for the
-    specified DG.CollectionRecord.
-    @param    {DG.CollectionRecord}   iCollectionRecord -- The collection record to create the
+    specified DG.Collection.
+    @param    {DG.Collection || DG.Collection}   iCollection -- The collection record to create the
                                                            model and controller for.
     @returns  {DG.CollectionClient}   The newly-created collection client
    */
-  addCollection: function( iCollectionRecord) {
-    var theID = iCollectionRecord && iCollectionRecord.get('id'),
-        theCollection = theID && DG.Collection.create({ collectionRecord: iCollectionRecord }),
+  addCollection: function( iCollection) {
+    function getCollection(iCollectionRecord) {
+      DG.logWarn('Instantiating collection from collectionRecord');
+      return DG.Collection.create({ collectionRecord: iCollectionRecord });
+    }
+    var theID = iCollection && iCollection.get('id'),
+        theCollection = (theID && (iCollection.type === 'DG.CollectionRecord'))
+          ? getCollection(iCollection)
+          : iCollection,
         theCollectionClient = theCollection && DG.CollectionClient.create({});
     if (theCollectionClient && theCollection && theID) {
       theCollectionClient.setTargetCollection(theCollection);
-      // Note: We 'get' the 'id' again, because it may have changed from a
-      // temporary 'id' to a permanent 'id' since theID was extracted.
-      this._collectionClients[ theCollectionClient.get('id')] = theCollectionClient;
-      this.didAddCollection( theCollectionClient);
+      this._collectionClients[ theID ] = theCollectionClient;
+      this.didAddCollection( theCollectionClient );
     }
     return theCollectionClient;
   },
@@ -1101,8 +1226,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var this_ = this,
         collections = this.get('collections');
     collections.
-      forEach( function( iCollectionRecord) {
-                var collectionID = iCollectionRecord.get('id'),
+      forEach( function( iCollection) {
+                var collectionID = iCollection.get('id'),
                     collectionClient = this_.getCollectionByID( collectionID);
                 if( collectionClient)
                   iFunction( collectionClient);
@@ -1118,9 +1243,10 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {String}              The string to represent the specified number of cases
    */
   getCaseNameForCount: function( iCollectionClient, iCount) {
-    var tLabels = iCollectionClient.getPath('collection.collectionRecord.labels'),
-        tSingName = tLabels ? tLabels.singleCase : iCollectionClient.getPath('collection.collectionRecord.caseName'),
-        tPluralName = tLabels ? tLabels.pluralCase : iCollectionClient.getPath('collection.collectionRecord.name');
+    var tCollection = iCollectionClient.get('collection'),
+        tLabels = tCollection && tCollection.get('labels'),
+        tSingName = tLabels ? tLabels.singleCase : tCollection.get('caseName'),
+        tPluralName = tLabels ? tLabels.pluralCase : tCollection.get('name');
     tSingName = tSingName || 'DG.DataContext.singleCaseName'.loc();
     tPluralName = tPluralName || 'DG.DataContext.pluralCaseName'.loc();
     return (iCount === 1) ? tSingName : tPluralName;
@@ -1145,7 +1271,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {String}              The string label to represent a set of cases
    */
   getLabelForSetOfCases: function( iCollection) {
-    return iCollection.getPath('collection.collectionRecord.parent.caseName') ||
+    return iCollection.getPath('collection.collection.parent.caseName') ||
         'DG.DataContext.setOfCasesLabel'.loc();
   },
   
@@ -1160,8 +1286,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collectionCount = this.get('collectionCount'),
         collections = this.get('collections');
     for( var i = collectionCount - 1; i >= 0; --i) {
-      var collectionRecord = collections.objectAt( i),
-          collectionClient = collectionRecord && this._collectionClients[ collectionRecord.get('id')],
+      var collection = collections.objectAt( i),
+          collectionClient = collection && this._collectionClients[ collection.get('id')],
           foundAttr = collectionClient && collectionClient.getAttributeByID( iAttributeID);
       if( foundAttr)
         return { collection: collectionClient, attribute: foundAttr };
@@ -1180,8 +1306,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collectionCount = this.get('collectionCount'),
         collections = this.get('collections');
     for( var i = collectionCount - 1; i >= 0; --i) {
-      var collectionRecord = collections.objectAt( i),
-          collectionClient = collectionRecord && this._collectionClients[ collectionRecord.get('id')],
+      var collection = collections.objectAt( i),
+          collectionClient = collection && this._collectionClients[ collection.get('id')],
           foundAttr = collectionClient && collectionClient.getAttributeByName( iName);
       if( foundAttr)
         return { collection: collectionClient, attribute: foundAttr };
@@ -1268,13 +1394,13 @@ DG.DataContext = SC.Object.extend((function() // closure
   
   /**
    *  Copies the contents of iComponentStorage to the model.
-   *  @param {Object} iComponentStorage -- Properties restored from document.
+   *  @param {Object} iContextStorage -- Properties restored from document.
    */
   restoreFromStorage: function( iContextStorage) {
     var collections = this.get('collections');
     if( !SC.none( collections)) {
-      DG.ObjectMap.forEach(collections, function( key) {
-                            this.addCollection( collections[key]);
+      collections.forEach(function( collection) {
+                            this.addCollection( collection);
       }.bind(this));
     }
   }
@@ -1358,7 +1484,7 @@ DG.DataContext.contextIDs = function(iDocumentID) {
 /**
   Returns the context that contains the specified collection.
   Currently, this is implemented simply by following the 'context' property
-  of the DG.CollectionRecord back to its DG.DataContextRecord and then looking
+  of the DG.Collection back to its DG.DataContextRecord and then looking
   up the DG.DataContext by ID. The current implementation (like most other
   functions here) ignores the document ID. Note that there is a bit of a code
   smell surrounding the use of this function. Clients that have access to a
@@ -1370,9 +1496,9 @@ DG.DataContext.contextIDs = function(iDocumentID) {
  TODO: information via the DocumentController.
  */
 DG.DataContext.getContextFromCollection = function( iCollectionClient) {
-  var collectionRecord = iCollectionClient &&
-                          iCollectionClient.getPath('collection.collectionRecord'),
-      contextID = collectionRecord && collectionRecord.getPath('context.id'),
+  var collection = iCollectionClient &&
+                          iCollectionClient.get('collection'),
+      contextID = collection && collection.getPath('context.id'),
       context = contextID &&
                   DG.DataContext.retrieveContextFromMap( null, contextID);
   return context;
@@ -1387,7 +1513,7 @@ DG.DataContext.getContextFromCollection = function( iCollectionClient) {
  {String}                object.plotYAttr -- default Y attribute on graphs
  */
 DG.DataContext.collectionDefaults = function() {
-  var defaults = {
+  var defaultValues = {
     collectionClient: null, //this.get('childCollection'),
     parentCollectionClient: null, //this.get('parentCollection'),
     plotXAttr: null,
@@ -1395,7 +1521,7 @@ DG.DataContext.collectionDefaults = function() {
     plotYAttr: null,
     plotYAttrIsNumeric: true
   };
-  return defaults;
+  return defaultValues;
 };
 /**
  *  A factory function for creating an appropriate DG.DataContext object, i.e.

@@ -402,38 +402,6 @@ DG.GameController = DG.ComponentController.extend(
         }
       }.bind(this);
 
-      // Function for creating each collection and its required attributes
-      function handleNewCollection(iCollectionArgs) {
-        var tCollectionProperties = {
-          name: iCollectionArgs.name,
-          caseName: iCollectionArgs.caseName,
-          labels: iCollectionArgs.labels,
-          defaults: iCollectionArgs.defaults,
-          collapseChildren: iCollectionArgs.collapseChildren,
-          areParentChildLinksConfigured: true
-        };
-
-        // Each collection is the child of the previous collection
-        if (tGameCollections.length > 0) {
-          tCollectionProperties.parent
-            = tGameCollections[tGameCollections.length - 1].get('id');
-        }
-        if (iCollectionArgs.collapseChildren)
-          tCollectionProperties.collapseChildren = true;
-
-        // Create/guarantee each collection and its required attributes
-        var tCollection = tGameContext.guaranteeCollection(tCollectionProperties);
-        if (tCollection) {
-          tGameCollections.push(tCollection);
-          iCollectionArgs.attrs.forEach(function (iAttrArgs) {
-            tCollection.guaranteeAttribute(iAttrArgs);
-          });
-        }
-        // if this is a revision of an existing collection make sure that
-        // attributes are in the order expected
-        tCollection.reorderAttributes(iCollectionArgs.attrs.getEach('name'));
-      }
-
       //DG.log('InitGame: ' + JSON.stringify(iArgs));
       // The game-specified arguments form the core of the new DG.GameSpec.
       var tCurrentGameName = this.getPath('context.gameName'),
@@ -444,7 +412,8 @@ DG.GameController = DG.ComponentController.extend(
         tRestoredGameState,
         tRestoreCommand,
         tDoAppCommandFunc,
-        tGameElement;
+        tGameElement,
+        tReturn = {success: true};
 
       if (SC.none(tGameContext)) {
         tGameContext = DG.currDocumentController().createNewDataContext({
@@ -483,7 +452,10 @@ DG.GameController = DG.ComponentController.extend(
 
       // Create/guarantee each collection and its required attributes
       if (iArgs.collections) {
-        iArgs.collections.forEach(handleNewCollection);
+        iArgs.collections.forEach(function (collectionArgs) {
+          var result = this.handleCreateCollection(collectionArgs);
+          tReturn.success = tReturn.success && result.success;
+        }.bind(this));
       }
 
       // Notify that the collections have changed
@@ -509,10 +481,11 @@ DG.GameController = DG.ComponentController.extend(
           tGameElement.doCommandFunc( SC.json.encode( tRestoreCommand ));
         } else if (this.get('isGamePhoneInUse')) {
           this.gamePhone.call(tRestoreCommand, finishInitGame.bind(this));
-          return;
+          return tReturn;
         }
       }
       finishInitGame.call(this);
+      return tReturn;
     },
     /**
       Create a component of the specified type.
@@ -881,16 +854,9 @@ DG.GameController = DG.ComponentController.extend(
                                     areParentChildLinksConfigured: true },
           tGameCollections = tGameContext.get('collections'),
           tResult,
-          tCollection,
-          tParentCollectionSpec,
-          tParentCollection;
+          tCollection;
       if( tGameCollections && tGameCollections.length > 0) {
-        tParentCollectionSpec = tGameCollections[ tGameCollections.length - 1],
-            tParentCollection = tParentCollectionSpec
-              && tGameContext
-              && tGameContext.getCollectionByName( tParentCollectionSpec.name);
-        if( tParentCollection)
-          tCollectionProperties.parent = tParentCollection.get('id');
+        tCollectionProperties.parent = tGameCollections[ tGameCollections.length - 1].get('id');
       }
 
       tResult = tGameContext &&

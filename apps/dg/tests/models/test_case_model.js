@@ -42,11 +42,7 @@ test('test DG.Case', function () {
       description: 'A child collection'
     },
     tContext = DG.activeDocument.createContext({}),
-    tParentCollection = tContext.createCollection(tPropsParentCollection),
-    tParentCollectionModel = DG.Collection.create({
-      collectionRecord: tParentCollection
-    }),
-    tChildCollection,
+    tParentCollectionModel = tContext.createCollection(tPropsParentCollection),
     tChildCollectionModel,
     tParentAttrs = [],
     tChildAttrs = [],
@@ -54,11 +50,8 @@ test('test DG.Case', function () {
     tChildCase = [],
     tID;
 
-  tPropsChildCollection.parent = tParentCollection;
-  tChildCollection = tContext.createCollection(tPropsChildCollection);
-  tChildCollectionModel = DG.Collection.create({
-    collectionRecord: tChildCollection
-  });
+  tPropsChildCollection.parent = tParentCollectionModel;
+  tChildCollectionModel = tContext.createCollection(tPropsChildCollection);
 
   // preparation
   tParentAttrs[0] = tParentCollectionModel.createAttribute({name: 'attrP1'});
@@ -80,8 +73,8 @@ test('test DG.Case', function () {
     values: ['5', 'e'], parent: tParentCase[1]});
   ok(tChildCase[0] && tChildCase[1] && tChildCase[2],
     'Can create child Cases.');
-  equals(tParentCase[0].children.length, 2, 'Parent has a reference to children.');
-  equals(tParentCase[1].children.length, 1, 'Parent has a reference to children.');
+  equals(tParentCase[0].get('children').length, 2, 'Parent has a reference to children.');
+  equals(tParentCase[1].get('children').length, 1, 'Parent has a reference to children.');
 
   // access
   tID = tParentCase[0].id;
