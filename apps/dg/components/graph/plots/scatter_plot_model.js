@@ -244,7 +244,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
       iAnimatePoints = true;
     this.doRescaleAxesFromData( [DG.GraphTypes.EPlace.eX, DG.GraphTypes.EPlace.eY, DG.GraphTypes.EPlace.eY2],
                                 iAllowScaleShrinkage, iAnimatePoints, isUserAction);
-    if( iLogIt)
+    if( iLogIt && !isUserAction)
       DG.logUser("rescaleScatterplot");
   },
 
