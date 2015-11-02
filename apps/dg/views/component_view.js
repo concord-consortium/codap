@@ -565,13 +565,13 @@ DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
 
 /**
  * Create a component view and add it as a subview to the given super view.
- * @param iSuperView
+ * @param iSuperView {SC.View}
  * @param iComponentLayout
  * @param iComponentClass - The class of the content view to be contained in the component view
  * @param iContentProperties - These properties are passed to the new instance of the content during creation
- * @param iTitle - The title that appears in the component view's title bar
  * @param iIsResizable
  * @param iUseLayoutForPosition - if true, forgo auto-positioning and just use the layout.
+ * @param iIsVisible {Boolean}
  */
 DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties,
                                           iIsResizable, iUseLayoutForPosition, iIsVisible) {

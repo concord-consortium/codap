@@ -713,3 +713,35 @@ input.editor-text {
 .sel .dg-example-name {
     color: inherit;
 }
+
+.dg-table-drop-target {
+    background-color: white;
+    width: 30px;
+}
+.dg-table-drop-target  .sc-label-view {
+    -webkit-writing-mode: vertical-lr;
+    writing-mode: vertical-lr;
+    text-align: center;
+    padding: 0.5em;
+    transform: rotate(180deg);
+}
+
+.dg-table-drop-target-show .sc-label-view {
+    border: medium #ffe4b3 solid;
+}
+
+.dg-table-drop-target-highlight  .sc-label-view {
+    background-color: #ffffb3;
+}
+
+.slick-header-column.drag-insert-left {
+    border-left-color: black;
+    border-left-style: solid;
+    border-left-width: thick;
+}
+
+.slick-header-column.drag-insert-right {
+    border-right-color: black;
+    border-right-style: solid;
+    border-right-width: thick;
+}

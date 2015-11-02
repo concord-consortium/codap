@@ -20,6 +20,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('components/case_table/case_table_drop_target');
 sc_require('components/case_table/case_table_view');
 sc_require('components/case_table/relation_divider_view');
 
@@ -61,7 +62,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
   /**
     Child views currently limited to two subtables, but should be extensible down the road.
    */
-  childViews: [ 'slopView' ],
+  childViews: ['slopView' ],
   
   /**
     The left table showing the parent cases.
@@ -73,14 +74,13 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     compensatesForMovement: YES
   }),
 
-  slopView: SC.View.extend( SC.SplitChild, {
-      name: 'slopView',
-      minimumSize: kMinSlop,
-      size: kMinSlop,
-      autoResizeStyle: SC.RESIZE_MANUAL,
-      compensatesForMovement: YES,
-
-      backgroundColor: kColumnHeaderBackgroundColor
+  slopView: SC.View.extend ( SC.SplitChild, {
+    name: 'slopView',
+    minimumSize: kMinSlop,
+    size: kMinSlop,
+    autoResizeStyle: SC.RESIZE_MANUAL,
+    compensatesForMovement: YES,
+    backgroundColor: kColumnHeaderBackgroundColor
   }),
 
   relationDividerView: DG.RelationDividerView.extend ( SC.SplitChild, {
@@ -103,6 +103,9 @@ DG.HierTableView = SC.SplitView.extend( (function() {
         return slopSize <= kMinSlop;
       }.property()
     }),
+
+    leftDropTarget: null,
+    rightDropTarget: null,
 
     makeRelationDividerView: function () {
       return  this.relationDividerView.create({});
@@ -135,19 +138,19 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       this.removeChild(view);
     },
 
-  /**
-    An array of child table view object, one for each subtable.
-    @property   {[DG.CaseTableView]}
-   */
-  childTableViews: function() {
-    var childViews = this.get('childViews') || [],
-        childTableViews = [];
-    childViews.forEach( function( iChildView) {
-                          if( iChildView.kindOf( DG.CaseTableView))
-                            childTableViews.push( iChildView);
-                        });
-    return childTableViews;
-  }.property(),
+    /**
+      An array of child table view object, one for each subtable.
+      @property   {[DG.CaseTableView]}
+     */
+    childTableViews: function() {
+      var childViews = this.get('childViews') || [],
+          childTableViews = [];
+      childViews.forEach( function( iChildView) {
+                            if( iChildView.kindOf( DG.CaseTableView))
+                              childTableViews.push( iChildView);
+                          });
+      return childTableViews;
+    }.property(),
 
     dividerViews: function () {
       var childViews = this.get('childViews') || [],
@@ -159,16 +162,16 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       return dividerViews;
     }.property(),
 
-  /**
-    Destruction method.
-   */
-  willDestroy: function() {
-    var childViews = this.get('childTableViews');
-    childViews.forEach( function( iView) {
-                          if( iView && iView.willDestroy)
-                            iView.willDestroy();
-                        });
-  },
+    /**
+      Destruction method.
+     */
+    willDestroy: function() {
+      var childViews = this.get('childTableViews');
+      childViews.forEach( function( iView) {
+                            if( iView && iView.willDestroy)
+                              iView.willDestroy();
+                          });
+    },
 
   /**
    * Returns a view instance to be used as a divider between two other views,
@@ -356,35 +359,56 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       }
     }
     var childTableViews = this.get('childTableViews');
-    var dividerViews = this.get('dividerViews');
-    var m = Math.max(childTableViews.length, iAdapters.length);
-    var ix;
-    var childTableView, adapter, divider;
-    this.removeChild(this.slopView);
-    for (ix = 0; ix < m; ix += 1) {
-      childTableView = childTableViews[ix];
-      adapter = iAdapters[ix];
-      if (childTableView && adapter) {
-        childTableView.setIfChanged('gridAdapter', adapter);
-        if (ix > 0) setUpDividerView(childTableViews[ix-1], childTableView, dividerViews[ix-1]);
-      } else if (adapter) {
-        if (ix > 0) {
-          divider = this.makeRelationDividerView();
-          this.appendChild(divider);
-          dividerViews.push(divider);
-        }
-        childTableView = this.makeChildTableView();
-        childTableView.setIfChanged('gridAdapter', adapter);
-        this.appendChild(childTableView);
-        childTableViews.push(childTableView);
+    var caseTablesInAdapterOrder = [];
+    var childTableView;
+    var x;
 
-        if (divider) setUpDividerView(childTableViews[ix-1],
-            childTableView, divider);
-      } else if (childTableView) {
-        this.removeChildTableView(childTableView);
-      }
+    // Remove all the contents of the view. We are going to recreate the order.
+    while(!SC.none(x = this.get('childViews')[0])) {
+      this.removeChild(x);
     }
+
+    // find out which adapters are already mapped to views.
+    iAdapters.forEach(function (adapter, ix) {
+      caseTablesInAdapterOrder[ix] = childTableViews.findProperty('gridAdapter', adapter);
+    });
+
+    // now we are going to rebuild the view, left first...
+    if (SC.none(this.leftDropTarget)) {
+      this.leftDropTarget = DG.CaseTableDropTarget.create({
+        name:'leftTarget',
+        dataContext: this.model
+      });
+    }
+    this.appendChild(this.leftDropTarget);
+
+    // if not mapped to views create new views
+    iAdapters.forEach(function (adapter, ix) {
+      var divider;
+      if (!caseTablesInAdapterOrder[ix]) {
+        childTableView = this.makeChildTableView();
+        childTableView.set('gridAdapter', adapter);
+        caseTablesInAdapterOrder[ix] = childTableView;
+      }
+      if (ix > 0) {
+        divider = this.makeRelationDividerView();
+        setUpDividerView(caseTablesInAdapterOrder[ix-1], caseTablesInAdapterOrder[ix], divider);
+        this.appendChild(divider);
+      }
+      this.appendChild(caseTablesInAdapterOrder[ix]);
+    }.bind(this));
+
+    // now the right-hand portions...
+    if (SC.none(this.rightDropTarget)) {
+      this.rightDropTarget = DG.CaseTableDropTarget.create({
+        name:'rightTarget',
+        dataContext: this.model
+      });
+    }
+    this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);
+
+    this.updateSelectedRows();
   },
   
   /**

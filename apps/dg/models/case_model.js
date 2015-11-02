@@ -20,10 +20,16 @@ sc_require('models/model_store');
 sc_require('models/base_model');
 
 /** @class
-
-  Represents an individual case in the collection.
-
- @extends SC.Object
+ *
+ * Represents an individual case in the collection. For the base collection (the
+ * rightmost collection, the one with no child collection) there is one case
+ * for each item in the data set. For all upper level collections a case is a unique
+ * combination of attribute values among the data items with the same parentage.
+ * Each collection manages an attribute group. An individual case is the set of
+ * DataItems in the DataSet for which the attributes in the attribute group all
+ * have the same values.
+ *
+ * @extends SC.Object
  */
 DG.Case = DG.BaseModel.extend(
   /** @scope DG.Case.prototype */ {
@@ -39,7 +45,7 @@ DG.Case = DG.BaseModel.extend(
 
     /**
      * A relational link back to the parent collection.
-     * @property {DG.CollectionRecord}
+     * @property {DG.Collection}
      */
     collection: null,
 
@@ -51,14 +57,22 @@ DG.Case = DG.BaseModel.extend(
 
     /**
      * A relational link to the child cases of this case.
-     * @property {Array of DG.Case}
+     * @property {[DG.Case]}
      */
     children: null,
+
+      /**
+       * Every case gets its attribute values from an item.
+       * @type {DG.DataItem}
+       */
+    item: null,
 
     /**
      * Associative array of {AttrID:value} pairs for quicker lookups.
      */
-    _valuesMap: null,
+    _valuesMap: function () {
+      return this.get('item').values;
+    }.property(),
 
     /**
      * An object whose properties represent the values of the case.
@@ -77,8 +91,8 @@ DG.Case = DG.BaseModel.extend(
       if (this.parent) {
         this.parent.children.pushObject(this);
       }
-      this._valuesMap = {};
-      this.setValueMapFromArray();
+      //this._valuesMap = {};
+      //this.setValueMapFromArray();
     },
 
     verify: function () {
@@ -89,8 +103,8 @@ DG.Case = DG.BaseModel.extend(
         DG.logWarn('Unresolved reference to collection id, ' + this.collection +
           ', in case: ' + this.id);
       }
-      if (typeof this.parent === 'number') {
-        DG.logWarn('Unresolved reference to parent, ' + this.parent +
+      if (typeof this.get('parent') === 'number') {
+        DG.logWarn('Unresolved reference to parent, ' + this.get('parent') +
           ', in case: ' + this.id);
       }
     },
@@ -105,7 +119,6 @@ DG.Case = DG.BaseModel.extend(
       if (this.collection) {
         this.collection.cases.removeObject(this);
       }
-      this._valuesMap = null;
       sc_super();
     },
 
@@ -132,6 +145,7 @@ DG.Case = DG.BaseModel.extend(
 
         // If we have an attribute formula, we must evaluate it.
         var tAttr = DG.Attribute.getAttributeByID( iAttrID);
+        var valuesMap = this.get('_valuesMap');
         if (tAttr && tAttr.get('hasFormula') &&
           // we only do the evaluation if it's one of this case's attributes
           (this.getPath('collection.id') === tAttr.getPath('collection.id'))) {
@@ -139,8 +153,9 @@ DG.Case = DG.BaseModel.extend(
         }
 
         // If we have a cached value, simply return it
-        if( this._valuesMap && (this._valuesMap[iAttrID] !== undefined)) {
-          return this._valuesMap[iAttrID];
+
+        if( valuesMap && (valuesMap[iAttrID] !== undefined)) {
+          return valuesMap[iAttrID];
         }
 
         // one last chance if we've got a parent and it has 'getValue'
@@ -218,7 +233,7 @@ DG.Case = DG.BaseModel.extend(
         if(tAttr && tAttr.get('hasFormula'))
           return true;
 
-        if( this._valuesMap && !SC.empty( this._valuesMap[iAttrID]))
+        if( this.get('_valuesMap') && !SC.empty( this.get('_valuesMap')[iAttrID]))
           return true;
 
         var tParent = this.get('parent');
@@ -232,8 +247,14 @@ DG.Case = DG.BaseModel.extend(
      * @param {String} iValue Value of the newly created case value.
      */
     setValue: function(iAttrID, iValue) {
-      if( !this._valuesMap) return; // Looks like case has been destroyed
-      this._valuesMap[iAttrID] = iValue;
+      var children = this.get('children');
+      if( !this.get('_valuesMap')) return; // Looks like case has been destroyed
+
+      if (children.length === 0) {
+        this.item.setValue(iAttrID, iValue);
+      } else {
+        children.forEach(function (child) { child.setValue(iAttrID, iValue); });
+      }
     },
 
     /**
@@ -246,7 +267,7 @@ DG.Case = DG.BaseModel.extend(
     genArchive: function() {
       var values = {};
       DG.ObjectMap.
-        forEach( this._valuesMap,
+        forEach( this.get('_valuesMap'),
         function( iKey, iValue) {
           var attr = DG.Attribute.getAttributeByID( iKey),
             propName = attr && attr.get('name');
@@ -258,26 +279,6 @@ DG.Case = DG.BaseModel.extend(
       this.set('values', values);
     },
 
-    /**
-     * Set the value map from the value array. Called during initialization.
-     */
-    setValueMapFromArray: function() {
-      var collection = this.get('collection'),
-        valuesMap = {};
-      DG.ObjectMap.
-        forEach( this.get('values'),
-          function( iKey, iValue) {
-            if( iValue !== undefined) {
-              var attr = collection && collection.getAttributeByName( iKey),
-                attrID = attr && attr.get('id');
-              if( !SC.none( attrID))
-                valuesMap[attrID] = iValue;
-            }
-          });
-      this._valuesMap = valuesMap;
-      // We don't need the 'values' property outside of save/restore
-      this.set('values', null);
-    },
 
     debugLog: function(iPrompt) {
       DG.log('Case ' + this.get('id'));
@@ -287,7 +288,7 @@ DG.Case = DG.BaseModel.extend(
       var result;
       this.genArchive();
       result = {
-        parent: (this.parent && this.parent.id)  || undefined,
+        parent: (this.get('parent') && this.get('parent').id)  || undefined,
         guid: this.id,
         values: this.values
       };
@@ -299,7 +300,10 @@ DG.Case = DG.BaseModel.extend(
 
 /**
  * Creates a new case with the specified properties.
- * @param {Object}    iProperties -- Properties to apply to the newly-created DG.Case
+ * @param iProperties
+ *    {{collection:DG.Collection|id, parent:DG.Case|id, extentStart: number}}
+ *    Properties to apply to the newly-created DG.Case
+ *
  * @return {DG.Case}  The newly-created DG.Case
  */
 DG.Case.createCase = function( iProperties) {

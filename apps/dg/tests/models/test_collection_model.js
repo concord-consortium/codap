@@ -39,21 +39,17 @@ test('test DG.Collection', function () {
       description: 'A child collection'
     },
     tContext = DG.activeDocument.createContext({}),
-    tParentCollectionRecord = tContext.createCollection(tParentProps),
-    tParentCollectionModel = DG.Collection.create({
-      collectionRecord: tParentCollectionRecord}),
-    tParentID = tParentCollectionRecord.get('id'),
-    tChildCollectionRecord, tChildCollectionModel, tChildID, tAttr1, tAttr2,
+    tParentCollectionModel = tContext.createCollection(tParentProps),
+    tParentID = tParentCollectionModel.get('id'),
+    tChildCollectionModel, tChildID, tAttr1, tAttr2,
     tNames, tIDs, tParentCase1, tParentCase2, tCaseIDs;
 
   ok(tParentCollectionModel, 'Can create parent CollectionModel.');
   ok(tParentID, 'Parent CollectionModel has ID.');
-  tChildProps.parent = tParentCollectionRecord;
-  tChildCollectionRecord = tContext.createCollection(tChildProps);
-  tChildCollectionModel = DG.Collection.create({
-    collectionRecord: tChildCollectionRecord});
+  tChildProps.parent = tParentCollectionModel;
+  tChildCollectionModel = tContext.createCollection(tChildProps);
   ok(tChildCollectionModel, 'Can create child CollectionModel');
-  tChildID = tChildCollectionRecord.get('id');
+  tChildID = tChildCollectionModel.get('id');
   ok(tChildID, 'Child CollectionModel has ID.');
 
   ok(!tChildCollectionModel.isAncestorOf(tParentCollectionModel),

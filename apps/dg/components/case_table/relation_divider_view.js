@@ -111,7 +111,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
         dividerView = this.get('dividerView');
     if( headerView) headerView.displayDidChange();
     if( dividerView) dividerView.displayDidChange();
-  },
+  }.observes('leftTable','rightTable'),
   
   childViews: [ 'headerView', 'dividerView' ],
   

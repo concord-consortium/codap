@@ -170,6 +170,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                                          });
         }
         if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
+        this.doResetCollections();
       }.observes('dataContext'),
 
       getCaseCountMessage: function () {
@@ -266,13 +267,16 @@ DG.CaseTableController = DG.ComponentController.extend(
             break;
           case 'createAttributes':
           case 'deleteAttributes':
+          case 'moveAttribute':
+            this.caseCountDidChange( iChange);
             this.attributeCountDidChange( iChange);
             break;
           case 'updateAttributes':
             this.doUpdateAttributes( iChange);
             break;
           case 'resetCollections':
-            this.doResetCollections( iChange );
+            this.caseCountDidChange( iChange);
+            this.dataContextDidChange();
             break;
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
@@ -329,7 +333,7 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       /**
         Called when the data context notifies that attribute properties have changed.
-        @param  {Object}  An object describing the nature of the change
+        @param  iChange {Object}  An object describing the nature of the change
        */
       doUpdateAttributes: function( iChange) {
         var hierTableView = this.getPath('view.contentView'),
@@ -866,10 +870,66 @@ DG.CaseTableController = DG.ComponentController.extend(
             })
         );
         return tButtons;
-      }
+      },
 
+      _makeUniqueCollectionName: function (candidateName) {
+        function pluralize(name) {
+          return name + 's';
+        }
+        var context = this.dataContext;
+        var name = pluralize(candidateName);
+        var ix = 0;
+        while (!SC.none(context.getCollectionByName(name))) {
+          ix += 1;
+          name = pluralize(candidateName) + ix;
+        }
+        return name;
+      },
 
+      leftDropZoneDidAcceptDrop: function () {
+        var dropData = this.getPath('contentView.leftDropTarget.dropData');
+        var context = this.dataContext;
+        var rtn = {success: false};
+        var tChange;
+        if (!SC.none(dropData)) {
+          tChange = {
+            operation: 'createCollection',
+            properties: {
+              name: this._makeUniqueCollectionName(dropData.attribute.name),
+              children: [context.getCollectionAtIndex(0).collection]
+            },
+            attributes: [dropData.attribute]
+          };
+          rtn = context.applyChange(tChange);
+          this.setPath('contentView.leftDropTarget.dropData', null);
+        }
+        DG.log('CaseTable observes left drop');
+        return rtn;
+      }.observes('contentView.leftDropTarget.dropData'),
 
+      rightDropZoneDidAcceptDrop: function () {
+        var dropData = this.getPath('contentView.rightDropTarget.dropData');
+        var context = this.dataContext;
+        var collectionCount = context.get('collectionCount');
+        var parentClient = context.getCollectionAtIndex(collectionCount-1);
+        var rtn = {success: false};
+        var tChange;
+
+        if (!SC.none(dropData)) {
+          tChange = {
+            operation: 'createCollection',
+            properties: {
+              name: this._makeUniqueCollectionName(dropData.attribute.name),
+              parent: parentClient.get('collection')
+            },
+            attributes: [dropData.attribute]
+          };
+          rtn = context.applyChange(tChange);
+          this.setPath('contentView.leftDropTarget.dropData', null);
+        }
+        DG.log('CaseTable observes right drop');
+        return rtn;
+      }.observes('contentView.rightDropTarget.dropData')
     };
   }()) // function closure
 );
