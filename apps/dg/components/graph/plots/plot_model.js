@@ -229,7 +229,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         var tWantVisible = !this_.plottedCount.get('isVisible');
         this_.plottedCount.set('isVisible', tWantVisible );
       }
-      DG.logUser("togglePlottedCount: %@", this_.plottedCount.get('isVisible') ? "show" : "hide");
     }
 
     var isShowCount = !this.plottedCount || !this.plottedCount.get('isVisible');
@@ -408,8 +407,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     var adornmentModel = this.getAdornmentModel( iAdornmentKey ),
         tIsVisible = adornmentModel && adornmentModel.get('isVisible');
     this.setAdornmentVisibility( iAdornmentKey, !tIsVisible);
-    DG.logUser("%@: %@", iToggleLogString || "toggle" + iAdornmentKey,
-                          !tIsVisible ? "show" : "hide");
     return adornmentModel;
   },
 
