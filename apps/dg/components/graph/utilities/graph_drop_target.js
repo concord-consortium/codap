@@ -114,9 +114,6 @@ DG.GraphDropTarget =
   dragEnded: function() {
     if( this.borderFrame)
       this.borderFrame.hide();
-    if( this.get('orientation') === 'vertical2') {
-      this.set('isVisible', false);
-    }
   },
   
   /**
