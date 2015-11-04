@@ -111,18 +111,23 @@ DG.DataContext = SC.Object.extend((function() // closure
 
 // find the ur-parent, then follow it to all its children.
       c = srcCollectionArray[0]; i = 0;
-      while (!SC.none(c.get('parent')) && i <= collectionCount) { c = c.get('parent'); i++; }
-      if (i > collectionCount) {
-        DG.logError('Circular parental links among collections in context: '  + this.name);
-      }
-      i = 0;
-      while (!SC.none(c) && i <= collectionCount) {
-        this._collections.pushObject(c);
-        c = c.get('children')[0];
-        i++;
-      }
-      if (i > collectionCount) {
-        DG.logError('Circular child links among collections in context: '  + this.name);
+      if (c) {
+        while (!SC.none(c.get('parent')) && i <= collectionCount) {
+          c = c.get('parent');
+          i++;
+        }
+        if (i > collectionCount) {
+          DG.logError('Circular parental links among collections in context: ' + this.name);
+        }
+        i = 0;
+        while (!SC.none(c) && i <= collectionCount) {
+          this._collections.pushObject(c);
+          c = c.get('children')[0];
+          i++;
+        }
+        if (i > collectionCount) {
+          DG.logError('Circular child links among collections in context: ' + this.name);
+        }
       }
 
       // Return the cached array in the proper order
