@@ -22,6 +22,7 @@
 /*global Slick */
 
 sc_require('components/case_table/scroll_animation_utility');
+sc_require('views/mouse_and_touch_view');
 
 /** @class
 
@@ -39,27 +40,151 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * view to the cells in which those clicks occurred. It should be set
    * so that clicks on row boundaries have the expected user effect.
    */
-  var kHeaderHeight = 29,
+  var kHeaderHeight = 72,//29,
       kAutoScrollInterval = 200;  // msec == 5 rows/sec
 
   return {  // return from closure
-  
-  classNames: ['dg-case-table'],
+
+    childViews: 'titleView tableView _hiddenDragView'.w(),
+
+    titleView: SC.LabelView.extend(DG.MouseAndTouchView, {
+      classNames: 'dg-case-table-title'.w(),
+      layout: { left: 0, right: 0, top: 0, height: 43 },
+      isEditable: YES,
+      valueBinding: '.parentView.collectionName',
+      localize: true,
+      doIt: function() {
+        this.beginEditing();
+      }
+    }),
+
+    tableView: SC.View.extend({
+      classNames: ['dg-case-table'],
+      layout: { left: 0, right: 0, top: 43, bottom: 0 },
+      backgroundColor: "white",
+      isDropTarget: true,
+      computeDragOperations: function( iDrag) {
+        if( this.parentView.isValidAttribute( iDrag))
+          return SC.DRAG_LINK;
+        else
+          return SC.DRAG_NONE;
+      },
+
+      dragStarted: function( iDrag) {
+        if (this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
+          this.set('isDragInProgress', true);
+        }
+      },
+
+      dragEnded: function () {
+        this.set('isDragInProgress', false);
+      },
+
+      dragEntered: function( iDragObject, iEvent) {
+        this.set('isDragEntered', true);
+      },
+
+      dragInsertPoint: null,
+
+      dragUpdated: function( iDragObject, iEvent) {
+        var slickGrid = this.parentView._slickGrid;
+        var gridPosition =  slickGrid.getGridPosition();
+        var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
+        var originLoc = {x: iDragObject.origin.x - gridPosition.left, y:1};
+
+        var cell = slickGrid.getCellFromPoint(loc.x, loc.y);
+        var originCell = slickGrid.getCellFromPoint(originLoc.x, originLoc.y);
+        var columnIndex = cell.cell;
+        var cellBox = slickGrid.getCellNodeBox(0, cell.cell);
+        // It is possible to get a dragUpdated notification before a dragExited.
+        // So we exit.
+        if (!cellBox) {
+          return;
+        }
+        var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
+        if (nearerBound === 'left' && columnIndex > 0) {
+          columnIndex -= 1;
+          nearerBound = 'right';
+        }
+        var headerNode = (columnIndex >=0 ) && this.$('.slick-header-column',
+                slickGrid.getHeaderRow())[columnIndex];
+        if (this.dragInsertPoint)  {
+          if (this.dragInsertPoint.columnIndex !== columnIndex
+              || this.dragInsertPoint.nearerBound !== nearerBound) {
+            this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+                + this.dragInsertPoint.nearerBound);
+          } else {
+            return;
+          }
+        }
+        if (iDragObject.source !== this
+            || nearerBound === 'left'
+            || columnIndex > originCell.cell
+            || columnIndex < originCell.cell - 1) {
+          this.dragInsertPoint = {
+            headerNode: headerNode,
+            columnIndex: columnIndex,
+            nearerBound: nearerBound
+          };
+          this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
+          //DG.log('dragUpdated: ' + JSON.stringify({
+          //      columnIndex: columnIndex,
+          //      location: iDragObject.location,
+          //      gridPosition: gridPosition,
+          //      loc: loc,
+          //      cellBox: cellBox,
+          //      nearerBound: nearerBound}));
+        }
+      },
+
+      dragExited: function( iDragObject, iEvent) {
+        if (this.dragInsertPoint) {
+          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
+        }
+        this.dragInsertPoint = null;
+        this.set('isDragEntered', false);
+      },
+
+      acceptDragOperation: function() {
+        return YES;
+      },
+
+      performDragOperation:function ( iDragObject, iDragOp ) {
+        var dragData = iDragObject.data;
+        var attr = dragData.attribute;
+        var position;
+
+        // if we have an insert point, then we initiate the move.
+        // Otherwise we ignore the drop.
+        if (this.dragInsertPoint) {
+          position = (this.dragInsertPoint.nearerBound === 'right')
+              ? this.dragInsertPoint.columnIndex + 1
+              : this.dragInsertPoint.columnIndex;
+          this.parentView.gridAdapter.requestMoveAttribute(attr, position);
+        }
+        DG.log('Got drop: ' + iDragObject.data.attribute.name);
+      }
+    }),
+
+    _hiddenDragView: SC.LabelView.design({
+      classNames: 'drag-label'.w(),
+      layout: { width: 100, height: 20, top: -50, left: 0 },
+      value: ''
+//    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)
+    }),
 
   layout: { left: 0, right: 0, top: 0, bottom: 0 },
   
   backgroundColor: "white",
 
-  childViews: '_hiddenDragView'.w(),
-
-  isDropTarget: true,
-
-  _hiddenDragView: SC.LabelView.design({
-    classNames: 'drag-label'.w(),
-    layout: { width: 100, height: 20, top: -50, left: 0 },
-    value: ''
-//    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)
-  }),
+  collectionName: function (key, value) {
+    if (value !== undefined) {
+      this.setPath('gridAdapter.collectionName', value);
+    }
+    return this.getPath('gridAdapter.collectionName');
+  }.property('gridAdapter.collectionName'),
 
   /**
     The adapter used for adapting the case data for use in SlickGrid.
@@ -141,6 +266,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     sizeDidChange: function() {
       this.get('parentView').childTableLayoutDidChange(this);
     }.observes('size'),
+
     rowCountDidChange: function () {
       // rowCount notification can happen while case tables are being rearranged
       // this is a transient situation and we will recreate the full table after,
@@ -149,6 +275,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         this.get('parentView').rowCountDidChange(this);
       }
     }.observes('rowCount'),
+
     tableDidScroll: function () {
       // scroll notification can happen while case tables are being rearranged
       // this is a transient situation and we will recreate the full table after,
@@ -183,8 +310,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   expandCollapseCount: 0,
 
-  scrollAnimator: DG.ScrollAnimationUtility.create({
-  }),
+  scrollAnimator: DG.ScrollAnimationUtility.create({}),
   
   displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
   
@@ -209,7 +335,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
    */
   initGridView: function() {
-    var gridSelector = "#" + this.get('layerId'),
+    var gridSelector = "#" + this.tableView.get('layerId'),
         gridAdapter = this.get('gridAdapter'),
         dataView = gridAdapter && gridAdapter.gridDataView;
     this._slickGrid = new Slick.Grid( gridSelector, gridAdapter.gridDataView, 
@@ -703,7 +829,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if( iEvent.stopImmediatePropagation)
       iEvent.stopImmediatePropagation();
 
-    var tDragView = this._hiddenDragView,
+    var tDragView = this.
+        _hiddenDragView,
         tAttributeName = column.attribute.get('name'),
         this_ = this;
     SC.run( function() {
@@ -908,111 +1035,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     isValidAttribute: function( iDrag) {
       var tDragAttr = iDrag.data.attribute;
       return !SC.none( tDragAttr) && this.gridAdapter.canAcceptDrop(iDrag.data.attribute);
-    },
-
-    computeDragOperations: function( iDrag) {
-      if( this.isValidAttribute( iDrag))
-        return SC.DRAG_LINK;
-      else
-        return SC.DRAG_NONE;
-    },
-
-    dragStarted: function( iDrag) {
-      if (this.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
-        this.set('isDragInProgress', true);
-      }
-    },
-
-    dragEnded: function () {
-      this.set('isDragInProgress', false);
-    },
-
-    dragEntered: function( iDragObject, iEvent) {
-      this.set('isDragEntered', true);
-    },
-
-    dragInsertPoint: null,
-
-    dragUpdated: function( iDragObject, iEvent) {
-      var gridPosition =  this._slickGrid.getGridPosition();
-      var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
-      var originLoc = {x: iDragObject.origin.x - gridPosition.left, y:1};
-
-      var cell = this._slickGrid.getCellFromPoint(loc.x, loc.y);
-      var originCell = this._slickGrid.getCellFromPoint(originLoc.x, originLoc.y);
-      var columnIndex = cell.cell;
-      var cellBox = this._slickGrid.getCellNodeBox(0, cell.cell);
-      // It is possible to get a dragUpdated notification before a dragExited.
-      // So we exit.
-      if (!cellBox) {
-        return;
-      }
-      var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
-      if (nearerBound === 'left' && columnIndex > 0) {
-        columnIndex -= 1;
-        nearerBound = 'right';
-      }
-      var headerNode = (columnIndex >=0 ) && this.$('.slick-header-column',
-              this._slickGrid.getHeaderRow())[columnIndex];
-      if (this.dragInsertPoint)  {
-        if (this.dragInsertPoint.columnIndex !== columnIndex
-            || this.dragInsertPoint.nearerBound !== nearerBound) {
-          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
-              + this.dragInsertPoint.nearerBound);
-        } else {
-          return;
-        }
-      }
-      if (iDragObject.source !== this
-          || nearerBound === 'left'
-          || columnIndex > originCell.cell
-          || columnIndex < originCell.cell - 1) {
-        this.dragInsertPoint = {
-          headerNode: headerNode,
-          columnIndex: columnIndex,
-          nearerBound: nearerBound
-        };
-      this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
-          + this.dragInsertPoint.nearerBound);
-      //DG.log('dragUpdated: ' + JSON.stringify({
-      //      columnIndex: columnIndex,
-      //      location: iDragObject.location,
-      //      gridPosition: gridPosition,
-      //      loc: loc,
-      //      cellBox: cellBox,
-      //      nearerBound: nearerBound}));
-      }
-    },
-
-    dragExited: function( iDragObject, iEvent) {
-      if (this.dragInsertPoint) {
-        this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
-            + this.dragInsertPoint.nearerBound);
-      }
-      this.dragInsertPoint = null;
-      this.set('isDragEntered', false);
-    },
-
-    acceptDragOperation: function() {
-      return YES;
-    },
-
-    performDragOperation:function ( iDragObject, iDragOp ) {
-      var dragData = iDragObject.data;
-      var attr = dragData.attribute;
-      var position;
-
-      // if we have an insert point, then we initiate the move.
-      // Otherwise we ignore the drop.
-      if (this.dragInsertPoint) {
-        position = (this.dragInsertPoint.nearerBound === 'right')
-            ? this.dragInsertPoint.columnIndex + 1
-            : this.dragInsertPoint.columnIndex;
-        this.gridAdapter.requestMoveAttribute(attr, position);
-      }
-      DG.log('Got drop: ' + iDragObject.data.attribute.name);
     }
-
 
   }; // end return from closure
   

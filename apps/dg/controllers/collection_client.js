@@ -41,7 +41,10 @@ DG.CollectionClient = SC.Object.extend(
    * The name of the collection with which this object is associated.
    * @property {String}
    */
-  name: function() {
+  name: function(key, value) {
+    if (value !== undefined) {
+      this.collection.set('name', value);
+    }
     return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
 

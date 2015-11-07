@@ -46,6 +46,18 @@
     font-size: 8pt !important;
 }
 
+.dg-case-table-title {
+    font-family: Montserrat-Bold;
+    font-weight: bold;
+    font-size: 15px;
+    color: rgba(15,38,51,1);
+    text-transform: uppercase;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 13px;
+    background-color: rgba(15, 38, 51,0.1);
+}
+
 .calculator label {
     cursor: pointer;
 }
