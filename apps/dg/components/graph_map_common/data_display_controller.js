@@ -368,7 +368,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var this_ = this,
               tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
               tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+              currentOpenSession = null,
               setCategoryColor = function (iColor, iColorKey) {
+                currentOpenSession = currentOpenSession || Math.random();
                 DG.UndoHistory.execute(DG.Command.create({
                   name: 'data.style.categoryColorChange',
                   undoString: 'DG.Undo.graph.changePointColor',
@@ -376,7 +378,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   _beforeStorage: null,
                   _afterStorage: null,
                   execute: function() {
-                    this.reduceKey = this.name + iColorKey;
+                    this.reduceKey = this.name + iColorKey + currentOpenSession;
                     this._beforeStorage = {
                       color: tColorMap[ iColorKey],
                       alpha: this_.getPath('dataDisplayModel.transparency')
@@ -397,6 +399,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     }
                   }
                 }));
+              },
+              setCategoryColorFinalized = function() {
+                currentOpenSession = null;
               },
               setColor = function (iColor) {
                 this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
@@ -487,6 +492,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   initialColor: tInitialColor,
                   colorKey: iCategory,
                   setColorFunc: setCategoryColor,
+                  closedFunc: setCategoryColorFinalized,
                   appendToLayerFunc: getStylesLayer
                 })
               }));
