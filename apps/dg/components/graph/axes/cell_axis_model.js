@@ -77,6 +77,30 @@ DG.CellAxisModel = DG.AxisModel.extend(
             tNumSelected = 0;
         iCellFunc( tIndex++, iName, tNumUses, tNumSelected);
       });
+  },
+
+  /**
+   * The attribute's colormap is a hash such that we are taking advantage of the order of the properties.
+   * In order to swap two categories we convert to array, swap, and then convert back to hash.
+   * @param iIndex1 {Number}
+   * @param iIndex2 {Number}
+   */
+  swapCategoriesByIndex: function( iIndex1, iIndex2) {
+    var tColorMap = this.getPath('attributeDescription.attribute.colormap');
+    if( DG.ObjectMap.length( tColorMap) === 0) {
+      var tAttrStats = this.getPath('attributeDescription.attributeStats'),
+          tAttrColor = DG.ColorUtilities.calcAttributeColor( this.get('attributeDescription'));
+      this.forEachCellDo( function( iIndex, iName) {
+        tColorMap[iName] = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
+      });
+    }
+    var tCategoryArray = DG.ColorUtilities.colorMapToArray( tColorMap),
+        tSaved = tCategoryArray[ iIndex1];
+    tCategoryArray[iIndex1] = tCategoryArray[iIndex2];
+    tCategoryArray[iIndex2] = tSaved;
+    tColorMap = DG.ColorUtilities.colorArrayToColorMap( tCategoryArray);
+    this.setPath('attributeDescription.attribute.colormap', tColorMap);
+    this.propertyDidChange('categorySwap');
   }
   
 });

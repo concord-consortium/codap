@@ -38,8 +38,8 @@ DG.RenderingUtilities = {
     @param {Raphael element} must be text
     @return {Point as in {width, height} } in pixels
   */
-  getExtentForTextElement: function( iTextElement, iDefaultHeight) {
-    var tTextBox = iTextElement.getBBox(),
+  getExtentForTextElement: function( iTextElement, iDefaultHeight, iWithoutTransform) {
+    var tTextBox = iTextElement.getBBox( iWithoutTransform),
     // Browsers can fill with zeroes or NaNs if they can't do measurement. Because NaN is "falsy" the following works
     tTextHeight = (tTextBox && tTextBox.height) || iDefaultHeight,
     tTextWidth = tTextBox ?tTextBox.width : 0;

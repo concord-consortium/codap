@@ -159,6 +159,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
     doDraw: function doDraw() {
       var this_ = this,
           tModel = this.get('model'),
+          tNumCells = tModel.get('numberOfCells'),
           tBaseline = this_.get('axisLineCoordinate'),
           tOrientation = this.get('orientation'),
           tRotation = (tOrientation === 'horizontal') ? 0 : -90, // default to parallel to axis
@@ -194,6 +195,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           },
           endDrag = function ( iEvent) {
             this_.set('dragInfo', null);
+            this_.displayDidChange();
           };
 
       function measureOneCell( iCellNum, iCellName) {
@@ -205,15 +207,15 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         if( !tLabelSpecs[iCellNum]) {
           tTextElement = this_._paper.text(0, 0, iCellName)
               .addClass('axis-tick-label')
-              .addClass(tCursorClass)
-              .drag(doDrag, beginDrag, endDrag);
+              .addClass(tCursorClass)/*
+              .drag(doDrag, beginDrag, endDrag)*/;
         }
         else {
           tTextElement = tLabelSpecs[ iCellNum].element;
           tTextElement.attr('text', iCellName);
         }
         var tTextExtent = DG.RenderingUtilities.getExtentForTextElement(
-                                tTextElement, DG.RenderingUtilities.kDefaultFontHeight);
+                          tTextElement, DG.RenderingUtilities.kDefaultFontHeight, true /* compute with no transform */);
 
         tTextElement.cellNum = iCellNum;
         tLabelSpecs[iCellNum] = { element: tTextElement, coord: tCoord,
@@ -221,7 +223,6 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
 
         tMaxHeight = Math.max( tMaxHeight, tTextExtent.height);
         tMaxWidth = Math.max( tMaxWidth, tTextExtent.width);
-        this_._elementsToClear.push( tTextElement);
         if(SC.none( tPrevLabelEnd))
           tCollision = tTextExtent.width > this_.get('fullCellWidth');
         else
@@ -271,6 +272,10 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
       this._elementsToClear.push( this.renderAxisLine());
 
       tModel.forEachCellDo( measureOneCell);
+      while( tLabelSpecs.length > tNumCells) {
+        var tSpec = tLabelSpecs.pop();
+        tSpec.element.remove();
+      }
       if( tCollision) // labels must be perpendicular to axis
         tRotation = (tOrientation === 'horizontal') ? -90 : 0;
       tLabelSpecs.forEach( drawOneCell);
