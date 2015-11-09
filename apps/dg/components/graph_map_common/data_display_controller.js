@@ -369,9 +369,34 @@ DG.DataDisplayController = DG.ComponentController.extend(
               tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
               tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
               setCategoryColor = function (iColor, iColorKey) {
-                tColorMap[ iColorKey] = iColor.toHexString();
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
-                this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                DG.UndoHistory.execute(DG.Command.create({
+                  name: 'data.style.categoryColorChange',
+                  undoString: 'DG.Undo.graph.changePointColor',
+                  redoString: 'DG.Redo.graph.changePointColor',
+                  _beforeStorage: null,
+                  _afterStorage: null,
+                  execute: function() {
+                    this.reduceKey = this.name + iColorKey;
+                    this._beforeStorage = {
+                      color: tColorMap[ iColorKey],
+                      alpha: this_.getPath('dataDisplayModel.transparency')
+                    };
+                    tColorMap[ iColorKey] = iColor.toHexString();
+                    this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                    this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                  },
+                  undo: function() {
+                    tColorMap[ iColorKey] = this._beforeStorage.color;
+                    this_.setPath('dataDisplayModel.transparency', this._beforeStorage.alpha);
+                    this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                  },
+                  reduce: function(previous) {
+                    if (previous.reduceKey == this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                }));
               },
               setColor = function (iColor) {
                 this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
