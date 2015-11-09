@@ -99,12 +99,17 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    */
   collection: null,
 
-    collectionName: function (key, value) {
-      if (value !== undefined) {
-        this.setPath('collection.name', value);
-      }
-      return this.getPath('collection.name');
-    }.property('collection.name').cacheable(),
+  /**
+   * A helper property to manage the collection name.
+   * @type {String}
+   */
+  collectionName: function (key, value) {
+    if (value !== undefined) {
+      this.setPath('collection.name', value);
+    }
+    return this.getPath('collection.name');
+  }.property('collection.name').cacheable(),
+
   /**
     Returns true if there are formulas with aggregate functions in this adapter's collection.
     @property   {Boolean}

@@ -40,7 +40,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * view to the cells in which those clicks occurred. It should be set
    * so that clicks on row boundaries have the expected user effect.
    */
-  var kHeaderHeight = 72,//29,
+  var kHeaderHeight = 59,//29,
       kAutoScrollInterval = 200;  // msec == 5 rows/sec
 
   return {  // return from closure
@@ -48,18 +48,37 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     childViews: 'titleView tableView _hiddenDragView'.w(),
 
     titleView: SC.LabelView.extend(DG.MouseAndTouchView, {
-      displayProperties: ['value'],
       classNames: 'dg-case-table-title'.w(),
       layout: { left: 0, right: 0, top: 0, height: 30 },
       isEditable: YES,
+      /**
+       * Assembles the value from collection name and count.
+       */
       value: function () {
         return this.parentView.get('collectionName') + ' (' +
-            this.parentView.get('collectionCount') + ')';
-      }.property( 'parentView.collectionName', 'parentView.collectionCount'),
+            this.parentView.get('caseCount') + ')';
+      }.property( 'parentView.collectionName', 'parentView.caseCount'),
+
+      /**
+       * We are displaying the collection name and count. We only want to
+       * edit the name.
+       * @override SC.InlineEditorDelegate
+       * @param editor
+       * @param value
+       * @param editable
+       */
       inlineEditorWillBeginEditing: function (editor, value, editable) {
         DG.log("in inlineEditorWillBeginEditing");
         editor.value = this.parentView.get('collectionName');
       },
+      /**
+       * Capture the edit result.
+       * @override SC.InlineEditorDelegate
+       * @param editor
+       * @param value
+       * @param editable
+       * @returns {*}
+       */
       inlineEditorDidCommitEditing: function (editor, value, editable) {
         DG.log("in inlineEditorDidCommitEditing");
         //editor.value = value + '()';
@@ -193,6 +212,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   backgroundColor: "white",
 
+  /**
+   * Manages name of the current collection.
+   * @return {String}
+   */
   collectionName: function (key, value) {
     if (value !== undefined) {
       this.setPath('gridAdapter.collectionName', value);
@@ -200,7 +223,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     return this.getPath('gridAdapter.collectionName');
   }.property('gridAdapter.collectionName'),
 
-  collectionCount: function () {
+  /**
+   * Count for the current collection.
+   * @return {number}
+   */
+  caseCount: function () {
     return this.getPath('gridAdapter.collection.casesController.length');
   }.property('gridAdapter.collection.casesController.length'),
 

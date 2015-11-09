@@ -116,7 +116,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
   childViews: [ 'headerView', 'dividerView' ],
   
   headerView: DG.RaphaelBaseView.extend({
-    layout: { left: 0, top: 0, right: 0, height: 67 },
+    layout: { left: 0, top: 0, right: 0, height: 54 },
     
     render: function( iContext, iFirstTime) {
       sc_super();
@@ -138,7 +138,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
           imageUrl = shouldShowExpandAll( adapter && adapter.get('expandCollapseCounts'))
                         ? RDV_EXPAND_ICON_URL
                         : RDV_COLLAPSE_ICON_URL,
-          imagePos = { x: 3, y: 51 },
+          imagePos = { x: 3, y: 38 },
           imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
 
       function expandCollapseAll( iEvent) {
@@ -167,7 +167,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
 
   dividerView: DG.RaphaelBaseView.extend({
     
-    layout: { left: 0, top: 67, right: 0, bottom: 0 },
+    layout: { left: 0, top: 54, right: 0, bottom: 0 },
     
     backgroundColor: 'white',
     

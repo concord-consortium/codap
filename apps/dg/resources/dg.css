@@ -55,6 +55,7 @@
     padding-top: 7px;
     padding-bottom: 7px;
     background-color: rgba(15, 38, 51,0.1);
+    white-space: nowrap;
 }
 
 .calculator label {
