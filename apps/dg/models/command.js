@@ -61,7 +61,13 @@ DG.Command = SC.Object.extend((function() {
     // This can either be a string or a function which returns a string.
     // The string gets sent to DG.logUser().
     // log: function(stage) {}  -- stage will be one of DG.UndoHistory.EXECUTE, DG.UndoHistory.UNDO, DG.UndoHistory.REDO
-    log: 'unknown action'
+    log: 'unknown action',
+
+    // This optional property allows multiple consecutive commands to be reduced to a single command in
+    // the undo history. It takes a function in the form `reduce: function(previousCommand)` and
+    // either returns a single command that combines the two actions into one, or returns `false` to
+    // indicate that the commands should not be reduced.
+    reduce: null
 
   }; // return from function closure
 })()); // function closure
