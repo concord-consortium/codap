@@ -88,6 +88,8 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
     return sheetPane;
   },
 
+  loginPanel: null,
+
   _showLoginFrame: function() {
     function computeScreenLocation(w, h) {
       // Fixes dual-screen position                         Most browsers      Firefox
@@ -116,8 +118,12 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
       'dialog=yes',
       'menubar=no'
     ];
-    DG.log("WindowFeatures=[" + windowFeatures.join() + ']');
-    var panel = window.open(url, 'auth', windowFeatures.join());
+    if (SC.none(this.loginPanel) || this.loginPanel.closed) {
+      this.loginPanel = window.open(url, 'auth', windowFeatures.join());
+    } else {
+      this.loginPanel.focus();
+    }
+    var panel = this.loginPanel;
     var exceptionCount = 0;
     var unknownHrefCount = 0;
     var timer = SC.Timer.schedule({
@@ -130,7 +136,12 @@ DG.DocumentServerStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
            * window's location after authenticating (not cross-origin), we can detect when the
            * authentication process is complete and react.
            */
-          var href = panel.location.href;
+          if (panel.closed) {
+            timer.invalidate();
+            DG.log('Login Panel Closed');
+            this.sendLoginRequest('user');
+          }
+          var href = !SC.none(panel) && panel.location.href;
           if (href === window.location.href) {
             timer.invalidate();
             panel.close();

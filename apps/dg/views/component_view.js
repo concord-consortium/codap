@@ -537,7 +537,6 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
   if (!SC.none(iIsVisible))
     tComponentView.set('isVisible', iIsVisible);
 
-  DG.logUser("componentCreated: %@", iComponentClass);
   SC.Benchmark.end('createComponent: ' + iComponentClass);
   SC.Benchmark.log('createComponent: ' + iComponentClass);
   return tComponentView;

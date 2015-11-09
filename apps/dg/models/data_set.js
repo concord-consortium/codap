@@ -21,13 +21,12 @@ sc_require('models/DataItem');
 
 /** @class DataSet
  *
- * An indexed collection of DataItems, which are in turn .
+ * An indexed array of the DataItems in a DataContext.
  *
- * Values can be retrieved or modified by item index and Attribute id.
- * Rows may be added, deleted, or undeleted.
- * Actual removal of deleted item is deferred until a clean operation is
- * executed.
- * ItemIndexes, once assigned to a DataItem, are not reused.
+ *
+ * DataItem attribute Values can be retrieved or modified by item index and
+ * Attribute id.
+ * Item indices, once assigned to a DataItem, are not reused.
  */
 
 DG.DataSet = SC.Object.extend((function() // closure
