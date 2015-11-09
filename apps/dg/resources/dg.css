@@ -51,10 +51,9 @@
     font-weight: bold;
     font-size: 15px;
     color: rgba(15,38,51,1);
-    text-transform: uppercase;
     text-align: center;
-    padding-top: 15px;
-    padding-bottom: 13px;
+    padding-top: 7px;
+    padding-bottom: 7px;
     background-color: rgba(15, 38, 51,0.1);
 }
 

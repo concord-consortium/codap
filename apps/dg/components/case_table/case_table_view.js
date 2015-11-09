@@ -48,10 +48,24 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     childViews: 'titleView tableView _hiddenDragView'.w(),
 
     titleView: SC.LabelView.extend(DG.MouseAndTouchView, {
+      displayProperties: ['value'],
       classNames: 'dg-case-table-title'.w(),
-      layout: { left: 0, right: 0, top: 0, height: 43 },
+      layout: { left: 0, right: 0, top: 0, height: 30 },
       isEditable: YES,
-      valueBinding: '.parentView.collectionName',
+      value: function () {
+        return this.parentView.get('collectionName') + ' (' +
+            this.parentView.get('collectionCount') + ')';
+      }.property( 'parentView.collectionName', 'parentView.collectionCount'),
+      inlineEditorWillBeginEditing: function (editor, value, editable) {
+        DG.log("in inlineEditorWillBeginEditing");
+        editor.value = this.parentView.get('collectionName');
+      },
+      inlineEditorDidCommitEditing: function (editor, value, editable) {
+        DG.log("in inlineEditorDidCommitEditing");
+        //editor.value = value + '()';
+        this.parentView.set('collectionName', value);
+        return sc_super();
+      },
       localize: true,
       doIt: function() {
         this.beginEditing();
@@ -60,7 +74,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     tableView: SC.View.extend({
       classNames: ['dg-case-table'],
-      layout: { left: 0, right: 0, top: 43, bottom: 0 },
+      layout: { left: 0, right: 0, top: 30, bottom: 0 },
       backgroundColor: "white",
       isDropTarget: true,
       computeDragOperations: function( iDrag) {
@@ -185,6 +199,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     return this.getPath('gridAdapter.collectionName');
   }.property('gridAdapter.collectionName'),
+
+  collectionCount: function () {
+    return this.getPath('gridAdapter.collection.casesController.length');
+  }.property('gridAdapter.collection.casesController.length'),
 
   /**
     The adapter used for adapting the case data for use in SlickGrid.
