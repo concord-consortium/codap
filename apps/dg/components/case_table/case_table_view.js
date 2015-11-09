@@ -68,7 +68,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * @param editable
        */
       inlineEditorWillBeginEditing: function (editor, value, editable) {
-        DG.log("in inlineEditorWillBeginEditing");
         editor.value = this.parentView.get('collectionName');
       },
       /**
@@ -80,8 +79,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * @returns {*}
        */
       inlineEditorDidCommitEditing: function (editor, value, editable) {
-        DG.log("in inlineEditorDidCommitEditing");
-        //editor.value = value + '()';
         this.parentView.set('collectionName', value);
         return sc_super();
       },
@@ -874,8 +871,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if( iEvent.stopImmediatePropagation)
       iEvent.stopImmediatePropagation();
 
-    var tDragView = this.
-        _hiddenDragView,
+    var tDragView = this._hiddenDragView,
         tAttributeName = column.attribute.get('name'),
         this_ = this;
     SC.run( function() {
