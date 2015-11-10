@@ -369,7 +369,20 @@ DG.GraphController = DG.DataDisplayController.extend(
             classNames: 'graph-transparent-check'.w(),
             localize: true,
             valueDidChange: function () {
-              this_.get('graphModel').toggleProperty('isTransparent');
+              var turningTransparent = !this_.getPath('graphModel.isTransparent'),
+                  logMessage = "Made plot background " + (turningTransparent ? "transparent" : "opaque");
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'plot.transparencyChange',
+                undoString: 'DG.Undo.graph.toggleTransparent',
+                redoString: 'DG.Redo.graph.toggleTransparent',
+                log: logMessage,
+                execute: function() {
+                  this_.get('graphModel').toggleProperty('isTransparent');
+                },
+                undo: function() {
+                  this_.get('graphModel').toggleProperty('isTransparent');
+                }
+              }));
             }.observes('value')
           }));
           return tResult;
