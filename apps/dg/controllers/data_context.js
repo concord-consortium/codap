@@ -874,8 +874,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       // ----- begin method ------
       var attr = iChange.attr;
       var fromCollection = attr.get('collection');
-      var toCollectionClient = iChange.toCollection || fromCollection;
+      var toCollection = iChange.toCollection || fromCollection;
       var position = iChange.position;
+      var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
+          ? toCollection : this.getCollectionByID(toCollection.id);
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection

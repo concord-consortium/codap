@@ -719,15 +719,41 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * @param {number} position
      */
     requestMoveAttribute: function (attr, position) {
-      var tContext = this.get('dataContext'),
-          tCollection = this.get('collection'),
-          tChange = {
-            operation: 'moveAttribute',
-            attr: attr,
-            toCollection: tCollection,
-            position: position
-          };
-      tContext.applyChange(tChange);
+
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'caseTable.moveAttribute',
+        undoString: 'DG.Undo.caseTable.moveAttribute',
+        redoString: 'DG.Redo.caseTable.moveAttribute',
+        log: 'move attribute {attribute: "%@", position: %@}'.loc(attr.name, position),
+        _data: {
+          context: this.get('dataContext'),
+          toCollection: this.get('collection'),
+          fromCollection: attr.collection,
+          fromPosition: attr.collection.attrs.indexOf(attr)
+        },
+        execute: function () {
+          var tContext = this._data.context,
+              tCollection = this._data.toCollection,
+              tChange = {
+                operation: 'moveAttribute',
+                attr: attr,
+                toCollection: tCollection,
+                position: position
+              };
+          tContext.applyChange(tChange);
+        },
+        undo: function () {
+          var tContext = this._data.context,
+              tCollection = this._data.fromCollection,
+              tChange = {
+                operation: 'moveAttribute',
+                attr: attr,
+                toCollection: tCollection,
+                position: this._data.fromPosition
+              };
+          tContext.applyChange(tChange);
+        }
+      }));
     },
 
     /**
