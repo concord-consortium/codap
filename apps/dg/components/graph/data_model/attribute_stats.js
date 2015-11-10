@@ -72,6 +72,7 @@ DG.AttributeStats = SC.Object.extend(
      */
     init:function () {
       sc_super();
+      this._cases = [];
       this.attributes = [];
       this.numericStats = DG.UnivariateStats.create();
       this._numericCacheIsValid = true; // because there is nothing to compute

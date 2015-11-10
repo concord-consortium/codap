@@ -91,7 +91,8 @@ DG.CellAxisModel = DG.AxisModel.extend(
       var tAttrStats = this.getPath('attributeDescription.attributeStats'),
           tAttrColor = DG.ColorUtilities.calcAttributeColor( this.get('attributeDescription'));
       this.forEachCellDo( function( iIndex, iName) {
-        tColorMap[iName] = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
+        var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
+        tColorMap[iName] = tColor.colorString || tColor;
       });
     }
     var tCategoryArray = DG.ColorUtilities.colorMapToArray( tColorMap),
@@ -100,7 +101,7 @@ DG.CellAxisModel = DG.AxisModel.extend(
     tCategoryArray[iIndex2] = tSaved;
     tColorMap = DG.ColorUtilities.colorArrayToColorMap( tCategoryArray);
     this.setPath('attributeDescription.attribute.colormap', tColorMap);
-    this.propertyDidChange('categorySwap');
+    this.get('attributeDescription').invalidateCaches();
   }
   
 });

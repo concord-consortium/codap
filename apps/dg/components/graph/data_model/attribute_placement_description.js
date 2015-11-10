@@ -121,8 +121,8 @@ DG.AttributePlacementDescription = SC.Object.extend(
   _attributes: null,
 
   init: function() {
+    this._attributes = [];  // Before sc_super() so observes can be set up
     sc_super();
-    this._attributes = [];
     this.attributeStats = DG.AttributeStats.create();
   },
 
@@ -204,6 +204,14 @@ DG.AttributePlacementDescription = SC.Object.extend(
     if( this._attributes.length === 0)
       this.setPath('attributeStats.attributeType', DG.Analysis.EAttributeType.eNone);
   },
+
+  /**
+    Pass along to attribute stats
+    @param {Array}  iCases - Array of DG.Case. These are the cases that are used for computation
+  */
+  colorMapDidChange: function() {
+    this.invalidateCaches();
+  }.observes('attribute.colormap'),
 
   casesForCategory: function( iCellName) {
     var tCellMap = this.getPath('attributeStats.cellMap');

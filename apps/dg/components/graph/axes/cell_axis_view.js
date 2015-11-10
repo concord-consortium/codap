@@ -143,9 +143,9 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
      Override base class to account for drag in progress
      @return {Number} coordinate of the given cell.
      */
-    cellToCoordinate: function (iCellNum) {
+    cellToCoordinate: function (iCellNum, iIgnoreDragging) {
       var tDragInfo = this.get('dragInfo');
-      if( tDragInfo && tDragInfo.draggingInProgress && iCellNum === tDragInfo.cellBeingDragged) {
+      if( !iIgnoreDragging && tDragInfo && tDragInfo.draggingInProgress && iCellNum === tDragInfo.cellBeingDragged) {
         return tDragInfo.position;
       }
       else {
@@ -192,10 +192,13 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
               draggingInProgress: true
             });
             this_.displayDidChange();
+            this_.propertyDidChange('categoriesDragged');
           },
           endDrag = function ( iEvent) {
             this_.set('dragInfo', null);
             this_.displayDidChange();
+            this_.propertyDidChange('categoriesDragged');
+            this_.updateLayerIfNeeded(true /* skip inWindow check */);
           };
 
       function measureOneCell( iCellNum, iCellName) {
@@ -207,8 +210,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         if( !tLabelSpecs[iCellNum]) {
           tTextElement = this_._paper.text(0, 0, iCellName)
               .addClass('axis-tick-label')
-              .addClass(tCursorClass)/*
-              .drag(doDrag, beginDrag, endDrag)*/;
+              .addClass(tCursorClass)
+              .drag(doDrag, beginDrag, endDrag);
         }
         else {
           tTextElement = tLabelSpecs[ iCellNum].element;

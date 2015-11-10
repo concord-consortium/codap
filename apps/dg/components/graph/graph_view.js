@@ -228,6 +228,14 @@ DG.GraphView = SC.View.extend(
   }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
       'model.transparency', 'model.strokeTransparency'),
 
+  categoriesDidChange: function() {
+    var tLegendView = this.get('legendView');
+    if( !tLegendView)
+      return; // We get called when the xAxisView changes but categoriesDragged has not happened
+    this.drawPlots();
+    tLegendView.displayDidChange();
+  }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged'),
+
   prepareToSelectPoints: function () {
     this.get('plotViews').forEach( function( iPlotView) {
       iPlotView.preparePointSelection();

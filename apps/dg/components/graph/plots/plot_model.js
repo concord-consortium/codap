@@ -645,6 +645,11 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('dataArrays');
   },
 
+  colorMapDidChange: function() {
+    this.invalidateCaches();
+  }.observes('dataConfiguration.xAttributeDescription.attribute.colormap',
+      'dataConfiguration.yAttributeDescription.attribute.colormap'),
+
   /**
     @param {Number} The index of the case to be selected.
     @param {Boolean} Should the current selection be extended?

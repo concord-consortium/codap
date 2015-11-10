@@ -249,6 +249,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           tPrimaryCellWidth = tYView.get('fullCellWidth'),
           tHeight = tPrimaryCellWidth,
           tWidth = tSecCellWidth,
+          kIgnoreDragging = true,
           tIndex,
           tXCoord, tYCoord, tLeft, tTop;
       if(SC.none( tPaper))
@@ -269,14 +270,14 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         if(tLinesAreVertical) {
           if( tIndex === 0)
             continue;
-          tXCoord = tXView.cellToCoordinate(tIndex);
+          tXCoord = tXView.cellToCoordinate(tIndex, kIgnoreDragging);
           tLeft = tXCoord - tSecCellWidth / 2;
           tLine = tPaper.line(tLeft, tTop, tLeft, tTop + tHeight);
         }
         else {
           if( tIndex === tNumCellsToDraw - 1)
             continue;
-          tYCoord = tYView.cellToCoordinate(tIndex);
+          tYCoord = tYView.cellToCoordinate(tIndex, kIgnoreDragging);
           tTop = tYCoord - tPrimaryCellWidth / 2;
           tLine = tPaper.line(tLeft, tTop + tHeight, tLeft + tWidth, tTop + tHeight);
         }
