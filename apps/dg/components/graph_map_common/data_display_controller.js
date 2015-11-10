@@ -375,8 +375,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   name: 'data.style.categoryColorChange',
                   undoString: 'DG.Undo.graph.changePointColor',
                   redoString: 'DG.Redo.graph.changePointColor',
-                  _beforeStorage: null,
-                  _afterStorage: null,
                   execute: function() {
                     this.reduceKey = this.name + iColorKey + currentOpenSession;
                     this._beforeStorage = {
@@ -403,13 +401,47 @@ DG.DataDisplayController = DG.ComponentController.extend(
               setCategoryColorFinalized = function() {
                 currentOpenSession = null;
               },
+              createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
+                return DG.Command.create({
+                  name: 'data.style.'+name,
+                  undoString: 'DG.Undo.graph.'+name,
+                  redoString: 'DG.Redo.graph.'+name,
+                  execute: function() {
+                    this.reduceKey = this.name + currentOpenSession;
+                    this._beforeStorage = {
+                      color: this_.getPath('dataDisplayModel.'+colorAttr),
+                      alpha: this_.getPath('dataDisplayModel.'+alphaAttr)
+                    };
+                    this_.setPath('dataDisplayModel.'+colorAttr, iColor.toHexString());
+                    this_.setPath('dataDisplayModel.'+alphaAttr, iColor.getAlpha());
+                  },
+                  undo: function() {
+                    this_.setPath('dataDisplayModel.'+colorAttr, this._beforeStorage.color);
+                    this_.setPath('dataDisplayModel.'+alphaAttr, this._beforeStorage.alpha);
+                  },
+                  reduce: function(previous) {
+                    if (previous.reduceKey == this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                });
+              },
               setColor = function (iColor) {
-                this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changePointColor",
+                  "pointColor", "transparency", iColor));
+              },
+              setColorFinalized = function() {
+                currentOpenSession = null;
               },
               setStroke = function (iColor) {
-                this_.setPath('dataDisplayModel.strokeColor', iColor.toHexString());
-                this_.setPath('dataDisplayModel.strokeTransparency', iColor.getAlpha());
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changeStrokeColor",
+                  "strokeColor", "strokeTransparency", iColor));
+              },
+              setStrokeFinalized = function() {
+                currentOpenSession = null;
               },
               getStylesLayer = function () {
                 return this_.stylesPane.layer();
@@ -442,6 +474,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
                         .setAlpha(this.getPath('dataDisplayModel.transparency')),
                     setColorFunc: setColor,
+                    closedFunc: setColorFinalized,
                     appendToLayerFunc: getStylesLayer
                   })
                 })
@@ -457,6 +490,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   initialColor: tinycolor(this.getPath('dataDisplayModel.strokeColor'))
                       .setAlpha(this.getPath('dataDisplayModel.strokeTransparency')),
                   setColorFunc: setStroke,
+                  closedFunc: setStrokeFinalized,
                   appendToLayerFunc: getStylesLayer
                 })
               })
