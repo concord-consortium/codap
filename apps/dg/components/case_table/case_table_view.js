@@ -101,7 +101,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       },
 
       dragStarted: function( iDrag) {
-        if (this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
+        if (this.parentView.gridAdapter && this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute)) {
           this.set('isDragInProgress', true);
         }
       },
@@ -194,7 +194,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               : this.dragInsertPoint.columnIndex;
           this.parentView.gridAdapter.requestMoveAttribute(attr, position);
         }
-        DG.log('Got drop: ' + iDragObject.data.attribute.name);
+        //DG.log('Got drop: ' + iDragObject.data.attribute.name);
       }
     }),
 

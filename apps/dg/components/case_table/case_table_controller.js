@@ -881,47 +881,111 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       leftDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.leftDropTarget.dropData');
+        if (SC.none(dropData)) {
+          return;
+        }
         var context = this.dataContext;
-        var rtn = {success: false};
-        var tChange;
+        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
         if (!SC.none(dropData)) {
-          tChange = {
-            operation: 'createCollection',
-            properties: {
-              name: this._makeUniqueCollectionName(dropData.attribute.name),
-              children: [context.getCollectionAtIndex(0).collection]
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.createCollection',
+            undoString: 'DG.Undo.caseTable.createCollection',
+            redoString: 'DG.Redo.caseTable.createCollection',
+            log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
+                dropData.attribute.name),
+            _data: {
+              context: this.dataContext,
+              newCollectionName: collectionName,
+              newChildCollectionID: context.getCollectionAtIndex(0).collection.id,
+              attributeID: dropData.attribute.id,
+              oldAttributePosition: dropData.collection.attrs.indexOf(dropData.attribute),
+              oldCollectionID: dropData.collection.id
             },
-            attributes: [dropData.attribute]
-          };
-          rtn = context.applyChange(tChange);
+            execute: function () {
+              var context = this._data.context;
+              var childCollection = context.getCollectionByID(
+                  this._data.newChildCollectionID).collection;
+              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
+              var tChange = {
+                operation: 'createCollection',
+                properties: {
+                  name: this._data.newCollectionName,
+                  children: [childCollection]
+                },
+                attributes: [attribute]
+              };
+              context.applyChange(tChange);
+            },
+            undo: function () {
+              var context = this._data.context;
+              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
+              var toCollection = context.getCollectionByID(this._data.oldCollectionID);
+              var tChange = {
+                operation: 'moveAttribute',
+                attr: attribute,
+                toCollection: toCollection,
+                position: this._data.oldAttributePosition
+              };
+              context.applyChange(tChange);
+            }
+          }));
           this.setPath('contentView.leftDropTarget.dropData', null);
         }
-        DG.log('CaseTable observes left drop');
-        return rtn;
       }.observes('contentView.leftDropTarget.dropData'),
 
       rightDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.rightDropTarget.dropData');
+        if (SC.none(dropData)) {
+          return;
+        }
         var context = this.dataContext;
         var collectionCount = context.get('collectionCount');
         var parentClient = context.getCollectionAtIndex(collectionCount-1);
-        var rtn = {success: false};
-        var tChange;
-
+        var parentID = parentClient.collection.id;
+        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
         if (!SC.none(dropData)) {
-          tChange = {
-            operation: 'createCollection',
-            properties: {
-              name: this._makeUniqueCollectionName(dropData.attribute.name),
-              parent: parentClient.get('collection')
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.createCollection',
+            undoString: 'DG.Undo.caseTable.createCollection',
+            redoString: 'DG.Redo.caseTable.createCollection',
+            log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
+                dropData.attribute.name),
+            _data: {
+              context: this.dataContext,
+              newCollectionName: collectionName,
+              newParentCollectionID: parentID,
+              attributeID: dropData.attribute.id,
+              oldAttributePosition: dropData.collection.attrs.indexOf(dropData.attribute),
+              oldCollectionID: dropData.collection.id
             },
-            attributes: [dropData.attribute]
-          };
-          rtn = context.applyChange(tChange);
+            execute: function () {
+              var context = this._data.context;
+              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
+              var tChange = {
+                operation: 'createCollection',
+                properties: {
+                  name: this._data.newCollectionName,
+                  parent: this._data.newParentCollectionID
+                },
+                attributes: [attribute]
+              };
+              context.applyChange(tChange);
+            },
+            undo: function () {
+              var context = this._data.context;
+              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
+              var toCollection = context.getCollectionByID(this._data.oldCollectionID);
+              var tChange = {
+                operation: 'moveAttribute',
+                attr: attribute,
+                toCollection: toCollection,
+                position: this._data.oldAttributePosition
+              };
+              context.applyChange(tChange);
+            }
+          }));
           this.setPath('contentView.leftDropTarget.dropData', null);
         }
-        DG.log('CaseTable observes right drop');
-        return rtn;
       }.observes('contentView.rightDropTarget.dropData')
     };
   }()) // function closure

@@ -842,12 +842,12 @@ DG.DataContext = SC.Object.extend((function() // closure
      * Moves an attribute either within a collection or between collections.
      *
      * @param iChange {Object} Describes the change
-     *    {string} .operatio            -- "moveAttribute"
-     *    {DG.Attribute} .attr          -- the attribute to move.
+     *    {string} .operation            -- "moveAttribute"
+     *    {DG.Attribute} .attr           -- the attribute to move.
      *    {DG.CollectionClient} .toCollection -- the collection to
      *                                     move the attribute to. Defaults
      *                                     to the existing collection.
-     *    {integer} .positi             -- the position to be occupied by
+     *    {integer} .position           -- the position to be occupied by
      *                                     the attribute indexed from the
      *                                     left. 0 means leftmost. If not
      *                                     specified, placed rightmost.
@@ -862,8 +862,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         attributeNames = collectionClient.getAttributeNames();
         ix = attributeNames.indexOf(name);
         if (ix !== -1) {
-          attributeNames.splice(ix, 1);
-          attributeNames.splice(position, 0, name);
+          attributeNames.removeAt(ix);
+          attributeNames.insertAt(position, name);
           collectionClient.reorderAttributes(attributeNames);
         } else {
           DG.logWarn('Reordering attribute, "' + name +

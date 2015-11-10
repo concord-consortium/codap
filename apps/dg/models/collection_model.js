@@ -282,7 +282,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     addAttribute: function (attr, position) {
       attr.set('collection', this);
       if (SC.none(position)) {
-        this.attrs.push(attr);
+        this.attrs.pushObject(attr);
       } else {
         this.attrs.insertAt(position, attr);
       }
