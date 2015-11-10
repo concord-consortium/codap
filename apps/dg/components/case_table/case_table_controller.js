@@ -80,9 +80,6 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         if( this.get('dataContext'))
           this.dataContextDidChange();
-        this.invokeLast(function() {
-          this.view.set('status', this.getCaseCountMessage());
-        }.bind(this));
       },
 
       /**
@@ -169,7 +166,6 @@ DG.CaseTableController = DG.ComponentController.extend(
                                             addObserver('[]', this_, 'attributeCountDidChange');
                                          });
         }
-        if (this.view) { this.view.set('status', this.getCaseCountMessage()); }
         this.doResetCollections();
       }.observes('dataContext'),
 
@@ -369,7 +365,6 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       caseCountDidChange: function( iChange) {
         var hierTableView = this.getPath('view.contentView'),
-            componentView = this.view,
 
             // if the change event includes an index, then we're inserting a new row in an
             // arbitrary location, so we need to force the table to re-index the rows
@@ -378,7 +373,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( hierTableView) {
           hierTableView.updateRowCount(forceRedraw);
         }
-        componentView.set('status', this.getCaseCountMessage());
       },
 
       /**
@@ -436,7 +430,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         var gearView = this.getPath('view.containerView.titlebar.gearView');
         if( gearView)
           gearView.set('contentView', tComponentView);
-        this.view.set('status', this.getCaseCountMessage());
       }.observes('view'),
 
       selectAll: function () {

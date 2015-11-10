@@ -70,8 +70,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return tName + (!SC.empty( tUnit) ? ' (' + tUnit + ')' : '');
       },
 
-    // Simple formatter currently rounds to precision rather than actually formatting.
-    cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
+      // Simple formatter currently rounds to precision rather than actually formatting.
+      cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
       if( SC.none( cellValue))
         cellValue = "";
       else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
@@ -98,7 +98,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @property   {DG.CollectionClient}
    */
   collection: null,
-  
+
+  /**
+   * A helper property to manage the collection name.
+   * @type {String}
+   */
+  collectionName: function (key, value) {
+    if (value !== undefined) {
+      this.setPath('collection.name', value);
+    }
+    return this.getPath('collection.name');
+  }.property('collection.name').cacheable(),
+
   /**
     Returns true if there are formulas with aggregate functions in this adapter's collection.
     @property   {Boolean}
