@@ -458,7 +458,25 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     value: this.getPath('dataDisplayModel.pointSizeMultiplier'),
                     minimum: 0, maximum: 3, step: 0,
                     valueChanged: function () {
-                      this_.setPath('dataDisplayModel.pointSizeMultiplier', this.get('value'));
+                      var picker = this;
+                      DG.UndoHistory.execute(DG.Command.create({
+                        name: 'data.style.pointSizeChanged',
+                        undoString: 'DG.Undo.graph.changePointSize',
+                        redoString: 'DG.Redo.graph.changePointSize',
+                        execute: function() {
+                          this._beforeStorage = this_.getPath('dataDisplayModel.pointSizeMultiplier');
+                          this_.setPath('dataDisplayModel.pointSizeMultiplier', picker.get('value'));
+                        },
+                        undo: function() {
+                          this_.setPath('dataDisplayModel.pointSizeMultiplier', this._beforeStorage);
+                        },
+                        reduce: function(previous) {
+                          if (previous.name == this.name) {
+                            this._beforeStorage = previous._beforeStorage;
+                            return this;
+                          }
+                        }
+                      }));
                     }.observes('value')
                   })
                 })
