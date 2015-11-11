@@ -1467,11 +1467,15 @@ DG.appController = SC.Object.create((function () // closure
      Show the help window.
      */
     showHelp: function () {
+      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
+          kWidth = 600, kHeight = 400,
+          tLayout = { left: (tDocFrame.width - kWidth) / 2, top: (tDocFrame.height - kHeight) / 2,
+            width: kWidth, height: kHeight };
       // Changed link to play.codap.concord.org/support
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
           'http://' +  ('DG.AppController.showHelpURL'.loc()),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
-        { centerX: 0, centerY: 0, width: 600, height: 400 });
+          tLayout);
 
     },
 
@@ -1529,11 +1533,16 @@ DG.appController = SC.Object.create((function () // closure
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
+      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
+          kWidth = 975, kHeight = 500,
+          tLayout = { left: (tDocFrame.width - kWidth) / 2, top: (tDocFrame.height - kHeight) / 2,
+                      width: kWidth, height: kHeight };
+
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
           'http://' +  ('DG.AppController.showWebSiteURL'.loc()),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
-        { centerX: 0, centerY: 0, width: 1000, height: 500 });
+          tLayout);
 
 
     }
