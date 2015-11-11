@@ -93,11 +93,19 @@ DG.MapLayerView = SC.View.extend(
       _createMap: function () {
 
         var onLayerAdd = function (iLayerEvent) {
-            var tParentView = this.get('parentView');
+              var tParentView = this.get('parentView');
               this._map.off('layeradd', onLayerAdd);
               tParentView.addPointLayer();
               tParentView.addAreaLayer();
               tParentView.addGridLayer();
+              // We want the popup hints for the grid to be on top of the points. jQuery can
+              // help with this if we hardcode the layer class names.
+              // ToDo: The implementation below will not work properly when there are two maps.
+              // The popups for the second grid will appear on the first map. Presumably we can
+              // use more selective selectors to solve this problem.
+              this.invokeOnce(function () {
+                $('.leaflet-popup-pane').insertAfter('.map-layer');
+              });
             }.bind(this),
 
             onDisplayChangeEvent = function (iEvent) {
@@ -109,22 +117,25 @@ DG.MapLayerView = SC.View.extend(
               this.incrementProperty('clickCount');
             }.bind(this);
 
-
         if (this._map) {
           // May need to resize here
         } else {
-          this._map = L.map(this._layerID, { scrollWheelZoom: false })
+          this._map = L.map(this._layerID, {scrollWheelZoom: false})
               .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
-            .on('dragstart', onDisplayChangeEvent)
-            .on('drag', onDisplayChangeEvent)
-            .on('dragend', onDisplayChangeEvent)
-            .on('move', onDisplayChangeEvent)
-            .on('zoomend', onDisplayChangeEvent)
-            .on('moveend', onDisplayChangeEvent)
-            .on('click', onClick)
-            .on('dragstart drag move', function() { this._clearIdle(); }.bind(this))
-            .on('dragend zoomend moveend', function() { this._setIdle(); }.bind(this));
+              .on('dragstart', onDisplayChangeEvent)
+              .on('drag', onDisplayChangeEvent)
+              .on('dragend', onDisplayChangeEvent)
+              .on('move', onDisplayChangeEvent)
+              .on('zoomend', onDisplayChangeEvent)
+              .on('moveend', onDisplayChangeEvent)
+              .on('click', onClick)
+              .on('dragstart drag move', function () {
+                this._clearIdle();
+              }.bind(this))
+              .on('dragend zoomend moveend', function () {
+                this._setIdle();
+              }.bind(this));
           this.backgroundChanged(); // will initialize baseMap
         }
       },
@@ -144,24 +155,24 @@ DG.MapLayerView = SC.View.extend(
       },
       _setIdle: function () {
         this._clearIdle();
-        this._idleTimeout = setTimeout(function() {
+        this._idleTimeout = setTimeout(function () {
           this._idleTimeout = null;
           this.incrementProperty('idleCount');
         }.bind(this), 500);
       },
 
-      backgroundChanged: function() {
+      backgroundChanged: function () {
         var tMap = this.get('map'),
             tNewLayerName = this.getPath('model.baseMapLayerName'),
             tNewLayer;
 
-        if(!tNewLayerName)
+        if (!tNewLayerName)
           return;
-        if( this.get('baseMapLayer'))
-          tMap.removeLayer( this.get('baseMapLayer'));
-        if( this.get('baseMapLabels'))
-          tMap.removeLayer( this.get('baseMapLabels'));
-        tNewLayer = L.esri.basemapLayer( tNewLayerName);
+        if (this.get('baseMapLayer'))
+          tMap.removeLayer(this.get('baseMapLayer'));
+        if (this.get('baseMapLabels'))
+          tMap.removeLayer(this.get('baseMapLabels'));
+        tNewLayer = L.esri.basemapLayer(tNewLayerName);
         this._map.addLayer(tNewLayer, true /*add at bottom */);
         //this._map.addLayer( L.esri.basemapLayer(tBasemap + 'Labels'));
         this.set('baseMapLayer', tNewLayer);
