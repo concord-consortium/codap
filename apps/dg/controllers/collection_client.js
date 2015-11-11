@@ -101,6 +101,7 @@ DG.CollectionClient = SC.Object.extend(
                                     if( iAttribute)
                                       this.willDestroyAttribute( iAttribute);
                                   });
+    this.collection.destroy();
     sc_super();
   },
   

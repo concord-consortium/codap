@@ -337,7 +337,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return { success: false };
   },
-  
+
+
   /**
     Creates a case according to the arguments specified.
     @param  {Object}                iChange
@@ -826,7 +827,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     attr = fromCollection.removeAttribute(attr);
 
     if (fromCollection.get('attrs').length === 0) {
-      DG.Collection.destroyCollection(fromCollection);
+      this.destroyCollection(fromCollection);
     }
 
     // add attribute to new collection
@@ -1143,6 +1144,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     return newCollectionClient;
   },
 
+    destroyCollection: function (collectionClient) {
+      var id = collectionClient.get('id');
+      this.willRemoveCollection(collectionClient);
+      this._collectionClients[id].destroy();
+      delete this._collectionClients[id];
+    },
   /**
     Called from createCollection to give derived classes a chance to do something.
     @param  {DG.CollectionClient} iNewCollection -- The collection that was just created

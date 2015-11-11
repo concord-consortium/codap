@@ -728,7 +728,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         _data: {
           context: this.get('dataContext'),
           toCollection: this.get('collection'),
-          fromCollection: attr.collection,
+          fromCollectionID: attr.collection.id,
+          fromCollectionName: attr.collection.name,
+          fromCollectionParent: attr.collection.parent,
+          fromCollectionChild: attr.collection.children[0],
           fromPosition: attr.collection.attrs.indexOf(attr)
         },
         execute: function () {
@@ -744,13 +747,27 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         },
         undo: function () {
           var tContext = this._data.context,
-              tCollection = this._data.fromCollection,
-              tChange = {
-                operation: 'moveAttribute',
-                attr: attr,
-                toCollection: tCollection,
-                position: this._data.fromPosition
-              };
+              tCollection = tContext.getCollectionByID(this._data.fromCollectionID),
+              tChange;
+          if (tCollection) {
+            tChange = {
+              operation: 'moveAttribute',
+              attr: attr,
+              toCollection: tCollection,
+              position: this._data.fromPosition
+            };
+          } else {
+            tChange = {
+              operation: 'createCollection',
+              properties: {
+                id: this._data.fromCollectionID,
+                name: this._data.fromCollectionName,
+                parent: this._data.fromCollectionParent,
+                children: [this._data.fromCollectionChild]
+              },
+              attributes: [attr]
+            };
+          }
           tContext.applyChange(tChange);
         }
       }));
