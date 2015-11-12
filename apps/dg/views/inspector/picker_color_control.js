@@ -32,9 +32,14 @@ DG.PickerColorControl = SC.View.extend(
       initialColor: null, // Should be set by caller
       colorKey: null, // Should be set by caller
       setColorFunc: null, // Should be set by caller
+      closedFunc: null, // Optionally set by caller
       appendToLayerFunc: null, // Should be set by caller
+      lastColor: null, // the last color selected when closed
       render: function(iContext, iFirstTime) {
         iContext.push('<input type="text" id="custom1" />');
+        if (this.get('lastColor') == null) {
+          this.set('lastColor', this.get('initialColor'));
+        }
         this.invokeLast(function () {
           this.$('#custom1').spectrum({
             color: tinycolor(this.initialColor), // jshint ignore:line
@@ -49,6 +54,9 @@ DG.PickerColorControl = SC.View.extend(
             change: function (iColor) {
               if( this.setColorFunc)
                 this.setColorFunc( iColor, this.colorKey);
+              if ( this.closedFunc)
+                this.closedFunc( this.get('lastColor'), iColor)
+              this.set( 'lastColor', iColor, this.colorKey)
             }.bind(this)
           });
         }.bind(this));

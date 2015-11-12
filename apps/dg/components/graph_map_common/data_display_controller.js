@@ -368,18 +368,80 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var this_ = this,
               tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
               tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+              currentOpenSession = null,
               setCategoryColor = function (iColor, iColorKey) {
-                tColorMap[ iColorKey] = iColor.toHexString();
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
-                this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(DG.Command.create({
+                  name: 'data.style.categoryColorChange',
+                  undoString: 'DG.Undo.graph.changePointColor',
+                  redoString: 'DG.Redo.graph.changePointColor',
+                  execute: function() {
+                    this.reduceKey = this.name + iColorKey + currentOpenSession;
+                    this._beforeStorage = {
+                      color: tColorMap[ iColorKey],
+                      alpha: this_.getPath('dataDisplayModel.transparency')
+                    };
+                    tColorMap[ iColorKey] = iColor.toHexString();
+                    this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                    this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                  },
+                  undo: function() {
+                    tColorMap[ iColorKey] = this._beforeStorage.color;
+                    this_.setPath('dataDisplayModel.transparency', this._beforeStorage.alpha);
+                    this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                  },
+                  reduce: function(previous) {
+                    if (previous.reduceKey == this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                }));
+              },
+              setCategoryColorFinalized = function() {
+                currentOpenSession = null;
+              },
+              createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
+                return DG.Command.create({
+                  name: 'data.style.'+name,
+                  undoString: 'DG.Undo.graph.'+name,
+                  redoString: 'DG.Redo.graph.'+name,
+                  execute: function() {
+                    this.reduceKey = this.name + currentOpenSession;
+                    this._beforeStorage = {
+                      color: this_.getPath('dataDisplayModel.'+colorAttr),
+                      alpha: this_.getPath('dataDisplayModel.'+alphaAttr)
+                    };
+                    this_.setPath('dataDisplayModel.'+colorAttr, iColor.toHexString());
+                    this_.setPath('dataDisplayModel.'+alphaAttr, iColor.getAlpha());
+                  },
+                  undo: function() {
+                    this_.setPath('dataDisplayModel.'+colorAttr, this._beforeStorage.color);
+                    this_.setPath('dataDisplayModel.'+alphaAttr, this._beforeStorage.alpha);
+                  },
+                  reduce: function(previous) {
+                    if (previous.reduceKey == this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                });
               },
               setColor = function (iColor) {
-                this_.setPath('dataDisplayModel.pointColor', iColor.toHexString());
-                this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changePointColor",
+                  "pointColor", "transparency", iColor));
+              },
+              setColorFinalized = function() {
+                currentOpenSession = null;
               },
               setStroke = function (iColor) {
-                this_.setPath('dataDisplayModel.strokeColor', iColor.toHexString());
-                this_.setPath('dataDisplayModel.strokeTransparency', iColor.getAlpha());
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changeStrokeColor",
+                  "strokeColor", "strokeTransparency", iColor));
+              },
+              setStrokeFinalized = function() {
+                currentOpenSession = null;
               },
               getStylesLayer = function () {
                 return this_.stylesPane.layer();
@@ -396,7 +458,25 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     value: this.getPath('dataDisplayModel.pointSizeMultiplier'),
                     minimum: 0, maximum: 3, step: 0,
                     valueChanged: function () {
-                      this_.setPath('dataDisplayModel.pointSizeMultiplier', this.get('value'));
+                      var picker = this;
+                      DG.UndoHistory.execute(DG.Command.create({
+                        name: 'data.style.pointSizeChanged',
+                        undoString: 'DG.Undo.graph.changePointSize',
+                        redoString: 'DG.Redo.graph.changePointSize',
+                        execute: function() {
+                          this._beforeStorage = this_.getPath('dataDisplayModel.pointSizeMultiplier');
+                          this_.setPath('dataDisplayModel.pointSizeMultiplier', picker.get('value'));
+                        },
+                        undo: function() {
+                          this_.setPath('dataDisplayModel.pointSizeMultiplier', this._beforeStorage);
+                        },
+                        reduce: function(previous) {
+                          if (previous.name == this.name) {
+                            this._beforeStorage = previous._beforeStorage;
+                            return this;
+                          }
+                        }
+                      }));
                     }.observes('value')
                   })
                 })
@@ -412,6 +492,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
                         .setAlpha(this.getPath('dataDisplayModel.transparency')),
                     setColorFunc: setColor,
+                    closedFunc: setColorFinalized,
                     appendToLayerFunc: getStylesLayer
                   })
                 })
@@ -427,6 +508,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   initialColor: tinycolor(this.getPath('dataDisplayModel.strokeColor'))
                       .setAlpha(this.getPath('dataDisplayModel.strokeTransparency')),
                   setColorFunc: setStroke,
+                  closedFunc: setStrokeFinalized,
                   appendToLayerFunc: getStylesLayer
                 })
               })
@@ -462,6 +544,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   initialColor: tInitialColor,
                   colorKey: iCategory,
                   setColorFunc: setCategoryColor,
+                  closedFunc: setCategoryColorFinalized,
                   appendToLayerFunc: getStylesLayer
                 })
               }));

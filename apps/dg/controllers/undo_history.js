@@ -81,6 +81,17 @@ DG.UndoHistory = SC.Object.create((function() {
       if (this._executeInProgress) { return; }
 
       if (this.get('enabled') && command.isUndoable) {
+
+        // If we can reduce this command with the previous one, replace this command with the
+        // reduced version and pop the previous one out.
+        if (command.reduce && this._undoStack.length > 0) {
+          var reducedCommand = command.reduce(this._undoStack[this._undoStack.length-1]);
+          if (reducedCommand) {
+            this._undoStack.pop();
+            command = reducedCommand;
+          }
+        }
+
         this._undoStack.push(command);
         // Since we're not using set/get to access the stacks, notify changes manually.
         this.notifyPropertyChange('_undoStack');

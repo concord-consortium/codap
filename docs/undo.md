@@ -27,6 +27,7 @@ Commands also have the following *methods*:
 | execute | This method encapsulates an undoable action. This function is called when an action is first executed and should be the default code for doing an action. |
 | undo    | This method encapsulates the actions necessary to undo all of the changes made during the `execute` method. |
 | redo    | This method encapsulated the actions necessary to redo all of the changes made during the `execute` method. By default, this method just calls `execute` again, but can be implemented if special actions are required. |
+| reduce  | This optional method allows multiple consecutive commands to be reduced to a single command in the undo history. It takes a function in the form `reduce: function(previousCommand)` and either returns a single command that combines the two actions into one, or returns `false` to indicate that the commands should not be reduced. |
 
 ### Flow
 
@@ -98,3 +99,13 @@ When implementing an Undoable action, the following flow must be kept in mind:
 - Undo does not currently support asynchronous changes. If your `execute`, `undo` or `redo` methods trigger asynchronous code which dirties the document, you will end up clearing the Undo stacks even though the original calls were encapsulated in a Command.
 - Undo does not currently support coalescing multiple Commands in a sequence into a single undoable action. Each Command will be added to the Undo stack separately.
 - Nested Commands are executed without adding them to the Undo stack. So if your Command calls code which creates and executes another Command, your Command will need to ensure that it can undo and redo the changes that were made in the called Command in addition to the ones within your Command, since the `undo` and `redo` methods on that Command will not be called.
+
+### Reducing commands
+
+Adding a `reduce` function allows multiple consecutive commands to be merged into one single command.
+
+A reducing function takes the last command in the undo stack, and, along with the ability to inspect the current comment (`this`), can return a new command.
+
+When implementing a reducing function, it it up to the function to check if a reduction can be performed. A naive way it might do this is to check that the `name` of the previous command is the same as that of the current command.
+
+The easiest way to return a new command is simply to modify the current command and return that. One easy way that commands may be merged is to copy the commonly-used `_beforeStorage` from the previous command and copy it into the current command.
