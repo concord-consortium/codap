@@ -214,7 +214,7 @@ DG.mainPage = SC.Page.design((function() {
           // create right buttons, right-justified
           DG.rightButtons.forEach( function( iButtonName ) {
             var tButton = DG.RightButtonData[iButtonName];
-            tButton.classNames = 'toolshelf-button'.w();
+            tButton.classNames.push('toolshelf-button');
             this[ iButtonName] = DG.IconButton.create( tButton);
             this[ iButtonName].set('layout', { width: kButtonWidth/*, height: 40*/ });
             this.appendChild( this[ iButtonName ]);

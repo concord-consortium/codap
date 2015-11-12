@@ -480,10 +480,14 @@ DG.GraphView = SC.View.extend(
       tNewView = tNewViewClass.create();
       tInitLayout = true;
     }
+    if( !SC.none( tCurrentView))
+      tCurrentPoints = tCurrentView.get('cachedPointCoordinates');
 
-    if( !SC.none(tNewView)) {
-      if( !SC.none( tCurrentView))
-        tCurrentPoints = tCurrentView.get('cachedPointCoordinates');
+    if( SC.none(tNewView)) {
+      // Make sure the current view has all the right properties
+      this.setPlotViewProperties( tCurrentView, tPlot, 'yAxisView', tCurrentPoints);
+    }
+    else {
       this.setPlotViewProperties( tNewView, tPlot, 'yAxisView', tCurrentPoints);
       // If we don't call doDraw immediately, we don't get the between-plot animation.
       if( tNewView.readyToDraw())

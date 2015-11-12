@@ -99,7 +99,8 @@ DG.PlotView = DG.PlotLayer.extend(
   axisBoundsDidChange: function() {
     this._isRenderingValid = false;
     this.displayDidChange();
-  }.observes('.model.axisBounds'),
+  }.observes('xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
+      'yAxisView.model.lowerBound', 'yAxisView.model.upperBound', '.model.axisBounds'),
   
   /** Invalidate and update adornments shared by all plot types */
   updateAdornments: function() {

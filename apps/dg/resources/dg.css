@@ -18,9 +18,25 @@
 /*@import url("//hello.myfonts.net/count/2df7e5");*/
 
 @font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.otf') format('otf');}
+@font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.ttf') format('truetype');}
+@font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.eot') format('embedded-opentype');}
+@font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.woff') format('woff');}
+@font-face {font-family: 'MuseoSans-500';src: static_url('webfonts/MuseoSans_500.svg') format('svg');}
 @font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.otf') format('otf');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.ttf') format('truetype');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.eot') format('embedded-opentype');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.woff') format('woff');}
+@font-face {font-family: 'MuseoSans-500-Italic';src: static_url('webfonts/MuseoSans_500_Italic.svg') format('svg');}
 @font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.ttf') format('truetype');}
+@font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.eot') format('embedded-opentype');}
+@font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.woff') format('woff');}
+@font-face {font-family: 'Montserrat-Regular';src: static_url('webfonts/Montserrat-Regular.svg') format('svg');}
 @font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.otf') format('otf');}
+@font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.ttf') format('truetype');}
+@font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.eot') format('embedded-opentype');}
+@font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.woff') format('woff');}
+@font-face {font-family: 'Montserrat-Bold';src: static_url('webfonts/Montserrat-Bold.svg') format('svg');}
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.ttf') format('truetype');}
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.eot') format('embedded-opentype');}
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.woff') format('woff');}
