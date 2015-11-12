@@ -879,58 +879,73 @@ DG.CaseTableController = DG.ComponentController.extend(
         return name;
       },
 
+      _createCollectionCommand: function (dropData, context, parentCollectionID) {
+        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
+        var childCollectionID = null;
+        if (SC.none(parentCollectionID)) {
+          childCollectionID = context.getCollectionAtIndex(0).collection.id;
+        }
+        return DG.Command.create({
+          name: 'caseTable.createCollection',
+          undoString: 'DG.Undo.caseTable.createCollection',
+          redoString: 'DG.Redo.caseTable.createCollection',
+          log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
+              dropData.attribute.name),
+          _beforeStorage: {
+            context: context,
+            newCollectionName: collectionName,
+            newParentCollectionID: parentCollectionID,
+            newChildCollectionID: childCollectionID,
+            attributeID: dropData.attribute.id,
+            oldAttributePosition: dropData.collection.attrs.indexOf(
+                dropData.attribute),
+            oldCollectionID: dropData.collection.id
+          },
+          execute: function () {
+            var context = this._beforeStorage.context;
+            var attribute = context.getAttrRefByID(
+                this._beforeStorage.attributeID).attribute;
+            var childCollectionID = this._beforeStorage.newChildCollectionID;
+            var childCollection = childCollectionID && context.getCollectionByID(
+                childCollectionID).collection;
+            var tChange = {
+              operation: 'createCollection',
+              properties: {
+                name: this._beforeStorage.newCollectionName,
+                parent: this._beforeStorage.newParentCollectionID
+              },
+              attributes: [attribute]
+            };
+            if (childCollection) {
+              tChange.properties.children = [childCollection];
+            }
+            context.applyChange(tChange);
+          },
+          undo: function () {
+            var context = this._beforeStorage.context;
+            var attribute = context.getAttrRefByID(
+                this._beforeStorage.attributeID).attribute;
+            var toCollection = context.getCollectionByID(
+                this._beforeStorage.oldCollectionID);
+            var tChange = {
+              operation: 'moveAttribute',
+              attr: attribute,
+              toCollection: toCollection,
+              position: this._beforeStorage.oldAttributePosition
+            };
+            context.applyChange(tChange);
+          }
+        });
+      },
+
       leftDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.leftDropTarget.dropData');
         if (SC.none(dropData)) {
           return;
         }
         var context = this.dataContext;
-        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
-        if (!SC.none(dropData)) {
-          DG.UndoHistory.execute(DG.Command.create({
-            name: 'caseTable.createCollection',
-            undoString: 'DG.Undo.caseTable.createCollection',
-            redoString: 'DG.Redo.caseTable.createCollection',
-            log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
-                dropData.attribute.name),
-            _data: {
-              context: this.dataContext,
-              newCollectionName: collectionName,
-              newChildCollectionID: context.getCollectionAtIndex(0).collection.id,
-              attributeID: dropData.attribute.id,
-              oldAttributePosition: dropData.collection.attrs.indexOf(dropData.attribute),
-              oldCollectionID: dropData.collection.id
-            },
-            execute: function () {
-              var context = this._data.context;
-              var childCollection = context.getCollectionByID(
-                  this._data.newChildCollectionID).collection;
-              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
-              var tChange = {
-                operation: 'createCollection',
-                properties: {
-                  name: this._data.newCollectionName,
-                  children: [childCollection]
-                },
-                attributes: [attribute]
-              };
-              context.applyChange(tChange);
-            },
-            undo: function () {
-              var context = this._data.context;
-              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
-              var toCollection = context.getCollectionByID(this._data.oldCollectionID);
-              var tChange = {
-                operation: 'moveAttribute',
-                attr: attribute,
-                toCollection: toCollection,
-                position: this._data.oldAttributePosition
-              };
-              context.applyChange(tChange);
-            }
-          }));
-          this.setPath('contentView.leftDropTarget.dropData', null);
-        }
+        DG.UndoHistory.execute(this._createCollectionCommand(dropData, context));
+        this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.leftDropTarget.dropData'),
 
       rightDropZoneDidAcceptDrop: function () {
@@ -942,15 +957,16 @@ DG.CaseTableController = DG.ComponentController.extend(
         var collectionCount = context.get('collectionCount');
         var parentClient = context.getCollectionAtIndex(collectionCount-1);
         var parentID = parentClient.collection.id;
-        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
-        if (!SC.none(dropData)) {
-          DG.UndoHistory.execute(DG.Command.create({
+        DG.UndoHistory.execute(this._createCollectionCommand(dropData, context, parentID));
+
+          /*
+              DG.Command.create({
             name: 'caseTable.createCollection',
             undoString: 'DG.Undo.caseTable.createCollection',
             redoString: 'DG.Redo.caseTable.createCollection',
             log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
                 dropData.attribute.name),
-            _data: {
+            _beforeStorage: {
               context: this.dataContext,
               newCollectionName: collectionName,
               newParentCollectionID: parentID,
@@ -959,33 +975,32 @@ DG.CaseTableController = DG.ComponentController.extend(
               oldCollectionID: dropData.collection.id
             },
             execute: function () {
-              var context = this._data.context;
-              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
+              var context = this._beforeStorage.context;
+              var attribute = context.getAttrRefByID(this._beforeStorage.attributeID).attribute;
               var tChange = {
                 operation: 'createCollection',
                 properties: {
-                  name: this._data.newCollectionName,
-                  parent: this._data.newParentCollectionID
+                  name: this._beforeStorage.newCollectionName,
+                  parent: this._beforeStorage.newParentCollectionID
                 },
                 attributes: [attribute]
               };
               context.applyChange(tChange);
             },
             undo: function () {
-              var context = this._data.context;
-              var attribute = context.getAttrRefByID(this._data.attributeID).attribute;
-              var toCollection = context.getCollectionByID(this._data.oldCollectionID);
+              var context = this._beforeStorage.context;
+              var attribute = context.getAttrRefByID(this._beforeStorage.attributeID).attribute;
+              var toCollection = context.getCollectionByID(this._beforeStorage.oldCollectionID);
               var tChange = {
                 operation: 'moveAttribute',
                 attr: attribute,
                 toCollection: toCollection,
-                position: this._data.oldAttributePosition
+                position: this._beforeStorage.oldAttributePosition
               };
               context.applyChange(tChange);
             }
-          }));
-          this.setPath('contentView.leftDropTarget.dropData', null);
-        }
+          }));*/
+        this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.rightDropTarget.dropData')
     };
   }()) // function closure

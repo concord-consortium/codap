@@ -725,7 +725,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         undoString: 'DG.Undo.caseTable.moveAttribute',
         redoString: 'DG.Redo.caseTable.moveAttribute',
         log: 'move attribute {attribute: "%@", position: %@}'.loc(attr.name, position),
-        _data: {
+        _beforeStorage: {
           context: this.get('dataContext'),
           toCollection: this.get('collection'),
           fromCollectionID: attr.collection.id,
@@ -735,8 +735,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           fromPosition: attr.collection.attrs.indexOf(attr)
         },
         execute: function () {
-          var tContext = this._data.context,
-              tCollection = this._data.toCollection,
+          var tContext = this._beforeStorage.context,
+              tCollection = this._beforeStorage.toCollection,
               tChange = {
                 operation: 'moveAttribute',
                 attr: attr,
@@ -746,24 +746,24 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           tContext.applyChange(tChange);
         },
         undo: function () {
-          var tContext = this._data.context,
-              tCollection = tContext.getCollectionByID(this._data.fromCollectionID),
+          var tContext = this._beforeStorage.context,
+              tCollection = tContext.getCollectionByID(this._beforeStorage.fromCollectionID),
               tChange;
           if (tCollection) {
             tChange = {
               operation: 'moveAttribute',
               attr: attr,
               toCollection: tCollection,
-              position: this._data.fromPosition
+              position: this._beforeStorage.fromPosition
             };
           } else {
             tChange = {
               operation: 'createCollection',
               properties: {
-                id: this._data.fromCollectionID,
-                name: this._data.fromCollectionName,
-                parent: this._data.fromCollectionParent,
-                children: [this._data.fromCollectionChild]
+                id: this._beforeStorage.fromCollectionID,
+                name: this._beforeStorage.fromCollectionName,
+                parent: this._beforeStorage.fromCollectionParent,
+                children: [this._beforeStorage.fromCollectionChild]
               },
               attributes: [attr]
             };
