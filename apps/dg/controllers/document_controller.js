@@ -400,7 +400,7 @@ DG.DocumentController = SC.Object.extend(
         // fallthrough intentional
         /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
       case 'DG.GameView':
-        tView = this.addGame( docView, iComponent);
+        tView = this.addGame( docView, iComponent, true);
         break;
       case 'DG.TableView':
         // If there is no component, we are creating new components.
@@ -415,25 +415,25 @@ DG.DocumentController = SC.Object.extend(
         }
         break;
       case 'DG.GraphView':
-        tView = this.addGraph( docView, iComponent);
+        tView = this.addGraph( docView, iComponent, true);
         break;
       case 'DG.SliderView':
-        tView = this.addSlider( docView, iComponent);
+        tView = this.addSlider( docView, iComponent, true);
         break;
       case 'DG.Calculator':
-        tView = this.addCalculator( docView, iComponent);
+        tView = this.addCalculator( docView, iComponent, true);
         break;
       case 'DG.TextView':
-        tView = this.addText( docView, iComponent);
+        tView = this.addText( docView, iComponent, true);
         break;
       case 'DG.MapView':
-        tView = this.addMap( docView, iComponent);
+        tView = this.addMap( docView, iComponent, true);
         break;
       case 'SC.WebView':
-        tView = this.addWebView( docView, iComponent);
+        tView = this.addWebView( docView, iComponent, null, null, null, true);
         break;
       case 'DG.GuideView':
-        tView = this.addGuideView( docView, iComponent);
+        tView = this.addGuideView( docView, iComponent, true);
         break;
       default:
         break;
@@ -600,7 +600,7 @@ DG.DocumentController = SC.Object.extend(
       return tComponentView;
     },
 
-    addGame: function (iParentView, iComponent) {
+    addGame: function (iParentView, iComponent, isInitialization) {
       var tGameParams = {
           width: 640, height: 480
         },
@@ -614,6 +614,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.game.add',
         redoString: 'DG.Redo.game.add',
         log: 'addGame: {name: "%@", url: "%@"}'.fmt(tGameName, tGameUrl),
+        isUndoable: !isInitialization,
         _component: null,
         execute: function() {
           var tController = DG.GameController.create();
@@ -728,7 +729,7 @@ DG.DocumentController = SC.Object.extend(
       }));
     },
 
-    addGraph: function( iParentView, iComponent) {
+    addGraph: function( iParentView, iComponent, isInitialization) {
       var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -736,6 +737,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
         log: 'Create graph component',
+        isUndoable: !isInitialization,
         _component: null,
         execute: function() {
           SC.Benchmark.start('addGraph');
@@ -767,7 +769,7 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    addText: function( iParentView, iComponent) {
+    addText: function( iParentView, iComponent, isInitialization) {
       var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -775,6 +777,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.textComponent.create',
         redoString: 'DG.Redo.textComponent.create',
         log: 'Create text component',
+        isUndoable: !isInitialization,
         _component: null,
         execute: function() {
           tView = docController.createComponentView(iComponent || this._component, {
@@ -798,7 +801,7 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    addMap: function( iParentView, iComponent) {
+    addMap: function( iParentView, iComponent, isInitialization) {
       var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -806,6 +809,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.map.create',
         redoString: 'DG.Redo.map.create',
         log: 'Create map component',
+        isUndoable: !isInitialization,
         _component: null,
         execute: function() {
           var tMapModel = DG.MapModel.create(),
@@ -840,7 +844,7 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    addSlider: function( iParentView, iComponent) {
+    addSlider: function( iParentView, iComponent, isInitialization) {
       var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -848,6 +852,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.sliderComponent.create',
         redoString: 'DG.Redo.sliderComponent.create',
         log: 'Create slider component',
+        isUndoable: !isInitialization,
         _global: null,
         _componentId: null,
         execute: function() {
@@ -924,7 +929,7 @@ DG.DocumentController = SC.Object.extend(
                     });
     },
 
-    addWebView: function( iParentView, iComponent, iURL, iTitle, iLayout) {
+    addWebView: function( iParentView, iComponent, iURL, iTitle, iLayout, isInitialization) {
       iURL = iURL || '';
       iTitle = iTitle || '';
       iLayout = iLayout || { width: 600, height: 400 };
@@ -934,6 +939,7 @@ DG.DocumentController = SC.Object.extend(
         undoString: 'DG.Undo.webView.show',
         redoString: 'DG.Redo.webView.show',
         log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
+        isUndoable: !isInitialization,
         _component: null,
         execute: function() {
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
@@ -956,7 +962,7 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    addGuideView: function( iParentView, iComponent) {
+    addGuideView: function( iParentView, iComponent, isInitialization) {
       if( this._singletonViews.guideView) {
         // only one allowed
         DG.UndoHistory.execute(DG.Command.create({
@@ -964,6 +970,7 @@ DG.DocumentController = SC.Object.extend(
           undoString: 'DG.Undo.guide.show',
           redoString: 'DG.Redo.guide.show',
           log: 'Show guide',
+          isUndoable: !isInitialization,
           execute: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', true); },
           undo: function() { DG.currDocumentController()._singletonViews.guideView.set('isVisible', false); }
         }));
