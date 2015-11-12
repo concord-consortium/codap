@@ -879,8 +879,22 @@ DG.CaseTableController = DG.ComponentController.extend(
         return name;
       },
 
-      _createCollectionCommand: function (dropData, context, parentCollectionID) {
-        var collectionName = this._makeUniqueCollectionName(dropData.attribute.name);
+      /**
+       * Helper method to create a DG.Command to create a new collection from
+       * a dragged attribute.
+       *
+       * @param {DG.Attribute}
+       * @param {DG.collection}
+       * @param context  {DG.DataContext} The current DataContext
+       * @param parentCollectionID {number|undefined} Parent collection id, if
+       *                  collection is to be created as a child collection of
+       *                  another collection. Otherwise, it is created as the
+       *                  parent of the current parent collection.
+       * @returns {*}
+       * @private
+       */
+      _createCollectionCommand: function (attribute, collection, context, parentCollectionID) {
+        var collectionName = this._makeUniqueCollectionName(attribute.name);
         var childCollectionID = null;
         if (SC.none(parentCollectionID)) {
           childCollectionID = context.getCollectionAtIndex(0).collection.id;
@@ -890,16 +904,16 @@ DG.CaseTableController = DG.ComponentController.extend(
           undoString: 'DG.Undo.caseTable.createCollection',
           redoString: 'DG.Redo.caseTable.createCollection',
           log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
-              dropData.attribute.name),
+              attribute.name),
           _beforeStorage: {
             context: context,
             newCollectionName: collectionName,
             newParentCollectionID: parentCollectionID,
             newChildCollectionID: childCollectionID,
-            attributeID: dropData.attribute.id,
-            oldAttributePosition: dropData.collection.attrs.indexOf(
-                dropData.attribute),
-            oldCollectionID: dropData.collection.id
+            attributeID: attribute.id,
+            oldAttributePosition: collection.attrs.indexOf(
+                attribute),
+            oldCollectionID: collection.id
           },
           execute: function () {
             var context = this._beforeStorage.context;
@@ -938,16 +952,23 @@ DG.CaseTableController = DG.ComponentController.extend(
         });
       },
 
+      /**
+       * Handles drop to leftDropZone.
+       */
       leftDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.leftDropTarget.dropData');
         if (SC.none(dropData)) {
           return;
         }
         var context = this.dataContext;
-        DG.UndoHistory.execute(this._createCollectionCommand(dropData, context));
+        DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
+            dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.leftDropTarget.dropData'),
 
+      /**
+       * Handles drop to rightDropZone.
+       */
       rightDropZoneDidAcceptDrop: function () {
         var dropData = this.getPath('contentView.rightDropTarget.dropData');
         if (SC.none(dropData)) {
@@ -957,49 +978,8 @@ DG.CaseTableController = DG.ComponentController.extend(
         var collectionCount = context.get('collectionCount');
         var parentClient = context.getCollectionAtIndex(collectionCount-1);
         var parentID = parentClient.collection.id;
-        DG.UndoHistory.execute(this._createCollectionCommand(dropData, context, parentID));
-
-          /*
-              DG.Command.create({
-            name: 'caseTable.createCollection',
-            undoString: 'DG.Undo.caseTable.createCollection',
-            redoString: 'DG.Redo.caseTable.createCollection',
-            log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
-                dropData.attribute.name),
-            _beforeStorage: {
-              context: this.dataContext,
-              newCollectionName: collectionName,
-              newParentCollectionID: parentID,
-              attributeID: dropData.attribute.id,
-              oldAttributePosition: dropData.collection.attrs.indexOf(dropData.attribute),
-              oldCollectionID: dropData.collection.id
-            },
-            execute: function () {
-              var context = this._beforeStorage.context;
-              var attribute = context.getAttrRefByID(this._beforeStorage.attributeID).attribute;
-              var tChange = {
-                operation: 'createCollection',
-                properties: {
-                  name: this._beforeStorage.newCollectionName,
-                  parent: this._beforeStorage.newParentCollectionID
-                },
-                attributes: [attribute]
-              };
-              context.applyChange(tChange);
-            },
-            undo: function () {
-              var context = this._beforeStorage.context;
-              var attribute = context.getAttrRefByID(this._beforeStorage.attributeID).attribute;
-              var toCollection = context.getCollectionByID(this._beforeStorage.oldCollectionID);
-              var tChange = {
-                operation: 'moveAttribute',
-                attr: attribute,
-                toCollection: toCollection,
-                position: this._beforeStorage.oldAttributePosition
-              };
-              context.applyChange(tChange);
-            }
-          }));*/
+        DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
+            dropData.collection, context, parentID));
         this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.rightDropTarget.dropData')
     };
