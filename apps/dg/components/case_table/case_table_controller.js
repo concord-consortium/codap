@@ -913,7 +913,8 @@ DG.CaseTableController = DG.ComponentController.extend(
             attributeID: attribute.id,
             oldAttributePosition: collection.attrs.indexOf(
                 attribute),
-            oldCollectionID: collection.id
+            oldCollectionID: collection.id,
+            changeFlag: context.get('flexibleGroupingChangeFlag')
           },
           execute: function () {
             var context = this._beforeStorage.context;
@@ -934,6 +935,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               tChange.properties.children = [childCollection];
             }
             context.applyChange(tChange);
+            context.set('flexibleGroupingChangeFlag', true);
           },
           undo: function () {
             var context = this._beforeStorage.context;
@@ -948,6 +950,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               position: this._beforeStorage.oldAttributePosition
             };
             context.applyChange(tChange);
+            context.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
           }
         });
       },
