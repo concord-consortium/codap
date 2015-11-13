@@ -267,6 +267,10 @@ DG.ContainerView = SC.View.extend(
       mouseDown: function( iEvent) {
         this.select(null);
         return true;
+      },
+
+      touchStart: function(iEvent) {
+        return this.mouseDown( iEvent);
       }
 
     };  // object returned closure
