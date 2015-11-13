@@ -92,9 +92,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       classNames: ['dg-case-table'],
       layout: { left: 0, right: 0, top: 30, bottom: 0 },
       backgroundColor: "white",
+
       isDropTarget: true,
+
       computeDragOperations: function( iDrag) {
-        if( this.parentView.isValidAttribute( iDrag))
+        if( this.isValidAttribute( iDrag))
           return SC.DRAG_LINK;
         else
           return SC.DRAG_NONE;
@@ -195,7 +197,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           this.parentView.gridAdapter.requestMoveAttribute(attr, position);
         }
         //DG.log('Got drop: ' + iDragObject.data.attribute.name);
+      },
+
+      isValidAttribute: function( iDrag) {
+        var tDragAttr = iDrag.data.attribute;
+        return !SC.none( tDragAttr)
+            && this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute);
       }
+
     }),
 
     _hiddenDragView: SC.LabelView.design({
@@ -360,6 +369,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Called when the view is resized, in which case the SlickGrid should resize as well.
    */
   viewDidResize: function() {
+    sc_super();
     if( this._slickGrid) {
       // We must use invokeLast() here because at this point the SproutCore
       // 'layout' has changed, but the corresponding DOM changes haven't
@@ -1071,13 +1081,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         selection = adapter && adapter.getSelectedRows();
     if( selection)
       this.setSelectedRows( selection);
-    },
-
-    isValidAttribute: function( iDrag) {
-      var tDragAttr = iDrag.data.attribute;
-      return !SC.none( tDragAttr) && this.gridAdapter.canAcceptDrop(iDrag.data.attribute);
     }
-
   }; // end return from closure
   
 }())); // end closure
