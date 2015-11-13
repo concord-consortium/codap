@@ -120,7 +120,7 @@ DG.UserEntryDialog = SC.PanelPane.extend({
           target: 'DG.userEntryController',
           action: 'openNewDocument',
           isDefault: true,
-          classnames:['dg-ok-new-doc-button']
+          classNames:['dg-ok-new-doc-button']
         })
       }),
 
