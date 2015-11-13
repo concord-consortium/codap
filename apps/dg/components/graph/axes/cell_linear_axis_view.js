@@ -298,10 +298,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             },
             execute: function() { },
             undo: function() {
-              this._model().setLowerAndUpperBounds(oldLowerBound, oldUpperBound);
+              this._model().setLowerAndUpperBounds(oldLowerBound, oldUpperBound, true /* animate */ );
             },
             redo: function() {
-              this._model().setLowerAndUpperBounds(newLowerBound, newUpperBound);
+              this._model().setLowerAndUpperBounds(newLowerBound, newUpperBound, true /* animate */ );
             }
           }));
         }
