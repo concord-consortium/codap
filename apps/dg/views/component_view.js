@@ -248,9 +248,34 @@ DG.ComponentView = SC.View.extend(
                 });
               },
               valueChanged: function () {
-                var tComponentView = DG.ComponentView.findComponentViewParent(this);
+                var tComponentView = DG.ComponentView.findComponentViewParent(this),
+                    value = this.get('value'),
+                    this_ = this;
                 if (tComponentView) {
-                  tComponentView.setPath('model.title', this.get('value'));
+                  DG.UndoHistory.execute(DG.Command.create({
+                    name: 'component.titleChange',
+                    undoString: 'DG.Undo.componentTitleChange',
+                    redoString: 'DG.Redo.componentTitleChange',
+                    execute: function () {
+                      this._beforeStorage = tComponentView.getPath('model.title');
+                      tComponentView.setPath('model.title', value);
+                      this._value
+                      this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
+                    },
+                    undo: function () {
+                      var prev = this._beforeStorage;
+                      tComponentView.setPath('model.title', prev);
+                      // we have to set this as well, as 'value' is not tightly bound
+                      this_._value = prev;
+                      this_.propertyDidChange('value');
+                    },
+                    redo: function() {
+                      tComponentView.setPath('model.title', value);
+                      // we have to set this as well, as 'value' is not tightly bound
+                      this_._value = value;
+                      this_.propertyDidChange('value');
+                    }
+                  }));
                 }
                 return true;
               }.observes('value'),
