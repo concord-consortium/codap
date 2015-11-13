@@ -234,7 +234,6 @@ DG.ComponentView = SC.View.extend(
                 }
                 return this._value;
               }.property(),
-              originalValue: null,
               inlineEditorWillBeginEditing: function (iEditor, iValue, iEditable) {
                 sc_super();
                 this.stopShowingAsEmpty();
@@ -248,14 +247,10 @@ DG.ComponentView = SC.View.extend(
                   width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
                 });
               },
-              inlineEditorDidBeginEditing: function (editor, value) {
-                this.set('originalValue', value);
-              },
               valueChanged: function () {
                 var tComponentView = DG.ComponentView.findComponentViewParent(this);
                 if (tComponentView) {
                   tComponentView.setPath('model.title', this.get('value'));
-                  this.set('originalValue', null);
                 }
                 return true;
               }.observes('value'),
