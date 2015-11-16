@@ -111,15 +111,25 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     @param {Number} iLower - desired world coordinate lower bound
     @param {Number} iUpper - desired world coordinate upper bound
   */
-  setLowerAndUpperBounds: function( iLower, iUpper) {
-    this.beginPropertyChanges();
-    // Change to private variables so they don't get out of synch.
-    this._lowerBound = iLower;
-    this._upperBound = iUpper;
-    this.setIfChanged('lowerBound', iLower);
-    this.setIfChanged('upperBound', iUpper);
-    this.setIfChanged('tickGap', this._computeTickGap( iLower, iUpper));
-    this.endPropertyChanges();
+  setLowerAndUpperBounds: function( iLower, iUpper, iWithAnimation) {
+    iWithAnimation = iWithAnimation || false;
+    if( iWithAnimation) {
+      if( SC.none( this.axisAnimator))
+        this.axisAnimator = DG.GraphAnimator.create();
+      this.axisAnimator
+          .set('axisInfoArray', [{ axis: this, newBounds: {lower: iLower, upper: iUpper} }])
+          .animate();
+    }
+    else {
+      this.beginPropertyChanges();
+      // Change to private variables so they don't get out of synch.
+      this._lowerBound = iLower;
+      this._upperBound = iUpper;
+      this.setIfChanged('lowerBound', iLower);
+      this.setIfChanged('upperBound', iUpper);
+      this.setIfChanged('tickGap', this._computeTickGap(iLower, iUpper));
+      this.endPropertyChanges();
+    }
   },
 
   /**

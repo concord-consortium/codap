@@ -467,8 +467,10 @@ DG.ComponentView = SC.View.extend(
           return true;
         },
         click: function (evt) {
-          this.select();
-          return true;
+          return this.mouseDown( evt);
+        },
+        touchStart: function( evt) {
+          return this.mouseDown( evt);
         },
 
         maximizeAndSelect: function () {
