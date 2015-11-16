@@ -87,6 +87,7 @@ DG.UndoHistory = SC.Object.create((function() {
         if (command.reduce && this._undoStack.length > 0) {
           var reducedCommand = command.reduce(this._undoStack[this._undoStack.length-1]);
           if (reducedCommand) {
+            command.reduced = true;
             this._undoStack.pop();
             command = reducedCommand;
           }
@@ -284,6 +285,8 @@ DG.UndoHistory = SC.Object.create((function() {
       }
     },
 
+    _queuedLogMessage: null,
+
     _logAction: function(command, state) {
       var logString = '';
       if (state === this.UNDO) {
@@ -297,7 +300,16 @@ DG.UndoHistory = SC.Object.create((function() {
         logString += command.log;
       }
 
-      DG.logUser(logString);
+      if (this._queuedLogMessage && !command.reduced) {
+        DG.logUser(this._queuedLogMessage);
+        this._queuedLogMessage = null;
+      }
+      if (command.reduce && state === this.EXECUTE) {
+        // avoid logging reduced log messages until the end
+        this._queuedLogMessage = logString;
+      } else {
+        DG.logUser(logString);
+      }
     }
 
   }; // return from function closure

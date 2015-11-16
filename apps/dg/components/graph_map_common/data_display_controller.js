@@ -376,7 +376,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   name: 'data.style.categoryColorChange',
                   undoString: 'DG.Undo.graph.changePointColor',
                   redoString: 'DG.Redo.graph.changePointColor',
-                  execute: function () {
+                  log: "Changed categorical point color",
+                  execute: function() {
                     this.reduceKey = this.name + iColorKey + currentOpenSession;
                     this._beforeStorage = {
                       color: tColorMap[iColorKey],
@@ -404,10 +405,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
               },
               createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
                 return DG.Command.create({
-                  name: 'data.style.' + name,
-                  undoString: 'DG.Undo.graph.' + name,
-                  redoString: 'DG.Redo.graph.' + name,
-                  execute: function () {
+                  name: 'data.style.'+name,
+                  undoString: 'DG.Undo.graph.'+name,
+                  redoString: 'DG.Redo.graph.'+name,
+                  log: "Changed point color",
+                  execute: function() {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
                       color: this_.getPath('dataDisplayModel.' + colorAttr),
@@ -464,7 +466,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                         name: 'data.style.pointSizeChanged',
                         undoString: 'DG.Undo.graph.changePointSize',
                         redoString: 'DG.Redo.graph.changePointSize',
-                        execute: function () {
+                        log: "Changed point size",
+                        execute: function() {
                           this._beforeStorage = this_.getPath('dataDisplayModel.pointSizeMultiplier');
                           this_.setPath('dataDisplayModel.pointSizeMultiplier', picker.get('value'));
                         },
