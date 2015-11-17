@@ -136,8 +136,8 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     destroy: function() {
-      if( this._dataContext)
-         this._dataContext.removeObserver('changeCount', this, 'handleDataContextNotification');
+      if( this.get('dataContext'))
+         this.get('dataContext').removeObserver('changeCount', this, 'handleDataContextNotification');
       sc_super();
     },
 
@@ -154,31 +154,28 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       reset for graphs restored from document to point to the restored data context.
       @property   {DG.DataContext}
      */
-    _dataContext: null,
     dataContext: function( iKey, iValue) {
-      // We use a computed property so that we can add/remove observers when necessary.
+      var tContext = this.getPath('dataConfiguration.dataContext');
       if( iValue) {
-        if( iValue !== this._dataContext) {
-          if( this._dataContext){
-             this._dataContext.removeObserver('changeCount', this, 'handleDataContextNotification');
+        if( iValue !== tContext) {
+          if( tContext){
+            tContext.removeObserver('changeCount', this, 'handleDataContextNotification');
           }
-          this._dataContext = iValue;
-          if( this._dataContext) {
-            this._dataContext.addObserver('changeCount', this, 'handleDataContextNotification');
-          }
+          this.setPath('dataConfiguration.dataContext', iValue);
+          iValue.addObserver('changeCount', this, 'handleDataContextNotification');
         }
         return this;
       }
-      return this._dataContext;
-    }.property(),
+      return this.getPath('dataConfiguration.dataContext');
+    }.property('dataConfiguration.dataContext'),  // Todo: Figure out if this can be cacheable
 
     /**
       Called when the 'dataContext' property is changed.
      */
     dataContextDidChange: function() {
-      var dataConfiguration = this.get('dataConfiguration');
-      if( dataConfiguration)
-        dataConfiguration.set('dataContext', this.get('dataContext'));
+      var tContext = this.get('dataConfiguration.dataContext');
+      if( tContext && !tContext.hasObserverFor('changeCount'))
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
     }.observes('dataContext'),
 
     /**
