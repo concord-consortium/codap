@@ -101,7 +101,8 @@ DG.ColorUtilities = {
    * @returns {DG.ColorUtilities.hsbColor}
    */
   calcAttributeColorFromIndex: function (attribIndex, attribCount) {
-    DG.assert(attribIndex >= 0 && attribIndex < attribCount);
+    if(attribIndex < 0 || attribIndex >= attribCount)
+      return this.kNoAttribCaseColor;
 
     var tHue = attribIndex / attribCount;  // get hue in range [0.0-1.0]
     tHue += DG.ColorUtilities.kStartingHue;      // shift hue so starting variable is blue
