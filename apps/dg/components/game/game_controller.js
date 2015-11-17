@@ -192,6 +192,22 @@ DG.GameController = DG.ComponentController.extend(
       // Bail if we don't have a valid tCmdObj at this point
       if( !tCmdObj) return tRet;
 
+      if (this.context && this.context.get('flexibleGroupingChangeFlag')
+          && (['initGame',
+            'createCollection',
+              'openCase',
+            'createCase',
+            'createCases',
+            'updateCases',
+            'deleteCases'].indexOf(tCmdObj.action) >= 0)) {
+        DG.log('User has reordered Data Context, "%@", further updates ' +
+            'from data interactives prohibited.', this.context.get('name'));
+        this.invokeLater(function () {
+          this.showErrorAlert('DG.GameController.continuityError');
+        }.bind(this));
+        return tRet;
+      }
+
       // Dispatch the action to the appropriate handler
       switch( tCmdObj.action) {
 
@@ -611,16 +627,21 @@ DG.GameController = DG.ComponentController.extend(
         change = {
           operation: 'deleteCases',
           cases: cases
-        };
+        },
+        ret;
       iCaseIDs.forEach(function (iCaseID) {
         var tCase = tGameContext.getCaseByID(iCaseID);
         if (tCase) {
           cases.push(tCase);
         }
       });
-      tGameContext.applyChange( change);
+      ret = tGameContext.applyChange( change);
+      if (SC.none(ret)) {
+        DG.logWarn('UpdateCase failed to return a value');
+        ret = {success: true};
+      }
 
-      return {success: true};
+      return ret;
     },
       /**
       Update the values of an existing case.
@@ -641,8 +662,11 @@ DG.GameController = DG.ComponentController.extend(
               cases: [ theCase ],
               values: [ iArgs.values ]
             };
-        tGameContext.applyChange( change);
-        ret.success = true;
+        ret = tGameContext.applyChange( change);
+        if (SC.none(ret)) {
+          DG.logWarn('UpdateCase failed to return a value');
+          ret = {success: true};
+        }
       }
       if( iArgs.values && ((iArgs.log === undefined) || iArgs.log)) {
         DG.logUser("%@: %@ [%@]", iAction, collection.get('name'),
@@ -1237,8 +1261,16 @@ DG.GameController = DG.ComponentController.extend(
      */
     logUserAction: function( iActionString, iValues) {
       DG.logUser( iActionString + (iValues && iValues.length ? ": [" + iValues.join( ", ") + "]" : ""));
-    }
-}) ;
+    },
+
+      showErrorAlert: function(msg) {
+        DG.AlertPane.warn({
+          localize: true,
+          message: msg,
+        });
+      },
+
+    }) ;
 
 /**
  * The entry point for synchronous invocation of the Data Interactive API.

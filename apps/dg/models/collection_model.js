@@ -392,7 +392,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     deleteCase: function (iCase) {
       DG.Case.destroyCase(iCase);
-      this.updateCaseIDToIndexMap();
     },
 
     /**

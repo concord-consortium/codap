@@ -643,6 +643,9 @@ SC.stringsFor('English', {
       // Map Inspector
       'DG.Inspector.mapGrid': "Grid",  // "Grid"
       'DG.Inspector.mapPoints': "Points",  // "Points"
-      'DG.Inspector.mapLines': "Connecting Lines"  // "Connecting Lines"
+      'DG.Inspector.mapLines': "Connecting Lines",  // "Connecting Lines"
+
+      // Game Controller
+      'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.'
     }
 );

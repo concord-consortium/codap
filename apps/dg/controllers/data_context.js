@@ -72,7 +72,16 @@ DG.DataContext = SC.Object.extend((function() // closure
     @property   {Array of Object} Array of change objects
    */
   changes: null,
-  
+
+    /**
+     * Flag to indicate that the user has moved attributes within a collection
+     * or between grids in a way that invalidates the Data Interactive
+     * specification. If this happens we will block new createCase(s), openCase,
+     * or updateCase requests from the data interactives to avoid corrupting
+     * the data.
+     */
+    flexibleGroupingChangeFlag: false,
+
   /**
    *  The id of our DG.DataContextRecord.
    *  Bound to the 'id' property of the model.
@@ -258,6 +267,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // If the client indicates that the action has already
     // been taken, simply return with success.
     if( iChange.isComplete) return { success: true };
+
 
     var result = { success: false },
         shouldDirtyDoc = true;

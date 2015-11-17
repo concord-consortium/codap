@@ -732,7 +732,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           fromCollectionName: attr.collection.name,
           fromCollectionParent: attr.collection.parent,
           fromCollectionChild: attr.collection.children[0],
-          fromPosition: attr.collection.attrs.indexOf(attr)
+          fromPosition: attr.collection.attrs.indexOf(attr),
+          changeFlag: this.getPath('dataContext.flexibleGroupingChangeFlag')
         },
         execute: function () {
           var tContext = this._beforeStorage.context,
@@ -744,6 +745,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                 position: position
               };
           tContext.applyChange(tChange);
+          tContext.set('flexibleGroupingChangeFlag', true);
         },
         undo: function () {
           var tContext = this._beforeStorage.context,
@@ -769,6 +771,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             };
           }
           tContext.applyChange(tChange);
+          tContext.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
         }
       }));
     },
