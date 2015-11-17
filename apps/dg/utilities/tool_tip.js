@@ -66,6 +66,10 @@ DG.ToolTip = SC.Object.extend(
   */
   tipOrigin: null,
 
+  tipIsEmpty: function() {
+    return SC.empty(this.get('text'));
+  }.property('text'),
+
   /**
     This is the element used for the text in the data tip
     @private
@@ -88,6 +92,9 @@ DG.ToolTip = SC.Object.extend(
   _tipShadowElement: null,
 
   updateTip: function() {
+    if( this.get('tipIsEmpty'))
+      return;
+
     var tPaper = this.get('paper' ),
         kRectXOffset = 10,
         kRectYOffset = 5,
@@ -125,6 +132,9 @@ DG.ToolTip = SC.Object.extend(
   },
 
   show: function() {
+    if( this.get('tipIsEmpty'))
+      return;
+
     var tPaper = this.get('paper' ),
         tLayer = this.get('layer');
 
