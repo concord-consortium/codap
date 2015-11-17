@@ -278,7 +278,7 @@ DG.GameController = DG.ComponentController.extend(
         break;
 
       case 'undoableActionPerformed':
-        tRet = this.handleUndoableAction();
+        tRet = this.handleUndoableAction( tCmdObj.args);
         break;
 
       /*
@@ -770,12 +770,13 @@ DG.GameController = DG.ComponentController.extend(
       action. We simply store this new command in the stack, and the undo/redo of this
       command call undo/redo on the game.
     */
-    handleUndoableAction: function() {
+    handleUndoableAction: function( iArgs) {
+      var logMessage = iArgs.logMessage || "Unknown action";
       DG.UndoHistory.execute(DG.Command.create({
         name: 'interactive.undoableAction',
         undoString: 'DG.Undo.interactiveUndoableAction',
         redoString: 'DG.Redo.interactiveUndoableAction',
-        log: 'Interactive action occurred',
+        log: 'Interactive action occurred: '+logMessage,
         _componentId: this.getPath('model.id'),
         _controller: function() {
           return DG.currDocumentController().componentControllersMap[this._componentId];
