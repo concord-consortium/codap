@@ -1294,3 +1294,21 @@ DG.doCommand = function( iCmd, iCallback)  {
   return result;
 };
 
+/**
+ * This entry point allows other parts of the code to send arbitrary commands to the
+ * DataInteractive, if one exists. The commands should be one of the existing commands
+ * defined in the list of CODAP-Initiated Actions,
+ * https://github.com/concord-consortium/codap/wiki/Data-Interactive-API#codap-initiated-actions
+ * and must be fully specified (e.g. `{operation: 'xyz'}).
+ *
+ * @param iCmd       An object representing the command to be send
+ * @param iCallback  An optional callback passed back from the DI
+ */
+DG.sendCommandToDI = function( iCmd, iCallback) {
+  var interactives = DG.currDocumentController().get('dataInteractives'),
+    myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
+  if (myController && myController.gamePhone && myController.get('gameIsReady')) {
+    myController.gamePhone.call(iCmd, iCallback);
+  }
+}
+

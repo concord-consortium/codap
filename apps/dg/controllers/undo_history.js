@@ -269,6 +269,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearUndo: function() {
       this._undoStack.length = 0;
       this.notifyPropertyChange('_undoStack');
+      DG.sendCommandToDI({operation: "clearUndo"});
     },
 
     /** @private
@@ -277,6 +278,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
+      DG.sendCommandToDI({operation: "clearRedo"});
     },
 
     _dirtyDocument: function(changedObject) {
