@@ -118,44 +118,6 @@ DG.GuideController = DG.ComponentController.extend(
     Get the menu items from the graph and its components.
       @property { Array of menu items }
     */
-    gearMenuItems: function() {
-      var tItems = this.getPath('guideModel.items' ),
-          tMenuItems = [],
-          this_ = this,
-          tAction = function( iItem) {
-            DG.UndoHistory.execute(DG.Command.create({
-              name: 'guide.navigate',
-              undoString: 'DG.Undo.guide.navigate',
-              redoString: 'DG.Redo.guide.navigate',
-              _previous: {
-                url: this_.getPath('guideModel.currentURL'),
-                title: this_.getPath('guideModel.currentItemTitle')
-              },
-              execute: function() {
-                // Guides are singletons that are never destroyed, so it's ok to reference the view directly
-                this_.setPath('guideModel.currentURL', iItem.url);
-                this_.setPath('guideModel.currentItemTitle', iItem.itemTitle);
-                this.log = "Guide gear navigation: { Title: %@, itemTitle: %@, url: %@ }".fmt(this_.getPath('guideModel.title'), iItem.itemTitle, iItem.url);
-              },
-              undo: function() {
-                this_.setPath('guideModel.currentURL', this._previous.url);
-                this_.setPath('guideModel.currentItemTitle', this._previous.title);
-              }
-            }));
-          }.bind( this);
-
-      tItems.forEach( function( iItem) {
-                tMenuItems.push({ title: iItem.itemTitle, url: iItem.url,
-                                  target: this, itemAction: tAction,
-                                  args: [iItem]});
-              }.bind( this));
-      return tMenuItems;
-    }.property('guideModel.items'),
-
-    /**
-    Get the menu items from the graph and its components.
-      @property { Array of menu items }
-    */
     iconMenuItems: function() {
       var tItems = this.getPath('guideModel.items' ),
           tMenuItems = [],
