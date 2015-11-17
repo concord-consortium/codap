@@ -813,16 +813,7 @@ DG.DocumentController = SC.Object.extend(
         _component: null,
         execute: function() {
           var tMapModel = DG.MapModel.create(),
-              tMapController = DG.MapController.create(),
-              tContextIds = DG.DataContext.contextIDs(null),
-              tContext;
-
-          if (DG.ObjectMap.length(tContextIds) === 1) {
-            tContext = DG.DataContext.retrieveContextFromMap(null, tContextIds[0]);
-            // Don't pass the data context in the constructor because it's a function property
-            tMapModel.set('dataContext',  tContext);
-            tMapController.set('dataContext', tContext);
-          }
+              tMapController = DG.MapController.create();
 
           // map as component
           tView = docController.createComponentView(iComponent || this._component, {

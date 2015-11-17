@@ -113,9 +113,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
          */
         modelDidChange: function () {
           // Our model is our component; its content is the graph model
-          var dataDisplayModel = this.getPath('model.content');
+          var dataDisplayModel = this.getPath('model.content'),
+              tDataContext = this.get('dataContext');
           this.set('dataDisplayModel', dataDisplayModel);
-          if (dataDisplayModel)
+          if (dataDisplayModel && tDataContext)
             dataDisplayModel.set('dataContext', this.get('dataContext'));
         }.observes('model'),
 
@@ -140,10 +141,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var tResult = sc_super(),
               this_ = this;
           tResult.push(DG.IconButton.create({
-            layout: {width: 32, left: 0 },
+            layout: {width: 32, left: 0},
             classNames: 'display-rescale'.w(),
             iconClass: 'moonicon-icon-scaleData',
-            iconExtent: { width: 30, height: 25 },
+            iconExtent: {width: 30, height: 25},
             isEnabled: function () {
               return this_.getPath('dataDisplayModel.canRescale');
             }.property(),
@@ -243,10 +244,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
             localize: true
           }));
 
-          if( this.makePngImage) {  // Not implemented for map yet
+          if (this.makePngImage) {  // Not implemented for map yet
             tResult.push(DG.IconButton.create({
               layout: {width: 32},
-              iconExtent: { width: 30, height: 25 },
+              iconExtent: {width: 30, height: 25},
               classNames: 'display-styles'.w(),
               iconClass: 'moonicon-icon-tileScreenshot',
               target: this,
@@ -375,22 +376,22 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   name: 'data.style.categoryColorChange',
                   undoString: 'DG.Undo.graph.changePointColor',
                   redoString: 'DG.Redo.graph.changePointColor',
-                  execute: function() {
+                  execute: function () {
                     this.reduceKey = this.name + iColorKey + currentOpenSession;
                     this._beforeStorage = {
-                      color: tColorMap[ iColorKey],
+                      color: tColorMap[iColorKey],
                       alpha: this_.getPath('dataDisplayModel.transparency')
                     };
-                    tColorMap[ iColorKey] = iColor.toHexString();
+                    tColorMap[iColorKey] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
-                  undo: function() {
-                    tColorMap[ iColorKey] = this._beforeStorage.color;
+                  undo: function () {
+                    tColorMap[iColorKey] = this._beforeStorage.color;
                     this_.setPath('dataDisplayModel.transparency', this._beforeStorage.alpha);
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
-                  reduce: function(previous) {
+                  reduce: function (previous) {
                     if (previous.reduceKey == this.reduceKey) {
                       this._beforeStorage = previous._beforeStorage;
                       return this;
@@ -398,28 +399,28 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   }
                 }));
               },
-              setCategoryColorFinalized = function() {
+              setCategoryColorFinalized = function () {
                 currentOpenSession = null;
               },
               createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
                 return DG.Command.create({
-                  name: 'data.style.'+name,
-                  undoString: 'DG.Undo.graph.'+name,
-                  redoString: 'DG.Redo.graph.'+name,
-                  execute: function() {
+                  name: 'data.style.' + name,
+                  undoString: 'DG.Undo.graph.' + name,
+                  redoString: 'DG.Redo.graph.' + name,
+                  execute: function () {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
-                      color: this_.getPath('dataDisplayModel.'+colorAttr),
-                      alpha: this_.getPath('dataDisplayModel.'+alphaAttr)
+                      color: this_.getPath('dataDisplayModel.' + colorAttr),
+                      alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
                     };
-                    this_.setPath('dataDisplayModel.'+colorAttr, iColor.toHexString());
-                    this_.setPath('dataDisplayModel.'+alphaAttr, iColor.getAlpha());
+                    this_.setPath('dataDisplayModel.' + colorAttr, iColor.toHexString());
+                    this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
                   },
-                  undo: function() {
-                    this_.setPath('dataDisplayModel.'+colorAttr, this._beforeStorage.color);
-                    this_.setPath('dataDisplayModel.'+alphaAttr, this._beforeStorage.alpha);
+                  undo: function () {
+                    this_.setPath('dataDisplayModel.' + colorAttr, this._beforeStorage.color);
+                    this_.setPath('dataDisplayModel.' + alphaAttr, this._beforeStorage.alpha);
                   },
-                  reduce: function(previous) {
+                  reduce: function (previous) {
                     if (previous.reduceKey == this.reduceKey) {
                       this._beforeStorage = previous._beforeStorage;
                       return this;
@@ -429,18 +430,18 @@ DG.DataDisplayController = DG.ComponentController.extend(
               },
               setColor = function (iColor) {
                 currentOpenSession = currentOpenSession || Math.random();
-                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changePointColor",
-                  "pointColor", "transparency", iColor));
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand("changePointColor",
+                    "pointColor", "transparency", iColor));
               },
-              setColorFinalized = function() {
+              setColorFinalized = function () {
                 currentOpenSession = null;
               },
               setStroke = function (iColor) {
                 currentOpenSession = currentOpenSession || Math.random();
-                DG.UndoHistory.execute(createSetColorAndAlphaCommand( "changeStrokeColor",
-                  "strokeColor", "strokeTransparency", iColor));
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand("changeStrokeColor",
+                    "strokeColor", "strokeTransparency", iColor));
               },
-              setStrokeFinalized = function() {
+              setStrokeFinalized = function () {
                 currentOpenSession = null;
               },
               getStylesLayer = function () {
@@ -463,14 +464,14 @@ DG.DataDisplayController = DG.ComponentController.extend(
                         name: 'data.style.pointSizeChanged',
                         undoString: 'DG.Undo.graph.changePointSize',
                         redoString: 'DG.Redo.graph.changePointSize',
-                        execute: function() {
+                        execute: function () {
                           this._beforeStorage = this_.getPath('dataDisplayModel.pointSizeMultiplier');
                           this_.setPath('dataDisplayModel.pointSizeMultiplier', picker.get('value'));
                         },
-                        undo: function() {
+                        undo: function () {
                           this_.setPath('dataDisplayModel.pointSizeMultiplier', this._beforeStorage);
                         },
-                        reduce: function(previous) {
+                        reduce: function (previous) {
                           if (previous.name == this.name) {
                             this._beforeStorage = previous._beforeStorage;
                             return this;
@@ -515,14 +516,14 @@ DG.DataDisplayController = DG.ComponentController.extend(
           );
           if (tLegendAttrDesc.get('isCategorical')) {
             var tContentView = SC.View.create(SC.FlowedLayout,
-                    {
-                      layoutDirection: SC.LAYOUT_VERTICAL,
-                      isResizable: false,
-                      isClosable: false,
-                      defaultFlowSpacing: {bottom: 5},
-                      canWrap: false,
-                      align: SC.ALIGN_TOP,
-                    }
+                {
+                  layoutDirection: SC.LAYOUT_VERTICAL,
+                  isResizable: false,
+                  isClosable: false,
+                  defaultFlowSpacing: {bottom: 5},
+                  canWrap: false,
+                  align: SC.ALIGN_TOP,
+                }
                 ),
                 tScrollView = SC.ScrollView.create({
                   layout: {height: 100},
@@ -530,10 +531,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   contentView: tContentView
                 }),
                 tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
-            DG.ObjectMap.forEach( tCategoryMap, function( iCategory) {
-              var tInitialColor = tColorMap[ iCategory] ?
-                  tColorMap[ iCategory] :
-                  DG.ColorUtilities.calcCaseColor( iCategory, tLegendAttrDesc).colorString;
+            DG.ObjectMap.forEach(tCategoryMap, function (iCategory) {
+              var tInitialColor = tColorMap[iCategory] ?
+                  tColorMap[iCategory] :
+                  DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
               tInitialColor = tinycolor(tInitialColor).setAlpha(this.getPath('dataDisplayModel.transparency'));
               tContentView.appendChild(DG.PickerControlView.create({
                 layout: {height: 2 * kRowHeight},
@@ -642,31 +643,26 @@ DG.DataDisplayController = DG.ComponentController.extend(
           this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
         },
 
+        /**
+         *
+         * @returns {[{title,subMenu]}
+         */
         getAttributeMenuItems: function () {
-
-          var tChildCollection = this.getPath('dataContext.childCollection'),
-              tChildCollectionName = tChildCollection && tChildCollection.get('name'),
-              tChildNames = tChildCollection ? tChildCollection.getAttributeNames() : [],
-              tChildItems = tChildNames.map(
-                  function (aName) {
-                    return {title: aName, collection: tChildCollection};
-                  }),
-              tParentCollection = this.getPath('dataContext.parentCollection'),
-              tParentCollectionName = tParentCollection && tParentCollection.get('name'),
-              tParentNames = tParentCollection ? tParentCollection.getAttributeNames() : [],
-              tParentItems = tParentNames.map(
-                  function (aName) {
-                    return {title: aName, collection: tParentCollection};
-                  });
-          if (tParentItems.length === 0) {
-            return tChildItems;
-          }
-          else if (tChildItems.length === 0) {
-            return tParentItems;
+          var tMenuItems = [],
+              tContext = this.get('dataContext');
+          tContext.forEachCollection( function( iCollClient) {
+            var tName = iCollClient.get('name'),
+                tAttrNames = iCollClient.getAttributeNames();
+            tMenuItems.push({ title: tName,
+              subMenu: tAttrNames.map( function( iAttrName) {
+                return { title: iAttrName, collection: iCollClient};
+              })});
+          });
+          if( tMenuItems.length === 1) {
+            return tMenuItems[0].subMenu;
           }
           else
-            return [{title: tChildCollectionName, subMenu: tChildItems},
-              {title: tParentCollectionName, subMenu: tParentItems}];
+            return tMenuItems;
         },
 
         /**
@@ -681,49 +677,49 @@ DG.DataDisplayController = DG.ComponentController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function() {
+            _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
-            execute: function() {
+            execute: function () {
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
               var tNewItem = controller.attributeMenu.selectedItem,
-                tCollectionClient = tNewItem && tNewItem.collection,
-                tAxisOrientation = controller.attributeMenu.selectedAxis,
-                tAttrRefs,
-                tDataDisplayModel = controller.get('dataDisplayModel'),
-                tDataContext = controller.get('dataContext');
-              if(!tNewItem) {
+                  tCollectionClient = tNewItem && tNewItem.collection,
+                  tAxisOrientation = controller.attributeMenu.selectedAxis,
+                  tAttrRefs,
+                  tDataDisplayModel = controller.get('dataDisplayModel'),
+                  tDataContext = controller.get('dataContext');
+              if (!tNewItem) {
                 this.set('causedChange', false);
                 return;
               }
-              if(tCollectionClient) {
+              if (tCollectionClient) {
                 // change attribute
                 tAttrRefs = {
                   collection: tCollectionClient,
-                  attributes: [tCollectionClient.attrsController.objectAt( tNewItem.contentIndex)]
+                  attributes: [tCollectionClient.attrsController.objectAt(tNewItem.contentIndex)]
                 };
-                if(controller.attributeMenu.isLegend) {
+                if (controller.attributeMenu.isLegend) {
                   tNewItem.log = "legendAttributeChange: { to attribute %@ }".fmt(tAttrRefs.attributes[0].get('name'));
                   tDataDisplayModel.changeAttributeForLegend(tDataContext, tAttrRefs);
                 } else {
                   tNewItem.log = 'plotAxisAttributeChange: { orientation: %@, attribute: %@ }'.fmt(tAxisOrientation, tAttrRefs.attributes[0].get('name'));
                   tDataDisplayModel.changeAttributeForAxis(tDataContext, tAttrRefs, tAxisOrientation);
                 }
-              } else if ( tNewItem.target === tDataDisplayModel ) {
+              } else if (tNewItem.target === tDataDisplayModel) {
                 // remove or change attribute
-                tNewItem.itemAction.apply( tNewItem.target, tNewItem.args );
+                tNewItem.itemAction.apply(tNewItem.target, tNewItem.args);
               }
               controller.menuAnchorView.set('isVisible', false);
               this.log = tNewItem.log || 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
-            undo: function() {
+            undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
             },
-            redo: function() {
+            redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
             }
@@ -745,10 +741,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
             _beforeStorage: null,
             _afterStorage: null,
             _componentId: this.getPath('model.id'),
-            _controller: function() {
+            _controller: function () {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
-            execute: function() {
+            execute: function () {
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
@@ -759,23 +755,25 @@ DG.DataDisplayController = DG.ComponentController.extend(
               }
 
               var tDataContext = controller.get('dataContext'),
-                tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
+                  tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
 
               iView.dragData = null;
 
               controller.get('dataDisplayModel').changeAttributeForLegend(
-                tDataContext,
-                { collection: tCollectionClient,
-                  attributes: [ iDragData.attribute ]});
+                  tDataContext,
+                  {
+                    collection: tCollectionClient,
+                    attributes: [iDragData.attribute]
+                  });
 
               this.log = 'legendAttributeChange: { to attribute %@ }'.fmt(iDragData.attribute.get('name'));
             },
-            undo: function() {
+            undo: function () {
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
             },
-            redo: function() {
+            redo: function () {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
             }
@@ -953,8 +951,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 DG.logError(error);
               }
           ).then(function (blob) {
-                saveImage(blob);
-              });
+            saveImage(blob);
+          });
         }
 
 
