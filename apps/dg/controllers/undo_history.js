@@ -131,6 +131,8 @@ DG.UndoHistory = SC.Object.create((function() {
       Undoes the most recently executed command and adds that command to the redo stack.
      */
     undo: function() {
+      DG.globalEditorLock.commitCurrentEdit();
+
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to undo outside of this function, we'll just double-check here.
       if (!this.get('enabled') || this._undoStack.length === 0) {
@@ -175,6 +177,8 @@ DG.UndoHistory = SC.Object.create((function() {
       Redoes the most recently undone command and adds that command to the undo stack.
      */
     redo: function() {
+      DG.globalEditorLock.commitCurrentEdit();
+
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to redo outside of this function, we'll just double-check here.
       if (!this.get('enabled') || this._redoStack.length === 0) {
