@@ -167,7 +167,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         return this;
       }
       return this.getPath('dataConfiguration.dataContext');
-    }.property('dataConfiguration.dataContext'),
+    }.property('dataConfiguration.dataContext'),  // Todo: Figure out if this can be cacheable
 
     /**
       Called when the 'dataContext' property is changed.

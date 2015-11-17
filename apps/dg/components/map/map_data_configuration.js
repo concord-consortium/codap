@@ -120,7 +120,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                 tMapContext = iContext;
                 tMapCollection = iCollection;
                 tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
+                return true;
               }
+              else
+                return false;
             });
           });
           if (tMapCollection && tMapCollectionClient) {
@@ -138,6 +141,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           }
         }.bind(this);
 
+        // -- main routine of init
         configureAttributeDescriptions();
 
         // Prepare the attributes array. It has as many elements as there are places,
