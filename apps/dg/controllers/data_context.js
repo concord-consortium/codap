@@ -830,7 +830,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
 
   moveAttribute:  function (attr, toCollectionClient, position) {
-    var topCollection = this.getCollectionAtIndex(0);
+    var topCollection;
     var fromCollection = attr.get('collection');
 
     // remove attribute from old collection
@@ -847,6 +847,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     this.forEachCollection(function (collection) { collection.deleteAllCases(); });
 
     // starting with top collection, recreate cases
+    topCollection = this.getCollectionAtIndex(0);
     topCollection.get('collection').recreateCases();
   },
     /**
