@@ -93,7 +93,7 @@ DG.appController = SC.Object.create((function () // closure
         items: this.get('optionMenuItems'),
         layout: { width: 150 }
       });
-      this.guideMenuPane = DG.MenuPane.create({
+      this.guideMenuPane = SC.MenuPane.create({
         layout: { width: 250 }
       });
 
