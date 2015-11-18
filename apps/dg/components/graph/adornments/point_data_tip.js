@@ -83,25 +83,25 @@ DG.PointDataTip = DG.DataTip.extend(
           return '';
 
         var tLegendPair = getNameValuePair('legend'),
-            tCoords = '';
+            tTipText = '';
 
         if( !this.get('showOnlyLegendData')) {
           var tXPair = getNameValuePair('x'),
               tYKey = this.getPath('plotLayer.isUsingY2') ? 'y2' : 'y',
               tYPair = getNameValuePair(tYKey);
-          tCoords = SC.none(tXPair) ? '' : tXPair;
+          tTipText = SC.none(tXPair) ? '' : tXPair;
           if (!SC.none(tYPair)) {
-            if (tCoords.length > 0)
-              tCoords += '\n';
-            tCoords += tYPair;
+            if (tTipText.length > 0)
+              tTipText += '\n';
+            tTipText += tYPair;
           }
         }
         if (!SC.none(tLegendPair)) {
-          if (tCoords.length > 0)
-            tCoords += '\n';
-          tCoords += tLegendPair;
+          if (tTipText.length > 0)
+            tTipText += '\n';
+          tTipText += tLegendPair;
         }
-        return tCoords;
+        return tTipText;
       },
 
       /**
