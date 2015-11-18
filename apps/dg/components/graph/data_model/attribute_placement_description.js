@@ -70,26 +70,37 @@ DG.AttributePlacementDescription = SC.Object.extend(
     this.setupStats();
     this.invalidateCaches();
     this.notifyPropertyChange('attribute');
+    iAttribute.addObserver('collection', this, 'collectionDidChange');
   },
 
   removeAttributeAtIndex: function( iIndex) {
     DG.assert( iIndex < this._attributes.length);
+    var tAttribute = this._attributes[ iIndex];
     this._attributes.splice( iIndex, 1);
     this.invalidateCaches();
     this.notifyPropertyChange('attribute');
+    tAttribute.removeObserver('collection', this, 'collectionDidChange');
   },
 
   removeAttribute: function( iAttribute) {
     this._attributes.removeObject( iAttribute);
     this.invalidateCaches();
     this.notifyPropertyChange('attribute');
+    iAttribute.removeObserver('collection', this, 'collectionDidChange');
   },
 
   removeAllAttributes: function() {
+    this._attributes.forEach( function( iAttribute) {
+      iAttribute.removeObserver('collection', this, 'collectionDidChange');
+    }.bind(this));
     this._attributes = [];
     this.setPath('attributeStats.attributes', []);
     this.invalidateCaches();
     this.notifyPropertyChange('attribute');
+  },
+
+  collectionDidChange: function() {
+    this.notifyPropertyChange('collection');
   },
 
   /**

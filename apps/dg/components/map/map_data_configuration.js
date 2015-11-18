@@ -88,6 +88,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             // We must set these up manually, because the infrastructure isn't in place by
             // the time sc_super() (i.e. SC.Object.init()) is called.
             attrDesc.addObserver('collectionClient', this, iAttrPrefix + 'CollectionDidChange');
+            attrDesc.addObserver('collection', this, 'collectionDidChange');
           }.bind(this);
 
           var tMapCollection, tMapCollectionClient;
