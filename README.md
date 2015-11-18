@@ -29,5 +29,5 @@ or the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.
 * [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide)
 * [Data Interactive API](https://github.com/concord-consortium/codap/wiki/Data-Interactive-API)
 * [Data Interactive Tutorial](https://github.com/concord-consortium/codap/wiki/Data-Interactive-Tutorial)
-* [Net Logo Web Model Integration](https://github.com/concord-consortium/codap/wiki/Getting-a-NetLogo-Web-Model-to-Work-with-CODAP)
+* [NetLogo Web Model Integration](https://github.com/concord-consortium/codap/wiki/Getting-a-NetLogo-Web-Model-to-Work-with-CODAP)
 * [Release Notes](https://github.com/concord-consortium/codap/wiki/Release-Notes)
