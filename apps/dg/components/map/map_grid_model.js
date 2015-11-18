@@ -148,8 +148,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             tSouth = tBounds.getSouth(),
             tNorth = tBounds.getNorth();
 
-        _gridWidth = (tEast - tWest) / kGridCellCount;
-        _gridHeight = (tNorth - tSouth) / kGridCellCount;
+        _gridWidth = Math.min((tEast - tWest) / kGridCellCount, (tNorth - tSouth) / kGridCellCount);
+        _gridHeight = _gridWidth;
 
         var tGridWidth = this.get('gridWidth'),
             tNumToWest = Math.ceil((tRefLong - tWest) / tGridWidth);
