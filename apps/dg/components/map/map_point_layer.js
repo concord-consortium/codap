@@ -37,6 +37,11 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
   isInMarqueeMode: false, // Set by parent during marquee select to allow us to suppress data tips
 
+  init: function() {
+    sc_super();
+    this.setPath('dataTip.showOnlyLegendData', true);
+  },
+
   /**
    * Augment my base class by checking to make sure we have the attributes we need.
    * @returns {boolean}

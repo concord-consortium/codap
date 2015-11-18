@@ -54,7 +54,7 @@ DG.PlotUtilities = {
   kSelectedColoredStripClassName: 'data-strip-colored-selected',
   kLegendKey: 'legend-key',
   kLegendKeyName: 'legend-key-name',
-  kMapColorRangeOffset: 0.1, // Offset proportion used to lower the apparent color min for map area coloring
+  kMapColorRangeOffset: 0.0, // Offset proportion used to lower the apparent color min for map area coloring
   kDefaultAnimationTime: 1000,  // milliseconds
   kDataTipShowTime: 500, // milliseconds delay time before data tips appear
   kHighlightShowTime: 100, // milliseconds delay time before adornment highlighting appears

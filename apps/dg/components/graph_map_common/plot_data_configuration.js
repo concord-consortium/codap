@@ -135,11 +135,24 @@ DG.PlotDataConfiguration = SC.Object.extend(
     if( iValue) {
       DG.assert( iValue instanceof DG.AttributePlacementDescription);
       this.attributesByPlace[ iPlace][0] = iValue;
+      iValue.addObserver('collection', this, 'collectionDidChange');
     }
 
     return !SC.none( this.attributesByPlace) ?
               this.attributesByPlace[ iPlace][0] : null;
   }.property(),
+
+  /**
+   * One of my attributeDescription's attribute's collections has changed.
+   * We look up the corresponding collectionClient and set the attributeDescription's
+   * collectionClient property.
+   * @param iAttrDescription {DG.AttributePlacementDescription}
+   */
+  collectionDidChange: function( iAttrDescription) {
+    var tID = iAttrDescription.getPath('attribute.collection.id'),
+        tClient = this.get('dataContext').getCollectionByID(tID);
+    iAttrDescription.set('collectionClient', tClient);
+  },
 
   /**
     @param{DG.Analysis.EAnalysisRole}
@@ -311,6 +324,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
       y2Desc.removeObserver('collectionClient', this, 'y2CollectionDidChange');
     if( legDesc)
       legDesc.removeObserver('collectionClient', this, 'legendCollectionDidChange');
+
+    this.get('attributesByPlace').forEach(function( iAttrDesc) {
+      iAttrDesc.removeObserver('collection', this, 'collectionDidChange');
+    }.bind( this));
 
     this._hiddenCases = [];  // For good measure
 

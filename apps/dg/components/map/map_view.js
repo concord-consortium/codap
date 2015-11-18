@@ -439,9 +439,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         var tMap = this.getPath('mapLayer.map'),
             tCenter = tMap.getCenter(),
-            tZoom = tMap.getZoom(),
-            tEventType = this.getPath('mapLayer.lastEventType');
-
+            tZoom = tMap.getZoom();
 
         // Record the current values, which will be applied in handleIdle()
         this._mapDisplayChangeInProgress = true;
