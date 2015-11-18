@@ -34,6 +34,7 @@ SC.stringsFor('English', {
       'DG.mainPage.mainPane.messageView.value': "Unfortunately, DG is not currently supported on your browser. " +
       "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
       "DG is not actively supported on other browsers at this time.",
+      'DG.mainPage.titleBar.saved': 'Document Saved!',
 
     'DG.core.defaultLogServerLoginURL': 'http://cc-log-manager.herokuapp.com/api/logs',
     'DG.core.defaultLogServerLoginURL.secure': 'https://cc-log-manager.herokuapp.com/api/logs',

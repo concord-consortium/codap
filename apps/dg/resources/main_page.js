@@ -108,9 +108,12 @@ DG.mainPage = SC.Page.design((function() {
 
         saveNotification: SC.LabelView.design(SC.AutoResize, {
           classNames: ['invisible'],
-          layout: { height: 18 },
+          layout: { height: 18},
           textAlign: SC.ALIGN_LEFT,
-          value: 'Document Saved!'
+          value: 'DG.mainPage.titleBar.saved',
+          localize: true,
+          // accommodate error in text width computation
+          autoResizePadding: {width: 100}
         })
       }),
 
