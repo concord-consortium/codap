@@ -24,87 +24,10 @@ or the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.
 
 ---
 
-# Developing with the CODAP Open Source Repository #
+## More Information
 
-## Setting Up the Development Environment ##
-
-### Development Pre-requisites ###
-
-CODAP utilizes the SproutCore framework which requires Ruby 1.9.2+ for its build tools.
-
-####Instructions for Macs:####
-
-1. Install Ruby 1.9.3+
-
-    Mac OS X versions up to 10.8 shipped with Ruby 1.8.7. Mac OS X version 10.9 shipped with Ruby 2.0. The easiest way to install newer Ruby versions is to use rvm, the Ruby Version Manager. Using rvm to install Ruby, in turn, requires the presence of Xcode and its command line tools on Mac OS X. Thus, upgrading to Ruby 1.9.2+ may require the following:
-
-  * [Mac OS X] Make sure that Xcode and its command line tools are installed
-    * Xcode 3 installs command line tools by default
-    * Xcode 4+ require a separate install of the command line tools
-  * [Install rvm](https://rvm.io/rvm/install)
-  * Use rvm to install Ruby 1.9.3
-
-```
-$ rvm install 1.9.3
-```
-
-2. Install SproutCore 1.9.2
-
-    $ gem install sproutcore -v 1.9.2
-
-3. Get the CODAP Source
-
-    To clone the CODAP repository itself:
-    ```
-    $ git clone https://github.com/kcpt/codap.git
-    $ cd codap
-    $ git submodule update --init --recursive
-    ```
-
-To work with the CODAP repository it is often useful to fork it on Github and then clone the fork.
-
-
-
-####Instructions for Windows:####
-1. Install Ruby 1.9.3 with DevKit
-   + [Download RubyInstaller for Windows and DevKit](http://rubyinstaller.org/downloads)
-   + Run installer to install Ruby
-   + Unzip and install DevKit
-
-    + Run Command Prompt as Ruby
-```
-	c:\Ruby193\DevKit>ruby dk.rb init
-	c:\Ruby193\DevKit>ruby dk.rb review
-    c:\Ruby193\DevKit>ruby dk.rb install
-```
-2. Install SproutCore
-    ```
-    c:\Ruby193\DevKit>gem install sproutcore
-    ```
-3. Get the CODAP Source
-
-    To download the CODAP repository to your local directory:
-
-    + Go to [Codap Repository](https://github.com/kcpt/codap.git)
-    + Click on **Clone in Desktop** button
-
-To work with the CODAP repository it is often useful to fork it on Github and then clone the fork.
-
-### Run the CODAP Application Locally ###
-On the command line, change your working directory to the project directory.
-```
-    $ sc-server
-```
-This runs the [SproutCore server](http://guides.sproutcore.com/build_tools.html#developing-with-sproutcore-sproutcore-server), which serves the application code locally.
- To run the application, enter the following URL into your web browser of choice: [http://localhost:4020/dg](http://localhost:4020/dg).
-
-This should run the CODAP application and bring up the login dialog.
-
-## Introducing Data into CODAP ##
-
-Data can be introduced into CODAP in a variety of ways. For example, in modular browsers a CSV or tab-delimited .txt(simple text) can be dragged and dropped into the CODAP workspace. Third party data sets/activities can also be dropped into the workspace. These are called [data interactives](http://concord-consortium.github.io/codap-data-interactives/). There are [examples](http://concord.org/projects/codap#cc2) of data games on the project page.
-
-
-## Modifying the CODAP Source ##
-
-Most changes to the CODAP application source are automatically reflected by simply reloading the browser page at [http://localhost:4020/dg](http://localhost:4020/dg). More extensive changes (e.g. adding/removing source files) may require stopping and restarting **sc-server** and/or removing the generated **tmp** folder.
+* [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide)
+* [Data Interactive API](https://github.com/concord-consortium/codap/wiki/Data-Interactive-API)
+* [Data Interactive Tutorial](https://github.com/concord-consortium/codap/wiki/Data-Interactive-Tutorial)
+* [Net Logo Web Model Integration](https://github.com/concord-consortium/codap/wiki/Getting-a-NetLogo-Web-Model-to-Work-with-CODAP)
+* [Release Notes](https://github.com/concord-consortium/codap/wiki/Release-Notes)
