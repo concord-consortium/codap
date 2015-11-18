@@ -96,10 +96,22 @@ DG.DragBorderView = SC.View.extend(
                 }
               },
               undo: function () {
-                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                tViewToDrag.animate(this._oldLayout,
+                  {duration: 0.4, timing: 'ease-in-out'},
+                  // This fires after the animation and has the effect of causing a refresh. Map need this to get
+                  // the correct portion of the map actually showing.
+                  function () {
+                    this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                  }.bind(this));
               },
               redo: function () {
-                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                tViewToDrag.animate(this._oldLayout,
+                  {duration: 0.4, timing: 'ease-in-out'},
+                  // This fires after the animation and has the effect of causing a refresh. Map need this to get
+                  // the correct portion of the map actually showing.
+                  function () {
+                    this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                  }.bind(this));
               }
             }));
           }
