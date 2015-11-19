@@ -517,7 +517,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tOperativePlot.setIfChanged( tProperty, tAdornmentModels[tProperty] );
         }
       }
-      tOperativePlot.invalidateCaches();
       tOperativePlot.endPropertyChanges();
 
       this.setIfChanged('plot', tOperativePlot);

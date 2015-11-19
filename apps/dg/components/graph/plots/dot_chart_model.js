@@ -77,6 +77,16 @@ DG.DotChartModel = DG.PlotModel.extend(
   */
   cachedIndex: null,
 
+  xAxisDidChange: function() {
+    sc_super();
+    this.invalidateCaches();
+  },
+
+  yAxisDidChange: function() {
+    sc_super();
+    this.invalidateCaches();
+  },
+
   /**
     @property{Number} The maximum number of cases in any cell
   */
