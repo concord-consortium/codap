@@ -127,6 +127,8 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       var tConfiguration = this.get('dataConfigurationClass').create(),
           tContext = tConfiguration.get('dataContext');
+      // If the context has been discovered in the init of the configuration, we take this opportunity
+      // to hook up our observer to it.
       if( tContext) {
         tContext.addObserver('changeCount', this, 'handleDataContextNotification');
       }
