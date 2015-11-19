@@ -123,13 +123,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      Prepare dependencies.
      */
     init: function() {
-      var tLegendDescription;
-
       sc_super();
 
-      this.set( 'dataConfiguration', this.get('dataConfigurationClass').create() );
+      var tConfiguration = this.get('dataConfigurationClass').create(),
+          tContext = tConfiguration.get('dataContext');
+      if( tContext) {
+        tContext.addObserver('changeCount', this, 'handleDataContextNotification');
+      }
+      this.set( 'dataConfiguration', tConfiguration);
 
-      tLegendDescription = this.dataConfiguration.get('legendAttributeDescription');
+      var tLegendDescription = tConfiguration.get('legendAttributeDescription');
 
       this.set('legend', DG.LegendModel.create());
       this.setPath('legend.attributeDescription', tLegendDescription);
