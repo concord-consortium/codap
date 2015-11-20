@@ -98,18 +98,19 @@ DG.DragBorderView = SC.View.extend(
               undo: function () {
                 tViewToDrag.animate(this._oldLayout,
                   {duration: 0.4, timing: 'ease-in-out'},
-                  // This fires after the animation and has the effect of causing a refresh. Map need this to get
-                  // the correct portion of the map actually showing.
                   function () {
+                    // bizarre bug leaves the last animated transition property still
+                    // with a delay even after the end of an animation, so we clear it by hand
+                    tViewToDrag._view_layer.style.transition = ""
+                    // set actual model layout once animation has completed
                     this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                   }.bind(this));
               },
               redo: function () {
                 tViewToDrag.animate(this._oldLayout,
                   {duration: 0.4, timing: 'ease-in-out'},
-                  // This fires after the animation and has the effect of causing a refresh. Map need this to get
-                  // the correct portion of the map actually showing.
                   function () {
+                    tViewToDrag._view_layer.style.transition = ""
                     this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                   }.bind(this));
               }
