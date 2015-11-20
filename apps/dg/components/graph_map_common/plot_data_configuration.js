@@ -397,32 +397,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * @param {DG.CollectionClient}
    */
   chooseChildCollection: function( iCC1, iCC2) {
-    var c1IsOld = iCC1 && !iCC1.get('areParentChildLinksConfigured'),
-        c2IsOld = iCC2 && !iCC2.get('areParentChildLinksConfigured');
+    var tContext = this.get('dataContext'),
+        tCollections = tContext ? tContext.get('collections') : [],
+        tCC1Index = iCC1 ? tCollections.indexOf( iCC1.get('collection')) : -1,
+        tCC2Index = iCC2 ? tCollections.indexOf( iCC2.get('collection')) : -1;
 
-    // Legacy support for games whose collections' relations aren't configured
-    if( c1IsOld || c2IsOld) {
-      // Infer relations among collections from relations among cases.
-      // If the first case has a parent, then this must be the child collection.
-      if( !SC.none( iCC1) && (iCC1.getCaseCount() > 0) && !SC.none( iCC1.getCaseAt( 0).get('parent'))) {
-        return iCC1;
-      }
-      else if( SC.none(iCC2))
-        return iCC1;
-      else  // No choice but to return second collection
-        return iCC2;
-    }
-
-    // Query the collections' relations to determine the child
-    if( !SC.none( iCC1) && !SC.none( iCC2)) {
-      if( iCC1.isDescendantOf( iCC2))
-        return iCC1;
-      if( iCC2.isDescendantOf( iCC1))
-        return iCC2;
-    }
-    // If we only have one collection, or two collections that aren't related,
-    // just return any non-null collection.
-    return iCC1 || iCC2 || null;
+    return (tCC1Index > tCC2Index) ? iCC1 : iCC2;
   },
 
   /**
