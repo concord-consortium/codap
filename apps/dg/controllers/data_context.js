@@ -73,14 +73,14 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   changes: null,
 
-    /**
-     * Flag to indicate that the user has moved attributes within a collection
-     * or between grids in a way that invalidates the Data Interactive
-     * specification. If this happens we will block new createCase(s), openCase,
-     * or updateCase requests from the data interactives to avoid corrupting
-     * the data.
-     */
-    flexibleGroupingChangeFlag: false,
+  /**
+   * Flag to indicate that the user has moved attributes within a collection
+   * or between grids in a way that invalidates the Data Interactive
+   * specification. If this happens we will block new createCase(s), openCase,
+   * or updateCase requests from the data interactives to avoid corrupting
+   * the data.
+   */
+  flexibleGroupingChangeFlag: false,
 
   /**
    *  The id of our DG.DataContextRecord.
@@ -91,57 +91,57 @@ DG.DataContext = SC.Object.extend((function() // closure
     return this.getPath('model.id');
   }.property('model','model.id'),
 
-    _collections : null,
+  _collections: null,
+  collections : function () {
+    return this._collections || this.collectionsDidChange();
+  }.property('_collections'),
 
-    /**
-     *  The collections for which this controller is responsible.
-     *  Clients expect the order of this array to be parent --> child.
-     *  This function is responsible for guaranteeing the order.
-     *  In particular, games using the old API often create their
-     *  collections in child --> parent order, and need to be reversed
-     *  in this function.
-     *
-     *  TODO: why can't model.collections be a compact array, too?
-     *
-     *  @property {[DG.Collection]}
-     */
-    collections: function() {
-      var srcCollections = this.getPath('model.collections'),
-          srcCollectionArray = DG.ObjectMap.values(srcCollections),
-          i, c,
-          collectionCount = srcCollectionArray.length;
+  /**
+   *  The collections for which this controller is responsible.
+   *  Clients expect the order of this array to be parent --> child.
+   *  This function is responsible for guaranteeing the order.
+   *  In particular, games using the old API often create their
+   *  collections in child --> parent order, and need to be reversed
+   *  in this function.
+   *
+   *  TODO: why can't model.collections be a compact array, too?
+   *
+   *  @property {[DG.Collection]}
+   */
+  collectionsDidChange: function() {
+    DG.log('collectionsDidChange');
+    var srcCollections = this.getPath('model.collections'),
+        srcCollectionArray = DG.ObjectMap.values(srcCollections),
+        i, c,
+        collectionCount = srcCollectionArray.length;
 
-      // If our cache is up to date, just return it
-      if( this._collections && (this._collections.length === collectionCount))
-        return this._collections;
-
-      // Reset and restock the cached array
-      this._collections = [];
+    // Reset and restock the cached array
+    this._collections = [];
 
 // find the ur-parent, then follow it to all its children.
-      c = srcCollectionArray[0]; i = 0;
-      if (c) {
-        while (!SC.none(c.get('parent')) && i <= collectionCount) {
-          c = c.get('parent');
-          i++;
-        }
-        if (i > collectionCount) {
-          DG.logError('Circular parental links among collections in context: ' + this.name);
-        }
-        i = 0;
-        while (!SC.none(c) && i <= collectionCount) {
-          this._collections.pushObject(c);
-          c = c.get('children')[0];
-          i++;
-        }
-        if (i > collectionCount) {
-          DG.logError('Circular child links among collections in context: ' + this.name);
-        }
+    c = srcCollectionArray[0]; i = 0;
+    if (c) {
+      while (!SC.none(c.get('parent')) && i <= collectionCount) {
+        c = c.get('parent');
+        i++;
       }
+      if (i > collectionCount) {
+        DG.logError('Circular parental links among collections in context: ' + this.name);
+      }
+      i = 0;
+      while (!SC.none(c) && i <= collectionCount) {
+        this._collections.pushObject(c);
+        c = c.get('children')[0];
+        i++;
+      }
+      if (i > collectionCount) {
+        DG.logError('Circular child links among collections in context: ' + this.name);
+      }
+    }
 
-      // Return the cached array in the proper order
-      return this._collections;
-    }.property('model','model.collections'),
+    // Return the cached array in the proper order
+    return this._collections;
+  }.observes('model.collectionsChangeCount'),
 
   /**
    *  Map of DG.CollectionClients, corresponding one-to-one to the DG.Collections.

@@ -46,6 +46,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
      * @property {[DG.Collection]}
      */
     collections: null,
+    collectionsChangeCount: 0,
 
     defaultTitle: function() {
       var tTitle = '';
@@ -57,11 +58,11 @@ DG.DataContextRecord = DG.BaseModel.extend(
       return tTitle;
     }.property(),
 
-      /**
-       * The base data set for the collections in this context.
-       * @property {DG.DataSet}
-       */
-      dataSet: null,
+    /**
+     * The base data set for the collections in this context.
+     * @property {DG.DataSet}
+     */
+    dataSet: null,
 
     /**
      * Per-component storage, in a component specific format.
@@ -103,15 +104,25 @@ DG.DataContextRecord = DG.BaseModel.extend(
       return DG.Collection.createCollection( iProperties);
     },
 
-      /**
-       * Prepares a streamable version of this object. Streamable means it is
-       * JSON ready and has all persistent data for the object and its subobjects.
-       *
-       * In this case we take special care to avoid forward references among
-       * collections.
-       * @param fullData
-       * @returns {*}
-       */
+    addCollection: function (iCollection) {
+      this.collections[iCollection.id] = iCollection;
+      this.incrementProperty('collectionsChangeCount', 1);
+    },
+
+    removeCollection: function (iCollection) {
+      delete this.collections[iCollection.id];
+      this.incrementProperty('collectionsChangeCount', 1);
+    },
+
+    /**
+     * Prepares a streamable version of this object. Streamable means it is
+     * JSON ready and has all persistent data for the object and its subobjects.
+     *
+     * In this case we take special care to avoid forward references among
+     * collections.
+     * @param fullData
+     * @returns {*}
+     */
     toArchive: function (fullData) {
       var obj;
       var root;

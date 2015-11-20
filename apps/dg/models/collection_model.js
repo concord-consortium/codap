@@ -213,7 +213,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         }.bind(this));
       }
       context = this.context;
-      delete context.collections[this.id];
+      context.removeCollection(this);
       sc_super();
     },
 
@@ -606,7 +606,7 @@ DG.Collection.createCollection = function( iProperties) {
   }
 
   if (iProperties.context) {
-    iProperties.context.collections[tCollection.id] = tCollection;
+    iProperties.context.addCollection( tCollection);
   }
 
   if (!SC.none(iProperties.areParentChildLinksConfigured)) {
