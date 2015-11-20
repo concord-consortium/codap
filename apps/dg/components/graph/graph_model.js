@@ -666,6 +666,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       sc_super();
 
+      // Start the plots from scratch
+      while( this._plots.length > 0) {
+        this._plots.pop().destroy();
+      }
+
       if( !SC.none( iStorage.isTransparent))
         this.set('isTransparent', iStorage.isTransparent);
 

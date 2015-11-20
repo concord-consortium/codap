@@ -284,10 +284,12 @@ DG.GraphController = DG.DataDisplayController.extend(
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
+              controller.get('graphModel').notifyPropertyChange('attributeRemoved');
             },
             redo: function() {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
+              this._controller().get('graphModel').notifyPropertyChange('attributeAdded');
             }
           }));
         }.observes('*axisMultiTarget.dragData'),
@@ -334,10 +336,12 @@ DG.GraphController = DG.DataDisplayController.extend(
               var controller = this._controller();
               this._afterStorage = controller.createComponentStorage();
               controller.restoreComponentStorage(this._beforeStorage);
+              controller.get('graphModel').notifyPropertyChange('attributeRemoved');
             },
             redo: function() {
               this._controller().restoreComponentStorage(this._afterStorage);
               this._afterStorage = null;
+              this._controller().get('graphModel').notifyPropertyChange('y2AttributeAdded');
             }
           }));
         }.observes('*y2AxisView.dragData'),
