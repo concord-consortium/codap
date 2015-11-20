@@ -96,18 +96,28 @@ DG.DragBorderView = SC.View.extend(
                 }
               },
               undo: function () {
-                tViewToDrag.animate(this._oldLayout,
+                var layout = SC.clone(this._oldLayout);
+                if (tViewToDrag.isMinimized()) {
+                  this._oldHeight = this._oldLayout.height;
+                  layout.height = 25;
+                }
+                tViewToDrag.animate(layout,
                   {duration: 0.4, timing: 'ease-in-out'},
                   function () {
                     // bizarre bug leaves the last animated transition property still
                     // with a delay even after the end of an animation, so we clear it by hand
                     tViewToDrag._view_layer.style.transition = ""
                     // set actual model layout once animation has completed
-                    this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                    this._oldLayout = this._controller().revertModelLayout(layout);
+                    this._oldLayout.height = layout.height;
                   }.bind(this));
               },
               redo: function () {
-                tViewToDrag.animate(this._oldLayout,
+                var layout = SC.clone(this._oldLayout);
+                if (tViewToDrag.isMinimized()) {
+                  layout.height = 25;
+                }
+                tViewToDrag.animate(layout,
                   {duration: 0.4, timing: 'ease-in-out'},
                   function () {
                     tViewToDrag._view_layer.style.transition = ""
