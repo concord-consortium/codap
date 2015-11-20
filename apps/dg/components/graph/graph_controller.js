@@ -115,7 +115,8 @@ DG.GraphController = DG.DataDisplayController.extend(
 
           // Configure the axes
           var xAxis = graphModel.get('xAxis'),
-              yAxis = graphModel.get('yAxis');
+              yAxis = graphModel.get('yAxis'),
+              y2Axis = graphModel.get('y2Axis');
           if (xAxis && xAxis.get('isNumeric') &&
               isFinite(iStorage.xLowerBound) && isFinite(iStorage.xUpperBound)) {
             xAxis.setLowerAndUpperBounds(iStorage.xLowerBound, iStorage.xUpperBound);
@@ -123,6 +124,10 @@ DG.GraphController = DG.DataDisplayController.extend(
           if (yAxis && yAxis.get('isNumeric') &&
               isFinite(iStorage.yLowerBound) && isFinite(iStorage.yUpperBound)) {
             yAxis.setLowerAndUpperBounds(iStorage.yLowerBound, iStorage.yUpperBound);
+          }
+          if (y2Axis && y2Axis.get('isNumeric') &&
+              isFinite(iStorage.y2LowerBound) && isFinite(iStorage.y2UpperBound)) {
+            y2Axis.setLowerAndUpperBounds(iStorage.y2LowerBound, iStorage.y2UpperBound);
           }
         },
 

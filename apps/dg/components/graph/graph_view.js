@@ -552,6 +552,7 @@ DG.GraphView = SC.View.extend(
       this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
       this.get('y2AxisView').set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
       this.get('yAxisView').set('otherYAttributeDescription', this.getPath('model.y2Axis.attributeDescription'));
+      tPlotView.displayDidChange();
     }
   }.observes('model.y2AttributeAdded'),
 

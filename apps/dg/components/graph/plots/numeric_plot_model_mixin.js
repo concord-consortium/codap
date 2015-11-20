@@ -67,6 +67,11 @@ DG.NumericPlotModelMixin =
       if( !iAxis || !iAxis.setDataMinAndMax || (tAttribute === DG.Analysis.kNullAttribute))
         return;
 
+      // For the purpose of getting new bounds, if we're working with the y-axis of a plot that
+      // is plotting on y2, we have to change iPlace so we get the right min and max.
+      if( iPlace === DG.GraphTypes.EPlace.eY && this_.get('verticalAxisIsY2'))
+        iPlace = DG.GraphTypes.EPlace.eY2;
+
       var tDataConfiguration = this_.get('dataConfiguration'),
           tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( iPlace),
           tOldLower = iAxis.get('lowerBound'),
