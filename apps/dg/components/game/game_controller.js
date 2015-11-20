@@ -771,7 +771,7 @@ DG.GameController = DG.ComponentController.extend(
       command call undo/redo on the game.
     */
     handleUndoableAction: function( iArgs) {
-      var logMessage = iArgs.logMessage || "Unknown action";
+      var logMessage = iArgs && iArgs.logMessage ? iArgs.logMessage : "Unknown action";
       DG.UndoHistory.execute(DG.Command.create({
         name: 'interactive.undoableAction',
         undoString: 'DG.Undo.interactiveUndoableAction',
