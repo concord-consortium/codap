@@ -28,6 +28,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
   function RectRecord(iRect) {
     this.rect = iRect;
     this.count = 0;
+    this.cases = [];
   }
 
   /**
@@ -61,9 +62,10 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       });
     };
 
-    this.incrementCount = function( iLongIndex, iLatIndex) {
+    this.addCaseToRect = function( iLongIndex, iLatIndex, iCase) {
       var tRect = this.getRect( iLongIndex, iLatIndex);
       if( tRect) {
+        tRect.cases.push(iCase);
         tRect.count++;
         this.maxCount = Math.max(this.maxCount, tRect.count);
       }
@@ -190,7 +192,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
               tLatVal = iCase.getNumValue( tLatVarID),
               tLongIndex = Math.floor( (tLongVal - tStartWest) / tGridWidth),
               tLatIndex = Math.floor( (tLatVal - tStartSouth) / tGridHeight);
-          tRectArray.incrementCount( tLongIndex, tLatIndex);
+          tRectArray.addCaseToRect( tLongIndex, tLatIndex, iCase);
         });
       }.bind(this);
 
@@ -202,6 +204,20 @@ DG.MapGridModel = SC.Object.extend((function () // closure
           this.get('rectArray').deleteZeroRects();
         }
       this.endPropertyChanges();
+    },
+
+    selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
+      var tDataContext = this.getPath('dataConfiguration.dataContext'),
+          tCollectionClient = this.getPath('dataConfiguration.collectionClient'),
+          tRect = this.get('rectArray').getRect( iLongIndex, iLatIndex),
+          tSelectChange = {
+            operation: 'selectCases',
+            collection: tCollectionClient,
+            cases: tRect.cases,
+            select: true,
+            extend: iExtend
+          };
+      tDataContext.applyChange( tSelectChange);
     },
 
     /**

@@ -66,7 +66,8 @@ DG.MapGridLayer = SC.Object.extend(
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var tLocalIndex = tIndex,
           handleClick = function( iEvent) {
-            // Select cases in this rectangle?
+            var tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey;
+            tModel.selectCasesInRect( iLongIndex, iLatIndex, tExtend);
           }.bind( this),
 
           handleMouseover = function( iEvent) {
@@ -97,8 +98,8 @@ DG.MapGridLayer = SC.Object.extend(
       tOptions.fillOpacity = iRect.count / tMaxCount;
       var tLeafRect = L.rectangle( iRect.rect, tOptions)
                         .on('click', handleClick)
-                            .on('mouseover', handleMouseover)
-                            .on('mouseout', handleMouseout);
+                        .on('mouseover', handleMouseover)
+                        .on('mouseout', handleMouseout);
       tRectangles.push(tLeafRect);
       tIndex++;
     }.bind( this));
