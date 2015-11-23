@@ -91,10 +91,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     return this.getPath('model.id');
   }.property('model','model.id'),
 
-  _collections: null,
-  collections : function () {
-    return this._collections || this.collectionsDidChange();
-  }.property('_collections'),
+  collections: null,
 
   /**
    *  The collections for which this controller is responsible.
@@ -116,7 +113,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         collectionCount = srcCollectionArray.length;
 
     // Reset and restock the cached array
-    this._collections = [];
+    this.collections = [];
 
 // find the ur-parent, then follow it to all its children.
     c = srcCollectionArray[0]; i = 0;
@@ -130,7 +127,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
       i = 0;
       while (!SC.none(c) && i <= collectionCount) {
-        this._collections.pushObject(c);
+        this.collections.pushObject(c);
         c = c.get('children')[0];
         i++;
       }
@@ -140,7 +137,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     // Return the cached array in the proper order
-    return this._collections;
+    return this.collections;
   }.observes('model.collectionsChangeCount'),
 
   /**
@@ -156,6 +153,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     sc_super();
     this._collectionClients = {};
     this.changes = [];
+    this.collectionsDidChange();
   },
 
   /**
