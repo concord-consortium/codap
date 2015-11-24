@@ -626,13 +626,16 @@ DG.DataContext = SC.Object.extend((function() // closure
     iChange.ids = [];
     iChange.collectionIDs = {};
 
+    // We are going to delete from the bottom up. That is, we find affected
+    // cases in the base collection, delete them, then, if their parents are
+    // now devoid of children, delete the parents, and so on up the chain.
     var doDelete = function (iCase) {
-      var tCollection = this.getCollectionForCase( iCase);
       if (iCase.get("isDestroyed"))
-      // case has already been destroyed. (Happens when we select parents and children and delete all)
+        // case has already been destroyed. (Happens when we select parents and
+        // children and delete all)
         return;
 
-
+      var tCollection = this.getCollectionForCase( iCase);
       var tParent = iCase.parent;
 
       // We store the set of deleted cases for later undoing.
@@ -643,6 +646,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         oldCase: iCase
       });
       iChange.ids.push( iCase.get('id'));
+
       // keep track of the affected collections
       iChange.collectionIDs[ tCollection.get('id')] = tCollection;
 
@@ -657,6 +661,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }.bind(this);
 
+    // find the leaf node cases and call doDelete on each of them.
+    // The doDelete function will propogate up the parental hierarchy
+    // as far as appropriate.
     var deleteCaseAndChildren = function( iCase) {
       //var tCollection = this.getCollectionForCase( iCase);
       var tChildren= iCase.get('children'), ix;
@@ -730,7 +737,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         // Store the set of deleted cases, along with their values
         this._undoData = deletedCases;
 
-      },
+      }
     }));
 
     return { success: true };
@@ -842,7 +849,6 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
-      //this.forEachCollection(function (collection) {collection.get('collection').updateCaseIDToIndexMap()})
 
     return createdCases;
   },
