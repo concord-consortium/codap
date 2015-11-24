@@ -621,7 +621,6 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doDeleteCases: function( iChange) {
     var deletedCases = [],
-        oldCaseToNewCaseMap = {},
         this_ = this;
 
     iChange.ids = [];
@@ -677,6 +676,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       undoString: 'DG.Undo.data.deleteCases',
       redoString: 'DG.Redo.data.deleteCases',
       log: 'Deleted %@ cases'.fmt(deletedCases.length),
+      _beforeStorage: {
+        context: this
+      },
       execute: function() {
         // Delete each case
         iChange.cases.forEach( deleteCaseAndChildren);
@@ -689,60 +691,46 @@ DG.DataContext = SC.Object.extend((function() // closure
 
         // Store the set of deleted cases, along with their values
         this._undoData = deletedCases;
+        // temporarily disable undo to accomplish build
+        this.isUndoable = false;
       },
       undo: function() {
-        for (var i = this._undoData.length - 1; i >= 0; i--) {
-          var oldCase       = this._undoData[i].oldCase,
-              oldCollection = this_.getCollectionForCase(oldCase),
-              parent        = oldCase.parent,
-              //attributeIDs    = oldCollection.getAttributeIDs(),
-              //values        = [],
-              iChange, result;
-
-          // If we have deleted and then re-created the parent, we need to find the new one
-          if (parent && oldCaseToNewCaseMap[parent]) {
-            parent = oldCaseToNewCaseMap[parent];
-          }
-
-          // Create the change object that will re-insert a new case identical to the old deleted case
-          iChange = {
-            operation: "createCase",
+        var iChange = {
+            isComplete: true,
+            operation: 'resetCollections',
             properties: {
-              collection: oldCase.collection,
-              item: oldCase.item,
-              parent: parent
-            },
-            collection: oldCollection
-
-          };
-
-          // We need to go all the way back to the applyChange method, instead of shortcutting to
-          // the doCreateCases method, in order to trigger all the necessary observers
-          result = this_.applyChange( iChange);
-          if (oldCollection.collection) {
-            var cases = oldCollection.collection.cases.filterProperty("id", result.caseID);
-            if (cases.length) {
-              oldCaseToNewCaseMap[oldCase.toString()] = cases[0];
+              index: true
             }
-          }
-        }
+          };
+        var createdCases;
+
+        this._undoData.forEach(function (iCase) {
+          var item = iCase.oldCase.item;
+          item.set('deleted', false);
+        });
+        createdCases = this._beforeStorage.context.regenerateCollectionCases();
+
+        this_.applyChange( iChange);
+
+        this._afterStorage = {
+          cases: createdCases
+        };
       },
       redo: function() {
-        // create a new change object, based on the old one, without modifying
-        // the old change object (in case we undo and redo again later)
-        var newChange = SC.clone(iChange);
-        newChange.cases = iChange.cases.slice();
-        newChange.ids.length = 0;
-        delete newChange.result;
+        // Delete each case
+        this._afterStorage.cases.forEach( deleteCaseAndChildren);
 
-        // find the new cases that were created by undo, and delete those (the originals are gone)
-        for (var i = 0; i < iChange.cases.length; i++) {
-          if (oldCaseToNewCaseMap[iChange.cases[i]]) {
-            newChange.cases[i] = oldCaseToNewCaseMap[iChange.cases[i]];
-          }
-        }
-        this_.applyChange( newChange);
-      }
+        // Call didDeleteCases() for each affected collection
+        this_.get('collections').forEach( function(iCollection) {
+          if (SC.none( iCollection)) { return; }
+          var collectionClient = this_.getCollectionByID(iCollection.id);
+          collectionClient.didDeleteCases();
+        });
+
+        // Store the set of deleted cases, along with their values
+        this._undoData = deletedCases;
+
+      },
     }));
 
     return { success: true };
@@ -837,15 +825,17 @@ DG.DataContext = SC.Object.extend((function() // closure
      *
      * May create or delete cases as necessary. Tries to avoid unnecessary creation
      * or destruction.
+     * @return {[DG.Case]}
      */
   regenerateCollectionCases: function () {
     var topCollection = this.getCollectionAtIndex(0);
+    var createdCases;
 
     // drop all cases
     this.forEachCollection(function (collection) { collection.markCasesForDeletion(); });
 
     // starting with top collection, recreate cases
-    topCollection.get('collection').recreateCases();
+    createdCases = topCollection.get('collection').recreateCases();
 
     // delete cases that remain marked for deletion
     this.forEachCollection(function (collection) { collection.deleteMarkedCases(); });
@@ -853,6 +843,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
       //this.forEachCollection(function (collection) {collection.get('collection').updateCaseIDToIndexMap()})
+
+    return createdCases;
   },
 
     /**

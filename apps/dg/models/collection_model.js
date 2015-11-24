@@ -411,6 +411,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @param parent {DG.Case} The parent case for this set of cases.
      */
     recreateCases: function (items, parent) {
+      var createdCases = [];
       // Look for a case that references the item. If found we position it
       function findOrCreateCaseForItem (item, parent, collection) {
         var iCase = collection.cases.findProperty('item', item);
@@ -421,6 +422,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
             item: item
           });
           collection.addCase(iCase);
+          createdCases.push(iCase);
         } else {
           if (parent) {
             iCase.parent = parent;
@@ -468,14 +470,17 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         // Now we make or find a case for each group in the hash map, and
         // recreate cases for the items in each group
         DG.ObjectMap.forEach(itemGroups, function(key, list) {
+          var childCases;
           var theCase = findOrCreateCaseForItem(list[0], parent, this);
           theCase.children = [];
           theCase._deletable = false;
 
           // call recreate cases on the child collection for each hash entry.
-          childCollection.recreateCases(list, theCase);
+          childCases = childCollection.recreateCases(list, theCase);
+          createdCases = createdCases.concat(childCases);
         }.bind(this));
       }
+      return createdCases;
     },
 
     reorderCases: function (level, levelCounts, iCases, parent) {
