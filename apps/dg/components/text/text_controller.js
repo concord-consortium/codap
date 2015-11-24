@@ -34,6 +34,7 @@ DG.TextComponentController = DG.ComponentController.extend(
    */
   theText: "",
   previousValue: "",
+  _session: null,
 
   /**
    *  Returns the object to be JSONified for storage.
@@ -58,38 +59,46 @@ DG.TextComponentController = DG.ComponentController.extend(
     this.set('previousValue', theText);
   },
 
-  commitEditing: function() {
-    var value = this.get('theText'),
-        previousValue = this.get('previousValue');
-    if (value !== previousValue) {
-      DG.UndoHistory.execute(DG.Command.create({
-        name: 'textComponent.edit',
-        undoString: 'DG.Undo.textComponent.edit',
-        redoString: 'DG.Redo.textComponent.edit',
-        log: "editTextObject: '%@'".fmt(value),
-        _componentId: this.getPath('model.id'),
-        _controller: function() {
-          return DG.currDocumentController().componentControllersMap[this._componentId];
-        },
-        execute: function () {
-          var controller = this._controller();
-          if (controller) {
-            // Controller is sometimes null when the component is just being created, so don't worry about it.
-            controller.set('previousValue', value);
-          }
-        },
-        undo: function () {
-          // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-          this._controller().set('theText', previousValue);
-          this._controller().set('previousValue', previousValue);
-        },
-        redo: function () {
-          // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
-          this._controller().set('theText', value);
-          this._controller().set('previousValue', previousValue);
+  onTextUpdate: function() {
+    var value = this.get("theText");
+    this._session = this._session || Math.random();
+
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'textComponent.edit',
+      undoString: 'DG.Undo.textComponent.edit',
+      redoString: 'DG.Redo.textComponent.edit',
+      log: "Edited text component: '%@'".fmt(value),
+      _componentId: this.getPath('model.id'),
+      _controller: function() {
+        return DG.currDocumentController().componentControllersMap[this._componentId];
+      },
+      _reduceKey: 'textComponent.edit' + this._session,
+      execute: function () {
+        this._beforeStorage = this._controller().get('previousValue');
+        this._afterStorage = value;
+        this._controller().set('previousValue', value);
+      },
+      undo: function () {
+        // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
+        this._controller().set('theText', this._beforeStorage);
+        this._controller().set('previousValue', this._beforeStorage);
+      },
+      redo: function () {
+        // 'this' may not refer to the currently displayed view, but the controller will remain the same after the view is removed/re-added
+        this._controller().set('theText', this._afterStorage);
+        this._controller().set('previousValue', this._afterStorage);
+      },
+      reduce: function(previous) {
+        if (previous._reduceKey == this._reduceKey) {
+          this._beforeStorage = previous._beforeStorage;
+          return this;
         }
-      }));
-    }
+      }
+    }));
+  }.observes('theText'),
+
+  commitEditing: function() {
+    this._session = null;
   },
 
   willCloseComponent: function() {

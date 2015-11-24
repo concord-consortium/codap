@@ -96,10 +96,33 @@ DG.DragBorderView = SC.View.extend(
                 }
               },
               undo: function () {
-                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                var layout = SC.clone(this._oldLayout);
+                if (tViewToDrag.isMinimized()) {
+                  this._oldHeight = this._oldLayout.height;
+                  layout.height = 25;
+                }
+                tViewToDrag.animate(layout,
+                  {duration: 0.4, timing: 'ease-in-out'},
+                  function () {
+                    // bizarre bug leaves the last animated transition property still
+                    // with a delay even after the end of an animation, so we clear it by hand
+                    tViewToDrag._view_layer.style.transition = ""
+                    // set actual model layout once animation has completed
+                    this._oldLayout = this._controller().revertModelLayout(layout);
+                    this._oldLayout.height = layout.height;
+                  }.bind(this));
               },
               redo: function () {
-                this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                var layout = SC.clone(this._oldLayout);
+                if (tViewToDrag.isMinimized()) {
+                  layout.height = 25;
+                }
+                tViewToDrag.animate(layout,
+                  {duration: 0.4, timing: 'ease-in-out'},
+                  function () {
+                    tViewToDrag._view_layer.style.transition = ""
+                    this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                  }.bind(this));
               }
             }));
           }
@@ -234,7 +257,6 @@ DG.ComponentView = SC.View.extend(
                 }
                 return this._value;
               }.property(),
-              originalValue: null,
               inlineEditorWillBeginEditing: function (iEditor, iValue, iEditable) {
                 sc_super();
                 this.stopShowingAsEmpty();
@@ -248,14 +270,35 @@ DG.ComponentView = SC.View.extend(
                   width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
                 });
               },
-              inlineEditorDidBeginEditing: function (editor, value) {
-                this.set('originalValue', value);
-              },
               valueChanged: function () {
-                var tComponentView = DG.ComponentView.findComponentViewParent(this);
+                var tComponentView = DG.ComponentView.findComponentViewParent(this),
+                    value = this.get('value'),
+                    this_ = this;
                 if (tComponentView) {
-                  tComponentView.setPath('model.title', this.get('value'));
-                  this.set('originalValue', null);
+                  DG.UndoHistory.execute(DG.Command.create({
+                    name: 'component.titleChange',
+                    undoString: 'DG.Undo.componentTitleChange',
+                    redoString: 'DG.Redo.componentTitleChange',
+                    execute: function () {
+                      this._beforeStorage = tComponentView.getPath('model.title');
+                      tComponentView.setPath('model.title', value);
+                      this._value
+                      this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
+                    },
+                    undo: function () {
+                      var prev = this._beforeStorage;
+                      tComponentView.setPath('model.title', prev);
+                      // we have to set this as well, as 'value' is not tightly bound
+                      this_._value = prev;
+                      this_.propertyDidChange('value');
+                    },
+                    redo: function() {
+                      tComponentView.setPath('model.title', value);
+                      // we have to set this as well, as 'value' is not tightly bound
+                      this_._value = value;
+                      this_.propertyDidChange('value');
+                    }
+                  }));
                 }
                 return true;
               }.observes('value'),
