@@ -626,12 +626,40 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     iChange.ids = [];
     iChange.collectionIDs = {};
-  
-    var deleteCaseAndChildren = function( iCase) {
+
+    var doDelete = function (iCase) {
+      var tCollection = this.getCollectionForCase( iCase);
       if (iCase.get("isDestroyed"))
-        // case has already been destroyed. (Happens when we select parents and children and delete all)
+      // case has already been destroyed. (Happens when we select parents and children and delete all)
         return;
 
+
+      var tParent = iCase.parent;
+
+      // We store the set of deleted cases for later undoing.
+      // We need to store the values separately, because when iCase.destroy is called
+      // on the case, the values map is deleted
+      // We also store the original index separately
+      deletedCases.push( {
+        oldCase: iCase
+      });
+      iChange.ids.push( iCase.get('id'));
+      // keep track of the affected collections
+      iChange.collectionIDs[ tCollection.get('id')] = tCollection;
+
+      tCollection.deleteCase( iCase);
+      if (tParent) {
+        if (tParent.children.length === 0) {
+          doDelete(tParent);
+        }
+        else {
+          tParent.item = tParent.children[0].item;
+        }
+      }
+    }.bind(this);
+
+    var deleteCaseAndChildren = function( iCase) {
+      //var tCollection = this.getCollectionForCase( iCase);
       var tChildren= iCase.get('children'), ix;
       // we remove children in reverse order because removal from this list
       // is immediate and would otherwise corrupt the list.
@@ -639,25 +667,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         for (ix = tChildren.length - 1; ix >= 0; ix--) {
           deleteCaseAndChildren(tChildren[ix]);
         }
+      } else {
+        doDelete(iCase);
       }
-
-      iChange.ids.push( iCase.get('id'));
-      
-      var tCollection = this.getCollectionForCase( iCase);
-
-      // We store the set of deleted cases for later undoing.
-      // We need to store the values separately, because when iCase.destroy is called
-      // on the case, the values map is deleted
-      // We also store the original index separately
-      deletedCases.push( {
-        oldCase: iCase,
-        values: iCase._valuesMap,
-        index: iCase.collection.caseIDToIndexMap[iCase.get("id")]
-      });
-
-      tCollection.deleteCase( iCase);
-      // keep track of the affected collections
-      iChange.collectionIDs[ tCollection.get('id')] = tCollection;
     }.bind( this);
 
     DG.UndoHistory.execute(DG.Command.create({
@@ -681,18 +693,11 @@ DG.DataContext = SC.Object.extend((function() // closure
       undo: function() {
         for (var i = this._undoData.length - 1; i >= 0; i--) {
           var oldCase       = this._undoData[i].oldCase,
-              oldValuesMap  = this._undoData[i].values,
-              oldIndex      = this._undoData[i].index,
               oldCollection = this_.getCollectionForCase(oldCase),
               parent        = oldCase.parent,
-              values        = [],
+              //attributeIDs    = oldCollection.getAttributeIDs(),
+              //values        = [],
               iChange, result;
-
-          // Case-creation expects an array of values, which later gets changed into a map.
-          // We need to go backwards to make an array from the original case's map
-          DG.ObjectMap.forEach( oldValuesMap, function( id, value) {
-            values.push(value);
-          });
 
           // If we have deleted and then re-created the parent, we need to find the new one
           if (parent && oldCaseToNewCaseMap[parent]) {
@@ -704,10 +709,9 @@ DG.DataContext = SC.Object.extend((function() // closure
             operation: "createCase",
             properties: {
               collection: oldCase.collection,
-              parent: parent,
-              index: oldIndex
+              item: oldCase.item,
+              parent: parent
             },
-            values: values,
             collection: oldCollection
 
           };
@@ -716,7 +720,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           // the doCreateCases method, in order to trigger all the necessary observers
           result = this_.applyChange( iChange);
           if (oldCollection.collection) {
-            var cases = oldCollection.collection.casesRecords.filterProperty("id", result.caseID);
+            var cases = oldCollection.collection.cases.filterProperty("id", result.caseID);
             if (cases.length) {
               oldCaseToNewCaseMap[oldCase.toString()] = cases[0];
             }
@@ -827,8 +831,42 @@ DG.DataContext = SC.Object.extend((function() // closure
     return result;
   },
 
+    /**
+     * Regenerates the case lists for all the collections in the context using the
+     * dataSet as a reference.
+     *
+     * May create or delete cases as necessary. Tries to avoid unnecessary creation
+     * or destruction.
+     */
+  regenerateCollectionCases: function () {
+    var topCollection = this.getCollectionAtIndex(0);
+
+    // drop all cases
+    this.forEachCollection(function (collection) { collection.markCasesForDeletion(); });
+
+    // starting with top collection, recreate cases
+    topCollection.get('collection').recreateCases();
+
+    // delete cases that remain marked for deletion
+    this.forEachCollection(function (collection) { collection.deleteMarkedCases(); });
+
+    // sort collections
+    topCollection.get('collection').reorderCases(0, []);
+      //this.forEachCollection(function (collection) {collection.get('collection').updateCaseIDToIndexMap()})
+  },
+
+    /**
+     * Move an attribute from its current collection to a new collection.
+     *
+     * If moving an attribute leaves its original collection vacant, delete this
+     * collection.
+     *
+     * @param attr {DG.Attribute} The attribute to move.
+     * @param toCollectionClient {DG.CollectionClient} The new collection.
+     * @param {number|undefined} position The position in the order of attributes in the
+     *      new collection. If undefined, appends to the end of the attribute list.
+     */
   moveAttribute:  function (attr, toCollectionClient, position) {
-    var topCollection;
     var fromCollection = attr.get('collection');
 
     // remove attribute from old collection
@@ -841,12 +879,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // add attribute to new collection
     toCollectionClient.get('collection').addAttribute(attr, position);
 
-    // drop all cases
-    this.forEachCollection(function (collection) { collection.deleteAllCases(); });
-
-    // starting with top collection, recreate cases
-    topCollection = this.getCollectionAtIndex(0);
-    topCollection.get('collection').recreateCases();
+    this.regenerateCollectionCases();
   },
     /**
      * Moves an attribute either within a collection or between collections.

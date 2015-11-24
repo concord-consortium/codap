@@ -29,16 +29,36 @@ DG.DataItem = SC.Object.extend({
    */
   id: null,
 
+  /**
+   * Id of this item.
+   * @type {number}
+   */
+  itemIndex: null,
+
+  /**
+   * @type boolean
+   */
+  deleted: false,
+
   /*
    * A hash map of attribute IDs to values.
    * @type {{attributeID: *}}
    */
   values: null,
 
+  /**
+   * Set the value of an individual attribute
+   * @param {number} attributeID
+   * @param {*} value
+   */
   setValue: function (attributeID, value) {
     this.values[attributeID] = value;
   },
 
+  /**
+   * Update values from an attribute key to value map.
+   * @param {object} dataMap
+   */
   updateData: function (dataMap) {
     this.values = this.values || {};
     $.extend(this.values, dataMap);

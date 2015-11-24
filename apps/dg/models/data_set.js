@@ -173,7 +173,7 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @param {integer} itemIndex
      * @return {DG.DataItem} the deleted item.
      */
-    deleteDataItem: function (itemIndex) {
+    deleteDataItemByIndex: function (itemIndex) {
       var item = this.getDataItem(itemIndex);
       if (item) {
         item.deleted = true;

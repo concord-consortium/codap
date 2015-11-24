@@ -81,13 +81,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     cases: null,
 
     /**
-     * Array of case records returned from a find of the casesQuery.
-     * Assigned in the init() function with a call to DG.store.find().
-     * @property {[DG.Case]}
-     */
-    casesRecords: null,
-
-    /**
      * Map of case IDs to indices within parent cases
      *
      * ToDo: I think this property goes away. It is used in formulas.
@@ -182,7 +175,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       this.children = [];
       this.dataSet = this.context.dataSet;
       this.dataSet.registerCollection(this, null);
-      this.set('casesRecords', this.cases);
       this.updateCaseIDToIndexMap();
     },
 
@@ -331,7 +323,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       iProperties = iProperties || {};
 
-      var item;
+      var item = iProperties.item;
       var newCase;
       var _this = this;
       var dataSet = this.get('dataSet');
@@ -343,22 +335,24 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 
       delete iProperties.values;
 
-      // if no parent then create item
-      // if parent and parent has children create item with parent's values and new values
-      // if parent and parent has no children add new values to parent item
 
-      if (SC.none(parent)) {
-        item = dataSet.addDataItem(values);
-      } else {
-        parent = DG.store.resolve(parent);
-        if (parent.get('children').length > 0) {
-          item = dataSet.addDataItem(joinValues(values, parent.item));
+      if (!item) {
+        // if no parent then create item
+        // if parent and parent has children create item with parent's values and new values
+        // if parent and parent has no children add new values to parent item
+        if (SC.none(parent)) {
+          item = dataSet.addDataItem(values);
         } else {
-          item = parent.get('item');
-          item.updateData(values);
+          parent = DG.store.resolve(parent);
+          if (parent.get('children').length > 0) {
+            item = dataSet.addDataItem(joinValues(values, parent.item));
+          } else {
+            item = parent.get('item');
+            item.updateData(values);
+          }
         }
+        iProperties.item = item;
       }
-      iProperties.item = item;
 
       newCase = DG.Case.createCase(iProperties);
 
@@ -377,21 +371,34 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         parentID = iCase.getPath('parent.id'),
         caseIDToIndexMap = this.get('caseIDToIndexMap'),
         caseCounts = this.get('caseCounts');
+
       if (SC.none(caseCounts[parentID])) {
         caseCounts[parentID] = 0;
       }
 
       caseIDToIndexMap[caseID] = caseCounts[parentID]++;
-      this.casesRecords.pushObject(iCase);
+      this.cases.pushObject(iCase);
     },
 
+    moveCase: function(iCase, position) {
+      var currentPosition = this.cases.indexOf(iCase);
+      if (currentPosition >= 0 && currentPosition !== position) {
+        this.cases.insertAt(position, this.cases.removeAt(currentPosition));
+      }
+    },
     /**
      * Deletes the specified case from this collection.
      * Clients should call updateCaseIDToIndexMap() after deleting cases.
      * @param   {DG.Case} iCase The case to delete.
+     * @param   {boolean} retainItem Delete the case, but do not delete the
+     *                    underlying data item.
      */
-    deleteCase: function (iCase) {
+    deleteCase: function (iCase, retainItem) {
+      var item = iCase.item;
       DG.Case.destroyCase(iCase);
+      if (!retainItem) {
+        this.dataSet.deleteDataItemByIndex(item.itemIndex);
+      }
     },
 
     /**
@@ -404,49 +411,102 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @param parent {DG.Case} The parent case for this set of cases.
      */
     recreateCases: function (items, parent) {
+      // Look for a case that references the item. If found we position it
+      function findOrCreateCaseForItem (item, parent, collection) {
+        var iCase = collection.cases.findProperty('item', item);
+        if (SC.none(iCase)) {
+          iCase = DG.Case.createCase({
+            parent: parent,
+            collection: collection,
+            item: item
+          });
+          collection.addCase(iCase);
+        } else {
+          if (parent) {
+            iCase.parent = parent;
+            parent.children.pushObject(iCase);
+          }
+        }
+        return iCase;
+      }
+
+      // ------- Start of recreateCases --------
+
       var childCollection = this.children[0];
-      var itemGroups = {};
+      var itemGroups = {};  // a hash value representing the values for the
+                            // attributes of this collection
 
       if (SC.none(items)) {
         items = this.dataSet.dataItems;
       }
 
-      // make a hash-map of items with the hash-key being the attribute
-      // values for this collection's attributes and the values being arrays of items
-      items.forEach(function (item) {
-        var values = this.attrs.map(function (attr) { return item.values[attr.id];}).join();
-        var list = itemGroups[values] || [];
-        if (list.length === 0) {
-          itemGroups[values] = list;
-        }
-        list.push(item);
-      }.bind(this));
 
-      DG.ObjectMap.forEach(itemGroups, function(key, list) {
-        var theCase;
-        if (SC.none(childCollection)) {
-          list.forEach(function (item) {
-            // create a case
-            theCase = DG.Case.createCase({
-              parent: parent,
-              collection: this,
-              item: item
-            });
-            this.addCase(theCase);
-          }.bind(this));
-        } else {
-          // make a case for each hash entry in item order.
-          theCase = DG.Case.createCase({
-            parent: parent,
-            collection: this,
-            item: list[0]
-          });
-          this.addCase(theCase);
+      // We are going to walk the itemGroups hash-map creating cases.
+      // If we are the base collection we will have a case for each item in the
+      // order defined by the item list.
+      if (SC.none(childCollection)) {
+        items.forEach(function (item) {
+          // create a case
+          var theCase = findOrCreateCaseForItem(item, parent, this);
+          theCase._deletable = false;
+        }.bind(this));
+      } else {
+        // If this is not a base collection, we
+        // make a hash-map of items with the hash-key being the attribute
+        // values for this collection's attributes and the values being arrays of items
+        items.forEach(function (item) {
+          if (!item.deleted) {
+            var values = this.attrs.map(function (attr) { return item.values[attr.id];}).join();
+            var list = itemGroups[values] || [];
+            if (list.length === 0) {
+              itemGroups[values] = list;
+            }
+            list.push(item);
+          }
+        }.bind(this));
+
+        // Now we make or find a case for each group in the hash map, and
+        // recreate cases for the items in each group
+        DG.ObjectMap.forEach(itemGroups, function(key, list) {
+          var theCase = findOrCreateCaseForItem(list[0], parent, this);
+          theCase.children = [];
+          theCase._deletable = false;
 
           // call recreate cases on the child collection for each hash entry.
           childCollection.recreateCases(list, theCase);
+        }.bind(this));
+      }
+    },
+
+    reorderCases: function (level, levelCounts, iCases, parent) {
+      var childCollection = this.children[0];
+      if (SC.none(levelCounts[level])) {
+        levelCounts[level] = 0;
+      }
+      if (SC.none(iCases)) {
+        // Sort top level collection
+        this.cases.sort(function(a, b) {
+          return a.item.itemIndex - b.item.itemIndex;
+        });
+        if (!SC.none(childCollection)) {
+          this.cases.forEach(function (iCase) {
+            var children = iCase.children;
+            childCollection.reorderCases(level + 1, levelCounts, children, iCase);
+          });
         }
-      }.bind(this));
+      } else {
+        // sort children
+        iCases.sort(function(a, b) {
+          return a.item.itemIndex - b.item.itemIndex;
+        });
+        iCases.forEach(function (iCase) {
+          this.cases[levelCounts[level]++] = iCase;
+          if (iCase.children && iCase.children.length>0) {
+            childCollection.reorderCases(level + 1, levelCounts, iCase.children, iCase);
+          }
+        }.bind(this));
+      }
+
     },
 
     /**
