@@ -138,10 +138,11 @@ DG.RaphaelLayer = SC.Object.extend(
     },
 
     forEach: function( iCallback) {
-      var tElement, tNextElement;
+      var tElement, tNextElement,
+          tIndex = 0;
       for( tElement = this._firstElement; tElement; tElement = tNextElement) {
         tNextElement = (tElement === this._lastElement) ? null : tElement.next; // In case callback messes up linkage
-        iCallback( tElement);
+        iCallback( tElement, tIndex++);
       }
     },
 
@@ -182,14 +183,20 @@ DG.RaphaelLayer = SC.Object.extend(
     hide: function() {
       this.set('isVisible', false);
       this.forEach( function( iElement) {
-        iElement.animate({ 'fill-opacity' : 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>', function () { this.hide(); });
+        iElement.animate({ 'fill-opacity' : 0, 'stroke-opacity': 0 },
+            DG.PlotUtilities.kDefaultAnimationTime, '<>', function () { this.hide(); });
       });
     },
 
-    show: function() {
+    /**
+     *
+     * @param iAttrs {Object} if specified, specifies fill-opacity and stroke-opacity to animate to
+     */
+    show: function( iAttrs) {
+      iAttrs = iAttrs || { 'fill-opacity' : 1, 'stroke-opacity': 1 };
       this.set('isVisible', true);
       this.forEach( function( iElement) {
-        iElement.show().animate({ 'fill-opacity' : 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+        iElement.show().animate( iAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>');
       });
     }
 

@@ -118,10 +118,10 @@ DG.LayerManager = function( iPaper) {
       //this.testValidity();
     },
 
-    setVisibility: function( iName, iVisibility) {
+    setVisibility: function( iName, iVisibility, iAttrs) {
       if( this[iName]) {
         if( iVisibility)
-          this[iName].show();
+          this[iName].show( iAttrs);
         else
           this[iName].hide();
       }

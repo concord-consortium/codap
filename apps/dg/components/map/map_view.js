@@ -277,9 +277,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
-            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible');
-        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
-        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
+            tWaitTime = tPointsAreVisible ? 0 : DG.PlotUtilities.kDefaultAnimationTime,
+            tModel = this.get('model'),
+            tFillOpacity = tPointsAreVisible ? tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity : 1,
+            tStrokeOpacity = tPointsAreVisible ? tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
+            tAttrs = { 'fill-opacity': tFillOpacity, 'stroke-opacity':  tStrokeOpacity};
+        this.invokeLater(function() {
+          this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
+        }.bind(this), tWaitTime);
+        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
+        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
         this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible);
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
