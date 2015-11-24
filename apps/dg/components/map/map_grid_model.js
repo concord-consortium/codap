@@ -207,6 +207,11 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     },
 
     selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
+      if( !iExtend) {
+        this.forEachRect( function( iRect) {
+          iRect.selected = false;
+        });
+      }
       var tDataContext = this.getPath('dataConfiguration.dataContext'),
           tCollectionClient = this.getPath('dataConfiguration.collectionClient'),
           tRect = this.get('rectArray').getRect( iLongIndex, iLatIndex),
@@ -217,7 +222,16 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             select: true,
             extend: iExtend
           };
+      tRect.selected = true;
       tDataContext.applyChange( tSelectChange);
+      this.notifyPropertyChange('selection');
+    },
+
+    deselectRects: function() {
+      this.forEachRect( function( iRect) {
+        iRect.selected = false;
+      });
+      this.notifyPropertyChange('selection');
     },
 
     /**

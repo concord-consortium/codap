@@ -58,6 +58,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapGridLayer: null,
 
       /**
+       * @property {SC.View}
+       */
+      mapGridMarqueeView: null,
+
+      /**
        * @property {DG.LegendView}
        */
       legendView: null,
@@ -133,7 +138,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 40, height: 16, top: 33, right: 48 },
+          layout: { width: 40, height: 16, top: 33, right: 58 },
           toolTip: 'DG.MapView.gridControlHint'.loc(),
           minimum: 0.1,
           maximum: 2.0,
@@ -163,6 +168,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         });
         this.appendChild( this.marqueeTool);
 
+        this.mapGridMarqueeView = SC.View.create({
+          isVisible: false,
+          classNames: 'marquee-mode'.w(),
+          mapGridSource: this
+        });
+
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
         tMapLayer._setIdle();
@@ -174,7 +185,14 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       setMarqueeMode: function() {
-        this.setPath('mapPointView.isInMarqueeMode', true);
+        var tMapPointView = this.get('mapPointView'),
+            tMapGridLayer = this.get('mapGridLayer');
+        if( tMapPointView && tMapPointView.get('isVisible')) {
+          tMapPointView.set('isInMarqueeMode', true);
+        }
+        else if (tMapGridLayer && tMapGridLayer.get('isVisible')) {
+          tMapGridLayer.set('isInMarqueeMode', true);
+        }
         DG.logUser('marqueeToolSelect');
       },
 
@@ -275,6 +293,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.adjustLayout( this.renderContext( this.get('tagName')));
       },
 
+      updateMarqueeToolVisibility: function() {
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
+            tGridIsVisible = this.getPath('model.gridModel.visible');
+        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible || tGridIsVisible);
+      },
+
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
             tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
@@ -288,7 +313,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }.bind(this), tWaitTime);
         this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
         this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
-        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible);
+        this.updateMarqueeToolVisibility();
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
 
@@ -320,9 +345,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }
 
         this.invokeLast( function() {
-          if( tAdorn)
+          if( tAdorn) {
             tAdorn.updateVisibility();
-        });
+            this.updateMarqueeToolVisibility();
+          }
+        }.bind( this));
       }.observes('.model.linesShouldBeVisible'),
 
       addAreaLayer: function () {
@@ -383,6 +410,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       gridVisibilityChanged: function() {
         this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
+        this.updateMarqueeToolVisibility();
       }.observes('model.gridModel.visible'),
 
       /**
@@ -460,8 +488,16 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {
+        var tGridModel = this.getPath('mapGridLayer.model');
         this.get('model').selectAll(false);
+        if( tGridModel) {
+          tGridModel.deselectRects();
+        }
       }.observes('mapLayer.clickCount'),
+
+      mouseDown: function( iEvent) {
+        DG.log('mouseDown in mapView');
+      },
 
       handleIdle: function() {
         var tModel = this.get('model'),

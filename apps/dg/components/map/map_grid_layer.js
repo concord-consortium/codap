@@ -43,6 +43,15 @@ DG.MapGridLayer = SC.Object.extend(
 
   showTips: false,
 
+  /**
+   * @property {Boolean}
+   */
+  isInMarqueeMode: false,
+
+  isVisible: function() {
+    return this.getPath('model.visible');
+  }.property(),
+
   init: function() {
     sc_super();
     this.visibilityHasChanged();
@@ -106,6 +115,20 @@ DG.MapGridLayer = SC.Object.extend(
 
     this.set('grid', tRectangles);
   },
+
+  selectionDidChange: function() {
+    var tIndex = 0,
+        tRectangles = this.get('grid');
+    this.get('model').forEachRect( function( iRect, iLongIndex, iLatIndex) {
+      var tLeafRect = tRectangles[ tIndex],
+          tSelected = iRect.selected;
+      tLeafRect.setStyle( { color: tSelected ? 'black' : 'white',
+                            weight: tSelected ? 2 : 1});
+      if( tSelected)
+        tLeafRect.bringToFront();
+      tIndex++;
+    });
+  }.observes('model.selection'),
 
   /**
    * Add each rectangle to the map
