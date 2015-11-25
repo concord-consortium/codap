@@ -415,24 +415,24 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var createdCases = [];
       // Look for a case that references the item. If found we position it
       function findOrCreateCaseForItem (item, parent, collection) {
-        var iCase = collection.cases.findProperty('item', item);
-        if (SC.none(iCase)) {
-          iCase = DG.Case.createCase({
+        var tCase = collection.cases.findProperty('item', item);
+        if (SC.none(tCase)) {
+          tCase = DG.Case.createCase({
             parent: parent,
             collection: collection,
             item: item
           });
-          collection.addCase(iCase);
-          createdCases.push(iCase);
+          collection.addCase(tCase);
+          createdCases.push(tCase);
         } else {
           if (parent) {
-            iCase.parent = parent;
-            parent.children.pushObject(iCase);
+            tCase.parent = parent;
+            parent.children.pushObject(tCase);
           } else {
-            iCase.parent = null;
+            tCase.parent = null;
           }
         }
-        return iCase;
+        return tCase;
       }
 
       // ------- Start of recreateCases --------
