@@ -370,14 +370,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                           var children = rowDataByParent[ iParentID],
                               parentGroupInfo = {};
                           children.forEach( function( iRowInfo) {
-                                              iRowInfo.parentIndex = "" + rowIndex;
                                               rowData.push( iRowInfo);
                                               if( SC.none( parentGroupInfo.firstChildID)) {
                                                 parentGroupInfo.firstChildID = iRowInfo.id;
                                                 parentGroupInfo.isCollapsed = collapseChildren;
                                               }
                                               parentGroupInfo.lastChildID = iRowInfo.id;
-                            parentGroupInfo.parentIndex = "" + rowIndex;
                                             });
                           this_.parentIDGroups[ iParentID] = parentGroupInfo;
                         });
@@ -402,7 +400,17 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                 getCaseCountString( iGroup.count));
                         },
             comparer: function( iGroup1, iGroup2) {
-                        return iGroup1.rows[0].parentIndex - iGroup2.rows[0].parentIndex;
+                        var g1Ix = iGroup1.rows[0].theCase.item.itemIndex;
+                        var g2Ix = iGroup2.rows[0].theCase.item.itemIndex;
+                        if (SC.none(g1Ix) || SC.none(g2Ix)) {
+                          DG.logWarn('Case Table group comparer, illegal values ' +
+                              'collection: "%@", cases: (%@, %@), values: (%@, %@)',
+                              this.collection.collection.name, iGroup1.rows[0].theCase.id,
+                              iGroup2.rows[0].theCase.id, g1Ix, g2Ix);
+
+                          return 0;
+                        }
+                        return g1Ix - g2Ix;
                       }
           });
       DG.ObjectMap.forEach( this.parentIDGroups,

@@ -321,19 +321,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         return values;
       }
 
-      iProperties = iProperties || {};
-
-      var item = iProperties.item;
+      var caseProperties = {};
+      if (!SC.none(iProperties)) {
+        DG.ObjectMap.copy(caseProperties, iProperties);
+      }
+      var item = caseProperties.item;
       var newCase;
       var _this = this;
       var dataSet = this.get('dataSet');
-      var values = this.mapAttributeNamesToIDs(iProperties.values);
-      var parent = iProperties.parent;
+      var values = this.mapAttributeNamesToIDs(caseProperties.values);
+      var parent = caseProperties.parent;
+
 
       // Relate it to its parent collection
-      iProperties.collection = this;
+      caseProperties.collection = this;
 
-      delete iProperties.values;
+      delete caseProperties.values;
 
 
       if (!item) {
@@ -351,10 +354,10 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
             item.updateData(values);
           }
         }
-        iProperties.item = item;
+        caseProperties.item = item;
       }
 
-      newCase = DG.Case.createCase(iProperties);
+      newCase = DG.Case.createCase(caseProperties);
 
       this.addCase(newCase);
 
