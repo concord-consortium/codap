@@ -350,6 +350,8 @@ DG.DotChartView = DG.PlotView.extend(
         tNewPointAttrs = [], // used if many-to-one animation (parent to child collection)
         tNewToOldCaseMap = [],
         tOldToNewCaseMap = [];
+    if( !tCases)
+      return;
 
     function turnOffAnimation() {
       tModel.set('isAnimating', false);

@@ -87,6 +87,7 @@ DG.UndoHistory = SC.Object.create((function() {
         if (command.reduce && this._undoStack.length > 0) {
           var reducedCommand = command.reduce(this._undoStack[this._undoStack.length-1]);
           if (reducedCommand) {
+            command.reduced = true;
             this._undoStack.pop();
             command = reducedCommand;
           }
@@ -130,6 +131,8 @@ DG.UndoHistory = SC.Object.create((function() {
       Undoes the most recently executed command and adds that command to the redo stack.
      */
     undo: function() {
+      DG.globalEditorLock.commitCurrentEdit();
+
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to undo outside of this function, we'll just double-check here.
       if (!this.get('enabled') || this._undoStack.length === 0) {
@@ -174,6 +177,8 @@ DG.UndoHistory = SC.Object.create((function() {
       Redoes the most recently undone command and adds that command to the undo stack.
      */
     redo: function() {
+      DG.globalEditorLock.commitCurrentEdit();
+
       // You can get here directly from a keyboard shortcut, so rather than check if we
       // have anything to redo outside of this function, we'll just double-check here.
       if (!this.get('enabled') || this._redoStack.length === 0) {
@@ -264,6 +269,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearUndo: function() {
       this._undoStack.length = 0;
       this.notifyPropertyChange('_undoStack');
+      DG.sendCommandToDI({operation: "clearUndo"});
     },
 
     /** @private
@@ -272,6 +278,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
+      DG.sendCommandToDI({operation: "clearRedo"});
     },
 
     _dirtyDocument: function(changedObject) {
@@ -283,6 +290,8 @@ DG.UndoHistory = SC.Object.create((function() {
         this._executeInProgress = false;
       }
     },
+
+    _queuedLogMessage: null,
 
     _logAction: function(command, state) {
       var logString = '';
@@ -297,7 +306,16 @@ DG.UndoHistory = SC.Object.create((function() {
         logString += command.log;
       }
 
-      DG.logUser(logString);
+      if (this._queuedLogMessage && !command.reduced) {
+        DG.logUser(this._queuedLogMessage);
+        this._queuedLogMessage = null;
+      }
+      if (command.reduce && state === this.EXECUTE) {
+        // avoid logging reduced log messages until the end
+        this._queuedLogMessage = logString;
+      } else {
+        DG.logUser(logString);
+      }
     }
 
   }; // return from function closure
