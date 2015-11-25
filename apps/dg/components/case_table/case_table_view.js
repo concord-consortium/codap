@@ -311,11 +311,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   }.property(),
 
     gridWidthDidChange: function() {
-      this.get('parentView').gridWidthDidChange(this);
+      var parentView = this.get('parentView');
+      // Apparently, we can get gridWidthDidChange before the parentview is
+      // established. This occurs on Chrome, W8.1 or MacOS Mavericks, but not
+      // MacOS Yosemite.
+      if (parentView) {
+        parentView.gridWidthDidChange(this);
+      }
     }.observes('gridWidth'),
 
     sizeDidChange: function() {
-      this.get('parentView').childTableLayoutDidChange(this);
+      var parentView = this.get('parentView');
+      // Protect against the possibility we don't have a parent view
+      if (parentView) {
+        parentView.childTableLayoutDidChange(this);
+      }
     }.observes('size'),
 
     rowCountDidChange: function () {
