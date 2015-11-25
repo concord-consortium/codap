@@ -385,7 +385,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         parentIsValid = true,
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
-          var newCase = collection.createCase( iChange.properties);
+          var properties = {};
+          if (iChange.properties) {
+            DG.ObjectMap.copy(properties, iChange.properties);
+          }
+          var newCase = collection.createCase(properties);
           if( newCase) {
             if( !SC.none( iValues)) {
               collection.setCaseValuesFromArray( newCase, iValues);

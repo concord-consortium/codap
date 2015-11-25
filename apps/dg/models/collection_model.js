@@ -303,7 +303,9 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * be inserted at the appropriate index. Otherwise, it will be added to
      * the end of the cases array.
      *
-     * @param   {Object}  iProperties Properties of the newly created case
+     * @param iProperties {Object}  Properties of the newly created case
+     *                  We assume iProperties only applies to this creation event
+     *                  and is mutable.
      * @returns {DG.Case}
      */
     createCase: function (iProperties) {
@@ -321,23 +323,19 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         return values;
       }
 
-      var caseProperties = {};
-      if (!SC.none(iProperties)) {
-        DG.ObjectMap.copy(caseProperties, iProperties);
-      }
-      var item = caseProperties.item;
+      iProperties = iProperties || {};
+
+      var item = iProperties.item;
       var newCase;
       var _this = this;
       var dataSet = this.get('dataSet');
-      var values = this.mapAttributeNamesToIDs(caseProperties.values);
-      var parent = caseProperties.parent;
-
+      var values = this.mapAttributeNamesToIDs(iProperties.values);
+      var parent = iProperties.parent;
 
       // Relate it to its parent collection
-      caseProperties.collection = this;
+      iProperties.collection = this;
 
-      delete caseProperties.values;
-
+      delete iProperties.values;
 
       if (!item) {
         // if no parent then create item
@@ -354,10 +352,10 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
             item.updateData(values);
           }
         }
-        caseProperties.item = item;
+        iProperties.item = item;
       }
 
-      newCase = DG.Case.createCase(caseProperties);
+      newCase = DG.Case.createCase(iProperties);
 
       this.addCase(newCase);
 
