@@ -428,6 +428,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           if (parent) {
             iCase.parent = parent;
             parent.children.pushObject(iCase);
+          } else {
+            iCase.parent = null;
           }
         }
         return iCase;
