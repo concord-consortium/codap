@@ -200,7 +200,7 @@ DG.DotChartModel = DG.PlotModel.extend(
   forEachBivariateCaseDo: function( iDoF) {
     var tCases = this.get('cases'),
         tCC = this.get('computationContext');
-    if( !tCC.primaryAxis || !tCases)
+    if( !tCC.primaryAxis || !tCases || !tCC.secondaryAxis)
       return; // Can happen during transitions. Bail!
     tCases.forEach( function( iCase, iIndex) {
       this.doForOneCase( iCase, iIndex, tCC, iDoF);
