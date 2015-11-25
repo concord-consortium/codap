@@ -109,3 +109,7 @@ A reducing function takes the last command in the undo stack, and, along with th
 When implementing a reducing function, it it up to the function to check if a reduction can be performed. A naive way it might do this is to check that the `name` of the previous command is the same as that of the current command.
 
 The easiest way to return a new command is simply to modify the current command and return that. One easy way that commands may be merged is to copy the commonly-used `_beforeStorage` from the previous command and copy it into the current command.
+
+If a command is reducable, only the last action in a stream of reduced events will be logged. Because
+we can't know ahead of time which will be the last, the message will be logged after the first action
+that was not reduced.

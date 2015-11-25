@@ -110,21 +110,18 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
         isVisible: false, // to start with
         doIt: function() {
           var tComponentView = this.parentView.viewToDrag();
-/*
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.minimize',
             undoString: 'DG.Undo.component.minimize',
             redoString: 'DG.Redo.component.minimize',
+            log: (tComponentView.get('isMinimized') ? "Expanded component" : "Minimized component"),
             execute: function() {
-*/
               tComponentView.toggleMinimization();
-/*
             },
             undo: function() {
               this.execute();
             }
           }));
-*/
         }
     };
   }()) // function closure

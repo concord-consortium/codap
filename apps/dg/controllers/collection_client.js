@@ -137,6 +137,7 @@ DG.CollectionClient = SC.Object.extend(
       var parent = collectionModel && collectionModel.parent;
       return (parent && parent.id);
     },
+
   /**
     Returns true if iOtherCollection is descended from this collection.
     @param {DG.CollectionClient} iOtherCollection The collection to test for ancestry.
@@ -166,7 +167,7 @@ DG.CollectionClient = SC.Object.extend(
   setTargetCollection: function( iCollection) {
     this.collection = iCollection;
     this.attrsController.set('content', iCollection.attrs);
-    this.casesController.set('content', iCollection.casesRecords);
+    this.casesController.set('content', iCollection.cases);
     
     // When restoring documents, we need to process the restored attributes
     this.forEachAttribute( function( iAttribute) {
@@ -612,9 +613,36 @@ DG.CollectionClient = SC.Object.extend(
         tArray = tCases.concat();
 
     tArray.forEach(function (aCase) {
-      tCollection.deleteCase(aCase);
+      tCollection.deleteCase(aCase, true);
     });
     this.didDeleteCases();
+  },
+
+  markCasesForDeletion: function () {
+    var tCollection = this.get('collection'),
+        tCases = tCollection.get('cases');
+    tCases.forEach(function (iCase) {
+      iCase._deletable = true;
+    });
+  },
+
+  deleteMarkedCases: function () {
+    var tCollection = this.get('collection'),
+        tCases = tCollection.get('cases'),
+        tDeletedCaseIDs = [],
+        ix,
+        iCase;
+    for (ix = tCases.length - 1; ix >= 0; ix --) {
+      iCase = tCases[ix];
+      if (iCase._deletable) {
+        tDeletedCaseIDs.push(iCase.id);
+        tCollection.deleteCase(iCase, true);
+      }
+    }
+    if (tDeletedCaseIDs.length > 0) {
+      this.didDeleteCases();
+    }
+    //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
   },
 
   /**

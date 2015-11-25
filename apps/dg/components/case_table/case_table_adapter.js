@@ -366,16 +366,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     
     // Process the parent groups to output the individual rows grouped appropriately.
     this.parentIDGroups = {};
-    parentRows.forEach( function( iParentID) {
+    parentRows.forEach( function( iParentID, rowIndex) {
                           var children = rowDataByParent[ iParentID],
                               parentGroupInfo = {};
                           children.forEach( function( iRowInfo) {
+                                              iRowInfo.parentIndex = "" + rowIndex;
                                               rowData.push( iRowInfo);
                                               if( SC.none( parentGroupInfo.firstChildID)) {
                                                 parentGroupInfo.firstChildID = iRowInfo.id;
                                                 parentGroupInfo.isCollapsed = collapseChildren;
                                               }
                                               parentGroupInfo.lastChildID = iRowInfo.id;
+                            parentGroupInfo.parentIndex = "" + rowIndex;
                                             });
                           this_.parentIDGroups[ iParentID] = parentGroupInfo;
                         });
@@ -400,7 +402,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                 getCaseCountString( iGroup.count));
                         },
             comparer: function( iGroup1, iGroup2) {
-                        return iGroup1.value - iGroup2.value;
+                        return iGroup1.rows[0].parentIndex - iGroup2.rows[0].parentIndex;
                       }
           });
       DG.ObjectMap.forEach( this.parentIDGroups,
