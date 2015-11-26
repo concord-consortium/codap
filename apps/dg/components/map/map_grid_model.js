@@ -235,6 +235,24 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     },
 
     /**
+     * Deselect all cases and all rects
+     */
+    deselectAll: function() {
+      this.deselectRects();
+      var tDataConfig = this.get('dataConfiguration'),
+          tContext = tDataConfig.get('dataContext'),
+          tChange = {
+            operation: 'selectCases',
+            collection: tDataConfig.get('collectionClient'),
+            cases: null,
+            select: false
+          };
+      if (tContext) {
+        tContext.applyChange(tChange);
+      }
+    },
+
+    /**
      * We have to recompute the rectArray
      * TODO: Handle change in the number of cases and changes in values of cases
      */

@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('components/map/map_grid_marquee_view');
+
 /** @class  DG.MapView
 
  A view on a map and plotted data.
@@ -168,11 +170,10 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         });
         this.appendChild( this.marqueeTool);
 
-        this.mapGridMarqueeView = SC.View.create({
-          isVisible: false,
-          classNames: 'marquee-mode'.w(),
-          mapGridSource: this
+        this.mapGridMarqueeView = DG.MapGridMarqueeView.create({
+          isVisible: false
         });
+        this.appendChild( this.mapGridMarqueeView);
 
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
@@ -197,11 +198,13 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       marqueeModeChanged: function() {
-        var tImage = this.getPath('mapPointView.isInMarqueeMode') ?
+        var tGridInMarqueeMode = this.getPath('mapGridLayer.isInMarqueeMode'),
+            tImage = (this.getPath('mapPointView.isInMarqueeMode') || tGridInMarqueeMode) ?
             'map-marquee-selected' :
             'map-marquee';
         this.setPath('marqueeTool.image', tImage);
-      }.observes('mapPointView.isInMarqueeMode'),
+        this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
+      }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),
 
       changeBaseMap: function() {
         var tBackground = this.backgroundControl.get('value'),
@@ -337,6 +340,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         var tMapModel = this.get('model' ),
             tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
             tAdorn = this.get('connectingLineAdorn');
+        tAdornModel.set('isVisible', tMapModel.get('linesShouldBeVisible'));
         if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
           tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
                                                           mapSource: this, layerName: DG.LayerNames.kConnectingLines,
@@ -388,6 +392,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
 
         this.gridVisibilityChanged();
+
+        this.setPath('mapGridMarqueeView.mapGridLayer', this.get('mapGridLayer'));
       },
 
       /**
@@ -494,10 +500,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           tGridModel.deselectRects();
         }
       }.observes('mapLayer.clickCount'),
-
-      mouseDown: function( iEvent) {
-        DG.log('mouseDown in mapView');
-      },
 
       handleIdle: function() {
         var tModel = this.get('model'),
