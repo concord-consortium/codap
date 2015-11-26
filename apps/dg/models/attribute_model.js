@@ -81,6 +81,14 @@ DG.Attribute = DG.BaseModel.extend(
      */
     precision: 2,
 
+      /**
+       * Currently the only significance of this string property is that it
+       * shows in parentheses next to attribute names in case table column
+       * headers and graph axis labels.
+       * @property{String}
+       */
+      unit: null,
+
     /**
      * True if the attribute is user-editable, false otherwise.
      * By default user-created attributes are editable as well as
@@ -251,7 +259,8 @@ DG.Attribute = DG.BaseModel.extend(
         editable: this.hasFormula()? this.editable: undefined,
         formula: this.hasFormula()? this.formula: undefined,
         guid: this.id,
-        precision: this.precision
+        precision: this.precision,
+        unit: this.unit
       };
     }
   });
