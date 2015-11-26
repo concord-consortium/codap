@@ -392,6 +392,29 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       return dataContext && dataContext.getCaseCountString( collection, iCount);
     }
 
+    // compares cases for the grouping comparer below
+    // Basically we want to order groups by parent groups and within parent groups
+    // by item index.
+    // So, we recursively search back until we find a common ancestor or a root
+    // case. Root cases we compare by id
+    function caseComparer(c1, c2) {
+      var p1 = c1.parent;
+      var p2 = c2.parent;
+      var cmp;
+      if (c1 === c2) {
+        cmp = 0;
+      } else if (SC.none(p1)) {
+        DG.assert(SC.none(p2));
+        cmp = (c1.item.itemIndex - c2.item.itemIndex);
+      } else {
+        cmp = caseComparer(p1, p2);
+        if (cmp === 0) {
+          cmp = (c1.item.itemIndex - c2.item.itemIndex);
+        }
+      }
+      return cmp;
+    }
+
     if( this.hasParentCollection()) {
       this.gridDataView.setGrouping({
             getter: "parentID",
@@ -400,17 +423,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                 getCaseCountString( iGroup.count));
                         },
             comparer: function( iGroup1, iGroup2) {
-                        var g1Ix = iGroup1.rows[0].theCase.item.itemIndex;
-                        var g2Ix = iGroup2.rows[0].theCase.item.itemIndex;
-                        if (SC.none(g1Ix) || SC.none(g2Ix)) {
+                        var g1Case = iGroup1.rows[0].theCase;
+                        var g2Case = iGroup2.rows[0].theCase;
+                        if (SC.none(g1Case) || SC.none(g2Case)) {
                           DG.logWarn('Case Table group comparer, illegal values ' +
-                              'collection: "%@", cases: (%@, %@), values: (%@, %@)',
-                              this.collection.collection.name, iGroup1.rows[0].theCase.id,
-                              iGroup2.rows[0].theCase.id, g1Ix, g2Ix);
-
+                              'collection: "%@"', this.collection.collection.name);
                           return 0;
                         }
-                        return g1Ix - g2Ix;
+                        return caseComparer(g1Case, g2Case);
                       }
           });
       DG.ObjectMap.forEach( this.parentIDGroups,

@@ -266,14 +266,11 @@ DG.Case = DG.BaseModel.extend(
      */
     genArchive: function() {
       var values = {};
-      DG.ObjectMap.
-        forEach( this.get('_valuesMap'),
-        function( iKey, iValue) {
-          var attr = DG.Attribute.getAttributeByID( iKey),
-            propName = attr && attr.get('name');
-          if( iValue !== undefined)
-            values[ propName] = iValue;
-        });
+      var valuesMap = this.get('_valuesMap');
+      var attrs = this.collection.attrs;
+      attrs.forEach(function (attr, ix) {
+        values[attr.name] = valuesMap[attr.id];
+      });
       // Note that in the absence of a doPostArchive() method, we don't
       // have an opportunity to clear the 'values' between saves.
       this.set('values', values);
