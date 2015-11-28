@@ -105,7 +105,6 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     }),
 
     leftDropTarget: null,
-    //rightDropTarget: null,
 
     makeRelationDividerView: function () {
       return  this.relationDividerView.create({});
@@ -377,7 +376,7 @@ DG.HierTableView = SC.SplitView.extend( (function() {
     if (SC.none(this.leftDropTarget)) {
       this.leftDropTarget = DG.CaseTableDropTarget.create({
         name:'leftTarget',
-        dataContext: this.model
+        dataContext: this.model.get('context')
       });
     }
     this.appendChild(this.leftDropTarget);
@@ -398,14 +397,6 @@ DG.HierTableView = SC.SplitView.extend( (function() {
       this.appendChild(caseTablesInAdapterOrder[ix]);
     }.bind(this));
 
-    //// now the right-hand portions...
-    //if (SC.none(this.rightDropTarget)) {
-    //  this.rightDropTarget = DG.CaseTableDropTarget.create({
-    //    name:'rightTarget',
-    //    dataContext: this.model
-    //  });
-    //}
-    //this.appendChild(this.rightDropTarget);
     this.appendChild(this.slopView);
 
     this.updateSelectedRows();

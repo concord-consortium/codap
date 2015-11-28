@@ -72,16 +72,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       // Simple formatter currently rounds to precision rather than actually formatting.
       cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
-      if( SC.none( cellValue))
-        cellValue = "";
-      else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
-        var attrPrecision = colInfo.attribute.get('precision'),
-            roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
-            multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
-        cellValue = Math.round( multiplier * cellValue) / multiplier;
-      }
-      return cellValue.toString();
-    };
+        if( SC.none( cellValue))
+          cellValue = "";
+        else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
+          var attrPrecision = colInfo.attribute.get('precision'),
+              roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
+              multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
+          cellValue = Math.round( multiplier * cellValue) / multiplier;
+        }
+        return cellValue.toString();
+      };
 
   return {  // return from closure
   
@@ -219,7 +219,17 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var dataView = this.get('gridDataView');
     return dataView && dataView.getRowById( iRowID);
   },
-  
+
+  /**
+   * Returns the user selected column width for this attribute or the default,
+   * if not defined.
+   *
+   * @param attributeID {number}
+   */
+  getPreferredColumnWidth: function (attributeID) {
+    return kDefaultColumnWidth;
+  },
+
   /**
     Builds the array of column definitions required by SlickGrid from the data context.
     
@@ -228,6 +238,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   updateColumnInfo: function() {
     var context = this.get('dataContext'),
         collection = this.get('collection'),
+        getPreferredColumnWidth = this.getPreferredColumnWidth,
         existColumnDefs = {},
         columnDefs = [];
     if( !collection) return columnDefs;
@@ -272,7 +283,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             toolTip: getToolTipString( iAttribute),
             formatter: cellFormatter,
-            width: kDefaultColumnWidth,
+            width: getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
                 items: [

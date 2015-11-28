@@ -460,6 +460,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                         this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
                       }.bind( this));
                     }.bind( this));
+    this.subscribe('onColumnsResized', this.handleColumnsResized);
 
     // wire up model events to drive the grid
     dataView.onRowCountChanged.subscribe(function (e, args) {
@@ -930,6 +931,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleHeaderClick: function( iEvent) {
     DG.globalEditorLock.commitCurrentEdit();
+  },
+
+  /**
+   * Called when column widths changed
+   * @param iEvent
+   * @param {{grid: SlickGrid}}iArgs
+   */
+  handleColumnsResized: function(iEvent, iArgs) {
+
   },
   
   /**
