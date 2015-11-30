@@ -174,42 +174,5 @@ DG.MapGridLayer = SC.Object.extend(
     this.visibilityHasChanged();
   }.observes('model.rectArray'),
 
-  mouseDown: function( iEvent, iView) {
-    DG.ViewUtilities.componentViewForView( iView).select();
-    if (!this.get('isInMarqueeMode')) {
-      return false;
-    }
-    var tDataContext = this.getPath('model.dataContext'),
-        tCollection = this.getPath('model.collectionClient');
-    this.marqueeContext = {};
-    this.marqueeContext.startPt = DG.ViewUtilities.windowToViewCoordinates(
-        { x: iEvent.clientX - 5, y: iEvent.clientY - 5 }, iView);
-    this.marqueeContext.marquee = this._paper.rect(
-        this.marqueeContext.startPt.x, this.marqueeContext.startPt.y, 0, 0)
-        .attr( { fill: DG.PlotUtilities.kMarqueeColor,
-          stroke: DG.RenderingUtilities.kTransparent });
-    this.getPath('layerManager.' + DG.LayerNames.kAdornments )
-        .push( this.marqueeContext.marquee);
-    DG.logUser('marqueeDrag: start');
-    this.get('mapPointLayer' ).preparePointSelection();
-    this.marqueeContext.lastRect = {x:0, y:0, width: 0, height: 0};
-    tDataContext.applyChange({
-      operation: 'selectCases',
-      collection: tCollection,
-      cases: null,
-      select: false
-    });
-    return true;
-
-  },
-
-  mouseMoved: function( iEvent) {
-
-  },
-
-  mouseUp: function( iEvent) {
-    this.set('isInMarqueeMode', false);
-  }
-
 });
 

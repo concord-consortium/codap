@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('views/raphael_base');
+sc_require('libraries/leaflet-src');
 
 /** @class  DG.MapGridMarqueeView - Made visible over a map when we're in marquee mode to select grid rectangles.
 
@@ -43,6 +44,13 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
   */
   mapGridLayer: null,
 
+  /**
+   * @property {L.Map}
+   */
+  map: function() {
+    return this.getPath('mapGridLayer.map');
+  }.property('mapGridLayer.map'),
+
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
@@ -58,8 +66,9 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
         tBaseSelection = [];
 
     function startMarquee( iWindowX, iWindowY, iEvent) {
-      if( iEvent.shiftKey)
-        tBaseSelection = this_.getPath( 'mapGridModel.selection').toArray();
+      if( iEvent.shiftKey) {
+        //tBaseSelection = this_.getPath( 'mapGridModel.selection').toArray();
+      }
       else
         this_.get('mapGridModel').deselectAll();
       tStartPt = DG.ViewUtilities.windowToViewCoordinates(
@@ -74,13 +83,28 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
-      var tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
-        tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
-        tWidth = Math.abs( idX),
-        tHeight = Math.abs( idY),
-        tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
+      var tMap = this_.get('map'),
+          tMapGridModel = this_.get('mapGridModel'),
+          tLatLngBounds,
+          tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
+          tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
+          tWidth = Math.abs( idX),
+          tHeight = Math.abs( idY),
+          tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
-      //this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection, tLastRect);
+      tLatLngBounds = L.latLngBounds([ tMap.layerPointToLatLng([ tX, tY + tHeight]),
+                        tMap.layerPointToLatLng([ tX + tWidth, tY])]);
+      tMapGridModel.forEachRect( function( iGridRect, iLngIndex, iLatIndex) {
+        if( tLatLngBounds.intersects( L.latLngBounds(iGridRect.rect))) {
+          if( !iGridRect.selected)
+            tMapGridModel.selectCasesInRect(iLngIndex, iLatIndex, true /* extend */);
+        }
+        else {
+          if( iGridRect.selected)
+            tMapGridModel.deselectCasesInRect(iLngIndex, iLatIndex);
+        }
+      });
+      // We compute the lat/lng bounds of tRect with the help of the map
       tLastRect = tRect;
     }
 

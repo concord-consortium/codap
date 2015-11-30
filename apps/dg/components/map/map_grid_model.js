@@ -25,10 +25,16 @@
 DG.MapGridModel = SC.Object.extend((function () // closure
 /** @scope DG.MapGridModel.prototype */ {
 
+  /**
+   *
+   * @param [[south,west][north, east]]
+   * @constructor
+   */
   function RectRecord(iRect) {
     this.rect = iRect;
     this.count = 0;
     this.cases = [];
+    this.selected = false;
   }
 
   /**
@@ -165,8 +171,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
         for (tLongIndex = 0; tLongIndex < 2 * tNumToWest; tLongIndex++) {
           for (tLatIndex = 0; tLatIndex < 2 * tNumToSouth; tLatIndex++) {
             tRectArray.setRect(tLongIndex, tLatIndex, new RectRecord([
-              [tStartSouth + tLatIndex * tGridHeight, tStartWest + tLongIndex * tGridWidth],
-              [tStartSouth + (tLatIndex + 1) * tGridHeight, tStartWest + (tLongIndex + 1) * tGridWidth]
+              [tStartSouth + (tLatIndex + 1) * tGridHeight, tStartWest + tLongIndex * tGridWidth],
+              [tStartSouth + tLatIndex * tGridHeight, tStartWest + (tLongIndex + 1) * tGridWidth]
             ]));
           }
         }
@@ -206,12 +212,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       this.endPropertyChanges();
     },
 
-    selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
-      if( !iExtend) {
-        this.forEachRect( function( iRect) {
-          iRect.selected = false;
-        });
-      }
+    _selectCasesInRect: function( iLongIndex, iLatIndex, iSelect, iExtend) {
       var tDataContext = this.getPath('dataConfiguration.dataContext'),
           tCollectionClient = this.getPath('dataConfiguration.collectionClient'),
           tRect = this.get('rectArray').getRect( iLongIndex, iLatIndex),
@@ -219,12 +220,25 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             operation: 'selectCases',
             collection: tCollectionClient,
             cases: tRect.cases,
-            select: true,
+            select: iSelect,
             extend: iExtend
           };
-      tRect.selected = true;
+      tRect.selected = iSelect;
       tDataContext.applyChange( tSelectChange);
       this.notifyPropertyChange('selection');
+    },
+
+    selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
+      if( !iExtend) {
+        this.forEachRect( function( iRect) {
+          iRect.selected = false;
+        });
+      }
+      this._selectCasesInRect( iLongIndex, iLatIndex, true, iExtend);
+    },
+
+    deselectCasesInRect: function( iLongIndex, iLatIndex) {
+      this._selectCasesInRect( iLongIndex, iLatIndex, false, true);
     },
 
     deselectRects: function() {
