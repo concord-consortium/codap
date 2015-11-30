@@ -276,6 +276,38 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     }.observes('gridMultiplier', 'dataConfiguration.hiddenCases'),
 
     /**
+     * The resulting string is used in a data tip
+     * @param iCases {[DG.Case]}
+     * @param iLegendAttrID {Number}
+     */
+    getCategoryBreakdownString: function( iCases, iLegendAttrID) {
+      var tTotalCount = 0,
+          tCategories = {},
+          tResult = '';
+      iCases.forEach( function( iCase) {
+        var tValue = iCase.getStrValue( iLegendAttrID);
+        if( !SC.empty( tValue)) {
+          tTotalCount++;
+          if( !tCategories[ tValue]) {
+            tCategories[ tValue] = 0;
+          }
+          tCategories[ tValue]++;
+        }
+      });
+      DG.ObjectMap.forEach( tCategories, function( iCat, iCount) {
+        if( SC.empty( tResult)) {
+          tResult = '<p>'
+        }
+        else {
+          tResult += '<br/>';
+        }
+        tResult += iCat + ': ' + iCount + ' (' + (Math.round(1000 * iCount/tTotalCount) / 10) + '%)';
+      });
+      tResult += '</p>';
+      return tResult;
+    },
+
+    /**
      *
      * @returns {{}}
      */

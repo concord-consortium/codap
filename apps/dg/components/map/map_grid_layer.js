@@ -82,12 +82,18 @@ DG.MapGridLayer = SC.Object.extend(
           }.bind( this),
 
           handleMouseover = function( iEvent) {
+            var tLegendAttrID = tModel.getPath('dataConfiguration.legendAttributeDescription.attributeID');
             tRect = tModel.get('rectArray').getRect( iLongIndex, iLatIndex);
             if( (tRect.count === 0) || !this.get('showTips'))
               return;
             tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
             tPopup.options.offset[1] = -10;
-            tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count));
+            if( SC.none(tLegendAttrID)) {
+              tPopup.setContent(tDataContext.getCaseCountString(tCollection, tRect.count));
+            }
+            else {
+              tPopup.setContent(tModel.getCategoryBreakdownString( tRect.cases, tLegendAttrID));
+            }
             SC.Timer.schedule( { target: this,
               action: function() {
                 // Note the funky check for _map. We have to do this because the grid size slider dragging can
