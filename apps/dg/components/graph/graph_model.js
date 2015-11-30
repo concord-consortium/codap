@@ -716,33 +716,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this._isBeingRestored = false;
     },
 
-    /**
-     Return the plot's notion of gear menu items concatenated with mine.
-     @return {Array of menu items}
-     */
-    getGearMenuItems: function() {
-      var this_ = this,
-        tPlot = this.get( 'plot' );
-        //kIsForSubmenu = true;
-      if( SC.none( tPlot ) )  // Can happen if we can't handle a particular configuration
-        return [];
-
-      var getGraphMenuItems = function () {
-        var tSelection = this_.get( 'selection' ),
-            tDeleteIsEnabled = tSelection && tSelection.get( 'length' ) !== 0;
-        return [
-          { title:"Select All", target:this_, itemAction:this_.selectAll, isEnabled:true },
-          { title:"Delete Selected Cases", target:this_, itemAction:this_.deleteSelectedCases, isEnabled:tDeleteIsEnabled },
-          { title:"Delete Unselected Cases", target:this_, itemAction:this_.deleteUnselectedCases, isEnabled:tDeleteIsEnabled }
-        ];
-      };
-
-      return tPlot.getGearMenuItems(). // plot specific menu items
-          concat( getGraphMenuItems()). // then menu items for all plots...
-          concat( [{ isSeparator: YES }]).
-          concat( this.createHideShowSelectionMenuItems());
-    },
-
     checkboxDescriptions: function() {
       return this.getPath('plot.checkboxDescriptions');
     }.property('plot'),

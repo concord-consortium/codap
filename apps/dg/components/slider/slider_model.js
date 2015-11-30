@@ -116,14 +116,6 @@ DG.SliderModel = SC.Object.extend(
     },
 
     /**
-     Return the plot's notion of gear menu items concatenated with mine.
-     @return {Array of menu items}
-     */
-    getGearMenuItems: function() {
-      return [];
-    },
-
-    /**
      * The axis bounds have been changed such that the thumb is no longer visible; i.e. the value is no longer
      * within these bounds. Bring them back in.
      */

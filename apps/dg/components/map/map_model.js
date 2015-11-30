@@ -239,14 +239,6 @@ DG.MapModel = DG.DataDisplayModel.extend(
       return tItems;
     }.property(),
 
-    /**
-     Return the map's notion of gear menu items concatenated with mine.
-     @return {Array of menu items}
-     */
-    getGearMenuItems: function() {
-      return this.get('checkboxDescriptions');
-    }.property(),
-
     toggleGrid: function() {
       var mapModel = this;
       DG.UndoHistory.execute(DG.Command.create({
