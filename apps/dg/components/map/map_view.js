@@ -419,7 +419,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       gridVisibilityChanged: function() {
         this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
         this.updateMarqueeToolVisibility();
-      }.observes('model.gridModel.visible'),
+      }.observes('*model.gridModel.visible'),
 
       /**
        Set the layout (view position) for our subviews.
