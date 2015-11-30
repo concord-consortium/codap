@@ -702,8 +702,6 @@ DG.DataContext = SC.Object.extend((function() // closure
 
         // Store the set of deleted cases, along with their values
         this._undoData = deletedCases;
-        // temporarily disable undo to accomplish build
-        this.isUndoable = false;
       },
       undo: function() {
         var iChange = {
@@ -728,15 +726,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         };
       },
       redo: function() {
-        // Delete each case
-        this._afterStorage.cases.forEach( deleteCaseAndChildren);
+        // create a new change object, based on the old one, without modifying
+        // the old change object (in case we undo and redo again later)
+        var newChange = SC.clone(iChange);
+        newChange.cases = this._afterStorage.cases;
+        newChange.ids.length = 0;
+        delete newChange.result;
 
-        // Call didDeleteCases() for each affected collection
-        this_.get('collections').forEach( function(iCollection) {
-          if (SC.none( iCollection)) { return; }
-          var collectionClient = this_.getCollectionByID(iCollection.id);
-          collectionClient.didDeleteCases();
-        });
+        this_.applyChange( newChange);        // Delete each case
 
         // Store the set of deleted cases, along with their values
         this._undoData = deletedCases;

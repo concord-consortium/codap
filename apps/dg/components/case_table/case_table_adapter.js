@@ -353,6 +353,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var rowInfo = getRowInfoForCase( iCase),
           parentID = rowInfo.parentID;
 
+      if (SC.none(parentID)) { parentID = null; }
+
       // Build the row objects into parent groups
       if( !rowDataByParent[ parentID]) {
         parentRows.push( parentID);
