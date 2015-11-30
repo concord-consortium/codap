@@ -178,7 +178,7 @@ DG.MapGridLayer = SC.Object.extend(
     this.removeGridFromMap();
     this.addGridLayer();
     this.visibilityHasChanged();
-  }.observes('model.rectArray'),
+  }.observes('model.rectArray')
 
 });
 

@@ -60,7 +60,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       mapGridLayer: null,
 
       /**
-       * @property {SC.View}
+       * @property {DG.MapGridMarqueeView}
        */
       mapGridMarqueeView: null,
 
@@ -311,6 +311,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             tFillOpacity = tPointsAreVisible ? tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity : 1,
             tStrokeOpacity = tPointsAreVisible ? tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
             tAttrs = { 'fill-opacity': tFillOpacity, 'stroke-opacity':  tStrokeOpacity};
+        // todo: The following invokeLater could be eliminated with the function passed in as a completion of
+        // animation callback
         this.invokeLater(function() {
           this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
         }.bind(this), tWaitTime);

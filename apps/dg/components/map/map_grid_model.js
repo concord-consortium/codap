@@ -72,6 +72,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       var tRect = this.getRect( iLongIndex, iLatIndex);
       if( tRect) {
         tRect.cases.push(iCase);
+        // todo: We no longer need this count because we have the array
         tRect.count++;
         this.maxCount = Math.max(this.maxCount, tRect.count);
       }
