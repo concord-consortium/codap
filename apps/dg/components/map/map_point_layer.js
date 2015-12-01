@@ -60,7 +60,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     var tModel = this.get('model');
     if( !tModel)
       return; // not ready yet
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription');
+    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
+        tStrokeParams = this.getStrokeParams();
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -71,14 +73,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       latVarID: tModel.getPath('dataConfiguration.latAttributeID'),
       longVarID: tModel.getPath('dataConfiguration.longAttributeID'),
       legendDesc: tLegendDesc,
-      legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
+      legendVarID: tLegendVarID,
       updatedPositions: true,
       pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
 
       pointColor: tModel.get( 'pointColor') || DG.PlotUtilities.kDefaultPointColor,
-      strokeColor: tModel.get( 'strokeColor') || DG.PlotUtilities.kDefaultStrokeColor,
+      strokeColor: tStrokeParams.strokeColor,
       transparency: tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity,
-      strokeTransparency: tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity,
+      strokeTransparency: tStrokeParams.strokeTransparency,
 
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)

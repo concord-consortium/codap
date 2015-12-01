@@ -406,7 +406,8 @@ DG.PlotView = DG.PlotLayer.extend(
     var tModel = this.get('model'),
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' ),
         tPlotIndex = this.get('plotIndex'),
-        tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID';
+        tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID',
+        tStrokeParams = this.getStrokeParams();;
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -422,9 +423,9 @@ DG.PlotView = DG.PlotLayer.extend(
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       pointColor: tModel.getPointColor ? tModel.getPointColor() : DG.PlotUtilities.kDefaultPointColor,
-      strokeColor: tModel.getStrokeColor ? tModel.getStrokeColor() : DG.PlotUtilities.kDefaultStrokeColor,
+      strokeColor: tStrokeParams.strokeColor,
       transparency: tModel.getTransparency ? tModel.getTransparency() : DG.PlotUtilities.kDefaultPointOpacity,
-      strokeTransparency: tModel.getStrokeTransparency ? tModel.getStrokeTransparency() : DG.PlotUtilities.kDefaultStrokeOpacity,
+      strokeTransparency: tStrokeParams.strokeTransparency,
       attrColor: SC.none( tPlotIndex) || (tPlotIndex === 0) ? null :
                  DG.ColorUtilities.calcAttributeColorFromIndex( this.get('plotIndex'), this.get('numPlots')),
 

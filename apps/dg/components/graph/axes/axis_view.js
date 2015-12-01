@@ -305,7 +305,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tClassName = 'v2-axis';
               break;
           }
-          this.addClass( tClassName);
+          this.get('classNames').push( tClassName);
         },
 
         /**

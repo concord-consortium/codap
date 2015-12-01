@@ -336,6 +336,28 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   },
 
   /**
+   * Compute the color and transparency of the stroke for points based on the presence of a legend
+   * attribute and on the existence of model parameters.
+   * @return { strokeColor: {Color}, strokeTransparency {Number}}
+   */
+  getStrokeParams: function() {
+    var tModel = this.get('model');
+    DG.assert( tModel);
+    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
+        tStrokeColor, tStrokeTransparency;
+    if(SC.none(tLegendVarID)) {
+      tStrokeColor = tModel.get( 'strokeColor') || DG.PlotUtilities.kDefaultStrokeColor;
+      tStrokeTransparency = tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity;
+    }
+    else {
+      tStrokeColor = DG.PlotUtilities.kDefaultStrokeColorWithLegend;
+      tStrokeTransparency = DG.PlotUtilities.kDefaultStrokeOpacityWithLegend;
+    }
+    return { strokeColor: tStrokeColor, strokeTransparency: tStrokeTransparency};
+  },
+
+  /**
     Plots that show data as points should be able to use this as is. Others will probably
     override.
   */
