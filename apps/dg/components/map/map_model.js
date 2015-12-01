@@ -62,20 +62,10 @@ DG.MapModel = DG.DataDisplayModel.extend(
     areaStrokeColor: DG.PlotUtilities.kDefaultMapStrokeColor,
     areaStrokeTransparency: DG.PlotUtilities.kDefaultMapStrokeOpacity,
 
-    _connectingLineModel: null,
-
     /**
      * @property {DG.ConnectingLineModel}
      */
-    connectingLineModel: function() {
-      if( !this._connectingLineModel) {
-        this._connectingLineModel = DG.ConnectingLineModel.create( {
-          plotModel: this.get('dataConfiguration'),
-          sortOnXValues: false
-        });
-      }
-      return this._connectingLineModel;
-    }.property(),
+    connectingLineModel: null,
 
     /**
      * Set to true during restore as flag to use to know whether to fit bounds or not
@@ -114,6 +104,11 @@ DG.MapModel = DG.DataDisplayModel.extend(
       this.set('baseMapLayerName', 'Topographic');
 
       this.set('gridModel', DG.MapGridModel.create({ dataConfiguration: this.get('dataConfiguration')}));
+      this.set('connectingLineModel', DG.ConnectingLineModel.create( {
+        plotModel: this.get('dataConfiguration'),
+        sortOnXValues: false,
+        isVisible: false
+      }));
     },
 
     handleLegendAttrChange: function() {
@@ -242,14 +237,6 @@ DG.MapModel = DG.DataDisplayModel.extend(
         ]);
       }
       return tItems;
-    }.property(),
-
-    /**
-     Return the map's notion of gear menu items concatenated with mine.
-     @return {Array of menu items}
-     */
-    getGearMenuItems: function() {
-      return this.get('checkboxDescriptions');
     }.property(),
 
     toggleGrid: function() {

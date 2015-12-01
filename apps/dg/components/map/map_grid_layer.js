@@ -43,6 +43,17 @@ DG.MapGridLayer = SC.Object.extend(
 
   showTips: false,
 
+  /**
+   * @property {Boolean}
+   */
+  isInMarqueeMode: false,
+
+  marqueeContext: null,
+
+  isVisible: function() {
+    return this.getPath('model.visible');
+  }.property(),
+
   init: function() {
     sc_super();
     this.visibilityHasChanged();
@@ -66,16 +77,23 @@ DG.MapGridLayer = SC.Object.extend(
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var tLocalIndex = tIndex,
           handleClick = function( iEvent) {
-            // Select cases in this rectangle?
+            var tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey;
+            tModel.selectCasesInRect( iLongIndex, iLatIndex, tExtend);
           }.bind( this),
 
           handleMouseover = function( iEvent) {
+            var tLegendAttrID = tModel.getPath('dataConfiguration.legendAttributeDescription.attributeID');
             tRect = tModel.get('rectArray').getRect( iLongIndex, iLatIndex);
             if( (tRect.count === 0) || !this.get('showTips'))
               return;
             tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
             tPopup.options.offset[1] = -10;
-            tPopup.setContent( tDataContext.getCaseCountString(tCollection, tRect.count));
+            if( SC.none(tLegendAttrID)) {
+              tPopup.setContent(tDataContext.getCaseCountString(tCollection, tRect.count));
+            }
+            else {
+              tPopup.setContent(tModel.getCategoryBreakdownString( tRect.cases, tLegendAttrID));
+            }
             SC.Timer.schedule( { target: this,
               action: function() {
                 // Note the funky check for _map. We have to do this because the grid size slider dragging can
@@ -97,14 +115,28 @@ DG.MapGridLayer = SC.Object.extend(
       tOptions.fillOpacity = iRect.count / tMaxCount;
       var tLeafRect = L.rectangle( iRect.rect, tOptions)
                         .on('click', handleClick)
-                            .on('mouseover', handleMouseover)
-                            .on('mouseout', handleMouseout);
+                        .on('mouseover', handleMouseover)
+                        .on('mouseout', handleMouseout);
       tRectangles.push(tLeafRect);
       tIndex++;
     }.bind( this));
 
     this.set('grid', tRectangles);
   },
+
+  selectionDidChange: function() {
+    var tIndex = 0,
+        tRectangles = this.get('grid');
+    this.get('model').forEachRect( function( iRect, iLongIndex, iLatIndex) {
+      var tLeafRect = tRectangles[ tIndex],
+          tSelected = iRect.selected;
+      tLeafRect.setStyle( { color: tSelected ? 'black' : 'white',
+                            weight: tSelected ? 2 : 1});
+      if( tSelected)
+        tLeafRect.bringToFront();
+      tIndex++;
+    });
+  }.observes('model.selection'),
 
   /**
    * Add each rectangle to the map

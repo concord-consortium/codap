@@ -60,7 +60,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     var tModel = this.get('model');
     if( !tModel)
       return; // not ready yet
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' );
+    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription');
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -73,6 +73,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       legendDesc: tLegendDesc,
       legendVarID: tLegendDesc && tLegendDesc.get('attributeID'),
       updatedPositions: true,
+      pointsShouldBeVisible: this.getPath('model.pointsShouldBeVisible'),
 
       pointColor: tModel.get( 'pointColor') || DG.PlotUtilities.kDefaultPointColor,
       strokeColor: tModel.get( 'strokeColor') || DG.PlotUtilities.kDefaultStrokeColor,
@@ -133,7 +134,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
      // show or hide if needed, then update
-     this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden());
+     this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
      var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
        stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
      this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);

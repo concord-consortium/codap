@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('components/map/map_grid_marquee_view');
+
 /** @class  DG.MapView
 
  A view on a map and plotted data.
@@ -56,6 +58,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * @property {DG.MapGridLayer}
        */
       mapGridLayer: null,
+
+      /**
+       * @property {DG.MapGridMarqueeView}
+       */
+      mapGridMarqueeView: null,
 
       /**
        * @property {DG.LegendView}
@@ -133,7 +140,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         this.gridControl = SC.SliderView.create({
           controlSize: SC.SMALL_CONTROL_SIZE,
-          layout: { width: 40, height: 16, top: 33, right: 48 },
+          layout: { width: 40, height: 16, top: 33, right: 58 },
           toolTip: 'DG.MapView.gridControlHint'.loc(),
           minimum: 0.1,
           maximum: 2.0,
@@ -163,6 +170,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         });
         this.appendChild( this.marqueeTool);
 
+        this.mapGridMarqueeView = DG.MapGridMarqueeView.create({
+          isVisible: false
+        });
+        this.appendChild( this.mapGridMarqueeView);
+
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
         tMapLayer._setIdle();
@@ -174,16 +186,25 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       setMarqueeMode: function() {
-        this.setPath('mapPointView.isInMarqueeMode', true);
+        var tMapPointView = this.get('mapPointView'),
+            tMapGridLayer = this.get('mapGridLayer');
+        if( tMapPointView && tMapPointView.get('isVisible')) {
+          tMapPointView.set('isInMarqueeMode', true);
+        }
+        else if (tMapGridLayer && tMapGridLayer.get('isVisible')) {
+          tMapGridLayer.set('isInMarqueeMode', true);
+        }
         DG.logUser('marqueeToolSelect');
       },
 
       marqueeModeChanged: function() {
-        var tImage = this.getPath('mapPointView.isInMarqueeMode') ?
+        var tGridInMarqueeMode = this.getPath('mapGridLayer.isInMarqueeMode'),
+            tImage = (this.getPath('mapPointView.isInMarqueeMode') || tGridInMarqueeMode) ?
             'map-marquee-selected' :
             'map-marquee';
         this.setPath('marqueeTool.image', tImage);
-      }.observes('mapPointView.isInMarqueeMode'),
+        this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
+      }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),
 
       changeBaseMap: function() {
         var tBackground = this.backgroundControl.get('value'),
@@ -275,12 +296,29 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.adjustLayout( this.renderContext( this.get('tagName')));
       },
 
+      updateMarqueeToolVisibility: function() {
+        var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
+            tGridIsVisible = this.getPath('model.gridModel.visible');
+        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible || tGridIsVisible);
+      },
+
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
-            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible');
-        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible);
-        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible);
-        this.setPath('marqueeTool.isVisible', tPointsAreVisible || tLinesAreVisible);
+            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
+            tWaitTime = tPointsAreVisible ? 0 : DG.PlotUtilities.kDefaultAnimationTime,
+            tModel = this.get('model'),
+            tFillOpacity = tPointsAreVisible ? tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity : 1,
+            tStrokeOpacity = tPointsAreVisible ? tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
+            tAttrs = { 'fill-opacity': tFillOpacity, 'stroke-opacity':  tStrokeOpacity};
+        // todo: The following invokeLater could be eliminated with the function passed in as a completion of
+        // animation callback
+        this.invokeLater(function() {
+          this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
+        }.bind(this), tWaitTime);
+        this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
+        this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
+        this.updateMarqueeToolVisibility();
         this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
       }.observes('model.pointsShouldBeVisible'),
 
@@ -304,6 +342,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         var tMapModel = this.get('model' ),
             tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
             tAdorn = this.get('connectingLineAdorn');
+        tAdornModel.set('isVisible', tMapModel.get('linesShouldBeVisible'));
         if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
           tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
                                                           mapSource: this, layerName: DG.LayerNames.kConnectingLines,
@@ -312,9 +351,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }
 
         this.invokeLast( function() {
-          if( tAdorn)
+          if( tAdorn) {
             tAdorn.updateVisibility();
-        });
+            this.updateMarqueeToolVisibility();
+          }
+        }.bind( this));
       }.observes('.model.linesShouldBeVisible'),
 
       addAreaLayer: function () {
@@ -353,6 +394,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           this.setPath('mapPointView.mapPointLayer.fixedPointRadius', 3);
 
         this.gridVisibilityChanged();
+
+        this.setPath('mapGridMarqueeView.mapGridLayer', this.get('mapGridLayer'));
       },
 
       /**
@@ -375,7 +418,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       gridVisibilityChanged: function() {
         this.gridControl.set('isVisible', this.getPath('model.gridModel.visible'));
-      }.observes('model.gridModel.visible'),
+        this.updateMarqueeToolVisibility();
+      }.observes('*model.gridModel.visible'),
 
       /**
        Set the layout (view position) for our subviews.
@@ -452,7 +496,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {
+        var tGridModel = this.getPath('mapGridLayer.model');
         this.get('model').selectAll(false);
+        if( tGridModel) {
+          tGridModel.deselectRects();
+        }
       }.observes('mapLayer.clickCount'),
 
       handleIdle: function() {

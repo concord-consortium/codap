@@ -814,6 +814,8 @@ DG.DocumentController = SC.Object.extend(
         execute: function() {
           var tMapModel = DG.MapModel.create(),
               tMapController = DG.MapController.create();
+          // For maps the map model's dataconfiguration finds a reasonable initial data context.
+          tMapController.set('dataContext', tMapModel.get('dataContext'));
 
           // map as component
           tView = docController.createComponentView(iComponent || this._component, {

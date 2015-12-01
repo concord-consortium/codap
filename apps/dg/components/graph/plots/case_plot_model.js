@@ -70,17 +70,6 @@ DG.CasePlotModel = DG.PlotModel.extend(
   },
 
   /**
-   *
-   * @return {Array of menu items}
-   */
-  getGearMenuItems: function() {
-    var this_ = this;
-    return [
-      { title: 'DG.PlotModel.mixup', target: this_, itemAction: this_.mixUp, localize: true }
-    ].concat( sc_super());
-  },
-
-  /**
    * Get an array of non-missing case counts in each axis cell.
    * Also cell index on primary and secondary axis, with primary axis as major axis.
    * @return {Array} [{count, primaryCell, secondaryCell},...] (all values are integers 0+).

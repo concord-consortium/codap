@@ -25,9 +25,16 @@
 DG.MapGridModel = SC.Object.extend((function () // closure
 /** @scope DG.MapGridModel.prototype */ {
 
+  /**
+   *
+   * @param [[south,west][north, east]]
+   * @constructor
+   */
   function RectRecord(iRect) {
     this.rect = iRect;
     this.count = 0;
+    this.cases = [];
+    this.selected = false;
   }
 
   /**
@@ -61,9 +68,11 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       });
     };
 
-    this.incrementCount = function( iLongIndex, iLatIndex) {
+    this.addCaseToRect = function( iLongIndex, iLatIndex, iCase) {
       var tRect = this.getRect( iLongIndex, iLatIndex);
       if( tRect) {
+        tRect.cases.push(iCase);
+        // todo: We no longer need this count because we have the array
         tRect.count++;
         this.maxCount = Math.max(this.maxCount, tRect.count);
       }
@@ -163,8 +172,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
         for (tLongIndex = 0; tLongIndex < 2 * tNumToWest; tLongIndex++) {
           for (tLatIndex = 0; tLatIndex < 2 * tNumToSouth; tLatIndex++) {
             tRectArray.setRect(tLongIndex, tLatIndex, new RectRecord([
-              [tStartSouth + tLatIndex * tGridHeight, tStartWest + tLongIndex * tGridWidth],
-              [tStartSouth + (tLatIndex + 1) * tGridHeight, tStartWest + (tLongIndex + 1) * tGridWidth]
+              [tStartSouth + (tLatIndex + 1) * tGridHeight, tStartWest + tLongIndex * tGridWidth],
+              [tStartSouth + tLatIndex * tGridHeight, tStartWest + (tLongIndex + 1) * tGridWidth]
             ]));
           }
         }
@@ -190,7 +199,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
               tLatVal = iCase.getNumValue( tLatVarID),
               tLongIndex = Math.floor( (tLongVal - tStartWest) / tGridWidth),
               tLatIndex = Math.floor( (tLatVal - tStartSouth) / tGridHeight);
-          tRectArray.incrementCount( tLongIndex, tLatIndex);
+          tRectArray.addCaseToRect( tLongIndex, tLatIndex, iCase);
         });
       }.bind(this);
 
@@ -204,6 +213,60 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       this.endPropertyChanges();
     },
 
+    _selectCasesInRect: function( iLongIndex, iLatIndex, iSelect, iExtend) {
+      var tDataContext = this.getPath('dataConfiguration.dataContext'),
+          tCollectionClient = this.getPath('dataConfiguration.collectionClient'),
+          tRect = this.get('rectArray').getRect( iLongIndex, iLatIndex),
+          tSelectChange = {
+            operation: 'selectCases',
+            collection: tCollectionClient,
+            cases: tRect.cases,
+            select: iSelect,
+            extend: iExtend
+          };
+      tRect.selected = iSelect;
+      tDataContext.applyChange( tSelectChange);
+      this.notifyPropertyChange('selection');
+    },
+
+    selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
+      if( !iExtend) {
+        this.forEachRect( function( iRect) {
+          iRect.selected = false;
+        });
+      }
+      this._selectCasesInRect( iLongIndex, iLatIndex, true, iExtend);
+    },
+
+    deselectCasesInRect: function( iLongIndex, iLatIndex) {
+      this._selectCasesInRect( iLongIndex, iLatIndex, false, true);
+    },
+
+    deselectRects: function() {
+      this.forEachRect( function( iRect) {
+        iRect.selected = false;
+      });
+      this.notifyPropertyChange('selection');
+    },
+
+    /**
+     * Deselect all cases and all rects
+     */
+    deselectAll: function() {
+      this.deselectRects();
+      var tDataConfig = this.get('dataConfiguration'),
+          tContext = tDataConfig.get('dataContext'),
+          tChange = {
+            operation: 'selectCases',
+            collection: tDataConfig.get('collectionClient'),
+            cases: null,
+            select: false
+          };
+      if (tContext) {
+        tContext.applyChange(tChange);
+      }
+    },
+
     /**
      * We have to recompute the rectArray
      * TODO: Handle change in the number of cases and changes in values of cases
@@ -212,6 +275,38 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       if( this.getPath('dataConfiguration.hasLatLongAttributes'))
         this.initializeRectArray();
     }.observes('gridMultiplier', 'dataConfiguration.hiddenCases'),
+
+    /**
+     * The resulting string is used in a data tip
+     * @param iCases {[DG.Case]}
+     * @param iLegendAttrID {Number}
+     */
+    getCategoryBreakdownString: function( iCases, iLegendAttrID) {
+      var tTotalCount = 0,
+          tCategories = {},
+          tResult = '';
+      iCases.forEach( function( iCase) {
+        var tValue = iCase.getStrValue( iLegendAttrID);
+        if( !SC.empty( tValue)) {
+          tTotalCount++;
+          if( !tCategories[ tValue]) {
+            tCategories[ tValue] = 0;
+          }
+          tCategories[ tValue]++;
+        }
+      });
+      DG.ObjectMap.forEach( tCategories, function( iCat, iCount) {
+        if( SC.empty( tResult)) {
+          tResult = '<p>'
+        }
+        else {
+          tResult += '<br/>';
+        }
+        tResult += iCat + ': ' + iCount + ' (' + (Math.round(1000 * iCount/tTotalCount) / 10) + '%)';
+      });
+      tResult += '</p>';
+      return tResult;
+    },
 
     /**
      *
