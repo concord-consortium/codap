@@ -624,6 +624,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if( this._rowDataDidChange) {
         gridAdapter.buildRowData();
         gridAdapter.refresh();
+        this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength(), true);
       }
       
       // Render with our changes
@@ -1008,7 +1009,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this.updateRowData();
     this.updateSelectedRows();
 
-    this._slickGrid.render();
+    //this._slickGrid.render();
   },
 
   /**
