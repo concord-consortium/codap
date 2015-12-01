@@ -92,8 +92,8 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
           tHeight = Math.abs( idY),
           tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
-      tLatLngBounds = L.latLngBounds([ tMap.layerPointToLatLng([ tX, tY + tHeight]),
-                        tMap.layerPointToLatLng([ tX + tWidth, tY])]);
+      tLatLngBounds = L.latLngBounds([ tMap.containerPointToLatLng([ tX, tY + tHeight]),
+                        tMap.containerPointToLatLng([ tX + tWidth, tY])]);
       tMapGridModel.forEachRect( function( iGridRect, iLngIndex, iLatIndex) {
         if( tLatLngBounds.intersects( L.latLngBounds(iGridRect.rect))) {
           if( !iGridRect.selected)
