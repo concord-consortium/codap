@@ -292,6 +292,20 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         init: function () {
           sc_super();
           this._labelNodes = [];
+          // Add a classname for use in QA automation
+          var tClassName;
+          switch( this.get('orientation')) {
+            case 'horizontal':
+              tClassName = 'h-axis';
+              break;
+            case 'vertical':
+              tClassName = 'v-axis';
+              break;
+            case 'vertical2':
+              tClassName = 'v2-axis';
+              break;
+          }
+          this.addClass( tClassName);
         },
 
         /**
