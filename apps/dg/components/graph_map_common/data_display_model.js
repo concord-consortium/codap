@@ -527,10 +527,6 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      {DG.Attribute}        iAttrRefs.attribute -- Array of attributes to set for the legend
      */
     changeAttributeForLegend: function( iDataContext, iAttrRefs) {
-/*    Unused
-      var tAttribute = iAttrRefs && iAttrRefs.attributes[0];
-*/
-
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
       var dataConfiguration = this.get('dataConfiguration');
