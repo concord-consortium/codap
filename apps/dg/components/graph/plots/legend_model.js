@@ -84,7 +84,28 @@ DG.LegendModel = SC.Object.extend(
                   };
     if( tContext && tCases)
       tContext.applyChange( tChange);
-  }
+  },
+
+  /**
+   * If the newly assigned attribute is categorical, make sure it has a colormap so that
+   * colors won't change willy nilly.
+   */
+  attributeDidChange: function() {
+    var tAttrDesc = this.get('attributeDescription'),
+        tAttribute = tAttrDesc.get('attribute'),
+        tColormap = tAttribute && (tAttribute !== DG.Analysis.kNullAttribute) && tAttribute.get('colormap');
+    if( !tAttribute || (tAttribute === DG.Analysis.kNullAttribute) || tAttrDesc.get('isNumeric'))
+      return; // Nothing assigned or the attribute is numeric
+    tColormap = tColormap || {};
+    this.get('cellNames').forEach( function( iName) {
+      var tColorProp = tColormap[ iName];
+      if( !tColorProp) {
+        tColormap[ iName] = DG.ColorUtilities.calcCaseColor( iName, tAttrDesc,
+            DG.ColorUtilities.kMissingValueCaseColor);
+      }
+    });
+    tAttribute.set('colormap', tColormap);
+  }.observes('attributeDescription.attribute')
 
 });
 
