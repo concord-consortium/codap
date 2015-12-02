@@ -232,7 +232,7 @@ DG.CollectionClient = SC.Object.extend(
     @returns  {DG.Attribute}  The DG.Attribute with the specified ID or undefined
    */
   getAttributeByID: function(iAttrID) {
-    return !SC.none( iAttrID) ? this.attrsController.findProperty('id', iAttrID) : undefined;
+    return !SC.none( iAttrID) ? this.attrsController.findProperty('id', Number(iAttrID)) : undefined;
   },
   
   /**

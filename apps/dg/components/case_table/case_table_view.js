@@ -320,6 +320,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }.observes('gridWidth'),
 
+    /**
+     * Returns a hashmap mapping attribute ids to widths in pixels
+     * @return {{attr_id: number}}
+     */
+    columnWidths: function () {
+      var columns = this._slickGrid.getColumns();
+      var rtn = {};
+      if (!SC.none(columns)) {
+        columns.forEach(function (column) {
+          rtn[column.id] = column.width;
+        });
+      }
+      return rtn;
+    }.property(),
+
     sizeDidChange: function() {
       var parentView = this.get('parentView');
       // Protect against the possibility we don't have a parent view
@@ -939,7 +954,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * @param {{grid: SlickGrid}}iArgs
    */
   handleColumnsResized: function(iEvent, iArgs) {
-
+    var parentView = this.get('parentView');
+    if (parentView) {
+      parentView.get('model').columnWidthsDidChange(this);
+    }
   },
   
   /**

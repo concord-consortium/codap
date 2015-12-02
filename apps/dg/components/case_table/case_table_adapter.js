@@ -227,7 +227,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    * @param attributeID {number}
    */
   getPreferredColumnWidth: function (attributeID) {
-    return kDefaultColumnWidth;
+    var model = this.controller.getPath('model.content');
+    var prefWidth = model && model.getPreferredAttributeWidth(attributeID);
+    var columnWidth = prefWidth || kDefaultColumnWidth;
+    return columnWidth;
   },
 
   /**
@@ -238,7 +241,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   updateColumnInfo: function() {
     var context = this.get('dataContext'),
         collection = this.get('collection'),
-        getPreferredColumnWidth = this.getPreferredColumnWidth,
         existColumnDefs = {},
         columnDefs = [];
     if( !collection) return columnDefs;
@@ -283,7 +285,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             toolTip: getToolTipString( iAttribute),
             formatter: cellFormatter,
-            width: getPreferredColumnWidth(iAttribute.get('id')),
+            width: this.getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
                 items: [
@@ -314,7 +316,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     
     // Process the attributes in the collection
-    collection.forEachAttribute( processAttribute);
+    collection.forEachAttribute( processAttribute.bind(this));
     
     this.gridColumns = columnDefs;
     

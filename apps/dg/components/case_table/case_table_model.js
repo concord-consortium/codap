@@ -41,18 +41,35 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    *
    * @property {Object} a hash of widths (pixels) keyed by attribute id.
    */
-  userAttributeWidths: null,
+  preferredAttributeWidths: null,
 
   /**
    * Case table widths as requested by the user, keyed by caseTable id.
    *
    * @property {Object} a hash of widths (pixels) keyed by caseTable id.
    */
-  userCaseTableWidths: null,
+  preferredTableWidths: null,
 
   init: function () {
-    this.userAttributeWidths = this.userAttributeWidths || {};
-    this.userCaseTableWidths = this.userCaseTableWidths || {};
-  }
+    this.preferredAttributeWidths = this.preferredAttributeWidths || {};
+    this.preferredTableWidths = this.preferredTableWidths || {};
+  },
 
+  /**
+   * Column widths changed for a view.
+   *
+   * Update preferredAttributeWidths,
+   *
+   * @param view {DG.CaseTableView}
+   */
+  columnWidthsDidChange: function (view) {
+    var columnWidthMap = view.get('columnWidths');
+    DG.ObjectMap.forEach(columnWidthMap, function (key, value) {
+      this.preferredAttributeWidths[key] = value;
+    }.bind(this));
+  },
+
+  getPreferredAttributeWidth: function (attrID) {
+    return this.preferredAttributeWidths[attrID];
+  }
 });

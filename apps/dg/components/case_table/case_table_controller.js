@@ -100,7 +100,8 @@ DG.CaseTableController = DG.ComponentController.extend(
         var dataContext = this.get('dataContext'),
             collectionRecords = this.getPath('dataContext.collections') || [],
             prevAdapters = this.caseTableAdapters,
-            newAdapters = [];
+            newAdapters = [],
+            parentController = this;
 
         this.caseTableAdapters = newAdapters;
 
@@ -127,7 +128,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           if( !adapter) {
             // create a new adapter for the specified collection
             adapter = DG.CaseTableAdapter.create({ dataContext: dataContext,
-                                                    collection: collection });
+                collection: collection, controller: parentController});
 
           }
           // add the new/found adapter to the adapter array
@@ -190,18 +191,48 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       createComponentStorage: function() {
-        var storage = {},
-            dataContext = this.get('dataContext');
-        if( dataContext)
-          this.addLink( storage, 'context', dataContext);
+        var model = this.getPath('model.content'),
+            dataContext = model.get('context'),
+            attributeWidths = [],
+            storage = {};
+        if( dataContext) {
+          this.addLink(storage, 'context', dataContext);
+        }
+
+        DG.ObjectMap.forEach(model.get('preferredAttributeWidths'), function (key, width) {
+          var obj = {};
+          var attrRef = dataContext.getAttrRefByID(key);
+          if (attrRef) {
+            this.addLink(obj, 'attr', attrRef.attribute);
+            obj.width = width;
+            attributeWidths.push(obj);
+          }
+        }.bind(this));
+        storage.attributeWidths = attributeWidths;
         return storage;
       },
 
       restoreComponentStorage: function( iStorage, iDocumentID) {
-        var contextID = this.getLinkID( iStorage, 'context'),
-            dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID);
-        if( dataContext)
-          this.set('dataContext', dataContext);
+        var caseTableModel = this.getPath('model.content');
+        if (caseTableModel) {
+          var contextID = this.getLinkID( iStorage, 'context'),
+              dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
+              attributeWidths = {};
+          if (iStorage.attributeWidths) {
+            iStorage.attributeWidths.forEach(function (obj) {
+              var id = this.getLinkID(obj, 'attr');
+              attributeWidths[id] = obj.width;
+            }.bind(this));
+            caseTableModel.set('preferredAttributeWidths', attributeWidths);
+          }
+          if( dataContext) {
+            caseTableModel.set('context', dataContext);
+            //
+            this.invokeLater(function () {
+              this.set('dataContext', dataContext);
+            }.bind(this));
+          }
+        }
       },
 
       /**
