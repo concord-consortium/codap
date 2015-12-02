@@ -319,7 +319,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
         this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
         this.updateMarqueeToolVisibility();
-        this.setPath('mapGridLayer.showTips', true /*!tPointsAreVisible*/ );
+        this.setPath('mapGridLayer.showTips', !tPointsAreVisible);
       }.observes('model.pointsShouldBeVisible'),
 
       /**

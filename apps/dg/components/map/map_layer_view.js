@@ -103,9 +103,11 @@ DG.MapLayerView = SC.View.extend(
               // ToDo: The implementation below will not work properly when there are two maps.
               // The popups for the second grid will appear on the first map. Presumably we can
               // use more selective selectors to solve this problem.
+/*
               this.invokeOnce(function () {
                 $('.leaflet-popup-pane').insertAfter('.map-layer');
               });
+*/
             }.bind(this),
 
             onDisplayChangeEvent = function (iEvent) {
