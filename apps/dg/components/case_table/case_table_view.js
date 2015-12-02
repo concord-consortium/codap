@@ -386,10 +386,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   expandCollapseCount: 0,
 
-  scrollAnimator: DG.ScrollAnimationUtility.create({}),
+  scrollAnimator: null,
   
   displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
   
+  init: function () {
+    sc_super();
+    this.scrollAnimator = DG.ScrollAnimationUtility.create({});
+  },
+
   /**
     Called when the view is resized, in which case the SlickGrid should resize as well.
    */
