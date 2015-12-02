@@ -624,6 +624,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if( this._rowDataDidChange) {
         gridAdapter.buildRowData();
         gridAdapter.refresh();
+        this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength(), true);
       }
       
       // Render with our changes
@@ -1001,27 +1002,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @param  {Boolean} Whether to force a re-indexing of the rows
    */
   updateRowCount: function( forceRedraw) {
-    var adapter = this.get('gridAdapter'),
-        handled = false;
-
     if( !this._slickGrid) return;
 
-    if( adapter)
-      handled = adapter.updateRowCount();
-    
-    if( handled && !forceRedraw) {
-      // Simple append
-      this._slickGrid.updateRowCount();
-      this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength());
-    }
-    else {
-      // For now, deletions require complete rebuild.
-      // When deletion is handled via DataContext API we can do better.
-      this.updateRowData();
-      this.updateSelectedRows();
-    }
+    // For now, additions and deletions require complete rebuild.
+    // When deletion is handled via DataContext API we can do better.
+    this.updateRowData();
+    this.updateSelectedRows();
 
-    this._slickGrid.render();
+    //this._slickGrid.render();
   },
 
   /**
