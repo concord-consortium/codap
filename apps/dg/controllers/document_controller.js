@@ -663,7 +663,7 @@ DG.DocumentController = SC.Object.extend(
       var model = DG.CaseTableModel.create({context: context});
       var tView = this.createComponentView(iComponent, {
           parentView: iParentView,
-          controller: DG.CaseTableController.create(),
+          controller: DG.CaseTableController.create({model: model}),
           componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
           contentProperties: {model: model }, // Temporarily using context as model in order to get a title
           defaultLayout: { width: 500, height: 200 },
@@ -678,6 +678,7 @@ DG.DocumentController = SC.Object.extend(
        */
     addCaseTableP: function( iParentView, iComponent, iProperties) {
       var model = DG.CaseTableModel.create({context: iProperties.dataContext});
+      iProperties.model = model;
       var props = SC.Object.create({
         parentView: iParentView,
         controller: DG.CaseTableController.create(iProperties),

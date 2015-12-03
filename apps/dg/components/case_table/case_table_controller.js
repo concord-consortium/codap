@@ -98,10 +98,10 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       updateTableAdapters: function() {
         var dataContext = this.get('dataContext'),
-            collectionRecords = this.getPath('dataContext.collections') || [],
+            collectionRecords = dataContext && dataContext.get('collections') || [],
             prevAdapters = this.caseTableAdapters,
             newAdapters = [],
-            caseTableModel = this.model.get('content');
+            caseTableModel = this.model && this.model.get('content');
 
         this.caseTableAdapters = newAdapters;
 
