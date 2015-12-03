@@ -320,6 +320,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }.observes('gridWidth'),
 
+    /**
+     * Returns a hashmap mapping attribute ids to widths in pixels
+     * @return {{attr_id: number}}
+     */
+    columnWidths: function () {
+      var columns = this._slickGrid.getColumns();
+      var rtn = {};
+      if (!SC.none(columns)) {
+        columns.forEach(function (column) {
+          rtn[column.id] = column.width;
+        });
+      }
+      return rtn;
+    }.property(),
+
     sizeDidChange: function() {
       var parentView = this.get('parentView');
       // Protect against the possibility we don't have a parent view
@@ -371,10 +386,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   expandCollapseCount: 0,
 
-  scrollAnimator: DG.ScrollAnimationUtility.create({}),
+  scrollAnimator: null,
   
   displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
   
+  init: function () {
+    sc_super();
+    this.scrollAnimator = DG.ScrollAnimationUtility.create({});
+  },
+
   /**
     Called when the view is resized, in which case the SlickGrid should resize as well.
    */
@@ -460,6 +480,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                         this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
                       }.bind( this));
                     }.bind( this));
+    this.subscribe('onColumnsResized', this.handleColumnsResized);
 
     // wire up model events to drive the grid
     dataView.onRowCountChanged.subscribe(function (e, args) {
@@ -930,6 +951,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleHeaderClick: function( iEvent) {
     DG.globalEditorLock.commitCurrentEdit();
+  },
+
+  /**
+   * Called when column widths changed
+   * @param iEvent
+   * @param {{grid: SlickGrid}}iArgs
+   */
+  handleColumnsResized: function(iEvent, iArgs) {
+    var parentView = this.get('parentView');
+    var model = parentView && parentView.get('model');
+    var columnWidths = this.get('columnWidths');
+    if (parentView) {
+      DG.ObjectMap.forEach(columnWidths, function(key, value) {
+        model.setPreferredAttributeWidth(key, value);
+      });
+    }
   },
   
   /**

@@ -44,24 +44,6 @@ DG.ScrollAnimationUtility = SC.Object.extend(
    */
   targetView: null,
 
-  ///**
-  // * @property {DG.PlotModel}
-  // */
-  //plot: null,
-  //
-  ///**
-  //  The axis to be animated and its new bounds. Pass this in on creation
-  //  @property { Array of { axis: {DG.CellLinearAxis}, newBounds: {lower: {Number}, upper: {Number}} } }
-  //*/
-  //axisInfoArray: null,
-  //
-  ///**
-  //  We make a copy of the above axisInfoArray before we start animation so we can hold onto the
-  //    information we need to end the animation in case another animation starts before we're done.
-  //  @property { Array of { axis: {DG.CellLinearAxis}, newBounds: {lower: {Number}, upper: {Number}} } }
-  //*/
-  //savedAxisInfoArray: null,
-
   /**
    * destroy - break loops that prevent garbage collection
    */
