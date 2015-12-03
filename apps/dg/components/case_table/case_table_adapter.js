@@ -111,6 +111,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   }.property('collection.name').cacheable(),
 
   /**
+   * The Case Table Model
+   * @type {DG.CaseTableModel}
+   */
+  model: null,
+
+  /**
     Returns true if there are formulas with aggregate functions in this adapter's collection.
     @property   {Boolean}
    */
@@ -227,7 +233,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    * @param attributeID {number}
    */
   getPreferredColumnWidth: function (attributeID) {
-    var model = this.controller.getPath('model.content');
+    var model = this.model;
     var prefWidth = model && model.getPreferredAttributeWidth(attributeID);
     var columnWidth = prefWidth || kDefaultColumnWidth;
     return columnWidth;

@@ -960,8 +960,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleColumnsResized: function(iEvent, iArgs) {
     var parentView = this.get('parentView');
+    var model = parentView && parentView.get('model');
+    var columnWidths = this.get('columnWidths');
     if (parentView) {
-      parentView.get('model').columnWidthsDidChange(this);
+      DG.ObjectMap.forEach(columnWidths, function(key, value) {
+        model.setPreferredAttributeWidth(key, value);
+      });
     }
   },
   

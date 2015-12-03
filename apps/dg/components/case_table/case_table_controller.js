@@ -101,7 +101,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             collectionRecords = this.getPath('dataContext.collections') || [],
             prevAdapters = this.caseTableAdapters,
             newAdapters = [],
-            parentController = this;
+            caseTableModel = this.model.get('content');
 
         this.caseTableAdapters = newAdapters;
 
@@ -127,8 +127,11 @@ DG.CaseTableController = DG.ComponentController.extend(
               adapter = findAdapterForCollection( collectionID);
           if( !adapter) {
             // create a new adapter for the specified collection
-            adapter = DG.CaseTableAdapter.create({ dataContext: dataContext,
-                collection: collection, controller: parentController});
+            adapter = DG.CaseTableAdapter.create({
+              dataContext: dataContext,
+              collection: collection,
+              model: caseTableModel
+            });
 
           }
           // add the new/found adapter to the adapter array
@@ -337,7 +340,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
       /**
         Called when the data context notifies that the set of selected cases has changed.
-        @param  {Object}  An object describing the nature of the change
+        @param iChange {Object}  An object describing the nature of the change
        */
       doSelectCases: function( iChange) {
         var hierTableView = this.getPath('view.contentView');
@@ -347,7 +350,7 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       /**
         Called when the data context notifies that case values have changed.
-        @param  {Object}  An object describing the nature of the change
+        @param iChange {Object}  An object describing the nature of the change
        */
       doChangeCaseValues: function( iChange) {
         var adapters = this.get('caseTableAdapters');

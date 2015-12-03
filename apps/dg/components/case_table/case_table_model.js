@@ -55,21 +55,10 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
     this.preferredTableWidths = this.preferredTableWidths || {};
   },
 
-  /**
-   * Column widths changed for a view.
-   *
-   * Update preferredAttributeWidths,
-   *
-   * @param view {DG.CaseTableView}
-   */
-  columnWidthsDidChange: function (view) {
-    var columnWidthMap = view.get('columnWidths');
-    DG.ObjectMap.forEach(columnWidthMap, function (key, value) {
-      this.preferredAttributeWidths[key] = value;
-    }.bind(this));
-  },
-
   getPreferredAttributeWidth: function (attrID) {
     return this.preferredAttributeWidths[attrID];
+  },
+  setPreferredAttributeWidth: function(attrID, width) {
+    this.preferredAttributeWidths[attrID] = width;
   }
 });
