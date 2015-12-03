@@ -98,3 +98,70 @@ DG.main = function main() {
 
 /* jshint unused:false */
 function main() { DG.main(); }
+
+/* Cloud File Manager Integration */
+var cfm = parent && parent.CloudFileManager ? parent.CloudFileManager : null,
+    client;
+
+if (cfm) {
+  cfm.clientConnect(function (event) {
+    console.log(event);
+    switch (event.type) {
+      case 'connected':
+        client = event.data.client;
+        client.setProviderOptions("documentStore",
+          {appName: DG.APPNAME,
+           appVersion: DG.VERSION,
+           appBuildNum: DG.BUILD_NUM
+          });
+        break;
+
+      case 'getContent':
+        DG.serializeDocument().then(function (streamableDocument) {
+          event.callback(client.createContent(streamableDocument));
+        });
+        break;
+
+      case 'newedFile':
+        DG.newDocument();
+        break;
+
+      case 'openedFile':
+        var doc = event.data.content.getJSON();
+        DG.loadDocument(doc);
+        break;
+    }
+  });
+}
+
+/* External API for saving and loading documents */
+
+/**
+ * Starts a new document
+ */
+DG.newDocument = function() {
+  DG.appController.closeAndNewDocument()
+}
+
+/**
+ * Capture the current document as an object
+ *
+ * @returns Promise
+ */
+DG.serializeDocument = function() {
+  var documentController = DG.currDocumentController();
+  return documentController.captureCurrentDocumentState(true);
+}
+
+/**
+ * Loads a document
+ *
+ * @param {Object} doc
+ */
+DG.loadDocument = function(doc) {
+  console.log("open! ")
+  console.log(doc)
+  DG.store = DG.ModelStore.create();
+  var newDocument = DG.Document.createDocument(doc);
+  DG.currDocumentController().setDocument(newDocument);
+}
