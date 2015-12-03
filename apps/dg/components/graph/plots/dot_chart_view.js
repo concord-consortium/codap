@@ -355,6 +355,7 @@ DG.DotChartView = DG.PlotView.extend(
 
     function turnOffAnimation() {
       tModel.set('isAnimating', false);
+      this_.displayDidChange(); // Force redisplay in correct position
     }
     function caseLocationSimple( iIndex ) {
       // assume a 1 to 1 correspondence of the current case indices to the new cases
