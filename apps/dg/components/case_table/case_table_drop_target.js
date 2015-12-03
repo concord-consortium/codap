@@ -91,7 +91,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         isValidAttribute: function( iDrag) {
           var tDragAttr = iDrag.data.attribute;
-          var dragContext = iDrag.data.context.model;
+          var dragContext = iDrag.data.context;
           return !SC.none( tDragAttr )  && (dragContext === this.dataContext);
         },
 

@@ -103,7 +103,7 @@ DG.ComponentController = SC.Object.extend((function () // closure
      Called by the framework to give derived classes an opportunity to
      restore the contents of their archived component storage object.
      Derived classes should override to restore their contents appropriately.
-     @param  {Object}  An object whose properties should be restored.
+     @param  iComponentStorage {Object}  An object whose properties should be restored.
      */
     restoreComponentStorage: function (iComponentStorage, iDocumentID) {
       // Derived classes should override to restore from component storage

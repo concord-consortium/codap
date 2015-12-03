@@ -72,16 +72,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       // Simple formatter currently rounds to precision rather than actually formatting.
       cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
-      if( SC.none( cellValue))
-        cellValue = "";
-      else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
-        var attrPrecision = colInfo.attribute.get('precision'),
-            roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
-            multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
-        cellValue = Math.round( multiplier * cellValue) / multiplier;
-      }
-      return cellValue.toString();
-    };
+        if( SC.none( cellValue))
+          cellValue = "";
+        else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
+          var attrPrecision = colInfo.attribute.get('precision'),
+              roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
+              multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
+          cellValue = Math.round( multiplier * cellValue) / multiplier;
+        }
+        return cellValue.toString();
+      };
 
   return {  // return from closure
   
@@ -109,6 +109,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     return this.getPath('collection.name');
   }.property('collection.name').cacheable(),
+
+  /**
+   * The Case Table Model
+   * @type {DG.CaseTableModel}
+   */
+  model: null,
 
   /**
     Returns true if there are formulas with aggregate functions in this adapter's collection.
@@ -219,7 +225,20 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var dataView = this.get('gridDataView');
     return dataView && dataView.getRowById( iRowID);
   },
-  
+
+  /**
+   * Returns the user selected column width for this attribute or the default,
+   * if not defined.
+   *
+   * @param attributeID {number}
+   */
+  getPreferredColumnWidth: function (attributeID) {
+    var model = this.model;
+    var prefWidth = model && model.getPreferredAttributeWidth(attributeID);
+    var columnWidth = prefWidth || kDefaultColumnWidth;
+    return columnWidth;
+  },
+
   /**
     Builds the array of column definitions required by SlickGrid from the data context.
     
@@ -272,7 +291,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             toolTip: getToolTipString( iAttribute),
             formatter: cellFormatter,
-            width: kDefaultColumnWidth,
+            width: this.getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
                 items: [
@@ -303,7 +322,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     
     // Process the attributes in the collection
-    collection.forEachAttribute( processAttribute);
+    collection.forEachAttribute( processAttribute.bind(this));
     
     this.gridColumns = columnDefs;
     

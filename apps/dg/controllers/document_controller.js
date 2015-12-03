@@ -659,12 +659,13 @@ DG.DocumentController = SC.Object.extend(
           return iComponent.document.contexts[id];
         }
       }
-      var context = resolveContextLink(iComponent),
-        tView = this.createComponentView(iComponent, {
+      var context = resolveContextLink(iComponent);
+      var model = DG.CaseTableModel.create({context: context});
+      var tView = this.createComponentView(iComponent, {
           parentView: iParentView,
           controller: DG.CaseTableController.create(),
           componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-          contentProperties: {model: context }, // Temporarily using context as model in order to get a title
+          contentProperties: {model: model }, // Temporarily using context as model in order to get a title
           defaultLayout: { width: 500, height: 200 },
           isResizable: true}
       );
@@ -676,12 +677,12 @@ DG.DocumentController = SC.Object.extend(
        parameters. Needed for multiple data contexts.
        */
     addCaseTableP: function( iParentView, iComponent, iProperties) {
-
+      var model = DG.CaseTableModel.create({context: iProperties.dataContext});
       var props = SC.Object.create({
         parentView: iParentView,
         controller: DG.CaseTableController.create(iProperties),
         componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-        contentProperties: {model: iProperties.dataContext.get('model'), id: iProperties.id }, // Temporarily using context as model in order to get a title
+        contentProperties: {model: model, id: iProperties.id }, // Temporarily using context as model in order to get a title
         defaultLayout: { width: 500, height: 200 },
         isResizable: true}), tView;
       DG.ObjectMap.copy(props, iProperties);
