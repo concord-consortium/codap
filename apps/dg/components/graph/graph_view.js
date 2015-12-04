@@ -108,7 +108,7 @@ DG.GraphView = SC.View.extend(
       iPlotView.setIfChanged('parentView', this);
       iPlotView.setupAxes();  // special requirements set up here
       if( !SC.none( iCurrentPoints))
-        iPlotView.set('cachedPointCoordinates', iCurrentPoints);
+        iPlotView.set('transferredPointCoordinates', iCurrentPoints);
     iPlotView.endPropertyChanges();
 
     iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
@@ -343,8 +343,8 @@ DG.GraphView = SC.View.extend(
       if( firstTime) {
         // set or reset all layout parameters (initializes all parameters)
         tXAxisView.set( 'layout', { left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight });
-        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tYWidth });
-        tY2AxisView.set( 'layout', { right: 0, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight, width: tY2DesiredWidth });
+        tYAxisView.set( 'layout', { left: 0, top: tNumberToggleHeight, bottom: tLegendHeight, width: tYWidth });
+        tY2AxisView.set( 'layout', { right: 0, top: tNumberToggleHeight, bottom: tLegendHeight, width: tY2DesiredWidth });
         tPlotBackground.set( 'layout', { left: tYWidth, right: tSpaceForY2, top: tNumberToggleHeight, bottom: tXHeight + tLegendHeight });
         tLegendView.set( 'layout', { bottom: 0, height: tLegendHeight });
         if(tNumberToggleView)

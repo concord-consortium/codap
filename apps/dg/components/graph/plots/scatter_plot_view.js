@@ -441,6 +441,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
     // We don't want to use the transferred points animation.
     this.set('allowTransferAnimation', false );
   },
+
+  leaveAnimationState: function() {
+    // Re-enable transfer animation
+    this.set('allowTransferAnimation', true );
+  },
   
   /**
     Presumably our model has created a movable line. We need to create our adornment.
