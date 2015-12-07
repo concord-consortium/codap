@@ -76,6 +76,7 @@ DG.appController = SC.Object.create((function () // closure
           if( tItemView) {
             tItemView.get('parentView').bringToFront( tItemView);
             tItemView.$().addClass('component-view-staging');
+            tItemView.scrollToVisible();
           }
           if( tPrevItemView && tPrevItemView !== tItemView)
             tPrevItemView.$().removeClass('component-view-staging');
