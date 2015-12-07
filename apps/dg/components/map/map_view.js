@@ -341,9 +341,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       lineVisibilityChanged: function() {
         var tMapModel = this.get('model' ),
             tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
-            tAdorn = this.get('connectingLineAdorn');
-        tAdornModel.set('isVisible', tMapModel.get('linesShouldBeVisible'));
-        if( tAdornModel && tAdornModel.get('isVisible') && !tAdorn) {
+            tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
+            tLinesAreVisible = tMapModel.get('linesShouldBeVisible'),
+            tAdorn = this.get('connectingLineAdorn'),
+            tWaitTime = tLinesAreVisible ? 0 : DG.PlotUtilities.kDefaultAnimationTime;
+            tAdornModel.set('isVisible', tLinesAreVisible);
+        if( tAdornModel && tLinesAreVisible && !tAdorn) {
           tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
                                                           mapSource: this, layerName: DG.LayerNames.kConnectingLines,
                                                           unselectedLineWidth: 1, selectedLineWidth: 3 });
@@ -356,6 +359,9 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             this.updateMarqueeToolVisibility();
           }
         }.bind( this));
+        this.invokeLater(function() {
+          this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
+        }.bind(this), tWaitTime);
       }.observes('.model.linesShouldBeVisible'),
 
       addAreaLayer: function () {
