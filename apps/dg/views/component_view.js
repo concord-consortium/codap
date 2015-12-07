@@ -338,10 +338,12 @@ DG.ComponentView = SC.View.extend(
             minimize: DG.TitleBarMinimizeButton.design({
               layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
               classNames: ['dg-minimize-view'],
+              isVisible: SC.platform.touch
             }),
             closeBox: DG.TitleBarCloseButton.design({
               layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
               classNames: ['dg-close-view'],
+              isVisible: SC.platform.touch
             }),
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
@@ -350,8 +352,8 @@ DG.ComponentView = SC.View.extend(
               return YES;
             },
             mouseExited: function (evt) {
-              this.setPath('minimize.isVisible', SC.platform.touch);
-              this.setPath('closeBox.isVisible', SC.platform.touch);
+              this.setPath('minimize.isVisible', false);
+              this.setPath('closeBox.isVisible', false);
               this.get('titleView').stopShowingAsEmpty();
               return YES;
             },
