@@ -27,9 +27,15 @@ DG.ComponentController = SC.Object.extend((function () // closure
 
   return {  // return from closure
 
-    model: null,  // DG.Component
+    /**
+     * @type {DG.Component}
+     */
+    model: null,
 
-    view: null,     // DG.ComponentView
+    /**
+     * @type {DG.ComponentView}
+     */
+    view: null,
 
     _oldLayout: null,
 
