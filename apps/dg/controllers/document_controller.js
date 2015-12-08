@@ -142,6 +142,19 @@ DG.DocumentController = SC.Object.extend(
       return this._guideController;
     }.property(),
 
+    _caseTableModels: null,
+    getCaseTableModel: function(context) {
+      if (SC.none(this._caseTableModels)) {
+        this._caseTableModels = [];
+      }
+      var model = this._caseTableModels.findProperty('context', context);
+      if (SC.none(model)) {
+        model = DG.CaseTableModel.create({context: context});
+        this._caseTableModels.push(model);
+      }
+      return model;
+    },
+
     /**
      *  The ID of the document managed by this controller.
      *  @property {String}
@@ -652,43 +665,40 @@ DG.DocumentController = SC.Object.extend(
       return tView;
     },
 
-    addCaseTable: function( iParentView, iComponent) {
+      /**
+       * Adds a case table to the workspace view.
+       *
+       * When a document is restored, iComponent is the object restored from the
+       * document component. Otherwise it is null.
+       *
+       * @param {SC.View} iParentView
+       * @param {DG.Component||null} iComponent
+       * @param {object} iProperties
+       * @returns {DG.HierTableView}
+       */
+    addCaseTable: function( iParentView, iComponent, iProperties) {
       function resolveContextLink(iComponent) {
         var id = DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'context');
         if (id) {
           return iComponent.document.contexts[id];
         }
       }
-      var context = resolveContextLink(iComponent);
-      var model = DG.CaseTableModel.create({context: context});
-      var tView = this.createComponentView(iComponent, {
-          parentView: iParentView,
-          controller: DG.CaseTableController.create({model: model}),
-          componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-          contentProperties: {model: model }, // Temporarily using context as model in order to get a title
-          defaultLayout: { width: 500, height: 200 },
-          isResizable: true}
-      );
-      return tView;
-    },
-
-    /*
-       An alternate implementation of addCaseTable that adds the ability to pass
-       parameters. Needed for multiple data contexts.
-       */
-    addCaseTableP: function( iParentView, iComponent, iProperties) {
-      var model = DG.CaseTableModel.create({context: iProperties.dataContext});
-      iProperties.model = model;
-      var props = SC.Object.create({
+      if (SC.none(iProperties)) {
+        iProperties = {};
+      }
+      var context = iProperties.dataContext || resolveContextLink(iComponent);
+      var model = this.getCaseTableModel(context);
+      var controller = DG.CaseTableController.create(iProperties);
+      var componentClassDef = { type: 'DG.TableView', constructor: DG.HierTableView};
+      var props = {
         parentView: iParentView,
-        controller: DG.CaseTableController.create(iProperties),
-        componentClass: { type: 'DG.TableView', constructor: DG.HierTableView},
-        contentProperties: {model: model, id: iProperties.id }, // Temporarily using context as model in order to get a title
-        defaultLayout: { width: 500, height: 200 },
-        isResizable: true}), tView;
-      DG.ObjectMap.copy(props, iProperties);
-      tView = this.createComponentView(iComponent, props);
-      return tView;
+        controller: controller,
+        componentClass: componentClassDef,
+        contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
+        defaultLayout: {width: 500, height: 200},
+        isResizable: true
+      };
+      return this.createComponentView(iComponent, props);
     },
 
     openCaseTablesForEachContext: function () {
@@ -711,7 +721,8 @@ DG.DocumentController = SC.Object.extend(
           var view;
           docController.contexts.forEach(function (context) {
             if (!haveCaseTableForContext(context)) {
-              view = this.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context, id: newViews[context]});
+              view = this.addCaseTable(DG.mainPage.get('docView'), null,
+                  {dataContext: context, id: newViews[context]});
               newViews[context] = view.getPath('controller.model.id');
             }
           }.bind(docController));
@@ -1176,6 +1187,8 @@ DG.DocumentController = SC.Object.extend(
       this._singletonViews = {};
 
       this.componentControllersMap = {};
+
+      this._caseTableModels = [];
 
       // Reset the guide
       this.get('guideModel').reset();

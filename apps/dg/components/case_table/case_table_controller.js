@@ -78,8 +78,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         sc_super();
         this.caseTableAdapters = [];
 
-        if( this.get('dataContext'))
-          this.dataContextDidChange();
+        this.invokeLater(function () {
+          if( this.get('dataContext') && this.get('model'))
+            this.dataContextDidChange();
+        });
       },
 
       /**
@@ -101,6 +103,8 @@ DG.CaseTableController = DG.ComponentController.extend(
             collectionRecords = dataContext && dataContext.get('collections') || [],
             prevAdapters = this.caseTableAdapters,
             newAdapters = [],
+            // The controller model is a component object. We want the model for the
+            // component's content.
             caseTableModel = this.model && this.model.get('content');
 
         this.caseTableAdapters = newAdapters;
@@ -194,15 +198,15 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       createComponentStorage: function() {
-        var model = this.getPath('model.content'),
-            dataContext = model.get('context'),
+        var caseTableModel = this.getPath('model.content'),
+            dataContext = caseTableModel.get('context'),
             attributeWidths = [],
             storage = {};
         if( dataContext) {
           this.addLink(storage, 'context', dataContext);
         }
 
-        DG.ObjectMap.forEach(model.get('preferredAttributeWidths'), function (key, width) {
+        DG.ObjectMap.forEach(caseTableModel.get('preferredAttributeWidths'), function (key, width) {
           var obj = {};
           var attrRef = dataContext.getAttrRefByID(key);
           if (attrRef) {
@@ -917,8 +921,8 @@ DG.CaseTableController = DG.ComponentController.extend(
        * Helper method to create a DG.Command to create a new collection from
        * a dragged attribute.
        *
-       * @param {DG.Attribute}
-       * @param {DG.collection}
+       * @param attribute {DG.Attribute}
+       * @param collection {DG.collection}
        * @param context  {DG.DataContext} The current DataContext
        * @param parentCollectionID {number|undefined} Parent collection id, if
        *                  collection is to be created as a child collection of
