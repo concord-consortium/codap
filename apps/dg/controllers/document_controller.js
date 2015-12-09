@@ -142,17 +142,23 @@ DG.DocumentController = SC.Object.extend(
       return this._guideController;
     }.property(),
 
-    _caseTableModels: null,
-    getCaseTableModel: function(context) {
-      if (SC.none(this._caseTableModels)) {
-        this._caseTableModels = [];
+    _caseTableComponents: null,
+    getCaseTableComponent: function(originalComponent, context, properties) {
+      if (SC.none(this._caseTableComponents)) {
+        this._caseTableComponents = {};
       }
-      var model = this._caseTableModels.findProperty('context', context);
-      if (SC.none(model)) {
-        model = DG.CaseTableModel.create({context: context});
-        this._caseTableModels.push(model);
+      var contextID = context && context.get('id');
+      var component = originalComponent || this._caseTableComponents[contextID] ;
+      var caseTableModel;
+      if (SC.none(component)) {
+        caseTableModel = DG.CaseTableModel.create({context: context});
+        properties.document = this.content;
+        properties.type = 'DG.TableView';
+        component = DG.Component.createComponent(properties);
+        component.set('content', caseTableModel);
       }
-      return model;
+      this._caseTableComponents[contextID] = component;
+      return component;
     },
 
     /**
@@ -509,6 +515,14 @@ DG.DocumentController = SC.Object.extend(
       return defaults;
     },
 
+    registerComponent: function (iComponent) {
+      var registeredComponents = this.get('components');
+      var componentID = iComponent.get('id');
+      if (SC.none(registeredComponents[componentID])) {
+        registeredComponents[componentID] = iComponent;
+      }
+    },
+
     /**
       Configures/initializes the specified component, using the specified params as options.
       If iComponent is not specified, it will be created. Whether the component is created
@@ -532,6 +546,8 @@ DG.DocumentController = SC.Object.extend(
         if( !SC.none(this.content))
           tComponentProperties.document = this.content;
         tComponent = DG.Component.createComponent( tComponentProperties);
+      } else {
+        this.registerComponent(tComponent);
       }
 
       // If client specified a model, associate it with the component in our map
@@ -687,7 +703,8 @@ DG.DocumentController = SC.Object.extend(
         iProperties = {};
       }
       var context = iProperties.dataContext || resolveContextLink(iComponent);
-      var model = this.getCaseTableModel(context);
+      var component = this.getCaseTableComponent(iComponent, context, iProperties);
+      var model = component.get('content') || DG.CaseTableModel.create({context: context});
       var controller = DG.CaseTableController.create(iProperties);
       var componentClassDef = { type: 'DG.TableView', constructor: DG.HierTableView};
       var props = {
@@ -698,7 +715,7 @@ DG.DocumentController = SC.Object.extend(
         defaultLayout: {width: 500, height: 200},
         isResizable: true
       };
-      return this.createComponentView(iComponent, props);
+      return this.createComponentView(component, props);
     },
 
     openCaseTablesForEachContext: function () {
@@ -1188,7 +1205,7 @@ DG.DocumentController = SC.Object.extend(
 
       this.componentControllersMap = {};
 
-      this._caseTableModels = [];
+      this._caseTableComponents = {};
 
       // Reset the guide
       this.get('guideModel').reset();
