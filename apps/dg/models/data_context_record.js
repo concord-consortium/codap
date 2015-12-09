@@ -124,6 +124,10 @@ DG.DataContextRecord = DG.BaseModel.extend(
      * @returns {*}
      */
     toArchive: function (fullData) {
+      function notEmpty(collection) {
+        return !(SC.none(
+            collection.attrs) || (collection.attrs.length === 0));
+      }
       var obj;
       var root;
       fullData = fullData || false;
@@ -136,10 +140,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
             contextStorage: this.contextStorage
           };
 
-        DG.ObjectMap.forEach(this.collections, function (collectionKey, collection){
-          if (SC.none(collection.parent)) {
+        DG.ObjectMap.values(this.collections).some(function (collection){
+          if (SC.none(collection.parent) && notEmpty(collection)) {
             root = collection;
+            return true;
           }
+          return false;
         });
 
         while (root.children.length > 0) {
