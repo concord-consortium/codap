@@ -80,8 +80,11 @@ DG.CaseTableController = DG.ComponentController.extend(
         // Init is called when the case table controller may not be fully
         // constructed, so, delay to the next Run Loop.
         this.invokeLater(function () {
-          if( this.get('dataContext') && this.get('model'))
+          if( this.get('dataContext') && this.get('model')) {
             this.dataContextDidChange();
+          } else {
+            DG.logWarn('Case table controller unable to complete initialization: missing dataContext or model');
+          }
         });
       },
 
