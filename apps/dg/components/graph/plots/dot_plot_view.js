@@ -482,32 +482,6 @@ DG.DotPlotView = DG.PlotView.extend(
   },
 
   /**
-    Our axes are in a 'final' state for an animation, giving us a chance to compute point
-    coordinates.
-  */
-  enterAnimationState: function() {
-    var this_ = this,
-        tPlotElementLength = this._plottedElements.length,
-        tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext();
-    // During undo/redo we can get here without cases. Bail!
-    if( !tCases || !tRC)
-      return;
-
-    this.zeroBinArray();
-    tCases.forEach( function( iCase, iIndex) {
-      var tUseAnimation = true;
-      if( iIndex >= tPlotElementLength) {
-        this_.callCreateCircle( iCase, iIndex, false);
-        tUseAnimation = false;
-      }
-      this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex, tUseAnimation);
-    });
-    // We don't want to use the transferred points animation.
-    //this.set('allowTransferAnimation', false );
-  },
-
-  /**
     Presumably our model has created a movable value. We need to create our adornment.
   */
   movableValueChanged: function() {

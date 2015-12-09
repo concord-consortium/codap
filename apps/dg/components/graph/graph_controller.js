@@ -214,6 +214,9 @@ DG.GraphController = DG.DataDisplayController.extend(
             return DG.currDocumentController().componentControllersMap[this._componentId];
           },
           execute: function() {
+            var tBenchmarkName = 'Drag attribute ' + iDragData.attribute.get('name') + ' to graph axis';
+            SC.Benchmark.start(tBenchmarkName);
+            //console.profile(tBenchmarkName);
             var controller = this._controller();
             this._beforeStorage = controller.createComponentStorage();
 
@@ -234,6 +237,9 @@ DG.GraphController = DG.DataDisplayController.extend(
             );
 
             this.log = 'plotAxisAttributeChange: { orientation: %@, attribute: %@ }'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+            SC.Benchmark.end(tBenchmarkName);
+            SC.Benchmark.log(tBenchmarkName);
+            //console.profileEnd();
           },
           undo: function() {
             var controller = this._controller();

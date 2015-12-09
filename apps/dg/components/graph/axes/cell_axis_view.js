@@ -192,12 +192,12 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
               draggingInProgress: true
             });
             this_.displayDidChange();
-            this_.propertyDidChange('categoriesDragged');
+            this_.propertyDidChange('categoriesDragged', tCellBeingDragged);
           },
           endDrag = function ( iEvent) {
             this_.set('dragInfo', null);
             this_.displayDidChange();
-            this_.propertyDidChange('categoriesDragged');
+            this_.propertyDidChange('categoriesDragged', tCellBeingDragged);
             this_.updateLayerIfNeeded(true /* skip inWindow check */);
           };
 

@@ -486,28 +486,6 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   _kAllowableInterval: 1000, // milliseconds
 
-  /**
-  */
-  animationStateDidChange: function() {
-    if( this.getPath('model.isAnimating'))
-      this.enterAnimationState();
-    else
-      this.leaveAnimationState();
-  }.observes('.model.isAnimating'),
-
-  /**
-    Subclasses should override in order to animate plotted elements to new coordinates.
-    These can be computed now, but should not be computed again until we leave animation state.
-  */
-  enterAnimationState: function() {
-  },
-
-  /**
-    Subclasses should override in order do any cleanup necessary when an animation ends.
-  */
-  leaveAnimationState: function() {
-  },
-
   // Private properties
   _plottedElements: null, // Kept in the same order as the data
   _mustCreatePlottedElements: true,

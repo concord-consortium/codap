@@ -228,12 +228,13 @@ DG.GraphView = SC.View.extend(
   }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
       'model.transparency', 'model.strokeTransparency'),
 
-  categoriesDidChange: function() {
+  categoriesDidChange: function( iObject, iProperty, iValue) {
+    if( SC.none( iValue))
+      return; // So we aren't fooled by just an axis view changing
     var tLegendView = this.get('legendView');
-    if( !tLegendView)
-      return; // We get called when the xAxisView changes but categoriesDragged has not happened
     this.drawPlots();
-    tLegendView.displayDidChange();
+    if( tLegendView)
+      tLegendView.displayDidChange();
   }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged'),
 
   prepareToSelectPoints: function () {

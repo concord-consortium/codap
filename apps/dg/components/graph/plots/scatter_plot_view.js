@@ -416,38 +416,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
   
   /**
-    Our axes are in a 'final' state for an animation, giving us a chance to compute point
-    coordinates.
-  */
-  enterAnimationState: function() {
-    var this_ = this,
-        tPlotElementLength = this._plottedElements.length,
-        tCases = this.getPath('model.cases'),
-        tRC = this.createRenderContext(),
-        tIndex;
-    tCases.forEach( function( iCase, iIndex) {
-      var tUseAnimation = true;
-      if( iIndex >= tPlotElementLength) {
-        this_.callCreateCircle( iCase, iIndex, false);
-        tUseAnimation = false;
-      }
-      this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex, tUseAnimation);
-    });
-    // If we have more plotted elements than cases, have the extras vanish
-    for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-      this._plottedElements[ tIndex].animate( { transform: "s0 0" }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-    }
-
-    // We don't want to use the transferred points animation.
-    this.set('allowTransferAnimation', false );
-  },
-
-  leaveAnimationState: function() {
-    // Re-enable transfer animation
-    this.set('allowTransferAnimation', true );
-  },
-  
-  /**
     Presumably our model has created a movable line. We need to create our adornment.
   */
   movableLineChanged: function() {
