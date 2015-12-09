@@ -143,6 +143,19 @@ DG.DocumentController = SC.Object.extend(
     }.property(),
 
     _caseTableComponents: null,
+    /**
+     * Get or construct a case table component.
+     *
+     * Case tables need to retain their properties when closed, so we
+     * keep them here. The reference in DocumentController.components may
+     * come and go.
+     * @param {DG.Component||null} originalComponent An existing component,
+     *            if present. Will be provided if the component is already
+     *            defined in a document.
+     * @param {DG.DataContext} context
+     * @param {object} properties
+     * @returns {DG.Component}
+     */
     getCaseTableComponent: function(originalComponent, context, properties) {
       if (SC.none(this._caseTableComponents)) {
         this._caseTableComponents = {};
@@ -515,6 +528,11 @@ DG.DocumentController = SC.Object.extend(
       return defaults;
     },
 
+    /**
+     * Add a component to the 'components' list, if not already present.
+     *
+     * @param {DG.Component} component
+     */
     registerComponent: function (iComponent) {
       var registeredComponents = this.get('components');
       var componentID = iComponent.get('id');

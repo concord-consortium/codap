@@ -77,7 +77,8 @@ DG.CaseTableController = DG.ComponentController.extend(
       init: function() {
         sc_super();
         this.caseTableAdapters = [];
-
+        // Init is called when the case table controller may not be fully
+        // constructed, so, delay to the next Run Loop.
         this.invokeLater(function () {
           if( this.get('dataContext') && this.get('model'))
             this.dataContextDidChange();
