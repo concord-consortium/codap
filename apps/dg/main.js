@@ -117,12 +117,11 @@ if (cfm) {
            appVersion: DG.VERSION,
            appBuildNum: DG.BUILD_NUM
           });
+        client._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
         break;
 
       case 'getContent':
-        DG.serializeDocument().then(function (streamableDocument) {
-          event.callback(client.createContent(streamableDocument));
-        });
+        DG.serializeDocument().then(event.callback);
         break;
 
       case 'newedFile':
@@ -130,8 +129,7 @@ if (cfm) {
         break;
 
       case 'openedFile':
-        var doc = event.data.content.getJSON();
-        DG.loadDocument(doc);
+        DG.loadDocument(JSON.parse(event.data.content));
         break;
     }
   });
@@ -162,8 +160,6 @@ DG.serializeDocument = function() {
  * @param {Object} doc
  */
 DG.loadDocument = function(doc) {
-  console.log("open! ")
-  console.log(doc)
   DG.store = DG.ModelStore.create();
   var newDocument = DG.Document.createDocument(doc);
   DG.currDocumentController().setDocument(newDocument);

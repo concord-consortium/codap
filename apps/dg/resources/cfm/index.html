@@ -15,7 +15,10 @@
 
       var options = {
         app: "../../index.html",
-        autoSaveInterval: 0,
+        autoSaveInterval: 5,
+        appName: "DG",
+        appVersion: "0.1",
+        appBuildNum: "1",
         providers: [
           "localStorage",
           {
@@ -25,9 +28,6 @@
           },
           {
             "name": "documentStore",
-            "appName": "DG",
-            "appVersion": "0.1",
-            "appBuildNum": "1",
             "patch": true,
             "patchObjectHash": function(obj) {
               return obj.guid || JSON.stringify(obj);
