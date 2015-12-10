@@ -160,6 +160,7 @@ DG.serializeDocument = function() {
  * @param {Object} doc
  */
 DG.loadDocument = function(doc) {
+  DG.appController.closeAndNewDocument()
   DG.store = DG.ModelStore.create();
   var newDocument = DG.Document.createDocument(doc);
   DG.currDocumentController().setDocument(newDocument);
