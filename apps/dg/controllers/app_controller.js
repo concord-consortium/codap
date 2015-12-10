@@ -502,7 +502,7 @@ DG.appController = SC.Object.create((function () // closure
       context.restoreFromStorage(contextRecord.contextStorage);
 
       // add case table
-      documentController.addCaseTableP(DG.mainPage.get('docView'), null, {dataContext: context});
+      documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
 
       return true;
     },
