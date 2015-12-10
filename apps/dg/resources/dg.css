@@ -308,6 +308,11 @@
     cursor: pointer;
 }
 
+.legend-key-selected {
+    stroke: black !important;
+    stroke-width: 2px !important;
+}
+
 .legend-key:hover {
     stroke: red !important;
 }
