@@ -538,7 +538,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
               var tInitialColor = tColorMap[iCategory] ?
                   tColorMap[iCategory] :
                   DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
-              tInitialColor = tinycolor(tInitialColor).setAlpha(this.getPath('dataDisplayModel.transparency'));
+              tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).
+                                setAlpha(this.getPath('dataDisplayModel.transparency'));
               tContentView.appendChild(DG.PickerControlView.create({
                 layout: {height: 2 * kRowHeight},
                 label: iCategory,
