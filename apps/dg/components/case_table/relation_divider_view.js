@@ -121,6 +121,8 @@ DG.RelationDividerView = SC.View.extend( (function() {
     classNames: ['slick-header-column'],
     
     backgroundColor: '#E6E6E6',
+
+    expandCollapseIcon: null,
     
     doDraw: function() {
 
@@ -149,20 +151,24 @@ DG.RelationDividerView = SC.View.extend( (function() {
           });
       }
 
-      // The touch object is a transparent rectangle which is larger than the
-      // expand/collapse icon which responds to touch. This makes it easier to
-      // hit the expand/collapse icon on touch platforms.
-      this._paper .path( getImageTouchZonePath( imagePos, imageSize))
-                  .attr({ fill: 'transparent', stroke: 'transparent' })
-                  .touchstart( function( iEvent) {
-                                  SC.run( expandCollapseAll( iEvent));
-                                });
-      this._paper .image( imageUrl, 
-                          imagePos.x, imagePos.y, 
-                          imageSize.width, imageSize.height)
-                  .click( function( iEvent) {
-                            SC.run( expandCollapseAll( iEvent));
-                          });
+      if (SC.none(this.expandCollapseIcon)) {
+        // The touch object is a transparent rectangle which is larger than the
+        // expand/collapse icon which responds to touch. This makes it easier to
+        // hit the expand/collapse icon on touch platforms.
+        this._paper .path( getImageTouchZonePath( imagePos, imageSize))
+            .attr({ fill: 'transparent', stroke: 'transparent' })
+            .touchstart( function( iEvent) {
+              SC.run( expandCollapseAll( iEvent));
+            });
+        this.expandCollapseIcon = this._paper .image( imageUrl,
+            imagePos.x, imagePos.y,
+            imageSize.width, imageSize.height)
+            .click( function( iEvent) {
+              SC.run( expandCollapseAll( iEvent));
+            });
+      } else {
+        this.expandCollapseIcon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y});
+      }
     }
   }),
 
