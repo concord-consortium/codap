@@ -410,20 +410,28 @@ DG.DataContext = SC.Object.extend((function() // closure
       collection = iChange.collection;
     }
 
-    if (!iChange.properties) {
-      iChange.properties = {};
+    // we hold off on observers because of performance issues adding many
+    // cases when some cases are selected
+    collection.casesController.beginPropertyChanges();
+    try {
+      if (!iChange.properties) {
+        iChange.properties = {};
+      }
+
+      if (typeof iChange.properties.parent !== 'object') {
+        parentIsValid = validateParent(collection, iChange.properties.parent);
+      }
+      if( collection && parentIsValid) {
+        valuesArrays = iChange.values || [ [] ];
+        valuesArrays.forEach( createOneCase);
+        if( result.caseIDs && (result.caseIDs.length > 0)) {
+          result.caseID = result.caseIDs[0];
+        }
+      }
+    } finally {
+      collection.casesController.endPropertyChanges();
     }
 
-    if (typeof iChange.properties.parent !== 'object') {
-      parentIsValid = validateParent(collection, iChange.properties.parent);
-    }
-    if( collection && parentIsValid) {
-      valuesArrays = iChange.values || [ [] ];
-      valuesArrays.forEach( createOneCase);
-      if( result.caseIDs && (result.caseIDs.length > 0)) {
-        result.caseID = result.caseIDs[0];
-      }
-    }
     return result;
   },
   
