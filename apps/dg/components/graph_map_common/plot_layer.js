@@ -421,7 +421,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         });
       }
       this._isRenderingValid = false;
-      this.displayDidChange();
+      //this.displayDidChange();
     }
 
     // There might be some cleanup that has to be done after a suitable waiting time
