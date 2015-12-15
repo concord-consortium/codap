@@ -609,18 +609,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
    */
   synchHiddenCases: function () {
     var tHidden = this.get('hiddenCases'),
-        tNewHidden = tHidden.filter(function (iCase) {
+        tNoLongerPresent = tHidden.filter(function (iCase) {
           var tFound = DG.store.find(DG.Case, iCase.get('id'));
-          return !SC.none(tFound);
+          return SC.none(tFound);
         });
-    // Setting hidden Cases can be expensive, so check to see tNewHidden != tHidden before setting
-    if( tNewHidden.some( function( iNew) {
-          return tHidden.indexOf( iNew) < 0;
-        }) ||
-        tHidden.some( function( iHidden) {
-          return tNewHidden.indexOf(iHidden) < 0;
-        })) {
-      this.set('hiddenCases', tNewHidden);
+    if( tNoLongerPresent.length > 0) {
+      this.set('hiddenCases', DG.ArrayUtils.subtract(tHidden, tNoLongerPresent,
+          function( iCase) {
+            return iCase.get('id');
+          }));
     }
   },
 
