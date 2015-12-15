@@ -225,7 +225,6 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             extend: iExtend
           };
       tDataContext.applyChange( tSelectChange);
-      tRect.selected = iSelect;
     },
 
     selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
@@ -242,10 +241,9 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     },
 
     /**
-     * Deselect all cases and all rects
+     * Deselect all cases
      */
     deselectAll: function() {
-      this.deselectRects();
       var tDataConfig = this.get('dataConfiguration'),
           tContext = tDataConfig.get('dataContext'),
           tChange = {
