@@ -106,7 +106,7 @@ DG.DragBorderView = SC.View.extend(
                   function () {
                     // bizarre bug leaves the last animated transition property still
                     // with a delay even after the end of an animation, so we clear it by hand
-                    tViewToDrag._view_layer.style.transition = ""
+                    tViewToDrag._view_layer.style.transition = "";
                     // set actual model layout once animation has completed
                     this._oldLayout = this._controller().revertModelLayout(layout);
                     this._oldLayout.height = layout.height;
@@ -120,7 +120,7 @@ DG.DragBorderView = SC.View.extend(
                 tViewToDrag.animate(layout,
                   {duration: 0.4, timing: 'ease-in-out'},
                   function () {
-                    tViewToDrag._view_layer.style.transition = ""
+                    tViewToDrag._view_layer.style.transition = "";
                     this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                   }.bind(this));
               }
@@ -282,7 +282,7 @@ DG.ComponentView = SC.View.extend(
                     execute: function () {
                       this._beforeStorage = tComponentView.getPath('model.title');
                       tComponentView.setPath('model.title', value);
-                      this._value
+                      this._value;
                       this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
                     },
                     undo: function () {

@@ -297,7 +297,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       });
       DG.ObjectMap.forEach( tCategories, function( iCat, iCount) {
         if( SC.empty( tResult)) {
-          tResult = '<p>'
+          tResult = '<p>';
         }
         else {
           tResult += '<br/>';

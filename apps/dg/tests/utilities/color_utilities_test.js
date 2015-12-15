@@ -15,7 +15,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/*global QUnit */
 sc_require('frameworks/sproutcore/frameworks/qunit/qunit');
 sc_require('utilities/color_utilities');
 
@@ -37,13 +37,13 @@ module("DG.ColorUtilities", {
 
 test("DG.ColorUtilities.colorMapToArray", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
-      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']]
+      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']];
   QUnit.deepEqual(DG.ColorUtilities.colorMapToArray( tMap), tArray, "convert map to array");
 });
 
 test("DG.ColorUtilities.colorArrayToColorMap", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
-      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']]
+      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']];
   QUnit.deepEqual(DG.ColorUtilities.colorArrayToColorMap( tArray), tMap, "convert array to map");
 });
 
