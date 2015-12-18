@@ -224,9 +224,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             select: iSelect,
             extend: iExtend
           };
-      tRect.selected = iSelect;
       tDataContext.applyChange( tSelectChange);
-      this.notifyPropertyChange('selection');
     },
 
     selectCasesInRect: function( iLongIndex, iLatIndex, iExtend) {
@@ -242,18 +240,10 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       this._selectCasesInRect( iLongIndex, iLatIndex, false, true);
     },
 
-    deselectRects: function() {
-      this.forEachRect( function( iRect) {
-        iRect.selected = false;
-      });
-      this.notifyPropertyChange('selection');
-    },
-
     /**
-     * Deselect all cases and all rects
+     * Deselect all cases
      */
     deselectAll: function() {
-      this.deselectRects();
       var tDataConfig = this.get('dataConfiguration'),
           tContext = tDataConfig.get('dataContext'),
           tChange = {
@@ -265,6 +255,16 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       if (tContext) {
         tContext.applyChange(tChange);
       }
+    },
+
+    updateSelection: function() {
+      var tSelection = this.getPath('dataConfiguration.collectionClient.casesController.selection');
+      this.forEachRect( function( iRect) {
+        iRect.selected = iRect.cases.every( function( iCase) {
+          return tSelection.containsObject( iCase);
+        });
+      });
+      this.notifyPropertyChange('selection');
     },
 
     /**
@@ -306,6 +306,23 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       });
       tResult += '</p>';
       return tResult;
+    },
+
+    handleDataContextChange: function( iChange) {
+      var operation = iChange && iChange.operation;
+
+      switch( operation) {
+        case 'createCase':
+        case 'createCases':
+        case 'deleteCases':
+        case 'createCollection':
+        case 'resetCollections':
+          this.rectArrayMustChange();
+          break;
+        case 'selectCases':
+          this.updateSelection();
+          break;
+      }
     },
 
     /**

@@ -150,13 +150,6 @@ DG.PlotView = DG.PlotLayer.extend(
   _elementOrderIsValid: false,  // Set to false when selection changes
   
   /**
-    If we're still valid, skip the whole render process.
-   */
-  shouldDraw: function() {
-    return !this._isRenderingValid;
-  },
-
-  /**
    *
    * @param iIndex  Index of this plot view in array of plotviews owned by graph
    * @param iNumPlots Number of plotviews owned by graph

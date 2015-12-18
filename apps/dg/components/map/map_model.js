@@ -131,6 +131,10 @@ DG.MapModel = DG.DataDisplayModel.extend(
       iChange.indices = this.buildIndices( iChange);
       this.dataRangeDidChange( this, 'revision', this, iChange.indices);
       this.set('lastChange', iChange);
+
+      var tGridModel = this.get('gridModel');
+      if( tGridModel)
+        tGridModel.handleDataContextChange( iChange);
     },
 
     /**

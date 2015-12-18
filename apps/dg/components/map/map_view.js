@@ -181,6 +181,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       destroy: function() {
+        this._ignoreMapDisplayChanges = true; // So we don't install an idleTask in response to layout changes
         this.model.destroy(); // so that it can unlink observers
         sc_super();
       },
@@ -502,11 +503,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {
-        var tGridModel = this.getPath('mapGridLayer.model');
         this.get('model').selectAll(false);
-        if( tGridModel) {
-          tGridModel.deselectRects();
-        }
       }.observes('mapLayer.clickCount'),
 
       handleIdle: function() {
