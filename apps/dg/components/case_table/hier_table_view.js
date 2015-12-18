@@ -41,7 +41,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
   var kColumnHeaderBackgroundColor = '#E6E6E6',
       kDefaultColumnWidth = 60,
       kMinTableWidth = kDefaultColumnWidth,
-      kMinSlop = 7;
+      kMinSlop = 2;
 
   return {
 
@@ -58,6 +58,21 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      */
     dataContext: null,
     layout: { left: 0, top: 0, right: 0, bottom: 0 },
+
+    /**
+     * Whether the component is ready.
+     *
+     * The component size will not be adjusted until it is ready.
+     * @type {boolean}
+     */
+    isReady: false,
+
+    /**
+     * The maximum width the DG.Component will permit by dragging.
+     *
+     * @type {number} pixels
+     */
+    containerMaxWidth: null,
 
     /**
      * The content view is where "the action" is in this class. It contains a
@@ -107,104 +122,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        * @returns {SC.View} The view instance to use as a divider.
        */
       splitViewDividerBetween: function(splitView, view1, view2){
-        if (!this.get('splitDividerView')) return null;
-
-        if( view1 === this.get('parentTableView'))
-          return this.get('splitDividerView').create();
         return DG.InertSplitDividerView.create();
       },
 
-      ///**
-      // Helper method used by splitViewResizeChildrenToFit.
-      // Resizes a single view to the specified parameters.
-      // @param    {SC.SplitView}  iSplitView -- The split view
-      // @param    {SC.SplitChild} iChildView -- The split child whose size is to be adjusted
-      // @param    {Number}        iAdjustmentRequired -- The required size adjustment, where
-      // positive values indicate increasing view sizes and
-      // negative values indicate decreasing view sizes
-      // @param    {Number}        iViewMax -- (Optional) The maximum size of the child view.
-      // If not specified, iChildView.get('gridWidth') will be used.
-      // @returns  {Number}        The remaining adjustmentRequired
-      // */
-      //splitViewAdjustChildToFit: function( iSplitView, iChildView, iAdjustmentRequired, iViewMax) {
-      //  var minSize = iChildView && iChildView.get('minimumSize'),
-      //      maxSize = !SC.none( iViewMax) ? iViewMax : Math.max( minSize, iChildView && iChildView.get('gridWidth')),
-      //      viewSize = iChildView && iChildView.get('size'),
-      //      adjustment = 0;
-      //  if( iAdjustmentRequired > 0)
-      //    adjustment = Math.min( iAdjustmentRequired, maxSize - viewSize);
-      //  else if( iAdjustmentRequired < 0)
-      //    adjustment = Math.max( iAdjustmentRequired, minSize - viewSize);
-      //  if( adjustment !== 0)
-      //    iChildView.set('size', viewSize + adjustment);
-      //  return iAdjustmentRequired - adjustment;
-      //},
-      //
-      ///**
-      // * Attempts to resize the child views of the split view to fit in the SplitView's
-      // * frame. So it may proportionally adjust the child views, the current size of the
-      // * SplitView's content is passed.
-      // *
-      // * You may override this method in a delegate.
-      // *
-      // * @param {SC.SplitView} splitView The SC.SplitView whose children should be resized.
-      // * @param {Number} contentSize The current not-yet-resized size of the SplitView's content.
-      // */
-      //splitViewResizeChildrenToFit: function(splitView, contentSize) {
-      //  var frameSize = this.get('_frameSize'),
-      //  // We reverse the order of the child tables to start from the right
-      //  // child later...
-      //      caseTableViews = this.get('childTableViews').reverse(),
-      //      viewParams = caseTableViews.map(function (view) {
-      //        return {
-      //          view: view,
-      //          size: view.get('size'),
-      //          max: view.get('gridWidth')
-      //        };
-      //      }),
-      //      slopView = this.get('slopView'),
-      //      slopSize = slopView && slopView.get('size'),
-      //      slopAvailable = (slopSize - kMinSlop) || 0,
-      //      adjustmentRequired = frameSize - contentSize,
-      //      additionalAdjustment = 0;
-      //
-      //  if( slopAvailable > 0) {
-      //    // During initialization, slop can get very large temporarily.
-      //    // The additional adjustment makes sure we eliminate the slop if possible.
-      //    // In particular, we should never see slop in the initial table layout.
-      //    if( (adjustmentRequired < 0) && (slopAvailable > -adjustmentRequired))
-      //      additionalAdjustment = slopAvailable + adjustmentRequired;
-      //  }
-      //
-      //  // first, reduce slop
-      //  if( (adjustmentRequired < 0) && (slopSize > kMinSlop)) {
-      //    // Additional slop adjustment is handled by adjusting the amount passed to splitViewAdjustChildToFit(),
-      //    // and then compensating for the adjustment on return from splitViewAdjustChildToFit().
-      //    adjustmentRequired = this.splitViewAdjustChildToFit( this, slopView, adjustmentRequired - additionalAdjustment, frameSize);
-      //    adjustmentRequired += additionalAdjustment;
-      //  }
-      //  // then adjust tables, starting from rightmost child
-      //  viewParams.forEach(function (params, ix) {
-      //    if( (adjustmentRequired !== 0) && (params.size < params.max) ) {
-      //      adjustmentRequired = this.splitViewAdjustChildToFit(this, params.view, adjustmentRequired);
-      //    }
-      //  }.bind(this));
-      //  // then increase slop if necessary
-      //  if( adjustmentRequired > 0)
-      //    adjustmentRequired = this.splitViewAdjustChildToFit( this, slopView, adjustmentRequired, frameSize);
-      //  // if we're still not done, adjust the parent table even if fully visible
-      //
-      //  if( adjustmentRequired !== 0) {
-      //    viewParams.reverse();
-      //    viewParams.forEach(function (params, ix) {
-      //      if (adjustmentRequired !== 0) {
-      //        adjustmentRequired = this.splitViewAdjustChildToFit(this, params.view,
-      //            adjustmentRequired);
-      //      }
-      //    }.bind(this));
-      //  }
-      //},
-      //
       /**
        An array of child table view object, one for each subtable.
        @property   {[DG.CaseTableView]}
@@ -230,18 +150,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }.property(),
 
       childTableLayoutDidChange: function( iNotifier) {
-        var caseTableViews = this.get('childTableViews');
-        var dividerViews = this.get('dividerViews');
-        caseTableViews.forEach(function (view) {
-          this.invokeLater(function () {
-            view.displayDidChange();
-          });
-        }.bind(this));
-        dividerViews.forEach(function (view) {
-          this.invokeLater(function () {
-            view.displayDidChange();
-          });
-        }.bind(this));
+        this.displayDidChange();
       },
 
       /**
@@ -251,25 +160,17 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        */
       gridWidthDidChange: function( iNotifier) {
         var curMaxWidth = iNotifier && iNotifier.get('maximumSize'),
-            newMaxWidth = iNotifier && iNotifier.get('gridWidth'),
-            isColumnResize = false; // currently, no way to know
+            newMaxWidth = iNotifier && iNotifier.get('gridWidth');
 
         if( iNotifier && (newMaxWidth !== curMaxWidth)) {
           iNotifier.set('maximumSize', newMaxWidth);
 
-          if( isColumnResize) {
-            // In theory, a more tailored response is possible if we know
-            // the user is resizing a column, but that information is not
-            // straightforward to determine from SlickGrid and the generic
-            // behavior seems reasonable at the moment. This logic is being
-            // left in place in case the need arises down the road.
-            this.parentView.parentView.columnWidthDidChange( iNotifier);
-          }
-          else {
-            // Set the 'size' of the child table to its desired size
-            iNotifier.set('size', newMaxWidth);
-            this.invokeOnce('_scsv_tile');
-          }
+          // Set the 'size' of the child table to its desired size
+          iNotifier.set('size', newMaxWidth);
+          this.invokeOnce('_scsv_tile');
+          // Should be implemented with an observer from the ScrollView, but
+          // couldn't get it to work.
+          this.parentView.parentView.contentWidthDidChange(iNotifier);
         }
       },
 
@@ -306,41 +207,24 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         }.bind( this));
       },
 
-      model: function() {
-        // delegate up
-        return this.parentView.parentView.model;
-      }.property().cacheable()
+      model: SC.outlet('parentView.parentView.model')
     }),
 
-  /**
-    The left table showing the parent cases.
-   */
-  parentTableView: DG.CaseTableView.extend( SC.SplitChild, {
-    name: 'parentTableView',
-    minimumSize: kMinTableWidth,
-    autoResizeStyle: SC.RESIZE_AUTOMATIC,
-    compensatesForMovement: YES
-  }),
-
-  relationDividerView: DG.RelationDividerView.extend ( SC.SplitChild, {
-    name: 'relationDividerView',
-    minimumSize: DG.RDV_DIVIDER_WIDTH,
-    maximumSize: DG.RDV_DIVIDER_WIDTH,
-    size: DG.RDV_DIVIDER_WIDTH,
-    autoResizeStyle: SC.FIXED_SIZE,
-    compensatesForMovement: YES,
-    allowsIndirectAdjustments: NO
-  }),
+    relationDividerView: DG.RelationDividerView.extend ( SC.SplitChild, {
+      name: 'relationDividerView',
+      minimumSize: DG.RDV_DIVIDER_WIDTH,
+      maximumSize: DG.RDV_DIVIDER_WIDTH,
+      size: DG.RDV_DIVIDER_WIDTH,
+      autoResizeStyle: SC.FIXED_SIZE,
+      compensatesForMovement: YES,
+      allowsIndirectAdjustments: NO
+    }),
 
    childTableView: DG.CaseTableView.extend ( SC.SplitChild, {
       name: 'childTableView',
       minimumSize: kMinTableWidth,
       autoResizeStyle: SC.RESIZE_AUTOMATIC,
-      compensatesForMovement: YES /*function () {
-        var slopSize = this.getPath('parentView.slopView.size');
-        // We only compensate if the slop view can't
-        return slopSize <= kMinSlop;
-      }.property()*/
+      compensatesForMovement: YES
     }),
 
     leftDropTarget: null,
@@ -350,11 +234,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     },
 
     makeChildTableView: function () {
-      //if (this.get('childTableViews').length === 0) {
-      //  return this.parentTableView.create({});
-      //} else {
       return this.childTableView.create({});
-      //}
     },
 
     /**
@@ -416,8 +296,32 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     // Background clicks should complete any current edit
     DG.globalEditorLock.commitCurrentEdit();
   },
-  
-  
+
+    /**
+     * Width of the contained table set changed.
+     * @param {DG.CaseTableView} iNotifier Which table caused the change
+     * @param {boolean} iIsUserInitiated
+     */
+  contentWidthDidChange: function (iNotifier) {
+    var tContentWidth = this.getPath('contentView.frame.width');
+    var tComponentView = DG.ComponentView.findComponentViewParent( this);
+    var tComponentFrame = tComponentView && tComponentView.get('frame');
+    var tComponentWidth = tComponentFrame && tComponentFrame.width;
+
+    // The width of the case table set has changed. We adjust the component
+    // to fit.
+    this.set('containerMaxWidth', tContentWidth);
+
+
+    if(this.get('isReady') && tComponentWidth && tComponentWidth > tContentWidth) {
+      tComponentView.adjust('width', tContentWidth);
+    }
+
+    if (iNotifier && iNotifier.get('isRightmost')) {
+      this.set('isReady', true);
+    }
+  },
+
   /**
     Observer function called when either of the child tables is changed.
     This occurs when changing from one game to another, for instance.
@@ -436,47 +340,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
           tComponentWidth = tComponentFrame && tComponentFrame.width;
       if( tComponentWidth)
         tComponentView.adjust('width', tComponentWidth + 1);
-    }
-  },
-
-  /**
-    Respond to a resize of a table column. There are special cases here that
-    need to be handled separately to get reasonable response to column resizing.
-    @param    {DG.CaseTableView}    iNotifier -- the table view whose column width changed
-   */
-  columnWidthDidChange: function( iNotifier) {
-    var contentView = this.get('contentView');
-    var adjustment = iNotifier.get('gridWidthChange'),
-    // todo: bad reference to parentTableView
-        parentTable = contentView.get('parentTableView'),
-        childTable = contentView.get('childTableView'),
-        tableView = iNotifier,
-        tableSize = tableView && tableView.get('size'),
-        tableContent = tableView && tableView.get('gridWidth'),
-        otherTableView = iNotifier === childTable ? parentTable : childTable,
-        slopView = contentView.get('slopView'),
-        slopSize = slopView && slopView.get('size'),
-        slopAvailable = slopSize - kMinSlop;
-    // Special case: increasing the width of a table in the presence of the slop view.
-    // Eat up the slop before we start hiding parts of the resizing table view.
-    if( (adjustment > 0) && (slopAvailable > 0)) {
-      var slopAdjustment = Math.max( 0, Math.min( adjustment, slopAvailable));
-      contentView.splitViewAdjustChildToFit( contentView, tableView, slopAdjustment);
-      contentView.splitViewAdjustChildToFit( contentView, slopView, -slopAdjustment, slopSize);
-      contentView.splitViewLayoutChildren( contentView);
-    }
-    // Special case: Shrinking a column in a fully visible table.
-    // First, try to show more of the other table, then increase 
-    // the slop once the other table is fully visible.
-    else if( (adjustment < 0) && (tableContent + adjustment <= tableSize)) {
-      var remainder, tableAdjustment;
-      remainder = contentView.splitViewAdjustChildToFit( contentView, tableView, adjustment);
-      tableAdjustment = adjustment - remainder;
-      if( tableAdjustment !== 0)
-        tableAdjustment = contentView.splitViewAdjustChildToFit( contentView, otherTableView, -tableAdjustment);
-      if( tableAdjustment !== 0)
-        contentView.splitViewAdjustChildToFit( contentView, slopView, tableAdjustment, slopSize + tableAdjustment);
-      contentView.splitViewLayoutChildren( contentView);
     }
   },
 
@@ -529,14 +392,18 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         setUpDividerView(caseTablesInAdapterOrder[ix-1], caseTablesInAdapterOrder[ix], divider);
         contentView.appendChild(divider);
       }
+      if (ix + 1 === iAdapters.length) {
+        caseTablesInAdapterOrder[ix].set('isRightmost', true);
+      }
       contentView.appendChild(caseTablesInAdapterOrder[ix]);
     }.bind(this));
 
-    contentView.appendChild(contentView.slopView);
-
     this.updateSelectedRows();
+    //this.invokeLater(function () {
+    //  this.contentWidthDidChange();
+    //}.bind(this));
   },
-  
+
   /**
     Refreshes the column header information for each subtable view.
    */
