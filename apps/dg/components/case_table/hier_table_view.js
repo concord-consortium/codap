@@ -317,6 +317,8 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       tComponentView.adjust('width', tContentWidth);
     }
 
+      // If we have initialized the rightmost case table we have completed
+      // initialization
     if (iNotifier && iNotifier.get('isRightmost')) {
       this.set('isReady', true);
     }
@@ -393,6 +395,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         contentView.appendChild(divider);
       }
       if (ix + 1 === iAdapters.length) {
+        // We mark the rightmost case table. While initializing we need to
+        // ignore width adjustments until we have generated all the case tables.
+        // after this, we try to avoid empty space to the right of the rightmost
+        // table.
         caseTablesInAdapterOrder[ix].set('isRightmost', true);
       }
       contentView.appendChild(caseTablesInAdapterOrder[ix]);
