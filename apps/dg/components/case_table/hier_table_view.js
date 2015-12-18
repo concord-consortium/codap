@@ -405,9 +405,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     }.bind(this));
 
     this.updateSelectedRows();
-    //this.invokeLater(function () {
-    //  this.contentWidthDidChange();
-    //}.bind(this));
+    this.invokeLater(function () {
+      this.contentWidthDidChange();
+    }.bind(this));
   },
 
   /**
