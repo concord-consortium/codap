@@ -495,11 +495,13 @@ DG.RelationDividerView = SC.View.extend( (function() {
         }
         return cmp;
       }
+
       // Identify the last parent case ID. This is used to decide whether to
       // draw a lower boundary line.
       DG.ObjectMap.forEach( parentGroups, function( iParentID) {
         var lastCase = DG.store.find( DG.Case, lastParentID);
         var thisCase = DG.store.find( DG.Case, iParentID);
+
         if (SC.none(thisCase)) {
           return;
         }
@@ -511,7 +513,11 @@ DG.RelationDividerView = SC.View.extend( (function() {
       // Create/update the necessary lines. Marks visited objects.
       //DG.log("DG.RelationDividierView.doDraw: adapterID: %@, parentGroups: %@",
       //        DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
-      DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
+      leftAdapter.gridData.forEach(function (rowData) {
+        var parentID = rowData.id;
+        updateParentChildRelations(parentID, parentGroups[parentID]);
+      });
+      //DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
       
       // Utility function for use with DG.ObjectMap.forEach() which calls
       // the remove() method for each value object in the map.
