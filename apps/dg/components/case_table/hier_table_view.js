@@ -75,6 +75,23 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     containerMaxWidth: null,
 
     /**
+     * This method is called by Sproutcore whenever the view is appended to
+     * the document. In the case of component contents like this, this happens
+     * whenever a component is selected or unselected. (It is removed from the
+     * view and then reattached.
+     *
+     * The scroll positions of the case tables are not preserved through the
+     * process of removal and reattachment. This confuses Slickgrid. So, we
+     * scroll to the position that Sproutcore currently has.
+     */
+    didAppendToDocument: function () {
+      var childViews = this.get('childTableViews');
+      childViews.forEach(function (view) {
+        view.refreshScroll();
+      });
+    },
+
+    /**
      * The content view is where "the action" is in this class. It contains a
      * SplitView that, in turn contains a hierarchical arrangement of case tables.
      */

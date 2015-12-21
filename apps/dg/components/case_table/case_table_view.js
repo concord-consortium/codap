@@ -1074,6 +1074,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   },
 
     /**
+     * It is possible that the DOM and SlickGrid get out of sync. This method
+     * makes the DOM match Slickgrid's idea of the current scroll state.
+     */
+    refreshScroll: function() {
+      var rowIx = this._slickGrid.getViewport().top;
+      this.scrollToRow(0);
+      this.scrollToRow(rowIx);
+    },
+
+    /**
      * Scrolls the table so that the indicated row is at the top of the displayed
      * region, if possible.
      */
