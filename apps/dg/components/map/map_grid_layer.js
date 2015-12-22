@@ -127,7 +127,8 @@ DG.MapGridLayer = SC.Object.extend(
   selectionDidChange: function() {
     var tIndex = 0,
         tRectangles = this.get('grid');
-    if( !tRectangles) // We haven't been asked to construct them yet
+    if( !tRectangles || // We haven't been asked to construct them yet
+        !this.getPath('model.visible'))
       return;
     this.get('model').forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var tLeafRect = tRectangles[ tIndex],
