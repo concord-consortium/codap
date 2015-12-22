@@ -295,7 +295,9 @@ DG.DocumentController = SC.Object.extend(
       this.set('content', iDocument);
 
       DG.DataContext.clearContextMap();
+      DG.Component.clearContentMap();
       this.componentControllersMap = {};
+      this._caseTableComponents = {};
 
       // Create the individual DataContexts
       this.restoreDataContexts();
@@ -1223,11 +1225,10 @@ DG.DocumentController = SC.Object.extend(
 
       this.componentControllersMap = {};
 
-      this._caseTableComponents = {};
-
       // Reset the guide
       this.get('guideModel').reset();
     },
+
     findComponentsByType: function (iType) {
       var tResults = [];
       DG.ObjectMap.forEach(this.componentControllersMap, function (key, componentController) {
