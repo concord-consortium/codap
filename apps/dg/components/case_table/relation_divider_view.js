@@ -516,7 +516,10 @@ DG.RelationDividerView = SC.View.extend( (function() {
       //        DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
       leftAdapter.gridData.forEach(function (rowData) {
         var parentID = rowData.id;
-        updateParentChildRelations(parentID, parentGroups[parentID]);
+        var group = parentGroups[parentID];
+        if (group) {
+          updateParentChildRelations(parentID, parentGroups[parentID]);
+        }
       });
       //DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
       
