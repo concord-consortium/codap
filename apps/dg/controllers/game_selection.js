@@ -27,7 +27,7 @@ sc_require('models/game_spec');
 DG.gameSelectionController = SC.ObjectController.create((function() // closure
 /** @scope DG.gameSelectionController.prototype */ {
 
-  var kDefaultGameIndex = 0;  // 0-based index into 'games' array below
+  //var kDefaultGameIndex = 0;  // 0-based index into 'games' array below
 
   return {  // return from closure
 
@@ -375,12 +375,12 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
    */
   init: function() {
     sc_super();
-    this.buildGamesMenu( DG.IS_SRRI_BUILD, DG.IS_DEV_BUILD);
-    this.menuPane = SC.MenuPane.create({
-              items: this.games,
-              itemTitleKey: 'name',
-              layout: { width: 200/*, height: 200*/ }
-            });
+    //this.buildGamesMenu( DG.IS_SRRI_BUILD, DG.IS_DEV_BUILD);
+    //this.menuPane = SC.MenuPane.create({
+    //          items: this.games,
+    //          itemTitleKey: 'name',
+    //          layout: { width: 200/*, height: 200*/ }
+    //        });
 
     // Specify the default game
     this.setDefaultGame();
@@ -430,27 +430,28 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
                                               specified game as the default.
    */
   setDefaultGame: function( iDefaultGameName) {
-    var defaultGame = null;
-    // (1) The iDefaultGameName argument
-    if( !SC.empty( iDefaultGameName))
-      defaultGame = this.findGameByName( iDefaultGameName);
-    // (2) DG.defaultGameName -- generally set by URL parameter
-    if( !defaultGame && !SC.empty( DG.defaultGameName))
-      defaultGame = this.findGameByName( DG.defaultGameName);
-    // (3) kDefaultGameIndex -- Hard-coded index into Games menu
-    if( !defaultGame) {
-      defaultGame = this.games[kDefaultGameIndex];
-      if( defaultGame) {
-        // Remember the default game name so we can use it later,
-        // even if game indices change.
-        DG.defaultGameName = defaultGame.get('name');
-      }
-    }
-    if( defaultGame) {
-      this.beginPropertyChanges();
-      //this.set('requestedDimensions', null);
-      this.endPropertyChanges();
-    }
+    //var defaultGame = null;
+    //// (1) The iDefaultGameName argument
+    //if( !SC.empty( iDefaultGameName))
+    //  defaultGame = this.findGameByName( iDefaultGameName);
+    //// (2) DG.defaultGameName -- generally set by URL parameter
+    //if( !defaultGame && !SC.empty( DG.defaultGameName))
+    //  defaultGame = this.findGameByName( DG.defaultGameName);
+    //// (3) kDefaultGameIndex -- Hard-coded index into Games menu
+    //if( !defaultGame) {
+    //  //defaultGame = this.games[kDefaultGameIndex];
+    //  if( defaultGame) {
+    //    // Remember the default game name so we can use it later,
+    //    // even if game indices change.
+    //    DG.defaultGameName = defaultGame.get('name');
+    //  }
+    //}
+    //if( defaultGame) {
+    //  this.beginPropertyChanges();
+    //  //this.set('requestedDimensions', null);
+    //  this.endPropertyChanges();
+    //}
+    DG.defaultGameName = 'none';
   },
 
   /**

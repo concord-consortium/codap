@@ -209,7 +209,7 @@ DG.AttributeStats = SC.Object.extend(
      @property{DG.Analysis.EAttributeType} True if all values are numbers or blank
      */
     attributeType:function ( iKey, iValue ) {
-      if( iValue !== undefined )
+      if( !SC.none(iValue) )
         this._attributeType = iValue;
       if( !SC.none( this._attributeType ) )
         return this._attributeType;
@@ -235,7 +235,7 @@ DG.AttributeStats = SC.Object.extend(
         this._computeNumericStats();
 
       return this.getPath( 'numericStats.attributeType' );
-    }.property('attributes', 'numericStats.attributeType'),
+    }.property('attributes', 'numericStats'),
 
     /**
      Run through all attributes and their values and cache computed statistics.
@@ -327,7 +327,7 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._categoricalCacheIsValid )
         this._computeCategoricalStats();
       return this.getPath( 'categoricalStats.numberOfCells' );
-    }.property( 'categoricalStats.numberOfCells' ),
+    }.property( 'categoricalStats' ),
 
     /**
      @property{Number} The number of categorical cells
@@ -336,7 +336,7 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._numericCacheIsValid)
         this._computeNumericStats();
       return this.getPath( 'numericStats.numericRange' );
-    }.property( 'numericStats.numericRange' ),
+    }.property( 'numericStats' ),
 
     /**
      * The property defined above which is supposed to be dependent on numericStats.numericRange

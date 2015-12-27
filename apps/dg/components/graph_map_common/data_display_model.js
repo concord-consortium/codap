@@ -70,15 +70,17 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      */
     cases: function() {
       return this.getPath('dataConfiguration.cases');
-    }.property('dataConfiguration.cases'),
+    }.property('dataConfiguration'),
 
     /**
       @property { SC.SelectionSet }
     */
+/*
     selection: function() {
       return this.getPath('dataConfiguration.selection');
     }.property('dataConfiguration.selection'),
-
+*/
+    selectionBinding: 'dataConfiguration.selection',
     /**
      Work around current notification bug whereby we get notified that number of cases has
      changed even when it hasn't.

@@ -68,7 +68,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
      * @property { width: {Number} height: {Number}}
      */
     desiredExtent:function () {
-      return { width:this.getPath('parentView.layout.width'), height:24 };
+      return { width:this.getPath('parentView.layout.width') || 0, height:24 };
     }.property(),
 
     dragEntered:function ( iDragObject, iEvent ) {

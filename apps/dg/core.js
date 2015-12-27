@@ -110,18 +110,18 @@ SC.Record.ignoreUnknownProperties = true;
  */
 SC.RecordArray.QUERY_MATCHING_THRESHOLD = 10000;
 
-if (SC.Request.prototype.allowCredentials != null) {
-  throw new Error("Looks like Sproutcore was updated and now implements SC.Request.allowCredentials! Remove the SC.XHRResponse monkey patch in core.js, and its override in DG.authorizationController.logToServer.");
-}
-
-SC.XHRResponse.prototype.oldCreateRequest = SC.XHRResponse.prototype.createRequest;
-SC.XHRResponse.prototype.createRequest = function() {
-  var rawRequest = this.oldCreateRequest();
-  if ("withCredentials" in rawRequest) {
-    rawRequest.withCredentials = true;
-  }
-  return rawRequest;
-};
+//if (SC.Request.prototype.allowCredentials != null) {
+//  throw new Error("Looks like Sproutcore was updated and now implements SC.Request.allowCredentials! Remove the SC.XHRResponse monkey patch in core.js, and its override in DG.authorizationController.logToServer.");
+//}
+//
+//SC.XHRResponse.prototype.oldCreateRequest = SC.XHRResponse.prototype.createRequest;
+//SC.XHRResponse.prototype.createRequest = function() {
+//  var rawRequest = this.oldCreateRequest();
+//  if ("withCredentials" in rawRequest) {
+//    rawRequest.withCredentials = true;
+//  }
+//  return rawRequest;
+//};
 
 /** @namespace
 

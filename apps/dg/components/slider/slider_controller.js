@@ -47,10 +47,13 @@ DG.SliderController = DG.ComponentController.extend(
        */
       animationSign: 1,
 
+/*
       isAnimating: function () {
         // !! guarantees a boolean return for null, undefined, etc.
         return !!this.getPath('valueAnimator.isAnimating');
       }.property('valueAnimator.isAnimating'),
+*/
+      isAnimatingBinding: 'valueAnimator.isAnimating',
 
       modelDidChange: function () {
         var sliderModel = this.getPath('model.content');

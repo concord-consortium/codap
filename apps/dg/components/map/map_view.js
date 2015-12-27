@@ -97,9 +97,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       _mapDisplayChangeInProgress: false,
       _mapDisplayChange: null,
 
+/*
       paper: function() {
         return this.getPath('mapPointView.paper');
       }.property(),
+*/
+      paperBinding: 'mapPointView.paper',
 
       layerManager: function() {
         return this.getPath('mapPointView.layerManager');

@@ -37,7 +37,7 @@ DG.appController = SC.Object.create((function () // closure
      * File menu.
      * @property {SC.MenuPane}
      */
-    fileMenuPane: null,
+     ane: null,
 
     /**
      * Options menu.
@@ -60,11 +60,11 @@ DG.appController = SC.Object.create((function () // closure
      */
     init: function () {
       sc_super();
-      this.fileMenuPane = DG.MenuPane.create({
+      this.fileMenuPane = DG.MenuPane.extend({
         items: this.get('fileMenuItems'),
         layout: { width: 165 }
       });
-      this.tileMenuPane = DG.MenuPane.create({
+      this.tileMenuPane = DG.MenuPane.extend({
         showTileList: function( iAnchor) {
           this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
           this.popup(iAnchor);
@@ -90,11 +90,11 @@ DG.appController = SC.Object.create((function () // closure
             tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
         }
       });
-      this.optionMenuPane = DG.MenuPane.create({
+      this.optionMenuPane = DG.MenuPane.extend({
         items: this.get('optionMenuItems'),
         layout: { width: 150 }
       });
-      this.guideMenuPane = SC.MenuPane.create({
+      this.guideMenuPane = SC.MenuPane.extend({
         layout: { width: 250 }
       });
 
@@ -219,7 +219,7 @@ DG.appController = SC.Object.create((function () // closure
     loginDidChange: function () {
       var isDeveloper = DG.authorizationController.get('isUserDeveloper');
       this._fileMenuIncludesDevItems = this._fileMenuIncludesDevItems || isDeveloper;
-      this.fileMenuPane.set('items', this.get('fileMenuItems'));
+      this.get('fileMenuPane').set('items', this.get('fileMenuItems'));
     }.observes('DG.authorizationController.isUserDeveloper'),
 
     optionMenuItems: function () {

@@ -23,6 +23,8 @@
 // As you develop your application you will probably want to override this.
 // See comments for some pointers on what to do next.
 //
+sc_require('controllers/authorization');
+
 DG.main = function main() {
 
 //  var host = SC.$(location).attr('host'),

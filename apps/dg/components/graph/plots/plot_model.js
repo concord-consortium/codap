@@ -36,26 +36,34 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   /**
     @property { DG.DataContext }  The data context
    */
+/*
   dataContext: function() {
     return this.getPath('dataConfiguration.dataContext');
   }.property('dataConfiguration.dataContext'),
-   
+*/
+  dataContextBinding: 'dataConfiguration.dataContext',
+
   /**
     Note: There is an ambiguity about which is the collection client when
     the plot has attributes from different collections.
     @property { DG.CollectionClient }  The collection client
    */
+/*
   collectionClient: function() {
     return this.getPath('dataConfiguration.collectionClient');
   }.property('dataConfiguration.collectionClient'),
-   
+*/
+  collectionClientBinding: 'dataConfiguration.collectionClient',
+
   /**
     @property { SC.Array }
   */
+/*
   cases: function() {
     return this.getPath('dataConfiguration.cases');
   }.property('dataConfiguration.cases'),
-
+*/
+  casesBinding: 'dataConfiguration.cases',
   /**
     The plot model needs access to the cases controller that is stored in my dataConfiguration's
       collection client.
@@ -67,9 +75,12 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   /**
     @property { SC.SelectionSet }
   */
+/*
   selection: function() {
     return this.getPath('dataConfiguration.selection');
   }.property('dataConfiguration.selection'),
+*/
+  selectionBinding: 'dataConfiguration.selection',
 
   /**
     @property { Number }

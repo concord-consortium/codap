@@ -48,7 +48,7 @@ DG.LegendModel = SC.Object.extend(
   numberOfCells: function () {
     var tNumCells = this.getPath('attributeDescription.attributeStats.numberOfCells');
     return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
-  }.property('attributeDescription.attributeStats.numberOfCells'),
+  }.property('attributeDescription.attributeStats'),
 
   /**
     Determined by asking attributeStats
@@ -56,7 +56,7 @@ DG.LegendModel = SC.Object.extend(
   */
     numericRange: function() {
       return this.getPath('attributeDescription.attributeStats.numericRange');
-    }.property('attributeDescription.attributeStats.numericRange'),
+    }.property('attributeDescription.attributeStats'),
 
   /**
     Determined by asking attributeStats
