@@ -16,7 +16,9 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('controllers/authorization_controller');
 sc_require('controllers/document_archiver');
+sc_require('controllers/document_controller');
 sc_require('utilities/menu_pane');
 
 /** @class
@@ -58,45 +60,52 @@ DG.appController = SC.Object.create((function () // closure
      */
     init: function () {
       sc_super();
-      this.fileMenuPane = DG.MenuPane.create({
-        items: this.get('fileMenuItems'),
-        itemLayerIdKey: 'id',
-        layout: { width: 165 }
-      });
-      this.tileMenuPane = DG.MenuPane.create({
-        showTileList: function( iAnchor) {
-          this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
-          this.popup(iAnchor);
-        },
-        layout: { width: 150 },
-        menuItemDidChange: function() {
-          var tItemView = this.getPath('currentMenuItem.content.target'),
+
+      // Without the SC.run() we get warnings about invokeOnce() being called
+      // outside the run loop in SC 1.10. A better solution would probably be
+      // to create these menus somewhere else, but for now we just wrap them
+      // in a run loop to quiet the warnings.
+      SC.run(function() {
+        this.fileMenuPane = DG.MenuPane.create({
+          items: this.get('fileMenuItems'),
+          itemLayerIdKey: 'id',
+          layout: {width: 165}
+        });
+        this.tileMenuPane = DG.MenuPane.create({
+          showTileList: function (iAnchor) {
+            this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
+            this.popup(iAnchor);
+          },
+          layout: {width: 150},
+          menuItemDidChange: function () {
+            var tItemView = this.getPath('currentMenuItem.content.target'),
               tPrevItemView = this.getPath('previousMenuItem.content.target');
-          if( tItemView) {
-            tItemView.get('parentView').bringToFront( tItemView);
-            tItemView.$().addClass('component-view-staging');
-            tItemView.scrollToVisible();
-          }
-          if( tPrevItemView && tPrevItemView !== tItemView)
-            tPrevItemView.$().removeClass('component-view-staging');
-        }.observes('currentMenuItem', 'previousMenuItem'),
-        willRemoveFromDocument: function() {
-          var tItem = this.get('currentMenuItem'),
+            if (tItemView) {
+              tItemView.get('parentView').bringToFront(tItemView);
+              tItemView.$().addClass('component-view-staging');
+              tItemView.scrollToVisible();
+            }
+            if (tPrevItemView && tPrevItemView !== tItemView)
+              tPrevItemView.$().removeClass('component-view-staging');
+          }.observes('currentMenuItem', 'previousMenuItem'),
+          willRemoveFromDocument: function () {
+            var tItem = this.get('currentMenuItem'),
               tPrevItem = this.get('previousMenuItem');
-          if( tItem)
-            tItem.getPath('content.target').$().removeClass('component-view-staging');
-          if( tPrevItem)
-            tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
-        }
-      });
-      this.optionMenuPane = DG.MenuPane.create({
-        items: this.get('optionMenuItems'),
-        itemLayerIdKey: 'id',
-        layout: { width: 150 }
-      });
-      this.guideMenuPane = SC.MenuPane.create({
-        layout: { width: 250 }
-      });
+            if (tItem)
+              tItem.getPath('content.target').$().removeClass('component-view-staging');
+            if (tPrevItem)
+              tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
+          }
+        });
+        this.optionMenuPane = DG.MenuPane.create({
+          items: this.get('optionMenuItems'),
+          itemLayerIdKey: 'id',
+          layout: {width: 150}
+        });
+        this.guideMenuPane = SC.MenuPane.create({
+          layout: {width: 250}
+        });
+      }.bind(this));
 
       this.autoSaveTimer = SC.Timer.schedule({
         target: this,
