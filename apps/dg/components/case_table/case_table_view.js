@@ -774,14 +774,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       iContext.classNames( this.$().attr("class"), YES);
   },
 
-    didAppendToDocument: function() {
+  didAppendToDocument: function() {
     var gridAdapter = this.get('gridAdapter');
-    if( !this._slickGrid && gridAdapter) {
+    if (!this._slickGrid && SC.none(gridAdapter)) {
+      console.log("DG.CaseTableView.didAppendToDocument: Can't initialize _slickGrid!");
+      return;
+    }
+
+    if( !this._slickGrid) {
       this.initGridView();
       this.set('gridWidth', this._slickGrid.getContentSize().width);
-    }
-    else {
-      console.log("DG.CaseTableView.didCreateLayer: Can't initialize _slickGrid!");
     }
   },
 
