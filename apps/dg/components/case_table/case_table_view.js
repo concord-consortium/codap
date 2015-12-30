@@ -256,7 +256,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.setPath('gridAdapter.collectionName', value);
     }
     return this.getPath('gridAdapter.collectionName');
-  }.property('gridAdapter.collectionName'),
+  }.property(),
+
+  collectionNameDidChange: function() {
+    this.notifyPropertyChange('collectionName', this.get('collectionName'));
+  }.observes('*gridAdapter.collectionName'),
 
   /**
    * Count for the current collection.
@@ -460,10 +464,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
    */
   initGridView: function() {
-    var gridSelector = "#" + this.tableView.get('layerId'),
+    var gridLayer = this.tableView.get('layer'),
         gridAdapter = this.get('gridAdapter'),
         dataView = gridAdapter && gridAdapter.gridDataView;
-    this._slickGrid = new Slick.Grid( gridSelector, gridAdapter.gridDataView, 
+    this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
                                       gridAdapter.gridColumns, gridAdapter.gridOptions);
     
     this._slickGrid.setSelectionModel(new Slick.RowSelectionModel({ selectActiveRow: false }));
@@ -542,15 +546,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }.bind( this));
     
-    $(gridSelector).show();
+    $(gridLayer).show();
 
-    $(gridSelector).bind('wheel', function (ev) {
+    $(gridLayer).bind('wheel', function (ev) {
       ev.stopPropagation();
     });
-    $(gridSelector).bind('DOMMouseScroll', function (ev) {
+    $(gridLayer).bind('DOMMouseScroll', function (ev) {
       ev.stopPropagation();
     });
-    $(gridSelector).bind('MozMousePixelScroll', function (ev) {
+    $(gridLayer).bind('MozMousePixelScroll', function (ev) {
       ev.stopPropagation();
     });
 
@@ -756,14 +760,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // we simply call displayDidChange() to make sure we get a second call to
     // render(), by which time the <div> has been created and we can pass it
     // to SlickGrid.
-    if( iFirstTime) {
-      this.displayDidChange();
-    }
-    else if( !this._slickGrid && this.get('gridAdapter')) {
-      this.initGridView();
-      this.set('gridWidth', this._slickGrid.getContentSize().width);
-    }
-    else if( this._slickGrid) {
+    if( this._slickGrid) {
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
         gridAdapter.refresh();
@@ -789,6 +786,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // wouldn't have the desired effect until the next time we render().
     if( this._slickGrid)
       iContext.classNames( this.$().attr("class"), YES);
+  },
+
+  didCreateLayer: function() {
+    var gridAdapter = this.get('gridAdapter');
+    if( !this._slickGrid && gridAdapter) {
+      this.initGridView();
+      this.set('gridWidth', this._slickGrid.getContentSize().width);
+    }
+    else {
+      console.log("DG.CaseTableView.didCreateLayer: Can't initialize _slickGrid!");
+    }
   },
 
   mouseDown: function( iEvent) {
