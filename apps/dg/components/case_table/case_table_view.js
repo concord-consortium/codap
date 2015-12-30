@@ -774,7 +774,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       iContext.classNames( this.$().attr("class"), YES);
   },
 
-  didCreateLayer: function() {
+    didAppendToDocument: function() {
     var gridAdapter = this.get('gridAdapter');
     if( !this._slickGrid && gridAdapter) {
       this.initGridView();
