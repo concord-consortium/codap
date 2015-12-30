@@ -250,7 +250,7 @@ DG.SliderView = SC.View.extend(
             name: 'slider.change',
             undoString: 'DG.Undo.slider.change',
             redoString: 'DG.Redo.slider.change',
-            log: "sliderThumbDrag: { name: %@, newValue: %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
+            log: "sliderThumbDrag: { \"name\": \"%@\", \"newValue\": %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
             _componentId: this_.getPath('controller.model.id'),
             _controller: function() {
               return DG.currDocumentController().componentControllersMap[this._componentId];
