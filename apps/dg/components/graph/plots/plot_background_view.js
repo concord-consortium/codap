@@ -76,7 +76,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
    */
   initLayerManager: function() {
     sc_super();
-    
+
+    // if base class wasn't able to initialize the layer manager, e.g. because we
+    // don't have paper yet, then this.get('layerManager') leads to an infinite loop.
+    // For now, we avoid the infinite loop by testing the private _layerManager.
+    if (!this._layerManager) return;
+
     var ln = DG.LayerNames;
     this.get('layerManager').addNamedLayer( ln.kBackground )
                   .addNamedLayer( ln.kGrid )

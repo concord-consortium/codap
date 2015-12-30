@@ -232,8 +232,7 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
    * Subclasses can override calling sc_super() and then adding layers at will.
    */
   initLayerManager: function() {
-    if( !this._layerManager) {
-      DG.assert( this._paper);
+    if( !this._layerManager && this._paper) {
       this._layerManager = new DG.LayerManager( this._paper );
     }
   },
