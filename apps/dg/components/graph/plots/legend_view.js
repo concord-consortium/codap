@@ -339,11 +339,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        */
       isNumeric: function() {
         return this.getPath('model.attributeDescription.isNumeric');
-      }.property('model.attributeDescription.isNumeric'),
+      }.property(),
+
+      isNumericDidChange: function() {
+        this.notifyPropertyChange('isNumeric', this.get('isNumeric'));
+      }.observes('*model.attributeDescription.isNumeric'),
 
       attributeTypeDidChange: function() {
         this.displayDidChange();
-      }.observes('.model.attributeDescription.attributeStats.attributeType'),
+      }.observes('*model.attributeDescription.attributeStats.attributeType'),
 
       selectionDidChange: function() {
         if( this.get('isNumeric')) {

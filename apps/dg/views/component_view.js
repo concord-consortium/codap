@@ -216,9 +216,7 @@ DG.ComponentView = SC.View.extend(
         /**
          * @property {Array of DG.InspectorButtonView}
          */
-        inspectorButtons: function () {
-          return this.getPath('controller.inspectorButtons');
-        }.property('controller.inspectorButtons'),
+        inspectorButtonsBinding: SC.Binding.from('*controller.inspectorButtons').oneWay(),
 
         /**
          * Is this component view the one selected component view in the container?
@@ -230,9 +228,11 @@ DG.ComponentView = SC.View.extend(
           this.setPath('containerView.titlebar.isSelected', this.get('isSelected'));
         }.observes('isSelected'),
 
+        _modelSavedHeightBinding: SC.Binding.from('*model.savedHeight').oneWay(),
+
         isMinimized: function () {
-          return !SC.none(this.getPath('model.savedHeight'));
-        }.property('model.savedHeight'),
+          return !SC.none(this.get('_modelSavedHeight'));
+        }.property('_modelSavedHeight'),
 
         init: function() {
           sc_super();
@@ -613,78 +613,84 @@ DG.ComponentView = SC.View.extend(
     }()) // function closure
 );
 
-DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
-                                              iContentProperties, iIsResizable, iIsVisible) {
-  SC.Benchmark.start('createComponent: ' + iComponentClass);
+DG.ComponentView._createComponent = function (iParams) {
+  var tComponentClass = iParams.componentClass.constructor;
+  SC.Benchmark.start('createComponent: ' + tComponentClass);
 
-  var tIsStandaloneInteractive = DG.STANDALONE_MODE && (iComponentClass === DG.GameView),
-      tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
+  var tIsStandaloneInteractive = DG.STANDALONE_MODE && (tComponentClass === DG.GameView),
+      tMakeItVisible = (iParams.layout.isVisible === undefined) || iParams.layout.isVisible,
+      tIsResizable = iParams.isResizable,
       tComponentView = DG.ComponentView.create({
-        layout: iComponentLayout,
+        layout: iParams.layout,
         isVisible: tMakeItVisible,
         showTitleBar: !tIsStandaloneInteractive,
         isResizable: !tIsStandaloneInteractive
       });
-  tComponentView.addContent(iComponentClass.create(iContentProperties));
+  tComponentView.addContent(tComponentClass.create(iParams.contentProperties));
 
+  if(iParams.controller)
+    tComponentView.set('controller', iParams.controller);
   if( tIsStandaloneInteractive)
-    iIsResizable = false;
-  if (!SC.none(iIsResizable))
-    tComponentView.set('isResizable', iIsResizable);
-  if (!SC.none(iIsVisible))
-    tComponentView.set('isVisible', iIsVisible);
+    tIsResizable = false;
+  if (!SC.none(tIsResizable))
+    tComponentView.set('isResizable', tIsResizable);
+  if (!SC.none(iParams.isVisible))
+    tComponentView.set('isVisible', iParams.isVisible);
 
-  SC.Benchmark.end('createComponent: ' + iComponentClass);
-  SC.Benchmark.log('createComponent: ' + iComponentClass);
+  SC.Benchmark.end('createComponent: ' + tComponentClass);
+  SC.Benchmark.log('createComponent: ' + tComponentClass);
   return tComponentView;
 };
 
-DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
-                                              iComponentClass, iContentProperties,
-                                              iIsResizable,
-                                              iUseLayoutForPosition, iIsVisible) {
+DG.ComponentView.restoreComponent = function (iParams) {
 
-  var tComponentView = this._createComponent(iComponentLayout, iComponentClass, iContentProperties,
-      iIsResizable, iIsVisible);
+  var tComponentView = this._createComponent(iParams),
+      tSuperView = iParams.parentView,
+      tUseLayoutForPosition = iParams.useLayout;
+
+  if(iParams.controller)
+    tComponentView.set('controller', iParams.controller);
+
   //default to use the existing layout if present, even when requested otherwise.
-  if (SC.none(iUseLayoutForPosition) && !SC.none(iComponentLayout.left) && !SC.none(iComponentLayout.top)) {
-    iUseLayoutForPosition = true;
+  if (SC.none(tUseLayoutForPosition) && !SC.none(iParams.layout.left) && !SC.none(iParams.layout.top)) {
+    tUseLayoutForPosition = true;
   }
-  if (!iUseLayoutForPosition) {
-    iSuperView.positionNewComponent(tComponentView);
+  if (!tUseLayoutForPosition) {
+    tSuperView.positionNewComponent(tComponentView);
   }
-  iSuperView.appendChild(tComponentView);
-  iSuperView.set('frameNeedsUpdate', true);
+  tSuperView.appendChild(tComponentView);
+  tSuperView.set('frameNeedsUpdate', true);
 
   return tComponentView;
 };
 
 /**
  * Create a component view and add it as a subview to the given super view.
- * @param iSuperView {SC.View}
- * @param iComponentLayout
- * @param iComponentClass - The class of the content view to be contained in the component view
- * @param iContentProperties - These properties are passed to the new instance of the content during creation
- * @param iIsResizable
- * @param iUseLayoutForPosition - if true, forgo auto-positioning and just use the layout.
- * @param iIsVisible {Boolean}
- * @param iPosition {String} Default is 'top'. Also possible is 'bottom'
+ * @param iParams {Object}
+ *   parentView {SC.View}
+ *   layout
+ *   componentClass - The class of the content view to be contained in the component view
+ *   contentProperties - These properties are passed to the new instance of the content during creation
+ *   isResizable
+ *   useLayout - if true, forgo auto-positioning and just use the layout.
+ *   isVisible {Boolean}
+ *   position {String} Default is 'top'. Also possible is 'bottom'
  */
-DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties,
-                                          iIsResizable, iUseLayoutForPosition, iIsVisible, iPosition) {
-  iUseLayoutForPosition = iUseLayoutForPosition || false;
-  if (!SC.none(iComponentLayout.width))
-    iComponentLayout.width += DG.ViewUtilities.horizontalPadding();
-  if (!SC.none(iComponentLayout.height))
-    iComponentLayout.height += DG.ViewUtilities.verticalPadding();
+DG.ComponentView.addComponent = function (iParams) {
+  var tParams = $.extend({}, iParams, { layout: $.extend(true, {}, iParams.layout) }),
+      tSuperView = tParams.parentView,
+      tUseLayoutForPosition = tParams.useLayout || false;
+  if (!SC.none(tParams.layout.width))
+    tParams.layout.width += DG.ViewUtilities.horizontalPadding();
+  if (!SC.none(tParams.layout.height))
+    tParams.layout.height += DG.ViewUtilities.verticalPadding();
 
-  var tComponentView = this._createComponent(iComponentLayout, iComponentClass,
-      iContentProperties, iIsResizable, iIsVisible);
+  var tComponentView = this._createComponent(iParams);
 
-  if (!iUseLayoutForPosition)
-    iSuperView.positionNewComponent(tComponentView, iPosition);
-  iSuperView.appendChild(tComponentView);
-  iSuperView.set('frameNeedsUpdate', true);
+  if (!tUseLayoutForPosition)
+    tSuperView.positionNewComponent(tComponentView, iParams.position);
+  tSuperView.appendChild(tComponentView);
+  tSuperView.set('frameNeedsUpdate', true);
 
   // We want to be sure the component view is visible. iSuperView's parent is a scroll view
   // and it can accomplish this for us.

@@ -61,35 +61,35 @@ DG.PlotDataConfiguration = SC.Object.extend(
   
   xCollectionClient: function() {
     return this.getPath('xAttributeDescription.collectionClient');
-  }.property('xAttributeDescription.collectionClient'),
+  }.property(),
   
   yCollectionClient: function() {
     return this.getPath('yAttributeDescription.collectionClient');
-  }.property('yAttributeDescription.collectionClient'),
+  }.property(),
   
   y2CollectionClient: function() {
     return this.getPath('y2AttributeDescription.collectionClient');
-  }.property('y2AttributeDescription.collectionClient'),
+  }.property(),
 
   legendCollectionClient: function() {
     return this.getPath('legendAttributeDescription.collectionClient');
-  }.property('legendAttributeDescription.collectionClient'),
+  }.property(),
 
   xCollectionDidChange: function() {
-    this.notifyPropertyChange('xCollectionClient');
-  },
+    this.notifyPropertyChange('xCollectionClient', this.get('xCollectionClient'));
+  }.observes('*xAttributeDescription.collectionClient'),
   
   yCollectionDidChange: function() {
-    this.notifyPropertyChange('yCollectionClient');
-  },
+    this.notifyPropertyChange('yCollectionClient', this.get('yCollectionClient'));
+  }.observes('*yAttributeDescription.collectionClient'),
   
   y2CollectionDidChange: function() {
-    this.notifyPropertyChange('y2CollectionClient');
-  },
+    this.notifyPropertyChange('y2CollectionClient', this.get('y2CollectionClient'));
+  }.observes('*y2AttributeDescription.collectionClient'),
 
   legendCollectionDidChange: function() {
-    this.notifyPropertyChange('legendCollectionClient');
-  },
+    this.notifyPropertyChange('legendCollectionClient', this.get('legendCollectionClient'));
+  }.observes('*legendAttributeDescription.collectionClient'),
 
   /**
    * @property {String}
@@ -181,62 +181,102 @@ DG.PlotDataConfiguration = SC.Object.extend(
   
   xAttributeID: function() {
     return this.getPath('xAttributeDescription.attributeID');
-  }.property('xAttributeDescription.attributeID'),
+  }.property(),
   
   yAttributeID: function() {
     return this.getPath('yAttributeDescription.attributeID');
-  }.property('yAttributeDescription.attributeID'),
+  }.property(),
 
   y2AttributeID: function() {
     return this.getPath('y2AttributeDescription.attributeID');
-  }.property('y2AttributeDescription.attributeID'),
+  }.property(),
 
   legendAttributeID: function() {
     return this.getPath('legendAttributeDescription.attributeID');
-  }.property('legendAttributeDescription.attributeID'),
+  }.property(),
 
+  xAttributeIDDidChange: function() {
+    this.notifyPropertyChange('xAttributeID', this.get('xAttributeID'));
+  }.observes('*xAttributeDescription.attributeID'),
+  
+  yAttributeIDDidChange: function() {
+    this.notifyPropertyChange('yAttributeID', this.get('yAttributeID'));
+  }.observes('*yAttributeDescription.attributeID'),
+  
+  y2AttributeIDDidChange: function() {
+    this.notifyPropertyChange('y2AttributeID', this.get('y2AttributeID'));
+  }.observes('*y2AttributeDescription.attributeID'),
+  
+  legendAttributeIDDidChange: function() {
+    this.notifyPropertyChange('legendAttributeID', this.get('legendAttributeID'));
+  }.observes('*legendAttributeDescription.attributeID'),
+  
   /**
     @property {Boolean}
   */
   xIsNumeric: function() {
     return this.getPath('xAttributeDescription.isNumeric');
-  }.property('xAttributeDescription.isNumeric'),
+  }.property(),
 
   /**
     @property {Boolean}
   */
   yIsNumeric: function() {
     return this.getPath('yAttributeDescription.isNumeric');
-  }.property('yAttributeDescription.isNumeric'),
+  }.property(),
 
   /**
     @property {Boolean}
   */
   y2IsNumeric: function() {
     return this.getPath('y2AttributeDescription.isNumeric');
-  }.property('y2AttributeDescription.isNumeric'),
+  }.property(),
 
+  xIsNumericDidChange: function() {
+    this.notifyPropertyChange('xIsNumeric', this.get('xIsNumeric'));
+  }.observes('*xAttributeDescription.isNumeric'),
+  
+  yIsNumericDidChange: function() {
+    this.notifyPropertyChange('yIsNumeric', this.get('yIsNumeric'));
+  }.observes('*yAttributeDescription.isNumeric'),
+  
+  y2IsNumericDidChange: function() {
+    this.notifyPropertyChange('y2IsNumeric', this.get('y2IsNumeric'));
+  }.observes('*y2AttributeDescription.isNumeric'),
+  
   /**
     @property {DG.Analysis.EAttributeType}
   */
   xType: function() {
     return this.getPath('xAttributeDescription.attributeType');
-  }.property('xAttributeDescription.attributeType'),
+  }.property(),
 
   /**
     @property {DG.Analysis.EAttributeType}
   */
   yType: function() {
     return this.getPath('yAttributeDescription.attributeType');
-  }.property('yAttributeDescription.attributeType'),
+  }.property(),
 
   /**
     @property {DG.Analysis.EAttributeType}
   */
   y2Type: function() {
     return this.getPath('y2AttributeDescription.attributeType');
-  }.property('y2AttributeDescription.attributeType'),
+  }.property(),
 
+  xTypeDidChange: function() {
+    this.notifyPropertyChange('xType', this.get('xType'));
+  }.observes('*xAttributeDescription.attributeType'),
+  
+  yTypeDidChange: function() {
+    this.notifyPropertyChange('yType', this.get('yType'));
+  }.observes('*yAttributeDescription.attributeType'),
+  
+  y2TypeDidChange: function() {
+    this.notifyPropertyChange('y2Type', this.get('y2Type'));
+  }.observes('*y2AttributeDescription.attributeType'),
+  
   /**
    * This property is never actually assigned. It is used only as a notification bottleneck
    * @property { null }
