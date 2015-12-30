@@ -374,7 +374,7 @@ return {
                     (!DG.documentServer && iMetaArgs && iMetaArgs.force),
         time = new Date(),
         eventValue,
-        parameters,
+        parameters = {},
         body;
 
     if( !shouldLog) {
@@ -389,15 +389,20 @@ return {
 
       eventValue = extract(iProperties, 'args');
 
-      try {
-        parameters = JSON.parse(eventValue);
-        // If the value of parameters is not an object, then wrap the value in
-        // an object. Otherwise the log manager will reject it.
-        if (typeof parameters !== 'object') {
-          parameters = {value: parameters};
+      // test for simple string
+      if (/^[a-zA-Z]*$/.test(eventValue)) {
+        parameters = {value: eventValue};
+      }
+      else {
+        try {
+          parameters = JSON.parse(eventValue);
+          // If the value of parameters is not an object, then wrap the value in
+          // an object. Otherwise the log manager will reject it.
+          if (typeof parameters !== 'object') {
+            parameters = {value: parameters};
+          }
+        } catch (e) {
         }
-      } catch(e) {
-        parameters = {};
       }
 
       // hack to deal with pgsql 'varying' type length limitation
