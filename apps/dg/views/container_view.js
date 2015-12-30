@@ -267,7 +267,7 @@ DG.ContainerView = SC.View.extend(
                                       iPosition);
         iView.adjust( 'left', tLoc.x);
         iView.adjust( 'top', tLoc.y);
-        this.invokeLast( function() {
+        this.invokeNext( function() {
           this.select( iView);
         }.bind( this));
       },

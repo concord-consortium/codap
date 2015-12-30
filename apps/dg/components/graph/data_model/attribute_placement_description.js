@@ -198,7 +198,11 @@ DG.AttributePlacementDescription = SC.Object.extend(
       return DG.Analysis.EAttributeType.eNone;
     else
       return tAttributeStats.get('attributeType');
-  }.property('attributeStats.attributeType'),
+  }.property(),
+
+  attributeTypeDidChange: function() {
+    this.notifyPropertyChange('attributeType', this.get('attributeType'));
+  }.observes('*attributeStats.attributeType'),
 
   /**
     @property {DG.Analysis.EAnalysisRole}

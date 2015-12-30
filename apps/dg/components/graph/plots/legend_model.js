@@ -60,7 +60,11 @@ DG.LegendModel = SC.Object.extend(
   numberOfCells: function () {
     var tNumCells = this.getPath('attributeDescription.attributeStats.numberOfCells');
     return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
-  }.property('attributeDescription.attributeStats.numberOfCells'),
+  }.property(),
+
+  numberOfCellsDidChange: function() {
+    this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+  }.observes('*attributeDescription.attributeStats.numberOfCells'),
 
   cellMapDidChange: function() {
     this.updateSelection();
@@ -72,7 +76,11 @@ DG.LegendModel = SC.Object.extend(
   */
     numericRange: function() {
       return this.getPath('attributeDescription.attributeStats.numericRange');
-    }.property('attributeDescription.attributeStats.numericRange'),
+    }.property(),
+
+    numericRangeDidChange: function() {
+      this.notifyPropertyChange('numericRange', this.get('numericRange'));
+    }.observes('*attributeDescription.attributeStats.numericRange'),
 
   /**
     Determined by asking attributeStats

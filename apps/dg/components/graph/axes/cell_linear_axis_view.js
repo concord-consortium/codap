@@ -621,8 +621,12 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
      * @property {Number}
      */
     increment: function() {
-      return this.coordinateToData( 1) - this.coordinateToData(0);
-    }.property('model.lowerBound', 'model.upperBound', 'frame').cacheable(),
+      return this.coordinateToData(1) - this.coordinateToData(0);
+    }.property('frame').cacheable(),
+
+    incrementDidChange: function() {
+      this.notifyPropertyChange('increment', this.get('increment'));
+    }.observes('*model.lowerBound', '*model.upperBound'),
 
     /**
     Return the maximum length of the label strings plus a bit extra.

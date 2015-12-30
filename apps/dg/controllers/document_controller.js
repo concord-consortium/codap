@@ -598,7 +598,7 @@ DG.DocumentController = SC.Object.extend(
     },
 
     createComponentView: function(iComponent, iParams) {
-      var tLayout = iParams && iParams.defaultLayout,
+      var tParams = $.extend({}, iParams, { layout: $.extend(true, {}, iParams.defaultLayout) }),
           isRestoring = !SC.none( iComponent),
           tComponent, tComponentView;
 
@@ -612,8 +612,9 @@ DG.DocumentController = SC.Object.extend(
       //
       // Configure/create the view and connect it to the controller
       //
-      if( tComponent && tComponent.get('layout'))
-         tLayout = tComponent.get('layout');
+      var tComponentLayout = tComponent.get('layout');
+      if( tComponent && tComponentLayout)
+        tParams.layout = $.extend(true, {}, tComponentLayout);
 
       if( isRestoring) {
         if(DG.STANDALONE_MODE && (iParams.componentClass.constructor === DG.GameView)) {
@@ -621,21 +622,11 @@ DG.DocumentController = SC.Object.extend(
           tLayout = {};
         }
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
-        tComponentView = DG.ComponentView.restoreComponent( iParams.parentView, tLayout,
-                                                       iParams.componentClass.constructor,
-                                                       iParams.contentProperties,
-                                                       iParams.isResizable,
-                                                       iParams.useLayout);
+        tComponentView = DG.ComponentView.restoreComponent(tParams);
         iComponent.set('title', tRestoredTitle);
       } else {
         DG.sounds.playCreate();
-        tComponentView = DG.ComponentView.addComponent( iParams.parentView, tLayout,
-                                                      iParams.componentClass.constructor,
-                                                      iParams.contentProperties,
-                                                      iParams.isResizable,
-                                                      iParams.useLayout,
-                                                      iParams.isVisible,
-                                                      iParams.position);
+        tComponentView = DG.ComponentView.addComponent(tParams);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
@@ -651,7 +642,6 @@ DG.DocumentController = SC.Object.extend(
         // Tell the controller about the new view, whose layout we will need when archiving.
         if (iParams.controller) {
           iParams.controller.set('view', tComponentView);
-          tComponentView.set('controller', iParams.controller);
         }
         tComponentView.set('model', tComponent);
         tComponent.set('layout', tComponentView.get('layout'));
@@ -926,7 +916,7 @@ DG.DocumentController = SC.Object.extend(
                                 controller: DG.SliderController.create(),
                                 componentClass: { type: 'DG.SliderView', constructor: DG.SliderView},
                                 contentProperties: { id: this._componentId, model: tSliderModel },
-                                defaultLayout: { width: 300, height: 60 },
+                                defaultLayout: { width: 300, height: 98 },
                                 isResizable: true}
                               );
           this._componentId = tView.getPath('controller.model.id');
