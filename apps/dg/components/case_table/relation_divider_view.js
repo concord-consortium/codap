@@ -115,7 +115,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
     
     render: function( iContext, iFirstTime) {
       sc_super();
-      iContext.classNames( ['slick-header','ui-state-default'], YES);
+      iContext.setClass( ['slick-header','ui-state-default'], YES);
     },
     
     classNames: ['slick-header-column'],
