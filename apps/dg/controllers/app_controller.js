@@ -1027,30 +1027,32 @@ DG.appController = SC.Object.create((function () // closure
         }
 
         var handleRead = function () {
-          try {
-            if( iType === 'JSON') {
-              that.openJsonDocument(this.result, true).then(function() {
-                DG.log('Opened: ' + iFile.name);
-              },
-              function (msg) {
-                  DG.logError('JSON file open failed: ' + iFile.name);
-                  DG.logError(msg);
-                  iDialog.showAlert(new Error(msg));
-              });
+          SC.run(function() {
+            try {
+              if (iType === 'JSON') {
+                that.openJsonDocument(this.result, true).then(function() {
+                    DG.log('Opened: ' + iFile.name);
+                  },
+                  function (msg) {
+                    DG.logError('JSON file open failed: ' + iFile.name);
+                    DG.logError(msg);
+                    iDialog.showAlert(new Error(msg));
+                  });
+              }
+              else if (iType === 'TEXT') {
+                that.importText(this.result, iFile.name);
+              }
+              if (iDialog)
+                iDialog.close();
             }
-            else if( iType === 'TEXT') {
-              that.importText(this.result, iFile.name);
+            catch (er) {
+              console.log(er);
+              if (iDialog) {
+                iDialog.showAlert(er);
+              }
             }
-            if (iDialog)
-              iDialog.close();
-          }
-          catch (er) {
-            console.log(er);
-            if (iDialog) {
-              iDialog.showAlert( er);
-            }
-          }
-          DG.busyCursor.hide();
+            DG.busyCursor.hide();
+          }.bind(this));
         };
 
         var that = this;
