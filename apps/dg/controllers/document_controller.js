@@ -304,7 +304,9 @@ DG.DocumentController = SC.Object.extend(
         this.restoreDataContexts();
 
         // Create the individual component views
-        this.restoreComponentControllersAndViews();
+        SC.run(function () {
+          this.restoreComponentControllersAndViews();
+        }.bind(this));
 
         this.clearChangedObjects();
         this.set('changeCount', 0);
