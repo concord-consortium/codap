@@ -1104,7 +1104,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
             dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);
-      }.observes('contentView.leftDropTarget.dropData'),
+      }.observes('contentView.leftDropTarget.dropData')
     };
   }()) // function closure
 );
