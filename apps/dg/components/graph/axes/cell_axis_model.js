@@ -33,8 +33,12 @@ DG.CellAxisModel = DG.AxisModel.extend(
   */
   numberOfCells: function() {
     return Math.max( 1, this.getPath('attributeDescription.attributeStats.numberOfCells'));
-  }.property('attributeDescription.attributeStats.numberOfCells'),
-  
+  }.property(),
+
+  numberOfCellsDidChange: function() {
+    this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+  }.observes('*attributeDescription.attributeStats.numberOfCells'),
+
   /**
     Iterates through cells to find name with maximum length
     @property{Number}

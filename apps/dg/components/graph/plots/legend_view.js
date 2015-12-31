@@ -128,7 +128,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           return null;
         else
           return this._labelNode;
-      }.property('model.label'),
+      }.property(),
+
+      labelNodeDidChange: function() {
+        this.notifyPropertyChange('labelNode', this.get('labelNode'));
+      }.observes('*model.label'),
 
       /**
        * Clients expect to be able to get an array, even though we only ever have one labelNode.
