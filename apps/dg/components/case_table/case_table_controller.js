@@ -1105,23 +1105,6 @@ DG.CaseTableController = DG.ComponentController.extend(
             dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.leftDropTarget.dropData'),
-
-      /**
-       * Handles drop to rightDropZone.
-       */
-      rightDropZoneDidAcceptDrop: function () {
-        var dropData = this.getPath('contentView.rightDropTarget.dropData');
-        if (SC.none(dropData)) {
-          return;
-        }
-        var context = this.dataContext;
-        var collectionCount = context.get('collectionCount');
-        var parentClient = context.getCollectionAtIndex(collectionCount-1);
-        var parentID = parentClient.collection.id;
-        DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
-            dropData.collection, context, parentID));
-        this.setPath('contentView.leftDropTarget.dropData', null);
-      }.observes('contentView.rightDropTarget.dropData')
     };
   }()) // function closure
 );
