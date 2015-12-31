@@ -236,7 +236,9 @@ DG.GraphController = DG.DataDisplayController.extend(
                 iAxis.get('orientation')
             );
 
-            this.log = 'plotAxisAttributeChange: { orientation: %@, attribute: %@ }'.fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
+            this.log = 'plotAxisAttributeChange: ' +
+                '{ "orientation": "%@", "attribute": "%@" }'
+                    .fmt(iAxis.get('orientation'), iDragData.attribute.get('name'));
             SC.Benchmark.end(tBenchmarkName);
             SC.Benchmark.log(tBenchmarkName);
             //console.profileEnd();
