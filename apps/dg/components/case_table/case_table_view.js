@@ -1046,35 +1046,34 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       iEvent.stopImmediatePropagation();
 
     var tDragView = this._hiddenDragView,
-        tAttributeName = column.attribute.get('name'),
-        this_ = this;
+        tAttributeName = column.attribute.get('name');
     SC.run( function() {
       // Make sure dragView is in front. Won't actually happen without this runloop.
       tDragView.set('value', tAttributeName);
-      this_.removeChild( tDragView);
-      this_.appendChild( tDragView);
+      this.removeChild( tDragView);
+      this.appendChild( tDragView);
       // We could dynamically adjust the width here, but since the font used for the
       // drag image is currently different than the one used in the table, it's not
       // clear what the appropriate size should be, so we skip it for now.
       //if( column.width)
       //  tDragView.adjust('width', column.width);
-    });
-    // Initiate a drag
-    DG.Drag.start({
-      event: iEvent,
-      source: this,
-      dragView: tDragView,
-      ghost: YES,
-      ghostActsLikeCursor: YES,
-      slideBack: YES,
-      // The origin is supposed to be the point that the drag view will slide back to,
-      // but this is not working.
-      origin: { x: iEvent.clientX, y: iEvent.clientY },
-      data: { context: column.context,
-              collection: column.collection,
-              attribute: column.attribute,
-              text: tAttributeName }  // For use by clients like the text box
-    });
+      // Initiate a drag
+      DG.Drag.start({
+        event: iEvent,
+        source: this,
+        dragView: tDragView,
+        ghost: YES,
+        ghostActsLikeCursor: YES,
+        slideBack: YES,
+        // The origin is supposed to be the point that the drag view will slide back to,
+        // but this is not working.
+        origin: { x: iEvent.clientX, y: iEvent.clientY },
+        data: { context: column.context,
+                collection: column.collection,
+                attribute: column.attribute,
+                text: tAttributeName }  // For use by clients like the text box
+      });
+    }.bind(this));
   },
   
   /**
