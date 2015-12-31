@@ -202,7 +202,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             this.notifyPropertyChange('labelNode', this._labelNodes);
 
           return this._labelNodes;
-        }.property('model.labels'),
+        }.property(),
+
+        labelNodesDidChange: function() {
+          this.notifyPropertyChange('labelNodes', this.get('labelNodes'));
+        }.observes('*model.labels'),
 
         /**
          The Raphael element used to display the label.
@@ -316,7 +320,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         numberOfCells: function () {
           return this.getPath('model.numberOfCells');
-        }.property('model.numberOfCells'),
+        }.property(),
+
+        numberOfCellsChanged: function() {
+          this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+        }.observes('*model.numberOfCells'),
 
         /**
          The total distance in pixels between one cell and the next without any "slop" at the ends.
