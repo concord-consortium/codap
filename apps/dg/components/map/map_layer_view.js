@@ -85,9 +85,13 @@ DG.MapLayerView = SC.View.extend(
         }
       },
 
-      didCreateLayer: function () {
-        // TODO: Investigate whether there is some later time to call _createMap so we don't have to use invokeLast
-        this.invokeLast(this._createMap);
+      didAppendToDocument: function() {
+        if (!this._map) {
+          this._createMap();
+        }
+        else {
+          this.viewDidResize();
+        }
       },
 
       _createMap: function () {

@@ -37,7 +37,11 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
    */
   mapGridModel: function() {
     return this.getPath('mapGridLayer.model');
-  }.property('mapGridLayer.model'),
+  }.property(),
+
+  mapGridModelDidChange: function() {
+    this.notifyPropertyChange('mapGridModel', this.get('mapGridModel'));
+  }.observes('*mapGridLayer.model'),
 
   /**
     @property { DG.MapGridLayer}
