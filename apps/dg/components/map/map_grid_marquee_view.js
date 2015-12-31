@@ -83,6 +83,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
+      /* global L */
       var tMap = this_.get('map'),
           tMapGridModel = this_.get('mapGridModel'),
           tLatLngBounds,
