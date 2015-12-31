@@ -31,15 +31,15 @@ sc_require('views/raphael_base');
 DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
     /** @scope DG.AxisView.prototype */ (function () {
 
-      var LabelNode = SC.Object.extend(
-          {
-            paper: null,
+      var LabelNode = SC.Object.extend({
+            paper: null,          // supplied by creator
+            clickCallback: null,  // supplied by creator
             text: null,
             description: null,
-            colorIndex: 0,
+            labelIndex: 0,        // supplied by creator
+            colorIndex: 0,        // supplied by creator
             numColors: 1,
-            rotation: 0,
-            priorNode: null,
+            rotation: 0,          // supplied by creator
             loc: null,  // {x, y}
             _circleElement: null,
             _textElement: null,
@@ -47,9 +47,12 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
             init: function() {
               this._textElement = this.paper.text(0, 0, '')
-                  .addClass('axis-label');
+                                      .addClass('axis-label');
               DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
               this.numColorsChanged();
+              this._textElement.mousedown(function(evt) {
+                                            this.clickCallback(this, evt);
+                                          }.bind(this));
             },
 
             numColorsChanged: function() {
@@ -68,7 +71,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
               if((this.numColors > 1) && !this._circleElement) {
                 this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
-                    .addClass('axis-dot');
+                                                .addClass('axis-dot');
+                this._circleElement.mousedown(function(evt) {
+                                                this.clickCallback(this, evt);
+                                              }.bind(this));
               }
               else if((this.numColors <= 1) && this._circleElement) {
                 this._circleElement.remove();
@@ -110,16 +116,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 tResult.height += (this.rotation !== 0) ? 2 * this.kCircleRadius + 2 : 0;
               }
               return tResult;
-            },
-
-            mousedown: function( iHandler) {
-              this._textElement.mousedown( iHandler);
-              this._circleElement && this._circleElement.mousedown( iHandler);
-            },
-
-            unmousedown: function( iHandler) {
-              this._textElement.unmousedown( iHandler);
-              this._circleElement && this._circleElement.unmousedown( iHandler);
             },
 
             remove: function() {
@@ -235,15 +231,31 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tLabels, tNumAttributes, tNode;
           if (SC.none(this._paper))
             return [];
+        
+          var handleLabelClick = function(iLabelNode, evt) {
+            var scEvent = SC.Event(evt),
+                pane = this.get('pane');
+
+            // For unknown reasons, SC.data gets reset sometimes after it's been created.
+            // We reinitialize it here if necessary, because SC.Event requires it.
+            if(!SC.data) SC.data = $.data;
+
+            scEvent.clientData = { axisView: this, labelIndex: iLabelNode.labelIndex };
+            pane.sendEvent('axisLabelClick', scEvent, this);
+          }.bind(this);
 
           tLabels = this.getPath('model.labels');
           tNumAttributes = tBaseLabelIndex + tLabels.length +
               ((this.get('orientation') === 'vertical') ? tOtherYCount : 0);
           tLabels.forEach(function (iLabel, iIndex) {
             if (tLabelCount >= this_._labelNodes.length) {
-              tNode = LabelNode.create({ paper: this_._paper, rotation: tRotation,
-                colorIndex: tBaseLabelIndex + iIndex, numColors: tNumAttributes,
-                priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
+              tNode = LabelNode.create({
+                        paper: this_._paper,
+                        clickCallback: handleLabelClick,
+                        rotation: tRotation,
+                        labelIndex: iIndex,
+                        colorIndex: tBaseLabelIndex + iIndex,
+                        numColors: tNumAttributes });
               this_._labelNodes.push(tNode);
               tChangeHappened = true;
             }
