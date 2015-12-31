@@ -26,10 +26,12 @@
 DG.LabelNode = SC.Object.extend(
   /** @scope DG.LabelNode.prototype */
     {
-      paper: null,
+      paper: null,// supplied by creator
+      clickCallback: null,  // supplied by creator
       text: null,
       description: null,
-      colorIndex: 0,
+      labelIndex: 0,        // supplied by creator
+      colorIndex: 0,        // supplied by creator
       numColors: 1,
       rotation: 0,
       priorNode: null,
@@ -50,6 +52,11 @@ DG.LabelNode = SC.Object.extend(
             .attr( { 'text-anchor': this.anchor });
         DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
         this.numColorsChanged();
+        /* SC upgrade change
+        this._textElement.mousedown(function(evt) {
+                                            this.clickCallback(this, evt);
+                                          }.bind(this));
+                                          */
       },
 
       numColorsChanged: function() {
@@ -81,6 +88,11 @@ DG.LabelNode = SC.Object.extend(
         if((this.numColors > 1) && !this._circleElement) {
           this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
               .addClass('axis-dot');
+              /* SC upgrade change
+                this._circleElement.mousedown(function(evt) {
+                                                this.clickCallback(this, evt);
+                                              }.bind(this));
+                                              */
         }
         else if((this.numColors <= 1) && this._circleElement) {
           this._circleElement.remove();
