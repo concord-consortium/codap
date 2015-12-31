@@ -202,11 +202,19 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
     hasLatLongAttributes: function() {
       return this.getPath('dataConfiguration.hasLatLongAttributes');
-    }.property('dataConfiguration.hasLatLongAttributes'),
+    }.property('dataConfiguration').cacheable(),
+
+    hasLatLongAttributesDidChange: function() {
+      this.notifyPropertyChange('hasLatLongAttributes', this.get('hasLatLongAttributes'));
+    }.observes('*dataConfiguration.hasLatLongAttributes'),
 
     hasAreaAttribute: function() {
       return this.getPath('dataConfiguration.hasAreaAttribute');
-    }.property('dataConfiguration.hasAreaAttribute'),
+    }.property('dataConfiguration'),
+
+    hasAreaAttributeDidChange: function() {
+      this.notifyPropertyChange('hasLatLongAttributes', this.get('hasLatLongAttributes'));
+    }.observes('*dataConfiguration.hasAreaAttribute'),
 
     /**
      * We can rescale if we have some data to rescale to.

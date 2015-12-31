@@ -49,7 +49,11 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
    */
   map: function() {
     return this.getPath('mapGridLayer.map');
-  }.property('mapGridLayer.map'),
+  }.property(),
+
+  mapDidChange: function() {
+    this.notifyPropertyChange('map', this.get('map'));
+  }.observes('*mapGridLayer.map'),
 
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
