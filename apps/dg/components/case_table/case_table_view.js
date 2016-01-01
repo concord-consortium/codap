@@ -57,7 +57,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       value: function () {
         return this.parentView.get('collectionName') + ' (' +
             this.parentView.get('caseCount') + ')';
-      }.property( 'parentView.collectionName', 'parentView.caseCount'),
+      }.property(),
+
+      valueDidChange: function() {
+        this.notifyPropertyChange('value', this.get('value'));
+      }.observes('*parentView.collectionName', '*parentView.caseCount'),
 
       /**
        * We are displaying the collection name and count. We only want to
@@ -268,7 +272,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   caseCount: function () {
     return this.getPath('gridAdapter.collection.casesController.length');
-  }.property('gridAdapter.collection.casesController.length'),
+  }.property(),
+
+  caseCountDidChange: function() {
+    this.notifyPropertyChange('caseCount', this.get('caseCount'));
+  }.observes('*gridAdapter.collection.casesController.length'),
 
   /**
     The adapter used for adapting the case data for use in SlickGrid.
