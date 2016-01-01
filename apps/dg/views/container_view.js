@@ -221,34 +221,59 @@ DG.ContainerView = SC.View.extend(
 
       /* bringToFront - The given child view will be placed at the end of the list, thus
         rendered last and appearing in front of all others.
-        Note: For the data interactive this has the very undesirable effect of causing the
-          it to be reloaded!
       */
       bringToFront: function( iChildView) {
-        // Todo: Moving forward we want a data interactive to be allowed to come to the front.
-        var tContentView = iChildView.get('contentView');
-        if( tContentView && tContentView.constructor === DG.GameView)
-          return;
-        var tSaved = iChildView.layoutDidChange;  // save this for after changes
-        iChildView.layoutDidChange = null;  // prevent specious notification of resizing
-        this.removeChild( iChildView);
-        this.appendChild( iChildView);
-        iChildView.layoutDidChange = tSaved;  // reinstate
+        var domThisElement = this.get('layer'),
+            domChildElement = iChildView.get('layer'),
+            scChildViews = this.get('childViews'),
+            scChildViewCount = scChildViews.get('length'),
+            i;
+
+        // move the specified SC child view to the end of the child views
+        // no need to check the last child, since it wouldn't need to be moved
+        for( i = 0; i < scChildViewCount - 1; ++i) {
+          if(scChildViews[i] === iChildView) {
+            // remove it from its current location
+            scChildViews.splice(i, 1);
+            // add it to the end of the array
+            scChildViews.push(iChildView);
+            break;
+          }
+        }
+
+        // move the specified child DOM element to the end of the DOM children
+        // will automatically remove it from its current location, if necessary
+        // cf. https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
+        domThisElement.appendChild(domChildElement);
       },
       
       /* sendToBack - The given child view will be placed at the beginning of the list, thus
         rendered first and appearing behind all others.
       */
       sendToBack: function( iChildView) {
-        var tChildViews = this.get('childViews'),
-            tComponentViews = this.get('componentViews' ),
-            tSaved = iChildView.layoutDidChange;  // save this for after changes
-        if( tComponentViews.length === 1)
-          return;   // Only one child, so it's already in back.
-        iChildView.layoutDidChange = null;  // prevent specious notification of resizing
-        this.removeChild( iChildView);
-        this.insertBefore( iChildView, tChildViews[ 0]);
-        iChildView.layoutDidChange = tSaved;  // reinstate
+        var domThisElement = this.get('layer'),
+            domChildElement = iChildView.get('layer'),
+            scChildViews = this.get('childViews'),
+            scChildViewCount = scChildViews.get('length'),
+            i;
+
+        // move the specified SC child view to the beginning of the child views
+        // no need to check the first child, since it wouldn't need to be moved
+        for( i = 1; i < scChildViewCount; ++i) {
+          if(scChildViews[i] === iChildView) {
+            // remove it from its current location
+            scChildViews.splice(i, 1);
+            // add it to the beginning of the array
+            scChildViews.unshift(iChildView);
+            break;
+          }
+        }
+
+        // move the specified child DOM element before the first DOM child
+        if(domThisElement.firstChild !== domChildElement) {
+          // will automatically remove it from its current location, if necessary
+          domThisElement.insertBefore(domChildElement, domThisElement.firstChild);
+        }
       },
 
       /** positionNewComponent - It is assumed that the given view has not yet been added
