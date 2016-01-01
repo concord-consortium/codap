@@ -54,6 +54,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       orientation: 'horizontal',
 
       /**
+       * @property {String: Raphael.element}
+       */
+      rectangles: null,
+
+      /**
        * @property {DG.Attribute}
        */
       plottedAttribute: function() {
@@ -238,6 +243,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               tRowHeight = tHeight / (tNumRows + 1), // adding one to include label
               tSize = tRowHeight - 2 * kVMargin,
               tCellIndex,
+              tRectangles = {},
               tCellNames = this_.getPath('model.cellNames')
             ;
 
@@ -279,7 +285,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                                                     .addClass( DG.PlotUtilities.kLegendKeyName)
                                                     .mousedown( selectCasesInTextCell)
                                                   );
+            tRectangles[tName] = tRectElement;
           }
+          this_.set('rectangles', tRectangles);
         }
 
         renderLabel();
@@ -334,7 +342,25 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       attributeTypeDidChange: function() {
         this.displayDidChange();
-      }.observes('.model.attributeDescription.attributeStats.attributeType')
+      }.observes('.model.attributeDescription.attributeStats.attributeType'),
+
+      selectionDidChange: function() {
+        if( this.get('isNumeric')) {
+          // not doing anything yet
+        }
+        else {
+          var tSelectionMap = this.getPath('model.selectionMap'),
+              tRectangles = this.get('rectangles');
+          DG.ObjectMap.forEach( tRectangles, function( iKey, iRect) {
+            if( tSelectionMap[ iKey]) {
+              iRect.addClass(DG.PlotUtilities.kLegendKeySelected);
+            }
+            else {
+              iRect.removeClass(DG.PlotUtilities.kLegendKeySelected);
+            }
+          });
+        }
+      }.observes('model.selectionMap')
 
     };
   }()));

@@ -136,7 +136,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       var tLegendDescription = tConfiguration.get('legendAttributeDescription');
 
-      this.set('legend', DG.LegendModel.create());
+      this.set('legend', DG.LegendModel.create( { dataConfiguration: tConfiguration }));
       this.setPath('legend.attributeDescription', tLegendDescription);
     },
 
@@ -294,6 +294,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     handleOneDataContextChange: function( iNotifier, iChange) {
+      this.get('legend').handleDataContextChange( iChange);
     },
 
     /**

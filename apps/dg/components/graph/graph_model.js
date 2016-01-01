@@ -737,6 +737,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     handleOneDataContextChange: function( iNotifier, iChange) {
+      sc_super();
+
       var plotModel = this.get('plot'),
           operation = iChange && iChange.operation;
 

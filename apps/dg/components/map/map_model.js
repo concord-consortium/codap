@@ -120,6 +120,8 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.observes('dataConfiguration.legendAttributeDescription.attribute'),
 
     handleOneDataContextChange: function( iNotifier, iChange) {
+      sc_super();
+
       if( iChange && iChange.operation === 'deleteCases')
         this.get('dataConfiguration').synchHiddenCases();
 

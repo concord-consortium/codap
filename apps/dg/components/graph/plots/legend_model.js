@@ -26,10 +26,22 @@ DG.LegendModel = SC.Object.extend(
 /** @scope DG.LegendModel.prototype */ 
 {
   /**
+   * @property { DG.PlotDataConfiguration }
+   */
+  dataConfiguration: null,
+
+  /**
    *
     @property { DG.AttributePlacementDescription }
   */
   attributeDescription: null,
+
+  /**
+   * Has properties corresponding to categories for which each of the corresponding
+   * cases are selected. Value of property is true.
+   * @property {Object}
+   */
+  selectionMap: null,
 
   /**
     The string that will be used to label the legend.
@@ -105,7 +117,40 @@ DG.LegendModel = SC.Object.extend(
       }
     });
     tAttribute.set('colormap', tColormap);
-  }.observes('attributeDescription.attribute')
+  }.observes('attributeDescription.attribute'),
+
+  /**
+   * Called by the DataDisplayModel that owns me.
+   * @param iChange {Object}
+   */
+  handleDataContextChange: function( iChange) {
+    var operation = iChange && iChange.operation;
+
+    switch (operation) {
+      case 'selectCases':
+        if (this.getPath('attributeDescription.isCategorical'))
+          this.invokeLater( this.updateSelection);
+        break;
+    }
+  },
+
+  /**
+   * Our selectionMap needs to be updated such that it has properties with value true for each
+   * category for which all cases are selected.
+   */
+  updateSelection: function() {
+    var tSelectionMap = {},
+        tSelection = this.getPath('dataConfiguration.collectionClient.casesController.selection'),
+        tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
+    DG.ObjectMap.forEach( tCellMap, function( iKey, iCases) {
+      if( iCases.every(function( iCase) {
+            return tSelection.containsObject( iCase);
+          })) {
+        tSelectionMap[ iKey] = true;
+      }
+    });
+    this.set( 'selectionMap', tSelectionMap);
+  }
 
 });
 
