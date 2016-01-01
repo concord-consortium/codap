@@ -85,7 +85,11 @@ DG.SliderView = SC.View.extend(
        */
       value: function() {
         return this.getPath('model.value');
-      }.property('model.value').cacheable(),
+      }.property('model').cacheable(),
+
+      valueDidChange: function() {
+        this.notifyPropertyChange('value', this.get('value'));
+      }.observes('*model.value'),
 
       /**
        The name of my model's global value
@@ -93,7 +97,11 @@ DG.SliderView = SC.View.extend(
        */
       name: function() {
         return this.getPath('model.name');
-      }.property('model.name').cacheable(),
+      }.property('model').cacheable(),
+
+      nameDidChange: function() {
+        this.notifyPropertyChange('name', this.get('name'));
+      }.observes('*model.name'),
 
       /**
        The screen coordinate of the model value.
@@ -103,7 +111,11 @@ DG.SliderView = SC.View.extend(
         var tValue = this.get('value'),
             tAxisView = this.get('axisView');
         return (SC.none( tValue) || SC.none( tAxisView)) ? null : tAxisView.dataToCoordinate( tValue);
-      }.property('value', 'axisView.model.lowerBound', 'axisView.model.upperBound'),
+      }.property('value'),
+
+      thumbCoordDidChange: function() {
+        this.notifyPropertyChange('thumbCoord', this.get('thumbCoord'));
+      }.observes('*axisView.model.lowerBound', '*axisView.model.upperBound'),
 
       init: function() {
         // Notice that we are explicitly creating and laying out our subviews. This is because
