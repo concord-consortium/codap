@@ -106,7 +106,7 @@ DG.DragBorderView = SC.View.extend(
                   function () {
                     // bizarre bug leaves the last animated transition property still
                     // with a delay even after the end of an animation, so we clear it by hand
-                    tViewToDrag._view_layer.style.transition = ""
+                    tViewToDrag._view_layer.style.transition = "";
                     // set actual model layout once animation has completed
                     this._oldLayout = this._controller().revertModelLayout(layout);
                     this._oldLayout.height = layout.height;
@@ -120,7 +120,7 @@ DG.DragBorderView = SC.View.extend(
                 tViewToDrag.animate(layout,
                   {duration: 0.4, timing: 'ease-in-out'},
                   function () {
-                    tViewToDrag._view_layer.style.transition = ""
+                    tViewToDrag._view_layer.style.transition = "";
                     this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
                   }.bind(this));
               }
@@ -188,6 +188,7 @@ DG.ComponentView = SC.View.extend(
     (function () {
       var kTitleBarHeight = DG.ViewUtilities.kTitleBarHeight,
           kMinSize = 50,
+          kMaxSize = Number.MAX_VALUE,
           kDragWidth = DG.ViewUtilities.kDragWidth,
           kBorderWidth = DG.ViewUtilities.kBorderWidth,
           kRightBorderCursor = SC.Cursor.create({cursorStyle: SC.E_RESIZE_CURSOR}),
@@ -282,7 +283,7 @@ DG.ComponentView = SC.View.extend(
                     execute: function () {
                       this._beforeStorage = tComponentView.getPath('model.title');
                       tComponentView.setPath('model.title', value);
-                      this._value
+                      this._value;
                       this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
                     },
                     undo: function () {
@@ -392,10 +393,12 @@ DG.ComponentView = SC.View.extend(
               dragCursor: kRightBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
-                var tLoc = Math.max(evt.pageX, kMinSize),
-                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX));
+                var tMinWidth = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
+                    tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
                 // Don't let width of component become too small
-                tNewWidth = Math.max(tNewWidth, kMinSize);
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
               },
               canBeDragged: function () {
@@ -407,8 +410,11 @@ DG.ComponentView = SC.View.extend(
               layout: {bottom: 0, height: kDragWidth},
               dragCursor: kBottomBorderCursor,
               dragAdjust: function (evt, info) {
+                var tMinHeight = this.get('contentMinHeight') || kMinSize;
+                var tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
                 var tNewHeight = info.height + (evt.pageY - info.pageY);
-                tNewHeight = DG.ViewUtilities.roundToGrid(Math.max(tNewHeight, kMinSize));
+                tNewHeight = DG.ViewUtilities.roundToGrid(Math.min(
+                    Math.max(tNewHeight, tMinHeight), tMaxHeight));
                 this.parentView.adjust('height', tNewHeight);
               },
               canBeDragged: function () {
@@ -420,12 +426,14 @@ DG.ComponentView = SC.View.extend(
               layout: {left: 0, width: kDragWidth},
               dragCursor: kLeftBorderCursor,
               dragAdjust: function (evt, info) {
+                var tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
+                var tMinWidth = this.get('contentMinWidth') || kMinSize;
                 var tContainerWidth = this.getContainerWidth(),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width - (evt.pageX - info.pageX)),
                     tLoc;
-                tNewWidth = Math.max(tNewWidth, kMinSize);
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 tLoc = info.left + info.width - tNewWidth;
-                if (tLoc < tContainerWidth - kMinSize) {
+                if (tLoc < tContainerWidth - tMinWidth) {
                   this.parentView.adjust('width', tNewWidth);
                   this.parentView.adjust('left', tLoc);
                 }
@@ -447,13 +455,18 @@ DG.ComponentView = SC.View.extend(
               dragCursor: kCornerBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
-                var tLoc = Math.max(evt.pageX, kMinSize),
+                var tMinHeight = this.get('contentMinHeight') || kMinSize;
+                var tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
+                var tMinWidth  = this.get('contentMinWidth') || kMinSize,
+                    tLoc = Math.max(evt.pageX, tMinWidth),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
-                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY));
+                    tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
+                    tMaxWidth = this.parentView.get('contentMaxWidth') || kMaxSize;
+
                 // Don't let width or height of component become too small
-                tNewWidth = Math.max(tNewWidth, kMinSize);
+                tNewWidth = Math.min(Math.max(tNewWidth, tMinWidth), tMaxWidth);
                 this.parentView.adjust('width', tNewWidth);
-                tNewHeight = Math.max(tNewHeight, kMinSize);
+                tNewHeight = Math.min(Math.max(tNewHeight, tMinHeight), tMaxHeight);
                 this.parentView.adjust('height', tNewHeight);
               },
               canBeDragged: function () {
@@ -477,6 +490,27 @@ DG.ComponentView = SC.View.extend(
 
         status: null,
         statusBinding: '.containerView.titlebar.statusView.value',
+
+        contentMinWidth: function () {
+          if (this.get('contentView')) {
+            return this.getPath('contentView.containerMinWidth');
+          }
+        }.property(),
+        contentMaxWidth: function () {
+          if (this.get('contentView')) {
+            return this.getPath('contentView.containerMaxWidth');
+          }
+        }.property(),
+        contentMinHeight: function () {
+          if (this.get('contentView')) {
+            return this.getPath('contentView.containerMinHeight');
+          }
+        }.property(),
+        contentMaxHeight: function () {
+          if (this.get('contentView')) {
+            return this.getPath('contentView.containerMaxHeight');
+          }
+        }.property(),
 
         destroy: function () {
           if (this.containerView.contentView)

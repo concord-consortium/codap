@@ -55,8 +55,8 @@ DG.PickerColorControl = SC.View.extend(
               if( this.setColorFunc)
                 this.setColorFunc( iColor, this.colorKey);
               if ( this.closedFunc)
-                this.closedFunc( this.get('lastColor'), iColor)
-              this.set( 'lastColor', iColor, this.colorKey)
+                this.closedFunc( this.get('lastColor'), iColor);
+              this.set( 'lastColor', iColor, this.colorKey);
             }.bind(this)
           });
         }.bind(this));

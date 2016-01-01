@@ -400,7 +400,7 @@ DG.PlotView = DG.PlotLayer.extend(
         tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' ),
         tPlotIndex = this.get('plotIndex'),
         tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID',
-        tStrokeParams = this.getStrokeParams();;
+        tStrokeParams = this.getStrokeParams();
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,

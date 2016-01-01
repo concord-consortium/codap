@@ -1311,5 +1311,5 @@ DG.sendCommandToDI = function( iCmd, iCallback) {
   if (myController && myController.gamePhone && myController.get('gameIsReady')) {
     myController.gamePhone.call(iCmd, iCallback);
   }
-}
+};
 

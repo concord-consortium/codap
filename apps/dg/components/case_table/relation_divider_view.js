@@ -174,7 +174,11 @@ DG.RelationDividerView = SC.View.extend( (function() {
     leftTable: null,
     
     rightTable: null,
-    
+
+    /**
+     * This hash map maps parent case id to child group information.
+     * @type {object}
+     */
     _parentChildRelationsMap: null,
     
     displayProperties: ['leftTable','rightTable'],
@@ -191,6 +195,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
           rightYCoordForFilteredRows = 0,
           rowHeight = rightAdapter && rightAdapter.get('rowHeight'),
           lastParentID = 0,
+          lastCase = null,
           this_ = this;
       
       if( !leftAdapter || !rightAdapter) {
@@ -468,16 +473,55 @@ DG.RelationDividerView = SC.View.extend( (function() {
                             function( iParentID, iParentChildRelation) {
                               iParentChildRelation.marked = true;
                             });
-  
-      // Identify the last parent case ID
+
+      // compares cases for the grouping comparer below
+      // Basically we want to order groups by parent groups and within parent groups
+      // by item index.
+      // So, we recursively search back until we find a common ancestor or a root
+      // case. Root cases we compare by id
+      function caseComparer(iCase1, iCase2) {
+        var p1 = iCase1.parent;
+        var p2 = iCase2.parent;
+        var cmp;
+        if (iCase1 === iCase2) {
+          cmp = 0;
+        } else if (SC.none(p1)) {
+          DG.assert(SC.none(p2));
+          cmp = (iCase1.item.itemIndex - iCase2.item.itemIndex);
+        } else {
+          cmp = caseComparer(p1, p2);
+          if (cmp === 0) {
+            cmp = (iCase1.item.itemIndex - iCase2.item.itemIndex);
+          }
+        }
+        return cmp;
+      }
+
+      // Identify the last parent case ID. This is used to decide whether to
+      // draw a lower boundary line.
       DG.ObjectMap.forEach( parentGroups, function( iParentID) {
-                                            if( lastParentID < iParentID)
-                                              lastParentID = iParentID;
-                                          });
+        var thisCase = DG.store.find( DG.Case, iParentID);
+
+        if (SC.none(thisCase)) {
+          return;
+        }
+        if (SC.none(lastCase) || (caseComparer(lastCase, thisCase) <= 0)) {
+          lastParentID = iParentID;
+          lastCase = thisCase;
+        }
+      });
+
       // Create/update the necessary lines. Marks visited objects.
       //DG.log("DG.RelationDividierView.doDraw: adapterID: %@, parentGroups: %@",
       //        DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
-      DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
+      leftAdapter.gridData.forEach(function (rowData) {
+        var parentID = rowData.id;
+        var group = parentGroups[parentID];
+        if (group) {
+          updateParentChildRelations(parentID, parentGroups[parentID]);
+        }
+      });
+      //DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
       
       // Utility function for use with DG.ObjectMap.forEach() which calls
       // the remove() method for each value object in the map.
