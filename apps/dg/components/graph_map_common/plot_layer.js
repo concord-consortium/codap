@@ -343,18 +343,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   getStrokeParams: function() {
     var tModel = this.get('model');
     DG.assert( tModel);
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
-        tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
-        tStrokeColor, tStrokeTransparency;
-    if(SC.none(tLegendVarID)) {
-      tStrokeColor = tModel.get( 'strokeColor') || DG.PlotUtilities.kDefaultStrokeColor;
-      tStrokeTransparency = tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity;
-    }
-    else {
-      tStrokeColor = DG.PlotUtilities.kDefaultStrokeColorWithLegend;
-      tStrokeTransparency = DG.PlotUtilities.kDefaultStrokeOpacityWithLegend;
-    }
-    return { strokeColor: tStrokeColor, strokeTransparency: tStrokeTransparency};
+    return {
+      strokeColor: tModel.getStrokeColor(),
+      strokeTransparency: tModel.getStrokeTransparency()
+    };
   },
 
   /**

@@ -96,8 +96,24 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      * Stroke color default can be changed by user.
      * @property {String} representing a color
      */
-    strokeColor: DG.PlotUtilities.kDefaultStrokeColor,
-    strokeTransparency: DG.PlotUtilities.kDefaultStrokeOpacity,
+    strokeColor: null,
+    strokeTransparency: null,
+
+    getStrokeColor: function() {
+      return this.get('strokeColor') || ( this.hasLegendVar() ?
+              DG.PlotUtilities.kDefaultStrokeColorWithLegend :
+              DG.PlotUtilities.kDefaultStrokeColor);
+    },
+
+    getStrokeTransparency: function() {
+      return this.get('strokeTransparency') || ( this.hasLegendVar() ?
+              DG.PlotUtilities.kDefaultStrokeOpacityWithLegend :
+              DG.PlotUtilities.kDefaultStrokeOpacity);
+    },
+
+    hasLegendVar: function() {
+      return !SC.none( this.getPath('dataConfiguration.legendAttributeDescription.attributeID'));
+    },
 
     /**
      * Point size is computed at the view level and then multiplied by this number. Default is 1.
@@ -342,7 +358,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           return this_.get('pointColor');
         },
         getStrokeColor: function() {
-          return this_.get('strokeColor');
+          return this_.getStrokeColor();
         },
         getPointSizeMultiplier: function() {
           return this_.get('pointSizeMultiplier');
@@ -351,7 +367,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           return this_.get('transparency');
         },
         getStrokeTransparency: function() {
-          return this_.get('strokeTransparency');
+          return this_.getStrokeTransparency();
         }
       };
     },
@@ -530,11 +546,18 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     changeAttributeForLegend: function( iDataContext, iAttrRefs) {
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
-      var dataConfiguration = this.get('dataConfiguration');
+      var dataConfiguration = this.get('dataConfiguration'),
+          tStartingLegendAttrID = dataConfiguration.getPath('legendAttributeDescription.attributeID');
       if( iDataContext)
         dataConfiguration.set('dataContext', iDataContext);
       dataConfiguration.setAttributeAndCollectionClient('legendAttributeDescription', iAttrRefs);
-
+      var tNewLegendAttrID = dataConfiguration.getPath('legendAttributeDescription.attributeID');
+      // If we're going from having a legend to no legend or vice versa, reset the stroke color and transparency
+      if( (SC.none( tStartingLegendAttrID) && !SC.none( tNewLegendAttrID)) ||
+          (!SC.none( tStartingLegendAttrID) && SC.none( tNewLegendAttrID))) {
+        this.set('strokeColor', null);
+        this.set('strokeTransparency', null);
+      }
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
     },

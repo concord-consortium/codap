@@ -509,8 +509,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
                   classNames: 'graph-stroke-color'.w(),
-                  initialColor: tinycolor(this.getPath('dataDisplayModel.strokeColor'))
-                      .setAlpha(this.getPath('dataDisplayModel.strokeTransparency')),
+                  initialColor: tinycolor(this.get('dataDisplayModel').getStrokeColor())
+                      .setAlpha(this.get('dataDisplayModel').getStrokeTransparency()),
                   setColorFunc: setStroke,
                   closedFunc: setStrokeFinalized,
                   appendToLayerFunc: getStylesLayer
