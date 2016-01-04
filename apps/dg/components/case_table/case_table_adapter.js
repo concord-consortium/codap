@@ -304,7 +304,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
                     command: 'cmdRenameAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                      ioMenuItem.disabled = !iColumn.attribute.get('renameable');
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
