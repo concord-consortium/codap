@@ -98,6 +98,12 @@ DG.Attribute = DG.BaseModel.extend(
     editable: false,
 
     /**
+     * True if the attribute is renameable, false otherwise.
+     * @property {Boolean}
+     */
+    renameable: true,
+
+    /**
      @private
      The DG.Formula for evaluation.
      @property   {DG.Formula}
