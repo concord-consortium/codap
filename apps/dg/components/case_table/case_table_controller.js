@@ -731,8 +731,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       deleteAttribute: function( iAttrID) {
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
-            tAttrFormula = tAttrRef && tAttrRef.attribute.get('formula');
+            tAttrName = tAttrRef && tAttrRef.attribute.get('name');
 
         var doDeleteAttribute = function() {
           DG.UndoHistory.execute(DG.Command.create({
@@ -758,7 +757,8 @@ DG.CaseTableController = DG.ComponentController.extend(
               var tChange = {
                               operation: 'createAttributes',
                               collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [{ name: tAttrName, formula: tAttrFormula }]
+                              attrPropsArray: [tAttrRef.attribute],
+                              position: [tAttrRef.position]
                             };
               tDataContext.applyChange( tChange);
             },

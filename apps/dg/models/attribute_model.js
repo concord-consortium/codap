@@ -104,6 +104,13 @@ DG.Attribute = DG.BaseModel.extend(
     renameable: true,
 
     /**
+     * True if the attribute is user-deletable, false otherwise.
+     *
+     * @property {Boolean}
+     */
+    deleteable: true,
+
+    /**
      @private
      The DG.Formula for evaluation.
      @property   {DG.Formula}

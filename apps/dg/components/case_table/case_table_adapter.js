@@ -310,7 +310,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable');
                     }
                   }
                 ]
