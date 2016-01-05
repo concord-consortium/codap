@@ -96,20 +96,29 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      * Stroke color default can be changed by user.
      * @property {String} representing a color
      */
-    strokeColor: null,
-    strokeTransparency: null,
+    _strokeColor: null,
+    /**
+     * @property{Number} between 0 and 1
+     */
+    _strokeTransparency: null,
 
-    getStrokeColor: function() {
-      return this.get('strokeColor') || ( this.hasLegendVar() ?
+    strokeColor: function( iKey, iValue) {
+      if( iValue !== undefined)
+        this._strokeColor = iValue;
+      return this._strokeColor ||
+          ( this.hasLegendVar() ?
               DG.PlotUtilities.kDefaultStrokeColorWithLegend :
               DG.PlotUtilities.kDefaultStrokeColor);
-    },
+    }.property(),
 
-    getStrokeTransparency: function() {
-      return this.get('strokeTransparency') || ( this.hasLegendVar() ?
+    strokeTransparency: function( iKey, iValue) {
+      if( iValue !== undefined)
+        this._strokeTransparency = iValue;
+      return this._strokeTransparency ||
+          ( this.hasLegendVar() ?
               DG.PlotUtilities.kDefaultStrokeOpacityWithLegend :
               DG.PlotUtilities.kDefaultStrokeOpacity);
-    },
+    }.property(),
 
     hasLegendVar: function() {
       return !SC.none( this.getPath('dataConfiguration.legendAttributeDescription.attributeID'));
@@ -358,7 +367,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           return this_.get('pointColor');
         },
         getStrokeColor: function() {
-          return this_.getStrokeColor();
+          return this_.get('strokeColor');
         },
         getPointSizeMultiplier: function() {
           return this_.get('pointSizeMultiplier');
@@ -367,7 +376,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           return this_.get('transparency');
         },
         getStrokeTransparency: function() {
-          return this_.getStrokeTransparency();
+          return this_.get('strokeTransparency');
         }
       };
     },
