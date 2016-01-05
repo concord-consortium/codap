@@ -255,6 +255,7 @@ DG.ComponentView = SC.View.extend(
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['titleview'],
               isEditable: YES,
+              exampleNode: null,
               _value: null,
               value: function (key, iValue) {
                 if (!SC.none(iValue)) {
@@ -271,13 +272,30 @@ DG.ComponentView = SC.View.extend(
                 this.stopShowingAsEmpty();
                 var tParent = this.get('parentView'),
                     tFrame = tParent.get('frame'),
-                    kXGap = 4, kYGap = 5,
+                    kXGap = 4, kYGap = 2,
                     tOrigin = DG.ViewUtilities.viewToWindowCoordinates({x: kXGap, y: kYGap}, tParent);
                 tParent.set('userEdit', true);
-                iEditor.set('exampleFrame', {
-                  x: tOrigin.x, y: tOrigin.y,
-                  width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
-                });
+
+                // SC 1.10 introduced a new inline editor model in which
+                // an 'exampleNode' is used to adjust inline editor style.
+                var exampleNode = this.get('exampleNode');
+                if(!exampleNode) {
+                  exampleNode = this.get('layer').cloneNode(false);
+                  exampleNode.id = exampleNode.id + "-clone";
+                  exampleNode.style.visibility = 'hidden';
+                  exampleNode.style.textAlign = 'center';
+                  exampleNode.className = exampleNode.className.replace('titleview', '');
+                  tParent.get('layer').appendChild(exampleNode);
+                  this.set('exampleNode', exampleNode);
+                }
+                exampleNode.style.left =   3 + 'px';
+                exampleNode.style.top =   12 + 'px';
+
+                iEditor.set({ exampleElement: exampleNode,
+                              exampleFrame: {
+                                x: tOrigin.x, y: tOrigin.y,
+                                width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
+                              }});
               },
               valueChanged: function () {
                 var tComponentView = DG.ComponentView.findComponentViewParent(this),
