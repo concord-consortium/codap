@@ -161,14 +161,33 @@ DG.SliderView = SC.View.extend(
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + kThumbHeight },
             classNames: 'slider-label'.w(),
             isEditable: true,
+            exampleNode: null,
             inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
               sc_super();
               var tFrame = this.get('frame'),
                   kXGap = 4, kYGap = 5,
                   tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap - 2, y: kYGap - 7 }, this);
+
               this.parentView.set('userEdit', true);
-              iEditor.set('exampleFrame', { x: tOrigin.x, y: tOrigin.y,
-                                            width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap });
+
+              // SC 1.10 introduced a new inline editor model in which
+              // an 'exampleNode' is used to adjust inline editor style.
+              var exampleNode = this.get('exampleNode');
+              if(!exampleNode) {
+                var parentNode = this.getPath('parentView.layer');
+                exampleNode = this.get('layer').cloneNode(false);
+                exampleNode.id = exampleNode.id + "-clone";
+                exampleNode.style.visibility = 'hidden';
+                parentNode.appendChild(exampleNode);
+                this.set('exampleNode', exampleNode);
+              }
+              exampleNode.style.left = 0 + 'px';
+              exampleNode.style.top = 9 + 'px';
+
+              iEditor.set({ exampleElement: exampleNode,
+                            exampleFrame: { x: tOrigin.x, y: tOrigin.y,
+                                            width: tFrame.width - 2 * kXGap,
+                                            height: tFrame.height - 2 * kYGap }});
             },
             doIt: function() {
               this.beginEditing();
