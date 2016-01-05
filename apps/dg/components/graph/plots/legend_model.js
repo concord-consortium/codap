@@ -143,7 +143,8 @@ DG.LegendModel = SC.Object.extend(
         tSelection = this.getPath('dataConfiguration.collectionClient.casesController.selection'),
         tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
     DG.ObjectMap.forEach( tCellMap, function( iKey, iCases) {
-      if( iCases.every(function( iCase) {
+      if( (iCases.length > 0) &&
+          iCases.every(function( iCase) {
             return tSelection.containsObject( iCase);
           })) {
         tSelectionMap[ iKey] = true;
