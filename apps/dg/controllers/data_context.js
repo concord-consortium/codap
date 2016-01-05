@@ -757,8 +757,9 @@ DG.DataContext = SC.Object.extend((function() // closure
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
         didCreateAttribute = false,
-        result = { success: false, attrs: [], attrIDs: [] };
-    
+        result = { success: false, attrs: [], attrIDs: []},
+        _this = this;
+
     // Create/update the specified attribute
     function createAttribute( iAttrProps) {
       var hadAttribute = collection.hasAttribute( iAttrProps.name),
@@ -768,6 +769,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       if( !hadAttribute)
         attrProps.editable = true;
       attribute = collection.guaranteeAttribute( attrProps);
+      if (!SC.none(iChange.position)) {
+        _this.moveAttribute(attribute, collection, iChange.position);
+      }
       if( attribute) {
         if( !hadAttribute)
           didCreateAttribute = true;
@@ -874,20 +878,50 @@ DG.DataContext = SC.Object.extend((function() // closure
      *      new collection. If undefined, appends to the end of the attribute list.
      */
   moveAttribute:  function (attr, toCollectionClient, position) {
-    var fromCollection = attr.get('collection');
 
-    // remove attribute from old collection
-    attr = fromCollection.removeAttribute(attr);
+      function moveWithinCollection(attr, collectionClient, position) {
+        var name = attr.name;
+        var attributeNames;
+        var ix;
+        attributeNames = collectionClient.getAttributeNames();
+        ix = attributeNames.indexOf(name);
+        if (ix !== -1) {
+          attributeNames.removeAt(ix);
+          attributeNames.insertAt(position, name);
+          collectionClient.reorderAttributes(attributeNames);
+        } else {
+          DG.logWarn('Reordering attribute, "' + name +
+              '", not in collection, "' + collectionClient.get('name') + '"');
+        }
+      }
 
-    if (fromCollection.get('attrs').length === 0) {
-      this.destroyCollection(fromCollection);
-    }
+     function moveBetweenCollections (attr, fromCollection, toCollectionClient, position) {
+       // remove attribute from old collection
+       attr = fromCollection.removeAttribute(attr);
 
-    // add attribute to new collection
-    toCollectionClient.get('collection').addAttribute(attr, position);
+       if (fromCollection.get('attrs').length === 0) {
+         this.destroyCollection(fromCollection);
+       }
 
-    this.regenerateCollectionCases();
-  },
+       // add attribute to new collection
+       toCollectionClient.get('collection').addAttribute(attr, position);
+
+       this.regenerateCollectionCases();
+     }
+
+      var fromCollection = attr.get('collection');
+
+      if (fromCollection === toCollectionClient.get('collection')) {
+        // if intra-collection move, we simply delegate to the collection
+        moveWithinCollection(attr, toCollectionClient, position);
+      } else {
+        // inter-collection moves are more complex: we need to reconstruct the
+        // cases in the collection
+        moveBetweenCollections(attr, fromCollection, toCollectionClient,
+            position);
+      }
+
+    },
     /**
      * Moves an attribute either within a collection or between collections.
      *
@@ -905,21 +939,6 @@ DG.DataContext = SC.Object.extend((function() // closure
      *    {Boolean}               .success
      */
     doMoveAttribute: function( iChange) {
-      function moveWithinCollection(attr, collectionClient, position) {
-        var name = attr.name;
-        var attributeNames;
-        var ix;
-        attributeNames = collectionClient.getAttributeNames();
-        ix = attributeNames.indexOf(name);
-        if (ix !== -1) {
-          attributeNames.removeAt(ix);
-          attributeNames.insertAt(position, name);
-          collectionClient.reorderAttributes(attributeNames);
-        } else {
-          DG.logWarn('Reordering attribute, "' + name +
-              '", not in collection, "' + collectionClient.get('name') + '"');
-        }
-      }
 
       // ----- begin method ------
       var attr = iChange.attr;
@@ -929,14 +948,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
           ? toCollection : this.getCollectionByID(toCollection.id);
 
-      if (fromCollection === toCollectionClient.get('collection')) {
-        // if intra-collection move, we simply delegate to the collection
-        moveWithinCollection(attr, toCollectionClient, position);
-      } else {
-        // inter-collection moves are more complex: we need to reconstruct the
-        // cases in the collection
-        this.moveAttribute(attr, toCollectionClient,
-            position);
+      this.moveAttribute(attr, toCollectionClient, position);
+
+      if (fromCollection !== toCollectionClient.get('collection')) {
         iChange.operation = 'resetCollections';
       }
     },
@@ -1371,9 +1385,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     for( var i = collectionCount - 1; i >= 0; --i) {
       var collection = collections.objectAt( i),
           collectionClient = collection && this._collectionClients[ collection.get('id')],
-          foundAttr = collectionClient && collectionClient.getAttributeByName( iName);
+          foundAttr = collectionClient && collectionClient.getAttributeByName( iName),
+          position = collectionClient && collectionClient.getAttributeIndexByName(iName);
       if( foundAttr)
-        return { collection: collectionClient, attribute: foundAttr };
+        return {
+          collection: collectionClient,
+          attribute: foundAttr,
+          position: position
+        };
     }
     return null;
   },

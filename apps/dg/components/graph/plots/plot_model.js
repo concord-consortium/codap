@@ -174,11 +174,19 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    */
   getStrokeColor: null,
 
+  strokeColor: function() {
+    return this.getStrokeColor();
+  }.property(),
+
   /**
    * This function is set by the graph that owns me.
    * @property{Function}
    */
   getStrokeTransparency: null,
+
+  strokeTransparency: function() {
+    return this.getStrokeTransparency();
+  }.property(),
 
   /**
    * This function is set by the graph that owns me.

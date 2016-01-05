@@ -144,6 +144,10 @@ DG.Component = DG.BaseModel.extend(
  */
 DG.Component.contentMap = {};
 
+DG.Component.clearContentMap = function () {
+  DG.Component.contentMap = {};
+};
+
 /**
  Returns the content object associated with the specified component.
  @param  {DG.Component}  iComponent  The component whose content should be returned.
