@@ -364,9 +364,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
         tLayerManager = this.get('layerManager' ),
         tIndex;
-    // We don't redraw if tCases is undefined. This can happen during the
+    // We don't redraw if tCases is undefined or tRC is null. This can happen during the
     // deletion of the plot model
-    if (tCases === undefined) { return; }
+    if ((tCases === undefined) || !tRC)
+      return;
 
     this._elementOrderIsValid = false;
     // update the point radius before creating or updating plotted elements
