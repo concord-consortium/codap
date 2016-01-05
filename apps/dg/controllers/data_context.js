@@ -900,16 +900,17 @@ DG.DataContext = SC.Object.extend((function() // closure
        attr = fromCollection.removeAttribute(attr);
 
        if (fromCollection.get('attrs').length === 0) {
-         this.destroyCollection(fromCollection);
+         _this.destroyCollection(fromCollection);
        }
 
        // add attribute to new collection
        toCollectionClient.get('collection').addAttribute(attr, position);
 
-       this.regenerateCollectionCases();
+       _this.regenerateCollectionCases();
      }
 
       var fromCollection = attr.get('collection');
+      var _this = this;
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection
