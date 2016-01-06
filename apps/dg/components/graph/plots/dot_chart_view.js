@@ -144,7 +144,6 @@ DG.DotChartView = DG.PlotView.extend(
         });
     }
     this._isRenderingValid = false;
-    this.displayDidChange();
   },
   
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
