@@ -554,6 +554,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
   */
   selectionDidChange: function() {
+    this._elementOrderIsValid = false;
     this.updateSelection();
     this._isRenderingValid = false;
   }.observes('selection'),
