@@ -80,7 +80,12 @@ DG.DataContext = SC.Object.extend((function() // closure
    * or updateCase requests from the data interactives to avoid corrupting
    * the data.
    */
-  flexibleGroupingChangeFlag: false,
+  flexibleGroupingChangeFlag: function (key, value) {
+    if (!SC.none(value)) {
+      this.setPath('model.flexibleGroupingChangeFlag', value);
+    }
+    return this.getPath('model.flexibleGroupingChangeFlag');
+  }.property('model', 'model.flexibleGroupingChangeFlag'),
 
   /**
    *  The id of our DG.DataContextRecord.
@@ -101,12 +106,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  collections in child --> parent order, and need to be reversed
    *  in this function.
    *
-   *  TODO: why can't model.collections be a compact array, too?
-   *
    *  @property {[DG.Collection]}
    */
   collectionsDidChange: function() {
-    DG.log('collectionsDidChange');
     var srcCollections = this.getPath('model.collections'),
         srcCollectionArray = DG.ObjectMap.values(srcCollections),
         i, c,
