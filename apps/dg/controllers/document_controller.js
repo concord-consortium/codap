@@ -291,25 +291,29 @@ DG.DocumentController = SC.Object.extend(
      */
     setDocument: function( iDocument) {
 
-      this.set('ready', false);
-      this.set('content', iDocument);
+      try {
+        this.set('ready', false);
+        this.set('content', iDocument);
 
-      DG.DataContext.clearContextMap();
-      DG.Component.clearContentMap();
-      this.componentControllersMap = {};
-      this._caseTableComponents = {};
+        DG.DataContext.clearContextMap();
+        DG.Component.clearContentMap();
+        this.componentControllersMap = {};
+        this._caseTableComponents = {};
 
-      // Create the individual DataContexts
-      this.restoreDataContexts();
+        // Create the individual DataContexts
+        this.restoreDataContexts();
 
-      // Create the individual component views
-      this.restoreComponentControllersAndViews();
+        // Create the individual component views
+        this.restoreComponentControllersAndViews();
 
-      this.clearChangedObjects();
-      this.set('changeCount', 0);
-      this.updateSavedChangeCount();
-      this.set('externalDocumentId', null);
-      this.set('ready', true);
+        this.clearChangedObjects();
+        this.set('changeCount', 0);
+        this.updateSavedChangeCount();
+        this.set('externalDocumentId', null);
+        this.set('ready', true);
+      } catch (e) {
+        DG.logError(e);
+      }
     },
 
     gameHasUnsavedChangesBinding: SC.Binding.oneWay('DG._currGameController.hasUnsavedChanges').bool(),
@@ -426,51 +430,54 @@ DG.DocumentController = SC.Object.extend(
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
           tView = null;
-
-      switch( type) {
-      case 'DG.FlashView':  // For backward compatibility
-        if( iComponent)
-          iComponent.set('type', 'DG.GameView');
-        // fallthrough intentional
-        /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
-      case 'DG.GameView':
-        tView = this.addGame( docView, iComponent, true);
-        break;
-      case 'DG.TableView':
-        // If there is no component, we are creating new components.
-        // We currently create case tables for each context, rather than creating
-        // them on a context-by-context basis. This may change, for now this means
-          // if we are asked to create *a* case table we will create all case
-          // tables.
-        if (iComponent) {
-          tView = this.addCaseTable(docView, iComponent);
-        } else {
-          this.openCaseTablesForEachContext( );
+      try {
+        switch( type) {
+        case 'DG.FlashView':  // For backward compatibility
+          if( iComponent)
+            iComponent.set('type', 'DG.GameView');
+          // fallthrough intentional
+          /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+        case 'DG.GameView':
+          tView = this.addGame( docView, iComponent, true);
+          break;
+        case 'DG.TableView':
+          // If there is no component, we are creating new components.
+          // We currently create case tables for each context, rather than creating
+          // them on a context-by-context basis. This may change, for now this means
+            // if we are asked to create *a* case table we will create all case
+            // tables.
+          if (iComponent) {
+            tView = this.addCaseTable(docView, iComponent);
+          } else {
+            this.openCaseTablesForEachContext( );
+          }
+          break;
+        case 'DG.GraphView':
+          tView = this.addGraph( docView, iComponent, true);
+          break;
+        case 'DG.SliderView':
+          tView = this.addSlider( docView, iComponent, true);
+          break;
+        case 'DG.Calculator':
+          tView = this.addCalculator( docView, iComponent, true);
+          break;
+        case 'DG.TextView':
+          tView = this.addText( docView, iComponent, true);
+          break;
+        case 'DG.MapView':
+          tView = this.addMap( docView, iComponent, true);
+          break;
+        case 'SC.WebView':
+          tView = this.addWebView( docView, iComponent, null, null, null, true);
+          break;
+        case 'DG.GuideView':
+          tView = this.addGuideView( docView, iComponent, true);
+          break;
+        default:
+          break;
         }
-        break;
-      case 'DG.GraphView':
-        tView = this.addGraph( docView, iComponent, true);
-        break;
-      case 'DG.SliderView':
-        tView = this.addSlider( docView, iComponent, true);
-        break;
-      case 'DG.Calculator':
-        tView = this.addCalculator( docView, iComponent, true);
-        break;
-      case 'DG.TextView':
-        tView = this.addText( docView, iComponent, true);
-        break;
-      case 'DG.MapView':
-        tView = this.addMap( docView, iComponent, true);
-        break;
-      case 'SC.WebView':
-        tView = this.addWebView( docView, iComponent, null, null, null, true);
-        break;
-      case 'DG.GuideView':
-        tView = this.addGuideView( docView, iComponent, true);
-        break;
-      default:
-        break;
+      } catch (e) {
+        DG.logError(e);
       }
 
       if( iComponent)
