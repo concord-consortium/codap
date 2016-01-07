@@ -248,10 +248,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           if( dataContext) {
             caseTableModel.set('context', dataContext);
-            //
-            this.invokeLater(function () {
-              this.set('dataContext', dataContext);
-            }.bind(this));
+            this.set('dataContext', dataContext);
           }
           if (collapsedNodesCount > 0) {
             while(ix < collapsedNodesCount) {
@@ -369,15 +366,12 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.doSelectCases(iChange);
       },
       doCreateAttributes: function (iChange) {
-        this.caseCountDidChange( iChange);
         this.attributeCountDidChange( iChange);
       },
       doDeleteAttributes: function (iChange) {
-        this.caseCountDidChange( iChange);
         this.attributeCountDidChange( iChange);
       },
       doMoveAttributes: function (iChange) {
-        this.caseCountDidChange( iChange);
         this.attributeCountDidChange( iChange);
       },
       doResetCollections: function (iChange) {
