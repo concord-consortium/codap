@@ -289,7 +289,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     tGridLayer.clear();
     tBackgroundLayer.clear();
 
-    createRulerLines();
+    if( !DG.QUAL_DATA_DISPLAY)
+      createRulerLines();
 
     drawCellBands();
 

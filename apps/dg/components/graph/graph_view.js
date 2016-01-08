@@ -123,7 +123,7 @@ DG.GraphView = SC.View.extend(
         case DG.AxisModel:
           return DG.AxisView;
         case DG.CellLinearAxisModel:
-          return DG.CellLinearAxisView;
+          return DG.QUAL_DATA_DISPLAY ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
         case DG.CellAxisModel:
           return DG.CellAxisView;
       }
@@ -409,17 +409,26 @@ DG.GraphView = SC.View.extend(
           tViewClass = tView && tView.constructor,
           tNewViewClass, tNewView,
           tPlotView = this_.get('plotView'),
+          tPlace, tAttr, tAttrName = '',
           tSetup;
       switch( iAxisViewKey) {
         case 'xAxisView':
           tSetup = { orientation: 'horizontal' };
+            tPlace = DG.GraphTypes.EPlace.eX;
           break;
         case 'yAxisView':
           tSetup = { orientation: 'vertical' };
+          tPlace = DG.GraphTypes.EPlace.eY;
           break;
         case 'y2AxisView':
           tSetup = { orientation: 'vertical2' };
+          tPlace = DG.GraphTypes.EPlace.eY2;
           break;
+      }
+      if( this_.getPath('model.dataConfiguration')) {
+        tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
+        if (tAttr !== -1)
+          tAttrName = tAttr.get('name');
       }
       switch( tModelClass) {
         case DG.AxisModel:
@@ -429,7 +438,8 @@ DG.GraphView = SC.View.extend(
           tNewViewClass = DG.CellAxisView;
           break;
         case DG.CellLinearAxisModel:
-          tNewViewClass = DG.CellLinearAxisView;
+          tNewViewClass = (DG.QUAL_DATA_DISPLAY && (tAttrName !== 'time')) ?
+              DG.QualCellLinearAxisView : DG.CellLinearAxisView;
           break;
         default:
           tNewViewClass = null;
