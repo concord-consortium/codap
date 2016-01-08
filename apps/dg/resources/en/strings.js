@@ -382,7 +382,7 @@ SC.stringsFor('English', {
       'DG.Redo.caseTable.deleteAttribute': "Redo deleting case table attribute",
       'DG.Redo.caseTable.moveAttribute': "Redo moving case table attribute",
       'DG.Redo.caseTable.createCollection': "Redo create new collection",
-      'DG.Redo.caseTable.collectionNameChange': 'Undo rename collection',
+      'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
       'DG.Redo.document.rename': "Redo renaming the document",
       'DG.Redo.game.add': "Redo adding a game to the document",
       'DG.Redo.graphComponent.create': "Redo adding a graph",

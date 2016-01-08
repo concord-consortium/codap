@@ -85,7 +85,15 @@ DG.DataContext = SC.Object.extend((function() // closure
       this.setPath('model.flexibleGroupingChangeFlag', value);
     }
     return this.getPath('model.flexibleGroupingChangeFlag');
-  }.property('model', 'model.flexibleGroupingChangeFlag'),
+  }.property(),
+
+  // The following code should be uncommented if changes to the above property
+  // are to be observed. SC does not support chained properties, and so the
+  // observer pattern below is recommended and required for v1.10 and above.
+  //flexibleGroupingChangeFlagDidChange: function () {
+  //  this.notifyPropertyChange('flexibleGroupingChangeFlag',
+  //      this.get('flexibleGroupingChangeFlag'));
+  //}.observes('*model.flexibleGroupingChangeFlag'),
 
   /**
    *  The id of our DG.DataContextRecord.
