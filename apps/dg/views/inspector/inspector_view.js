@@ -51,8 +51,8 @@ DG.InspectorView = DG.DraggableView.extend(
           this.set('layout', { height: kCellHeight, width: kCollapsedWidth});
         },
 
-        scrollToVisible: function() {
-          sc_super();
+        bringToFront: function () {
+          this.parentView.bringToFront(this);
         },
 
         targetComponentDidChange: function () {
@@ -75,8 +75,13 @@ DG.InspectorView = DG.DraggableView.extend(
                   tCurrTop += iChild.iconExtent.height + 2 * kPadding;
                 });
                 this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), kAnimationTime,
-                              this.scrollToVisible);
-              }.bind(this);
+                              finishUp);
+              }.bind(this),
+
+              finishUp = function() {
+                this.bringToFront();
+                this.invokeLater( this.scrollToVisible);
+              }.bind( this);
 
           var tTarget = this.get('targetComponent');
           if (tTarget) {

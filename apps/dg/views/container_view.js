@@ -224,7 +224,8 @@ DG.ContainerView = SC.View.extend(
       */
       bringToFront: function( iChildView) {
         // Todo: Moving forward we want a data interactive to be allowed to come to the front.
-        if( iChildView.get('contentView').constructor === DG.GameView)
+        var tContentView = iChildView.get('contentView');
+        if( tContentView && tContentView.constructor === DG.GameView)
           return;
         var tSaved = iChildView.layoutDidChange;  // save this for after changes
         iChildView.layoutDidChange = null;  // prevent specious notification of resizing
