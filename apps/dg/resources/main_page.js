@@ -22,7 +22,7 @@ sc_require('views/inspector_view');
 DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
-      kToolbarHeight = 70,
+      kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
       kInfobarHeight = 30,
       kIconTopPadding = 17;
 

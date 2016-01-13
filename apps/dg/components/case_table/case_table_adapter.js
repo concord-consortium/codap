@@ -298,7 +298,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Build a new column definition if we need to
       var collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
-          isQual = DG.QUAL_DATA_DISPLAY && ( iAttribute.get('type') === 'qualitative'),
+          isQual = iAttribute.get('type') === 'qualitative',
           columnInfo = {
             context: context,
             collection: collection,

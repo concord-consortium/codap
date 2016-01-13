@@ -1238,6 +1238,8 @@ DG.GameController = DG.ComponentController.extend(
       },
 
       updateLayout: function() {
+        if(DG.STANDALONE_MODE)
+          return; // layout has been set to full document. Don't change it.
         var gameView = this.get('view'),
           gameSize = this.getPath('context.gameDimensions'),
           newWidth, newHeight;
