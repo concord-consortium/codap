@@ -118,12 +118,12 @@ DG.GraphView = SC.View.extend(
 
   init: function() {
 
-    function getAxisViewClass( iAxis) {
+    function getAxisViewClass( iAxis, iAttributeType) {
       switch( iAxis.constructor) {
         case DG.AxisModel:
           return DG.AxisView;
         case DG.CellLinearAxisModel:
-          return DG.QUAL_DATA_DISPLAY ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
+          return (iAttributeType === 'qualitative') ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
         case DG.CellAxisModel:
           return DG.CellAxisView;
       }
@@ -135,10 +135,12 @@ DG.GraphView = SC.View.extend(
     }.bind( this);
 
     var tXAxis = this.getPath( 'model.xAxis'),
+        tXAxisAttributeType = this.getPath('model.dataConfiguration.xAttributeDescription.attribute.type'),
         tYAxis = this.getPath( 'model.yAxis'),
+        tYAxisAttributeType = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.type'),
         tY2Axis = this.getPath( 'model.y2Axis'),
-        tXAxisView = getAxisViewClass( tXAxis).create( { orientation: 'horizontal' }),
-        tYAxisView = getAxisViewClass( tYAxis).create( { orientation: 'vertical' }),
+        tXAxisView = getAxisViewClass( tXAxis, tXAxisAttributeType).create( { orientation: 'horizontal' }),
+        tYAxisView = getAxisViewClass( tYAxis, tYAxisAttributeType).create( { orientation: 'vertical' }),
         tY2AxisView = getAxisViewClass( tY2Axis).create( { orientation: 'vertical2' }),
         tBackgroundView = DG.PlotBackgroundView.create( { xAxisView: tXAxisView, yAxisView: tYAxisView,
                                                           graphModel: this.get('model') } ),
@@ -409,7 +411,7 @@ DG.GraphView = SC.View.extend(
           tViewClass = tView && tView.constructor,
           tNewViewClass, tNewView,
           tPlotView = this_.get('plotView'),
-          tPlace, tAttr, tAttrName = '',
+          tPlace, tAttr, tAttrName = '', tAttrType = '',
           tSetup;
       switch( iAxisViewKey) {
         case 'xAxisView':
@@ -427,8 +429,10 @@ DG.GraphView = SC.View.extend(
       }
       if( this_.getPath('model.dataConfiguration')) {
         tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
-        if (tAttr !== -1)
+        if (tAttr !== -1) {
           tAttrName = tAttr.get('name');
+          tAttrType = tAttr.get('type');
+        }
       }
       switch( tModelClass) {
         case DG.AxisModel:
@@ -438,7 +442,7 @@ DG.GraphView = SC.View.extend(
           tNewViewClass = DG.CellAxisView;
           break;
         case DG.CellLinearAxisModel:
-          tNewViewClass = (DG.QUAL_DATA_DISPLAY && (tAttrName !== 'time')) ?
+          tNewViewClass = (tAttrType === 'qualitative') ?
               DG.QualCellLinearAxisView : DG.CellLinearAxisView;
           break;
         default:
