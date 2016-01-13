@@ -117,11 +117,17 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   doDraw: function() {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
-    var //this_ = this,
-        tCases = this.getPath('model.cases'),
+    var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext();
-        //tDataLength = tCases && tCases.length,
-        //tIndex;
+    if( tCases.length !== this.features.length) {
+      this._areFeaturesAdded = false;
+      var tMap = this.get('map');
+      this.features.forEach( function( iFeature) {
+        tMap.removeLayer( iFeature);
+      });
+      this.features = [];
+      this.addFeatures();
+    }
     tCases.forEach( function( iCase, iIndex) {
       var tColorString = tRC.calcCaseColorString( iCase),
           tFeature = this.features[ iIndex];
