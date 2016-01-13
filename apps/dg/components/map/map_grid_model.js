@@ -129,7 +129,8 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     rectArray: null,
 
     maxCount: function() {
-      return this.get('rectArray').maxCount;
+      var tRectArray = this.get('rectArray');
+      return tRectArray ? tRectArray.maxCount : 0;
     }.property(),
 
     /**
@@ -138,7 +139,9 @@ DG.MapGridModel = SC.Object.extend((function () // closure
     visible: false,
 
     forEachRect: function( iFunc) {
-      this.get('rectArray').forEachRect( iFunc);
+      var tRectArray = this.get('rectArray');
+      if( tRectArray)
+        tRectArray.forEachRect( iFunc);
     },
 
     initializeRectArray: function() {
