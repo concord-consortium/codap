@@ -329,7 +329,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       pointsDidChange: function() {
         this.getPath('mapGridLayer.model').rectArrayMustChange();
         this.updateConnectingLine();
-      }.observes('mapPointView.pointsDidChange'),
+      }.observes('mapPointView.pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
 
       modelPointsDidChange: function() {
         this.get('legendView').displayDidChange();
