@@ -20,6 +20,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('views/inspector/inspector_view');
+
 /** @class
 
   DG.ContainerView is the superview for the component views in the document.
@@ -32,6 +34,11 @@ DG.ContainerView = SC.View.extend(
     var kDocMargin = 16;
     return {
       isResizable: YES,
+
+      /**
+       * @property {DG.InspectorView}
+       */
+      inspectorView: null,
 
       // We use this property as a channel for protovis to use to indicate that the
       // frame needs updating. The frame property defined below depends on it, and
@@ -52,6 +59,14 @@ DG.ContainerView = SC.View.extend(
       isFixedLayout: function() {
         return false;
       }.property(),
+
+      init: function() {
+        sc_super();
+        this.set('inspectorView', DG.InspectorView.create( {
+          componentContainer: this
+        }));
+        this.appendChild( this.get('inspectorView'));
+      },
 
       /**
        * There may be child views other than DG.ComponentView. E.g. in one prototype of showing
@@ -113,7 +128,7 @@ DG.ContainerView = SC.View.extend(
             tParentFrame = this.parentView.get('frame');
 
         // Compute the content size as the bounding rectangle of the child views.
-        this.get('componentViews').forEach(
+        this.get('childViews').forEach(
                           function( iView) {
                             var tLayout = iView.get('layout');
                             // Rarely, a layout will be missing the fields we need
@@ -162,22 +177,20 @@ DG.ContainerView = SC.View.extend(
           iComponentView.destroy();
         }
       },
-      
+
       /**
-        Removes all children from the parentView.
-    
-        @returns {SC.View} receiver
-      */
-      destroyAllChildren: function() {
-        var childViews = this.get('childViews'), view ;
-        childViews.forEach( function( iView) {
-                              if( iView && iView.willDestroy)
-                                iView.willDestroy();
-                            });
-        while (!SC.none(view = childViews.objectAt(childViews.get('length')-1))) {
-          // Destroying a view removes it from parents as well
-          view.destroy();
-        }
+       Removes all children from the parentView.
+
+       @returns {SC.View} receiver
+       */
+      destroyAllChildren: function () {
+        this.select(null);  // To close inspector
+        var componentViews = this.get('componentViews'), view;
+        componentViews.forEach(function (iView) {
+          if (iView && iView.willDestroy)
+            iView.willDestroy();
+          iView.destroy();
+        });
         return this;
       },
 
@@ -213,7 +226,8 @@ DG.ContainerView = SC.View.extend(
       */
       bringToFront: function( iChildView) {
         // Todo: Moving forward we want a data interactive to be allowed to come to the front.
-        if( iChildView.get('contentView').constructor === DG.GameView)
+        var tContentView = iChildView.get('contentView');
+        if( tContentView && tContentView.constructor === DG.GameView)
           return;
         var tSaved = iChildView.layoutDidChange;  // save this for after changes
         iChildView.layoutDidChange = null;  // prevent specious notification of resizing
@@ -226,9 +240,10 @@ DG.ContainerView = SC.View.extend(
         rendered first and appearing behind all others.
       */
       sendToBack: function( iChildView) {
-        var tChildViews = this.get('childViews' ),
+        var tChildViews = this.get('childViews'),
+            tComponentViews = this.get('componentViews' ),
             tSaved = iChildView.layoutDidChange;  // save this for after changes
-        if( tChildViews.length === 1)
+        if( tComponentViews.length === 1)
           return;   // Only one child, so it's already in back.
         iChildView.layoutDidChange = null;  // prevent specious notification of resizing
         this.removeChild( iChildView);

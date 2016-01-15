@@ -16,9 +16,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('views/inspector_view');
-
-// This page describes the main user interface for your application.  
+// This page describes the main user interface for your application.
 DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
@@ -52,7 +50,7 @@ DG.mainPage = SC.Page.design((function() {
      */
     inspectorPicker: null,
 
-    childViews: 'navBar topView scrollView inspectorView'.w(),
+    childViews: 'navBar topView scrollView'.w(),
 
     containerViewBinding: 'scrollView.contentView',
 
@@ -247,10 +245,6 @@ DG.mainPage = SC.Page.design((function() {
       })
     }),
     
-    inspectorView: DG.InspectorView.design( {
-      classNames: 'inspector-view'.w()
-    }),
-
     flagsChanged: function( iEvent) {
 //    if( iEvent.altKey)
 //      console.log('altKey');
@@ -271,7 +265,6 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
-      this.setPath('inspectorView.componentContainer', this.getPath('scrollView.contentView'));
       this.invokeLater( 'setupDragDrop', 300);
     },
 

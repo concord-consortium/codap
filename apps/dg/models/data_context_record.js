@@ -65,6 +65,13 @@ DG.DataContextRecord = DG.BaseModel.extend(
     dataSet: null,
 
     /**
+     * The context is has had its original organization modified.
+     * No new data should be added.
+     * @property {boolean}
+     */
+    flexibleGroupingChangeFlag: null,
+
+      /**
      * Per-component storage, in a component specific format.
      * @property {JSON}
      */
@@ -136,6 +143,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
             type: this.type,
             document: this.document && this.document.id || undefined,
             guid: this.id,
+            flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
             collections: [],
             contextStorage: this.contextStorage
           };

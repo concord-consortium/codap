@@ -31,14 +31,14 @@ sc_require('views/draggable_view');
 DG.InspectorView = DG.DraggableView.extend(
     /** @scope DG.InspectorView.prototype */
     (function () {
-      var kCollapsedWidth = 0,
+      var kAnimationTime = 0.2,
+          kCollapsedWidth = 0,
           kExpandedWidth = 50,
           kCellHeight = 50,
-          kDefaultTop = 100,
           kDefaultIconSize = 32,
           kPadding = (kCellHeight - kDefaultIconSize) / 2;
       return {
-        classNames: ['inspector-palette'],
+        classNames: ['inspector-palette', 'inspector-view'],
         transitionIn: SC.View,
         isResizable: false,
         isClosable: false,
@@ -46,53 +46,80 @@ DG.InspectorView = DG.DraggableView.extend(
         componentContainer: null,
         targetComponent: null,
 
-        init: function() {
+        init: function () {
           sc_super();
-          this.set('layout', { right: 0, top: kDefaultTop, height: kCellHeight, width: kCollapsedWidth });
+          this.set('layout', { height: kCellHeight, width: kCollapsedWidth});
         },
 
-        targetComponentDidChange: function() {
+        bringToFront: function () {
+          this.parentView.bringToFront(this);
+        },
 
-          var removeChildren = function() {
-            var tChildren = this.get('childViews'),
-                tChild;
-            // We call removeChild for each member of the array. This has the side effect of modifying the array
-            while( tChild = tChildren[0]) {  // jshint ignore:line
-              this.removeChild( tChild);
-            }
-          }.bind( this),
+        targetComponentDidChange: function () {
 
-          adjustLayout = function() {
-            var tChildren = this.get('childViews'),
-                tCurrTop = kPadding;
-            tChildren.forEach( function( iChild, iIndex) {
-              iChild.adjust( { top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2 });
-              iChild.set('isVisible', true);
-              tCurrTop += iChild.iconExtent.height + 2 * kPadding;
-            });
-            this.animate('height', Math.max( kCellHeight, tCurrTop - kPadding), 0.4);
-          }.bind( this);
+          var removeChildren = function () {
+                var tChildren = this.get('childViews'),
+                    tChild;
+                // We call removeChild for each member of the array. This has the side effect of modifying the array
+                while (tChild = tChildren[0]) {  // jshint ignore:line
+                  this.removeChild(tChild);
+                }
+              }.bind(this),
 
+              adjustLayout = function () {
+                var tChildren = this.get('childViews'),
+                    tCurrTop = kPadding;
+                tChildren.forEach(function (iChild, iIndex) {
+                  iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
+                  iChild.set('isVisible', true);
+                  tCurrTop += iChild.iconExtent.height + 2 * kPadding;
+                });
+                this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), kAnimationTime,
+                              finishUp);
+              }.bind(this),
+
+              finishUp = function() {
+                this.bringToFront();
+                this.invokeLater( this.scrollToVisible);
+              }.bind( this);
+
+          var tTarget = this.get('targetComponent');
+          if (tTarget) {
+            tTarget.addObserver('layout', this, 'targetLayoutDidChange');
+          }
+          this.targetLayoutDidChange();
           removeChildren();
           var tWidth,
               tButtons = this.getPath('targetComponent.inspectorButtons');
-          if( tButtons && tButtons.length > 0) {
-            tButtons.forEach( function( iButton) {
-              if( !iButton.get('layout').top)
+          if (tButtons && tButtons.length > 0) {
+            tButtons.forEach(function (iButton) {
+              if (!iButton.get('layout').top)
                 iButton.set('isVisible', false);
-              this.appendChild( iButton);
-            }.bind( this));
+              this.appendChild(iButton);
+            }.bind(this));
             tWidth = kExpandedWidth;
           }
           else {
             tWidth = kCollapsedWidth;
           }
-          this.animate('width', tWidth, 0.4, adjustLayout);
+          this.animate('width', tWidth, kAnimationTime, adjustLayout);
         }.observes('targetComponent'),
 
-        selectedComponentDidChange: function() {
+        selectedComponentDidChange: function () {
+          var tTarget = this.get('targetComponent');
+          if (tTarget) {
+            tTarget.removeObserver('layout', this, 'targetLayoutDidChange');
+          }
           this.set('targetComponent', this.getPath('componentContainer.selectedChildView'));
         }.observes('*componentContainer.selectedChildView'),
+
+        targetLayoutDidChange: function () {
+          var tTargetFrame = this.getPath('targetComponent.frame');
+          if (tTargetFrame) {
+            this.adjust('top', tTargetFrame.y);
+              this.adjust('left', tTargetFrame.x + tTargetFrame.width);
+          }
+        },
 
         /**
          * Called during drag
@@ -105,12 +132,11 @@ DG.InspectorView = DG.DraggableView.extend(
                          width: original layout.width }
          */
         dragAdjust: function (iEvent, iInfo) {
-          var tScrollView = DG.mainPage.mainPane.scrollView,
-              tScrollFrame = tScrollView.get('frame'),
+          var tTargetFrame = this.getPath('targetComponent.frame'),
               tMouseMovedY = iEvent.pageY - iInfo.pageY,
               tNewTop = iInfo.top + tMouseMovedY;
-          tNewTop = Math.max( tScrollFrame.y, tNewTop);
-          tNewTop = Math.min( tNewTop, tScrollFrame.y + tScrollFrame.height - iInfo.height);
+          tNewTop = Math.max(tTargetFrame.y, tNewTop);
+          tNewTop = Math.min(tNewTop, tTargetFrame.y + tTargetFrame.height);
           this.adjust('top', tNewTop);
         }
 
