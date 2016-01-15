@@ -56,11 +56,13 @@ DG.ContainerView = SC.View.extend(
       /**
        * There may be child views other than DG.ComponentView. E.g. in one prototype of showing
        * the map in the background, the map view was a child but not a ComponentView.
+       * In standalone mode, we don't return those with content DG.GameView
        * @property {Array of DG.ComponentView }
        */
       componentViews: function() {
         return this.get('childViews' ).filter( function (iChildView) {
-          return iChildView instanceof DG.ComponentView;
+          return (iChildView instanceof DG.ComponentView) &&
+              !(DG.STANDALONE_MODE && iChildView.contentIsInstanceOf(DG.GameView));
         });
       }.property( 'childViews'),
 
