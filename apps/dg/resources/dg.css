@@ -74,6 +74,13 @@
     white-space: nowrap;
 }
 
+.dg-qualitative-bar {
+    display: inline-block;
+    height: 8px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+}
+
 .calculator label {
     cursor: pointer;
 }

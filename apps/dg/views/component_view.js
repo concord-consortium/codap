@@ -201,6 +201,7 @@ DG.ComponentView = SC.View.extend(
         classNameBindings: ['isSelected:component-view-selected'],
         isResizable: YES,
         isClosable: YES,
+        showTitleBar: YES,
 
         /**
          * @property {DG.ComponentController}
@@ -232,6 +233,13 @@ DG.ComponentView = SC.View.extend(
         isMinimized: function () {
           return !SC.none(this.getPath('model.savedHeight'));
         }.property('model.savedHeight'),
+
+        init: function() {
+          sc_super();
+          if( !this.get('showTitleBar')) {
+            this.getPath('containerView.titlebar').adjust('height', 0);
+          }
+        },
 
         contentView: SC.outlet('containerView.contentView'),
         childViews: 'containerView borderRight borderBottom borderLeft borderTop borderCorner'.w(),
@@ -531,7 +539,7 @@ DG.ComponentView = SC.View.extend(
             this.adjust('width', tFrame.width + 2 * kBorderWidth);
           if (tFrame.height > 0)
             this.adjust('height', tFrame.height + 2 * kBorderWidth + kTitleBarHeight);
-          iView.set('layout', {top: kTitleBarHeight});
+          iView.set('layout', {top: this.get('showTitleBar') ? kTitleBarHeight : 0});
           this.containerView.appendChild(iView);
           this.containerView.setContentView(iView);
         },
@@ -609,10 +617,18 @@ DG.ComponentView._createComponent = function (iComponentLayout, iComponentClass,
                                               iContentProperties, iIsResizable, iIsVisible) {
   SC.Benchmark.start('createComponent: ' + iComponentClass);
 
-  var tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
-      tComponentView = DG.ComponentView.create({layout: iComponentLayout, isVisible: tMakeItVisible});
+  var tIsStandaloneInteractive = DG.STANDALONE_MODE && (iComponentClass === DG.GameView),
+      tMakeItVisible = (iComponentLayout.isVisible === undefined) || iComponentLayout.isVisible,
+      tComponentView = DG.ComponentView.create({
+        layout: iComponentLayout,
+        isVisible: tMakeItVisible,
+        showTitleBar: !tIsStandaloneInteractive,
+        isResizable: !tIsStandaloneInteractive
+      });
   tComponentView.addContent(iComponentClass.create(iContentProperties));
 
+  if( tIsStandaloneInteractive)
+    iIsResizable = false;
   if (!SC.none(iIsResizable))
     tComponentView.set('isResizable', iIsResizable);
   if (!SC.none(iIsVisible))

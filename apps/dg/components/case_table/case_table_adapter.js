@@ -84,6 +84,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       // Displays 'wait...' until the asynchPostReader can render a value bar
+/*
       waitingFormatter = function (value) {
         return "wait...";
       },
@@ -99,6 +100,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         $(colDef).empty();
         tPaper.rect( 0, 0, tBarLength, tHeight)
             .attr('fill', 'green');
+      };
+*/
+      qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
+        if (value == null || value === "") {
+          return "";
+        }
+
+        var color = DG.PlotUtilities.kDefaultPointColor;
+
+        return "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + value + "%'></span>";
       };
 
   return {  // return from closure
@@ -309,8 +320,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             name: getColumnHeaderString( iAttribute),
             field: attrName,
             toolTip: getToolTipString( iAttribute),
-            formatter: isQual ? waitingFormatter : cellFormatter,
-            asyncPostRender: isQual ? renderValueBar : null,
+            formatter: isQual ? qualBarFormatter : cellFormatter,
+            //asyncPostRender: isQual ? renderValueBar : null,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
