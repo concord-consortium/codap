@@ -23,7 +23,7 @@ DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
       kToolbarHeight = 70,
-      kInfobarHeight = 30,
+      kInfobarHeight = 0,
       kIconTopPadding = 17;
 
   // begin compatible browser main page design

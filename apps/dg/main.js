@@ -66,7 +66,7 @@ DG.main = function main() {
         DG.splash.removeObserver('isShowing', splashChanged);
       }
     };
-  DG.splash.addObserver('isShowing', splashChanged);
+  // DG.splash.addObserver('isShowing', splashChanged);
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
     if (DG.documentServer) {
@@ -96,5 +96,72 @@ DG.main = function main() {
   DG.appController.documentNameDidChange();
 };
 
-/* jshint unused:false */
+/* exported main */
 function main() { DG.main(); }
+
+/* Cloud File Manager Integration */
+DG.cfm = parent && parent.CloudFileManager ? parent.CloudFileManager : null;
+DG.cfmClient = null;
+
+if (DG.cfm) {
+  DG.cfm.clientConnect(function (event) {
+    var docContents, savedChangeCount;
+
+    function syncDocumentDirtyState() {
+      if(DG.currDocumentController().get('hasUnsavedChanges')) {
+        // Marking CFM client dirty
+        DG.cfmClient && DG.cfmClient.dirty();
+      }
+    }
+
+    console.log(event);
+    switch (event.type) {
+      case 'connected':
+        DG.cfmClient = event.data.client;
+        DG.cfmClient.setProviderOptions("documentStore",
+                                        {appName: DG.APPNAME,
+                                         appVersion: DG.VERSION,
+                                         appBuildNum: DG.BUILD_NUM
+                                        });
+        DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
+
+        // synchronize document dirty state on document change
+        DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
+          syncDocumentDirtyState();
+        });
+        break;
+
+      case 'getContent':
+        DG.currDocumentController().captureCurrentDocumentState(true)
+          .then(function(iContents) {
+            // record changeCount as a form of savedVersionID
+            iContents.changeCount = DG.currDocumentController().get('changeCount');
+            event.callback(iContents);
+          });
+        break;
+
+      case 'newedFile':
+        DG.appController.closeAndNewDocument();
+        break;
+
+      case 'openedFile':
+        docContents = JSON.parse(event.data.content);
+        DG.appController.closeAndNewDocument();
+        DG.store = DG.ModelStore.create();
+        DG.currDocumentController()
+          .setDocument(DG.Document.createDocument(docContents));
+        break;
+
+      case 'savedFile':
+        docContents = JSON.parse(event.data.content);
+        savedChangeCount = docContents && docContents.changeCount;
+        if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
+          // Marking CODAP document clean iff document hasn't changed since getContent()
+          DG.currDocumentController().updateSavedChangeCount();
+        }
+        // synchronize document dirty state after saving, since we may not be clean
+        syncDocumentDirtyState();
+        break;
+    }
+  });
+}
