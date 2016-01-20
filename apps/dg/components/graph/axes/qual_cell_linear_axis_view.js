@@ -103,6 +103,10 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
           this.setIfChanged('maxNumberExtent', tMaxNumberExtent);
         },
 
+        forEachTickDo: function() {
+          // Do nothing because, unlike our base class, we have no ticks
+        }
+
       };
 
     }())
