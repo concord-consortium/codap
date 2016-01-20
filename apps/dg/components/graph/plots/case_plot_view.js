@@ -174,8 +174,11 @@ DG.CasePlotView = DG.PlotView.extend(
           }
           this.invokeLater( animateSomePoints, 0);
         }
-        else
-          this.setPath( 'model.isAnimating', false);
+        else {
+          this.setPath('model.isAnimating', false);
+          this._elementOrderIsValid = false;  // otherwise updateSelection will do nothing
+          this.updateSelection();
+        }
       }.bind( this);
 
       if( this.getPath( 'model.isAnimating' ) )
