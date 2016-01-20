@@ -426,7 +426,7 @@ DG.DocumentController = SC.Object.extend(
                                         Should be specified when restoring from document.
       @param    {String}            iComponentType [Optional] -- The type of component to create.
      */
-    createComponentAndView: function( iComponent, iComponentType) {
+    createComponentAndView: function( iComponent, iComponentType, iArgs) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
           tView = null;
@@ -452,8 +452,9 @@ DG.DocumentController = SC.Object.extend(
             this.openCaseTablesForEachContext( );
           }
           break;
-        case 'DG.GraphView':
-          tView = this.addGraph( docView, iComponent, true);
+          case 'DG.GraphView':
+          // ToDo: pass iArgs along to other 'add' methods in addition to addGraph
+          tView = this.addGraph( docView, iComponent, true, iArgs);
           break;
         case 'DG.SliderView':
           tView = this.addSlider( docView, iComponent, true);
@@ -633,7 +634,8 @@ DG.DocumentController = SC.Object.extend(
                                                       iParams.contentProperties,
                                                       iParams.isResizable,
                                                       iParams.useLayout,
-                                                      iParams.isVisible);
+                                                      iParams.isVisible,
+                                                      iParams.position);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
@@ -790,7 +792,7 @@ DG.DocumentController = SC.Object.extend(
       }));
     },
 
-    addGraph: function( iParentView, iComponent, isInitialization) {
+    addGraph: function( iParentView, iComponent, isInitialization, iArgs) {
       var tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
@@ -813,8 +815,12 @@ DG.DocumentController = SC.Object.extend(
                                   parentView: iParentView,
                                   controller: tController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
-                                  contentProperties: { model: DG.GraphModel.create() },
-                                  defaultLayout: { width: 300, height: 300 },
+                                  contentProperties: { model: DG.GraphModel.create( {
+                                    xAttributeName: iArgs && iArgs.xAttributeName,
+                                    yAttributeName: iArgs && iArgs.yAttributeName
+                                  }) },
+                                  defaultLayout: iArgs.size || { width: 300, height: 300 },
+                                  position: iArgs.position,
                                   isResizable: true}
                                 );
           this._component = tView.getPath('controller.model');

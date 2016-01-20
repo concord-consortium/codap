@@ -213,11 +213,25 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           return DG.AxisModel;
       }
 
+      var configureAttributeDescription = function( iKey) {
+        var tAttributeName = this.get(iKey + 'AttributeName');
+        if( tAttributeName) {
+          delete this[tAttributeName];
+          var tDefaults = DG.currDocumentController().collectionDefaults(),
+              tCollectionClient = tDefaults.collectionClient,
+              tAttribute = tCollectionClient.getAttributeByName(tAttributeName);
+          this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
+              { collection: tCollectionClient, attributes: [ tAttribute]});
+        }
+      }.bind(this);
+
       this._plots = [];
 
       if( DG.IS_INQUIRY_SPACE_BUILD) {
         this.set('numberToggle', DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')}));
       }
+      configureAttributeDescription('x');
+      configureAttributeDescription('y');
       tXDescription = this.dataConfiguration.get( 'xAttributeDescription' );
       tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
       tY2Description = this.dataConfiguration.get( 'y2AttributeDescription' );
