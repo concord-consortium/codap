@@ -431,8 +431,8 @@ DG.mainPage = SC.Page.design((function() {
           lastWord = dotPos >= 0 ? typeString.slice( dotPos + 1) : null,
           classProto = lastWord && DG[ lastWord],
           componentsOfType = classProto && DG.mainPage.getComponentsOfType( classProto);
-      if( !componentsOfType || !componentsOfType.length)
-        DG.currDocumentController().createComponentAndView( null, iContext.type);
+      if( iContext.allowMoreThanOne || !componentsOfType || !componentsOfType.length)
+        DG.currDocumentController().createComponentAndView( null, iContext.type, iContext);
     },
 
     /*
@@ -514,7 +514,7 @@ DG.mainPage.getComponentsOfType = function( aPrototype) {
   var docView = this.get('docView'),
       tComponentViews = docView && docView.get('childViews'),
       tDesiredViews = tComponentViews && tComponentViews.filter( function( aComponentView) {
-            return aComponentView.contentIsInstanceOf( aPrototype);
+            return aComponentView.contentIsInstanceOf && aComponentView.contentIsInstanceOf( aPrototype);
           });
   return tDesiredViews ? tDesiredViews.getEach('contentView') : [];
 };

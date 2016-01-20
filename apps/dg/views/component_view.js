@@ -668,9 +668,10 @@ DG.ComponentView.restoreComponent = function (iSuperView, iComponentLayout,
  * @param iIsResizable
  * @param iUseLayoutForPosition - if true, forgo auto-positioning and just use the layout.
  * @param iIsVisible {Boolean}
+ * @param iPosition {String} Default is 'top'. Also possible is 'bottom'
  */
 DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iComponentClass, iContentProperties,
-                                          iIsResizable, iUseLayoutForPosition, iIsVisible) {
+                                          iIsResizable, iUseLayoutForPosition, iIsVisible, iPosition) {
   iUseLayoutForPosition = iUseLayoutForPosition || false;
   if (!SC.none(iComponentLayout.width))
     iComponentLayout.width += DG.ViewUtilities.horizontalPadding();
@@ -681,7 +682,7 @@ DG.ComponentView.addComponent = function (iSuperView, iComponentLayout, iCompone
       iContentProperties, iIsResizable, iIsVisible);
 
   if (!iUseLayoutForPosition)
-    iSuperView.positionNewComponent(tComponentView);
+    iSuperView.positionNewComponent(tComponentView, iPosition);
   iSuperView.appendChild(tComponentView);
   iSuperView.set('frameNeedsUpdate', true);
 

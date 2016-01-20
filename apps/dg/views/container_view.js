@@ -255,14 +255,16 @@ DG.ContainerView = SC.View.extend(
         and that its layout has the desired width and height.
         We find a non-overlapping position for the view and place it there.
         @param{DG.ComponentView} - the view to be positioned
+        @param {String} Default is 'top'
       */
-      positionNewComponent: function( iView) {
+      positionNewComponent: function( iView, iPosition) {
         var tViewRect = iView.get( 'frame'),
             tDocRect = this.parentView.get('clippingFrame');
         var tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
-                                      this.get('componentViews'));
+                                      this.get('componentViews'),
+                                      iPosition);
         iView.adjust( 'left', tLoc.x);
         iView.adjust( 'top', tLoc.y);
         this.invokeLast( function() {

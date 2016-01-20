@@ -109,56 +109,62 @@ DG.ViewUtilities = {
     In fact, rectangles that come from components like the about box have NAN's for
     x and y. We just consider them to be floating on top of everything and not intersecting.
   */
-  findEmptyLocationForRect: function( iItemRect, iContainerRect, iViews) {
+  findEmptyLocationForRect: function (iItemRect, iContainerRect, iViews, iPosition) {
     var
-      kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
-      tLoc = { x: kGap, y: kGap },
-      tSuccess = false,
-      tViewRects = iViews.map( function( iView) {
-        return iView.get('isVisible') ? iView.get('frame') : { x: 0, y: 0, width: 0, height: 0 };
-      });
-    
-    function intersectRect( r1, r2) {
-      var tRes = (!isNaN( r1.x) && !isNaN( r1.y)) &&
-                 !(r2.x > r1.x + r1.width ||
-                 r2.x + r2.width < r1.x || 
-                 r2.y > r1.y + r1.height ||
-                 r2.y + r2.height < r1.y);
+        kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
+        tLoc = {x: kGap, y: kGap},
+        tSuccess = false,
+        tStartAtBottom = (iPosition === 'bottom'),
+        tViewRects = iViews.map(function (iView) {
+          return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
+        });
+
+    function intersectRect(r1, r2) {
+      var tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
+          r2.x + r2.width < r1.x ||
+          r2.y > r1.y + r1.height ||
+          r2.y + r2.height < r1.y);
       return tRes;
     }
-    
+
     /*  intersects - Iterate through iViews, returning true for the first view
-        that intersects iItemRect placed at the given location, false
-        if none intersect.
-    */
-    function intersects( iTopLeft) {
+     that intersects iItemRect placed at the given location, false
+     if none intersect.
+     */
+    function intersects(iTopLeft) {
       return !tViewRects.every(
-        function( iViewRect) {
-          return !intersectRect( iViewRect, 
-                  { x: iTopLeft.x,
-                    y: iTopLeft.y,
-                    width: iItemRect.width,
-                    height: iItemRect.height
-                  });
-        });
+          function (iViewRect) {
+            return !intersectRect(iViewRect,
+                {
+                  x: iTopLeft.x,
+                  y: iTopLeft.y,
+                  width: iItemRect.width,
+                  height: iItemRect.height
+                });
+          });
     }
-    
+
+    if( tStartAtBottom)
+      tLoc.y = iContainerRect.height - iItemRect.height - kGap;
+
     // top to bottom
-    while( !tSuccess) {
+    while (!tSuccess) {
       tLoc.x = kGap;
       // left to right, making sure we got through at least once
-      while( !tSuccess) {
+      while (!tSuccess) {
         // Positioned at tLoc, does the item rect intersect any view rects?
-        if( intersects( tLoc)) {
+        if (intersects(tLoc)) {
           tLoc.x += kGap;
-          if( tLoc.x + iItemRect.width > iContainerRect.x + iContainerRect.width)
+          if (tLoc.x + iItemRect.width > iContainerRect.x + iContainerRect.width)
             break;
         }
         else
           tSuccess = true;
       }
-      if( !tSuccess)
-        tLoc.y += kGap;
+      if (!tSuccess)
+        tLoc.y += (tStartAtBottom ? -kGap : kGap);
+      if( tLoc.y < kGap)
+        tSuccess = true;  // We started at the bottom and didn't find an empty location
     }
     return tLoc;
   },

@@ -232,8 +232,9 @@ DG.GameController = DG.ComponentController.extend(
         }.bind(this));
         return;
 
-      case 'createComponent':
-        tRet = this.handleCreateComponent( tCmdObj.args);
+        case 'createComponent':
+          // If we're in standalone mode, we allow more than one component of a type to be created
+        tRet = this.handleCreateComponent( tCmdObj.args, DG.STANDALONE_MODE);
         break;
 
       case 'createCollection':
@@ -506,7 +507,9 @@ DG.GameController = DG.ComponentController.extend(
     /**
       Create a component of the specified type.
      */
-    handleCreateComponent: function( iArgs) {
+    handleCreateComponent: function( iArgs, iAllowMoreThanOne) {
+      if( iAllowMoreThanOne)
+        iArgs.allowMoreThanOne = true;
       // We use sendAction() here to avoid Lakosian issues
       return SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iArgs);
     },
