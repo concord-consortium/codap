@@ -743,6 +743,9 @@ DG.CaseTableController = DG.ComponentController.extend(
             _controller: function() {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
+            _beforeStorage: {
+              changeFlag: tDataContext.get('flexibleGroupingChangeFlag')
+            },
             execute: function() {
               tAttrRef = tDataContext.getAttrRefByName( tAttrName);
               var change = {
@@ -751,6 +754,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                               attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
                             };
               tDataContext.applyChange( change);
+              tDataContext.set('flexibleGroupingChangeFlag', true);
             },
             undo: function() {
               tDataContext = this._controller().get('dataContext');
@@ -761,6 +765,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                               position: [tAttrRef.position]
                             };
               tDataContext.applyChange( tChange);
+              tDataContext.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
             },
             redo: function() {
               tDataContext = this._controller().get('dataContext');
@@ -771,6 +776,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                               attrs: [{ id: tAttrRef.attribute.get('id'), attribute: tAttrRef.attribute }]
                             };
               tDataContext.applyChange( tChange);
+              tDataContext.set('flexibleGroupingChangeFlag', true);
             }
           }));
         }.bind(this);
