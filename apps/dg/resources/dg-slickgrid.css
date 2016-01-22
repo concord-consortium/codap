@@ -93,3 +93,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   border-color: transparent !important;
   background: inherit !important;
 }
+
+.slick-viewport {
+  -webkit-transform: translate3d(0, 0, 0);
+}
