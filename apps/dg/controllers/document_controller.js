@@ -819,8 +819,8 @@ DG.DocumentController = SC.Object.extend(
                                     xAttributeName: iArgs && iArgs.xAttributeName,
                                     yAttributeName: iArgs && iArgs.yAttributeName
                                   }) },
-                                  defaultLayout: iArgs.size || { width: 300, height: 300 },
-                                  position: iArgs.position,
+                                  defaultLayout: (iArgs && iArgs.size ? iArgs.size : { width: 300, height: 300 }),
+                                  position: (iArgs && iArgs.position ? iArgs.position : null),
                                   isResizable: true}
                                 );
           this._component = tView.getPath('controller.model');
