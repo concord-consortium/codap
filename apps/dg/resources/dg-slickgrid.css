@@ -93,3 +93,11 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   border-color: transparent !important;
   background: inherit !important;
 }
+
+.slick-viewport {
+  /*
+   * The following is address webkit bug where scroller thumb did not respect z-axis.
+   * See: http://stackoverflow.com/questions/16874546/strange-z-index-behavior-with-scrollbars-under-chrome
+   */
+  -webkit-transform: translate3d(0, 0, 0);
+}

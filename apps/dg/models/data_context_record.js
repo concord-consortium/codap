@@ -69,7 +69,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
      * No new data should be added.
      * @property {boolean}
      */
-    flexibleGroupingChangeFlag: null,
+    flexibleGroupingChangeFlag: false,
 
       /**
      * Per-component storage, in a component specific format.
