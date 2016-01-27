@@ -276,8 +276,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var tDescKey, tAxisKey,
-          newAttribute = iAttrRefs.attributes[0],
-          oldAttribute = this.getAttributeForAxis(iOrientation);
+          newAttribute = iAttrRefs.attributes[0];
 
       switch( iOrientation) {
         case 'horizontal':
@@ -540,8 +539,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
            * the last attribute, we assume that the plot configuration remains the same.
            */
           removeLastAttribute = function () {
-            var tName = tConfig.getPath(iDescKey + '.attribute' + '.name'),
-                tAxisToDestroy = this.get(iAxisKey),
+            var tAxisToDestroy = this.get(iAxisKey),
                 tNewAxis = DG.AxisModel.create(),
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
@@ -761,7 +759,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         case 'updateCases':
         case 'createAttributes':
         case 'updateAttributes':
-        case 'deleteAttribute':
           // We must invalidate before we build indices because the change may
           // have affected the set of included cases, which affects indices.
           // It would be better not to be dealing with indices at all, but
@@ -769,6 +766,23 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           this.get('dataConfiguration').invalidateCaches( null, iChange);
           iChange.indices = this.buildIndices( iChange);
           this.dataRangeDidChange( this, 'revision', this, iChange.indices);
+          break;
+        case 'deleteAttributes':
+          iChange.attrs.forEach(function (iAttr) {
+            ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
+              var tDescKey = iKey +'AttributeDescription',
+                  tAxisKey = iKey + 'Axis',
+                  tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+              tAttrs.forEach( function( iPlottedAttr, iIndex) {
+                if( iPlottedAttr === iAttr.attribute) {
+                  if( iKey === 'legend')
+                    this.removeLegendAttribute();
+                  else
+                    this.removeAttribute( tDescKey, tAxisKey, iIndex);
+                }
+              }.bind( this));
+            }.bind( this));
+          }.bind( this));
           break;
         case 'selectCases':
           //this.selectionDidChange();

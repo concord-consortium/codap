@@ -122,8 +122,15 @@ DG.MapModel = DG.DataDisplayModel.extend(
     handleOneDataContextChange: function( iNotifier, iChange) {
       sc_super();
 
-      if( iChange && iChange.operation === 'deleteCases')
+      var tOperation = iChange && iChange.operation;
+
+      if( tOperation === 'deleteCases')
         this.get('dataConfiguration').synchHiddenCases();
+      else if( tOperation == 'deleteAttributes') {
+        if( this.getPath('dataConfiguration.legendAttributeDescription.attribute') ===
+                iChange.attrs[0].attribute)
+          this.removeLegendAttribute();
+      }
 
       // We must invalidate before we build indices because the change may
       // have affected the set of included cases, which affects indices.

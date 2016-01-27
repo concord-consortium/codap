@@ -280,7 +280,6 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       case 'updateCases':
       case 'createAttributes':
       case 'updateAttributes':
-      case 'deleteAttributes':
         this.dataRangeDidChange( this, 'revision', this, lastChange.indices);
         break;
       case 'selectCases':
