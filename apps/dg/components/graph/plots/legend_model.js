@@ -117,6 +117,7 @@ DG.LegendModel = SC.Object.extend(
       }
     });
     tAttribute.set('colormap', tColormap);
+    this.invokeLater( this.updateSelection);
   }.observes('attributeDescription.attribute'),
 
   /**
