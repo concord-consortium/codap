@@ -142,11 +142,20 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     this.updateSelection();
   }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency' ),
 
+  hasLegendWithFormula: function () {
+    return this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.hasFormula');
+  },
+
   /**
    Handle changes in assignment of legend attribute.
    */
   dataDidChange: function() {
     this.doDraw();
+  },
+
+  refreshComputedLegendColors: function() {
+    if( this.hasLegendWithFormula())
+      this.doDraw();
   },
 
   /**
