@@ -327,9 +327,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        * Something about the points (aside from visibility) changed. Take appropriate action.
        */
       pointsDidChange: function() {
-        this.getPath('mapGridLayer.model').rectArrayMustChange();
+        var tGridModel = this.getPath('mapGridLayer.model');
+        if( tGridModel)
+            tGridModel.rectArrayMustChange();
         this.updateConnectingLine();
-      }.observes('mapPointView.pointsDidChange'),
+      }.observes('mapPointView.pointsDidChange', 'model.dataConfiguration.hiddenCases', 'model.lastChange'),
 
       modelPointsDidChange: function() {
         this.get('legendView').displayDidChange();
