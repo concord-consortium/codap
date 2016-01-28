@@ -184,6 +184,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
     displayProperties: ['leftTable','rightTable'],
     
     doDraw: function() {
+      if (true) return;
       var leftTable = this.get('leftTable'),
           leftAdapter = leftTable && leftTable.get('gridAdapter'),
           leftScrollTop = (leftTable && leftTable.getPath('scrollPos.scrollTop')) || 0,
