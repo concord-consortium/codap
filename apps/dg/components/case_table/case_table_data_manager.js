@@ -30,9 +30,9 @@ DG.CaseTableDataManager = SC.Object.extend({
   collection: null,
 
   /**
-   * @type {DG.CaseTableController}
+   * @type {DG.CaseTableModel}
    */
-  controller: null,
+  model: null,
 
   /**
    * @type {boolean}
@@ -60,7 +60,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {obj}
    */
   getItem: function (row) {
-    return this.collection.getCaseAt(row).get('_valuesMap');
+    return this.collection.getCaseAt(row);
   },
 
   /** No-op */
@@ -130,6 +130,11 @@ DG.CaseTableDataManager = SC.Object.extend({
 
   /** No-op, for now */
   expandGroup: function (id) {},
+
+  /** false for now */
+  isGroupCollapsed: function (id) {
+    return false;
+  },
 
   /** No-op */
   setRefreshHints: function (obj) {}

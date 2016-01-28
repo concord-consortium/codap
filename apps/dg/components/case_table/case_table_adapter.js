@@ -20,7 +20,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*global Slick */
 
 /** @class
 
@@ -182,14 +181,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   init: function() {
     sc_super();
 
+    var collection = this.collection;
+    var model = this.model;
+
     this.parentIDGroups = {};
-    this.gridDataView = new Slick.Data.DataView({
-                              groupItemMetadataProvider: new Slick.Data.GroupItemMetadataProvider({
-                                                                groupSelectable: true
-                                                              }),
-                              inlineFilters: true,
-                              showExpandedGroupRows: this.showExpandedGroupRows
-                            });
+    this.gridDataView = DG.CaseTableDataManager.create({
+      collection: collection,
+      model: model
+    });
 
     if( this.get('dataContext'))
       this.dataContextDidChange();
@@ -367,113 +366,113 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @returns  {Array of Object} Each object contains the information describing an individual row.
    */
   buildRowData: function() {
-    var dataContext = this.get('dataContext'),
-        collection = this.get('collection'),
-        collapseChildren = (collection &&
-                            collection.get('collapseChildren')) || false,
-        parentRows = [],      // array of parent IDs in order
-        rowDataByParent = {}, // map of parentID --> child case row info
-        rowData = [],
-        this_ = this;
-    
-    if( !collection) return rowData;
-    
-    // Build the row information object for a single case
-    function processCase( iCase) {
-      var rowInfo = getRowInfoForCase( iCase),
-          parentID = rowInfo.parentID;
-
-      if (SC.none(parentID)) { parentID = null; }
-
-      // Build the row objects into parent groups
-      if( !rowDataByParent[ parentID]) {
-        parentRows.push( parentID);
-        rowDataByParent[ parentID] = [ rowInfo];
-      }
-      else rowDataByParent[ parentID].push( rowInfo);
-    }
-    
-    // Process the cases to build row information
-    collection.forEachCase( processCase);
-    
-    // Process the parent groups to output the individual rows grouped appropriately.
-    this.parentIDGroups = {};
-    parentRows.forEach( function( iParentID, rowIndex) {
-                          var children = rowDataByParent[ iParentID],
-                              parentGroupInfo = {};
-                          children.forEach( function( iRowInfo) {
-                                              rowData.push( iRowInfo);
-                                              if( SC.none( parentGroupInfo.firstChildID)) {
-                                                parentGroupInfo.firstChildID = iRowInfo.id;
-                                                parentGroupInfo.isCollapsed = collapseChildren;
-                                              }
-                                              parentGroupInfo.lastChildID = iRowInfo.id;
-                                            });
-                          this_.parentIDGroups[ iParentID] = parentGroupInfo;
-                        });
-    
-    this.gridData = rowData;
-    this.gridDataView.beginUpdate();
-    this.gridDataView.setItems( rowData);
-    
-    function getLabelForSetOfCases() {
-      return dataContext && dataContext.getLabelForSetOfCases( collection);
-    }
-    
-    function getCaseCountString( iCount) {
-      return dataContext && dataContext.getCaseCountString( collection, iCount);
-    }
-
-    // compares cases for the grouping comparer below
-    // Basically we want to order groups by parent groups and within parent groups
-    // by item index.
-    // So, we recursively search back until we find a common ancestor or a root
-    // case. Root cases we compare by id
-    function caseComparer(c1, c2) {
-      var p1 = c1.parent;
-      var p2 = c2.parent;
-      var cmp;
-      if (c1 === c2) {
-        cmp = 0;
-      } else if (SC.none(p1)) {
-        DG.assert(SC.none(p2));
-        cmp = (c1.item.itemIndex - c2.item.itemIndex);
-      } else {
-        cmp = caseComparer(p1, p2);
-        if (cmp === 0) {
-          cmp = (c1.item.itemIndex - c2.item.itemIndex);
-        }
-      }
-      return cmp;
-    }
-
-    if( this.hasParentCollection()) {
-      this.gridDataView.setGrouping({
-            getter: "parentID",
-            formatter: function( iGroup) {
-                          return "DG.DataContext.collapsedRowString".loc( getLabelForSetOfCases(),
-                                                getCaseCountString( iGroup.count));
-                        },
-            comparer: function( iGroup1, iGroup2) {
-                        var g1Case = iGroup1.rows[0].theCase;
-                        var g2Case = iGroup2.rows[0].theCase;
-                        if (SC.none(g1Case) || SC.none(g2Case)) {
-                          DG.logWarn('Case Table group comparer, illegal values ' +
-                              'collection: "%@"', this.collection.collection.name);
-                          return 0;
-                        }
-                        return caseComparer(g1Case, g2Case);
-                      }
-          });
-      DG.ObjectMap.forEach( this.parentIDGroups,
-                            function( iParentID, iParentInfo) {
-                              if( iParentInfo.isCollapsed)
-                                this.gridDataView.collapseGroup( iParentID);
-                            }.bind(this));
-    }
-    this.gridDataView.endUpdate();
-
-    return rowData;
+    //var dataContext = this.get('dataContext'),
+    //    collection = this.get('collection'),
+    //    collapseChildren = (collection &&
+    //                        collection.get('collapseChildren')) || false,
+    //    parentRows = [],      // array of parent IDs in order
+    //    rowDataByParent = {}, // map of parentID --> child case row info
+    //    rowData = [],
+    //    this_ = this;
+    //
+    //if( !collection) return rowData;
+    //
+    //// Build the row information object for a single case
+    //function processCase( iCase) {
+    //  var rowInfo = getRowInfoForCase( iCase),
+    //      parentID = rowInfo.parentID;
+    //
+    //  if (SC.none(parentID)) { parentID = null; }
+    //
+    //  // Build the row objects into parent groups
+    //  if( !rowDataByParent[ parentID]) {
+    //    parentRows.push( parentID);
+    //    rowDataByParent[ parentID] = [ rowInfo];
+    //  }
+    //  else rowDataByParent[ parentID].push( rowInfo);
+    //}
+    //
+    //// Process the cases to build row information
+    //collection.forEachCase( processCase);
+    //
+    //// Process the parent groups to output the individual rows grouped appropriately.
+    //this.parentIDGroups = {};
+    //parentRows.forEach( function( iParentID, rowIndex) {
+    //                      var children = rowDataByParent[ iParentID],
+    //                          parentGroupInfo = {};
+    //                      children.forEach( function( iRowInfo) {
+    //                                          rowData.push( iRowInfo);
+    //                                          if( SC.none( parentGroupInfo.firstChildID)) {
+    //                                            parentGroupInfo.firstChildID = iRowInfo.id;
+    //                                            parentGroupInfo.isCollapsed = collapseChildren;
+    //                                          }
+    //                                          parentGroupInfo.lastChildID = iRowInfo.id;
+    //                                        });
+    //                      this_.parentIDGroups[ iParentID] = parentGroupInfo;
+    //                    });
+    //
+    //this.gridData = rowData;
+    //this.gridDataView.beginUpdate();
+    //this.gridDataView.setItems( rowData);
+    //
+    //function getLabelForSetOfCases() {
+    //  return dataContext && dataContext.getLabelForSetOfCases( collection);
+    //}
+    //
+    //function getCaseCountString( iCount) {
+    //  return dataContext && dataContext.getCaseCountString( collection, iCount);
+    //}
+    //
+    //// compares cases for the grouping comparer below
+    //// Basically we want to order groups by parent groups and within parent groups
+    //// by item index.
+    //// So, we recursively search back until we find a common ancestor or a root
+    //// case. Root cases we compare by id
+    //function caseComparer(c1, c2) {
+    //  var p1 = c1.parent;
+    //  var p2 = c2.parent;
+    //  var cmp;
+    //  if (c1 === c2) {
+    //    cmp = 0;
+    //  } else if (SC.none(p1)) {
+    //    DG.assert(SC.none(p2));
+    //    cmp = (c1.item.itemIndex - c2.item.itemIndex);
+    //  } else {
+    //    cmp = caseComparer(p1, p2);
+    //    if (cmp === 0) {
+    //      cmp = (c1.item.itemIndex - c2.item.itemIndex);
+    //    }
+    //  }
+    //  return cmp;
+    //}
+    //
+    //if( this.hasParentCollection()) {
+    //  this.gridDataView.setGrouping({
+    //        getter: "parentID",
+    //        formatter: function( iGroup) {
+    //                      return "DG.DataContext.collapsedRowString".loc( getLabelForSetOfCases(),
+    //                                            getCaseCountString( iGroup.count));
+    //                    },
+    //        comparer: function( iGroup1, iGroup2) {
+    //                    var g1Case = iGroup1.rows[0].theCase;
+    //                    var g2Case = iGroup2.rows[0].theCase;
+    //                    if (SC.none(g1Case) || SC.none(g2Case)) {
+    //                      DG.logWarn('Case Table group comparer, illegal values ' +
+    //                          'collection: "%@"', this.collection.collection.name);
+    //                      return 0;
+    //                    }
+    //                    return caseComparer(g1Case, g2Case);
+    //                  }
+    //      });
+    //  DG.ObjectMap.forEach( this.parentIDGroups,
+    //                        function( iParentID, iParentInfo) {
+    //                          if( iParentInfo.isCollapsed)
+    //                            this.gridDataView.collapseGroup( iParentID);
+    //                        }.bind(this));
+    //}
+    //this.gridDataView.endUpdate();
+    //
+    //return rowData;
   },
   
   /**
@@ -496,10 +495,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     // Called after the cell edit has been deactivated
                                     iEditCommand.execute();
                                   },
-              dataItemColumnValueExtractor: function( iRowItem, iColumnInfo) {
-                                              var tCase = iRowItem.theCase;
-                                              return tCase && tCase.getValue( iColumnInfo.id);
-                                            }
+              //// this method gets the cell value from the case.
+              //dataItemColumnValueExtractor: function( iRowItem, iColumnInfo) {
+              //                                var tCase = iRowItem.theCase;
+              //                                return tCase && tCase.getValue( iColumnInfo.id);
+              //                              }
+              dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
+                return iRowItem.item.values[iColumnInfo.id];
+              }
            };
     return this.gridOptions;
   },
@@ -509,7 +512,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    */
   rebuild: function() {
     this.updateColumnInfo();
-    this.buildRowData();
+    //this.buildRowData();
     this.buildGridOptions();
   },
   
@@ -693,16 +696,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   handleCellClick: function( iExtend, iCell) {
     var tDataView = this.get('gridDataView'),
         tRowInfo = iCell && (iCell.row >= 0) && tDataView && tDataView.getItem( iCell.row),
-        tCase = tRowInfo && tRowInfo.theCase,
-        tGroupParentID = tRowInfo && tRowInfo.__group && tRowInfo.value,
+        tCase = tRowInfo,
+        //tGroupParentID = tCase && tCase.getPath('parent.id'),
         tContext = this.get('dataContext'),
         tCollection = this.get('collection'),
         tIsSelected = tCollection && tCase && tCollection.isCaseSelected( tCase);
     
-    if( !SC.none( tGroupParentID)) {
-      tCase = tContext.getCaseByID(tGroupParentID);
-      tCollection = tContext.getCollectionForCase( tCase);
-    }
+    //if( !SC.none( tGroupParentID)) {
+    //  tCase = tContext.getCaseByID(tGroupParentID);
+    //  tCollection = tContext.getCollectionForCase( tCase);
+    //}
     
     var tChange = {
           operation: 'selectCases',
