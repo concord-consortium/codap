@@ -456,6 +456,17 @@ DG.CollectionClient = SC.Object.extend(
     return this.casesController.objectAt(iCaseIndex);
   },
 
+  getCaseIndexByID: function (iCaseID) {
+    return this.casesController.caseIDToIndexMap[iCaseID];
+  },
+
+  getCaseByID: function(iCaseID) {
+    var ix = this.getCaseIndexByID(iCaseID);
+    if (!SC.none(ix)) {
+      return this.getCaseAt(ix);
+    }
+  },
+
   /**
     Returns true if the case at the specified index is selected, false otherwise.
     @param    {Number}    The index of the case whose selection status is to be returned
