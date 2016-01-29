@@ -62,6 +62,10 @@ DG.LegendModel = SC.Object.extend(
     return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
   }.property('attributeDescription.attributeStats.numberOfCells'),
 
+  cellMapDidChange: function() {
+    this.invokeOnce( this.updateSelection);
+  }.observes('attributeDescription.attributeStats.categoricalStats.cellMap'),
+
   /**
     Determined by asking attributeStats
     @property{min: {Number}, max: {Number}}
@@ -117,7 +121,7 @@ DG.LegendModel = SC.Object.extend(
       }
     });
     tAttribute.set('colormap', tColormap);
-    this.invokeLater( this.updateSelection);
+    this.invokeOnce( this.updateSelection);
   }.observes('attributeDescription.attribute'),
 
   /**
@@ -130,7 +134,7 @@ DG.LegendModel = SC.Object.extend(
     switch (operation) {
       case 'selectCases':
         if (this.getPath('attributeDescription.isCategorical'))
-          this.invokeLater( this.updateSelection);
+          this.invokeOnce( this.updateSelection);
         break;
     }
   },
