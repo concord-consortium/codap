@@ -319,7 +319,28 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     handleOneDataContextChange: function( iNotifier, iChange) {
-      this.get('legend').handleDataContextChange( iChange);
+      var tOperation = iChange && iChange.operation;
+
+      if( tOperation === 'deleteAttributes') {
+        iChange.attrs.forEach(function (iAttr) {
+          ['x', 'y', 'legend', 'y2'].forEach(function (iKey) {
+            var tDescKey = iKey + 'AttributeDescription',
+                tAxisKey = iKey + 'Axis',
+                tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+            if(tAttrs) {
+              tAttrs.forEach(function (iPlottedAttr, iIndex) {
+                if (iPlottedAttr === iAttr.attribute) {
+                  if (iKey === 'legend')
+                    this.removeLegendAttribute();
+                  else if (this.removeAttribute)
+                  // todo: define remove attribute for MapModel
+                    this.removeAttribute(tDescKey, tAxisKey, iIndex);
+                }
+              }.bind(this));
+            }
+          }.bind(this));
+        }.bind( this));
+      }
     },
 
     /**

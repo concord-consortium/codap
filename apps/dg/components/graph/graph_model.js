@@ -767,23 +767,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           iChange.indices = this.buildIndices( iChange);
           this.dataRangeDidChange( this, 'revision', this, iChange.indices);
           break;
-        case 'deleteAttributes':
-          iChange.attrs.forEach(function (iAttr) {
-            ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
-              var tDescKey = iKey +'AttributeDescription',
-                  tAxisKey = iKey + 'Axis',
-                  tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
-              tAttrs.forEach( function( iPlottedAttr, iIndex) {
-                if( iPlottedAttr === iAttr.attribute) {
-                  if( iKey === 'legend')
-                    this.removeLegendAttribute();
-                  else
-                    this.removeAttribute( tDescKey, tAxisKey, iIndex);
-                }
-              }.bind( this));
-            }.bind( this));
-          }.bind( this));
-          break;
         case 'selectCases':
           //this.selectionDidChange();
           break;

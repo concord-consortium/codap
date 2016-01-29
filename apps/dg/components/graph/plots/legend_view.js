@@ -288,6 +288,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tRectangles[tName] = tRectElement;
           }
           this_.set('rectangles', tRectangles);
+          this_.selectionDidChange();
         }
 
         renderLabel();
@@ -362,7 +363,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             }
           });
         }
-      }.observes('model.selectionMap', 'rectangles')
+      }
 
     };
   }()));
