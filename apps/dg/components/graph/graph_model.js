@@ -220,8 +220,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           var tDefaults = DG.currDocumentController().collectionDefaults(),
               tCollectionClient = tDefaults.collectionClient,
               tAttribute = tCollectionClient.getAttributeByName(tAttributeName);
-          this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
-              { collection: tCollectionClient, attributes: [ tAttribute]});
+          if( tAttribute)
+            this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
+                { collection: tCollectionClient, attributes: [ tAttribute]});
         }
       }.bind(this);
 

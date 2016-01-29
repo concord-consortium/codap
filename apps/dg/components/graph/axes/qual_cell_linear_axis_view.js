@@ -56,7 +56,7 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
               tMaxNumberExtent = DG.RenderingUtilities.kDefaultFontHeight
               ;
 
-          var insureLowAndHighAreVisible = function () {
+          var ensureLowAndHighAreVisible = function () {
                 var tCurrLow = this.getPath('model.lowerBound'),
                     tCurrHigh = this.getPath('model.upperBound');
                 if (tCurrLow > kActualDefaultLow)
@@ -96,7 +96,7 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
                 );
               }.bind(this);
 
-          insureLowAndHighAreVisible();
+          ensureLowAndHighAreVisible();
           this._elementsToClear.push(this.renderAxisLine());
           drawLowHigh();
           this.renderLabel();

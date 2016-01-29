@@ -83,25 +83,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return cellValue.toString();
       },
 
-      // Displays 'wait...' until the asynchPostReader can render a value bar
-/*
-      waitingFormatter = function (value) {
-        return "wait...";
-      },
-
-      renderValueBar = function( cellNode, row, dataContext, colDef) {
-        var tPaper = Raphael(cellNode, 100, 20),
-            tCase = colDef.collection.get( 'cases')[row],
-            tValue = tCase.getValue(colDef.attribute.get('id')),
-            tWidth = $(cellNode).width(),
-            tHeight = $(cellNode).height(),
-            tBarLength = (tValue / 100) * tWidth;
-
-        $(colDef).empty();
-        tPaper.rect( 0, 0, tBarLength, tHeight)
-            .attr('fill', 'green');
-      };
-*/
       qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
         if (value == null || value === "") {
           return "";
@@ -321,7 +302,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
-            //asyncPostRender: isQual ? renderValueBar : null,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
@@ -511,7 +491,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               editable: true, // user-editable cells for columns with an 'editable' property only
               enableAddRow: false, // don't add an extra blank row at the end
               asyncEditorLoading: false,
-              enableAsyncPostRender: true,  // So we can display value bars
               autoEdit: true, // single click to edit an 'editable' attribute's cell
               editCommandHandler: function( iItem, iColumn, iEditCommand) {
                                     // Called after the cell edit has been deactivated

@@ -411,7 +411,7 @@ DG.GraphView = SC.View.extend(
           tViewClass = tView && tView.constructor,
           tNewViewClass, tNewView,
           tPlotView = this_.get('plotView'),
-          tPlace, tAttr, tAttrName = '', tAttrType = '',
+          tPlace, tAttr, tAttrType = '',
           tSetup;
       switch( iAxisViewKey) {
         case 'xAxisView':
@@ -430,7 +430,6 @@ DG.GraphView = SC.View.extend(
       if( this_.getPath('model.dataConfiguration')) {
         tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
         if (tAttr !== -1) {
-          tAttrName = tAttr.get('name');
           tAttrType = tAttr.get('type');
         }
       }
@@ -442,6 +441,8 @@ DG.GraphView = SC.View.extend(
           tNewViewClass = DG.CellAxisView;
           break;
         case DG.CellLinearAxisModel:
+            // todo: It's a lot work to get to make this one decision. We could simplify things with a QualCellLinearAxis
+            // model that would fall into the existing pattern for choosing the view class.
           tNewViewClass = (tAttrType === 'qualitative') ?
               DG.QualCellLinearAxisView : DG.CellLinearAxisView;
           break;
