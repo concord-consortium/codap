@@ -71,7 +71,8 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     var tModel = this.get('model');
     if( !tModel)
       return; // not ready yet
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription');
+    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor;
     return {
       map: this.get('map' ),
       areaVarID: tModel.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
@@ -80,6 +81,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       legendName: tLegendDesc && tLegendDesc.getPath('attribute.name'),
       areaTransparency: tModel.get('areaTransparency'),
       areaStrokeColor: tModel.get('areaStrokeColor'),
+      areaStrokeColorIsDefault: tStrokeColorIsDefault,
       areaStrokeTransparency: tModel.get('areaStrokeTransparency'),
       calcCaseColorString: function( iCase ) {
         if( !this.legendVarID)
@@ -140,11 +142,20 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     this.updateSelection();
   }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency' ),
 
+  hasLegendWithFormula: function () {
+    return this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.hasFormula');
+  },
+
   /**
    Handle changes in assignment of legend attribute.
    */
   dataDidChange: function() {
     this.doDraw();
+  },
+
+  refreshComputedLegendColors: function() {
+    if( this.hasLegendWithFormula())
+      this.doDraw();
   },
 
   /**
@@ -195,7 +206,8 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       }
       else {
         tFeature.setStyle( {
-          color: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedBorderColor :
+          color: (tHasLegend && tRC.areaStrokeColorIsDefault) ?
+              DG.PlotUtilities.kMapAreaWithLegendUnselectedBorderColor :
               tRC.areaStrokeColor,
           opacity: tRC.areaStrokeTransparency,
           fillOpacity: tHasLegend ? DG.PlotUtilities.kMapAreaWithLegendUnselectedOpacity :

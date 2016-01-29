@@ -178,11 +178,14 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         // Don't trigger undo events until the map has settled down initially
         this._ignoreMapDisplayChanges = true;
         tMapLayer._setIdle();
+
+        DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
       },
 
       destroy: function() {
         this._ignoreMapDisplayChanges = true; // So we don't install an idleTask in response to layout changes
         this.model.destroy(); // so that it can unlink observers
+        DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
         sc_super();
       },
 
@@ -462,6 +465,15 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
        */
       createVisualization: function () {
         this.get('mapAreaLayer').createVisualization();
+      },
+
+      /**
+       Called when the value of a global value changes (e.g. when a slider is dragged).
+       */
+      globalValueDidChange: function() {
+        var tAreaLayer = this.get('mapAreaLayer');
+        if( tAreaLayer)
+          tAreaLayer.refreshComputedLegendColors();
       },
 
       handleLegendModelChange: function() {
