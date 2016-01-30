@@ -118,12 +118,12 @@ DG.GraphView = SC.View.extend(
 
   init: function() {
 
-    function getAxisViewClass( iAxis) {
+    function getAxisViewClass( iAxis, iAttributeType) {
       switch( iAxis.constructor) {
         case DG.AxisModel:
           return DG.AxisView;
         case DG.CellLinearAxisModel:
-          return DG.CellLinearAxisView;
+          return (iAttributeType === 'qualitative') ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
         case DG.CellAxisModel:
           return DG.CellAxisView;
       }
@@ -135,10 +135,12 @@ DG.GraphView = SC.View.extend(
     }.bind( this);
 
     var tXAxis = this.getPath( 'model.xAxis'),
+        tXAxisAttributeType = this.getPath('model.dataConfiguration.xAttributeDescription.attribute.type'),
         tYAxis = this.getPath( 'model.yAxis'),
+        tYAxisAttributeType = this.getPath('model.dataConfiguration.yAttributeDescription.attribute.type'),
         tY2Axis = this.getPath( 'model.y2Axis'),
-        tXAxisView = getAxisViewClass( tXAxis).create( { orientation: 'horizontal' }),
-        tYAxisView = getAxisViewClass( tYAxis).create( { orientation: 'vertical' }),
+        tXAxisView = getAxisViewClass( tXAxis, tXAxisAttributeType).create( { orientation: 'horizontal' }),
+        tYAxisView = getAxisViewClass( tYAxis, tYAxisAttributeType).create( { orientation: 'vertical' }),
         tY2AxisView = getAxisViewClass( tY2Axis).create( { orientation: 'vertical2' }),
         tBackgroundView = DG.PlotBackgroundView.create( { xAxisView: tXAxisView, yAxisView: tYAxisView,
                                                           graphModel: this.get('model') } ),
@@ -409,17 +411,27 @@ DG.GraphView = SC.View.extend(
           tViewClass = tView && tView.constructor,
           tNewViewClass, tNewView,
           tPlotView = this_.get('plotView'),
+          tPlace, tAttr, tAttrType = '',
           tSetup;
       switch( iAxisViewKey) {
         case 'xAxisView':
           tSetup = { orientation: 'horizontal' };
+            tPlace = DG.GraphTypes.EPlace.eX;
           break;
         case 'yAxisView':
           tSetup = { orientation: 'vertical' };
+          tPlace = DG.GraphTypes.EPlace.eY;
           break;
         case 'y2AxisView':
           tSetup = { orientation: 'vertical2' };
+          tPlace = DG.GraphTypes.EPlace.eY2;
           break;
+      }
+      if( this_.getPath('model.dataConfiguration')) {
+        tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
+        if (tAttr !== -1) {
+          tAttrType = tAttr.get('type');
+        }
       }
       switch( tModelClass) {
         case DG.AxisModel:
@@ -429,7 +441,10 @@ DG.GraphView = SC.View.extend(
           tNewViewClass = DG.CellAxisView;
           break;
         case DG.CellLinearAxisModel:
-          tNewViewClass = DG.CellLinearAxisView;
+            // todo: It's a lot work to get to make this one decision. We could simplify things with a QualCellLinearAxis
+            // model that would fall into the existing pattern for choosing the view class.
+          tNewViewClass = (tAttrType === 'qualitative') ?
+              DG.QualCellLinearAxisView : DG.CellLinearAxisView;
           break;
         default:
           tNewViewClass = null;
@@ -579,6 +594,9 @@ DG.GraphView = SC.View.extend(
   /**
    * When our model signals that the configuration is about to change, we give our plot view a chance to
    * cache the positions of elements so they can be used in an animation
+   *
+   * If the configuration change is finished then we check to make sure that the axis views match the type
+   * of the attributes because an attribute may have gone from numeric to qualitative or vice versa.
    */
   configurationIsAboutToChange: function() {
     var tPlotView = this.get('plotView');
@@ -587,8 +605,51 @@ DG.GraphView = SC.View.extend(
     }
     else {
       tPlotView.handleConfigurationChange();
+      this.synchAxisViewsWithAttributeTypes();
     }
   }.observes('.model.aboutToChangeConfiguration'),
+
+  /**
+   * Currently the only things that can get out of synch here is eNumeric with DG.QualCellLinearAxisView
+   * and eQualitative with DG.CellLinearAxisView.
+   */
+  synchAxisViewsWithAttributeTypes: function() {
+    var tInitLayout = false;
+
+    var synchOneAxis = function( iPrefix) {
+      var tCurrentViewClass = this.get( iPrefix + 'AxisView').constructor,
+          tAttrType = this.getPath( 'model.dataConfiguration.' + iPrefix + 'AttributeDescription.attribute.type'),
+          tNewViewClass, tNewView, tOldView, tOtherView;
+      if( tCurrentViewClass === DG.CellLinearAxisView && tAttrType === 'qualitative') {
+        tNewViewClass = DG.QualCellLinearAxisView;
+      }
+      else if( tCurrentViewClass === DG.QualCellLinearAxisView && tAttrType === 'numeric') {
+        tNewViewClass = DG.CellLinearAxisView;
+      }
+      if( !SC.none( tNewViewClass)) {
+        tOldView = this.get( iPrefix + 'AxisView');
+        tNewView = tNewViewClass.create( { orientation: tOldView.get('orientation'),
+                                            model: tOldView.get('model')});
+        this.removeChild( tOldView);
+        this.appendChild( tNewView);
+        this.set( iPrefix + 'AxisView', tNewView);
+        this.setPath( 'plotBackgroundView.' + iPrefix + 'AxisView', tNewView);
+        this.setPath( 'plotView.' + iPrefix + 'AxisView', tNewView);
+        this.setPath( 'controller.' + iPrefix + 'AxisView', tNewView);
+        tOtherView = this.get( ((iPrefix === 'x') ? 'y' : 'x') + 'AxisView');
+        tNewView.set('otherAxisView', tOtherView);
+        tOldView.destroy();
+        tInitLayout = true;
+      }
+    }.bind( this);
+
+    synchOneAxis('x');
+    synchOneAxis('y');
+    if( tInitLayout) {
+      this.renderLayout( this.renderContext(this.get('tagName')), tInitLayout );
+      this.invokeLater( this.drawPlots);
+    }
+  },
 
   /**
    * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.

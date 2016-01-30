@@ -81,6 +81,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           cellValue = Math.round( multiplier * cellValue) / multiplier;
         }
         return cellValue.toString();
+      },
+
+      qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
+        if (value == null || value === "") {
+          return "";
+        }
+
+        var color = DG.PlotUtilities.kDefaultPointColor;
+
+        return "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + value + "%'></span>";
       };
 
   return {  // return from closure
@@ -280,6 +290,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Build a new column definition if we need to
       var collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
+          isQual = iAttribute.get('type') === 'qualitative',
           columnInfo = {
             context: context,
             collection: collection,
@@ -290,7 +301,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             name: getColumnHeaderString( iAttribute),
             field: attrName,
             toolTip: getToolTipString( iAttribute),
-            formatter: cellFormatter,
+            formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             header: {
               menu : {
