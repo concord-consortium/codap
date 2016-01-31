@@ -456,13 +456,13 @@ DG.CollectionClient = SC.Object.extend(
     return this.casesController.objectAt(iCaseIndex);
   },
 
-      /**
-       * Todo: Improve the efficiency of this.
-       * Todo: Used to use caseIDToIndexMap.
-       * @param iCaseID {number|string}
-       * @returns {number|undefined}
-       */
-      getCaseIndexByID: function (iCaseID) {
+  /**
+   * Todo: Improve the efficiency of this.
+   * Todo: Used to use caseIDToIndexMap.
+   * @param iCaseID {number|string}
+   * @returns {number|undefined}
+   */
+  getCaseIndexByID: function (iCaseID) {
     var index;
     this.casesController.some(function (iCase, ix) {
       if (iCase.id == iCaseID) { // jshint ignore:line

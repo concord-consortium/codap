@@ -40,6 +40,26 @@ DG.CaseTableDataManager = SC.Object.extend({
   suspended: false,
 
   /**
+   * Cache of mappings from row index to case index.
+   * @type {[DG.Case]}
+   */
+  _rowCaseIndexCache: null,
+
+  /**
+   *
+   */
+  _collapsedNodeInfoCache: null,
+
+  caseTableLength: function () {
+    return this._rowCaseIndexCache.length;
+  }.property(),
+
+  init: function () {
+    this._rowCaseIndexCache = [];
+  },
+
+
+  /**
    * Returns the number of rows in the table.
    *
    * Implements a method of the SlickGrid DataView API.
@@ -49,7 +69,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {Number}
    */
   getLength: function () {
-    return this.collection.getCaseCount();
+    return this.get('caseTableLength');
   },
 
   /**
@@ -57,14 +77,44 @@ DG.CaseTableDataManager = SC.Object.extend({
    * hashmap.
    *
    * @param row
-   * @returns {obj}
+   * @returns {DG.Case}
    */
   getItem: function (row) {
-    return this.collection.getCaseAt(row);
+    return this._rowCaseIndexCache[row];
   },
 
   /** No-op */
-  refresh: function () {},
+  refresh: function () {
+    function makeCollections(iCollection) {
+      var arr = [];
+      var col = iCollection;
+      while ( col ) {
+        arr.push(col);
+        col = col.get('parent');
+      }
+      return arr.reverse();
+    }
+    function visit(nodes, level) {
+      nodes.forEach(function (node) {
+        if (level === collections.length - 1) {
+          rowCaseIndex.push(node);
+        } else {
+          if (model.isCollapsedNode(node)) {
+            rowCaseIndex.push(node);
+          } else {
+            visit(node.get('children'), level + 1);
+          }
+        }
+      });
+    }
+    // ---- BEGIN ----
+    var rowCaseIndex = [];
+    var myCollection = this.collection;
+    var model = this.model;
+    var collections = makeCollections(myCollection);
+    visit(collections[0].casesController, 0);
+    this._rowCaseIndexCache = rowCaseIndex;
+  },
 
   /** No-op */
   onRowsChanged: {
@@ -103,14 +153,26 @@ DG.CaseTableDataManager = SC.Object.extend({
     return this.collection.getCaseByID(id);
   },
 
-  /** TBD */
+  /**
+   * Returns the case index of a case by id.
+   * @param id
+   * @returns {*|number|undefined}
+   */
   getIdxById: function (id) {
     return this.collection.getCaseIndexByID(id);
   },
 
-  /** TBD */
+  /**
+   * Gets the index of the case table row, given a case id.
+   *
+   * Note that a case table that is part of a collapsed group is not considered
+   * to be a part of the table.
+   *
+   * @param id {number}
+   * @returns {Number}
+   */
   getRowById: function (id) {
-    return this.collection.getCaseIndexByID(id);
+    return this._rowCaseIndexCache.indexOf(id);
   },
 
   /** No-op */
@@ -125,15 +187,41 @@ DG.CaseTableDataManager = SC.Object.extend({
   /** No-op */
   setGrouping: function (obj) {},
 
-  /** No-op, for now */
-  collapseGroup: function (id) {},
+  /**
+   * Marks the identified case as collapsed.
+   * @param iCaseID {number}
+   */
+  collapseGroup: function (iCaseID) {
+    var myCase = this.collection.getCaseByID(iCaseID);
+    if (myCase) {
+      this.model.collapseNode(myCase);
+      this.refresh();
+    }
+  },
 
-  /** No-op, for now */
-  expandGroup: function (id) {},
+  /**
+   * Marks the identified case as expanded.
+   * @param iCaseID {number} A case id.
+   */
+  expandGroup: function (iCaseID) {
+    var myCase = this.collection.getCaseByID(iCaseID);
+    if (myCase) {
+      this.model.expandNode(myCase);
+      this.refresh();
+    }
+  },
 
-  /** false for now */
-  isGroupCollapsed: function (id) {
-    return false;
+  /**
+   * Whether the indicated node is collapsed.
+   *
+   * @param iCaseID {number} A case id.
+   * @returns {boolean}
+   */
+  isGroupCollapsed: function (iCaseID) {
+    var myCase = this.collection.getCaseByID(iCaseID);
+    if (myCase) {
+      return this.model.isCollapsedNode(myCase);
+    }
   },
 
   /** No-op */

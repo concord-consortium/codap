@@ -50,15 +50,77 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    */
   preferredTableWidths: null,
 
+  /**
+   * A hash of case ids and their collapsed state and whether they are visible
+   * or superceded by a .
+   * @type [{{isCollapsed: boolean, isHidden: boolean, collapsedCase: DG.Case}}]
+   */
+  collapsedNodes: null,
+
   init: function () {
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};
     this.preferredTableWidths = this.preferredTableWidths || {};
+    this.collapsedNodes = this.collapsedNodes || [];
   },
 
   getPreferredAttributeWidth: function (attrID) {
     return this.preferredAttributeWidths[attrID];
   },
+
   setPreferredAttributeWidth: function(attrID, width) {
     this.preferredAttributeWidths[attrID] = width;
+  },
+
+  /**
+   * Whether node is collapsed and not hidden by another collapsed node.
+   * @param iCase {DG.Case}
+   * @returns {*|boolean}
+   */
+  isCollapsedNode: function (iCase) {
+    var node = this.collapsedNodes(iCase.id);
+    return (node && node.isCollapsed && !node.isHidden);
+  },
+
+  /**
+   * Whether the case is within a collapsed node.
+   * @param iCase {DG.Case}
+   */
+  isHiddenNode: function (iCase) {
+    var parent = iCase.collapedCase.get('parent');
+    var isHidden = false;
+    if (parent) {
+      if (this.collapsedNodes[parent.id]) {
+        isHidden = true;
+      } else {
+        isHidden = this.isHiddenNode(parent);
+      }
+    }
+    return isHidden;
+  },
+
+  collapseNode: function(iCase) {
+    var collapseState = this.collapsedNodes[iCase.id];
+    if (!collapseState) {
+      collapseState = {
+        collapsedCase: iCase
+      };
+    }
+    collapseState.isCollapsed = true;
+    this.collapsedNodes.forEach(function (collapseState) {
+      collapseState.isHidden = this.isHiddenNode(collapseState);
+    });
+  },
+
+  expandNode: function (iCase) {
+    var collapseState = this.collapsedNodes[iCase.id];
+    if (!collapseState) {
+      collapseState = {
+        collapsedCase: iCase
+      };
+    }
+    collapseState.isCollapsed = false;
+    this.collapsedNodes.forEach(function (collapseState) {
+      collapseState.isHidden = this.isHiddenNode(collapseState);
+    });
   }
 });
