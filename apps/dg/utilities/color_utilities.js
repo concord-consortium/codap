@@ -586,7 +586,7 @@ DG.ColorUtilities = {
   colorArrayToColorMap: function( iColorArray) {
     var tResult = {};
     iColorArray.forEach( function( iPair) {
-      tResult[ iPair[0]] = iPair[1];
+      tResult[ String(iPair[0])] = iPair[1];
     });
     return tResult;
   },

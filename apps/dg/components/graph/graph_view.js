@@ -230,8 +230,8 @@ DG.GraphView = SC.View.extend(
   }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
       'model.transparency', 'model.strokeTransparency'),
 
-  categoriesDidChange: function( iObject, iProperty, iValue) {
-    if( SC.none( iValue))
+  categoriesDidChange: function( iObject, iProperty) {
+    if( iProperty !== 'categoriesDragged')
       return; // So we aren't fooled by just an axis view changing
     var tLegendView = this.get('legendView');
     this.drawPlots();
