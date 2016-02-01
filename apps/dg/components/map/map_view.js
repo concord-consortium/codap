@@ -497,25 +497,32 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       handleMapLayerDisplayChange: function() {
-        this.invokeLater( function() {
-          var tMapPointView = this.get('mapPointView');
-          if (tMapPointView) { tMapPointView.doDraw(); }
+        var tMapPointView = this.get('mapPointView'),
+            tLastEventType = this.getPath( 'mapLayer.lastEventType');
+        if (tMapPointView) {
+          if (tLastEventType === 'dragstart') {
+            tMapPointView.set('isVisible', false);
+          }
+          else if (tLastEventType === 'moveend') {
+            tMapPointView.doDraw();
+            tMapPointView.set('isVisible', true);
+          }
+        }
 
-          this.updateConnectingLine();
+        this.updateConnectingLine();
 
-          var tMap = this.getPath('mapLayer.map'),
-              tCenter = tMap.getCenter(),
-              tZoom = tMap.getZoom();
+        var tMap = this.getPath('mapLayer.map'),
+            tCenter = tMap.getCenter(),
+            tZoom = tMap.getZoom();
 
-          // Record the current values, which will be applied in handleIdle()
-          this._mapDisplayChangeInProgress = true;
-          this._mapDisplayChange = {
-            center: tCenter,
-            zoom: tZoom
-          };
+        // Record the current values, which will be applied in handleIdle()
+        this._mapDisplayChangeInProgress = true;
+        this._mapDisplayChange = {
+          center: tCenter,
+          zoom: tZoom
+        };
 
-          this.setPath('mapLayer.lastEventType', null);
-        });
+        this.setPath('mapLayer.lastEventType', null);
       }.observes('mapLayer.displayChangeCount'),
 
       handleClick: function() {

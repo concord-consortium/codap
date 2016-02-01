@@ -122,14 +122,11 @@ DG.MapLayerView = SC.View.extend(
         if (this._map) {
           // May need to resize here
         } else {
-          this._map = L.map(this._layerID, {scrollWheelZoom: false})
-              .setView(this.getPath('model.center'), this.getPath('model.zoom'));
+        this._map = L.map(this._layerID, {scrollWheelZoom: false})
+            .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
               .on('dragstart', onDisplayChangeEvent)
-              .on('drag', onDisplayChangeEvent)
               .on('dragend', onDisplayChangeEvent)
-              .on('move', onDisplayChangeEvent)
-              .on('zoomend', onDisplayChangeEvent)
               .on('moveend', onDisplayChangeEvent)
               .on('click', onClick)
               .on('dragstart drag move', function () {
