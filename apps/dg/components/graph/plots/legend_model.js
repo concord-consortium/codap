@@ -62,6 +62,10 @@ DG.LegendModel = SC.Object.extend(
     return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
   }.property('attributeDescription.attributeStats.numberOfCells'),
 
+  cellMapDidChange: function() {
+    this.updateSelection();
+  }.observes('attributeDescription.attributeStats.categoricalStats.cellMap'),
+
   /**
     Determined by asking attributeStats
     @property{min: {Number}, max: {Number}}
@@ -118,21 +122,6 @@ DG.LegendModel = SC.Object.extend(
     });
     tAttribute.set('colormap', tColormap);
   }.observes('attributeDescription.attribute'),
-
-  /**
-   * Called by the DataDisplayModel that owns me.
-   * @param iChange {Object}
-   */
-  handleDataContextChange: function( iChange) {
-    var operation = iChange && iChange.operation;
-
-    switch (operation) {
-      case 'selectCases':
-        if (this.getPath('attributeDescription.isCategorical'))
-          this.invokeLater( this.updateSelection);
-        break;
-    }
-  },
 
   /**
    * Our selectionMap needs to be updated such that it has properties with value true for each

@@ -16,13 +16,11 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('views/inspector_view');
-
-// This page describes the main user interface for your application.  
+// This page describes the main user interface for your application.
 DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
-      kToolbarHeight = 70,
+      kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
       kInfobarHeight = 30,
       kIconTopPadding = 17;
 
@@ -52,7 +50,7 @@ DG.mainPage = SC.Page.design((function() {
      */
     inspectorPicker: null,
 
-    childViews: 'navBar topView scrollView inspectorView'.w(),
+    childViews: 'navBar topView scrollView'.w(),
 
     containerViewBinding: 'scrollView.contentView',
 
@@ -249,10 +247,6 @@ DG.mainPage = SC.Page.design((function() {
       })
     }),
     
-    inspectorView: DG.InspectorView.design( {
-      classNames: 'inspector-view'.w()
-    }),
-
     flagsChanged: function( iEvent) {
 //    if( iEvent.altKey)
 //      console.log('altKey');
@@ -273,7 +267,6 @@ DG.mainPage = SC.Page.design((function() {
         tScrollView.set('hasHorizontalScroller', false);
         tScrollView.set('hasVerticalScroller', false);
       }
-      this.setPath('inspectorView.componentContainer', this.getPath('scrollView.contentView'));
       this.invokeLater( 'setupDragDrop', 300);
     },
 
@@ -440,8 +433,8 @@ DG.mainPage = SC.Page.design((function() {
           lastWord = dotPos >= 0 ? typeString.slice( dotPos + 1) : null,
           classProto = lastWord && DG[ lastWord],
           componentsOfType = classProto && DG.mainPage.getComponentsOfType( classProto);
-      if( !componentsOfType || !componentsOfType.length)
-        DG.currDocumentController().createComponentAndView( null, iContext.type);
+      if( iContext.allowMoreThanOne || !componentsOfType || !componentsOfType.length)
+        DG.currDocumentController().createComponentAndView( null, iContext.type, iContext);
     },
 
     /*
@@ -523,7 +516,7 @@ DG.mainPage.getComponentsOfType = function( aPrototype) {
   var docView = this.get('docView'),
       tComponentViews = docView && docView.get('childViews'),
       tDesiredViews = tComponentViews && tComponentViews.filter( function( aComponentView) {
-            return aComponentView.contentIsInstanceOf( aPrototype);
+            return aComponentView.contentIsInstanceOf && aComponentView.contentIsInstanceOf( aPrototype);
           });
   return tDesiredViews ? tDesiredViews.getEach('contentView') : [];
 };

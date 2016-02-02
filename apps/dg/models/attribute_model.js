@@ -58,6 +58,12 @@ DG.Attribute = DG.BaseModel.extend(
     colormap: null,
 
     /**
+     * If false, empty categories will be displayed in categorical plots and legends
+     * @property{Boolean}
+     */
+    blockDisplayOfEmptyCategories: true,
+
+    /**
      * A description of/comment for the attribute
      * @property {String}
      */

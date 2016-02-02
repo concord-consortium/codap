@@ -288,6 +288,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tRectangles[tName] = tRectElement;
           }
           this_.set('rectangles', tRectangles);
+          this_.selectionDidChange();
         }
 
         renderLabel();
@@ -351,6 +352,8 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         else {
           var tSelectionMap = this.getPath('model.selectionMap'),
               tRectangles = this.get('rectangles');
+          if( SC.none( tSelectionMap) || SC.none( tRectangles))
+              return;
           DG.ObjectMap.forEach( tRectangles, function( iKey, iRect) {
             if( tSelectionMap[ iKey]) {
               iRect.addClass(DG.PlotUtilities.kLegendKeySelected);
@@ -360,7 +363,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             }
           });
         }
-      }.observes('model.selectionMap')
+      }
 
     };
   }()));

@@ -497,8 +497,17 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       },
 
       handleMapLayerDisplayChange: function() {
-        var tMapPointView = this.get('mapPointView');
-        if (tMapPointView) { tMapPointView.doDraw(); }
+        var tMapPointView = this.get('mapPointView'),
+            tLastEventType = this.getPath( 'mapLayer.lastEventType');
+        if (tMapPointView) {
+          if (tLastEventType === 'dragstart') {
+            tMapPointView.set('isVisible', false);
+          }
+          else if (tLastEventType === 'moveend') {
+            tMapPointView.doDraw();
+            tMapPointView.set('isVisible', true);
+          }
+        }
 
         this.updateConnectingLine();
 

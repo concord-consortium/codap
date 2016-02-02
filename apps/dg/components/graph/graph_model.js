@@ -213,11 +213,26 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           return DG.AxisModel;
       }
 
+      var configureAttributeDescription = function( iKey) {
+        var tAttributeName = this.get(iKey + 'AttributeName');
+        if( tAttributeName) {
+          delete this[tAttributeName];
+          var tDefaults = DG.currDocumentController().collectionDefaults(),
+              tCollectionClient = tDefaults.collectionClient,
+              tAttribute = tCollectionClient.getAttributeByName(tAttributeName);
+          if( tAttribute)
+            this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
+                { collection: tCollectionClient, attributes: [ tAttribute]});
+        }
+      }.bind(this);
+
       this._plots = [];
 
       if( DG.IS_INQUIRY_SPACE_BUILD) {
         this.set('numberToggle', DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')}));
       }
+      configureAttributeDescription('x');
+      configureAttributeDescription('y');
       tXDescription = this.dataConfiguration.get( 'xAttributeDescription' );
       tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
       tY2Description = this.dataConfiguration.get( 'y2AttributeDescription' );
@@ -276,8 +291,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
       var tDescKey, tAxisKey,
-          newAttribute = iAttrRefs.attributes[0],
-          oldAttribute = this.getAttributeForAxis(iOrientation);
+          newAttribute = iAttrRefs.attributes[0];
 
       switch( iOrientation) {
         case 'horizontal':
@@ -540,8 +554,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
            * the last attribute, we assume that the plot configuration remains the same.
            */
           removeLastAttribute = function () {
-            var tName = tConfig.getPath(iDescKey + '.attribute' + '.name'),
-                tAxisToDestroy = this.get(iAxisKey),
+            var tAxisToDestroy = this.get(iAxisKey),
                 tNewAxis = DG.AxisModel.create(),
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
@@ -761,7 +774,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         case 'updateCases':
         case 'createAttributes':
         case 'updateAttributes':
-        case 'deleteAttribute':
           // We must invalidate before we build indices because the change may
           // have affected the set of included cases, which affects indices.
           // It would be better not to be dealing with indices at all, but

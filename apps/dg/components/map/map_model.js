@@ -122,7 +122,9 @@ DG.MapModel = DG.DataDisplayModel.extend(
     handleOneDataContextChange: function( iNotifier, iChange) {
       sc_super();
 
-      if( iChange && iChange.operation === 'deleteCases')
+      var tOperation = iChange && iChange.operation;
+
+      if (tOperation === 'deleteCases')
         this.get('dataConfiguration').synchHiddenCases();
 
       // We must invalidate before we build indices because the change may

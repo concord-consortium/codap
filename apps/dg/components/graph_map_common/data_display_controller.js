@@ -352,7 +352,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
                         }.bind(this));
                       }
                     }),
-                transitionIn: SC.View.SCALE_IN,
                 popup: function () {
                   sc_super();
                   var tHeight = 0;

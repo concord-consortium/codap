@@ -182,6 +182,11 @@ DG = SC.Application.create((function () // closure
     return !SC.empty(noDtParam) && noDtParam === 'true';
   };
 
+  var useStandaloneMode = function () {
+    var standaloneParam = getUrlParameter('standalone');
+    return !SC.empty(standaloneParam) && standaloneParam === 'true';
+  };
+
 
   return { // return from closure
 
@@ -258,6 +263,8 @@ DG = SC.Application.create((function () // closure
     IS_DEV_BUILD: isDevBuild(),
 
     NO_DATA_TIP_PREF: noDataTipPref(),
+
+    STANDALONE_MODE: useStandaloneMode(),
 
     // This is your application store.  You will use this store to access all
     // of your model data.  You can also set a data source on this store to
