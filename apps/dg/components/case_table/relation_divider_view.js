@@ -184,7 +184,6 @@ DG.RelationDividerView = SC.View.extend( (function() {
     displayProperties: ['leftTable','rightTable'],
     
     doDraw: function() {
-      if (true) return;
       var leftTable = this.get('leftTable'),
           leftAdapter = leftTable && leftTable.get('gridAdapter'),
           leftScrollTop = (leftTable && leftTable.getPath('scrollPos.scrollTop')) || 0,
@@ -198,8 +197,9 @@ DG.RelationDividerView = SC.View.extend( (function() {
           lastParentID = 0,
           lastCase = null,
           this_ = this;
-      
-      if( !leftAdapter || !rightAdapter) {
+
+      // We can get a request to draw before we are ready.
+      if( !leftAdapter || !rightAdapter || SC.none(leftTable._slickGrid)) {
         //DG.log("DG.RelationDividerView.doDraw: BAILING! Missing adapter(s)"); 
         return;
       }
@@ -313,7 +313,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
        */
       function expandCollapseClickHandler( iEvent) {
         var parentInfo = this.dgChildIDRange,
-            isCollapsed = parentInfo && parentInfo.isCollapsed,
+            isCollapsed = (parentInfo && parentInfo.isCollapsed),
             gridDataView = rightAdapter && rightAdapter.gridDataView;
         parentInfo.isCollapsed = !isCollapsed;
         if( gridDataView) {
@@ -356,7 +356,8 @@ DG.RelationDividerView = SC.View.extend( (function() {
         existing ones as necessary. Marks each object visited so that stale
         objects can be removed.
         @param  iParentID     The ID of the parent case
-        @param  iChildIDRange The corresponding entry in the parentGroups map, which
+        @param  iChildIDRange {{firstChildID: number, lastChildID: number, isCollapsed: boolean}}
+                              The corresponding entry in the parentGroups map, which
                               should contain firstChildID and lastChildID properties.
        */
       var parentIndex = 0;
@@ -372,8 +373,8 @@ DG.RelationDividerView = SC.View.extend( (function() {
             theRelation = this_._parentChildRelationsMap[ iParentID];
         
         if( !leftRowBounds || !topRightRowBounds || !bottomRightRowBounds) {
-          //DG.log("DG.RelationDividerView.updateParentChildRelations: BAILING! L: %@, TR: %@, BR: %@",
-          //        leftRowBounds, topRightRowBounds, bottomRightRowBounds);
+          DG.log("DG.RelationDividerView.updateParentChildRelations: BAILING! L: %@, TR: %@, BR: %@",
+                  leftRowBounds, topRightRowBounds, bottomRightRowBounds);
           return;
         }
         
@@ -513,17 +514,30 @@ DG.RelationDividerView = SC.View.extend( (function() {
       });
 
       // Create/update the necessary lines. Marks visited objects.
-      //DG.log("DG.RelationDividierView.doDraw: adapterID: %@, parentGroups: %@",
-      //        DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
-      leftAdapter.gridData.forEach(function (rowData) {
-        var parentID = rowData.id;
-        var group = parentGroups[parentID];
-        if (group) {
-          updateParentChildRelations(parentID, parentGroups[parentID]);
+      //DG.log("DG.RelationDividerView.doDraw: adapterID: %@, parentGroups: %@",
+      //DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
+      function updateRelationsLines() {
+        var numRows = leftAdapter.gridDataView.getLength();
+        var i;
+        var myCase;
+        var parentID;
+        var childRange;
+        for (i = 0; i < numRows; i += 1) {
+          myCase = leftAdapter.gridDataView.getItem(i);
+          parentID = myCase.id;
+          if (myCase) {
+            childRange = {
+              firstChildID: myCase.children[0].id,
+              lastChildID: myCase.children[myCase.children.length - 1].id,
+              isCollapsed: leftAdapter.model.isCollapsedNode(myCase)
+            };
+            updateParentChildRelations(parentID, childRange);
+          }
         }
-      });
-      //DG.ObjectMap.forEach( parentGroups, updateParentChildRelations);
-      
+      }
+
+      updateRelationsLines();
+
       // Utility function for use with DG.ObjectMap.forEach() which calls
       // the remove() method for each value object in the map.
       // Used to remove all Raphael objects when appropriate.

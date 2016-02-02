@@ -77,7 +77,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @returns {*|boolean}
    */
   isCollapsedNode: function (iCase) {
-    var node = this.collapsedNodes(iCase.id);
+    var node = this.collapsedNodes[iCase.id];
     return (node && node.isCollapsed && !node.isHidden);
   },
 

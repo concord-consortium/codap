@@ -168,11 +168,13 @@ DG.CaseTableDataManager = SC.Object.extend({
    * Note that a case table that is part of a collapsed group is not considered
    * to be a part of the table.
    *
-   * @param id {number}
+   * @param iCaseID {number}
    * @returns {Number}
    */
-  getRowById: function (id) {
-    return this._rowCaseIndexCache.indexOf(id);
+  getRowById: function (iCaseID) {
+    var myCase = this.collection.getCaseByID(iCaseID);
+
+    return this._rowCaseIndexCache.indexOf(myCase);
   },
 
   /** No-op */
@@ -192,7 +194,8 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @param iCaseID {number}
    */
   collapseGroup: function (iCaseID) {
-    var myCase = this.collection.getCaseByID(iCaseID);
+    var parentCollection = this.collection.collectionModel.parent;
+    var myCase = parentCollection.getCaseByID(iCaseID);
     if (myCase) {
       this.model.collapseNode(myCase);
       this.refresh();
@@ -204,7 +207,8 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @param iCaseID {number} A case id.
    */
   expandGroup: function (iCaseID) {
-    var myCase = this.collection.getCaseByID(iCaseID);
+    var parentCollection = this.collection.collectionModel.parent;
+    var myCase = parentCollection.getCaseByID(iCaseID);
     if (myCase) {
       this.model.expandNode(myCase);
       this.refresh();
