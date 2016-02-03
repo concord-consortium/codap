@@ -181,13 +181,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   init: function() {
     sc_super();
 
-    var collection = this.collection;
-    var model = this.model;
-
     this.parentIDGroups = {};
     this.gridDataView = DG.CaseTableDataManager.create({
-      collection: collection,
-      model: model
+      context: this.dataContext,
+      collection: this.collection,
+      model: this.model
     });
 
     if( this.get('dataContext'))
@@ -520,20 +518,20 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     Returns an object containing expand/collapse counts for the row groups.
     @returns    {Object}    { collapsed: #CollapsedRows, expanded: #ExpandedRows }
    */
-  expandCollapseCounts: function() {
-    var collapseCount = 0,
-        expandCount = 0;
-    DG.ObjectMap.forEach( this.parentIDGroups,
-                          function( iParentID, iChildInfo) {
-                            if( iChildInfo) {
-                              if( iChildInfo.isCollapsed)
-                                ++ collapseCount;
-                              else
-                                ++ expandCount;
-                            }
-                          });
-    return { collapsed: collapseCount, expanded: expandCount };
-  }.property(),
+  //expandCollapseCounts: function() {
+  //  var collapseCount = 0,
+  //      expandCount = 0;
+  //  DG.ObjectMap.forEach( this.parentIDGroups,
+  //                        function( iParentID, iChildInfo) {
+  //                          if( iChildInfo) {
+  //                            if( iChildInfo.isCollapsed)
+  //                              ++ collapseCount;
+  //                            else
+  //                              ++ expandCount;
+  //                          }
+  //                        });
+  //  return { collapsed: collapseCount, expanded: expandCount };
+  //}.property(),
   
   /**
     Expands/collapses all of the row groups at once.

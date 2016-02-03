@@ -78,7 +78,11 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    */
   isCollapsedNode: function (iCase) {
     var node = this.collapsedNodes[iCase.id];
-    return (node && node.isCollapsed && !node.isHidden);
+    var isCollapsed = false;
+    if (node) {
+      isCollapsed = node.isCollapsed && !node.isHidden;
+    }
+    return isCollapsed;
   },
 
   /**
@@ -86,7 +90,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   isHiddenNode: function (iCase) {
-    var parent = iCase.collapedCase.get('parent');
+    var parent = iCase.get('parent');
     var isHidden = false;
     if (parent) {
       if (this.collapsedNodes[parent.id]) {
@@ -98,29 +102,48 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
     return isHidden;
   },
 
+  /**
+   * Marks a case as collapsed. In subordinate case tables the group of cases
+   * descending from this case will appear only in summary.
+   *
+   * Will mark any collapsed cases that are descendents as hidden. The fact of
+   * their collapsed state will be retained, but will have no effect unless this
+   * case is expanded again.
+   *
+   * @param iCase {DG.Case}
+   */
   collapseNode: function(iCase) {
     var collapseState = this.collapsedNodes[iCase.id];
     if (!collapseState) {
       collapseState = {
         collapsedCase: iCase
       };
+      this.collapsedNodes[iCase.id] = collapseState;
     }
     collapseState.isCollapsed = true;
-    this.collapsedNodes.forEach(function (collapseState) {
-      collapseState.isHidden = this.isHiddenNode(collapseState);
-    });
+    this.collapsedNodes.forEach(function (cs) {
+      collapseState.isHidden = this.isHiddenNode(cs.collapsedCase);
+    }.bind(this));
   },
 
+  /**
+   * Marks a case as not collapsed.
+   *
+   * Will reset any hidden collapsed cases to their correct state.
+   *
+   * @param iCase {DG.Case}
+   */
   expandNode: function (iCase) {
     var collapseState = this.collapsedNodes[iCase.id];
     if (!collapseState) {
       collapseState = {
         collapsedCase: iCase
       };
+      this.collapsedNodes[iCase.id] = collapseState;
     }
     collapseState.isCollapsed = false;
-    this.collapsedNodes.forEach(function (collapseState) {
-      collapseState.isHidden = this.isHiddenNode(collapseState);
-    });
+    this.collapsedNodes.forEach(function (cs) {
+      collapseState.isHidden = this.isHiddenNode(cs.collapsedCase);
+    }.bind(this));
   }
 });
