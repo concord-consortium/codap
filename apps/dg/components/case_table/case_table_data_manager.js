@@ -94,17 +94,16 @@ DG.CaseTableDataManager = SC.Object.extend({
     return this._rowCaseIndexCache[row];
   },
 
-  subcaseCount: function (iCase) {
-    var count = 0;
-    if (iCase.collection.id === this.collection.get('id')) {
-      count = 1;
-    } else {
-      iCase.children.forEach(function (myCase) {
-        count += this.subcaseCount(myCase);
-      }.bind(this));
-    }
-    return count;
-  },
+  /**
+   * Returns metadata for the selected row, if any.
+   *
+   * We use this API to construct collapsed rows.
+   *
+   * Signature defined by Slick Grid DataView API.
+   *
+   * @param row {number}
+   * @returns {object} See slickgrid documentation.
+   */
   getItemMetadata: function (row) {
     var myCase = this.getItem(row);
     if (myCase.collection.get('id') !== this.collection.get('id')) {
@@ -176,26 +175,22 @@ DG.CaseTableDataManager = SC.Object.extend({
   },
 
   /**
-   * No-op
+   * Event handler fired when Row data changes.
+   *
+   * Initialized in init to avoid issues resolving slickgrid library.
    *
    * Method signature matches method of Slick Grid default DataView.
    */
   onRowsChanged: null,
-  //onRowsChanged: {
-  //  subscribe: function () {}
-  //},
-
 
   /**
-   * No-op
+   * Event handler fired when row count changes.
+   *
+   * Initialized in init to avoid issues resolving slickgrid library.
    *
    * Method signature matches method of Slick Grid default DataView.
    */
   onRowCountChanged: null,
-  /** No-op */
-  //onRowCountChanged: {
-  //  subscribe: function () {}
-  //},
 
 
   /**
@@ -350,6 +345,11 @@ DG.CaseTableDataManager = SC.Object.extend({
    */
   setRefreshHints: function (obj) {},
 
+  /**
+   * A property defining the expand and collapsed counts for this collection.
+   *
+   * Used for determining the state of the expand all/collapse all buttons.
+   */
   expandCollapseCounts: function () {
     var model = this.model;
     var counts = {
@@ -364,5 +364,26 @@ DG.CaseTableDataManager = SC.Object.extend({
       }
     });
     return counts;
-  }.property()
+  }.property(),
+
+  /**
+   * Counts the cases at this level of the case table hierarchy which descend
+   * from the given case.
+   *
+   * Used for creating a collapsed row message.
+   *
+   * @param iCase
+   * @returns {number}
+   */
+  subcaseCount: function (iCase) {
+    var count = 0;
+    if (iCase.collection.id === this.collection.get('id')) {
+      count = 1;
+    } else {
+      iCase.children.forEach(function (myCase) {
+        count += this.subcaseCount(myCase);
+      }.bind(this));
+    }
+    return count;
+  }
 });
