@@ -172,6 +172,7 @@ DG.CaseTableDataManager = SC.Object.extend({
     if (rowCaseIndex !== beforeCount) {
       this.onRowCountChanged.notify({previous: beforeCount, current: rowCaseIndex.length}, null, this);
     }
+    //this.onRowsChanged.notify({rows: {}}, null, self);
   },
 
   /**
@@ -261,7 +262,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {Number}
    */
   getRowById: function (iCaseID) {
-    var myCase = this.collection.getCaseByID(iCaseID);
+    var myCase = DG.store.find('DG.Case', iCaseID);
 
     return this._rowCaseIndexCache.indexOf(myCase);
   },
