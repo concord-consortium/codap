@@ -204,6 +204,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       createComponentStorage: function() {
         var caseTableModel = this.getPath('model.content'),
             dataContext = caseTableModel.get('context'),
+            collapsedNodes = caseTableModel.get('collapsedNodes'),
             attributeWidths = [],
             storage = {};
         if( dataContext) {
@@ -220,6 +221,13 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
         }.bind(this));
         storage.attributeWidths = attributeWidths;
+
+        collapsedNodes.forEach(function (node, key) {
+          if (node.isCollapsed) {
+            this.addLink(storage, 'collapsedNodes', node.collapsedCase);
+          }
+        }.bind(this));
+
         return storage;
       },
 
@@ -227,8 +235,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         var caseTableModel = this.getPath('model.content');
         if (caseTableModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
+              collapsedNodesCount = DG.ArchiveUtils.getLinkCount(iStorage, 'collapsedNodes'),
               dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
-              attributeWidths = {};
+              attributeWidths = {},
+              ix = 0;
           if (iStorage.attributeWidths) {
             iStorage.attributeWidths.forEach(function (obj) {
               var id = this.getLinkID(obj, 'attr');
@@ -242,6 +252,12 @@ DG.CaseTableController = DG.ComponentController.extend(
             this.invokeLater(function () {
               this.set('dataContext', dataContext);
             }.bind(this));
+          }
+          if (collapsedNodesCount > 0) {
+            while(ix < collapsedNodesCount) {
+              caseTableModel.collapseNode(DG.store.find('DG.Case', DG.ArchiveUtils.getLinkID(iStorage, 'collapsedNodes', ix)));
+              ix += 1;
+            }
           }
         }
       },
