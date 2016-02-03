@@ -46,58 +46,52 @@ DG.ExampleListController = SC.ArrayController.extend(
     exampleList: function(iReceiver) {
       var url = 'DG.AppController.exampleList.ExampleListURL'.loc();
 
-      SC.Request.getUrl( url )
-        .notify(iReceiver, 'receivedExampleListResponse')
-        .send();
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        success: function(iResponse) {
+          this.receivedExampleListResponse(iResponse);
+        }.bind(this),
+        error: function(jqXHR, textStatus, errorThrown) {
+          this.handleExampleListError(jqXHR, textStatus, errorThrown);
+        }.bind(this)
+      });
     },
 
-    receivedExampleListResponse: function( iResponse) {
-    //clear the loading message
-    this.set('content', []);
-    if (SC.ok(iResponse)) {
-      var  serverText = iResponse.get('body'),
-           docList = [],
-           response;
-      try {
-          response = serverText && SC.json.decode(serverText);
-      } catch (err) {
-          response = {
-              'valid' : false,
-              'message' : 'error.parseError'
-          };
-      }
-      if (response.valid === false) {
-        //display the error code from the server as human readable message
-        var error = response.message;
-        this.addObject({ name: ('DG.DocumentListController.' + error).loc(), description: '', location: '' });
-      } else if (response) {
-        response.forEach( function( iDoc) {
-                              if( iDoc.location && iDoc.name)
-                                docList.push( { name: iDoc.name, location: iDoc.location, description: iDoc.description });
-                            });
-        if (docList.length === 0) {
-          var noDocumentsMessage = this.get('noDocumentsMessage').loc();
-          if( !SC.empty( noDocumentsMessage)) {
+    receivedExampleListResponse: function(iResponse) {
+      //clear the loading message
+      this.set('content', []);
 
-            this.addObject({ name: noDocumentsMessage, description: '', location: '' });
-          }
-        } else {
-          docList.sort( function( iItem1, iItem2) {
-                          var canonical1 = iItem1.name.toLowerCase(),
-                              canonical2 = iItem2.name.toLowerCase();
-                          // Sort case-insensitive first so we get A,a,B,b,C,c,...
-                          // rather than A,B,C,...,a,b,c,...
-                          return canonical1.localeCompare( canonical2) ||
-                                  iItem1.name.localeCompare( iItem2.name);
-                        });
-          this.set('content', docList);
+      var docList = [];
+      iResponse.forEach( function( iDoc) {
+                  if( iDoc.location && iDoc.name)
+                    docList.push( { name: iDoc.name, location: iDoc.location, description: iDoc.description });
+                });
+      if (docList.length === 0) {
+        var noDocumentsMessage = this.get('noDocumentsMessage').loc();
+        if( !SC.empty( noDocumentsMessage)) {
+          this.addObject({ name: noDocumentsMessage, description: '', location: '' });
         }
+      } else {
+        docList.sort( function( iItem1, iItem2) {
+                        var canonical1 = iItem1.name.toLowerCase(),
+                            canonical2 = iItem2.name.toLowerCase();
+                        // Sort case-insensitive first so we get A,a,B,b,C,c,...
+                        // rather than A,B,C,...,a,b,c,...
+                        return canonical1.localeCompare( canonical2) ||
+                                iItem1.name.localeCompare( iItem2.name);
+                      });
+        this.set('content', docList);
       }
-    } else {
-        //Error occured most likely due to interruption of connection to server
-        var noResponseMessage = this.get('noResponseMessage').loc();
-        this.addObject({ name: noResponseMessage, description: '', location: '' });
+    },
+
+    handleExampleListError: function(jqXHR, textStatus, errorThrown) {
+      //clear the loading message
+      this.set('content', []);
+
+      // could try to parse the error more closely
+      var error = 'error.general';
+      this.addObject({ name: ('DG.DocumentListController.' + error).loc(), description: '', location: '' });
     }
-  }
 
 }) ;
