@@ -82,11 +82,16 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
       var selected = this._dialog.getPath('contentView.choiceViews.contentView.selected');
 
       if (selected) {
-        this._urlForGetRequests( selected.location )
-        .notify(this, '_handleResponse',
-          function(body) { DG.appController.receivedOpenDocumentSuccess(body, false); },
-          function(errorCode) { DG.appController.receivedOpenDocumentFailure(errorCode, false); })
-        .send();
+        $.ajax({
+          url: selected.location,
+          success: function(iResponse) {
+            DG.appController.receivedOpenDocumentSuccess(iResponse);
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            // could try to parse the error more precisely
+            DG.appController.receivedOpenDocumentFailure('error.general');
+          }
+        });
         DG.logUser("openExample: '%@'", selected.location);
       }
     },
