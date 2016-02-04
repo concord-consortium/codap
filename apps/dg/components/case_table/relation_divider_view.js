@@ -321,10 +321,10 @@ DG.RelationDividerView = SC.View.extend( (function() {
           else
             gridDataView.expandGroup( this.dgParentID);
   
-            // Expanding/collapsing changes the set of rows that are selected
-            rightTable.updateSelectedRows();
-            rightTable.incrementProperty('expandCollapseCount');
-        }
+          // Expanding/collapsing changes the set of rows that are selected
+          rightTable.updateSelectedRows();
+          rightTable.incrementProperty('expandCollapseCount');
+      }
       }
       
       function adjustForGroupHeaderRow( ioRowBounds, iAdapter, iParentID) {
@@ -480,7 +480,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
         for (i = 0; i < numRows; i += 1) {
           myCase = leftAdapter.gridDataView.getItem(i);
           parentID = myCase.id;
-          if (myCase) {
+          if (myCase && myCase.children[0]) {
             childIDRange = {
               firstChildID: myCase.children[0].id,
               lastChildID: myCase.children[myCase.children.length - 1].id,
