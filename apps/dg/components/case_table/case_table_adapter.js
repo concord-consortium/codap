@@ -34,20 +34,20 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   var kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
       
-      // Returns the parent case ID for a given child case ID
-      getParentIDForCase = function( iCase) {
-                            var parent = iCase.get('parent');
-                            return parent && parent.get('id').toString();
-                          },
-      // Returns the required row data for a given case
-      getRowInfoForCase = function( iCase) {
-                            var rowInfo = {
-                                  theCase: iCase,
-                                  id: iCase.get('id').toString(),
-                                  parentID: getParentIDForCase( iCase)
-                                };
-                            return rowInfo;
-                          },
+      //// Returns the parent case ID for a given child case ID
+      //getParentIDForCase = function( iCase) {
+      //                      var parent = iCase.get('parent');
+      //                      return parent && parent.get('id').toString();
+      //                    },
+      //// Returns the required row data for a given case
+      //getRowInfoForCase = function( iCase) {
+      //                      var rowInfo = {
+      //                            theCase: iCase,
+      //                            id: iCase.get('id').toString(),
+      //                            parentID: getParentIDForCase( iCase)
+      //                          };
+      //                      return rowInfo;
+      //                    },
       // The tooltip string for the column depends on whether it has a formula, description, etc.
       getToolTipString = function( iAttribute) {
         var name = iAttribute.get('name'),
@@ -164,16 +164,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   gridOptions: null,
   
     // Map from parent ID to ID of last child case of a given parent case.
-  /**
-    Maintains the range of child IDs for each parent ID.
-    Map from parent ID to { firstChildID: ##, lastChildID: ## } objects.
-    @property {Object of Object}  Property keys are parent case IDs
-                                  Objects contain:
-                                    Object.firstChildID -- ID of first child case for parent
-                                    Object.lastChildID --  ID of last child case for parent
-                                    Object.isCollapsed -- Boolean value for collapse/expand state
-   */
-  parentIDGroups: null,
+  ///**
+  //  Maintains the range of child IDs for each parent ID.
+  //  Map from parent ID to { firstChildID: ##, lastChildID: ## } objects.
+  //  @property {Object of Object}  Property keys are parent case IDs
+  //                                Objects contain:
+  //                                  Object.firstChildID -- ID of first child case for parent
+  //                                  Object.lastChildID --  ID of last child case for parent
+  //                                  Object.isCollapsed -- Boolean value for collapse/expand state
+  // */
+  //parentIDGroups: null,
   
   /**
     Initialization method.
@@ -181,7 +181,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   init: function() {
     sc_super();
 
-    this.parentIDGroups = {};
+    //this.parentIDGroups = {};
     this.gridDataView = DG.CaseTableDataManager.create({
       context: this.dataContext,
       collection: this.collection,
@@ -583,66 +583,66 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @param  {DG.Case}   iCase -- The case to append to the table
    */
   appendRow: function( iCase) {
-    var rowInfo = getRowInfoForCase( iCase),
-        parentID = rowInfo.parentID,
-        parentGroupInfo = this.parentIDGroups[ parentID],
-        lastChildID = parentGroupInfo && parentGroupInfo.lastChildID,
-        dataView = this.gridDataView;
-    
-    // Create the map entry if it doesn't already exist
-    if( !parentGroupInfo) {
-      parentGroupInfo = this.parentIDGroups[ parentID] = {};
-      parentGroupInfo.isCollapsed = this.get('collapseChildren')
-                                          || false;
-    }
-    
-    // Update the parent map entry before we update the SlickGrid DataView, so that
-    // any event handlers triggered will operate with up-to-date model information.
-    if( SC.none( parentGroupInfo.firstChildID))
-      parentGroupInfo.firstChildID = rowInfo.id;
-    parentGroupInfo.lastChildID = rowInfo.id;
-
-    if( lastChildID) {
-      // Add the new row after the previous child of the same parent.
-      var lastChildIndex = dataView.getIdxById( lastChildID);
-      // Increment past the last child of the parent
-      dataView.setRefreshHints({ isFilterExpanding: true });
-      dataView.insertItem( lastChildIndex + 1, rowInfo);
-    }
-    else {
-      // Simply append the new row
-      dataView.setRefreshHints({ isFilterExpanding: true });
-      dataView.addItem( rowInfo);
-      if( parentID && parentGroupInfo.isCollapsed)
-        dataView.collapseGroup( parentID);
-    }
-    parentGroupInfo.lastChildID = rowInfo.id;
-    this.parentIDGroups[ parentID] = parentGroupInfo;
+    //var rowInfo = getRowInfoForCase( iCase),
+    //    parentID = rowInfo.parentID,
+    //    parentGroupInfo = this.parentIDGroups[ parentID],
+    //    lastChildID = parentGroupInfo && parentGroupInfo.lastChildID,
+    //    dataView = this.gridDataView;
+    //
+    //// Create the map entry if it doesn't already exist
+    //if( !parentGroupInfo) {
+    //  parentGroupInfo = this.parentIDGroups[ parentID] = {};
+    //  parentGroupInfo.isCollapsed = this.get('collapseChildren')
+    //                                      || false;
+    //}
+    //
+    //// Update the parent map entry before we update the SlickGrid DataView, so that
+    //// any event handlers triggered will operate with up-to-date model information.
+    //if( SC.none( parentGroupInfo.firstChildID))
+    //  parentGroupInfo.firstChildID = rowInfo.id;
+    //parentGroupInfo.lastChildID = rowInfo.id;
+    //
+    //if( lastChildID) {
+    //  // Add the new row after the previous child of the same parent.
+    //  var lastChildIndex = dataView.getIdxById( lastChildID);
+    //  // Increment past the last child of the parent
+    //  dataView.setRefreshHints({ isFilterExpanding: true });
+    //  dataView.insertItem( lastChildIndex + 1, rowInfo);
+    //}
+    //else {
+    //  // Simply append the new row
+    //  dataView.setRefreshHints({ isFilterExpanding: true });
+    //  dataView.addItem( rowInfo);
+    //  if( parentID && parentGroupInfo.isCollapsed)
+    //    dataView.collapseGroup( parentID);
+    //}
+    //parentGroupInfo.lastChildID = rowInfo.id;
+    //this.parentIDGroups[ parentID] = parentGroupInfo;
   },
   
-  /**
-    Adjusts the row count of the table to the case count of the collection.
-    Currently assumes that new cases can be appended to the end of the appropriate
-    parent group, while deleted cases require additional work.
-    Returns true if handled with simple appending of cases, false otherwise.
-    This can be used by clients to determine what needs to be redrawn.
-   */
+  ///**
+  //  Adjusts the row count of the table to the case count of the collection.
+  //  Currently assumes that new cases can be appended to the end of the appropriate
+  //  parent group, while deleted cases require additional work.
+  //  Returns true if handled with simple appending of cases, false otherwise.
+  //  This can be used by clients to determine what needs to be redrawn.
+  // */
   updateRowCount: function() {
-    var result = false, // Not handled with simple appending
-        collection = this.get('collection'),
-        caseCount = (collection && collection.getCaseCount()) || 0,
-        rowCount = this.get('totalRowCount'),
-      dataView = this.gridDataView;
-    if( caseCount >= rowCount) {
-      dataView.beginUpdate();
-      for( var i = rowCount; i < caseCount; ++i) {
-        var tCase = collection.casesController.objectAt( i);
-        if( DG.assert( tCase)) this.appendRow( tCase);
-      }
-      result = true;  // handled with simple appending
-      dataView.endUpdate();
-    }
-    return result;
+    //var result = false, // Not handled with simple appending
+    //    collection = this.get('collection'),
+    //    caseCount = (collection && collection.getCaseCount()) || 0,
+    //    rowCount = this.get('totalRowCount'),
+    //  dataView = this.gridDataView;
+    //if( caseCount >= rowCount) {
+    //  dataView.beginUpdate();
+    //  for( var i = rowCount; i < caseCount; ++i) {
+    //    var tCase = collection.casesController.objectAt( i);
+    //    if( DG.assert( tCase)) this.appendRow( tCase);
+    //  }
+    //  result = true;  // handled with simple appending
+    //  dataView.endUpdate();
+    //}
+    //return result;
   },
   
   /**
