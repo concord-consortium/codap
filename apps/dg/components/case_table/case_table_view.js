@@ -232,6 +232,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     }),
 
+    parentTable: null,
+
+    childTable: null,
+
     _hiddenDragView: SC.LabelView.design({
       classNames: 'drag-label'.w(),
       layout: { width: 100, height: 20, top: -50, left: 0 },
@@ -537,7 +541,46 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // Let clients know when there's a new _slickGrid
     this.notifyPropertyChange('gridView');
   },
-  
+
+    _refreshDataView: function (recurse) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      if (gridAdapter) {
+        gridAdapter.gridDataView.refresh();
+      } else {
+        DG.warn('CaseTableView._resetDataView: no data view' );
+      }
+      if (childTable && recurse) {
+        childTable._refreshDataView();
+      }
+    },
+
+    /**
+     * Collapses a node in the case tree and resets all case tables below.
+     * @param iCase {DG.Case}
+     */
+    collapseNode: function (iCaseID) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      gridAdapter.gridDataView.collapseGroup(iCaseID);
+      if (childTable) {
+        childTable._refreshDataView(true);
+      }
+    },
+
+    /**
+     * Collapses a node in the case tree and resets all case tables below.
+     *
+     * @param iCase {DG.Case}
+     */
+    expandNode: function (iCaseID) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      gridAdapter.gridDataView.expandGroup(iCaseID);
+      if (childTable) {
+        childTable._refreshDataView(true);
+      }
+    },
   /**
     Destroys the SlickGrid object and its DataView.
     Used to respond to a change of game, where we recreate the SlickGrid from scratch.
@@ -1144,7 +1187,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }
   },
-  
+
+
   updateSelectedRows: function() {
     var adapter = this.get('gridAdapter'),
         selection = adapter && adapter.getSelectedRows();

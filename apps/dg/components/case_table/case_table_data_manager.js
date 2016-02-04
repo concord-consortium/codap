@@ -306,7 +306,6 @@ DG.CaseTableDataManager = SC.Object.extend({
     var myCase = DG.store.find('DG.Case', iCaseID);
     if (myCase) {
       this.model.collapseNode(myCase);
-      this.refresh();
     }
   },
 
@@ -320,7 +319,6 @@ DG.CaseTableDataManager = SC.Object.extend({
     var myCase = DG.store.find('DG.Case', iCaseID);
     if (myCase) {
       this.model.expandNode(myCase);
-      this.refresh();
     }
   },
 

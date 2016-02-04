@@ -312,14 +312,13 @@ DG.RelationDividerView = SC.View.extend( (function() {
        */
       function expandCollapseClickHandler( iEvent) {
         var parentInfo = this.dgChildIDRange,
-            isCollapsed = (parentInfo && parentInfo.isCollapsed),
-            gridDataView = rightAdapter && rightAdapter.gridDataView;
+            isCollapsed = (parentInfo && parentInfo.isCollapsed);
         parentInfo.isCollapsed = !isCollapsed;
-        if( gridDataView) {
+        if( leftTable) {
           if( parentInfo.isCollapsed)
-            gridDataView.collapseGroup( this.dgParentID);
+            leftTable.collapseNode( this.dgParentID);
           else
-            gridDataView.expandGroup( this.dgParentID);
+            leftTable.expandNode( this.dgParentID);
   
           // Expanding/collapsing changes the set of rows that are selected
           rightTable.updateSelectedRows();
