@@ -300,6 +300,14 @@ DG.GameController = DG.ComponentController.extend(
         tRet = this.handleUndoableAction( tCmdObj.args);
         break;
 
+      case 'undo':
+        tRet = DG.UndoHistory.undo();;
+        break;
+
+      case 'redo':
+        tRet = DG.UndoHistory.redo();;
+        break;
+
       /*
        * Old API
        */
