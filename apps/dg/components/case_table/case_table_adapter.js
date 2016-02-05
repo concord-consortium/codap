@@ -360,120 +360,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
   
   /**
-    Builds the row information objects for each row of the table in a form suitable for SlickGrid.
-    @returns  {Array of Object} Each object contains the information describing an individual row.
-   */
-  buildRowData: function() {
-    //var dataContext = this.get('dataContext'),
-    //    collection = this.get('collection'),
-    //    collapseChildren = (collection &&
-    //                        collection.get('collapseChildren')) || false,
-    //    parentRows = [],      // array of parent IDs in order
-    //    rowDataByParent = {}, // map of parentID --> child case row info
-    //    rowData = [],
-    //    this_ = this;
-    //
-    //if( !collection) return rowData;
-    //
-    //// Build the row information object for a single case
-    //function processCase( iCase) {
-    //  var rowInfo = getRowInfoForCase( iCase),
-    //      parentID = rowInfo.parentID;
-    //
-    //  if (SC.none(parentID)) { parentID = null; }
-    //
-    //  // Build the row objects into parent groups
-    //  if( !rowDataByParent[ parentID]) {
-    //    parentRows.push( parentID);
-    //    rowDataByParent[ parentID] = [ rowInfo];
-    //  }
-    //  else rowDataByParent[ parentID].push( rowInfo);
-    //}
-    //
-    //// Process the cases to build row information
-    //collection.forEachCase( processCase);
-    //
-    //// Process the parent groups to output the individual rows grouped appropriately.
-    //this.parentIDGroups = {};
-    //parentRows.forEach( function( iParentID, rowIndex) {
-    //                      var children = rowDataByParent[ iParentID],
-    //                          parentGroupInfo = {};
-    //                      children.forEach( function( iRowInfo) {
-    //                                          rowData.push( iRowInfo);
-    //                                          if( SC.none( parentGroupInfo.firstChildID)) {
-    //                                            parentGroupInfo.firstChildID = iRowInfo.id;
-    //                                            parentGroupInfo.isCollapsed = collapseChildren;
-    //                                          }
-    //                                          parentGroupInfo.lastChildID = iRowInfo.id;
-    //                                        });
-    //                      this_.parentIDGroups[ iParentID] = parentGroupInfo;
-    //                    });
-    //
-    //this.gridData = rowData;
-    //this.gridDataView.beginUpdate();
-    //this.gridDataView.setItems( rowData);
-    //
-    //function getLabelForSetOfCases() {
-    //  return dataContext && dataContext.getLabelForSetOfCases( collection);
-    //}
-    //
-    //function getCaseCountString( iCount) {
-    //  return dataContext && dataContext.getCaseCountString( collection, iCount);
-    //}
-    //
-    //// compares cases for the grouping comparer below
-    //// Basically we want to order groups by parent groups and within parent groups
-    //// by item index.
-    //// So, we recursively search back until we find a common ancestor or a root
-    //// case. Root cases we compare by id
-    //function caseComparer(c1, c2) {
-    //  var p1 = c1.parent;
-    //  var p2 = c2.parent;
-    //  var cmp;
-    //  if (c1 === c2) {
-    //    cmp = 0;
-    //  } else if (SC.none(p1)) {
-    //    DG.assert(SC.none(p2));
-    //    cmp = (c1.item.itemIndex - c2.item.itemIndex);
-    //  } else {
-    //    cmp = caseComparer(p1, p2);
-    //    if (cmp === 0) {
-    //      cmp = (c1.item.itemIndex - c2.item.itemIndex);
-    //    }
-    //  }
-    //  return cmp;
-    //}
-    //
-    //if( this.hasParentCollection()) {
-    //  this.gridDataView.setGrouping({
-    //        getter: "parentID",
-    //        formatter: function( iGroup) {
-    //                      return "DG.DataContext.collapsedRowString".loc( getLabelForSetOfCases(),
-    //                                            getCaseCountString( iGroup.count));
-    //                    },
-    //        comparer: function( iGroup1, iGroup2) {
-    //                    var g1Case = iGroup1.rows[0].theCase;
-    //                    var g2Case = iGroup2.rows[0].theCase;
-    //                    if (SC.none(g1Case) || SC.none(g2Case)) {
-    //                      DG.logWarn('Case Table group comparer, illegal values ' +
-    //                          'collection: "%@"', this.collection.collection.name);
-    //                      return 0;
-    //                    }
-    //                    return caseComparer(g1Case, g2Case);
-    //                  }
-    //      });
-    //  DG.ObjectMap.forEach( this.parentIDGroups,
-    //                        function( iParentID, iParentInfo) {
-    //                          if( iParentInfo.isCollapsed)
-    //                            this.gridDataView.collapseGroup( iParentID);
-    //                        }.bind(this));
-    //}
-    //this.gridDataView.endUpdate();
-    //
-    //return rowData;
-  },
-  
-  /**
     Returns the grid option in a form suitable for passing to the SlickGrid.
     The most important options (currently) are the default rowHeight and the
     dataItemColumnValueExtractor(), which extracts individual values from the model.
@@ -510,7 +396,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    */
   rebuild: function() {
     this.updateColumnInfo();
-    //this.buildRowData();
     this.buildGridOptions();
   },
 
@@ -538,74 +423,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var gridDataView = this.get('gridDataView');
     if( gridDataView) gridDataView.refresh();
   },
-  
-  /**
-    Appends a single case as the last row of the appropriate parent group.
-    @param  {DG.Case}   iCase -- The case to append to the table
-   */
-  appendRow: function( iCase) {
-    //var rowInfo = getRowInfoForCase( iCase),
-    //    parentID = rowInfo.parentID,
-    //    parentGroupInfo = this.parentIDGroups[ parentID],
-    //    lastChildID = parentGroupInfo && parentGroupInfo.lastChildID,
-    //    dataView = this.gridDataView;
-    //
-    //// Create the map entry if it doesn't already exist
-    //if( !parentGroupInfo) {
-    //  parentGroupInfo = this.parentIDGroups[ parentID] = {};
-    //  parentGroupInfo.isCollapsed = this.get('collapseChildren')
-    //                                      || false;
-    //}
-    //
-    //// Update the parent map entry before we update the SlickGrid DataView, so that
-    //// any event handlers triggered will operate with up-to-date model information.
-    //if( SC.none( parentGroupInfo.firstChildID))
-    //  parentGroupInfo.firstChildID = rowInfo.id;
-    //parentGroupInfo.lastChildID = rowInfo.id;
-    //
-    //if( lastChildID) {
-    //  // Add the new row after the previous child of the same parent.
-    //  var lastChildIndex = dataView.getIdxById( lastChildID);
-    //  // Increment past the last child of the parent
-    //  dataView.setRefreshHints({ isFilterExpanding: true });
-    //  dataView.insertItem( lastChildIndex + 1, rowInfo);
-    //}
-    //else {
-    //  // Simply append the new row
-    //  dataView.setRefreshHints({ isFilterExpanding: true });
-    //  dataView.addItem( rowInfo);
-    //  if( parentID && parentGroupInfo.isCollapsed)
-    //    dataView.collapseGroup( parentID);
-    //}
-    //parentGroupInfo.lastChildID = rowInfo.id;
-    //this.parentIDGroups[ parentID] = parentGroupInfo;
-  },
 
-  ///**
-  //  Adjusts the row count of the table to the case count of the collection.
-  //  Currently assumes that new cases can be appended to the end of the appropriate
-  //  parent group, while deleted cases require additional work.
-  //  Returns true if handled with simple appending of cases, false otherwise.
-  //  This can be used by clients to determine what needs to be redrawn.
-  // */
-  updateRowCount: function() {
-    //var result = false, // Not handled with simple appending
-    //    collection = this.get('collection'),
-    //    caseCount = (collection && collection.getCaseCount()) || 0,
-    //    rowCount = this.get('totalRowCount'),
-    //  dataView = this.gridDataView;
-    //if( caseCount >= rowCount) {
-    //  dataView.beginUpdate();
-    //  for( var i = rowCount; i < caseCount; ++i) {
-    //    var tCase = collection.casesController.objectAt( i);
-    //    if( DG.assert( tCase)) this.appendRow( tCase);
-    //  }
-    //  result = true;  // handled with simple appending
-    //  dataView.endUpdate();
-    //}
-    //return result;
-  },
-  
   /**
     Returns the set of selected row indices for the table.
     Note: We could potentially speed this up by only considering rows
@@ -660,11 +478,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         tContext = this.get('dataContext'),
         tCollection = this.get('collection'),
         tIsSelected = tCollection && tCase && tCollection.isCaseSelected( tCase);
-    
-    //if( !SC.none( tGroupParentID)) {
-    //  tCase = tContext.getCaseByID(tGroupParentID);
-    //  tCollection = tContext.getCollectionForCase( tCase);
-    //}
     
     var tChange = {
           operation: 'selectCases',

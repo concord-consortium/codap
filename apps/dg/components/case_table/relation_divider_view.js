@@ -506,29 +506,6 @@ DG.RelationDividerView = SC.View.extend( (function() {
           iValue.remove();
       }
 
-      // compares cases for the grouping comparer below
-      // Basically we want to order groups by parent groups and within parent groups
-      // by item index.
-      // So, we recursively search back until we find a common ancestor or a root
-      // case. Root cases we compare by id
-      //function caseComparer(iCase1, iCase2) {
-      //  var p1 = iCase1.parent;
-      //  var p2 = iCase2.parent;
-      //  var cmp;
-      //  if (iCase1 === iCase2) {
-      //    cmp = 0;
-      //  } else if (SC.none(p1)) {
-      //    DG.assert(SC.none(p2));
-      //    cmp = (iCase1.item.itemIndex - iCase2.item.itemIndex);
-      //  } else {
-      //    cmp = caseComparer(p1, p2);
-      //    if (cmp === 0) {
-      //      cmp = (iCase1.item.itemIndex - iCase2.item.itemIndex);
-      //    }
-      //  }
-      //  return cmp;
-      //}
-
       // - - - - - BEGINNING of doDraw() - - - - -
 
       // Mark all objects for deletion if they aren't visited in update loop

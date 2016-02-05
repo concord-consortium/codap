@@ -710,7 +710,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     else if( this._slickGrid) {
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
-        gridAdapter.buildRowData();
         gridAdapter.refresh();
         this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength(), true);
       }
