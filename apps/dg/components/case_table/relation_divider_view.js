@@ -47,6 +47,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
       RDV_RELATION_FILL_COLOR = '#EEEEEE',   // pale gray
       
       // The expand/collapse icon images
+      RDV_NO_ACTION_ICON_URL = sc_static('slickgrid/images/no-action.png'),
       RDV_EXPAND_ICON_URL = sc_static('slickgrid/images/expand.gif'),
       RDV_COLLAPSE_ICON_URL = sc_static('slickgrid/images/collapse.gif'),
       RDV_EXPAND_COLLAPSE_ICON_SIZE = { width: 9, height: 9 },
@@ -312,9 +313,10 @@ DG.RelationDividerView = SC.View.extend( (function() {
        */
       function expandCollapseClickHandler( iEvent) {
         var parentInfo = this.dgChildIDRange,
+            isContained = (parentInfo && parentInfo.isContained),
             isCollapsed = (parentInfo && parentInfo.isCollapsed);
         parentInfo.isCollapsed = !isCollapsed;
-        if( leftTable) {
+        if( leftTable && !isContained) {
           if( parentInfo.isCollapsed)
             leftTable.collapseNode( this.dgParentID);
           else
@@ -359,6 +361,13 @@ DG.RelationDividerView = SC.View.extend( (function() {
                               should contain firstChildID and lastChildID properties.
        */
       function updateParentChildRelations( iParentID, iChildIDRange) {
+        function determineImageURL(iChildIDRange) {
+          return iChildIDRange.isContained
+            ? RDV_NO_ACTION_ICON_URL
+            : (iChildIDRange.isCollapsed
+              ? RDV_EXPAND_ICON_URL
+              : RDV_COLLAPSE_ICON_URL);
+        }
         var leftRowBounds = getRowBoundsForCase( leftTable, leftAdapter, iParentID,
                                                   leftYCoordForFilteredRows, 0),
             topRightRowBounds = getRowBoundsForCase( rightTable, rightAdapter,
@@ -403,9 +412,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
                                                   leftRowBounds.bottom - leftScrollTop + 1,
                                                   bottomRightRowBounds.bottom - rightScrollTop + 1)
                               : '',
-              imageUrl = iChildIDRange.isCollapsed
-                            ? RDV_EXPAND_ICON_URL
-                            : RDV_COLLAPSE_ICON_URL,
+              imageUrl = determineImageURL(iChildIDRange),
               imagePos = { x: 3, y: leftRowBounds.top - leftScrollTop + 5 },
               imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE,
               //kTouchMargin = 5,
@@ -483,7 +490,8 @@ DG.RelationDividerView = SC.View.extend( (function() {
             childIDRange = {
               firstChildID: myCase.children[0].id,
               lastChildID: myCase.children[myCase.children.length - 1].id,
-              isCollapsed: leftAdapter.model.isCollapsedNode(myCase)
+              isCollapsed: leftAdapter.model.isCollapsedNode(myCase),
+              isContained: (myCase.collection.get('id') !== leftAdapter.get('collection').get('id'))
             };
             updateParentChildRelations(parentID, childIDRange);
           }
