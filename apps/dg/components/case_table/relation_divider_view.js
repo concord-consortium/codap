@@ -128,7 +128,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
         return iCounts && ((iCounts.expanded === 0) && (iCounts.collapsed > 0));
       }
       
-      var table = this.get('rightTable'),
+      var table = this.get('leftTable'),
           leftAdapter = this.getPath('leftTable.gridAdapter'),
           gridDataView = leftAdapter && leftAdapter.get('gridDataView'),
           imageUrl = shouldShowExpandAll( gridDataView && gridDataView.get('expandCollapseCounts'))

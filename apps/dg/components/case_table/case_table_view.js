@@ -1081,13 +1081,24 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   expandCollapseAll: function( iExpand) {
     var adapter = this.get('gridAdapter');
-    if( adapter) {
-      adapter.expandCollapseAll( iExpand);
-
-      // Expanding/collapsing changes the set of rows that are selected
-      this.updateSelectedRows();
-      this.incrementProperty('expandCollapseCount');
+    var dataView = adapter.get('gridDataView');
+    var ix = 0;
+    var rows = dataView.getLength();
+    var myCase;
+    DG.assert( dataView);
+    dataView.beginUpdate();
+    for (ix = 0; ix < rows; ix += 1) {
+      myCase = dataView.getItem(ix);
+      if (iExpand) {
+        this.expandNode( myCase.id);
+      } else {
+        this.collapseNode( myCase.id);
+      }
     }
+    dataView.endUpdate();
+
+    this.updateSelectedRows();
+    this.incrementProperty('expandCollapseCount');
   },
   
   /**

@@ -513,46 +513,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     //this.buildRowData();
     this.buildGridOptions();
   },
-  
-  /**
-    Returns an object containing expand/collapse counts for the row groups.
-    @returns    {Object}    { collapsed: #CollapsedRows, expanded: #ExpandedRows }
-   */
-  //expandCollapseCounts: function() {
-  //  var collapseCount = 0,
-  //      expandCount = 0;
-  //  DG.ObjectMap.forEach( this.parentIDGroups,
-  //                        function( iParentID, iChildInfo) {
-  //                          if( iChildInfo) {
-  //                            if( iChildInfo.isCollapsed)
-  //                              ++ collapseCount;
-  //                            else
-  //                              ++ expandCount;
-  //                          }
-  //                        });
-  //  return { collapsed: collapseCount, expanded: expandCount };
-  //}.property(),
-  
-  /**
-    Expands/collapses all of the row groups at once.
-    @param    {Boolean}   iExpand -- Expands all row groups if truthy;
-                                      collapses all row groups otherwise
-   */
-  expandCollapseAll: function( iExpand) {
-    var dataView = this.get('gridDataView');
-    DG.assert( dataView);
-    dataView.beginUpdate();
-    DG.ObjectMap.forEach( this.parentIDGroups,
-                          function( iParentID, iChildInfo) {
-                            iChildInfo.isCollapsed = !iExpand;
-                            if( iExpand)
-                              dataView.expandGroup( iParentID);
-                            else
-                              dataView.collapseGroup( iParentID);
-                          });
-    dataView.endUpdate();
-  },
-  
+
   /**
     Rebuilds the table when the data context changes.
    */
@@ -619,7 +580,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     //parentGroupInfo.lastChildID = rowInfo.id;
     //this.parentIDGroups[ parentID] = parentGroupInfo;
   },
-  
+
   ///**
   //  Adjusts the row count of the table to the case count of the collection.
   //  Currently assumes that new cases can be appended to the end of the appropriate
