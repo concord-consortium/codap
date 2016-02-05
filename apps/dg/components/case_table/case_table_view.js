@@ -551,8 +551,47 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         DG.warn('CaseTableView._resetDataView: no data view' );
       }
       if (childTable && recurse) {
-        childTable._refreshDataView();
+        childTable._refreshDataView(recurse);
       }
+    },
+
+    /**
+     * Gets the row position of a case in relative to the top of the viewport.
+     * If the row position is not visible in the viewport returns undefined.
+     * @param iCaseID {number}
+     * @returns {number|undefined}
+     */
+    getViewportPosition: function (iCaseID) {
+      var gridDataView = this.getPath('gridAdapter.gridDataView');
+      var row = gridDataView.getRowById(iCaseID);
+      var viewport = this._slickGrid.getViewport();
+      var viewHeight = viewport.bottom - viewport.top;
+      var offset = row - viewport.top;
+      if (offset >= 0 && offset <= viewHeight) {
+        return row - viewport.top;
+      } else {
+        return undefined;
+      }
+    },
+
+    /**
+     * Aligns the row containing the matching case ids in child tables of this table.
+     *
+     * This method is intended to align collapsed rows.
+     * Collapsed rows are assumed to be mapped in child tables to the collapsed
+     * row, perhaps in a higher level collection.
+     *
+     * @param iViewportPosition {number}
+     * @param iCaseID {number}
+     */
+    alignChildTables: function (iViewportPosition, iCaseID) {
+      var childView = this.get('childTable');
+      if (!childView) {
+        return;
+      }
+      var row = childView.getPath('gridAdapter.gridDataView').getRowById(iCaseID);
+      childView.animateScrollToTop(row - iViewportPosition);
+      childView.alignChildTables(iViewportPosition, iCaseID);
     },
 
     /**
@@ -562,9 +601,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     collapseNode: function (iCaseID) {
       var childTable = this.get('childTable');
       var gridAdapter = this.get('gridAdapter');
+      var viewportRow;
       gridAdapter.gridDataView.collapseGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
+        viewportRow = this.getViewportPosition(iCaseID);
+        this.alignChildTables(viewportRow, iCaseID);
       }
     },
 
@@ -1149,6 +1191,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
     //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
   },
+
+    animateScrollToTop: function (rowIndex) {
+      var viewport = this._slickGrid.getViewport();
+      this.scrollAnimator.animate(this, viewport.top, rowIndex);
+    },
 
     /**
      * It is possible that the DOM and SlickGrid get out of sync. This method
