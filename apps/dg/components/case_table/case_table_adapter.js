@@ -451,11 +451,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         parentCollection = dataContext && dataContext.getParentCollection( collection);
     if( parentCollection && dataView && (rowCount > 0)) {
       for( i = 0; i < rowCount; ++i) {
-        var rowInfo = dataView.getItem( i);
-        if( rowInfo && rowInfo.__group) {
-          var tCase = dataContext.getCaseByID(rowInfo.value);
-          if( parentCollection.isCaseSelected( tCase))
-            selectedRows.push( i);
+        var myCase = dataView.getItem( i);
+        if (myCase.collection.get('id') !== collection.get('id')) {
+          if(dataContext.getCollectionByID(myCase.collection.get('id')).isCaseSelected(myCase)) {
+            selectedRows.push(i);
+          }
         }
       }
     }

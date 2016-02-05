@@ -1245,13 +1245,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
-
-  updateSelectedRows: function() {
+    /**
+     * Reset selection display. If recurse is set will reset child table
+     *
+     * @param recurse {boolean}
+     */
+  updateSelectedRows: function(recurse) {
     var adapter = this.get('gridAdapter'),
-        selection = adapter && adapter.getSelectedRows();
-    if( selection)
+        selection = adapter && adapter.getSelectedRows(),
+        childView = this.get('childTable');
+    if( selection) {
       this.setSelectedRows( selection);
     }
+    if (recurse && childView) {
+      childView.updateSelectedRows(recurse);
+    }
+  }
   }; // end return from closure
   
 }())); // end closure

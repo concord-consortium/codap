@@ -323,9 +323,9 @@ DG.RelationDividerView = SC.View.extend( (function() {
             leftTable.expandNode( this.dgParentID);
   
           // Expanding/collapsing changes the set of rows that are selected
-          rightTable.updateSelectedRows();
+          rightTable.updateSelectedRows(true);
           rightTable.incrementProperty('expandCollapseCount');
-      }
+        }
       }
       
       function adjustForGroupHeaderRow( ioRowBounds, iAdapter, iParentID) {
