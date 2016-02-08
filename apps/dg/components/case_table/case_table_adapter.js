@@ -34,20 +34,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   var kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
       
-      //// Returns the parent case ID for a given child case ID
-      //getParentIDForCase = function( iCase) {
-      //                      var parent = iCase.get('parent');
-      //                      return parent && parent.get('id').toString();
-      //                    },
-      //// Returns the required row data for a given case
-      //getRowInfoForCase = function( iCase) {
-      //                      var rowInfo = {
-      //                            theCase: iCase,
-      //                            id: iCase.get('id').toString(),
-      //                            parentID: getParentIDForCase( iCase)
-      //                          };
-      //                      return rowInfo;
-      //                    },
       // The tooltip string for the column depends on whether it has a formula, description, etc.
       getToolTipString = function( iAttribute) {
         var name = iAttribute.get('name'),
