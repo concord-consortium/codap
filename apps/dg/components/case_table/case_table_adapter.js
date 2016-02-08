@@ -149,25 +149,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
    */
   gridOptions: null,
   
-    // Map from parent ID to ID of last child case of a given parent case.
-  ///**
-  //  Maintains the range of child IDs for each parent ID.
-  //  Map from parent ID to { firstChildID: ##, lastChildID: ## } objects.
-  //  @property {Object of Object}  Property keys are parent case IDs
-  //                                Objects contain:
-  //                                  Object.firstChildID -- ID of first child case for parent
-  //                                  Object.lastChildID --  ID of last child case for parent
-  //                                  Object.isCollapsed -- Boolean value for collapse/expand state
-  // */
-  //parentIDGroups: null,
-  
   /**
     Initialization method.
    */
   init: function() {
     sc_super();
 
-    //this.parentIDGroups = {};
     this.gridDataView = DG.CaseTableDataManager.create({
       context: this.dataContext,
       collection: this.collection,
@@ -365,11 +352,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     // Called after the cell edit has been deactivated
                                     iEditCommand.execute();
                                   },
-              //// this method gets the cell value from the case.
-              //dataItemColumnValueExtractor: function( iRowItem, iColumnInfo) {
-              //                                var tCase = iRowItem.theCase;
-              //                                return tCase && tCase.getValue( iColumnInfo.id);
-              //                              }
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
                 return iRowItem.item.values[iColumnInfo.id];
               }
@@ -460,7 +442,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var tDataView = this.get('gridDataView'),
         tRowInfo = iCell && (iCell.row >= 0) && tDataView && tDataView.getItem( iCell.row),
         tCase = tRowInfo,
-        //tGroupParentID = tCase && tCase.getPath('parent.id'),
         tContext = this.get('dataContext'),
         tCollection = this.get('collection'),
         tIsSelected = tCollection && tCase && tCollection.isCaseSelected( tCase);
