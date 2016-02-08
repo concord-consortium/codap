@@ -179,19 +179,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
   
   /**
-    The number of visible rows in the table.
+    The number of visible rows in the table, that is the number of rows adjusted
+    for the effect of collapsed rows. This is _not_ the number of rows that can be
+    seen in the current viewport.
     @property {Number}
    */
   visibleRowCount: function() {
     return this.gridDataView.getLength();
-  }.property(),
-  
-  /**
-    The total number of rows in the table, including collapsed rows.
-    @property {Number}
-   */
-  totalRowCount: function() {
-    return this.gridDataView.getItems().length;
   }.property(),
   
   /**
@@ -353,7 +347,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     iEditCommand.execute();
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                return iRowItem.item.values[iColumnInfo.id];
+                return iRowItem.getValue(iColumnInfo.id);
               }
            };
     return this.gridOptions;
@@ -404,7 +398,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         collection = this.get('collection'),
         dataView = this.get('gridDataView'),
         selection = this.getPath('collection.casesController.selection'),
-        selectedRows = [];
+        selectedRows = [],
+        collectionClient;
     // add selected cases from our main collection
     if( selection) {
       selection.forEach( function( iCase) {
@@ -421,8 +416,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       for( i = 0; i < rowCount; ++i) {
         var myCase = dataView.getItem( i);
         if (myCase.collection.get('id') !== collection.get('id')) {
-          if(dataContext.getCollectionByID(myCase.collection.get('id')).isCaseSelected(myCase)) {
-            selectedRows.push(i);
+          collectionClient = dataContext.getCollectionByID(myCase.collection.get('id'));
+          if (collectionClient) {
+            if(collectionClient.isCaseSelected(myCase)) {
+              selectedRows.push(i);
+            }
+          } else {
+            DG.log('CaseTableAdapter.getSelectedRows: collectionClient for case ' +
+                myCase.id + ' not found: ' + myCase.collection.get('id'));
           }
         }
       }
@@ -682,12 +683,12 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
         context = args.column.context,
         tChange = {
           operation: 'updateCases',
-          cases: [ item.theCase ],
+          cases: [ item ],
           attributeIDs: [ columnId ],
           values: [ [value] ]
         };
     context.applyChange( tChange );
-    var collectionName = item.theCase.getPath('collection.name') || "",
+    var collectionName = item.getPath('collection.name') || "",
         caseIndex = args.grid.getData().getIdxById( item.id) + 1;
     DG.logUser("editValue: { collection: %@, case: %@, attribute: '%@', value: '%@' }",
                 collectionName, caseIndex, args.column.name, value);

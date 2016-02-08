@@ -46,10 +46,10 @@ DG.CaseTableDataManager = SC.Object.extend({
   suspended: false,
 
   /**
-   * Cache of mappings from row index to case index.
+   * Cache of mappings from row index to case.
    * @type {[DG.Case]}
    */
-  _rowCaseIndexCache: null,
+  _rowCaseMap: null,
 
   /**
    *
@@ -57,11 +57,11 @@ DG.CaseTableDataManager = SC.Object.extend({
   _collapsedNodeInfoCache: null,
 
   caseTableLength: function () {
-    return this._rowCaseIndexCache.length;
+    return this._rowCaseMap.length;
   }.property(),
 
   init: function () {
-    this._rowCaseIndexCache = [];
+    this._rowCaseMap = [];
     this.onRowCountChanged = new Slick.Event();
     this.onRowsChanged = new Slick.Event();
   },
@@ -82,8 +82,12 @@ DG.CaseTableDataManager = SC.Object.extend({
   },
 
   /**
-   * Returns the contents of the given row as a Case ID/value
-   * hashmap.
+   * Returns the contents of the given row as a Case.
+   *
+   * If this particular row is a collapsed group indicator, returns the collapsed
+   * case, which is a member of a parent or other ancestor collection. We can
+   * tell, then, that the row corresponds to a collapsed group by comparing the
+   * case's collection with the case table's collection.
    *
    * Signature defined by Slick Grid DataView API.
    *
@@ -91,7 +95,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {DG.Case}
    */
   getItem: function (row) {
-    return this._rowCaseIndexCache[row];
+    return this._rowCaseMap[row];
   },
 
   /**
@@ -114,7 +118,7 @@ DG.CaseTableDataManager = SC.Object.extend({
           }
         },
         formatter: function (row, cell, cellValue, colInfo, rowItem) {
-          var caseCount = this.subcaseCount(this._rowCaseIndexCache[row]);
+          var caseCount = this.subcaseCount(this._rowCaseMap[row]);
           var setName = this.context.getCaseNameForCount(this.collection, 2);
           return '%@ %@'.loc(caseCount, setName);
         }.bind(this)
@@ -161,17 +165,22 @@ DG.CaseTableDataManager = SC.Object.extend({
       });
     }
     // ---- BEGIN ----
-    var beforeCount = this._rowCaseIndexCache.length;
+    if (this.get('suspended')) {
+      this.set('refreshNeeded', true);
+      return;
+    }
+    var beforeCount = this._rowCaseMap.length;
     var rowCaseIndex = [];
     var myCollection = this.collection;
     var context = this.context;
     var model = this.model;
     var collections = makeCollections(myCollection);
     visit(collections[0].casesController, 0);
-    this._rowCaseIndexCache = rowCaseIndex;
+    this._rowCaseMap = rowCaseIndex;
     if (rowCaseIndex !== beforeCount) {
       this.onRowCountChanged.notify({previous: beforeCount, current: rowCaseIndex.length}, null, this);
     }
+    this.set('refreshNeeded', false);
     //this.onRowsChanged.notify({rows: {}}, null, self);
   },
 
@@ -200,7 +209,7 @@ DG.CaseTableDataManager = SC.Object.extend({
    * Method signature matches method of Slick Grid default DataView.
    */
   beginUpdate: function () {
-    this.suspended = true;
+    this.set('suspended', true);
   },
 
   /**
@@ -209,7 +218,10 @@ DG.CaseTableDataManager = SC.Object.extend({
    * Method signature matches method of Slick Grid default DataView.
    */
   endUpdate: function () {
-    this.suspended = false;
+    this.set('suspended', false);
+    if (this.get('refreshNeeded')) {
+      this.refresh();
+    }
   },
 
   /**
@@ -225,9 +237,9 @@ DG.CaseTableDataManager = SC.Object.extend({
    *
    * @returns {null}
    */
-  getItems: function () {
-    return this.collection.casesController;
-  },
+  //getItems: function () {
+  //  return this.collection.casesController;
+  //},
 
   /**
    * TODO:
@@ -264,7 +276,7 @@ DG.CaseTableDataManager = SC.Object.extend({
   getRowById: function (iCaseID) {
     var myCase = DG.store.find('DG.Case', iCaseID);
 
-    return this._rowCaseIndexCache.indexOf(myCase);
+    return this._rowCaseMap.indexOf(myCase);
   },
 
   /**
