@@ -488,6 +488,19 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         this.adjustLayout( this.renderContext( this.get('tagName')));
       }.observes('*legendView.desiredExtent'),
 
+      handleAttributeRemoved: function() {
+        if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
+          this.setPath('model.connectingLineModel.isVisible', false);
+          this.setPath('model.pointsShouldBeVisible', false);
+          this.get('mapPointView').clear();
+          this.setPath('model.gridModel.visible', false);
+          this.getPath('model.gridModel').clear();
+        }
+        if( !this.getPath('model.hasAreaAttribute')) {
+          this.get('mapAreaLayer').clear();
+        }
+      }.observes('model.attributeRemoved'),
+
       updateConnectingLine: function() {
         var tConnectingLineAdorn = this.get('connectingLineAdorn');
         if( tConnectingLineAdorn) {

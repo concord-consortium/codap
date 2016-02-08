@@ -148,7 +148,7 @@ DG.PlotView = DG.PlotLayer.extend(
   _plottedElements: null, // Kept in the same order as the data
   _mustCreatePlottedElements: true,
   _elementOrderIsValid: false,  // Set to false when selection changes
-  
+
   /**
    *
    * @param iIndex  Index of this plot view in array of plotviews owned by graph

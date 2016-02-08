@@ -226,8 +226,12 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
     return !SC.none( this.getPath('mapLayer.map'));
   },
 
-  doDraw: function doDraw() {
+  doDraw: function() {
     this.get('mapPointLayer' ).doDraw();
+  },
+
+  clear: function() {
+    this.get('mapPointLayer' ).clear();
   },
 
   gridVisibilityDidChange: function() {

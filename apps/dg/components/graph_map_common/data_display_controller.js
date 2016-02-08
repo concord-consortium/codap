@@ -140,6 +140,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
         createInspectorButtons: function () {
           var tResult = sc_super(),
               this_ = this;
+          if( !this.get('dataDisplayModel').wantsInspector())
+              return tResult;
+
           tResult.push(DG.IconButton.create({
             layout: {width: 32, left: 0},
             classNames: 'display-rescale'.w(),

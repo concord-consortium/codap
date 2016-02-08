@@ -384,6 +384,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       // create plot elements for added cases
       for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
         this.callCreateCircle(tCases[tIndex], tIndex, this.animationIsAllowable());
+        this.setCircleCoordinate(tRC, tCases[tIndex], tIndex);
       }
     }
     // Get rid of plot elements for removed cases and update all coordinates
@@ -549,6 +550,17 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._isRenderingValid = true;
   },
 
+  /**
+   * Remove all the point elements
+   */
+  clear: function() {
+    var tLayerManager = this.get('layerManager' );
+    this._plottedElements.forEach( function( iElement) {
+      tLayerManager.removeElement (iElement); // remove from plot
+    });
+    this._plottedElements.length = 0; // remove from array
+    this._mustCreatePlottedElements = true;
+  },
   /**
 
   */

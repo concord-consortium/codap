@@ -181,8 +181,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
        * @property {SC.Array of DG.Case} All cases, both hidden and visible
        */
       allCases: function () {
-        var tSource = this.get('collectionClient');
-        return tSource ? tSource.getPath('casesController.arrangedObjects') : null;
+        if( this.get('hasAreaAttribute') || this.get('hasLatLongAttributes')) {
+          var tSource = this.get('collectionClient');
+          return tSource ? tSource.getPath('casesController.arrangedObjects') : null;
+        }
       }.property(),
 
       /**
@@ -202,11 +204,11 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       latAttributeID: function () {
         return this.getPath('yAttributeDescription.attributeID');
-      }.property('yAttributeDescription.attributeID').cacheable(),
+      }.property('yAttributeDescription.attributeID'),
 
       longAttributeID: function () {
         return this.getPath('xAttributeDescription.attributeID');
-      }.property('xAttributeDescription.attributeID').cacheable(),
+      }.property('xAttributeDescription.attributeID'),
 
       // These two bindings help us with API for connecting line model
       xVarIDBinding: '.longAttributeID',
@@ -214,15 +216,15 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       hasLatLongAttributes: function () {
         return !SC.none(this.get('latAttributeID')) && !SC.none(this.get('longAttributeID'));
-      }.property('latAttributeID', 'longAttributeID').cacheable(),
+      }.property('latAttributeID', 'longAttributeID'),
 
       areaAttributeID: function () {
         return this.getPath('areaAttributeDescription.attributeID');
-      }.property('areaAttributeDescription.attributeID').cacheable(),
+      }.property('areaAttributeDescription.attributeID'),
 
       hasAreaAttribute: function () {
         return !SC.none(this.get('areaAttributeID'));
-      }.property('areaAttributeID').cacheable(),
+      }.property('areaAttributeID'),
 
       /**
        @property { DG.AttributePlacementDescription }

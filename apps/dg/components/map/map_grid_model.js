@@ -216,6 +216,13 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       this.endPropertyChanges();
     },
 
+    /**
+     * Called to remove the grid rectangles
+     */
+    clear: function() {
+      this.set('rectArray', new RectArray());
+    },
+
     _selectCasesInRect: function( iLongIndex, iLatIndex, iSelect, iExtend) {
       var tDataContext = this.getPath('dataConfiguration.dataContext'),
           tCollectionClient = this.getPath('dataConfiguration.collectionClient'),
