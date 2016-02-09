@@ -489,15 +489,21 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       }.observes('*legendView.desiredExtent'),
 
       handleAttributeRemoved: function() {
+        var tMapPointView = this.get('mapPointView'),
+            tMapAreaLayer = this.get('mapAreaLayer'),
+            tMapGridModel = this.get('model.gridModel');
         if( !this.getPath('model.dataConfiguration.hasLatLongAttributes')) {
           this.setPath('model.connectingLineModel.isVisible', false);
           this.setPath('model.pointsShouldBeVisible', false);
-          this.get('mapPointView').clear();
-          this.setPath('model.gridModel.visible', false);
-          this.getPath('model.gridModel').clear();
+          if( tMapPointView)
+            this.get('mapPointView').clear();
+          if(tMapGridModel) {
+            tMapGridModel.set('visible', false);
+            tMapGridModel.clear();
+          }
         }
-        if( !this.getPath('model.hasAreaAttribute')) {
-          this.get('mapAreaLayer').clear();
+        if( !this.getPath('model.hasAreaAttribute') && tMapAreaLayer) {
+          tMapAreaLayer.clear();
         }
       }.observes('model.attributeRemoved'),
 
