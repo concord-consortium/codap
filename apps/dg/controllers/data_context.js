@@ -157,6 +157,19 @@ DG.DataContext = SC.Object.extend((function() // closure
   _collectionClients: null,
 
   /**
+   * Whether there are Data Interactives for which are affiliated with this
+   * data context.
+   * @type {boolean}
+   */
+  hasDataInteractive: function () {
+    var components = DG.currDocumentController().get('components');
+    return DG.ObjectMap.values(components).some(function (component) {
+      var id = (component.getPath('content.context.id'));
+      return (component.get('type') === 'DG.GameView') && (!SC.none(id) && id === this.get('id'));
+    }.bind(this));
+  }.property(),
+
+  /**
     Initialization method.
    */
   init: function() {

@@ -102,7 +102,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @property   {DG.DataContext}
    */
   dataContext: null,
-  
+
   /**
     The collection containing the cases viewed in the table.
     @property   {DG.CollectionClient}
@@ -315,13 +315,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
                     command: 'cmdRenameAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('renameable');
+                      ioMenuItem.disabled = !iColumn.attribute.get('renameable') || context.get('hasDataInteractive');
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable');
+                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable') || context.get('hasDataInteractive');
                     }
                   }
                 ]
@@ -851,8 +851,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     canAcceptDrop: function (attr) {
       var tContext = this.get('dataContext');
       var collection = attr.collection;
-      return (!SC.none(tContext.getCollectionByID(collection.id)));
-    }
+      return (!SC.none(tContext.getCollectionByID(collection.id)) && !tContext.get('hasDataInteractive'));
+    }.property('.context.hasDataInteractive')
   }; // end return from closure
   
 }())); // end closure
