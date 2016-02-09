@@ -274,7 +274,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         if( !SC.empty( changeKey)) {
           var handler = this[ changeKey];
           if( handler)
-            handler.call( this, iKey);
+            handler.call( this, this, iKey, operation);
         }
         break;
       case 'updateCases':
@@ -352,7 +352,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     Plots that show data as points should be able to use this as is. Others will probably
     override.
   */
-  dataDidChange: function(iObject, iProperty) {
+  dataDidChange: function(iObject, iProperty, iOperation) {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
     var this_ = this,
@@ -400,10 +400,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this._plottedElements.length = tDataLength;
 
     }
-    this.prepareToResetCoordinates();
-    tCases.forEach(function (iCase, iIndex) {
-      this_.setCircleCoordinate(tRC, tCases[iIndex], iIndex);
-    });
+    if( (iProperty === 'hiddenCases') || (iOperation === 'deleteCases')) {
+      this.prepareToResetCoordinates();
+      tCases.forEach(function (iCase, iIndex) {
+        this_.setCircleCoordinate(tRC, tCases[iIndex], iIndex);
+      });
+    }
 
     this._isRenderingValid = false;
     if (iProperty === 'hiddenCases') {
