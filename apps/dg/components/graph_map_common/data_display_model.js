@@ -180,6 +180,14 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
     /**
+     * Default is true. Subclasses will override as desired.
+     * @returns {boolean}
+     */
+    wantsInspector: function() {
+      return true;
+    },
+
+    /**
       The data context for the graph. Set by caller after construction initially and
       reset for graphs restored from document to point to the restored data context.
       @property   {DG.DataContext}
@@ -323,7 +331,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
 
       if( tOperation === 'deleteAttributes') {
         iChange.attrs.forEach(function (iAttr) {
-          ['x', 'y', 'legend', 'y2'].forEach(function (iKey) {
+          ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
             var tDescKey = iKey + 'AttributeDescription',
                 tAxisKey = iKey + 'Axis',
                 tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
@@ -332,8 +340,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
                 if (iPlottedAttr === iAttr.attribute) {
                   if (iKey === 'legend')
                     this.removeLegendAttribute();
-                  else if (this.removeAttribute)
-                  // todo: define remove attribute for MapModel
+                  else
                     this.removeAttribute(tDescKey, tAxisKey, iIndex);
                 }
               }.bind(this));

@@ -274,7 +274,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         if( !SC.empty( changeKey)) {
           var handler = this[ changeKey];
           if( handler)
-            handler.call( this, iKey);
+            handler.call( this, this, iKey, operation);
         }
         break;
       case 'updateCases':
@@ -352,7 +352,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     Plots that show data as points should be able to use this as is. Others will probably
     override.
   */
-  dataDidChange: function(iObject, iProperty) {
+  dataDidChange: function(iObject, iProperty, iOperation) {
     if( !this.readyToDraw())
       return;   // not ready to create elements yet
     var this_ = this,
@@ -384,6 +384,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       // create plot elements for added cases
       for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
         this.callCreateCircle(tCases[tIndex], tIndex, this.animationIsAllowable());
+        this.setCircleCoordinate(tRC, tCases[tIndex], tIndex);
       }
     }
     // Get rid of plot elements for removed cases and update all coordinates
@@ -399,10 +400,12 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this._plottedElements.length = tDataLength;
 
     }
-    this.prepareToResetCoordinates();
-    tCases.forEach(function (iCase, iIndex) {
-      this_.setCircleCoordinate(tRC, tCases[iIndex], iIndex);
-    });
+    if( (iProperty === 'hiddenCases') || (iOperation === 'deleteCases')) {
+      this.prepareToResetCoordinates();
+      tCases.forEach(function (iCase, iIndex) {
+        this_.setCircleCoordinate(tRC, tCases[iIndex], iIndex);
+      });
+    }
 
     this._isRenderingValid = false;
     if (iProperty === 'hiddenCases') {
@@ -549,6 +552,17 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this._isRenderingValid = true;
   },
 
+  /**
+   * Remove all the point elements
+   */
+  clear: function() {
+    var tLayerManager = this.get('layerManager' );
+    this._plottedElements.forEach( function( iElement) {
+      tLayerManager.removeElement (iElement); // remove from plot
+    });
+    this._plottedElements.length = 0; // remove from array
+    this._mustCreatePlottedElements = true;
+  },
   /**
 
   */

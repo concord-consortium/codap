@@ -142,6 +142,21 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     /**
+     * This method is called when an area, latitude, or longitude attribute is deleted from the data context currently
+     * being used by this map. Our job is to reconfigure our data configuration so there will no longer be any attempt
+     * to plot data
+     *
+     * @param iDescKey {String}
+     */
+    removeAttribute: function( iDescKey) {
+      var tDescription = this.getPath('dataConfiguration.' + iDescKey);
+      if( tDescription) {
+        tDescription.removeAllAttributes();
+        this.notifyPropertyChange('attributeRemoved')
+      }
+    },
+
+    /**
       @param {Number} The index of the case to be selected.
       @param {Boolean} Should the current selection be extended?
     */
@@ -177,9 +192,21 @@ DG.MapModel = DG.DataDisplayModel.extend(
         DG.logUser("caseDeselected: %@", iIndex);
     },
 
+    /**
+     * Override superclass
+     * @returns {boolean}
+     */
+    wantsInspector: function() {
+      return this.get('hasLatLongAttributes') || this.get('hasAreaAttribute');
+    },
+
     hasLatLongAttributes: function() {
       return this.getPath('dataConfiguration.hasLatLongAttributes');
-    }.property('dataConfiguration.hasLatLongAttributes').cacheable(),
+    }.property('dataConfiguration.hasLatLongAttributes'),
+
+    hasAreaAttribute: function() {
+      return this.getPath('dataConfiguration.hasAreaAttribute');
+    }.property('dataConfiguration.hasAreaAttribute'),
 
     /**
      * We can rescale if we have some data to rescale to.
@@ -216,7 +243,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
     checkboxDescriptions: function() {
       var this_ = this,
           tItems = [];
-      if( this.get('hasLatLongAttributes')) {
+      if( this.getPath('dataConfiguration.hasLatLongAttributes')) {
         tItems = tItems.concat([
           {
             title: 'DG.Inspector.mapGrid',

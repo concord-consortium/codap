@@ -122,12 +122,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext();
     if( tCases.length !== this.features.length) {
-      this._areFeaturesAdded = false;
-      var tMap = this.get('map');
-      this.features.forEach( function( iFeature) {
-        tMap.removeLayer( iFeature);
-      });
-      this.features = [];
+      this.clear();
       this.addFeatures();
     }
     tCases.forEach( function( iCase, iIndex) {
@@ -141,6 +136,18 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     }.bind( this));
     this.updateSelection();
   }.observes('model.areaColor', 'model.areaTransparency', 'model.areaStrokeColor', 'model.areaStrokeTransparency' ),
+
+  /**
+   * Remove all features.
+   */
+  clear: function() {
+    this._areFeaturesAdded = false;
+    var tMap = this.get('map');
+    this.features.forEach( function( iFeature) {
+      tMap.removeLayer( iFeature);
+    });
+    this.features = [];
+  },
 
   hasLegendWithFormula: function () {
     return this.getPath('model.dataConfiguration.legendAttributeDescription.attribute.hasFormula');
