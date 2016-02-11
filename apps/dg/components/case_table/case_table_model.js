@@ -92,8 +92,10 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
   isHiddenNode: function (iCase) {
     var parent = iCase.get('parent');
     var isHidden = false;
+    var parentCollapseState;
     if (parent) {
-      if (this.collapsedNodes[parent.id]) {
+      parentCollapseState = this.collapsedNodes[parent.id];
+      if (parentCollapseState && parentCollapseState.isCollapsed) {
         isHidden = true;
       } else {
         isHidden = this.isHiddenNode(parent);
