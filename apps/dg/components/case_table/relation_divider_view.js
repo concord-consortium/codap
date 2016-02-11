@@ -138,15 +138,17 @@ DG.RelationDividerView = SC.View.extend( (function() {
           imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
 
       function expandCollapseAll( iEvent) {
-        var counts = 0;
-        if( leftAdapter) {
-          if (gridDataView) {
-            counts = gridDataView.get('expandCollapseCounts');
-          }
-          table.expandCollapseAll( shouldShowExpandAll( counts));
-        }
+        SC.run(function () {
+            var counts = 0;
+            if( leftAdapter) {
+              if (gridDataView) {
+                counts = gridDataView.get('expandCollapseCounts');
+              }
+              table.expandCollapseAll( shouldShowExpandAll( counts));
+            }
+          });
       }
-      
+
       // The touch object is a transparent rectangle which is larger than the
       // expand/collapse icon which responds to touch. This makes it easier to
       // hit the expand/collapse icon on touch platforms.
@@ -348,8 +350,8 @@ DG.RelationDividerView = SC.View.extend( (function() {
             iElement.attr({ path: iPathStr });
           else
             iElement.remove();
+          }
         }
-      }
       
       /**
         Updates the parent-child lines. Creates new Raphael elements or updates
