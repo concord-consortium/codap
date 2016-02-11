@@ -994,9 +994,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
-        result = { success: false, attrIDs: []},
-        this_ = this,
-        didDestroyCollection = false;
+        result = { success: false, attrIDs: [] };
     
     // Function to delete each individual attribute
     function deleteAttribute( iAttr) {
@@ -1007,22 +1005,14 @@ DG.DataContext = SC.Object.extend((function() // closure
       if( attribute) {
         DG.Attribute.destroyAttribute( iAttr.attribute);
         result.attrIDs.push( iAttr.id);
-        if (collection.get('attrsController').get('length') === 0) {
-          this_.destroyCollection(collection);
-          this_.regenerateCollectionCases();
-          didDestroyCollection = true;
-        }
       }
     }
     
     // Create/update each specified attribute
     if( collection && iChange.attrs) {
       iChange.attrs.forEach( deleteAttribute);
+      DG.store.commitRecords();
     }
-
-      if (didDestroyCollection) {
-        iChange.operation = 'resetCollections';
-      }
     return result;
   },
 
