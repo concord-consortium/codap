@@ -1121,27 +1121,63 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                       collapses all row groups otherwise
    */
   expandCollapseAll: function( iExpand) {
-    var adapter = this.get('gridAdapter');
-    var dataView = adapter.get('gridDataView');
-    var ix = 0;
-    var rows = dataView.getLength();
-    var myCase;
-    DG.assert( dataView);
-    dataView.beginUpdate();
-    for (ix = 0; ix < rows; ix += 1) {
-      myCase = dataView.getItem(ix);
-      if (iExpand) {
-        this.expandNode( myCase.id);
-      } else {
-        this.collapseNode( myCase.id);
+    var collection = this.getPath('gridAdapter.collection');
+    var cases = collection.get('casesController');
+
+    DG.assert( collection);
+    DG.assert( cases);
+
+    //DG.log('expandCollapseAll: [expand/collection/cases]: '
+    //    + [iExpand, this.get('collectionName'), cases.get('length')].join('/'));
+    this.beginDataViewUpdate(true);
+    cases.forEach(function (myCase) {
+      try {
+        if (iExpand) {
+          this.expandNode( myCase.id);
+        } else {
+          this.collapseNode( myCase.id);
+        }
+      } catch (e) {
+        DG.logError('expandCollapseAll: ' + e);
       }
-    }
-    dataView.endUpdate();
+    }.bind(this));
+    this.endDataViewUpdate(true);
 
     this.updateSelectedRows();
     this.incrementProperty('expandCollapseCount');
   },
-  
+
+    /**
+     * This method should be called at the beginning of a multipart update
+     * affecting the gridDataView so as to prevent potentially expensive
+     * redundant calculations. GridDataView.refresh() will be bypassed until
+     * endDataViewUpdate is called.
+     * @param recurse {boolean}
+     */
+    beginDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert( dataView);
+      dataView.beginUpdate();
+      if (recurse && childTable) {
+        childTable.beginDataViewUpdate(recurse);
+      }
+    },
+
+    /**
+     * Should be called at the end of a multipart update affecting the gridDataView.
+     *
+     * @param recurse {boolean}
+     */
+    endDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert( dataView);
+      dataView.endUpdate();
+      if (recurse && childTable) {
+        childTable.endDataViewUpdate(recurse);
+      }
+    },
   /**
     Refreshes the row data. Call when the table body needs to be refreshed.
    */
