@@ -1143,7 +1143,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.bind(this));
     this.endDataViewUpdate(true);
 
-    this.updateSelectedRows();
+    this.updateSelectedRows(true);
     this.incrementProperty('expandCollapseCount');
   },
 
@@ -1199,7 +1199,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // For now, additions and deletions require complete rebuild.
     // When deletion is handled via DataContext API we can do better.
     this.updateRowData();
-    this.updateSelectedRows();
+    this.updateSelectedRows(true);
 
     //this._slickGrid.render();
   },
