@@ -217,6 +217,23 @@ DG.DocumentController = SC.Object.extend(
       this.notifyPropertyChange('documentPermissions');
     }.observes('*content._permissions'),
 
+    sharedMetadata: function(iKey, iSharedMetadata) {
+      if(iSharedMetadata !== undefined) {
+        var contentMetadata = this.getPath('content.metadata'),
+            sharedMetadata = $.extend(true, {}, iSharedMetadata);
+        if(contentMetadata != null) {
+          contentMetadata.shared = sharedMetadata;
+        }
+        else {
+          this.setPath('content.metadata', { shared: sharedMetadata });
+        }
+        // Currently, Concord Document Store requires '_permissions' at top-level
+        this.setPath('content._permissions', sharedMetadata._permissions || 0);
+        return this;
+      }
+      return this.getPath('content.metadata.shared');
+    }.property(),
+
     /**
       The total number of document-dirtying changes.
       @property   {Number}

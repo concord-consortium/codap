@@ -21,7 +21,7 @@ DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
       kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
-      kInfobarHeight = 30,
+      kInfobarHeight = 24,
       kIconTopPadding = 17;
 
   // begin compatible browser main page design
@@ -60,93 +60,31 @@ DG.mainPage = SC.Page.design((function() {
       childViews: 'leftSide rightSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
 
-      leftSide: SC.View.design(SC.FlowedLayout, {
-        layout: { width: 0, left: 5, height: kInfobarHeight, zIndex: 1  },
-        childViews: 'documentTitle navPopupButton saveNotification'.w(),
-        defaultFlowSpacing: { left: 5, right: 5, top: (kInfobarHeight - 18) / 2},
-        canWrap: false,
-        shouldResizeHeight: false,
-
-        documentTitle: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'doc-title'.w(),
-          layout: { height: 18 },
-          toolTip: 'DG.Document.documentName.toolTip'.loc(),  // "Click to edit document name"
-          localize: true,
-          needsEllipsis: YES,
-          isEditable: YES,
-          valueBinding: 'DG._currDocumentController.documentName',
-          originalValue: null,
-          inlineEditorDidBeginEditing: function(editor, value) {
-            this.set('originalValue', value);
-          },
-          valueChanged: function() {
-            var original = this.get('originalValue'),
-                newValue = this.get('value');
-
-            if (original) {
-              DG.appController.renameDocument(original, newValue);
-              this.set('originalValue', null);
-            }
-            return true;
-          }.observes('value'),
-          click: function() {
-            this.beginEditing();
-          }
-        }),
-
-        navPopupButton: DG.IconButton.design( {
-          layout: { width: 20 },
-          flowSpacing: { left: 0, top: -3, right: 5 },
-          iconClass: 'moonicon-arrow-expand',
-          target: 'DG.appController.fileMenuPane',
-          action: 'popup',
-          toolTip: 'DG.Document.documentPopup.toolTip',  // "Open, Save, Close, Import, Export, ..."
-          localize: true,
-          classNames: ['nav-popup-button']
-        }),
-
-        saveNotification: SC.LabelView.design(SC.AutoResize, {
-          classNames: ['invisible', 'nav-save-notice'],
-          layout: { height: 18 },
-          textAlign: SC.ALIGN_LEFT,
-          value: 'DG.mainPage.titleBar.saved',
-          localize: true,
-          // accommodate error in text width computation
-          autoResizePadding: {width: 100}
-        })
+      // CFM wrapper view
+      leftSide: SC.View.design({
+        classNames: 'leftSide'.w(),
+        layout: { left: 0, right: 20 },
+        didAppendToDocument: function() {
+          /* global Promise */
+          DG.cfmViewConfig = Promise.resolve({
+                              // used for the CFM menu bar
+                              navBarId: this.getPath('layer.id')
+                            });
+        }
       }),
 
       rightSide: SC.View.design(SC.FlowedLayout, {
-        layout: { width: 0, right: 0 },
+        layout: { width: 20, right: 0 },
         classNames: 'right-side'.w(),
-        childViews: 'statusLabel versionLabel helpButton'.w(),
+        childViews: 'helpButton'.w(),
         align: SC.ALIGN_RIGHT,
         canWrap: false,
         shouldResizeHeight: false,
         defaultFlowSpacing: { top: (kInfobarHeight - 18) / 2 },
 
-        versionLabel: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'navBar-version'.w(),
-          flowSpacing: { right: 25, top: (kInfobarHeight - 18) / 2 },
-          layout: { height: 18 },
-          textAlign: SC.ALIGN_RIGHT,
-          value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
-        }),
-
-        statusLabel: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'navBar-status'.w(),
-          layout: { height: 18 },
-          flowSpacing: { right: 25, top: (kInfobarHeight - 18) / 2 },
-          textAlign: SC.ALIGN_RIGHT,
-          currUsernameBinding: 'DG.authorizationController.currLogin.user',
-          value: function() {
-            return this.get('currUsername');
-          }.property('currUsername')
-        }),
-
         helpButton: DG.IconButton.design( {
           layout: { width: 18 },
-          flowSpacing: { left: 5, top: 0, right: 5 },
+          flowSpacing: { left: 5, top: -2, right: 5 },
           iconClass: 'moonicon-icon-help',
           target: 'DG.appController',
           action: 'showHelp',
@@ -163,7 +101,7 @@ DG.mainPage = SC.Page.design((function() {
       childViews: 'iconButtons rightButtons'.w(),
 
       iconButtons: SC.View.design(SC.FlowedLayout, {
-        classNames: 'buttons'.w(),
+        classNames: 'icon-buttons'.w(),
         layout: { width: 0, height: kToolbarHeight - 1 },
         align: SC.ALIGN_LEFT,
         canWrap: false,

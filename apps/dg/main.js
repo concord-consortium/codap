@@ -97,74 +97,339 @@ DG.main = function main() {
   }
   // set initial game in title
   DG.appController.documentNameDidChange();
+
+  /* begin CFM load/configuration */
+  /* global Promise */
+  function cfmGlobalsLoaded() {
+    return new Promise(function(resolve, reject) {
+                $.ajax({
+                  url: static_url('cloud-file-manager/js/globals.js.ignore'),
+                  dataType: 'script',
+                  success: function() {
+                    resolve(true);
+                  },
+                  failure: function() {
+                    reject(false);
+                  }
+                });
+              });
+  }
+  function cfmAppLoaded() {
+    return new Promise(function(resolve, reject) {
+                $.ajax({
+                  url: static_url('cloud-file-manager/js/app.js.ignore'),
+                  dataType: 'script',
+                  success: function() {
+                    resolve(true);
+                  },
+                  failure: function() {
+                    reject(false);
+                  }
+                });
+              });
+  }
+
+  function cfmInit(iCloudFileManager, iViewConfig) {
+    var options = {
+          autoSaveInterval: 5,
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          appOrMenuElemId: iViewConfig.navBarId,
+          wrapFileContent: false,
+          mimeType: 'application/x-codap-document',
+          providers: [
+            {
+              "displayName": "Example Documents",
+              "name": "readOnly",
+              "src": 'DG.AppController.exampleList.ExampleListURL'.loc(),
+              alphabetize: true,
+              // json: [
+              //   {
+              //     type: "folder",
+              //     name: "Unsorted Examples",
+              //     url: 'DG.AppController.exampleList.ExampleListURL'.loc()
+              //   },
+              //   {
+              //     type: "folder",
+              //     name: "Alphabetized Examples",
+              //     alphabetize: true,
+              //     url: 'DG.AppController.exampleList.ExampleListURL'.loc()
+              //   }
+              // ]
+            },
+            {
+              "name": "documentStore",
+              "displayName": "Concord Cloud",
+              "patch": true,
+              "patchObjectHash": function(obj) {
+                return obj.guid || JSON.stringify(obj);
+              }
+            },
+            {
+              "name": "googleDrive",
+              "mimeType": "application/json",
+              "clientId": "1095918012594-svs72eqfalasuc4t1p1ps1m8r9b8psso.apps.googleusercontent.com"
+            },
+            "localFile",
+            "localStorage"
+          ]
+        };
+    iCloudFileManager.init(options);
+  }
+
+  /*
+   * Resolve a single external document ID reference
+   */
+  function dataContextPromise(iDataContext) {
+    return new Promise(function(resolve, reject) {
+      // instantiate external document ID references
+      if(iDataContext.externalDocumentId != null) {
+        $.ajax({
+          // external document references were only used with the
+          // Concord Document Store
+          url: '//document-store.concord.org/document/open',
+          data: { recordid: iDataContext.externalDocumentId },
+          dataType: 'json',
+          xhrFields: { withCredentials: true },
+          success: function(iContents) {
+            resolve(iContents);
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            reject(errorThrown || textStatus);
+          }
+        });
+      }
+      // standard data contexts can just be resolved
+      else {
+        resolve(iDataContext);
+      }
+    });
+  }
+
+  /*
+   * Resolve any external document ID references
+   */
+  function docContentsPromise(iDocContents) {
+    return new Promise(function(resolve, reject) {
+      var dataContexts = iDocContents && iDocContents.contexts,
+          dataContextPromises = dataContexts && dataContexts.map(function(iDataContext) {
+                                  return dataContextPromise(iDataContext);
+                                });
+      // Once all external document references have been resolved...
+      Promise.all(dataContextPromises)
+        .then(function(iResolvedDataContexts) {
+                // replace the array of pre-processed context objects
+                // with the array of resolved context promises
+                iDocContents.contexts = iResolvedDataContexts;
+                resolve(iDocContents);
+              },
+              function(iReason) {
+                reject(iReason);
+              });
+    });
+  }
+
+  function syncProperty(iDstObj, iSrcObj, iProperty) {
+    if(typeof(iSrcObj[iProperty]) !== "undefined")
+      iDstObj[iProperty] = iSrcObj[iProperty];
+    else
+      delete iDstObj[iProperty];
+  }
+
+  function cfmConnect(iCloudFileManager) {
+    DG.cfm = iCloudFileManager;
+
+    if (DG.cfm) {
+      DG.cfm.clientConnect(function (event) {
+        /* global jiff */
+        var docController, docContent, docMetadata,
+            cfmSharedMetadata;
+
+        function syncDocumentDirtyState() {
+          if(DG.currDocumentController().get('hasUnsavedChanges')) {
+            // Marking CFM client dirty
+            DG.cfmClient && DG.cfmClient.dirty();
+          }
+        }
+
+        console.log(event);
+        switch (event.type) {
+          case 'connected':
+            DG.cfmClient = event.data.client;
+            DG.cfmClient.setProviderOptions("documentStore",
+                                            {appName: DG.APPNAME,
+                                             appVersion: DG.VERSION,
+                                             appBuildNum: DG.BUILD_NUM
+                                            });
+            DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
+
+            // synchronize document dirty state on document change
+            DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
+              syncDocumentDirtyState();
+            });
+            break;
+
+          case 'getContent':
+            DG.currDocumentController().captureCurrentDocumentState(true)
+              .then(function(iContents) {
+                var cfmSharedMetadata = event.data && event.data.shared || {},
+                    docMetadata = iContents.metadata || {};
+                // For now, _permissions must be stored at top-level for Document Store
+                syncProperty(iContents, cfmSharedMetadata, '_permissions');
+                // replace 'shared' metadata property with object passed from CFM
+                docMetadata.shared = $.extend(true, {}, cfmSharedMetadata);
+                // record changeCount as a form of savedVersionID
+                docMetadata.changeCount = DG.currDocumentController().get('changeCount');
+                // combine shared metadata with content to pass back to caller
+                iContents.metadata = docMetadata;
+                event.callback(iContents);
+              });
+            break;
+
+          case 'newedFile':
+            DG.appController.closeAndNewDocument();
+            break;
+
+          case 'openedFile':
+            docContentsPromise(event.data.content)
+              .then(function(iDocContents) {
+                var metadata = event.data.content.metadata,
+                    sharedMetadata = metadata && metadata.shared,
+                    cfmSharedMetadata = sharedMetadata
+                                          ? $.extend(true, {}, sharedMetadata)
+                                          : {};
+                DG.appController.closeAndNewDocument();
+                DG.store = DG.ModelStore.create();
+                DG.currDocumentController()
+                  .setDocument(DG.Document.createDocument(iDocContents));
+                if(event.callback) {
+                  // acknowledge successful open; return shared metadata
+                  event.callback(null, cfmSharedMetadata);
+                }
+              },  // then() error handler
+              function(iReason) {
+                DG.AlertPane.error({
+                  localize: true,
+                  message: 'DG.AppController.openDocument.error.general'
+                });
+              });
+            break;
+
+          case 'savedFile':
+            docContent = event.data.content;
+            docMetadata = docContent && docContent.metadata;
+            var docContentChangeCount = docContent && docContent.changeCount,
+                docMetadataChangeCount = docMetadata && docMetadata.changeCount,
+                savedChangeCount = docContentChangeCount || docMetadataChangeCount;
+            if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
+              // Marking CODAP document clean iff document hasn't changed since getContent()
+              DG.currDocumentController().updateSavedChangeCount();
+            }
+            // synchronize document dirty state after saving, since we may not be clean
+            syncDocumentDirtyState();
+            break;
+
+          case 'sharedFile': {
+            cfmSharedMetadata = (event.data && event.data.shared) || {};
+            if(DG.appController.get('_undoRedoShareInProgressCount')) {
+              DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+            }
+            else {
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'document.share',
+                undoString: 'DG.Undo.document.share',
+                redoString: 'DG.Redo.document.share',
+                log: 'Shared document',
+                execute: function() {
+                  this._cfmSharedMetadata = $.extend(true, {}, cfmSharedMetadata);
+                  this.causedChange = false;
+                  if(!DG.appController.get('_undoRedoShareInProgressCount')) {
+                    docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
+                    var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
+                    if(diff && diff.length) {
+                      DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+                      this.causedChange = true;
+                    }
+                  }
+                },
+                undo: function() {
+                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                  DG.cfmClient.unshare(function() {
+                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                  });
+                },
+                redo: function () {
+                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                  DG.cfmClient.reshare(this._cfmSharedMetadata, function() {
+                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                  });
+                }
+              }));
+            }
+            break;
+          }
+
+          case 'unsharedFile': {
+            docController = DG.currDocumentController();
+            docContent = docController && docController.get('content');
+            docMetadata = docContent && docContent.metadata;
+            var docSharedMetadata = docController.get('sharedMetadata') || {};
+            cfmSharedMetadata = (event.data && event.data.shared) || {};
+            if(DG.appController.get('_undoRedoShareInProgressCount')) {
+              DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+            }
+            else {
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'document.unshare',
+                undoString: 'DG.Undo.document.unshare',
+                redoString: 'DG.Redo.document.unshare',
+                log: 'Unshared document',
+                execute: function() {
+                  this.causedChange = false;
+                  if(!DG.appController.get('_undoRedoShareInProgressCount')) {
+                    docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
+                    this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
+                    var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
+                    if(diff && diff.length) {
+                      DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+                      this.causedChange = true;
+                    }
+                  }
+                },
+                undo: function() {
+                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                  DG.cfmClient.reshare(this._orgSharedMetadata, function() {
+                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                  });
+                },
+                redo: function () {
+                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                  DG.cfmClient.unshare(function() {
+                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                  });
+                }
+              }));
+            }
+            break;
+          }
+        }
+      });
+    }
+  }
+
+  // load the CFM library
+  var cfmLoaded = cfmGlobalsLoaded().then(cfmAppLoaded);
+  // Configure the CFM once the library is loaded and the views are configured
+  Promise.all([cfmLoaded, DG.cfmViewConfig]).then(
+    function(iValues) {
+      /* global CloudFileManager */
+      var viewConfig = iValues[1];
+      cfmInit(CloudFileManager, viewConfig);
+      cfmConnect(CloudFileManager);
+    });
+  /* end CFM load/configuration */
 };
 
 /* exported main */
 function main() { DG.main(); }
-
-/* Cloud File Manager Integration */
-DG.cfm = parent && parent.CloudFileManager ? parent.CloudFileManager : null;
-DG.cfmClient = null;
-
-if (DG.cfm) {
-  DG.cfm.clientConnect(function (event) {
-    var docContents, savedChangeCount;
-
-    function syncDocumentDirtyState() {
-      if(DG.currDocumentController().get('hasUnsavedChanges')) {
-        // Marking CFM client dirty
-        DG.cfmClient && DG.cfmClient.dirty();
-      }
-    }
-
-    console.log(event);
-    switch (event.type) {
-      case 'connected':
-        DG.cfmClient = event.data.client;
-        DG.cfmClient.setProviderOptions("documentStore",
-                                        {appName: DG.APPNAME,
-                                         appVersion: DG.VERSION,
-                                         appBuildNum: DG.BUILD_NUM
-                                        });
-        DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
-
-        // synchronize document dirty state on document change
-        DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
-          syncDocumentDirtyState();
-        });
-        break;
-
-      case 'getContent':
-        DG.currDocumentController().captureCurrentDocumentState(true)
-          .then(function(iContents) {
-            // record changeCount as a form of savedVersionID
-            iContents.changeCount = DG.currDocumentController().get('changeCount');
-            event.callback(iContents);
-          });
-        break;
-
-      case 'newedFile':
-        DG.appController.closeAndNewDocument();
-        break;
-
-      case 'openedFile':
-        docContents = JSON.parse(event.data.content);
-        DG.appController.closeAndNewDocument();
-        DG.store = DG.ModelStore.create();
-        DG.currDocumentController()
-          .setDocument(DG.Document.createDocument(docContents));
-        break;
-
-      case 'savedFile':
-        docContents = JSON.parse(event.data.content);
-        savedChangeCount = docContents && docContents.changeCount;
-        if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
-          // Marking CODAP document clean iff document hasn't changed since getContent()
-          DG.currDocumentController().updateSavedChangeCount();
-        }
-        // synchronize document dirty state after saving, since we may not be clean
-        syncDocumentDirtyState();
-        break;
-    }
-  });
-}
