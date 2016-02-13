@@ -32,6 +32,11 @@ DG.AxisModel = SC.Object.extend(
   attributeDescription: null,
 
   /**
+   * @property{DG.PlotDataConfiguration}
+   */
+  dataConfiguration: null,
+
+  /**
     The array of strings that will be used to label the axis.
     @property { Array of String }
     Note: This should be cacheable, but I couldn't make it work.

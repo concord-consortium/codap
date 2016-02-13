@@ -200,7 +200,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      Prepare dependencies.
      */
     init: function() {
-      var tXDescription, tYDescription, tY2Description;
+      var tAxisModelParams = { dataConfiguration: this.dataConfiguration},
+          tXDescription, tYDescription, tY2Description;
 
       sc_super();
       
@@ -237,13 +238,15 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
       tY2Description = this.dataConfiguration.get( 'y2AttributeDescription' );
 
-      this.set( 'xAxis', getAxisClassFromType( tXDescription.get('attributeType')).create() );
+      this.set( 'xAxis',
+          getAxisClassFromType( tXDescription.get('attributeType')).create(tAxisModelParams) );
       this.setPath('xAxis.attributeDescription', tXDescription);
-      this.set( 'yAxis', getAxisClassFromType( tYDescription.get('attributeType')).create() );
+      this.set( 'yAxis',
+          getAxisClassFromType( tYDescription.get('attributeType')).create(tAxisModelParams) );
       this.setPath('yAxis.attributeDescription', tYDescription);
 
       // To get started with y2Axis we're going to create one during init. But this may change.
-      this.set( 'y2Axis', DG.AxisModel.create() );
+      this.set( 'y2Axis', DG.AxisModel.create( tAxisModelParams) );
       this.setPath('y2Axis.attributeDescription', tY2Description);
 
       this.synchPlotWithAttributes();
@@ -459,13 +462,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     privSyncAxisWithAttribute: function( iDescKey, iAxisKey ) {
       var tDataConfiguration = this.get('dataConfiguration'),
           tVarIsNumeric = tDataConfiguration.getPath( iDescKey + '.isNumeric'),
-          tAxisIsNumeric = this.getPath( iAxisKey + '.isNumeric' );
+          tAxisIsNumeric = this.getPath( iAxisKey + '.isNumeric'),
+          tAxisModelParams = { dataConfiguration: tDataConfiguration };
 
       // If the variable and axis are incompatible, we'll have to change the axis
       if( tAxisIsNumeric !== tVarIsNumeric ) {
         var tAxisToDestroy = this.get( iAxisKey ),
-            tNewAxis = tVarIsNumeric ? DG.CellLinearAxisModel.create() :
-                       DG.CellAxisModel.create();
+            tNewAxis = tVarIsNumeric ? DG.CellLinearAxisModel.create(tAxisModelParams) :
+                       DG.CellAxisModel.create(tAxisModelParams);
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
@@ -555,7 +559,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
            */
           removeLastAttribute = function () {
             var tAxisToDestroy = this.get(iAxisKey),
-                tNewAxis = DG.AxisModel.create(),
+                tNewAxis = DG.AxisModel.create( { dataConfiguration: tConfig }),
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
                 tSecondaryRole, tPrimaryRole;
@@ -651,6 +655,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tCurrentYAxisClass = tPrevYAxis.constructor,
           tCurrentY2AxisClass = tPrevY2Axis.constructor,
           tDataConfig = this.get('dataConfiguration'),
+          tAxisModelParams = { dataConfiguration: tDataConfig},
           tYAttrIndex = 0,
           tY2AttrIndex = 0;
 
@@ -706,19 +711,19 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.set('aboutToChangeConfiguration', false ); // We're done
 
       if( tXAxisClass && tXAxisClass !== tCurrentXAxisClass) {
-        var tNewXAxis = tXAxisClass.create();
+        var tNewXAxis = tXAxisClass.create(tAxisModelParams);
         tNewXAxis.set('attributeDescription', tDataConfig.get('xAttributeDescription'));
         this.set('xAxis', tNewXAxis);
         tPrevXAxis.destroy();
       }
       if( tYAxisClass && tYAxisClass !== tCurrentYAxisClass) {
-        var tNewYAxis = tYAxisClass.create();
+        var tNewYAxis = tYAxisClass.create(tAxisModelParams);
         tNewYAxis.set('attributeDescription', tDataConfig.get('yAttributeDescription'));
         this.set('yAxis', tNewYAxis);
         tPrevYAxis.destroy();
       }
       if( tY2AxisClass && tY2AxisClass !== tCurrentY2AxisClass) {
-        var tNewY2Axis = tY2AxisClass.create();
+        var tNewY2Axis = tY2AxisClass.create(tAxisModelParams);
         tNewY2Axis.set('attributeDescription', tDataConfig.get('y2AttributeDescription'));
         this.set('y2Axis', tNewY2Axis);
         tPrevY2Axis.destroy();

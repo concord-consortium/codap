@@ -91,7 +91,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tLabelNode = this.get('labelNode'),
             tBox;
         if( !SC.none( tLabelNode)) {
-          tBox = tLabelNode.getBBox();
+          tBox = tLabelNode.get('bBox');
           return { x: isNaN(tBox.width) ? kMinHeight : Math.max( kMinHeight, tBox.width),
                    y: isNaN(tBox.height) ? kMinHeight : Math.max( kMinHeight, Math.ceil( tBox.height / 2) * 2) };
         }
@@ -109,16 +109,24 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           return;
 
         if( SC.none( this._labelNode)) {
-          this._labelNode = this._paper.text( 0, 0, '')
-              .attr( { font: 'caption', fill: 'blue', cursor: 'pointer',
-                    title: SC.String.loc( 'DG.LegendView.attributeTooltip'), 'text-anchor': 'start'});
-          this._labelNode.node.setAttribute( 'text-decoration', 'underline');
+          this._labelNode = DG.LabelNode.create({ paper: this._paper, rotation: 0,
+            colorIndex: 0, numColors: 1,
+            description: SC.String.loc( 'DG.LegendView.attributeTooltip'),
+            anchor: 'start'});
+          this._labelNode.setDragLabelHandler( DG.DragLabelHandler.create({
+            labelNode: this._labelNode,
+            labelView: this._hiddenDragView,
+            viewToAddTo: this,
+            attributeDescription: this.getPath('model.attributeDescription'),
+            dataContext: this.getPath('model.dataConfiguration.dataContext')
+          }) );
+
           tChangeHappened = true;
         }
         tText = this.getPath('model.label');
         // If the text has changed, we set it and notify
-        if( tText !== this._labelNode.attr( 'text')) {
-          this._labelNode.attr({ text: tText });
+        if( tText !== this._labelNode.get('text')) {
+          this._labelNode.set('text', tText );
           tChangeHappened = true;
         }
         if( tChangeHappened)
@@ -154,6 +162,18 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        */
       _gradientRect: null,
 
+      _hiddenDragView: null,
+
+      init: function() {
+        sc_super();
+        this._hiddenDragView = SC.LabelView.create({
+          classNames: 'drag-label'.w(),
+          layout: {width: 100, height: 20, top: -50, left: 0},
+          value: ''
+        });
+        this.appendChild( this._hiddenDragView);
+      },
+
       doDraw: function doDraw() {
         var this_ = this,
             tAttrDesc = this.getPath('model.attributeDescription'),
@@ -169,7 +189,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               tLabelExtent = this_.get('labelExtent');
           if( SC.none( tLabelNode))
             return;
-          tLabelNode.attr({ text: this_.getPath('model.label'),
+          tLabelNode.get('_textElement').attr({ text: this_.getPath('model.label'),
                             x: kHMargin, y: tLabelExtent.y / 2 });
         }
 

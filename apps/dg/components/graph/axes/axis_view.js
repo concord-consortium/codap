@@ -31,104 +31,6 @@ sc_require('views/raphael_base');
 DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
     /** @scope DG.AxisView.prototype */ (function () {
 
-      var LabelNode = SC.Object.extend(
-          {
-            paper: null,
-            text: null,
-            description: null,
-            colorIndex: 0,
-            numColors: 1,
-            rotation: 0,
-            priorNode: null,
-            loc: null,  // {x, y}
-            _circleElement: null,
-            _textElement: null,
-            kCircleRadius: 6,
-
-            init: function() {
-              this._textElement = this.paper.text(0, 0, '')
-                  .addClass('axis-label');
-              DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
-              this.numColorsChanged();
-            },
-
-            numColorsChanged: function() {
-              var tTextColor = 'blue',
-                  tPointColor = 'lightblue';
-              if( this.numColors > 1) {
-                if (this.colorIndex === 0) {
-                  tTextColor = DG.PlotUtilities.kDefaultPointColor;
-                }
-                else {
-                  tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
-                }
-                tPointColor = tTextColor;
-              }
-              this._textElement.attr('fill', tTextColor);
-
-              if((this.numColors > 1) && !this._circleElement) {
-                this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
-                    .addClass('axis-dot');
-              }
-              else if((this.numColors <= 1) && this._circleElement) {
-                this._circleElement.remove();
-                this._circleElement = null;
-              }
-              if( this._circleElement)
-                this._circleElement.attr('fill', tPointColor);
-            }.observes('numColors'),
-
-            textChanged: function() {
-              this._textElement.attr('text', this.text);
-            }.observes('text'),
-
-            descriptionChanged: function() {
-              this._textElement.attr('title', this.description);
-            }.observes('description'),
-
-            locChanged: function() {
-              var tYOffset = this._circleElement ? this.kCircleRadius / 2 : 0;
-              this._textElement.attr({ x: this.loc.x, y: this.loc.y - tYOffset });
-              DG.RenderingUtilities.rotateText(this._textElement, this.rotation, this.loc.x, this.loc.y - tYOffset);
-              if( this._circleElement) {
-                var tBox = this._textElement.getBBox(),
-                    tCenter;
-                if (this.rotation !== 0) {
-                  tCenter = { cx: this.loc.x + 1, cy: this.loc.y - tYOffset + tBox.height / 2 + this.kCircleRadius + 2 };
-                }
-                else {
-                  tCenter = { cx: this.loc.x - (tBox.width / 2 + this.kCircleRadius + 2), cy: this.loc.y };
-                }
-                this._circleElement.attr( tCenter);
-              }
-            }.observes('loc'),
-
-            extent: function() {
-              var tResult = this._textElement.getBBox();
-              if( this._circleElement) {
-                tResult.width += (this.rotation === 0) ? 2 * this.kCircleRadius + 2 : 0;
-                tResult.height += (this.rotation !== 0) ? 2 * this.kCircleRadius + 2 : 0;
-              }
-              return tResult;
-            },
-
-            mousedown: function( iHandler) {
-              this._textElement.mousedown( iHandler);
-              this._circleElement && this._circleElement.mousedown( iHandler);
-            },
-
-            unmousedown: function( iHandler) {
-              this._textElement.unmousedown( iHandler);
-              this._circleElement && this._circleElement.unmousedown( iHandler);
-            },
-
-            remove: function() {
-              this._textElement.remove();
-              this._circleElement && this._circleElement.remove();
-            }
-          }
-      );
-
       return {
         displayProperties: ['model.attributeDescription.attribute',
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
@@ -159,6 +61,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         otherYAttributeDescription: null,  // Used by vertical2 axis to test if drag attribute is valid
 
         blankDropHint: 'DG.GraphView.addToEmptyPlace',
+
+        _hiddenDragView: null,
 
         /**
          For Raphael 1.5.2 we could always return the height, but this changed with Raphael 2.0 when
@@ -241,9 +145,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               ((this.get('orientation') === 'vertical') ? tOtherYCount : 0);
           tLabels.forEach(function (iLabel, iIndex) {
             if (tLabelCount >= this_._labelNodes.length) {
-              tNode = LabelNode.create({ paper: this_._paper, rotation: tRotation,
+              tNode = DG.LabelNode.create({ paper: this_._paper, rotation: tRotation,
                 colorIndex: tBaseLabelIndex + iIndex, numColors: tNumAttributes,
                 priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
+              tNode.setDragLabelHandler( DG.DragLabelHandler.create({
+                labelNode: tNode,
+                labelView: this_._hiddenDragView,
+                viewToAddTo: this_,
+                attributeDescription: this_.getPath('model.attributeDescription'),
+                dataContext: this_.getPath('model.dataConfiguration.dataContext')
+              }));
               this_._labelNodes.push(tNode);
               tChangeHappened = true;
             }
@@ -285,7 +196,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         /**
          * @private
-         * @property {Raphael element}
+         * @property {[DG.LabelNode]}
          */
         _labelNodes: null,
 
@@ -306,6 +217,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               break;
           }
           this.get('classNames').push( tClassName);
+          this._hiddenDragView = SC.LabelView.create({
+            classNames: 'drag-label'.w(),
+            layout: {width: 100, height: 20, top: -50, left: 0},
+            value: ''
+          });
+          this.appendChild( this._hiddenDragView);
+
         },
 
         /**

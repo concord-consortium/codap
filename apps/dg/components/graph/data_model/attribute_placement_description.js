@@ -55,6 +55,20 @@ DG.AttributePlacementDescription = SC.Object.extend(
       return DG.Analysis.kNullAttribute;
   },
 
+  /**
+   *
+   * @param iName {String}
+   * @return {DG.AttributeModel}
+   */
+  attributeNamed: function( iName) {
+    var tAttribute;
+    this.get('attributes').forEach( function( iAttr) {
+      if (iAttr.get('name') === iName)
+        tAttribute = iAttr;
+    });
+    return tAttribute;
+  },
+
   attributeIDAt: function( iIndex) {
     var tAttribute = this.attributeAt( iIndex);
     return ( tAttribute !== DG.Analysis.kNullAttribute) ? tAttribute.get('id') : null;
