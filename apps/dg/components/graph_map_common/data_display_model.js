@@ -446,6 +446,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           tAxisKey = iXYorLegend + 'Axis',
           tDescription = this.getPath( 'dataConfiguration.' + tDescKey),
           tAttribute = tDescription && tDescription.get( 'attribute'),
+          tAttributeName = tAttribute && (tAttribute !== -1) ? tAttribute.get('name') : '',
           tIsNumeric = tDescription && tDescription.get( 'isNumeric'),
           tTitle =( tIsNumeric ? 'DG.DataDisplayMenu.treatAsCategorical' : 'DG.DataDisplayMenu.treatAsNumeric').loc();
       return {
@@ -453,7 +454,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         target: this,
         itemAction: this.changeAttributeType, // call with args, toggling 'numeric' setting
         isEnabled: (tAttribute !== DG.Analysis.kNullAttribute),
-        log: "plotAxisAttributeChangeType: { axis: %@, attribute: %@, numeric: %@ }".fmt( tAxisKey, (tAttribute && tAttribute.get('name')), !tIsNumeric),
+        log: "plotAxisAttributeChangeType: { axis: %@, attribute: %@, numeric: %@ }".fmt( tAxisKey, tAttributeName, !tIsNumeric),
         args: [ tDescKey, tAxisKey, !tIsNumeric ] };
     },
 

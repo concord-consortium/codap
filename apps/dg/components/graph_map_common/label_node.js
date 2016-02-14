@@ -46,7 +46,6 @@ DG.LabelNode = SC.Object.extend(
       init: function() {
 
         this._textElement = this.paper.text(0, 0, '')
-            .addClass('axis-label')
             .attr( { 'text-anchor': this.anchor });
         DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
         this.numColorsChanged();
@@ -55,14 +54,26 @@ DG.LabelNode = SC.Object.extend(
       numColorsChanged: function() {
         var tTextColor = 'blue',
             tPointColor = 'lightblue';
-        if( this.numColors > 1) {
-          if (this.colorIndex === 0) {
-            tTextColor = DG.PlotUtilities.kDefaultPointColor;
-          }
-          else {
-            tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
-          }
-          tPointColor = tTextColor;
+        this._textElement.addClass('axis-label');
+        this._textElement.removeClass('axis-label-empty-graph');
+        switch( this.numColors) {
+          case 0:
+            tTextColor = DG.PlotUtilities.kEmptyPromptColor;
+            this._textElement.removeClass('axis-label');
+            this._textElement.addClass('axis-label-empty-graph');
+            break;
+          case 1:
+            tTextColor = 'blue';
+            tPointColor = 'lightblue';
+            break;
+          default:
+            if (this.colorIndex === 0) {
+              tTextColor = DG.PlotUtilities.kDefaultPointColor;
+            }
+            else {
+              tTextColor = DG.ColorUtilities.calcAttributeColorFromIndex(this.colorIndex, this.numColors).colorString;
+            }
+            tPointColor = tTextColor;
         }
         this._textElement.attr('fill', tTextColor);
 

@@ -84,6 +84,15 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         otherAxisView: null,
 
         /**
+         * Return whether both my model and my otherAxisView's model have no attributes assigned
+         * @return{Boolean}
+         */
+        noAttributesOnEitherAxis: function() {
+          return this.getPath('model.noAttributes') &&
+                  this.getPath('otherAxisView.model.noAttributes');
+        },
+
+        /**
          Coordinate of my minimum value (Y: bottom end, X: left end)
          @property { Number }
          */
@@ -136,17 +145,27 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tOtherYAttributes = this.getPath('otherYAttributeDescription.attributes'),
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
               tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
+              tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
               tLabels, tNumAttributes, tNode;
           if (SC.none(this._paper))
             return [];
 
-          tLabels = this.getPath('model.labels');
-          tNumAttributes = tBaseLabelIndex + tLabels.length +
-              ((this.get('orientation') === 'vertical') ? tOtherYCount : 0);
+          if( tNoAttributesOnEitherAxis) {
+            tLabels = ['DG.AxisView.emptyGraphCue'.loc()];
+            tNumAttributes = 0;
+          }
+          else {
+            tLabels = this.getPath('model.labels');
+            tNumAttributes = tBaseLabelIndex + tLabels.length +
+                ((this.get('orientation') === 'vertical') ? tOtherYCount : 0);
+          }
           tLabels.forEach(function (iLabel, iIndex) {
             if (tLabelCount >= this_._labelNodes.length) {
-              tNode = DG.LabelNode.create({ paper: this_._paper, rotation: tRotation,
-                colorIndex: tBaseLabelIndex + iIndex, numColors: tNumAttributes,
+              tNode = DG.LabelNode.create({
+                paper: this_._paper,
+                rotation: tRotation,
+                colorIndex: tBaseLabelIndex + iIndex,
+                numColors: tNumAttributes,
                 priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
               tNode.setDragLabelHandler( DG.DragLabelHandler.create({
                 labelNode: tNode,
@@ -352,6 +371,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @param {Function} to be called for each tick
          */
         forEachTickDo: function () {
+        },
+
+        doDraw: function() {
+          this.renderLabel();
         },
 
         /**

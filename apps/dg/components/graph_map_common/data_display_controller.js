@@ -655,14 +655,17 @@ DG.DataDisplayController = DG.ComponentController.extend(
          */
         getAttributeMenuItems: function () {
           var tMenuItems = [],
-              tContext = this.get('dataContext');
-          tContext.forEachCollection( function( iCollClient) {
-            var tName = iCollClient.get('name'),
-                tAttrNames = iCollClient.getAttributeNames();
-            tMenuItems.push({ title: tName,
-              subMenu: tAttrNames.map( function( iAttrName) {
-                return { title: iAttrName, collection: iCollClient};
-              })});
+              //tContext = this.get('dataContext'),
+              tContexts = DG.currDocumentController().get('contexts');
+          tContexts.forEach( function( iContext) {
+            iContext.forEachCollection( function( iCollClient) {
+              var tName = iCollClient.get('name'),
+                  tAttrNames = iCollClient.getAttributeNames();
+              tMenuItems.push({ title: tName,
+                subMenu: tAttrNames.map( function( iAttrName) {
+                  return { title: iAttrName, collection: iCollClient, context: iContext };
+                })});
+            });
           });
           if( tMenuItems.length === 1) {
             return tMenuItems[0].subMenu;
@@ -695,7 +698,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   tAxisOrientation = controller.attributeMenu.selectedAxis,
                   tAttrRefs,
                   tDataDisplayModel = controller.get('dataDisplayModel'),
-                  tDataContext = controller.get('dataContext');
+                  //tDataContext = controller.get('dataContext'),
+                  tDataContext = tNewItem && tNewItem.context;
               if (!tNewItem) {
                 this.set('causedChange', false);
                 return;
