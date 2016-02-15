@@ -75,7 +75,7 @@ DG.DragBorderView = SC.View.extend(
           this.mouseDragged(evt);
           this._mouseDownInfo = null; // cleanup info
           tContainer.coverUpComponentViews('uncover');
-          tContainer.set('frameNeedsUpdate', true);
+          tContainer.updateFrame();
           if ((tOldLayout.left !== tNewLayout.left) || (tOldLayout.top !== tNewLayout.top) ||
               (tOldLayout.height !== tNewLayout.height) || (tOldLayout.width !== tNewLayout.width)) {
 
@@ -110,6 +110,7 @@ DG.DragBorderView = SC.View.extend(
                     // set actual model layout once animation has completed
                     this._oldLayout = this._controller().revertModelLayout(layout);
                     this._oldLayout.height = layout.height;
+                    tContainer.updateFrame();
                   }.bind(this));
               },
               redo: function () {
@@ -122,6 +123,7 @@ DG.DragBorderView = SC.View.extend(
                   function () {
                     tViewToDrag._view_layer.style.transition = "";
                     this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                    tContainer.updateFrame();
                   }.bind(this));
               }
             }));
@@ -677,7 +679,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tSuperView.positionNewComponent(tComponentView);
   }
   tSuperView.appendChild(tComponentView);
-  tSuperView.set('frameNeedsUpdate', true);
+  tSuperView.updateFrame();
 
   return tComponentView;
 };
@@ -708,7 +710,7 @@ DG.ComponentView.addComponent = function (iParams) {
   if (!tUseLayoutForPosition)
     tSuperView.positionNewComponent(tComponentView, iParams.position);
   tSuperView.appendChild(tComponentView);
-  tSuperView.set('frameNeedsUpdate', true);
+  tSuperView.updateFrame();
 
   // We want to be sure the component view is visible. iSuperView's parent is a scroll view
   // and it can accomplish this for us.
