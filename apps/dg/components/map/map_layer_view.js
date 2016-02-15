@@ -117,6 +117,11 @@ DG.MapLayerView = SC.View.extend(
 
             onClick = function (iEvent) {
               this.incrementProperty('clickCount');
+            }.bind(this),
+
+            onMousedown = function( iEvent) {
+              // Passing this event to the top will cause any extant picker panes to be removed
+              DG.mainPage.mainPane.sendEvent('mouseDown', iEvent, this);
             }.bind(this);
 
         if (this._map) {
@@ -129,6 +134,7 @@ DG.MapLayerView = SC.View.extend(
               .on('dragend', onDisplayChangeEvent)
               .on('moveend', onDisplayChangeEvent)
               .on('click', onClick)
+              .on('mousedown', onMousedown)
               .on('dragstart drag move', function () {
                 this._clearIdle();
               }.bind(this))
