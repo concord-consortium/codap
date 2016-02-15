@@ -161,8 +161,6 @@ DG.ComponentController = SC.Object.extend((function () // closure
       this.model.set('layout', newLayout);
       this.model.set('oldLayout', prevLayout);
       this.setPath('view.layout', newLayout);
-      this.setPath('view.parentView.frameNeedsUpdate', true);
-
       return prevLayout;
     },
 

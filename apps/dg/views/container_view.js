@@ -33,6 +33,8 @@ DG.ContainerView = SC.View.extend(
   (function() {
     var kDocMargin = 16;
     return {
+      classNames: 'dg-container-view'.w(),
+
       isResizable: YES,
 
       /**
@@ -40,11 +42,9 @@ DG.ContainerView = SC.View.extend(
        */
       inspectorView: null,
 
-      // We use this property as a channel for protovis to use to indicate that the
-      // frame needs updating. The frame property defined below depends on it, and
-      // protovis can explicitly set the frameNeedsUpdate property to trigger the
-      // notification.
-      frameNeedsUpdate: true,
+      // We want the container to encompass the entire window or the
+      // entire content, whichever is greater.
+      layout: { left: 0, top: 0, minWidth: '100%', minHeight: '100%' },
       
       /**
         Indicates that this view's layout should never be considered fixed.
@@ -122,10 +122,9 @@ DG.ContainerView = SC.View.extend(
       /**
         Computes/returns the bounding rectangle for the view.
        */
-      frame: function() {
+      updateFrame: function() {
         // Note that we're not providing scroll bars to scroll to left or above document
-        var tWidth = 0, tHeight = 0,
-            tParentFrame = this.parentView.get('frame');
+        var tWidth = 0, tHeight = 0;
 
         // Compute the content size as the bounding rectangle of the child views.
         this.get('childViews').forEach(
@@ -139,32 +138,9 @@ DG.ContainerView = SC.View.extend(
         // Add a margin around the components as part of the content
         tWidth += kDocMargin;
         tHeight += kDocMargin;
-        this.frameNeedsUpdate = false;
 
-        // The 'frame' determines the content size for scrolling purposes.
-        // We want to return the content size when it's larger than the
-        // container size (so that it is possible to scroll to the edge of
-        // the content), but also to return the entire size of the container
-        // when the content is smaller, so that new objects can be placed in
-        // the entire visible document space.
-        if( tHeight > tParentFrame.height) {
-          this.adjust('bottom', null);    // deletes the 'bottom' property
-          this.adjust('height', tHeight); // fixes the 'height' to the content height
-        }
-        else {
-          this.adjust('height', null);  // deletes the 'height' property
-          this.adjust('bottom', 0);     // locks the 'bottom' to the parent
-        }
-        if( tWidth > tParentFrame.width) {
-          this.adjust('right', null);   // deletes the 'right' property
-          this.adjust('width', tWidth); // fixes the 'width' as the content width
-        }
-        else {
-          this.adjust('width', null); // deletes the 'width' property
-          this.adjust('right', 0);    // locks the 'right' to the parent
-        }
-        return { x: 0, y: 0, width: tWidth, height: tHeight };
-      }.property('frameNeedsUpdate').cacheable(),
+        this.adjust({ width: tWidth, height: tHeight });
+      },
       
       removeComponentView: function( iComponentView) {
         var tCloseAction = iComponentView.get('closeAction');
@@ -176,6 +152,7 @@ DG.ContainerView = SC.View.extend(
           DG.currDocumentController().removeComponentAssociatedWithView( iComponentView);
           iComponentView.destroy();
         }
+        this.updateFrame();
       },
 
       /**
