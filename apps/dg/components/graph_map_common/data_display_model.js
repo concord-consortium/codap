@@ -348,6 +348,10 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           }.bind(this));
         }.bind( this));
       }
+      // Give the legend a chance
+      var tLegend = this.get('legend');
+      if( tLegend)
+          tLegend.handleOneDataContextChange( iNotifier, iChange);
     },
 
     /**

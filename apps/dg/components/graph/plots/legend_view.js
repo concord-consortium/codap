@@ -383,7 +383,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             }
           });
         }
-      }
+      }.observes('model.selectionMap')
 
     };
   }()));
