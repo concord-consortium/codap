@@ -263,8 +263,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
               }
             })
         .mousedown( function( iEvent) {
-              this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
-            })
+                      SC.run(function() {
+                        this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
+                      });
+                    })
         .drag(function (dx, dy) { // continue
                 SC.run( function() {
                   var tNewX = this_.get('xAxisView').coordinateToData( this.ox + dx),

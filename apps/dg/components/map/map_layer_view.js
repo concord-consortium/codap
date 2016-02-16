@@ -120,7 +120,9 @@ DG.MapLayerView = SC.View.extend(
             }.bind(this),
 
             onClick = function (iEvent) {
-              this.incrementProperty('clickCount');
+              SC.run(function() {
+                this.incrementProperty('clickCount');
+              }.bind(this));
             }.bind(this),
 
             onMousedown = function( iEvent) {

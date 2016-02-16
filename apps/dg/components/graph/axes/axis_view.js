@@ -158,7 +158,9 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if(!SC.data) SC.data = $.data;
 
             scEvent.clientData = { axisView: this, labelIndex: iLabelNode.labelIndex };
-            pane.sendEvent('axisLabelClick', scEvent, this);
+            SC.run(function(){
+              pane.sendEvent('axisLabelClick', scEvent, this);
+            }.bind(this));
           }.bind(this);
 
           if( tNoAttributesOnEitherAxis) {

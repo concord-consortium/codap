@@ -607,12 +607,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // We need SC to accomplish the layout of the anchor view before we
           // show the popup menu. Initiating and ending a runloop seems to be one way
           // to accomplish this.
-          SC.RunLoop.begin();
-          this.menuAnchorView.removeFromParent();
-          iAxisView.appendChild(this.menuAnchorView);
-          this.menuAnchorView.set('layout', tMenuLayout);
-          this.menuAnchorView.set('isVisible', true);
-          SC.RunLoop.end();
+          SC.run(function(){
+            this.menuAnchorView.removeFromParent();
+            iAxisView.appendChild(this.menuAnchorView);
+            this.menuAnchorView.set('layout', tMenuLayout);
+            this.menuAnchorView.set('isVisible', true);
+          }.bind(this));
           this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
         },
 

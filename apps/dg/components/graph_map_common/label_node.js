@@ -54,7 +54,9 @@ DG.LabelNode = SC.Object.extend(
         this.numColorsChanged();
         /* SC upgrade change
         this._textElement.mousedown(function(evt) {
-                                            this.clickCallback(this, evt);
+                                             SC.run(function(){
+                                             this.clickCallback(this, evt);
+                                             }.bind(this));
                                           }.bind(this));
                                           */
       },
