@@ -302,16 +302,18 @@ DG.CaseTableController = DG.ComponentController.extend(
             // Hook up the table to the new collection
             this.dataContextDidChange();
             break;
+          case 'deleteCollection':
+            this.dataContextDidChange();
+            break;
           case 'createCase':
           case 'createCases':
-            this.caseCountDidChange( iChange);
+            this.doCreateCases( iChange);
             break;
           case 'updateCases':
-            this.doChangeCaseValues( iChange);
+            this.doUpdateCases( iChange);
             break;
           case 'deleteCases':
-            this.caseCountDidChange( iChange);
-            this.doSelectCases(iChange);
+            this.doDeleteCases( iChange);
             break;
           case 'selectCases':
             this.doSelectCases( iChange);
@@ -320,10 +322,13 @@ DG.CaseTableController = DG.ComponentController.extend(
               invalidateAggregates = false;
             break;
           case 'createAttributes':
+            this.doCreateAttributes(iChange);
+            break;
           case 'deleteAttributes':
+            this.doDeleteAttributes(iChange);
+            break;
           case 'moveAttribute':
-            this.caseCountDidChange( iChange);
-            this.attributeCountDidChange( iChange);
+            this.doMoveAttributes(iChange);
             break;
           case 'updateAttributes':
             this.doUpdateAttributes( iChange);
@@ -353,6 +358,28 @@ DG.CaseTableController = DG.ComponentController.extend(
                                                   });
           }
         }
+      },
+      doCreateCases: function (iChange) {
+        this.caseCountDidChange( iChange);
+      },
+      doUpdateCases: function (iChange) {
+        this.doChangeCaseValues(iChange);
+      },
+      doDeleteCases: function (iChange) {
+        this.caseCountDidChange( iChange);
+        this.doSelectCases(iChange);
+      },
+      doCreateAttributes: function (iChange) {
+        this.caseCountDidChange( iChange);
+        this.attributeCountDidChange( iChange);
+      },
+      doDeleteAttributes: function (iChange) {
+        this.caseCountDidChange( iChange);
+        this.attributeCountDidChange( iChange);
+      },
+      doMoveAttributes: function (iChange) {
+        this.caseCountDidChange( iChange);
+        this.attributeCountDidChange( iChange);
       },
       doResetCollections: function (iChange) {
         function processAdapter(iAdapter) {
