@@ -275,7 +275,9 @@ DG.DotChartView = DG.PlotView.extend(
               this_.hideDataTip();
             })
         .mousedown( function( iEvent) {
-              this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey);
+              SC.run(function() {
+                this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey);
+              });
             });
     //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "CreateCircle index="+iIndex );
     tCircle.index = iIndex;

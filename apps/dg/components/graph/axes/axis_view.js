@@ -51,7 +51,9 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
               this.numColorsChanged();
               this._textElement.mousedown(function(evt) {
-                                            this.clickCallback(this, evt);
+                                            SC.run(function(){
+                                              this.clickCallback(this, evt);
+                                            }.bind(this));
                                           }.bind(this));
             },
 
@@ -241,7 +243,9 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if(!SC.data) SC.data = $.data;
 
             scEvent.clientData = { axisView: this, labelIndex: iLabelNode.labelIndex };
-            pane.sendEvent('axisLabelClick', scEvent, this);
+            SC.run(function(){
+              pane.sendEvent('axisLabelClick', scEvent, this);
+            }.bind(this));
           }.bind(this);
 
           tLabels = this.getPath('model.labels');

@@ -254,7 +254,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           // Function passed to Raphael mouseDown event handler, which guarantees
           // that 'this' correctly refers to the Raphael element being called.
           function selectCasesInRectCell( iEvent) {
-            this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
+            SC.run(function() {
+              this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
+            }.bind(this));
             if( !iEvent.shiftKey) {
               this_._elementsToClear.forEach(function (iElement) {
                 iElement.removeClass(DG.PlotUtilities.kLegendKeySelected);
@@ -266,7 +268,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           // Function passed to Raphael mouseDown event handler, which guarantees
           // that 'this' correctly refers to the Raphael element being called.
           function selectCasesInTextCell( iEvent) {
-            this_.get('model').selectCasesInCell( this.attr('text'), iEvent.shiftKey);
+            SC.run(function() {
+              this_.get('model').selectCasesInCell( this.attr('text'), iEvent.shiftKey);
+            }.bind(this));
           }
           
           for( tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {

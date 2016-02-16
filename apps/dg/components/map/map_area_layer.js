@@ -240,7 +240,9 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
       var
           handleClick = function( iEvent) {
-            this.get('model').selectCaseByIndex(iIndex, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
+            SC.run(function() {
+              this.get('model').selectCaseByIndex(iIndex, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
+            }.bind(this));
           }.bind( this),
 
           handleMouseover = function( iEvent) {
