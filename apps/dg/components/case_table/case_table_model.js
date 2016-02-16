@@ -145,7 +145,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
     }
     collapseState.isCollapsed = false;
     this.collapsedNodes.forEach(function (cs) {
-      collapseState.isHidden = this.isHiddenNode(cs.collapsedCase);
+      cs.isHidden = this.isHiddenNode(cs.collapsedCase);
     }.bind(this));
   }
 });
