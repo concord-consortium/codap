@@ -18,9 +18,13 @@
 // ==========================================================================
 /* global Slick:true */
 /**
+ * @class CaseTableDataManager
+ *
  * A specialized, on demand, implemention the SlickGrid DataView interface.
  * See https://github.com/mleibman/SlickGrid/wiki/DataView.
  * We implement getLength() and getItem(index) from the API.
+ *
+ * @extends SC.Object
  */
 DG.CaseTableDataManager = SC.Object.extend({
 
