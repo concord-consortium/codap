@@ -40,7 +40,7 @@ DG.splash = SC.Object.create({
             }),
             acceptsKeyPane: true,
             close: function() {
-              this.remove();
+              this.destroy();
               DG.splash.set('isShowing', false);
             }
           }).append();
