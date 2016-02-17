@@ -201,7 +201,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
               this_.set('dragInfo', null);
               this_.displayDidChange();
               this_.propertyDidChange('categoriesDragged');
-              this_.updateLayerIfNeeded(true /* skip inWindow check */);
+              this_.updateLayerIfNeeded();
             });
           };
 
