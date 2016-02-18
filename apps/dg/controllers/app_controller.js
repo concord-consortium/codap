@@ -25,8 +25,6 @@ sc_require('utilities/menu_pane');
 
  @extends SC.Object
  */
-sc_require('libraries/ext/menu');
-
 DG.appController = SC.Object.create((function () // closure
 /** @scope DG.appController.prototype */ {
 
@@ -1403,11 +1401,6 @@ DG.appController = SC.Object.create((function () // closure
           codapLogo: SC.ImageView.design({
             layout: {top:10, left:10, height:35, width:35},
             value: static_url('images/codap_logo.png')
-          }),
-
-          feedbackImage: SC.ImageView.design({
-            layout: {top:10, right:10, height:35, width:35},
-            value: static_url('images/upanddown.png')
           }),
 
           subHeaderText: SC.LabelView.design({

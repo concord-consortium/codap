@@ -17,7 +17,7 @@
 // ==========================================================================
 
 
-sc_require('models/DataItem');
+sc_require('models/data_item');
 
 /** @class DataSet
  *
