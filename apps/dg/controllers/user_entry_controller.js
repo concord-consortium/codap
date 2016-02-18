@@ -85,11 +85,15 @@ DG.userEntryController = SC.Object.create( DG.CODAPCommonStorage, (function() {
         $.ajax({
           url: selected.location,
           success: function(iResponse) {
-            DG.appController.receivedOpenDocumentSuccess(iResponse);
+            SC.run(function() {
+              DG.appController.receivedOpenDocumentSuccess(iResponse);
+            });
           },
           error: function(jqXHR, textStatus, errorThrown) {
-            // could try to parse the error more precisely
-            DG.appController.receivedOpenDocumentFailure('error.general');
+            SC.run(function() {
+              // could try to parse the error more precisely
+              DG.appController.receivedOpenDocumentFailure('error.general');
+            });
           }
         });
         DG.logUser("openExample: '%@'", selected.location);
