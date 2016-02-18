@@ -200,8 +200,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      Prepare dependencies.
      */
     init: function() {
-      var tXDescription, tYDescription, tY2Description;
-
       sc_super();
       
       function getAxisClassFromType( iType) {
@@ -231,20 +229,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( DG.IS_INQUIRY_SPACE_BUILD) {
         this.set('numberToggle', DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')}));
       }
-      configureAttributeDescription('x');
-      configureAttributeDescription('y');
-      tXDescription = this.dataConfiguration.get( 'xAttributeDescription' );
-      tYDescription = this.dataConfiguration.get( 'yAttributeDescription' );
-      tY2Description = this.dataConfiguration.get( 'y2AttributeDescription' );
-
-      this.set( 'xAxis', getAxisClassFromType( tXDescription.get('attributeType')).create() );
-      this.setPath('xAxis.attributeDescription', tXDescription);
-      this.set( 'yAxis', getAxisClassFromType( tYDescription.get('attributeType')).create() );
-      this.setPath('yAxis.attributeDescription', tYDescription);
-
-      // To get started with y2Axis we're going to create one during init. But this may change.
-      this.set( 'y2Axis', DG.AxisModel.create() );
-      this.setPath('y2Axis.attributeDescription', tY2Description);
+      ['x', 'y', 'y2'].forEach(function (iKey) {
+        configureAttributeDescription(iKey);
+        var tDescription = this.dataConfiguration.get(iKey + 'AttributeDescription');
+        this.set(iKey + 'Axis',
+            getAxisClassFromType(tDescription.get('attributeType')).create({dataConfiguration: this.dataConfiguration}));
+        this.setPath( iKey + 'Axis.attributeDescription', tDescription);
+      }.bind(this));
 
       this.synchPlotWithAttributes();
 
@@ -459,13 +450,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     privSyncAxisWithAttribute: function( iDescKey, iAxisKey ) {
       var tDataConfiguration = this.get('dataConfiguration'),
           tVarIsNumeric = tDataConfiguration.getPath( iDescKey + '.isNumeric'),
-          tAxisIsNumeric = this.getPath( iAxisKey + '.isNumeric' );
+          tAxisIsNumeric = this.getPath( iAxisKey + '.isNumeric'),
+          tAxisModelParams = { dataConfiguration: tDataConfiguration };
 
       // If the variable and axis are incompatible, we'll have to change the axis
       if( tAxisIsNumeric !== tVarIsNumeric ) {
         var tAxisToDestroy = this.get( iAxisKey ),
-            tNewAxis = tVarIsNumeric ? DG.CellLinearAxisModel.create() :
-                       DG.CellAxisModel.create();
+            tNewAxis = tVarIsNumeric ? DG.CellLinearAxisModel.create(tAxisModelParams) :
+                       DG.CellAxisModel.create(tAxisModelParams);
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
@@ -555,7 +547,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
            */
           removeLastAttribute = function () {
             var tAxisToDestroy = this.get(iAxisKey),
-                tNewAxis = DG.AxisModel.create(),
+                tNewAxis = DG.AxisModel.create( { dataConfiguration: tConfig }),
                 tOtherDesc = (iDescKey === 'xAttributeDescription') ? 'yAttributeDescription' : 'xAttributeDescription',
                 tY2Plot = (iAxisKey === 'y2Axis') ? this.getY2Plot() : null,
                 tSecondaryRole, tPrimaryRole;
@@ -640,17 +632,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iStorage {Object}
      */
     restoreStorage: function( iStorage) {
-      var xAttrRef, yAttrRef, y2AttrRef, legendAttrRef,
-          tXAxisClass = DG.Core.classFromClassName( iStorage.xAxisClass),
-          tPrevXAxis = this.get('xAxis'),
-          tYAxisClass = DG.Core.classFromClassName( iStorage.yAxisClass),
-          tPrevYAxis = this.get('yAxis'),
-          tY2AxisClass = iStorage.y2AxisClass ? DG.Core.classFromClassName( iStorage.y2AxisClass) : DG.AxisModel,
-          tPrevY2Axis = this.get('y2Axis'),
-          tCurrentXAxisClass = tPrevXAxis.constructor,
-          tCurrentYAxisClass = tPrevYAxis.constructor,
-          tCurrentY2AxisClass = tPrevY2Axis.constructor,
-          tDataConfig = this.get('dataConfiguration'),
+      var tDataConfig = this.get('dataConfiguration'),
           tYAttrIndex = 0,
           tY2AttrIndex = 0;
 
@@ -687,42 +669,28 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( !SC.none( iStorage.isTransparent))
         this.set('isTransparent', iStorage.isTransparent);
 
-      // Instantiate the attribute references
-      xAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'xColl', 'xAttr');
-      yAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'yColl', 'yAttr');
-      y2AttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'y2Coll', 'y2Attr');
-      legendAttrRef = this.instantiateAttributeRefFromStorage(iStorage, 'legendColl', 'legendAttr');
-
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
-      // Set the collection(s) and attribute(s)
-      // TO_DO: Consider adding some validation to iStorage values before use,
-      //    methods like storageToRole(iStorage.xRole), storageToAttributeType(iStorage.xAttributeType).
-      tDataConfig.setAttributeAndCollectionClient('xAttributeDescription', xAttrRef, iStorage.xRole, iStorage.xAttributeType);
-      tDataConfig.setAttributeAndCollectionClient('yAttributeDescription', yAttrRef, iStorage.yRole, iStorage.yAttributeType);
-      tDataConfig.setAttributeAndCollectionClient('y2AttributeDescription', y2AttrRef, iStorage.y2Role, iStorage.y2AttributeType);
-      tDataConfig.setAttributeAndCollectionClient('legendAttributeDescription', legendAttrRef, iStorage.legendRole, iStorage.legendAttributeType);
+      ['x', 'y', 'y2', 'legend'].forEach( function( iKey) {
+        var tAttrRef = this.instantiateAttributeRefFromStorage(iStorage, iKey + 'Coll', iKey + 'Attr');
+        tDataConfig.setAttributeAndCollectionClient(iKey + 'AttributeDescription', tAttrRef,
+            iStorage[iKey + 'Role'], iStorage[iKey + 'AttributeType']);
+      }.bind( this));
 
       this.set('aboutToChangeConfiguration', false ); // We're done
 
-      if( tXAxisClass && tXAxisClass !== tCurrentXAxisClass) {
-        var tNewXAxis = tXAxisClass.create();
-        tNewXAxis.set('attributeDescription', tDataConfig.get('xAttributeDescription'));
-        this.set('xAxis', tNewXAxis);
-        tPrevXAxis.destroy();
-      }
-      if( tYAxisClass && tYAxisClass !== tCurrentYAxisClass) {
-        var tNewYAxis = tYAxisClass.create();
-        tNewYAxis.set('attributeDescription', tDataConfig.get('yAttributeDescription'));
-        this.set('yAxis', tNewYAxis);
-        tPrevYAxis.destroy();
-      }
-      if( tY2AxisClass && tY2AxisClass !== tCurrentY2AxisClass) {
-        var tNewY2Axis = tY2AxisClass.create();
-        tNewY2Axis.set('attributeDescription', tDataConfig.get('y2AttributeDescription'));
-        this.set('y2Axis', tNewY2Axis);
-        tPrevY2Axis.destroy();
-      }
+      ['x', 'y', 'y2'].forEach( function( iKey) {
+        var tAxisClass = DG[(iStorage[iKey + 'AxisClass']).substring(3)], // convert string to axis class
+            tPrevAxis = this.get( iKey + 'Axis'),
+            tCurrentAxisClass = tPrevAxis.constructor;
+        if( tAxisClass && tAxisClass !== tCurrentAxisClass) {
+          var tNewAxis = tAxisClass.create({ dataConfiguration: tDataConfig});
+          tNewAxis.set('attributeDescription', tDataConfig.get(iKey + 'AttributeDescription'));
+          this.set(iKey + 'Axis', tNewAxis);
+          tPrevAxis.destroy();
+        }
+      }.bind( this));
+
       instantiateArrayOfPlots( (iStorage.plotClass ? [ {plotClass: iStorage.plotClass }] : null) ||
                                   iStorage.plotModels ||
                                   []);

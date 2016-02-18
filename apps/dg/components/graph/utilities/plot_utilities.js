@@ -22,6 +22,7 @@ DG.PlotUtilities = {
 
   // Constants for graphs
   kAxisColor: "#ccc",
+  kEmptyPromptColor: '#999999',
   kRuleColor: '#ddd',   // graph background grid lines
   kRuleWidth: 1,
   kZeroLineColor: '#555',

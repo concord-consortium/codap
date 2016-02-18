@@ -512,6 +512,9 @@ SC.stringsFor('English', {
       'DG.DataDisplayModel.ShowConnectingLine': "Show Connecting Lines",
       'DG.DataDisplayModel.HideConnectingLine': "Hide Connecting Lines",
 
+      // DG.AxisView
+      'DG.AxisView.emptyGraphCue': 'Click here, or drag an attribute here.',
+
       // DG.CellLinearAxisView
       'DG.CellLinearAxisView.midPanelTooltip': "Drag to translate axis scale",
       'DG.CellLinearAxisView.lowerPanelTooltip': "Drag to change axis lower bound",

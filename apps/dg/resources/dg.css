@@ -258,6 +258,14 @@
     text-decoration: underline !important;
 }
 
+.axis-label-empty-graph {
+    font-family: Montserrat-Regular !important;
+    cursor: pointer;
+    font-size: 12px !important;
+    fill: #999999;
+    text-decoration: underline !important;
+}
+
 .data-strip {
     opacity: 0.85 !important;
     stroke-width: 0px !important;

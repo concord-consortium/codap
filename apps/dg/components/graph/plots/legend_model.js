@@ -123,6 +123,14 @@ DG.LegendModel = SC.Object.extend(
     tAttribute.set('colormap', tColormap);
   }.observes('attributeDescription.attribute'),
 
+  handleOneDataContextChange: function( iNotifier, iChange) {
+    var tOperation = iChange && iChange.operation;
+
+    if( tOperation === 'selectCases') {
+      this.updateSelection();
+    }
+  },
+
   /**
    * Our selectionMap needs to be updated such that it has properties with value true for each
    * category for which all cases are selected.
