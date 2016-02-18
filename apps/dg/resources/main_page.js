@@ -241,6 +241,8 @@ DG.mainPage = SC.Page.design((function() {
 
     scrollView: SC.ScrollView.design({
       layout: { top: kInfobarHeight + kToolbarHeight },
+      horizontalAlign: SC.ALIGN_LEFT,
+      verticalAlign: SC.ALIGN_TOP,
       classNames: 'doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
