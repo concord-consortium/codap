@@ -235,7 +235,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             return [];
         
           var handleLabelClick = function(iLabelNode, evt) {
-            var scEvent = SC.Event(evt),
+            var scEvent = SC.Event.create(evt),
                 pane = this.get('pane');
 
             // For unknown reasons, SC.data gets reset sometimes after it's been created.

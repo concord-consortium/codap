@@ -113,6 +113,16 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               .attr( { font: 'caption', fill: 'blue', cursor: 'pointer',
                     title: SC.String.loc( 'DG.LegendView.attributeTooltip'), 'text-anchor': 'start'});
           this._labelNode.node.setAttribute( 'text-decoration', 'underline');
+          this._labelNode.mousedown(function(evt) {
+            SC.run(function() {
+              var pane = this.get('pane'),
+                  scEvent = SC.Event.create(evt);
+              if(pane) {
+                scEvent.clientData = { axisView: this, labelIndex: 0 };
+                pane.sendEvent('axisLabelClick', scEvent, this);
+              }
+            }.bind(this));
+          }.bind(this));
           tChangeHappened = true;
         }
         tText = this.getPath('model.label');
