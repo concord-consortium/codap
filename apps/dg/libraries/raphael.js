@@ -5921,7 +5921,7 @@
             }
         }
         $(o, {
-            fill: "url('" + document.location + "#" + id + "')",
+            fill: "url('" /* [CC] + document.location [/CC] */ + "#" + id + "')",
             opacity: 1,
             "fill-opacity": 1
         });
