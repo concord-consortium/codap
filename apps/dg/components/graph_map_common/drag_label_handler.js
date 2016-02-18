@@ -81,6 +81,9 @@ DG.DragLabelHandler = SC.Object.extend(
             tAttribute = tAttrDesc.attributeNamed( tAttributeName),
             tCollectionClient = tAttrDesc.get('collectionClient'),
             tContext = this.dataContext;
+        if( !tAttribute)
+            return;
+        this.labelNode.ignoreTouchEnd();
         // Initiate a drag
         DG.Drag.start({
           event: iEvent,
@@ -105,6 +108,7 @@ DG.DragLabelHandler = SC.Object.extend(
     handleEndDrag: function() {
       this.receivedStartDrag = false;
       this.receivedDoDrag = false;
+      this.labelNode.reinstateTouchEnd();
     }
   } );
 

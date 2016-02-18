@@ -61,12 +61,9 @@ DG.AttributePlacementDescription = SC.Object.extend(
    * @return {DG.AttributeModel}
    */
   attributeNamed: function( iName) {
-    var tAttribute;
-    this.get('attributes').forEach( function( iAttr) {
-      if (iAttr.get('name') === iName)
-        tAttribute = iAttr;
+    return this.get('attributes').find( function( iAttr) {
+      return (iAttr.get('name') === iName);
     });
-    return tAttribute;
   },
 
   attributeIDAt: function( iIndex) {

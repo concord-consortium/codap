@@ -513,7 +513,7 @@ SC.stringsFor('English', {
       'DG.DataDisplayModel.HideConnectingLine': "Hide Connecting Lines",
 
       // DG.AxisView
-      'DG.AxisView.emptyGraphCue': 'Click here. Or drag an attribute here.',
+      'DG.AxisView.emptyGraphCue': 'Click here, or drag an attribute here.',
 
       // DG.CellLinearAxisView
       'DG.CellLinearAxisView.midPanelTooltip': "Drag to translate axis scale",

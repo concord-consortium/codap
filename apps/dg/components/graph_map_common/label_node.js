@@ -38,6 +38,7 @@ DG.LabelNode = SC.Object.extend(
       _textElement: null,
       kCircleRadius: 6,
       anchor: 'center',
+      touchEndHandler: null,
 
       bBox: function() {
         return this._textElement.getBBox();
@@ -125,12 +126,24 @@ DG.LabelNode = SC.Object.extend(
 
       mousedown: function( iHandler) {
         this._textElement.click( iHandler);
+        this._textElement.touchend( iHandler);
+        this.set('touchEndHandler', iHandler);
         this._circleElement && this._circleElement.click( iHandler);
       },
 
       unmousedown: function( iHandler) {
         this._textElement.unclick( iHandler);
+        this._textElement.untouchend( iHandler);
+        this.set('touchEndHandler', null);
         this._circleElement && this._circleElement.unclick( iHandler);
+      },
+
+      ignoreTouchEnd: function() {
+        this._textElement.untouchend();
+      },
+
+      reinstateTouchEnd: function() {
+        this._textElement.touchend( this.get('touchEndHandler'));
       },
 
       /**

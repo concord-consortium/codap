@@ -698,7 +698,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   tAxisOrientation = controller.attributeMenu.selectedAxis,
                   tAttrRefs,
                   tDataDisplayModel = controller.get('dataDisplayModel'),
-                  //tDataContext = controller.get('dataContext'),
                   tDataContext = tNewItem && tNewItem.context;
               if (!tNewItem) {
                 this.set('causedChange', false);
