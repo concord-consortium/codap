@@ -50,15 +50,102 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    */
   preferredTableWidths: null,
 
+  /**
+   * A hash of case ids and their collapsed state and whether they are visible
+   * or superceded by a .
+   * @type [{{isCollapsed: boolean, isHidden: boolean, collapsedCase: DG.Case}}]
+   */
+  collapsedNodes: null,
+
   init: function () {
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};
     this.preferredTableWidths = this.preferredTableWidths || {};
+    this.collapsedNodes = this.collapsedNodes || [];
   },
 
   getPreferredAttributeWidth: function (attrID) {
     return this.preferredAttributeWidths[attrID];
   },
+
   setPreferredAttributeWidth: function(attrID, width) {
     this.preferredAttributeWidths[attrID] = width;
+  },
+
+  /**
+   * Whether node is collapsed and not hidden by another collapsed node.
+   * @param iCase {DG.Case}
+   * @returns {*|boolean}
+   */
+  isCollapsedNode: function (iCase) {
+    var node = this.collapsedNodes[iCase.id];
+    var isCollapsed = false;
+    if (node) {
+      isCollapsed = node.isCollapsed && !node.isHidden;
+    }
+    return isCollapsed;
+  },
+
+  /**
+   * Whether the case is within a collapsed node.
+   * @param iCase {DG.Case}
+   */
+  isHiddenNode: function (iCase) {
+    var parent = iCase.get('parent');
+    var isHidden = false;
+    var parentCollapseState;
+    if (parent) {
+      parentCollapseState = this.collapsedNodes[parent.id];
+      if (parentCollapseState && parentCollapseState.isCollapsed) {
+        isHidden = true;
+      } else {
+        isHidden = this.isHiddenNode(parent);
+      }
+    }
+    return isHidden;
+  },
+
+  /**
+   * Marks a case as collapsed. In subordinate case tables the group of cases
+   * descending from this case will appear only in summary.
+   *
+   * Will mark any collapsed cases that are descendents as hidden. The fact of
+   * their collapsed state will be retained, but will have no effect unless this
+   * case is expanded again.
+   *
+   * @param iCase {DG.Case}
+   */
+  collapseNode: function(iCase) {
+    var collapseState = this.collapsedNodes[iCase.id];
+    if (!collapseState) {
+      collapseState = {
+        collapsedCase: iCase
+      };
+      this.collapsedNodes[iCase.id] = collapseState;
+    }
+    collapseState.isCollapsed = true;
+    this.collapsedNodes.forEach(function (cs) {
+      cs.isHidden = this.isHiddenNode(cs.collapsedCase);
+    }.bind(this));
+  },
+
+  /**
+   * Marks a case as not collapsed.
+   *
+   * Will reset any hidden collapsed cases to their correct state.
+   *
+   * @param iCase {DG.Case}
+   */
+  expandNode: function (iCase) {
+    var collapseState = this.collapsedNodes[iCase.id];
+    if (!collapseState) {
+      collapseState = {
+        collapsedCase: iCase
+      };
+      this.collapsedNodes[iCase.id] = collapseState;
+    }
+    collapseState.isCollapsed = false;
+    this.collapsedNodes.forEach(function (cs) {
+      collapseState.isHidden = this.isHiddenNode(cs.collapsedCase);
+    }.bind(this));
   }
 });

@@ -50,6 +50,10 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           return YES;
         }.property(),
 
+        isDropEnabled: function () {
+          return !this.dataContext.get('hasDataInteractive');
+        }.property('.dataContext.hasDataInteractive'),
+
         /**
          * Whether drag is in progress
          * @type {boolean}
@@ -103,7 +107,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
 
         dragStarted: function( iDrag) {
-          if (this.isValidAttribute(iDrag)) {
+          if (this.isValidAttribute(iDrag) && this.get('isDropEnabled')) {
             this.set('isDragInProgress', true);
           }
         },
@@ -113,8 +117,10 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
 
         dragEntered: function( iDragObject, iEvent) {
-          this.showDropHint();
-          this.set('isDragEntered', true);
+          if (this.get('isDropEnabled')) {
+            this.showDropHint();
+            this.set('isDragEntered', true);
+          }
         },
 
         dragExited: function( iDragObject, iEvent) {
@@ -123,7 +129,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
 
         acceptDragOperation: function() {
-          return YES;
+          return this.get('isDropEnabled');
         },
 
         performDragOperation:function ( iDragObject, iDragOp ) {

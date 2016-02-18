@@ -112,10 +112,12 @@ DG.DocumentArchiver = SC.Object.extend(
         'appBuildNum',
         'appName',
         'appVersion',
+        'changeCount',
         'components',
         'contexts',
         'globalValues',
         'guid',
+        'metadata',
         'name',
         '_permissions',
         '_openedFromSharedDocument' // this is an annotation we may create in
@@ -163,7 +165,8 @@ DG.DocumentArchiver = SC.Object.extend(
         );
         DG.ObjectMap.keys(doc).forEach(function (prop) {
             if (expectedProperties.indexOf(prop) < 0) {
-              errors.push('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
+              // log unexpected properties but don't fail to open
+              DG.log('DG.AppController.validateDocument.unexpectedProperty'.loc(prop));
             }
           }
         );

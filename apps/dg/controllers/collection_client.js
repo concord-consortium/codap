@@ -457,6 +457,32 @@ DG.CollectionClient = SC.Object.extend(
   },
 
   /**
+   * Todo: Improve the efficiency of this.
+   * Todo: Used to use caseIDToIndexMap.
+   * @param iCaseID {number|string}
+   * @returns {number|undefined}
+   */
+  getCaseIndexByID: function (iCaseID) {
+    var index;
+    this.casesController.some(function (iCase, ix) {
+      if (iCase.id == iCaseID) { // jshint ignore:line
+        index = ix;
+        return true;
+      }
+      return false;
+    });
+    return index;
+    //return this.casesController.caseIDToIndexMap[iCaseID];
+  },
+
+  getCaseByID: function(iCaseID) {
+    var ix = this.getCaseIndexByID(iCaseID);
+    if (!SC.none(ix)) {
+      return this.getCaseAt(ix);
+    }
+  },
+
+  /**
     Returns true if the case at the specified index is selected, false otherwise.
     @param    {Number}    The index of the case whose selection status is to be returned
     @returns  {Boolean}   True if the specified case is selected, false otherwise

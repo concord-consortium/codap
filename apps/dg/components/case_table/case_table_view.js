@@ -232,6 +232,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     }),
 
+    parentTable: null,
+
+    childTable: null,
+
     _hiddenDragView: SC.LabelView.design({
       classNames: 'drag-label'.w(),
       layout: { width: 100, height: 20, top: -50, left: 0 },
@@ -510,8 +514,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // wire up model events to drive the grid
     dataView.onRowCountChanged.subscribe(function (e, args) {
       SC.run( function() {
-        this._slickGrid.updateRowCount();
-        this._slickGrid.render();
+        this._slickGrid.invalidate();
         this.set('rowCount', args.current);
       }.bind( this));
     }.bind( this));
@@ -538,7 +541,88 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // Let clients know when there's a new _slickGrid
     this.notifyPropertyChange('gridView');
   },
-  
+
+    _refreshDataView: function (recurse) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      if (gridAdapter) {
+        gridAdapter.gridDataView.refresh();
+      } else {
+        DG.warn('CaseTableView._resetDataView: no data view' );
+      }
+      if (childTable && recurse) {
+        childTable._refreshDataView(recurse);
+      }
+    },
+
+    /**
+     * Gets the row position of a case in relative to the top of the viewport.
+     * If the row position is not visible in the viewport returns undefined.
+     * @param iCaseID {number}
+     * @returns {number|undefined}
+     */
+    getViewportPosition: function (iCaseID) {
+      var gridDataView = this.getPath('gridAdapter.gridDataView');
+      var row = gridDataView.getRowById(iCaseID);
+      var viewport = this._slickGrid.getViewport();
+      var viewHeight = viewport.bottom - viewport.top;
+      var offset = row - viewport.top;
+      if (offset >= 0 && offset <= viewHeight) {
+        return row - viewport.top;
+      } else {
+        return undefined;
+      }
+    },
+
+    /**
+     * Aligns the row containing the matching case ids in child tables of this table.
+     *
+     * This method is intended to align collapsed rows.
+     * Collapsed rows are assumed to be mapped in child tables to the collapsed
+     * row, perhaps in a higher level collection.
+     *
+     * @param iViewportPosition {number}
+     * @param iCaseID {number}
+     */
+    alignChildTables: function (iViewportPosition, iCaseID) {
+      var childView = this.get('childTable');
+      if (!childView) {
+        return;
+      }
+      var row = childView.getPath('gridAdapter.gridDataView').getRowById(iCaseID);
+      childView.animateScrollToTop(row - iViewportPosition);
+      childView.alignChildTables(iViewportPosition, iCaseID);
+    },
+
+    /**
+     * Collapses a node in the case tree and resets all case tables below.
+     * @param iCase {DG.Case}
+     */
+    collapseNode: function (iCaseID) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      var viewportRow;
+      gridAdapter.gridDataView.collapseGroup(iCaseID);
+      if (childTable) {
+        childTable._refreshDataView(true);
+        viewportRow = this.getViewportPosition(iCaseID);
+        this.alignChildTables(viewportRow, iCaseID);
+      }
+    },
+
+    /**
+     * Collapses a node in the case tree and resets all case tables below.
+     *
+     * @param iCase {DG.Case}
+     */
+    expandNode: function (iCaseID) {
+      var childTable = this.get('childTable');
+      var gridAdapter = this.get('gridAdapter');
+      gridAdapter.gridDataView.expandGroup(iCaseID);
+      if (childTable) {
+        childTable._refreshDataView(true);
+      }
+    },
   /**
     Destroys the SlickGrid object and its DataView.
     Used to respond to a change of game, where we recreate the SlickGrid from scratch.
@@ -668,7 +752,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     else if( this._slickGrid) {
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
-        gridAdapter.buildRowData();
         gridAdapter.refresh();
         this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength(), true);
       }
@@ -1038,16 +1121,63 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                                       collapses all row groups otherwise
    */
   expandCollapseAll: function( iExpand) {
-    var adapter = this.get('gridAdapter');
-    if( adapter) {
-      adapter.expandCollapseAll( iExpand);
+    var collection = this.getPath('gridAdapter.collection');
+    var cases = collection.get('casesController');
 
-      // Expanding/collapsing changes the set of rows that are selected
-      this.updateSelectedRows();
-      this.incrementProperty('expandCollapseCount');
-    }
+    DG.assert( collection);
+    DG.assert( cases);
+
+    //DG.log('expandCollapseAll: [expand/collection/cases]: '
+    //    + [iExpand, this.get('collectionName'), cases.get('length')].join('/'));
+    this.beginDataViewUpdate(true);
+    cases.forEach(function (myCase) {
+      try {
+        if (iExpand) {
+          this.expandNode( myCase.id);
+        } else {
+          this.collapseNode( myCase.id);
+        }
+      } catch (e) {
+        DG.logError('expandCollapseAll: ' + e);
+      }
+    }.bind(this));
+    this.endDataViewUpdate(true);
+
+    this.updateSelectedRows(true);
+    this.incrementProperty('expandCollapseCount');
   },
-  
+
+    /**
+     * This method should be called at the beginning of a multipart update
+     * affecting the gridDataView so as to prevent potentially expensive
+     * redundant calculations. GridDataView.refresh() will be bypassed until
+     * endDataViewUpdate is called.
+     * @param recurse {boolean}
+     */
+    beginDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert( dataView);
+      dataView.beginUpdate();
+      if (recurse && childTable) {
+        childTable.beginDataViewUpdate(recurse);
+      }
+    },
+
+    /**
+     * Should be called at the end of a multipart update affecting the gridDataView.
+     *
+     * @param recurse {boolean}
+     */
+    endDataViewUpdate: function (recurse) {
+      var dataView = this.getPath('gridAdapter.gridDataView');
+      var childTable = this.get('childTable');
+      DG.assert( dataView);
+      dataView.endUpdate();
+      if (recurse && childTable) {
+        childTable.endDataViewUpdate(recurse);
+      }
+    },
   /**
     Refreshes the row data. Call when the table body needs to be refreshed.
    */
@@ -1069,7 +1199,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // For now, additions and deletions require complete rebuild.
     // When deletion is handled via DataContext API we can do better.
     this.updateRowData();
-    this.updateSelectedRows();
+    this.updateSelectedRows(true);
 
     //this._slickGrid.render();
   },
@@ -1085,18 +1215,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var top = Math.max(viewport.top - rowDistance, 0);
     if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
       this.scrollAnimator.animate(this, viewport.top, top);
-    } else {
+    } //else {
       // this is a BIG HACK. We generate a small animation when the nearest
       // selected point is already visible. We do this to avoid an issue
       // that occurs when a user selects from the case table after a selection
       // has occurred that does not involve the case table. This later issue
       // is not well understood. Hence the hack.
-      this.scrollAnimator.animate(this, viewport.top-0.1, viewport.top);
+     // this.scrollAnimator.animate(this, viewport.top-0.1, viewport.top);
 
-    }
+    //}
     //DG.log(JSON.stringify({rowIndices:rowIndices,min:rowDistance,
     //  viewportTop:viewport.top,viewportBottom: viewport.bottom,top:top}));
   },
+
+    animateScrollToTop: function (rowIndex) {
+      var viewport = this._slickGrid.getViewport();
+      this.scrollAnimator.animate(this, viewport.top, rowIndex);
+    },
 
     /**
      * It is possible that the DOM and SlickGrid get out of sync. This method
@@ -1145,13 +1280,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }
   },
-  
-  updateSelectedRows: function() {
+
+    /**
+     * Reset selection display. If recurse is set will reset child table
+     *
+     * @param recurse {boolean}
+     */
+  updateSelectedRows: function(recurse) {
     var adapter = this.get('gridAdapter'),
-        selection = adapter && adapter.getSelectedRows();
-    if( selection)
+        selection = adapter && adapter.getSelectedRows(),
+        childView = this.get('childTable');
+    if( selection) {
       this.setSelectedRows( selection);
     }
+    if (recurse && childView) {
+      childView.updateSelectedRows(recurse);
+    }
+  }
   }; // end return from closure
   
 }())); // end closure

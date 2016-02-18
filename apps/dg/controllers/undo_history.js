@@ -257,6 +257,8 @@ DG.UndoHistory = SC.Object.create((function() {
         // We'll catch exceptions higher up, so only clean up after ourselves here...
         try {
           func.call(cmd);
+        } catch (e) {
+          DG.logError('Undoable command "%@" failed: %@', cmd.name, e);
         } finally {
           this._executeInProgress = false;
         }

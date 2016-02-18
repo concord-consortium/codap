@@ -377,6 +377,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     var childTableViews = this.get('childTableViews');
     var caseTablesInAdapterOrder = [];
     var childTableView;
+    var lastChildTableView = null;
     var x;
 
     // Remove all the contents of the view. We are going to recreate the order.
@@ -419,6 +420,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
         caseTablesInAdapterOrder[ix].set('isRightmost', true);
       }
       contentView.appendChild(caseTablesInAdapterOrder[ix]);
+      if (lastChildTableView) {
+        lastChildTableView.set('childTable', caseTablesInAdapterOrder[ix]);
+        caseTablesInAdapterOrder[ix].set('parentTable', lastChildTableView);
+      } else {
+        caseTablesInAdapterOrder[ix].set('parentTable', null);
+      }
+      lastChildTableView = caseTablesInAdapterOrder[ix];
+      lastChildTableView.set('childTable', null);
     }.bind(this));
 
     this.updateSelectedRows();
