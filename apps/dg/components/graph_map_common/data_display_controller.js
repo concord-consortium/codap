@@ -563,7 +563,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
         setupAttributeMenu: function (event, iAxisView, iAttrIndex) {
           var tDataDisplayModel = this.get('dataDisplayModel'),
-              tMenuLayout = {left: event.layerX, top: event.layerY, height: 20, width: 20},
+              tMenuLayout = {height: 20, width: 20},
               tOrientation = iAxisView.get('orientation'),
           // The following parameter is supposed to specify the preferred position of the menu
           // relative to the anchor. But it doesn't seem to have any effect.
