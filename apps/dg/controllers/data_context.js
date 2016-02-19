@@ -296,6 +296,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'createCollection':
         result = this.doCreateCollection( iChange);
         break;
+      case 'deleteCollection':
+        result = this.doDeleteCollection(iChange);
+        break;
       case 'createCase':
         // doCreateCases() takes an array of values arrays
         iChange.values = [ iChange.values || [] ];
@@ -737,7 +740,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       undo: function() {
         var iChange = {
             isComplete: true,
-            operation: 'resetCollections',
+            operation: 'createCases',
             properties: {
               index: true
             }
@@ -923,17 +926,22 @@ DG.DataContext = SC.Object.extend((function() // closure
        attr = fromCollection.removeAttribute(attr);
 
        if (fromCollection.get('attrs').length === 0) {
-         _this.destroyCollection(fromCollection);
+         this_.destroyCollection(fromCollection);
+         this_.applyChange( {
+           operation: 'deleteCollection',
+           collection: fromCollection,
+           isComplete: true
+         });
        }
 
        // add attribute to new collection
        toCollectionClient.get('collection').addAttribute(attr, position);
 
-       _this.regenerateCollectionCases();
+       this_.regenerateCollectionCases();
      }
 
       var fromCollection = attr.get('collection');
-      var _this = this;
+      var this_ = this;
 
       if (fromCollection === toCollectionClient.get('collection')) {
         // if intra-collection move, we simply delegate to the collection
@@ -963,8 +971,6 @@ DG.DataContext = SC.Object.extend((function() // closure
      *    {Boolean}               .success
      */
     doMoveAttribute: function( iChange) {
-
-      // ----- begin method ------
       var attr = iChange.attr;
       var fromCollection = attr.get('collection');
       var toCollection = iChange.toCollection || fromCollection;
@@ -973,10 +979,6 @@ DG.DataContext = SC.Object.extend((function() // closure
           ? toCollection : this.getCollectionByID(toCollection.id);
 
       this.moveAttribute(attr, toCollectionClient, position);
-
-      if (fromCollection !== toCollectionClient.get('collection')) {
-        iChange.operation = 'resetCollections';
-      }
     },
 
     /**
@@ -1014,6 +1016,13 @@ DG.DataContext = SC.Object.extend((function() // closure
       DG.store.commitRecords();
     }
     return result;
+  },
+
+  doDeleteCollection: function (iChange) {
+    var collection = iChange.collection;
+    this.destroyCollection(collection);
+    this.regenerateCollectionCases();
+    return { success: true};
   },
 
   doResetCollections: function (iChange) {
@@ -1302,12 +1311,14 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
   
   /**
-    The observer/handler for attribute formula change notifications from collections.
-    Notifies clients with an 'updateCases' notification. Note that we don't currently
-    include attribute-specific information in the notification, so clients can't make
-    attribute-specific responses. To support those, the collection would have to include
-    attribute-specific information in its notification, which this method would then
-    propagate to its observers in some fashion.
+   * The observer/handler for attribute formula change notifications from collections.
+   * Notifies clients with an 'updateCases' notification. Note that we don't currently
+   * include attribute-specific information in the notification, so clients can't make
+   * attribute-specific responses. To support those, the collection would have to include
+   * attribute-specific information in its notification, which this method would then
+   * propagate to its observers in some fashion.
+   *
+   * @param iNotifier {DG.Collection}
    */
   attrFormulaDidChange: function( iNotifier) {
     var change = {
@@ -1382,6 +1393,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @param    {Number}        iAttributeID -- the ID of the attribute to be returned
    *  @returns  {Object | null} Object.collection:  {DG.CollectionClient}
    *                            Object.attribute:   {DG.Attribute}
+   *                            Object.position:    {number}
    */
   getAttrRefByID: function( iAttributeID) {
     var collectionCount = this.get('collectionCount'),
@@ -1389,9 +1401,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     for( var i = collectionCount - 1; i >= 0; --i) {
       var collection = collections.objectAt( i),
           collectionClient = collection && this._collectionClients[ collection.get('id')],
-          foundAttr = collectionClient && collectionClient.getAttributeByID( iAttributeID);
+          foundAttr = collectionClient && collectionClient.getAttributeByID( iAttributeID),
+          position = foundAttr && collectionClient.getAttributeIndexByName(foundAttr.get('name'));
       if( foundAttr)
-        return { collection: collectionClient, attribute: foundAttr };
+        return {
+          collection: collectionClient,
+          attribute: foundAttr,
+          position: position
+        };
     }
     return null;
   },
@@ -1402,6 +1419,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @param    {String}        iName -- the name of the attribute to be returned
    *  @returns  {Object | null} Object.collection:  {DG.CollectionClient}
    *                            Object.attribute:   {DG.Attribute}
+   *                            Object.position:    {number}
    */
   getAttrRefByName: function( iName) {
     var collectionCount = this.get('collectionCount'),

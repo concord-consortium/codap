@@ -98,9 +98,9 @@ DG.CollectionClient = SC.Object.extend(
    */
   destroy: function() {
     this.attrsController.forEach( function( iAttribute) {
-                                    if( iAttribute)
-                                      this.willDestroyAttribute( iAttribute);
-                                  });
+      if( iAttribute)
+        this.willDestroyAttribute( iAttribute);
+    }.bind(this));
     this.collection.destroy();
     sc_super();
   },

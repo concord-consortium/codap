@@ -189,7 +189,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
     _parentChildRelationsMap: null,
     
     displayProperties: ['leftTable','rightTable'],
-    
+
     doDraw: function() {
       var leftTable = this.get('leftTable'),
           leftAdapter = leftTable && leftTable.get('gridAdapter'),
@@ -202,16 +202,17 @@ DG.RelationDividerView = SC.View.extend( (function() {
           rightYCoordForFilteredRows = 0,
           rowHeight = rightAdapter && rightAdapter.get('rowHeight'),
           lastParentID = 0,
+          leftLength,
           lastCase = null,
           this_ = this,
           parentIndex = 0;
 
       // We can get a request to draw before we are ready.
       if( !leftAdapter || !rightAdapter || SC.none(leftTable._slickGrid)) {
-        //DG.log("DG.RelationDividerView.doDraw: BAILING! Missing adapter(s)"); 
+        //DG.log("DG.RelationDividerView.doDraw: BAILING! Missing adapter(s)");
         return;
       }
-      
+
       // Lazy creation of the '_parentChildRelationsMap' property
       if( !this._parentChildRelationsMap) this._parentChildRelationsMap = {};
       
@@ -524,7 +525,10 @@ DG.RelationDividerView = SC.View.extend( (function() {
 
       // Identify the last parent case ID. This is used to decide whether to
       // draw a lower boundary line.
-      lastCase = leftAdapter.gridDataView.getItem(leftAdapter.gridDataView.getLength() - 1);
+      leftLength = leftAdapter.gridDataView.getLength();
+      if (leftLength > 0) {
+        lastCase = leftAdapter.gridDataView.getItem(leftLength - 1);
+      }
       if (lastCase) {
         lastParentID = lastCase.id;
       }
