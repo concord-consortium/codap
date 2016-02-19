@@ -774,7 +774,9 @@ DG.CaseTableController = DG.ComponentController.extend(
       deleteAttribute: function( iAttrID) {
         var tDataContext = this.get('dataContext'),
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tAttrName = tAttrRef && tAttrRef.attribute.get('name');
+            tAttrName = tAttrRef.attribute.get('name'),
+            tCollectionClient = tAttrRef.collection,
+            tCollection = tCollectionClient.collection;
 
         var doDeleteAttribute = function() {
           DG.UndoHistory.execute(DG.Command.create({
@@ -787,38 +789,81 @@ DG.CaseTableController = DG.ComponentController.extend(
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
             _beforeStorage: {
-              changeFlag: tDataContext.get('flexibleGroupingChangeFlag')
+              changeFlag: tDataContext.get('flexibleGroupingChangeFlag'),
+              fromCollectionID: tCollection.get('id'),
+              fromCollectionName: tCollection.get('name'),
+              fromCollectionParent: tCollection.get('parent'),
+              fromCollectionChild: tCollection.get('children')[0]
             },
+            _afterStorage: {},
             execute: function() {
-              tAttrRef = tDataContext.getAttrRefByName( tAttrName);
-              var change = {
-                              operation: 'deleteAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
-                            };
+              var change;
+              if ((tCollectionClient.get('attrsController').get('length') === 1) &&
+                  (tCollectionClient.getAttributeByID(iAttrID))) {
+                change = {
+                  operation: 'deleteCollection',
+                  collection: tCollectionClient
+                };
+              } else {
+                change = {
+                  operation: 'deleteAttributes',
+                  collection: tCollectionClient,
+                  attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+                };
+              }
               tDataContext.applyChange( change);
               tDataContext.set('flexibleGroupingChangeFlag', true);
             },
             undo: function() {
+              var tChange;
+              var tStatus;
               tDataContext = this._controller().get('dataContext');
-              var tChange = {
-                              operation: 'createAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [tAttrRef.attribute],
-                              position: [tAttrRef.position]
-                            };
-              tDataContext.applyChange( tChange);
-              tDataContext.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
+              if (tDataContext.getCollectionByID(tCollection.get('id'))) {
+                tChange = {
+                  operation: 'createAttributes',
+                  collection: tAttrRef && tAttrRef.collection,
+                  attrPropsArray: [tAttrRef.attribute],
+                  position: [tAttrRef.position]
+                };
+                tDataContext.applyChange(tChange);
+                tDataContext.set('flexibleGroupingChangeFlag',
+                    this._beforeStorage.changeFlag);
+              } else {
+                tAttrRef.attribute.collection = null;
+                tChange = {
+                  operation: 'createCollection',
+                  properties: {
+                    id: this._beforeStorage.fromCollectionID,
+                    name: this._beforeStorage.fromCollectionName,
+                    parent: this._beforeStorage.fromCollectionParent,
+                    children: [this._beforeStorage.fromCollectionChild]
+                  },
+                  attributes: [tAttrRef.attribute]
+                };
+                tStatus = tDataContext.applyChange(tChange);
+                this._afterStorage.collection = tStatus.collection;
+                tDataContext.regenerateCollectionCases();
+                tDataContext.set('flexibleGroupingChangeFlag',
+                    this._beforeStorage.changeFlag);
+              }
             },
             redo: function() {
-              tDataContext = this._controller().get('dataContext');
-              tAttrRef = tDataContext.getAttrRefByName( tAttrName);
-              var tChange = {
-                              operation: 'deleteAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrs: [{ id: tAttrRef.attribute.get('id'), attribute: tAttrRef.attribute }]
-                            };
-              tDataContext.applyChange( tChange);
+              var change;
+              var tCollectionClient1 = tDataContext.getCollectionByID(this._afterStorage.collection.get('id'));
+              if ((tCollectionClient1.get('attrsController').get('length') === 1) &&
+                  (tCollectionClient1.getAttributeByID(iAttrID))) {
+                change = {
+                  operation: 'deleteCollection',
+                  collection: tCollectionClient1
+                };
+              } else {
+                change = {
+                  operation: 'deleteAttributes',
+                  collection: tCollectionClient1,
+                  attrs: [{ id: iAttrID, attribute: tAttrRef.attribute }]
+                };
+              }
+              tDataContext.applyChange( change);
               tDataContext.set('flexibleGroupingChangeFlag', true);
             }
           }));
