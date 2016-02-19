@@ -661,16 +661,16 @@ DG.Collection.createCollection = function( iProperties) {
   // if child collection, link this collection in
   if (childCollection) {
     if (childCollection.get('parent')) {
-      childCollection.get('parent').children.push(tCollection);
+      childCollection.get('parent').children[0] = tCollection;
       tCollection.set('parent', childCollection.get('parent'));
     }
-    tCollection.children.push(childCollection);
+    tCollection.children[0] = childCollection;
     childCollection.set('parent', tCollection);
 
   }
 
   if (iProperties.parent) {
-    DG.store.resolve(iProperties.parent).children.push(tCollection);
+    DG.store.resolve(iProperties.parent).children[0] = tCollection;
   }
 
   if (iProperties.context) {
