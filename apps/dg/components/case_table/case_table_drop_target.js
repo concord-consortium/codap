@@ -86,11 +86,13 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         }),
 
         showDropHint: function () {
+          this.set('isDragEntered', true);
           this.labelView.set('value', 'DG.CaseTableDropTarget.dropMessage'.loc());
         },
 
         hideDropHint: function () {
           this.labelView.set('value', '');
+          this.set('isDragEntered', false);
         },
 
         isValidAttribute: function( iDrag) {
@@ -119,13 +121,11 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         dragEntered: function( iDragObject, iEvent) {
           if (this.get('isDropEnabled')) {
             this.showDropHint();
-            this.set('isDragEntered', true);
           }
         },
 
         dragExited: function( iDragObject, iEvent) {
           this.hideDropHint();
-          this.set('isDragEntered', false);
         },
 
         acceptDragOperation: function() {
@@ -133,6 +133,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
 
         performDragOperation:function ( iDragObject, iDragOp ) {
+          this.hideDropHint();
           this.set('dropData', iDragObject.data);
         }
       };
