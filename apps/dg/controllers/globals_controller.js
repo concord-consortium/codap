@@ -46,6 +46,15 @@ DG.globalsController = SC.Controller.create( (function() {
       Maps from name to global value.
      */
     _globalsMap: {},
+
+    /**
+     * Called when a document is closed so that all global values are destroyed.
+     */
+    reset: function() {
+      DG.ObjectMap.forEach( this._globalsMap, function( iKey, iValue){
+        this.destroyGlobalValue( iValue);
+      }.bind(this));
+    },
   
     /**
       Utility function for determining whether the specified name is available.
