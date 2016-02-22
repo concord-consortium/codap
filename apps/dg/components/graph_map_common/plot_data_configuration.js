@@ -308,6 +308,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
   init: function() {
     sc_super();
     this._hiddenCases = [];
+    DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
   },
 
   destroy: function() {
@@ -330,6 +331,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     }.bind( this));
 
     this._hiddenCases = [];  // For good measure
+    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
 
     sc_super();
   },
@@ -602,6 +604,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this._casesCache = null;
     this.invalidateAxisDescriptionCaches();
   }.observes('hiddenCases'),
+
+  /**
+   * Set up to trigger during init
+   */
+  globalValueDidChange:function() {
+    this.invalidateCaches();
+  },
 
   /**
    * Something has happened such that cases have been deleted. Some cases in our hiddenCases array

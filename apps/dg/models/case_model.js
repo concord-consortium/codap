@@ -233,7 +233,7 @@ DG.Case = DG.BaseModel.extend(
       if (!SC.none( iAttrID)) {
         var tAttr = DG.Attribute.getAttributeByID( iAttrID);
         if(tAttr && tAttr.get('hasFormula'))
-          return true;
+          return !SC.empty( this.getValue( iAttrID));
 
         if( this.get('_valuesMap') && !SC.empty( this.get('_valuesMap')[iAttrID]))
           return true;

@@ -670,8 +670,10 @@ DG.GraphView = SC.View.extend(
    */
   globalValueDidChange: function() {
     var tPlotView = this.get('plotView');
-    if( tPlotView)
+    if( tPlotView) {
+      tPlotView.get('model').invalidateCaches();
       tPlotView.refreshCoordinates();
+    }
   },
   
   mapPlotModelToPlotView: function( iPlotModel) {

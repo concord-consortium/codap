@@ -302,7 +302,10 @@ DG.DotChartView = DG.PlotView.extend(
     var this_ = this,
         tModel = this.get('model'),
         tCases = tModel.get('cases'),
-        tRC = this.createRenderContext();
+        tRC = this.createRenderContext(),
+        tPlotElementLength = this._plottedElements.length,
+        tLayerManager = this.get('layerManager' ),
+        tIndex;
 
     if( !tCases)
       return; // We can get here before things are linked up during restore
@@ -316,10 +319,19 @@ DG.DotChartView = DG.PlotView.extend(
 
     this.computeCellParams();
 
+    for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
+      DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
+    }
+    if( tCases.length < tPlotElementLength ) { // remove from array
+      tPlotElementLength = this._plottedElements.length = tCases.length;
+    }
+
     tCases.forEach( function( iCase, iIndex) {
-        var tCellIndices = tModel.lookupCellForCaseIndex( iIndex);
-        this_.privSetCircleCoords( tRC, iCase, iIndex, tCellIndices );
-      });
+      var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
+      if (iIndex >= tPlotElementLength)
+        this_.callCreateCircle(iCase, iIndex);
+      this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices);
+    });
 
     this.updateSelection();
   },
