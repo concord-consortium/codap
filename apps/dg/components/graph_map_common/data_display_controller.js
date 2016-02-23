@@ -251,7 +251,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tResult.push(DG.IconButton.create({
               layout: {width: 32},
               iconExtent: {width: 30, height: 25},
-              classNames: 'display-styles'.w(),
+              classNames: 'display-camera'.w(),
               iconClass: 'moonicon-icon-tileScreenshot',
               target: this,
               action: 'makePngImage',
