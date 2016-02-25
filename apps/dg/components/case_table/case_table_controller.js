@@ -776,7 +776,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
             tAttrName = tAttrRef.attribute.get('name'),
             tCollectionClient = tAttrRef.collection,
-            tCollection = tCollectionClient.collection;
+            tCollection = tCollectionClient.get('collection');
 
         var doDeleteAttribute = function() {
           DG.UndoHistory.execute(DG.Command.create({
