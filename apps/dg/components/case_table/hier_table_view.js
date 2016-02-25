@@ -192,14 +192,25 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       },
 
       /**
-       Observer function called when the parent table is scrolled.
-       Note that scroll handlers are triggered from jQuery event handlers,
-       and so must use SC.run() for SC updates to be triggered appropriately.
+       * Observer function called when the parent table is scrolled.
+       * Note that scroll handlers are triggered from jQuery event handlers,
+       * and so must use SC.run() for SC updates to be triggered appropriately.
+       *
+       * @param iNotifier {DG.CaseTableView}
        */
-      tableDidScroll: function() {
+      tableDidScroll: function(iNotifier) {
         SC.run( function() {
-          this.get('dividerViews').forEach(function (view) {
-            view.displayDidChange();
+          //DG.log('tableDidScroll: %@'.loc(iNotifier.get('collectionName')));
+          this.get('dividerViews').forEach(function (dividerView) {
+            if (dividerView.get('leftTable') === iNotifier
+                || dividerView.get('rightTable') === iNotifier) {
+              //DG.log('tableDidScroll reevaluating: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
+              //    dividerView.getPath('rightTable.collectionName')) );
+              dividerView.displayDidChange();
+            //} else {
+              //DG.log('tableDidScroll omitting: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
+              //    dividerView.getPath('rightTable.collectionName')) );
+            }
           });
         }.bind( this));
       },
