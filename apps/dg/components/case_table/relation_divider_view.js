@@ -363,6 +363,9 @@ DG.RelationDividerView = SC.View.extend( (function() {
               isRightCollapsed ? iParentID : iChildIDRange.lastChildID);
         var rowBounds = getRowBounds(leftTable, rightTable, iParentRow,
               topRightRow, bottomRightRow);
+        if (SC.none(rowBounds)) {
+          return;
+        }
         var isFillRequired = iParentRow % 2;
         var isBottomRequired = iChildIDRange.isLast;
         var imageUrl = determineImageURL(iChildIDRange);
@@ -435,7 +438,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
           DG.log('DoDraw called on RelationDividerView, but tables not ready.');
           return;
         }
-        var leftViewport = leftTable.get('_slickGrid').getViewport();
+        var leftViewport = leftTable.get('gridViewport');
         var viewportCount = leftViewport.bottom - leftViewport.top;
         var leftDataView = leftAdapter.get('gridDataView');
         var lastRow = leftDataView? leftDataView.getLength() - 1: -1;

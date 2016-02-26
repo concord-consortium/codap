@@ -199,7 +199,19 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        * @param iNotifier {DG.CaseTableView}
        */
       tableDidScroll: function(iNotifier) {
+        if (SC.none(iNotifier)) {
+          return;
+        }
         SC.run( function() {
+          DG.log('TableDidScroll: ' + iNotifier.get('collectionName'));
+          var leftTable = iNotifier.get('parentTable');
+          var rightTable = iNotifier.get('childTable');
+          if (leftTable) {
+            leftTable.scrollToAlignWithRight();
+          }
+          if (rightTable) {
+            rightTable.scrollToAlignWithLeft();
+          }
           //DG.log('tableDidScroll: %@'.loc(iNotifier.get('collectionName')));
           this.get('dividerViews').forEach(function (dividerView) {
             if (dividerView.get('leftTable') === iNotifier
@@ -207,7 +219,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
               //DG.log('tableDidScroll reevaluating: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
               //    dividerView.getPath('rightTable.collectionName')) );
               dividerView.displayDidChange();
-            //} else {
+              //} else {
               //DG.log('tableDidScroll omitting: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
               //    dividerView.getPath('rightTable.collectionName')) );
             }
