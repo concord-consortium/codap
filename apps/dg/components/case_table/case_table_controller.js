@@ -318,8 +318,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           case 'selectCases':
             this.doSelectCases( iChange);
             // selection changes don't require aggregate invalidation
-            if( operation === 'selectCases')
-              invalidateAggregates = false;
+            invalidateAggregates = false;
             break;
           case 'createAttributes':
             this.doCreateAttributes(iChange);
@@ -395,8 +394,10 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       doSelectCases: function( iChange) {
         var hierTableView = this.getPath('view.contentView');
-        if( hierTableView)
+        if( hierTableView) {
           hierTableView.updateSelectedRows();
+          hierTableView.scrollSelectionToView();
+        }
       },
 
       /**

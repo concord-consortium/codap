@@ -499,8 +499,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     childTableViews.forEach( function( iTableView) {
                                 iTableView.updateSelectedRows();
                             });
-  }
+  },
 
+    scrollSelectionToView: function () {
+      var childTableViews = this.get('childTableViews') || [];
+      childTableViews.forEach( function( iTableView) {
+        iTableView.scrollSelectionToView();
+      });
+    }
 
   }; // end return from closure
   

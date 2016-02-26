@@ -1287,19 +1287,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   setSelectedRows: function( iSelectedRows) {
     if( this._slickGrid) {
       this._slickGrid.setSelectedRows( iSelectedRows);
-      if (iSelectedRows.length > 0) {
-        this.scrollToView(iSelectedRows);
-      } else {
-        this._slickGrid.render();
-      }
     }
   },
 
-    /**
-     * Reset selection display. If recurse is set will reset child table
-     *
-     * @param recurse {boolean}
-     */
+  scrollSelectionToView: function () {
+    var selectedRows = this._slickGrid.getSelectedRows();
+    if (selectedRows.length > 0) {
+      this.scrollToView(selectedRows);
+    } else {
+      this._slickGrid.render();
+    }
+  },
+  /**
+   * Reset selection display. If recurse is set will reset child table
+   *
+   * @param recurse {boolean}
+   */
   updateSelectedRows: function(recurse) {
     var adapter = this.get('gridAdapter'),
         selection = adapter && adapter.getSelectedRows(),
