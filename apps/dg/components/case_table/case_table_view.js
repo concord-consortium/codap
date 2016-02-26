@@ -1315,62 +1315,83 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
-    scrollToAlignWithLeft: function () {
-      var viewport = this.get('gridViewport');
-      var dataView = this.getPath('gridAdapter.gridDataView');
-      var leftTable = this.get('parentTable');
-      var leftViewport = leftTable.get('gridViewport');
-      var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
-
-      // Find row in this table of first child, c0Row, of top item in left table
-      var leftTopCase = leftDataView.getItem(leftViewport.top);
-      var leftTopFirstChild = leftTopCase.get('children')[0];
-      var c0Row = dataView.getRowById(leftTopFirstChild.get('id'));
-
-      // Find row in this table of the last child, cnRow, of bottom item in left table
-      var leftBottomCase = leftDataView.getItem(Math.min(leftDataView.getLength()-1,leftViewport.bottom));
-      // if right table DOM not ready yet, this case will not exist. We return.
-      var leftBottomCaseChildCount = leftBottomCase.get('children').length;
-      var leftBottomLastChild = leftBottomCase.get('children')[leftBottomCaseChildCount-1];
-      var cnRow = dataView.getRowById(leftBottomLastChild.get('id'));
-
-      // If viewport top is less than c0Row, then scroll c0Row to top.
-      if (c0Row > viewport.top) {
-        this._slickGrid.scrollRowToTop(c0Row);
-      } else if (cnRow < Math.min(dataView.getLength() - 1, viewport.bottom)) {
-        // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
-        this._slickGrid.scrollRowIntoView(cnRow);
+  scrollToAlignWithLeft: function () {
+    function getRightRowRange(iCase) {
+      var children = iCase.get('children');
+      var c0 = children && children[0];
+      var cn = children && children[children.length-1];
+      var rtn;
+      if (model.isCollapsedNode(iCase)) {
+        rtn = {
+          first: dataView.getRowById(iCase)
+        };
+        rtn.last = rtn.first;
       }
-    },
-
-    scrollToAlignWithRight: function () {
-      // If viewport top is less than c1Row, then scroll c1Row to top.
-      // if viewport bottom is greater than pnRow, then scroll pnRow to bottom.
-      var viewport = this.get('gridViewport');
-      var dataView = this.getPath('gridAdapter.gridDataView');
-      var rightTable = this.get('childTable');
-      var rightViewport = rightTable.get('gridViewport');
-      var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
-
-      // Find row in right table of first child, p0Row, of top item in this table
-      var topRightCase = rightDataView.getItem(rightViewport.top);
-      var topRightParent = topRightCase.get('parent');
-      var p0Row = dataView.getRowById(topRightParent.get('id'));
-
-      // Find row in right table of the last child, pnRow, of bottom item in left table
-      var bottomRightCase = rightDataView.getItem(Math.min(rightDataView.getLength() - 1, rightViewport.bottom));
-      // if right table DOM not ready yet, this case will not exist. We return.
-      var bottomRightParent = bottomRightCase.get('parent');
-      var pnRow = dataView.getRowById(bottomRightParent.get('id'));
-
-      // If viewport top is less than p0Row, then scroll p0Row to top.
-      if (p0Row < viewport.top) {
-        this._slickGrid.scrollRowToTop(p0Row);
-      } else if (pnRow > Math.min(dataView.getLength() - 1, viewport.bottom)) {
-        // if viewport bottom is greater than pnRow, then scroll pnRow to bottom.
-        this._slickGrid.scrollRowIntoView(pnRow);
+      else {
+        rtn = {
+          first: dataView.getRowById(c0.id),
+          last: dataView.getRowById(cn.id)
+        };
       }
+      return rtn;
     }
+    var model =  this.getPath('parentView.model');
+    var viewport = this.get('gridViewport');
+    var dataView = this.getPath('gridAdapter.gridDataView');
+    var leftTable = this.get('parentTable');
+    var leftViewport = leftTable.get('gridViewport');
+    var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
+
+    // Find row in this table of first child, c0Row, of top item in left table
+    var leftTopCase = leftDataView.getItem(leftViewport.top);
+    var rightTopRange = getRightRowRange(leftTopCase);
+
+    // Find row in this table of the last child, cnRow, of bottom item in left table
+    var leftBottomCase = leftDataView.getItem(Math.min(leftDataView.getLength()-1,leftViewport.bottom));
+    var rightBottomRange = getRightRowRange(leftBottomCase);
+
+    // If viewport top is less than c0Row, then scroll c0Row to top.
+    if (rightTopRange.first > viewport.top) {
+      this._slickGrid.scrollRowToTop(rightTopRange.first);
+    } else if (rightBottomRange.last < Math.min(dataView.getLength() - 1, viewport.bottom)) {
+      // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
+      this._slickGrid.scrollRowIntoView(rightBottomRange.last);
+    }
+  },
+
+  scrollToAlignWithRight: function () {
+    //
+    function getParentRow(iCase) {
+      var caseInLeftRow = iCase;
+      if (!model.isCollapsedNode(iCase)) {
+        caseInLeftRow = iCase.get('parent');
+      }
+      return dataView.getRowById(caseInLeftRow.id);
+    }
+    var model =  this.getPath('parentView.model');
+    var viewport = this.get('gridViewport');
+    var dataView = this.getPath('gridAdapter.gridDataView');
+    var rightTable = this.get('childTable');
+    var rightViewport = rightTable.get('gridViewport');
+    var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
+
+    // Find row in right table of first child, p0Row, of top item in this table
+    var topRightCase = rightDataView.getItem(rightViewport.top);
+    var p0Row = getParentRow(topRightCase);
+
+    // Find row in right table of the last child, pnRow, of bottom item in left table
+    var bottomRightCase = rightDataView.getItem(Math.min(rightDataView.getLength() - 1, rightViewport.bottom));
+    // if right table DOM not ready yet, this case will not exist. We return.
+    var pnRow = getParentRow(bottomRightCase);
+
+    // If viewport top is less than p0Row, then scroll p0Row to top.
+    if (p0Row < viewport.top) {
+      this._slickGrid.scrollRowToTop(p0Row);
+    } else if (pnRow > Math.min(dataView.getLength() - 1, viewport.bottom)) {
+      // if viewport bottom is greater than pnRow, then scroll pnRow to bottom.
+      this._slickGrid.scrollRowIntoView(pnRow);
+    }
+  }
   }; // end return from closure
   
 }())); // end closure
