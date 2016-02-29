@@ -1315,8 +1315,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
+  _scrollEventCount: 0,
   scrollToAlignWithLeft: function () {
     function getRightRowRange(iCase) {
+      if (!iCase) {
+        DG.log('No case: scrollToAlignWithLeft: %@', leftTable.get('collectionName'));
+        return;
+      }
       var children = iCase.get('children');
       var c0 = children && children[0];
       var cn = children && children[children.length-1];
@@ -1337,31 +1342,40 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     var model =  this.getPath('parentView.model');
     var viewport = this.get('gridViewport');
+    var viewportHeight = viewport.bottom - viewport.top - 1;
     var dataView = this.getPath('gridAdapter.gridDataView');
     var leftTable = this.get('parentTable');
     var leftViewport = leftTable.get('gridViewport');
     var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
+    var didScroll = false;
 
-    // Find row in this table of first child, c0Row, of top item in left table
+    // Find row in this table of first child of top item in left viewport
     var leftTopCase = leftDataView.getItem(leftViewport.top);
     var rightTopRange = getRightRowRange(leftTopCase);
 
-    // Find row in this table of the last child, cnRow, of bottom item in left table
+    // Find row in this table of the last child of bottom item in left viewport
     var leftBottomCase = leftDataView.getItem(Math.min(leftDataView.getLength()-1,leftViewport.bottom));
     var rightBottomRange = getRightRowRange(leftBottomCase);
 
     // If viewport top is less than c0Row, then scroll c0Row to top.
     if (rightTopRange.first > viewport.top) {
       this._slickGrid.scrollRowToTop(rightTopRange.first);
+      didScroll = true;
     } else if (rightBottomRange.last < Math.min(dataView.getLength() - 1, viewport.bottom)) {
       // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
-      this._slickGrid.scrollRowIntoView(rightBottomRange.last);
+      this._slickGrid.scrollRowToTop(rightBottomRange.last - viewportHeight);
+      didScroll = true;
     }
+    return didScroll;
   },
 
   scrollToAlignWithRight: function () {
     //
     function getParentRow(iCase) {
+      if (!iCase) {
+        DG.log('No case: scrollToAlignWithRight: %@', rightTable.get('collectionName'));
+        return;
+      }
       var caseInLeftRow = iCase;
       if (!model.isCollapsedNode(iCase)) {
         caseInLeftRow = iCase.get('parent');
@@ -1370,10 +1384,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     var model =  this.getPath('parentView.model');
     var viewport = this.get('gridViewport');
+    var viewportHeight = viewport.bottom - viewport.top - 1;
     var dataView = this.getPath('gridAdapter.gridDataView');
     var rightTable = this.get('childTable');
     var rightViewport = rightTable.get('gridViewport');
     var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
+    var didScroll = false;
 
     // Find row in right table of first child, p0Row, of top item in this table
     var topRightCase = rightDataView.getItem(rightViewport.top);
@@ -1387,10 +1403,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // If viewport top is less than p0Row, then scroll p0Row to top.
     if (p0Row < viewport.top) {
       this._slickGrid.scrollRowToTop(p0Row);
-    } else if (pnRow > Math.min(dataView.getLength() - 1, viewport.bottom)) {
+      didScroll = true;
+    } else if (pnRow >= Math.min(dataView.getLength() - 1, viewport.bottom)) {
       // if viewport bottom is greater than pnRow, then scroll pnRow to bottom.
-      this._slickGrid.scrollRowIntoView(pnRow);
+      this._slickGrid.scrollRowToTop(pnRow - viewportHeight);
+      didScroll = true;
     }
+    return didScroll;
   }
   }; // end return from closure
   
