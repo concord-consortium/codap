@@ -1316,6 +1316,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   },
 
   _scrollEventCount: 0,
+
+    /**
+     * Scrolls to maintain its relationship with the table on its left.
+     *
+     * The relationship is defined by the rule that any visible case's parent
+     * should be visible.
+     *
+     * In this case we will scroll this table if first child of the left table's
+     * top visible row is lower than the top of this table or the last child of
+     * the left table's bottom visible row is higher than the last row.
+     *
+     * @returns {boolean} Whether a scroll was performed.
+     */
   scrollToAlignWithLeft: function () {
     function getRightRowRange(iCase) {
       if (!iCase) {
@@ -1369,6 +1382,18 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     return didScroll;
   },
 
+    /**
+     * Scrolls to maintain its relationship with the table on its right.
+     *
+     * The relationship is defined by the rule that any visible case's parent
+     * should be visible.
+     *
+     * In this case we will scroll this table if the parent of the right table's
+     * top visible row is higher than the top of this table or the parent of the
+     * table's bottom visible row is lower than the last row of this table.
+     *
+     * @returns {boolean} Whether a scroll was performed.
+     */
   scrollToAlignWithRight: function () {
     //
     function getParentRow(iCase) {

@@ -193,8 +193,22 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
       /**
        * Observer function called when the parent table is scrolled.
+       *
        * Note that scroll handlers are triggered from jQuery event handlers,
        * and so must use SC.run() for SC updates to be triggered appropriately.
+       *
+       * The main job of this method is to manage propagation of scroll to the
+       * left and to the right to maintain the rule that all parent cases of
+       * a visible case should also be visible. We have gotten here from a
+       * notification from a scroll event from slickgrid and any scrolling
+       * of dependent tables will also produce scroll events, so we need to
+       * avoid getting into feedback loops. We do this by keeping a propagation
+       * count and, in each case table, a scroll event count. We increment the
+       * propagation count and the event count for any case table that wasn't
+       * scrolled from propagation. When a new notification arrives if its
+       * table has a count less than the propagation count then it was a scroll
+       * event from propagation and bypasses further propagation. If it has an event
+       * count higher, it is a new event, so propagation should occur.
        *
        * @param iNotifier {DG.CaseTableView}
        */
@@ -212,7 +226,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
               iNotifier._scrollEventCount = this.propagationCount;
             } else {
               this.propagationCount++;
-                //DG.log('tableDidScroll: %@ Propagating. Propagation Count: %@/%@'.loc(
+              iNotifier._scrollEventCount = this.propagationCount;
+
+              //DG.log('tableDidScroll: %@ Propagating. Propagation Count: %@/%@'.loc(
                 //    iNotifier.get('collectionName'), this.propagationCount,
                 //        iNotifier._scrollEventCount));
                 var leftTable = iNotifier.get('parentTable');
