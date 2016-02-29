@@ -293,9 +293,9 @@ DG.RelationDividerView = SC.View.extend( (function() {
         parentInfo.isCollapsed = !isCollapsed;
         if( leftTable && !isContained) {
           if( parentInfo.isCollapsed)
-            leftTable.collapseNode( this.dgParentID);
+            leftTable.collapseCase( this.dgParentID);
           else
-            leftTable.expandNode( this.dgParentID);
+            leftTable.expandCase( this.dgParentID);
   
           // Expanding/collapsing changes the set of rows that are selected
           rightTable.updateSelectedRows(true);

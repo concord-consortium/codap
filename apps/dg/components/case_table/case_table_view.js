@@ -612,11 +612,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * Collapses a node in the case tree and resets all case tables below.
      * @param iCase {DG.Case}
      */
-    collapseNode: function (iCaseID) {
+    collapseCase: function (iCaseID) {
       var childTable = this.get('childTable');
-      var gridAdapter = this.get('gridAdapter');
       var viewportRow;
-      gridAdapter.gridDataView.collapseGroup(iCaseID);
+      this.getPath('gridAdapter.gridDataView').collapseGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
         viewportRow = this.getViewportPosition(iCaseID);
@@ -629,10 +628,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      *
      * @param iCase {DG.Case}
      */
-    expandNode: function (iCaseID) {
+    expandCase: function (iCaseID) {
       var childTable = this.get('childTable');
-      var gridAdapter = this.get('gridAdapter');
-      gridAdapter.gridDataView.expandGroup(iCaseID);
+      this.getPath('gridAdapter.gridDataView').expandGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
       }
