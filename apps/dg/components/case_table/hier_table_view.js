@@ -192,15 +192,86 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       },
 
       /**
-       Observer function called when the parent table is scrolled.
-       Note that scroll handlers are triggered from jQuery event handlers,
-       and so must use SC.run() for SC updates to be triggered appropriately.
+       * Observer function called when the parent table is scrolled.
+       *
+       * Note that scroll handlers are triggered from jQuery event handlers,
+       * and so must use SC.run() for SC updates to be triggered appropriately.
+       *
+       * The main job of this method is to manage propagation of scroll to the
+       * left and to the right to maintain the rule that all parent cases of
+       * a visible case should also be visible. We have gotten here from a
+       * notification from a scroll event from slickgrid and any scrolling
+       * of dependent tables will also produce scroll events, so we need to
+       * avoid getting into feedback loops. We do this by keeping a propagation
+       * count and, in each case table, a scroll event count. We increment the
+       * propagation count and the event count for any case table that wasn't
+       * scrolled from propagation. When a new notification arrives if its
+       * table has a count less than the propagation count then it was a scroll
+       * event from propagation and bypasses further propagation. If it has an event
+       * count higher, it is a new event, so propagation should occur.
+       *
+       * @param iNotifier {DG.CaseTableView}
        */
-      tableDidScroll: function() {
+      propagationCount: 0,
+      tableDidScroll: function(iNotifier) {
+        if (SC.none(iNotifier)) {
+          return;
+        }
         SC.run( function() {
-          this.get('dividerViews').forEach(function (view) {
-            view.displayDidChange();
-          });
+          try {
+            if (iNotifier._scrollEventCount < this.propagationCount) {
+              //DG.log('tableDidScroll: %@ Ignoring. Propagation Count: %@/%@'.loc(
+              //    iNotifier.get('collectionName'), this.propagationCount,
+              //    iNotifier._scrollEventCount));
+              iNotifier._scrollEventCount = this.propagationCount;
+            } else {
+              this.propagationCount++;
+              iNotifier._scrollEventCount = this.propagationCount;
+
+              //DG.log('tableDidScroll: %@ Propagating. Propagation Count: %@/%@'.loc(
+                //    iNotifier.get('collectionName'), this.propagationCount,
+                //        iNotifier._scrollEventCount));
+                var leftTable = iNotifier.get('parentTable');
+                var rightTable = iNotifier.get('childTable');
+                var didScroll = true;
+                while (leftTable) {
+                  if (didScroll) {
+                    didScroll = leftTable.scrollToAlignWithRight();
+                    //if (didScroll) DG.log('tableDidScroll: %@ Propagated left: %@. (%@)'.loc(
+                    //    iNotifier.get('collectionName'), leftTable.get('collectionName'), leftTable._scrollEventCount));
+                  }
+                  if (!didScroll) {
+                    leftTable._scrollEventCount = this.propagationCount;
+                  }
+                  leftTable = leftTable.get('parentTable');
+                }
+                didScroll = true;
+                while (rightTable) {
+                  if (didScroll) {
+                    didScroll = rightTable.scrollToAlignWithLeft();
+                    //if (didScroll) DG.log('tableDidScroll: %@ Propagated right: %@. (%@)'.loc(
+                    //    iNotifier.get('collectionName'), rightTable.get('collectionName'), rightTable._scrollEventCount));
+                  }
+                  if (!didScroll) {
+                    rightTable._scrollEventCount = this.propagationCount;
+                  }
+                  rightTable = rightTable.get('childTable');
+                }
+            }
+            this.get('dividerViews').forEach(function (dividerView) {
+              if (dividerView.get('leftTable') === iNotifier || dividerView.get(
+                      'rightTable') === iNotifier) {
+                //DG.log('tableDidScroll reevaluating: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
+                //    dividerView.getPath('rightTable.collectionName')) );
+                dividerView.displayDidChange();
+                //} else {
+                //DG.log('tableDidScroll omitting: %@ -> %@'.loc(dividerView.getPath('leftTable.collectionName'),
+                //    dividerView.getPath('rightTable.collectionName'))
+              }
+            });
+          } catch (ex) {
+            DG.logWarn(ex);
+          }
         }.bind( this));
       },
 
@@ -476,8 +547,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     childTableViews.forEach( function( iTableView) {
                                 iTableView.updateSelectedRows();
                             });
-  }
+  },
 
+  scrollSelectionToView: function () {
+    var childTableViews = this.get('childTableViews') || [];
+    childTableViews.forEach( function( iTableView) {
+      iTableView.scrollSelectionToView();
+    });
+  }
 
   }; // end return from closure
   

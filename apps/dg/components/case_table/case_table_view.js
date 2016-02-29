@@ -315,7 +315,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @property   {Number}
    */
   _prevGridWidth: 0,
-  
+
+    /**
+     * Returns the visible limits of the grid in row,pixel coordinates.
+     * See https://github.com/mleibman/SlickGrid/wiki/Slick.Grid#getViewport
+     * @property {{
+     *    top: {number},
+     *    bottom: {number},
+     *    leftPx: {number},
+     *    rightPx: {number}
+     * }}
+     */
+    gridViewport: function () {
+      return this.get('_slickGrid').getViewport();
+    }.property('_slickGrid'),
+
   /**
     The current width of the table/grid. Designed to be used for clients to observe
     when the table width changes and to respond appropriately.
@@ -564,7 +578,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     getViewportPosition: function (iCaseID) {
       var gridDataView = this.getPath('gridAdapter.gridDataView');
       var row = gridDataView.getRowById(iCaseID);
-      var viewport = this._slickGrid.getViewport();
+      var viewport = this.get('gridViewport');
       var viewHeight = viewport.bottom - viewport.top;
       var offset = row - viewport.top;
       if (offset >= 0 && offset <= viewHeight) {
@@ -598,11 +612,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * Collapses a node in the case tree and resets all case tables below.
      * @param iCase {DG.Case}
      */
-    collapseNode: function (iCaseID) {
+    collapseCase: function (iCaseID) {
       var childTable = this.get('childTable');
-      var gridAdapter = this.get('gridAdapter');
       var viewportRow;
-      gridAdapter.gridDataView.collapseGroup(iCaseID);
+      this.getPath('gridAdapter.gridDataView').collapseGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
         viewportRow = this.getViewportPosition(iCaseID);
@@ -615,10 +628,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      *
      * @param iCase {DG.Case}
      */
-    expandNode: function (iCaseID) {
+    expandCase: function (iCaseID) {
       var childTable = this.get('childTable');
-      var gridAdapter = this.get('gridAdapter');
-      gridAdapter.gridDataView.expandGroup(iCaseID);
+      this.getPath('gridAdapter.gridDataView').expandGroup(iCaseID);
       if (childTable) {
         childTable._refreshDataView(true);
       }
@@ -1123,6 +1135,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   expandCollapseAll: function( iExpand) {
     var collection = this.getPath('gridAdapter.collection');
     var cases = collection.get('casesController');
+    var dataView = this.getPath('gridAdapter.gridDataView');
 
     DG.assert( collection);
     DG.assert( cases);
@@ -1133,15 +1146,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     cases.forEach(function (myCase) {
       try {
         if (iExpand) {
-          this.expandNode( myCase.id);
+          dataView.expandGroup( myCase.id);
         } else {
-          this.collapseNode( myCase.id);
+          dataView.collapseGroup( myCase.id);
         }
       } catch (e) {
         DG.logError('expandCollapseAll: ' + e);
       }
     }.bind(this));
     this.endDataViewUpdate(true);
+    this.childTable._refreshDataView(true);
 
     this.updateSelectedRows(true);
     this.incrementProperty('expandCollapseCount');
@@ -1211,7 +1225,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   scrollToView: function (rowIndices) {
     var rowDistance = this.getMinScrollDistance(rowIndices);
-    var viewport = this._slickGrid.getViewport();
+    var viewport = this.get('gridViewport');
     var top = Math.max(viewport.top - rowDistance, 0);
     if (Math.abs(rowDistance) * 2 > (viewport.bottom - viewport.top)) {
       this.scrollAnimator.animate(this, viewport.top, top);
@@ -1273,19 +1287,22 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   setSelectedRows: function( iSelectedRows) {
     if( this._slickGrid) {
       this._slickGrid.setSelectedRows( iSelectedRows);
-      if (iSelectedRows.length > 0) {
-        this.scrollToView(iSelectedRows);
-      } else {
-        this._slickGrid.render();
-      }
     }
   },
 
-    /**
-     * Reset selection display. If recurse is set will reset child table
-     *
-     * @param recurse {boolean}
-     */
+  scrollSelectionToView: function () {
+    var selectedRows = this._slickGrid.getSelectedRows();
+    if (selectedRows.length > 0) {
+      this.scrollToView(selectedRows);
+    } else {
+      this._slickGrid.render();
+    }
+  },
+  /**
+   * Reset selection display. If recurse is set will reset child table
+   *
+   * @param recurse {boolean}
+   */
   updateSelectedRows: function(recurse) {
     var adapter = this.get('gridAdapter'),
         selection = adapter && adapter.getSelectedRows(),
@@ -1296,6 +1313,128 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if (recurse && childView) {
       childView.updateSelectedRows(recurse);
     }
+  },
+
+  _scrollEventCount: 0,
+
+    /**
+     * Scrolls to maintain its relationship with the table on its left.
+     *
+     * The relationship is defined by the rule that any visible case's parent
+     * should be visible.
+     *
+     * In this case we will scroll this table if first child of the left table's
+     * top visible row is lower than the top of this table or the last child of
+     * the left table's bottom visible row is higher than the last row.
+     *
+     * @returns {boolean} Whether a scroll was performed.
+     */
+  scrollToAlignWithLeft: function () {
+    function getRightRowRange(iCase) {
+      if (!iCase) {
+        DG.log('No case: scrollToAlignWithLeft: %@', leftTable.get('collectionName'));
+        return;
+      }
+      var children = iCase.get('children');
+      var c0 = children && children[0];
+      var cn = children && children[children.length-1];
+      var rtn;
+      if (model.isCollapsedNode(iCase)) {
+        rtn = {
+          first: dataView.getRowById(iCase)
+        };
+        rtn.last = rtn.first;
+      }
+      else {
+        rtn = {
+          first: dataView.getRowById(c0.id),
+          last: dataView.getRowById(cn.id)
+        };
+      }
+      return rtn;
+    }
+    var model =  this.getPath('parentView.model');
+    var viewport = this.get('gridViewport');
+    var viewportHeight = viewport.bottom - viewport.top - 1;
+    var dataView = this.getPath('gridAdapter.gridDataView');
+    var leftTable = this.get('parentTable');
+    var leftViewport = leftTable.get('gridViewport');
+    var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
+    var didScroll = false;
+
+    // Find row in this table of first child of top item in left viewport
+    var leftTopCase = leftDataView.getItem(leftViewport.top);
+    var rightTopRange = getRightRowRange(leftTopCase);
+
+    // Find row in this table of the last child of bottom item in left viewport
+    var leftBottomCase = leftDataView.getItem(Math.min(leftDataView.getLength()-1,leftViewport.bottom));
+    var rightBottomRange = getRightRowRange(leftBottomCase);
+
+    // If viewport top is less than c0Row, then scroll c0Row to top.
+    if (rightTopRange.first > viewport.top) {
+      this._slickGrid.scrollRowToTop(rightTopRange.first);
+      didScroll = true;
+    } else if (rightBottomRange.last < Math.min(dataView.getLength() - 1, viewport.bottom)) {
+      // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
+      this._slickGrid.scrollRowToTop(rightBottomRange.last - viewportHeight);
+      didScroll = true;
+    }
+    return didScroll;
+  },
+
+    /**
+     * Scrolls to maintain its relationship with the table on its right.
+     *
+     * The relationship is defined by the rule that any visible case's parent
+     * should be visible.
+     *
+     * In this case we will scroll this table if the parent of the right table's
+     * top visible row is higher than the top of this table or the parent of the
+     * table's bottom visible row is lower than the last row of this table.
+     *
+     * @returns {boolean} Whether a scroll was performed.
+     */
+  scrollToAlignWithRight: function () {
+    //
+    function getParentRow(iCase) {
+      if (!iCase) {
+        DG.log('No case: scrollToAlignWithRight: %@', rightTable.get('collectionName'));
+        return;
+      }
+      var caseInLeftRow = iCase;
+      if (!model.isCollapsedNode(iCase)) {
+        caseInLeftRow = iCase.get('parent');
+      }
+      return dataView.getRowById(caseInLeftRow.id);
+    }
+    var model =  this.getPath('parentView.model');
+    var viewport = this.get('gridViewport');
+    var viewportHeight = viewport.bottom - viewport.top - 1;
+    var dataView = this.getPath('gridAdapter.gridDataView');
+    var rightTable = this.get('childTable');
+    var rightViewport = rightTable.get('gridViewport');
+    var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
+    var didScroll = false;
+
+    // Find row in right table of first child, p0Row, of top item in this table
+    var topRightCase = rightDataView.getItem(rightViewport.top);
+    var p0Row = getParentRow(topRightCase);
+
+    // Find row in right table of the last child, pnRow, of bottom item in left table
+    var bottomRightCase = rightDataView.getItem(Math.min(rightDataView.getLength() - 1, rightViewport.bottom));
+    // if right table DOM not ready yet, this case will not exist. We return.
+    var pnRow = getParentRow(bottomRightCase);
+
+    // If viewport top is less than p0Row, then scroll p0Row to top.
+    if (p0Row < viewport.top) {
+      this._slickGrid.scrollRowToTop(p0Row);
+      didScroll = true;
+    } else if (pnRow >= Math.min(dataView.getLength() - 1, viewport.bottom)) {
+      // if viewport bottom is greater than pnRow, then scroll pnRow to bottom.
+      this._slickGrid.scrollRowToTop(pnRow - viewportHeight);
+      didScroll = true;
+    }
+    return didScroll;
   }
   }; // end return from closure
   

@@ -197,25 +197,17 @@ DG.RelationDividerView = SC.View.extend( (function() {
           rightTable = this.get('rightTable'),
           rightAdapter = rightTable && rightTable.get('gridAdapter'),
           rightScrollTop = (rightTable && rightTable.getPath('scrollPos.scrollTop')) || 0,
-          //parentGroups = rightAdapter && rightAdapter.get('parentIDGroups'),
-          leftYCoordForFilteredRows = 0,
-          rightYCoordForFilteredRows = 0,
-          rowHeight = rightAdapter && rightAdapter.get('rowHeight'),
-          lastParentID = 0,
-          leftLength,
-          lastCase = null,
-          this_ = this,
-          parentIndex = 0;
+          this_ = this;
 
       // We can get a request to draw before we are ready.
-      if( !leftAdapter || !rightAdapter || SC.none(leftTable._slickGrid)) {
+      if (!leftAdapter || !rightAdapter || SC.none(leftTable._slickGrid)) {
         //DG.log("DG.RelationDividerView.doDraw: BAILING! Missing adapter(s)");
         return;
       }
 
       // Lazy creation of the '_parentChildRelationsMap' property
-      if( !this._parentChildRelationsMap) this._parentChildRelationsMap = {};
-      
+      if (!this._parentChildRelationsMap) this._parentChildRelationsMap = [];
+
       /**
         Builds the SVG path string which renders from the specified Y coordinate
         on the left table (iStartY) to the specified Y coordinate on the right
@@ -252,7 +244,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
                   // Horizontal segment
                   RDV_RELATION_RIGHT_MARGIN);
       }
-      
+
       /**
         Builds the SVG path string which defines the boundary of the area to be
         shaded when shading the area between a parent row in the left table and
@@ -289,33 +281,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
                   - RDV_RELATION_LEFT_MARGIN);
                   // close path (Z)
       }
-      
-      /**
-        Utility function for computing the bounds of a given case in the table.
-        For visible rows, calls DG.CaseTableView.getRowBounds() method.
-        For collapsed rows, keeps a running tally of the current Y position and
-        returns it for all collapsed rows.
-        @param    {DG.CaseTableView}    iTable
-        @param    {DG.CaseTableAdapter} iAdapter
-        @param    {String}              iCaseID -- The ID of the case whose bounds are desired
-        @param    {Number}              iYCoordForFilteredRows -- The Y coordinate to use for
-                                        collapsed/filtered rows. Should be maintained by the client
-                                        as the bottom Y coordinate of the previous visible row.
-        @returns  {Object}              Bounds (left, top, right, bottom)
-       */
-      function getRowBoundsForCase( iTable, iAdapter, iCaseID, iYCoordForFilteredRows, iRowHeight) {
-        var rowIndex = iAdapter.getIndexForID( iCaseID),
-            rowBounds;
-        if( rowIndex < 0) {
-          rowBounds = { left: 0, top: iYCoordForFilteredRows, 
-                        right: 0, bottom: iYCoordForFilteredRows + iRowHeight };
-        }
-        else {
-          rowBounds = iTable.getRowBounds( rowIndex);
-        }
-        return rowBounds;
-      }
-      
+
       /**
         Raphael event handler for the click on the expand/collapse icon.
         Sets the collapse/expand state internally and updates the SlickGrid DataView.
@@ -327,229 +293,201 @@ DG.RelationDividerView = SC.View.extend( (function() {
         parentInfo.isCollapsed = !isCollapsed;
         if( leftTable && !isContained) {
           if( parentInfo.isCollapsed)
-            leftTable.collapseNode( this.dgParentID);
+            leftTable.collapseCase( this.dgParentID);
           else
-            leftTable.expandNode( this.dgParentID);
+            leftTable.expandCase( this.dgParentID);
   
           // Expanding/collapsing changes the set of rows that are selected
           rightTable.updateSelectedRows(true);
           rightTable.incrementProperty('expandCollapseCount');
         }
       }
-      
-      function adjustForGroupHeaderRow( ioRowBounds, iAdapter, iParentID) {
-        var showExpandedGroupRows = iAdapter && iAdapter.get('showExpandedGroupRows');
-        if( showExpandedGroupRows) {
-          var dataView = iAdapter && iAdapter.get('gridDataView'),
-              isCollapsed = dataView && dataView.isGroupCollapsed( iParentID);
-          if( !isCollapsed)
-            ioRowBounds.top -= rowHeight;
-        }
-      }
-      
-      /**
-        Utility function which updates the path for the specified element if necessary
-        or removes it if it's no longer necessary.
-       */
-      function updatePathOrRemove( iElement, iIsRequired, iPathStr) {
-        if( iElement) {
-          if( iIsRequired)
-            iElement.attr({ path: iPathStr });
-          else
-            iElement.remove();
-          }
-        }
-      
-      /**
-        Updates the parent-child lines. Creates new Raphael elements or updates
-        existing ones as necessary. Marks each object visited so that stale
-        objects can be removed.
-        @param  iParentID     The ID of the parent case
-        @param  iChildIDRange {{firstChildID: number, lastChildID: number, isCollapsed: boolean}}
-                              The corresponding entry in the parentGroups map, which
-                              should contain firstChildID and lastChildID properties.
-       */
-      function updateParentChildRelations( iParentID, iChildIDRange) {
-        function determineImageURL(iChildIDRange) {
-          return iChildIDRange.isContained
+
+      function determineImageURL(iChildIDRange) {
+        return iChildIDRange.isContained
             ? RDV_NO_ACTION_ICON_URL
             : (iChildIDRange.isCollapsed
-              ? RDV_EXPAND_ICON_URL
-              : RDV_COLLAPSE_ICON_URL);
+            ? RDV_EXPAND_ICON_URL
+            : RDV_COLLAPSE_ICON_URL);
+      }
+
+      function getRowBounds(iLeftTable, iRightTable, iParentRow, topRightRow, bottomRightRow) {
+        var leftRowBounds = iLeftTable.getRowBounds(iParentRow);
+        var topRightRowBounds = iRightTable.getRowBounds(topRightRow);
+        var bottomRightRowBounds = iRightTable.getRowBounds(bottomRightRow);
+        if (leftRowBounds && topRightRowBounds && bottomRightRowBounds) {
+          return {
+            leftTop: leftRowBounds.top,
+            leftBottom: leftRowBounds.bottom,
+            rightTop: topRightRowBounds.top,
+            rightBottom: bottomRightRowBounds.bottom
+          };
         }
-        var leftRowBounds = getRowBoundsForCase( leftTable, leftAdapter, iParentID,
-                                                  leftYCoordForFilteredRows, 0),
-            topRightRowBounds = getRowBoundsForCase( rightTable, rightAdapter,
-                                                    iChildIDRange.firstChildID,
-                                                    rightYCoordForFilteredRows, rowHeight),
-            bottomRightRowBounds = getRowBoundsForCase( rightTable, rightAdapter,
-                                                    iChildIDRange.lastChildID,
-                                                    rightYCoordForFilteredRows, rowHeight),
-            theRelation = this_._parentChildRelationsMap[ iParentID];
-        
-        if( !leftRowBounds || !topRightRowBounds || !bottomRightRowBounds) {
-          DG.log("DG.RelationDividerView.updateParentChildRelations: BAILING! L: %@, TR: %@, BR: %@",
-                  leftRowBounds, topRightRowBounds, bottomRightRowBounds);
+      }
+
+      /**
+       * Utility function which updates the path for the specified element if necessary
+       * or hides it if it's no longer necessary.
+       */
+      function updatePathOrHide(iElement, iIsRequired, iPathStr) {
+        if (iElement) {
+          if (iIsRequired) {
+            iElement.attr({path: iPathStr});
+            iElement.show();
+          } else {
+            iElement.hide();
+          }
+        }
+      }
+
+      /**
+       * Updates the parent-child lines. Creates new Raphael elements or updates
+       * existing ones as necessary. Marks each object visited so that stale
+       * objects can be removed.
+       *
+       * @param  iRelation {Object} Elements describing the relation between a parent
+       *                       row and some number of children. This may consist
+       *                       of a top line, an expand/collapse control, a touch
+       *                       area, an area shape, and possibly a bottom line.
+       * @param  iParentRow {number} Index of the parent row.
+       * @param  iParentID  {number} The ID of the parent case
+       * @param  iChildIDRange {{firstChildID: {number}, lastChildID: {number}, isCollapsed: {boolean}}}
+       * The corresponding entry in the parentGroups map, which
+       * should contain firstChildID and lastChildID properties.
+       */
+      function updateParentChildRelations(iRelation, iParentRow, iParentID, iChildIDRange) {
+        var isRightCollapsed = iChildIDRange.isCollapsed || iChildIDRange.isContained;
+        var topRightRow = rightAdapter.get('gridDataView').getRowById(
+              isRightCollapsed ? iParentID : iChildIDRange.firstChildID);
+        var bottomRightRow = rightAdapter.get('gridDataView').getRowById(
+              isRightCollapsed ? iParentID : iChildIDRange.lastChildID);
+        var rowBounds = getRowBounds(leftTable, rightTable, iParentRow,
+              topRightRow, bottomRightRow);
+        if (SC.none(rowBounds)) {
           return;
         }
-        
-        adjustForGroupHeaderRow( topRightRowBounds, rightAdapter, iParentID);
-        
-        leftYCoordForFilteredRows = Math.max( leftYCoordForFilteredRows, leftRowBounds.bottom);
-        rightYCoordForFilteredRows = Math.max( rightYCoordForFilteredRows, bottomRightRowBounds.bottom);
-        
-        // Create/update the lines
-        if( leftRowBounds && topRightRowBounds && bottomRightRowBounds) {
-              // Top path is always drawn (currently)
-          var isTopPathRequired = true,
-              // Bottom path is only drawn for the last parent
-              isBottomPathRequired = iParentID === lastParentID,
-              // Filled area is only drawn for alternate parents
-              isFillPathRequired = parentIndex % 2,
-              // Note that we must take scroll position into account
-              topPathStr = isTopPathRequired
-                              ? buildPathStr( leftRowBounds.top - leftScrollTop,
-                                              topRightRowBounds.top - rightScrollTop)
-                              : '',
-              botPathStr = isBottomPathRequired
-                              ? buildPathStr( leftRowBounds.bottom - leftScrollTop + 1,
-                                              bottomRightRowBounds.bottom - rightScrollTop + 1)
-                              : '',
-              fillPathStr = isFillPathRequired
-                              ? buildFillPathStr( leftRowBounds.top - leftScrollTop,
-                                                  topRightRowBounds.top - rightScrollTop,
-                                                  leftRowBounds.bottom - leftScrollTop + 1,
-                                                  bottomRightRowBounds.bottom - rightScrollTop + 1)
-                              : '',
-              imageUrl = determineImageURL(iChildIDRange),
-              imagePos = { x: 3, y: leftRowBounds.top - leftScrollTop + 5 },
-              imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE,
-              //kTouchMargin = 5,
-              //kTouchWidth = imageSize.width + 2 * kTouchMargin,
-              //kTouchHeight = imageSize.height + 2 * kTouchMargin,
-              touchPathStr = getImageTouchZonePath( imagePos, imageSize);
-          
-          // Create/update each of the elements
-          if( !theRelation) {
-            // Create the lines if necessary
-            this_._parentChildRelationsMap[ iParentID] = theRelation = {};
-            // Filled area is only drawn for alternate parents
-            theRelation.area = isFillPathRequired
-                                ? this_._paper.path( fillPathStr)
-                                              .attr({ fill: RDV_RELATION_FILL_COLOR,
-                                                      stroke: 'transparent' })
-                                : null;
-            // Top line is always drawn
-            theRelation.top = isTopPathRequired
-                                ? this_._paper.path( topPathStr)
-                                              .attr({ stroke: RDV_RELATION_STROKE_COLOR })
-                                : null;
-            // The touch object is a transparent rectangle which is larger than the
-            // expand/collapse icon which responds to touch. This makes it easier to
-            // hit the expand/collapse icon on touch platforms.
-            if( (SC.browser.os === SC.OS.ios) || (SC.browser.os === SC.OS.android)) {
-              theRelation.touch = this_._paper.path( touchPathStr)
-                                              .attr({ fill: 'transparent', stroke: 'transparent' })
-                                              .touchstart( function( iEvent) {
-                                                  SC.run( expandCollapseClickHandler.call( theRelation.icon, iEvent));
-                                                });
-            }
-            theRelation.icon = this_._paper .image( imageUrl, 
-                                                    imagePos.x, imagePos.y, 
-                                                    imageSize.width, imageSize.height)
-                                            .click( function( iEvent) {
-                                                      SC.run( expandCollapseClickHandler.call( this, iEvent));
-                                                    });
-            theRelation.icon.dgParentID = iParentID;
-            theRelation.icon.dgChildIDRange = iChildIDRange;
-            if( isBottomPathRequired) {
-              // We only draw the bottom line for the last range
-              theRelation.bottom = this_._paper .path( botPathStr)
-                                                .attr({ stroke: RDV_RELATION_STROKE_COLOR });
-            }
+        var isFillRequired = iParentRow % 2;
+        var isBottomRequired = iChildIDRange.isLast;
+        var imageUrl = determineImageURL(iChildIDRange);
+        var imagePos = {x: 3, y: rowBounds.leftTop - leftScrollTop + 5};
+        var imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
+        var touchPathStr = getImageTouchZonePath(imagePos, imageSize);
+        var topPathStr = buildPathStr(rowBounds.leftTop - leftScrollTop,
+              rowBounds.rightTop - rightScrollTop);
+        var bottomPathStr = isBottomRequired? buildPathStr( rowBounds.leftBottom - leftScrollTop + 1,
+            rowBounds.rightBottom - rightScrollTop + 1): '';
+        var fillPathStr = isFillRequired ? buildFillPathStr(
+              rowBounds.leftTop - leftScrollTop,
+              rowBounds.rightTop - rightScrollTop,
+              rowBounds.leftBottom - leftScrollTop + 1,
+              rowBounds.rightBottom - rightScrollTop + 1) : '';
+
+        if (!iRelation) {
+          iRelation = {};
+          iRelation.top = this_._paper.path(topPathStr).attr(
+              {stroke: RDV_RELATION_STROKE_COLOR});
+          iRelation.bottom = this_._paper.path(topPathStr).attr(
+              {stroke: RDV_RELATION_STROKE_COLOR});
+          if (!isBottomRequired) {
+            iRelation.bottom.hide();
           }
-          // Update the elements if they already exist
-          else {
-            updatePathOrRemove( theRelation.top, isTopPathRequired, topPathStr);
-            updatePathOrRemove( theRelation.area, isFillPathRequired, fillPathStr);
-            updatePathOrRemove( theRelation.touch, true, touchPathStr);
-            if( theRelation.icon)
-              theRelation.icon.attr({ src: imageUrl, x: imagePos.x, y: imagePos.y });
-            updatePathOrRemove( theRelation.bottom, isBottomPathRequired, botPathStr);
+          iRelation.area = this_._paper.path(fillPathStr).attr(
+                {fill: RDV_RELATION_FILL_COLOR, stroke: 'transparent'});
+          if (!isFillRequired) iRelation.area.hide();
+          // The touch object is a transparent rectangle which is larger than the
+          // expand/collapse icon which responds to touch. This makes it easier to
+          // hit the expand/collapse icon on touch platforms.
+          if ((SC.browser.os === SC.OS.ios) || (SC.browser.os === SC.OS.android)) {
+            iRelation.touch = this_._paper.path(touchPathStr)
+                .attr({fill: 'transparent', stroke: 'transparent'})
+                .touchstart(function (iEvent) {
+                  SC.run(expandCollapseClickHandler.call(iRelation.icon,
+                      iEvent));
+                });
           }
-          // Unmark the line, indicating that it is not stale and should not be removed.
-          theRelation.marked = false;
-          ++ parentIndex;
+          iRelation.icon = this_._paper
+              .image(imageUrl, imagePos.x, imagePos.y, imageSize.width,
+                  imageSize.height)
+              .click(function (iEvent) {
+                SC.run(expandCollapseClickHandler.call(this, iEvent));
+              });
+        } else {
+          updatePathOrHide(iRelation.top, true, topPathStr);
+          updatePathOrHide(iRelation.bottom, isBottomRequired, bottomPathStr);
+          updatePathOrHide(iRelation.area, isFillRequired, fillPathStr);
+          updatePathOrHide(iRelation.touch, true, touchPathStr);
+          iRelation.icon.attr({src: imageUrl, x: imagePos.x, y: imagePos.y}).show();
+        }
+        iRelation.icon.dgParentID = iParentID;
+        iRelation.icon.dgChildIDRange = iChildIDRange;
+        return iRelation;
+      }
+
+      function hideRelationshipElements(iRelationship) {
+        if (iRelationship) {
+          updatePathOrHide(iRelationship.icon, false, '');
+          updatePathOrHide(iRelationship.top, false, '');
+          updatePathOrHide(iRelationship.bottom, false, '');
+          updatePathOrHide(iRelationship.area, false, '');
+          updatePathOrHide(iRelationship.touch, false, '');
         }
       }
-      
-      // Create/update the necessary lines. Marks visited objects.
-      //DG.log("DG.RelationDividerView.doDraw: adapterID: %@, parentGroups: %@",
-      //DG.Debug.scObjectID( rightAdapter), DG.ObjectMap.length( parentGroups));
+
       function updateRelationsLines() {
-        var numRows = leftAdapter.gridDataView.getLength();
-        var i;
-        var myCase;
+        if (!leftTable || !rightTable || leftTable.get('gridWidth') === 0 || rightTable.get('gridWidth') === 0) {
+          DG.log('DoDraw called on RelationDividerView, but tables not ready.');
+          return;
+        }
+        var leftViewport = leftTable.get('gridViewport');
+        var viewportCount = leftViewport.bottom - leftViewport.top;
+        var leftDataView = leftAdapter.get('gridDataView');
+        var lastRow = leftDataView? leftDataView.getLength() - 1: -1;
+        var ix;
+        var rowIx;
         var parentID;
+        var parentCase;
         var childIDRange;
-        for (i = 0; i < numRows; i += 1) {
-          myCase = leftAdapter.gridDataView.getItem(i);
-          parentID = myCase.id;
-          if (myCase && myCase.children[0]) {
+
+        DG.assert(leftViewport, 'leftViewport missing');
+        DG.assert(leftDataView, 'leftDataView missing');
+
+        // for each visible row in the left-hand table compute the relationship
+        // graphic
+        for (ix = 0; ix < viewportCount; ix += 1) {
+          rowIx = ix + leftViewport.top;
+          parentCase = leftDataView.getItem(rowIx);
+
+          // if we found a parent case, compute the extent of its children and
+          // its state, then make the appropriate graphics. Otherwise, hide
+          // whatever elements may already be present.
+          if (parentCase && parentCase.children[0]) {
+            parentID = parentCase.get('id');
             childIDRange = {
-              firstChildID: myCase.children[0].id,
-              lastChildID: myCase.children[myCase.children.length - 1].id,
-              isCollapsed: leftAdapter.model.isCollapsedNode(myCase),
-              isContained: (myCase.collection.get('id') !== leftAdapter.get('collection').get('id'))
+              firstChildID: parentCase.children[0].get('id'),
+              lastChildID: parentCase.children[parentCase.children.length - 1].get('id'),
+              isCollapsed: leftAdapter.model.isCollapsedNode(parentCase),
+              isContained: (parentCase.get('collection').get('id') !== leftAdapter.get(
+                  'collection').get('id')),
+              isLast: (rowIx === lastRow)
             };
-            updateParentChildRelations(parentID, childIDRange);
+            this_._parentChildRelationsMap[ix] = updateParentChildRelations(
+                this_._parentChildRelationsMap[ix], rowIx, parentID,
+                childIDRange);
+          } else {
+            hideRelationshipElements(this_._parentChildRelationsMap[ix]);
           }
         }
-      }
-
-      // Utility function for use with DG.ObjectMap.forEach() which calls
-      // the remove() method for each value object in the map.
-      // Used to remove all Raphael objects when appropriate.
-      function callRemoveMethod( iKey, iValue) {
-        if( iValue && (typeof iValue.remove === 'function'))
-          iValue.remove();
-      }
-
-      // - - - - - BEGINNING of doDraw() - - - - -
-
-      // Mark all objects for deletion if they aren't visited in update loop
-      DG.ObjectMap.forEach( this_._parentChildRelationsMap,
-          function( iParentID, iParentChildRelation) {
-            iParentChildRelation.marked = true;
-          });
-
-      // Identify the last parent case ID. This is used to decide whether to
-      // draw a lower boundary line.
-      leftLength = leftAdapter.gridDataView.getLength();
-      if (leftLength > 0) {
-        lastCase = leftAdapter.gridDataView.getItem(leftLength - 1);
-      }
-      if (lastCase) {
-        lastParentID = lastCase.id;
+        // if the viewport has shrunk, hide additional lines
+        for (ix = viewportCount; ix < this_._parentChildRelationsMap.length;
+             ix += 1) {
+          hideRelationshipElements(this_._parentChildRelationsMap[ix]);
+        }
       }
 
       updateRelationsLines();
-
-      // Prune the map of any objects still marked for removal.
-      DG.ObjectMap.forEach( this_._parentChildRelationsMap,
-                            function( iParentID, iParentChildLines) {
-                              if( iParentChildLines.marked) {
-                                // Remove each Raphael object
-                                DG.ObjectMap.forEach( iParentChildLines, callRemoveMethod);
-                                // Delete the object from the map
-                                delete this_._parentChildRelationsMap[ iParentID];
-                              }
-                            });
     }
-    
   })
 
   };
 
 }()));
-
