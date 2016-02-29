@@ -1135,6 +1135,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   expandCollapseAll: function( iExpand) {
     var collection = this.getPath('gridAdapter.collection');
     var cases = collection.get('casesController');
+    var dataView = this.getPath('gridAdapter.gridDataView');
 
     DG.assert( collection);
     DG.assert( cases);
@@ -1145,15 +1146,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     cases.forEach(function (myCase) {
       try {
         if (iExpand) {
-          this.expandNode( myCase.id);
+          dataView.expandGroup( myCase.id);
         } else {
-          this.collapseNode( myCase.id);
+          dataView.collapseGroup( myCase.id);
         }
       } catch (e) {
         DG.logError('expandCollapseAll: ' + e);
       }
     }.bind(this));
     this.endDataViewUpdate(true);
+    this.childTable._refreshDataView(true);
 
     this.updateSelectedRows(true);
     this.incrementProperty('expandCollapseCount');
