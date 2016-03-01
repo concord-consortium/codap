@@ -256,6 +256,7 @@ DG.ComponentView = SC.View.extend(
             childViews: 'statusView versionView minimize closeBox titleView'.w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['titleview'],
+              classNameBindings: ['valueIsEmpty:titleview-empty'],
               isEditable: YES,
               exampleNode: null,
               _value: null,
@@ -334,23 +335,9 @@ DG.ComponentView = SC.View.extend(
               doIt: function () {
                 this.beginEditing();
               },
-              showAsEmpty: function() {
-                if (SC.empty(this.get('value'))) {
-                  this.get('classNames').push('titleview-empty');
-                  this.displayDidChange();
-                }
-              },
-              stopShowingAsEmpty: function() {
-                var tClassNames = this.get('classNames'),
-                    tIndex = tClassNames.indexOf('titleview-empty');
-                if (tIndex >= 0 && !(SC.platform.touch && SC.empty(this.get('value')))) {
-                  tClassNames.splice(tIndex, 1);
-                  this.displayDidChange();
-                }
-                else if( SC.platform.touch) {
-                  this.showAsEmpty();
-                }
-              }
+              valueIsEmpty: function () {
+                return SC.empty(this.get('value'));
+              }.property('.value')
             }),
             statusView: SC.LabelView.design({
               textAlign: SC.ALIGN_LEFT,
@@ -377,13 +364,13 @@ DG.ComponentView = SC.View.extend(
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
-              this.get('titleView').showAsEmpty();
+              //this.get('titleView').showAsEmpty();
               return YES;
             },
             mouseExited: function (evt) {
               this.setPath('minimize.isVisible', false);
               this.setPath('closeBox.isVisible', false);
-              this.get('titleView').stopShowingAsEmpty();
+              //this.get('titleView').stopShowingAsEmpty();
               return YES;
             },
             dragAdjust: function (evt, info) {
@@ -511,7 +498,7 @@ DG.ComponentView = SC.View.extend(
         modelTitleChanged: function (iModel, iKey, iValue) {
           if (!SC.none(iValue))
             this.set('title', iValue);
-        }.observes('model.title'),
+        }.observes('*model.title'),
 
         version: null,
         versionBinding: '.containerView.titlebar.versionView.value',

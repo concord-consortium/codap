@@ -466,7 +466,7 @@
     position: relative;
 }
 
-.titleview.titleview-empty {
+.titlebar:hover .titleview-empty {
     border-bottom-color: white;
     border-bottom-width: 2px;
     width: 30px !important;
