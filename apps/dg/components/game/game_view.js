@@ -23,31 +23,29 @@ sc_require('libraries/iframe-phone');
 
 /** @class
 
-  (Document Your View Here)
+    (Document Your View Here)
 
-  @extends SC.WebView
-*/
+ @extends SC.WebView
+ */
 DG.GameView = SC.View.extend(
-/** @scope DG.GameView.prototype */ {
+    /** @scope DG.GameView.prototype */ {
       childViews: ['loadingView', 'webView'],
 
-      value: '',
-      isLoading: true,
+      value: '', isLoading: true,
 
       /**
-       * Documents whether the data interactive has communicated with CODAP yet.
+       * Handles the old-style 'game' API using asynch iframePhone post-messaging
+       * @property {DG.GamePhoneHandler}
        */
-      didConnect: false,
-
-      changeConnect: function () {
-          this.set('didConnect', true);
-      }.observes('controller.connected'),
+      gamePhoneHandler: null,
 
       /**
-       * The purpose of this view is to provide a background to the WebView
-       * while it is loading and, if it fails, provide an error message.
-       * When the iframe loads, if it loads correctly, it will cover this view.
+       * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
+       * Brought into existence in March, 2016
+       * @property {DG.DataInteractivePhoneHandler}
        */
+      dataInteractivePhoneHandler: null,
+
       loadingView: SC.LabelView.extend({
         urlBinding: '*parentView.value',
         isLoadingBinding: '*parentView.isLoading',
@@ -65,32 +63,49 @@ DG.GameView = SC.View.extend(
         }.property('url', 'isLoading', 'didConnect')
       }),
 
+      init: function () {
+        sc_super();
+        this.gamePhoneHandler = DG.GamePhoneHandler.create(
+            {controller: this.get('controller')});
+      },
+
+      destroy: function () {
+        if (this.gamePhoneHandler) {
+          this.gamePhoneHandler.destroy();
+          this.gamePhoneHandler = null;
+        }
+        if (this.dataInteractivePhoneHandler) {
+          this.dataInteractivePhoneHandler.destroy();
+          this.dataInteractivePhoneHandler = null;
+        }
+        sc_super();
+      },
+
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
         valueBinding: '*parentView.value',
-        controllerBinding: '*parentView.controller',
-        // Setup iframePhone communication with the child iframe before it loads, so that connection
+        controllerBinding: '*parentView.controller', // Setup iframePhone communication with the child iframe before it loads, so that connection
         // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
         valueDidChange: function () {
-          var tValue = this.get('value'), 
-              tController = this.controller;
+          var tValue = this.get('value'), tGPHandler = this.get(
+              'gamePhoneHandler');
 
           if (tValue !== this._previousValue) {
 
             // First discontinue listening to old game.
-            if (tController.gamePhone) {
-              tController.gamePhone.disconnect();
+            if (tGPHandler.gamePhone) {
+              tGPHandler.gamePhone.disconnect();
             }
 
             // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
-            tController.set('isGamePhoneInUse', false);
+            tGPHandler.set('isGamePhoneInUse', false);
 
-            tController.gamePhone = new iframePhone.IframePhoneRpcEndpoint(// TODO put this handler function somewhere appropriate rather than inlining it in (what is
+            tGPHandler.gamePhone = new iframePhone.IframePhoneRpcEndpoint(// TODO put this handler function somewhere appropriate rather than inlining it in (what is
                 // at notionally) view code?
 
                 function (command, callback) {
-                  tController.set('isGamePhoneInUse', true);
-                  tController.doCommand(command, function (ret) {
+                  tGPHandler.set('isGamePhoneInUse', true);
+                  tGPHandler.doCommand(command, function (ret) {
                     // Analysis shows that the object returned by DG.doCommand may contain Error values, which
                     // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
                     // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
@@ -121,7 +136,7 @@ DG.GameView = SC.View.extend(
 
             // Let games/interactives know that they are talking to CODAP, specifically (rather than any
             // old iframePhone supporting page) and can use its API.
-            tController.gamePhone.call({message: "codap-present"});
+            tGPHandler.gamePhone.call({message: "codap-present"});
           }
 
           this._previousValue = tValue;
@@ -157,8 +172,7 @@ DG.GameView = SC.View.extend(
             this.valueDidChange();
           }
           if (iframe && iframe.contentWindow) {
-            var contentWindow = iframe.contentWindow,
-                target = this.controller;
+            var contentWindow = iframe.contentWindow, target = this.controller;
 
             // Allow the iframe to take over the entire screen (requested by InquirySpace)
             $(iframe).attr('allowfullscreen', true)
@@ -201,5 +215,6 @@ DG.GameView = SC.View.extend(
           }
           sc_super();
         }
+
       })
-});
+    });
