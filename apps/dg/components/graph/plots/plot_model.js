@@ -318,7 +318,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     // Detach the data Configuration
     this.set('dataConfiguration', null);
     this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');
-  
+
     // Destroy the adornment models
     DG.ObjectMap.forEach( this._adornmentModels,
                           function( iKey, iModel) {

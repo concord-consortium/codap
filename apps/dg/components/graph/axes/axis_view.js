@@ -148,20 +148,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tLabels, tNumAttributes, tNode;
           if (SC.none(this._paper))
             return [];
-        
-          var handleLabelClick = function(iLabelNode, evt) {
-            var scEvent = SC.Event.create(evt),
-                pane = this.get('pane');
-
-            // For unknown reasons, SC.data gets reset sometimes after it's been created.
-            // We reinitialize it here if necessary, because SC.Event requires it.
-            if(!SC.data) SC.data = $.data;
-
-            scEvent.clientData = { axisView: this, labelIndex: iLabelNode.labelIndex };
-            SC.run(function(){
-              pane.sendEvent('axisLabelClick', scEvent, this);
-            }.bind(this));
-          }.bind(this);
 
           if( tNoAttributesOnEitherAxis) {
             tLabels = ['DG.AxisView.emptyGraphCue'.loc()];
@@ -176,7 +162,6 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             if (tLabelCount >= this_._labelNodes.length) {
               tNode = DG.LabelNode.create({
                 paper: this_._paper,
-                //clickCallback: handleLabelClick, // SC upgrade - potential change
                 rotation: tRotation,
                 colorIndex: tBaseLabelIndex + iIndex,
                 numColors: tNumAttributes,

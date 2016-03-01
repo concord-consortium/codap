@@ -52,13 +52,6 @@ DG.LabelNode = SC.Object.extend(
             .attr( { 'text-anchor': this.anchor });
         DG.RenderingUtilities.rotateText(this._textElement, this.rotation, 0, 0);
         this.numColorsChanged();
-        /* SC upgrade change
-        this._textElement.mousedown(function(evt) {
-                                             SC.run(function(){
-                                             this.clickCallback(this, evt);
-                                             }.bind(this));
-                                          }.bind(this));
-                                          */
       },
 
       numColorsChanged: function() {
@@ -90,11 +83,6 @@ DG.LabelNode = SC.Object.extend(
         if((this.numColors > 1) && !this._circleElement) {
           this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
               .addClass('axis-dot');
-              /* SC upgrade change
-                this._circleElement.mousedown(function(evt) {
-                                                this.clickCallback(this, evt);
-                                              }.bind(this));
-                                              */
         }
         else if((this.numColors <= 1) && this._circleElement) {
           this._circleElement.remove();

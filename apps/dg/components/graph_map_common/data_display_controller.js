@@ -561,9 +561,46 @@ DG.DataDisplayController = DG.ComponentController.extend(
           return tResult;
         }.property(),
 
+        addAxisHandler: function (iAxisView) {
+          var this_ = this,
+              tNodes = iAxisView.get('labelNodes');
+
+          if (SC.isArray(tNodes)) {
+            tNodes.forEach(function (iNode, iIndex) {
+
+              function mouseDownHandler(iEvent) {
+                SC.run( function() {
+                  this_.setupAttributeMenu(iEvent, iAxisView, iIndex);
+                });
+              }
+
+              if (!SC.none(iNode.events))
+                iNode.unmousedown(mouseDownHandler); // In case it got added already
+              iNode.mousedown(mouseDownHandler);
+            });
+          }
+        },
+
+        /**
+         An axis view has been assigned to the property named iPropertyKey.
+         We want to hook up to its labelNode so that clicking on it will bring
+         up an attribute menu.
+         */
+        axisViewChanged: function (iThis, iPropertyKey) {
+          var this_ = this,
+              tView = this.get(iPropertyKey);
+          if (!SC.none(tView)) {
+            this.addAxisHandler( tView);
+            tView.addObserver('labelNode', this,
+                function () {
+                  this_.addAxisHandler(tView);
+                });
+          }
+        }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
+
         setupAttributeMenu: function (event, iAxisView, iAttrIndex) {
           var tDataDisplayModel = this.get('dataDisplayModel'),
-              tMenuLayout = {height: 20, width: 20},
+              tMenuLayout = {left: event.layerX, top: event.layerY, height: 20, width: 20},
               tOrientation = iAxisView.get('orientation'),
           // The following parameter is supposed to specify the preferred position of the menu
           // relative to the anchor. But it doesn't seem to have any effect.
@@ -612,8 +649,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
             iAxisView.appendChild(this.menuAnchorView);
             this.menuAnchorView.set('layout', tMenuLayout);
             this.menuAnchorView.set('isVisible', true);
+            this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
           }.bind(this));
-          this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
         },
 
         /**
