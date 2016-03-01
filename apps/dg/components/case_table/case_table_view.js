@@ -793,7 +793,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // SlickGrid isn't created until render(), so setting 'classNames'
     // wouldn't have the desired effect until the next time we render().
     if( this._slickGrid)
-      iContext.classNames( this.$().attr("class"), YES);
+      iContext.setClass( this.$().attr("class"), YES);
   },
 
   didAppendToDocument: function() {
