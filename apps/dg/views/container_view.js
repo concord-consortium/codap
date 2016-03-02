@@ -162,7 +162,7 @@ DG.ContainerView = SC.View.extend(
        */
       destroyAllChildren: function () {
         this.select(null);  // To close inspector
-        var componentViews = this.get('componentViews'), view;
+        var componentViews = this.get('componentViews');
         componentViews.forEach(function (iView) {
           if (iView && iView.willDestroy)
             iView.willDestroy();
@@ -222,6 +222,7 @@ DG.ContainerView = SC.View.extend(
         // will automatically remove it from its current location, if necessary
         // cf. https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
         domThisElement.appendChild(domChildElement);
+        if (iChildView.didAppendToDocument) { iChildView.didAppendToDocument(); }
       },
       
       /* sendToBack - The given child view will be placed at the beginning of the list, thus

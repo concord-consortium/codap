@@ -364,13 +364,11 @@ DG.ComponentView = SC.View.extend(
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
-              //this.get('titleView').showAsEmpty();
               return YES;
             },
             mouseExited: function (evt) {
               this.setPath('minimize.isVisible', false);
               this.setPath('closeBox.isVisible', false);
-              //this.get('titleView').stopShowingAsEmpty();
               return YES;
             },
             dragAdjust: function (evt, info) {
@@ -615,6 +613,13 @@ DG.ComponentView = SC.View.extend(
           tContainer.removeChild(tCover);
           tContainer.appendChild(tCover);
           tCover.set('isVisible', iAction === 'cover');
+        },
+
+        didAppendToDocument: function () {
+          var contentView = this.get('contentView');
+          if (contentView && contentView.didAppendToDocument) {
+            contentView.didAppendToDocument();
+          }
         }
       };  // object returned closure
     }()) // function closure
