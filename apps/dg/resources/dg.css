@@ -792,3 +792,7 @@ input.editor-text {
     border-right-style: solid;
     border-right-width: thick;
 }
+
+.dg.ace.split-divider {
+    z-index: 0;
+}
