@@ -272,7 +272,6 @@ DG.ComponentView = SC.View.extend(
               }.property(),
               inlineEditorWillBeginEditing: function (iEditor, iValue, iEditable) {
                 sc_super();
-                this.stopShowingAsEmpty();
                 var tParent = this.get('parentView'),
                     tFrame = tParent.get('frame'),
                     kXGap = 4, kYGap = 2,
