@@ -78,7 +78,11 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    */
   elementsToClear: function() {
     return this.getPath('paperSource._elementsToClear');
-  }.property('paperSource._elementsToClear'),
+  }.property(),
+
+  elementsToClearDidChange: function() {
+    this.notifyPropertyChange('elementsToClear');
+  }.observes('*paperSource._elementsToClear'),
 
   /**
    * @private

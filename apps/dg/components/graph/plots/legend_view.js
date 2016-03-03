@@ -80,7 +80,10 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tExtent = tNumRows * tLabelHeight;
         DG.assert( isFinite(tExtent));
         return tExtent;
-      }.property('labelNode', 'model.numberOfCells'),
+      }.property(),
+      desiredExtentDidChange: function() {
+        this.notifyPropertyChange('desiredExtent', this.get('desiredExtent'));
+      }.observes('labelNode', '*model.numberOfCells'),
 
       /**
       Return the extent of the label

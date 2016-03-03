@@ -373,7 +373,10 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._categoricalCacheIsValid )
         this._computeCategoricalStats();
       return this.categoricalStats.get( 'cellMap' );
-    }.property( 'categoricalStats.cellMap' ),
+    }.property(),
+    cellMapDidChange: function() {
+      this.notifyPropertyChange('cellMap', this.get('cellMap'));
+    }.observes('*categoricalStats.cellMap'),
 
     /**
      @return{Number} corresponding to given name

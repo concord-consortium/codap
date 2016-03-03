@@ -51,7 +51,10 @@ DG.LegendModel = SC.Object.extend(
     var tDesc = this.get('attributeDescription'),
         tAttr = SC.none( tDesc) ? DG.Analysis.kNullAttribute : tDesc.get('attribute');
     return ( tAttr === DG.Analysis.kNullAttribute) ? '' : tAttr.get('name');
-  }.property('attributeDescription.attribute'),
+  }.property(),
+  labelDidChange: function() {
+    this.notifyPropertyChange('label');
+  }.observes('*attributeDescription.attribute'),
 
   /**
    Determined by asking attributeStats
@@ -86,10 +89,13 @@ DG.LegendModel = SC.Object.extend(
     Determined by asking attributeStats
     @property{Array of {String}}
   */
-    cellNames: function() {
-      var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
-      return DG.ObjectMap.keys( tCellMap);
-    }.property('attributeDescription.attributeStats.cellMap'),
+  cellNames: function() {
+    var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
+    return DG.ObjectMap.keys( tCellMap);
+  }.property(),
+  cellNamesDidChange: function() {
+    this.notifyPropertyChange('cellNames');
+  }.observes('*attributeDescription.attributeStats.cellMap'),
 
   /**
    * Select the cases whose value for the legend attribute places them in the given cell.

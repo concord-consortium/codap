@@ -16,7 +16,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/**
+ * @class  DG.CaseTableDropTarget
+ */
 DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
       return {
@@ -52,7 +54,11 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         isDropEnabled: function () {
           return !this.dataContext.get('hasDataInteractive');
-        }.property('.dataContext.hasDataInteractive'),
+        }.property(),
+
+        isDropEnabledDidChange: function () {
+          this.notifyPropertyChange('isDropEnabled');
+        }.observes('*dataContext.hasDataInteractive'),
 
         /**
          * Whether drag is in progress

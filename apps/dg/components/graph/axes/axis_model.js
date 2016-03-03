@@ -55,7 +55,10 @@ DG.AxisModel = SC.Object.extend(
       });
     }
     return tLabels;
-  }.property('attributeDescription.attribute')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  labelsDidChange: function() {
+    this.notifyPropertyChange('labels', this.get('labels'));
+  }.observes('*attributeDescription.attribute'),
 
   /**
     The string to use as a tooltip.
@@ -63,7 +66,10 @@ DG.AxisModel = SC.Object.extend(
   */
   labelDescription: function() {
     return this.getPath('attributeDescription.attribute.description') || '';
-  }.property('attributeDescription.attribute')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  labelDescriptionDidChange: function() {
+    this.notifyPropertyChange('labelDescription', this.get('labelDescription'));
+  }.observes('*attributeDescription.attribute'),
 
   /**
    *
@@ -81,7 +87,10 @@ DG.AxisModel = SC.Object.extend(
       return tAttributes[ 0].get( 'name' );
     }
     return '';
-  }.property('attributeDescription.attributes'),
+  }.property(),
+  firstAttributeNameDidChange: function() {
+    this.notifyPropertyChange('firstAttributeName');
+  }.observes('*attributeDescription.attributes'),
 
   /**
   One by default. Subclasses will likely override.

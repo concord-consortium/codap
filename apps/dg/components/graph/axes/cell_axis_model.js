@@ -49,7 +49,10 @@ DG.CellAxisModel = DG.AxisModel.extend(
       tMaxLength = Math.max( tMaxLength, iName.length);
     });
     return tMaxLength;
-  }.property('attributeDescription.attributeStats.cellMap')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  maxCellNameLengthDidChange: function() {
+    this.notifyPropertyChange('maxCellNameLength');
+  }.observes('*attributeDescription.attributeStats.cellMap'),
 
   /**
     @property {Boolean}

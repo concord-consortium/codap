@@ -45,7 +45,10 @@ DG.DotPlotView = DG.PlotView.extend(
       default:
         return null;
     }
-  }.property('model.primaryAxisPlace', 'xAxisView', 'yAxisView')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  primaryAxisViewDidChange: function() {
+    this.notifyPropertyChange('primaryAxisView');
+  }.observes('*model.primaryAxisPlace', 'xAxisView', 'yAxisView'),
 
   /**
   @property{DG.CellLinearAxisView}
@@ -59,7 +62,10 @@ DG.DotPlotView = DG.PlotView.extend(
       default:
         return null;
     }
-  }.property('model.secondaryAxisPlace', 'xAxisView', 'yAxisView')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  secondaryAxisViewDidChange: function() {
+    this.notifyPropertyChange('secondaryAxisView');
+  }.observes('*model.secondaryAxisPlace', 'xAxisView', 'yAxisView'),
 
   /**
    * The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.

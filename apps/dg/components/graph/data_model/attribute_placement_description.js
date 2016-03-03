@@ -128,7 +128,10 @@ DG.AttributePlacementDescription = SC.Object.extend(
         tRange = tMinMax.max - tMinMax.min;
     tMinMax.min -= this.get('offsetMinProportion') * tRange;
     return tMinMax;
-  }.property('attributeStats.minMax', 'offsetMinProportion'),
+  }.property(),
+  minMaxDidChange: function() {
+    this.notifyPropertyChange('minMax', this.get('minMax'));
+  }.observes('*attributeStats.minMax', 'offsetMinProportion'),
 
   /**
    * Set to cause minimum of numeric values to be offset downward by this proportion of the range.

@@ -137,7 +137,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   */
   legendVarID: function() {
     return this.getPath('dataConfiguration.legendAttributeID');
-  }.property('dataConfiguration.legendAttributeID'),
+  }.property(),
 
   legendVarIDDidChange: function() {
     this.notifyPropertyChange('legendVarID', this.get('legendVarID'));

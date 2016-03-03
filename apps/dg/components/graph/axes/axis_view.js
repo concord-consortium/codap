@@ -99,7 +99,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           return this.get('isVertical') ?
               this.get('drawHeight') - this.getPath('otherAxisView.drawHeight') :
               0;
-        }.property('otherAxisView.drawHeight', 'drawHeight'),
+        }.property(),
+        pixelMinDidChange: function() {
+          this.notifyPropertyChange('pixelMin');
+        }.observes('*otherAxisView.drawHeight', 'drawHeight'),
 
         /**
          Coordinate of my maximum value (Y: top end, X: right end)

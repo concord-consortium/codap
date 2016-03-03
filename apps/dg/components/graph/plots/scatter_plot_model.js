@@ -38,14 +38,20 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       isMovableLineVisible: function () {
         return !SC.none(this.movableLine) && this.movableLine.get('isVisible');
-      }.property('movableLine.isVisible'),
+      }.property(),
+      isMovableLineVisibleDidChange: function() {
+        this.notifyPropertyChange('isMovableLineVisible', this.get('isMovableLineVisible'));
+      }.observes('*movableLine.isVisible'),
 
       /**
        @property { Boolean, read only }
        */
       isInterceptLocked: function () {
         return !SC.none(this.movableLine) && this.movableLine.get('isInterceptLocked');
-      }.property('movableLine.isInterceptLocked'),
+      }.property(),
+      isInterceptLockedDidChange: function() {
+        this.notifyPropertyChange('isInterceptLocked', this.get('isInterceptLocked'));
+      }.observes('*movableLine.isInterceptLocked'),
 
       /**
        @property { Boolean }

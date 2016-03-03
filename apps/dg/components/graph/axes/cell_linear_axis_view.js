@@ -52,7 +52,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         return this.dataToCoordinate( 0);
       else
         return null;
-    }.property('model.lowerBound', 'model.upperBound', 'pixelMin', 'pixelMax').cacheable(),
+    }.property().cacheable(),
+    zeroPixelDidChange: function() {
+      this.notifyPropertyChange('zeroPixel');
+    }.observes('*model.lowerBound', '*model.upperBound', 'pixelMin', 'pixelMax'),
 
     /**
       @property {Number} Each time we draw the axis, we set this property to the maximum width
@@ -513,7 +516,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             };
       tInfo.range = tInfo.upperBound - tInfo.lowerBound;
       return tInfo;
-    }.property('model.lowerBound', 'model.upperBound', 'fullCellWidth', 'pixelMax' ).cacheable(),
+    }.property().cacheable(),
+    infoDidChange: function() {
+      this.notifyPropertyChange('info');
+    }.observes('*model.lowerBound', '*model.upperBound', 'fullCellWidth', 'pixelMax'),
 
     /**
     Given the value to plot and its cell number, give the coordinate along this axis.

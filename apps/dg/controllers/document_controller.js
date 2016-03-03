@@ -180,9 +180,13 @@ DG.DocumentController = SC.Object.extend(
      */
     documentID: function() {
       return this.getPath('content.id');
-    }.property('content.id'),
+    }.property(),
 
-    /**
+    documentIDDidChange: function() {
+      this.notifyPropertyChange('documentID');
+    }.observes('*content.id'),
+
+      /**
      *  The name of the document managed by this controller.
      *  @property {String}
      */
@@ -193,7 +197,11 @@ DG.DocumentController = SC.Object.extend(
         DG.store.commitRecords();
       }
       return content.get('name');
-    }.property('content.name'),
+    }.property(),
+
+    documentNameDidChange: function() {
+      this.notifyPropertyChange('documentName');
+    }.observes('*content.name'),
 
     /**
      * The permissions level of the document.
@@ -203,7 +211,11 @@ DG.DocumentController = SC.Object.extend(
      */
     documentPermissions: function() {
       return this.getPath('content._permissions') || 0;
-    }.property('content._permissions'),
+    }.property(),
+
+    documentPermissionsDidChange: function() {
+      this.notifyPropertyChange('documentPermissions');
+    }.observes('*content._permissions'),
 
     /**
       The total number of document-dirtying changes.
@@ -621,7 +633,7 @@ DG.DocumentController = SC.Object.extend(
       if( isRestoring) {
         if(DG.STANDALONE_MODE && (iParams.componentClass.constructor === DG.GameView)) {
           iParams.useLayout = true;
-          tLayout = {};
+          tParams.layout = {};
         }
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
         tComponentView = DG.ComponentView.restoreComponent(tParams);
