@@ -508,6 +508,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
 
       headerMenuPlugin.onCommand.subscribe(function(e, args) {
+        SC.run(function () {
         var controller;
         for( var view = this; view && !controller; view = view.get('parentView')) {
           controller = view.get('controller');
@@ -515,6 +516,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         // Dispatch the command to the controller
         if( controller)
           controller.doCommand( args);
+      }.bind(this));
       }.bind(this));
     } // DG.supports('caseTableHeaderMenus')
 
