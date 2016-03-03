@@ -207,7 +207,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         }.property(),
 
         labelNodesDidChange: function() {
-          this.notifyPropertyChange('labelNodes', this.get('labelNodes'));
+          this.notifyPropertyChange('labelNodes');
         }.observes('*model.labels'),
 
         /**
@@ -325,7 +325,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
         }.property(),
 
         numberOfCellsChanged: function() {
-          this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+          this.notifyPropertyChange('numberOfCells');
         }.observes('*model.numberOfCells'),
 
         /**

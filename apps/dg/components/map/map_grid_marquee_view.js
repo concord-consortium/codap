@@ -40,7 +40,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
   }.property(),
 
   mapGridModelDidChange: function() {
-    this.notifyPropertyChange('mapGridModel', this.get('mapGridModel'));
+    this.notifyPropertyChange('mapGridModel');
   }.observes('*mapGridLayer.model'),
 
   /**
@@ -56,7 +56,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
   }.property(),
 
   mapDidChange: function() {
-    this.notifyPropertyChange('map', this.get('map'));
+    this.notifyPropertyChange('map');
   }.observes('*mapGridLayer.map'),
 
   // Private properties

@@ -48,7 +48,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     }.property(),
 
     defaultTitleChanged: function() {
-      this.notifyPropertyChange('defaultTitle', this.get('defaultTitle'));
+      this.notifyPropertyChange('defaultTitle');
     }.observes('*dataConfiguration.defaultTitle'),
 
     /**
@@ -73,7 +73,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     }.property(),
 
     casesDidChange: function() {
-      this.notifyPropertyChange('cases', this.get('cases'));
+      this.notifyPropertyChange('cases');
     }.observes('*dataConfiguration.cases'),
     
     /**
@@ -84,7 +84,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     }.property(),
 
     selectionDidChange: function() {
-      this.notifyPropertyChange('selection', this.get('selection'));
+      this.notifyPropertyChange('selection');
     }.observes('*dataConfiguration.selection'),
     
     /**
@@ -216,7 +216,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     }.property(),  // Todo: Figure out if this can be cacheable
 
     _dataContextDidChange: function() {
-      this.notifyPropertyChange('dataContext', this.get('dataContext'));
+      this.notifyPropertyChange('dataContext');
     }.observes('*dataConfiguration.dataContext'),
     
     /**

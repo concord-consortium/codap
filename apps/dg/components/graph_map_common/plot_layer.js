@@ -46,7 +46,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   paperDidChange: function() {
-    this.notifyPropertyChange('paper', this.get('paper'));
+    this.notifyPropertyChange('paper');
   }.observes('*paperSource.paper'),
 
   /**
@@ -57,7 +57,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   layerManagerDidChange: function() {
-    this.notifyPropertyChange('layerManager', this.get('layerManager'));
+    this.notifyPropertyChange('layerManager');
   }.observes('*paperSource.layerManager'),
 
   /**
@@ -69,7 +69,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   frameDidChange: function() {
-    this.notifyPropertyChange('frame', this.get('frame'));
+    this.notifyPropertyChange('frame');
   }.observes('*paperSource.frame'),
 
   /**
@@ -123,7 +123,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   dataContextDidChange: function() {
-    this.notifyPropertyChange('dataContext', this.get('dataContext'));
+    this.notifyPropertyChange('dataContext');
   }.observes('*model.dataContext'),
    
   selection: null,

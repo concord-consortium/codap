@@ -66,7 +66,7 @@ DG.LegendModel = SC.Object.extend(
   }.property(),
 
   numberOfCellsDidChange: function() {
-    this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+    this.notifyPropertyChange('numberOfCells');
   }.observes('*attributeDescription.attributeStats.numberOfCells'),
 
   cellMapDidChange: function() {
@@ -82,7 +82,7 @@ DG.LegendModel = SC.Object.extend(
     }.property(),
 
     numericRangeDidChange: function() {
-      this.notifyPropertyChange('numericRange', this.get('numericRange'));
+      this.notifyPropertyChange('numericRange');
     }.observes('*attributeDescription.attributeStats.numericRange'),
 
   /**

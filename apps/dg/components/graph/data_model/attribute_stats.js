@@ -238,7 +238,7 @@ DG.AttributeStats = SC.Object.extend(
     }.property('attributes'),
 
     attributeTypeDidChange: function() {
-      this.notifyPropertyChange('attributeType', this.get('attributeType'));
+      this.notifyPropertyChange('attributeType');
     }.observes('*numericStats.attributeType'),
 
     /**
@@ -334,7 +334,7 @@ DG.AttributeStats = SC.Object.extend(
     }.property(),
 
     numberOfCellsDidChange: function() {
-      this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+      this.notifyPropertyChange('numberOfCells');
     }.observes('*numericStats.numberOfCells'),
 
     /**
@@ -347,7 +347,7 @@ DG.AttributeStats = SC.Object.extend(
     }.property(),
 
     numericRangeDidChange: function() {
-      this.notifyPropertyChange('numericRange', this.get('numericRange'));
+      this.notifyPropertyChange('numericRange');
     }.observes('*numericStats.numericRange'),
 
     dataDidChange:function () {
@@ -375,7 +375,7 @@ DG.AttributeStats = SC.Object.extend(
       return this.categoricalStats.get( 'cellMap' );
     }.property(),
     cellMapDidChange: function() {
-      this.notifyPropertyChange('cellMap', this.get('cellMap'));
+      this.notifyPropertyChange('cellMap');
     }.observes('*categoricalStats.cellMap'),
 
     /**

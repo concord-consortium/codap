@@ -130,7 +130,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
     return tMinMax;
   }.property(),
   minMaxDidChange: function() {
-    this.notifyPropertyChange('minMax', this.get('minMax'));
+    this.notifyPropertyChange('minMax');
   }.observes('*attributeStats.minMax', 'offsetMinProportion'),
 
   /**
@@ -204,7 +204,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
   }.property(),
 
   attributeTypeDidChange: function() {
-    this.notifyPropertyChange('attributeType', this.get('attributeType'));
+    this.notifyPropertyChange('attributeType');
   }.observes('*attributeStats.attributeType'),
 
   /**

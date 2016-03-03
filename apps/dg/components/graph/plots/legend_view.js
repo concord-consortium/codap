@@ -82,7 +82,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         return tExtent;
       }.property(),
       desiredExtentDidChange: function() {
-        this.notifyPropertyChange('desiredExtent', this.get('desiredExtent'));
+        this.notifyPropertyChange('desiredExtent');
       }.observes('labelNode', '*model.numberOfCells'),
 
       /**
@@ -142,7 +142,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       }.property(),
 
       labelNodeDidChange: function() {
-        this.notifyPropertyChange('labelNode', this.get('labelNode'));
+        this.notifyPropertyChange('labelNode');
       }.observes('*model.label'),
 
       /**
@@ -373,7 +373,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       }.property(),
 
       isNumericDidChange: function() {
-        this.notifyPropertyChange('isNumeric', this.get('isNumeric'));
+        this.notifyPropertyChange('isNumeric');
       }.observes('*model.attributeDescription.isNumeric'),
 
       attributeTypeDidChange: function() {

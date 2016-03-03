@@ -214,7 +214,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.property('dataConfiguration').cacheable(),
 
     hasLatLongAttributesDidChange: function() {
-      this.notifyPropertyChange('hasLatLongAttributes', this.get('hasLatLongAttributes'));
+      this.notifyPropertyChange('hasLatLongAttributes');
     }.observes('*dataConfiguration.hasLatLongAttributes'),
 
     hasAreaAttribute: function() {
@@ -222,7 +222,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.property('dataConfiguration'),
 
     hasAreaAttributeDidChange: function() {
-      this.notifyPropertyChange('hasLatLongAttributes', this.get('hasLatLongAttributes'));
+      this.notifyPropertyChange('hasLatLongAttributes');
     }.observes('*dataConfiguration.hasAreaAttribute'),
 
     /**

@@ -36,7 +36,7 @@ DG.CellAxisModel = DG.AxisModel.extend(
   }.property(),
 
   numberOfCellsDidChange: function() {
-    this.notifyPropertyChange('numberOfCells', this.get('numberOfCells'));
+    this.notifyPropertyChange('numberOfCells');
   }.observes('*attributeDescription.attributeStats.numberOfCells'),
 
   /**

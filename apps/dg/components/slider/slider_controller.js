@@ -53,7 +53,7 @@ DG.SliderController = DG.ComponentController.extend(
       }.property(),
 
       isAnimatingDidChange: function() {
-        this.notifyPropertyChange('isAnimating', this.get('isAnimating'));
+        this.notifyPropertyChange('isAnimating');
       }.observes('*valueAnimator.isAnimating'),
 
       modelDidChange: function () {
@@ -157,7 +157,7 @@ DG.SliderController = DG.ComponentController.extend(
       }.property(),
 
       incrementDidChange: function() {
-        this.notifyPropertyChange('increment', this.get('increment'));
+        this.notifyPropertyChange('increment');
       }.observes('*axisView.increment', '*axisModel.lowerBound', '*axisModel.upperBound', '*sliderModel.value'),
 
       /**

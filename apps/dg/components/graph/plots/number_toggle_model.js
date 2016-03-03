@@ -61,7 +61,7 @@ DG.NumberToggleModel = SC.Object.extend(
     return tParents;
   }.property(),
   parentCasesDidChange: function() {
-    this.notifyPropertyChange('parentCases', this.get('parentCases'));
+    this.notifyPropertyChange('parentCases');
   }.observes('*dataConfiguration.cases'),
 
 
@@ -106,7 +106,7 @@ DG.NumberToggleModel = SC.Object.extend(
       return allCasesLength;
   }.property(),
   numberOfToggleIndicesDidChange: function() {
-    this.notifyPropertyChange('numberOfToggleIndices', this.get('numberOfToggleIndices'));
+    this.notifyPropertyChange('numberOfToggleIndices');
   }.observes('*dataConfiguration.allCases'),
 
   /**

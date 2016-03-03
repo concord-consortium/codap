@@ -41,7 +41,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   dataContextDidChange: function() {
-    this.notifyPropertyChange('dataContext', this.get('dataContext'));
+    this.notifyPropertyChange('dataContext');
   }.observes('*dataConfiguration.dataContext'),
    
   /**
@@ -54,7 +54,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   collectionClientDidChange: function() {
-    this.notifyPropertyChange('collectionClient', this.get('collectionClient'));
+    this.notifyPropertyChange('collectionClient');
   }.observes('*dataConfiguration.collectionClient'),
    
   /**
@@ -65,7 +65,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   casesDidChange: function() {
-    this.notifyPropertyChange('cases', this.get('cases'));
+    this.notifyPropertyChange('cases');
   }.observes('*dataConfiguration.collectionClient'),
 
   /**
@@ -78,7 +78,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   casesControllerDidChange: function() {
-    this.notifyPropertyChange('casesController', this.get('casesController'));
+    this.notifyPropertyChange('casesController');
   }.observes('*dataConfiguration.collectionClient.casesController'),
 
   /**
@@ -89,7 +89,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   selectionDidChange: function() {
-    this.notifyPropertyChange('selection', this.get('selection'));
+    this.notifyPropertyChange('selection');
   }.observes('*dataConfiguration.selection'),
 
   /**
@@ -100,7 +100,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   xVarIDDidChange: function() {
-    this.notifyPropertyChange('xVarID', this.get('xVarID'));
+    this.notifyPropertyChange('xVarID');
   }.observes('*dataConfiguration.xAttributeID'),
   
   /**
@@ -117,7 +117,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   yVarIDDidChange: function() {
-    this.notifyPropertyChange('yVarID', this.get('yVarID'));
+    this.notifyPropertyChange('yVarID');
   }.observes('*dataConfiguration.yAttributeID'),
   
   /**
@@ -129,7 +129,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   y2VarIDDidChange: function() {
-    this.notifyPropertyChange('y2VarID', this.get('y2VarID'));
+    this.notifyPropertyChange('y2VarID');
   }.observes('*dataConfiguration.y2AttributeID'),
   
   /**
@@ -140,7 +140,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   }.property(),
 
   legendVarIDDidChange: function() {
-    this.notifyPropertyChange('legendVarID', this.get('legendVarID'));
+    this.notifyPropertyChange('legendVarID');
   }.observes('*dataConfiguration.legendAttributeID'),
   
   /**

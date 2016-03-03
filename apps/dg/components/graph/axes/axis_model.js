@@ -57,7 +57,7 @@ DG.AxisModel = SC.Object.extend(
     return tLabels;
   }.property()/*.cacheable()*/,
   labelsDidChange: function() {
-    this.notifyPropertyChange('labels', this.get('labels'));
+    this.notifyPropertyChange('labels');
   }.observes('*attributeDescription.attribute'),
 
   /**
@@ -68,7 +68,7 @@ DG.AxisModel = SC.Object.extend(
     return this.getPath('attributeDescription.attribute.description') || '';
   }.property()/*.cacheable()*/,
   labelDescriptionDidChange: function() {
-    this.notifyPropertyChange('labelDescription', this.get('labelDescription'));
+    this.notifyPropertyChange('labelDescription');
   }.observes('*attributeDescription.attribute'),
 
   /**

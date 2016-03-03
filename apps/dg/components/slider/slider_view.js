@@ -88,7 +88,7 @@ DG.SliderView = SC.View.extend(
       }.property('model').cacheable(),
 
       valueDidChange: function() {
-        this.notifyPropertyChange('value', this.get('value'));
+        this.notifyPropertyChange('value');
       }.observes('*model.value'),
 
       /**
@@ -100,7 +100,7 @@ DG.SliderView = SC.View.extend(
       }.property('model').cacheable(),
 
       nameDidChange: function() {
-        this.notifyPropertyChange('name', this.get('name'));
+        this.notifyPropertyChange('name');
       }.observes('*model.name'),
 
       /**
@@ -114,7 +114,7 @@ DG.SliderView = SC.View.extend(
       }.property('value'),
 
       thumbCoordDidChange: function() {
-        this.notifyPropertyChange('thumbCoord', this.get('thumbCoord'));
+        this.notifyPropertyChange('thumbCoord');
       }.observes('*axisView.model.lowerBound', '*axisView.model.upperBound'),
 
       init: function() {

@@ -60,7 +60,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }.property(),
 
       valueDidChange: function() {
-        this.notifyPropertyChange('value', this.get('value'));
+        this.notifyPropertyChange('value');
       }.observes('*parentView.collectionName', '*parentView.caseCount'),
 
       /**
@@ -263,7 +263,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   }.property(),
 
   collectionNameDidChange: function() {
-    this.notifyPropertyChange('collectionName', this.get('collectionName'));
+    this.notifyPropertyChange('collectionName');
   }.observes('*gridAdapter.collectionName'),
 
   /**
@@ -275,7 +275,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   }.property(),
 
   caseCountDidChange: function() {
-    this.notifyPropertyChange('caseCount', this.get('caseCount'));
+    this.notifyPropertyChange('caseCount');
   }.observes('*gridAdapter.collection.casesController.length'),
 
   /**

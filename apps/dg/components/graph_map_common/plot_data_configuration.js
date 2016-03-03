@@ -76,19 +76,19 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   xCollectionDidChange: function() {
-    this.notifyPropertyChange('xCollectionClient', this.get('xCollectionClient'));
+    this.notifyPropertyChange('xCollectionClient');
   }.observes('*xAttributeDescription.collectionClient'),
   
   yCollectionDidChange: function() {
-    this.notifyPropertyChange('yCollectionClient', this.get('yCollectionClient'));
+    this.notifyPropertyChange('yCollectionClient');
   }.observes('*yAttributeDescription.collectionClient'),
   
   y2CollectionDidChange: function() {
-    this.notifyPropertyChange('y2CollectionClient', this.get('y2CollectionClient'));
+    this.notifyPropertyChange('y2CollectionClient');
   }.observes('*y2AttributeDescription.collectionClient'),
 
   legendCollectionDidChange: function() {
-    this.notifyPropertyChange('legendCollectionClient', this.get('legendCollectionClient'));
+    this.notifyPropertyChange('legendCollectionClient');
   }.observes('*legendAttributeDescription.collectionClient'),
 
   /**
@@ -196,19 +196,19 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   xAttributeIDDidChange: function() {
-    this.notifyPropertyChange('xAttributeID', this.get('xAttributeID'));
+    this.notifyPropertyChange('xAttributeID');
   }.observes('*xAttributeDescription.attributeID'),
   
   yAttributeIDDidChange: function() {
-    this.notifyPropertyChange('yAttributeID', this.get('yAttributeID'));
+    this.notifyPropertyChange('yAttributeID');
   }.observes('*yAttributeDescription.attributeID'),
   
   y2AttributeIDDidChange: function() {
-    this.notifyPropertyChange('y2AttributeID', this.get('y2AttributeID'));
+    this.notifyPropertyChange('y2AttributeID');
   }.observes('*y2AttributeDescription.attributeID'),
   
   legendAttributeIDDidChange: function() {
-    this.notifyPropertyChange('legendAttributeID', this.get('legendAttributeID'));
+    this.notifyPropertyChange('legendAttributeID');
   }.observes('*legendAttributeDescription.attributeID'),
   
   /**
@@ -233,15 +233,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   xIsNumericDidChange: function() {
-    this.notifyPropertyChange('xIsNumeric', this.get('xIsNumeric'));
+    this.notifyPropertyChange('xIsNumeric');
   }.observes('*xAttributeDescription.isNumeric'),
   
   yIsNumericDidChange: function() {
-    this.notifyPropertyChange('yIsNumeric', this.get('yIsNumeric'));
+    this.notifyPropertyChange('yIsNumeric');
   }.observes('*yAttributeDescription.isNumeric'),
   
   y2IsNumericDidChange: function() {
-    this.notifyPropertyChange('y2IsNumeric', this.get('y2IsNumeric'));
+    this.notifyPropertyChange('y2IsNumeric');
   }.observes('*y2AttributeDescription.isNumeric'),
   
   /**
@@ -266,15 +266,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   xTypeDidChange: function() {
-    this.notifyPropertyChange('xType', this.get('xType'));
+    this.notifyPropertyChange('xType');
   }.observes('*xAttributeDescription.attributeType'),
   
   yTypeDidChange: function() {
-    this.notifyPropertyChange('yType', this.get('yType'));
+    this.notifyPropertyChange('yType');
   }.observes('*yAttributeDescription.attributeType'),
   
   y2TypeDidChange: function() {
-    this.notifyPropertyChange('y2Type', this.get('y2Type'));
+    this.notifyPropertyChange('y2Type');
   }.observes('*y2AttributeDescription.attributeType'),
   
   /**

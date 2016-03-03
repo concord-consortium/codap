@@ -40,7 +40,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         return !SC.none(this.movableLine) && this.movableLine.get('isVisible');
       }.property(),
       isMovableLineVisibleDidChange: function() {
-        this.notifyPropertyChange('isMovableLineVisible', this.get('isMovableLineVisible'));
+        this.notifyPropertyChange('isMovableLineVisible');
       }.observes('*movableLine.isVisible'),
 
       /**
@@ -50,7 +50,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         return !SC.none(this.movableLine) && this.movableLine.get('isInterceptLocked');
       }.property(),
       isInterceptLockedDidChange: function() {
-        this.notifyPropertyChange('isInterceptLocked', this.get('isInterceptLocked'));
+        this.notifyPropertyChange('isInterceptLocked');
       }.observes('*movableLine.isInterceptLocked'),
 
       /**

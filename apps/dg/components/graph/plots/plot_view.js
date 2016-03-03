@@ -51,7 +51,7 @@ DG.PlotView = DG.PlotLayer.extend(
     return this.getPath('yAxisView.orientation') === 'vertical2';
   }.property(),
   isUsingY2DidChange: function() {
-    this.notifyPropertyChange('isUsingY2', this.get('isUsingY2'));
+    this.notifyPropertyChange('isUsingY2');
   }.observes('*yAxisView.orientation'),
 
   /**

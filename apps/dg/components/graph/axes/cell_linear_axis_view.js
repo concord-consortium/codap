@@ -635,7 +635,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     }.property('frame').cacheable(),
 
     incrementDidChange: function() {
-      this.notifyPropertyChange('increment', this.get('increment'));
+      this.notifyPropertyChange('increment');
     }.observes('*model.lowerBound', '*model.upperBound'),
 
     /**
