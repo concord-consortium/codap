@@ -509,14 +509,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       headerMenuPlugin.onCommand.subscribe(function(e, args) {
         SC.run(function () {
-        var controller;
-        for( var view = this; view && !controller; view = view.get('parentView')) {
-          controller = view.get('controller');
-        }
-        // Dispatch the command to the controller
-        if( controller)
-          controller.doCommand( args);
-      }.bind(this));
+          var controller;
+          for( var view = this; view && !controller; view = view.get('parentView')) {
+            controller = view.get('controller');
+          }
+          // Dispatch the command to the controller
+          if( controller)
+            controller.doCommand( args);
+        }.bind(this));
       }.bind(this));
     } // DG.supports('caseTableHeaderMenus')
 
@@ -794,8 +794,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // are copied to the context before render() is called, but the
     // SlickGrid isn't created until render(), so setting 'classNames'
     // wouldn't have the desired effect until the next time we render().
-    if( this._slickGrid)
-      iContext.setClass( this.$().attr("class"), YES);
+    //if( this._slickGrid)
+    //  iContext.setClass( this.$().attr("class"), YES);
   },
 
   didAppendToDocument: function() {
@@ -1382,6 +1382,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var leftViewport = leftTable.get('gridViewport');
     var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
     var didScroll = false;
+    if (dataView.getLength() === 0 || leftDataView.getLength() === 0) {
+      // nothing to do
+      return false;
+    }
 
     // Find row in this table of first child of top item in left viewport
     var leftTopCase = leftDataView.getItem(leftViewport.top);
@@ -1436,8 +1440,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var rightViewport = rightTable.get('gridViewport');
     var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
     var didScroll = false;
+    if (dataView.getLength() === 0 || rightDataView.getLength() === 0) {
+      // nothing to do
+      return false;
+    }
 
-    // Find row in right table of first child, p0Row, of top item in this table
+
+      // Find row in right table of first child, p0Row, of top item in this table
     var topRightCase = rightDataView.getItem(rightViewport.top);
     var p0Row = getParentRow(topRightCase);
 
