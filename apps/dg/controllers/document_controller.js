@@ -710,8 +710,9 @@ DG.DocumentController = SC.Object.extend(
       }));
 
       // Override default component view behavior.
-      // Do nothing until we figure out how to prevent reloading of Flash object.
-      tView.bringToFront = function () { };
+      // Do nothing until we figure out how to prevent reloading of data interactive.
+      tView.select = function () {
+      };
 
       return tView;
     },
