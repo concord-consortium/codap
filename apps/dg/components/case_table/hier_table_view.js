@@ -50,7 +50,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      */
     hasHorizontalScroller: YES,
     hasVerticalScroller: NO,
-    horizontalOverlay: YES,
+    horizontalOverlay: NO,
 
     /**
      The data context for which the table is displaying data.
