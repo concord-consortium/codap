@@ -465,8 +465,7 @@ return {
       // proceed to process the result.
       this.invokeLater( this._setupGameOrDocument);
     }
-  // Chained observer fires if 'currLogin' or 'currLogin.status' is changed
-  }.observes('.currLogin.status'),
+  }.observes('isValid'),
 
   _setupGameOrDocument: function() {
     function openDataInteractive(iURL) {
