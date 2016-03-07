@@ -1227,11 +1227,8 @@ DG.DocumentController = SC.Object.extend(
       DG.gameSelectionController.reset();
       DG.DataContext.clearContextMap();
 
-      // todo: We should be able to call this, but the case table hasn't been fully
-      // disconnected, so if there is a formula that refers to a global, we get an
-      // error.
-//      DG.globalsController.reset();
 
+      DG.globalsController.reset();
 
       DG.Document.destroyDocument(DG.activeDocument);
 
@@ -1239,7 +1236,7 @@ DG.DocumentController = SC.Object.extend(
       this.closeAllComponents();
 
       DG.UndoHistory.clearUndoRedoHistory();
-    },
+   },
 
     closeAllComponents: function() {
       this._singletonViews = {};

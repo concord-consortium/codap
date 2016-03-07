@@ -528,8 +528,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // wire up model events to drive the grid
     dataView.onRowCountChanged.subscribe(function (e, args) {
       SC.run( function() {
-        this._slickGrid.invalidate();
-        this.set('rowCount', args.current);
+        if( this._slickGrid) {
+          this._slickGrid.invalidate();
+          this.set('rowCount', args.current);
+        }
       }.bind( this));
     }.bind( this));
     
