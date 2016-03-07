@@ -202,12 +202,9 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tY2AxisView); // So it will be on top and drag-hilite will show over plot
     tY2AxisView.set('isVisible', tY2Axis.constructor !== DG.AxisModel);
     tLegendView.set('model', this.getPath('model.legend'));
-
-    DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
   },
   
   destroy: function() {
-    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
     this.model.destroy(); // so that it can unlink observers
     sc_super();
   },
@@ -665,17 +662,6 @@ DG.GraphView = SC.View.extend(
     this.renderLayout( this.renderContext( this.get('tagName')));
   }.observes('model.numberToggle.caseCount'),
 
-  /**
-    Called when the value of a global value changes (e.g. when a slider is dragged).
-   */
-  globalValueDidChange: function() {
-    var tPlotView = this.get('plotView');
-    if( tPlotView) {
-      tPlotView.get('model').invalidateCaches();
-      tPlotView.refreshCoordinates();
-    }
-  },
-  
   mapPlotModelToPlotView: function( iPlotModel) {
     var tModelClass = iPlotModel && iPlotModel.constructor,
         tNewViewClass = null;

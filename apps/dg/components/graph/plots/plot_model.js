@@ -265,6 +265,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.addObserver('dataConfiguration', this, 'dataConfigurationDidChange');
     this.addObserver('xAxis', this, 'xAxisDidChange');
     this.addObserver('yAxis', this, 'yAxisDidChange');
+    DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
   },
   
   /**
@@ -289,6 +290,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
                           });
     this._adornmentModels = null;
 
+    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
     sc_super();
   },
   
@@ -461,6 +463,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('axisBounds');
   },
 
+  /**
+   Called when the value of a global value changes (e.g. when a slider is dragged).
+   */
+  globalValueDidChange: function() {
+    if( this.getPlottedAttributesContainFormulas())
+      this.invalidateCaches();
+  },
+
   animateSelectionBackToStart: function( iAttrIDs, iDeltas) {
     if( SC.none( this.caseValueAnimator))
       this.caseValueAnimator = DG.CaseValueAnimator.create();
@@ -543,16 +553,8 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     @returns  {Boolean}
    */
   getPlottedAttributesContainFormulas: function() {
-    var hasFormula = false,
-        dataConfiguration = this.get('dataConfiguration'),
-        properties = ['xAttributeDescription', 'yAttributeDescription', 'legendAttributeDescription'];
-    if( !dataConfiguration) return false;
-    properties.forEach( function( iProperty) {
-                          var desc = dataConfiguration.get( iProperty);
-                          if( desc && desc.get('hasFormula'))
-                            hasFormula = true;
-                        });
-    return hasFormula;
+    var tDataConfiguration = this.get('dataConfiguration');
+    return tDataConfiguration && tDataConfiguration.atLeastOneFormula();
   },
   
   /**

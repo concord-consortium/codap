@@ -609,7 +609,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * Set up to trigger during init
    */
   globalValueDidChange:function() {
-    this.invalidateCaches();
+    if( this.atLeastOneFormula())
+      this.invalidateCaches();
   },
 
   /**
@@ -678,6 +679,17 @@ DG.PlotDataConfiguration = SC.Object.extend(
         break;
     }
     return tAttributeDescription.getPath('attributeStats.minMax');
+  },
+
+  /**
+   *
+   * @returns {Boolean}
+   */
+  atLeastOneFormula: function() {
+    var tProperties = ['xAttributeDescription', 'yAttributeDescription', 'legendAttributeDescription'];
+    return tProperties.some( function( iProperty) {
+      return this.getPath(iProperty + '.hasFormula');
+    }.bind(this));
   },
 
   /**
