@@ -13692,7 +13692,8 @@ module.exports = React.createClass({
       className: 'modal-background',
       style: this.state.dimensions
     }), div({
-      className: 'modal-content'
+      className: 'modal-content',
+      style: this.state.dimensions
     }, this.props.children));
   }
 });
