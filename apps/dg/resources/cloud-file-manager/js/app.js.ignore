@@ -9570,6 +9570,24 @@ CloudFileManagerClient = (function() {
     }
   };
 
+  CloudFileManagerClient.prototype.closeFile = function(callback) {
+    if (callback == null) {
+      callback = null;
+    }
+    this._closeCurrentFile();
+    this._resetState();
+    return typeof callback === "function" ? callback() : void 0;
+  };
+
+  CloudFileManagerClient.prototype.closeFileDialog = function(callback) {
+    if (callback == null) {
+      callback = null;
+    }
+    if ((!this.state.dirty) || (confirm(tr('~CONFIRM.CLOSE_FILE')))) {
+      return this.closeFile(callback);
+    }
+  };
+
   CloudFileManagerClient.prototype.importData = function(data, callback) {
     if (callback == null) {
       callback = null;
@@ -12174,6 +12192,7 @@ CloudFileManagerUIMenu = (function() {
     names = {
       newFileDialog: tr("~MENU.NEW"),
       openFileDialog: tr("~MENU.OPEN"),
+      closeFileDialog: tr("~MENU.CLOSE"),
       revertToLastOpenedDialog: tr("~MENU.REVERT_TO_LAST_OPENED"),
       revertToSharedDialog: tr("~MENU.REVERT_TO_SHARED_VIEW"),
       save: tr("~MENU.SAVE"),
@@ -12384,6 +12403,7 @@ module.exports = {
   "~MENUBAR.UNTITLED_DOCUMENT": "Untitled Document",
   "~MENU.NEW": "New",
   "~MENU.OPEN": "Open ...",
+  "~MENU.CLOSE": "Close",
   "~MENU.IMPORT_DATA": "Import data...",
   "~MENU.SAVE": "Save",
   "~MENU.SAVE_AS": "Save As ...",
@@ -12428,6 +12448,7 @@ module.exports = {
   "~SHARE_DIALOG.COPY_ERROR": "Sorry, the share url was not able to be copied to the clipboard.",
   "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
   "~CONFIRM.NEW_FILE": "You have unsaved changes. Are you sure you want to create a new document?",
+  "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
   "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
   "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
   "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Drop file here or click here to select a file.",
@@ -13692,8 +13713,7 @@ module.exports = React.createClass({
       className: 'modal-background',
       style: this.state.dimensions
     }), div({
-      className: 'modal-content',
-      style: this.state.dimensions
+      className: 'modal-content'
     }, this.props.children));
   }
 });

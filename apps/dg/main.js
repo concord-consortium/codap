@@ -263,6 +263,14 @@ DG.main = function main() {
                                              appBuildNum: DG.BUILD_NUM
                                             });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
+            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
+              name: "Close",
+              action: function () {
+                DG.cfmClient.closeFileDialog(function () {
+                  DG.appController.closeAndNewDocument();
+                });
+              }
+            });
 
             // synchronize document dirty state on document change
             DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
