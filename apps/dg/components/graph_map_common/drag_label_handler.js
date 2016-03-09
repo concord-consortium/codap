@@ -85,22 +85,24 @@ DG.DragLabelHandler = SC.Object.extend(
             return;
         this.labelNode.ignoreTouchEnd();
         // Initiate a drag
-        DG.Drag.start({
-          event: iEvent,
-          source: this.viewToAddTo,
-          dragView: tDragView,
-          ghost: YES,
-          ghostActsLikeCursor: YES,
-          slideBack: YES,
-          // The origin is supposed to be the point that the drag view will slide back to,
-          // but this is not working.
-          origin: {x: iEvent.clientX, y: iEvent.clientY},
-          data: {
-            context: tContext,
-            collection: tCollectionClient.get('collection'),
-            attribute: tAttribute,
-            text: tAttributeName
-          }  // For use by clients like the text box
+        SC.run( function() {
+          DG.Drag.start({
+            event: iEvent,
+            source: this.viewToAddTo,
+            dragView: tDragView,
+            ghost: YES,
+            ghostActsLikeCursor: YES,
+            slideBack: YES,
+            // The origin is supposed to be the point that the drag view will slide back to,
+            // but this is not working.
+            origin: {x: iEvent.clientX, y: iEvent.clientY},
+            data: {
+              context: tContext,
+              collection: tCollectionClient.get('collection'),
+              attribute: tAttribute,
+              text: tAttributeName
+            }  // For use by clients like the text box
+          });
         });
       }
     },

@@ -45,7 +45,10 @@ DG.DotPlotView = DG.PlotView.extend(
       default:
         return null;
     }
-  }.property('model.primaryAxisPlace', 'xAxisView', 'yAxisView')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  primaryAxisViewDidChange: function() {
+    this.notifyPropertyChange('primaryAxisView');
+  }.observes('*model.primaryAxisPlace', 'xAxisView', 'yAxisView'),
 
   /**
   @property{DG.CellLinearAxisView}
@@ -59,7 +62,10 @@ DG.DotPlotView = DG.PlotView.extend(
       default:
         return null;
     }
-  }.property('model.secondaryAxisPlace', 'xAxisView', 'yAxisView')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  secondaryAxisViewDidChange: function() {
+    this.notifyPropertyChange('secondaryAxisView');
+  }.observes('*model.secondaryAxisPlace', 'xAxisView', 'yAxisView'),
 
   /**
    * The secondaryAxisView needs to be told that its tick marks and labels are not to be centered in each cell.
@@ -325,7 +331,9 @@ DG.DotPlotView = DG.PlotView.extend(
               }
             })
         .mousedown( function( iEvent) {
-              this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey);
+              SC.run(function() {
+                this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey);
+              });
             })
         .drag(function (dx, dy) { // continue
               var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
@@ -336,9 +344,11 @@ DG.DotPlotView = DG.PlotView.extend(
               if( isFinite( tNewWorld)) {
                 // Put the element into the initial transformed state so that changing case values
                 // will not be affected by the scaling in the current transform.
-                this.transform( tInitialTransform);
-                changeCaseValues( tNewWorld - tOldWorld);
-                this.transform( tCurrTransform);
+                SC.run(function() {
+                  this.transform( tInitialTransform);
+                  changeCaseValues( tNewWorld - tOldWorld);
+                  this.transform( tCurrTransform);
+                }.bind(this));
               }
             },
             function (x, y) { // begin

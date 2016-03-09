@@ -317,11 +317,19 @@ DG.UserEntryDialog = SC.PanelPane.extend({
               return docEntry.name;
           }
           return null;
-        }.property('*documentListView.value'),
+        }.property(),
+
+        documentNameDidChange: function () {
+          this.notifyPropertyChange('documentName');
+        }.observes('*documentListView.value'),
 
         documentID: function() {
           return this.getPath('documentListView.value');
-        }.property('*documentListView.contentView.fieldValue'),
+        }.property(),
+
+        documentIDDidChange: function () {
+          this.notifyPropertyChange('documentID');
+        }.observes('*documentListView.contentView.fieldValue'),
 
         close: function() {
           // NOOP. Implemented to mimic the expected dialog API used in DG.appController.openDocumentFromDialog

@@ -376,14 +376,21 @@ DG.gameSelectionController = SC.ObjectController.create((function() // closure
   init: function() {
     sc_super();
     this.buildGamesMenu( DG.IS_SRRI_BUILD, DG.IS_DEV_BUILD);
-    this.menuPane = SC.MenuPane.create({
-              items: this.games,
-              itemTitleKey: 'name',
-              layout: { width: 200/*, height: 200*/ }
-            });
 
-    // Specify the default game
-    this.setDefaultGame();
+    // Without the SC.run() we get warnings about invokeOnce() being called
+    // outside the run loop in SC 1.10. A better solution would probably be
+    // to create these menus somewhere else, but for now we just wrap them
+    // in a run loop to quiet the warnings.
+    SC.run(function() {
+      this.menuPane = SC.MenuPane.create({
+        items: this.games,
+        itemTitleKey: 'name',
+        layout: {width: 200/*, height: 200*/}
+      });
+
+      // Specify the default game
+      this.setDefaultGame();
+    }.bind(this));
   },
 
   /**

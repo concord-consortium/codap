@@ -34,7 +34,11 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
 
   defaultTitle: function() {
     return this.getPath('context.name');
-  }.property('context.name'),
+  }.property(),
+
+  defaultTitleDidChange: function () {
+    return this.notifyPropertyChange('defaultTitle');
+  }.observes('*context.name'),
 
   /**
    * Attribute widths as requested by the user, keyed by attribute id.

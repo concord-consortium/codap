@@ -128,7 +128,10 @@ DG.AttributePlacementDescription = SC.Object.extend(
         tRange = tMinMax.max - tMinMax.min;
     tMinMax.min -= this.get('offsetMinProportion') * tRange;
     return tMinMax;
-  }.property('attributeStats.minMax', 'offsetMinProportion'),
+  }.property(),
+  minMaxDidChange: function() {
+    this.notifyPropertyChange('minMax');
+  }.observes('*attributeStats.minMax', 'offsetMinProportion'),
 
   /**
    * Set to cause minimum of numeric values to be offset downward by this proportion of the range.
@@ -198,7 +201,11 @@ DG.AttributePlacementDescription = SC.Object.extend(
       return DG.Analysis.EAttributeType.eNone;
     else
       return tAttributeStats.get('attributeType');
-  }.property('attributeStats.attributeType'),
+  }.property(),
+
+  attributeTypeDidChange: function() {
+    this.notifyPropertyChange('attributeType');
+  }.observes('*attributeStats.attributeType'),
 
   /**
     @property {DG.Analysis.EAnalysisRole}

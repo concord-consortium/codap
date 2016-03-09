@@ -43,14 +43,22 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    */
   paper: function() {
     return this.getPath('paperSource.paper');
-  }.property('paperSource.paper'),
+  }.property(),
+
+  paperDidChange: function() {
+    this.notifyPropertyChange('paper');
+  }.observes('*paperSource.paper'),
 
   /**
    * @property {DG.LayerManager}
    */
   layerManager: function() {
     return this.getPath('paperSource.layerManager');
-  }.property('paperSource.layerManager' ),
+  }.property(),
+
+  layerManagerDidChange: function() {
+    this.notifyPropertyChange('layerManager');
+  }.observes('*paperSource.layerManager'),
 
   /**
    * Get from paperSource
@@ -58,7 +66,11 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    */
   frame: function() {
     return this.getPath('paperSource.frame');
-  }.property('paperSource.frame'),
+  }.property(),
+
+  frameDidChange: function() {
+    this.notifyPropertyChange('frame');
+  }.observes('*paperSource.frame'),
 
   /**
    * Get from paperSource
@@ -66,7 +78,11 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    */
   elementsToClear: function() {
     return this.getPath('paperSource._elementsToClear');
-  }.property('paperSource._elementsToClear'),
+  }.property(),
+
+  elementsToClearDidChange: function() {
+    this.notifyPropertyChange('elementsToClear');
+  }.observes('*paperSource._elementsToClear'),
 
   /**
    * @private
@@ -104,7 +120,11 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   */
   dataContext: function() {
     return this.getPath('model.dataContext');
-  }.property('model.dataContext'),
+  }.property(),
+
+  dataContextDidChange: function() {
+    this.notifyPropertyChange('dataContext');
+  }.observes('*model.dataContext'),
    
   selection: null,
   selectionBinding: '*model.casesController.selection',

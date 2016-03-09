@@ -37,7 +37,11 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
    */
   mapGridModel: function() {
     return this.getPath('mapGridLayer.model');
-  }.property('mapGridLayer.model'),
+  }.property(),
+
+  mapGridModelDidChange: function() {
+    this.notifyPropertyChange('mapGridModel');
+  }.observes('*mapGridLayer.model'),
 
   /**
     @property { DG.MapGridLayer}
@@ -49,7 +53,11 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
    */
   map: function() {
     return this.getPath('mapGridLayer.map');
-  }.property('mapGridLayer.map'),
+  }.property(),
+
+  mapDidChange: function() {
+    this.notifyPropertyChange('map');
+  }.observes('*mapGridLayer.map'),
 
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
@@ -83,6 +91,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
+      /* global L */
       var tMap = this_.get('map'),
           tMapGridModel = this_.get('mapGridModel'),
           tLatLngBounds,

@@ -214,7 +214,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
               }
             })
         .mousedown( function( iEvent) {
-              this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
+              SC.run(function() {
+                this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
+              });
             })
 //        .drag(function (dx, dy) { // continue
 //                SC.run( function() {

@@ -52,7 +52,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         return this.dataToCoordinate( 0);
       else
         return null;
-    }.property('model.lowerBound', 'model.upperBound', 'pixelMin', 'pixelMax').cacheable(),
+    }.property().cacheable(),
+    zeroPixelDidChange: function() {
+      this.notifyPropertyChange('zeroPixel');
+    }.observes('*model.lowerBound', '*model.upperBound', 'pixelMin', 'pixelMax'),
 
     /**
       @property {Number} Each time we draw the axis, we set this property to the maximum width
@@ -340,19 +343,21 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         }
 
         function doLowerDilate( idX, idY) {
-          if( !tClickHandling && this_._isDragging) {
-            //DG.SoundUtilities.drag();
-            var tLowerAtStart = this_.get('_lowerBoundAtDragStart'),
-                tUpper = this_.getPath('model.upperBound'),
-                tCurrDelta = this_.get( 'isVertical') ? idY : idX,
-                tFixed = this_.get( 'pixelMax'),
-                tDelta = tFixed - this_._dilationAnchorCoord,
-                tFactor = tDelta / (tDelta - tCurrDelta);
-            if( (tFactor > 0) && (tFactor < 10)) {
-              this_.setPath('model._lowerBound', tLowerAtStart);
-              this_.get('model').dilate( tUpper, tFactor);
+          SC.run(function() {
+            if (!tClickHandling && this_._isDragging) {
+              //DG.SoundUtilities.drag();
+              var tLowerAtStart = this_.get('_lowerBoundAtDragStart'),
+                  tUpper = this_.getPath('model.upperBound'),
+                  tCurrDelta = this_.get('isVertical') ? idY : idX,
+                  tFixed = this_.get('pixelMax'),
+                  tDelta = tFixed - this_._dilationAnchorCoord,
+                  tFactor = tDelta / (tDelta - tCurrDelta);
+              if ((tFactor > 0) && (tFactor < 10)) {
+                this_.setPath('model._lowerBound', tLowerAtStart);
+                this_.get('model').dilate(tUpper, tFactor);
+              }
             }
-          }
+          });
         }
 
         // We are dragging in the lower portion of the axis. The upper bound will remain fixed
@@ -369,19 +374,21 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
         }
 
         function doUpperDilate( idX, idY) {
-          if( !tClickHandling && this_._isDragging) {
-            //DG.SoundUtilities.drag();
-            var tUpperAtStart = this_.get('_upperBoundAtDragStart'),
-                tLower = this_.getPath('model.lowerBound'),
-                tCurrDelta = this_.get( 'isVertical') ? idY : idX,
-                tFixed = this_.get( 'pixelMin'),
-                tDelta = tFixed - this_._dilationAnchorCoord,
-                tFactor = tDelta / (tDelta - tCurrDelta);
-            if( (tFactor > 0) && (tFactor < 10)) {
-              this_.setPath('model._upperBound', tUpperAtStart);
-              this_.get('model').dilate( tLower, tFactor);
+          SC.run(function() {
+            if( !tClickHandling && this_._isDragging) {
+              //DG.SoundUtilities.drag();
+              var tUpperAtStart = this_.get('_upperBoundAtDragStart'),
+                  tLower = this_.getPath('model.lowerBound'),
+                  tCurrDelta = this_.get('isVertical') ? idY : idX,
+                  tFixed = this_.get('pixelMin'),
+                  tDelta = tFixed - this_._dilationAnchorCoord,
+                  tFactor = tDelta / (tDelta - tCurrDelta);
+              if ((tFactor > 0) && (tFactor < 10)) {
+                this_.setPath('model._upperBound', tUpperAtStart);
+                this_.get('model').dilate(tLower, tFactor);
+              }
             }
-          }
+          });
         }
 
         function setRect( iElement, iX, iY, iWidth, iHeight) {
@@ -509,7 +516,10 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             };
       tInfo.range = tInfo.upperBound - tInfo.lowerBound;
       return tInfo;
-    }.property('model.lowerBound', 'model.upperBound', 'fullCellWidth', 'pixelMax' ).cacheable(),
+    }.property().cacheable(),
+    infoDidChange: function() {
+      this.notifyPropertyChange('info');
+    }.observes('*model.lowerBound', '*model.upperBound', 'fullCellWidth', 'pixelMax'),
 
     /**
     Given the value to plot and its cell number, give the coordinate along this axis.
@@ -621,8 +631,12 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
      * @property {Number}
      */
     increment: function() {
-      return this.coordinateToData( 1) - this.coordinateToData(0);
-    }.property('model.lowerBound', 'model.upperBound', 'frame').cacheable(),
+      return this.coordinateToData(1) - this.coordinateToData(0);
+    }.property('frame').cacheable(),
+
+    incrementDidChange: function() {
+      this.notifyPropertyChange('increment');
+    }.observes('*model.lowerBound', '*model.upperBound'),
 
     /**
     Return the maximum length of the label strings plus a bit extra.

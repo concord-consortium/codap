@@ -57,7 +57,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       value: function () {
         return this.parentView.get('collectionName') + ' (' +
             this.parentView.get('caseCount') + ')';
-      }.property( 'parentView.collectionName', 'parentView.caseCount'),
+      }.property(),
+
+      valueDidChange: function() {
+        this.notifyPropertyChange('value');
+      }.observes('*parentView.collectionName', '*parentView.caseCount'),
 
       /**
        * We are displaying the collection name and count. We only want to
@@ -256,7 +260,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.setPath('gridAdapter.collectionName', value);
     }
     return this.getPath('gridAdapter.collectionName');
-  }.property('gridAdapter.collectionName'),
+  }.property(),
+
+  collectionNameDidChange: function() {
+    this.notifyPropertyChange('collectionName');
+  }.observes('*gridAdapter.collectionName'),
 
   /**
    * Count for the current collection.
@@ -264,7 +272,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   caseCount: function () {
     return this.getPath('gridAdapter.collection.casesController.length');
-  }.property('gridAdapter.collection.casesController.length'),
+  }.property(),
+
+  caseCountDidChange: function() {
+    this.notifyPropertyChange('caseCount');
+  }.observes('*gridAdapter.collection.casesController.length'),
 
   /**
     The adapter used for adapting the case data for use in SlickGrid.
@@ -460,10 +472,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
    */
   initGridView: function() {
-    var gridSelector = "#" + this.tableView.get('layerId'),
+    var gridLayer = this.tableView.get('layer'),
         gridAdapter = this.get('gridAdapter'),
         dataView = gridAdapter && gridAdapter.gridDataView;
-    this._slickGrid = new Slick.Grid( gridSelector, gridAdapter.gridDataView, 
+    this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
                                       gridAdapter.gridColumns, gridAdapter.gridOptions);
     
     this._slickGrid.setSelectionModel(new Slick.RowSelectionModel({ selectActiveRow: false }));
@@ -496,13 +508,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
 
       headerMenuPlugin.onCommand.subscribe(function(e, args) {
-        var controller;
-        for( var view = this; view && !controller; view = view.get('parentView')) {
-          controller = view.get('controller');
-        }
-        // Dispatch the command to the controller
-        if( controller)
-          controller.doCommand( args);
+        SC.run(function () {
+          var controller;
+          for( var view = this; view && !controller; view = view.get('parentView')) {
+            controller = view.get('controller');
+          }
+          // Dispatch the command to the controller
+          if( controller)
+            controller.doCommand( args);
+        }.bind(this));
       }.bind(this));
     } // DG.supports('caseTableHeaderMenus')
 
@@ -542,15 +556,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
     }.bind( this));
     
-    $(gridSelector).show();
+    $(gridLayer).show();
 
-    $(gridSelector).bind('wheel', function (ev) {
+    $(gridLayer).bind('wheel', function (ev) {
       ev.stopPropagation();
     });
-    $(gridSelector).bind('DOMMouseScroll', function (ev) {
+    $(gridLayer).bind('DOMMouseScroll', function (ev) {
       ev.stopPropagation();
     });
-    $(gridSelector).bind('MozMousePixelScroll', function (ev) {
+    $(gridLayer).bind('MozMousePixelScroll', function (ev) {
       ev.stopPropagation();
     });
 
@@ -756,14 +770,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // we simply call displayDidChange() to make sure we get a second call to
     // render(), by which time the <div> has been created and we can pass it
     // to SlickGrid.
-    if( iFirstTime) {
-      this.displayDidChange();
-    }
-    else if( !this._slickGrid && this.get('gridAdapter')) {
-      this.initGridView();
-      this.set('gridWidth', this._slickGrid.getContentSize().width);
-    }
-    else if( this._slickGrid) {
+    if( this._slickGrid) {
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
         gridAdapter.refresh();
@@ -787,8 +794,21 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // are copied to the context before render() is called, but the
     // SlickGrid isn't created until render(), so setting 'classNames'
     // wouldn't have the desired effect until the next time we render().
-    if( this._slickGrid)
-      iContext.classNames( this.$().attr("class"), YES);
+    //if( this._slickGrid)
+    //  iContext.setClass( this.$().attr("class"), YES);
+  },
+
+  didAppendToDocument: function() {
+    var gridAdapter = this.get('gridAdapter');
+    if (!this._slickGrid && SC.none(gridAdapter)) {
+      console.log("DG.CaseTableView.didAppendToDocument: Can't initialize _slickGrid!");
+      return;
+    }
+
+    if( !this._slickGrid) {
+      this.initGridView();
+      this.set('gridWidth', this._slickGrid.getContentSize().width);
+    }
   },
 
   mouseDown: function( iEvent) {
@@ -1036,34 +1056,37 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       iEvent.stopImmediatePropagation();
 
     var tDragView = this._hiddenDragView,
-        tAttributeName = column.attribute.get('name'),
-        this_ = this;
+        tAttributeName = column.attribute.get('name');
+    SC.run( function () {
+      tDragView.set('value', tAttributeName);
+      this.removeChild( tDragView);
+      this.appendChild( tDragView);
+    }.bind(this));
+    // setting attribute and starting drag need to be in separate run loops.
     SC.run( function() {
       // Make sure dragView is in front. Won't actually happen without this runloop.
-      tDragView.set('value', tAttributeName);
-      this_.removeChild( tDragView);
-      this_.appendChild( tDragView);
       // We could dynamically adjust the width here, but since the font used for the
       // drag image is currently different than the one used in the table, it's not
       // clear what the appropriate size should be, so we skip it for now.
       //if( column.width)
       //  tDragView.adjust('width', column.width);
-    });
-    // Initiate a drag
-    DG.Drag.start({
-      event: iEvent,
-      source: this,
-      dragView: tDragView,
-      ghost: YES,
-      ghostActsLikeCursor: YES,
-      slideBack: YES,
-      // The origin is supposed to be the point that the drag view will slide back to,
-      // but this is not working.
-      origin: { x: iEvent.clientX, y: iEvent.clientY },
-      data: { context: column.context,
-              collection: column.collection,
-              attribute: column.attribute,
-              text: tAttributeName }  // For use by clients like the text box
+      // Initiate a drag
+      DG.Drag.start({
+        event: iEvent,
+        source: this,
+        dragView: tDragView,
+        ghost: YES,
+        ghostActsLikeCursor: YES,
+        slideBack: YES, // The origin is supposed to be the point that the drag view will slide back to,
+        // but this is not working.
+        origin: {x: iEvent.clientX, y: iEvent.clientY},
+        data: {
+          context: column.context,
+          collection: column.collection,
+          attribute: column.attribute,
+          text: tAttributeName
+        }  // For use by clients like the text box
+      });
     });
   },
   
@@ -1363,6 +1386,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var leftViewport = leftTable.get('gridViewport');
     var leftDataView = leftTable.getPath('gridAdapter.gridDataView');
     var didScroll = false;
+    if (dataView.getLength() === 0 || leftDataView.getLength() === 0) {
+      // nothing to do
+      return false;
+    }
 
     // Find row in this table of first child of top item in left viewport
     var leftTopCase = leftDataView.getItem(leftViewport.top);
@@ -1417,8 +1444,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var rightViewport = rightTable.get('gridViewport');
     var rightDataView = rightTable.getPath('gridAdapter.gridDataView');
     var didScroll = false;
+    if (dataView.getLength() === 0 || rightDataView.getLength() === 0) {
+      // nothing to do
+      return false;
+    }
 
-    // Find row in right table of first child, p0Row, of top item in this table
+
+      // Find row in right table of first child, p0Row, of top item in this table
     var topRightCase = rightDataView.getItem(rightViewport.top);
     var p0Row = getParentRow(topRightCase);
 
