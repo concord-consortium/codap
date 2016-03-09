@@ -180,6 +180,7 @@ DG.GraphDropTarget =
    @param {SC.DRAG_LINK}
      */
   performDragOperation:function ( iDragObject, iDragOp ) {
+    this.hideDropHint();
     this.set( 'dragData', iDragObject.data );
     return SC.DRAG_LINK;
   }

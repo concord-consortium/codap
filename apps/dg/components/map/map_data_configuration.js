@@ -200,15 +200,24 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       areaCollectionClient: function () {
         return this.getPath('areaAttributeDescription.collectionClient');
-      }.property('areaAttributeDescription.collectionClient').cacheable(),
+      }.property().cacheable(),
+      areaCollectionClientDidChange: function() {
+        this.notifyPropertyChange('areaCollectionClient');
+      }.observes('*areaAttributeDescription.collectionClient'),
 
       latAttributeID: function () {
         return this.getPath('yAttributeDescription.attributeID');
-      }.property('yAttributeDescription.attributeID'),
+      }.property(),
+      latAttributeIDDidChange: function() {
+        this.notifyPropertyChange('latAttributeID');
+      }.observes('*yAttributeDescription.attributeID'),
 
       longAttributeID: function () {
         return this.getPath('xAttributeDescription.attributeID');
-      }.property('xAttributeDescription.attributeID'),
+      }.property(),
+      longAttributeIDDidChange: function() {
+        this.notifyPropertyChange('longAttributeID');
+      }.observes('*xAttributeDescription.attributeID'),
 
       // These two bindings help us with API for connecting line model
       xVarIDBinding: '.longAttributeID',
@@ -220,7 +229,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       areaAttributeID: function () {
         return this.getPath('areaAttributeDescription.attributeID');
-      }.property('areaAttributeDescription.attributeID'),
+      }.property(),
+      areaAttributeIDDidChange: function() {
+        this.notifyPropertyChange('areaAttributeID');
+      }.observes('*areaAttributeDescription.attributeID'),
 
       hasAreaAttribute: function () {
         return !SC.none(this.get('areaAttributeID'));
@@ -239,11 +251,17 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       captionCollectionClient: function () {
         return this.getPath('captionAttributeDescription.collectionClient');
-      }.property('captionAttributeDescription.collectionClient'),
+      }.property(),
+      captionCollectionClientDidChange: function() {
+        this.notifyPropertyChange('captionCollectionClient');
+      }.observes('*captionAttributeDescription.collectionClient'),
 
       captionAttributeID: function () {
         return this.getPath('captionAttributeDescription.attributeID');
-      }.property('captionAttributeDescription.attributeID'),
+      }.property(),
+      captionAttributeIDDidChange: function() {
+        this.notifyPropertyChange('captionAttributeID');
+      }.observes('*captionAttributeDescription.attributeID'),
 
       getLatLongBounds: function () {
         var tLatMinMax = this.getPath('yAttributeDescription.attributeStats.minMax'),

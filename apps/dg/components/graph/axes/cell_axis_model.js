@@ -33,8 +33,12 @@ DG.CellAxisModel = DG.AxisModel.extend(
   */
   numberOfCells: function() {
     return Math.max( 1, this.getPath('attributeDescription.attributeStats.numberOfCells'));
-  }.property('attributeDescription.attributeStats.numberOfCells'),
-  
+  }.property(),
+
+  numberOfCellsDidChange: function() {
+    this.notifyPropertyChange('numberOfCells');
+  }.observes('*attributeDescription.attributeStats.numberOfCells'),
+
   /**
     Iterates through cells to find name with maximum length
     @property{Number}
@@ -45,7 +49,10 @@ DG.CellAxisModel = DG.AxisModel.extend(
       tMaxLength = Math.max( tMaxLength, iName.length);
     });
     return tMaxLength;
-  }.property('attributeDescription.attributeStats.cellMap')/*.cacheable()*/,
+  }.property()/*.cacheable()*/,
+  maxCellNameLengthDidChange: function() {
+    this.notifyPropertyChange('maxCellNameLength');
+  }.observes('*attributeDescription.attributeStats.cellMap'),
 
   /**
     @property {Boolean}

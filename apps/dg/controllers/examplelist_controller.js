@@ -1,5 +1,5 @@
 // ==========================================================================
-//                      DG.DocumentListController
+//                      DG.ExampleListController
 //
 //  Interface for tracking a list of available documents on the server.
 //
@@ -50,10 +50,14 @@ DG.ExampleListController = SC.ArrayController.extend(
         url: url,
         dataType: 'json',
         success: function(iResponse) {
-          this.receivedExampleListResponse(iResponse);
+          SC.run(function() {
+            this.receivedExampleListResponse(iResponse);
+          }.bind(this));
         }.bind(this),
         error: function(jqXHR, textStatus, errorThrown) {
-          this.handleExampleListError(jqXHR, textStatus, errorThrown);
+          SC.run(function() {
+            this.handleExampleListError(jqXHR, textStatus, errorThrown);
+          }.bind(this));
         }.bind(this)
       });
     },

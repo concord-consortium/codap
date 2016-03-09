@@ -36,7 +36,11 @@ DG.GuideView = SC.WebView.extend(
       realURL: function() {
         // We require the author to specify either http:// or https:// so that there is no ambiguity
         return this.getPath('guideModel.currentURL');
-      }.property('guideModel.currentURL'),
+      }.property(),
+
+      realURLDidChange: function () {
+        this.notifyPropertyChange('realURL');
+      }.observes('*guideModel.currentURL'),
 
       init: function() {
         sc_super();

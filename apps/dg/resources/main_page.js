@@ -241,6 +241,8 @@ DG.mainPage = SC.Page.design((function() {
 
     scrollView: SC.ScrollView.design({
       layout: { top: kInfobarHeight + kToolbarHeight },
+      horizontalAlign: SC.ALIGN_LEFT,
+      verticalAlign: SC.ALIGN_TOP,
       classNames: 'doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
@@ -271,9 +273,11 @@ DG.mainPage = SC.Page.design((function() {
     },
 
     setupDragDrop: function() {
+      var tElement = this.get('layer');
       var isIE = (SC.browser.engine === SC.ENGINE.trident);
       var cancel = function( iEvent) {
             if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+            if (iEvent.stopPropagation) iEvent.stopPropagation();
             iEvent.dataTransfer.dropEffect = 'copy';
             return false; // required by IE
           },
@@ -348,7 +352,6 @@ DG.mainPage = SC.Page.design((function() {
         return false;
       };
 
-      var tElement = this._view_layer;
       tElement.ondragover = cancel;
       tElement.ondragenter = dragEnter;
       tElement.ondragleave = dragEnd;

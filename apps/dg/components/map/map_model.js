@@ -80,15 +80,24 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
     latVarID: function() {
       return this.getPath('dataConfiguration.latAttributeID');
-    }.property('*dataConfiguration.latAttributeID'),
+    }.property(),
+    latVarIDDidChange: function() {
+      this.notifyPropertyChange('latVarID');
+    }.observes('*dataConfiguration.latAttributeID'),
 
     longVarID: function() {
       return this.getPath('dataConfiguration.longAttributeID');
-    }.property('dataConfiguration.longAttributeID'),
+    }.property(),
+    longVarIDDidChange: function() {
+      this.notifyPropertyChange('longVarID');
+    }.observes('*dataConfiguration.longAttributeID'),
 
     areaVarID: function() {
       return this.getPath('dataConfiguration.areaAttributeDescription.attributeID');
-    }.property('dataConfiguration.areaAttributeDescription.attributeID'),
+    }.property(),
+    areaVarIDDidChange: function() {
+      this.notifyPropertyChange('areaVarID');
+    }.observes('*dataConfiguration.areaAttributeDescription.attributeID'),
 
     /**
      Prepare dependencies.
@@ -152,7 +161,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       var tDescription = this.getPath('dataConfiguration.' + iDescKey);
       if( tDescription) {
         tDescription.removeAllAttributes();
-        this.notifyPropertyChange('attributeRemoved')
+        this.notifyPropertyChange('attributeRemoved');
       }
     },
 
@@ -202,11 +211,19 @@ DG.MapModel = DG.DataDisplayModel.extend(
 
     hasLatLongAttributes: function() {
       return this.getPath('dataConfiguration.hasLatLongAttributes');
-    }.property('dataConfiguration.hasLatLongAttributes'),
+    }.property('dataConfiguration').cacheable(),
+
+    hasLatLongAttributesDidChange: function() {
+      this.notifyPropertyChange('hasLatLongAttributes');
+    }.observes('*dataConfiguration.hasLatLongAttributes'),
 
     hasAreaAttribute: function() {
       return this.getPath('dataConfiguration.hasAreaAttribute');
-    }.property('dataConfiguration.hasAreaAttribute'),
+    }.property('dataConfiguration'),
+
+    hasAreaAttributeDidChange: function() {
+      this.notifyPropertyChange('hasLatLongAttributes');
+    }.observes('*dataConfiguration.hasAreaAttribute'),
 
     /**
      * We can rescale if we have some data to rescale to.

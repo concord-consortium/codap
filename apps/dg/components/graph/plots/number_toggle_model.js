@@ -59,9 +59,13 @@ DG.NumberToggleModel = SC.Object.extend(
       this._cachedParentCases = tParents;
     }
     return tParents;
-  }.property('*dataConfiguration.cases'),
+  }.property(),
+  parentCasesDidChange: function() {
+    this.notifyPropertyChange('parentCases');
+  }.observes('*dataConfiguration.cases'),
 
-  /**
+
+      /**
    * @property {Number}
    */
   numberOfParents: function() {
@@ -100,7 +104,10 @@ DG.NumberToggleModel = SC.Object.extend(
       return this.get('numberOfParents');
     else // There are no parents, so each case gets an index
       return allCasesLength;
-  }.property('*dataConfiguration.allCases'),
+  }.property(),
+  numberOfToggleIndicesDidChange: function() {
+    this.notifyPropertyChange('numberOfToggleIndices');
+  }.observes('*dataConfiguration.allCases'),
 
   /**
    * Return the children of the parent with the given index.

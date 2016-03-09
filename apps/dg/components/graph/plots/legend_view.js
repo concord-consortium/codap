@@ -80,7 +80,10 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tExtent = tNumRows * tLabelHeight;
         DG.assert( isFinite(tExtent));
         return tExtent;
-      }.property('labelNode', 'model.numberOfCells'),
+      }.property(),
+      desiredExtentDidChange: function() {
+        this.notifyPropertyChange('desiredExtent');
+      }.observes('labelNode', '*model.numberOfCells'),
 
       /**
       Return the extent of the label
@@ -136,7 +139,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           return null;
         else
           return this._labelNode;
-      }.property('model.label'),
+      }.property(),
+
+      labelNodeDidChange: function() {
+        this.notifyPropertyChange('labelNode');
+      }.observes('*model.label'),
 
       /**
        * Clients expect to be able to get an array, even though we only ever have one labelNode.
@@ -270,7 +277,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           // Function passed to Raphael mouseDown event handler, which guarantees
           // that 'this' correctly refers to the Raphael element being called.
           function selectCasesInRectCell( iEvent) {
-            this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
+            SC.run(function() {
+              this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
+            }.bind(this));
             if( !iEvent.shiftKey) {
               this_._elementsToClear.forEach(function (iElement) {
                 iElement.removeClass(DG.PlotUtilities.kLegendKeySelected);
@@ -282,7 +291,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           // Function passed to Raphael mouseDown event handler, which guarantees
           // that 'this' correctly refers to the Raphael element being called.
           function selectCasesInTextCell( iEvent) {
-            this_.get('model').selectCasesInCell( this.attr('text'), iEvent.shiftKey);
+            SC.run(function() {
+              this_.get('model').selectCasesInCell( this.attr('text'), iEvent.shiftKey);
+            }.bind(this));
           }
           
           for( tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {
@@ -333,6 +344,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         @param {SC.DRAG_LINK}
       */
       performDragOperation: function( iDragObject, iDragOp) {
+        this.hideDropHint();
         this.set('dragData', iDragObject.data);
         return SC.DRAG_LINK;
       },
@@ -359,11 +371,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        */
       isNumeric: function() {
         return this.getPath('model.attributeDescription.isNumeric');
-      }.property('model.attributeDescription.isNumeric'),
+      }.property(),
+
+      isNumericDidChange: function() {
+        this.notifyPropertyChange('isNumeric');
+      }.observes('*model.attributeDescription.isNumeric'),
 
       attributeTypeDidChange: function() {
         this.displayDidChange();
-      }.observes('.model.attributeDescription.attributeStats.attributeType'),
+      }.observes('*model.attributeDescription.attributeStats.attributeType'),
 
       selectionDidChange: function() {
         if( this.get('isNumeric')) {

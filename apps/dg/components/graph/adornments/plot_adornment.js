@@ -41,7 +41,11 @@ DG.PlotAdornment = SC.Object.extend(
    */
   paper: function() {
     return this.getPath('paperSource.paper');
-  }.property('paperSource' ).cacheable(),
+  }.property('paperSource').cacheable(),
+
+  paperDidChange: function() {
+    this.notifyPropertyChange('paper');
+  }.observes('*paperSource.paper'),
 
   /**
     Provides x-coordinates
@@ -49,7 +53,11 @@ DG.PlotAdornment = SC.Object.extend(
   */
   xAxisView: function() {
     return this.getPath('paperSource.xAxisView');
-  }.property('paperSource.xAxisView' ).cacheable(),
+  }.property('paperSource').cacheable(),
+
+  xAxisViewDidChange: function() {
+    this.notifyPropertyChange('xAxisView');
+  }.observes('*paperSource.xAxisView'),
 
   /**
     Provides y-coordinates
@@ -57,7 +65,11 @@ DG.PlotAdornment = SC.Object.extend(
   */
   yAxisView: function() {
     return this.getPath('paperSource.yAxisView');
-  }.property('paperSource.yAxisView' ).cacheable(),
+  }.property('paperSource').cacheable(),
+
+  yAxisViewDidChange: function() {
+    this.notifyPropertyChange('yAxisView');
+  }.observes('*paperSource.yAxisView'),
 
   /**
     We need to know this view in order to transform from window to view coordinates.

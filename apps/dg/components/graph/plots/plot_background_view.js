@@ -76,7 +76,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
    */
   initLayerManager: function() {
     sc_super();
-    
+
+    // if base class wasn't able to initialize the layer manager, e.g. because we
+    // don't have paper yet, then this.get('layerManager') leads to an infinite loop.
+    // For now, we avoid the infinite loop by testing the private _layerManager.
+    if (!this._layerManager) return;
+
     var ln = DG.LayerNames;
     this.get('layerManager').addNamedLayer( ln.kBackground )
                   .addNamedLayer( ln.kGrid )
@@ -160,8 +165,11 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       if( iEvent.shiftKey)
         tBaseSelection = this_.getPath( 'graphModel.selection').toArray();
-      else
-        this_.get('graphModel').selectAll( false);
+      else {
+        SC.run(function(){
+          this_.get('graphModel').selectAll( false);
+        });
+      }
       tStartPt = DG.ViewUtilities.windowToViewCoordinates(
                     { x: iWindowX, y: iWindowY }, this_);
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
@@ -182,7 +190,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tHeight = Math.abs( idY),
         tRect = { x: tX, y: tY, width: tWidth, height: tHeight };
       tMarquee.attr( tRect);
-      this_.get('parentView' ).selectPointsInRect( tRect, tBaseSelection, tLastRect);
+      SC.run(function(){
+        this_.get('parentView').selectPointsInRect( tRect, tBaseSelection, tLastRect);
+      });
       tLastRect = tRect;
     }
 
@@ -197,8 +207,9 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       var tNumCases = this_.getPath( 'graphModel.casesController.selection.length');
       if( tNumCases > 0)  // We must have something > 0
         DG.logUser("marqueeSelection: %@", tNumCases);
-      this_.get('parentView' ).completeSelection();
-
+      SC.run(function(){
+        this_.get('parentView').completeSelection();
+      });
     }
 
     function showCursor( iEvent) {

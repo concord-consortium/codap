@@ -33,6 +33,8 @@ DG.ContainerView = SC.View.extend(
   (function() {
     var kDocMargin = 16;
     return {
+      classNames: 'dg-container-view'.w(),
+
       isResizable: YES,
 
       /**
@@ -40,11 +42,9 @@ DG.ContainerView = SC.View.extend(
        */
       inspectorView: null,
 
-      // We use this property as a channel for protovis to use to indicate that the
-      // frame needs updating. The frame property defined below depends on it, and
-      // protovis can explicitly set the frameNeedsUpdate property to trigger the
-      // notification.
-      frameNeedsUpdate: true,
+      // We want the container to encompass the entire window or the
+      // entire content, whichever is greater.
+      layout: { left: 0, top: 0, minWidth: '100%', minHeight: '100%' },
       
       /**
         Indicates that this view's layout should never be considered fixed.
@@ -122,10 +122,9 @@ DG.ContainerView = SC.View.extend(
       /**
         Computes/returns the bounding rectangle for the view.
        */
-      frame: function() {
+      updateFrame: function() {
         // Note that we're not providing scroll bars to scroll to left or above document
-        var tWidth = 0, tHeight = 0,
-            tParentFrame = this.parentView.get('frame');
+        var tWidth = 0, tHeight = 0;
 
         // Compute the content size as the bounding rectangle of the child views.
         this.get('childViews').forEach(
@@ -139,32 +138,9 @@ DG.ContainerView = SC.View.extend(
         // Add a margin around the components as part of the content
         tWidth += kDocMargin;
         tHeight += kDocMargin;
-        this.frameNeedsUpdate = false;
 
-        // The 'frame' determines the content size for scrolling purposes.
-        // We want to return the content size when it's larger than the
-        // container size (so that it is possible to scroll to the edge of
-        // the content), but also to return the entire size of the container
-        // when the content is smaller, so that new objects can be placed in
-        // the entire visible document space.
-        if( tHeight > tParentFrame.height) {
-          this.adjust('bottom', null);    // deletes the 'bottom' property
-          this.adjust('height', tHeight); // fixes the 'height' to the content height
-        }
-        else {
-          this.adjust('height', null);  // deletes the 'height' property
-          this.adjust('bottom', 0);     // locks the 'bottom' to the parent
-        }
-        if( tWidth > tParentFrame.width) {
-          this.adjust('right', null);   // deletes the 'right' property
-          this.adjust('width', tWidth); // fixes the 'width' as the content width
-        }
-        else {
-          this.adjust('width', null); // deletes the 'width' property
-          this.adjust('right', 0);    // locks the 'right' to the parent
-        }
-        return { x: 0, y: 0, width: tWidth, height: tHeight };
-      }.property('frameNeedsUpdate').cacheable(),
+        this.adjust({ width: tWidth, height: tHeight });
+      },
       
       removeComponentView: function( iComponentView) {
         var tCloseAction = iComponentView.get('closeAction');
@@ -176,6 +152,7 @@ DG.ContainerView = SC.View.extend(
           DG.currDocumentController().removeComponentAssociatedWithView( iComponentView);
           iComponentView.destroy();
         }
+        this.updateFrame();
       },
 
       /**
@@ -185,7 +162,7 @@ DG.ContainerView = SC.View.extend(
        */
       destroyAllChildren: function () {
         this.select(null);  // To close inspector
-        var componentViews = this.get('componentViews'), view;
+        var componentViews = this.get('componentViews');
         componentViews.forEach(function (iView) {
           if (iView && iView.willDestroy)
             iView.willDestroy();
@@ -221,34 +198,60 @@ DG.ContainerView = SC.View.extend(
 
       /* bringToFront - The given child view will be placed at the end of the list, thus
         rendered last and appearing in front of all others.
-        Note: For the data interactive this has the very undesirable effect of causing the
-          it to be reloaded!
       */
       bringToFront: function( iChildView) {
-        // Todo: Moving forward we want a data interactive to be allowed to come to the front.
-        var tContentView = iChildView.get('contentView');
-        if( tContentView && tContentView.constructor === DG.GameView)
-          return;
-        var tSaved = iChildView.layoutDidChange;  // save this for after changes
-        iChildView.layoutDidChange = null;  // prevent specious notification of resizing
-        this.removeChild( iChildView);
-        this.appendChild( iChildView);
-        iChildView.layoutDidChange = tSaved;  // reinstate
+        var domThisElement = this.get('layer'),
+            domChildElement = iChildView.get('layer'),
+            scChildViews = this.get('childViews'),
+            scChildViewCount = scChildViews.get('length'),
+            i;
+
+        // move the specified SC child view to the end of the child views
+        // no need to check the last child, since it wouldn't need to be moved
+        for( i = 0; i < scChildViewCount - 1; ++i) {
+          if(scChildViews[i] === iChildView) {
+            // remove it from its current location
+            scChildViews.splice(i, 1);
+            // add it to the end of the array
+            scChildViews.push(iChildView);
+            break;
+          }
+        }
+
+        // move the specified child DOM element to the end of the DOM children
+        // will automatically remove it from its current location, if necessary
+        // cf. https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
+        domThisElement.appendChild(domChildElement);
+        if (iChildView.didAppendToDocument) { iChildView.didAppendToDocument(); }
       },
       
       /* sendToBack - The given child view will be placed at the beginning of the list, thus
         rendered first and appearing behind all others.
       */
       sendToBack: function( iChildView) {
-        var tChildViews = this.get('childViews'),
-            tComponentViews = this.get('componentViews' ),
-            tSaved = iChildView.layoutDidChange;  // save this for after changes
-        if( tComponentViews.length === 1)
-          return;   // Only one child, so it's already in back.
-        iChildView.layoutDidChange = null;  // prevent specious notification of resizing
-        this.removeChild( iChildView);
-        this.insertBefore( iChildView, tChildViews[ 0]);
-        iChildView.layoutDidChange = tSaved;  // reinstate
+        var domThisElement = this.get('layer'),
+            domChildElement = iChildView.get('layer'),
+            scChildViews = this.get('childViews'),
+            scChildViewCount = scChildViews.get('length'),
+            i;
+
+        // move the specified SC child view to the beginning of the child views
+        // no need to check the first child, since it wouldn't need to be moved
+        for( i = 1; i < scChildViewCount; ++i) {
+          if(scChildViews[i] === iChildView) {
+            // remove it from its current location
+            scChildViews.splice(i, 1);
+            // add it to the beginning of the array
+            scChildViews.unshift(iChildView);
+            break;
+          }
+        }
+
+        // move the specified child DOM element before the first DOM child
+        if(domThisElement.firstChild !== domChildElement) {
+          // will automatically remove it from its current location, if necessary
+          domThisElement.insertBefore(domChildElement, domThisElement.firstChild);
+        }
       },
 
       /** positionNewComponent - It is assumed that the given view has not yet been added
@@ -267,7 +270,7 @@ DG.ContainerView = SC.View.extend(
                                       iPosition);
         iView.adjust( 'left', tLoc.x);
         iView.adjust( 'top', tLoc.y);
-        this.invokeLast( function() {
+        this.invokeNext( function() {
           this.select( iView);
         }.bind( this));
       },

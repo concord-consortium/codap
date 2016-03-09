@@ -589,6 +589,19 @@ DG.GraphView = SC.View.extend(
   }.observes('model.attributeRemoved'),
 
   /**
+   * Handle a click in an axis label by bringing up the appropriate axis menu.
+   * @param {SC.Event} the click event (with clientData supplied by sender)
+   * @returns {Boolean} YES indicating that the event has been handled
+   */
+  axisLabelClick: function(iEvent) {
+    var controller = this.get('controller');
+    if(controller) {
+      controller.setupAttributeMenu(iEvent, iEvent.clientData.axisView, iEvent.clientData.labelIndex);
+    }
+    return YES;
+  },
+
+  /**
    * When our model signals that the configuration is about to change, we give our plot view a chance to
    * cache the positions of elements so they can be used in an animation
    *
