@@ -51,10 +51,6 @@ DG.InspectorView = DG.DraggableView.extend(
           this.set('layout', { height: kCellHeight, width: kCollapsedWidth});
         },
 
-        bringToFront: function () {
-          this.parentView.bringToFront(this);
-        },
-
         targetComponentDidChange: function () {
 
           var removeChildren = function () {
@@ -79,7 +75,6 @@ DG.InspectorView = DG.DraggableView.extend(
               }.bind(this),
 
               finishUp = function() {
-                this.bringToFront();
                 this.invokeLater( this.scrollToVisible);
               }.bind( this);
 
