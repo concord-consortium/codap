@@ -281,9 +281,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       /**
        Observer function called when the number of rows in the parent table changes.
        */
-      rowCountDidChange: function() {
+      rowCountDidChange: function(iNotifier) {
         this.get('dividerViews').forEach(function (view) {
-          view.displayDidChange();
+          if (view.parentView === iNotifier) {
+            view.displayDidChange();
+          }
         });
       },
 
