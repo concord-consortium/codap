@@ -37,7 +37,11 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
               tController = DG.currDocumentController().componentControllersMap[tComponentId],
-              tShouldConfirmClose = tController.shouldConfirmClose;
+              tShouldConfirmClose = tController.get('shouldConfirmClose'),
+              tConfirmCloseMessage = tController.get('confirmCloseMessage')
+                  || 'DG.Component.closeComponent.confirmCloseMessage',
+              tConfirmCloseDescription = tController.get('confirmCloseDescription')
+                  || 'DG.Component.closeComponent.confirmCloseDescription';
 
           var closeComponentAfterConfirm = function () {
             this.closeComponent(tComponentId, tController);
@@ -45,7 +49,8 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
 
           if (tShouldConfirmClose) {
             DG.AlertPane.warn({
-              message: 'DG.Component.closeComponent.confirmMessage',
+              message: tConfirmCloseMessage,
+              description: tConfirmCloseDescription,
               buttons: [
                 { title: 'DG.AppController.closeDocument.okButtonTitle',
                   action: closeComponentAfterConfirm,
