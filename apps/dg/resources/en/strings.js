@@ -657,5 +657,7 @@ SC.stringsFor('English', {
   // Controllers
   'DG.Component.closeComponent.confirmCloseMessage': 'Are you sure?',
   'DG.Component.closeComponent.confirmCloseDescription': '',
-  'DG.GameController.ConfirmCloseDescription': 'If you close this window you may lose the ability to add new data to a case table.'
+  'DG.Component.closeComponent.okButtonTitle': 'Yes, close it',
+  'DG.Component.closeComponent.cancelButtonTitle': 'Cancel',
+  'DG.GameController.confirmCloseDescription': 'If you close this, you may not be able to add more data.'
   });
