@@ -652,6 +652,9 @@ SC.stringsFor('English', {
       'DG.Inspector.mapLines': "Connecting Lines",  // "Connecting Lines"
 
       // Game Controller
-      'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.'
+      'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
+
+      // Controllers
+     'DG.Component.closeComponent.confirmMessage': 'Are you sure?'
     }
 );
