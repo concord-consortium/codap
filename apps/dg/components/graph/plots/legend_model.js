@@ -51,7 +51,10 @@ DG.LegendModel = SC.Object.extend(
     var tDesc = this.get('attributeDescription'),
         tAttr = SC.none( tDesc) ? DG.Analysis.kNullAttribute : tDesc.get('attribute');
     return ( tAttr === DG.Analysis.kNullAttribute) ? '' : tAttr.get('name');
-  }.property('attributeDescription.attribute'),
+  }.property(),
+  labelDidChange: function() {
+    this.notifyPropertyChange('label');
+  }.observes('*attributeDescription.attribute'),
 
   /**
    Determined by asking attributeStats
@@ -60,7 +63,11 @@ DG.LegendModel = SC.Object.extend(
   numberOfCells: function () {
     var tNumCells = this.getPath('attributeDescription.attributeStats.numberOfCells');
     return DG.MathUtilities.isFinite( tNumCells) ? Math.max(1, tNumCells) : 0;
-  }.property('attributeDescription.attributeStats.numberOfCells'),
+  }.property(),
+
+  numberOfCellsDidChange: function() {
+    this.notifyPropertyChange('numberOfCells');
+  }.observes('*attributeDescription.attributeStats.numberOfCells'),
 
   cellMapDidChange: function() {
     this.updateSelection();
@@ -72,16 +79,23 @@ DG.LegendModel = SC.Object.extend(
   */
     numericRange: function() {
       return this.getPath('attributeDescription.attributeStats.numericRange');
-    }.property('attributeDescription.attributeStats.numericRange'),
+    }.property(),
+
+    numericRangeDidChange: function() {
+      this.notifyPropertyChange('numericRange');
+    }.observes('*attributeDescription.attributeStats.numericRange'),
 
   /**
     Determined by asking attributeStats
     @property{Array of {String}}
   */
-    cellNames: function() {
-      var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
-      return DG.ObjectMap.keys( tCellMap);
-    }.property('attributeDescription.attributeStats.cellMap'),
+  cellNames: function() {
+    var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
+    return DG.ObjectMap.keys( tCellMap);
+  }.property(),
+  cellNamesDidChange: function() {
+    this.notifyPropertyChange('cellNames');
+  }.observes('*attributeDescription.attributeStats.cellMap'),
 
   /**
    * Select the cases whose value for the legend attribute places them in the given cell.

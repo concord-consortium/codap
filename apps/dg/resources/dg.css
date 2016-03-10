@@ -467,7 +467,7 @@
     position: relative;
 }
 
-.titleview.titleview-empty {
+.titlebar:hover .titleview-empty {
     border-bottom-color: white;
     border-bottom-width: 2px;
     width: 30px !important;
@@ -792,4 +792,8 @@ input.editor-text {
     border-right-color: black;
     border-right-style: solid;
     border-right-width: thick;
+}
+
+.dg.ace.split-divider {
+    z-index: 0;
 }

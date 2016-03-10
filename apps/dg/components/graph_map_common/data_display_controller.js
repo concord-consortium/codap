@@ -395,7 +395,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
                   reduce: function (previous) {
-                    if (previous.reduceKey == this.reduceKey) {
+                    if (previous.reduceKey === this.reduceKey) {
                       this._beforeStorage = previous._beforeStorage;
                       return this;
                     }
@@ -425,7 +425,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     this_.setPath('dataDisplayModel.' + alphaAttr, this._beforeStorage.alpha);
                   },
                   reduce: function (previous) {
-                    if (previous.reduceKey == this.reduceKey) {
+                    if (previous.reduceKey === this.reduceKey) {
                       this._beforeStorage = previous._beforeStorage;
                       return this;
                     }
@@ -477,7 +477,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                           this_.setPath('dataDisplayModel.pointSizeMultiplier', this._beforeStorage);
                         },
                         reduce: function (previous) {
-                          if (previous.name == this.name) {
+                          if (previous.name === this.name) {
                             this._beforeStorage = previous._beforeStorage;
                             return this;
                           }
@@ -569,7 +569,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tNodes.forEach(function (iNode, iIndex) {
 
               function mouseDownHandler(iEvent) {
-                this_.setupAttributeMenu(iEvent, iAxisView, iIndex);
+                SC.run( function() {
+                  this_.setupAttributeMenu(iEvent, iAxisView, iIndex);
+                });
               }
 
               if (!SC.none(iNode.events))
@@ -587,11 +589,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
         axisViewChanged: function (iThis, iPropertyKey) {
           var this_ = this,
               tView = this.get(iPropertyKey);
-          if (!SC.none(tView))
+          if (!SC.none(tView)) {
+            this.addAxisHandler( tView);
             tView.addObserver('labelNode', this,
                 function () {
                   this_.addAxisHandler(tView);
                 });
+          }
         }.observes('xAxisView', 'yAxisView', 'y2AxisView', 'legendView'),
 
         setupAttributeMenu: function (event, iAxisView, iAttrIndex) {
@@ -640,13 +644,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
           // We need SC to accomplish the layout of the anchor view before we
           // show the popup menu. Initiating and ending a runloop seems to be one way
           // to accomplish this.
-          SC.RunLoop.begin();
-          this.menuAnchorView.removeFromParent();
-          iAxisView.appendChild(this.menuAnchorView);
-          this.menuAnchorView.set('layout', tMenuLayout);
-          this.menuAnchorView.set('isVisible', true);
-          SC.RunLoop.end();
-          this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
+          SC.run(function(){
+            this.menuAnchorView.removeFromParent();
+            iAxisView.appendChild(this.menuAnchorView);
+            this.menuAnchorView.set('layout', tMenuLayout);
+            this.menuAnchorView.set('isVisible', true);
+            this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
+          }.bind(this));
         },
 
         /**

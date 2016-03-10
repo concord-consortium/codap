@@ -6,7 +6,7 @@
 # Add initial buildfile information here
 # SproutCore 1.5.pre.5 requires explicit ace reference.
 # (cf. https://github.com/sproutit/sproutcore-abbot/issues#issue/35)
-config :all, :required => [:sproutcore, 'sproutcore/ace', 'sproutcore/experimental/split_view'], :theme => 'sproutcore/ace'
+config :all, :required => [:sproutcore, 'sproutcore/ace'], :theme => 'sproutcore/ace'
 # config :all, :required => [:sproutcore]
 # config :all, :serve_public => 1
 

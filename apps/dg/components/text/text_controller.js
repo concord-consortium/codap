@@ -89,7 +89,7 @@ DG.TextComponentController = DG.ComponentController.extend(
         this._controller().set('previousValue', this._afterStorage);
       },
       reduce: function(previous) {
-        if (previous._reduceKey == this._reduceKey) {
+        if (previous._reduceKey === this._reduceKey) {
           this._beforeStorage = previous._beforeStorage;
           return this;
         }

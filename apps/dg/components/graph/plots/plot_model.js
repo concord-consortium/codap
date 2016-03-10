@@ -38,7 +38,11 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    */
   dataContext: function() {
     return this.getPath('dataConfiguration.dataContext');
-  }.property('dataConfiguration.dataContext'),
+  }.property(),
+
+  dataContextDidChange: function() {
+    this.notifyPropertyChange('dataContext');
+  }.observes('*dataConfiguration.dataContext'),
    
   /**
     Note: There is an ambiguity about which is the collection client when
@@ -47,37 +51,58 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    */
   collectionClient: function() {
     return this.getPath('dataConfiguration.collectionClient');
-  }.property('dataConfiguration.collectionClient'),
+  }.property(),
+
+  collectionClientDidChange: function() {
+    this.notifyPropertyChange('collectionClient');
+  }.observes('*dataConfiguration.collectionClient'),
    
   /**
     @property { SC.Array }
   */
   cases: function() {
     return this.getPath('dataConfiguration.cases');
-  }.property('dataConfiguration.cases'),
+  }.property(),
+
+  casesDidChange: function() {
+    this.notifyPropertyChange('cases');
+  }.observes('*dataConfiguration.collectionClient'),
 
   /**
     The plot model needs access to the cases controller that is stored in my dataConfiguration's
       collection client.
     @property { SC.ArrayController }
   */
-  casesController: null,
-  casesControllerBinding: '*dataConfiguration.collectionClient.casesController',
+  casesController: function() {
+    return this.getPath('dataConfiguration.collectionClient.casesController');
+  }.property(),
+
+  casesControllerDidChange: function() {
+    this.notifyPropertyChange('casesController');
+  }.observes('*dataConfiguration.collectionClient.casesController'),
 
   /**
     @property { SC.SelectionSet }
   */
   selection: function() {
     return this.getPath('dataConfiguration.selection');
-  }.property('dataConfiguration.selection'),
+  }.property(),
+
+  selectionDidChange: function() {
+    this.notifyPropertyChange('selection');
+  }.observes('*dataConfiguration.selection'),
 
   /**
     @property { Number }
   */
   xVarID: function() {
     return this.getPath('dataConfiguration.xAttributeID');
-  }.property('dataConfiguration.xAttributeID'),
+  }.property(),
 
+  xVarIDDidChange: function() {
+    this.notifyPropertyChange('xVarID');
+  }.observes('*dataConfiguration.xAttributeID'),
+  
   /**
    * A scatterplot may index into an array of attributes held by the y-attribute-description
    */
@@ -89,23 +114,35 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   yVarID: function() {
     var tConfig = this.get('dataConfiguration' );
     return tConfig ? tConfig.yAttributeIDAt( this.yAttributeIndex) : null;
-  }.property('dataConfiguration.yAttributeID'),
+  }.property(),
 
+  yVarIDDidChange: function() {
+    this.notifyPropertyChange('yVarID');
+  }.observes('*dataConfiguration.yAttributeID'),
+  
   /**
     @property { Number }
   */
   y2VarID: function() {
     var tConfig = this.get('dataConfiguration' );
     return tConfig ? tConfig.y2AttributeIDAt( this.yAttributeIndex) : null;
-  }.property('dataConfiguration.y2AttributeID'),
+  }.property(),
 
+  y2VarIDDidChange: function() {
+    this.notifyPropertyChange('y2VarID');
+  }.observes('*dataConfiguration.y2AttributeID'),
+  
   /**
     @property { Number }
   */
   legendVarID: function() {
     return this.getPath('dataConfiguration.legendAttributeID');
-  }.property('dataConfiguration.legendAttributeID'),
+  }.property(),
 
+  legendVarIDDidChange: function() {
+    this.notifyPropertyChange('legendVarID');
+  }.observes('*dataConfiguration.legendAttributeID'),
+  
   /**
     @property {Number}  The variable ID of the attribute assigned to the numeric axis
   */
@@ -281,7 +318,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     // Detach the data Configuration
     this.set('dataConfiguration', null);
     this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');
-  
+
     // Destroy the adornment models
     DG.ObjectMap.forEach( this._adornmentModels,
                           function( iKey, iModel) {

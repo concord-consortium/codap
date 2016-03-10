@@ -56,18 +56,16 @@ return {
 
   currLogin: null,  // DG.Authorization
 
-  isValid: function() {
-    return this.getPath('currLogin.isValid');
-  }.property('currLogin.isValid'),
+  isValidBinding: SC.Binding.from('*currLogin.isValid').oneWay().bool(),
 
-  isSaveEnabled: function() {
-    return this.getPath('currLogin.isSaveEnabled');
-  }.property('currLogin.isSaveEnabled'),
+  isSaveEnabledBinding: SC.Binding.from('*currLogin.isSaveEnabled').oneWay().bool(),
+
+  _authorizedPrivileges: SC.Binding.from('*currLogin.privileges').oneWay(),
 
   isUserDeveloper: function() {
     // 1 === developer according to the server
-    return this.getPath('currLogin.privileges') === 1;
-  }.property('currLogin.privileges'),
+    return this.get('_authorizedPrivileges') === 1;
+  }.property('_authorizedPrivileges'),
 
   init: function() {
     sc_super();
@@ -374,7 +372,7 @@ return {
                     (!DG.documentServer && iMetaArgs && iMetaArgs.force),
         time = new Date(),
         eventValue,
-        parameters,
+        parameters = {},
         body;
 
     if( !shouldLog) {
@@ -389,15 +387,20 @@ return {
 
       eventValue = extract(iProperties, 'args');
 
-      try {
-        parameters = JSON.parse(eventValue);
-        // If the value of parameters is not an object, then wrap the value in
-        // an object. Otherwise the log manager will reject it.
-        if (typeof parameters !== 'object') {
-          parameters = {value: parameters};
+      // test for simple string
+      if (/^[a-zA-Z]*$/.test(eventValue)) {
+        parameters = {value: eventValue};
+      }
+      else {
+        try {
+          parameters = JSON.parse(eventValue);
+          // If the value of parameters is not an object, then wrap the value in
+          // an object. Otherwise the log manager will reject it.
+          if (typeof parameters !== 'object') {
+            parameters = {value: parameters};
+          }
+        } catch (e) {
         }
-      } catch(e) {
-        parameters = {};
       }
 
       // hack to deal with pgsql 'varying' type length limitation
@@ -462,8 +465,7 @@ return {
       // proceed to process the result.
       this.invokeLater( this._setupGameOrDocument);
     }
-  // Chained observer fires if 'currLogin' or 'currLogin.status' is changed
-  }.observes('.currLogin.status'),
+  }.observes('isValid'),
 
   _setupGameOrDocument: function() {
     function openDataInteractive(iURL) {

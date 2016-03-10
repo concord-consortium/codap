@@ -45,10 +45,10 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      */
     defaultTitle: function() {
       return this.getPath('dataConfiguration.defaultTitle');
-    }.property('*dataConfiguration.defaultTitle'),
+    }.property(),
 
     defaultTitleChanged: function() {
-      this.notifyPropertyChange( 'defaultTitle', this.get('defaultTitle'));
+      this.notifyPropertyChange('defaultTitle');
     }.observes('*dataConfiguration.defaultTitle'),
 
     /**
@@ -70,15 +70,23 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
      */
     cases: function() {
       return this.getPath('dataConfiguration.cases');
-    }.property('dataConfiguration.cases'),
+    }.property(),
 
+    casesDidChange: function() {
+      this.notifyPropertyChange('cases');
+    }.observes('*dataConfiguration.cases'),
+    
     /**
       @property { SC.SelectionSet }
     */
     selection: function() {
       return this.getPath('dataConfiguration.selection');
-    }.property('dataConfiguration.selection'),
+    }.property(),
 
+    selectionDidChange: function() {
+      this.notifyPropertyChange('selection');
+    }.observes('*dataConfiguration.selection'),
+    
     /**
      Work around current notification bug whereby we get notified that number of cases has
      changed even when it hasn't.
@@ -205,8 +213,12 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         return this;
       }
       return this.getPath('dataConfiguration.dataContext');
-    }.property('dataConfiguration.dataContext'),  // Todo: Figure out if this can be cacheable
+    }.property(),  // Todo: Figure out if this can be cacheable
 
+    _dataContextDidChange: function() {
+      this.notifyPropertyChange('dataContext');
+    }.observes('*dataConfiguration.dataContext'),
+    
     /**
       Called when the 'dataContext' property is changed.
      */

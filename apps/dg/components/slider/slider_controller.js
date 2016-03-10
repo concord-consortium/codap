@@ -50,7 +50,11 @@ DG.SliderController = DG.ComponentController.extend(
       isAnimating: function () {
         // !! guarantees a boolean return for null, undefined, etc.
         return !!this.getPath('valueAnimator.isAnimating');
-      }.property('valueAnimator.isAnimating'),
+      }.property(),
+
+      isAnimatingDidChange: function() {
+        this.notifyPropertyChange('isAnimating');
+      }.observes('*valueAnimator.isAnimating'),
 
       modelDidChange: function () {
         var sliderModel = this.getPath('model.content');
@@ -150,7 +154,11 @@ DG.SliderController = DG.ComponentController.extend(
             break;
         }
         return this.animationSign * tInc;
-      }.property('axisView.increment', 'axisModel.lowerBound', 'axisModel.upperBound', 'sliderModel.value'),
+      }.property(),
+
+      incrementDidChange: function() {
+        this.notifyPropertyChange('increment');
+      }.observes('*axisView.increment', '*axisModel.lowerBound', '*axisModel.upperBound', '*sliderModel.value'),
 
       /**
        *

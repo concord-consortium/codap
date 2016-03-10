@@ -44,7 +44,7 @@ DG.OpenSaveDialog = SC.PalettePane.extend(
       localize: true,
       value: 'DG.OpenSaveDialog.promptView.value'   // "Choose a document/name" 
     }),
-    documentListView: SC.SelectFieldView.design({
+    documentListView: SC.SelectView.design({
       layout: { top: 40, left: 5, right: 5, height:24 },
       nameKey: 'name',
       valueKey: 'id',
