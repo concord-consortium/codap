@@ -18,7 +18,7 @@
 
 /** @class
 
-    Top-level coordinating controller for the DG application.
+    Coordinates responses to events in a CODAP Component.
 
  @extends SC.Object
  */
@@ -58,6 +58,14 @@ DG.ComponentController = SC.Object.extend((function () // closure
     createInspectorButtons: function() {
       return [];
     },
+
+    /**
+     * Whether the user interface should should confirm the close of this
+     * component.
+     *
+     * @type {boolean}
+     */
+    shouldConfirmClose: NO,
 
     shouldDestroyOnComponentDestroy: true,
 
