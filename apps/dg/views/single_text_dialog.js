@@ -50,7 +50,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       layout: { top: 40, left: 5, right: 5, height:24 },
       value: '',
       isTextArea: false,
-      spellCheckEnabled: false
+      spellCheckEnabled: false,
+      classNames: 'dg-single-text-dialog-textfield'
     }),
     okButton: SC.ButtonView.design({
       layout: { bottom:5, right: 5, height:24, width: 90 },
@@ -60,7 +61,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       target: null,
       action: null,
       isDefault: true,
-      isEnabledBinding: '.parentView.editView.value'
+      isEnabledBinding: '.parentView.editView.value',
+      classNames: 'dg-single-text-dialog-ok'
     }),
     cancelButton: SC.ButtonView.design({
       layout: { bottom:5, right: 115, height:24, width: 90 },
@@ -71,7 +73,8 @@ DG.SingleTextDialog = SC.PalettePane.extend(
       action: null,
       toolTip: 'DG.SingleTextDialog.cancelButton.toolTip',  // "Dismiss the dialog without making any changes"
       isVisible: true,
-      isCancel: true
+      isCancel: true,
+      classNames: 'dg-single-text-dialog-cancel'
     })
   }),
 
