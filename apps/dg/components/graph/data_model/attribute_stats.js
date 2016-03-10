@@ -235,7 +235,11 @@ DG.AttributeStats = SC.Object.extend(
         this._computeNumericStats();
 
       return this.getPath( 'numericStats.attributeType' );
-    }.property('attributes', 'numericStats.attributeType'),
+    }.property('attributes'),
+
+    attributeTypeDidChange: function() {
+      this.notifyPropertyChange('attributeType');
+    }.observes('*numericStats.attributeType'),
 
     /**
      Run through all attributes and their values and cache computed statistics.
@@ -327,7 +331,11 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._categoricalCacheIsValid )
         this._computeCategoricalStats();
       return this.getPath( 'categoricalStats.numberOfCells' );
-    }.property( 'categoricalStats.numberOfCells' ),
+    }.property(),
+
+    numberOfCellsDidChange: function() {
+      this.notifyPropertyChange('numberOfCells');
+    }.observes('*numericStats.numberOfCells'),
 
     /**
      @property{Number} The number of categorical cells
@@ -336,16 +344,11 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._numericCacheIsValid)
         this._computeNumericStats();
       return this.getPath( 'numericStats.numericRange' );
-    }.property( 'numericStats.numericRange' ),
+    }.property(),
 
-    /**
-     * The property defined above which is supposed to be dependent on numericStats.numericRange
-     * proved not to be so. We fix this directly observing and triggering the necessary
-     * notification.
-     */
     numericRangeDidChange: function() {
       this.notifyPropertyChange('numericRange');
-    }.observes('numericStats.numericRange'),
+    }.observes('*numericStats.numericRange'),
 
     dataDidChange:function () {
       // We only have to deal with categorical stats if we are not numeric
@@ -370,7 +373,10 @@ DG.AttributeStats = SC.Object.extend(
       if( !this._categoricalCacheIsValid )
         this._computeCategoricalStats();
       return this.categoricalStats.get( 'cellMap' );
-    }.property( 'categoricalStats.cellMap' ),
+    }.property(),
+    cellMapDidChange: function() {
+      this.notifyPropertyChange('cellMap');
+    }.observes('*categoricalStats.cellMap'),
 
     /**
      @return{Number} corresponding to given name

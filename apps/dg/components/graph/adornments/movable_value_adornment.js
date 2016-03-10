@@ -50,7 +50,11 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   */
   value: function() {
     return this.getPath('model.value');
-  }.property('model.value'),
+  }.property(),
+
+  valueDidChange: function () {
+    this.notifyPropertyChange('value');
+  }.observes('*model.value'),
 
   /**
     The returned string should have a reasonable number of significant digits for the
@@ -63,8 +67,11 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
         tNumFormat = DG.Format.number().fractionDigits( 0, tDigits),
         tVar = this.getPath('valueAxisView.model.firstAttributeName');
     return tVar + " = " + tNumFormat( tValue);
-  }.property('model.value', 'valueAxisView.model.firstAttributeName' ).cacheable(),
-  
+  }.property().cacheable(),
+  valueStringDidChange: function() {
+    this.notifyPropertyChange('valueString');
+  }.observes('*model.value', '*valueAxisView.model.firstAttributeName'),
+
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.

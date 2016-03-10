@@ -58,7 +58,11 @@ DG.SliderModel = SC.Object.extend(
   
     defaultTitle: function() {
       return this.getPath('content.name');
-    }.property('content.name'),
+    }.property(),
+
+    defaultTitleDidChange: function () {
+      this.notifyPropertyChange('defaultTitle');
+    }.observes('*content.name'),
 
     value: null,
     valueBinding: '*content.value',

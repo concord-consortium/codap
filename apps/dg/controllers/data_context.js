@@ -102,7 +102,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   id: function() {
     return this.getPath('model.id');
-  }.property('model','model.id'),
+  }.property('model'),
 
   collections: null,
 
@@ -1108,8 +1108,8 @@ DG.DataContext = SC.Object.extend((function() // closure
   childCollection: function() {
     var collectionCount = this.get('collectionCount');
     return( collectionCount ? this.getCollectionAtIndex( collectionCount - 1) : null);
-  }.property('_collectionClients','_collectionClients.[]'),
-  
+  }.property('_collectionClients'),
+
   /**
    *  Returns the DG.CollectionClient for parent collection of the child or leaf collection.
    *  @returns  {DG.CollectionClient | null}
@@ -1117,8 +1117,8 @@ DG.DataContext = SC.Object.extend((function() // closure
   parentCollection: function() {
     var collectionCount = this.get('collectionCount');
     return( collectionCount ? this.getCollectionAtIndex( collectionCount - 2) : null);
-  }.property('_collectionClients','_collectionClients.[]'),
-  
+  }.property('_collectionClients'),
+
   /**
    *  Returns the DG.CollectionClient at the specified index.
    *  Since collections are stored in parent --> child order,

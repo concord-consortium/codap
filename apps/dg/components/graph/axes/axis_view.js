@@ -30,7 +30,6 @@ sc_require('views/raphael_base');
  */
 DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
     /** @scope DG.AxisView.prototype */ (function () {
-
       return {
         displayProperties: ['model.attributeDescription.attribute',
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
@@ -100,7 +99,10 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           return this.get('isVertical') ?
               this.get('drawHeight') - this.getPath('otherAxisView.drawHeight') :
               0;
-        }.property('otherAxisView.drawHeight', 'drawHeight'),
+        }.property(),
+        pixelMinDidChange: function() {
+          this.notifyPropertyChange('pixelMin');
+        }.observes('*otherAxisView.drawHeight', 'drawHeight'),
 
         /**
          Coordinate of my maximum value (Y: top end, X: right end)
@@ -202,7 +204,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             this.notifyPropertyChange('labelNode', this._labelNodes);
 
           return this._labelNodes;
-        }.property('model.labels'),
+        }.property(),
+
+        labelNodesDidChange: function() {
+          this.notifyPropertyChange('labelNodes');
+        }.observes('*model.labels'),
 
         /**
          The Raphael element used to display the label.
@@ -310,13 +316,18 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @param {SC.DRAG_LINK}
          */
         performDragOperation: function (iDragObject, iDragOp) {
+          this.hideDropHint();
           this.set('dragData', iDragObject.data);
           return SC.DRAG_LINK;
         },
 
         numberOfCells: function () {
           return this.getPath('model.numberOfCells');
-        }.property('model.numberOfCells'),
+        }.property(),
+
+        numberOfCellsChanged: function() {
+          this.notifyPropertyChange('numberOfCells');
+        }.observes('*model.numberOfCells'),
 
         /**
          The total distance in pixels between one cell and the next without any "slop" at the ends.

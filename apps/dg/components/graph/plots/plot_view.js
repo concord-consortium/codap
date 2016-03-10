@@ -49,7 +49,10 @@ DG.PlotView = DG.PlotLayer.extend(
    */
   isUsingY2: function() {
     return this.getPath('yAxisView.orientation') === 'vertical2';
-  }.property('*yAxisView.orientation'),
+  }.property(),
+  isUsingY2DidChange: function() {
+    this.notifyPropertyChange('isUsingY2');
+  }.observes('*yAxisView.orientation'),
 
   /**
     Used to store point coordinates at the beginning of a configuration change.

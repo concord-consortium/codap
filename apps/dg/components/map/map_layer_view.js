@@ -85,9 +85,13 @@ DG.MapLayerView = SC.View.extend(
         }
       },
 
-      didCreateLayer: function () {
-        // TODO: Investigate whether there is some later time to call _createMap so we don't have to use invokeLast
-        this.invokeLast(this._createMap);
+      didAppendToDocument: function() {
+        if (!this._map) {
+          this._createMap();
+        }
+        else {
+          this.viewDidResize();
+        }
       },
 
       _createMap: function () {
@@ -111,17 +115,23 @@ DG.MapLayerView = SC.View.extend(
             }.bind(this),
 
             onDisplayChangeEvent = function (iEvent) {
-              this.set('lastEventType', iEvent.type);
-              this.incrementProperty('displayChangeCount');
+              SC.run(function() {
+                this.set('lastEventType', iEvent.type);
+                this.incrementProperty('displayChangeCount');
+              }.bind(this));
             }.bind(this),
 
             onClick = function (iEvent) {
-              this.incrementProperty('clickCount');
+              SC.run(function() {
+                this.incrementProperty('clickCount');
+              }.bind(this));
             }.bind(this),
 
             onMousedown = function( iEvent) {
-              // Passing this event to the top will cause any extant picker panes to be removed
-              DG.mainPage.mainPane.sendEvent('mouseDown', iEvent, this);
+              SC.run(function() {
+                // Passing this event to the top will cause any extant picker panes to be removed
+                DG.mainPage.mainPane.sendEvent('mouseDown', iEvent, this);
+              }.bind(this));
             }.bind(this);
 
         if (this._map) {

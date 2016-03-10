@@ -26,10 +26,12 @@
 DG.LabelNode = SC.Object.extend(
   /** @scope DG.LabelNode.prototype */
     {
-      paper: null,
+      paper: null,// supplied by creator
+      clickCallback: null,  // supplied by creator
       text: null,
       description: null,
-      colorIndex: 0,
+      labelIndex: 0,        // supplied by creator
+      colorIndex: 0,        // supplied by creator
       numColors: 1,
       rotation: 0,
       priorNode: null,

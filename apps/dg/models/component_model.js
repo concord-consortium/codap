@@ -47,7 +47,7 @@ DG.Component = DG.BaseModel.extend(
           this._title = this.getPath('content.defaultTitle');
         }
         return this._title;
-      }.property('*content.defaultTitle'),
+      }.property(),
 
       defaultTitleChanged: function() {
         this.set('title', this.getPath('content.defaultTitle'));

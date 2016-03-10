@@ -115,8 +115,7 @@ DG.CollectionClient = SC.Object.extend(
    */
   areParentChildLinksConfigured: function() {
     return this.getPath('collection.areParentChildLinksConfigured');
-  }.property('collection.areParentChildLinksConfigured').cacheable(),
-  
+  }.property().cacheable(),
   /**
    * Provides support for hooking up collection relationships for
    * games using the old game API.

@@ -62,12 +62,12 @@ DG.ImageView = SC.ImageView.extend(
     // Alternative text description of image
     var altText = this.get('displayAltText');
     if( !SC.empty( altText))
-      context.attr('alt', altText);
+      context.setAttr('alt', altText);
 
     // 'displayToolTip' is auto-localized if 'localize' is true
     var toolTip = this.get('displayToolTip');
     if( !SC.empty( toolTip))
-      context.attr('title', toolTip);
+      context.setAttr('title', toolTip);
   }
 });
 

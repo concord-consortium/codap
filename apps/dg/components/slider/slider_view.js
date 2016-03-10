@@ -85,7 +85,11 @@ DG.SliderView = SC.View.extend(
        */
       value: function() {
         return this.getPath('model.value');
-      }.property('model.value').cacheable(),
+      }.property('model').cacheable(),
+
+      valueDidChange: function() {
+        this.notifyPropertyChange('value');
+      }.observes('*model.value'),
 
       /**
        The name of my model's global value
@@ -93,7 +97,11 @@ DG.SliderView = SC.View.extend(
        */
       name: function() {
         return this.getPath('model.name');
-      }.property('model.name').cacheable(),
+      }.property('model').cacheable(),
+
+      nameDidChange: function() {
+        this.notifyPropertyChange('name');
+      }.observes('*model.name'),
 
       /**
        The screen coordinate of the model value.
@@ -103,7 +111,11 @@ DG.SliderView = SC.View.extend(
         var tValue = this.get('value'),
             tAxisView = this.get('axisView');
         return (SC.none( tValue) || SC.none( tAxisView)) ? null : tAxisView.dataToCoordinate( tValue);
-      }.property('value', 'axisView.model.lowerBound', 'axisView.model.upperBound'),
+      }.property('value'),
+
+      thumbCoordDidChange: function() {
+        this.notifyPropertyChange('thumbCoord');
+      }.observes('*axisView.model.lowerBound', '*axisView.model.upperBound'),
 
       init: function() {
         // Notice that we are explicitly creating and laying out our subviews. This is because
@@ -149,14 +161,33 @@ DG.SliderView = SC.View.extend(
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + kThumbHeight },
             classNames: 'slider-label'.w(),
             isEditable: true,
+            exampleNode: null,
             inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
               sc_super();
               var tFrame = this.get('frame'),
                   kXGap = 4, kYGap = 5,
                   tOrigin = DG.ViewUtilities.viewToWindowCoordinates( { x: kXGap - 2, y: kYGap - 7 }, this);
+
               this.parentView.set('userEdit', true);
-              iEditor.set('exampleFrame', { x: tOrigin.x, y: tOrigin.y,
-                                            width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap });
+
+              // SC 1.10 introduced a new inline editor model in which
+              // an 'exampleNode' is used to adjust inline editor style.
+              var exampleNode = this.get('exampleNode');
+              if(!exampleNode) {
+                var parentNode = this.getPath('parentView.layer');
+                exampleNode = this.get('layer').cloneNode(false);
+                exampleNode.id = exampleNode.id + "-clone";
+                exampleNode.style.visibility = 'hidden';
+                parentNode.appendChild(exampleNode);
+                this.set('exampleNode', exampleNode);
+              }
+              exampleNode.style.left = 0 + 'px';
+              exampleNode.style.top = 9 + 'px';
+
+              iEditor.set({ exampleElement: exampleNode,
+                            exampleFrame: { x: tOrigin.x, y: tOrigin.y,
+                                            width: tFrame.width - 2 * kXGap,
+                                            height: tFrame.height - 2 * kYGap }});
             },
             doIt: function() {
               this.beginEditing();
@@ -250,7 +281,7 @@ DG.SliderView = SC.View.extend(
             name: 'slider.change',
             undoString: 'DG.Undo.slider.change',
             redoString: 'DG.Redo.slider.change',
-            log: "sliderThumbDrag: { name: %@, newValue: %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
+            log: "sliderThumbDrag: { \"name\": \"%@\", \"newValue\": %@ }".fmt(this_.getPath('model.name'), this_.getPath('model.value')),
             _componentId: this_.getPath('controller.model.id'),
             _controller: function() {
               return DG.currDocumentController().componentControllersMap[this._componentId];

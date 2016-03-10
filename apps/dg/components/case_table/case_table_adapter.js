@@ -26,7 +26,7 @@
   Adapter for displaying DG data for a single collection in a SlickGrid.
 
   @extends DG.ComponentController
-*/
+ */
 DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
@@ -103,7 +103,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       this.setPath('collection.name', value);
     }
     return this.getPath('collection.name');
-  }.property('collection.name').cacheable(),
+  }.property().cacheable(),
+
+  collectionNameDidChange: function () {
+    this.notifyPropertyChange('collectionName');
+  }.observes('*collection.name'),
 
   /**
    * The Case Table Model
@@ -595,7 +599,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var tContext = this.get('dataContext');
       var collection = attr.collection;
       return (!SC.none(tContext.getCollectionByID(collection.id)) && !tContext.get('hasDataInteractive'));
-    }.property('.context.hasDataInteractive')
+    }
+
   }; // end return from closure
   
 }())); // end closure

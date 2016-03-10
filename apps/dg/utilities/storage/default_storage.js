@@ -130,6 +130,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   login: function(options) {
     return new Promise(function(resolve, reject) {
       this._urlForPostRequests('/DataGames/api/auth/login')
+        .credentials()
         .notify(this, '_handleResponse', resolve, reject)
         .send(options);
     }.bind(this));
@@ -138,6 +139,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
   logout: function(options) {
     return new Promise(function(resolve, reject) {
       this._urlForPostRequests('/DataGames/api/auth/logout')
+        .credentials()
         .notify(this, '_handleResponse', resolve, reject)
         .send(options);
     }.bind(this));
@@ -150,6 +152,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         encodeURIComponent(DG.authorizationController.getPath('currLogin.sessionID'))
       );
       this._urlForGetRequests(url)
+        .credentials()
         .notify(this, '_handleResponse', resolve, reject)
         .send();
     }.bind(this));
@@ -176,6 +179,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
         return;
       }
       this._urlForGetRequests(url)
+        .credentials()
         .notify(this, '_handleResponse', resolve, reject)
         .send();
     }.bind(this));
@@ -203,6 +207,7 @@ DG.DefaultStorage = DG.StorageAPI.extend(DG.CODAPCommonStorage, {
       }
 
       this._urlForPostRequests(url)
+        .credentials()
         .notify(this, '_handleResponse', resolve, reject)
         .timeoutAfter(60000)
         .send(documentContent);

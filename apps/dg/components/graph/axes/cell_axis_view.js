@@ -183,22 +183,26 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             var tModel = this_.get('model'),
                 tCurrentCoord = tDragStartCoord + ((tOrientation === 'horizontal') ? iDeltaX : iDeltaY),
                 tCategoryInCurrentCell = this_.whichCell( tCurrentCoord);
-            if( tCategoryInCurrentCell !== tCellBeingDragged) {
-              tModel.swapCategoriesByIndex( tCellBeingDragged, tCategoryInCurrentCell);
-              tCellBeingDragged = tCategoryInCurrentCell;
-            }
-            this_.set('dragInfo', {
-              cellBeingDragged: tCellBeingDragged, position: tCurrentCoord,
-              draggingInProgress: true
+            SC.run(function() {
+              if( tCategoryInCurrentCell !== tCellBeingDragged) {
+                tModel.swapCategoriesByIndex( tCellBeingDragged, tCategoryInCurrentCell);
+                tCellBeingDragged = tCategoryInCurrentCell;
+              }
+              this_.set('dragInfo', {
+                cellBeingDragged: tCellBeingDragged, position: tCurrentCoord,
+                draggingInProgress: true
+              });
+              this_.displayDidChange();
+              this_.propertyDidChange('categoriesDragged');
             });
-            this_.displayDidChange();
-            this_.propertyDidChange('categoriesDragged');
           },
           endDrag = function ( iEvent) {
-            this_.set('dragInfo', null);
-            this_.displayDidChange();
-            this_.propertyDidChange('categoriesDragged');
-            this_.updateLayerIfNeeded(true /* skip inWindow check */);
+            SC.run(function() {
+              this_.set('dragInfo', null);
+              this_.displayDidChange();
+              this_.propertyDidChange('categoriesDragged');
+              this_.updateLayerIfNeeded();
+            });
           };
 
       function measureOneCell( iCellNum, iCellName) {
