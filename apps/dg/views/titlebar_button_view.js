@@ -52,12 +52,12 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
               message: tConfirmCloseMessage,
               description: tConfirmCloseDescription,
               buttons: [
-                { title: 'DG.AppController.closeDocument.okButtonTitle',
+                { title: 'DG.Component.closeComponent.okButtonTitle',
                   action: closeComponentAfterConfirm,
                   localize: YES,
                   isDefault: YES
                 },
-                { title: 'DG.AppController.closeDocument.cancelButtonTitle',
+                { title: 'DG.Component.closeComponent.cancelButtonTitle',
                   localize: YES,
                   isCancel: YES
                 }

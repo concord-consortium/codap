@@ -654,9 +654,11 @@ SC.stringsFor('English', {
       // Game Controller
       'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
 
-      // Controllers
-     'DG.Component.closeComponent.confirmCloseMessage': 'Are you sure?',
-     'DG.Component.closeComponent.confirmCloseDescription': '',
-     'DG.GameController.ConfirmCloseDescription': 'If you close this window you may lose the ability to add new data to a case table.'
+       // Controllers
+      'DG.Component.closeComponent.confirmCloseMessage': 'Are you sure?',
+      'DG.Component.closeComponent.confirmCloseDescription': '',
+      'DG.Component.closeComponent.okButtonTitle': 'Yes, close it',
+      'DG.Component.closeComponent.cancelButtonTitle': 'Cancel',
+      'DG.GameController.confirmCloseDescription': 'If you close this, you may not be able to add more data.'
     }
 );
