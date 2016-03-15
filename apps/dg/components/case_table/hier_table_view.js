@@ -114,9 +114,13 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
       /**
        * @overload
-       * Normally, splitviews would schedule a retile.
+       * Normally, splitviews would schedule a retile. We allow vertical changes
+       * in the parent to be seen, but pin horizontal ones.
        */
-      parentViewDidResize: function () {
+      parentViewDidResize: function (frame) {
+        frame.width = this.get('frameSize') || frame.width;
+        // sc_super generates a call that will pass 'arguments'
+        return sc_super(); // jshint ignore:line
       },
 
       frameSize: function () {
