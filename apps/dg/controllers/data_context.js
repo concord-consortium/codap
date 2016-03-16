@@ -263,7 +263,8 @@ DG.DataContext = SC.Object.extend((function() // closure
                           Other change properties are operation-specific
    */
   applyChange: function( iChange) {
-    iChange.result = this.performChange( iChange);
+    var result = this.performChange( iChange);
+    iChange.result = DG.ObjectMap.join((iChange.result || {}), result);
     // TODO: Figure out how/when to prune the changes array so it doesn't grow unbounded.
     this.changes.push( iChange);
     ++ this._changeCount;
@@ -677,9 +678,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       var tParent = iCase.parent;
 
       // We store the set of deleted cases for later undoing.
-      // We need to store the values separately, because when iCase.destroy is called
-      // on the case, the values map is deleted
-      // We also store the original index separately
       deletedCases.push( {
         oldCase: iCase
       });
@@ -700,7 +698,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this);
 
     // find the leaf node cases and call doDelete on each of them.
-    // The doDelete function will propogate up the parental hierarchy
+    // The doDelete function will propagate up the parental hierarchy
     // as far as appropriate.
     var deleteCaseAndChildren = function( iCase) {
       //var tCollection = this.getCollectionForCase( iCase);
@@ -735,25 +733,40 @@ DG.DataContext = SC.Object.extend((function() // closure
         });
 
         // Store the set of deleted cases, along with their values
-        this._undoData = deletedCases;
+        this._beforeStorage.deletedCases = deletedCases;
       },
       undo: function() {
-        var iChange = {
-            isComplete: true,
-            operation: 'createCases',
-            properties: {
-              index: true
-            }
-          };
         var createdCases;
+        var collectionMap = {};
 
-        this._undoData.forEach(function (iCase) {
+        this._beforeStorage.deletedCases.forEach(function (iCase) {
           var item = iCase.oldCase.item;
           item.set('deleted', false);
         });
         createdCases = this._beforeStorage.context.regenerateCollectionCases();
-
-        this_.applyChange( iChange);
+        // Assemble cases by collection.
+        createdCases.forEach(function(iCase) {
+          var collection = this_.getCollectionForCase( iCase);
+          var id = collection && collection.get('id');
+          if (SC.none(collectionMap[id])) {
+            collectionMap[id] = [];
+          }
+          collectionMap[id].push(iCase);
+        });
+        // emit change notifications for created cases.
+        DG.ObjectMap.forEach(collectionMap, function (collectionID, cases) {
+          var undoChange = {
+            operation: 'createCases',
+            isComplete: true,
+            properties: {index: true},
+            collection: this_.getCollectionByID(collectionID),
+            result: {
+              caseIDs: cases.map(function(iCase) {return iCase.get('id');}),
+              caseID: cases[0] && cases[0].get('id')
+            }
+          };
+          this_.applyChange( undoChange);
+        });
 
         this._afterStorage = {
           cases: createdCases
@@ -770,7 +783,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         this_.applyChange( newChange);        // Delete each case
 
         // Store the set of deleted cases, along with their values
-        this._undoData = deletedCases;
+        this._beforeStorage.deletedCases = deletedCases;
 
       }
     }));
