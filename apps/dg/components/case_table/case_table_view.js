@@ -22,6 +22,7 @@
 /*global Slick */
 
 sc_require('components/case_table/scroll_animation_utility');
+sc_require('components/case_table/case_table_row_selection_model');
 sc_require('views/mouse_and_touch_view');
 
 /** @class
@@ -478,7 +479,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
                                       gridAdapter.gridColumns, gridAdapter.gridOptions);
     
-    this._slickGrid.setSelectionModel(new Slick.RowSelectionModel({ selectActiveRow: false }));
+    this._slickGrid.setSelectionModel(new DG.CaseTableRowSelectionModel({ selectActiveRow: false }));
     
     /*
      * Add a column header menu to each column.
