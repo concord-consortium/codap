@@ -487,6 +487,9 @@ SC.stringsFor('English', {
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
 
+  // DG.CaseTableController
+  'DG.CaseTableController.allTables': 'All tables',
+
   // DG.AttributeFormulaView
   'DG.AttrFormView.attrNamePrompt': "Attribute Name:",
   'DG.AttrFormView.formulaPrompt': "Formula:",

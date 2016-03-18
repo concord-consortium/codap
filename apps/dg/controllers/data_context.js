@@ -1046,64 +1046,69 @@ DG.DataContext = SC.Object.extend((function() // closure
       DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
 //      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
   },
-  
+
+
+    /**
+     * A utility to find the last collection in the context.
+     *
+     * @return {DG.CollectionClient}
+     */
+    getLastCollection: function () {
+      var collections = this.get('collections');
+      var lastCollection = collections && collections[collections.length - 1];
+      // we have a Collection. We want a CollectionClient.
+      return lastCollection && this.getCollectionByID(lastCollection.get('id'));
+    },
   /**
    * Export the case data for all attributes and cases of the given collection,
    * suitable for pasting into TinkerPlots/Fathom.
    * If no collection name given, returns an list of collection names.
-   * @param {String} iWhichCollection '' or 'parent' or 'child' or 'parent+child' [both for flatted collection with all attributes]
-   * @return {String} Case data in tab-delimited string format | list of collection names that can be exported (comma-separated string)
+   * @param iWhichCollection {String} collection name of the desired collection.
+   * @return {String} Case data in tab-delimited string format
    */
   exportCaseData: function( iWhichCollection ) {
-    var childCollection = this.get('childCollection'),
-        parentCollection = this.get('parentCollection'),
-        childName = childCollection && childCollection.get('name'),
-        parentName = parentCollection && parentCollection.get('name'),
-        bothName = (parentName + '+' + childName ),
-        names = [],
-        columnDelimiter = '\t',
-        rowDelimiter = '\r\n';
-
-    //DG.assert( childCollection && parentCollection, "exportCaseData collections not found");
-    //if( !( childCollection && parentCollection )) return('');
+    var columnDelimiter = '\t',
+        rowDelimiter = '\r\n',
+        collection,
+        attribNames,
+        attribIDs,
+        rows = [];
 
     if( SC.empty( iWhichCollection )) {
-      if (parentName) {names.push(parentName);}
-      if (childName) {names.push(childName);}
-      if (parentName && childName) {names.push(bothName);}
-      // return collection names as an array
-      return names.join(columnDelimiter);
+      return;
     }
 
-    // else create a tab and newline delimited string of attribute names and case values.
-    var collection = ((iWhichCollection===parentName) ? parentCollection : childCollection ),
-        extraCollection = ((iWhichCollection===bothName)? parentCollection : null),
-        attribNames = collection && collection.getAttributeNames(),
-        attribIDs   = collection && collection.getAttributeIDs(),
-        dataString;
-
-    // if 'both', prepend parent attributes for flattened data set
-    //  Note: we rely on DG.CaseModel.getValues() to get values for parent attribute IDs
-    if( extraCollection ){
-      attribNames = extraCollection.getAttributeNames().concat( attribNames );
-      attribIDs = extraCollection.getAttributeIDs().concat( attribIDs );
+    if (iWhichCollection === 'DG.CaseTableController.allTables'.loc()) {
+      collection = this.getLastCollection();
+      attribIDs = [];
+      attribNames = [];
+      this.getAttributes().forEach(function (attr){
+        attribIDs.push(attr.get('id'));
+        attribNames.push(attr.get('name'));
+      });
+    } else {
+      collection = this.getCollectionByName(iWhichCollection);
+      attribNames = collection && collection.getAttributeNames();
+      attribIDs   = collection && collection.getAttributeIDs();
     }
+
+    // create a tab and newline delimited string of attribute names and case values.
 
     // add a row of attribute names
-    dataString = attribNames.join(columnDelimiter) + rowDelimiter;
+    rows.push(attribNames.join(columnDelimiter));
 
     // add each row of case values
     collection.forEachCase( function( iCase, iIndex ) {
-      var rowString = '';
+      function escape(str) { return str.replace(/\t/, '\\t');}
+      var row = [];
       attribIDs.forEach( function( iAttrID ) {
-        var caseValue = iCase.getValue( iAttrID);
-        if( rowString.length > 0 )  rowString += columnDelimiter; // separate items with tabs
-        if( !SC.empty( caseValue )) rowString += caseValue.toString(); // add string value if not a missing case
+        var caseValue = '' + iCase.getValue( iAttrID);
+        row.push(escape(caseValue));
       });
-      dataString += rowString + rowDelimiter; // append each line of data to the output
+      rows.push(row.join(columnDelimiter)); // append each line of data to the output
     });
 
-    return dataString;
+    return rows.join(rowDelimiter);
   },
   
   /**
@@ -1344,7 +1349,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   
   /**
     Applies the specified function to each collection managed by this data context.
-    @param    {Function}        The function to apply to each collection
+    @param    iFunction {Function}        The function to apply to each collection
     @returns  {DG.DataContext}  this, for use in method chaining
    */
   forEachCollection: function( iFunction) {
@@ -1451,7 +1456,15 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return null;
   },
-  
+
+  /**
+   * Returns a comprehensive list of attributes in this data context.
+   * @return {[DG.Attribute]}
+   */
+  getAttributes: function () {
+    return this.getPath('model.dataSet.attrs');
+  },
+
   /**
    *  Returns the DG.Attribute with the specified name.
    *  Searches its collections from child => parent => grandparent order.
@@ -1464,9 +1477,9 @@ DG.DataContext = SC.Object.extend((function() // closure
   
   /**
     Sets the values of the specified case from the specified array of values.
-    @param    {DG.Case}   The case whose values are to be set
-    @param    {Array of values} The values to use in setting the case values
-    @param    {DG.CollectionClient} iCollection (optional) -- The collection which owns the case.
+    @param    iCase {DG.Case}   The case whose values are to be set
+    @param    iValues{Array of values} The values to use in setting the case values
+    @param    iCollection {DG.CollectionClient} (optional) -- The collection which owns the case.
               Will be looked up if it isn't provided, but more efficient if the client provides it.
    */
   setCaseValuesFromArray: function( iCase, iValues, iCollection) {
@@ -1522,7 +1535,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
   
   /**
-   *  Returns the object to be JSONified for storage.
+   *  Returns the object to be JSON-ified for storage.
    *  @returns  {Object}
    */
   createStorage: function() {
@@ -1599,7 +1612,7 @@ DG.DataContext.storeContextInMap = function( iDocumentID, iContext) {
 /**
   Retrieve the specified context from the contextMap.
   @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
-  @param  {Number}  iContextIS -- The ID of the context to be retrieved from the map
+  @param  {Number}  iContextID -- The ID of the context to be retrieved from the map
  TODO: Deprecate this method and remove references: We should be getting context
  TODO: information via the DocumentController.
  */
@@ -1665,8 +1678,8 @@ DG.DataContext.collectionDefaults = function() {
  *  either a DG.DataContext or an appropriate derived class. Derived classes should
  *  add their own factory function entries to the DG.DataContext.registry, so that
  *  when this function is called the factory function will be available when appropriate.
- *  @param  {String}  type of DataContext to create, e.g. 'DG.DataContext', 'DG.GameContext'.
- *  @param  {Object}  properties object passed to the DataContext on construction.
+
+ *  @param iProperties {Object}  properties object passed to the DataContext on construction.
  *  @returns  {DG.DataContext}  a DG.DataContext object or an instance of a derived class
  */
 DG.DataContext.factory = function( iProperties) {

@@ -469,13 +469,23 @@ DG.CaseTableController = DG.ComponentController.extend(
        Displays a dialog, so user can select and copy the case data from the current document.
        */
       exportCaseData: function () {
+        function getCollectionMenuItems() {
+          var names = [];
+          tDataContext.forEachCollection(function (collection) {
+            var name = collection.get('name');
+            names.push(name);
+          });
+          names.push('DG.CaseTableController.allTables'.loc());
+          return names;
+        }
+
         // callback to get export string from one of the menu item titles
         var exportCollection = function (whichCollection) {
           return tDataContext.exportCaseData(whichCollection);
         };
         // get array of exportable collection names for menu titles
         var tDataContext = this.get('dataContext'),
-          tMenuItems = tDataContext.exportCaseData().split('\t'),
+          tMenuItems = getCollectionMenuItems(),
           tStartingMenuItem = tMenuItems[0];
 
         DG.CreateExportCaseDataDialog({
