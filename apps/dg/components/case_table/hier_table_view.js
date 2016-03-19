@@ -38,10 +38,9 @@ sc_require('components/case_table/relation_divider_view');
 DG.HierTableView = SC.ScrollView.extend( (function() {
 /** @scope DG.HierTableView.prototype */
 
-  var kColumnHeaderBackgroundColor = '#E6E6E6',
+  var /*kColumnHeaderBackgroundColor = '#E6E6E6',*/
       kDefaultColumnWidth = 60,
-      kMinTableWidth = kDefaultColumnWidth,
-      kMinSlop = 2;
+      kMinTableWidth = kDefaultColumnWidth;
 
   return {
 
@@ -75,7 +74,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      *
      * @type {number} pixels
      */
-    containerMaxWidth: null,
+    containerMaxWidth: function () {
+      return this.getPath('contentView.frame.width');
+    }.property(),
 
     /**
      * This method is called by Sproutcore whenever the view is appended to
@@ -112,18 +113,23 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       shouldResizeChildrenToFit: NO,
 
       /**
-       Child views currently limited to two subtables, but should be extensible down the road.
+       * @overload
+       * Normally, splitviews would schedule a retile. We allow vertical changes
+       * in the parent to be seen, but pin horizontal ones.
        */
-      childViews: ['slopView' ],
+      parentViewDidResize: function (frame) {
+        frame.width = this.get('frameSize') || frame.width;
+        // sc_super generates a call that will pass 'arguments'
+        return sc_super(); // jshint ignore:line
+      },
 
-      slopView: SC.View.extend ( SC.SplitChild, {
-        name: 'slopView',
-        minimumSize: kMinSlop,
-        size: kMinSlop,
-        autoResizeStyle: SC.RESIZE_MANUAL,
-        compensatesForMovement: YES,
-        backgroundColor: kColumnHeaderBackgroundColor
-      }),
+      frameSize: function () {
+        this.get('_frameSize');
+      }.property(),
+
+      frameSizeDidChange: function() {
+        this.notifyPropertyChange('frameSize');
+      }.observes('_frameSize'),
 
       /**
        * Returns a view instance to be used as a divider between two other views,
@@ -179,19 +185,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        @param    {DG.CaseTableView}    iNotifier -- the table view whose width changed
        */
       gridWidthDidChange: function( iNotifier) {
-        var curMaxWidth = iNotifier && iNotifier.get('maximumSize'),
-            newMaxWidth = iNotifier && iNotifier.get('gridWidth');
+        var newMaxWidth = iNotifier.get('gridWidth');
 
-        if( iNotifier && (newMaxWidth !== curMaxWidth)) {
-          iNotifier.set('maximumSize', newMaxWidth);
-
-          // Set the 'size' of the child table to its desired size
-          iNotifier.set('size', newMaxWidth);
-          this.invokeOnce('_scsv_tile');
-          // Should be implemented with an observer from the ScrollView, but
-          // couldn't get it to work.
-          this.parentView.parentView.contentWidthDidChange(iNotifier);
-        }
+        // Set the 'size' of the child table to its desired size
+        iNotifier.set('size', newMaxWidth);
+        this.scheduleTiling();
       },
 
       /**
@@ -281,9 +279,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       /**
        Observer function called when the number of rows in the parent table changes.
        */
-      rowCountDidChange: function() {
+      rowCountDidChange: function(iNotifier) {
         this.get('dividerViews').forEach(function (view) {
-          view.displayDidChange();
+          if (view.parentView === iNotifier) {
+            view.displayDidChange();
+          }
         });
       },
 
@@ -373,6 +373,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                             if( iView && iView.willDestroy)
                               iView.willDestroy();
                           });
+      this.contentView.removeObserver('frameSize', this, 'contentWidthDidChange');
     },
 
   /**
@@ -389,35 +390,36 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
   },
 
     /**
-     * Width of the contained table set changed.
-     * @param {DG.CaseTableView} iNotifier Which table caused the change
-     * @param {boolean} iIsUserInitiated
+     * @return {boolean}
      */
-  contentWidthDidChange: function (iNotifier) {
+    isHorizontalScrollActive: function () {
+      return this.get('frame').width < this.get('_lastContentWidth');
+    }.property(),
+
+    _lastContentWidth: 0,
+
+  /**
+   * Width of the contained table set changed.
+   * @param {DG.CaseTableView} iNotifier Which table caused the change
+   * @param {boolean} iIsUserInitiated
+   */
+  contentWidthDidChange: function (sender, key, value) {
     var tContentWidth = this.getPath('contentView.frame.width');
+    var tWidth = this.get('frame').width;
     var tComponentView = DG.ComponentView.findComponentViewParent( this);
-    var tComponentFrame = tComponentView && tComponentView.get('frame');
-    var tComponentWidth = tComponentFrame && tComponentFrame.width;
+    if (SC.none(tComponentView)) {
+      return;
+    }
+    var horizontalScrollActive = this.get('isHorizontalScrollActive');
 
-    // The width of the case table set has changed. We adjust the component
-    // to fit.
-    this.set('containerMaxWidth', tContentWidth);
-
-
-    if(this.get('isReady') && tComponentWidth && tComponentWidth > tContentWidth) {
+    if (!horizontalScrollActive || tWidth > tContentWidth) {
       tComponentView.adjust('width', tContentWidth);
     }
-
-      // If we have initialized the rightmost case table we have completed
-      // initialization
-    if (iNotifier && iNotifier.get('isRightmost')) {
-      this.set('isReady', true);
-    }
+    this._lastContentWidth = tContentWidth;
   },
 
   /**
-    Observer function called when either of the child tables is changed.
-    This occurs when changing from one game to another, for instance.
+    Observer function called when any of the child tables is changed.
    */
   _klugeAdjust: false,
   gridViewDidChange: function( iNotifier) {
@@ -503,11 +505,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       lastChildTableView = caseTablesInAdapterOrder[ix];
       lastChildTableView.set('childTable', null);
     }.bind(this));
-
     this.updateSelectedRows();
-    this.invokeLater(function () {
-      this.contentWidthDidChange();
-    }.bind(this));
+    contentView.scheduleTiling();
+    if (!contentView.hasObserverFor('frameSize', this, 'contentWidthDidChange')) {
+      contentView.addObserver('frameSize', this, 'contentWidthDidChange');
+    }
   },
 
   /**
@@ -557,8 +559,15 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     childTableViews.forEach( function( iTableView) {
       iTableView.scrollSelectionToView();
     });
-  }
+  },
 
+    findViewForCollection: function (iCollection) {
+      var childTableViews = this.get('childTableViews') || [];
+      return childTableViews.find(function (childTableView) {
+        var viewCollection = childTableView.getPath('gridAdapter.collection');
+        return viewCollection === iCollection;
+      });
+    }
   }; // end return from closure
   
 }()));

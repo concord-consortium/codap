@@ -41,6 +41,9 @@ DG.GameController = DG.ComponentController.extend(
      */
     openCaseIDs: null,
 
+    shouldConfirmClose: true,
+    confirmCloseDescription: 'DG.GameController.confirmCloseDescription',
+
     shouldDestroyOnComponentDestroy: true,
 
     gameIsReady: true,  // Will be set to false at the point we discover we're

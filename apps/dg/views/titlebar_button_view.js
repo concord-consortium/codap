@@ -37,43 +37,77 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
               tController = DG.currDocumentController().componentControllersMap[tComponentId],
-              tState;
+              tShouldConfirmClose = tController.get('shouldConfirmClose'),
+              tConfirmCloseMessage = tController.get('confirmCloseMessage')
+                  || 'DG.Component.closeComponent.confirmCloseMessage',
+              tConfirmCloseDescription = tController.get('confirmCloseDescription')
+                  || 'DG.Component.closeComponent.confirmCloseDescription';
+
+          var closeComponentAfterConfirm = function () {
+            this.closeComponent(tComponentId, tController);
+          }.bind(this);
+
+          if (tShouldConfirmClose) {
+            DG.AlertPane.warn({
+              message: tConfirmCloseMessage,
+              description: tConfirmCloseDescription,
+              buttons: [
+                { title: 'DG.Component.closeComponent.okButtonTitle',
+                  action: closeComponentAfterConfirm,
+                  localize: YES,
+                  isDefault: YES
+                },
+                { title: 'DG.Component.closeComponent.cancelButtonTitle',
+                  localize: YES,
+                  isCancel: YES
+                }
+              ],
+              localize: YES
+            });
+
+          } else {
+            this.closeComponent(tComponentId, tController);
+          }
+        },
+
+        closeComponent: function (iComponentID, iController) {
+          var tState;
 
           // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
           // Also, do this outside of the undo command, so that it can register its own
           // separate undo command if desired.
-          tController.willCloseComponent();
+          iController.willCloseComponent();
 
           DG.UndoHistory.execute(DG.Command.create({
             name: 'component.close',
             undoString: 'DG.Undo.component.close',
             redoString: 'DG.Redo.component.close',
-            _componentId: tComponentId,
+            _componentId: iComponentID,
             _controller: function() {
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
             _model: null,
             execute: function() {
-              tController = this._controller();
-              var tComponentView = tController.get('view'),
+              iController = this._controller();
+              var tComponentView = iController.get('view'),
                   tContainerView = tComponentView.get('parentView');
 
               this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
-              this._model = tController.get('model');
+              this._model = iController.get('model');
 
               // Some components (the graph in particular), won't restore correctly without calling willSaveComponent(),
               // because sometimes not all of the info necessary to restore the view is actively held in the model.
               // (In the graph's case, there is 'model' which relates to the view, and 'graphModel' which holds all of the
               // configuration like axis ranges, legends, etc.)
-              tController.willSaveComponent();
+              iController.willSaveComponent();
 
-              if (tController.saveGameState) {
+              if (iController.saveGameState) {
                 // If we are a GameController, try to save state.
                 // Since this is an asynchronous operation, we have to hold off closing the component
                 // until it is complete (or it will fail).
                 // Also, since closing the document will happen after this command executes, dirtying the
                 // document will clear the undo history, so we must force it not to dirty.
-                tController.saveGameState(function(result) {
+                iController.saveGameState(function(result) {
                   if (result && result.success) {
                     tState = result.state;
                   }
@@ -86,9 +120,9 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
             undo: function() {
               DG.currDocumentController().createComponentAndView(this._model);
 
-              tController = this._controller();
-              if (tController.restoreGameState && tState) {
-                tController.restoreGameState({gameState: tState});
+              iController = this._controller();
+              if (iController.restoreGameState && tState) {
+                iController.restoreGameState({gameState: tState});
               }
             }
           }));

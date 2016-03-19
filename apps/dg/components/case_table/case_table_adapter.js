@@ -25,7 +25,7 @@
 
   Adapter for displaying DG data for a single collection in a SlickGrid.
 
-  @extends DG.ComponentController
+  @extends SC.Object
  */
 DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
