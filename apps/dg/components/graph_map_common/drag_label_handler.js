@@ -72,7 +72,7 @@ DG.DragLabelHandler = SC.Object.extend(
       this.receivedDoDrag = false;
     },
 
-    handleDoDrag: function( iEvent) {
+    handleDoDrag: function( idX, idY, iX, iY, iEvent) {
       if( this.receivedStartDrag && !this.receivedDoDrag) {
         this.receivedDoDrag = true;
         var tDragView = this.labelView,
@@ -93,8 +93,6 @@ DG.DragLabelHandler = SC.Object.extend(
             ghost: YES,
             ghostActsLikeCursor: YES,
             slideBack: YES,
-            // The origin is supposed to be the point that the drag view will slide back to,
-            // but this is not working.
             origin: {x: iEvent.clientX, y: iEvent.clientY},
             data: {
               context: tContext,
@@ -103,7 +101,7 @@ DG.DragLabelHandler = SC.Object.extend(
               text: tAttributeName
             }  // For use by clients like the text box
           });
-        });
+        }.bind(this));
       }
     },
 

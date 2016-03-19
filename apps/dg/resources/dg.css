@@ -190,9 +190,11 @@
 }
 
 .drag-label {
+    font-family: Montserrat-Regular !important;
+    font-size: 14px !important;
     color: black;
-    font-size: large !important;
     background-color: lightblue !important;
+    text-align: center;
 }
 
 .data-dot {

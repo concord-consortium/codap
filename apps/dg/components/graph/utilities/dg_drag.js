@@ -46,5 +46,31 @@ DG.Drag = SC.Drag.extend({
       return tResult;
     else
       return sc_super();
+  },
+
+  /** @private Called instead of _destroyGhostView if slideBack is YES.
+   *  Overridden to get a better destination for the slideBack than SC provides
+   * */
+  _slideGhostViewBack: function () {
+    if( !this.origin)
+        sc_super();
+    else if (this.ghostView) {
+      var slidebackLayout = { top: this.origin.y, left: this.origin.x };
+
+      // Animate the ghost view back to its original position; destroy after.
+      this.ghostView.animate(slidebackLayout, 0.5, this, function () {
+        this.invokeNext(function() {
+          // notify the source that slideback has completed
+          var source = this.get('source');
+          if (this.get('slideBack') && source && source.dragSlideBackDidEnd)
+            source.dragSlideBackDidEnd(this);
+          this._endDrag();
+        });
+      });
+
+    }
+    else {
+      this._endDrag();
+    }
   }
 });
