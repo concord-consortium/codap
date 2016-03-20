@@ -33,6 +33,11 @@ sc_require('views/raphael_base');
 DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   /** @scope DG.AxisMultiTarget.prototype */
   {
+
+    classNameBindings: ['dragIsInside:graph-drop-multi-background'],
+
+    dragIsInside: false,
+
     /**
      We're adding attributes to this description
      @property { DG.AttributeDescription }
@@ -73,13 +78,13 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
     dragEntered:function ( iDragObject, iEvent ) {
       this.plusArea.addClass( 'graph-drop-plus-fill' );
-      this.set('backgroundColor', Raphael.color('rgba(100%,100%,0%,50%)'));
+      this.set('dragIsInside', true);
       this.showDropHint();
     },
 
     dragExited:function ( iDragObject, iEvent ) {
       this.plusArea.removeClass( 'graph-drop-plus-fill' );
-      this.set('backgroundColor', null);
+      this.set('dragIsInside', false);
       this.hideDropHint();
     },
 

@@ -321,6 +321,16 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           return SC.DRAG_LINK;
         },
 
+        /**
+         * Override so that y2 can hide if it has no attribute
+         */
+        dragEnded: function() {
+          if( (this.get('orientation') === 'vertical2') && (this.constructor === DG.AxisView)) {
+            this.set('isVisible', false);
+          }
+          DG.GraphDropTarget.dragEnded.apply(this, arguments);
+        },
+
         numberOfCells: function () {
           return this.getPath('model.numberOfCells');
         }.property(),

@@ -146,8 +146,7 @@ DG.GraphDropTarget =
         tY = tPaper.height / 2;
     if( !this.dropHintElement) {
       this.dropHintBox = tPaper.rect( 0, 0, 0, 0, 3)
-        .addClass( this.kDropBoxClass)
-        .attr('stroke-width', 0);
+        .addClass( this.kDropBoxClass);
       this.dropHintElement = tPaper.text( tX, tY, this.dropHintString )
         .addClass( this.kDropHintClass);
     }

@@ -709,7 +709,8 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tMulti);
     tMulti.set('attributeDescription', this.getPath('model.yAxis.attributeDescription'));
     tMulti.set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
-    tMulti.set('layout', { left: 0, top: 0, width: tExtent.width, height: tExtent.height });
+    //tMulti.set('layout', { left: 0, top: 0, width: tExtent.width, height: tExtent.height });
+    tMulti.set('layout', { left: 0, top: 0, right: 0, height: tExtent.height });
     tMulti.set('isVisible', false); // Start out hidden
 
     this.set('yAxisMultiTarget', tMulti);

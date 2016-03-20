@@ -619,12 +619,17 @@ body.dg .sc-view.doc-background {
     fill-opacity: 0.9;
 }
 
+.graph-drop-multi-background {
+    background-color: yellow;
+}
+
 .graph-drop-hint {
     font-size: 14px !important;
 }
 
 .graph-drop-box {
     fill: white;
+    stroke-width: 0;
 }
 
 .graph-multi-hint {
