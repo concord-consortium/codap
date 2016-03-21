@@ -38,6 +38,13 @@ DG.ContainerView = SC.View.extend(
       isResizable: YES,
 
       /**
+       * To bring a component frontmost, we assign it this value and then increment the value.
+       * We don't worry about running out of numbers.
+       * @property{Number}
+       */
+      nextZIndex: 1,
+
+      /**
        * @property {DG.InspectorView}
        */
       inspectorView: null,
@@ -200,29 +207,10 @@ DG.ContainerView = SC.View.extend(
         rendered last and appearing in front of all others.
       */
       bringToFront: function( iChildView) {
-        var domThisElement = this.get('layer'),
-            domChildElement = iChildView.get('layer'),
-            scChildViews = this.get('childViews'),
-            scChildViewCount = scChildViews.get('length'),
-            i;
-
-        // move the specified SC child view to the end of the child views
-        // no need to check the last child, since it wouldn't need to be moved
-        for( i = 0; i < scChildViewCount - 1; ++i) {
-          if(scChildViews[i] === iChildView) {
-            // remove it from its current location
-            scChildViews.splice(i, 1);
-            // add it to the end of the array
-            scChildViews.push(iChildView);
-            break;
-          }
+        if( iChildView.assignZ) {
+          iChildView.assignZ(this.get('nextZIndex'));
+          this.incrementProperty('nextZIndex');
         }
-
-        // move the specified child DOM element to the end of the DOM children
-        // will automatically remove it from its current location, if necessary
-        // cf. https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild
-        domThisElement.appendChild(domChildElement);
-        if (iChildView.didAppendToDocument) { iChildView.didAppendToDocument(); }
       },
       
       /* sendToBack - The given child view will be placed at the beginning of the list, thus

@@ -547,6 +547,14 @@ DG.ComponentView = SC.View.extend(
           this.containerView.appendChild(iView);
           this.containerView.setContentView(iView);
         },
+
+        /**
+         * @param iZ {Number}
+         */
+        assignZ: function( iZ) {
+          this.adjust('zIndex', iZ);
+        },
+
         select: function () {
           this.parentView.select(this);
         },
