@@ -345,7 +345,9 @@ DG.mainPage = SC.Page.design((function() {
           }
         }
         else if( !SC.empty(tURI)) {
-          DG.appController.importURL( tURI);
+          SC.run(function () {
+            DG.appController.importURL( tURI);
+          });
         }
         $(tElement).removeClass('dg-receive-outside-drop');
 

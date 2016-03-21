@@ -111,7 +111,9 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
                   if (result && result.success) {
                     tState = result.state;
                   }
-                  tContainerView.removeComponentView( tComponentView);
+                  SC.run(function () {
+                    tContainerView.removeComponentView( tComponentView);
+                  });
                 });
               } else {
                 tContainerView.removeComponentView( tComponentView);
