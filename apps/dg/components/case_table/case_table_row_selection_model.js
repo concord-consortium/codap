@@ -80,7 +80,7 @@ DG.CaseTableRowSelectionModel = function (options) {
     return ranges;
   }
 
-  function getRowsRange(from, to) {
+  function getRowsRange(from, to) { // jshint ignore:line
     var i, rows = [];
     for (i = from; i <= to; i++) {
       rows.push(i);
@@ -115,36 +115,36 @@ DG.CaseTableRowSelectionModel = function (options) {
   }
 
   function handleKeyDown(e) {
-    var activeRow = _grid.getActiveCell();
-    if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which === 38 || e.which === 40)) {
-      var selectedRows = getSelectedRows();
-      selectedRows.sort(function (x, y) {
-        return x - y;
-      });
-
-      if (!selectedRows.length) {
-        selectedRows = [activeRow.row];
-      }
-
-      var top = selectedRows[0];
-      var bottom = selectedRows[selectedRows.length - 1];
-      var active;
-
-      if (e.which === 40) {
-        active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
-      } else {
-        active = activeRow.row < bottom ? --bottom : --top;
-      }
-
-      if (active >= 0 && active < _grid.getDataLength()) {
-        _grid.scrollRowIntoView(active);
-        _ranges = rowsToRanges(getRowsRange(top, bottom));
-        setSelectedRanges(_ranges);
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    //var activeRow = _grid.getActiveCell();
+    //if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which === 38 || e.which === 40)) {
+    //  var selectedRows = getSelectedRows();
+    //  selectedRows.sort(function (x, y) {
+    //    return x - y;
+    //  });
+    //
+    //  if (!selectedRows.length) {
+    //    selectedRows = [activeRow.row];
+    //  }
+    //
+    //  var top = selectedRows[0];
+    //  var bottom = selectedRows[selectedRows.length - 1];
+    //  var active;
+    //
+    //  if (e.which === 40) {
+    //    active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
+    //  } else {
+    //    active = activeRow.row < bottom ? --bottom : --top;
+    //  }
+    //
+    //  if (active >= 0 && active < _grid.getDataLength()) {
+    //    _grid.scrollRowIntoView(active);
+    //    _ranges = rowsToRanges(getRowsRange(top, bottom));
+    //    setSelectedRanges(_ranges);
+    //  }
+    //
+    //  e.preventDefault();
+    //  e.stopPropagation();
+    //}
   }
 
   function handleClick(e) { // jshint ignore:line
