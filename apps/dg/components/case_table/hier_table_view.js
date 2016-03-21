@@ -106,6 +106,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        @property
        */
       layoutDirection: SC.LAYOUT_HORIZONTAL,
+
+      childViews: [],
+
       /**
        * Children are kept full size.
        * @override
