@@ -524,13 +524,16 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       selectAll: function () {
         var tContext = this.get('dataContext'),
-          tCollection = tContext && tContext.get('parentCollection'),// todo
-        tChange = {
-          operation: 'selectCases',
-          collection: tCollection,
-          cases: null,// null selects all
-          select: true
-        };
+          tCollection = tContext && tContext.getCollectionAtIndex(0),
+          tChange;// todo
+        if (tCollection) {
+          tChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: null,// null selects all
+            select: true
+          };
+        }
         tContext.applyChange( tChange);
       },
       /**
