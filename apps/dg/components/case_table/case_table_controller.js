@@ -460,8 +460,10 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       attributeCountDidChange: function() {
         var hierTableView = this.getPath('view.contentView');
-        if( hierTableView)
+        if( hierTableView) {
           hierTableView.updateColumnInfo();
+          hierTableView.updateRowCount();
+        }
       },
 
       /**
