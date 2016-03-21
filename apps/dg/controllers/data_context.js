@@ -1067,7 +1067,18 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @return {String} Case data in tab-delimited string format
    */
   exportCaseData: function( iWhichCollection ) {
-    var columnDelimiter = '\t',
+    // Encode str as per RFC 4180.
+    // If str contains double quotes, convert to two double quotes
+    // If str contains commas or double quotes, wrap in double quotes.
+    function escape(str) {
+      var newStr = '' + (SC.none(str)? '': str);
+      if (/.*[",].*/.test(str)) {
+        newStr = '"' + newStr.replace(/"/g, '""') + '"';
+      }
+      return newStr;
+    }
+
+    var columnDelimiter = ',',
         rowDelimiter = '\r\n',
         collection,
         attribNames,
@@ -1099,10 +1110,9 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     // add each row of case values
     collection.forEachCase( function( iCase, iIndex ) {
-      function escape(str) { return str.replace(/\t/, '\\t');}
       var row = [];
       attribIDs.forEach( function( iAttrID ) {
-        var caseValue = '' + iCase.getValue( iAttrID);
+        var caseValue = iCase.getValue( iAttrID);
         row.push(escape(caseValue));
       });
       rows.push(row.join(columnDelimiter)); // append each line of data to the output
@@ -1462,7 +1472,17 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @return {[DG.Attribute]}
    */
   getAttributes: function () {
-    return this.getPath('model.dataSet.attrs');
+    var attrs = [];
+    var ix;
+    var collection;
+    var collectionAttrs;
+    for (ix = 0; ix < this.get('collectionCount'); ix += 1) {
+      collection = this.getCollectionAtIndex(ix);
+      collectionAttrs = collection.get('attrsController');
+      collectionAttrs && collectionAttrs.forEach(function (attr) {attrs.push(attr);});
+    }
+
+    return attrs;
   },
 
   /**
