@@ -368,7 +368,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     gridWidthDidChange: function() {
       var parentView = this.get('parentView');
-      // Apparently, we can get gridWidthDidChange before the parentview is
+      // Apparently, we can get gridWidthDidChange before the parent view is
       // established. This occurs on Chrome, W8.1 or MacOS Mavericks, but not
       // MacOS Yosemite.
       if (parentView) {
@@ -627,7 +627,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     /**
      * Collapses a node in the case tree and resets all case tables below.
-     * @param iCase {DG.Case}
+     * @param iCaseID {number}
      */
     collapseCase: function (iCaseID) {
       var childTable = this.get('childTable');
@@ -643,7 +643,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     /**
      * Collapses a node in the case tree and resets all case tables below.
      *
-     * @param iCase {DG.Case}
+     * @param iCaseID {number}
      */
     expandCase: function (iCaseID) {
       var childTable = this.get('childTable');
@@ -893,7 +893,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // we can get here for clicks that are actually handled by the platform scroll bar.
     // This is particularly bad, because we get the down but not the corresponding up
     // (which is apparently swallowed by the scroll bar), so we end up starting the
-    // mousemove tracker and possibly the autoscroll timer without ever having a
+    // mouse move tracker and possibly the autoscroll timer without ever having a
     // means to end them. Better to avoid handling such clicks entirely.
     // Note that in my testing there are a couple pixels outside the scroll bar which
     // are rejected by this test but should not be. I'm choosing not to attempt to
@@ -971,7 +971,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
       else if( this._touchStartCell.row >= 0) {
         // table body drag -- select range from start row to current row
-        // mousemoves don't have the touches array, so we simulate an array of one event
+        // mouse moves don't have the touches array, so we simulate an array of one event
         if( !iTouches) iTouches = [ iEvent ];
         iTouches.forEach( function( iTouch) {
                             var viewPos = this.touchPosInView( iTouch),
@@ -1231,7 +1231,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Synchronizes the number of table rows with the number of cases.
     Tries to do so efficiently, but has to rebuild the table in some cases.
 
-    @param  {Boolean} Whether to force a re-indexing of the rows
+    @param  forceRedraw {Boolean} Whether to force a re-indexing of the rows
    */
   updateRowCount: function( forceRedraw) {
     if( !this._slickGrid) return;
