@@ -463,6 +463,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         if( hierTableView) {
           hierTableView.updateColumnInfo();
           hierTableView.updateRowCount();
+          hierTableView.updateSelectedRows();
         }
       },
 
