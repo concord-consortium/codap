@@ -528,7 +528,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       selectAll: function () {
         var tContext = this.get('dataContext'),
           tCollection = tContext && tContext.getCollectionAtIndex(0),
-          tChange;// todo
+          tChange;
         if (tCollection) {
           tChange = {
             operation: 'selectCases',
