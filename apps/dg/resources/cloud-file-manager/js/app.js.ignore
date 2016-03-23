@@ -77,7 +77,7 @@ module.exports = new CloudFileManager();
 
 
 
-},{"./client":49,"./ui":56,"./utils/get-hash-param":57,"./views/app-view":62}],3:[function(require,module,exports){
+},{"./client":49,"./ui":56,"./utils/get-hash-param":57,"./views/app-view":63}],3:[function(require,module,exports){
 // See: http://code.google.com/p/google-diff-match-patch/wiki/API
 "use strict";
 
@@ -9391,6 +9391,7 @@ CloudFileManagerClient = (function() {
         appOptions.providers.push(providerName);
       }
     }
+    CloudMetadata.Extension = this.appOptions.extension;
     availableProviders = [];
     ref1 = this.appOptions.providers;
     for (j = 0, len1 = ref1.length; j < len1; j++) {
@@ -9400,7 +9401,7 @@ CloudFileManagerClient = (function() {
         providerOptions.mimeType = this.appOptions.mimeType;
       }
       if (!providerName) {
-        this._error("Invalid provider spec - must either be string or object with name property");
+        this.alert("Invalid provider spec - must either be string or object with name property");
       } else {
         if (allProviders[providerName]) {
           Provider = allProviders[providerName];
@@ -9408,7 +9409,7 @@ CloudFileManagerClient = (function() {
           this.providers[providerName] = provider;
           availableProviders.push(provider);
         } else {
-          this._error("Unknown provider: " + providerName);
+          this.alert("Unknown provider: " + providerName);
         }
       }
     }
@@ -9526,8 +9527,12 @@ CloudFileManagerClient = (function() {
       if (this._autoSaveInterval && this.state.metadata) {
         this.save();
         return this.newFile();
-      } else if (confirm(tr('~CONFIRM.NEW_FILE'))) {
-        return this.newFile();
+      } else {
+        return this.confirm(tr('~CONFIRM.NEW_FILE'), (function(_this) {
+          return function() {
+            return _this.newFile();
+          };
+        })(this));
       }
     } else {
       return this.newFile();
@@ -9543,7 +9548,7 @@ CloudFileManagerClient = (function() {
       return metadata.provider.load(metadata, (function(_this) {
         return function(err, content) {
           if (err) {
-            return _this._error(err);
+            return _this.alert(err);
           }
           _this._closeCurrentFile();
           _this._fileOpened(content, metadata, {
@@ -9558,15 +9563,21 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.openFileDialog = function(callback) {
+    var showDialog;
     if (callback == null) {
       callback = null;
     }
-    if ((!this.state.dirty) || (confirm(tr('~CONFIRM.OPEN_FILE')))) {
-      return this._ui.openFileDialog((function(_this) {
-        return function(metadata) {
+    showDialog = (function(_this) {
+      return function() {
+        return _this._ui.openFileDialog(function(metadata) {
           return _this.openFile(metadata, callback);
-        };
-      })(this));
+        });
+      };
+    })(this);
+    if (!this.state.dirty) {
+      return showDialog();
+    } else {
+      return this.confirm(tr('~CONFIRM.OPEN_FILE'), showDialog);
     }
   };
 
@@ -9576,6 +9587,9 @@ CloudFileManagerClient = (function() {
     }
     this._closeCurrentFile();
     this._resetState();
+    this._event('closedFile', {
+      content: ""
+    });
     return typeof callback === "function" ? callback() : void 0;
   };
 
@@ -9583,8 +9597,14 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if ((!this.state.dirty) || (confirm(tr('~CONFIRM.CLOSE_FILE')))) {
+    if (!this.state.dirty) {
       return this.closeFile(callback);
+    } else {
+      return this.confirm(tr('~CONFIRM.CLOSE_FILE'), (function(_this) {
+        return function() {
+          return _this.closeFile(callback);
+        };
+      })(this));
     }
   };
 
@@ -9658,7 +9678,7 @@ CloudFileManagerClient = (function() {
     return (ref = this.state.shareProvider) != null ? ref.loadSharedContent(id, (function(_this) {
       return function(err, content, metadata) {
         if (err) {
-          return _this._error(err);
+          return _this.alert(err);
         }
         return _this._fileOpened(content, metadata, {
           overwritable: false,
@@ -9677,7 +9697,7 @@ CloudFileManagerClient = (function() {
           if (authorized) {
             return provider.openSaved(providerParams, function(err, content, metadata) {
               if (err) {
-                return _this._error(err);
+                return _this.alert(err);
               }
               return _this._fileOpened(content, metadata, {
                 openedContent: content.clone()
@@ -9735,7 +9755,7 @@ CloudFileManagerClient = (function() {
               metadata: metadata,
               saving: null
             });
-            return _this._error(err);
+            return _this.alert(err);
           }
           if (_this.state.metadata !== metadata) {
             _this._closeCurrentFile();
@@ -9867,7 +9887,11 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.shareUpdate = function() {
-    return this.share();
+    return this.share((function(_this) {
+      return function() {
+        return _this.alert(tr("~SHARE_UPDATE.MESSAGE"), tr("~SHARE_UPDATE.TITLE"));
+      };
+    })(this));
   };
 
   CloudFileManagerClient.prototype.toggleShare = function(callback) {
@@ -9879,62 +9903,62 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.isShared = function() {
-    var ref;
-    return (ref = this.state.currentContent) != null ? ref.get("sharedDocumentId") : void 0;
+    var ref, ref1;
+    return ((ref = this.state.currentContent) != null ? ref.get("sharedDocumentId") : void 0) && !((ref1 = this.state.currentContent) != null ? ref1.get("isUnshared") : void 0);
   };
 
-  CloudFileManagerClient.prototype.share = function(callback) {
+  CloudFileManagerClient.prototype.canEditShared = function() {
+    var ref, ref1;
+    return ((ref = this.state.currentContent) != null ? ref.get("shareEditKey") : void 0) && !((ref1 = this.state.currentContent) != null ? ref1.get("isUnshared") : void 0);
+  };
+
+  CloudFileManagerClient.prototype.setShareState = function(shared, callback) {
     var sharingMetadata;
     if (this.state.shareProvider) {
-      sharingMetadata = this.state.shareProvider.getSharingMetadata();
+      sharingMetadata = this.state.shareProvider.getSharingMetadata(shared);
       return this._event('getContent', {
         shared: sharingMetadata
       }, (function(_this) {
         return function(stringContent) {
-          var sharedContent;
+          var currentContent, sharedContent;
           _this._setState({
-            sharing: true
+            sharing: shared
           });
           sharedContent = cloudContentFactory.createEnvelopedCloudContent(stringContent);
           sharedContent.addMetadata(sharingMetadata);
-          return _this.state.shareProvider.share(_this.state.currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
+          currentContent = _this._createOrUpdateCurrentContent(stringContent, _this.state.metadata);
+          if (shared) {
+            currentContent.remove('isUnshared');
+          } else {
+            currentContent.set('isUnshared', true);
+          }
+          return _this.state.shareProvider.share(currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
             if (err) {
-              return _this._error(err);
+              return _this.alert(err);
             }
-            _this._fileChanged('sharedFile', _this.state.currentContent, _this.state.metadata);
-            return typeof callback === "function" ? callback(sharedContentId) : void 0;
+            return typeof callback === "function" ? callback(null, sharedContentId, currentContent) : void 0;
           });
         };
       })(this));
     }
   };
 
-  CloudFileManagerClient.prototype.unshare = function(callback) {
-    var ref, ref1, ref2;
-    if ((ref = this.state.currentContent) != null) {
-      ref.remove("_permissions");
-    }
-    if ((ref1 = this.state.currentContent) != null) {
-      ref1.remove("shareEditKey");
-    }
-    if ((ref2 = this.state.currentContent) != null) {
-      ref2.remove("sharedDocumentId");
-    }
-    this._fileChanged('unsharedFile', this.state.currentContent, this.state.metadata, {
-      sharing: false
-    });
-    return typeof callback === "function" ? callback(false) : void 0;
+  CloudFileManagerClient.prototype.share = function(callback) {
+    return this.setShareState(true, (function(_this) {
+      return function(err, sharedContentId, currentContent) {
+        _this._fileChanged('sharedFile', currentContent, _this.state.metadata);
+        return typeof callback === "function" ? callback(null, sharedContentId) : void 0;
+      };
+    })(this));
   };
 
-  CloudFileManagerClient.prototype.reshare = function(sharedMetadata, callback) {
-    var ref;
-    if ((ref = this.state.currentContent) != null) {
-      ref.addMetadata(sharedMetadata);
-    }
-    this._fileChanged('sharedFile', this.state.currentContent, this.state.metadata, {
-      sharing: true
-    });
-    return typeof callback === "function" ? callback(false) : void 0;
+  CloudFileManagerClient.prototype.unshare = function(callback) {
+    return this.setShareState(false, (function(_this) {
+      return function(err, sharedContentId, currentContent) {
+        _this._fileChanged('unsharedFile', currentContent, _this.state.metadata);
+        return typeof callback === "function" ? callback(null) : void 0;
+      };
+    })(this));
   };
 
   CloudFileManagerClient.prototype.revertToShared = function(callback) {
@@ -9948,7 +9972,7 @@ CloudFileManagerClient = (function() {
         return function(err, content, metadata) {
           var docName;
           if (err) {
-            return _this._error(err);
+            return _this.alert(err);
           }
           _this.state.currentContent.copyMetadataTo(content);
           if (!metadata.name && (docName = content.get('docName'))) {
@@ -9969,8 +9993,12 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (((ref = this.state.currentContent) != null ? ref.get("sharedDocumentId") : void 0) && (this.state.shareProvider != null) && confirm(tr("~CONFIRM.REVERT_TO_SHARED_VIEW"))) {
-      return this.revertToShared(callback);
+    if (((ref = this.state.currentContent) != null ? ref.get("sharedDocumentId") : void 0) && (this.state.shareProvider != null)) {
+      return this.confirm(tr("~CONFIRM.REVERT_TO_SHARED_VIEW"), (function(_this) {
+        return function() {
+          return _this.revertToShared(callback);
+        };
+      })(this));
     }
   };
 
@@ -10014,7 +10042,7 @@ CloudFileManagerClient = (function() {
         return this.state.metadata.provider.rename(this.state.metadata, newName, (function(_this) {
           return function(err, metadata) {
             if (err) {
-              return _this._error(err);
+              return _this.alert(err);
             }
             return _rename(metadata);
           };
@@ -10061,9 +10089,11 @@ CloudFileManagerClient = (function() {
       callback = null;
     }
     if ((this.state.openedContent != null) && this.state.metadata) {
-      if (confirm(tr('~CONFIRM.REVERT_TO_LAST_OPENED'))) {
-        return this.revertToLastOpened(callback);
-      }
+      return this.confirm(tr('~CONFIRM.REVERT_TO_LAST_OPENED'), (function(_this) {
+        return function() {
+          return _this.revertToLastOpened(callback);
+        };
+      })(this));
     } else {
       return typeof callback === "function" ? callback('No initial opened version was found for the currently active file') : void 0;
     }
@@ -10109,7 +10139,11 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.showBlockingModal = function(modalProps) {
-    return this._ui.blockingModal(modalProps);
+    return this._ui.showBlockingModal(modalProps);
+  };
+
+  CloudFileManagerClient.prototype.hideBlockingModal = function() {
+    return this._ui.hideBlockingModal();
   };
 
   CloudFileManagerClient.prototype.getCurrentUrl = function(queryString) {
@@ -10119,6 +10153,17 @@ CloudFileManagerClient = (function() {
     }
     suffix = queryString != null ? "?" + queryString : "";
     return "" + document.location.origin + document.location.pathname + suffix;
+  };
+
+  CloudFileManagerClient.prototype.confirm = function(message, callback) {
+    return this._ui.confirmDialog(message, callback);
+  };
+
+  CloudFileManagerClient.prototype.alert = function(message, title) {
+    if (title == null) {
+      title = null;
+    }
+    return this._ui.alertDialog(message, title || tr("~CLIENT_ERROR.TITLE"));
   };
 
   CloudFileManagerClient.prototype._dialogSave = function(stringContent, metadata, callback) {
@@ -10133,10 +10178,6 @@ CloudFileManagerClient = (function() {
         };
       })(this));
     }
-  };
-
-  CloudFileManagerClient.prototype._error = function(message) {
-    return alert(message);
   };
 
   CloudFileManagerClient.prototype._fileChanged = function(type, content, metadata, additionalState, hashParams) {
@@ -10170,7 +10211,7 @@ CloudFileManagerClient = (function() {
     }, (function(_this) {
       return function(iError, iSharedMetadata) {
         if (iError) {
-          return _error(iError);
+          return _this.alert(iError);
         } else {
           if (metadata != null) {
             if (metadata.overwritable == null) {
@@ -10199,7 +10240,7 @@ CloudFileManagerClient = (function() {
       metadata: metadata,
       saving: null,
       saved: false,
-      dirty: content != null ? content.requiresConversion() : void 0
+      dirty: !additionalState.saved && (content != null ? content.requiresConversion() : void 0)
     };
     for (key in additionalState) {
       if (!hasProp.call(additionalState, key)) continue;
@@ -10312,7 +10353,7 @@ var CloudMetadata, DocumentStoreAuthorizationDialog, DocumentStoreProvider, Prov
 
 ref = React.DOM, div = ref.div, button = ref.button, span = ref.span;
 
-documentStore = "//document-store.concord.org/";
+documentStore = "//document-store.concord.org";
 
 authorizeUrl = documentStore + "/user/authenticate";
 
@@ -10531,14 +10572,16 @@ DocumentStoreProvider = (function(superClass) {
         for (key in data) {
           if (!hasProp.call(data, key)) continue;
           file = data[key];
-          list.push(new CloudMetadata({
-            name: file.name,
-            providerData: {
-              id: file.id
-            },
-            type: CloudMetadata.File,
-            provider: this
-          }));
+          if (this.matchesExtension(file.name)) {
+            list.push(new CloudMetadata({
+              name: file.name,
+              providerData: {
+                id: file.id
+              },
+              type: CloudMetadata.File,
+              provider: this
+            }));
+          }
         }
         return callback(null, list);
       },
@@ -10577,12 +10620,10 @@ DocumentStoreProvider = (function(superClass) {
         var content, ref2;
         this.previouslySavedContent = this.options.patch ? _.cloneDeep(data) : null;
         content = cloudContentFactory.createEnvelopedCloudContent(data);
-        if (metadata.name == null) {
-          metadata.name = data.docName || data.name || ((ref2 = data.content) != null ? ref2.name : void 0);
-        }
-        if (metadata != null ? metadata.name : void 0) {
+        metadata.rename(metadata.name || data.docName || data.name || ((ref2 = data.content) != null ? ref2.name : void 0));
+        if (metadata.name) {
           content.addMetadata({
-            docName: metadata.name
+            docName: metadata.filename
           });
         }
         return callback(null, content);
@@ -10595,9 +10636,9 @@ DocumentStoreProvider = (function(superClass) {
     });
   };
 
-  DocumentStoreProvider.prototype.getSharingMetadata = function(content) {
+  DocumentStoreProvider.prototype.getSharingMetadata = function(shared) {
     return {
-      _permissions: 1
+      _permissions: shared ? 1 : 0
     };
   };
 
@@ -10635,7 +10676,7 @@ DocumentStoreProvider = (function(superClass) {
       },
       error: function() {
         var docName;
-        docName = (metadata != null ? metadata.name : void 0) || 'document';
+        docName = (metadata != null ? metadata.filename : void 0) || 'document';
         return callback("Unable to save " + docName);
       }
     });
@@ -10663,8 +10704,8 @@ DocumentStoreProvider = (function(superClass) {
       url = patchDocumentUrl;
       mimeType = 'application/json-patch+json';
     } else {
-      if (metadata.name) {
-        params.recordname = metadata.name;
+      if (metadata.filename) {
+        params.recordname = metadata.filename;
       }
       url = saveDocumentUrl;
       sendContent = contentJson;
@@ -10711,7 +10752,7 @@ DocumentStoreProvider = (function(superClass) {
     return $.ajax({
       url: removeDocumentUrl,
       data: {
-        recordname: metadata.name
+        recordname: metadata.filename
       },
       context: this,
       xhrFields: {
@@ -10731,14 +10772,14 @@ DocumentStoreProvider = (function(superClass) {
       url: renameDocumentUrl,
       data: {
         recordid: metadata.providerData.id,
-        newRecordname: newName
+        newRecordname: metadata.withExtension(newName)
       },
       context: this,
       xhrFields: {
         withCredentials: true
       },
       success: function(data) {
-        metadata.name = newName;
+        metadata.rename(newName);
         return callback(null, metadata);
       },
       error: function() {
@@ -10866,7 +10907,7 @@ GoogleDriveProvider = (function(superClass) {
         save: true,
         load: true,
         list: true,
-        remove: true,
+        remove: false,
         rename: true,
         close: true
       }
@@ -10989,7 +11030,7 @@ GoogleDriveProvider = (function(superClass) {
           q: query = "((mimeType = '" + _this.mimeType + "') or (mimeType = 'application/vnd.google-apps.folder')) and '" + (metadata ? metadata.providerData.id : 'root') + "' in parents"
         });
         return request.execute(function(result) {
-          var i, item, len, list, ref1;
+          var i, item, len, list, ref1, type;
           if (!result) {
             return callback('Unable to list files');
           }
@@ -10997,16 +11038,19 @@ GoogleDriveProvider = (function(superClass) {
           ref1 = result != null ? result.items : void 0;
           for (i = 0, len = ref1.length; i < len; i++) {
             item = ref1[i];
-            list.push(new CloudMetadata({
-              name: item.title,
-              type: item.mimeType === 'application/vnd.google-apps.folder' ? CloudMetadata.Folder : CloudMetadata.File,
-              parent: metadata,
-              overwritable: item.editable,
-              provider: _this,
-              providerData: {
-                id: item.id
-              }
-            }));
+            type = item.mimeType === 'application/vnd.google-apps.folder' ? CloudMetadata.Folder : CloudMetadata.File;
+            if (type === CloudMetadata.Folder || _this.matchesExtension(item.title)) {
+              list.push(new CloudMetadata({
+                name: item.title,
+                type: type,
+                parent: metadata,
+                overwritable: item.editable,
+                provider: _this,
+                providerData: {
+                  id: item.id
+                }
+              }));
+            }
           }
           list.sort(function(a, b) {
             var lowerA, lowerB;
@@ -11044,14 +11088,14 @@ GoogleDriveProvider = (function(superClass) {
       request = gapi.client.drive.files.patch({
         fileId: metadata.providerData.id,
         resource: {
-          title: newName
+          title: metadata.withExtension(newName)
         }
       });
       return request.execute(function(result) {
         if (result != null ? result.error : void 0) {
           return typeof callback === "function" ? callback(result.error) : void 0;
         } else {
-          metadata.name = newName;
+          metadata.rename(newName);
           return callback(null, metadata);
         }
       });
@@ -11129,7 +11173,7 @@ GoogleDriveProvider = (function(superClass) {
       return function(file) {
         var xhr;
         if (file != null ? file.downloadUrl : void 0) {
-          metadata.name = file.title;
+          metadata.rename(file.title);
           metadata.overwritable = file.editable;
           metadata.providerData = {
             id: file.id
@@ -11157,7 +11201,7 @@ GoogleDriveProvider = (function(superClass) {
     var body, boundary, header, method, path, ref1, ref2, ref3, ref4, request;
     boundary = '-------314159265358979323846';
     header = JSON.stringify({
-      title: metadata.name,
+      title: metadata.filename,
       mimeType: this.mimeType,
       parents: [
         {
@@ -11238,7 +11282,7 @@ GoogleDriveProvider = (function(superClass) {
         if (err.type === 'TOKEN_REFRESH_REQUIRED') {
           return _this.authorize(GoogleDriveProvider.IMMEDIATE);
         } else {
-          return alert(err.message);
+          return _this.client.alert(err.message);
         }
       };
     })(this);
@@ -11248,7 +11292,7 @@ GoogleDriveProvider = (function(superClass) {
       });
     } else {
       request = gapi.client.drive.files.insert({
-        title: metadata.name,
+        title: metadata.filename,
         mimeType: this.mimeType,
         parents: [
           {
@@ -11260,7 +11304,7 @@ GoogleDriveProvider = (function(superClass) {
     return request.execute((function(_this) {
       return function(file) {
         if (file != null ? file.id : void 0) {
-          metadata.name = file.title;
+          metadata.rename(file.title);
           metadata.overwritable = file.editable;
           metadata.providerData = {
             id: file.id
@@ -11392,7 +11436,7 @@ module.exports = LocalFileProvider;
 
 
 
-},{"../utils/translate":61,"../views/local-file-tab-view":69,"./provider-interface":54}],53:[function(require,module,exports){
+},{"../utils/translate":61,"../views/local-file-tab-view":71,"./provider-interface":54}],53:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -11446,7 +11490,7 @@ LocalStorageProvider = (function(superClass) {
   LocalStorageProvider.prototype.save = function(content, metadata, callback) {
     var e, error, fileKey;
     try {
-      fileKey = this._getKey(metadata.name);
+      fileKey = this._getKey(metadata.filename);
       window.localStorage.setItem(fileKey, content.getContentAsJSON());
       return typeof callback === "function" ? callback(null) : void 0;
     } catch (error) {
@@ -11458,7 +11502,7 @@ LocalStorageProvider = (function(superClass) {
   LocalStorageProvider.prototype.load = function(metadata, callback) {
     var content, e, error;
     try {
-      content = window.localStorage.getItem(this._getKey(metadata.name));
+      content = window.localStorage.getItem(this._getKey(metadata.filename));
       return callback(null, cloudContentFactory.createEnvelopedCloudContent(content));
     } catch (error) {
       e = error;
@@ -11476,12 +11520,14 @@ LocalStorageProvider = (function(superClass) {
       if (key.substr(0, prefix.length) === prefix) {
         ref1 = key.substr(prefix.length).split('/'), filename = ref1[0], remainder = 2 <= ref1.length ? slice.call(ref1, 1) : [];
         name = key.substr(prefix.length);
-        list.push(new CloudMetadata({
-          name: name,
-          type: remainder.length > 0 ? CloudMetadata.Folder : CloudMetadata.File,
-          parent: metadata,
-          provider: this
-        }));
+        if (this.matchesExtension(name)) {
+          list.push(new CloudMetadata({
+            name: name,
+            type: remainder.length > 0 ? CloudMetadata.Folder : CloudMetadata.File,
+            parent: metadata,
+            provider: this
+          }));
+        }
       }
     }
     return callback(null, list);
@@ -11490,7 +11536,7 @@ LocalStorageProvider = (function(superClass) {
   LocalStorageProvider.prototype.remove = function(metadata, callback) {
     var error;
     try {
-      window.localStorage.removeItem(this._getKey(metadata.name));
+      window.localStorage.removeItem(this._getKey(metadata.filename));
       return typeof callback === "function" ? callback(null) : void 0;
     } catch (error) {
       return typeof callback === "function" ? callback('Unable to delete') : void 0;
@@ -11500,10 +11546,10 @@ LocalStorageProvider = (function(superClass) {
   LocalStorageProvider.prototype.rename = function(metadata, newName, callback) {
     var content, error;
     try {
-      content = window.localStorage.getItem(this._getKey(metadata.name));
-      window.localStorage.setItem(this._getKey(newName), content);
-      window.localStorage.removeItem(this._getKey(metadata.name));
-      metadata.name = newName;
+      content = window.localStorage.getItem(this._getKey(metadata.filename));
+      window.localStorage.setItem(this._getKey(metadata.withExtension(newName)), content);
+      window.localStorage.removeItem(this._getKey(metadata.filename));
+      metadata.rename(newName);
       return callback(null, metadata);
     } catch (error) {
       return typeof callback === "function" ? callback('Unable to rename') : void 0;
@@ -11563,6 +11609,7 @@ CloudMetadata = (function() {
   function CloudMetadata(options) {
     var ref, ref1, ref2;
     this.name = options.name, this.type = options.type, this.description = options.description, this.content = options.content, this.url = options.url, this.provider = (ref = options.provider) != null ? ref : null, this.parent = (ref1 = options.parent) != null ? ref1 : null, this.providerData = (ref2 = options.providerData) != null ? ref2 : {}, this.overwritable = options.overwritable, this.sharedContentId = options.sharedContentId, this.sharedContentSecretKey = options.sharedContentSecretKey;
+    this._updateFilename();
   }
 
   CloudMetadata.Folder = 'folder';
@@ -11570,6 +11617,8 @@ CloudMetadata = (function() {
   CloudMetadata.File = 'file';
 
   CloudMetadata.Label = 'label';
+
+  CloudMetadata.Extension = null;
 
   CloudMetadata.mapTypeToCloudMetadataType = function(iType) {
     return iType || this.File;
@@ -11584,6 +11633,31 @@ CloudMetadata = (function() {
       parent = parent.parent;
     }
     return _path;
+  };
+
+  CloudMetadata.prototype.rename = function(newName) {
+    this.name = newName;
+    return this._updateFilename();
+  };
+
+  CloudMetadata.prototype.withExtension = function(name) {
+    if (name.substr(-CloudMetadata.Extension.length) !== CloudMetadata.Extension) {
+      return name + CloudMetadata.Extension;
+    } else {
+      return name;
+    }
+  };
+
+  CloudMetadata.prototype._updateFilename = function() {
+    var extLen, ref;
+    this.filename = this.name;
+    if ((((ref = this.name) != null ? ref.substr : void 0) != null) && CloudMetadata.Extension && this.type === CloudMetadata.File) {
+      extLen = CloudMetadata.Extension.length;
+      if (this.name.substr(-extLen) === CloudMetadata.Extension) {
+        this.name = this.name.substr(0, this.name.length - extLen);
+      }
+      return this.filename = this.withExtension(this.name);
+    }
   };
 
   return CloudMetadata;
@@ -11723,6 +11797,10 @@ CloudContent = (function() {
     return this._[prop];
   };
 
+  CloudContent.prototype.set = function(prop, value) {
+    return this._[prop] = value;
+  };
+
   CloudContent.prototype.remove = function(prop) {
     return delete this._[prop];
   };
@@ -11793,6 +11871,14 @@ ProviderInterface = (function() {
 
   ProviderInterface.prototype.filterTabComponent = function(capability, defaultComponent) {
     return defaultComponent;
+  };
+
+  ProviderInterface.prototype.matchesExtension = function(name) {
+    if (CloudMetadata.Extension) {
+      return name.substr(-CloudMetadata.Extension.length) === CloudMetadata.Extension;
+    } else {
+      return true;
+    }
   };
 
   ProviderInterface.prototype.dialog = function(callback) {
@@ -11928,10 +12014,14 @@ ReadOnlyProvider = (function(superClass) {
   ReadOnlyProvider.prototype.list = function(metadata, callback) {
     return this._loadTree((function(_this) {
       return function(err, tree) {
+        var items;
         if (err) {
           return callback(err);
         }
-        return callback(null, (metadata != null ? metadata.type : void 0) === CloudMetadata.Folder ? metadata.providerData.children : _this.tree);
+        items = (metadata != null ? metadata.type : void 0) === CloudMetadata.Folder ? metadata.providerData.children : _this.tree;
+        return callback(null, _.map(items, function(item) {
+          return _.clone(item);
+        }));
       };
     })(this));
   };
@@ -12147,15 +12237,14 @@ CloudFileManagerUIMenu = (function() {
     setAction = function(action) {
       var ref;
       return ((ref = client[action]) != null ? ref.bind(client) : void 0) || (function() {
-        return alert("No " + action + " action is available in the client");
+        return client.alert("No " + action + " action is available in the client");
       });
     };
     setEnabled = function(action) {
       switch (action) {
         case 'revertSubMenu':
           return function() {
-            var ref;
-            return ((client.state.openedContent != null) && (client.state.metadata != null)) || (((ref = client.state.currentContent) != null ? ref.get("shareEditKey") : void 0) != null);
+            return ((client.state.openedContent != null) && (client.state.metadata != null)) || client.canEditShared();
           };
         case 'revertToLastOpenedDialog':
           return function() {
@@ -12168,13 +12257,11 @@ CloudFileManagerUIMenu = (function() {
           };
         case 'revertToSharedDialog':
           return function() {
-            var ref;
-            return (ref = client.state.currentContent) != null ? ref.get("sharedDocumentId") : void 0;
+            return client.isShared();
           };
         case 'shareUpdate':
           return function() {
-            var ref;
-            return ((ref = client.state.currentContent) != null ? ref.get("shareEditKey") : void 0) != null;
+            return client.canEditShared();
           };
         default:
           return true;
@@ -12331,14 +12418,37 @@ CloudFileManagerUI = (function() {
     }));
   };
 
-  CloudFileManagerUI.prototype.shareDialog = function(client) {
+  CloudFileManagerUI.prototype.shareDialog = function(client, enableLaraSharing) {
+    if (enableLaraSharing == null) {
+      enableLaraSharing = false;
+    }
     return this.listenerCallback(new CloudFileManagerUIEvent('showShareDialog', {
-      client: client
+      client: client,
+      enableLaraSharing: enableLaraSharing
     }));
   };
 
-  CloudFileManagerUI.prototype.blockingModal = function(modalProps) {
+  CloudFileManagerUI.prototype.showBlockingModal = function(modalProps) {
     return this.listenerCallback(new CloudFileManagerUIEvent('showBlockingModal', modalProps));
+  };
+
+  CloudFileManagerUI.prototype.hideBlockingModal = function() {
+    return this.listenerCallback(new CloudFileManagerUIEvent('hideBlockingModal'));
+  };
+
+  CloudFileManagerUI.prototype.alertDialog = function(message, title, callback) {
+    return this.listenerCallback(new CloudFileManagerUIEvent('showAlertDialog', {
+      title: title,
+      message: message,
+      callback: callback
+    }));
+  };
+
+  CloudFileManagerUI.prototype.confirmDialog = function(message, callback) {
+    return this.listenerCallback(new CloudFileManagerUIEvent('showConfirmDialog', {
+      message: message,
+      callback: callback
+    }));
   };
 
   CloudFileManagerUI.prototype._showProviderDialog = function(action, title, callback) {
@@ -12407,7 +12517,7 @@ module.exports = {
   "~MENU.IMPORT_DATA": "Import data...",
   "~MENU.SAVE": "Save",
   "~MENU.SAVE_AS": "Save As ...",
-  "~MENU.CREATE_COPY": "Create A Copy ...",
+  "~MENU.CREATE_COPY": "Create a copy",
   "~MENU.SHARE": "Share...",
   "~MENU.SHARE_GET_LINK": "Get link to shared view",
   "~MENU.SHARE_UPDATE": "Update shared view",
@@ -12435,26 +12545,43 @@ module.exports = {
   "~FILE_DIALOG.CANCEL": "Cancel",
   "~FILE_DIALOG.REMOVE": "Delete",
   "~FILE_DIALOG.REMOVE_CONFIRM": "Are you sure you want to delete %{filename}?",
+  "~FILE_DIALOG.REMOVED_TITLE": "Deleted File",
+  "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} was deleted",
   "~FILE_DIALOG.LOADING": "Loading...",
   "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error loading folder contents ***",
   "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
   "~DOWNLOAD_DIALOG.CANCEL": "Cancel",
+  "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
   "~RENAME_DIALOG.RENAME": "Rename",
   "~RENAME_DIALOG.CANCEL": "Cancel",
   "~SHARE_DIALOG.COPY": "Copy",
   "~SHARE_DIALOG.VIEW": "View",
   "~SHARE_DIALOG.CLOSE": "Close",
-  "~SHARE_DIALOG.COPY_SUCCESS": "The share url has been copied to the clipboard.",
-  "~SHARE_DIALOG.COPY_ERROR": "Sorry, the share url was not able to be copied to the clipboard.",
+  "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
+  "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
+  "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
+  "~SHARE_UPDATE.TITLE": "Shared View Updated",
+  "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
   "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
   "~CONFIRM.NEW_FILE": "You have unsaved changes. Are you sure you want to create a new document?",
   "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
   "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
   "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
+  "~CONFIRM_DIALOG.TITLE": "Are you sure?",
+  "~CONFIRM_DIALOG.YES": "Yes",
+  "~CONFIRM_DIALOG.NO": "No",
   "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Drop file here or click here to select a file.",
   "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Sorry, you can choose only one file to open.",
   "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Sorry, you can't drop more than one file.",
-  "~IMPORT.LOCAL_FILE": "Local File"
+  "~IMPORT.LOCAL_FILE": "Local File",
+  "~IMPORT.URL": "URL",
+  "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Sorry, you can choose only one url to open.",
+  "~IMPORT_URL.PLEASE_ENTER_URL": "Please enter a url to import.",
+  "~URL_TAB.DROP_URL_HERE": "Drop URL here or enter URL below",
+  "~URL_TAB.IMPORT": "Import",
+  "~CLIENT_ERROR.TITLE": "Error",
+  "~ALERT_DIALOG.TITLE": "Alert",
+  "~ALERT_DIALOG.CLOSE": "Close"
 };
 
 
@@ -12493,7 +12620,37 @@ module.exports = translate;
 
 
 },{"./lang/en-us":60}],62:[function(require,module,exports){
-var App, BlockingModal, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
+var ModalDialog, button, div, ref, tr;
+
+ref = React.DOM, div = ref.div, button = ref.button;
+
+ModalDialog = React.createFactory(require('./modal-dialog-view'));
+
+tr = require('../utils/translate');
+
+module.exports = React.createClass({
+  displayName: 'AlertDialogView',
+  render: function() {
+    return ModalDialog({
+      title: this.props.title || (tr('~ALERT_DIALOG.TITLE')),
+      close: this.props.close,
+      zIndex: 100
+    }, div({
+      className: 'alert-dialog'
+    }, div({
+      className: 'alert-dialog-message'
+    }, this.props.message), div({
+      className: 'buttons'
+    }, button({
+      onClick: this.props.close
+    }, tr('~ALERT_DIALOG.CLOSE')))));
+  }
+});
+
+
+
+},{"../utils/translate":61,"./modal-dialog-view":73}],63:[function(require,module,exports){
+var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
 
@@ -12506,6 +12663,10 @@ RenameDialog = React.createFactory(require('./rename-dialog-view'));
 ShareDialog = React.createFactory(require('./share-dialog-view'));
 
 BlockingModal = React.createFactory(require('./blocking-modal-view'));
+
+AlertDialog = React.createFactory(require('./alert-dialog-view'));
+
+ConfirmDialog = React.createFactory(require('./confirm-dialog-view'));
 
 ImportTabbedDialog = React.createFactory(require('./import-tabbed-dialog-view'));
 
@@ -12550,6 +12711,8 @@ App = React.createClass({
       downloadDialog: null,
       renameDialog: null,
       shareDialog: null,
+      alertDialog: null,
+      confirmDialog: null,
       dirty: false
     };
   },
@@ -12607,6 +12770,18 @@ App = React.createClass({
           case 'showBlockingModal':
             return _this.setState({
               blockingModalProps: event.data
+            });
+          case 'hideBlockingModal':
+            return _this.setState({
+              blockingModalProps: null
+            });
+          case 'showAlertDialog':
+            return _this.setState({
+              alertDialog: event.data
+            });
+          case 'showConfirmDialog':
+            return _this.setState({
+              confirmDialog: event.data
             });
           case 'appendMenuItem':
             _this.state.menuItems.push(event.data);
@@ -12691,40 +12866,47 @@ App = React.createClass({
       importDialog: null
     });
   },
+  closeAlert: function() {
+    return this.setState({
+      alertDialog: null
+    });
+  },
+  closeConfirm: function() {
+    return this.setState({
+      confirmDialog: null
+    });
+  },
   renderDialogs: function() {
-    if (this.state.blockingModalProps) {
-      return BlockingModal(this.state.blockingModalProps);
-    } else if (this.state.providerDialog) {
-      return ProviderTabbedDialog({
-        client: this.props.client,
-        dialog: this.state.providerDialog,
-        close: this.closeDialogs
-      });
-    } else if (this.state.downloadDialog) {
-      return DownloadDialog({
-        filename: this.state.downloadDialog.filename,
-        mimeType: this.state.downloadDialog.mimeType,
-        content: this.state.downloadDialog.content,
-        close: this.closeDialogs
-      });
-    } else if (this.state.renameDialog) {
-      return RenameDialog({
-        filename: this.state.renameDialog.filename,
-        callback: this.state.renameDialog.callback,
-        close: this.closeDialogs
-      });
-    } else if (this.state.importDialog) {
-      return ImportTabbedDialog({
-        client: this.props.client,
-        dialog: this.state.importDialog,
-        close: this.closeDialogs
-      });
-    } else if (this.state.shareDialog) {
-      return ShareDialog({
-        client: this.props.client,
-        close: this.closeDialogs
-      });
-    }
+    return div({}, this.state.blockingModalProps ? BlockingModal(this.state.blockingModalProps) : this.state.providerDialog ? ProviderTabbedDialog({
+      client: this.props.client,
+      dialog: this.state.providerDialog,
+      close: this.closeDialogs
+    }) : this.state.downloadDialog ? DownloadDialog({
+      filename: this.state.downloadDialog.filename,
+      mimeType: this.state.downloadDialog.mimeType,
+      content: this.state.downloadDialog.content,
+      close: this.closeDialogs
+    }) : this.state.renameDialog ? RenameDialog({
+      filename: this.state.renameDialog.filename,
+      callback: this.state.renameDialog.callback,
+      close: this.closeDialogs
+    }) : this.state.importDialog ? ImportTabbedDialog({
+      client: this.props.client,
+      dialog: this.state.importDialog,
+      close: this.closeDialogs
+    }) : this.state.shareDialog ? ShareDialog({
+      client: this.props.client,
+      enableLaraSharing: this.props.enableLaraSharing,
+      close: this.closeDialogs
+    }) : void 0, this.state.alertDialog ? AlertDialog({
+      title: this.state.alertDialog.title,
+      message: this.state.alertDialog.message,
+      close: this.closeAlert
+    }) : void 0, this.state.confirmDialog ? ConfirmDialog({
+      message: this.state.confirmDialog.message,
+      callback: this.state.confirmDialog.callback,
+      close: this.closeConfirm
+    }) : void 0);
   },
   render: function() {
     if (this.props.appOrMenuElemId) {
@@ -12754,7 +12936,7 @@ module.exports = App;
 
 
 
-},{"../utils/is-string":59,"../utils/translate":61,"./blocking-modal-view":64,"./download-dialog-view":65,"./import-tabbed-dialog-view":68,"./menu-bar-view":70,"./provider-tabbed-dialog-view":74,"./rename-dialog-view":75,"./share-dialog-view":77}],63:[function(require,module,exports){
+},{"../utils/is-string":59,"../utils/translate":61,"./alert-dialog-view":62,"./blocking-modal-view":65,"./confirm-dialog-view":66,"./download-dialog-view":67,"./import-tabbed-dialog-view":70,"./menu-bar-view":72,"./provider-tabbed-dialog-view":76,"./rename-dialog-view":77,"./share-dialog-view":79}],64:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -12785,7 +12967,7 @@ module.exports = AuthorizeMixin;
 
 
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -12798,11 +12980,16 @@ module.exports = React.createClass({
     var base;
     return typeof (base = this.props).close === "function" ? base.close() : void 0;
   },
+  drop: function(e) {
+    var base;
+    return typeof (base = this.props).onDrop === "function" ? base.onDrop(e) : void 0;
+  },
   render: function() {
     return Modal({
       close: this.props.close
     }, div({
-      className: 'modal-dialog'
+      className: 'modal-dialog',
+      onDrop: this.drop
     }, div({
       className: 'modal-dialog-wrapper'
     }, div({
@@ -12817,20 +13004,63 @@ module.exports = React.createClass({
 
 
 
-},{"./modal-view":73}],65:[function(require,module,exports){
-var ModalDialog, a, button, div, input, ref, tr;
+},{"./modal-view":75}],66:[function(require,module,exports){
+var ModalDialog, button, div, ref, tr;
 
-ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
+ref = React.DOM, div = ref.div, button = ref.button;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
 
 tr = require('../utils/translate');
 
 module.exports = React.createClass({
+  displayName: 'ConfirmDialogView',
+  confirm: function() {
+    var base;
+    if (typeof (base = this.props).callback === "function") {
+      base.callback();
+    }
+    return this.props.close();
+  },
+  render: function() {
+    return ModalDialog({
+      title: tr('~CONFIRM_DIALOG.TITLE', {
+        close: this.props.close,
+        zIndex: 100
+      })
+    }, div({
+      className: 'confirm-dialog'
+    }, div({
+      className: 'confirm-dialog-message'
+    }, this.props.message), div({
+      className: 'buttons'
+    }, button({
+      onClick: this.confirm
+    }, tr('~CONFIRM_DIALOG.YES')), button({
+      onClick: this.props.close
+    }, tr('~CONFIRM_DIALOG.NO')))));
+  }
+});
+
+
+
+},{"../utils/translate":61,"./modal-dialog-view":73}],67:[function(require,module,exports){
+var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
+
+ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
+
+ModalDialog = React.createFactory(require('./modal-dialog-view'));
+
+CloudMetadata = (require('../providers/provider-interface')).CloudMetadata;
+
+tr = require('../utils/translate');
+
+module.exports = React.createClass({
   displayName: 'DownloadDialogView',
   getInitialState: function() {
-    var filename, state;
-    filename = (this.props.filename || (tr("~MENUBAR.UNTITLED_DOCUMENT"))) + ".json";
+    var filename, includeShareInfo, state;
+    filename = "" + (this.props.filename || (tr("~MENUBAR.UNTITLED_DOCUMENT"))) + (CloudMetadata.Extension || '.json');
+    includeShareInfo = false;
     return state = {
       filename: filename,
       trimmedFilename: this.trim(filename)
@@ -12838,7 +13068,8 @@ module.exports = React.createClass({
   },
   componentDidMount: function() {
     this.filename = React.findDOMNode(this.refs.filename);
-    return this.filename.focus();
+    this.filename.focus();
+    return this.includeShareInfo = React.findDOMNode(this.refs.includeShareInfo);
   },
   updateFilename: function() {
     var filename;
@@ -12848,12 +13079,27 @@ module.exports = React.createClass({
       trimmedFilename: this.trim(filename)
     });
   },
+  updateIncludeShareInfo: function() {
+    return this.setState({
+      includeShareInfo: this.includeShareInfo.checked
+    });
+  },
   trim: function(s) {
     return s.replace(/^\s+|\s+$/, '');
   },
   download: function(e) {
+    var json, ref1;
     if (this.state.trimmedFilename.length > 0) {
-      e.target.setAttribute('href', "data:application/json," + (encodeURIComponent(this.props.content.getContentAsJSON())));
+      json = this.props.content.getContent();
+      if (json && !this.state.includeShareInfo) {
+        delete json.sharedDocumentId;
+        delete json.shareEditKey;
+        delete json.isUnshared;
+        if (((ref1 = json.metadata) != null ? ref1.shared : void 0) != null) {
+          delete json.metadata.shared;
+        }
+      }
+      e.target.setAttribute('href', "data:application/json," + (encodeURIComponent(JSON.stringify(json))));
       return this.props.close();
     } else {
       e.preventDefault();
@@ -12867,11 +13113,19 @@ module.exports = React.createClass({
     }, div({
       className: 'download-dialog'
     }, input({
+      type: 'text',
       ref: 'filename',
       placeholder: 'Filename',
       value: this.state.filename,
       onChange: this.updateFilename
-    }), div({
+    }), this.props.shared ? div({
+      className: 'download-share'
+    }, input({
+      type: 'checkbox',
+      ref: 'includeShareInfo',
+      value: this.state.includeShareInfo,
+      onChange: this.updateIncludeShareInfo
+    }, tr('~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO'))) : void 0, div({
       className: 'buttons'
     }, a({
       href: '#',
@@ -12886,7 +13140,7 @@ module.exports = React.createClass({
 
 
 
-},{"../utils/translate":61,"./modal-dialog-view":71}],66:[function(require,module,exports){
+},{"../providers/provider-interface":54,"../utils/translate":61,"./modal-dialog-view":73}],68:[function(require,module,exports){
 var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
@@ -13069,7 +13323,7 @@ module.exports = DropDown;
 
 
 
-},{}],67:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -13097,12 +13351,13 @@ FileListFile = React.createFactory(React.createClass({
     return this.lastClick = now;
   },
   render: function() {
-    var selectableClass, selectedClass;
+    var selectableClass, selectedClass, subFolderClass;
     selectableClass = this.props.metadata.type !== CloudMetadata.Label ? 'selectable' : '';
     selectedClass = this.props.selected ? 'selected' : '';
+    subFolderClass = this.props.isSubFolder ? 'subfolder' : '';
     return div({
       key: this.props.key,
-      className: selectableClass + " " + selectedClass,
+      className: selectableClass + " " + selectedClass + " " + subFolderClass,
       title: this.props.metadata.description || void 0,
       onClick: this.props.metadata.type !== CloudMetadata.Label ? this.fileSelected : void 0
     }, React.DOM.i({
@@ -13130,7 +13385,7 @@ FileList = React.createFactory(React.createClass({
     return this.props.provider.list(folder, (function(_this) {
       return function(err, list) {
         if (err) {
-          return alert(err);
+          return _this.props.client.alert(err);
         }
         _this.setState({
           loading: false
@@ -13144,16 +13399,17 @@ FileList = React.createFactory(React.createClass({
     return this.props.fileSelected((ref1 = this.props.folder) != null ? ref1.parent : void 0);
   },
   render: function() {
-    var j, len, list, metadata, ref1;
+    var isSubFolder, j, len, list, metadata, ref1;
     list = [];
-    if (this.props.folder !== null) {
+    isSubFolder = this.props.folder !== null;
+    if (isSubFolder) {
       list.push(div({
         key: 'parent',
         className: 'selectable',
         onClick: this.parentSelected
       }, React.DOM.i({
         className: 'icon-paletteArrow-collapse'
-      }), 'Parent Folder'));
+      }), this.props.folder.name));
     }
     ref1 = this.props.list;
     for (i = j = 0, len = ref1.length; j < len; i = ++j) {
@@ -13163,7 +13419,8 @@ FileList = React.createFactory(React.createClass({
         metadata: metadata,
         selected: this.props.selectedFile === metadata,
         fileSelected: this.props.fileSelected,
-        fileConfirmed: this.props.fileConfirmed
+        fileConfirmed: this.props.fileConfirmed,
+        isSubFolder: isSubFolder
       }));
     }
     return div({
@@ -13176,33 +13433,33 @@ FileDialogTab = React.createClass({
   displayName: 'FileDialogTab',
   mixins: [AuthorizeMixin],
   getInitialState: function() {
-    var ref1;
-    return this.getStateForFolder(((ref1 = this.props.client.state.metadata) != null ? ref1.parent : void 0) || null);
+    var initialState, ref1, ref2;
+    initialState = this.getStateForFolder(((ref1 = this.props.client.state.metadata) != null ? ref1.parent : void 0) || null);
+    initialState.filename = ((ref2 = initialState.metadata) != null ? ref2.name : void 0) || '';
+    return initialState;
   },
-  componentWillMount: function() {
-    return this.isOpen = this.props.dialog.action === 'openFile';
+  isOpen: function() {
+    return this.props.dialog.action === 'openFile';
   },
   filenameChanged: function(e) {
-    var filename, metadata;
+    var filename;
     filename = e.target.value;
-    metadata = this.findMetadata(filename, this.state.list);
     return this.setState({
       filename: filename,
-      metadata: metadata
+      metadata: this.findMetadata(filename, this.state.list)
     });
   },
   listLoaded: function(list) {
     return this.setState({
-      list: list,
-      metadata: this.findMetadata($.trim(this.state.filename), list)
+      list: list
     });
   },
   getStateForFolder: function(folder) {
-    var ref1;
+    var metadata, ref1;
+    metadata = this.isOpen() ? ((ref1 = this.state) != null ? ref1.metadata : void 0) || null : this.props.client.state.metadata;
     return {
       folder: folder,
-      metadata: this.props.client.state.metadata,
-      filename: ((ref1 = this.props.client.state.metadata) != null ? ref1.name : void 0) || '',
+      metadata: metadata,
       list: []
     };
   },
@@ -13219,48 +13476,61 @@ FileDialogTab = React.createClass({
     }
   },
   confirm: function() {
-    var base, filename;
-    if (!this.state.metadata) {
-      filename = $.trim(this.state.filename);
-      this.state.metadata = this.findMetadata(filename, this.state.list);
-      if (!this.state.metadata) {
-        if (this.isOpen) {
-          alert(this.state.filename + " not found");
-        } else {
-          this.state.metadata = new CloudMetadata({
-            name: filename,
-            type: CloudMetadata.File,
-            parent: this.state.folder || null,
-            provider: this.props.provider
-          });
+    var confirmed, filename, metadata;
+    confirmed = (function(_this) {
+      return function(metadata) {
+        var base;
+        _this.state.metadata = metadata;
+        _this.state.metadata.provider = _this.props.provider;
+        if (typeof (base = _this.props.dialog).callback === "function") {
+          base.callback(_this.state.metadata);
         }
+        return _this.props.close();
+      };
+    })(this);
+    filename = $.trim(this.state.filename);
+    metadata = this.state.metadata || this.findMetadata(filename, this.state.list);
+    if (metadata) {
+      if (this.isOpen()) {
+        return confirmed(metadata);
+      } else {
+        return this.props.client.confirm("Are you sure you want to overwrite " + metadata.name + "?", function() {
+          return confirmed(metadata);
+        });
       }
-    }
-    if (this.state.metadata) {
-      this.state.metadata.provider = this.props.provider;
-      if (typeof (base = this.props.dialog).callback === "function") {
-        base.callback(this.state.metadata);
-      }
-      return this.props.close();
+    } else if (this.isOpen()) {
+      return this.props.client.alert(filename + " not found");
+    } else {
+      return confirmed(new CloudMetadata({
+        name: filename,
+        type: CloudMetadata.File,
+        parent: this.state.folder || null,
+        provider: this.props.provider
+      }));
     }
   },
   remove: function() {
-    if (this.state.metadata && this.state.metadata.type !== CloudMetadata.Folder && confirm(tr("~FILE_DIALOG.REMOVE_CONFIRM", {
-      filename: this.state.metadata.name
-    }))) {
-      return this.props.provider.remove(this.state.metadata, (function(_this) {
-        return function(err) {
-          var index, list;
-          if (!err) {
-            list = _this.state.list.slice(0);
-            index = list.indexOf(_this.state.metadata);
-            list.splice(index, 1);
-            return _this.setState({
-              list: list,
-              metadata: null,
-              filename: ''
-            });
-          }
+    if (this.state.metadata && this.state.metadata.type !== CloudMetadata.Folder) {
+      return this.props.client.confirm(tr("~FILE_DIALOG.REMOVE_CONFIRM", {
+        filename: this.state.metadata.name
+      }), (function(_this) {
+        return function() {
+          return _this.props.provider.remove(_this.state.metadata, function(err) {
+            var index, list;
+            if (!err) {
+              _this.props.client.alert(tr("~FILE_DIALOG.REMOVED_MESSAGE", {
+                filename: _this.state.metadata.name
+              }), tr("~FILE_DIALOG.REMOVED_TITLE"));
+              list = _this.state.list.slice(0);
+              index = list.indexOf(_this.state.metadata);
+              list.splice(index, 1);
+              return _this.setState({
+                list: list,
+                metadata: null,
+                filename: ''
+              });
+            }
+          });
         };
       })(this));
     }
@@ -13284,7 +13554,7 @@ FileDialogTab = React.createClass({
     }
   },
   confirmDisabled: function() {
-    return (this.state.filename.length === 0) || (this.isOpen && !this.state.metadata);
+    return (this.state.filename.length === 0) || (this.isOpen() && !this.state.metadata);
   },
   renderWhenAuthorized: function() {
     var confirmDisabled, removeDisabled;
@@ -13305,14 +13575,15 @@ FileDialogTab = React.createClass({
       fileSelected: this.fileSelected,
       fileConfirmed: this.confirm,
       list: this.state.list,
-      listLoaded: this.listLoaded
+      listLoaded: this.listLoaded,
+      client: this.props.client
     }), div({
       className: 'buttons'
     }, button({
       onClick: this.confirm,
       disabled: confirmDisabled,
       className: confirmDisabled ? 'disabled' : ''
-    }, this.isOpen ? tr("~FILE_DIALOG.OPEN") : tr("~FILE_DIALOG.SAVE")), this.props.provider.can('remove') ? button({
+    }, this.isOpen() ? tr("~FILE_DIALOG.OPEN") : tr("~FILE_DIALOG.SAVE")), this.props.provider.can('remove') ? button({
       onClick: this.remove,
       disabled: removeDisabled,
       className: removeDisabled ? 'disabled' : ''
@@ -13326,8 +13597,8 @@ module.exports = FileDialogTab;
 
 
 
-},{"../providers/provider-interface":54,"../utils/translate":61,"./authorize-mixin":63}],68:[function(require,module,exports){
-var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, tr;
+},{"../providers/provider-interface":54,"../utils/translate":61,"./authorize-mixin":64}],70:[function(require,module,exports){
+var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
 
@@ -13335,13 +13606,15 @@ TabbedPanel = require('./tabbed-panel-view');
 
 LocalFileTab = React.createFactory(require('./local-file-tab-view'));
 
+UrlTab = React.createFactory(require('./url-tab-view'));
+
 tr = require('../utils/translate');
 
 LocalFileImportTab = React.createFactory(React.createClass);
 
 module.exports = React.createClass({
   displayName: 'ImportTabbedDialog',
-  importFile: function(metadata) {
+  importFile: function(metadata, via) {
     var reader;
     switch (metadata.provider) {
       case 'localFile':
@@ -13350,14 +13623,24 @@ module.exports = React.createClass({
           return function(loaded) {
             var base, data;
             data = {
-              name: metadata.providerData.file.name,
-              content: loaded.target.result
+              file: {
+                name: metadata.providerData.file.name,
+                content: loaded.target.result
+              },
+              via: via
             };
             return typeof (base = _this.props.dialog).callback === "function" ? base.callback(data) : void 0;
           };
         })(this);
         return reader.readAsText(metadata.providerData.file);
     }
+  },
+  importUrl: function(url, via) {
+    var base;
+    return typeof (base = this.props.dialog).callback === "function" ? base.callback({
+      url: url,
+      via: via
+    }) : void 0;
   },
   render: function() {
     var tabs;
@@ -13366,10 +13649,21 @@ module.exports = React.createClass({
         key: 0,
         label: tr("~IMPORT.LOCAL_FILE"),
         component: LocalFileTab({
+          client: this.props.client,
           dialog: {
             callback: this.importFile
           },
           provider: 'localFile',
+          close: this.props.close
+        })
+      }), TabbedPanel.Tab({
+        key: 1,
+        label: tr("~IMPORT.URL"),
+        component: UrlTab({
+          client: this.props.client,
+          dialog: {
+            callback: this.importUrl
+          },
           close: this.props.close
         })
       })
@@ -13385,7 +13679,7 @@ module.exports = React.createClass({
 
 
 
-},{"../utils/translate":61,"./local-file-tab-view":69,"./modal-tabbed-dialog-view":72,"./tabbed-panel-view":78}],69:[function(require,module,exports){
+},{"../utils/translate":61,"./local-file-tab-view":71,"./modal-tabbed-dialog-view":74,"./tabbed-panel-view":80,"./url-tab-view":81}],71:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -13405,12 +13699,12 @@ module.exports = React.createClass({
     var files;
     files = e.target.files;
     if (files.length > 1) {
-      return alert(tr("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED"));
+      return this.props.client.alert(tr("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED"));
     } else if (files.length === 1) {
-      return this.openFile(files[0]);
+      return this.openFile(files[0], 'select');
     }
   },
-  openFile: function(file) {
+  openFile: function(file, via) {
     var base, metadata;
     metadata = new CloudMetadata({
       name: file.name.split('.')[0],
@@ -13422,7 +13716,7 @@ module.exports = React.createClass({
       }
     });
     if (typeof (base = this.props.dialog).callback === "function") {
-      base.callback(metadata);
+      base.callback(metadata, via);
     }
     return this.props.close();
   },
@@ -13446,9 +13740,9 @@ module.exports = React.createClass({
     e.preventDefault();
     droppedFiles = e.dataTransfer ? e.dataTransfer.files : e.target.files;
     if (droppedFiles.length > 1) {
-      return alert("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED");
+      return this.props.client.alert(tr("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED"));
     } else if (droppedFiles.length === 1) {
-      return this.openFile(droppedFiles[0]);
+      return this.openFile(droppedFiles[0], 'drop');
     }
   },
   render: function() {
@@ -13474,7 +13768,7 @@ module.exports = React.createClass({
 
 
 
-},{"../providers/provider-interface":54,"../utils/translate":61}],70:[function(require,module,exports){
+},{"../providers/provider-interface":54,"../utils/translate":61}],72:[function(require,module,exports){
 var Dropdown, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -13614,7 +13908,7 @@ module.exports = React.createClass({
 
 
 
-},{"../utils/translate":61,"./dropdown-view":66}],71:[function(require,module,exports){
+},{"../utils/translate":61,"./dropdown-view":68}],73:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -13629,7 +13923,8 @@ module.exports = React.createClass({
   },
   render: function() {
     return Modal({
-      close: this.props.close
+      close: this.props.close,
+      zIndex: this.props.zIndex
     }, div({
       className: 'modal-dialog'
     }, div({
@@ -13647,7 +13942,7 @@ module.exports = React.createClass({
 
 
 
-},{"./modal-view":73}],72:[function(require,module,exports){
+},{"./modal-view":75}],74:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -13669,7 +13964,7 @@ module.exports = React.createClass({
 
 
 
-},{"./modal-dialog-view":71,"./tabbed-panel-view":78}],73:[function(require,module,exports){
+},{"./modal-dialog-view":73,"./tabbed-panel-view":80}],75:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -13689,38 +13984,59 @@ module.exports = React.createClass({
     };
   },
   getInitialState: function() {
-    return {
-      dimensions: this.getDimensions()
+    var dimensions, initialState;
+    dimensions = this.getDimensions();
+    return initialState = {
+      backgroundStyle: this.getBackgroundStyle(dimensions),
+      contentStyle: this.getContentStyle(dimensions)
     };
   },
-  updateDimensions: function() {
-    return this.setState({
-      dimensions: this.getDimensions()
-    });
+  getBackgroundStyle: function(dimensions) {
+    if (this.props.zIndex) {
+      return {
+        zIndex: this.props.zIndex,
+        width: dimensions.width,
+        height: dimensions.height
+      };
+    } else {
+      return dimensions;
+    }
+  },
+  getContentStyle: function(dimensions) {
+    if (this.props.zIndex) {
+      return {
+        zIndex: this.props.zIndex + 1,
+        width: dimensions.width,
+        height: dimensions.height
+      };
+    } else {
+      return dimensions;
+    }
   },
   componentDidMount: function() {
     $(window).bind('keyup', this.watchForEscape);
-    return $(window).bind('resize', this.updateDimensions);
+    return $(window).bind('resize', this.updateStyles);
   },
   componentWillUnmount: function() {
     $(window).unbind('keyup', this.watchForEscape);
-    return $(window).unbind('resize', this.updateDimensions);
+    return $(window).unbind('resize', this.updateStyles);
   },
   render: function() {
     return div({
       className: 'modal'
     }, div({
       className: 'modal-background',
-      style: this.state.dimensions
+      style: this.state.backgroundStyle
     }), div({
-      className: 'modal-content'
+      className: 'modal-content',
+      style: this.state.contentStyle
     }, this.props.children));
   }
 });
 
 
 
-},{}],74:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -13786,7 +14102,7 @@ module.exports = React.createClass({
 
 
 
-},{"../providers/provider-interface":54,"../utils/translate":61,"./file-dialog-tab-view":67,"./modal-tabbed-dialog-view":72,"./select-provider-dialog-tab-view":76,"./tabbed-panel-view":78}],75:[function(require,module,exports){
+},{"../providers/provider-interface":54,"../utils/translate":61,"./file-dialog-tab-view":69,"./modal-tabbed-dialog-view":74,"./select-provider-dialog-tab-view":78,"./tabbed-panel-view":80}],77:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -13856,7 +14172,7 @@ module.exports = React.createClass({
 
 
 
-},{"../utils/translate":61,"./modal-dialog-view":71}],76:[function(require,module,exports){
+},{"../utils/translate":61,"./modal-dialog-view":73}],78:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -13872,7 +14188,7 @@ module.exports = SelectProviderDialogTab;
 
 
 
-},{}],77:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 var ModalDialog, SocialIcon, a, button, circle, div, g, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -13930,12 +14246,22 @@ module.exports = React.createClass({
     return {
       link: this.getShareLink(),
       embed: this.getEmbed(),
-      linkTabSelected: true
+      lara: this.getLara({
+        codapServerUrl: "https://codap.concord.org/releases/latest/",
+        launchButtonText: "Launch"
+      }),
+      codapServerUrl: "https://codap.concord.org/releases/latest/",
+      launchButtonText: "Launch",
+      tabSelected: 'link'
     };
   },
   getSharedDocumentId: function() {
     var ref1;
-    return (ref1 = this.props.client.state.currentContent) != null ? ref1.get("sharedDocumentId") : void 0;
+    if (this.props.client.isShared()) {
+      return (ref1 = this.props.client.state.currentContent) != null ? ref1.get("sharedDocumentId") : void 0;
+    } else {
+      return null;
+    }
   },
   getShareLink: function() {
     var sharedDocumentId;
@@ -13953,13 +14279,28 @@ module.exports = React.createClass({
       return null;
     }
   },
+  getLara: function(options) {
+    var buttonText, server, sharedDocumentId;
+    if (options == null) {
+      options = null;
+    }
+    sharedDocumentId = this.getSharedDocumentId();
+    if (sharedDocumentId) {
+      server = encodeURIComponent(((options != null ? options.hasOwnProperty('codapServerUrl') : void 0) ? options.codapServerUrl : this.state.codapServerUrl));
+      buttonText = encodeURIComponent(((options != null ? options.hasOwnProperty('launchButtonText') : void 0) ? options.launchButtonText : this.state.launchButtonText));
+      return "https://document-store.concord.org/document/launch?recordid=" + sharedDocumentId + "&server=" + server + "&buttonText=" + buttonText;
+    } else {
+      return null;
+    }
+  },
   copy: function(e) {
-    var copied, error, error1, mark, range, selection;
+    var copied, error, error1, mark, range, selection, toCopy;
     e.preventDefault();
-    copied = true;
+    copied = false;
+    toCopy = this.state[this.state.tabSelected];
     try {
       mark = document.createElement('mark');
-      mark.innerHTML = this.props.url;
+      mark.innerText = toCopy;
       document.body.appendChild(mark);
       selection = document.getSelection();
       selection.removeAllRanges();
@@ -13969,7 +14310,8 @@ module.exports = React.createClass({
       return copied = document.execCommand('copy');
     } catch (error) {
       try {
-        return window.clipboardData.setData('text', this.props.url);
+        window.clipboardData.setData('text', toCopy);
+        return copied = true;
       } catch (error1) {
         return copied = false;
       }
@@ -13984,7 +14326,7 @@ module.exports = React.createClass({
       if (mark) {
         document.body.removeChild(mark);
       }
-      alert(tr((copied ? "~SHARE_DIALOG.COPY_SUCCESS" : "~SHARE_DIALOG.COPY_ERROR")));
+      this.props.client.alert(tr(copied ? "~SHARE_DIALOG.COPY_SUCCESS" : "~SHARE_DIALOG.COPY_ERROR"), tr("~SHARE_DIALOG.COPY_TITLE"));
     }
   },
   updateShare: function() {
@@ -13996,19 +14338,45 @@ module.exports = React.createClass({
       return function() {
         return _this.setState({
           link: _this.getShareLink(),
-          embed: _this.getEmbed()
+          embed: _this.getEmbed(),
+          lara: _this.getLara()
         });
       };
     })(this));
   },
   selectLinkTab: function() {
     return this.setState({
-      linkTabSelected: true
+      tabSelected: 'link'
     });
   },
   selectEmbedTab: function() {
     return this.setState({
-      linkTabSelected: false
+      tabSelected: 'embed'
+    });
+  },
+  selectLaraTab: function() {
+    return this.setState({
+      tabSelected: 'lara'
+    });
+  },
+  changedCodapServerUrl: function() {
+    var codapServerUrl;
+    codapServerUrl = React.findDOMNode(this.refs.codapServerUrl).value;
+    return this.setState({
+      codapServerUrl: codapServerUrl,
+      lara: this.getLara({
+        codapServerUrl: codapServerUrl
+      })
+    });
+  },
+  changedLaunchButtonText: function() {
+    var launchButtonText;
+    launchButtonText = React.findDOMNode(this.refs.launchButtonText).value;
+    return this.setState({
+      launchButtonText: launchButtonText,
+      lara: this.getLara({
+        launchButtonText: launchButtonText
+      })
     });
   },
   render: function() {
@@ -14046,35 +14414,72 @@ module.exports = React.createClass({
     }, "When sharing is enabled, a copy of the current view is created.  This copy can be shared.")))), sharing ? div({}, ul({
       className: 'sharing-tabs'
     }, li({
-      className: "sharing-tab" + (this.state.linkTabSelected ? ' sharing-tab-selected' : ''),
+      className: "sharing-tab" + (this.state.tabSelected === 'link' ? ' sharing-tab-selected' : ''),
       style: {
         marginLeft: 10
       },
       onClick: this.selectLinkTab
     }, 'Link'), li({
-      className: "sharing-tab sharing-tab-embed" + (!this.state.linkTabSelected ? ' sharing-tab-selected' : ''),
+      className: "sharing-tab sharing-tab-embed" + (this.state.tabSelected === 'embed' ? ' sharing-tab-selected' : ''),
       onClick: this.selectEmbedTab
-    }, 'Embed')), div({
+    }, 'Embed'), this.props.enableLaraSharing ? li({
+      className: "sharing-tab sharing-tab-lara" + (this.state.tabSelected === 'lara' ? ' sharing-tab-selected' : ''),
+      onClick: this.selectLaraTab
+    }, 'LARA') : void 0), div({
       className: 'sharing-tab-contents'
-    }, this.state.linkTabSelected ? div({}, "Paste this into an email or text message ", document.execCommand || window.clipboardData ? a({
-      className: 'copy-link',
-      href: '#',
-      onClick: this.copy
-    }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
-      value: this.state.link,
-      readOnly: true
-    })), div({
-      className: 'social-icons'
-    }, SocialIcon({
-      icon: 'facebook',
-      url: "https://www.facebook.com/sharer/sharer.php?u=" + (encodeURIComponent(this.state.link))
-    }), SocialIcon({
-      icon: 'twitter',
-      url: "https://twitter.com/home?status=" + (encodeURIComponent(this.state.link))
-    }))) : div({}, "Embed code for including in webpages or other web-based content", div({}, textarea({
-      value: this.state.embed,
-      readOnly: true
-    }))))) : void 0, div({
+    }, (function() {
+      switch (this.state.tabSelected) {
+        case 'embed':
+          return div({}, "Embed code for including in webpages or other web-based content", document.execCommand || window.clipboardData ? a({
+            className: 'copy-link',
+            href: '#',
+            onClick: this.copy
+          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, textarea({
+            value: this.state.embed,
+            readOnly: true
+          })));
+        case 'lara':
+          return div({}, "Use this link when creating an activity in LARA", document.execCommand || window.clipboardData ? a({
+            className: 'copy-link',
+            href: '#',
+            onClick: this.copy
+          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
+            value: this.state.lara,
+            readOnly: true
+          })), div({
+            className: 'lara-settings'
+          }, div({
+            className: 'codap-server-url'
+          }, "CODAP Server URL:", div({}, input({
+            value: this.state.codapServerUrl,
+            ref: 'codapServerUrl',
+            onChange: this.changedCodapServerUrl
+          }))), div({
+            className: 'launch-button-text'
+          }, "Launch Button Text:", div({}, input({
+            value: this.state.launchButtonText,
+            ref: 'launchButtonText',
+            onChange: this.changedLaunchButtonText
+          })))));
+        default:
+          return div({}, "Paste this into an email or text message ", document.execCommand || window.clipboardData ? a({
+            className: 'copy-link',
+            href: '#',
+            onClick: this.copy
+          }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
+            value: this.state.link,
+            readOnly: true
+          })), div({
+            className: 'social-icons'
+          }, SocialIcon({
+            icon: 'facebook',
+            url: "https://www.facebook.com/sharer/sharer.php?u=" + (encodeURIComponent(this.state.link))
+          }), SocialIcon({
+            icon: 'twitter',
+            url: "https://twitter.com/home?status=" + (encodeURIComponent(this.state.link))
+          })));
+      }
+    }).call(this))) : void 0, div({
       className: 'buttons'
     }, button({
       onClick: this.props.close
@@ -14084,7 +14489,7 @@ module.exports = React.createClass({
 
 
 
-},{"../utils/translate":61,"./modal-dialog-view":71,"svg-social-icons/lib/icons.json":48}],78:[function(require,module,exports){
+},{"../utils/translate":61,"./modal-dialog-view":73,"svg-social-icons/lib/icons.json":48}],80:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -14190,6 +14595,88 @@ module.exports = React.createClass({
 
 
 
-},{}]},{},[1,2])(2)
+},{}],81:[function(require,module,exports){
+var button, div, input, ref, tr;
+
+ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
+
+tr = require('../utils/translate');
+
+module.exports = React.createClass({
+  displayName: 'UrlTab',
+  getInitialState: function() {
+    return {
+      hover: false
+    };
+  },
+  importUrl: function(url, via) {
+    var base;
+    if (typeof (base = this.props.dialog).callback === "function") {
+      base.callback(url, via);
+    }
+    return this.props.close();
+  },
+  "import": function() {
+    var url;
+    url = $.trim(React.findDOMNode(this.refs.url).value);
+    if (url.length === 0) {
+      return this.props.client.alert(tr("~IMPORT_URL.PLEASE_ENTER_URL"));
+    } else {
+      return this.importUrl(url, 'select');
+    }
+  },
+  cancel: function() {
+    return this.props.close();
+  },
+  dragEnter: function(e) {
+    e.preventDefault();
+    return this.setState({
+      hover: true
+    });
+  },
+  dragLeave: function(e) {
+    e.preventDefault();
+    return this.setState({
+      hover: false
+    });
+  },
+  drop: function(e) {
+    var droppedUrls;
+    e.preventDefault();
+    if (e.dataTransfer) {
+      droppedUrls = (e.dataTransfer.getData('url') || dataTransfer.getData('text/uri-list') || '').split('\n');
+      if (droppedUrls.length > 1) {
+        return this.props.client.alert(tr("~IMPORT_URL.MULTIPLE_URLS_DROPPED"));
+      } else if (droppedUrls.length === 1) {
+        return this.importUrl(droppedUrls[0], 'drop');
+      }
+    }
+  },
+  render: function() {
+    var dropClass;
+    dropClass = "urlDropArea" + (this.state.hover ? ' dropHover' : '');
+    return div({
+      className: 'dialogTab urlImport'
+    }, div({
+      className: dropClass,
+      onDragEnter: this.dragEnter,
+      onDragLeave: this.dragLeave,
+      onDrop: this.drop
+    }, tr("~URL_TAB.DROP_URL_HERE")), input({
+      ref: 'url',
+      placeholder: 'URL'
+    }), div({
+      className: 'buttons'
+    }, button({
+      onClick: this["import"]
+    }, tr("~URL_TAB.IMPORT")), button({
+      onClick: this.cancel
+    }, tr("~FILE_DIALOG.CANCEL"))));
+  }
+});
+
+
+
+},{"../utils/translate":61}]},{},[1,2])(2)
 });
 //# sourceURL=cfm/app.js.ignore

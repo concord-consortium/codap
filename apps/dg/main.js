@@ -138,6 +138,7 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           wrapFileContent: false,
           mimeType: 'application/x-codap-document',
+          extension: '.codap',
           providers: [
             {
               "displayName": "Example Documents",
@@ -237,6 +238,28 @@ DG.main = function main() {
       delete iDstObj[iProperty];
   }
 
+  function cfmShowUserEntryView() {
+    var DialogContents = React.createFactory(React.createClass({
+      close: function () {
+        DG.cfmClient.hideBlockingModal();
+      },
+      createNewDocument: function () {
+        this.close();
+      },
+      openDocument: function () {
+        this.close();
+        DG.cfmClient.openFileDialog();
+      },
+      render: function () {
+        return React.DOM.div({},
+          React.DOM.div({style: {margin: 10}}, React.DOM.button({onClick: this.createNewDocument}, "Create New Document")),
+          React.DOM.div({style: {margin: 10}}, React.DOM.button({onClick: this.openDocument}, "Open Document or Browse Examples"))
+        );
+      }
+    }));
+    DG.cfmClient.showBlockingModal({title: "What would you like to do?", message: DialogContents({}), onDrop: function () { DG.cfmClient.hideBlockingModal(); }});
+  }
+
   function cfmConnect(iCloudFileManager) {
     DG.cfm = iCloudFileManager;
 
@@ -264,6 +287,10 @@ DG.main = function main() {
                                             });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
             DG.cfmClient.insertMenuItemAfter('openFileDialog', {
+              name: "Import ...",
+              action: DG.cfmClient.importDataDialog.bind(DG.cfmClient)
+            });
+            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
               name: "Close",
               action: function () {
                 DG.cfmClient.closeFileDialog(function () {
@@ -276,6 +303,12 @@ DG.main = function main() {
             DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
               syncDocumentDirtyState();
             });
+
+            cfmShowUserEntryView();
+            break;
+
+          case "closedFile":
+            cfmShowUserEntryView();
             break;
 
           case 'getContent':
@@ -418,6 +451,17 @@ DG.main = function main() {
                   });
                 }
               }));
+            }
+            break;
+          }
+
+          case "importedData": {
+            // we don't need to call the following on via == "drop" because the CODAP drop handler will also respond to the drop
+            if (event.data.file && (event.data.via === "select")) {
+              DG.appController.importText(event.data.file.content, event.data.file.name);
+            }
+            else if (event.data.url && (event.data.via === "select")) {
+              DG.appController.importURL(event.data.url);
             }
             break;
           }

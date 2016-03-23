@@ -198,15 +198,91 @@
 .clickable {
   cursor: pointer;
 }
+.alert-dialog {
+  padding: 20px;
+  width: 400px;
+}
+.alert-dialog .alert-dialog-message {
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #000;
+}
+.alert-dialog .buttons {
+  float: right;
+  margin: 10px 0;
+}
+.alert-dialog .buttons button {
+  padding: 15px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: bold;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: none;
+  font-family: 'Museo Sans', 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: #72bfca;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 0;
+}
+.alert-dialog .buttons button:hover {
+  background-color: #3c94a1;
+}
+.confirm-dialog {
+  padding: 20px;
+  width: 500px;
+}
+.confirm-dialog .confirm-dialog-message {
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #000;
+}
+.confirm-dialog .buttons {
+  float: right;
+  margin: 10px 0;
+}
+.confirm-dialog .buttons button {
+  padding: 15px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: bold;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: none;
+  font-family: 'Museo Sans', 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: #72bfca;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 0;
+  margin-left: 10px;
+}
+.confirm-dialog .buttons button:hover {
+  background-color: #3c94a1;
+}
 .download-dialog {
   padding: 20px;
   width: 400px;
 }
-.download-dialog input {
+.download-dialog input[type="text"] {
   margin: 10px 0;
   width: 100%;
   font-size: 20px;
   padding: 5px;
+}
+.download-dialog .download-share {
+  color: #000;
+}
+.download-dialog .download-share input[type="checkbox"] {
+  width: initial !important /* to override CODAP */;
+  margin-right: 5px;
 }
 .download-dialog .buttons {
   float: right;
@@ -406,6 +482,7 @@
   overflow: hidden;
   border: 1px dashed #000;
   padding: 150px 0;
+  margin-bottom: 10px;
   text-align: center;
   font-size: 14px;
   color: #000;
@@ -422,6 +499,22 @@
 }
 .localFileLoad .dropHover {
   background-color: #fffbcc;
+}
+.urlImport .urlDropArea {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed #000;
+  padding: 120px 0;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #000;
+}
+.urlImport .dropHover {
+  background-color: #fffbcc;
+}
+.urlImport input {
+  margin-bottom: 20px;
 }
 .menu-bar {
   font-family: 'Arial', 'Helvetica', 'sans-serif';
@@ -457,7 +550,7 @@
   font-family: 'Montserrat', sans-serif;
   text-transform: none;
   font-family: 'Museo Sans', 'Montserrat', sans-serif;
-  text-transform: uppercase;
+  text-transform: none;
   display: inline-block;
   padding-left: 10px;
   padding-top: 1px;
@@ -481,7 +574,7 @@
   font-family: 'Montserrat', sans-serif;
   text-transform: none;
   font-family: 'Museo Sans', 'Montserrat', sans-serif;
-  text-transform: uppercase;
+  text-transform: none;
   color: #000;
   width: 300px;
   outline: none;
@@ -549,6 +642,7 @@
   z-index: 2;
 }
 .modal .modal-content {
+  z-index: 3;
   position: absolute;
   top: 0;
   left: 0;
@@ -565,6 +659,8 @@
   bottom: 0;
   height: 'auto';
   width: 'auto';
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -581,7 +677,7 @@
 .modal .modal-content .modal-dialog .modal-dialog-wrapper {
   max-width: 690px;
   background-color: #fff;
-  z-index: 3;
+  border: 1px solid #aaa;
 }
 .modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-title {
   font-style: normal;
@@ -605,6 +701,27 @@
   padding: 20px;
   min-width: 400px;
   text-align: center;
+  color: #000;
+}
+.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-blocking-message button {
+  padding: 15px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: bold;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: none;
+  font-family: 'Museo Sans', 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: #72bfca;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 0;
+}
+.modal .modal-content .modal-dialog .modal-dialog-wrapper .modal-dialog-blocking-message button:hover {
+  background-color: #3c94a1;
 }
 .modal-dialog-alert {
   font-size: 12px;
@@ -777,6 +894,17 @@
   padding: 5px;
   height: 75px;
 }
+.share-dialog .sharing-tab-contents .lara-settings {
+  margin-top: 10px;
+}
+.share-dialog .sharing-tab-contents .lara-settings .codap-server-url {
+  width: 68%;
+  float: left;
+}
+.share-dialog .sharing-tab-contents .lara-settings .launch-button-text {
+  width: 30%;
+  float: right;
+}
 .share-dialog .buttons {
   clear: both;
   float: right;
@@ -901,6 +1029,9 @@
 .tabbed-panel .workspace-tab-component .dialogTab .filelist div.selectable:hover {
   color: #fff;
   background-color: #72bca6;
+}
+.tabbed-panel .workspace-tab-component .dialogTab .filelist div.subfolder {
+  margin-left: 10px;
 }
 .tabbed-panel .workspace-tab-component .dialogTab .buttons {
   position: absolute;

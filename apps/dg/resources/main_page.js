@@ -186,7 +186,7 @@ DG.mainPage = SC.Page.design((function() {
       contentView: DG.ContainerView.design( {
       })
     }),
-    
+
     flagsChanged: function( iEvent) {
 //    if( iEvent.altKey)
 //      console.log('altKey');
@@ -244,6 +244,7 @@ DG.mainPage = SC.Page.design((function() {
               tNewType = 'text/plain';
               break;
             case '.json':
+            case '.codap':
               tNewType = 'application/json';
               break;
           }
@@ -300,7 +301,7 @@ DG.mainPage = SC.Page.design((function() {
 
     /**
       The mainPane itself should be the default key view, rather than an arbitrary subview.
-      
+
       When the window gets focus, the mainPane gets a chance to specify the default key view
       (i.e. first responder) via this computed property. (See SC.RootResponder.focus() for details.)
       The base class implementation of nextValidKeyView() returns an arbitrary subview which happens
@@ -360,7 +361,7 @@ DG.mainPage = SC.Page.design((function() {
       }
       return tResult;
     },
-    
+
     /**
       Creates the specified component and its associated view.
       This is a handler for a sendAction() call. The original
@@ -392,7 +393,7 @@ DG.mainPage = SC.Page.design((function() {
     if( !DG.currDocumentController().get('gameView'))
       DG.currDocumentController().addGame( this.scrollView.contentView);
   }//.observes('DG.gameSelectionController.currentGame')
-  
+
   }), // mainPane
 
     /*
@@ -403,7 +404,7 @@ DG.mainPage = SC.Page.design((function() {
 
 
   } // end compatible browser mainPage design
-  
+
   : { // begin incompatible browser main page design
     // The main pane is made visible on screen as soon as your app is loaded.
     // Add childViews to this pane for views to display immediately on page load.
@@ -475,4 +476,3 @@ DG.mainPage.addGameIfNotPresent = function() {
   // so it's a good time to synchronize the saved change count.
   DG.currDocumentController().updateSavedChangeCount();
 };
-

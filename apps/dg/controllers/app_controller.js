@@ -1032,6 +1032,9 @@ DG.appController = SC.Object.create((function () // closure
               if (iType === 'JSON') {
                 that.openJsonDocument(this.result, true).then(function() {
                     DG.log('Opened: ' + iFile.name);
+                    if (DG.cfmClient) {
+                      DG.cfmClient.rename(null, iFile.name);
+                    }
                   },
                   function (msg) {
                     DG.logError('JSON file open failed: ' + iFile.name);
