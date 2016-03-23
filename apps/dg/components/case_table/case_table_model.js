@@ -56,7 +56,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
 
   /**
    * A hash of case ids and their collapsed state and whether they are visible
-   * or superceded by a .
+   * or superseded by a collapsed case in a higher order table.
    * @type [{{isCollapsed: boolean, isHidden: boolean, collapsedCase: DG.Case}}]
    */
   collapsedNodes: null,

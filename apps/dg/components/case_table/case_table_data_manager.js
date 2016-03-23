@@ -20,7 +20,7 @@
 /**
  * @class CaseTableDataManager
  *
- * A specialized, on demand, implemention the SlickGrid DataView interface.
+ * A specialized, on demand, implementation the SlickGrid DataView interface.
  * See https://github.com/mleibman/SlickGrid/wiki/DataView.
  * We implement getLength() and getItem(index) from the API.
  *
@@ -132,8 +132,7 @@ DG.CaseTableDataManager = SC.Object.extend({
 
   /**
    * Resets this object in response to state changes such as:
-   *   expand or collapse of a case, a
-   *   ddition or deletion of a case.
+   *   expand or collapse of a case, addition or deletion of a case.
    *
    * Method signature matches method of Slick Grid default DataView.
    */

@@ -359,6 +359,24 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
             }
           }.bind(this));
         }.bind( this));
+      } else if (tOperation === 'deleteCollection') {
+        ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
+          var tDescKey = iKey + 'AttributeDescription',
+              tAxisKey = iKey + 'Axis',
+              tCollectionClient = this.getPath('dataConfiguration.'
+                  + tDescKey + '.collectionClient'),
+              tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+          if (tCollectionClient && tAttrs) {
+            if (tCollectionClient === iChange.collection) {
+              tAttrs.forEach(function (iPlottedAttr, iIndex) {
+                if (iKey === 'legend')
+                  this.removeLegendAttribute();
+                else
+                  this.removeAttribute(tDescKey, tAxisKey, iIndex);
+              }.bind(this));
+            }
+          }
+        }.bind(this));
       }
       // Give the legend a chance
       var tLegend = this.get('legend');

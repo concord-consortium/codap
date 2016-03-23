@@ -106,6 +106,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        @property
        */
       layoutDirection: SC.LAYOUT_HORIZONTAL,
+
+      childViews: [],
+
       /**
        * Children are kept full size.
        * @override
@@ -114,7 +117,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
       /**
        * @overload
-       * Normally, splitviews would schedule a retile. We allow vertical changes
+       * Normally, split-views would schedule a re-tile. We allow vertical changes
        * in the parent to be seen, but pin horizontal ones.
        */
       parentViewDidResize: function (frame) {
@@ -400,8 +403,6 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
 
   /**
    * Width of the contained table set changed.
-   * @param {DG.CaseTableView} iNotifier Which table caused the change
-   * @param {boolean} iIsUserInitiated
    */
   contentWidthDidChange: function (sender, key, value) {
     var tContentWidth = this.getPath('contentView.frame.width');
@@ -615,7 +616,7 @@ SC.BaseTheme.inertSplitDividerRenderDelegate = SC.RenderDelegate.create({
   className: 'split-divider',
   dividerSize: 1,
 
-  // We would like the divider size to be exctly one pixel,
+  // We would like the divider size to be exactly one pixel,
   // but offsets any smaller than these seem to prevent it from
   // rendering at all, so we stick with this for now.
   splitPositionOffset: -5,
