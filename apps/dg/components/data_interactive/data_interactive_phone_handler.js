@@ -64,6 +64,11 @@ DG.DataInteractivePhoneHandler = DG.ComponentController.extend(
         sc_super();
       },
 
+      doCommand: function (iMessage, iCallback) {
+        DG.log('gotIt: ' + JSON.stringify(iMessage));
+        iCallback({success: true});
+      },
+
       /**
        Whether or not the document contains unsaved changes such that the user
        should be prompted to confirm when closing the document, for instance.
