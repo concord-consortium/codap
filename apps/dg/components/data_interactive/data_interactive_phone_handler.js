@@ -1,5 +1,5 @@
 // ==========================================================================
-//                          DG.DataInteractiveController
+//                          DG.DataInteractivePhoneHandler
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
 //
@@ -16,24 +16,19 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/component_controller');
-
 /** @class
  *
- * The DataInteractiveController manages a Component containing a Data
- * Interactive.
+ * The DataInteractivePhoneHandler todo: write this
  *
- * From CODAP's perspective a Data Interactive is a data source. It provides
- * data to an associated Data Context.
- *
- * It receives events from the interactive and acts upon them. Chiefly these
- * are events that create or update case data in collections managed by its
- * data context.
- *
- * @extends DG.ComponentController
+ * @extends SC.Object
  */
-DG.DataInteractiveController = DG.ComponentController.extend(
-    /** @scope DG.DataInteractiveController.prototype */ {
+DG.DataInteractivePhoneHandler = SC.Object.extend(
+    /** @scope DG.DataInteractivePhoneHandler.prototype */ {
+
+      /**
+       * @type {DG.DataInteractiveModel}
+       */
+      model: null,
 
       /**
        The total number of document-dirtying changes.
@@ -48,12 +43,18 @@ DG.DataInteractiveController = DG.ComponentController.extend(
        */
       savedChangeCount: 0,
 
+      handlerMap: null,
+
       /**
        Initialization method
        */
       init: function () {
         sc_super();
 
+        this.handlerMap = {
+          interactiveFrame: this.handleInteractiveFrame.bind(this),
+          dataContext: this.handleDataContext.bind(this)
+        };
       },
 
       /**
@@ -62,6 +63,21 @@ DG.DataInteractiveController = DG.ComponentController.extend(
       destroy: function () {
         this.setPath('model.content', null);
         sc_super();
+      },
+
+      doCommand: function (iMessage, iCallback) {
+        DG.log('gotIt: ' + JSON.stringify(iMessage));
+        var type = iMessage.what.type;
+        var result = ({success: false});
+        try {
+          if (type && this.handlerMap[type]) {
+            result = this.handlerMap[type](iMessage, iCallback) || {success: false};
+          } else {
+            DG.logWarn("Unknown message type: " + type);
+          }
+        } finally {
+          iCallback(result);
+        }
       },
 
       /**
@@ -81,7 +97,106 @@ DG.DataInteractiveController = DG.ComponentController.extend(
         this.set('savedChangeCount', this.get('changeCount'));
       },
 
+      /** todo: decide if we need this for this handler */
       dispatchCommand: function (iCmd, iCallback) {
+      },
+
+      /**
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'update'|'get'|'delete'
+       *      what: {type: 'interactiveFrame'}
+       *      values: { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       *     }}
+       * @return {object} Object should include status and values.
+       */
+      handleInteractiveFrame: function (iMessage) {
+        var tValues = iMessage.values,
+            tSuccess = true,
+            tReturnValues = {};
+
+        var update = function () {
+              this.setPath('model.title', tValues.title);
+              this.setPath('model.version', tValues.version);
+              this.setPath('model.dimensions', tValues.dimensions);
+            }.bind(this),
+
+            get = function () {
+              tReturnValues.title = this.getPath('model.title');
+              tReturnValues.version = this.getPath('model.version');
+              tReturnValues.dimensions = this.getPath('model.dimensions');
+            }.bind(this);
+
+        switch (iMessage.action) {
+          case 'update':
+            update();
+            break;
+          case 'get':
+            get();
+            break;
+          default:
+            console.log('unrecognized action in handleInteractiveFrame: ' + iMessage.action);
+            tSuccess = false;
+        }
+        return {
+          success: tSuccess,
+          values: tReturnValues
+        };
+      },
+
+      /**
+       * handles operations on dataContext.
+       *
+       * Notes:
+       *
+       *  * At this point only one data context for each data interactive is permitted.
+       *  * Updates permit modification of top-level api properties only. That is
+       *    to say, not collections. Use collection API.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'create'|'update'|'get'|'delete'
+       *      what: {{type: 'context'}}
+       *      values: {{identifier: {string}, title: {string}, description: {string}, collections: [{Object}] }}
+       *     }}
+       *
+       */
+      handleDataContext: function (iMessage) {
+        var success = false;
+        var context;
+        if (iMessage.action === 'create') {
+          context = this.getPath('model.context');
+          if (context) {
+            DG.logWarn('Operation not permitted.');
+            success = false;
+          } else {
+            context = DG.currDocumentController().createNewDataContext(iMessage.value);
+            this.setPath('model.context', context);
+            success = (!SC.none(context));
+          }
+        } else if (iMessage.action === 'update') {
+          context = this.getPath('model.context');
+          if (!context) {
+            DG.logWarn('Update of non-existed object.');
+            success = false;
+          } else {
+            ['identifier', 'title', 'description'].forEach(function (prop) {
+              if (iMessage.value[prop]) {
+                context.set(prop, iMessage.value[prop]);
+              }
+            });
+          }
+        } else if (iMessage.action === 'get') {
+          // TODO
+        } else if (iMessage.action === 'delete') {
+          context = this.getPath('model.context');
+          context.destroy();
+          this.setPath('model.context', null);
+        }
+        return {success: success};
       }
+
+
     });
 

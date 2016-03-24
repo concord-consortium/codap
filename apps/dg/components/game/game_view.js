@@ -27,194 +27,262 @@ sc_require('libraries/iframe-phone');
 
  @extends SC.WebView
  */
+
 DG.GameView = SC.View.extend(
     /** @scope DG.GameView.prototype */ {
-      childViews: ['loadingView', 'webView'],
+  childViews: ['loadingView', 'webView'],
 
-      value: '', isLoading: true,
+  value: '',
 
-      /**
-       * Handles the old-style 'game' API using asynch iframePhone post-messaging
-       * @property {DG.GamePhoneHandler}
-       */
-      gamePhoneHandler: null,
+  isLoading: true,
 
-      /**
-       * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
-       * Brought into existence in March, 2016
-       * @property {DG.DataInteractivePhoneHandler}
-       */
-      dataInteractivePhoneHandler: null,
+  /**
+   * Handles the old-style 'game' API using asynch iframePhone post-messaging
+   * @property {DG.GamePhoneHandler}
+   */
+  gamePhoneHandler: null,
 
-      loadingView: SC.LabelView.extend({
-        urlBinding: '*parentView.value',
-        isLoadingBinding: '*parentView.isLoading',
-        didConnectBinding: '*parentView.didConnect',
-        classNames: ['dg-web-view'],
-        classNameBindings: ['isLoading:dg-loading'],
-        value: function () {
-          if (this.getPath('isLoading')) {
-            return 'DG.GameView.loading'.loc(this.get('url'));
-          } else if (!this.get('didConnect')) {
-            return 'DG.GameView.loadError'.loc(this.get('url'));
-          } else {
-            return '';
-          }
-        }.property('url', 'isLoading', 'didConnect')
-      }),
+  /**
+   * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
+   * Brought into existence in March, 2016
+   * @property {DG.DataInteractivePhoneHandler}
+   */
+  dataInteractivePhoneHandler: null,
 
-      init: function () {
-        sc_super();
-        this.gamePhoneHandler = DG.GamePhoneHandler.create(
-            {controller: this.get('controller')});
-      },
+  init: function () {
+    sc_super();
+    this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
+    this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.get('model')});
+  },
 
-      destroy: function () {
-        if (this.gamePhoneHandler) {
-          this.gamePhoneHandler.destroy();
-          this.gamePhoneHandler = null;
-        }
-        if (this.dataInteractivePhoneHandler) {
-          this.dataInteractivePhoneHandler.destroy();
-          this.dataInteractivePhoneHandler = null;
-        }
-        sc_super();
-      },
+  destroy: function () {
+    this.controller.gameViewWillClose();
+    if (this.gamePhoneHandler) {
+      this.gamePhoneHandler.destroy();
+      this.gamePhoneHandler = null;
+    }
+    if (this.dataInteractivePhoneHandler) {
+      this.dataInteractivePhoneHandler.destroy();
+      this.dataInteractivePhoneHandler = null;
+    }
+    sc_super();
+  },
 
-      webView: SC.WebView.extend({
-        classNames: ['dg-web-view-frame'],
-        valueBinding: '*parentView.value',
-        controllerBinding: '*parentView.controller', // Setup iframePhone communication with the child iframe before it loads, so that connection
-        // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
-        valueDidChange: function () {
-          var tValue = this.get('value'), tGPHandler = this.get(
-              'gamePhoneHandler');
+  loadingView: SC.LabelView.extend({
+    urlBinding: '*parentView.value',
+    isLoadingBinding: '*parentView.isLoading',
+    didConnectBinding: '*parentView.didConnect',
+    classNames: ['dg-web-view'],
+    classNameBindings: ['isLoading:dg-loading'],
+    value: function () {
+      if (this.getPath('isLoading')) {
+        return 'DG.GameView.loading'.loc(this.get('url'));
+      } else if (!this.get('didConnect')) {
+        return 'DG.GameView.loadError'.loc(this.get('url'));
+      } else {
+        return '';
+      }
+    }.property('url', 'isLoading', 'didConnect')
+  }),
 
-          if (tValue !== this._previousValue) {
+  webView: SC.WebView.extend({
+    classNames: ['dg-web-view-frame'],
 
-            // First discontinue listening to old game.
-            if (tGPHandler.gamePhone) {
-              tGPHandler.gamePhone.disconnect();
-            }
+    valueBinding: '*parentView.value',
 
-            // Global flag used to indicate whether calls to application should be made via gamePhone, or not.
-            tGPHandler.set('isGamePhoneInUse', false);
+    controllerBinding: '*parentView.controller',
 
-            tGPHandler.gamePhone = new iframePhone.IframePhoneRpcEndpoint(// TODO put this handler function somewhere appropriate rather than inlining it in (what is
-                // at notionally) view code?
+    // Setup iframePhone communication with the child iframe before it loads, so that connection
+    // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
+    valueDidChange: function () {
 
-                function (command, callback) {
-                  tGPHandler.set('isGamePhoneInUse', true);
-                  tGPHandler.doCommand(command, function (ret) {
-                    // Analysis shows that the object returned by DG.doCommand may contain Error values, which
-                    // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
-                    // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
-                    // 'requestAttributeValues' API commands are the guilty parties. The following is an
-                    // ad-hoc attempt to clean up the object for successful serialization.
+        var setupHandler = function (iHandler, iKey) {
+          var wrapper = function (command, callback) {
+            iHandler.set('isPhoneInUse', true);
+            iHandler.doCommand(command, function (ret) {
+              // Analysis shows that the object returned by DG.doCommand may contain Error values, which
+              // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
+              // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
+              // 'requestAttributeValues' API commands are the guilty parties. The following is an
+              // ad-hoc attempt to clean up the object for successful serialization.
 
-                    if (ret && ret.error && ret.error instanceof Error) {
-                      ret.error = ret.error.message;
-                    }
+              if (ret && ret.error && ret.error instanceof Error) {
+                ret.error = ret.error.message;
+              }
 
-                    if (ret && ret.values && ret.values.length) {
-                      ret.values = ret.values.map(function (value) {
-                        return value instanceof Error ? null : value;
-                      });
-                    }
-
-                    // If there's a DataCloneError anyway, at least let the client know something is wrong:
-                    try {
-                      callback(ret);
-                    } catch (e) {
-                      if (e instanceof window.DOMException && e.name === 'DataCloneError') {
-                        callback({success: false});
-                      }
-                    }
-                  });
-                }.bind(this), 'codap-game', this.$(
-                    'iframe')[0], this.extractOrigin(tValue));
-
-            // Let games/interactives know that they are talking to CODAP, specifically (rather than any
-            // old iframePhone supporting page) and can use its API.
-            tGPHandler.gamePhone.call({message: "codap-present"});
-          }
-
-          this._previousValue = tValue;
-
-        }.observes('value'),
-
-        destroy: function () {
-          this.controller.gameViewWillClose();
-          sc_super();
-        },
-
-        /**
-         * If the URL is a web URL return the origin.
-         *
-         * The origin is scheme://domain_name.port
-         */
-        extractOrigin: function (url) {
-          var re = /([^:]*:\/\/[^\/]*)/;
-          if (/^http.*/i.test(url)) {
-            return re.exec(url)[1];
-          }
-        },
-
-        /**
-         * @override SC.WebView.iframeDidLoad
-         */
-        iframeDidLoad: function () {
-          if (!SC.none(this.value)) {
-            this.setPath('parentView.isLoading', false);
-          }
-          var iframe = this.$('iframe')[0];
-          if (this.value) {
-            this.valueDidChange();
-          }
-          if (iframe && iframe.contentWindow) {
-            var contentWindow = iframe.contentWindow, target = this.controller;
-
-            // Allow the iframe to take over the entire screen (requested by InquirySpace)
-            $(iframe).attr('allowfullscreen', true)
-                .attr('webkitallowfullscreen', true)
-                .attr('mozallowfullscreen', true);
-
-            // Assign the callback functions as properties of the iframe's contentWindow.
-            //
-            // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
-            // has a chance to propagate bindings and data changes. See "Why Does SproutCore
-            // Have a Run Loop and When Does It Execute?" at
-            // http://frozencanuck.wordpress.com/2010/12/21/why-does-sproutcore-have-a-run-loop-and-when-does-it-execute/
-            // for details of why this is necessary. In its concluding paragraph, it states
-            // "Therefore the run loop is also used to drive data propagation via binding whenever
-            // an asynchronous event is fired in order to drive the application." These callbacks
-            // from the game are just such an asynchronous event, and so must invoke the runloop
-            // to operate properly.
-            //
-            // Furthermore, note that these callbacks cannot be added, and an exception will be thrown, if
-            // the game is hosted on another domain. Ignore that because we use HTML5 Web Messaging
-            // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
-            // below.
-
-            try {
-
-              // DoCommand
-              contentWindow.DoCommand = function (iCmd) {
-                var result;
-                SC.run(function () {
-                  result = target.doCommand(iCmd);
+              if (ret && ret.values && ret.values.length) {
+                ret.values = ret.values.map(function (value) {
+                  return value instanceof Error ? null : value;
                 });
-                return SC.json.encode(result);
-              };
-            } catch (e) {
-              // Supress warning.
-              //DG.logWarn(e);
-            }
-          } else {
-            DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
-          }
-          sc_super();
-        }
+              }
 
-      })
-    });
+              // If there's a DataCloneError anyway, at least let the client know something is wrong:
+              try {
+                callback(ret);
+              } catch (e) {
+                if (e instanceof window.DOMException && e.name === 'DataCloneError') {
+                  callback({success: false});
+                }
+              }
+            });
+          };
+
+          //First discontinue listening to old interactive.
+          if (iHandler.phone) {
+            iHandler.phone.disconnect();
+          }
+
+      // Global flag used to indicate whether calls to application should be made via phone, or not.
+      iHandler.set('isPhoneInUse', false);
+
+      iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(
+        // TODO put this handler function somewhere appropriate rather than inlining it in (what is
+        // at notionally) view code?
+
+        function (command, callback) {
+          iHandler.set('isPhoneInUse', true);
+          iHandler.doCommand(command, function (ret) {
+            // Analysis shows that the object returned by DG.doCommand may contain Error values, which
+            // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
+            // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
+            // 'requestAttributeValues' API commands are the guilty parties. The following is an
+            // ad-hoc attempt to clean up the object for successful serialization.
+
+            if (ret && ret.error && ret.error instanceof Error) {
+              ret.error = ret.error.message;
+            }
+
+            if (ret && ret.values && ret.values.length) {
+              ret.values = ret.values.map(function (value) {
+                return value instanceof Error ? null : value;
+              });
+            }
+
+            // If there's a DataCloneError anyway, at least let the client know something is wrong:
+            try {
+              callback(ret);
+            } catch (e) {
+              if (e instanceof window.DOMException && e.name === 'DataCloneError') {
+                callback({success: false});
+              }
+            }
+          });
+        }.bind(this),
+        iKey,
+        this.$('iframe')[0],
+        this.extractOrigin(tValue)
+      );
+
+      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+      // old iframePhone supporting page) and can use its API.
+      iHandler.phone.call({message: "codap-present"});
+    }.bind( this);
+
+    var tValue = this.get('value');
+
+    if (tValue !== this._previousValue) {
+      setupHandler(this.get('gamePhoneHandler'), 'codap-game');
+      setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
+    }
+
+      this._previousValue = tValue;
+
+    }.observes('value'),
+
+    /**
+     * If the URL is a web URL return the origin.
+     *
+     * The origin is scheme://domain_name.port
+     */
+    extractOrigin: function (url) {
+      var re = /([^:]*:\/\/[^\/]*)/;
+      if (/^http.*/i.test(url)) {
+        return re.exec(url)[1];
+      }
+    },
+
+    /**
+     * @override SC.WebView.iframeDidLoad
+     */
+    iframeDidLoad: function () {
+      if (!SC.none(this.value)) {
+        this.setPath('parentView.isLoading', false);
+      }
+      var iframe = this.$('iframe')[0];
+      if (this.value) {
+        this.valueDidChange();
+      }
+      if (iframe && iframe.contentWindow) {
+        var contentWindow = iframe.contentWindow, target = this.controller;
+
+        // Allow the iframe to take over the entire screen (requested by InquirySpace)
+        $(iframe).attr('allowfullscreen', true)
+            .attr('webkitallowfullscreen', true)
+            .attr('mozallowfullscreen', true);
+
+        // Assign the callback functions as properties of the iframe's contentWindow.
+        //
+        // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
+        // has a chance to propagate bindings and data changes. See "Why Does SproutCore
+        // Have a Run Loop and When Does It Execute?" at
+        // http://frozencanuck.wordpress.com/2010/12/21/why-does-sproutcore-have-a-run-loop-and-when-does-it-execute/
+        // for details of why this is necessary. In its concluding paragraph, it states
+        // "Therefore the run loop is also used to drive data propagation via binding whenever
+        // an asynchronous event is fired in order to drive the application." These callbacks
+        // from the game are just such an asynchronous event, and so must invoke the runloop
+        // to operate properly.
+        //
+        // Furthermore, note that these callbacks cannot be added, and an exception will be thrown, if
+        // the game is hosted on another domain. Ignore that because we use HTML5 Web Messaging
+        // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
+        // below.
+
+        try {
+
+          // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
+
+          // NewCollectionWithAttributes
+          contentWindow.NewCollectionWithAttributes = function (iCollectionName,
+              iAttributeNames) {
+            SC.run(function () {
+              target.newCollectionWithAttributes(iCollectionName,
+                  iAttributeNames);
+            });
+          };
+
+          // AddCaseToCollectionWithValues
+          contentWindow.AddCaseToCollectionWithValues = function (iCollectionName,
+              iValues) {
+            SC.run(function () {
+              target.addCaseToCollectionWithValues(iCollectionName,
+                  iValues);
+            });
+          };
+
+          // LogUserAction
+          contentWindow.LogUserAction = function (iActionString, iValues) {
+            SC.run(function () {
+              target.logUserAction(iActionString, iValues);
+            });
+          };
+
+          // DoCommand
+          contentWindow.DoCommand = function (iCmd) {
+            var result;
+            SC.run(function () {
+              result = target.doCommand(iCmd);
+            });
+            return SC.json.encode(result);
+          };
+        } catch (e) {
+          // Supress warning.
+          //DG.logWarn(e);
+        }
+      } else {
+        DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
+      }
+      sc_super();
+    }
+
+  })
+});

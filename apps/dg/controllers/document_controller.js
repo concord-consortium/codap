@@ -684,9 +684,10 @@ DG.DocumentController = SC.Object.extend(
               constructor: DG.GameView
             },
             contentProperties: {
-              controller: tController, 
+              controller: tController,
               value: tGameUrl, 
-              name: tGameName
+              name: tGameName,
+              model: DG.DataInteractiveModel.create()
             },
             defaultLayout: {
               width: tGameParams.width,

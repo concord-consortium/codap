@@ -479,8 +479,8 @@ DG.GamePhoneHandler = SC.Object.extend(
           } else if (tGameElement && tGameElement.doCommandFunc) {
             // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
             tGameElement.doCommandFunc(SC.json.encode(tRestoreCommand));
-          } else if (this.get('isGamePhoneInUse')) {
-            this.gamePhone.call(tRestoreCommand, finishInitGame.bind(this));
+          } else if (this.get('isPhoneInUse')) {
+            this.phone.call(tRestoreCommand, finishInitGame.bind(this));
             return tReturn;
           }
         }
@@ -778,11 +778,11 @@ DG.GamePhoneHandler = SC.Object.extend(
             // then calling undo or redo here will likely fail because the game's undo stack would
             // probably have been cleared.
             var controller = this._controller();
-            controller.gamePhone.call({operation: "undoAction"}, controller.handleUndoRedoCompleted);
+            controller.phone.call({operation: "undoAction"}, controller.handleUndoRedoCompleted);
           },
           redo: function () {
             var controller = this._controller();
-            controller.gamePhone.call({operation: "redoAction"}, controller.handleUndoRedoCompleted);
+            controller.phone.call({operation: "redoAction"}, controller.handleUndoRedoCompleted);
           }
         }));
       },
@@ -1034,9 +1034,9 @@ DG.GamePhoneHandler = SC.Object.extend(
             result = JSON.parse(result);
           }
           callback(result);
-        } else if (this.get('isGamePhoneInUse')) {
+        } else if (this.get('isPhoneInUse')) {
           // async path
-          this.gamePhone.call(saveCommand, callback);
+          this.phone.call(saveCommand, callback);
         } else {
           callback({success: false});
         }
@@ -1205,8 +1205,8 @@ DG.doCommand = function (iCmd, iCallback) {
 DG.sendCommandToDI = function (iCmd, iCallback) {
   var interactives = DG.currDocumentController().get('dataInteractives'),
       myController = (interactives && interactives.length === 1) ? interactives[0] : undefined;
-  if (myController && myController.gamePhone && myController.get('gameIsReady')) {
-    myController.gamePhone.call(iCmd, iCallback);
+  if (myController && myController.phone && myController.get('gameIsReady')) {
+    myController.phone.call(iCmd, iCallback);
   }
 };
 

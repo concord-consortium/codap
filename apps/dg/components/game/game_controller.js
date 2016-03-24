@@ -111,8 +111,8 @@ DG.doCommand = function( iCmd, iCallback)  {
 DG.sendCommandToDI = function( iCmd, iCallback) {
   var interactives = DG.currDocumentController().get('dataInteractives'),
     myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
-  if (myController && myController.gamePhone && myController.get('gameIsReady')) {
-    myController.gamePhone.call(iCmd, iCallback);
+  if (myController && myController.phone && myController.get('gameIsReady')) {
+    myController.phone.call(iCmd, iCallback);
   }
 };
 
