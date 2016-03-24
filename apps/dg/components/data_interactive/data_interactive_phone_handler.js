@@ -1,5 +1,5 @@
 // ==========================================================================
-//                          DG.DataInteractiveController
+//                          DG.DataInteractivePhoneHandler
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
 //
@@ -20,7 +20,7 @@ sc_require('controllers/component_controller');
 
 /** @class
  *
- * The DataInteractiveController manages a Component containing a Data
+ * The DataInteractivePhoneHandler manages a Component containing a Data
  * Interactive.
  *
  * From CODAP's perspective a Data Interactive is a data source. It provides
@@ -32,8 +32,8 @@ sc_require('controllers/component_controller');
  *
  * @extends DG.ComponentController
  */
-DG.DataInteractiveController = DG.ComponentController.extend(
-    /** @scope DG.DataInteractiveController.prototype */ {
+DG.DataInteractivePhoneHandler = DG.ComponentController.extend(
+    /** @scope DG.DataInteractivePhoneHandler.prototype */ {
 
       /**
        The total number of document-dirtying changes.
