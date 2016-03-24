@@ -208,6 +208,7 @@ SC.stringsFor('English', {
   'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
   'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
   'DG.AppController.dropFile.error' : 'Error: %@1',  // Error: <error text>
+  'DG.AppController.dropFile.unknownFileType' : 'You cannot import the type of file dropped',
   'DG.AppController.validateDocument.missingRequiredProperty' : 'Required property not found: %@1',
   'DG.AppController.validateDocument.unexpectedProperty' : 'Unexpected top-level property: %@1',
   'DG.AppController.validateDocument.unresolvedID' : 'Unresolved id: %@1',

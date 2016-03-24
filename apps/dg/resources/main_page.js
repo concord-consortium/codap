@@ -253,9 +253,15 @@ DG.mainPage = SC.Page.design((function() {
 
         var tAlertDialog = {
           showAlert: function( iError) {
-            DG.AlertPane.show( {
-              message: 'DG.AppController.dropFile.error'.loc( iError.message)
-            });
+            var message = 'DG.AppController.dropFile.error'.loc(iError.message);
+            if (DG.cfmClient) {
+              DG.cfmClient.alert(message);
+            }
+            else {
+              DG.AlertPane.show( {
+                message: message
+              });
+            }
           },
           close: function() {
             // Do nothing
@@ -281,6 +287,9 @@ DG.mainPage = SC.Page.design((function() {
               || (tType === 'text/plain')
               || (tType === 'text/tab-separated-values')) {
             DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
+          }
+          else {
+            tAlertDialog.showAlert(new Error('DG.AppController.dropFile.unknownFileType'.loc()))
           }
         }
         else if( !SC.empty(tURI)) {
