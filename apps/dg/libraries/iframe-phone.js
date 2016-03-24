@@ -1,7 +1,7 @@
 !function(e){"object"==typeof exports?module.exports=e():"function"==typeof define&&define.amd?define(e):"undefined"!=typeof window?window.iframePhone=e():"undefined"!=typeof global?global.iframePhone=e():"undefined"!=typeof self&&(self.iframePhone=e())}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var structuredClone = require('./structured-clone');
 var HELLO_INTERVAL_LENGTH = 200;
-var HELLO_TIMEOUT_LENGTH = 1000;
+var HELLO_TIMEOUT_LENGTH = 60000;
 
 function IFrameEndpoint() {
   var parentOrigin;
@@ -166,22 +166,32 @@ function getPseudoUUID() {
     return ret.join('');
 }
 
-module.exports = function IframePhoneRpcEndpoint(handler, namespace, targetWindow, targetOrigin) {
-    var phone;
+module.exports = function IframePhoneRpcEndpoint(handler, namespace, targetWindow, targetOrigin, phone) {
     var pendingCallbacks = Object.create({});
 
-    if (targetWindow === window.parent) {
-        phone = getIFrameEndpoint();
-        phone.initialize();
-    } else {
-        phone = new ParentEndpoint(targetWindow, targetOrigin);
+    // if it's a non-null object, rather than a function, 'handler' is really an options object
+    if (handler && typeof handler === 'object') {
+        namespace = handler.namespace;
+        targetWindow = handler.targetWindow;
+        targetOrigin = handler.targetOrigin;
+        phone = handler.phone;
+        handler = handler.handler;
+    }
+
+    if ( ! phone ) {
+        if (targetWindow === window.parent) {
+            phone = getIFrameEndpoint();
+            phone.initialize();
+        } else {
+            phone = new ParentEndpoint(targetWindow, targetOrigin);
+        }
     }
 
     phone.addListener(namespace, function(message) {
         var callbackObj;
 
-        if (message.messageType === 'call') {
-            handler(message.value, function(returnValue) {
+        if (message.messageType === 'call' && typeof this.handler === 'function') {
+            this.handler.call(undefined, message.value, function(returnValue) {
                 phone.post(namespace, {
                     messageType: 'returnValue',
                     uuid: message.uuid,
@@ -199,7 +209,7 @@ module.exports = function IframePhoneRpcEndpoint(handler, namespace, targetWindo
                 pendingCallbacks[message.uuid] = null;
             }
         }
-    });
+    }.bind(this));
 
     function call(message, callback) {
         var uuid = getPseudoUUID();
@@ -224,10 +234,9 @@ module.exports = function IframePhoneRpcEndpoint(handler, namespace, targetWindo
         phone.disconnect();
     }
 
-    return {
-        call: call,
-        disconnect: disconnect
-    };
+    this.handler = handler;
+    this.call = call.bind(this);
+    this.disconnect = disconnect.bind(this);
 };
 
 },{"./iframe-endpoint":1,"./parent-endpoint":3}],3:[function(require,module,exports){
@@ -266,7 +275,7 @@ var structuredClone = require('./structured-clone');
   more about this weird behavior of WindowProxies (the type returned by <iframe>.contentWindow).
 */
 
-module.exports = function ParentEndpoint(targetWindow, targetOrigin, afterConnectedCallback) {
+module.exports = function ParentEndpoint(targetWindowOrIframeEl, targetOrigin, afterConnectedCallback) {
   var selfOrigin = window.location.href.match(/(.*?\/\/.*?)\//)[1];
   var postMessageQueue = [];
   var connected = false;
@@ -290,15 +299,16 @@ module.exports = function ParentEndpoint(targetWindow, targetOrigin, afterConnec
       };
     }
     if (connected) {
+      var tWindow = getTargetWindow();
       // if we are laready connected ... send the message
       message.origin = selfOrigin;
       // See http://dev.opera.com/articles/view/window-postmessage-messagechannel/#crossdoc
       //     https://github.com/Modernizr/Modernizr/issues/388
       //     http://jsfiddle.net/ryanseddon/uZTgD/2/
       if (structuredClone.supported()) {
-        targetWindow.postMessage(message, targetOrigin);
+        tWindow.postMessage(message, targetOrigin);
       } else {
-        targetWindow.postMessage(JSON.stringify(message), targetOrigin);
+        tWindow.postMessage(JSON.stringify(message), targetOrigin);
       }
     } else {
       // else queue up the messages to send after connection complete.
@@ -314,10 +324,26 @@ module.exports = function ParentEndpoint(targetWindow, targetOrigin, afterConnec
     handlers[messageName] = null;
   }
 
+  // Note that this function can't be used when IFrame element hasn't been added to DOM yet
+  // (.contentWindow would be null). At the moment risk is purely theoretical, as the parent endpoint
+  // only listens for an incoming 'hello' message and the first time we call this function
+  // is in #receiveMessage handler (so iframe had to be initialized before, as it could send 'hello').
+  // It would become important when we decide to refactor the way how communication is initialized.
+  function getTargetWindow() {
+    if (targetWindowIsIframeElement) {
+      var tWindow = targetWindowOrIframeEl.contentWindow;
+      if (!tWindow) {
+        throw "IFrame element needs to be added to DOM before communication " +
+              "can be started (.contentWindow is not available)";
+      }
+      return tWindow;
+    }
+    return targetWindowOrIframeEl;
+  }
+
   function receiveMessage(message) {
     var messageData;
-
-    if (message.source === targetWindow && message.origin === targetOrigin) {
+    if (message.source === getTargetWindow() && message.origin === targetOrigin) {
       messageData = message.data;
       if (typeof messageData === 'string') {
         messageData = JSON.parse(messageData);
@@ -335,26 +361,23 @@ module.exports = function ParentEndpoint(targetWindow, targetOrigin, afterConnec
     window.removeEventListener('message', receiveMessage);
   }
 
-  // handle the case that targetWindow is actually an <iframe> rather than a Window(Proxy) object
+  // handle the case that targetWindowOrIframeEl is actually an <iframe> rather than a Window(Proxy) object
   // Note that if it *is* a WindowProxy, this probe will throw a SecurityException, but in that case
   // we also don't need to do anything
   try {
-    targetWindowIsIframeElement = targetWindow.constructor === HTMLIFrameElement;
+    targetWindowIsIframeElement = targetWindowOrIframeEl.constructor === HTMLIFrameElement;
   } catch (e) {
     targetWindowIsIframeElement = false;
   }
 
   if (targetWindowIsIframeElement) {
-
     // Infer the origin ONLY if the user did not supply an explicit origin, i.e., if the second
     // argument is empty or is actually a callback (meaning it is supposed to be the
     // afterConnectionCallback)
-    if ( !targetOrigin || targetOrigin.constructor === Function) {
+    if (!targetOrigin || targetOrigin.constructor === Function) {
       afterConnectedCallback = targetOrigin;
-      targetOrigin = getOrigin(targetWindow);
+      targetOrigin = getOrigin(targetWindowOrIframeEl);
     }
-
-    targetWindow = targetWindow.contentWindow;
   }
 
   // when we receive 'hello':
@@ -383,7 +406,9 @@ module.exports = function ParentEndpoint(targetWindow, targetOrigin, afterConnec
     post: post,
     addListener: addListener,
     removeListener: removeListener,
-    disconnect: disconnect
+    disconnect: disconnect,
+    getTargetWindow: getTargetWindow,
+    targetOrigin: targetOrigin
   };
 };
 
