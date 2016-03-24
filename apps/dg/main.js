@@ -139,6 +139,7 @@ DG.main = function main() {
           wrapFileContent: false,
           mimeType: 'application/x-codap-document',
           extension: '.codap',
+          enableLaraSharing: true,
           providers: [
             {
               "displayName": "Example Documents",
