@@ -10467,18 +10467,24 @@ DocumentStoreProvider = (function(superClass) {
     }
   };
 
-  DocumentStoreProvider.prototype._loginSuccessful = function(user) {
-    var ref1;
-    this.user = user;
-    if ((ref1 = this._loginWindow) != null) {
-      ref1.close();
-    }
-    return this.authCallback(true);
-  };
-
   DocumentStoreProvider.prototype._checkLogin = function() {
-    var provider;
-    provider = this;
+    var loggedIn;
+    loggedIn = (function(_this) {
+      return function(user) {
+        var ref1;
+        _this.user = user;
+        _this._docStoreLoaded = true;
+        if (typeof _this.docStoreLoadedCallback === "function") {
+          _this.docStoreLoadedCallback();
+        }
+        if (user) {
+          if ((ref1 = _this._loginWindow) != null) {
+            ref1.close();
+          }
+        }
+        return _this.authCallback(user !== null);
+      };
+    })(this);
     return $.ajax({
       dataType: 'json',
       url: checkLoginUrl,
@@ -10486,13 +10492,10 @@ DocumentStoreProvider = (function(superClass) {
         withCredentials: true
       },
       success: function(data) {
-        if (typeof provider.docStoreLoadedCallback === "function") {
-          provider.docStoreLoadedCallback();
-        }
-        return provider._loginSuccessful(data);
+        return loggedIn(data);
       },
       error: function() {
-        return typeof provider.docStoreLoadedCallback === "function" ? provider.docStoreLoadedCallback() : void 0;
+        return loggedIn(null);
       }
     });
   };
@@ -10587,6 +10590,14 @@ DocumentStoreProvider = (function(superClass) {
       },
       error: function() {
         return callback(null, []);
+      },
+      statusCode: {
+        403: (function(_this) {
+          return function() {
+            _this.user = null;
+            return _this.authCallback(false);
+          };
+        })(this)
       }
     });
   };
@@ -13493,10 +13504,12 @@ FileDialogTab = React.createClass({
     if (metadata) {
       if (this.isOpen()) {
         return confirmed(metadata);
-      } else {
+      } else if (this.findMetadata(filename, this.state.list)) {
         return this.props.client.confirm("Are you sure you want to overwrite " + metadata.name + "?", function() {
           return confirmed(metadata);
         });
+      } else {
+        return confirmed(metadata);
       }
     } else if (this.isOpen()) {
       return this.props.client.alert(filename + " not found");
