@@ -16,24 +16,19 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('controllers/component_controller');
-
 /** @class
  *
- * The DataInteractivePhoneHandler manages a Component containing a Data
- * Interactive.
+ * The DataInteractivePhoneHandler todo: write this
  *
- * From CODAP's perspective a Data Interactive is a data source. It provides
- * data to an associated Data Context.
- *
- * It receives events from the interactive and acts upon them. Chiefly these
- * are events that create or update case data in collections managed by its
- * data context.
- *
- * @extends DG.ComponentController
+ * @extends SC.Object
  */
-DG.DataInteractivePhoneHandler = DG.ComponentController.extend(
+DG.DataInteractivePhoneHandler = SC.Object.extend(
     /** @scope DG.DataInteractivePhoneHandler.prototype */ {
+
+      /**
+       * @type {DG.DataInteractiveModel}
+       */
+      model: null,
 
       /**
        The total number of document-dirtying changes.
@@ -66,6 +61,9 @@ DG.DataInteractivePhoneHandler = DG.ComponentController.extend(
 
       doCommand: function (iMessage, iCallback) {
         DG.log('gotIt: ' + JSON.stringify(iMessage));
+        if( iMessage.what.type === 'interactiveFrame') {
+          this.handleInteractiveFrame( iMessage.action, iMessage.what.values);
+        }
         iCallback({success: true});
       },
 
@@ -86,7 +84,29 @@ DG.DataInteractivePhoneHandler = DG.ComponentController.extend(
         this.set('savedChangeCount', this.get('changeCount'));
       },
 
+      /** todo: decide if we need this for this handler */
       dispatchCommand: function (iCmd, iCallback) {
+      },
+
+      /**
+       *
+       * @param {String}
+       * @param iValues { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       */
+      handleInteractiveFrame: function( iAction, iValues) {
+
+        var create = function() {
+          this.setPath('view.version',
+              SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
+          this.setPath('view.title',
+              SC.none(this.context.gameName) ? '' : this.context.gameName);
+        }.bind( this);
+
+        switch( iAction) {
+          case 'create':
+            //create();
+            break;
+        }
       }
     });
 

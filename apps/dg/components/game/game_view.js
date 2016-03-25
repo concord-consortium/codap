@@ -48,7 +48,7 @@ DG.GameView = SC.WebView.extend(
       init: function () {
         sc_super();
         this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
-        this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({controller: this.get('controller')});
+        this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.get('model')});
       },
 
       destroy: function () {
