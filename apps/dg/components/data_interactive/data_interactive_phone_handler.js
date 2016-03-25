@@ -52,8 +52,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         sc_super();
 
         this.handlerMap = {
-            interactiveFrame: this.handleInteractiveFrame,
-            dataContext: this.handleDataContext
+            interactiveFrame: this.handleInteractiveFrame.bind(this),
+            dataContext: this.handleDataContext.bind(this)
           };
       },
 
@@ -129,15 +129,55 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       /**
+       * handles operations on dataContext.
+       *
+       * Notes:
+       *
+       *  * At this point only one data context for each data interactive is permitted.
+       *  * Updates permit modification of top-level api properties only. That is
+       *    to say, not collections. Use collection API.
+       *
        * @param  iMessage {object}
        *     {{
        *      action: 'create'|'update'|'get'|'delete'
-       *      what: {type: 'context'}
-       *      values: { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       *      what: {{type: 'context'}}
+       *      values: {{identifier: {string}, title: {string}, description: {string}, collections: [{Object}] }}
        *     }}
+       *
        */
       handleDataContext: function (iMessage) {
-        return {success: true};
+        var success = false;
+        var context;
+        if (iMessage.action === 'create') {
+          context = this.getPath('model.context');
+          if (context) {
+            DG.logWarn('Operation not permitted.');
+            success = false;
+          } else {
+            context = DG.currDocumentController().createNewDataContext(iMessage.value);
+            this.setPath('model.context', context);
+            success = (!SC.none(context));
+          }
+        } else if (iMessage.action === 'update') {
+          context = this.getPath('model.context');
+          if (!context) {
+            DG.logWarn('Update of non-existed object.');
+            success = false;
+          } else {
+            ['identifier', 'title', 'description'].forEach(function (prop) {
+              if (iMessage.value[prop]) {
+                context.set(prop, iMessage.value[prop]);
+              }
+            });
+          }
+        } else if (iMessage.action === 'get') {
+          // TODO
+        } else if (iMessage.action === 'delete') {
+          context = this.getPath('model.context');
+          context.destroy();
+          this.setPath('model.context', null);
+        }
+        return {success: success};
       }
 
 
