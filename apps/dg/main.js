@@ -466,6 +466,10 @@ DG.main = function main() {
             }
             break;
           }
+
+          case "renamedFile": {
+            DG.currDocumentController().set('documentName', event.state.metadata.name);
+          }
         }
       });
     }
