@@ -43,12 +43,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       savedChangeCount: 0,
 
+      handlerMap: null,
+
       /**
        Initialization method
        */
       init: function () {
         sc_super();
 
+        this.handlerMap = {
+            interactiveFrame: this.handleInteractiveFrame,
+            dataContext: this.handleDataContext
+          };
       },
 
       /**
@@ -61,10 +67,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       doCommand: function (iMessage, iCallback) {
         DG.log('gotIt: ' + JSON.stringify(iMessage));
-        if( iMessage.what.type === 'interactiveFrame') {
-          this.handleInteractiveFrame( iMessage.action, iMessage.what.values);
+        var type = iMessage.what.type;
+        var result = ({success: false});
+        try {
+          if (type && this.handlerMap[type]) {
+            result = this.handlerMap[type](iMessage, iCallback) || {success: false};
+          } else {
+            DG.logWarn("Unknown message type: " + type);
+          }
+        } finally {
+          iCallback(result);
         }
-        iCallback({success: true});
       },
 
       /**
@@ -90,23 +103,44 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       /**
        *
-       * @param {String}
-       * @param iValues { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'update'|'get'|'delete'
+       *      what: {type: 'interactiveFrame'}
+       *      values: { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       *     }}
+       * @return {object} Object should include status and values.
        */
-      handleInteractiveFrame: function( iAction, iValues) {
+      handleInteractiveFrame: function( iMessage ) {
 
-        var create = function() {
+        var create = function() { // jshint ignore:line
           this.setPath('view.version',
               SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
           this.setPath('view.title',
               SC.none(this.context.gameName) ? '' : this.context.gameName);
         }.bind( this);
 
-        switch( iAction) {
+        switch( iMessage.action) {
           case 'create':
             //create();
             break;
         }
+        return {success: true};
+      },
+
+      /**
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'create'|'update'|'get'|'delete'
+       *      what: {type: 'context'}
+       *      values: { {title: {String}, version: {String}, dimensions: { width: {Number}, height: {Number} }}}
+       *     }}
+       */
+      handleDataContext: function (iMessage) {
+        return {success: true};
       }
+
+
+
     });
 
