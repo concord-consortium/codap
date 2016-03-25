@@ -138,7 +138,7 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           wrapFileContent: false,
           mimeType: 'application/x-codap-document',
-          extension: '.codap',
+          // extension: '.codap', <-- disabled for now
           enableLaraSharing: true,
           providers: [
             {
