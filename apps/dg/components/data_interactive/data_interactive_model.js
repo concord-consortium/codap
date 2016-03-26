@@ -22,6 +22,21 @@
  */
 DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.prototype */ {
 
+  /**
+   * @type {String}
+   */
+  title: null,
+
+  /**
+   * @type {String}
+   */
+  version: null,
+
+  /**
+   * @type {Object}
+   */
+  dimensions: null,
+
   init: function () {
     sc_super();
   }

@@ -111,18 +111,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *     }}
        * @return {object} Object should include status and values.
        */
-      handleInteractiveFrame: function( iMessage ) {
-
-        var create = function() { // jshint ignore:line
-          this.setPath('view.version',
-              SC.none(this.context.gameVersion) ? '' : this.context.gameVersion);
-          this.setPath('view.title',
-              SC.none(this.context.gameName) ? '' : this.context.gameName);
+      handleInteractiveFrame: function( iMessage) {
+        var tValues = iMessage.values;
+        var create = function() {
+          this.setPath('model.title', tValues.title);
+          this.setPath('model.version', tValues.version);
+          this.setPath('model.dimensions', tValues.dimensions);
         }.bind( this);
 
         switch( iMessage.action) {
           case 'create':
-            //create();
+            create();
             break;
         }
         return {success: true};
