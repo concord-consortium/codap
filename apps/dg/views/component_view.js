@@ -497,8 +497,22 @@ DG.ComponentView = SC.View.extend(
             this.set('title', iValue);
         }.observes('*model.title'),
 
+        modelDimensionsChanged: function (iModel, iKey, iValue) {
+          if (!SC.none(iValue)) {
+            if( iValue.width)
+                this.adjust('width', iValue.width);
+            if( iValue.height)
+                this.adjust('height', iValue.height);
+          }
+        }.observes('*model.dimensions'),
+
         version: null,
         versionBinding: '.containerView.titlebar.versionView.value',
+
+        modelVersionChanged: function (iModel, iKey, iValue) {
+          if (!SC.none(iValue))
+            this.set('version', iValue);
+        }.observes('*model.version'),
 
         status: null,
         statusBinding: '.containerView.titlebar.statusView.value',

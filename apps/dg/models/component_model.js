@@ -53,6 +53,26 @@ DG.Component = DG.BaseModel.extend(
         this.set('title', this.getPath('content.defaultTitle'));
       }.observes('*content.defaultTitle'),
 
+      contentTitleChanged: function() {
+        this.set('title', this.getPath('content.title'));
+      }.observes('*content.title'),
+
+      dimensions: function() {
+        return this.getPath('content.dimensions');
+      }.property(),
+
+      contentDimensionsChanged: function() {
+        this.notifyPropertyChange('dimensions');
+      }.observes('*content.dimensions'),
+
+      version: function() {
+        return this.getPath('content.version');
+      }.property(),
+
+      contentVersionChanged: function() {
+        this.notifyPropertyChange('version');
+      }.observes('*content.version'),
+
       /**
        * Content is an arbitrary javascript object, serializable, and defined
        * by the Component.

@@ -52,9 +52,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         sc_super();
 
         this.handlerMap = {
-            interactiveFrame: this.handleInteractiveFrame.bind(this),
-            dataContext: this.handleDataContext.bind(this)
-          };
+          interactiveFrame: this.handleInteractiveFrame.bind(this),
+          dataContext: this.handleDataContext.bind(this)
+        };
       },
 
       /**
@@ -111,20 +111,38 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *     }}
        * @return {object} Object should include status and values.
        */
-      handleInteractiveFrame: function( iMessage) {
-        var tValues = iMessage.values;
-        var create = function() {
-          this.setPath('model.title', tValues.title);
-          this.setPath('model.version', tValues.version);
-          this.setPath('model.dimensions', tValues.dimensions);
-        }.bind( this);
+      handleInteractiveFrame: function (iMessage) {
+        var tValues = iMessage.values,
+            tSuccess = true,
+            tReturnValues = {};
 
-        switch( iMessage.action) {
-          case 'create':
-            create();
+        var update = function () {
+              this.setPath('model.title', tValues.title);
+              this.setPath('model.version', tValues.version);
+              this.setPath('model.dimensions', tValues.dimensions);
+            }.bind(this),
+
+            get = function () {
+              tReturnValues.title = this.getPath('model.title');
+              tReturnValues.version = this.getPath('model.version');
+              tReturnValues.dimensions = this.getPath('model.dimensions');
+            }.bind(this);
+
+        switch (iMessage.action) {
+          case 'update':
+            update();
             break;
+          case 'get':
+            get();
+            break;
+          default:
+            console.log('unrecognized action in handleInteractiveFrame: ' + iMessage.action);
+            tSuccess = false;
         }
-        return {success: true};
+        return {
+          success: tSuccess,
+          values: tReturnValues
+        };
       },
 
       /**
@@ -178,7 +196,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
         return {success: success};
       }
-
 
 
     });
