@@ -218,6 +218,16 @@ DG = SC.Application.create((function () // closure
       return false;
     })(),
 
+    exampleListURL: 'https://codap-resources.concord.org/examples/index.json',
+
+    showHelpURL: 'https://codap.concord.org/help',
+
+    showWebSiteURL: 'https://concord.org/projects/codap',
+
+    defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
+
+    defaultLogServerLoginURLSecure: 'https://cc-log-manager.herokuapp.com/api/logs',
+
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
      * key if this is an SRRI build (also expected to be in in strings.js).
@@ -367,11 +377,11 @@ DG = SC.Application.create((function () // closure
 
     logServerUrl: function () {
       if (window.location.protocol.toLowerCase() === 'http') {
-        return SC.String.loc('DG.core.defaultLogServerLoginURL');
+        return DG.defaultLogServerLoginURL;
       } else {
-        return SC.String.loc('DG.core.defaultLogServerLoginURL.secure');
+        return DG.defaultLogServerLoginURLSecure;
       }
-    }.property().cacheable(),
+    }.property(),
 
     /**
      More useful alternative to JavaScript built-in typeof operator.

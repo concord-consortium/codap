@@ -36,9 +36,6 @@ SC.stringsFor('English', {
   "DG is not actively supported on other browsers at this time.",
   'DG.mainPage.titleBar.saved': 'Document Saved!',
 
-  'DG.core.defaultLogServerLoginURL': 'http://cc-log-manager.herokuapp.com/api/logs',
-  'DG.core.defaultLogServerLoginURL.secure': 'https://cc-log-manager.herokuapp.com/api/logs',
-
   // DG.UserEntryDialog
   'DG.UserEntryDialog.welcome'                 : 'Welcome to CODAP',
   'DG.UserEntryDialog.welcome2'                : 'What would you like to do?',
@@ -171,7 +168,6 @@ SC.stringsFor('English', {
   'DG.AppController.importData.alert' : "Alert: The specified file is not a data file.",
   'DG.AppController.importData.okTitle' : "Import",
   'DG.AppController.importData.okTooltip' : "Import the specified data",
-  'DG.AppController.exampleList.ExampleListURL' : 'https://codap-resources.concord.org/examples/index.json',
   'DG.AppController.exportDocument.prompt' : "Filename:",
   'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
   'DG.AppController.exportCaseData.okTitle' : "Done",
@@ -186,13 +182,9 @@ SC.stringsFor('English', {
   'DG.AppController.feedbackDialog.submitFeedbackButton' : "Submit",
   'DG.AppController.feedbackDialog.cancelFeedbackButton' : "Cancel",
   'DG.AppController.manageDocumentsURL' : '/datagames_documents_manager', // path on Drupal website
-  'DG.AppController.showWebSiteURL' : 'concord.org/projects/codap', // Changed from path on Drupal website to CC project site
   'DG.AppController.showWebSiteTitle' : 'About CODAP',
-  'DG.AppController.showHelpURL' : 'codap.concord.org/help', // path on Drupal website
   'DG.AppController.showHelpTitle' : 'Help with CODAP',
-  'DG.AppController.showAboutURL' : 'DataGames/WebPages/about/aboutDG.html', // path on Drupal website
   'DG.AppController.showAboutTitle' : 'About CODAP',
-  'DG.AppController.showReleaseNotesURL' : 'http://play.ccssgames.com/release_notes', // path on Drupal website
   'DG.AppController.showReleaseNotesTitle' : 'CODAP Release Notes',
   'DG.AppController.shareLinkDialog.title' : 'Share',
   'DG.AppController.shareLinkDialog.shareButtonLabel' : 'Shareable',
