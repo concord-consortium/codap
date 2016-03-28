@@ -53,7 +53,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           interactiveFrame: this.handleInteractiveFrame.bind(this),
-          dataContext: this.handleDataContext.bind(this)
+          dataContext: this.handleDataContext.bind(this),
+          collection: this.handleCollection.bind(this)
         };
       },
 
@@ -65,16 +66,65 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         sc_super();
       },
 
+      /**
+       * A resource selector identifies a CODAP resource. It is either a group
+       * resource or an individual resource. This routine parses a resource
+       * selector into its component parts and builds an equivalent object.
+       *
+       *   * Base resources: [interactiveFrame, doc, logAction]
+       *   * Doc resources: [dataContext, component]
+       *   * DataContext resources: [collection]
+       *   * Collection resources: [attribute, case]
+       *   * Attribute resources: [colormap]
+       *
+       * @param iResource {string}
+       * @returns {{}}
+       */
+      parseResourceSelector: function (iResource) {
+        var selectorRE = /([A-Za-z0-9_]+)\[([A-Za-z0-9_]+)\]/;
+        var result = {};
+        var selectors = iResource.split('.');
+        var baseSelector = selectors.shift();
+        result.type = baseSelector;
+        if (baseSelector === 'doc') {
+          selectors.forEach(function (selector) {
+            var rtype, rname;
+            var match = selectorRE.exec(selector);
+            if (selectorRE.test(selector)) {
+              rtype = match[1];
+              rname = match[2];
+              result[rtype] = rname;
+              result.type = rtype;
+            } else {
+              result.type = selector;
+            }
+          });
+        }
+
+        return result;
+      },
       doCommand: function (iMessage, iCallback) {
         DG.log('gotIt: ' + JSON.stringify(iMessage));
-        var type = iMessage.what.type;
         var result = ({success: false});
         try {
-          if (type && this.handlerMap[type]) {
-            result = this.handlerMap[type](iMessage, iCallback) || {success: false};
-          } else {
-            DG.logWarn("Unknown message type: " + type);
+          if (!SC.none(iMessage)) {
+            var selector = iMessage.what && iMessage.what.resource ? this.parseResourceSelector(
+                iMessage.what.resource) : iMessage.what;
+            var type = selector && selector.type;
+
+            iMessage.origSelector = iMessage.what;
+            iMessage.what = selector;
+            if (type && this.handlerMap[type]) {
+              SC.run(function () {
+                result = this.handlerMap[type](iMessage,
+                        iCallback) || {success: false};
+              }.bind(this));
+            } else {
+              DG.logWarn("Unknown message type: " + type);
+            }
           }
+        } catch (ex) {
+          DG.logWarn(ex);
         } finally {
           iCallback(result);
         }
@@ -158,45 +208,138 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *     {{
        *      action: 'create'|'update'|'get'|'delete'
        *      what: {{type: 'context'}}
-       *      values: {{identifier: {string}, title: {string}, description: {string}, collections: [{Object}] }}
+       *      values: {{name: {string}, title: {string}, description: {string}, collections: [{Object}] }}
        *     }}
        *
        */
       handleDataContext: function (iMessage) {
         var success = false;
+        var values = {};
+        var model = this.get('model');
         var context;
-        if (iMessage.action === 'create') {
-          context = this.getPath('model.context');
+
+        function getContext(name) {
+          if (name) {
+            return DG.currDocumentController().getContextByName(name);
+          }
+        }
+        function handleCreate(iMessage, iModel) {
+          context = getContext(iMessage.values.name);
           if (context) {
             DG.logWarn('Operation not permitted.');
             success = false;
           } else {
-            context = DG.currDocumentController().createNewDataContext(iMessage.value);
-            this.setPath('model.context', context);
+            context = DG.currDocumentController().createNewDataContext(iMessage.values);
+            if (SC.none(iModel.get('context'))) {
+              iModel.set('iModel', context);
+            }
             success = (!SC.none(context));
           }
-        } else if (iMessage.action === 'update') {
-          context = this.getPath('model.context');
+        }
+
+        function handleUpdate(iMessage, iModel) {
+          context = getContext(iMessage.what.dataContext) || iModel.get('context');
           if (!context) {
-            DG.logWarn('Update of non-existed object.');
+            DG.logWarn('Update of non-existent object.');
             success = false;
           } else {
-            ['identifier', 'title', 'description'].forEach(function (prop) {
-              if (iMessage.value[prop]) {
-                context.set(prop, iMessage.value[prop]);
+            ['title', 'description'].forEach(function (prop) {
+              if (iMessage.values[prop]) {
+                context.set(prop, iMessage.values[prop]);
               }
             });
+            success = true;
           }
+        }
+
+        function handleGet(iMessage, iModel) {
+          // if a specific context specified
+          if (iMessage.what.dataContext) {
+            context = getContext(iMessage.what.dataContext);
+            values = context && context.get('model').toArchive();
+            success = !SC.none(values);
+          } else { // otherwise, return names of existent contexts
+            values = DG.currDocumentController().get('contexts').map(function (context) {
+              return {name: context.get('name'), id: context.get('id')};
+            });
+            success = true;
+          }
+        }
+
+        function handleDelete(iMessage, iModel) {
+          context = getContext(iMessage.what.dataContext) || iModel.get('context');
+          context.destroy();
+          iModel.set('context', null);
+        }
+
+        if (iMessage.action === 'create') {
+          handleCreate(iMessage, model);
+        } else if (iMessage.action === 'update') {
+          handleUpdate(iMessage, model);
+        } else if (iMessage.action === 'get') {
+          handleGet(iMessage, model);
+        } else if (iMessage.action === 'delete') {
+          handleDelete(iMessage, model);
+        } else {
+          DG.log('Unsupported action: ' + iMessage.action);
+        }
+        return {
+          success: success,
+          values: values
+        };
+      },
+
+      createDefaultContext: function () {
+        this.handleDataContext({
+          action: 'create',
+          what: {type: 'context'},
+          values: {
+            name: 'default',
+            title: 'default',
+          }
+        });
+      },
+
+      /**
+       * handles operations on collections.
+       *
+       * Notes:
+       *   * Parent collection must be created before the child collection.
+       *   * Parent collection can have at most one child collection.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'create'|'update'|'get'|'delete'
+       *      what: {{type: 'collection', context: {string}, collectionIdentifier: {string}}
+       *      values: {{name: {string}, title: {string}, description: {string}, parent: {string}, attributes: [{Object}], labels: [{Object}] }}
+       *     }}
+       *
+       */
+      handleCollection: function (iMessage) {
+        var context = this.getPath('model.context');
+        var change;
+        var result;
+
+        if (!context) {
+          this.createDefaultContext();
+          context = this.getPath('model.context');
+        }
+
+        if (iMessage.action === 'create') {
+          change = {
+            operation: 'createCollection',
+            properties: iMessage.values,
+            attributes: ( iMessage.values && iMessage.values.attributes )
+          };
+          result = context.applyChange(change);
+        } else if (iMessage.action === 'update') {
         } else if (iMessage.action === 'get') {
           // TODO
         } else if (iMessage.action === 'delete') {
-          context = this.getPath('model.context');
-          context.destroy();
-          this.setPath('model.context', null);
-        }
-        return {success: success};
-      }
 
+        }
+        return result;
+      }
 
     });
 
