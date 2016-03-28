@@ -37,6 +37,12 @@ DG.DataInteractiveModel = SC.Object.extend(/** @scope DG.DataInteractiveModel.pr
    */
   dimensions: null,
 
+  /*
+   * At present a data interactive can have only one context.
+   * @type {DG.DataContext}
+   */
+  context: null,
+
   init: function () {
     sc_super();
   }

@@ -53,7 +53,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           interactiveFrame: this.handleInteractiveFrame.bind(this),
-          dataContext: this.handleDataContext.bind(this)
+          dataContext: this.handleDataContext.bind(this),
+          collection: this.handleCollection.bind(this)
         };
       },
 
@@ -195,8 +196,60 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           this.setPath('model.context', null);
         }
         return {success: success};
-      }
+      },
 
+      createDefaultContext: function () {
+        this.handleContext({
+          action: 'create',
+          what: {type: 'context'},
+          values: {
+            identifier: 'default',
+            title: 'default',
+          }
+        });
+      },
+
+      /**
+       * handles operations on collections.
+       *
+       * Notes:
+       *   * Parent collection must be created before the child collection.
+       *   * Parent collection can have at most one child collection.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'create'|'update'|'get'|'delete'
+       *      what: {{type: 'collection', context: {string}, collectionIdentifier: {string}}
+       *      values: {{identifier: {string}, title: {string}, description: {string}, parent: {string}, attributes: [{Object}], labels: [{Object}] }}
+       *     }}
+       *
+       */
+      handleCollection: function (iMessage) {
+        var success = false;
+        var context = this.getPath('model.context');
+        var change;
+        var result;
+
+        if (!context) {
+          this.createDefaultContext();
+          context = this.getPath('model.context');
+        }
+
+        if (iMessage.action === 'create') {
+          change = {
+            operation: 'createCollection',
+            properties: iMessage.values,
+            attributes: ( iMessage.values && iMessage.values.attributes )
+          };
+          result = context.applyChange(change);
+        } else if (iMessage.action === 'update') {
+        } else if (iMessage.action === 'get') {
+          // TODO
+        } else if (iMessage.action === 'delete') {
+
+        }
+        return result;
+      }
 
     });
 
