@@ -366,8 +366,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.doChangeCaseValues(iChange);
       },
       doDeleteCases: function (iChange) {
+        var caseTableModel = this.getPath('model.content');
         this.caseCountDidChange( iChange);
         this.doSelectCases(iChange);
+        caseTableModel.didDeleteCases(iChange.cases);
       },
       doCreateAttributes: function (iChange) {
         this.attributeCountDidChange( iChange);

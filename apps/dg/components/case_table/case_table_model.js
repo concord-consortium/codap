@@ -75,6 +75,12 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
     this.preferredAttributeWidths[attrID] = width;
   },
 
+  didDeleteCases: function (iCases) {
+    iCases.forEach(function (iCase) {
+      var id = iCase.get('id');
+      delete this.collapsedNodes[id];
+    }.bind(this));
+  },
   /**
    * Whether node is collapsed and not hidden by another collapsed node.
    * @param iCase {DG.Case}
