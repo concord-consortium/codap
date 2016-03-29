@@ -238,7 +238,8 @@ DG.CaseTableController = DG.ComponentController.extend(
               collapsedNodesCount = DG.ArchiveUtils.getLinkCount(iStorage, 'collapsedNodes'),
               dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
               attributeWidths = {},
-              ix = 0;
+              ix = 0,
+              myCase;
           if (iStorage.attributeWidths) {
             iStorage.attributeWidths.forEach(function (obj) {
               var id = this.getLinkID(obj, 'attr');
@@ -252,7 +253,10 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           if (collapsedNodesCount > 0) {
             while(ix < collapsedNodesCount) {
-              caseTableModel.collapseNode(DG.store.find('DG.Case', DG.ArchiveUtils.getLinkID(iStorage, 'collapsedNodes', ix)));
+              myCase = DG.store.find('DG.Case', DG.ArchiveUtils.getLinkID(iStorage, 'collapsedNodes', ix));
+              if (myCase) {
+                caseTableModel.collapseNode(myCase);
+              }
               ix += 1;
             }
           }

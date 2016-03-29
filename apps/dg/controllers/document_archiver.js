@@ -223,13 +223,14 @@ DG.DocumentArchiver = SC.Object.extend(
 
           validationErrors = this.isValidJsonDocument(docArchive);
           if (validationErrors.length > 0) {
-            deferred.reject(new Error('DG.AppController.validateDocument.invalidDocument'.loc(
-              JSON.stringify(validationErrors))));
+            DG.logWarn('DG.AppController.validateDocument.invalidDocument'.loc( JSON.stringify(validationErrors)));
+            //deferred.reject(new Error('DG.AppController.validateDocument.invalidDocument'.loc(
+            //  JSON.stringify(validationErrors))));
           }
-          else {
+          //else {
             DG.store = DG.ModelStore.create();
             deferred.resolve(DG.Document.createDocument(docArchive));
-          }
+          //}
         } catch (ex) {
           deferred.reject(ex);
         }

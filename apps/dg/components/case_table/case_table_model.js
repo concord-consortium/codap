@@ -119,6 +119,9 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   collapseNode: function(iCase) {
+    if (!iCase) {
+      return;
+    }
     var collapseState = this.collapsedNodes[iCase.id];
     if (!collapseState) {
       collapseState = {
@@ -140,6 +143,9 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   expandNode: function (iCase) {
+    if (!iCase) {
+      return;
+    }
     var collapseState = this.collapsedNodes[iCase.id];
     if (!collapseState) {
       collapseState = {
