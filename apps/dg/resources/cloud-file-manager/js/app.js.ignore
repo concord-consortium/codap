@@ -9590,6 +9590,7 @@ CloudFileManagerClient = (function() {
     this._event('closedFile', {
       content: ""
     });
+    window.location.hash = "";
     return typeof callback === "function" ? callback() : void 0;
   };
 
@@ -11652,7 +11653,7 @@ CloudMetadata = (function() {
   };
 
   CloudMetadata.prototype.withExtension = function(name) {
-    if (name.substr(-CloudMetadata.Extension.length) !== CloudMetadata.Extension) {
+    if ((CloudMetadata.Extension != null) && name.substr(-CloudMetadata.Extension.length) !== CloudMetadata.Extension) {
       return name + CloudMetadata.Extension;
     } else {
       return name;
@@ -11662,7 +11663,7 @@ CloudMetadata = (function() {
   CloudMetadata.prototype._updateFilename = function() {
     var extLen, ref;
     this.filename = this.name;
-    if ((((ref = this.name) != null ? ref.substr : void 0) != null) && CloudMetadata.Extension && this.type === CloudMetadata.File) {
+    if ((((ref = this.name) != null ? ref.substr : void 0) != null) && (CloudMetadata.Extension != null) && this.type === CloudMetadata.File) {
       extLen = CloudMetadata.Extension.length;
       if (this.name.substr(-extLen) === CloudMetadata.Extension) {
         this.name = this.name.substr(0, this.name.length - extLen);
@@ -11885,7 +11886,7 @@ ProviderInterface = (function() {
   };
 
   ProviderInterface.prototype.matchesExtension = function(name) {
-    if (CloudMetadata.Extension) {
+    if (CloudMetadata.Extension != null) {
       return name.substr(-CloudMetadata.Extension.length) === CloudMetadata.Extension;
     } else {
       return true;
@@ -12030,8 +12031,8 @@ ReadOnlyProvider = (function(superClass) {
           return callback(err);
         }
         items = (metadata != null ? metadata.type : void 0) === CloudMetadata.Folder ? metadata.providerData.children : _this.tree;
-        return callback(null, _.map(items, function(item) {
-          return _.clone(item);
+        return callback(null, _.map(items, function(metadataItem) {
+          return new CloudMetadata(metadataItem);
         }));
       };
     })(this));
@@ -13487,7 +13488,7 @@ FileDialogTab = React.createClass({
     }
   },
   confirm: function() {
-    var confirmed, filename, metadata;
+    var confirmed, existingMetadata, filename, metadata;
     confirmed = (function(_this) {
       return function(metadata) {
         var base;
@@ -13500,13 +13501,14 @@ FileDialogTab = React.createClass({
       };
     })(this);
     filename = $.trim(this.state.filename);
-    metadata = this.state.metadata || this.findMetadata(filename, this.state.list);
+    existingMetadata = this.findMetadata(filename, this.state.list);
+    metadata = this.state.metadata || existingMetadata;
     if (metadata) {
       if (this.isOpen()) {
         return confirmed(metadata);
-      } else if (this.findMetadata(filename, this.state.list)) {
-        return this.props.client.confirm("Are you sure you want to overwrite " + metadata.name + "?", function() {
-          return confirmed(metadata);
+      } else if (existingMetadata) {
+        return this.props.client.confirm("Are you sure you want to overwrite " + existingMetadata.name + "?", function() {
+          return confirmed(existingMetadata);
         });
       } else {
         return confirmed(metadata);
@@ -13638,7 +13640,8 @@ module.exports = React.createClass({
             data = {
               file: {
                 name: metadata.providerData.file.name,
-                content: loaded.target.result
+                content: loaded.target.result,
+                object: metadata.providerData.file
               },
               via: via
             };

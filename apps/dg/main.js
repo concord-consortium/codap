@@ -457,7 +457,7 @@ DG.main = function main() {
           case "importedData": {
             // we don't need to call the following on via == "drop" because the CODAP drop handler will also respond to the drop
             if (event.data.file && (event.data.via === "select")) {
-              DG.appController.importText(event.data.file.content, event.data.file.name);
+              DG.appController.importFile(event.data.file.object);
             }
             else if (event.data.url && (event.data.via === "select")) {
               DG.appController.importURL(event.data.url);

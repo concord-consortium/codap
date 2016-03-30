@@ -1006,6 +1006,66 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+      Imports a dragged or selected file
+      */
+    importFile: function ( tFile) {
+
+      function adjustTypeBasedOnSuffix( tFile) {
+        var tRegEx = /\.[^\/]+$/,
+            tSuffix = tFile.name.match(tRegEx),
+            tNewType = tType;
+        if( !SC.empty(tSuffix))
+          tSuffix = tSuffix[0];
+        switch( tSuffix) {
+          case '.csv':
+            tNewType = 'text/csv';
+            break;
+          case '.txt':
+            tNewType = 'text/plain';
+            break;
+          case '.json':
+          case '.codap':
+            tNewType = 'application/json';
+            break;
+        }
+        tType = tNewType;
+      }
+
+      var tType = tFile.type;
+      if( tType === '')
+        adjustTypeBasedOnSuffix();
+
+      var tAlertDialog = {
+        showAlert: function( iError) {
+          var message = 'DG.AppController.dropFile.error'.loc(iError.message);
+          if (DG.cfmClient) {
+            DG.cfmClient.alert(message);
+          }
+          else {
+            DG.AlertPane.show( {
+              message: message
+            });
+          }
+        },
+        close: function() {
+          // Do nothing
+        }
+      };
+
+      if( tType === 'application/json') {
+        DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
+      }
+      else if( (tType === 'text/csv')
+          || (tType === 'text/plain')
+          || (tType === 'text/tab-separated-values')) {
+        DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
+      }
+      else {
+        tAlertDialog.showAlert(new Error('DG.AppController.dropFile.unknownFileType'.loc()))
+      }
+    },
+
+    /**
      * Read a file from the file system.
      *
      * Handles CODAP documents and 'TEXT' files
@@ -1021,7 +1081,7 @@ DG.appController = SC.Object.create((function () // closure
      */
     importFileWithConfirmation: function( iFile, iType, iDialog) {
 
-      var importFile = function() {
+      var finishImport = function() {
         function handleAbnormal() {
           console.log("Abort or error on file read.");
         }
@@ -1082,7 +1142,7 @@ DG.appController = SC.Object.create((function () // closure
           description: 'DG.AppController.closeDocument.warnDescription',
           buttons: [
             { title: 'DG.AppController.closeDocument.okButtonTitle',
-              action: importFile,
+              action: finishImport,
               localize: YES
             },
             { title: 'DG.AppController.closeDocument.cancelButtonTitle',
@@ -1095,7 +1155,7 @@ DG.appController = SC.Object.create((function () // closure
       }
       else {
         DG.busyCursor.show(function() {
-          importFile();
+          finishImport();
         });
       }
       if( iDialog)
