@@ -207,7 +207,7 @@ DG.Attribute = DG.BaseModel.extend(
 
     /**
      * Evaluates the attribute's formula in the context of the specified namespace object.
-     * @param {Object}    Namespace object with property:value pairs for evaluation context
+     * @param iCase {Object}    Namespace object with property:value pairs for evaluation context
      * @return {Number | ?} Result of evaluation
      */
     evalFormula: function( iCase) {
@@ -320,7 +320,7 @@ DG.Attribute.createAttribute = function( iProperties) {
 
 /**
  * Destroys the specified DG.Attribute.
- * @param {DG.Attribute}  The DG.Attribute to destroy
+ * @param iAttribute {DG.Attribute}  The DG.Attribute to destroy
  */
 DG.Attribute.destroyAttribute = function( iAttribute) {
   iAttribute.destroy();

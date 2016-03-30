@@ -1489,7 +1489,7 @@ DG.appController = SC.Object.create((function () // closure
             width: kWidth, height: kHeight };
       // Changed link to play.codap.concord.org/support
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'https://' +  ('DG.AppController.showHelpURL'.loc()),
+        (DG.showHelpURL),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
           tLayout);
 
@@ -1556,7 +1556,7 @@ DG.appController = SC.Object.create((function () // closure
 
       //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-          'https://' +  ('DG.AppController.showWebSiteURL'.loc()),
+        DG.get('showWebSiteURL'),
         'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
           tLayout);
 

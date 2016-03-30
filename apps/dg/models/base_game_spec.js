@@ -59,7 +59,8 @@ DG.BaseGameSpec = SC.Object.extend(
 
   /**
     Returns the specification for the collection with the specified name.
-    @param    {String}    The name of the collection whose specification is requested
+    @param    iCollectionName {String}    The name of the collection whose
+                                          specification is requested
     @returns  {Object}    The collection specification
    */
   getCollectionSpecByName: function( iCollectionName) {
