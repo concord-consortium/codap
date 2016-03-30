@@ -334,6 +334,7 @@ DG.main = function main() {
             break;
 
           case 'openedFile':
+            DG.cfmClient.hideBlockingModal();
             docContentsPromise(event.data.content)
               .then(function(iDocContents) {
                 var metadata = event.data.content.metadata,
