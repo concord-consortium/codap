@@ -271,10 +271,7 @@ DG.main = function main() {
             cfmSharedMetadata;
 
         function syncDocumentDirtyState() {
-          if(DG.currDocumentController().get('hasUnsavedChanges')) {
-            // Marking CFM client dirty
-            DG.cfmClient && DG.cfmClient.dirty();
-          }
+          DG.cfmClient && DG.cfmClient.dirty(DG.currDocumentController().get('hasUnsavedChanges'));
         }
 
         console.log(event);
