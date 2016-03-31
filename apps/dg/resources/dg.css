@@ -97,6 +97,29 @@
 
 .navBar {
     background-color: #005060;
+    /* allow CFM dialogs to display outside the navBar */
+    overflow: visible;
+}
+
+.navBar .leftSide {
+    /* allow CFM dialogs to display outside the navBar */
+    overflow: visible;
+}
+
+.navBar .modal-dialog {
+    /* override bottom: 0; for CFM dialogs */
+    bottom: auto !important;
+}
+
+.navBar .modal-dialog input {
+    /* keep filename input from extending past edge of dialog */
+    width: 97% !important;
+}
+
+.navBar .modal-dialog .tabbed-panel .buttons {
+    /* buttons should be flush right in the dialog */
+    position: relative;
+    float: right;
 }
 
 .navBar .sc-view {
@@ -523,7 +546,7 @@ body.dg .sc-view.doc-background {
     border-bottom: 1px solid #dcdbd8;
 }
 
-.buttons {
+.icon-buttons {
     background-color: white;
     box-shadow: 0px 0px 0px 1px #888888;
 }

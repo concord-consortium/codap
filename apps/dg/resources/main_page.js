@@ -21,7 +21,7 @@ DG.mainPage = SC.Page.design((function() {
 
   var kButtonWidth = 40,
       kToolbarHeight = DG.STANDALONE_MODE ? 0 : 70,
-      kInfobarHeight = 30,
+      kInfobarHeight = 24,
       kIconTopPadding = 17;
 
   // begin compatible browser main page design
@@ -60,93 +60,31 @@ DG.mainPage = SC.Page.design((function() {
       childViews: 'leftSide rightSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
 
-      leftSide: SC.View.design(SC.FlowedLayout, {
-        layout: { width: 0, left: 5, height: kInfobarHeight, zIndex: 1  },
-        childViews: 'documentTitle navPopupButton saveNotification'.w(),
-        defaultFlowSpacing: { left: 5, right: 5, top: (kInfobarHeight - 18) / 2},
-        canWrap: false,
-        shouldResizeHeight: false,
-
-        documentTitle: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'doc-title'.w(),
-          layout: { height: 18 },
-          toolTip: 'DG.Document.documentName.toolTip'.loc(),  // "Click to edit document name"
-          localize: true,
-          needsEllipsis: YES,
-          isEditable: YES,
-          valueBinding: 'DG._currDocumentController.documentName',
-          originalValue: null,
-          inlineEditorDidBeginEditing: function(editor, value) {
-            this.set('originalValue', value);
-          },
-          valueChanged: function() {
-            var original = this.get('originalValue'),
-                newValue = this.get('value');
-
-            if (original) {
-              DG.appController.renameDocument(original, newValue);
-              this.set('originalValue', null);
-            }
-            return true;
-          }.observes('value'),
-          click: function() {
-            this.beginEditing();
-          }
-        }),
-
-        navPopupButton: DG.IconButton.design( {
-          layout: { width: 20 },
-          flowSpacing: { left: 0, top: -3, right: 5 },
-          iconClass: 'moonicon-arrow-expand',
-          target: 'DG.appController.fileMenuPane',
-          action: 'popup',
-          toolTip: 'DG.Document.documentPopup.toolTip',  // "Open, Save, Close, Import, Export, ..."
-          localize: true,
-          classNames: ['nav-popup-button']
-        }),
-
-        saveNotification: SC.LabelView.design(SC.AutoResize, {
-          classNames: ['invisible', 'nav-save-notice'],
-          layout: { height: 18 },
-          textAlign: SC.ALIGN_LEFT,
-          value: 'DG.mainPage.titleBar.saved',
-          localize: true,
-          // accommodate error in text width computation
-          autoResizePadding: {width: 100}
-        })
+      // CFM wrapper view
+      leftSide: SC.View.design({
+        classNames: 'leftSide'.w(),
+        layout: { left: 0, right: 20 },
+        didAppendToDocument: function() {
+          /* global Promise */
+          DG.cfmViewConfig = Promise.resolve({
+                              // used for the CFM menu bar
+                              navBarId: this.getPath('layer.id')
+                            });
+        }
       }),
 
       rightSide: SC.View.design(SC.FlowedLayout, {
-        layout: { width: 0, right: 0 },
+        layout: { width: 20, right: 0 },
         classNames: 'right-side'.w(),
-        childViews: 'statusLabel versionLabel helpButton'.w(),
+        childViews: 'helpButton'.w(),
         align: SC.ALIGN_RIGHT,
         canWrap: false,
         shouldResizeHeight: false,
         defaultFlowSpacing: { top: (kInfobarHeight - 18) / 2 },
 
-        versionLabel: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'navBar-version'.w(),
-          flowSpacing: { right: 25, top: (kInfobarHeight - 18) / 2 },
-          layout: { height: 18 },
-          textAlign: SC.ALIGN_RIGHT,
-          value: DG.getVariantString('DG.mainPage.mainPane.versionString').loc( DG.VERSION, DG.BUILD_NUM )
-        }),
-
-        statusLabel: SC.LabelView.design(SC.AutoResize, {
-          classNames: 'navBar-status'.w(),
-          layout: { height: 18 },
-          flowSpacing: { right: 25, top: (kInfobarHeight - 18) / 2 },
-          textAlign: SC.ALIGN_RIGHT,
-          currUsernameBinding: 'DG.authorizationController.currLogin.user',
-          value: function() {
-            return this.get('currUsername');
-          }.property('currUsername')
-        }),
-
         helpButton: DG.IconButton.design( {
           layout: { width: 18 },
-          flowSpacing: { left: 5, top: 0, right: 5 },
+          flowSpacing: { left: 5, top: -2, right: 5 },
           iconClass: 'moonicon-icon-help',
           target: 'DG.appController',
           action: 'showHelp',
@@ -163,7 +101,7 @@ DG.mainPage = SC.Page.design((function() {
       childViews: 'iconButtons rightButtons'.w(),
 
       iconButtons: SC.View.design(SC.FlowedLayout, {
-        classNames: 'buttons'.w(),
+        classNames: 'icon-buttons'.w(),
         layout: { width: 0, height: kToolbarHeight - 1 },
         align: SC.ALIGN_LEFT,
         canWrap: false,
@@ -248,7 +186,7 @@ DG.mainPage = SC.Page.design((function() {
       contentView: DG.ContainerView.design( {
       })
     }),
-    
+
     flagsChanged: function( iEvent) {
 //    if( iEvent.altKey)
 //      console.log('altKey');
@@ -292,37 +230,6 @@ DG.mainPage = SC.Page.design((function() {
 
       var handleDrop = function( iEvent) {
 
-        function adjustTypeBasedOnSuffix() {
-          var tRegEx = /\.[^\/]+$/,
-              tSuffix = tFile.name.match(tRegEx),
-              tNewType = tType;
-          if( !SC.empty(tSuffix))
-            tSuffix = tSuffix[0];
-          switch( tSuffix) {
-            case '.csv':
-              tNewType = 'text/csv';
-              break;
-            case '.txt':
-              tNewType = 'text/plain';
-              break;
-            case '.json':
-              tNewType = 'application/json';
-              break;
-          }
-          tType = tNewType;
-        }
-
-        var tAlertDialog = {
-          showAlert: function( iError) {
-            DG.AlertPane.show( {
-              message: 'DG.AppController.dropFile.error'.loc( iError.message)
-            });
-          },
-          close: function() {
-            // Do nothing
-          }
-        };
-
         if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
 
         var tDataTransfer = iEvent.dataTransfer,
@@ -330,19 +237,7 @@ DG.mainPage = SC.Page.design((function() {
             tURIType = isIE ? 'URL': 'text/uri-list',
             tURI = tDataTransfer.getData(tURIType);
         if( tFiles && (tFiles.length > 0)) {
-          var tFile = tFiles[0],  // We only deal with the first file
-              tType = tFile.type;
-          if( tType === '')
-            adjustTypeBasedOnSuffix();
-
-          if( tType === 'application/json') {
-            DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
-          }
-          else if( (tType === 'text/csv')
-              || (tType === 'text/plain')
-              || (tType === 'text/tab-separated-values')) {
-            DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
-          }
+          DG.appController.importFile(tFiles[0]);  // We only deal with the first file
         }
         else if( !SC.empty(tURI)) {
           SC.run(function () {
@@ -362,7 +257,7 @@ DG.mainPage = SC.Page.design((function() {
 
     /**
       The mainPane itself should be the default key view, rather than an arbitrary subview.
-      
+
       When the window gets focus, the mainPane gets a chance to specify the default key view
       (i.e. first responder) via this computed property. (See SC.RootResponder.focus() for details.)
       The base class implementation of nextValidKeyView() returns an arbitrary subview which happens
@@ -422,7 +317,7 @@ DG.mainPage = SC.Page.design((function() {
       }
       return tResult;
     },
-    
+
     /**
       Creates the specified component and its associated view.
       This is a handler for a sendAction() call. The original
@@ -454,7 +349,7 @@ DG.mainPage = SC.Page.design((function() {
     if( !DG.currDocumentController().get('gameView'))
       DG.currDocumentController().addGame( this.scrollView.contentView);
   }//.observes('DG.gameSelectionController.currentGame')
-  
+
   }), // mainPane
 
     /*
@@ -465,7 +360,7 @@ DG.mainPage = SC.Page.design((function() {
 
 
   } // end compatible browser mainPage design
-  
+
   : { // begin incompatible browser main page design
     // The main pane is made visible on screen as soon as your app is loaded.
     // Add childViews to this pane for views to display immediately on page load.
@@ -537,4 +432,3 @@ DG.mainPage.addGameIfNotPresent = function() {
   // so it's a good time to synchronize the saved change count.
   DG.currDocumentController().updateSavedChangeCount();
 };
-

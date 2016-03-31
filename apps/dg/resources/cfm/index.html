@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title>Cloud File Manager example</title>
+
+    <!-- Cloud File Manager -->
+    <script type="text/javascript" src="http://concord-consortium.github.io/cloud-file-manager/js/globals.js"></script>
+    <script type="text/javascript" src="http://concord-consortium.github.io/cloud-file-manager/js/app.js"></script>
+    <link rel="stylesheet" href="http://concord-consortium.github.io/cloud-file-manager/css/app.css">
+
+  </head>
+  <body>
+    <div id="wrapper">
+    </div>
+    <script>
+
+      var options = {
+        app: "../../index.html",
+        autoSaveInterval: 5,
+        appName: "DG",
+        appVersion: "0.1",
+        appBuildNum: "1",
+        providers: [
+          "localStorage",
+          {
+            "name": "googleDrive",
+            "mimeType": "application/json",
+            "clientId": "1095918012594-svs72eqfalasuc4t1p1ps1m8r9b8psso.apps.googleusercontent.com"
+          },
+          {
+            "name": "documentStore",
+            "patch": true,
+            "patchObjectHash": function(obj) {
+              return obj.guid || JSON.stringify(obj);
+            }
+          }
+        ]
+      };
+      /* global CloudFileManager */
+      CloudFileManager.createFrame(options, "wrapper");
+    </script>
+  </body>
+</html>

@@ -200,6 +200,7 @@ SC.stringsFor('English', {
   'DG.AppController.dropURLDialog.embedDI' : 'Embed a data interactive',
   'DG.AppController.dropURLDialog.embedWV' : 'Embed a web view',
   'DG.AppController.dropFile.error' : 'Error: %@1',  // Error: <error text>
+  'DG.AppController.dropFile.unknownFileType' : 'You cannot import the type of file dropped',
   'DG.AppController.validateDocument.missingRequiredProperty' : 'Required property not found: %@1',
   'DG.AppController.validateDocument.unexpectedProperty' : 'Unexpected top-level property: %@1',
   'DG.AppController.validateDocument.unresolvedID' : 'Unresolved id: %@1',
@@ -324,6 +325,10 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
   'DG.Undo.document.rename': "Undo renaming the document",
   'DG.Redo.document.rename': "Redo renaming the document",
+  'DG.Undo.document.share': "Undo sharing the document",
+  'DG.Redo.document.share': "Redo sharing the document",
+  'DG.Undo.document.unshare': "Undo stop sharing the document",
+  'DG.Redo.document.unshare': "Redo stop sharing the document",
   'DG.Undo.game.add': "Undo adding a game to the document",
   'DG.Redo.game.add': "Redo adding a game to the document",
   'DG.Undo.graph.showcount': "Undo showing graph count",
