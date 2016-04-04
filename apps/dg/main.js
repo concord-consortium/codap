@@ -15,7 +15,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-
+/*globals React */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
 
@@ -144,7 +144,7 @@ DG.main = function main() {
             {
               "displayName": "Example Documents",
               "name": "readOnly",
-              "src": 'DG.AppController.exampleList.ExampleListURL'.loc(),
+              "src": DG.exampleListURL,
               alphabetize: true,
               // json: [
               //   {
@@ -258,7 +258,11 @@ DG.main = function main() {
         );
       }
     }));
-    DG.cfmClient.showBlockingModal({title: "What would you like to do?", message: DialogContents({}), onDrop: function () { DG.cfmClient.hideBlockingModal(); }});
+    DG.cfmClient.showBlockingModal({
+      title: "What would you like to do?",
+      message: DialogContents({}), // jshint ignore:line
+      onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
+    );
   }
 
   function cfmConnect(iCloudFileManager) {
