@@ -62,6 +62,23 @@ DG.mainPage = SC.Page.design((function() {
 
       // CFM wrapper view
       leftSide: SC.View.design({
+        // The following overrides cause sproutcore to pass on touch events
+        // to React. Overriding captureTouch keeps higher level elements from
+        // capturing the touch. Calling allowDefault in the touch events
+        // propagates the original event through.
+        captureTouch: function () {
+          return YES;
+        },
+        touchStart: function (touch) {
+          touch.allowDefault();
+        },
+        touchesDragged: function (touch) {
+          touch.allowDefault();
+        },
+        touchEnd: function (touch) {
+          touch.allowDefault();
+        },
+
         classNames: 'leftSide'.w(),
         layout: { left: 0, right: 20 },
         didAppendToDocument: function() {
