@@ -124,33 +124,71 @@ DG.RelationDividerView = SC.View.extend( (function() {
     backgroundColor: '#E6E6E6',
 
     expandCollapseIcon: null,
-    
-    doDraw: function() {
 
-      function shouldShowExpandAll( iCounts) {
-        return iCounts && ((iCounts.expanded === 0) && (iCounts.collapsed > 0));
+    expandCollapseMap: {
+      'collapseAll': RDV_COLLAPSE_ICON_URL,
+      'expandAll': RDV_EXPAND_ICON_URL,
+      'noAction': RDV_NO_ACTION_ICON_URL
+    },
+
+    doDraw: function() {
+      function computeAction () {
+        var dataModel = leftAdapter.get('model');
+        var tableCollection = leftAdapter.get('collection');
+        var rowCount = gridDataView.getLength();
+        var ix;
+        var myCase;
+        var isCollapsed;
+        var hasCollapsed = false;
+        var action = 'noAction';
+
+        DG.assert(dataModel, "No data model");
+        DG.assert(tableCollection, 'No associated collection');
+
+        for (ix = 0; ix < rowCount; ix += 1) {
+          myCase = gridDataView.getItem(ix);
+          isCollapsed = dataModel.isCollapsedNode(myCase);
+          // if the case is not an ancestor case for this collection and has
+          // children, then it is either expanded or collapsed
+          if ((myCase.get('collection').get('id') === tableCollection.get('id')) &&
+              (myCase.children.length > 0)) {
+            if (!isCollapsed) {
+              action = 'collapseAll';
+              return action;
+            } else {
+              hasCollapsed = true;
+            }
+          }
+        }
+        if (hasCollapsed) {
+          action = 'expandAll';
+        }
+        return action;
       }
       
+      function expandCollapseAll( iEvent) {
+        SC.run(function () {
+          var action = computeAction();
+          switch (action) {
+            case 'collapseAll':
+              table.expandCollapseAll( false);
+              break;
+            case 'expandAll':
+              table.expandCollapseAll( true);
+              break;
+          }
+        });
+      }
+
       var table = this.get('leftTable'),
           leftAdapter = this.getPath('leftTable.gridAdapter'),
           gridDataView = leftAdapter && leftAdapter.get('gridDataView'),
-          imageUrl = shouldShowExpandAll( gridDataView && gridDataView.get('expandCollapseCounts'))
-                        ? RDV_EXPAND_ICON_URL
-                        : RDV_COLLAPSE_ICON_URL,
+          action = computeAction(),
+          imageUrl = this.expandCollapseMap[action],
           imagePos = { x: 3, y: 38 },
           imageSize = RDV_EXPAND_COLLAPSE_ICON_SIZE;
 
-      function expandCollapseAll( iEvent) {
-        SC.run(function () {
-            var counts = 0;
-            if( leftAdapter) {
-              if (gridDataView) {
-                counts = gridDataView.get('expandCollapseCounts');
-              }
-              table.expandCollapseAll( shouldShowExpandAll( counts));
-            }
-          });
-      }
+      this.action = action;
 
       if (SC.none(this.expandCollapseIcon)) {
         // The touch object is a transparent rectangle which is larger than the

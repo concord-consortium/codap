@@ -44,7 +44,7 @@ DG.ExampleListController = SC.ArrayController.extend(
   },
 
     exampleList: function(iReceiver) {
-      var url = 'DG.AppController.exampleList.ExampleListURL'.loc();
+      var url = DG.exampleListURL;
 
       $.ajax({
         url: url,

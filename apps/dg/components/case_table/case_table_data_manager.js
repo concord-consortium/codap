@@ -207,7 +207,7 @@ DG.CaseTableDataManager = SC.Object.extend({
 
 
   /**
-   * Todo: commentary
+   * Called before a sequence of operations to avoid premature refreshes.
    *
    * Method signature matches method of Slick Grid default DataView.
    */
@@ -216,7 +216,9 @@ DG.CaseTableDataManager = SC.Object.extend({
   },
 
   /**
-   * Todo: commentary
+   * Called at the end of a sequence of operations.
+   *
+   * Invokes refresh if necessary.
    *
    * Method signature matches method of Slick Grid default DataView.
    */
@@ -245,7 +247,7 @@ DG.CaseTableDataManager = SC.Object.extend({
   //},
 
   /**
-   * TODO:
+   * Searches for an item by its id.
    *
    * Method signature matches method of Slick Grid default DataView.
    */

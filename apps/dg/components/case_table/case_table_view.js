@@ -48,10 +48,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     childViews: 'titleView tableView _hiddenDragView'.w(),
 
+    dataContext: function () {
+      return this.getPath('gridAdapter.dataContext');
+    }.property(),
+
     titleView: SC.LabelView.extend(DG.MouseAndTouchView, {
       classNames: 'dg-case-table-title'.w(),
       layout: { left: 0, right: 0, top: 0, height: 30 },
-      isEditable: YES,
+      isEditable: function () {
+        return !this.parentView.getPath('dataContext.hasDataInteractive');
+      }.property(),
+
       /**
        * Assembles the value from collection name and count.
        */

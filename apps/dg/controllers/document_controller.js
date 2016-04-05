@@ -217,6 +217,23 @@ DG.DocumentController = SC.Object.extend(
       this.notifyPropertyChange('documentPermissions');
     }.observes('*content._permissions'),
 
+    sharedMetadata: function(iKey, iSharedMetadata) {
+      if(iSharedMetadata !== undefined) {
+        var contentMetadata = this.getPath('content.metadata'),
+            sharedMetadata = $.extend(true, {}, iSharedMetadata);
+        if(contentMetadata != null) {
+          contentMetadata.shared = sharedMetadata;
+        }
+        else {
+          this.setPath('content.metadata', { shared: sharedMetadata });
+        }
+        // Currently, Concord Document Store requires '_permissions' at top-level
+        this.setPath('content._permissions', sharedMetadata._permissions || 0);
+        return this;
+      }
+      return this.getPath('content.metadata.shared');
+    }.property(),
+
     /**
       The total number of document-dirtying changes.
       @property   {Number}
@@ -330,8 +347,6 @@ DG.DocumentController = SC.Object.extend(
       }
     },
 
-    gameHasUnsavedChangesBinding: SC.Binding.oneWay('DG._currGameController.hasUnsavedChanges').bool(),
-
     /**
       Whether or not the document contains unsaved changes such that the user
       should be prompted to confirm when closing the document, for instance.
@@ -345,11 +360,8 @@ DG.DocumentController = SC.Object.extend(
      */
     hasUnsavedChanges: function() {
       // Game controller state affects the document state
-      return this.get('isSaveEnabled') &&
-              ((this.get('changeCount') > this.get('savedChangeCount')) ||
-              this.get('gameHasUnsavedChanges') ||
-              this.get('_changedObjects').length > 0);
-    }.property('isSaveEnabled','changeCount','savedChangeCount','gameHasUnsavedChanges','_changedObjects'),
+      return this.get('changeCount') > this.get('savedChangeCount');
+    }.property('changeCount','savedChangeCount'),
 
     /**
       Synchronize the saved change count with the full change count.

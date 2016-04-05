@@ -362,8 +362,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.doChangeCaseValues(iChange);
       },
       doDeleteCases: function (iChange) {
+        var caseTableModel = this.getPath('model.content');
         this.caseCountDidChange( iChange);
         this.doSelectCases(iChange);
+        caseTableModel.didDeleteCases(iChange.cases);
       },
       doCreateAttributes: function (iChange) {
         this.attributeCountDidChange( iChange);
@@ -528,7 +530,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       selectAll: function () {
         var tContext = this.get('dataContext'),
           tCollection = tContext && tContext.getCollectionAtIndex(0),
-          tChange;// todo
+          tChange;
         if (tCollection) {
           tChange = {
             operation: 'selectCases',

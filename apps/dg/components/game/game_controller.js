@@ -192,6 +192,8 @@ DG.GameController = DG.ComponentController.extend(
         tCmdObj = iCmd;
       }
 
+      try {
+
       // Bail if we don't have a valid tCmdObj at this point
       if( !tCmdObj) return tRet;
 
@@ -343,6 +345,12 @@ DG.GameController = DG.ComponentController.extend(
           "): ignoring");
         break;
       }
+      } catch (ex) {
+        DG.logWarn('DG.GameController.doCommand: Caught exception: ' + ex);
+        DG.logWarn('Original command: ' + (tCmdObj && JSON.stringify(tCmdObj)));
+        tRet = tRet || {};
+        tRet.success = false;
+      }
 
       function finishDispatchCommand() {
         if( tShouldDirtyDocument) {
@@ -356,7 +364,7 @@ DG.GameController = DG.ComponentController.extend(
         //this.invokeLast(function() {
           iCallback(tRet);
         //});
-        return;
+        return tRet;
       }
 
       return tRet;
@@ -675,7 +683,7 @@ DG.GameController = DG.ComponentController.extend(
         }
       }
       if( iArgs.values && ((iArgs.log === undefined) || iArgs.log)) {
-        DG.logUser("%@: %@ [%@]", iAction, collection.get('name'),
+        DG.logUser("%@: %@ [%@]", iAction, iArgs.collection,
                                   iArgs.values ? iArgs.values.join(", ") : "");
       }
       return ret;
