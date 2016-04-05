@@ -861,6 +861,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         attribute.beginPropertyChanges();
         DG.ObjectMap.forEach( iAttrProps,
                               function( iKey, iValue) {
+                                if (iKey === 'name') {
+                                  iValue = collection.makeAttributeNameLegal(iValue);
+                                }
                                 if( iKey !== "id") {
                                   attribute.set( iKey, iValue);
                                 }
