@@ -303,7 +303,21 @@ DG.CollectionClient = SC.Object.extend(
   willDestroyAttribute: function( iAttribute) {
     iAttribute.removeObserver('dependentChange', this, 'attrFormulaDependentDidChange');
   },
-  
+
+      makeAttributeNameLegal: function (iName) {
+        var tReg = /\((.*)\)/,  // Identifies first parenthesized substring
+            tMatch = tReg.exec( iName),
+            tNewName = iName;
+        // If there is a parenthesized substring, stash it as the unit and remove it from the name
+        if( tMatch && tMatch.length > 1) {
+          tNewName = iName.replace(tReg, '');  // Get rid of parenthesized units
+        }
+        // TODO: We are eliminating all but Latin characters here. We should be more general and allow
+        // non-Latin alphameric characters.
+        tNewName = tNewName.replace(/\W$/, ''); // Get rid of trailing white space
+        tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
+        return tNewName;
+      },
   /**
     Returns the attribute which matches the specified properties, creating it if it doesn't already exist.
     @param    {Object}        iProperties -- Initial property values
@@ -311,29 +325,14 @@ DG.CollectionClient = SC.Object.extend(
    */
   guaranteeAttribute: function( iProperties) {
 
-    // This function side-effects iProperties by potentially changing the name and unit
-    function makeNameLegal() {
-      var tName = iProperties.name || '',
-          tReg = /\((.*)\)/,  // Identifies first parenthesized substring
-          tMatch = tReg.exec( tName);
-      // If there is a parenthesized substring, stash it as the unit and remove it from the name
-      if( tMatch && tMatch.length > 1) {
-        iProperties.unit = tMatch[ 1];
-        tName = tName.replace(tReg, '');  // Get rid of parenthesized units
-      }
-      // TODO: We are eliminating all but Latin characters here. We should be more general and allow
-      // non-Latin alphameric characters.
-      tName = tName.replace(/\W$/, ''); // Get rid of trailing white space
-      tName = tName.replace(/\W/g, '_');  // Replace white space with underscore
-      iProperties.name = tName;
-    }
-
     var tAttribute = null;
 
     // See if the attribute already exists
     iProperties = iProperties || {};
 
-    makeNameLegal();
+    if (!SC.none(iProperties.name)) {
+      iProperties.name = this.makeAttributeNameLegal(iProperties.name);
+    }
 
     // if the property has an ID then it is an existing attribute, possibly from
     // another collection. If so, we need to remove it from the other collection
@@ -422,7 +421,7 @@ DG.CollectionClient = SC.Object.extend(
   
   /**
     Applies the specified function to each attribute in the collection.
-    @param    {Function}      Function to be applied to each attribute
+    @param    {Function}      iFunction to be applied to each attribute
     @returns  {DG.CollectionClient} this, for use in chaining method invocations
    */
   forEachAttribute: function( iFunction) {
@@ -448,7 +447,7 @@ DG.CollectionClient = SC.Object.extend(
 
   /**
     Returns the case at the specified index within the collection.
-    @param    {Number}    The index of the case to be returned
+    @param    iCaseIndex {Number}    The index of the case to be returned
     @returns  {DG.Case}   The case at the specified index
    */
   getCaseAt: function(iCaseIndex) {
@@ -483,8 +482,8 @@ DG.CollectionClient = SC.Object.extend(
 
   /**
     Returns true if the case at the specified index is selected, false otherwise.
-    @param    {Number}    The index of the case whose selection status is to be returned
-    @returns  {Boolean}   True if the specified case is selected, false otherwise
+    @param    {Number}    iCase The index of the case whose selection status is to be returned
+    @returns  {Boolean}         True if the specified case is selected, false otherwise
    */
   isCaseSelected: function( iCase) {
     var tSelection = this.getPath('casesController.selection');
@@ -493,8 +492,8 @@ DG.CollectionClient = SC.Object.extend(
   
   /**
     Returns true if the case at the specified index is selected, false otherwise.
-    @param    {Number}    The index of the case whose selection status is to be returned
-    @returns  {Boolean}   True if the specified case is selected, false otherwise
+    @param    iCaseIndex {Number}    The index of the case whose selection status is to be returned
+    @returns  {Boolean}              True if the specified case is selected, false otherwise
    */
   isCaseAtIndexSelected: function( iCaseIndex) {
     var tCase = this.getCaseAt( iCaseIndex),
