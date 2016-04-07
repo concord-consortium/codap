@@ -88,9 +88,9 @@ DG.Document = DG.BaseModel.extend(
           components: [],
           contexts: [],
           globalValues: [],
-          appName: this.appName,
-          appVersion: this.appVersion,
-          appBuildNum: this.appBuildNum
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM
         };
       DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
         obj.globalValues.push(this.globalValues[globalKey].toArchive());
