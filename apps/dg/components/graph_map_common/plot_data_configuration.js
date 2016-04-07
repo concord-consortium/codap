@@ -282,6 +282,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * @property { null }
    */
   attributeAssignment: null,
+
+  /**
+   * @result {Boolean}
+   */
+  hasAtLeastOneAttributeAssigned: function() {
+    return ['x', 'y', 'legend'].some( function( iKey) {
+      return !this.getPath( iKey + 'AttributeDescription.isNull');
+    }.bind( this));
+  },
   
   /**
     Returns true if this graph references attributes in collections with aggregate

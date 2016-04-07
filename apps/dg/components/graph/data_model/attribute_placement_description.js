@@ -186,6 +186,13 @@ DG.AttributePlacementDescription = SC.Object.extend(
 
   /**
     @property {Boolean}
+  */
+  isNull: function() {
+    return this.get('attributeID') === null;
+  }.property('attributeID'),
+
+  /**
+    @property {Boolean}
    */
   hasFormula: function() {
     var tFormula = this.getPath('attribute.formula');
