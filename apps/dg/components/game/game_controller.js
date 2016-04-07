@@ -62,6 +62,8 @@ DG.GameController = DG.ComponentController.extend(
      */
     savedChangeCount: 0,
 
+    connected: false,
+      
     /**
      * Every game manages exactly one GameContext. A game context knows
      * basic information about the game and has collections and the namespace
@@ -174,6 +176,7 @@ DG.GameController = DG.ComponentController.extend(
       var tCmdObj = null,
           tRet = { 'success' : false },
           tShouldDirtyDocument = true;
+      this.setIfChanged('connected', true);
 
       // If it's a string, parse it as JSON
       if( SC.typeOf( iCmd) === SC.T_STRING) {

@@ -804,3 +804,24 @@ input.editor-text {
 .dg.ace.split-divider {
     z-index: 0;
 }
+@keyframes pulse {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0.20;
+    }
+}
+
+.sc-view.dg.dg-web-view {
+    background-color: white;
+    text-align: center;
+    padding-top: 2em;
+    font-size: large;
+}
+.sc-view.dg.dg-web-view.dg-loading {
+    animation-direction: alternate;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-name: pulse;
+}
