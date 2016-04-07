@@ -652,6 +652,10 @@ SC.stringsFor('English', {
 
   // Game Controller
   'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
+  
+  // Game View
+  'DG.GameView.loading': 'Loading: %@',
+  'DG.GameView.loadError': 'An error occurred accessing this page: %@',
 
   // Controllers
   'DG.Component.closeComponent.confirmCloseMessage': 'Are you sure?',
