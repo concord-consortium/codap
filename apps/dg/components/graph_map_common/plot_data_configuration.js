@@ -463,7 +463,8 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var plottedCollectionIDs = [],
         collectionClient = this.get('collectionClient'),
         collectionClientID = collectionClient && collectionClient.get('id'),
-        properties = ['xCollectionClient', 'yCollectionClient', 'y2CollectionClient', 'legendCollectionClient'];
+        // Temporary elimination of legend because it can cause inclusion of unwanted cases
+        properties = ['xCollectionClient', 'yCollectionClient', 'y2CollectionClient'/*, 'legendCollectionClient'*/];
     if( collectionClient && !SC.none( collectionClientID))
       plottedCollectionIDs.push( collectionClientID);
 
