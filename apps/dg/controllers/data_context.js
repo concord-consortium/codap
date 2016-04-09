@@ -34,7 +34,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 /** @scope DG.DataContext.prototype */ {
 
   return {  // return from closure
-  
+
   /**
    *  The type of DataContext, for use when archiving/restoring.
    *  @property {String}
@@ -46,6 +46,8 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {DG.DataContextRecord}
    */
   model: null,
+    
+  nameBinding: '.model.name',
 
   /**
     The number of change requests that have been applied.
@@ -358,7 +360,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   doCreateCollection: function( iChange) {
     var tCollection = this.guaranteeCollection( iChange.properties);
     if (tCollection) {
-      iChange.attributes.forEach( function( iAttrSpec) {
+      iChange.attributes && iChange.attributes.forEach( function( iAttrSpec) {
         if (!SC.none(iAttrSpec.id) && !SC.none(iAttrSpec.collection)) {
           this.moveAttribute(iAttrSpec, tCollection);
         } else {
@@ -367,7 +369,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       }.bind(this));
       // if this is a recreation of the collection make sure the ordering corresponds
       // to DI expectations.
-      tCollection.reorderAttributes(iChange.attributes.getEach('name'));
+      iChange.attributes && tCollection.reorderAttributes(iChange.attributes.getEach('name'));
       return { success: true, collection: tCollection };
     }
     return { success: false };
