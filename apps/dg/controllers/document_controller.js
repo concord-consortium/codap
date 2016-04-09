@@ -1320,6 +1320,25 @@ DG.DocumentController = SC.Object.extend(
       return DG.globalsController.createGlobalValue( iProperties);
     },
 
+    /**
+     * Retrieve data context by name.
+     * @param {string} name
+     * @returns {DG.DataContext}
+     */
+    getContextByName: function (name) {
+      return this.contexts.find(function(context) { return context.get('name') === name; });
+    },
+
+    /**
+     * Retrieve data context by id.
+     *
+     * @param {number} id
+     * @returns {DG.DataContext}
+     */
+    getContextByID: function (id) {
+      return this.contexts.find(function(context) { return context.get('id') === id; });
+    },
+
     /*
      *  todo: move to DocumentArchiver
      */
