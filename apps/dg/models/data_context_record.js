@@ -41,6 +41,17 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     document: null,
 
+      /**
+       * Externally specified identifier for data context.
+       * @type {string}
+       */
+      name: null,
+
+      /**
+       * Displayable name for data context
+       * @type {string}
+       */
+      title: null,
     /**
      * A relational link to the collections in this context.
      * @property {[DG.Collection]}
@@ -150,6 +161,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
             document: this.document && this.document.id || undefined,
             guid: this.id,
             flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
+            name: this.name,
+            title: this.title,
             collections: [],
             contextStorage: this.contextStorage
           };
