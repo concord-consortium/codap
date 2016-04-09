@@ -175,9 +175,11 @@ DG.DataContextRecord = DG.BaseModel.extend(
           return false;
         });
 
-        while (root.children.length > 0) {
-          obj.collections.push(root.toArchive());
-          root = root.children[0];
+        if (root && root.children) {
+          while (root.children.length > 0) {
+            obj.collections.push(root.toArchive());
+            root = root.children[0];
+          }
         }
         if (!SC.none(root)) {
           obj.collections.push(root.toArchive());
