@@ -343,6 +343,29 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           success = (changeResult && changeResult.success) || success;
         }
 
+        function handleGet(iMessage) {
+          var collection;
+          var model;
+          if (iMessage.what.collection) {
+            collection = context.getCollectionByName(iMessage.what.collection);
+            if (collection) {
+              model = collection.get('collection');
+              if (model) {
+                values = model.toArchive();
+                success = true;
+              }
+            }
+          } else {
+            values = context.get('collections').map(function (collection) {
+              return {
+                name: collection.get('name'),
+                id: collection.get('id')
+              };
+            });
+            success = true;
+          }
+        }
+
         var success = false;
         var model = this.get('model');
         var context = resolveContext(iMessage, model, this);
@@ -352,10 +375,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (iMessage.action === 'create') {
           handleCreate(iMessage);
         } /*else if (iMessage.action === 'update') {
-        } else if (iMessage.action === 'get') {
-          // TODO
-        } else if (iMessage.action === 'delete') {
-
+        } */else if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        } /*else if (iMessage.action === 'delete') {
         }*/ else {
           DG.logWarn('Data interactive api: unsupported actione for collection: ' + iMessage.action);
         }
