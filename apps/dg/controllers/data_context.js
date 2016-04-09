@@ -46,8 +46,10 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {DG.DataContextRecord}
    */
   model: null,
-    
+
   nameBinding: '.model.name',
+
+  titleBinding: '.model.title',
 
   /**
     The number of change requests that have been applied.
