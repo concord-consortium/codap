@@ -164,7 +164,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleInteractiveFrame: function (iMessage) {
         var tValues = iMessage.values,
             tSuccess = true,
-            tReturnValues = {};
+            tReturnValues;
 
         var update = function () {
               this.setPath('model.title', tValues.title);
@@ -173,6 +173,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }.bind(this),
 
             get = function () {
+              tReturnValues = {};
               tReturnValues.title = this.getPath('model.title');
               tReturnValues.version = this.getPath('model.version');
               tReturnValues.dimensions = this.getPath('model.dimensions');
@@ -214,7 +215,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleDataContext: function (iMessage) {
         var success = false;
-        var values = {};
+        var values;
         var model = this.get('model');
         var context;
 
@@ -316,29 +317,52 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *
        */
       handleCollection: function (iMessage) {
-        var context = this.getPath('model.context');
-        var change;
-        var result;
-
-        if (!context) {
-          this.createDefaultContext();
-          context = this.getPath('model.context');
+        function resolveContext(iMessage, model, api) {
+          var context;
+          if (!SC.none(iMessage.what.dataContext)) {
+            context = DG.currDocumentController().getContextByName(iMessage.what.dataContext);
+          }
+          if (SC.none(context)) {
+            context = model.get('context');
+          }
+          if (SC.none(context)) {
+            api.createDefaultContext();
+            context = model.get('context');
+          }
+          return context;
         }
 
-        if (iMessage.action === 'create') {
+        function handleCreate(iMessage) {
+          var changeResult;
           change = {
             operation: 'createCollection',
             properties: iMessage.values,
             attributes: ( iMessage.values && iMessage.values.attributes )
           };
-          result = context.applyChange(change);
-        } else if (iMessage.action === 'update') {
+          changeResult = context.applyChange(change);
+          success = (changeResult && changeResult.success) || success;
+        }
+
+        var success = false;
+        var model = this.get('model');
+        var context = resolveContext(iMessage, model, this);
+        var change;
+        var values;
+
+        if (iMessage.action === 'create') {
+          handleCreate(iMessage);
+        } /*else if (iMessage.action === 'update') {
         } else if (iMessage.action === 'get') {
           // TODO
         } else if (iMessage.action === 'delete') {
 
+        }*/ else {
+          DG.logWarn('Data interactive api: unsupported actione for collection: ' + iMessage.action);
         }
-        return result;
+        return {
+          success: success,
+          values: values
+        };
       }
 
     });
