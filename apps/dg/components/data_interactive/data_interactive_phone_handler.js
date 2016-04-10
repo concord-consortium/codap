@@ -336,16 +336,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleCollection: function (iMessage) {
 
         function handleCreate(iMessage) {
-          var changeResult;
-          change = {
+          var change = {
             operation: 'createCollection',
             properties: iMessage.values,
             attributes: ( iMessage.values && iMessage.values.attributes )
           };
-          changeResult = context.applyChange(change);
+          var changeResult = context.applyChange(change);
           success = (changeResult && changeResult.success) || success;
         }
 
+        function handleUpdate(iMessage) {
+          var change = {
+            operation: 'updateCollection',
+            collection: context.getCollectionByName(iMessage.what.collection),
+            properties: iMessage.values
+          };
+          var changeResult = context.applyChange(change);
+          success = (changeResult && changeResult.success) || success;
+        }
+        
         function handleGet(iMessage) {
           var collection;
           var model;
@@ -372,14 +381,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var success = false;
         var model = this.get('model');
         var context = this._resolveContext(iMessage, model);
-        var change;
         var values;
 
         if (iMessage.action === 'create') {
           handleCreate(iMessage);
         }
-        /*else if (iMessage.action === 'update') {
-        } */
+        else if (iMessage.action === 'update') {
+          handleUpdate(iMessage);
+        } 
         else if (iMessage.action === 'get') {
           handleGet(iMessage);
         }
@@ -418,10 +427,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (iMessage.what.attributes) {
             attribute = collection.getAttributeByName(iMessage.what.attributes);
             values = attribute.toArchive();
+            success = true;
           } else {
             values = collection.attrsController.map(function (attr) {
-              return attr.toArchive();
+              return {name: attr.get('name'), id: attr.get('id')}; //attr.toArchive();
             });
+            success = true;
           }
         }
 
@@ -451,8 +462,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         // var success = false;
         // var model = this.get('model');
         // var context = this._resolveContext(iMessage, model);
+        // var collection = context && context.getCollectionByName(
+        //         iMessage.what.collection);
         // var change;
         // var values;
+        //
+        // function handleCreate(iMessage) {
+        //   var changeResult;
+        //   change = {
+        //     operation: 'createCases',
+        //     collection: collection,
+        //     parent: iMessage.parent,
+        //     values: iMessage.values
+        //   };
+        //   changeResult = context.applyChange(change);
+        //   success = (changeResult && changeResult.success) || success;
+        // }
+        //
+        // function handleGet(iMessage) {
+        //
+        // }
         //
         // if (iMessage.action === 'create') {
         //   handleCreate(iMessage);
@@ -471,7 +500,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         //   success: success,
         //   values: values
         // };
-
+        //
       }
 
     });

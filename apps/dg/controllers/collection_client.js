@@ -47,24 +47,26 @@ DG.CollectionClient = SC.Object.extend(
     }
     return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
+      
+  titleBinding: 'collection.title',
 
-    collapseChildren: function () {
-      return this.collection && this.collection.get('collapseChildren');
-    }.property('collection').cacheable(),
+  collapseChildren: function () {
+    return this.collection && this.collection.get('collapseChildren');
+  }.property('collection').cacheable(),
 
   defaults: function () {
     return this.collection && this.collection.get('defaults');
   }.property('collection').cacheable(),
 
-    /**
-     * Returns labels for this collection, if any have been set.
-     * @returns {Object}
-     */
-    labels: function () {
-      return this.collection && this.collection.get('labels');
-    }.property('collection').cacheable(),
+  /**
+   * Returns labels for this collection, if any have been set.
+   * @returns {Object}
+   */
+  labels: function () {
+    return this.collection && this.collection.get('labels');
+  }.property('collection').cacheable(),
 
-    attrsController: null,
+  attrsController: null,
 
   casesController: null,
   
@@ -174,25 +176,26 @@ DG.CollectionClient = SC.Object.extend(
                           }.bind( this));
   },
 
-    /**
-     * Reorders the attributes according to the order specified by the attribute
-     * list. The attribute list is an array of attribute names. All names in the
-     * list must be present as named attributes or the reordering will be
-     * abandoned. There may be attributes not specified in the list. These will
-     * be ordered after the attributes named in the list in their present order.
-     *
-     * @param {[String]} iAttributeNameList an array of attribute names
-     */
-    reorderAttributes: function(iAttributeNameList) {
-      var nameListLength = iAttributeNameList.length;
-      this.collection.attrs.sort(function(attr1, attr2) {
-        var ix1 = iAttributeNameList.indexOf(attr1.name),
-          ix2 = iAttributeNameList.indexOf(attr2.name);
-        if (ix1 < 0) {ix1 = nameListLength;}
-        if (ix2 < 0) {ix2 = nameListLength;}
-        return ix1 - ix2;
-      });
-    },
+  /**
+   * Reorders the attributes according to the order specified by the attribute
+   * list. The attribute list is an array of attribute names. All names in the
+   * list must be present as named attributes or the reordering will be
+   * abandoned. There may be attributes not specified in the list. These will
+   * be ordered after the attributes named in the list in their present order.
+   *
+   * @param {[String]} iAttributeNameList an array of attribute names
+   */
+  reorderAttributes: function(iAttributeNameList) {
+    var nameListLength = iAttributeNameList.length;
+    this.collection.attrs.sort(function(attr1, attr2) {
+      var ix1 = iAttributeNameList.indexOf(attr1.name),
+        ix2 = iAttributeNameList.indexOf(attr2.name);
+      if (ix1 < 0) {ix1 = nameListLength;}
+      if (ix2 < 0) {ix2 = nameListLength;}
+      return ix1 - ix2;
+    });
+  },
+
   /**
     Returns an array with the IDs of the attributes in the collection.
    */

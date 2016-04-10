@@ -301,6 +301,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       case 'createCollection':
         result = this.doCreateCollection( iChange);
         break;
+      case 'updateCollection':
+        result = this.doUpdateCollection( iChange);
+        break;
       case 'deleteCollection':
         result = this.doDeleteCollection(iChange);
         break;
@@ -378,6 +381,26 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
 
 
+    /**
+     * Updates the properties of a collection.
+     * @param {object} iChange
+     *    {String}              iChange.operation -- 'updateCollection'
+     *    {String|DG.CollectionClient} iChange.collection -- the affected collection
+     *    {Object}              iChange.properties -- properties of the new collection
+     * @returns {{success: boolean}}
+     */
+    doUpdateCollection: function (iChange) {
+      var success = true;
+      var collection = (SC.typeOf(iChange.collection) === SC.T_STRING)
+          ? this.getCollectionByName(iChange.collection)
+          : iChange.collection;
+      DG.ObjectMap.forEach(iChange.properties, function(key, value) {
+        if (key !== 'name') {
+          collection.set(key, value);
+        }
+      });
+      return {success: success};
+    },
   /**
     Creates a case according to the arguments specified.
     @param  {Object}                iChange
