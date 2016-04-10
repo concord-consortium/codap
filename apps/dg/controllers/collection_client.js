@@ -47,24 +47,26 @@ DG.CollectionClient = SC.Object.extend(
     }
     return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
+      
+  titleBinding: 'collection.title',
 
-    collapseChildren: function () {
-      return this.collection && this.collection.get('collapseChildren');
-    }.property('collection').cacheable(),
+  collapseChildren: function () {
+    return this.collection && this.collection.get('collapseChildren');
+  }.property('collection').cacheable(),
 
   defaults: function () {
     return this.collection && this.collection.get('defaults');
   }.property('collection').cacheable(),
 
-    /**
-     * Returns labels for this collection, if any have been set.
-     * @returns {Object}
-     */
-    labels: function () {
-      return this.collection && this.collection.get('labels');
-    }.property('collection').cacheable(),
+  /**
+   * Returns labels for this collection, if any have been set.
+   * @returns {Object}
+   */
+  labels: function () {
+    return this.collection && this.collection.get('labels');
+  }.property('collection').cacheable(),
 
-    attrsController: null,
+  attrsController: null,
 
   casesController: null,
   

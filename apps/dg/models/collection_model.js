@@ -164,6 +164,12 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     name: '',
 
     /**
+     * The displayed name of the collection
+     * @property {String}
+     */
+    title: null,
+
+    /**
      * Initializes the DG.Collection object.
      */
     init: function () {
@@ -628,13 +634,14 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         areParentChildLinksConfigured: this.areParentChildLinksConfigured,
         attrs: [],
         cases: [],
-        caseName: this.caseName,
-        childAttrName: this.childAttrName,
-        collapseChildren: this.collapseChildren,
-        guid: this.id,
+        caseName: this.get('caseName'),
+        childAttrName: this.get('childAttrName'),
+        collapseChildren: this.get('collapseChildren'),
+        guid: this.get('id'),
         labels: this.labels,
-        name: this.name,
-        parent: parentID,
+        name: this.get('name'),
+        parent: this.get('parentID'),
+        title: this.get('title'),
         type: 'DG.Collection'
       };
       this.attrs.forEach(function (attr) {
