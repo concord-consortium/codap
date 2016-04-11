@@ -408,20 +408,30 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var model = this.get('model');
         var context = this._resolveContext(iMessage, model);
         var collection = context && context.getCollectionByName(iMessage.what.collection);
-        var change;
         var values;
 
         function handleCreate(iMessage) {
-          var changeResult;
-          change = {
+          var change = {
             operation: 'createAttributes',
             collection: collection,
             attrPropsArray: iMessage.values
           };
-          changeResult = context.applyChange(change);
+          var changeResult = context.applyChange(change);
           success = (changeResult && changeResult.success) || success;
         }
-        
+
+        function handleUpdate(iMessage) {
+          var change = {
+            operation: 'updateAttributes',
+            collection: collection,
+            attrPropsArray: [
+              DG.ObjectMap.join(iMessage.values, {name: iMessage.what.attributes})
+            ]
+          };
+          var changeResult = context.applyChange(change);
+          success = (changeResult && changeResult.success) || success;
+        }
+
         function handleGet(iMessage) {
           var attribute;
           if (iMessage.what.attributes) {
@@ -439,10 +449,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (collection) {
           if (iMessage.action === 'create') {
             handleCreate(iMessage);
-          }
-          /*else if (iMessage.action === 'update') {
-           } */
-          else if (iMessage.action === 'get') {
+          } else if (iMessage.action === 'update') {
+            handleUpdate(iMessage);
+          } else if (iMessage.action === 'get') {
             handleGet(iMessage);
           }
           /*else if (iMessage.action === 'delete') {
