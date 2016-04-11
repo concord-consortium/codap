@@ -409,8 +409,12 @@ DG.DataContext = SC.Object.extend((function() // closure
           ? this.getCollectionByName(iChange.collection)
           : iChange.collection;
       DG.ObjectMap.forEach(iChange.properties, function(key, value) {
+        // name is not mutable
         if (key !== 'name') {
           collection.set(key, value);
+        } else {
+          DG.logWarn('Attempt to update immutable collection name ignored: %@ -> %@'.loc(
+              this.get('name'), name));
         }
       });
       return {success: success};
@@ -905,7 +909,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Updates the specified properties of the specified attributes.
     @param  {Object}    iChange - The change request object
-              {String}  .operation - "updateCases"
+              {String}  .operation - "updateAttributes"
               {DG.CollectionClient} .collection - Collection whose attributes(s) are changed
               {Array of Object} .attrPropsArray - Array of attribute properties
     @returns  {Object}
