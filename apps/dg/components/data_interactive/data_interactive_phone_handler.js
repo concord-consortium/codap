@@ -328,8 +328,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @param  iMessage {object}
        *     {{
        *      action: 'create'|'update'|'get'|'delete'
-       *      what: {{type: 'collection', context: {string}, collectionIdentifier: {string}}
-       *      values: {{name: {string}, title: {string}, description: {string}, parent: {string}, attributes: [{Object}], labels: [{Object}] }}
+       *      what: {{type: 'collection', context: {String}, collection: {String}}
+       *      values: {{
+       *        name: {string},
+       *        title: {string},
+       *        description: {string},
+       *        parent: {string},
+       *        attributes: [{Object}],
+       *        labels: [{Object}] }}
        *     }}
        *
        */
@@ -385,11 +391,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (iMessage.action === 'create') {
           handleCreate(iMessage);
-        }
-        else if (iMessage.action === 'update') {
+        } else if (iMessage.action === 'update') {
           handleUpdate(iMessage);
-        } 
-        else if (iMessage.action === 'get') {
+        } else if (iMessage.action === 'get') {
           handleGet(iMessage);
         }
         /*else if (iMessage.action === 'delete') {
@@ -403,6 +407,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         };
       },
 
+      /**
+       * handles operations on attributes.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *        action: 'create'|'update'|'get'|'delete'
+       *        what: {{type: 'attributes', context: {name}, collection: {string}, attributes: {string}}
+       *        values: {[object]|object}
+       *      }}
+       *
+       */
       handleAttributes: function (iMessage) {
         var success = false;
         var model = this.get('model');
