@@ -110,11 +110,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var result = ({success: false});
         try {
           if (!SC.none(iMessage)) {
-            var selector = iMessage.what && iMessage.what.resource ? this.parseResourceSelector(
-                iMessage.what.resource) : iMessage.what;
+            var selector = iMessage.resource && this.parseResourceSelector(
+                iMessage.resource);
             var type = selector && selector.type;
 
-            iMessage.origSelector = iMessage.what;
             iMessage.what = selector;
             if (type && this.handlerMap[type]) {
               SC.run(function () {
