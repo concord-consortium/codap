@@ -134,7 +134,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     /**
      * Prepares a streamable version of this object. Streamable means it is
-     * JSON ready and has all persistent data for the object and its subobjects.
+     * JSON ready and has all persistent data for the object and its sub-objects.
      *
      * In this case we take special care to avoid forward references among
      * collections.
