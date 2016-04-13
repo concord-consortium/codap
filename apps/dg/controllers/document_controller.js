@@ -1009,6 +1009,7 @@ DG.DocumentController = SC.Object.extend(
       iTitle = iTitle || '';
       iLayout = iLayout || { width: 600, height: 400 };
       var tView;
+      var controller = DG.GameController.create();
       DG.UndoHistory.execute(DG.Command.create({
         name: 'webView.show',
         undoString: 'DG.Undo.webView.show',
@@ -1019,9 +1020,14 @@ DG.DocumentController = SC.Object.extend(
         execute: function() {
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
                 parentView: iParentView,
-                controller: DG.WebViewController.create(),
-                componentClass: { type: 'SC.WebView', constructor: SC.WebView},
-                contentProperties: { value: iURL, backgroundColor: 'white' },
+                controller: controller,
+                componentClass: { type: 'DG.GameView', constructor: DG.GameView},
+                contentProperties: {
+                  value: iURL,
+                  backgroundColor: 'white',
+                  name: iTitle,
+                  controller: controller
+                },
                 defaultLayout: iLayout,
                 title: iTitle,
                 isResizable: true,
