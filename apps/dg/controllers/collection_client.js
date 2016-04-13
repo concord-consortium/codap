@@ -304,20 +304,21 @@ DG.CollectionClient = SC.Object.extend(
     iAttribute.removeObserver('dependentChange', this, 'attrFormulaDependentDidChange');
   },
 
-      makeAttributeNameLegal: function (iName) {
-        var tReg = /\((.*)\)/,  // Identifies first parenthesized substring
-            tMatch = tReg.exec( iName),
-            tNewName = iName;
-        // If there is a parenthesized substring, stash it as the unit and remove it from the name
-        if( tMatch && tMatch.length > 1) {
-          tNewName = iName.replace(tReg, '');  // Get rid of parenthesized units
-        }
-        // TODO: We are eliminating all but Latin characters here. We should be more general and allow
-        // non-Latin alphameric characters.
-        tNewName = tNewName.replace(/\W$/, ''); // Get rid of trailing white space
-        tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
-        return tNewName;
-      },
+  makeAttributeNameLegal: function (iName) {
+    var tReg = /\((.*)\)/,  // Identifies first parenthesized substring
+        tMatch = tReg.exec( iName),
+        tNewName = iName;
+    // If there is a parenthesized substring, stash it as the unit and remove it from the name
+    if( tMatch && tMatch.length > 1) {
+      tNewName = iName.replace(tReg, '');  // Get rid of parenthesized units
+    }
+    // TODO: We are eliminating all but Latin characters here. We should be more general and allow
+    // non-Latin alphameric characters.
+    tNewName = tNewName.replace(/\W$/, ''); // Get rid of trailing white space
+    tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
+    return tNewName;
+  },
+
   /**
     Returns the attribute which matches the specified properties, creating it if it doesn't already exist.
     @param    {Object}        iProperties -- Initial property values
