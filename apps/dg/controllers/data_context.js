@@ -444,15 +444,20 @@ DG.DataContext = SC.Object.extend((function() // closure
         result = { success: false, caseIDs: [] },
         createOneCase = function( iValues) {
           var properties = {};
+          var newCase;
           if (iChange.properties) {
             DG.ObjectMap.copy(properties, iChange.properties);
           }
-          var newCase = collection.createCase(properties);
-          if( newCase) {
-            if( !SC.none( iValues)) {
-              collection.setCaseValuesFromArray( newCase, iValues);
-              DG.store.commitRecords();
+          if (Array.isArray(iValues)) {
+            newCase = collection.createCase(properties);
+            if( newCase) {
+                collection.setCaseValuesFromArray( newCase, iValues);
             }
+          } else {
+            properties.values = iValues;
+            newCase = collection.createCase(properties);
+          }
+          if (newCase) {
             result.success = true;
             result.caseIDs.push( newCase.get('id'));
           }
