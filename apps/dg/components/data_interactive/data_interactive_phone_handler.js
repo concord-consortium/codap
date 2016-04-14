@@ -56,7 +56,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContext: this.handleDataContext.bind(this),
           collection: this.handleCollection.bind(this),
           attributes: this.handleAttributes.bind(this),
-          cases: this.handleCases.bind(this)
+          cases: this.handleCases.bind(this)//,
+//          component: this.handleComponent.bind(this)
         };
       },
 
@@ -482,49 +483,147 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       handleCases: function (iMessage) {
-        // var success = false;
-        // var model = this.get('model');
-        // var context = this._resolveContext(iMessage, model);
-        // var collection = context && context.getCollectionByName(
-        //         iMessage.what.collection);
-        // var change;
-        // var values;
-        //
-        // function handleCreate(iMessage) {
-        //   var changeResult;
-        //   change = {
-        //     operation: 'createCases',
-        //     collection: collection,
-        //     parent: iMessage.parent,
-        //     values: iMessage.values
-        //   };
-        //   changeResult = context.applyChange(change);
-        //   success = (changeResult && changeResult.success) || success;
-        // }
-        //
-        // function handleGet(iMessage) {
-        //
-        // }
-        //
-        // if (iMessage.action === 'create') {
-        //   handleCreate(iMessage);
-        // }
-        // /*else if (iMessage.action === 'update') {
-        //  } */
+        var success = false;
+        var model = this.get('model');
+        var context = this._resolveContext(iMessage, model);
+        var collection = context && context.getCollectionByName(
+                iMessage.what.collection);
+        var values;
+
+        function handleCreateOneCase(iCase) {
+          var change = {
+            operation: 'createCases',
+            collection: collection,
+            parent: iCase.parent,
+            values: [iCase.values]
+          };
+          var changeResult = context.applyChange(change);
+          success = (changeResult && changeResult.success) || success;
+        }
+        function handleCreate(iMessage) {
+          var cases = Array.isArray(iMessage.values)?iMessage.values: [iMessage.values];
+          cases.forEach(handleCreateOneCase);
+        }
+
+        if (iMessage.action === 'create') {
+          handleCreate(iMessage);
+        }
+        /*else if (iMessage.action === 'update') {
+         } */
         // else if (iMessage.action === 'get') {
         //   handleGet(iMessage);
         // }
-        // /*else if (iMessage.action === 'delete') {
-        //  }*/
-        // else {
-        //   DG.logWarn('Data interactive api: unsupported action for collection: ' + iMessage.action);
+        /*else if (iMessage.action === 'delete') {
+         }*/
+        else {
+          DG.logWarn('Data interactive api: unsupported action for collection: ' + iMessage.action);
+        }
+        return {
+          success: success,
+          values: values
+        };
+
+      },
+
+      // handleComponent: function (iMessage) {
+      //   var success = false;
+      //   var values;
+      //   var model = this.get('model');
+      //
+      //   function handleCreate(iMessage, iModel) {
+      //     var doc = DG.currDocumentController();
+      //     var type = iMessage.values.type;
+      //     var typeClass;
+      //     var rtn;
+      //     switch (type) {
+      //       case 'graph':
+      //           typeClass = 'DG.GraphView';
+      //         break;
+      //       case 'caseTable':
+      //           typeClass = 'DG.TableView';
+      //         break;
+      //       case 'map':
+      //         typeClass = 'DG.MapView';
+      //         break;
+      //       case 'slider':
+      //         typeClass = 'DG.SliderView';
+      //         break;
+      //       case 'calculator':
+      //         typeClass = 'DG.Calculator';
+      //         break;
+      //       case 'text':
+      //         typeClass = 'DG.TextView';
+      //         break;
+      //       case 'webView':
+      //         typeClass = 'SC.WebView';
+      //         break;
+      //       case 'guide':
+      //         typeClass = 'DG.GuideView';
+      //         break;
+      //       default:
+      //     }
+      //     if (!SC.none(typeClass)) {
+      //       iMessage.values[document] = doc;
+      //       iMessage.values.type = typeClass;
+      //       rtn = doc.createComponentAndView(DG.Component.createComponent(iMessage.values), typeClass);
+      //     } else {
+      //       DG.log('Unknown component type: ' + type);
+      //     }
+      //     success = !SC.none(rtn);
+      //     return rtn;
+      //   }
+      //
+        // function handleUpdate(iMessage, iModel) {
+        //   context = getContext(iMessage.what.dataContext) || iModel.get('context');
+        //   if (!context) {
+        //     DG.logWarn('Update of non-existent object.');
+        //     success = false;
+        //   } else {
+        //     ['title', 'description'].forEach(function (prop) {
+        //       if (iMessage.values[prop]) {
+        //         context.set(prop, iMessage.values[prop]);
+        //       }
+        //     });
+        //     success = true;
+        //   }
         // }
-        // return {
-        //   success: success,
-        //   values: values
-        // };
-        //
-      }
+
+        // function handleGet(iMessage, iModel) {
+        //   // if a specific context specified
+        //   if (iMessage.what.dataContext) {
+        //     context = getContext(iMessage.what.dataContext);
+        //     values = context && context.get('model').toArchive();
+        //     success = !SC.none(values);
+        //   } else { // otherwise, return names of existent contexts
+        //     values = DG.currDocumentController().get('contexts').map(function (context) {
+        //       return {name: context.get('name'), id: context.get('id')};
+        //     });
+        //     success = true;
+        //   }
+        // }
+
+        // function handleDelete(iMessage, iModel) {
+        //   context = getContext(iMessage.what.dataContext) || iModel.get('context');
+        //   context.destroy();
+        //   iModel.set('context', null);
+        // }
+
+        // if (iMessage.action === 'create') {
+        //   handleCreate(iMessage, model);
+        // } else if (iMessage.action === 'update') {
+        //   handleUpdate(iMessage, model);
+        // } else if (iMessage.action === 'get') {
+        //   handleGet(iMessage, model);
+        // } else if (iMessage.action === 'delete') {
+        //   handleDelete(iMessage, model);
+      //   } else {
+      //     DG.log('Unsupported action: ' + iMessage.action);
+      //   }
+      //   return {
+      //     success: success,
+      //     values: values
+      //   };
+      // },
 
     });
 
