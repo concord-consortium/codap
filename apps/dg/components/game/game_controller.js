@@ -41,7 +41,10 @@ DG.GameController = DG.ComponentController.extend(
      */
     openCaseIDs: null,
 
-    shouldConfirmClose: true,
+    shouldConfirmClose: function () {
+      return this.connected;
+    }.property('connected'),
+
     confirmCloseDescription: 'DG.GameController.confirmCloseDescription',
 
     shouldDestroyOnComponentDestroy: true,
