@@ -376,7 +376,7 @@ DG.GameController = DG.ComponentController.extend(
     /**
       'initGame' handler
       @param {Object}   iArgs   See below for arguments
-      @param {Function} callback  Callback, called when game is inited (this
+      @param {Function} iCallback  Callback, called when game is inited (this
          includes
                                     any game-state restoration)
       args: {
@@ -414,7 +414,7 @@ DG.GameController = DG.ComponentController.extend(
       var finishInitGame = function () {
         // Ordinarily a component controller's model.content is the model that store's the
         // underlying state. But the model for a game controller (a Component) doesn't have
-        // a natural content. So, as a workaround, we make ourself its content so we can provide
+        // a natural content. So, as a workaround, we make ourselves its content so we can provide
         // a default title.
         this.set('defaultTitle', iArgs.name);
         this.setPath('model.content', this);
@@ -635,7 +635,7 @@ DG.GameController = DG.ComponentController.extend(
 
     /**
      * Deletes named cases.
-     * @param {array} caseIDs
+     * @param {array} iCaseIDs
      * @returns {{success: boolean}}
      */
     doDeleteCases: function (iCaseIDs) {
@@ -979,8 +979,8 @@ DG.GameController = DG.ComponentController.extend(
       [Old Game API] Creates a new collection with the specified attributes.
       This function is called directly by games using the old Game API.
       New games should use the New Game API 'initGame' command.
-      @param  {String}  iCollectionName -- The name of the collection to create
-      @param  {Array} of String  iAttributeNames -- The names of the attributes
+      @param  iCollectionName {String} -- The name of the collection to create
+      @param  iAttributeNames {Array} of String   -- The names of the attributes
          to create
      */
     newCollectionWithAttributes: function(iCollectionName, iAttributeNames)
