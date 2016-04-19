@@ -446,11 +446,12 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-      Creates the specified component and its associated view.
-      Clients should specify either iComponent or iComponentType.
-      @param    {DG.ComponentModel} iComponent [Optional] -- The restored component.
-                                        Should be specified when restoring from document.
-      @param    {String}            iComponentType [Optional] -- The type of component to create.
+     * Creates the specified component and its associated view.
+     * Clients should specify either iComponent or iComponentType.
+     * @param iComponent     {DG.ComponentModel} [Optional] -- The restored component.
+     *                                              Should be specified when restoring from document.
+     * @param iComponentType {String}            [Optional] -- The type of component to create.
+     * @param iArgs          {Object}            [Optional] -- parameters defining this object.
      */
     createComponentAndView: function( iComponent, iComponentType, iArgs) {
       var docView = DG.mainPage.get('docView'),
@@ -567,7 +568,7 @@ DG.DocumentController = SC.Object.extend(
     /**
      * Add a component to the 'components' list, if not already present.
      *
-     * @param {DG.Component} component
+     * @param iComponent {DG.Component} The new component.
      */
     registerComponent: function (iComponent) {
       var registeredComponents = this.get('components');
@@ -698,10 +699,13 @@ DG.DocumentController = SC.Object.extend(
             parentView: iParentView,
             controller: tController,
             componentClass: {
-              type: 'DG.GameView', constructor: DG.GameView
+              type: 'DG.GameView',
+              constructor: DG.GameView
             },
             contentProperties: {
-              controller: tController, value: tGameUrl, name: tGameName
+              controller: tController, 
+              value: tGameUrl, 
+              name: tGameName
             },
             defaultLayout: {
               width: tGameParams.width,
@@ -896,7 +900,7 @@ DG.DocumentController = SC.Object.extend(
         execute: function() {
           var tMapModel = DG.MapModel.create(),
               tMapController = DG.MapController.create();
-          // For maps the map model's dataconfiguration finds a reasonable initial data context.
+          // For maps the map model's data configuration finds a reasonable initial data context.
           tMapController.set('dataContext', tMapModel.get('dataContext'));
 
           // map as component
@@ -974,12 +978,27 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-     * Puts a modal dialog with a place for a URL. If user OK's, the URL is used for an added web view.
+     * Puts a modal dialog with a place for a URL.
+     * If user OK's, the URL is used for an added web view.
+     * We create the web view as a data interactive, since a web view is the
+     * same as a data interactive that never connects.
      */
     viewWebPage: function() {
 
-      var this_ = this,
-          tDialog = null;
+      var addWebPageAsInteractive = function (iURL) {
+        var tDoc = DG.currDocumentController(),
+            tComponent = DG.Component.createComponent({
+              "type": "DG.GameView",
+              "componentStorage": {
+                "currentGameName": "",
+                "currentGameUrl": iURL,
+                allowInitGameOverride: true
+              }
+            });
+        tDoc.createComponentAndView( tComponent);
+      }.bind(this);
+
+      var tDialog = null;
 
       function createWebPage() {
         // User has pressed OK. tURL must have a value or 'OK' disabled.
@@ -989,9 +1008,7 @@ DG.DocumentController = SC.Object.extend(
         if (!/^https?:\/\//i.test(tURL)) {
           tURL = 'http://' + tURL;
         }
-        this_.addWebView(  DG.mainPage.get('docView'), null,
-                tURL, 'Web Page',
-                { width: 600, height: 400 });
+        addWebPageAsInteractive(tURL);
       }
 
       tDialog = DG.CreateSingleTextDialog( {
@@ -1021,7 +1038,9 @@ DG.DocumentController = SC.Object.extend(
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
                 parentView: iParentView,
                 controller: controller,
-                componentClass: { type: 'DG.GameView', constructor: DG.GameView},
+                componentClass: {
+                  type: 'DG.GameView',
+                  constructor: DG.GameView},
                 contentProperties: {
                   value: iURL,
                   backgroundColor: 'white',
