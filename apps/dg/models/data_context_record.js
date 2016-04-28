@@ -41,17 +41,24 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     document: null,
 
-      /**
-       * Externally specified identifier for data context.
-       * @type {string}
-       */
-      name: null,
+    /**
+     * Externally specified identifier for data context.
+     * @type {string}
+     */
+    name: null,
 
-      /**
-       * Displayable name for data context
-       * @type {string}
-       */
-      title: null,
+    /**
+     * Displayable name for data context
+     * @type {string}
+     */
+    _title: null,
+    title: function(key, value) {
+      if (value) {
+        this._title = value;
+      }
+      return this._title || this.name || this.get('defaultTitle');
+    }.property('_title', 'name'),
+
     /**
      * A relational link to the collections in this context.
      * @property {[DG.Collection]}

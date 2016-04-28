@@ -263,7 +263,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success = !SC.none(values);
           } else { // otherwise, return names of existent contexts
             values = DG.currDocumentController().get('contexts').map(function (context) {
-              return {name: context.get('name'), id: context.get('id')};
+              return {name: context.get('name'), id: context.get('id'), title: context.get('title')};
             });
             success = true;
           }
