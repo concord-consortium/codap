@@ -640,7 +640,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         guid: this.get('id'),
         labels: this.labels,
         name: this.get('name'),
-        parent: this.get('parentID'),
+        parent: parentID,
         title: this.get('title'),
         type: 'DG.Collection'
       };
