@@ -32,8 +32,8 @@ DG.Calculator = SC.View.extend( (function() // closure
   var kButtonWidth = 30,
     kButtonHeight = 24,
 
-    kMargin = 3,
-    kTopMargin = 10,
+    kMargin = 5,
+    kTopMargin = 5,
     kGap = 2,
 
     kDoubleButtonWidth = 2 * kButtonWidth + kGap,
@@ -202,8 +202,8 @@ DG.Calculator = SC.View.extend( (function() // closure
       // Fix our width and height in terms of the number of rows and columns and the
       // size of the buttons.
       var kTop = kTopMargin + kMargin + this.editView.layout.height;
-      this.set( 'layout', { top: 0, left: 0,
-          width: 4 * kMargin + kColumnCount * kColumnWidth,
+      this.set( 'layout', { top: 3, left: 5,
+          width: 1.5 * kGap + kColumnCount * kColumnWidth,
           height: kTop + kRowCount * kRowHeight + kMargin }
       );
 
