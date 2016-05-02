@@ -609,7 +609,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         this.getAttributeIDs() + "], " + " Cases: [" + this.getCaseIDs() + "]");
     },
 
-    toArchive: function () {
+    toArchive: function (excludeCases) {
       var parentID, obj;
       if (this.parent) {
         if (typeof this.parent === 'number') {
@@ -635,9 +635,11 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       this.attrs.forEach(function (attr) {
         obj.attrs.push(attr.toArchive());
       });
-      this.cases.forEach(function (myCase) {
-        obj.cases.push(myCase.toArchive());
-      });
+      if (!excludeCases) {
+        this.cases.forEach(function (myCase) {
+          obj.cases.push(myCase.toArchive());
+        });
+      }
       return obj;
     }
   };

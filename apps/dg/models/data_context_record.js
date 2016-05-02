@@ -1,6 +1,3 @@
-/**
- * Created by jsandoe on 10/20/14.
- */
 // ==========================================================================
 //                        DG.DataContextRecord
 //
@@ -145,10 +142,13 @@ DG.DataContextRecord = DG.BaseModel.extend(
      *
      * In this case we take special care to avoid forward references among
      * collections.
-     * @param fullData
-     * @returns {*}
+     * @param {boolean} fullData Whether to generate data or externalDocumentId only.
+     *   TODO: This option is intended to support saving of document fragments and as
+     *   such, may be obsolescent.
+     * @param {boolean} excludeCases Whether to exclude cases.
+     * @returns {Object}
      */
-    toArchive: function (fullData) {
+    toArchive: function (fullData, excludeCases) {
       function notEmpty(collection) {
         return !(SC.none(
             collection.attrs) || (collection.attrs.length === 0));
@@ -178,12 +178,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
         if (root && root.children) {
           while (root.children.length > 0) {
-            obj.collections.push(root.toArchive());
+            obj.collections.push(root.toArchive(excludeCases));
             root = root.children[0];
           }
         }
         if (!SC.none(root)) {
-          obj.collections.push(root.toArchive());
+          obj.collections.push(root.toArchive(excludeCases));
         }
       } else {
         obj = {
