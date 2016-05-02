@@ -1035,6 +1035,16 @@ DG.DocumentController = SC.Object.extend(
         isUndoable: !isInitialization,
         _component: null,
         execute: function() {
+          if (!iComponent) {
+            iComponent = DG.Component.createComponent({
+              "type": "DG.GameView",
+              componentStorage: {
+                currentGameUrl: iURL,
+                currentGameName: iTitle,
+                allowInitGameOverride: true
+              }
+            });
+          }
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
                 parentView: iParentView,
                 controller: controller,
