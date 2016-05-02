@@ -54,9 +54,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         this.handlerMap = {
           interactiveFrame: this.handleInteractiveFrame.bind(this),
           dataContext: this.handleDataContext.bind(this),
+          dataContextList: this.handleDataContextList.bind(this),
           collection: this.handleCollection.bind(this),
+          collectionList: this.handleCollectionList.bind(this),
           attributes: this.handleAttributes.bind(this),
-          cases: this.handleCases.bind(this)//,
+          cases: this.handleCases.bind(this),
+          caseByIndex: this.handleCaseByIndex.bind(this),
+          caseByID: this.handleCaseByID.bind(this),
+          caseCount: this.handleCaseCount.bind(this)//,
 //          component: this.handleComponent.bind(this)
         };
       },
@@ -229,7 +234,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         function handleCreate(iMessage, iModel) {
           context = getContext(iMessage.values.name);
           if (context) {
-            DG.logWarn('Operation not permitted.');
+            DG.logWarn('Operation not permitted: Named context exists: ' + iMessage.values.name);
             success = false;
           } else {
             context = DG.currDocumentController().createNewDataContext(iMessage.values);
@@ -259,13 +264,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // if a specific context specified
           if (iMessage.what.dataContext) {
             context = getContext(iMessage.what.dataContext);
-            values = context && context.get('model').toArchive();
+            values = context && context.get('model').toArchive(true, true);
             success = !SC.none(values);
-          } else { // otherwise, return names of existent contexts
-            values = DG.currDocumentController().get('contexts').map(function (context) {
-              return {name: context.get('name'), id: context.get('id'), title: context.get('title')};
-            });
-            success = true;
           }
         }
 
@@ -319,6 +319,50 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       /**
+       * handles list operations on dataContext.
+       *
+       * Notes:
+       *
+       *  * At this point only one data context for each data interactive is permitted.
+       *  * Updates permit modification of top-level api properties only. That is
+       *    to say, not collections. Use collection API.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'get'
+       *      what: {{type: 'context'}}
+       *      values: {{name: {string}, title: {string}, description: {string}, collections: [{Object}] }}
+       *     }}
+       *
+       */
+      handleDataContextList: function (iMessage) {
+        var success = false;
+        var values;
+
+        function handleGet(iMessage) {
+          values = DG.currDocumentController().get('contexts').map(function (context) {
+            return {
+              name: context.get('name'),
+              guid: context.get('id'),
+              title: context.get('title')
+            };
+          });
+          success = true;
+        }
+
+        if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        } else {
+          DG.log('Unsupported action: ' + iMessage.action);
+        }
+
+        return {
+          success: success,
+          values: values
+        };
+      },
+
+      /**
        * handles operations on collections.
        *
        * Notes:
@@ -369,18 +413,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (collection) {
               model = collection.get('collection');
               if (model) {
-                values = model.toArchive();
+                values = model.toArchive(true);
                 success = true;
               }
             }
-          } else {
-            values = context.get('collections').map(function (collection) {
-              return {
-                name: collection.get('name'),
-                id: collection.get('id')
-              };
-            });
-            success = true;
           }
         }
 
@@ -401,6 +437,57 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         else {
           DG.logWarn('Data interactive api: unsupported action for collection: ' + iMessage.action);
         }
+        return {
+          success: success,
+          values: values
+        };
+      },
+      /**
+       * handles operations on collection Lists.
+       *
+       * Notes:
+       *   * List is in order of parentage, highest ancestor first, ultimate
+       *     descendant last.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'get'
+       *      what: {type: 'collection', context: {String}}
+       *      }}
+       * @return {object}
+       *   {{
+       *      success: {boolean}
+       *      values: {
+       *        name: {string},
+       *        title: {string},
+       *        guid: {number}
+       *      }
+       *     }}
+       *
+       */
+      handleCollectionList: function (iMessage) {
+        function handleGet(iMessage) {
+          values = context.get('collections').map(function (collection) {
+            return {
+              name: collection.get('name'),
+              guid: collection.get('id'),
+              title: collection.get('title')
+            };
+          });
+          success = true;
+        }
+
+        var success = false;
+        var model = this.get('model');
+        var context = this._resolveContext(iMessage, model);
+        var values;
+
+        if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        } else {
+          DG.logWarn('Data interactive api: unsupported action for collectionList: ' + iMessage.action);
+        }
+
         return {
           success: success,
           values: values
@@ -472,7 +559,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           /*else if (iMessage.action === 'delete') {
            }*/
           else {
-            DG.logWarn('Data interactive api: unsupported action for collection: ' + iMessage.action);
+            DG.logWarn('Data interactive api: unsupported action for attributes: ' + iMessage.action);
           }
         }
         return {
@@ -516,7 +603,95 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         /*else if (iMessage.action === 'delete') {
          }*/
         else {
-          DG.logWarn('Data interactive api: unsupported action for collection: ' + iMessage.action);
+          DG.logWarn('Data interactive api: unsupported action for case: ' + iMessage.action);
+        }
+        return {
+          success: success,
+          values: values
+        };
+
+      },
+
+      handleCaseByIndex: function (iMessage) {
+        var success = false;
+        var context = this._resolveContext(iMessage);
+        var collection = context && context.getCollectionByName(
+                iMessage.what.collection);
+        var values = {};
+
+        function handleGet(iMessage) {
+          var myCase;
+          if (collection) {
+            myCase = collection.getCaseAt(Number(iMessage.what.caseByIndex));
+            if (myCase) {
+              values.case = myCase.toArchive();
+              values.case.children = myCase.children.map(function (child) {return child.id;});
+              values.caseIndex = iMessage.what.caseByIndex;
+              success = true;
+            }
+          }
+        }
+
+        if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        }
+        else {
+          DG.logWarn('Data interactive api: unsupported action for caseByIndex: ' + iMessage.action);
+        }
+        return {
+          success: success,
+          values: values
+        };
+      },
+      handleCaseByID: function (iMessage) {
+        var success = false;
+        var context = this._resolveContext(iMessage);
+        var collection = context && context.getCollectionByName(
+                iMessage.what.collection);
+        var values = {};
+
+        function handleGet(iMessage) {
+          var caseID = Number(iMessage.what.caseByID);
+          var myCase;
+          if (collection) {
+            myCase = collection.getCaseByID(caseID);
+            if (myCase) {
+              values.case = myCase.toArchive();
+              values.case.children = myCase.children.map(function (child) {return child.id;});
+              values.caseIndex = collection.getCaseIndexByID(caseID);
+              success = true;
+            }
+          }
+        }
+
+        if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        }
+        else {
+          DG.logWarn('Data interactive api: unsupported action for caseByIndex: ' + iMessage.action);
+        }
+        return {
+          success: success,
+          values: values
+        };
+      },
+      handleCaseCount: function (iMessage) {
+        var success = false;
+        var model = this.get('model');
+        var context = this._resolveContext(iMessage, model);
+        var collection = context && context.getCollectionByName(
+                iMessage.what.collection);
+        var values;
+
+        function handleGet(iMessage) {
+          values = collection.casesController.length();
+          success = true;
+        }
+
+        if (iMessage.action === 'get') {
+          handleGet(iMessage);
+        } else {
+          DG.logWarn('Data interactive api: unsupported action for caseCount: ' + iMessage.action);
         }
         return {
           success: success,
