@@ -33,6 +33,7 @@ DG.WebViewController = DG.ComponentController.extend(
      *  @property {String}
      */
     theURL: '',
+    title: 'DG.WebView.defaultTitle'.loc(),
 
     /**
     Get the menu items from the graph and its components.
@@ -68,7 +69,9 @@ DG.WebViewController = DG.ComponentController.extend(
 
     createComponentStorage:function () {
       var tURL = this.get('theURL'),
-        tStorage = {};
+        tStorage = {
+          title: this.title
+        };
       if( !SC.empty( tURL))
         tStorage.URL = tURL;
       return tStorage;
@@ -77,6 +80,7 @@ DG.WebViewController = DG.ComponentController.extend(
     restoreComponentStorage:function ( iComponentStorage ) {
       var tURL = iComponentStorage.URL || "";
       this.set('theURL', tURL);
+      this.set('title', iComponentStorage.title);
     },
   
     /**

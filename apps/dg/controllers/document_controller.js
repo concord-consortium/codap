@@ -1014,7 +1014,7 @@ DG.DocumentController = SC.Object.extend(
             parentView: iParentView,
             controller: DG.WebViewController.create(),
             componentClass: { type: 'DG.WebView', constructor: DG.WebView},
-            contentProperties: { value: iURL, backgroundColor: 'white' },
+            contentProperties: { value: iURL, backgroundColor: 'white', model: {defaultTitle: iTitle }},
             defaultLayout: iLayout,
             title: iTitle,
             isResizable: true,
