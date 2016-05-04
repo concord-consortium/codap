@@ -496,6 +496,7 @@ DG.DocumentController = SC.Object.extend(
           tView = this.addMap( docView, iComponent, true);
           break;
         case 'SC.WebView':
+        case 'DG.WebView':
           tView = this.addWebView( docView, iComponent, null, null, null, true);
           break;
         case 'DG.GuideView':
@@ -727,8 +728,8 @@ DG.DocumentController = SC.Object.extend(
 
       // Override default component view behavior.
       // Do nothing until we figure out how to prevent reloading of data interactive.
-      tView.select = function () {
-      };
+      //tView.select = function () {
+      //};
 
       return tView;
     },
@@ -980,53 +981,39 @@ DG.DocumentController = SC.Object.extend(
     /**
      * Puts a modal dialog with a place for a URL.
      * If user OK's, the URL is used for an added web view.
-     * We create the web view as a data interactive, since a web view is the
-     * same as a data interactive that never connects.
      */
-    viewWebPage: function() {
+      viewWebPage: function() {
 
-      var addWebPageAsInteractive = function (iURL) {
-        var tDoc = DG.currDocumentController(),
-            tComponent = DG.Component.createComponent({
-              "type": "DG.GameView",
-              "componentStorage": {
-                "currentGameName": "",
-                "currentGameUrl": iURL,
-                allowInitGameOverride: true
-              }
-            });
-        tDoc.createComponentAndView( tComponent);
-      }.bind(this);
+        var this_ = this,
+            tDialog = null;
 
-      var tDialog = null;
-
-      function createWebPage() {
-        // User has pressed OK. tURL must have a value or 'OK' disabled.
-        var tURL = tDialog.get('value');
-        tDialog.close();
-        // If url does not contain http:// or https:// at the beginning, append http://
-        if (!/^https?:\/\//i.test(tURL)) {
-          tURL = 'http://' + tURL;
+        function createWebPage() {
+          // User has pressed OK. tURL must have a value or 'OK' disabled.
+          var tURL = tDialog.get('value');
+          tDialog.close();
+          // If url does not contain http:// or https:// at the beginning, append http://
+          if (!/^https?:\/\//i.test(tURL)) {
+            tURL = 'http://' + tURL;
+          }
+          this_.addWebView(  DG.mainPage.get('docView'), null,
+              tURL, 'Web Page',
+              { width: 600, height: 400 });
         }
-        addWebPageAsInteractive(tURL);
-      }
 
-      tDialog = DG.CreateSingleTextDialog( {
-                      prompt: 'DG.DocumentController.enterURLPrompt',
-                      textValue: '',
-                      textHint: 'URL',
-                      okTarget: null,
-                      okAction: createWebPage,
-                      okTooltip: 'DG.DocumentController.enterViewWebPageOKTip'
-                    });
-    },
-
+        tDialog = DG.CreateSingleTextDialog( {
+          prompt: 'DG.DocumentController.enterURLPrompt',
+          textValue: '',
+          textHint: 'URL',
+          okTarget: null,
+          okAction: createWebPage,
+          okTooltip: 'DG.DocumentController.enterViewWebPageOKTip'
+        });
+      },
     addWebView: function( iParentView, iComponent, iURL, iTitle, iLayout, isInitialization) {
       iURL = iURL || '';
       iTitle = iTitle || '';
       iLayout = iLayout || { width: 600, height: 400 };
       var tView;
-      var controller = DG.GameController.create();
       DG.UndoHistory.execute(DG.Command.create({
         name: 'webView.show',
         undoString: 'DG.Undo.webView.show',
@@ -1035,32 +1022,15 @@ DG.DocumentController = SC.Object.extend(
         isUndoable: !isInitialization,
         _component: null,
         execute: function() {
-          if (!iComponent) {
-            iComponent = DG.Component.createComponent({
-              "type": "DG.GameView",
-              componentStorage: {
-                currentGameUrl: iURL,
-                currentGameName: iTitle,
-                allowInitGameOverride: true
-              }
-            });
-          }
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
-                parentView: iParentView,
-                controller: controller,
-                componentClass: {
-                  type: 'DG.GameView',
-                  constructor: DG.GameView},
-                contentProperties: {
-                  value: iURL,
-                  backgroundColor: 'white',
-                  name: iTitle,
-                  controller: controller
-                },
-                defaultLayout: iLayout,
-                title: iTitle,
-                isResizable: true,
-                useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left) }
+            parentView: iParentView,
+            controller: DG.WebViewController.create(),
+            componentClass: { type: 'DG.WebView', constructor: DG.WebView},
+            contentProperties: { value: iURL, backgroundColor: 'white' },
+            defaultLayout: iLayout,
+            title: iTitle,
+            isResizable: true,
+            useLayout: !SC.none(iLayout.centerX) || !SC.none(iLayout.left) }
           );
           this._component = tView.getPath('controller.model');
         },
