@@ -220,7 +220,8 @@ DG.GameView = SC.View.extend(
                 return SC.json.encode(result);
               };
             } catch (e) {
-              DG.logWarn(e);
+              // Supress warning.
+              //DG.logWarn(e);
             }
           } else {
             DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
