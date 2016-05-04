@@ -1483,11 +1483,8 @@ DG.appController = SC.Object.create((function () // closure
      Show the help window.
      */
     showHelp: function () {
-      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
-          kWidth = 600, kHeight = 400,
-          tLayout = { left: (tDocFrame.width - kWidth) / 2, top: (tDocFrame.height - kHeight) / 2,
-            width: kWidth, height: kHeight };
-      // Changed link to play.codap.concord.org/support
+      var kWidth = 600, kHeight = 400,
+          tLayout = { width : kWidth, height: kHeight };
       DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
         (DG.showHelpURL),
         'DG.AppController.showHelpTitle'.loc(), //'Help with CODAP'
