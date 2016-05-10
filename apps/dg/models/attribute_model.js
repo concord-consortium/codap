@@ -270,6 +270,7 @@ DG.Attribute = DG.BaseModel.extend(
       return {
         name: this.name,
         type: this.type,
+        title: this.title,
         defaultMin: this.defaultMin,
         defaultMax: this.defaultMax,
         description: this.description,
