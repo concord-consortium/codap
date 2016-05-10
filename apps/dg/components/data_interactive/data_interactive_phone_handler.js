@@ -54,7 +54,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           attribute: this.handleAttribute,
-          //attributeList: this.handleAttributeList,
+          attributeList: this.handleAttributeList,
           case: this.handleCase,
           caseByIndex: this.handleCaseByIndex,
           caseByID: this.handleCaseByID,
@@ -62,7 +62,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
-          //componentList: this.handleComponentList,
+          componentList: this.handleComponentList,
           dataContext: this.handleDataContext,
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
@@ -510,6 +510,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         //}
       },
 
+      handleAttributeList: {
+        get: function (iResources) {
+          var collection = iResources.collection;
+          var values = [];
+          collection.forEachAttribute(function (attr) {
+            var value = {
+              id: attr.get('id'),
+              name: attr.get('name'),
+              title: attr.get('title')
+            };
+            values.push(value);
+          });
+          return {
+            success: true,
+            values: values
+          };
+        }
+      },
+
       handleCase: {
         create: function (iResources, iValues) {
           function createOneCase(iCase) {
@@ -559,80 +578,97 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-       handleComponent: {
-         create: function (iResource, iValues) {
-           var doc = DG.currDocumentController();
-           var type = iValues.type;
-           var typeClass;
-           var rtn;
-           switch (type) {
-             case 'graph':
-                 typeClass = 'DG.GraphView';
-               break;
-             case 'caseTable':
-                 typeClass = 'DG.TableView';
-               break;
-             case 'map':
-               typeClass = 'DG.MapView';
-               break;
-             case 'slider':
-               typeClass = 'DG.SliderView';
-               break;
-             case 'calculator':
-               typeClass = 'DG.Calculator';
-               break;
-             case 'text':
-               typeClass = 'DG.TextView';
-               break;
-             case 'webView':
-               typeClass = 'SC.WebView';
-               break;
-             case 'guide':
-               typeClass = 'DG.GuideView';
-               break;
-             default:
-           }
-           if (!SC.none(typeClass)) {
-             iValues[document] = doc;
-             iValues.type = typeClass;
-             //rtn = doc.createComponentAndView(DG.Component.createComponent(iValues), typeClass);
-             rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
-           } else {
-             DG.log('Unknown component type: ' + type);
-           }
-           return {
-             success: !SC.none(rtn)
-           };
-         },
-
-         update: function (iResources, iValues) {
-           var context = iResources.dataContext;
-           ['title', 'description'].forEach(function (prop) {
-               if (iValues[prop]) {
-                 context.set(prop, iValues[prop]);
-               }
-           });
-           return {
-             success: true
-           };
-         },
-
-         get: function (iResources) {
-           var component = iResources.component;
-           return {
-             success: true,
-             values: component.get('model').toArchive()
-           };
-         },
-
-         delete: function (iResource) {
-           var component = iResource.component;
-           component.destroy();
-           return {success: true};
+      handleComponent: {
+       create: function (iResource, iValues) {
+         var doc = DG.currDocumentController();
+         var type = iValues.type;
+         var typeClass;
+         var rtn;
+         switch (type) {
+           case 'graph':
+               typeClass = 'DG.GraphView';
+             break;
+           case 'caseTable':
+               typeClass = 'DG.TableView';
+             break;
+           case 'map':
+             typeClass = 'DG.MapView';
+             break;
+           case 'slider':
+             typeClass = 'DG.SliderView';
+             break;
+           case 'calculator':
+             typeClass = 'DG.Calculator';
+             break;
+           case 'text':
+             typeClass = 'DG.TextView';
+             break;
+           case 'webView':
+             typeClass = 'SC.WebView';
+             break;
+           case 'guide':
+             typeClass = 'DG.GuideView';
+             break;
+           default:
          }
+         if (!SC.none(typeClass)) {
+           iValues[document] = doc;
+           iValues.type = typeClass;
+           //rtn = doc.createComponentAndView(DG.Component.createComponent(iValues), typeClass);
+           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+         } else {
+           DG.log('Unknown component type: ' + type);
+         }
+         return {
+           success: !SC.none(rtn)
+         };
+       },
 
+       update: function (iResources, iValues) {
+         var context = iResources.dataContext;
+         ['title', 'description'].forEach(function (prop) {
+             if (iValues[prop]) {
+               context.set(prop, iValues[prop]);
+             }
+         });
+         return {
+           success: true
+         };
+       },
+
+       get: function (iResources) {
+         var component = iResources.component;
+         return {
+           success: true,
+           values: component.get('model').toArchive()
+         };
+       },
+
+       delete: function (iResource) {
+         var component = iResource.component;
+         component.destroy();
+         return {success: true};
        }
+      },
 
+      handleComponentList: {
+        get: function (iResources) {
+          var document = DG.currDocumentController();
+
+          var result = [];
+          DG.ObjectMap.forEach(document.get('components'), function(id, component) {
+            result.push( {
+              id: component.get('id'),
+              name: component.get('name'),
+              title: component.get('title')
+            });
+          });
+          return {
+            success: true,
+            values: result
+          };
+        }
+      }
       //get: function (iResources) {
       //  return {
       //    success: true,
