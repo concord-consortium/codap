@@ -34,21 +34,9 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').append();
 
-  DG.splash.showSplash();
-
   var documentLoaded = false,
     splashChanged = function() {
-      // When the splash screen times out, we will display the user entry dialog
-      // unless the url contained information about the document to open
-      if (!DG.splash.get('isShowing')
-          && !documentLoaded
-          && SC.empty(DG.startingDocName)
-          && SC.empty(DG.startingDocId)
-          && SC.empty(DG.startingDocUrl)
-      ) {
-        DG.userEntryController.setup(); // Create the user entry dialog.
         DG.splash.removeObserver('isShowing', splashChanged);
-      }
     };
 
   DG.appController.documentNameDidChange();
@@ -93,7 +81,6 @@ DG.main = function main() {
       }
     }
   }
-
   function cfmGlobalsLoaded() {
     return new Promise(function(resolve, reject) {
                 $.ajax({
@@ -524,6 +511,27 @@ DG.main = function main() {
       });
     }
   }
+
+  if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
+    DG.splash.showSplash();
+    DG.splash.addObserver('isShowing', splashChanged);
+  }
+  else {  // If componentMode is requested, open starting doc found in url params
+    if( !SC.empty( DG.startingDocName)) {
+      var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
+      DG.appController.openDocumentNamed( DG.startingDocName, owner);
+      DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
+      documentLoaded = true;
+    } else if( !SC.empty( DG.startingDocId)) {
+      DG.appController.openDocumentWithId( DG.startingDocId);
+      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
+      documentLoaded = true;
+    } else if ( !SC.empty(DG.startingDocUrl)) {
+      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
+      documentLoaded = true;
+    }
+  }
+
 
   translateQueryParameters();
 
