@@ -680,7 +680,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.set('aboutToChangeConfiguration', false ); // We're done
 
       ['x', 'y', 'y2'].forEach( function( iKey) {
-        var tAxisClass = DG[(iStorage[iKey + 'AxisClass']).substring(3)], // convert string to axis class
+        var tAxisClassName = iStorage[iKey + 'AxisClass'],
+            tAxisClass = tAxisClassName && DG[tAxisClassName.substring(3)], // convert string to axis class
             tPrevAxis = this.get( iKey + 'Axis'),
             tCurrentAxisClass = tPrevAxis.constructor;
         if( tAxisClass && tAxisClass !== tCurrentAxisClass) {

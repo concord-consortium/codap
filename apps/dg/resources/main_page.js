@@ -59,6 +59,7 @@ DG.mainPage = SC.Page.design((function() {
       layout: { height: kInfobarHeight },
       childViews: 'leftSide rightSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
+      isVisible: DG.componentMode !== 'yes',
 
       // CFM wrapper view
       leftSide: SC.View.design({
