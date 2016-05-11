@@ -59,6 +59,7 @@ DG.mainPage = SC.Page.design((function() {
       layout: { height: kInfobarHeight },
       childViews: 'leftSide rightSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
+      isVisible: DG.componentMode !== 'yes',
 
       leftSide: SC.View.design(SC.FlowedLayout, {
         layout: { width: 0, left: 5, height: kInfobarHeight, zIndex: 1  },
