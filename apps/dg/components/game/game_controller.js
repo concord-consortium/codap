@@ -96,6 +96,13 @@ DG.GameController = DG.ComponentController.extend(
      */
     gameEmbedID: null,
 
+      /**
+       * If true, permit the data interactive to participate in normal component
+       * selection, including
+       * @type {boolean}
+       */
+      preventBringToFront: true,
+
     /**
       Initialization method
      */
@@ -476,6 +483,10 @@ DG.GameController = DG.ComponentController.extend(
         });
       }
 
+      if (!SC.none(iArgs.preventBringToFront)) {
+        this.set('preventBringToFront', iArgs.preventBringToFront);
+      }
+
       this.set('doCommandFunc', iArgs.doCommandFunc);
       this.set('gameEmbedID', iArgs.gameEmbedID);
 
@@ -518,6 +529,7 @@ DG.GameController = DG.ComponentController.extend(
           return tReturn;
         }
       }
+
       finishInitGame.call(this);
       return tReturn;
     },
