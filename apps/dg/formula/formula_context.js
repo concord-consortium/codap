@@ -240,7 +240,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     		a = Math.pow(Math.sin((Math.PI / 180) * deltaLat/2), 2) + 
     			Math.cos(lat1 * Math.PI / 180) * Math.cos (lat2 * Math.PI / 180) * 
     				Math.pow(Math.sin((Math.PI / 180) * deltaLong/2), 2);
-    	return 6371*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    	return 2*6371*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
     },
 
     /**
