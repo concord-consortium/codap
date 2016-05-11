@@ -552,7 +552,9 @@ DG.ComponentView = SC.View.extend(
          * @param iZ {Number}
          */
         assignZ: function( iZ) {
-          this.adjust('zIndex', iZ);
+          if (!this.getPath('controller.preventBringToFront')) {
+            this.adjust('zIndex', iZ);
+          }
         },
 
         select: function () {
