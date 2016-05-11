@@ -67,9 +67,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
           //globalList: this.handleGlobalList,
-          interactiveFrame: this.handleInteractiveFrame//,
-          //logMessage: this.handleLogMessage,
-          //selectionList: this.handleSelectionList,
+          interactiveFrame: this.handleInteractiveFrame,
+          logMessage: this.handleLogMessage,
+          selectionList: this.handleSelectionList//,
           //undoChangeNotice: this.handleUndoChangeNotice
         };
       },
@@ -551,19 +551,30 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       handleCaseByIndex: {
-        get: function (iResource) {
+        get: function (iResources) {
+          var collection = iResources.collection;
+          var myCase = iResources.caseByIndex;
           return {
             success: true,
-            values: iResource.caseByIndex.toArchive()
+            values: {
+              case: myCase.toArchive(),
+              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+            }
           };
         }
       },
 
       handleCaseByID: {
+
         get: function (iResources) {
+          var collection = iResources.collection;
+          var myCase = iResources.caseByID;
           return {
             success: true,
-            values: iResources.caseByID.toArchive()
+            values: {
+              case: myCase.toArchive(),
+              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+            }
           };
         }
       },
@@ -578,6 +589,86 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
+      handleSelectionList: {
+        /**
+         * Returns an array containing ids of selected cases. If collection is
+         * provided, will filter the list to members of the collection.
+         * @param iResources
+         * @returns {{success: boolean, values: *}}
+         */
+        get: function (iResources) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var values = context.getSelectedCases().map(function(iCase) {
+            if (collection && collection !== iCase.collection) {
+              return;
+            } else {
+              return iCase.get('id');
+            }
+          });
+          return {
+            success: true,
+            values: values
+          };
+        },
+        /**
+         * Creates a selection list in this context. This collection will
+         * replace the current selection list. If collection is provided, this
+         * will be passed. Values are a array of case ids.
+         * @param iResources
+         * @param iValues
+         * @returns {{success: boolean}}
+         */
+        create: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var cases;
+          if (collection) {
+            cases = iValues.map(function (caseID) {
+              return collection.getCaseByID(caseID);
+            });
+          } else {
+            cases = iValues.map(function (caseID) {
+              return context.getCaseByID(caseID);
+            });
+          }
+          var result = context.applyChange({
+            operation: 'selectCases',
+            collection: collection,
+            cases: cases,
+            select: true,
+            extend: false
+          });
+          return {
+            success: result && result.success
+          };
+        },
+        update: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var cases;
+          if (collection) {
+            cases = iValues.map(function (caseID) {
+              return collection.getCaseByID(caseID);
+            });
+          } else {
+            cases = iValues.map(function (caseID) {
+              return context.getCaseByID(caseID);
+            });
+          }
+          var result = context.applyChange({
+            operation: 'selectCases',
+            collection: collection,
+            cases: cases,
+            select: true,
+            extend: true
+          });
+          return {
+            success: result && result.success
+          };
+        }
+
+      },
       handleComponent: {
        create: function (iResource, iValues) {
          var doc = DG.currDocumentController();
@@ -668,7 +759,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             values: result
           };
         }
+      },
+
+      handleLogMessage: {
+        create: function (iResources, iValues) {
+          DG.logUser(iValues);
+          return {
+            success: true
+          };
+        }
       }
+
       //get: function (iResources) {
       //  return {
       //    success: true,
