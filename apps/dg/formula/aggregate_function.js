@@ -154,6 +154,18 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
  */
 DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
 
+  // find the parent case that corresponds to the EvalContext's _collectionID_
+  // if the _collectionID_ is the evaluated case, then default to its parent
+  getGroupID: function(iEvalContext) {
+    var tCase = iEvalContext._case_,
+        tParent = tCase && tCase.get('parent');
+    for (; tCase; tCase = tCase.get('parent'), tParent = tCase) {
+      if (tCase.getPath('collection.id') === iEvalContext._collectionID_)
+        return tParent ? tParent.get('id') : null;
+    }
+    return null;
+  },
+
   /**
     Returns a computed result from the cache.
     This class implementation assumes that the cache is indexed by parent case ID,
@@ -168,8 +180,7 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
     if( iInstance.results) {
       if( iInstance.results[ iEvalContext._id_] !== undefined)
         return iInstance.results[ iEvalContext._id_];
-      var parentID = iEvalContext._case_ && iEvalContext._case_.getPath('parent.id'),
-          cacheID = parentID || null;
+      var cacheID = this.getGroupID( iEvalContext);
       if( iInstance.results[ cacheID] !== undefined)
         return iInstance.results[ cacheID];
     }
@@ -201,9 +212,10 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
     iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
-          parentID =  (tCase && tCase.getPath('parent.id')) || null,
-          e = { _case_: tCase, _id_: tCase && tCase.get('id') };
-      this.evalCase( iContext, e, iInstance, parentID);
+          tEvalContext = $.extend({}, iEvalContext,
+                                  { _case_: tCase, _id_: tCase && tCase.get('id') }),
+          cacheID = this.getGroupID(tEvalContext);
+      this.evalCase( iContext, tEvalContext, iInstance, cacheID);
     }
     
     return this.computeResults( iContext, iEvalContext, iInstance);

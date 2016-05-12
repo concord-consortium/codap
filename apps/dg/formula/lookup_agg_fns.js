@@ -50,16 +50,23 @@ DG.LookupAggFns = {
                                   : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
             firstCase = siblings && siblings.firstObject(),
-            tmpEvalContext = firstCase
-                                ? { _case_: firstCase, _id_: firstCase.get('id') }
-                                : null;
-        // If the formula is at the parent collection level but
-        // the attribute being referenced is at the child level,
-        // then the "first case" is different. We handle that
-        // possibility by stashing a separate _childCase_
-        // reference in the returned evaluation context.
-        if( children && children.length > 0)
-          tmpEvalContext._childCase_ = children.firstObject();
+            tmpEvalContext = firstCase ? { _caseMap_: {} } : null;
+        // The appropriate first case depends on the attribute argument.
+        // We stash a map of potential first cases into the evaluation context
+        // and then upstream clients can choose the appropriate one.
+        if (firstCase) {
+          tmpEvalContext._caseMap_[firstCase.getPath('collection.id')] = firstCase;
+        }
+        while (children && children.length > 0) {
+          var firstCase = children.firstObject(),
+              childCollectionID = firstCase && firstCase.getPath('collection.id');
+          tmpEvalContext._caseMap_[childCollectionID] = firstCase;
+          children = firstCase.get('children');
+        }
+        for (; parentCase; parentCase = parentCase.get('parent')) {
+          var parentCollectionID = parentCase.getPath('collection.id');
+          tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
+        }
         return tmpEvalContext;
       }
       
@@ -92,16 +99,23 @@ DG.LookupAggFns = {
                                   : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
             lastCase = siblings && siblings.lastObject(),
-            tmpEvalContext = lastCase
-                                ? { _case_: lastCase, _id_: lastCase.get('id') }
-                                : null;
-        // If the formula is at the parent collection level but
-        // the attribute being referenced is at the child level,
-        // then the "last case" is different. We handle that
-        // possibility by stashing a separate _childCase_
-        // reference in the returned evaluation context.
-        if( children && children.length > 0)
-          tmpEvalContext._childCase_ = children.lastObject();
+            tmpEvalContext = lastCase ? { _caseMap_: {} } : null;
+        // The appropriate last case depends on the attribute argument.
+        // We stash a map of potential last cases into the evaluation context
+        // and then upstream clients can choose the appropriate one.
+        if (lastCase) {
+          tmpEvalContext._caseMap_[lastCase.getPath('collection.id')] = lastCase;
+        }
+        while (children && children.length > 0) {
+          lastCase = children.lastObject();
+          var childCollectionID = lastCase && lastCase.getPath('collection.id');
+          tmpEvalContext._caseMap_[childCollectionID] = lastCase;
+          children = lastCase.get('children');
+        }
+        for (; parentCase; parentCase = parentCase.get('parent')) {
+          var parentCollectionID = parentCase.getPath('collection.id');
+          tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
+        }
         return tmpEvalContext;
       }
       
@@ -132,15 +146,29 @@ DG.LookupAggFns = {
       // the subsequent case, i.e. the case at the subsequent index.
       function getNextEvalContext( iContext, iEvalContext) {
         var iCase = iEvalContext._case_,
-          parentCase = iCase && iCase.get('parent'),
-          siblings = parentCase ? parentCase.get('children')
-                : (iContext && iContext.getPath('collection.cases')),
-          caseCount = siblings && siblings.get('length'),
-          thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-          nextCase = siblings && (thisCaseIndex < caseCount)
-                            ? siblings.objectAt( thisCaseIndex) // 0-based index
-                            : null;
-        return nextCase ? { _case_: nextCase, _id_: nextCase.get('id') } : null;
+            parentCase = iCase && iCase.get('parent'),
+            siblings = parentCase ? parentCase.get('children')
+                                  : (iContext && iContext.getPath('collection.cases')),
+            caseCount = siblings && siblings.get('length'),
+            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
+            nextCase = siblings && (thisCaseIndex < caseCount)
+                              ? siblings.objectAt( thisCaseIndex) // 0-based index
+                              : null,
+            tmpEvalContext = nextCase ? { _caseMap_: {} } : null;
+
+        // The appropriate next case depends on the attribute argument.
+        // We stash a map of potential next cases into the evaluation context
+        // and then upstream clients can choose the appropriate one.
+        // Note that we we don't support child cases because it's unclear
+        // what prev/next refer to among child cases.
+        if (nextCase) {
+          tmpEvalContext._caseMap_[nextCase.getPath('collection.id')] = nextCase;
+          for (; parentCase; parentCase = parentCase.get('parent')) {
+            var parentCollectionID = parentCase.getPath('collection.id');
+            tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
+          }
+        }
+        return tmpEvalContext;
       }
       
       var nextEvalContext = valueFn && getNextEvalContext( iContext, iEvalContext);
@@ -171,14 +199,28 @@ DG.LookupAggFns = {
       // is the previous case, i.e. the case at the previous index.
       function getPrevEvalContext( iContext, iEvalContext) {
         var iCase = iEvalContext._case_,
-          parentCase = iCase && iCase.get('parent'),
-          siblings = parentCase ? parentCase.get('children')
-                  : (iContext && iContext.getPath('collection.cases')),
-          thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-          prevCase = siblings && (thisCaseIndex >= 2)
-                            ? siblings.objectAt( thisCaseIndex - 2)  // 0-based index
-                            : null;
-        return prevCase ? { _case_: prevCase, _id_: prevCase.get('id') } : null;
+            parentCase = iCase && iCase.get('parent'),
+            siblings = parentCase ? parentCase.get('children')
+                                  : (iContext && iContext.getPath('collection.cases')),
+            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
+            prevCase = siblings && (thisCaseIndex >= 2)
+                              ? siblings.objectAt( thisCaseIndex - 2)  // 0-based index
+                              : null,
+            tmpEvalContext = prevCase ? { _caseMap_: {} } : null;
+
+        // The appropriate prev case depends on the attribute argument.
+        // We stash a map of potential prev cases into the evaluation context
+        // and then upstream clients can choose the appropriate one.
+        // Note that we we don't support child cases because it's unclear
+        // what prev/next refer to among child cases.
+        if (prevCase) {
+          tmpEvalContext._caseMap_[prevCase.getPath('collection.id')] = prevCase;
+          for (; parentCase; parentCase = parentCase.get('parent')) {
+            var parentCollectionID = parentCase.getPath('collection.id');
+            tmpEvalContext._caseMap_[parentCollectionID] = parentCase;
+          }
+        }
+        return tmpEvalContext;
       }
       
       var prevEvalContext = valueFn && getPrevEvalContext( iContext, iEvalContext);
