@@ -145,6 +145,10 @@ DG.FormulaContext = SC.Object.extend( (function() {
     'frac': function(x) {
       return x - this.trunc(x);
     },
+
+    'isFinite': function(x) {
+      return DG.isFinite(x);
+    },
     
     /**
       Returns the natural logarithm (base e) of its argument.

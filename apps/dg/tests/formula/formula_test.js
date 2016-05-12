@@ -163,6 +163,13 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("3%2"), 1, "modulo division");
   equals( buildAndEval("2^3"), 8, "two-term power expression");
   equals( buildAndEval("2^3^2"), 512, "three-term power expression");
+  equals( buildAndEval("isFinite(0)"), true, "isFinite(0)");
+  equals( buildAndEval("isFinite('0')"), true, "isFinite('0')");
+  equals( buildAndEval("isFinite('')"), false, "isFinite('')");
+  equals( buildAndEval("isFinite('string')"), false, "isFinite('string')");
+  equals( buildAndEval("isFinite(0/1)"), true, "isFinite(0/1)");
+  equals( buildAndEval("isFinite(1/0)"), false, "isFinite(1/0)");
+  equals( buildAndEval("isFinite(0/0)"), false, "isFinite(0/0)");
   equals( buildAndEval("abs(-1)"), 1, "abs() -- absolute value");
   equals( buildAndEval("acos(1)"), 0, "acos() -- arccosine");
   equals( buildAndEval("asin(0)"), 0, "asin() -- arcsine");

@@ -45,18 +45,16 @@ DG.UnivariateStatsFns = {
           value = valueFn && valueFn( iContext, iEvalContext);
       // Count:
       //  -- all cases if there are no arguments (!valueFn)
-      //  -- non-empty values except for boolean false
+      //  -- non-empty values except for boolean false and empty string
       //      (this way count(x>0) returns the expected result)
       // We don't use the cache, since all we need is the result counts.
-      if( !valueFn || (!SC.none( value) && (value !== false))) {
+      if( !valueFn || (!SC.empty( value) && (value !== false))) {
         if( iInstance.results[ iCacheID])
           ++iInstance.results[ iCacheID];
         else
           iInstance.results[ iCacheID] = 1;
       }
-      
     }
-  
   }),
 
   /**
@@ -69,8 +67,8 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && Number(valueFn( iContext, iEvalContext));
-      if( isFinite( value)) {
+          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.min > value)
@@ -79,7 +77,6 @@ DG.UnivariateStatsFns = {
         else
           iInstance.caches[ iCacheID] = { min: value };
       }
-      
     },
     
     computeResults: function( iContext, iEvalContext, iInstance) {
@@ -89,7 +86,6 @@ DG.UnivariateStatsFns = {
                             });
       return this.queryCache( iContext, iEvalContext, iInstance);
     }
-  
   }),
 
   /**
@@ -102,8 +98,8 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && Number(valueFn( iContext, iEvalContext));
-      if( isFinite( value)) {
+          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.max < value)
@@ -112,7 +108,6 @@ DG.UnivariateStatsFns = {
         else
           iInstance.caches[ iCacheID] = { max: value };
       }
-      
     },
     
     computeResults: function( iContext, iEvalContext, iInstance) {
@@ -122,7 +117,6 @@ DG.UnivariateStatsFns = {
                             });
       return this.queryCache( iContext, iEvalContext, iInstance);
     }
-  
   }),
 
   /**
@@ -135,8 +129,8 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && Number(valueFn( iContext, iEvalContext));
-      if( isFinite( value)) {
+          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           cache.count += 1;
@@ -145,7 +139,6 @@ DG.UnivariateStatsFns = {
         else
           iInstance.caches[ iCacheID] = { count: 1, sum: value };
       }
-      
     },
     
     computeResults: function( iContext, iEvalContext, iInstance) {
@@ -157,7 +150,6 @@ DG.UnivariateStatsFns = {
                             });
       return this.queryCache( iContext, iEvalContext, iInstance);
     }
-  
   }),
 
   /**
@@ -171,7 +163,6 @@ DG.UnivariateStatsFns = {
     extractResult: function( iCachedValues) {
       return DG.MathUtilities.medianOfNumericArray( iCachedValues);
     }
-    
   }),
 
   /**
@@ -184,16 +175,14 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var valueFn = iInstance.argFns[0],
-          value = valueFn && Number(valueFn( iContext, iEvalContext));
-      if( isFinite( value)) {
+          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      if( DG.isFinite( value)) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
         else
           iInstance.results[ iCacheID] = value;
       }
-      
     }
-  
   })
   
 };
