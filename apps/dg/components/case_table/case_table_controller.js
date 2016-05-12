@@ -401,12 +401,34 @@ DG.CaseTableController = DG.ComponentController.extend(
         @param iChange {Object}  An object describing the nature of the change
        */
       doChangeCaseValues: function( iChange) {
-        var adapters = this.get('caseTableAdapters');
-        if( adapters) {
-          adapters.forEach( function( iAdapter) {
-                                                  iAdapter.markCasesChanged( iChange.cases);
-                                                });
+        var adapters = {};
+        this.get('caseTableAdapters')
+            .forEach(function(iAdapter) {
+              var collectionID = iAdapter.getPath('collection.id');
+              adapters[collectionID] = { adapter: iAdapter, cases: [] };
+            });
+ 
+        function identifyCasesChanged(iCases) {
+          if (iCases) {
+            iCases.forEach(function(iCase) {
+              var collectionID = iCase.getPath('collection.id'),
+                  adapter = adapters[collectionID];
+              if (adapter) {
+                adapter.cases.push(iCase);
+                identifyCasesChanged(iCase.get('children'));
+              }
+            })
+          }
         }
+
+        // recursively identify all affected cases
+        identifyCasesChanged(iChange.cases);
+
+        DG.ObjectMap.forEach(adapters, function(id, iAdapter) {
+          if (iAdapter.cases.length > 0)
+            iAdapter.adapter.markCasesChanged(iAdapter.cases);
+        });
+        this.getPath('view.contentView').refresh();
       },
 
       /**
