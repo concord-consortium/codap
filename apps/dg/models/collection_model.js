@@ -483,6 +483,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           createdCases = createdCases.concat(childCases);
         }.bind(this));
       }
+      this.updateCaseIDToIndexMap();
       return createdCases;
     },
 
@@ -514,7 +515,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           }
         }.bind(this));
       }
-
+      this.updateCaseIDToIndexMap();
     },
 
     /**
