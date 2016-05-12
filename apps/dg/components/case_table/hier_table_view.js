@@ -284,7 +284,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        */
       rowCountDidChange: function(iNotifier) {
         this.get('dividerViews').forEach(function (view) {
-          if (view.parentView === iNotifier) {
+          if (view.get('rightTable') === iNotifier) {
             view.displayDidChange();
           }
         });
