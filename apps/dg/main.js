@@ -53,8 +53,6 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').append();
 
-  DG.splash.showSplash();
-
   var documentLoaded = false,
     splashChanged = function() {
       // When the splash screen times out, we will display the user entry dialog
@@ -69,9 +67,11 @@ DG.main = function main() {
         DG.splash.removeObserver('isShowing', splashChanged);
       }
     };
-  DG.splash.addObserver('isShowing', splashChanged);
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
+    DG.splash.showSplash();
+    DG.splash.addObserver('isShowing', splashChanged);
+
     if (DG.documentServer) {
       DG.authorizationController.requireLogin();
     } else {
@@ -79,8 +79,6 @@ DG.main = function main() {
     }
   }
   else {  // If componentMode is requested, open starting doc found in url params
-    DG.currGameController.set('gameIsReady', false);  // So user can't make graphs right away
-    DG.mainPage.addGameIfNotPresent();
     if( !SC.empty( DG.startingDocName)) {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
