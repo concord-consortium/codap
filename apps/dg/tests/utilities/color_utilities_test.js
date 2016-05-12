@@ -15,8 +15,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*global QUnit */
-sc_require('frameworks/sproutcore/frameworks/qunit/qunit');
 sc_require('utilities/color_utilities');
 
 DG.T = {};
@@ -37,13 +35,17 @@ module("DG.ColorUtilities", {
 
 test("DG.ColorUtilities.colorMapToArray", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
-      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']];
-  QUnit.deepEqual(DG.ColorUtilities.colorMapToArray( tMap), tArray, "convert map to array");
+      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']],
+      tConvertedArray = DG.ColorUtilities.colorMapToArray( tMap),
+      tConvertedMap = DG.ColorUtilities.colorArrayToColorMap(tConvertedArray);
+  // Note: same() relies on SproutCore's Array.isEqual() extension which
+  // doesn't work for this purpose, so we convert twice and compare maps instead.
+  same(tConvertedMap, tMap, "convert map to array");
 });
 
 test("DG.ColorUtilities.colorArrayToColorMap", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
       tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']];
-  QUnit.deepEqual(DG.ColorUtilities.colorArrayToColorMap( tArray), tMap, "convert array to map");
+  same(DG.ColorUtilities.colorArrayToColorMap( tArray), tMap, "convert array to map");
 });
 
