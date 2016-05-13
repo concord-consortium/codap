@@ -18,14 +18,47 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('formula/global_formula_context');
+sc_require('formula/collection_formula_context');
 sc_require('components/graph/adornments/plot_adornment_model');
 
 /** @class  The formula context used by the PlottedFunctionModel
 
   @extends DG.GlobalFormulaContext
 */
-DG.PlottedFunctionContext = DG.GlobalFormulaContext.extend({
+DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend({
+
+  /**
+    Set on construction: ['plottedValue' | 'plottedFunction']
+    @type {string}
+   */
+  adornmentKey: null,
+
+  /**
+    Set on construction
+    @type {DG.PlotModel}
+   */
+  plotModel: null,
+
+  /**
+    Set on construction; changing it in the model will change it here
+    Determines whether plotted value computations are evaluated over
+    subplots when a univariate plot is split. Defaults to false for
+    now since the subplot rendering hasn't been implemented yet.
+    @type {boolean}
+    @default {false}
+   */
+  splitEval: false,
+
+  /**
+    Utility function for identifying the name of the primary attribute.
+    @returns  {String}  the name of the variable on the primary axis
+   */
+  primaryVarName: function() {
+    var xVarID = this.getPath('plotModel.primaryVarID') || this.getPath('plotModel.xVarID'),
+        xVarAttr = xVarID && DG.Attribute.getAttributeByID(xVarID),
+        xVarName = xVarAttr && xVarAttr.get('name');
+    return !SC.empty( xVarName) ? xVarName : null;
+  }.property('plotModel'),
 
   /**
     Utility function for identifying the name of the X-axis attribute.
@@ -33,10 +66,25 @@ DG.PlottedFunctionContext = DG.GlobalFormulaContext.extend({
     @returns  {Boolean}   True if the identifier matches the name of the
                             x-axis attribute, false otherwise.
    */
-  isXAxisName: function( iName) {
-    var xName = this.getPath('dataConfiguration.xAttributeDescription.attribute.name');
-    return !SC.empty( xName) && (iName === xName);
-  },
+  isPrimaryVarName: function( iName) {
+    if (SC.empty(iName)) return false;
+    if (iName === this.get('primaryVarName')) return true;
+    if ((iName === 'x') && (this.get('adornmentKey') === 'plottedFunction')) return true;
+    return false;
+  }.property('primaryVarName'),
+
+  /**
+    Utility function for identifying the ID of the secondary/split attribute.
+    @returns  {String}  the ID of the variable on the secondary axis
+   */
+  groupVarID: function() {
+    // for plotted values/functions, we always want to override the default
+    // grouping by collection; therefore, if we don't have a split attribute
+    // we specify a non-falsy 'groupVarID' which will prevent the default
+    // grouping but won't actually generate values that would split into groups.
+    var splitEval = this.get('splitEval');
+    return splitEval ? this.getPath('plotModel.secondaryVarID') || -1 : -1;
+  }.property('splitEval', 'plotModel'),
 
   /**
     Compiles a variable reference into the JavaScript code for accessing
@@ -54,8 +102,16 @@ DG.PlottedFunctionContext = DG.GlobalFormulaContext.extend({
     // for the point being evaluated. For compilation purposes, we assume 
     // that the value is passed in by the client as part
     // of the evaluation context.
-    if( (iName === 'x') || this.isXAxisName( iName))
-      return 'e.x';
+    if( this.isPrimaryVarName( iName)) {
+      if (this.get('adornmentKey') === 'plottedValue') {
+        // let base class handle it by attribute name
+        // cf. http://sproutcore-gyan.blogspot.com/2010/03/modify-argument-value-before-calling.html
+        iName = this.get('primaryVarName');
+      }
+      else {
+        return 'e.x';
+      }
+    }
     
     // If we don't match any variables we're in charge of,
     // let the base class have a crack at it.
@@ -79,12 +135,36 @@ DG.PlottedFunctionContext = DG.GlobalFormulaContext.extend({
     // for the point being evaluated. For compilation purposes, we assume 
     // that the value is passed in by the client as part
     // of the evaluation context.
-    if( (iName === 'x') || this.isXAxisName( iName))
-      return iEvalContext && iEvalContext.x;
+    if( this.isPrimaryVarName( iName)) {
+      if (this.get('adornmentKey') === 'plottedValue') {
+        // let base class handle it by attribute name
+        // cf. http://sproutcore-gyan.blogspot.com/2010/03/modify-argument-value-before-calling.html
+        iName = this.get('primaryVarName');
+      }
+      else {
+        return iEvalContext.x;
+      }
+    }
     
     // If we don't match any variables we're in charge of,
     // let the base class have a crack at it.
     return sc_super();
+  },
+  
+  /**
+    Builds the array of argument expressions.
+   */
+  marshalArguments: function( iEvalContext, iInstance) {
+    sc_super();
+
+    // if no argument was specified, make a reference to the primary
+    // univariate variable available, since some functions will use it
+    if (!iInstance.args.length && (this.get('adornmentKey') === 'plottedValue')) {
+      var uniVarName = this.get('primaryVarName'),
+          uniVarExpr = uniVarName && this.compileVariable(uniVarName);
+      if (uniVarExpr)
+        iInstance.uniVarFn = DG.FormulaContext.createContextFunction(uniVarExpr);
+    }
   }
   
  });
@@ -97,8 +177,18 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
 /** @scope DG.PlottedFunctionModel.prototype */ 
 {
   /**
+    Controls split/cell evaluation; set to false to disable
+    Determines whether plotted value computations are evaluated over
+    subplots when a univariate plot is split. Defaults to false for
+    now since the subplot rendering hasn't been implemented yet.
+    @type {boolean}
+    @default {false}
+   */
+  splitEval: false,
+
+  /**
     The algebraic expression to plot.
-    @property { DG.Formula }
+    @type {DG.Formula}
   */
   _expression: null,
   
@@ -144,10 +234,12 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     Utility function for creating the DG.Formula.
    */
   createDGFormula: function( iSource) {
-    this._expression = DG.Formula.create({
-                                    context: DG.PlottedFunctionContext.create(),
-                                    source: iSource });
-    this._expression.setPath('context.dataConfiguration', this.get('dataConfiguration'));
+    var context = DG.PlottedFunctionContext
+                      .create({ adornmentKey: this.get('adornmentKey'),
+                                plotModel: this.get('plotModel'),
+                                splitEval: this.get('splitEval'),
+                                collection: this.get('primaryCollection') });
+    this._expression = DG.Formula.create({ context: context, source: iSource });
     this._expression.addObserver('dependentChange', this, 'dependentDidChange');
   },
   
@@ -160,6 +252,31 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     this._expression = null;
   },
   
+  /**
+    Utility function to return the collection represented by the attribute on the
+    "primary" axis (X for scatter plots, could be X or Y for univariate plots)
+   */
+  primaryCollection: function() {
+    var attrID = this.getPath('plotModel.primaryVarID') || this.getPath('plotModel.xVarID'),
+        attribute = attrID && DG.Attribute.getAttributeByID(attrID),
+        collection = attribute && attribute.get('collection');
+    return collection;
+  }.property('plotModel'),
+
+  /**
+    Utility function to return the split axis, i.e. the categorical attribute
+    on the secondary axis, if any.
+   */
+  splitAxisModel: function() {
+    if (this.get('splitEval')) {
+      if (!this.getPath('plotModel.yAxis.isNumeric'))
+        return this.getPath('plotModel.yAxis');
+      if (!this.getPath('plotModel.xAxis.isNumeric'))
+        return this.getPath('plotModel.xAxis');
+    }
+    return null;
+  }.property('splitEval', 'plotModel'),
+
   /**
     Observer function called when the formula indicates that
     a dependent has changed. This method merely propagates the
@@ -183,13 +300,13 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
   
   /**
     Evaluates the plotted function at the specified x value.
-    @param    {Number}            The x value at which to evaluated the expression
+    @param    {Object}            The set of values available to the expression the expression
     @returns  {Number|undefined}  The evaluated result
    */
-  evaluate: function( x) {
+  evaluate: function( iEvalContext) {
     if( !this._expression) return;
     // Note that this will propagate any exceptions thrown.
-    return this._expression.evaluate({ x: x });
+    return this._expression.evaluate( iEvalContext);
   },
 
   /**
@@ -198,6 +315,7 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
   createStorage: function() {
     var storage = sc_super();
     
+    storage.adornmentKey = this.get('adornmentKey');
     storage.expression = this.get('expression');
 
     return storage;
@@ -208,6 +326,7 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
    */
   restoreStorage: function( iStorage) {
     sc_super();
+    this.set('adornmentKey', iStorage.adornmentKey);
     this.set('expression', iStorage.expression);
   }
 

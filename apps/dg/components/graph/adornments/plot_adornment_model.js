@@ -24,14 +24,20 @@ DG.PlotAdornmentModel = SC.Object.extend(
 /** @scope DG.PlotAdornmentModel.prototype */
 {
   /**
-    The plot model to which the adornment is attached.
-    @property   {DG.PlotModel}
+    The plot model to which the adornment is attached; set on construction
+    @type   {DG.PlotModel}
    */
   plotModel: null,
   
   /**
+    The 'type' string by which this model is registered; set on construction
+    @type   {string}
+   */
+  adornmentKey: null,
+
+  /**
     True if the adornment should be displayed, false if it's hidden.
-    @property   {Boolean}
+    @type   {Boolean}
    */
   isVisible: true,
   
