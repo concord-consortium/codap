@@ -154,11 +154,6 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
         function toggle() {
           this_.toggleAdornmentVisibility('plottedFunction', 'togglePlotFunction');
-          if (this_.isAdornmentVisible('plottedFunction')) {
-            var plottedFunction = this_.getAdornmentModel('plottedFunction');
-            if (plottedFunction)
-              plottedFunction.set('dataConfiguration', this_.get('dataConfiguration'));
-          }
         }
 
         var willShow = !this.isAdornmentVisible('plottedFunction');

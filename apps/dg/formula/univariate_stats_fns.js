@@ -41,8 +41,7 @@ DG.UnivariateStatsFns = {
     requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var valueFn = iInstance.argFns[0],
-          value = valueFn && valueFn( iContext, iEvalContext);
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       // Count:
       //  -- all cases if there are no arguments (!valueFn)
       //  -- non-empty values except for boolean false and empty string
@@ -63,11 +62,10 @@ DG.UnivariateStatsFns = {
    */
   min: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var valueFn = iInstance.argFns[0],
-          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -94,11 +92,10 @@ DG.UnivariateStatsFns = {
    */
   max: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var valueFn = iInstance.argFns[0],
-          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -125,11 +122,10 @@ DG.UnivariateStatsFns = {
    */
   mean: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var valueFn = iInstance.argFns[0],
-          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       if( DG.isFinite( value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
@@ -158,7 +154,7 @@ DG.UnivariateStatsFns = {
    */
   median: DG.SortDataFunction.create({
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 0, max: 1 },
 
     extractResult: function( iCachedValues) {
       return DG.MathUtilities.medianOfNumericArray( iCachedValues);
@@ -171,11 +167,10 @@ DG.UnivariateStatsFns = {
    */
   sum: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var valueFn = iInstance.argFns[0],
-          value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       if( DG.isFinite( value)) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
