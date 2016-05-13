@@ -55,7 +55,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         this.handlerMap = {
           attribute: this.handleAttribute,
           attributeList: this.handleAttributeList,
-          case: this.handleCase,
+          'case': this.handleCase,
           caseByIndex: this.handleCaseByIndex,
           caseByID: this.handleCaseByID,
           caseCount: this.handleCaseCount,
@@ -311,7 +311,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
 
-        delete: function (iResources, iValues) {
+        'delete': function (iResources, iValues) {
           var context = iResources.dataContext;
           context.destroy();
           return {
@@ -557,7 +557,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: true,
             values: {
-              case: myCase.toArchive(),
+              'case': myCase.toArchive(),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
             }
           };
@@ -572,7 +572,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: true,
             values: {
-              case: myCase.toArchive(),
+              'case': myCase.toArchive(),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
             }
           };
@@ -735,7 +735,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          };
        },
 
-       delete: function (iResource) {
+       'delete': function (iResource) {
          var component = iResource.component;
          component.destroy();
          return {success: true};
