@@ -96,7 +96,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @returns {{}}
        */
       parseResourceSelector: function (iResource) {
-        var selectorRE = /([A-Za-z0-9_]+)\[([#_A-Za-z0-9][A-Za-z0-9_]*)]/;
+        var selectorRE = /([A-Za-z0-9_]+)\[([#_A-Za-z0-9][^\]]*)]/;
         var result = {};
         var selectors = iResource.split('.');
         result.type = '';
@@ -554,12 +554,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var collection = iResources.collection;
           var myCase = iResources.caseByIndex;
+          var values = {
+            'case': myCase.toArchive(),
+            caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+          };
+          values.case.children = myCase.children.map(function (child) {return child.id;});
           return {
             success: true,
-            values: {
-              'case': myCase.toArchive(),
-              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
-            }
+            values: values
           };
         }
       },
@@ -569,12 +571,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var collection = iResources.collection;
           var myCase = iResources.caseByID;
+          var values = {
+            'case': myCase.toArchive(),
+            caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+          };
+          values.case.children = myCase.children.map(function (child) {return child.id;});
           return {
             success: true,
-            values: {
-              'case': myCase.toArchive(),
-              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
-            }
+            values: values
           };
         }
       },
