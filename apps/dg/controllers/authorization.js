@@ -413,7 +413,7 @@ return {
         activity:    extract(iProperties, 'activity') || 'Unknown',
         application: extract(iProperties, 'application'),
         username:    this.getPath('currLogin.user'),
-        session:     this.getPath('currLogin.sessionID'),
+        session:     DG.get('runKey'),
         // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
         time:        time.getTime(),
         event:       event,
