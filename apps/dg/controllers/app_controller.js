@@ -729,8 +729,8 @@ DG.appController = SC.Object.create((function () // closure
           if (forceSave || DG.currDocumentController().get('hasUnsavedChanges')) {
             DG.authorizationController.checkLogin().then(function() {
                 this.documentArchiver.saveDocument(docName, documentPermissions);
-                var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
-                DG.logInfo(msg, docName);
+                //var msg = (forceSave ? 'saveDocument' : 'autoSaveDocument') + ": '%@'";
+                //DG.logInfo(msg, docName);
               }.bind(this),
               function (msg) {
                DG.logWarn("SaveDocument failure: " + msg);
