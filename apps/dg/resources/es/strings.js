@@ -22,7 +22,7 @@
 // how your UI will look and you'll notice right away when something needs a
 // localized string added to this file!
 //
-SC.stringsFor('English', {
+SC.stringsFor('Español', {
   // mainPage.js
   'DG.mainPage.mainPane.logoutButton.title': "Cerrar Sesión",
   'DG.mainPage.mainPane.logoutButton.toolTip': "Cerrar sesión para el usuario actual",
