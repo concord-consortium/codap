@@ -22,24 +22,24 @@
 // how your UI will look and you'll notice right away when something needs a
 // localized string added to this file!
 //
-SC.stringsFor('English', {
+SC.stringsFor('Español', {
   // mainPage.js
-  'DG.mainPage.mainPane.logoutButton.title': "Logout",
-  'DG.mainPage.mainPane.logoutButton.toolTip': "Log out the current user",
-  'DG.mainPage.mainPane.undoButton.title': "Undo",
-  'DG.mainPage.mainPane.undoButton.toolTip': "Undo the last action",
-  'DG.mainPage.mainPane.redoButton.title': "Redo",
-  'DG.mainPage.mainPane.redoButton.toolTip': "Redo the last undone action",
-  'DG.mainPage.mainPane.versionString': "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
-  'DG.mainPage.mainPane.messageView.value': "Unfortunately, DG is not currently supported on your browser. " +
-  "DG is supported on Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
-  "DG is not actively supported on other browsers at this time.",
-  'DG.mainPage.titleBar.saved': 'Document Saved!',
+  'DG.mainPage.mainPane.logoutButton.title': "Cerrar Sesión",
+  'DG.mainPage.mainPane.logoutButton.toolTip': "Cerrar sesión para el usuario actual",
+  'DG.mainPage.mainPane.undoButton.title': "Deshacer",
+  'DG.mainPage.mainPane.undoButton.toolTip': "Deshacer la última acción",
+  'DG.mainPage.mainPane.redoButton.title': "Rehacer",
+  'DG.mainPage.mainPane.redoButton.toolTip': "Rehacer la última acción",
+  'DG.mainPage.mainPane.versionString': "Versión %@ (%@)", // DG.VERSION, DG.BUILD_NUM
+  'DG.mainPage.mainPane.messageView.value': "Desfortunadamente, DG no se apoya en su navegador." +
+  "DG se apoya en Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
+  "DG no se apoya activamente en otros versiones o navegadores ahora.",
+  'DG.mainPage.titleBar.saved': '¡Documento Guardado!',
 
   // DG.UserEntryDialog
-  'DG.UserEntryDialog.welcome'                 : 'Welcome to CODAP',
-  'DG.UserEntryDialog.welcome2'                : 'What would you like to do?',
-  'DG.UserEntryDialog.openNew.option'          : 'Start a New Document...',
+  'DG.UserEntryDialog.welcome'                 : 'Bienvenidos a CODAP',
+  'DG.UserEntryDialog.welcome2'                : '¿Qué quiere usted hacer?',
+  'DG.UserEntryDialog.openNew.option'          : 'Empezar un Nuevo Documento...',
   'DG.UserEntryDialog.openNew.prompt'          : 'Please provide a title for your new document:',
   'DG.UserEntryDialog.openNew.titleFieldHint'  : 'Enter a document title here...',
   'DG.UserEntryDialog.openNew.button'          : 'OK',

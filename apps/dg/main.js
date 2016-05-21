@@ -173,8 +173,8 @@ DG.main = function main() {
               "mimeType": "application/json",
               "clientId": "1095918012594-svs72eqfalasuc4t1p1ps1m8r9b8psso.apps.googleusercontent.com"
             },
-            "localFile",
-            "localStorage"
+            "localFile"//,
+            //"localStorage"
           ]
         };
     iCloudFileManager.init(options);

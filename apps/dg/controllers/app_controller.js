@@ -1433,7 +1433,8 @@ DG.appController = SC.Object.create((function () // closure
         console.log("Device: "+SC.browser.device);
         console.log("OS: "+SC.browser.os+ " v."+SC.browser.osVersion);
 
-        SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
+        //SC.Request.postUrl('http://app.codap.concord.org/DataGames/WebPages/scripts/datagames.php?'+
+        SC.Request.postUrl('https://codap.concord.org/help/contact?'+
           'device='+ SC.browser.device +
           '&os='+SC.browser.os+
           '&os_version='+SC.browser.osVersion+
