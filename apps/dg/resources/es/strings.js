@@ -22,7 +22,7 @@
 // how your UI will look and you'll notice right away when something needs a
 // localized string added to this file!
 //
-SC.stringsFor('Español', {
+SC.stringsFor('es', {
   // mainPage.js
   'DG.mainPage.mainPane.logoutButton.title': "Cerrar Sesión",
   'DG.mainPage.mainPane.logoutButton.toolTip': "Cerrar sesión para el usuario actual",
@@ -257,15 +257,15 @@ SC.stringsFor('Español', {
   'DG.ToolButtonData.fileMenu.toolTip': "Save and open document (ctrl-s and ctrl-o)",
   'DG.ToolButtonData.gameMenu.title': "Game",
   'DG.ToolButtonData.gameMenu.toolTip': "Choose the game to play (ctrl-alt-shift-g)",
-  'DG.ToolButtonData.tableButton.title': "Tables",
+  'DG.ToolButtonData.tableButton.title': "Listas",
   'DG.ToolButtonData.tableButton.toolTip': "Open a case table for each data set(ctrl-alt-t)",
-  'DG.ToolButtonData.graphButton.title': "Graph",
+  'DG.ToolButtonData.graphButton.title': "Graphico",
   'DG.ToolButtonData.graphButton.toolTip': "Make a graph (ctrl-alt-g)",
-  'DG.ToolButtonData.sliderButton.title': "Slider",
+  'DG.ToolButtonData.sliderButton.title': "Seslizador",
   'DG.ToolButtonData.sliderButton.toolTip': "Make a slider (ctrl-alt-s)",
   'DG.ToolButtonData.calcButton.title': "Calc",
   'DG.ToolButtonData.calcButton.toolTip': "Open/close the calculator (ctrl-alt-c)",
-  'DG.ToolButtonData.textButton.title': "Text",
+  'DG.ToolButtonData.textButton.title': "Texto",
   'DG.ToolButtonData.textButton.toolTip': "Make a text object (ctrl-alt-shift-t)",
   'DG.ToolButtonData.mapButton.title': "Map",
   'DG.ToolButtonData.mapButton.toolTip': "Make a map",
@@ -512,7 +512,7 @@ SC.stringsFor('Español', {
   'DG.DataDisplayModel.HideConnectingLine': "Hide Connecting Lines",
 
   // DG.AxisView
-  'DG.AxisView.emptyGraphCue': 'Click here, or drag an attribute here.',
+  'DG.AxisView.emptyGraphCue': 'Haga clic aquí, o arrastrar un atributo aquí.',
 
   // DG.CellLinearAxisView
   'DG.CellLinearAxisView.midPanelTooltip': "Drag to translate axis scale",
