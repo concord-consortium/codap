@@ -1378,7 +1378,7 @@ DG.DocumentController = SC.Object.extend(
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if (gameContext && gameController.saveGameState) {
+              if (gameController.saveGameState) {
                 gameController.saveGameState(function (result) {
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
@@ -1394,7 +1394,7 @@ DG.DocumentController = SC.Object.extend(
                 resolve({success: true});
               }
             } catch (ex) {
-              DG.logWarn("Exception saving game context(" + gameContext.get('gameName') + "): " + ex);
+              DG.logWarn("Exception saving game context: " + ex);
               resolve({success: false});
             }
           }));

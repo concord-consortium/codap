@@ -35,6 +35,15 @@ sc_require('controllers/component_controller');
 DG.GameController = DG.ComponentController.extend(
 /** @scope DG.GameController.prototype */ {
 
+      /**
+       * Every game manages exactly one GameContext. A game context knows
+       * basic information about the game and has collections and the namespace
+       * for the game to store its data into.
+       *
+       * @property {DG.GameContext}
+       */
+      contextBinding: '.controller.context',
+
       savedChangeCount: 0,
 
       /**
@@ -55,7 +64,107 @@ DG.GameController = DG.ComponentController.extend(
       },
 
       gameViewWillClose: function() {
-      }
+      },
+
+      /**
+       * Saves the current state of the DataInteractive (if the DataInteractive supports this).
+       *
+       * This should be assumed to be asynchronous, as it will generally use iFramePhone,
+       * although it's possible for it to return synchronously.
+       *
+       * @param {Function} callback     A function which will be called with a results object:
+       * {success: bool, state: state}
+       */
+      saveGameState: function (callback) {
+        var dataInteractiveHandler = this.getPath('view.contentView.dataInteractivePhoneHandler');
+        var gamePhoneHandler = this.getPath('view.contentView.gamePhoneHandler');
+        if (dataInteractiveHandler && dataInteractiveHandler.get('isActive')) {
+          dataInteractiveHandler.requestDataInteractiveState(callback);
+        } else if (gamePhoneHandler && gamePhoneHandler.get('gameIsReady')) {
+          gamePhoneHandler.saveGameState(callback);
+        } else {
+          callback({success: false, state: null});
+        }
+      },
+
+      /**
+       *  Returns an object that should be stored with the document when the document is saved.
+       *  @returns  {Object}  An object whose properties should be stored with the document.
+       */
+      createComponentStorage: function () {
+        var tStorage = this.getPath('model.componentStorage');
+
+        if (!SC.none(this.context)) {
+          // Save information about the current game
+          tStorage.currentGameName = this.getPath('context.gameName');
+          tStorage.currentGameUrl = this.getPath('context.gameUrl');
+        }
+
+        var dataContext = this.get('context');
+
+        if (dataContext && !this.getLinkID(tStorage, 'context')) {
+          this.addLink(tStorage, 'context', dataContext);
+        }
+
+        // Save any user-created formulas from DG.FormulaObjects.
+        // Currently, only formulas from the current game are saved.
+        // Eventually, the formulas should be stored with the DG.GameContext
+        // and they should be saved for any game in which formulas are defined.
+        tStorage.currentGameFormulas = SC.clone(this.getPath('context.formulas'));
+
+        return tStorage;
+      },
+
+      /**
+       *  Restores the properties of the DG.GamePhoneHandler from the specified Object.
+       *  @param  {Object}  iComponentStorage -- The object whose properties should be restored.
+       *  @param  {String}  iDocumentID -- The ID of the document being restored.
+       */
+      restoreComponentStorage: function (iComponentStorage, iDocumentID) {
+        var gameName = iComponentStorage.currentGameName,
+            gameUrl = iComponentStorage.currentGameUrl,
+            contextID,
+            dataContext;
+
+
+        // We try to hook up the appropriate restored context.
+        // Try to restore the data context for the current game.
+        // First, see if it was written out with the document.
+        // (Writing out the link began in build 0175.)
+        contextID = this.getLinkID(iComponentStorage, 'context');
+        dataContext = contextID && DG.DataContext.retrieveContextFromMap(iDocumentID, contextID);
+        if (!dataContext) {
+          // If it wasn't written out with the document, look for one
+          // associated with a game of the correct name, or for the
+          // first context as a last resort.
+          DG.currDocumentController().contexts.forEach(function (iContext) {
+            // Look for a context with matching game name.
+            // Note that at the moment, 'gameName' is a computed
+            // property which relies on the 'gameSpec' property
+            // having been set, which is unlikely to have occurred
+            // given that the gameSpec doesn't know about the context.
+            // This could change down the road, however, so we leave it.
+            if (!dataContext && iContext) {
+              var contextGameName = iContext.get('gameName');
+              if (contextGameName === gameName) {
+                dataContext = iContext;
+              }
+            }
+          });
+        }
+        if (dataContext) {
+          this.set('context', dataContext);
+          this.setPath('context.gameName', gameName);
+          this.setPath('context.gameUrl', gameUrl);
+        }
+
+        // If there are user-created formulas to restore, set them in the
+        // gameSpec.
+        if (dataContext && iComponentStorage.currentGameFormulas)
+          dataContext.set('formulas', iComponentStorage.currentGameFormulas);
+
+        this.set('gameIsReady', true);
+      },
 
 
     }) ;
