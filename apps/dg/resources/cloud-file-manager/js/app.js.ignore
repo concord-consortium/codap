@@ -10274,6 +10274,7 @@ CloudFileManagerClient = (function() {
       } else {
         if (metadata) {
           metadata.name = newName;
+          metadata.filename = newName;
         } else {
           metadata = new CloudMetadata({
             name: newName,
@@ -13214,6 +13215,8 @@ App = React.createClass({
     }) : void 0);
   },
   render: function() {
+    var menuItems;
+    menuItems = !this.props.hideMenuBar ? this.state.menuItems : [];
     if (this.props.appOrMenuElemId) {
       return div({
         className: this.props.usingIframe ? 'app' : 'view'
@@ -13222,7 +13225,7 @@ App = React.createClass({
         filename: this.state.filename,
         provider: this.state.provider,
         fileStatus: this.state.fileStatus,
-        items: this.state.menuItems,
+        items: menuItems,
         options: this.state.menuOptions
       }), this.props.usingIframe ? InnerApp({
         app: this.props.app
