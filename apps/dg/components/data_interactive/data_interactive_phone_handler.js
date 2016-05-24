@@ -32,6 +32,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       model: null,
 
       /**
+       * Handles communication over PostMessage interface.
+       *
+       * Set up by creator.
+       *
+       * @property {iframePhone.IframePhoneRpcEndpoint}
+       */
+      phone: null,
+
+      /**
+       * Whether activity has been detected on this channel.
+       * @property {boolean}
+       */
+      isActive: false,
+
+      /**
        The total number of document-dirtying changes.
        @property   {Number}
        */
@@ -80,6 +95,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       destroy: function () {
         this.setPath('model.content', null);
         sc_super();
+      },
+
+      requestDataInteractiveState: function (callback) {
+        this.phone.call({action: 'get', resource: 'interactiveState'}, callback);
       },
 
       /**
@@ -175,7 +194,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return result;
       },
 
+      /**
+       * Respond to requests from a Data Interactive.
+       *
+       * Parses the request, instanciates any named resources, finds a handler
+       * and invokes it.
+       *
+       * @param iMessage See documentation on the github wiki: TODO
+       * @param iCallback
+       */
       doCommand: function (iMessage, iCallback) {
+        this.set('isActive', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
         var result = ({success: false});
         try {
@@ -198,10 +227,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   result = handler[action](resourceMap, iMessage.values) || {success: false};
                 }.bind(this));
               } else {
-                SC.run(function () {
-                  iMessage.what = selectorMap;
-                  result = handler(iMessage) || {success: false};
-                }.bind(this));
+                DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
               }
             } else {
               DG.logWarn("Unknown message type: " + type);
