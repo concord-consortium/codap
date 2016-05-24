@@ -532,21 +532,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleCase: {
         create: function (iResources, iValues) {
           function createOneCase(iCase) {
-            var change = {
+            var changeResult = context.applyChange({
               operation: 'createCases',
               collection: collection,
-              parent: iCase.parent,
+              properties: {
+                parent: iCase.parent
+              },
               values: [iCase.values]
-            };
-            var changeResult = context.applyChange(change);
+            });
             success = (changeResult && changeResult.success) && success;
+            if (changeResult.caseIDs[0]) {
+              caseIDs.push({id: changeResult.caseIDs[0]});
+            }
           }
           var success = true;
           var context = iResources.dataContext;
           var collection = iResources.collection;
           var cases = Array.isArray(iValues)?iValues: [iValues];
+          var caseIDs = [];
           cases.forEach(createOneCase);
-          return {success: success};
+          return {success: success, values: {caseIDs: caseIDs}};
         },
       },
 
