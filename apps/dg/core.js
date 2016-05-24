@@ -356,6 +356,8 @@ DG = SC.Application.create((function () // closure
      */
     componentMode: getUrlParameter('componentMode', 'no'),
 
+    hideCFMMenu: getUrlParameter('launchFromLara') === 'true',
+
     toolButtons: [ // These appear on the left side of the tool shelf
       //'fileMenu',
       //'gameMenu',

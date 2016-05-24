@@ -28,26 +28,7 @@ sc_require('controllers/authorization');
 //
 DG.main = function main() {
 
-//  var host = SC.$(location).attr('host'),
-//      bodyclass = "";
-
  DG.Browser.init(); // Import any DG specific browser hacks we need.
-
- // We will set a CSS class on the <body> tag based on the hostname in the URL
- // This will allow e.g. different backgrounds on a local or dev build.
-// if( !SC.empty(host))
-// {
-//    var patt=new RegExp(/[^:\.]*(?=[:\.])/);
-//    bodyclass = patt.exec(host);
-//    if( bodyclass)
-//      bodyclass = bodyclass[0];
-//    else
-//      bodyclass = 'dg';
-//  }
-//
-// if( !SC.empty(bodyclass)) {
-//  SC.$('body').addClass(bodyclass);
-// }
 
   SC.$('body' ).addClass( 'dg');
 
@@ -69,37 +50,50 @@ DG.main = function main() {
         DG.splash.removeObserver('isShowing', splashChanged);
       }
     };
-  // DG.splash.addObserver('isShowing', splashChanged);
 
-  if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
-    if (DG.documentServer) {
-      DG.authorizationController.requireLogin();
-    } else {
-      DG.authorizationController.sendLoginAsGuestRequest();
-    }
-  }
-  else {  // If componentMode is requested, open starting doc found in url params
-    DG.currGameController.set('gameIsReady', false);  // So user can't make graphs right away
-    DG.mainPage.addGameIfNotPresent();
-    if( !SC.empty( DG.startingDocName)) {
-      var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
-      DG.appController.openDocumentNamed( DG.startingDocName, owner);
-      DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
-      documentLoaded = true;
-    } else if( !SC.empty( DG.startingDocId)) {
-      DG.appController.openDocumentWithId( DG.startingDocId);
-      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-      documentLoaded = true;
-    } else if ( !SC.empty(DG.startingDocUrl)) {
-      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
-      documentLoaded = true;
-    }
-  }
-  // set initial game in title
   DG.appController.documentNameDidChange();
+
+  DG.showUserEntryView = true;
 
   /* begin CFM load/configuration */
   /* global Promise */
+
+  function openDataInteractive(iURL) {
+    if (iURL) {
+      // Create document-specific store.
+      var archiver = DG.DocumentArchiver.create({}), newDocument;
+
+      DG.currDocumentController().closeDocument();
+
+      // Make a data interactive iFrame using the given URL
+      newDocument = archiver.createNewDocumentWithDataInteractiveURL(iURL);
+
+      DG.currDocumentController().setDocument(newDocument);
+    }
+  }
+  function translateQueryParameters() {
+    var url = window.location.href;
+    // parse url
+    var parsedURL = $('<a>', {href:url})[0];
+    var hash = parsedURL.hash;
+    var documentServer = DG.get('documentServer');
+    var startingDocId = DG.get('startingDocId');
+    var startingDataInteractive = DG.get('startingDataInteractive');
+
+    hash = hash && hash.length >= 1 && hash.slice(1);
+
+    if (SC.empty(hash)) {
+      if (documentServer && startingDocId) {
+        // translate to new form
+        parsedURL.hash = '#file=documentStore:%@'.loc(startingDocId);
+        window.history.replaceState(null, window.document.title, parsedURL.href);
+      } else if (startingDataInteractive) {
+        DG.set('showUserEntryView', false);
+        openDataInteractive(startingDataInteractive);
+      }
+    }
+  }
+
   function cfmGlobalsLoaded() {
     return new Promise(function(resolve, reject) {
                 $.ajax({
@@ -136,6 +130,7 @@ DG.main = function main() {
           appVersion: DG.VERSION,
           appBuildNum: DG.BUILD_NUM,
           appOrMenuElemId: iViewConfig.navBarId,
+          hideMenuBar: DG.get('hideCFMMenu'),
           wrapFileContent: false,
           mimeType: 'application/x-codap-document',
           // extension: '.codap', <-- disabled for now
@@ -240,29 +235,67 @@ DG.main = function main() {
   }
 
   function cfmShowUserEntryView() {
-    var DialogContents = React.createFactory(React.createClass({
+    var hasFileInUrl = (window.location.search.indexOf('file=') >= 0) ||
+                            (window.location.hash.indexOf('file=') >= 0),
+
+    DialogContents = React.createFactory(React.createClass({
       close: function () {
         DG.cfmClient.hideBlockingModal();
       },
+      authorizeUrlDocument: function () {
+        DG.cfmClient.parseUrlAuthorizeAndOpen();
+      },
       createNewDocument: function () {
         this.close();
+        DG.cfmClient.newFile();
       },
       openDocument: function () {
         this.close();
         DG.cfmClient.openFileDialog();
       },
+      componentDidMount: function() {
+        if (hasFileInUrl)
+          this.refs.authorizeButton.focus();
+        else
+          this.refs.newButton.focus();
+      },
       render: function () {
-        return React.DOM.div({},
-          React.DOM.div({style: {margin: 10}}, React.DOM.button({onClick: this.createNewDocument}, "Create New Document")),
-          React.DOM.div({style: {margin: 10}}, React.DOM.button({onClick: this.openDocument}, "Open Document or Browse Examples"))
-        );
+        return React.DOM.div({onKeyDown: function(evt) {
+                                // escape key
+                                if (evt.keyCode === 27) this.createNewDocument();
+                                // return/enter
+                                else if (evt.keyCode === 13) {
+                                  if (hasFileInUrl)
+                                    this.authorizeUrlDocument();
+                                  else
+                                    this.createNewDocument();
+                                }
+                              }.bind(this)}, [
+          React.DOM.div({style: {margin: 10}, key: 0}, 
+                        React.DOM.button({ref: 'authorizeButton',
+                                          onClick: this.authorizeUrlDocument}, 
+                                          "Authorize Startup Document")),
+          React.DOM.div({style: {margin: 10}, key: 1},
+                        React.DOM.button({ref: 'newButton',
+                                          onClick: this.createNewDocument},
+                                          "Create New Document")),
+          React.DOM.div({style: {margin: 10}, key: 2},
+                        React.DOM.button({ref: 'openButton',
+                                          onClick: this.openDocument},
+                                          "Open Document or Browse Examples"))
+        ].filter(function(div, index) {
+          // only include authorization option if a document was specified in the URL
+          return hasFileInUrl || (index !== 0);
+        }));
       }
     }));
-    DG.cfmClient.showBlockingModal({
-      title: "What would you like to do?",
-      message: DialogContents({}), // jshint ignore:line
-      onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
-    );
+    if (DG.get('showUserEntryView')) {
+      DG.cfmClient.showBlockingModal({
+        title: "What would you like to do?",
+        message: DialogContents({}), // jshint ignore:line
+        onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
+      );
+    }
   }
 
   function cfmConnect(iCloudFileManager) {
@@ -278,7 +311,6 @@ DG.main = function main() {
           DG.cfmClient && DG.cfmClient.dirty(DG.currDocumentController().get('hasUnsavedChanges'));
         }
 
-        console.log(event);
         switch (event.type) {
           case 'connected':
             DG.cfmClient = event.data.client;
@@ -296,7 +328,9 @@ DG.main = function main() {
               name: "Close",
               action: function () {
                 DG.cfmClient.closeFileDialog(function () {
-                  DG.appController.closeAndNewDocument();
+                  SC.run(function() {
+                    DG.appController.closeAndNewDocument();
+                  });
                 });
               }
             });
@@ -331,151 +365,167 @@ DG.main = function main() {
             break;
 
           case 'newedFile':
-            DG.appController.closeAndNewDocument();
+            SC.run(function() {
+              DG.appController.closeAndNewDocument();
+            });
             break;
 
           case 'openedFile':
-            DG.cfmClient.hideBlockingModal();
-            docContentsPromise(event.data.content)
-              .then(function(iDocContents) {
-                var metadata = event.data.content.metadata,
-                    sharedMetadata = metadata && metadata.shared,
-                    cfmSharedMetadata = sharedMetadata
-                                          ? $.extend(true, {}, sharedMetadata)
-                                          : {};
-                DG.appController.closeAndNewDocument();
-                DG.store = DG.ModelStore.create();
-                DG.currDocumentController()
-                  .setDocument(DG.Document.createDocument(iDocContents));
-                if(event.callback) {
-                  // acknowledge successful open; return shared metadata
-                  event.callback(null, cfmSharedMetadata);
-                }
-              },  // then() error handler
-              function(iReason) {
-                DG.AlertPane.error({
-                  localize: true,
-                  message: 'DG.AppController.openDocument.error.general'
-                });
-              });
+            SC.run(function() {
+              DG.cfmClient.hideBlockingModal();
+              docContentsPromise(event.data.content)
+                .then(function(iDocContents) {
+                  SC.run(function() {
+                    var metadata = event.data.content.metadata,
+                          sharedMetadata = metadata && metadata.shared,
+                          cfmSharedMetadata = sharedMetadata
+                                                ? $.extend(true, {}, sharedMetadata)
+                                                : {};
+                      DG.appController.closeAndNewDocument();
+                      DG.store = DG.ModelStore.create();
+                      DG.currDocumentController()
+                        .setDocument(DG.Document.createDocument(iDocContents));
+                      if(event.callback) {
+                        // acknowledge successful open; return shared metadata
+                        event.callback(null, cfmSharedMetadata);
+                      }
+                    },  // then() error handler
+                    function(iReason) {
+                      DG.AlertPane.error({
+                        localize: true,
+                        message: 'DG.AppController.openDocument.error.general'
+                      });
+                    });
+                  });
+            });
             break;
 
           case 'savedFile':
-            docContent = event.data.content;
-            docMetadata = docContent && docContent.metadata;
-            var docContentChangeCount = docContent && docContent.changeCount,
-                docMetadataChangeCount = docMetadata && docMetadata.changeCount,
-                savedChangeCount = docContentChangeCount || docMetadataChangeCount;
-            if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
-              // Marking CODAP document clean iff document hasn't changed since getContent()
-              DG.currDocumentController().updateSavedChangeCount();
-            }
-            // synchronize document dirty state after saving, since we may not be clean
-            syncDocumentDirtyState();
+            SC.run(function() {
+              docContent = event.data.content;
+              docMetadata = docContent && docContent.metadata;
+              var docContentChangeCount = docContent && docContent.changeCount,
+                  docMetadataChangeCount = docMetadata && docMetadata.changeCount,
+                  savedChangeCount = docContentChangeCount || docMetadataChangeCount;
+              if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
+                // Marking CODAP document clean iff document hasn't changed since getContent()
+                DG.currDocumentController().updateSavedChangeCount();
+              }
+              // synchronize document dirty state after saving, since we may not be clean
+              syncDocumentDirtyState();
+            });
             break;
 
-          case 'sharedFile': {
-            cfmSharedMetadata = (event.data && event.data.shared) || {};
-            if(DG.appController.get('_undoRedoShareInProgressCount')) {
-              DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
-            }
-            else {
-              DG.UndoHistory.execute(DG.Command.create({
-                name: 'document.share',
-                undoString: 'DG.Undo.document.share',
-                redoString: 'DG.Redo.document.share',
-                log: 'Shared document',
-                execute: function() {
-                  this._cfmSharedMetadata = $.extend(true, {}, cfmSharedMetadata);
-                  this.causedChange = false;
-                  if(!DG.appController.get('_undoRedoShareInProgressCount')) {
-                    docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
-                    var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                    if(diff && diff.length) {
-                      DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
-                      this.causedChange = true;
+          case 'sharedFile':
+            SC.run(function() {
+              cfmSharedMetadata = (event.data && event.data.shared) || {};
+              if(DG.appController.get('_undoRedoShareInProgressCount')) {
+                DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+              }
+              else {
+                DG.UndoHistory.execute(DG.Command.create({
+                  name: 'document.share',
+                  undoString: 'DG.Undo.document.share',
+                  redoString: 'DG.Redo.document.share',
+                  log: 'Shared document',
+                  execute: function() {
+                    var docSharedMetadata;
+                    this._cfmSharedMetadata = $.extend(true, {}, cfmSharedMetadata);
+                    this.causedChange = false;
+                    if(!DG.appController.get('_undoRedoShareInProgressCount')) {
+                      docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
+                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
+                      if(diff && diff.length) {
+                        DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+                        this.causedChange = true;
+                      }
                     }
+                  },
+                  undo: function() {
+                    DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                    DG.cfmClient.unshare(function() {
+                      DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                    });
+                  },
+                  redo: function () {
+                    DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                    DG.cfmClient.reshare(this._cfmSharedMetadata, function() {
+                      DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                    });
                   }
-                },
-                undo: function() {
-                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
-                  DG.cfmClient.unshare(function() {
-                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
-                  });
-                },
-                redo: function () {
-                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
-                  DG.cfmClient.reshare(this._cfmSharedMetadata, function() {
-                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
-                  });
-                }
-              }));
-            }
+                }));
+              }
+            });
             break;
-          }
 
-          case 'unsharedFile': {
-            docController = DG.currDocumentController();
-            docContent = docController && docController.get('content');
-            docMetadata = docContent && docContent.metadata;
-            var docSharedMetadata = docController.get('sharedMetadata') || {};
-            cfmSharedMetadata = (event.data && event.data.shared) || {};
-            if(DG.appController.get('_undoRedoShareInProgressCount')) {
-              DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
-            }
-            else {
-              DG.UndoHistory.execute(DG.Command.create({
-                name: 'document.unshare',
-                undoString: 'DG.Undo.document.unshare',
-                redoString: 'DG.Redo.document.unshare',
-                log: 'Unshared document',
-                execute: function() {
-                  this.causedChange = false;
-                  if(!DG.appController.get('_undoRedoShareInProgressCount')) {
-                    docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
-                    this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
-                    var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                    if(diff && diff.length) {
-                      DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
-                      this.causedChange = true;
+          case 'unsharedFile':
+            SC.run(function() {
+              docController = DG.currDocumentController();
+              docContent = docController && docController.get('content');
+              docMetadata = docContent && docContent.metadata;
+              var docSharedMetadata = docController.get('sharedMetadata') || {};
+              cfmSharedMetadata = (event.data && event.data.shared) || {};
+              if(DG.appController.get('_undoRedoShareInProgressCount')) {
+                DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+              }
+              else {
+                DG.UndoHistory.execute(DG.Command.create({
+                  name: 'document.unshare',
+                  undoString: 'DG.Undo.document.unshare',
+                  redoString: 'DG.Redo.document.unshare',
+                  log: 'Unshared document',
+                  execute: function() {
+                    this.causedChange = false;
+                    if(!DG.appController.get('_undoRedoShareInProgressCount')) {
+                      docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
+                      this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
+                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
+                      if(diff && diff.length) {
+                        DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
+                        this.causedChange = true;
+                      }
                     }
+                  },
+                  undo: function() {
+                    DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                    DG.cfmClient.reshare(this._orgSharedMetadata, function() {
+                      DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                    });
+                  },
+                  redo: function () {
+                    DG.appController.incrementProperty('_undoRedoShareInProgressCount');
+                    DG.cfmClient.unshare(function() {
+                      DG.appController.decrementProperty('_undoRedoShareInProgressCount');
+                    });
                   }
-                },
-                undo: function() {
-                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
-                  DG.cfmClient.reshare(this._orgSharedMetadata, function() {
-                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
-                  });
-                },
-                redo: function () {
-                  DG.appController.incrementProperty('_undoRedoShareInProgressCount');
-                  DG.cfmClient.unshare(function() {
-                    DG.appController.decrementProperty('_undoRedoShareInProgressCount');
-                  });
-                }
-              }));
-            }
+                }));
+              }
+            });
             break;
-          }
 
-          case "importedData": {
-            // we don't need to call the following on via == "drop" because the CODAP drop handler will also respond to the drop
-            if (event.data.file && (event.data.via === "select")) {
-              DG.appController.importFile(event.data.file.object);
-            }
-            else if (event.data.url && (event.data.via === "select")) {
-              DG.appController.importURL(event.data.url);
-            }
+          case "importedData":
+            SC.run(function() {
+              // we don't need to call the following on via == "drop" because the CODAP drop handler will also respond to the drop
+              if (event.data.file && (event.data.via === "select")) {
+                DG.appController.importFile(event.data.file.object);
+              }
+              else if (event.data.url && (event.data.via === "select")) {
+                DG.appController.importURL(event.data.url);
+              }
+            });
             break;
-          }
 
-          case "renamedFile": {
-            DG.currDocumentController().set('documentName', event.state.metadata.name);
-          }
+          case "renamedFile":
+            SC.run(function() {
+              DG.currDocumentController().set('documentName', event.state.metadata.name);
+            });
+            break;
         }
       });
     }
   }
+
+  translateQueryParameters();
 
   // load the CFM library
   var cfmLoaded = cfmGlobalsLoaded().then(cfmAppLoaded);
