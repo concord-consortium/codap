@@ -130,6 +130,7 @@ DG.main = function main() {
           appVersion: DG.VERSION,
           appBuildNum: DG.BUILD_NUM,
           appOrMenuElemId: iViewConfig.navBarId,
+          hideMenuBar: DG.get('hideCFMMenu'),
           wrapFileContent: false,
           mimeType: 'application/x-codap-document',
           // extension: '.codap', <-- disabled for now
