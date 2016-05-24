@@ -563,6 +563,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: values
           };
+        },
+        update: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var theCase = iResources.caseByIndex;
+          var ret = {success: false};
+          if (collection && theCase && iValues) {
+            ret = context.applyChange({
+              operation: 'updateCases',
+              collection: collection,
+              cases: [theCase],
+              values: [iValues.values]
+            });
+            if (SC.none(ret)) {
+              DG.logWarn('UpdateCase failed to return a value');
+              ret = {success: true};
+            }
+          }
+          return ret;
         }
       },
 
@@ -580,7 +599,27 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: values
           };
+        },
+        update: function (iResources, iValues) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var theCase = iResources.caseByID;
+          var ret = {success: false};
+          if (collection && theCase && iValues) {
+            ret = context.applyChange({
+              operation: 'updateCases',
+              collection: collection,
+              cases: [theCase],
+              values: [iValues.values]
+            });
+            if (SC.none(ret)) {
+              DG.logWarn('UpdateCase failed to return a value');
+              ret = {success: true};
+            }
         }
+          return ret;
+        }
+
       },
 
       handleCaseCount: {
