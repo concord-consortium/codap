@@ -625,43 +625,43 @@ DG.DataContext = SC.Object.extend((function() // closure
     
     return { success: true };
   },
-  
+
   /**
-    Changes the specified values of the specified cases.
-    
-    @param  {Object}                iChange
-            {String}                iChange.operation -- 'updateCases'
-            {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
-                                    If not present, collection will be looked up from case,
-                                    which is less efficient but more flexible.
-            {Array of Number}       iChange.attributeIDs (optional) -- attributes whose values
-                                    are to be changed for each case.
-                                    If not specified, all attributes are changed.
-            {Array of DG.Case}      iChange.cases -- DG.Case objects to be changed
-            {Array of Array of      If attributeIDs are specified, then the values are stored in
-                      values}       attribute-major fashion, i.e. there is an array of values for
-                                    each attribute with a value for each case in each of the arrays.
-                                    If attributeIDs are not specified, then the values are stored in
-                                    case-major fashion, with an array of values for each case.
-                                    The latter is used primarily for case creation using the Game API.
+   Changes the specified values of the specified cases, providing an array of values.
+
+   @param  {Object}                iChange
+   {String}                iChange.operation -- 'updateCases'
+   {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
+   If not present, collection will be looked up from case,
+   which is less efficient but more flexible.
+   {Array of Number}       iChange.attributeIDs (optional) -- attributes whose values
+   are to be changed for each case.
+   If not specified, all attributes are changed.
+   {Array of DG.Case}      iChange.cases -- DG.Case objects to be changed
+   {Array of Array of      If attributeIDs are specified, then the values are stored in
+             values}       attribute-major fashion, i.e. there is an array of values for
+   each attribute with a value for each case in each of the arrays.
+   If attributeIDs are not specified, then the values are stored in
+   case-major fashion, with an array of values for each case.
+   The latter is used primarily for case creation using the Game API.
    */
-  doUpdateCases: function( iChange) {
+  doUpdateCasesFromArrayOfValues: function (iChange) {
     var caseCount = iChange.cases.get('length'),
         attrCount = iChange.attributeIDs ? iChange.attributeIDs.get('length') : 0,
         valueArrayCount = iChange.values.get('length'),
         attrSpecs = [],
         a, c;
-    
+
     // If no attributes were specified, set them all using setCaseValuesFromArray().
     // This is primarily used by the Game API to set all values of a case.
     if( (caseCount > 0) && (attrCount === 0) && (valueArrayCount > 0)) {
       iChange.cases.forEach( function( iCase, iIndex) {
-                                if( iCase && !iCase.get('isDestroyed'))
-                                  this.setCaseValuesFromArray( iCase, iChange.values[ iIndex], iChange.collection);
-                             }.bind( this));
+        if( iCase && !iCase.get('isDestroyed'))
+          this.setCaseValuesFromArray( iCase, iChange.values[ iIndex], iChange.collection);
+      }.bind( this));
       return { success: true };
     }
-    
+
     // If attributes are specified, set the values individually.
     iChange.caseIDs = [];
     // Look up the attributes
@@ -685,6 +685,52 @@ DG.DataContext = SC.Object.extend((function() // closure
       tCase.endCaseValueChanges();
     }
     return { success: true };
+  },
+  /**
+   * Changes the specified values of the specified cases providing a hash keyed by attribute name.
+   *
+   * @param  {Object}                iChange
+   *         {String}                iChange.operation -- 'updateCases'
+   *         {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
+   *                                 If not present, collection will be looked up from case,
+   *                                 which is less efficient but more flexible.
+   *         {[DG.Case]}             iChange.cases -- DG.Case objects to be changed
+   *         {[Object]}              iChange.values -- Array of hashes keyed by attribute names.
+   */
+  doUpdateCasesFromHashOfNameValues: function (iChange) {
+    var cases = iChange.cases;
+    var success = true;
+    cases.forEach(function (iCase, iCaseIx) {
+      var values = iChange.values[iCaseIx];
+      if (values) {
+        iCase.beginCaseValueChanges();
+        DG.ObjectMap.forEach(values, function(key, value) {
+          var attr = this.getAttributeByName(key);
+          if (attr) {
+            iCase.setValue(attr.id, value);
+          } else {
+            DG.logWarn('DataContext.doUpdateCasesFromHashOfNameValues: Cannot resolve attribute: ' + key);
+            success = false;
+          }
+        }.bind(this));
+        iCase.endCaseValueChanges();
+      }
+    }.bind(this));
+    return { success: success};
+  },
+
+  /*
+   * Update case values.
+   *
+   * Supports updating from an array of values or a hash of attribute name/values.
+   * See methods above.
+   */
+  doUpdateCases: function( iChange) {
+    if (iChange.values && iChange.values[0] && Array.isArray(iChange.values[0])) {
+      return this.doUpdateCasesFromArrayOfValues(iChange);
+    } else {
+      return this.doUpdateCasesFromHashOfNameValues(iChange);
+    }
   },
 
   /**
