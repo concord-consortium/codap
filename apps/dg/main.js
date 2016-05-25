@@ -34,10 +34,7 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').append();
 
-  var documentLoaded = false,
-    splashChanged = function() {
-        DG.splash.removeObserver('isShowing', splashChanged);
-    };
+  var documentLoaded = false;
 
   DG.appController.documentNameDidChange();
 
@@ -514,7 +511,6 @@ DG.main = function main() {
 
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
     DG.splash.showSplash();
-    DG.splash.addObserver('isShowing', splashChanged);
   }
   else {  // If componentMode is requested, open starting doc found in url params
     if( !SC.empty( DG.startingDocName)) {
