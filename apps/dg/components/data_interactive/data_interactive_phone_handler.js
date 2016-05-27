@@ -332,11 +332,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
-          ['title', 'description'].forEach(function (prop) {
-            if (iValues[prop]) {
-              context.set(prop, iValues[prop]);
-            }
-          });
+          if (context) {
+            ['title', 'description'].forEach(function (prop) {
+              if (iValues[prop]) {
+                context.set(prop, iValues[prop]);
+              }
+            });
+          }
           return {
             success: true
           };
@@ -344,7 +346,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         get: function (iResources, iValues) {
           var context = iResources.dataContext;
-          var values = context.get('model').toArchive(true, true);
+          var values;
+          if (context) {
+            values = context.get('model').toArchive(true, true);
+          }
           return {
             success: !SC.none(values),
             values: values
@@ -353,7 +358,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         'delete': function (iResources, iValues) {
           var context = iResources.dataContext;
-          context.destroy();
+          if (context) {
+            context.destroy();
+          }
           return {
             success: true
           };
@@ -510,9 +517,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleAttribute: {
         get: function (iResources) {
           var attribute = iResources.attribute;
-          var values = attribute.toArchive();
+          var values;
+          if (attribute) {
+            values = attribute.toArchive();
+          }
           return {
-            success: true,
+            success: !SC.none(values),
             values: values
           };
         },
@@ -599,13 +609,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var collection = iResources.collection;
           var myCase = iResources.caseByIndex;
-          var values = {
-            'case': myCase.toArchive(),
-            caseIndex: collection.getCaseIndexByID(myCase.get('id'))
-          };
-          values.case.children = myCase.children.map(function (child) {return child.id;});
+          var values;
+          if (myCase) {
+            values = {
+              'case': myCase.toArchive(),
+              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+            };
+            values.case.children = myCase.children.map(function (child) {return child.id;});
+          }
           return {
-            success: true,
+            success: !SC.none(values),
             values: values
           };
         },
@@ -635,13 +648,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var collection = iResources.collection;
           var myCase = iResources.caseByID;
-          var values = {
-            'case': myCase.toArchive(),
-            caseIndex: collection.getCaseIndexByID(myCase.get('id'))
-          };
-          values.case.children = myCase.children.map(function (child) {return child.id;});
+          var values;
+          if (myCase) {
+            values = {
+              'case': myCase.toArchive(),
+              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
+            };
+            values.case.children = myCase.children.map(function (child) {return child.id;});
+          }
           return {
-            success: true,
+            success: !SC.none(values),
             values: values
           };
         },
