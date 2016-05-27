@@ -30,10 +30,15 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 {
 
   /**
-    The value is drawn as a line segement.
-    @property { Raphael line element }
-  */
-  valueSegment: null,
+    A number of entities here were designed to be single-valued but
+    need to be multi-valued when split by a categorical attribute
+    (e.g. 'value', 'valueString', 'valueSegment',
+    DG.LineLabelMixin.createTextElement() and
+    DG.LineLabelMixin.updateTextToModel()). To simplify things,
+    we introduce the notion of a 'currentIndex', which indicates
+    which of the now multi-valued elements is to be returned.
+   */
+  currentIndex: 0,
 
   /**
     @property { DG.CellLinearAxisView }
@@ -41,10 +46,45 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   valueAxisView: null,
 
   /**
+    The value is drawn as a line segement.
+    @property { Raphael line element }
+  */
+  valueSegment: function() {
+    var segments = this.get('valueSegments'),
+        index = this.get('currentIndex') || 0;
+    return segments && (index != null) ? segments[index] : null;
+  }.property('valueSegments', 'currentIndex'),
+
+  /**
+    The value is drawn as a line segement.
+    @property { Raphael line element }
+  */
+  valueSegments: null,
+
+  /**
     @property { Number }
   */
   value: function() {
-    return this.getValueToPlot();
+    var values = this.get('values'),
+        index = this.get('currentIndex') || 0;
+    return values && (index != null) ? values[index] : null;
+  }.property('values', 'currentIndex'),
+
+  /**
+    @property { Number }
+  */
+  values: function() {
+    var splitAxisModel = this.getPath('model.splitAxisModel'),
+        values = [];
+    if (splitAxisModel && splitAxisModel.forEachCellDo) {
+      splitAxisModel.forEachCellDo(function(iIndex, iName) {
+        values.push(this.getValueToPlot(iName));
+      }.bind(this));
+    }
+    else {
+      values.push(this.getValueToPlot());
+    }
+    return values;
   }.property(),
 
   /**
@@ -53,15 +93,28 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     @property { String read only }
   */
   valueString: function() {
-    var tValue = this.get('value');
+    var strings = this.get('valueStrings'),
+        index = this.get('currentIndex') || 0;
+    return strings && (index != null) ? strings[index] : null;
+  }.property('valueStrings', 'currentIndex'),
+
+  /**
+    The returned string should have a reasonable number of significant digits for the
+      circumstances.
+    @property { String read only }
+  */
+  valueStrings: function() {
+    var tValues = this.get('values');
     
-    if( tValue instanceof Error)
+    if( tValues instanceof Error)
       return tValue.message;
     
     var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
         tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
-    return DG.isFinite( tValue) ? tNumFormat( tValue) : (tValue && tValue.toString());
-  }.property(),
+    return tValues.map(function(iValue) {
+      return DG.isFinite(iValue) ? tNumFormat(iValue) : (iValue != null ? iValue.toString() : null);
+    })
+  }.property('values'),
 
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
@@ -70,6 +123,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
   modelPropertiesToObserve: [ ['expression', 'updateToModel'], ['dependentChange', 'updateToModel'] ],
+
+  splitAxisModel: function() {
+    return this.getPath('model.splitAxisModel');
+  }.property(),
 
   /**
     
@@ -91,14 +148,17 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
   */
   updateToModel: function() {
-    if( !this.myElements || (this.myElements.length === 0))
+    if( !this.myElements || !this.myElements.length)
       this.createElements();
+
     var tAxisView = this.get( 'valueAxisView'),
         tPaper = this.get('paper'),
-        tPlottedValue, tCoord, tPt1, tPt2;
+        tPlottedValues = this.get('values'),
+        tIndex = this.get('currentIndex') || 0,
+        tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
+        tCoord, tPt1, tPt2;
 
-    tPlottedValue = this.getValueToPlot();
-    if( isFinite( tPlottedValue)) {
+    if( DG.isFinite( tPlottedValue)) {
       tCoord = tAxisView.dataToCoordinate( tPlottedValue);
       if( tAxisView.get('orientation') === 'horizontal') {
         tPt1 = { x: tCoord, y: tPaper.height };
@@ -119,13 +179,14 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   /**
 
   */
-  getValueToPlot: function() {
+  getValueToPlot: function(iGroup) {
     var model = this.get('model'),
+        evalContext = iGroup ? { _groupID_: iGroup } : {},
         tPlottedValue = NaN;
 
     try {
       if( model)
-        tPlottedValue = model.evaluate();
+        tPlottedValue = model.evaluate(evalContext);
     }
     catch(e) {
       // Propagate errors to return value

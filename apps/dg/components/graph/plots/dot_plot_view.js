@@ -197,6 +197,10 @@ DG.DotPlotView = DG.PlotView.extend(
     updateOneAvgAdorn( this.plottedMedianAdorn );
     updateOneAvgAdorn( this.plottedStDevAdorn );
     updateOneAvgAdorn( this.plottedIQRAdorn );
+
+    if (this.plottedValueAdorn) {
+      this.plottedValueAdorn.updateToModel();
+    }
   },
 
   /**

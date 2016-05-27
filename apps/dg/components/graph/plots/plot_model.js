@@ -432,7 +432,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     if( !model) {
       var modelClass = DG.PlotAdornmentModel.registry[ iAdornmentKey];
       DG.assert( modelClass, "No model class registered for '%@'".fmt( iAdornmentKey));
-      model = modelClass && modelClass.create({ plotModel: this });
+      model = modelClass && modelClass.create({ plotModel: this, adornmentKey: iAdornmentKey });
       if( model)
         this.setAdornmentModel( iAdornmentKey, model);
     }

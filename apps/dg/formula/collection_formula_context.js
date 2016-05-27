@@ -91,7 +91,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @returns  {Number}    The index of the case with the specified ID
    */
   getCaseIndex: function( iCaseID) {
-    var map = this.collection.caseIDToIndexMap;
+    var map = this.collection && this.collection.caseIDToIndexMap;
     return map && (map[ iCaseID] + 1); // 1-based index
   },
 
@@ -115,7 +115,8 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
    */
   getAttributeByName: function( iName) {
     // check the current collection first
-    var attr = this.get('collection').getAttributeByName(iName);
+    var collection = this.get('collection'),
+        attr = collection && collection.getAttributeByName(iName);
     if (attr) return attr;
 
     // if not in the current collection, check all collections
@@ -281,6 +282,17 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   },
   
   /**
+    Builds the array of argument expressions.
+   */
+  marshalArguments: function( iEvalContext, iInstance) {
+    var i, argCount = iInstance.args.length;
+    iInstance.argFns = [];
+    for( i = 0; i < argCount; ++i) {
+      iInstance.argFns.push( DG.FormulaContext.createContextFunction( iInstance.args[i]));
+    }
+  },
+  
+  /**
     Evaluates the specified aggregate function (specified by internal index).
     Marshals the function arguments into evaluable form and dispatches to
     the appropriate aggregate function.
@@ -289,10 +301,6 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @returns  {Number|String|?} The result of the aggregate function evaluation
    */
   evalAggregate: function( iEvalContext, iAggFnIndex) {
-
-    // Bail if we have bogus inputs
-    if( !iEvalContext._case_ || SC.none( iEvalContext._id_))
-      return null;
 
     var instance = this.aggFnInstances[ iAggFnIndex];
     instance.results = {}; // Disable caching until we have invalidation mechanism
@@ -306,10 +314,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
       return result;
     
     // Marshal the arguments into individually callable functions.
-    instance.argFns = [];
-    for( i = 0; i < argCount; ++i) {
-      instance.argFns.push( DG.FormulaContext.createContextFunction( instance.args[i]));
-    }
+    this.marshalArguments(iEvalContext, instance);
     
     // Make sure we have a valid number of arguments
     var reqArgs = aggregateFn.get('requiredArgs');
