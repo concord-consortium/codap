@@ -41,13 +41,13 @@ DG.UnivariateStatsFns = {
     requiredArgs: { min: 0, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
+      var value = this.getValue( iContext, iEvalContext, iInstance);
       // Count:
       //  -- all cases if there are no arguments (!valueFn)
       //  -- non-empty values except for boolean false and empty string
       //      (this way count(x>0) returns the expected result)
       // We don't use the cache, since all we need is the result counts.
-      if( !valueFn || (!SC.empty( value) && (value !== false))) {
+      if( !SC.empty( value) && (value !== false)) {
         if( iInstance.results[ iCacheID])
           ++iInstance.results[ iCacheID];
         else

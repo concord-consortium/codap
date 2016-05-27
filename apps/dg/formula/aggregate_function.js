@@ -205,6 +205,18 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
   },
 
   /**
+    Returns the value of the first argument, primarily for the benefit of
+    univariate aggregate functions. If no arguments were specified, will
+    use the univariate axis variable if a function for it was provided.
+    Clients such as plotted values can set the 'uniVarFn' property of the
+    instance to enable defaulting to the univariate axis variable.
+   */
+  getValue: function( iContext, iEvalContext, iInstance) {
+    var valueFn = iInstance.argFns[0] || iInstance.uniVarFn;
+    return valueFn && valueFn( iContext, iEvalContext);
+  },
+  
+  /**
     Returns the numeric value of the first argument, primarily for the benefit
     of univariate aggregate functions. If no arguments were specified, will
     use the univariate axis variable if a function for it was provided.
