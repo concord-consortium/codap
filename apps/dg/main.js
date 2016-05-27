@@ -65,6 +65,9 @@ DG.main = function main() {
     var startingDocId = DG.get('startingDocId');
     var startingDataInteractive = DG.get('startingDataInteractive');
 
+    if (DG.get('runKey'))
+      DG.set('showUserEntryView', false);
+
     hash = hash && hash.length >= 1 && hash.slice(1);
 
     if (SC.empty(hash)) {
@@ -165,12 +168,15 @@ DG.main = function main() {
   function dataContextPromise(iDataContext) {
     return new Promise(function(resolve, reject) {
       // instantiate external document ID references
+      var params = { recordid: iDataContext.externalDocumentId };
+      if (DG.get('runKey'))
+        params.runKey = DG.get('runKey');
       if(iDataContext.externalDocumentId != null) {
         $.ajax({
           // external document references were only used with the
           // Concord Document Store
           url: '//document-store.concord.org/document/open',
-          data: { recordid: iDataContext.externalDocumentId },
+          data: params,
           dataType: 'json',
           xhrFields: { withCredentials: true },
           success: function(iContents) {

@@ -1,14 +1,13 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.CloudFileManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// See: http://code.google.com/p/google-diff-match-patch/wiki/API
-"use strict";
+/*istanbul ignore start*/"use strict";
 
 exports.__esModule = true;
-exports.convertChangesToDMP = convertChangesToDMP;
-
+exports. /*istanbul ignore end*/convertChangesToDMP = convertChangesToDMP;
+// See: http://code.google.com/p/google-diff-match-patch/wiki/API
 function convertChangesToDMP(changes) {
   var ret = [],
-      change = undefined,
-      operation = undefined;
+      change = /*istanbul ignore start*/void 0 /*istanbul ignore end*/,
+      operation = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
   for (var i = 0; i < changes.length; i++) {
     change = changes[i];
     if (change.added) {
@@ -26,11 +25,10 @@ function convertChangesToDMP(changes) {
 
 
 },{}],2:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.convertChangesToXML = convertChangesToXML;
-
+exports. /*istanbul ignore end*/convertChangesToXML = convertChangesToXML;
 function convertChangesToXML(changes) {
   var ret = [];
   for (var i = 0; i < changes.length; i++) {
@@ -64,16 +62,15 @@ function escapeHTML(s) {
 
 
 },{}],3:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports['default'] = Diff;
-
+exports.default = /*istanbul ignore end*/Diff;
 function Diff() {}
 
-Diff.prototype = {
-  diff: function diff(oldString, newString) {
-    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+Diff.prototype = { /*istanbul ignore start*/
+  /*istanbul ignore end*/diff: function diff(oldString, newString) {
+    /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
     var callback = options.callback;
     if (typeof options === 'function') {
@@ -118,7 +115,7 @@ Diff.prototype = {
     // Main worker method. checks all permutations of a given edit length for acceptance.
     function execEditLength() {
       for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
-        var basePath = undefined;
+        var basePath = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
         var addPath = bestPath[diagonalPath - 1],
             removePath = bestPath[diagonalPath + 1],
             _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
@@ -187,8 +184,7 @@ Diff.prototype = {
       }
     }
   },
-
-  pushComponent: function pushComponent(components, added, removed) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/pushComponent: function pushComponent(components, added, removed) {
     var last = components[components.length - 1];
     if (last && last.added === added && last.removed === removed) {
       // We need to clone here as the component clone operation is just
@@ -198,7 +194,7 @@ Diff.prototype = {
       components.push({ count: 1, added: added, removed: removed });
     }
   },
-  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
     var newLen = newString.length,
         oldLen = oldString.length,
         newPos = basePath.newPos,
@@ -217,11 +213,10 @@ Diff.prototype = {
     basePath.newPos = newPos;
     return oldPos;
   },
-
-  equals: function equals(left, right) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/equals: function equals(left, right) {
     return left === right;
   },
-  removeEmpty: function removeEmpty(array) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/removeEmpty: function removeEmpty(array) {
     var ret = [];
     for (var i = 0; i < array.length; i++) {
       if (array[i]) {
@@ -230,10 +225,10 @@ Diff.prototype = {
     }
     return ret;
   },
-  castInput: function castInput(value) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/castInput: function castInput(value) {
     return value;
   },
-  tokenize: function tokenize(value) {
+  /*istanbul ignore start*/ /*istanbul ignore end*/tokenize: function tokenize(value) {
     return value.split('');
   }
 };
@@ -282,7 +277,7 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
   // Special case handle for when one terminal is ignored. For this case we merge the
   // terminal into the prior string and drop the change.
   var lastComponent = components[componentLen - 1];
-  if ((lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
+  if (componentLen > 1 && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
     components[componentLen - 2].value += lastComponent.value;
     components.pop();
   }
@@ -293,45 +288,43 @@ function buildValues(diff, components, newString, oldString, useLongestToken) {
 function clonePath(path) {
   return { newPos: path.newPos, components: path.components.slice(0) };
 }
-module.exports = exports['default'];
 
 
 },{}],4:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffChars = diffChars;
-// istanbul ignore next
+exports.characterDiff = undefined;
+exports. /*istanbul ignore end*/diffChars = diffChars;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
 
-var _base = require('./base');
-
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var characterDiff = new _base2['default']();
-exports.characterDiff = characterDiff;
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+/*istanbul ignore end*/var characterDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/characterDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 function diffChars(oldStr, newStr, callback) {
   return characterDiff.diff(oldStr, newStr, callback);
 }
 
 
 },{"./base":3}],5:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffCss = diffCss;
-// istanbul ignore next
+exports.cssDiff = undefined;
+exports. /*istanbul ignore end*/diffCss = diffCss;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
 
-var _base = require('./base');
-
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var cssDiff = new _base2['default']();
-exports.cssDiff = cssDiff;
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/var cssDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/cssDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 cssDiff.tokenize = function (value) {
   return value.split(/([{}:;,]|\s+)/);
 };
@@ -342,35 +335,43 @@ function diffCss(oldStr, newStr, callback) {
 
 
 },{"./base":3}],6:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffJson = diffJson;
-exports.canonicalize = canonicalize;
-// istanbul ignore next
+exports.jsonDiff = undefined;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-var _base = require('./base');
+exports. /*istanbul ignore end*/diffJson = diffJson;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/canonicalize = canonicalize;
 
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
+
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var _line = require('./line');
+/*istanbul ignore end*/
+var /*istanbul ignore start*/_line = require('./line') /*istanbul ignore end*/;
+
+/*istanbul ignore start*/
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/
 
 var objectPrototypeToString = Object.prototype.toString;
 
-var jsonDiff = new _base2['default']();
-exports.jsonDiff = jsonDiff;
+var jsonDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/jsonDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
 // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
 jsonDiff.useLongestToken = true;
 
-jsonDiff.tokenize = _line.lineDiff.tokenize;
+jsonDiff.tokenize = /*istanbul ignore start*/_line.lineDiff. /*istanbul ignore end*/tokenize;
 jsonDiff.castInput = function (value) {
   return typeof value === 'string' ? value : JSON.stringify(canonicalize(value), undefined, '  ');
 };
 jsonDiff.equals = function (left, right) {
-  return _base2['default'].prototype.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+  return (/*istanbul ignore start*/_base2.default. /*istanbul ignore end*/prototype.equals(left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'))
+  );
 };
 
 function diffJson(oldObj, newObj, callback) {
@@ -379,12 +380,11 @@ function diffJson(oldObj, newObj, callback) {
 
 // This function handles the presence of circular references by bailing out when encountering an
 // object that is already on the "stack" of items being processed.
-
 function canonicalize(obj, stack, replacementStack) {
   stack = stack || [];
   replacementStack = replacementStack || [];
 
-  var i = undefined;
+  var i = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
 
   for (i = 0; i < stack.length; i += 1) {
     if (stack[i] === obj) {
@@ -392,7 +392,7 @@ function canonicalize(obj, stack, replacementStack) {
     }
   }
 
-  var canonicalizedObj = undefined;
+  var canonicalizedObj = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
 
   if ('[object Array]' === objectPrototypeToString.call(obj)) {
     stack.push(obj);
@@ -403,12 +403,19 @@ function canonicalize(obj, stack, replacementStack) {
     }
     stack.pop();
     replacementStack.pop();
-  } else if (typeof obj === 'object' && obj !== null) {
+    return canonicalizedObj;
+  }
+
+  if (obj && obj.toJSON) {
+    obj = obj.toJSON();
+  }
+
+  if ( /*istanbul ignore start*/(typeof /*istanbul ignore end*/obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && obj !== null) {
     stack.push(obj);
     canonicalizedObj = {};
     replacementStack.push(canonicalizedObj);
     var sortedKeys = [],
-        key = undefined;
+        key = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
     for (key in obj) {
       /* istanbul ignore else */
       if (obj.hasOwnProperty(key)) {
@@ -430,23 +437,25 @@ function canonicalize(obj, stack, replacementStack) {
 
 
 },{"./base":3,"./line":7}],7:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffLines = diffLines;
-exports.diffTrimmedLines = diffTrimmedLines;
-// istanbul ignore next
+exports.lineDiff = undefined;
+exports. /*istanbul ignore end*/diffLines = diffLines;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffTrimmedLines = diffTrimmedLines;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
 
-var _base = require('./base');
-
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var _utilParams = require('../util/params');
+/*istanbul ignore end*/
+var /*istanbul ignore start*/_params = require('../util/params') /*istanbul ignore end*/;
 
-var lineDiff = new _base2['default']();
-exports.lineDiff = lineDiff;
+/*istanbul ignore start*/
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/var lineDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/lineDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 lineDiff.tokenize = function (value) {
   var retLines = [],
       linesAndNewlines = value.split(/(\n|\r\n)/);
@@ -476,28 +485,27 @@ lineDiff.tokenize = function (value) {
 function diffLines(oldStr, newStr, callback) {
   return lineDiff.diff(oldStr, newStr, callback);
 }
-
 function diffTrimmedLines(oldStr, newStr, callback) {
-  var options = _utilParams.generateOptions(callback, { ignoreWhitespace: true });
+  var options = /*istanbul ignore start*/(0, _params.generateOptions) /*istanbul ignore end*/(callback, { ignoreWhitespace: true });
   return lineDiff.diff(oldStr, newStr, options);
 }
 
 
 },{"../util/params":15,"./base":3}],8:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffSentences = diffSentences;
-// istanbul ignore next
+exports.sentenceDiff = undefined;
+exports. /*istanbul ignore end*/diffSentences = diffSentences;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
 
-var _base = require('./base');
-
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var sentenceDiff = new _base2['default']();
-exports.sentenceDiff = sentenceDiff;
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/var sentenceDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/sentenceDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 sentenceDiff.tokenize = function (value) {
   return value.split(/(\S.+?[.!?])(?=\s+|$)/);
 };
@@ -508,20 +516,25 @@ function diffSentences(oldStr, newStr, callback) {
 
 
 },{"./base":3}],9:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.diffWords = diffWords;
-exports.diffWordsWithSpace = diffWordsWithSpace;
-// istanbul ignore next
+exports.wordDiff = undefined;
+exports. /*istanbul ignore end*/diffWords = diffWords;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWordsWithSpace = diffWordsWithSpace;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_base = require('./base') /*istanbul ignore end*/;
 
-var _base = require('./base');
-
+/*istanbul ignore start*/
 var _base2 = _interopRequireDefault(_base);
 
-var _utilParams = require('../util/params');
+/*istanbul ignore end*/
+var /*istanbul ignore start*/_params = require('../util/params') /*istanbul ignore end*/;
+
+/*istanbul ignore start*/
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/
 
 // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
 //
@@ -545,8 +558,7 @@ var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1
 
 var reWhitespace = /\S/;
 
-var wordDiff = new _base2['default']();
-exports.wordDiff = wordDiff;
+var wordDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/wordDiff = new /*istanbul ignore start*/_base2.default() /*istanbul ignore end*/;
 wordDiff.equals = function (left, right) {
   return left === right || this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
 };
@@ -567,16 +579,51 @@ wordDiff.tokenize = function (value) {
 };
 
 function diffWords(oldStr, newStr, callback) {
-  var options = _utilParams.generateOptions(callback, { ignoreWhitespace: true });
+  var options = /*istanbul ignore start*/(0, _params.generateOptions) /*istanbul ignore end*/(callback, { ignoreWhitespace: true });
   return wordDiff.diff(oldStr, newStr, options);
 }
-
 function diffWordsWithSpace(oldStr, newStr, callback) {
   return wordDiff.diff(oldStr, newStr, callback);
 }
 
 
 },{"../util/params":15,"./base":3}],10:[function(require,module,exports){
+/*istanbul ignore start*/'use strict';
+
+exports.__esModule = true;
+exports.canonicalize = exports.convertChangesToXML = exports.convertChangesToDMP = exports.parsePatch = exports.applyPatches = exports.applyPatch = exports.createPatch = exports.createTwoFilesPatch = exports.structuredPatch = exports.diffJson = exports.diffCss = exports.diffSentences = exports.diffTrimmedLines = exports.diffLines = exports.diffWordsWithSpace = exports.diffWords = exports.diffChars = exports.Diff = undefined;
+/*istanbul ignore end*/
+var /*istanbul ignore start*/_base = require('./diff/base') /*istanbul ignore end*/;
+
+/*istanbul ignore start*/
+var _base2 = _interopRequireDefault(_base);
+
+/*istanbul ignore end*/
+var /*istanbul ignore start*/_character = require('./diff/character') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_word = require('./diff/word') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_line = require('./diff/line') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_sentence = require('./diff/sentence') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_css = require('./diff/css') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_json = require('./diff/json') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_apply = require('./patch/apply') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_parse = require('./patch/parse') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_create = require('./patch/create') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_dmp = require('./convert/dmp') /*istanbul ignore end*/;
+
+var /*istanbul ignore start*/_xml = require('./convert/xml') /*istanbul ignore end*/;
+
+/*istanbul ignore start*/
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 /* See LICENSE file for terms of use */
 
 /*
@@ -593,80 +640,47 @@ function diffWordsWithSpace(oldStr, newStr, callback) {
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
-'use strict';
-
-exports.__esModule = true;
-// istanbul ignore next
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _diffBase = require('./diff/base');
-
-var _diffBase2 = _interopRequireDefault(_diffBase);
-
-var _diffCharacter = require('./diff/character');
-
-var _diffWord = require('./diff/word');
-
-var _diffLine = require('./diff/line');
-
-var _diffSentence = require('./diff/sentence');
-
-var _diffCss = require('./diff/css');
-
-var _diffJson = require('./diff/json');
-
-var _patchApply = require('./patch/apply');
-
-var _patchParse = require('./patch/parse');
-
-var _patchCreate = require('./patch/create');
-
-var _convertDmp = require('./convert/dmp');
-
-var _convertXml = require('./convert/xml');
-
-exports.Diff = _diffBase2['default'];
-exports.diffChars = _diffCharacter.diffChars;
-exports.diffWords = _diffWord.diffWords;
-exports.diffWordsWithSpace = _diffWord.diffWordsWithSpace;
-exports.diffLines = _diffLine.diffLines;
-exports.diffTrimmedLines = _diffLine.diffTrimmedLines;
-exports.diffSentences = _diffSentence.diffSentences;
-exports.diffCss = _diffCss.diffCss;
-exports.diffJson = _diffJson.diffJson;
-exports.structuredPatch = _patchCreate.structuredPatch;
-exports.createTwoFilesPatch = _patchCreate.createTwoFilesPatch;
-exports.createPatch = _patchCreate.createPatch;
-exports.applyPatch = _patchApply.applyPatch;
-exports.applyPatches = _patchApply.applyPatches;
-exports.parsePatch = _patchParse.parsePatch;
-exports.convertChangesToDMP = _convertDmp.convertChangesToDMP;
-exports.convertChangesToXML = _convertXml.convertChangesToXML;
-exports.canonicalize = _diffJson.canonicalize;
+exports. /*istanbul ignore end*/Diff = _base2.default;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffChars = _character.diffChars;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWords = _word.diffWords;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWordsWithSpace = _word.diffWordsWithSpace;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffLines = _line.diffLines;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffTrimmedLines = _line.diffTrimmedLines;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffSentences = _sentence.diffSentences;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffCss = _css.diffCss;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/diffJson = _json.diffJson;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/structuredPatch = _create.structuredPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/createTwoFilesPatch = _create.createTwoFilesPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/createPatch = _create.createPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatch = _apply.applyPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatches = _apply.applyPatches;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/parsePatch = _parse.parsePatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/convertChangesToDMP = _dmp.convertChangesToDMP;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/convertChangesToXML = _xml.convertChangesToXML;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/canonicalize = _json.canonicalize;
 
 
 },{"./convert/dmp":1,"./convert/xml":2,"./diff/base":3,"./diff/character":4,"./diff/css":5,"./diff/json":6,"./diff/line":7,"./diff/sentence":8,"./diff/word":9,"./patch/apply":11,"./patch/create":12,"./patch/parse":13}],11:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.applyPatch = applyPatch;
-exports.applyPatches = applyPatches;
-// istanbul ignore next
+exports. /*istanbul ignore end*/applyPatch = applyPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatches = applyPatches;
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+var /*istanbul ignore start*/_parse = require('./parse') /*istanbul ignore end*/;
 
-var _parse = require('./parse');
+var /*istanbul ignore start*/_distanceIterator = require('../util/distance-iterator') /*istanbul ignore end*/;
 
-var _utilDistanceIterator = require('../util/distance-iterator');
+/*istanbul ignore start*/
+var _distanceIterator2 = _interopRequireDefault(_distanceIterator);
 
-var _utilDistanceIterator2 = _interopRequireDefault(_utilDistanceIterator);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function applyPatch(source, uniDiff) {
-  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+/*istanbul ignore end*/function applyPatch(source, uniDiff) {
+  /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
   if (typeof uniDiff === 'string') {
-    uniDiff = _parse.parsePatch(uniDiff);
+    uniDiff = /*istanbul ignore start*/(0, _parse.parsePatch) /*istanbul ignore end*/(uniDiff);
   }
 
   if (Array.isArray(uniDiff)) {
@@ -680,15 +694,16 @@ function applyPatch(source, uniDiff) {
   // Apply the diff to the input
   var lines = source.split('\n'),
       hunks = uniDiff.hunks,
-      compareLine = options.compareLine || function (lineNumber, line, operation, patchContent) {
-    return line === patchContent;
+      compareLine = options.compareLine || function (lineNumber, line, operation, patchContent) /*istanbul ignore start*/{
+    return (/*istanbul ignore end*/line === patchContent
+    );
   },
       errorCount = 0,
       fuzzFactor = options.fuzzFactor || 0,
       minLine = 0,
       offset = 0,
-      removeEOFNL = undefined,
-      addEOFNL = undefined;
+      removeEOFNL = /*istanbul ignore start*/void 0 /*istanbul ignore end*/,
+      addEOFNL = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
 
   /**
    * Checks if the hunk exactly fits on the provided location
@@ -722,7 +737,7 @@ function applyPatch(source, uniDiff) {
         localOffset = 0,
         toPos = offset + hunk.oldStart - 1;
 
-    var iterator = _utilDistanceIterator2['default'](toPos, minLine, maxLine);
+    var iterator = /*istanbul ignore start*/(0, _distanceIterator2.default) /*istanbul ignore end*/(toPos, minLine, maxLine);
 
     for (; localOffset !== undefined; localOffset = iterator()) {
       if (hunkFits(hunk, toPos + localOffset)) {
@@ -741,25 +756,25 @@ function applyPatch(source, uniDiff) {
   }
 
   // Apply patch hunks
-  for (var i = 0; i < hunks.length; i++) {
-    var hunk = hunks[i],
-        toPos = hunk.offset + hunk.newStart - 1;
+  for (var _i = 0; _i < hunks.length; _i++) {
+    var _hunk = hunks[_i],
+        _toPos = _hunk.offset + _hunk.newStart - 1;
 
-    for (var j = 0; j < hunk.lines.length; j++) {
-      var line = hunk.lines[j],
+    for (var j = 0; j < _hunk.lines.length; j++) {
+      var line = _hunk.lines[j],
           operation = line[0],
           content = line.substr(1);
 
       if (operation === ' ') {
-        toPos++;
+        _toPos++;
       } else if (operation === '-') {
-        lines.splice(toPos, 1);
+        lines.splice(_toPos, 1);
         /* istanbul ignore else */
       } else if (operation === '+') {
-          lines.splice(toPos, 0, content);
-          toPos++;
+          lines.splice(_toPos, 0, content);
+          _toPos++;
         } else if (operation === '\\') {
-          var previousOperation = hunk.lines[j - 1] ? hunk.lines[j - 1][0] : null;
+          var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
           if (previousOperation === '+') {
             removeEOFNL = true;
           } else if (previousOperation === '-') {
@@ -781,10 +796,9 @@ function applyPatch(source, uniDiff) {
 }
 
 // Wrapper that supports multiple file patches via callbacks.
-
 function applyPatches(uniDiff, options) {
   if (typeof uniDiff === 'string') {
-    uniDiff = _parse.parsePatch(uniDiff);
+    uniDiff = /*istanbul ignore start*/(0, _parse.parsePatch) /*istanbul ignore end*/(uniDiff);
   }
 
   var currentIndex = 0;
@@ -810,24 +824,24 @@ function applyPatches(uniDiff, options) {
 
 
 },{"../util/distance-iterator":14,"./parse":13}],12:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.structuredPatch = structuredPatch;
-exports.createTwoFilesPatch = createTwoFilesPatch;
-exports.createPatch = createPatch;
-// istanbul ignore next
+exports. /*istanbul ignore end*/structuredPatch = structuredPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/createTwoFilesPatch = createTwoFilesPatch;
+/*istanbul ignore start*/exports. /*istanbul ignore end*/createPatch = createPatch;
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
+var /*istanbul ignore start*/_line = require('../diff/line') /*istanbul ignore end*/;
 
-var _diffLine = require('../diff/line');
+/*istanbul ignore start*/
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+/*istanbul ignore end*/function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
   if (!options) {
     options = { context: 4 };
   }
 
-  var diff = _diffLine.diffLines(oldStr, newStr);
+  var diff = /*istanbul ignore start*/(0, _line.diffLines) /*istanbul ignore end*/(oldStr, newStr);
   diff.push({ value: '', lines: [] }); // Append an empty value to make cleanup easier
 
   function contextLines(lines) {
@@ -842,17 +856,17 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
       curRange = [],
       oldLine = 1,
       newLine = 1;
-
-  var _loop = function (i) {
+  /*istanbul ignore start*/
+  var _loop = function _loop( /*istanbul ignore end*/i) {
     var current = diff[i],
         lines = current.lines || current.value.replace(/\n$/, '').split('\n');
     current.lines = lines;
 
     if (current.added || current.removed) {
-      // istanbul ignore next
-
+      /*istanbul ignore start*/
       var _curRange;
 
+      /*istanbul ignore end*/
       // If we have previous context, start with that
       if (!oldRangeStart) {
         var prev = diff[i - 1];
@@ -867,7 +881,7 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
       }
 
       // Output our changes
-      (_curRange = curRange).push.apply(_curRange, _toConsumableArray(lines.map(function (entry) {
+      /*istanbul ignore start*/(_curRange = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/lines.map(function (entry) {
         return (current.added ? '+' : '-') + entry;
       })));
 
@@ -882,20 +896,20 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
       if (oldRangeStart) {
         // Close out any changes that have been output (or join overlapping)
         if (lines.length <= options.context * 2 && i < diff.length - 2) {
-          // istanbul ignore next
-
+          /*istanbul ignore start*/
           var _curRange2;
 
+          /*istanbul ignore end*/
           // Overlapping
-          (_curRange2 = curRange).push.apply(_curRange2, _toConsumableArray(contextLines(lines)));
+          /*istanbul ignore start*/(_curRange2 = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange2 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/contextLines(lines)));
         } else {
-          // istanbul ignore next
-
+          /*istanbul ignore start*/
           var _curRange3;
 
+          /*istanbul ignore end*/
           // end the range and output
           var contextSize = Math.min(lines.length, options.context);
-          (_curRange3 = curRange).push.apply(_curRange3, _toConsumableArray(contextLines(lines.slice(0, contextSize))));
+          /*istanbul ignore start*/(_curRange3 = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange3 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/contextLines(lines.slice(0, contextSize))));
 
           var hunk = {
             oldStart: oldRangeStart,
@@ -928,7 +942,8 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
   };
 
   for (var i = 0; i < diff.length; i++) {
-    _loop(i);
+    /*istanbul ignore start*/
+    _loop( /*istanbul ignore end*/i);
   }
 
   return {
@@ -964,13 +979,12 @@ function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
 
 
 },{"../diff/line":7}],13:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.parsePatch = parsePatch;
-
+exports. /*istanbul ignore end*/parsePatch = parsePatch;
 function parsePatch(uniDiff) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+  /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
   var diffstr = uniDiff.split('\n'),
       list = [],
@@ -1007,15 +1021,15 @@ function parsePatch(uniDiff) {
     index.hunks = [];
 
     while (i < diffstr.length) {
-      var line = diffstr[i];
+      var _line = diffstr[i];
 
-      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(line)) {
+      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
         break;
-      } else if (/^@@/.test(line)) {
+      } else if (/^@@/.test(_line)) {
         index.hunks.push(parseHunk());
-      } else if (line && options.strict) {
+      } else if (_line && options.strict) {
         // Ignore unexpected content unless in strict mode
-        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(line));
+        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(_line));
       } else {
         i++;
       }
@@ -1025,7 +1039,7 @@ function parsePatch(uniDiff) {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index) {
-    var fileHeader = /^(\-\-\-|\+\+\+)\s+(\S+)\s?(.+?)\s*$/.exec(diffstr[i]);
+    var fileHeader = /^(\-\-\-|\+\+\+)\s+(\S*)\s?(.*?)\s*$/.exec(diffstr[i]);
     if (fileHeader) {
       var keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
       index[keyPrefix + 'FileName'] = fileHeader[2];
@@ -1101,80 +1115,67 @@ function parsePatch(uniDiff) {
 
 
 },{}],14:[function(require,module,exports){
-// Iterator that traverses in the range of [min, max], stepping
-// by distance from a given start position. I.e. for [0, 4], with
-"use strict";
+/*istanbul ignore start*/"use strict";
 
 exports.__esModule = true;
 
-exports["default"] = function (start, minLine, maxLine) {
+exports.default = /*istanbul ignore end*/function (start, minLine, maxLine) {
   var wantForward = true,
       backwardExhausted = false,
       forwardExhausted = false,
       localOffset = 1;
 
   return function iterator() {
-    var _again = true;
-
-    _function: while (_again) {
-      _again = false;
-
-      if (wantForward && !forwardExhausted) {
-        if (backwardExhausted) {
-          localOffset++;
-        } else {
-          wantForward = false;
-        }
-
-        // Check if trying to fit beyond text length, and if not, check it fits
-        // after offset location (or desired location on first iteration)
-        if (start + localOffset <= maxLine) {
-          return localOffset;
-        }
-
-        forwardExhausted = true;
+    if (wantForward && !forwardExhausted) {
+      if (backwardExhausted) {
+        localOffset++;
+      } else {
+        wantForward = false;
       }
 
-      if (!backwardExhausted) {
-        if (!forwardExhausted) {
-          wantForward = true;
-        }
-
-        // Check if trying to fit before text beginning, and if not, check it fits
-        // before offset location
-        if (minLine <= start - localOffset) {
-          return - localOffset++;
-        }
-
-        backwardExhausted = true;
-        _again = true;
-        continue _function;
+      // Check if trying to fit beyond text length, and if not, check it fits
+      // after offset location (or desired location on first iteration)
+      if (start + localOffset <= maxLine) {
+        return localOffset;
       }
 
-      // We tried to fit hunk before text beginning and beyond text lenght, then
-      // hunk can't fit on the text. Return undefined
+      forwardExhausted = true;
     }
+
+    if (!backwardExhausted) {
+      if (!forwardExhausted) {
+        wantForward = true;
+      }
+
+      // Check if trying to fit before text beginning, and if not, check it fits
+      // before offset location
+      if (minLine <= start - localOffset) {
+        return - localOffset++;
+      }
+
+      backwardExhausted = true;
+      return iterator();
+    }
+
+    // We tried to fit hunk before text beginning and beyond text lenght, then
+    // hunk can't fit on the text. Return undefined
   };
 };
 
-module.exports = exports["default"];
-// start of 2, this will iterate 2, 3, 1, 4, 0.
-
 
 },{}],15:[function(require,module,exports){
-'use strict';
+/*istanbul ignore start*/'use strict';
 
 exports.__esModule = true;
-exports.generateOptions = generateOptions;
-
+exports. /*istanbul ignore end*/generateOptions = generateOptions;
 function generateOptions(options, defaults) {
   if (typeof options === 'function') {
     defaults.callback = options;
   } else if (options) {
-    for (var _name in options) {
+    for (var name in options) {
       /* istanbul ignore else */
-      if (options.hasOwnProperty(_name)) {
-        defaults[_name] = options[_name];
+      if (options.hasOwnProperty(name)) {
+        defaults[name] = options[name];
       }
     }
   }
@@ -10852,7 +10853,8 @@ DocumentStoreProvider = (function(superClass) {
       url: loadDocumentUrl,
       dataType: 'json',
       data: {
-        recordid: ((ref1 = metadata.providerData) != null ? ref1.id : void 0) || metadata.sharedContentId
+        recordid: ((ref1 = metadata.providerData) != null ? ref1.id : void 0) || metadata.sharedContentId,
+        runKey: this.client.appOptions.hashParams.runKey ? this.client.appOptions.hashParams.runKey : void 0
       },
       context: this,
       xhrFields: {
