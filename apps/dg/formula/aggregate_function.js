@@ -101,9 +101,9 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
-    // Clear the cache and iterate over all the cases.
-    iInstance.caches = {};
-    iInstance.results = {};
+    // iterate over all the cases.
+    if (!iInstance.caches) iInstance.caches = {};
+    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           e = { _case_: tCase, _id_: tCase && tCase.get('id') };
@@ -249,8 +249,8 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
-    iInstance.caches = {};
-    iInstance.results = {};
+    if (!iInstance.caches) iInstance.caches = {};
+    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           tEvalContext = $.extend({}, iEvalContext,

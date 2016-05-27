@@ -62,8 +62,12 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
   compileVariable: function( iName) {
   
     // Check for a match with any global variables (e.g. sliders)
-    var global = DG.globalsController.getGlobalValueByName( iName);
-    if( global) {
+    var globalValue = DG.globalsController.getGlobalValueByName( iName);
+    if( globalValue) {
+      // register the dependency for tracking/invalidation purposes
+      this.registerDependency({ type: DG.DEP_TYPE_GLOBAL,
+                                id: globalValue.get('id'), name: iName });
+
       // Having identified the global value to be referenced, we attach
       // a function that can access the appropriate value, making use of
       // JavaScript variable scoping to make sure that the new function has
@@ -75,7 +79,7 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
       // from the context with code that looks something like 'return c.g["v1"]'.
       if( !this.g) this.g = {};
       this.g[iName] = function() {
-                        return global.get('value');
+                        return globalValue.get('value');
                       };
       return 'c.g["' + iName + '"]()';
     }
@@ -98,10 +102,10 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
   evaluateVariable: function( iName, iEvalContext) {
 
     // Check for a match with any global variables (e.g. sliders)
-    var global = DG.globalsController.findGlobalByName( iName);
-    if( global) {
+    var globalValue = DG.globalsController.findGlobalByName( iName);
+    if( globalValue) {
       this.g[ iName] = true;  // add entry in map for dependency tracking
-      return global.get('value');
+      return globalValue.get('value');
     }
 
     // If we don't match any variables we're in charge of,

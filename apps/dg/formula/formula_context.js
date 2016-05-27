@@ -48,10 +48,73 @@ DG.FormulaContext = SC.Object.extend( (function() {
   return {
   
   /**
-    Called when the formula is recompiled to clear any cached data.
+    During compilation, a stack of function contexts indicating the functions
+    being processed, e.g. in the expression mean(count(round(x))), when x is
+    compiled there are three function contexts on the stack.
+    @type {object[]}
+   */
+  _functionContextStack: null,
+
+  /**
+    Initialization function
+   */
+  init: function() {
+    this._functionContextStack = [];
+  },
+
+  /**
+    Adds a function context to the top of stack
+    @param  {object}  iFunctionContext
+   */
+  beginFunctionContext: function(iFunctionContext) {
+    this._functionContextStack.push(iFunctionContext);
+  },
+
+  /**
+    Pops a function context from the top of the stack
+    @param  {object}  iFunctionContext
+   */
+  endFunctionContext: function(iFunctionContext) {
+    var endName = iFunctionContext && iFunctionContext.name,
+        stackSize = this._functionContextStack.length,
+        topName = stackSize ? this._functionContextStack[stackSize - 1].name : '';
+    if (endName === topName)
+      -- this._functionContextStack.length;
+    else
+      DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context")
+  },
+
+  /**
+    Called when a dependency is identified during compilation.
+    Derived classes may override as appropriate.
+    @param {object}   iNodeSpec - the specs of the node being depended upon
+    @param {string}   .type - the type of the node being depended upon
+    @param {string}   .id - the id of the node being depended upon
+    @param {string}   .name - the name of the node being depended upon
+   */
+  registerDependency: function(iNodeSpec) {
+  },
+
+  /**
+    Called when the formula is about to be recompiled to clear any cached data.
     Derived classes may override as appropriate.
    */
-  clearCaches: function() {
+  willCompile: function() {
+    this.clearCaches();
+  },
+
+  /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  didCompile: function() {
+  },
+
+  /**
+    Called when dependents change to clear function caches.
+    Derived classes may override as appropriate.
+   */
+  invalidateFunctions: function(iFunctionIndices) {
   },
 
   /**

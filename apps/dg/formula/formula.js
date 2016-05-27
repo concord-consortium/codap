@@ -139,8 +139,9 @@ DG.Formula = SC.Object.extend({
       this.context = context; // no reason to notify, so no set()
     }
     if( parsed) {
-      context.clearCaches();
+      context.willCompile();
       var output = DG.Formula.compileToJavaScript( parsed, context);
+      context.didCompile();
       compiled = DG.FormulaContext.createContextFunction( output);
     }
     return compiled;
@@ -286,13 +287,17 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
   }
   
   function visitFunctionCall( iNode) {
-    var i, len = iNode.args && iNode.args.length,
+    var fnName = iNode.name.name,
+        isAggFn = iContext.isAggregate(fnName),
+        i, len = iNode.args && iNode.args.length,
         args = [];
+    iContext.beginFunctionContext({ name: fnName, isAggregate: isAggFn });
     for( i = 0; i < len; ++i) {
       args.push( visit( iNode.args[i]));
     }
+    iContext.endFunctionContext({ name: fnName });
     // Pass function references to the context
-    return iContext.compileFunction( iNode.name.name, args);
+    return iContext.compileFunction( fnName, args);
   }
   
   function visitTerm( iNode) {

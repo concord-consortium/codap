@@ -32,6 +32,16 @@ sc_require('formula/global_formula_context');
 DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
 
   /**
+    Properties of the formula owner for use by the dependency manager.
+    Generally passed in by the client on construction.
+    @type {object}
+    @type {string}  .type - the type of the owner
+    @type {string}  .id - the ID of the owner
+    @type {string}  .name - the name of the owner
+   */
+  ownerSpec: null,
+
+  /**
     The collection for which this CollectionFormulaContext provides bindings.
     Generally passed in by the client on construction.
     @property {DG.CollectionRecord}
@@ -65,13 +75,30 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   aggFnCount: 0,
   
   /**
+    Provides access to the DependencyMgr for the data context.
+    @property {DG.DependencyMgr}
+   */
+  dependencyMgr: function() {
+    return this.getPath('collection.context.dependencyMgr');
+  }.property(),
+  
+  /**
     Initialization method.
    */
   init: function() {
     sc_super();
     
+    // register formula-owning nodes on creation
+    this.get('dependencyMgr').registerNode(this.get('ownerSpec'));
+    
     // Initializes the caches
     this.clearCaches();
+  },
+
+  destroy: function() {
+    this.get('dependencyMgr').removeNode(this.get('ownerSpec'));
+
+    sc_super();
   },
   
   /**
@@ -84,7 +111,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     this.aggFnInstances = [];
     this.aggFnCount = 0;
   },
-  
+
   /**
     Returns the case index for the give case ID.
     @param    {Number}    iCaseID -- The ID of the case being evaluated
@@ -151,6 +178,60 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   },
 
   /**
+    Returns an array of aggregate function indices representing the aggregate
+    functions that are on the _functionContextStack at the moment.
+    @returns {number[]}
+   */
+  getAggregateFunctionIndices: function() {
+    var i, fnContext,
+        fnContextLength = this._functionContextStack.length,
+        aggFnIndices = [];
+    for (i = 0; i < fnContextLength; ++i) {
+      fnContext = this._functionContextStack[i];
+      if (fnContext.isAggregate && (fnContext.aggFnIndex != null)) {
+        aggFnIndices.push(fnContext.aggFnIndex);
+      }
+    }
+    return aggFnIndices;
+  },
+
+  /**
+    Called when the formula is about to be recompiled to clear any cached data.
+   */
+  willCompile: function() {
+    sc_super();
+
+    // clear dependencies so they can be pruned after compilation
+    this.get('dependencyMgr')._clearDependencies(this.get('ownerSpec'));
+  },
+
+  /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  didCompile: function() {
+    sc_super();
+
+    // prune (remove) prior dependencies that are no longer extant
+    this.get('dependencyMgr')._pruneDependencies(this.get('ownerSpec'));
+  },
+
+  /**
+    Called when a dependency is identified during compilation.
+    @param {object}   iNodeSpec - the specs of the node being depended upon
+    @param {string}   .type - the type of the node being depended upon
+    @param {string}   .id - the id of the node being depended upon
+    @param {string}   .name - the name of the node being depended upon
+   */
+  registerDependency: function(iNodeSpec) {
+    this.get('dependencyMgr').registerDependency({
+              dependentSpec: this.get('ownerSpec'),
+              independentSpec: iNodeSpec,
+              aggFnIndices: this.getAggregateFunctionIndices()
+            });
+  },
+
+  /**
     Compiles a variable reference into the JavaScript code for accessing
     the appropriate value. For the CollectionFormulaContext, this means
     binding to 'caseIndex' and any collection attributes by name.
@@ -170,6 +251,10 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
         collectionID = collection && collection.get('id');
 
     if( attribute) {
+      // register the dependency for tracking/invalidation purposes
+      this.registerDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
+                                id: attribute.get('id'), name: iName });
+
       // Having identified the attribute to be referenced, we attach a
       // function that can access the appropriate value, making use of
       // JavaScript variable scoping to make sure that the new function has
@@ -303,7 +388,6 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   evalAggregate: function( iEvalContext, iAggFnIndex) {
 
     var instance = this.aggFnInstances[ iAggFnIndex];
-    instance.results = {}; // Disable caching until we have invalidation mechanism
     
     var aggregateFn = this.aggFns[ instance.name],
         result = aggregateFn && aggregateFn.queryCache( this, iEvalContext, instance),
@@ -325,6 +409,37 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     return aggregateFn.evaluate( this, iEvalContext, instance);
   },
   
+  /**
+    Override base class function to include the aggregate function index
+    in the function context so that individual aggregate function dependencies
+    can be tracked.
+    @param  {Object}  iFunctionContext - the function context for the current function
+   */
+  beginFunctionContext: function(iFunctionContext) {
+    if (iFunctionContext.isAggregate) {
+      iFunctionContext.aggFnIndex = this.aggFnCount;
+    }
+    sc_super();
+  },
+
+  /**
+    Invalidate the caches for the aggregate functions that correspond to the
+    specified indices. This is called during while traversing the dependency
+    graph when aggregate function dependents are encountered.
+    @param  {Number[]}  iFunctionIndices - array of aggregate function indices
+   */
+  invalidateFunctions: function(iFunctionIndices) {
+    if (iFunctionIndices) {
+      iFunctionIndices.forEach(function(iAggFnIndex) {
+        var instance = this.aggFnInstances && this.aggFnInstances[ iAggFnIndex];
+        if (instance) {
+          instance.caches = {};
+          instance.results = {};
+        }
+      }.bind(this));
+    }
+  },
+
   /**
     Compiles a function reference into the JavaScript code for evaluating
     the appropriate function. For the base FormulaContext, this means
