@@ -42,7 +42,7 @@ DG.GameController = DG.ComponentController.extend(
        *
        * @property {DG.GameContext}
        */
-      contextBinding: '.controller.context',
+      contextBinding: '.model.context',
 
       savedChangeCount: 0,
 
@@ -96,8 +96,8 @@ DG.GameController = DG.ComponentController.extend(
 
         if (!SC.none(this.context)) {
           // Save information about the current game
-          tStorage.currentGameName = this.getPath('context.gameName');
-          tStorage.currentGameUrl = this.getPath('context.gameUrl');
+          tStorage.currentGameName = tStorage.currentGameName || this.getPath('context.gameName');
+          tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
         }
 
         var dataContext = this.get('context');

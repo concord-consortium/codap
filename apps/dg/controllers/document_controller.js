@@ -1378,7 +1378,7 @@ DG.DocumentController = SC.Object.extend(
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if (gameController.saveGameState) {
+              if (gameContext && gameController.saveGameState) {
                 gameController.saveGameState(function (result) {
                   if (result && result.success) {
                     gameContext.set('savedGameState', result.state);
