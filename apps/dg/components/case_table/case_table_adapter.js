@@ -348,7 +348,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               autoEdit: true, // single click to edit an 'editable' attribute's cell
               editCommandHandler: function( iItem, iColumn, iEditCommand) {
                                     // Called after the cell edit has been deactivated
-                                    iEditCommand.execute();
+                                    SC.run(function() {
+                                      iEditCommand.execute();
+                                    });
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
                 return iRowItem.getValue(iColumnInfo.id);
