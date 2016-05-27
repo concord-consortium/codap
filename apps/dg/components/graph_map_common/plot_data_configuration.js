@@ -291,7 +291,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       return !this.getPath( iKey + 'AttributeDescription.isNull');
     }.bind( this));
   },
-  
+
   /**
     Returns true if this graph references attributes in collections with aggregate
     functions, which is useful when determining whether a graph needs to be redrawn.
@@ -463,7 +463,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var plottedCollectionIDs = [],
         collectionClient = this.get('collectionClient'),
         collectionClientID = collectionClient && collectionClient.get('id'),
-        // Temporary elimination of legend because it can cause inclusion of unwanted cases
+    // Temporary elimination of legend because it can cause inclusion of unwanted cases
         properties = ['xCollectionClient', 'yCollectionClient', 'y2CollectionClient'/*, 'legendCollectionClient'*/];
     if( collectionClient && !SC.none( collectionClientID))
       plottedCollectionIDs.push( collectionClientID);

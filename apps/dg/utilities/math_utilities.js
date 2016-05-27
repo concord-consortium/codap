@@ -194,6 +194,15 @@ DG.MathUtilities = {
   },
 
   /**
+   * Returns the numeric value for numbers and null for all other types.
+   * @param   {any} val - the value whose numeric value is requested
+   * @return  {Number|null}  the numeric value where possible, otherwise null
+   */
+  getNumeric: function(val) {
+    return !SC.empty(val) && !isNaN(val) ? Number(val) : null;
+  },
+
+  /**
    * @private A private variant of Array.prototype.map that supports the index
    * property.
    */
@@ -277,4 +286,4 @@ DG.MathUtilities = {
 };
 
 DG.isFinite = DG.MathUtilities.isFinite;
-
+DG.getNumeric = DG.MathUtilities.getNumeric;

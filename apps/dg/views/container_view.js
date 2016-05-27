@@ -109,6 +109,11 @@ DG.ContainerView = SC.View.extend(
               return 'tile-icon-comment';
             case DG.GuideView:
               return 'tile-icon-guide';
+            case DG.GameView:
+              return 'tile-icon-dataTool';
+            case DG.WebView:
+            case SC.WebView:
+              return 'tile-icon-mediaTool';
           }
         }
 

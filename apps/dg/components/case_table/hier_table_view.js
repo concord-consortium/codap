@@ -284,7 +284,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        */
       rowCountDidChange: function(iNotifier) {
         this.get('dividerViews').forEach(function (view) {
-          if (view.parentView === iNotifier) {
+          if (view.get('rightTable') === iNotifier) {
             view.displayDidChange();
           }
         });
@@ -396,10 +396,13 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      * @return {boolean}
      */
     isHorizontalScrollActive: function () {
+      if (SC.none(this._lastContentWidth)) {
+        this._lastContentWidth = this.getPath('contentView.frame.width');
+      }
       return this.get('frame').width < this.get('_lastContentWidth');
     }.property(),
 
-    _lastContentWidth: 0,
+    _lastContentWidth: null,
 
   /**
    * Width of the contained table set changed.

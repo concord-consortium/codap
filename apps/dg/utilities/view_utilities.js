@@ -57,6 +57,10 @@ DG.ViewUtilities = {
       tFrame = iView.get('frame');
       iWindowPt.x -= tFrame.x;
       iWindowPt.y -= tFrame.y;
+/*
+      iWindowPt.x += iView.get('horizontalScrollOffset') || 0;
+      iWindowPt.y += iView.get('verticalScrollOffset') || 0;
+*/
       iView = iView.parentView;
     } while( !SC.none( iView));
     return iWindowPt;

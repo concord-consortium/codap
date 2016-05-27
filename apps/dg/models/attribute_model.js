@@ -215,7 +215,10 @@ DG.Attribute = DG.BaseModel.extend(
         tReturnValue = NaN;
       try {
         // Client is responsible for passing _case_ and _id_
-        tReturnValue = tFormula.evaluate({ _case_: iCase, _id_: iCase && iCase.get('id') });
+        tReturnValue = tFormula.evaluate({
+                                  _case_: iCase,
+                                  _id_: iCase && iCase.get('id'),
+                                  _collectionID_: this.getPath('collection.id') });
       }
       catch(e) {
         // Return error objects as attribute values.

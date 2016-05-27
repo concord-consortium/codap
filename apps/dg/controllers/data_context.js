@@ -47,6 +47,8 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   model: null,
 
+    defaultTitleBinding: 'model.defaultTitle',
+
   /**
     The number of change requests that have been applied.
     Clients can use this like a seed value to determine when they're out of date

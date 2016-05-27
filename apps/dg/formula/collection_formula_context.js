@@ -109,6 +109,47 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   },
   
   /**
+    Returns the attribute in the data context/data set with the specified name.
+    @param    {String}    iName -- The name of the attribute to find
+    @returns  {DG.AttributeModel}
+   */
+  getAttributeByName: function( iName) {
+    // check the current collection first
+    var attr = this.get('collection').getAttributeByName(iName);
+    if (attr) return attr;
+
+    // if not in the current collection, check all collections
+    var attrs = this.getPath('collection.context.dataSet.attrs'),
+        attrCount = attrs && attrs.length,
+        i, attr;
+    for (i = 0; i < attrCount; ++i) {
+      attr = attrs[i];
+      if (attr.get('name') === iName) {
+        return attr;
+      }
+    }
+    return null;
+  },
+
+  /**
+    Returns the collection in which the specified attribute resides.
+    @param    {DG.AttributeModel} -- the attribute to find
+    @returns  {DG.CollectionModel}
+   */
+  getCollectionForAttribute: function( iAttribute) {
+    // check the current collection first
+    if (iAttribute.getPath('collection.id') === this.getPath('collection.id'))
+      return this.get('collection');
+    
+    // if not in the current collection, check all collections
+    var collections = this.getPath('collection.context.collections'),
+        key = DG.ObjectMap.findKey(collections, function(iKey, iCollection) {
+                return iCollection.getAttributeByName(iAttribute.get('name'));
+              });
+    return key && collections[key];
+  },
+
+  /**
     Compiles a variable reference into the JavaScript code for accessing
     the appropriate value. For the CollectionFormulaContext, this means
     binding to 'caseIndex' and any collection attributes by name.
@@ -123,38 +164,9 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     // which requires the caseIDToIndexMap, which is built on demand.
     if( iName === 'caseIndex') return 'c.getCaseIndex(e._id_)';
     
-    var parent, child,
-        // Check if the attribute is in the collection which owns the formula
-        collection = this.get('collection'),
-        attribute = collection && collection.getAttributeByName( iName);
-
-    // Search in parent collections. Child collection formulas can
-    // reference parent collection attributes unambiguously.
-    if( SC.none( attribute)) {
-      parent = collection && collection.get('parent');
-      for( parent; !SC.none(parent) && SC.none(attribute); parent = parent.get('parent')) {
-        attribute = parent && parent.getAttributeByName( iName);
-        if( !SC.none( attribute)) {
-          collection = parent;
-          break;
-        }
-      }
-    }
-
-    // Search in child collections. Parent collection formulas can only reference
-    // child collection attributes in the context of aggregate functions.
-    if( SC.none( attribute)) {
-      var children = this.getPath('collection.children'),
-          childCount = children && children.get('length');
-      for( var i = 0; i < childCount; ++i) {
-        child = children.objectAt( i);
-        attribute = child && child.getAttributeByName( iName);
-        if( !SC.none( attribute)) {
-          collection = child;
-          break;
-        }
-      }
-    }
+    var attribute = this.getAttributeByName(iName),
+        collection = attribute && this.getCollectionForAttribute(attribute),
+        collectionID = collection && collection.get('id');
 
     if( attribute) {
       // Having identified the attribute to be referenced, we attach a
@@ -171,13 +183,10 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
       // Client is responsible for putting '_case_' into evaluation context.
       var attributeID = attribute.get('id');
       this.attrFns[ iName] = function( iEvalContext) {
-                                  // While code above potentially supports multiple levels,
-                                  // this code presumes only a single parent level.
-                                  var iCase = iEvalContext._case_,
-                                      tCase = (child && iEvalContext._childCase_) ||
-                                              (parent && iCase.get('parent')) ||
-                                              iCase,
-                                      tValue = tCase && tCase.getValue( attributeID);
+                                  var tCase = iEvalContext._caseMap_
+                                                ? iEvalContext._caseMap_[collectionID]
+                                                : iEvalContext._case_,
+                                      tValue = tCase && tCase.getValue(attributeID);
                                   // Propagate error values immediately
                                   if( tValue instanceof Error) throw tValue;
                                   return tValue;
@@ -234,32 +243,17 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @returns  {DG.CollectionClient}   The whose cases should be iterated
    */
   getCollectionToIterate: function() {
-    var collection = this.get('collection'),
-        childCollections = collection && collection.get('children'),
-        childCount = childCollections && childCollections.get('length');
-
-    // First check for child collection references
-    for( var i = 0; i < childCount; ++i) {
-      var childCollection = childCollections.objectAt( i),
-          childID = childCollection && childCollection.get('id');
-      if( this.collectionAttrRefCounts[ childID] > 0)
-        return childCollection;
+    var collections = this.getPath('collection.context.dataSet.collectionOrder'),
+        collectionCount = collections.length,
+        i, collection, collectionID;
+    // loop from child collection to parent collections
+    for (i = collectionCount - 1; i >= 0; --i) {
+      collection = collections[i];
+      collectionID = collection.get('id');
+      if (this.collectionAttrRefCounts[collectionID])
+        return collection;
     }
-
-    // Then check for current collection references
-    var collectionID = collection && collection.get('id');
-    if( this.collectionAttrRefCounts[ collectionID] > 0)
-      return collection;
-    
-    // Finally, check for parent collection references
-    var parentCollection = collection && collection.get('parent'),
-        parentID = parentCollection && parentCollection.get('id');
-    if( this.collectionAttrRefCounts[ parentID] > 0)
-      return parentCollection;
-
-    // If no attribute references, iterate the current collection
-    // (i.e. the one containing the formula).
-    return collection;
+    return this.get('collection');
   },
   
   /**
