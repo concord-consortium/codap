@@ -9450,7 +9450,8 @@ CloudFileManager = (function() {
       sharedContentId: getHashParam("shared"),
       fileParams: getHashParam("file"),
       copyParams: getHashParam("copy"),
-      runKey: getQueryParam("runKey")
+      runKey: getQueryParam("runKey"),
+      runAsGuest: (getQueryParam("runAsGuest")) === "true"
     };
     return this.client.setAppOptions(this.appOptions);
   };
@@ -9896,7 +9897,7 @@ CloudFileManagerClient = (function() {
     if (provider) {
       return provider.authorized((function(_this) {
         return function(authorized) {
-          if (authorized) {
+          if (authorized || !provider.isAuthorizationRequired()) {
             return provider.openSaved(providerParams, function(err, content, metadata) {
               if (err) {
                 return _this.alert(err);
@@ -10342,8 +10343,8 @@ CloudFileManagerClient = (function() {
     }
     shouldAutoSave = (function(_this) {
       return function() {
-        var ref, ref1, ref2;
-        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('save') : void 0 : void 0);
+        var ref, ref1, ref2, ref3;
+        return _this.state.dirty && !((ref = _this.appOptions.hashParams) != null ? ref.runAsGuest : void 0) && !((ref1 = _this.state.metadata) != null ? ref1.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref2 = _this.state.metadata) != null ? (ref3 = ref2.provider) != null ? ref3.can('save') : void 0 : void 0);
       };
     })(this);
     if (interval > 1000) {
@@ -10668,6 +10669,10 @@ DocumentStoreProvider = (function(superClass) {
 
   DocumentStoreProvider.prototype.previouslySavedContent = null;
 
+  DocumentStoreProvider.prototype.isAuthorizationRequired = function() {
+    return !(this.client.appOptions.hashParams.runKey && this.client.appOptions.hashParams.runAsGuest);
+  };
+
   DocumentStoreProvider.prototype.authorized = function(authCallback) {
     this.authCallback = authCallback;
     if (this.authCallback) {
@@ -10879,7 +10884,7 @@ DocumentStoreProvider = (function(superClass) {
           };
         })(this)
       },
-      error: function() {
+      error: function(jqXHR) {
         var message, ref2;
         if (jqXHR.status === 403) {
           return;
@@ -10936,7 +10941,7 @@ DocumentStoreProvider = (function(superClass) {
           };
         })(this)
       },
-      error: function() {
+      error: function(jqXHR) {
         var docName;
         if (jqXHR.status === 403) {
           return;
@@ -11052,7 +11057,7 @@ DocumentStoreProvider = (function(superClass) {
           };
         })(this)
       },
-      error: function() {
+      error: function(jqXHR) {
         if (jqXHR.status === 403) {
           return;
         }
@@ -11084,7 +11089,7 @@ DocumentStoreProvider = (function(superClass) {
           };
         })(this)
       },
-      error: function() {
+      error: function(jqXHR) {
         if (jqXHR.status === 403) {
           return;
         }

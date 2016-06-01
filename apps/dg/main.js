@@ -169,8 +169,12 @@ DG.main = function main() {
     return new Promise(function(resolve, reject) {
       // instantiate external document ID references
       var params = { recordid: iDataContext.externalDocumentId };
-      if (DG.get('runKey'))
+      if (DG.get('runKey')) {
         params.runKey = DG.get('runKey');
+        var hashIndex = params.runKey.indexOf('#');
+        if (hashIndex >= 0)
+          params.runKey = params.runKey.substr(0, hashIndex);
+      }
       if(iDataContext.externalDocumentId != null) {
         $.ajax({
           // external document references were only used with the
