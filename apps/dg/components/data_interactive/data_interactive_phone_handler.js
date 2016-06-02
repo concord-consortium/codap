@@ -87,6 +87,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           selectionList: this.handleSelectionList//,
           //undoChangeNotice: this.handleUndoChangeNotice
         };
+
       },
 
       /**
@@ -274,10 +275,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
 
         get: function (iResources) {
+
           var tReturnValues = {};
-          tReturnValues.title = iResources.interactiveFrame.getPath('model.title');
-          tReturnValues.version = iResources.interactiveFrame.getPath('model.version');
-          tReturnValues.dimensions = iResources.interactiveFrame.getPath('model.dimensions');
+          var interactiveFrame = iResources.interactiveFrame;
+          tReturnValues.title = interactiveFrame.getPath('model.title');
+          tReturnValues.version = interactiveFrame.getPath('model.version');
+          tReturnValues.dimensions = interactiveFrame.getPath('model.dimensions');
+          tReturnValues.savedState = interactiveFrame.getPath(
+              'model.componentStorage.savedGameState');
           return {
             success: true,
             values: tReturnValues

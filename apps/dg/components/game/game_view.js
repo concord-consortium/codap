@@ -32,41 +32,37 @@ DG.GameView = SC.View.extend(
     /** @scope DG.GameView.prototype */ {
   childViews: ['loadingView', 'webView'],
 
-  value: '',
+      /**
+       * Handles the old-style 'game' API using asynch iframePhone post-messaging
+       * @property {DG.GamePhoneHandler}
+       */
+      gamePhoneHandler: null,
 
-  isLoading: true,
+      /**
+       * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
+       * Brought into existence in March, 2016
+       * @property {DG.DataInteractivePhoneHandler}
+       */
+      dataInteractivePhoneHandler: null,
 
-  /**
-   * Handles the old-style 'game' API using asynch iframePhone post-messaging
-   * @property {DG.GamePhoneHandler}
-   */
-  gamePhoneHandler: null,
+      init: function () {
+        sc_super();
+        this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
+        this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.get('model')});
+      },
 
-  /**
-   * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
-   * Brought into existence in March, 2016
-   * @property {DG.DataInteractivePhoneHandler}
-   */
-  dataInteractivePhoneHandler: null,
-
-  init: function () {
-    sc_super();
-    this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
-    this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.get('model')});
-  },
-
-  destroy: function () {
-    this.controller.gameViewWillClose();
-    if (this.gamePhoneHandler) {
-      this.gamePhoneHandler.destroy();
-      this.gamePhoneHandler = null;
-    }
-    if (this.dataInteractivePhoneHandler) {
-      this.dataInteractivePhoneHandler.destroy();
-      this.dataInteractivePhoneHandler = null;
-    }
-    sc_super();
-  },
+      destroy: function () {
+        this.controller.gameViewWillClose();
+        if (this.gamePhoneHandler) {
+          this.gamePhoneHandler.destroy();
+          this.gamePhoneHandler = null;
+        }
+        if (this.dataInteractivePhoneHandler) {
+          this.dataInteractivePhoneHandler.destroy();
+          this.dataInteractivePhoneHandler = null;
+        }
+        sc_super();
+      },
 
   loadingView: SC.LabelView.extend({
     urlBinding: '*parentView.value',
@@ -135,48 +131,16 @@ DG.GameView = SC.View.extend(
       // Global flag used to indicate whether calls to application should be made via phone, or not.
       iHandler.set('isPhoneInUse', false);
 
-      iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(
-        // TODO put this handler function somewhere appropriate rather than inlining it in (what is
-        // at notionally) view code?
-
-        function (command, callback) {
-          iHandler.set('isPhoneInUse', true);
-          iHandler.doCommand(command, function (ret) {
-            // Analysis shows that the object returned by DG.doCommand may contain Error values, which
-            // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
-            // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
-            // 'requestAttributeValues' API commands are the guilty parties. The following is an
-            // ad-hoc attempt to clean up the object for successful serialization.
-
-            if (ret && ret.error && ret.error instanceof Error) {
-              ret.error = ret.error.message;
-            }
-
-            if (ret && ret.values && ret.values.length) {
-              ret.values = ret.values.map(function (value) {
-                return value instanceof Error ? null : value;
-              });
-            }
-
-            // If there's a DataCloneError anyway, at least let the client know something is wrong:
-            try {
-              callback(ret);
-            } catch (e) {
-              if (e instanceof window.DOMException && e.name === 'DataCloneError') {
-                callback({success: false});
-              }
-            }
+          iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
+                iKey, this.$('iframe')[0], this.extractOrigin(tValue), this.phone);
+          // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+          // old iframePhone supporting page) and can use its API.
+          iHandler.phone.call({message: "codap-present"}, function (reply) {
+            DG.log('Got codap-present reply on channel: "' + iKey + '": ' + JSON.stringify(reply));
+            // success or failure, getting a reply indicates we are connected
           });
-        }.bind(this),
-        iKey,
-        this.$('iframe')[0],
-        this.extractOrigin(tValue)
-      );
+        }.bind( this);
 
-      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
-      // old iframePhone supporting page) and can use its API.
-      iHandler.phone.call({message: "codap-present"});
-    }.bind( this);
 
     var tValue = this.get('value');
 

@@ -1392,18 +1392,22 @@ DG.DocumentController = SC.Object.extend(
           returnPromise;
       if (gameControllers) {
         gameControllers.forEach(function (gameController) {
-          var gameContext = gameController.get('context');
+          var model = gameController.get('model');
+          var modelStorage = model.get('componentStorage');
+          if (!modelStorage) model.set('componentStorage', {});
+          var gameStore = gameController.get('context') || model.get('componentStorage');
+
 
           // create an array of promises, one for each data interactive.
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if (gameContext && gameController.saveGameState) {
+              if (gameStore && gameController.saveGameState) {
                 gameController.saveGameState(function (result) {
                   if (result && result.success) {
-                    gameContext.set('savedGameState', result.state);
+                    gameStore.savedGameState = result.values || result.state;
                   } else {
-                    DG.logWarn("No channel to Data Interactive: " + gameContext.get('gameName'));
+                    DG.logWarn("No channel to Data Interactive: " + (gameStore.get('gameName') || gameStore.get('name')));
                     result = {success: false};
                   }
                   resolve(result);
