@@ -286,6 +286,10 @@ DG.Attribute = DG.BaseModel.extend(
 
       // invalidate specified aggregate function caches
       if (iAggFnIndices && iAggFnIndices.length) {
+        // @if (debug)
+        DG.log("DG.Attribute.invalidateCases: attribute '%@' invalidating aggregate functions [%@]",
+               this.get('name'), iAggFnIndices.join(", "));
+        // @endif
         var formulaContext = this.getPath('_dgFormula.context');
         if (formulaContext)
           formulaContext.invalidateFunctions(iAggFnIndices);

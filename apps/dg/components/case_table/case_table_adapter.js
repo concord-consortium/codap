@@ -388,8 +388,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     Refreshes the contents of the table.
    */
   refresh: function() {
-    var gridDataView = this.get('gridDataView');
-    if( gridDataView) gridDataView.refresh();
+    this.invokeOnce(function() {
+      var gridDataView = this.get('gridDataView');
+      if( gridDataView) {
+        gridDataView.refresh();
+      }
+    });
   },
 
   /**
@@ -520,6 +524,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                         dataView.updateItem( caseID, item);
                     });
     dataView.endUpdate();
+    this.refresh();
   },
 
     /**
