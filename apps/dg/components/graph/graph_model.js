@@ -741,6 +741,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           this.dataDidChange( null, null, iChange);
           break;
         case 'updateCases':
+        case 'dependentCases':
         case 'createAttributes':
         case 'updateAttributes':
           // We must invalidate before we build indices because the change may

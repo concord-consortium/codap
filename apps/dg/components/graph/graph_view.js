@@ -230,6 +230,11 @@ DG.GraphView = SC.View.extend(
   categoriesDidChange: function( iObject, iProperty) {
     if( this.getPath('model.aboutToChangeConfiguration'))
       return; // So we don't attempt to draw in the midst of a configuration change
+
+    this.get('plotViews').forEach( function( iPlotView, iIndex) {
+      iPlotView.categoriesDidChange();
+    });
+
     var tLegendView = this.get('legendView');
     this.drawPlots();
     if( tLegendView)

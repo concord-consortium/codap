@@ -302,7 +302,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.addObserver('dataConfiguration', this, 'dataConfigurationDidChange');
     this.addObserver('xAxis', this, 'xAxisDidChange');
     this.addObserver('yAxis', this, 'yAxisDidChange');
-    DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
   },
   
   /**
@@ -327,7 +326,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
                           });
     this._adornmentModels = null;
 
-    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
     sc_super();
   },
   
@@ -500,14 +498,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('axisBounds');
   },
 
-  /**
-   Called when the value of a global value changes (e.g. when a slider is dragged).
-   */
-  globalValueDidChange: function() {
-    if( this.getPlottedAttributesContainFormulas())
-      this.invalidateCaches();
-  },
-
   animateSelectionBackToStart: function( iAttrIDs, iDeltas) {
     if( SC.none( this.caseValueAnimator))
       this.caseValueAnimator = DG.CaseValueAnimator.create();
@@ -605,6 +595,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     var isAffected = false;
     if( !iChange || !iChange.operation) return false;
     switch( iChange.operation) {
+      case 'dependentCases':
+        var i, change, changeCount = (iChange.changes && iChange.changes.length) || 0;
+        for (i = 0; i < changeCount; ++i) {
+          change = iChange.changes[i];
+          if (change.attributeIDs && this.getPlottedAttributesIncludeIDs(change.attributeIDs))
+            return true;
+        }
+        return false;
       case 'updateCases':
         // only if the attributes involved are being plotted OR
         // if there are formulas such that the plotted attributes
@@ -613,10 +611,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         // If no attributes are listed, then assume all are affected
         if( changedAttrIDs) {
           // identify all of the attributes that are being plotted
-          isAffected = this.getPlottedAttributesIncludeIDs( changedAttrIDs);
-          // If we get here, then the plotted attributes aren't directly affected
-          // We need dependency tracking to determine any indirect effects.
-          return isAffected || this.getPlottedAttributesContainFormulas();
+          return this.getPlottedAttributesIncludeIDs( changedAttrIDs);
         }
         /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
         // fall-through intentional -- w/o attribute IDs, rely on collection
