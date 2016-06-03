@@ -250,8 +250,9 @@ DG.GameController = DG.ComponentController.extend(
         }.bind(this));
         return;
 
-        case 'createComponent':
-          // If we're in standalone mode, we allow more than one component of a type to be created
+      case 'createComponent':
+        // If we're in standalone mode, we allow more than one component of a type to be created
+        tCmdObj.args.initiatedViaCommand = true;
         tRet = this.handleCreateComponent( tCmdObj.args, DG.STANDALONE_MODE);
         break;
 
@@ -298,6 +299,14 @@ DG.GameController = DG.ComponentController.extend(
 
       case 'undoableActionPerformed':
         tRet = this.handleUndoableAction( tCmdObj.args);
+        break;
+
+      case 'undo':
+        tRet = DG.UndoHistory.undo();;
+        break;
+
+      case 'redo':
+        tRet = DG.UndoHistory.redo();;
         break;
 
       /*
@@ -570,7 +579,11 @@ DG.GameController = DG.ComponentController.extend(
 
     notifyGameAboutExternalUndo: function() {
       if (this.get('gameIsReady') && DG.UndoHistory.get('enabled')) {
-        this.gamePhone.call({ operation: "externalUndoAvailable" });
+        if (DG.STANDALONE_MODE) {
+          this.gamePhone.call({ operation: "standaloneUndoModeAvailable" });
+        } else {
+          this.gamePhone.call({ operation: "externalUndoAvailable" });
+        }
       }
     }.observes('gameIsReady'),
 
