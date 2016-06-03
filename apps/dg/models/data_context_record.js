@@ -59,6 +59,11 @@ DG.DataContextRecord = DG.BaseModel.extend(
     }.property(),
 
     /**
+      The dependency mananager
+     */
+    dependencyMgr: null,
+
+    /**
      * The base data set for the collections in this context.
      * @property {DG.DataSet}
      */
@@ -71,7 +76,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     flexibleGroupingChangeFlag: false,
 
-      /**
+    /**
      * Per-component storage, in a component specific format.
      * @property {JSON}
      */
@@ -81,6 +86,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     init: function () {
       this.collections = {};
+      this.dependencyMgr = DG.DependencyMgr.create();
       this.dataSet = DG.DataSet.create({dataContextRecord: this});
       sc_super();
     },

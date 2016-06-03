@@ -39,7 +39,7 @@ DG.globalsController = SC.Controller.create( (function() {
       Array of strings representing the names of the changed global values.
       @property   {Array of String}
      */
-    globalValueChanges: 0,
+    globalValueChanges: null,
     
     /**
       @private

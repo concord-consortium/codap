@@ -68,7 +68,7 @@ DG.CollectionClient = SC.Object.extend(
 
   casesController: null,
   
-  attrFormulaChanges: 0,
+  attrFormulaChanges: null,
   attrFormulaDependentChanges: 0,
   
   /**
@@ -131,11 +131,11 @@ DG.CollectionClient = SC.Object.extend(
     }
   },
 
-    getParentCollectionID: function () {
-      var collectionModel = this.get('collection');
-      var parent = collectionModel && collectionModel.parent;
-      return (parent && parent.id);
-    },
+  getParentCollectionID: function () {
+    var collectionModel = this.get('collection');
+    var parent = collectionModel && collectionModel.parent;
+    return (parent && parent.id);
+  },
 
   /**
     Returns true if iOtherCollection is descended from this collection.
@@ -174,25 +174,26 @@ DG.CollectionClient = SC.Object.extend(
                           }.bind( this));
   },
 
-    /**
-     * Reorders the attributes according to the order specified by the attribute
-     * list. The attribute list is an array of attribute names. All names in the
-     * list must be present as named attributes or the reordering will be
-     * abandoned. There may be attributes not specified in the list. These will
-     * be ordered after the attributes named in the list in their present order.
-     *
-     * @param {[String]} iAttributeNameList an array of attribute names
-     */
-    reorderAttributes: function(iAttributeNameList) {
-      var nameListLength = iAttributeNameList.length;
-      this.collection.attrs.sort(function(attr1, attr2) {
-        var ix1 = iAttributeNameList.indexOf(attr1.name),
-          ix2 = iAttributeNameList.indexOf(attr2.name);
-        if (ix1 < 0) {ix1 = nameListLength;}
-        if (ix2 < 0) {ix2 = nameListLength;}
-        return ix1 - ix2;
-      });
-    },
+  /**
+   * Reorders the attributes according to the order specified by the attribute
+   * list. The attribute list is an array of attribute names. All names in the
+   * list must be present as named attributes or the reordering will be
+   * abandoned. There may be attributes not specified in the list. These will
+   * be ordered after the attributes named in the list in their present order.
+   *
+   * @param {[String]} iAttributeNameList an array of attribute names
+   */
+  reorderAttributes: function(iAttributeNameList) {
+    var nameListLength = iAttributeNameList.length;
+    this.collection.attrs.sort(function(attr1, attr2) {
+      var ix1 = iAttributeNameList.indexOf(attr1.name),
+        ix2 = iAttributeNameList.indexOf(attr2.name);
+      if (ix1 < 0) {ix1 = nameListLength;}
+      if (ix2 < 0) {ix2 = nameListLength;}
+      return ix1 - ix2;
+    });
+  },
+
   /**
     Returns an array with the IDs of the attributes in the collection.
    */
@@ -417,7 +418,7 @@ DG.CollectionClient = SC.Object.extend(
     }
     // Signal a formula change manually. See comment under newAttribute
     // for details of why we're signalling manually.
-    this.attributeFormulaDidChange();
+    this.attributeFormulaDidChange(iAttribute);
   },
   
   /**
@@ -517,15 +518,23 @@ DG.CollectionClient = SC.Object.extend(
   },
   
   /**
-    Increments the 'attrFormulaChanges' property, triggering any observers of that property.
+    Updates the 'attrFormulaChanges' property, triggering any observers of that property.
    */
-  attributeFormulaDidChange: function() {
-    this.incrementProperty('attrFormulaChanges');
+  attributeFormulaDidChange: function(iAttribute) {
+    var attrID = iAttribute.get('id'),
+        prevID = this.get('attrFormulaChanges');
+    this.beginPropertyChanges();
+      // force notification, even if the attribute is the same
+      if (prevID === attrID) {
+        this.set('attrFormulaChanges', null);
+      }
+      this.set('attrFormulaChanges', attrID);
+    this.endPropertyChanges();
   },
   
   /**
     Observer function for attribute formulas' 'dependentChange' notifications.
-    Increments the 'attrFormulaChanges' property, triggering any observers of that property.
+    Increments the 'attrFormulaDependentChanges' property, triggering observers.
    */
   attrFormulaDependentDidChange: function() {
     this.incrementProperty('attrFormulaDependentChanges');
