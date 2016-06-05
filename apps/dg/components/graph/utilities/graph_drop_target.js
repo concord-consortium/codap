@@ -85,6 +85,9 @@ DG.GraphDropTarget =
     if( this.isValidAttribute( iDrag)) {
       if( this.get('orientation') === 'vertical2') {
         this.set('isVisible', true);
+        var tParentView = this.get('parentView');
+        if( tParentView)
+          tParentView.makeSubviewFrontmost( this);
       }
 
       tFrame = { x: kWidth, y: kWidth,

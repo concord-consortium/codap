@@ -117,6 +117,9 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
       if( this.isValidAttribute( iDrag ) ) {
         this.set('isVisible', true);
+        var tParentView = this.get('parentView');
+        if( tParentView)
+            tParentView.makeSubviewFrontmost( this);
 
         var tX = kPlusWidth / 2 + kPadding,
           tY = tX + 2 * kPadding;

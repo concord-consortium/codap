@@ -389,6 +389,15 @@ DG.GraphView = SC.View.extend(
   },
 
   /**
+   * Better if this were in SC.View, but it's fraught with problems, so we specialize it here.
+   * @param iChildView
+   */
+  makeSubviewFrontmost: function( iChildView) {
+    this.removeChild( iChildView);
+    this.appendChild( iChildView);
+  },
+
+  /**
    * Private property to prevent recursive execution of renderLayout. Seems most important in Firefox.
    */
   _isRenderLayoutInProgress: false,
