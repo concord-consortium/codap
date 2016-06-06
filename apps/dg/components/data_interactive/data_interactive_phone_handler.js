@@ -31,6 +31,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       model: null,
 
+      idBinding: SC.Binding.oneWay('*model.id'),
+
       /**
        * Handles communication over PostMessage interface.
        *
@@ -66,6 +68,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       init: function () {
         sc_super();
+        var contexts = DG.currDocumentController().get('contexts');
+        contexts.forEach(function (context) {
+          context.addObserver('changeCount', this, this.contextDataDidChange);
+        }.bind(this));
 
         this.handlerMap = {
           attribute: this.handleAttribute,
@@ -88,18 +94,48 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           //undoChangeNotice: this.handleUndoChangeNotice
         };
 
+
       },
 
       /**
        * Break loops
        */
       destroy: function () {
+        var contexts = DG.currDocumentController().get('contexts');
+
         this.setPath('model.content', null);
         sc_super();
+        contexts.forEach(function (context) {
+          context.removeObserver('changeCount', this, 'contextDataDidChange');
+        }.bind(this));
+      },
+
+      contextDataDidChange: function (sender, key, value, rev) {
+        var dataContextName = sender.name;
+        var changes = sender.get('newChanges').filter(function (iChange) {
+          return ((iChange.result && iChange.result.success) &&
+              (!iChange.requester || (iChange.requester !== this.get('id'))));
+        }.bind(this)).map(function (change) {
+          return {operation: change.operation, result: change.result};
+        });
+        if (!changes || changes.length === 0) {
+          return;
+        }
+        this.phone.call({
+          action: 'create',
+          resource: 'dataContextChangeNotice[' + dataContextName + ']',
+          values: changes
+        }, function (response) {
+          DG.log('Sent dataContextChangeNotice to Data Interactive for context: ' + dataContextName + ': ' + JSON.stringify(changes));
+          DG.log('Response: ' + JSON.stringify(response));
+        });
       },
 
       requestDataInteractiveState: function (callback) {
-        this.phone.call({action: 'get', resource: 'interactiveState'}, callback);
+        this.phone.call({
+          action: 'get',
+          resource: 'interactiveState'
+        }, callback);
       },
 
       /**
@@ -440,7 +476,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var change = {
             operation: 'createCollection',
             properties: iValues,
-            attributes: ( iValues && iValues.attributes )
+            attributes: ( iValues && iValues.attributes ),
+            requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success) || success;
@@ -453,7 +490,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var change = {
             operation: 'updateCollection',
             collection: iResources.collection,
-            properties: iValues
+            properties: iValues,
+            requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success) || success;
@@ -536,7 +574,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var change = {
             operation: 'createAttributes',
             collection: iResources.collection,
-            attrPropsArray: iValues
+            attrPropsArray: iValues,
+            requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success);
@@ -550,7 +589,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var change = {
             operation: 'updateAttributes',
             collection: iResources.collection,
-            attrPropsArray: [iValues]
+            attrPropsArray: [iValues],
+            requester: this.get('id')
           };
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success);
@@ -593,7 +633,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               properties: {
                 parent: iCase.parent
               },
-              values: [iCase.values]
+              values: [iCase.values],
+              requester: this.get('id')
             });
             success = (changeResult && changeResult.success) && success;
             if (changeResult.caseIDs[0]) {
@@ -637,7 +678,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               operation: 'updateCases',
               collection: collection,
               cases: [theCase],
-              values: [iValues.values]
+              values: [iValues.values],
+              requester: this.get('id')
             });
             if (SC.none(ret)) {
               DG.logWarn('UpdateCase failed to return a value');
@@ -676,7 +718,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               operation: 'updateCases',
               collection: collection,
               cases: [theCase],
-              values: [iValues.values]
+              values: [iValues.values],
+              requester: this.get('id')
             });
             if (SC.none(ret)) {
               DG.logWarn('UpdateCase failed to return a value');
@@ -708,12 +751,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var context = iResources.dataContext;
           var collection = iResources.collection;
-          var values = context.getSelectedCases().map(function(iCase) {
-            if (collection && collection !== iCase.collection) {
-              return;
-            } else {
-              return iCase.get('id');
-            }
+          var values = context.getSelectedCases().filter(function(iCase) {
+            // if we specified a collection in the get, filter by it
+            return (!collection || collection === iCase.collection);
+          }).map(function (iCase) {
+            var collectionID = iCase.getPath('collection.id');
+            var collectionName = context.getCollectionByID(collectionID).get('name');
+            return {
+              collectionID: collectionID,
+              collectionName: collectionName,
+              caseID: iCase.get('id')
+            };
           });
           return {
             success: true,
@@ -746,7 +794,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             collection: collection,
             cases: cases,
             select: true,
-            extend: false
+            extend: false,
+            requester: this.get('id')
           });
           return {
             success: result && result.success
@@ -770,7 +819,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             collection: collection,
             cases: cases,
             select: true,
-            extend: true
+            extend: true,
+            requester: this.get('id')
           });
           return {
             success: result && result.success
