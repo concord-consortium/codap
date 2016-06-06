@@ -461,6 +461,12 @@ DG.PlotView = DG.PlotLayer.extend(
   }.observes('.model.plottedCount'),
 
   /**
+    Called when the order of the categories on an axis changes (e.g. cells are dragged)
+  */
+  categoriesDidChange: function( iObject, iProperty) {
+  },
+
+  /**
     * Here we do the initialization that relies on there being a paper to draw on.
     */
   didCreateLayer: function() {
