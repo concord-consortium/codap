@@ -478,6 +478,27 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property('collectionClient','xCollectionClient',
               'yCollectionClient','y2CollectionClient','legendCollectionClient').cacheable(),
 
+  /**
+    Returns an array of attribute IDs representing the attributes
+    that are assigned to any place in the configuration.
+    @returns  {number[]} - array of unique attribute IDs assigned to places
+   */
+  placedAttributeIDs: function() {
+    var place, i, attrDesc, attrID, attrs, attrCount,
+        placedAttrs = [];
+    for (place = DG.GraphTypes.EPlace.eFirstPlace; place <= DG.GraphTypes.EPlace.eLastPlace; ++place) {
+      attrDesc = this.attributeDescriptionForPlace(null, null, place);
+      attrs = attrDesc && attrDesc.get('attributes');
+      attrCount = attrs ? attrs.length : 0;
+      for (i = 0; i < attrCount; ++i) {
+        attrID = attrDesc.attributeIDAt(i);
+        if (placedAttrs.indexOf(attrID) < 0)
+          placedAttrs.push(attrID);
+      }
+    }
+    return placedAttrs;
+  }.property(),
+
   _casesCache: null, // Array of DG.Case
 
   /**

@@ -807,6 +807,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         }
       }
       // Must redraw everything if there are aggregate functions
+      // Should be able to refine this to only changes that affect the plot
       if( this.getPath('dataConfiguration.hasAggregates'))
         this.invalidate();
     },
