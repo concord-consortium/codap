@@ -237,6 +237,9 @@ DG.DataContextRecord.createContext = function( iProperties) {
   if (iProperties.document) {
     iProperties.document.contexts[tContext.get('id')] = tContext;
   }
+  if (SC.empty(tContext.name)) {
+    tContext.name = 'context' + tContext.get('id');
+  }
   if (iProperties.collections) {
     iProperties.collections.forEach(function (iProps) {
       iProps.context = tContext;
