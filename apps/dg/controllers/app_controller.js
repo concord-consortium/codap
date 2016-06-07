@@ -973,31 +973,6 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     Delete all case data, except for open case IDs, after prompting user for OK/Cancel.
-     */
-    deleteAllCaseData: function () {
-
-      function doDelete() {
-        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
-        DG.doCommand({action: 'deleteAllCaseData'});
-        DG.dirtyCurrentDocument();
-      }
-
-      DG.AlertPane.warn({
-        message: 'DG.AppController.resetData.warnMessage',
-        description: 'DG.AppController.resetData.warnDescription',
-        buttons: [
-          { title: 'DG.AppController.resetData.okButtonTitle',
-            action: doDelete,
-            localize: YES
-          },
-          { title: 'DG.AppController.resetData.cancelButtonTitle', localize: YES }
-        ],
-        localize: YES
-      });
-    },
-
-    /**
       Imports a dragged or selected file
       */
     importFile: function ( tFile) {
