@@ -36,16 +36,22 @@ test("test DG.DataContext", function () {
   equals(tDataContext.getChildCollection(tParentCollection).get('name'), 'cB', 'Can get child of a collection.');
   equals(tDataContext.get('childCollection').get('name'), 'cB', 'Can get child collection.');
   equals(tDataContext.get('parentCollection').get('name'), 'cA', 'Can get parent collection.');
-  tDataContext.doCreateAttributes({collection: 'cA', attrPropsArray: [
-    {name: 'attrA1'},{name: 'attrA2'}
-  ]});
-  tDataContext.doCreateAttributes({collection: 'cB', attrPropsArray: [
-    {name: 'attrB1'},{name: 'attrB2'}
-  ]});
+  tDataContext.doCreateAttributes({
+                  operation: 'createAttributes',
+                  collection: tDataContext.getCollectionByName('cA'),
+                  attrPropsArray: [ {name: 'attrA1'}, {name: 'attrA2'} ]
+                });
+  tDataContext.doCreateAttributes({
+                  operation: 'createAttributes',
+                  collection: tDataContext.getCollectionByName('cB'),
+                  attrPropsArray: [ {name: 'attrB1'}, {name: 'attrB2'} ]
+                });
   equals(tDataContext.getAttributeByName('attrB1').get('name'),'attrB1', 'Can get attributes.');
-  rslt = tDataContext.doCreateCases({collection: 'cA', values: [
-    [1, 2], [3, 4]
-  ]});
+  rslt = tDataContext.doCreateCases({
+                        operation: 'createCases',
+                        collection: tDataContext.getCollectionByName('cA'),
+                        values: [ [1, 2], [3, 4] ]
+                      });
   equals(rslt.caseIDs.length, 2, 'Can create parent cases');
   ok(tDataContext.getCaseByID(rslt.caseIDs[0]), 'Can get cases by id.');
   /*

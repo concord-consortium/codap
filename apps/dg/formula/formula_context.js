@@ -96,6 +96,21 @@ DG.FormulaContext = SC.Object.extend( (function() {
   },
 
   /**
+    Returns true if the specified function name refers to an aggregate function.
+    Derived classes may override as appropriate.
+   */
+  isAggregate: function(iName) {
+    return false;
+  },
+
+  /**
+    Clear any cached bindings for this formula. Called before compiling.
+    Derived classes may override as appropriate.
+   */
+  clearCaches: function() {
+  },
+
+  /**
     Called when the formula is about to be recompiled to clear any cached data.
     Derived classes may override as appropriate.
    */
