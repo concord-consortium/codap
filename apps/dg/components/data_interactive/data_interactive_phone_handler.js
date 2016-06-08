@@ -46,20 +46,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * Whether activity has been detected on this channel.
        * @property {boolean}
        */
-      isActive: false,
-
-      /**
-       The total number of document-dirtying changes.
-       @property   {Number}
-       */
-      changeCount: 0,
-
-      /**
-       The number of document-dirtying changes that have been saved.
-       If this is less than the total change count, then the document is dirty.
-       @property   {Number}
-       */
-      savedChangeCount: 0,
+      connected: false,
 
       handlerMap: null,
 
@@ -111,12 +98,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       contextDataDidChange: function (sender, key, value, rev) {
+        if (!this.connected) {
+          return;
+        }
         var dataContextName = sender.name;
         var changes = sender.get('newChanges').filter(function (iChange) {
           return ((iChange.result && iChange.result.success) &&
               (!iChange.requester || (iChange.requester !== this.get('id'))));
         }.bind(this)).map(function (change) {
-          return {operation: change.operation, result: change.result};
+          var result = {};
+          DG.ObjectMap.forEach(change.result, function (k, v) {
+            switch (k) {
+              case 'success':
+              case 'caseIDs':
+              case 'caseID':
+                result[k] = v;
+                break;
+              case 'collection':
+                result[k] = v.get('id');
+                break;
+              default:
+                DG.log('unhandled result property: ' + k );
+            }
+          });
+
+          return {operation: change.operation, result: result};
         });
         if (!changes || changes.length === 0) {
           return;
@@ -227,14 +233,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       /**
        * Respond to requests from a Data Interactive.
        *
-       * Parses the request, instanciates any named resources, finds a handler
+       * Parses the request, instantiates any named resources, finds a handler
        * and invokes it.
        *
        * @param iMessage See documentation on the github wiki: TODO
        * @param iCallback
        */
       doCommand: function (iMessage, iCallback) {
-        this.set('isActive', true);
+        this.setIfChanged('connected', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
         var result = ({success: false});
         try {

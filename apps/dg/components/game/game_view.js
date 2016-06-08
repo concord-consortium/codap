@@ -29,40 +29,121 @@ sc_require('libraries/iframe-phone');
  */
 
 DG.GameView = SC.View.extend(
-    /** @scope DG.GameView.prototype */ {
+/** @scope DG.GameView.prototype */ {
+
+  /**
+   * @property {DG.GameController}
+   */
+  controller: null,
+
   childViews: ['loadingView', 'webView'],
 
-      /**
-       * Handles the old-style 'game' API using asynch iframePhone post-messaging
-       * @property {DG.GamePhoneHandler}
-       */
-      gamePhoneHandler: null,
+  phone: null,
 
-      /**
-       * Handles the new-style 'data interactive' API using asynch iframePhone post-messaging
-       * Brought into existence in March, 2016
-       * @property {DG.DataInteractivePhoneHandler}
-       */
-      dataInteractivePhoneHandler: null,
+  /**
+   * Handles the old-style 'game' API using async iframePhone post-messaging
+   * @property {DG.GamePhoneHandler}
+   */
+  gamePhoneHandler: null,
 
-      init: function () {
-        sc_super();
-        this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
-        this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.get('model')});
-      },
+  /**
+   * Handles the new-style 'data interactive' API using async iframePhone post-messaging
+   * Brought into existence in March, 2016
+   * @property {DG.DataInteractivePhoneHandler}
+   */
+  dataInteractivePhoneHandler: null,
 
-      destroy: function () {
-        this.controller.gameViewWillClose();
-        if (this.gamePhoneHandler) {
-          this.gamePhoneHandler.destroy();
-          this.gamePhoneHandler = null;
-        }
-        if (this.dataInteractivePhoneHandler) {
-          this.dataInteractivePhoneHandler.destroy();
-          this.dataInteractivePhoneHandler = null;
-        }
-        sc_super();
-      },
+  init: function () {
+    sc_super();
+    this.gamePhoneHandler = DG.GamePhoneHandler.create({controller: this.get('controller')});
+    this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({ model: this.getPath('controller.model')});
+  },
+
+  destroy: function () {
+    this.controller.gameViewWillClose();
+    if (this.gamePhoneHandler) {
+      this.gamePhoneHandler.destroy();
+      this.gamePhoneHandler = null;
+    }
+    if (this.dataInteractivePhoneHandler) {
+      this.dataInteractivePhoneHandler.destroy();
+      this.dataInteractivePhoneHandler = null;
+    }
+    if (this.phone) {
+      this.phone.disconnect();
+    }
+    sc_super();
+  },
+
+  setUpChannels: function (iFrame, iUrl) {
+    var setupHandler = function (iHandler, iKey) {
+      var wrapper = function (command, callback) {
+        iHandler.set('isPhoneInUse', true);
+        iHandler.doCommand(command, function (ret) {
+          // Analysis shows that the object returned by DG.doCommand may contain Error values, which
+          // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
+          // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
+          // 'requestAttributeValues' API commands are the guilty parties. The following is an
+          // ad-hoc attempt to clean up the object for successful serialization.
+
+          if (ret && ret.error && ret.error instanceof Error) {
+            ret.error = ret.error.message;
+          }
+
+          if (ret && ret.values && ret.values.length) {
+            ret.values = ret.values.map(function (value) {
+              return value instanceof Error ? null : value;
+            });
+          }
+
+          // If there's a DataCloneError anyway, at least let the client know something is wrong:
+          try {
+            callback(ret);
+          } catch (e) {
+            if (e instanceof window.DOMException && e.name === 'DataCloneError') {
+              callback({success: false});
+            }
+          }
+        });
+      };
+
+      //First discontinue listening to old interactive.
+      if (iHandler.phone) {
+        iHandler.phone.disconnect();
+      }
+
+      // Global flag used to indicate whether calls to application should be made via phone, or not.
+      iHandler.set('isPhoneInUse', false);
+
+      iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
+          iKey, this.$('iframe')[0], this.extractOrigin(iUrl), this.phone);
+      // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+      // old iframePhone supporting page) and can use its API.
+      iHandler.phone.call({message: "codap-present"}, function (reply) {
+        DG.log('Got codap-present reply on channel: "' + iKey + '": ' + JSON.stringify(reply));
+        // success or failure, getting a reply indicates we are connected
+      });
+    }.bind( this);
+
+    // We create a parent endpoint. The rpc endpoints will live within
+    // the raw parent endpoint.
+    this.phone = new iframePhone.ParentEndpoint(iFrame,
+        this.extractOrigin(iUrl), function () {DG.log('connected');});
+    setupHandler(this.get('gamePhoneHandler'), 'codap-game');
+    setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
+  },
+
+  /**
+   * If the URL is a web URL return the origin.
+   *
+   * The origin is scheme://domain_name.port
+   */
+  extractOrigin: function (url) {
+    var re = /([^:]*:\/\/[^\/]*)/;
+    if (/^http.*/i.test(url)) {
+      return re.exec(url)[1];
+    }
+  },
 
   loadingView: SC.LabelView.extend({
     urlBinding: '*parentView.value',
@@ -88,82 +169,20 @@ DG.GameView = SC.View.extend(
 
     controllerBinding: '*parentView.controller',
 
+    _previousValue: null,
+
     // Setup iframePhone communication with the child iframe before it loads, so that connection
     // (iframe src will change when 'value' changes, but observers fire before bindings are synced)
     valueDidChange: function () {
+      var tValue = this.get('value');
 
-        var setupHandler = function (iHandler, iKey) {
-          var wrapper = function (command, callback) {
-            iHandler.set('isPhoneInUse', true);
-            iHandler.doCommand(command, function (ret) {
-              // Analysis shows that the object returned by DG.doCommand may contain Error values, which
-              // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
-              // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
-              // 'requestAttributeValues' API commands are the guilty parties. The following is an
-              // ad-hoc attempt to clean up the object for successful serialization.
-
-              if (ret && ret.error && ret.error instanceof Error) {
-                ret.error = ret.error.message;
-              }
-
-              if (ret && ret.values && ret.values.length) {
-                ret.values = ret.values.map(function (value) {
-                  return value instanceof Error ? null : value;
-                });
-              }
-
-              // If there's a DataCloneError anyway, at least let the client know something is wrong:
-              try {
-                callback(ret);
-              } catch (e) {
-                if (e instanceof window.DOMException && e.name === 'DataCloneError') {
-                  callback({success: false});
-                }
-              }
-            });
-          };
-
-          //First discontinue listening to old interactive.
-          if (iHandler.phone) {
-            iHandler.phone.disconnect();
-          }
-
-      // Global flag used to indicate whether calls to application should be made via phone, or not.
-      iHandler.set('isPhoneInUse', false);
-
-          iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
-                iKey, this.$('iframe')[0], this.extractOrigin(tValue), this.phone);
-          // Let games/interactives know that they are talking to CODAP, specifically (rather than any
-          // old iframePhone supporting page) and can use its API.
-          iHandler.phone.call({message: "codap-present"}, function (reply) {
-            DG.log('Got codap-present reply on channel: "' + iKey + '": ' + JSON.stringify(reply));
-            // success or failure, getting a reply indicates we are connected
-          });
-        }.bind( this);
-
-
-    var tValue = this.get('value');
-
-    if (tValue !== this._previousValue) {
-      setupHandler(this.get('gamePhoneHandler'), 'codap-game');
-      setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
-    }
+      if (tValue !== this._previousValue) {
+        this.parentView.setUpChannels(this.$('iframe')[0], tValue);
+      }
 
       this._previousValue = tValue;
 
     }.observes('value'),
-
-    /**
-     * If the URL is a web URL return the origin.
-     *
-     * The origin is scheme://domain_name.port
-     */
-    extractOrigin: function (url) {
-      var re = /([^:]*:\/\/[^\/]*)/;
-      if (/^http.*/i.test(url)) {
-        return re.exec(url)[1];
-      }
-    },
 
     /**
      * @override SC.WebView.iframeDidLoad
@@ -177,71 +196,11 @@ DG.GameView = SC.View.extend(
         this.valueDidChange();
       }
       if (iframe && iframe.contentWindow) {
-        var contentWindow = iframe.contentWindow, target = this.controller;
-
         // Allow the iframe to take over the entire screen (requested by InquirySpace)
         $(iframe).attr('allowfullscreen', true)
             .attr('webkitallowfullscreen', true)
             .attr('mozallowfullscreen', true);
 
-        // Assign the callback functions as properties of the iframe's contentWindow.
-        //
-        // Note that the callbacks use SC.run() to make sure that SproutCore's runloop
-        // has a chance to propagate bindings and data changes. See "Why Does SproutCore
-        // Have a Run Loop and When Does It Execute?" at
-        // http://frozencanuck.wordpress.com/2010/12/21/why-does-sproutcore-have-a-run-loop-and-when-does-it-execute/
-        // for details of why this is necessary. In its concluding paragraph, it states
-        // "Therefore the run loop is also used to drive data propagation via binding whenever
-        // an asynchronous event is fired in order to drive the application." These callbacks
-        // from the game are just such an asynchronous event, and so must invoke the runloop
-        // to operate properly.
-        //
-        // Furthermore, note that these callbacks cannot be added, and an exception will be thrown, if
-        // the game is hosted on another domain. Ignore that because we use HTML5 Web Messaging
-        // ("postMessage") via IframePhone to talk to these games, which do not require the callbacks
-        // below.
-
-        try {
-
-          // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
-
-          // NewCollectionWithAttributes
-          contentWindow.NewCollectionWithAttributes = function (iCollectionName,
-              iAttributeNames) {
-            SC.run(function () {
-              target.newCollectionWithAttributes(iCollectionName,
-                  iAttributeNames);
-            });
-          };
-
-          // AddCaseToCollectionWithValues
-          contentWindow.AddCaseToCollectionWithValues = function (iCollectionName,
-              iValues) {
-            SC.run(function () {
-              target.addCaseToCollectionWithValues(iCollectionName,
-                  iValues);
-            });
-          };
-
-          // LogUserAction
-          contentWindow.LogUserAction = function (iActionString, iValues) {
-            SC.run(function () {
-              target.logUserAction(iActionString, iValues);
-            });
-          };
-
-          // DoCommand
-          contentWindow.DoCommand = function (iCmd) {
-            var result;
-            SC.run(function () {
-              result = target.doCommand(iCmd);
-            });
-            return SC.json.encode(result);
-          };
-        } catch (e) {
-          // Supress warning.
-          //DG.logWarn(e);
-        }
       } else {
         DG.logWarn("DG.GameView:iframeDidLoad no contentWindow\n");
       }

@@ -55,11 +55,22 @@ DG.GameController = DG.ComponentController.extend(
        */
       contextBinding: '.model.context',
 
+      /**
+       The total number of document-dirtying changes.
+       @property   {Number}
+       */
+      changeCount: 0,
+
+      /**
+       The number of document-dirtying changes that have been saved.
+       If this is less than the total change count, then the document is dirty.
+       @property   {Number}
+       */
       savedChangeCount: 0,
 
       /**
-       * If true, permit the data interactive to participate in normal component
-       * selection, including
+       * If false, permit the data interactive to participate in normal component
+       * selection, including coming to the front.
        * @type {boolean}
        */
       preventBringToFront: true,
@@ -71,6 +82,23 @@ DG.GameController = DG.ComponentController.extend(
         this.setPath('model.content', null);
         sc_super();
       },
+      /**
+       Whether or not the document contains unsaved changes such that the user
+       should be prompted to confirm when closing the document, for instance.
+       @property   {Boolean}
+       */
+      hasUnsavedChanges: function() {
+        return this.get('changeCount') > this.get('savedChangeCount');
+      }.property(),
+
+      /**
+       Synchronize the saved change count with the full change count.
+       This method should be called when a save occurs, for instance.
+       */
+      updateSavedChangeCount: function() {
+        this.set('savedChangeCount', this.get('changeCount'));
+      },
+
 
       gameViewWillClose: function() {
       },
@@ -178,27 +206,6 @@ DG.GameController = DG.ComponentController.extend(
 
     }) ;
 
-/**
- * The entry point for synchronous invocation of the Data Interactive API.
- * There is a problem of identification. The API implied a singular Data
- * Interactive. The synchronous API is regarded as deprecated. So, we will
- * respond to this API only if there is a single Data Interactive in the
- * system.
- *
- * TODO: Consider modifying the API to support channel identification.
- *
- * @param iCmd
- * @param iCallback
- * @returns {*}
- */
-DG.doCommand = function( iCmd, iCallback)  {
-  var result, interactives = DG.currDocumentController().get('dataInteractives'),
-    myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
-  if (myController) {
-    SC.run( function() { result = myController.dispatchCommand( iCmd, iCallback); });
-  }
-  return result;
-};
 
 /**
  * This entry point allows other parts of the code to send arbitrary commands to the

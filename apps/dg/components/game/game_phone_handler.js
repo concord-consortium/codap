@@ -64,19 +64,6 @@ DG.GamePhoneHandler = SC.Object.extend(
         return this.getPath('controller.view');
       }.property(),
 
-      /**
-       The total number of document-dirtying changes.
-       @property   {Number}
-       */
-      changeCount: 0,
-
-      /**
-       The number of document-dirtying changes that have been saved.
-       If this is less than the total change count, then the document is dirty.
-       @property   {Number}
-       */
-      savedChangeCount: 0,
-
       connected: false,
 
       /**
@@ -122,23 +109,6 @@ DG.GamePhoneHandler = SC.Object.extend(
        */
       destroy: function () {
         sc_super();
-      },
-
-      /**
-       Whether or not the document contains unsaved changes such that the user
-       should be prompted to confirm when closing the document, for instance.
-       @property   {Boolean}
-       */
-      hasUnsavedChanges: function () {
-        return this.get('changeCount') > this.get('savedChangeCount');
-      }.property(),
-
-      /**
-       Synchronize the saved change count with the full change count.
-       This method should be called when a save occurs, for instance.
-       */
-      updateSavedChangeCount: function () {
-        this.set('savedChangeCount', this.get('changeCount'));
       },
 
       /**
@@ -244,7 +214,7 @@ DG.GamePhoneHandler = SC.Object.extend(
               var ret = {success: true};
 
               this.set('changeCount', 0);
-              this.updateSavedChangeCount();
+              this.controller.updateSavedChangeCount();
               tShouldDirtyDocument = false;
 
               finishDispatchCommand.call(this);
