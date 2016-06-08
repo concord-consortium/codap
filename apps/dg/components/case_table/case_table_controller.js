@@ -417,7 +417,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 adapter.cases.push(iCase);
                 identifyCasesChanged(iCase.get('children'));
               }
-            })
+            });
           }
         }
 

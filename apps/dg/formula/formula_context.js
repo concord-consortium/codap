@@ -81,7 +81,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     if (endName === topName)
       -- this._functionContextStack.length;
     else
-      DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context")
+      DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context");
   },
 
   /**

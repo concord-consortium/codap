@@ -302,11 +302,11 @@ DG.GameController = DG.ComponentController.extend(
         break;
 
       case 'undo':
-        tRet = DG.UndoHistory.undo();;
+        tRet = DG.UndoHistory.undo();
         break;
 
       case 'redo':
-        tRet = DG.UndoHistory.redo();;
+        tRet = DG.UndoHistory.redo();
         break;
 
       /*

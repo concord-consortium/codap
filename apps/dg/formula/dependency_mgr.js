@@ -136,7 +136,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
   registerNode: function(iNodeSpec) {
     if (this.hasNode(iNodeSpec)) return this.findNode(iNodeSpec);
 
-    var key = this.createKey(iNodeSpec);
+    var key = this.createKey(iNodeSpec),
         node = $.extend({}, iNodeSpec, {
                     // nodes that this formula depends on
                     dependencies: [],
@@ -349,7 +349,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
         independentNode = dependency.node;
         DG.depMgrLog("DG.DependencyMgr._pruneDependencies:\nRemoving dependence of %@ '%@' on %@ '%@'",
                     dependentNode.type, dependentNode.name,
-                    independentNode.type, independentNode.name)
+                    independentNode.type, independentNode.name);
         this._removeDependent(dependentNode, independentNode);
         dependencies.splice(i, 1);
       }
@@ -364,7 +364,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
                         .aggregateDependencies[]
    */
   invalidateNodes: function(iNodeSpecs, iCases) {
-    var i, nodeSpec, nodeSpecCount = iNodeSpecs.length,
+    var i, nodeSpecCount = iNodeSpecs.length,
         result = { simpleDependencies: [], aggregateDependencies: [] };
 
     // increment our invalidation counter
@@ -398,7 +398,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
     }.bind(this);
 
     for (i = 0; i < nodeSpecCount; ++i) {
-      indNode = this.findNode(iNodeSpecs[i]);
+      var indNode = this.findNode(iNodeSpecs[i]);
       if (indNode) {
         indNode.lastInvalidation = this._currentInvalidation;
         invalidateDependents(indNode);
