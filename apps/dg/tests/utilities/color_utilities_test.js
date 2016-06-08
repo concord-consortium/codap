@@ -35,7 +35,7 @@ module("DG.ColorUtilities", {
 
 test("DG.ColorUtilities.colorMapToArray", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
-      tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']],
+      //tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']],
       tConvertedArray = DG.ColorUtilities.colorMapToArray( tMap),
       tConvertedMap = DG.ColorUtilities.colorArrayToColorMap(tConvertedArray);
   // Note: same() relies on SproutCore's Array.isEqual() extension which

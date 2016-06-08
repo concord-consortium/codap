@@ -81,7 +81,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     if (endName === topName)
       -- this._functionContextStack.length;
     else
-      DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context")
+      DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context");
   },
 
   /**
@@ -93,6 +93,21 @@ DG.FormulaContext = SC.Object.extend( (function() {
     @param {string}   .name - the name of the node being depended upon
    */
   registerDependency: function(iNodeSpec) {
+  },
+
+  /**
+    Returns true if the specified function name refers to an aggregate function.
+    Derived classes may override as appropriate.
+   */
+  isAggregate: function(iName) {
+    return false;
+  },
+
+  /**
+    Clear any cached bindings for this formula. Called before compiling.
+    Derived classes may override as appropriate.
+   */
+  clearCaches: function() {
   },
 
   /**

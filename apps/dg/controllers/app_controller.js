@@ -1061,7 +1061,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
       }
       else {
-        tAlertDialog.showAlert(new Error('DG.AppController.dropFile.unknownFileType'.loc()))
+        tAlertDialog.showAlert(new Error('DG.AppController.dropFile.unknownFileType'.loc()));
       }
     },
 

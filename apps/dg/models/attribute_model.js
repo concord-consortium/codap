@@ -317,7 +317,7 @@ DG.Attribute = DG.BaseModel.extend(
         DG.ObjectMap.forEach(this._cachedValues,
                               function(id, iCachedValue) {
                                 iCachedValue.isValid = false;
-                              })
+                              });
       }
 
       // empty formula string -- no need for a DG.Formula

@@ -149,7 +149,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     // if not in the current collection, check all collections
     var attrs = this.getPath('collection.context.dataSet.attrs'),
         attrCount = attrs && attrs.length,
-        i, attr;
+        i;
     for (i = 0; i < attrCount; ++i) {
       attr = attrs[i];
       if (attr.get('name') === iName) {
@@ -281,8 +281,8 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
       // Track the number of attribute references for each collection
       // This needs to be tracked per aggregate function instance so
       // that mean(weight)/mean(game) behaves appropriately.
-      var collectionID = collection.get('id'),
-          refCount = this.collectionAttrRefCounts[ collectionID] || 0;
+      collectionID = collection.get('id');
+      var refCount = this.collectionAttrRefCounts[ collectionID] || 0;
       this.collectionAttrRefCounts[ collectionID]  = refCount + 1;
       
       // The function built above captures the attribute ID at compile time,
@@ -391,7 +391,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     
     var aggregateFn = this.aggFns[ instance.name],
         result = aggregateFn && aggregateFn.queryCache( this, iEvalContext, instance),
-        i, argCount = instance.args.length;
+        argCount = instance.args.length;
 
     // Return the cached result if there is one
     if( result !== undefined)

@@ -391,7 +391,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Creates a case according to the arguments specified.
     @param  {Object}                iChange
-            {String}                iChange.operation -- 'createCase'
+            {String}                iChange.operation -- 'createCase'|'createCases'
             {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
                                     If not present, the case will be created in the child collection.
             {Array of               iChange.values -- The array of values to use for the case values.
@@ -1106,8 +1106,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   globalValuesDidChange: function(iNotifier, iKey) {
     var names = iNotifier.get(iKey);
     if (names && names.length) {
-      var type = DG.DEP_TYPE_GLOBAL,
-          nodes = [];
+      var nodes = [];
       names.forEach(function(iName) {
         var globalValue = DG.globalsController.getGlobalValueByName(iName),
             globalID = globalValue && globalValue.get('id');
@@ -1205,7 +1204,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this);
 
     if (!result.simpleDependencies.length && !result.aggregateDependencies.length) {
-      DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents")
+      DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents");
     }
     else {
       if (!iChange && result.simpleDependencies.length) {

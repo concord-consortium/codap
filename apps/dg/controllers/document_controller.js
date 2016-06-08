@@ -456,7 +456,7 @@ DG.DocumentController = SC.Object.extend(
     createComponentAndView: function( iComponent, iComponentType, iArgs) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
-          tView = null
+          tView = null,
           isInitialization = iArgs && iArgs.initiatedViaCommand ? false : true;
       try {
         switch( type) {
