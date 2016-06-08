@@ -25,12 +25,14 @@ DG.GraphTypes = {
    */
   EPlace: {
         eUndefined: -1,
+        eFirstPlace: 0,
         eX: 0,
         eY: 1,
         eLegend: 2,
         eY2: 3,
         eArea: 4,
         eCaption: 5,
+        eLastPlace: 5,
         eNumPlaces: 6
   }
 

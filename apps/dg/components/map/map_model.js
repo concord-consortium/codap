@@ -234,10 +234,50 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.property('hasNumericAxis', 'plot'),
 
     /**
-     * For now, we'll assume all changes affect us
-     * @param iChange
+     * Returns true if the specified change could affect the current map
+     * @param     {object}  - iChange
+     * @returns   {boolean} - true if the change could affect the plot; false otherwise
      */
     isAffectedByChange: function( iChange) {
+      var attrs, i, collChange, collChanges, collChangeCount;
+
+      // returns true if the specified list of attribute IDs contains any
+      // that are being displayed in the map in any graph place
+      var containsMappedAttrs = function(iAttrIDs) {
+        var mappedAttrs = this.getPath('dataConfiguration.placedAttributeIDs'),
+            attrCount = iAttrIDs && iAttrIDs.length,
+            i, attrID;
+        for (i = 0; i < attrCount; ++i) {
+          attrID = iAttrIDs[i];
+          if (mappedAttrs.indexOf(attrID) >= 0)
+            return true;
+        }
+        return false;
+      }.bind(this);
+
+      switch (iChange.operation) {
+        case 'createCases':
+        case 'deleteCases':
+          return true;
+        case 'updateCases':
+          attrs = iChange.attributeIDs;
+          if (!attrs) return true;  // all attributes affected
+          return containsMappedAttrs(attrs);
+        case 'dependentCases':
+          collChanges = iChange.changes;
+          collChangeCount = collChanges ? collChanges.length : 0;
+          for (i = 0; i < collChangeCount; ++i) {
+            collChange = collChanges[i];
+            if (collChange) {
+              attrs = collChange.attributeIDs;
+              if (attrs && containsMappedAttrs(attrs))
+                return true;
+            }
+          }
+          return false;
+      }
+
+      // For now, we'll assume all other changes affect us
       return true;
     },
 
