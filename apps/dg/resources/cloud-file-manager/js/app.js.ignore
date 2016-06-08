@@ -9940,14 +9940,15 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.saveContent = function(stringContent, callback) {
-    var ref;
+    var provider, ref;
     if (callback == null) {
       callback = null;
     }
-    if (((ref = this.state.metadata) != null ? ref.provider : void 0) != null) {
-      return this.state.metadata.provider.authorized((function(_this) {
+    provider = (ref = this.state.metadata) != null ? ref.provider : void 0;
+    if (provider != null) {
+      return provider.authorized((function(_this) {
         return function(isAuthorized) {
-          if (isAuthorized) {
+          if (isAuthorized || !provider.isAuthorizationRequired()) {
             return _this.saveFile(stringContent, _this.state.metadata, callback);
           } else {
             return _this.confirmAuthorizeAndSave(stringContent, callback);
@@ -10343,8 +10344,8 @@ CloudFileManagerClient = (function() {
     }
     shouldAutoSave = (function(_this) {
       return function() {
-        var ref, ref1, ref2, ref3;
-        return _this.state.dirty && !((ref = _this.appOptions.hashParams) != null ? ref.runAsGuest : void 0) && !((ref1 = _this.state.metadata) != null ? ref1.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref2 = _this.state.metadata) != null ? (ref3 = ref2.provider) != null ? ref3.can('save') : void 0 : void 0);
+        var ref, ref1, ref2;
+        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('save') : void 0 : void 0);
       };
     })(this);
     if (interval > 1000) {
@@ -10958,6 +10959,9 @@ DocumentStoreProvider = (function(superClass) {
     params = {};
     if (metadata.providerData.id) {
       params.recordid = metadata.providerData.id;
+    }
+    if (this.client.appOptions.hashParams.runKey) {
+      params.runKey = this.client.appOptions.hashParams.runKey;
     }
     willPatch = false;
     mimeType = 'application/json';
