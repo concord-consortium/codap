@@ -29,7 +29,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       /**
        * @type {DG.DataInteractiveModel}
        */
-      model: null,
+      modelBinding: SC.Binding.oneWay('*controller.model'),
 
       idBinding: SC.Binding.oneWay('*model.id'),
 
@@ -90,7 +90,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       destroy: function () {
         var contexts = DG.currDocumentController().get('contexts');
 
-        this.setPath('model.content', null);
         sc_super();
         contexts.forEach(function (context) {
           context.removeObserver('changeCount', this, 'contextDataDidChange');
@@ -132,7 +131,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           resource: 'dataContextChangeNotice[' + dataContextName + ']',
           values: changes
         }, function (response) {
-          DG.log('Sent dataContextChangeNotice to Data Interactive for context: ' + dataContextName + ': ' + JSON.stringify(changes));
+          DG.log('Sent dataContextChangeNotice to Data Interactive for context: '
+              + dataContextName + ': ' + JSON.stringify(changes));
           DG.log('Response: ' + JSON.stringify(response));
         });
       },

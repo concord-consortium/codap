@@ -16,7 +16,9 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* globals iframePhone */
 sc_require('controllers/component_controller');
+sc_require('libraries/iframe-phone');
 
 /** @class
  *
@@ -36,8 +38,8 @@ DG.GameController = DG.ComponentController.extend(
 /** @scope DG.GameController.prototype */ {
 
       shouldConfirmClose: function () {
-        return this.connected;
-      }.property('connected'),
+        return !SC.none(this.activeChannel);
+      }.property('activeChannel'),
 
       confirmCloseDescription: 'DG.GameController.confirmCloseDescription',
 
@@ -69,20 +71,6 @@ DG.GameController = DG.ComponentController.extend(
       savedChangeCount: 0,
 
       /**
-       * If false, permit the data interactive to participate in normal component
-       * selection, including coming to the front.
-       * @type {boolean}
-       */
-      preventBringToFront: true,
-
-      /**
-       * Break loops
-       */
-      destroy: function() {
-        this.setPath('model.content', null);
-        sc_super();
-      },
-      /**
        Whether or not the document contains unsaved changes such that the user
        should be prompted to confirm when closing the document, for instance.
        @property   {Boolean}
@@ -99,6 +87,135 @@ DG.GameController = DG.ComponentController.extend(
         this.set('savedChangeCount', this.get('changeCount'));
       },
 
+      /**
+       * If false, permit the data interactive to participate in normal component
+       * selection, including coming to the front.
+       * @type {boolean}
+       */
+      preventBringToFront: true,
+
+      init: function () {
+        sc_super();
+        this.gamePhoneHandler = DG.GamePhoneHandler.create({
+          controller: this
+        });
+        this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({
+          controller: this,
+        });
+      },
+
+      /**
+       * Break loops
+       */
+      destroy: function() {
+        this.setPath('model.content', null);
+        if (this.gamePhoneHandler) {
+          this.gamePhoneHandler.destroy();
+          this.gamePhoneHandler = null;
+        }
+        if (this.dataInteractivePhoneHandler) {
+          this.dataInteractivePhoneHandler.destroy();
+          this.dataInteractivePhoneHandler = null;
+        }
+        if (this.phone) {
+          this.phone.disconnect();
+        }
+        sc_super();
+      },
+
+      phone: null,
+
+      /**
+       * Handles the old-style 'game' API using async iframePhone post-messaging
+       * @property {DG.GamePhoneHandler}
+       */
+      gamePhoneHandler: null,
+
+      /**
+       * Handles the new-style 'data interactive' API using async iframePhone post-messaging
+       * Brought into existence in March, 2016
+       * @property {DG.DataInteractivePhoneHandler}
+       */
+      dataInteractivePhoneHandler: null,
+
+      activeChannel: function () {
+        if (this.dataInteractivePhoneHandler.get('connected')) {
+          return this.dataInteractivePhoneHandler.phone;
+        } else if (this.gamePhoneHandler.get('connected')) {
+          return this.gamePhoneHandler.phone;
+        }
+      }.property(),
+
+      setUpChannels: function (iFrame, iUrl) {
+        var setupHandler = function (iHandler, iKey) {
+          var wrapper = function (command, callback) {
+            iHandler.set('isPhoneInUse', true);
+            iHandler.doCommand(command, function (ret) {
+              // Analysis shows that the object returned by DG.doCommand may contain Error values, which
+              // are not serializable and thus will cause DataCloneErrors when we call 'callback' (which
+              // sends the 'ret' to the game window via postMessage). The 'requestFormulaValue' and
+              // 'requestAttributeValues' API commands are the guilty parties. The following is an
+              // ad-hoc attempt to clean up the object for successful serialization.
+
+              if (ret && ret.error && ret.error instanceof Error) {
+                ret.error = ret.error.message;
+              }
+
+              if (ret && ret.values && ret.values.length) {
+                ret.values = ret.values.map(function (value) {
+                  return value instanceof Error ? null : value;
+                });
+              }
+
+              // If there's a DataCloneError anyway, at least let the client know something is wrong:
+              try {
+                callback(ret);
+              } catch (e) {
+                if (e instanceof window.DOMException && e.name === 'DataCloneError') {
+                  callback({success: false});
+                }
+              }
+            });
+          };
+
+          //First discontinue listening to old interactive.
+          if (iHandler.phone) {
+            iHandler.phone.disconnect();
+          }
+
+          // Global flag used to indicate whether calls to application should be made via phone, or not.
+          iHandler.set('isPhoneInUse', false);
+
+          iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
+              iKey, iFrame, this.extractOrigin(iUrl), this.phone);
+          // Let games/interactives know that they are talking to CODAP, specifically (rather than any
+          // old iframePhone supporting page) and can use its API.
+          iHandler.phone.call({message: "codap-present"}, function (reply) {
+            DG.log('Got codap-present reply on channel: "' + iKey + '": ' + JSON.stringify(reply));
+            // success or failure, getting a reply indicates we are connected
+          });
+        }.bind( this);
+
+        // We create a parent endpoint. The rpc endpoints will live within
+        // the raw parent endpoint.
+        this.phone = new iframePhone.ParentEndpoint(iFrame,
+            this.extractOrigin(iUrl), function () {DG.log('connected');});
+        setupHandler(this.get('gamePhoneHandler'), 'codap-game');
+        setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
+      },
+
+      /**
+       * If the URL is a web URL return the origin.
+       *
+       * The origin is scheme://domain_name.port
+       */
+      extractOrigin: function (url) {
+        var re = /([^:]*:\/\/[^\/]*)/;
+        if (/^http.*/i.test(url)) {
+          return re.exec(url)[1];
+        }
+      },
+
 
       gameViewWillClose: function() {
       },
@@ -113,9 +230,9 @@ DG.GameController = DG.ComponentController.extend(
        * {success: bool, state: state}
        */
       saveGameState: function (callback) {
-        var dataInteractiveHandler = this.getPath('view.contentView.dataInteractivePhoneHandler');
-        var gamePhoneHandler = this.getPath('view.contentView.gamePhoneHandler');
-        if (dataInteractiveHandler && dataInteractiveHandler.get('isActive')) {
+        var dataInteractiveHandler = this.get('dataInteractivePhoneHandler');
+        var gamePhoneHandler = this.get('gamePhoneHandler');
+        if (dataInteractiveHandler && dataInteractiveHandler.get('connected')) {
           dataInteractiveHandler.requestDataInteractiveState(callback);
         } else if (gamePhoneHandler && gamePhoneHandler.get('gameIsReady')) {
           gamePhoneHandler.saveGameState(callback);
@@ -218,10 +335,9 @@ DG.GameController = DG.ComponentController.extend(
  * @param iCallback  An optional callback passed back from the DI
  */
 DG.sendCommandToDI = function( iCmd, iCallback) {
-  var interactives = DG.currDocumentController().get('dataInteractives'),
-    myController = (interactives && interactives.length === 1)? interactives[0] : undefined;
-  if (myController && myController.phone && myController.get('gameIsReady')) {
-    myController.phone.call(iCmd, iCallback);
-  }
+  var interactives = DG.currDocumentController().get('dataInteractives');
+  interactives && interactives.forEach(function (interactive) {
+    // TODO: translate command as appropriate for varying APIs
+  });
 };
 
