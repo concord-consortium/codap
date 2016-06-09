@@ -174,6 +174,13 @@ DG.DotPlotView = DG.PlotView.extend(
   }.observes('*secondaryAxisView.model.numberOfCells'),
 
   /**
+    Called when the order of the categories on an axis changes (e.g. cells are dragged)
+  */
+  categoriesDidChange: function() {
+    this.updateAverages();
+  },
+
+  /**
    * Invalidate and update the averages adornments.
    * To be called when cases or plot configuration
    * changes, that the averages depend upon.
@@ -197,6 +204,10 @@ DG.DotPlotView = DG.PlotView.extend(
     updateOneAvgAdorn( this.plottedMedianAdorn );
     updateOneAvgAdorn( this.plottedStDevAdorn );
     updateOneAvgAdorn( this.plottedIQRAdorn );
+
+    if (this.plottedValueAdorn) {
+      this.plottedValueAdorn.updateToModel();
+    }
   },
 
   /**

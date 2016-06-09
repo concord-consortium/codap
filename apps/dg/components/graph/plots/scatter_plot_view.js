@@ -122,6 +122,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( this.connectingLineAdorn ) {
       this.connectingLineAdorn.invalidateModel();
     }
+
+    // update plotted function
+    if (this.functionAdorn)
+      this.functionAdorn.updateToModel();
   },
   
   /**
@@ -151,6 +155,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.connectingLineAdorn.invalidateModel();
       this.connectingLineAdorn.updateToModel();
     }
+
+    // update plotted function
+    if (this.functionAdorn)
+      this.functionAdorn.updateToModel();
     
     this.rescaleOnParentCaseCompletion( tCases);
 

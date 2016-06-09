@@ -101,9 +101,9 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
-    // Clear the cache and iterate over all the cases.
-    iInstance.caches = {};
-    iInstance.results = {};
+    // iterate over all the cases.
+    if (!iInstance.caches) iInstance.caches = {};
+    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           e = { _case_: tCase, _id_: tCase && tCase.get('id') };
@@ -156,12 +156,29 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
 
   // find the parent case that corresponds to the EvalContext's _collectionID_
   // if the _collectionID_ is the evaluated case, then default to its parent
-  getGroupID: function(iEvalContext) {
-    var tCase = iEvalContext._case_,
-        tParent = tCase && tCase.get('parent');
-    for (; tCase; tCase = tCase.get('parent'), tParent = tCase) {
-      if (tCase.getPath('collection.id') === iEvalContext._collectionID_)
-        return tParent ? tParent.get('id') : null;
+  getGroupID: function(iContext, iEvalContext) {
+    var tCase = iEvalContext._case_;
+
+    // if we are evaluating a particular case, then derive the group from it
+    if (tCase) {
+      // if a specifid grouping variable was specified, then use it
+      var groupVarID = iContext && iContext.get('groupVarID');
+      if (groupVarID) {
+        var groupID = iContext.getAttrValue(tCase, groupVarID);
+        return !SC.empty(groupID) ? groupID : null;
+      }
+      else {
+        // no grouping variable specified -- group by collection
+        var tParent = tCase && tCase.get('parent');
+        for (; tCase; tCase = tCase.get('parent'), tParent = tCase) {
+          if (tCase.getPath('collection.id') === iEvalContext._collectionID_)
+            return tParent ? tParent.get('id') : null;
+        }
+      }
+    }
+    // we're not evaluating a case; if client specified the group, then use it
+    else {
+      if (iEvalContext._groupID_) return iEvalContext._groupID_;
     }
     return null;
   },
@@ -180,11 +197,35 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
     if( iInstance.results) {
       if( iInstance.results[ iEvalContext._id_] !== undefined)
         return iInstance.results[ iEvalContext._id_];
-      var cacheID = this.getGroupID( iEvalContext);
+      var cacheID = this.getGroupID( iContext, iEvalContext);
       if( iInstance.results[ cacheID] !== undefined)
         return iInstance.results[ cacheID];
     }
     return undefined;
+  },
+
+  /**
+    Returns the value of the first argument, primarily for the benefit of
+    univariate aggregate functions. If no arguments were specified, will
+    use the univariate axis variable if a function for it was provided.
+    Clients such as plotted values can set the 'uniVarFn' property of the
+    instance to enable defaulting to the univariate axis variable.
+   */
+  getValue: function( iContext, iEvalContext, iInstance) {
+    var valueFn = iInstance.argFns[0] || iInstance.uniVarFn;
+    return valueFn && valueFn( iContext, iEvalContext);
+  },
+  
+  /**
+    Returns the numeric value of the first argument, primarily for the benefit
+    of univariate aggregate functions. If no arguments were specified, will
+    use the univariate axis variable if a function for it was provided.
+    Clients such as plotted values can set the 'uniVarFn' property of the
+    instance to enable defaulting to the univariate axis variable.
+   */
+  getNumericValue: function( iContext, iEvalContext, iInstance) {
+    var valueFn = iInstance.argFns[0] || iInstance.uniVarFn;
+    return valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
   },
   
   /**
@@ -208,13 +249,13 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
-    iInstance.caches = {};
-    iInstance.results = {};
+    if (!iInstance.caches) iInstance.caches = {};
+    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           tEvalContext = $.extend({}, iEvalContext,
                                   { _case_: tCase, _id_: tCase && tCase.get('id') }),
-          cacheID = this.getGroupID(tEvalContext);
+          cacheID = this.getGroupID(iContext, tEvalContext);
       this.evalCase( iContext, tEvalContext, iInstance, cacheID);
     }
     
@@ -244,8 +285,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
     @param  {Number|null}         iCacheID -- The cache ID to use for cache lookups for this case.
    */
   evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-    var valueFn = iInstance.argFns[0],
-        value = valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
+    var value = this.getNumericValue(iContext, iEvalContext, iInstance);
     // Currently, we only sort numeric values.
     // To support a Fathom-like alphanumeric sort, we would have to change the test here.
     if( DG.isFinite( value)) {

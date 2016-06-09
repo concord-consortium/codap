@@ -357,7 +357,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
   init: function() {
     sc_super();
     this._hiddenCases = [];
-    DG.globalsController.addObserver('globalValueChanges', this, 'globalValueDidChange');
   },
 
   destroy: function() {
@@ -380,7 +379,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
     }.bind( this));
 
     this._hiddenCases = [];  // For good measure
-    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValueDidChange');
 
     sc_super();
   },
@@ -479,6 +477,27 @@ DG.PlotDataConfiguration = SC.Object.extend(
     return plottedCollectionIDs;
   }.property('collectionClient','xCollectionClient',
               'yCollectionClient','y2CollectionClient','legendCollectionClient').cacheable(),
+
+  /**
+    Returns an array of attribute IDs representing the attributes
+    that are assigned to any place in the configuration.
+    @returns  {number[]} - array of unique attribute IDs assigned to places
+   */
+  placedAttributeIDs: function() {
+    var place, i, attrDesc, attrID, attrs, attrCount,
+        placedAttrs = [];
+    for (place = DG.GraphTypes.EPlace.eFirstPlace; place <= DG.GraphTypes.EPlace.eLastPlace; ++place) {
+      attrDesc = this.attributeDescriptionForPlace(null, null, place);
+      attrs = attrDesc && attrDesc.get('attributes');
+      attrCount = attrs ? attrs.length : 0;
+      for (i = 0; i < attrCount; ++i) {
+        attrID = attrDesc.attributeIDAt(i);
+        if (placedAttrs.indexOf(attrID) < 0)
+          placedAttrs.push(attrID);
+      }
+    }
+    return placedAttrs;
+  }.property(),
 
   _casesCache: null, // Array of DG.Case
 
@@ -654,14 +673,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this._casesCache = null;
     this.invalidateAxisDescriptionCaches();
   }.observes('hiddenCases'),
-
-  /**
-   * Set up to trigger during init
-   */
-  globalValueDidChange:function() {
-    if( this.atLeastOneFormula())
-      this.invalidateCaches();
-  },
 
   /**
    * Something has happened such that cases have been deleted. Some cases in our hiddenCases array

@@ -58,8 +58,8 @@ DG.LookupAggFns = {
           tmpEvalContext._caseMap_[firstCase.getPath('collection.id')] = firstCase;
         }
         while (children && children.length > 0) {
-          var firstCase = children.firstObject(),
-              childCollectionID = firstCase && firstCase.getPath('collection.id');
+          firstCase = children.firstObject();
+          var childCollectionID = firstCase && firstCase.getPath('collection.id');
           tmpEvalContext._caseMap_[childCollectionID] = firstCase;
           children = firstCase.get('children');
         }

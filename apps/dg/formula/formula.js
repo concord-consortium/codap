@@ -139,8 +139,9 @@ DG.Formula = SC.Object.extend({
       this.context = context; // no reason to notify, so no set()
     }
     if( parsed) {
-      context.clearCaches();
+      context.willCompile();
       var output = DG.Formula.compileToJavaScript( parsed, context);
+      context.didCompile();
       compiled = DG.FormulaContext.createContextFunction( output);
     }
     return compiled;
@@ -250,6 +251,44 @@ DG.Formula = SC.Object.extend({
 });
 
 /**
+  Addition function which handles types by our rules rather than JavaScript's.
+  Numbers and values interpretable as numeric (e.g. booleans, some strings)
+  are added numerically. NaNs propagate. Null values propagate or concatenate
+  depending on context. Otherwise, concatenate as strings.
+ */
+DG.Formula.add = function(iOperand1, iOperand2) {
+  var empty1 = SC.empty(iOperand1),
+      empty2 = SC.empty(iOperand2),
+      num1 = Number(iOperand1),
+      num2 = Number(iOperand2),
+      // booleans and strings (if possible) converted, not null values
+      isNumeric1 = !empty1 && (num1 === num1),
+      isNumeric2 = !empty2 && (num2 === num2);
+  // values interpretable as numeric are added numerically
+  if (isNumeric1 && isNumeric2)
+    return num1 + num2;
+
+  // NaNs propagate
+  if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
+    return NaN;
+
+  // null values propagate
+  if (empty1 && empty2)
+    return '';
+  // null values dominate numeric values
+  if ((empty1 && isNumeric2) || (isNumeric1 && empty2))
+    return '';
+  // null values are concatenated (as empty strings) with string values
+  if (empty1 && !empty2)
+    return String(iOperand2);
+  if (!empty1 && empty2)
+    return String(iOperand1);
+
+  // no more special cases - concatenate strings
+  return String(iOperand1) + String(iOperand2);
+};
+
+/**
   Compiles the specified parse tree results into a JavaScript expression
   which can be used with the specified context to compute the result.
   This function walks the parse tree, converting each node to its JavaScript
@@ -286,13 +325,17 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
   }
   
   function visitFunctionCall( iNode) {
-    var i, len = iNode.args && iNode.args.length,
+    var fnName = iNode.name.name,
+        isAggFn = iContext.isAggregate(fnName),
+        i, len = iNode.args && iNode.args.length,
         args = [];
+    iContext.beginFunctionContext({ name: fnName, isAggregate: isAggFn });
     for( i = 0; i < len; ++i) {
       args.push( visit( iNode.args[i]));
     }
+    iContext.endFunctionContext({ name: fnName });
     // Pass function references to the context
-    return iContext.compileFunction( iNode.name.name, args);
+    return iContext.compileFunction( fnName, args);
   }
   
   function visitTerm( iNode) {
@@ -310,6 +353,10 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
     var leftTerm = visitTerm( iNode.left),
         rightTerm = visitTerm( iNode.right);
     
+    // Convert x+y to DG.Formula.add(x,y)
+    if( iNode.operator === '+')
+      return 'DG.Formula.add(' + leftTerm + ',' + rightTerm + ')';
+
     // Convert x^y to Math.pow(x,y)
     if( iNode.operator === '^')
       return 'Math.pow(' + leftTerm + ',' + rightTerm + ')';
@@ -396,7 +443,7 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     case '*':   return left * right;
     case '/':   return left / right;
     case '%':   return left % right;
-    case '+':   return left + right;
+    case '+':   return DG.Formula.add(left, right);
     case '-':   return left - right;
     case '<':   return left < right;
     case '>':   return left > right;

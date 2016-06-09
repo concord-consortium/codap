@@ -87,13 +87,13 @@ DG.Attribute = DG.BaseModel.extend(
      */
     precision: 2,
 
-      /**
-       * Currently the only significance of this string property is that it
-       * shows in parentheses next to attribute names in case table column
-       * headers and graph axis labels.
-       * @property{String}
-       */
-      unit: null,
+    /**
+     * Currently the only significance of this string property is that it
+     * shows in parentheses next to attribute names in case table column
+     * headers and graph axis labels.
+     * @property{String}
+     */
+    unit: null,
 
     /**
      * True if the attribute is user-editable, false otherwise.
@@ -124,6 +124,13 @@ DG.Attribute = DG.BaseModel.extend(
     _dgFormula: null,
 
     /**
+     @private
+     Cached values and validFlags.
+     @property   {Object.<string, {isValid: boolean, value: any}>}
+     */
+    _cachedValues: null,
+
+    /**
      Initialization function.
      */
     init: function() {
@@ -139,6 +146,8 @@ DG.Attribute = DG.BaseModel.extend(
         this.collection = DG.store.find(DG.Attribute, this.collection);
       }
       this.colormap = {};
+
+      this._cachedValues = {};
     },
 
     verify: function () {
@@ -180,10 +189,15 @@ DG.Attribute = DG.BaseModel.extend(
      and hooking up the necessary observers.
      */
     createDGFormula: function() {
-      this._dgFormula = DG.Formula.create({
-        context: DG.CollectionFormulaContext.
-          create({ collection: this.get('collection') })
-      });
+      var context = DG.CollectionFormulaContext.create({
+                        ownerSpec: {
+                          type: DG.DEP_TYPE_ATTRIBUTE,
+                          id: this.get('id'),
+                          name: this.get('name')
+                        },
+                        collection: this.get('collection') });
+      this._dgFormula = DG.Formula.create({ context: context });
+
       this._dgFormula.addObserver('dependentChange', this, 'dependentDidChange');
     },
 
@@ -212,13 +226,29 @@ DG.Attribute = DG.BaseModel.extend(
      */
     evalFormula: function( iCase) {
       var tFormula = this._dgFormula,
-        tReturnValue = NaN;
+          tReturnValue = NaN,
+          tCaseID = iCase && iCase.get('id'),
+          cacheEntry = this._cachedValues[tCaseID];
+
+      // if we have a valid cache entry, use it
+      if (cacheEntry && cacheEntry.isValid)
+        return cacheEntry.value;
+
       try {
         // Client is responsible for passing _case_ and _id_
         tReturnValue = tFormula.evaluate({
                                   _case_: iCase,
                                   _id_: iCase && iCase.get('id'),
                                   _collectionID_: this.getPath('collection.id') });
+        if (cacheEntry) {
+          // update the existing cache entry
+          cacheEntry.isValid = true;
+          cacheEntry.value = tReturnValue;
+        }
+        else {
+          // cache a new entry
+          this._cachedValues[tCaseID] = { isValid: true, value: tReturnValue };
+        }
       }
       catch(e) {
         // Return error objects as attribute values.
@@ -226,6 +256,44 @@ DG.Attribute = DG.BaseModel.extend(
       }
 
       return tReturnValue;
+    },
+
+    /*
+     Invalidate the cached values for the specified cases, or for all cases
+     if no specific cases are identified. Invalidates the attribute value
+     cache along with the specified aggregate function caches as well.
+     @param {DG.Case[]}   iCases - array of cases to invalidate
+                                    if no cases specified, invalidate all cases
+     @param {number[]}    iAggFnIndices - array of aggregate function indices
+     */
+    invalidateCases: function(iCases, iAggFnIndices) {
+      var caseCount = iCases && iCases.length;
+      if (caseCount > 0) {
+        // invalidate specified cases
+        iCases.forEach(function(iCase) {
+          var caseID = iCase && iCase.get('id'),
+              cachedValue = this._cachedValues[caseID];
+          if (cachedValue)
+            cachedValue.isValid = false;
+        }.bind(this));
+      }
+      else {
+        // invalidate all cases
+        DG.ObjectMap.forEach(this._cachedValues, function(iCaseID, iCachedValue) {
+          iCachedValue.isValid = false;
+        });
+      }
+
+      // invalidate specified aggregate function caches
+      if (iAggFnIndices && iAggFnIndices.length) {
+        // @if (debug)
+        DG.log("DG.Attribute.invalidateCases: attribute '%@' invalidating aggregate functions [%@]",
+               this.get('name'), iAggFnIndices.join(", "));
+        // @endif
+        var formulaContext = this.getPath('_dgFormula.context');
+        if (formulaContext)
+          formulaContext.invalidateFunctions(iAggFnIndices);
+      }
     },
 
     /**
@@ -244,12 +312,19 @@ DG.Attribute = DG.BaseModel.extend(
           this.createDGFormula();
         // Update the DG.Formula with the new source
         this._dgFormula.set('source', tSource);
+
+        // mark all cached values as invalid
+        DG.ObjectMap.forEach(this._cachedValues,
+                              function(id, iCachedValue) {
+                                iCachedValue.isValid = false;
+                              });
       }
 
       // empty formula string -- no need for a DG.Formula
       else {
         if( this._dgFormula)
           this.destroyDGFormula();
+        this._cachedValues = {};
       }
     }.observes('formula'),
 

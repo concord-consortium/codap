@@ -47,7 +47,15 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   model: null,
 
-    defaultTitleBinding: 'model.defaultTitle',
+  /**
+    The Dependency Manager object for this context
+    @property {DG.DependencyMgr}
+   */
+  dependencyMgr: function() {
+    return this.getPath('model.dependencyMgr');
+  }.property(),
+
+  defaultTitleBinding: 'model.defaultTitle',
 
   /**
     The number of change requests that have been applied.
@@ -127,7 +135,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // Reset and restock the cached array
     this.collections = [];
 
-// find the ur-parent, then follow it to all its children.
+    // find the ur-parent, then follow it to all its children.
     c = srcCollectionArray[0]; i = 0;
     if (c) {
       while (!SC.none(c.get('parent')) && i <= collectionCount) {
@@ -179,12 +187,16 @@ DG.DataContext = SC.Object.extend((function() // closure
     this._collectionClients = {};
     this.changes = [];
     this.collectionsDidChange();
+
+    DG.globalsController.addObserver('globalValueChanges', this, 'globalValuesDidChange');
   },
 
   /**
     Destruction method.
    */
   destroy: function() {
+    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValuesDidChange');
+
     var i, collectionCount = this.get('collectionCount');
     for( i=0; i<collectionCount; ++i) {
       var collection = this.getCollectionAtIndex( i);
@@ -379,7 +391,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   /**
     Creates a case according to the arguments specified.
     @param  {Object}                iChange
-            {String}                iChange.operation -- 'createCase'
+            {String}                iChange.operation -- 'createCase'|'createCases'
             {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
                                     If not present, the case will be created in the child collection.
             {Array of               iChange.values -- The array of values to use for the case values.
@@ -460,6 +472,15 @@ DG.DataContext = SC.Object.extend((function() // closure
     } finally {
       collection.casesController.endPropertyChanges();
     }
+
+    // invalidate dependents; aggregate functions may need to recalculate
+    var i, attr, attrCount = collection.getAttributeCount(),
+        attrNodes = [];
+    for (i = 0; i < attrCount; ++i) {
+      attr = collection.getAttributeAt(i);
+      attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
+    }
+    this.invalidateNodesAndNotify(attrNodes, iChange);
 
     return result;
   },
@@ -650,6 +671,15 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
       tCase.endCaseValueChanges();
     }
+
+    // invalidate dependents
+    var attrNodes = attrSpecs.map(function(iSpec) {
+                      var attr = DG.Attribute.getAttributeByID(iSpec.attributeID);
+                      return { type: DG.DEP_TYPE_ATTRIBUTE, id: iSpec.attributeID,
+                                name: attr.get('name') };
+                    });
+    this.invalidateNodesAndNotify(attrNodes, iChange);
+
     return { success: true };
   },
 
@@ -789,6 +819,19 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       }
     }));
+
+    // invalidate dependents; aggregate functions may need to recalculate
+    var attrNodes = [];
+    DG.ObjectMap.forEach(iChange.collectionIDs, function(id, iCollectionClient) {
+      var i, attr, attrCount = iCollectionClient.getAttributeCount();
+      for (i = 0; i < attrCount; ++i) {
+        attr = iCollectionClient.getAttributeAt(i);
+        if (attr) {
+          attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
+        }
+      }
+    });
+    this.invalidateNodesAndNotify(attrNodes, iChange);
 
     return { success: true };
   },
@@ -1050,6 +1093,172 @@ DG.DataContext = SC.Object.extend((function() // closure
       DG.store.destroyAllRecordsOfType( DG.Attribute);
       DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
 //      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
+  },
+
+  /**
+    Handler for global value (e.g. slider) changes.
+    Invalidates all dependent nodes and sends out an appropriate
+    'dependentCases' notification, indicating that all cases of
+    the dependent attributes are affected.
+    @param  {object}  iNotifier - generally the DG.globalsController
+    @param  {string}  iKey - generally 'globalValuesChanged'
+   */
+  globalValuesDidChange: function(iNotifier, iKey) {
+    var names = iNotifier.get(iKey);
+    if (names && names.length) {
+      var nodes = [];
+      names.forEach(function(iName) {
+        var globalValue = DG.globalsController.getGlobalValueByName(iName),
+            globalID = globalValue && globalValue.get('id');
+        if (globalValue) {
+          nodes.push({ type: DG.DEP_TYPE_GLOBAL, id: globalID, name: iName });
+        }
+      });
+
+      this.invalidateNodesAndNotify(nodes);
+    }
+  },
+
+  /**
+    Notifies clients of dependent changes to cases.
+    Invalidates the specified nodes in the DependencyMgr, which invalidates
+    all dependent nodes and then returns the sets of nodes that are affected
+    in a simple (non-aggregate) or an aggregate manner respectively.
+    This information is then used to send out up to two 'dependentCases'
+    notifications, indicating the set of attributes in each affected collection
+    which require recalculation in a simple (non-aggregate) sense and then in
+    a separate notification that set of attributes in each affected collection
+    which require recalculation in an aggregate sense (i.e. all cases affected).
+    The format of the 'depdentCases' notifications is described below.
+    @param  {object[]}  iNodes
+            {string}    .type (e.g. DG.DEP_TYPE_ATTRIBUTE|DG.DEP_TYPE_GLOBAL)
+            {string}    .id
+            {string}    .name (primarily used for debugging)
+    @param  {object}    iChange
+            {string}    .operation (e.g. 'createCases'|'updateCases'|'deleteCases')
+
+      The iChange object is the same change object used by applyChange(),
+      performChange(), etc. The format varies depending on the nature of the
+      change, but often follow a pattern such as that below for 'updateCases'.
+      See the handler for each change for details.
+
+            {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
+            {Array of Number}       iChange.attributeIDs (optional) -- affected attributes
+            {Array of DG.Case}      iChange.cases -- DG.Case objects to be changed
+
+      The 'dependentCases' information is packaged into the form of a change request
+      and then applyChange() is called to notify downstream clients.
+
+    @param  {Object}                iChange
+            {String}                iChange.operation -- 'dependentCases'
+            {Array of Object}       iChange.changes
+              {DG.CollectionClient} iChange.changes.collection -- collection containing cases
+              {Array of Number}     iChange.changes.attributeIDs -- attributes whose values
+                                    are to be changed for each case.
+              {Array of DG.Case}    iChange.changes.cases -- DG.Case objects to be changed
+   */
+  invalidateNodesAndNotify: function(iNodes, iChange) {
+    var changeCollection = iChange && iChange.collection,
+        changeCollectionID = changeCollection && changeCollection.get('id'),
+        changeCases = (iChange && iChange.cases) || [],
+        result = this.get('dependencyMgr').invalidateNodes(iNodes),
+        simpleNotification, aggregateNotification;
+
+    var convertDependenciesToNotification = function(iDependencies, iChange) {
+      var notification = { operation: 'dependentCases', changes: [], isComplete: true },
+          changeCases = (iChange && iChange.cases) || [],
+          collectionChanges = {};
+
+      iDependencies.forEach(function(iDep) {
+        var type = iDep.type,
+            attr = type === DG.DEP_TYPE_ATTRIBUTE
+                    ? DG.Attribute.getAttributeByID(iDep.id) : null,
+            collectionRecord = attr && attr.get('collection'),
+            collectionID = collectionRecord && collectionRecord.get('id'),
+            collectionClient = collectionID && this.getCollectionByID(collectionID),
+            affectedCases,
+            change = collectionChanges[collectionID];
+        if (!change) {
+          // For simple dependencies within the same collection as the original
+          // change, only the cases originally changed can be affected.
+          // For aggregate dependencies or dependencies across collections,
+          // we simplify by reporting that all cases are affected. This is
+          // less than optimally efficient in the case of non-aggregate references
+          // from a child collection attribute formula to a parent collection
+          // attribute, but for now we make this simplifying assumption.
+          affectedCases = collectionID === changeCollectionID ? changeCases : [];
+          change = collectionChanges[collectionID] = { collection: collectionClient,
+                                                        attributeIDs: [ iDep.id ],
+                                                        cases: affectedCases };
+        }
+        else {
+          change.attributeIDs.push(iDep.id);
+        }
+      }.bind(this));
+
+      DG.ObjectMap.forEach(collectionChanges, function(iID, iCollectionChange) {
+        notification.changes.push(iCollectionChange);
+      });
+
+      return notification;
+    }.bind(this);
+
+    if (!result.simpleDependencies.length && !result.aggregateDependencies.length) {
+      DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents");
+    }
+    else {
+      if (!iChange && result.simpleDependencies.length) {
+        // global value changes affect all cases, like aggregate functions
+        result.aggregateDependencies = result.aggregateDependencies.concat(
+                                          result.simpleDependencies);
+        result.simpleDependencies = [];
+      }
+
+      // check if all changed cases are from the same collection
+      if (!changeCollection) {
+        var commonCollection, commonCollectionID;
+        changeCases.forEach(function(iCase) {
+          var caseCollection = iCase.get('collection'),
+              caseCollectionID = caseCollection && caseCollection.get('id');
+          if (!commonCollectionID) {
+            commonCollection = caseCollection;
+            commonCollectionID = caseCollectionID;
+          }
+          else if (caseCollectionID !== commonCollectionID)
+            commonCollectionID = -1;
+        });
+        if (commonCollectionID && (commonCollectionID !== -1)) {
+          changeCollection = commonCollection;
+          changeCollectionID = commonCollectionID;
+        }
+      }
+
+      // handle simple dependencies, but only for updateCases
+      if (result.simpleDependencies.length &&
+          iChange && (iChange.operation === 'updateCases')) {
+        DG.log("DG.DataContext.invalidateNodesAndNotify: simpleDependents: [%@]",
+                result.simpleDependencies.map(function(iDep) {
+                                            return "'" + iDep.name + "'";
+                                          })
+                                          .join(", "));
+        simpleNotification = convertDependenciesToNotification(result.simpleDependencies, iChange);
+      }
+
+      // handle aggregate dependencies
+      if (result.aggregateDependencies.length) {
+        DG.log("DG.DataContext.invalidateNodesAndNotify: aggregateDependents: [%@]",
+                result.aggregateDependencies.map(function(iDep) {
+                                                return "'" + iDep.name + "'";
+                                              })
+                                              .join(", "));
+        aggregateNotification = convertDependenciesToNotification(result.aggregateDependencies);
+      }
+
+      if (simpleNotification)
+        this.applyChange(simpleNotification);
+      if (aggregateNotification)
+        this.applyChange(aggregateNotification);
+    }
   },
 
 
@@ -1353,13 +1562,18 @@ DG.DataContext = SC.Object.extend((function() // closure
    *
    * @param iNotifier {DG.Collection}
    */
-  attrFormulaDidChange: function( iNotifier) {
-    var change = {
+  attrFormulaDidChange: function( iNotifier, iKey) {
+    var attrID = iNotifier.get(iKey),
+        change = {
           operation: 'updateCases',
           collection: iNotifier,
           isComplete: true
         };
     this.applyChange( change);
+
+    var attr = DG.Attribute.getAttributeByID(attrID),
+        attrNodes = [{ type: DG.DEP_TYPE_ATTRIBUTE, id: attrID, name: attr.get('name') }];
+    this.invalidateNodesAndNotify(attrNodes);
   },
   
   /**

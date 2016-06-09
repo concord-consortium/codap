@@ -82,7 +82,7 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
         for( tPixelX = tPixelMin; tPixelX <= tPixelMax; tPixelX += kPixelGap) {
           tX = tXAxisView.coordinateToData( tPixelX);
           // Note: If an exception is thrown on evaluate(), we exit the loop
-          tY = tModel.evaluate( tX);
+          tY = tModel.evaluate({ x: tX });
           if( DG.isFinite( tY)) {
             tPixelY = tYAxisView.dataToCoordinate( tY);
             tPoints.push( {top: tPixelY, left: tPixelX});

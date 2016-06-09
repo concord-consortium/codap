@@ -456,7 +456,8 @@ DG.DocumentController = SC.Object.extend(
     createComponentAndView: function( iComponent, iComponentType, iArgs) {
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
-          tView = null;
+          tView = null,
+          isInitialization = iArgs && iArgs.initiatedViaCommand ? false : true;
       try {
         switch( type) {
         case 'DG.FlashView':  // For backward compatibility
@@ -465,7 +466,7 @@ DG.DocumentController = SC.Object.extend(
           // fallthrough intentional
           /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
         case 'DG.GameView':
-          tView = this.addGame( docView, iComponent, true);
+          tView = this.addGame( docView, iComponent, isInitialization);
           break;
         case 'DG.TableView':
           // If there is no component, we are creating new components.
@@ -481,26 +482,26 @@ DG.DocumentController = SC.Object.extend(
           break;
           case 'DG.GraphView':
           // ToDo: pass iArgs along to other 'add' methods in addition to addGraph
-          tView = this.addGraph( docView, iComponent, true, iArgs);
+          tView = this.addGraph( docView, iComponent, isInitialization, iArgs);
           break;
         case 'DG.SliderView':
-          tView = this.addSlider( docView, iComponent, true);
+          tView = this.addSlider( docView, iComponent, isInitialization);
           break;
         case 'DG.Calculator':
-          tView = this.addCalculator( docView, iComponent, true);
+          tView = this.addCalculator( docView, iComponent, isInitialization);
           break;
         case 'DG.TextView':
-          tView = this.addText( docView, iComponent, true);
+          tView = this.addText( docView, iComponent, isInitialization);
           break;
         case 'DG.MapView':
-          tView = this.addMap( docView, iComponent, true);
+          tView = this.addMap( docView, iComponent, isInitialization);
           break;
         case 'SC.WebView':
         case 'DG.WebView':
-          tView = this.addWebView( docView, iComponent, null, null, null, true);
+          tView = this.addWebView( docView, iComponent, null, null, null, isInitialization);
           break;
         case 'DG.GuideView':
-          tView = this.addGuideView( docView, iComponent, true);
+          tView = this.addGuideView( docView, iComponent, isInitialization);
           break;
         default:
           break;

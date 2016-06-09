@@ -99,13 +99,25 @@ DG.CaseTableController = DG.ComponentController.extend(
         sc_super();
       },
 
+      // Utility function for identifying existing adapters for the specified collection
+      findAdapterForCollection: function(iCollectionID) {
+        var i, count, adapters = this.caseTableAdapters;
+        if (adapters) {
+          count = adapters.length;
+          for( i = 0; i < count; ++i) {
+            if( adapters[i] && (adapters[i].getPath('collection.id') === iCollectionID))
+              return adapters[i];
+          }
+        }
+        return null;
+      },
+
       /**
         Builds an appropriate DG.CaseTableAdapter for each collection.
        */
       updateTableAdapters: function() {
         var dataContext = this.get('dataContext'),
             collectionRecords = dataContext && dataContext.get('collections') || [],
-            prevAdapters = this.caseTableAdapters,
             newAdapters = [],
             // The controller model is a component object. We want the model for the
             // component's content.
@@ -113,26 +125,13 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         this.caseTableAdapters = newAdapters;
 
-        // Utility function for identifying existing adapters for the specified collection
-        function findAdapterForCollection( iCollectionID) {
-          var i, count;
-          if (prevAdapters) {
-            count = prevAdapters.length;
-            for( i = 0; i < count; ++i) {
-              if( prevAdapters[i] && (prevAdapters[i].getPath('collection.id') === iCollectionID))
-                return prevAdapters[i];
-            }
-          }
-          return null;
-        }
-
         // Utility function for finding or creating (if necessary) an appropriate
         // adapter for the specified collection.
-        function guaranteeAdapterForCollectionRecord( iCollectionRecord) {
+        var guaranteeAdapterForCollectionRecord = function( iCollectionRecord) {
           var collectionID = iCollectionRecord.get('id'),
               collection = dataContext.getCollectionByID( collectionID),
               // try to find an existing adapter for the specified collection
-              adapter = findAdapterForCollection( collectionID);
+              adapter = this.findAdapterForCollection( collectionID);
           if( !adapter) {
             // create a new adapter for the specified collection
             adapter = DG.CaseTableAdapter.create({
@@ -144,7 +143,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           // add the new/found adapter to the adapter array
           newAdapters.push( adapter);
-        }
+        }.bind(this);
 
         collectionRecords.forEach( guaranteeAdapterForCollectionRecord);
       },
@@ -305,17 +304,24 @@ DG.CaseTableController = DG.ComponentController.extend(
           case 'createCase':
           case 'createCases':
             this.doCreateCases( iChange);
+            invalidateAggregates = false; // handled by doDependentCases
             break;
           case 'updateCases':
             this.doUpdateCases( iChange);
+            invalidateAggregates = false; // handled by doDependentCases
             break;
           case 'deleteCases':
             this.doDeleteCases( iChange);
+            invalidateAggregates = false; // handled by doDependentCases
             break;
           case 'selectCases':
             this.doSelectCases( iChange);
             // selection changes don't require aggregate invalidation
             invalidateAggregates = false;
+            break;
+          case 'dependentCases':
+            this.doDependentCases(iChange);
+            invalidateAggregates = false; // handled by doDependentCases
             break;
           case 'createAttributes':
             this.doCreateAttributes(iChange);
@@ -345,13 +351,14 @@ DG.CaseTableController = DG.ComponentController.extend(
                             });
         }
         // If there are aggregate functions, we may have to mark all cases as changed.
+        // With the introduction of the dependency manager, this should be less frequent.
         if( invalidateAggregates) {
           var adapters = this.get('caseTableAdapters');
           if( adapters) {
             adapters.forEach( function( iAdapter) {
-                                                    if( iAdapter.get('hasAggregates'))
-                                                      iAdapter.markCasesChanged();
-                                                  });
+                                if( iAdapter.get('hasAggregates'))
+                                  iAdapter.markCasesChanged();
+                              });
           }
         }
       },
@@ -366,6 +373,20 @@ DG.CaseTableController = DG.ComponentController.extend(
         this.caseCountDidChange( iChange);
         this.doSelectCases(iChange);
         caseTableModel.didDeleteCases(iChange.cases);
+      },
+      doDependentCases: function(iChange) {
+        if (iChange.changes) {
+          iChange.changes.forEach(function(iChange) {
+            var collection = iChange.collection,
+                collectionID = collection && collection.get('id'),
+                invalidCases = iChange.cases && iChange.cases.length
+                                  ? iChange.cases : undefined,
+                adapter = this.findAdapterForCollection(collectionID);
+            if (adapter) {
+              adapter.markCasesChanged(invalidCases);
+            }
+          }.bind(this));
+        }
       },
       doCreateAttributes: function (iChange) {
         this.attributeCountDidChange( iChange);
@@ -417,7 +438,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 adapter.cases.push(iCase);
                 identifyCasesChanged(iCase.get('children'));
               }
-            })
+            });
           }
         }
 
