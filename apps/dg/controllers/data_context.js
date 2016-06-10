@@ -1114,14 +1114,20 @@ DG.DataContext = SC.Object.extend((function() // closure
      *    {Boolean}               .success
      */
     doMoveAttribute: function( iChange) {
-      var attr = iChange.attr;
-      var fromCollection = attr.get('collection');
-      var toCollection = iChange.toCollection || fromCollection;
-      var position = iChange.position;
-      var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
-          ? toCollection : this.getCollectionByID(toCollection.id);
+      try {
+        var attr = iChange.attr;
+        var fromCollection = attr.get('collection');
+        var toCollection = iChange.toCollection || fromCollection;
+        var position = iChange.position;
+        var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
+            ? toCollection : this.getCollectionByID(toCollection.id);
 
-      this.moveAttribute(attr, toCollectionClient, position);
+        this.moveAttribute(attr, toCollectionClient, position);
+        return {success: true};
+      } catch (ex) {
+        DG.logWarn(ex);
+        return {success: false};
+      }
     },
 
     /**
@@ -1139,7 +1145,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
-        result = { success: false, attrIDs: [] };
+        result = { success: true, attrIDs: [] };
     
     // Function to delete each individual attribute
     function deleteAttribute( iAttr) {
