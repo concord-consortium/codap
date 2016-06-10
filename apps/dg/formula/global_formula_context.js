@@ -65,8 +65,11 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
     var globalValue = DG.globalsController.getGlobalValueByName( iName);
     if( globalValue) {
       // register the dependency for tracking/invalidation purposes
-      this.registerDependency({ type: DG.DEP_TYPE_GLOBAL,
-                                id: globalValue.get('id'), name: iName });
+      this.registerDependency({ independentSpec: {
+                                  type: DG.DEP_TYPE_GLOBAL,
+                                  id: globalValue.get('id'),
+                                  name: iName }
+                              });
 
       // Having identified the global value to be referenced, we attach
       // a function that can access the appropriate value, making use of

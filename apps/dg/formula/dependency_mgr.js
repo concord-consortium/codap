@@ -182,6 +182,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
     @param {string}     .type - the type of the node
     @param {string}     .id - the id of the node
     @param {number[]} .aggFnIndices - the indices of any dependent aggregate functions
+    @param {function} .dependentContext - formula context for invalidation
    */
   registerDependency: function(iDependency) {
     var dependentNode = this.findNode(iDependency.dependentSpec),
@@ -199,7 +200,8 @@ DG.DependencyMgr = SC.Object.extend((function() {
               "DG.DependencyMgr.registerDependency: dependentNode not found!",
               "Formulas should be registered before they are compiled.");
 
-    this._addDependency(dependentNode, independentNode, iDependency.aggFnIndices);
+    this._addDependency(dependentNode, independentNode,
+                        iDependency.aggFnIndices, iDependency.dependentContext);
     this._addDependent(dependentNode, independentNode);
   },
 
@@ -208,9 +210,10 @@ DG.DependencyMgr = SC.Object.extend((function() {
     @param {object}   iDependentNode - the node to which the dependency is to be added
     @param {object}   iIndependentNode - the node which is dependend upon
     @param {number[]} iAggFnIndices - array of aggregate function indices
+    @param {object}   iDependentContext - formula context for invalidation
     @private
    */
-  _addDependency: function(iDependentNode, iIndependentNode, iAggFnIndices) {
+  _addDependency: function(iDependentNode, iIndependentNode, iAggFnIndices, iDependentContext) {
     var dependencies = iDependentNode.dependencies,
         dependencyCount = dependencies.length,
         i, dependency,
@@ -236,7 +239,8 @@ DG.DependencyMgr = SC.Object.extend((function() {
     // if it's not already present in the list, add it
     dependencies.push({ node: iIndependentNode,
                         simpleDependency: !aggFnIndexCount,
-                        aggFnIndices: aggFnIndexCount ? iAggFnIndices.slice() : [] });
+                        aggFnIndices: aggFnIndexCount ? iAggFnIndices.slice() : [],
+                        dependentContext: iDependentContext });
   },
 
   /**
@@ -378,17 +382,11 @@ DG.DependencyMgr = SC.Object.extend((function() {
         if (iDependent.lastInvalidation >= this._currentInvalidation) return;
         iDependent.lastInvalidation = this._currentInvalidation;
 
-        var dependency = this._findDependency(iDependent, iIndNode),
-            attributeID = iDependent && iDependent.id,
-            attribute = attributeID && DG.Attribute.getAttributeByID(attributeID);
-
-        if (!iForceAggregate && dependency.simpleDependency && attribute) {
-          attribute.invalidateCases(iCases);
-          result.simpleDependencies.push(iDependent);
-        }
-        if ((iForceAggregate || dependency.aggFnIndices.length) && attribute) {
-          attribute.invalidateCases(null, dependency.aggFnIndices);
-          result.aggregateDependencies.push(iDependent);
+        // Call the specified invalidation function
+        var dependency = this._findDependency(iDependent, iIndNode);
+        if (dependency && dependency.dependentContext) {
+          dependency.dependentContext
+            .invalidateDependent(result, iDependent, dependency, iCases, iForceAggregate);
         }
         DG.depMgrLog("DG.DependencyMgr.invalidateDependents: Invalidating %@ '%@'",
                     iDependent.type, iDependent.name);
@@ -397,10 +395,13 @@ DG.DependencyMgr = SC.Object.extend((function() {
       }.bind(this));
     }.bind(this);
 
+    // invalidate the initial set of nodes
     for (i = 0; i < nodeSpecCount; ++i) {
       var indNode = this.findNode(iNodeSpecs[i]);
       if (indNode) {
+        // invalidate each node
         indNode.lastInvalidation = this._currentInvalidation;
+        // invalidate dependents of each node
         invalidateDependents(indNode);
       }
     }
