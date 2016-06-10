@@ -76,6 +76,11 @@ DG.IconButton = SC.View.extend(
         }
       },
 
+      iconClassDidChange: function() {
+        this.iconView.set('iconClass', this.iconClass);
+        this.iconView.displayDidChange();
+      }.observes('iconClass'),
+
       /**
        * When part of a FlowedLayout, our height can get messed with, and this can cause a popup to
        * displayed in an inconvenient place.

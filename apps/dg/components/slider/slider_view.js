@@ -28,8 +28,8 @@ DG.SliderView = SC.View.extend(
     var kWidth = 23,
         kThumbHeight = 15,
         kAxisHeight = 20,
-        kButtonHeight = 22,
-        kButtonWidth = 24,
+        kButtonHeight = 18,
+        kButtonWidth = 20,
         kGap = 5,
         tMouseDownInfo,
         tDraggingThumb = false;
@@ -144,16 +144,14 @@ DG.SliderView = SC.View.extend(
 
         this.set('startButton',
           DG.IconButton.create( {
-            layout: { top: 0, width: kButtonWidth + 2, height: kButtonHeight + 2 },
+            layout: {top: kGap + 2, left: 2, width: kButtonWidth + 2, height: kButtonHeight + 2},
             iconExtent: { width: kButtonWidth, height: kButtonHeight },
-            title: '',
-            iconName: static_url('images/start.png'),
-            depressedIconName: static_url('images/start_pushed.png'),
+            classNames: 'display-styles'.w(),
             target: this,
             action: 'toggleAnimation',
             toolTip: 'DG.SliderView.startButton.toolTip', // "Start/stop animation"
             localize: true
-        }));
+          }));
         this.appendChild( this.startButton );
 
         this.set('valueView',
@@ -334,12 +332,10 @@ DG.SliderView = SC.View.extend(
       isAnimatingDidChange: function() {
         var startButton = this.get('startButton');
         if( !this.getPath('controller.isAnimating')) {
-          startButton.set('iconName', static_url('images/start.png'));
-          startButton.set('depressedIconName', static_url('images/start_pushed.png'));
+          startButton.set('iconClass', 'play-icon');
         }
         else {
-          startButton.set('iconName', static_url('images/stop.png'));
-          startButton.set('depressedIconName', static_url('images/stop_pushed.png'));
+          startButton.set('iconClass', 'pause-icon');
         }
       }.observes('*controller.isAnimating'),
 

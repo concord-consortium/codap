@@ -436,6 +436,48 @@
     color: darkgray;
 }
 
+.play-icon:before {
+    font-family: 'icomoon';
+    content: "\4A";
+}
+
+.play-icon {
+    font-size: 14px;
+    color: lightgreen;
+    text-align: center;
+}
+
+.play-icon:hover {
+    top: 2px !important;
+    font-size: 16px;
+    color: green;
+}
+
+.play-icon:active {
+    color: darkgreen;
+}
+
+.pause-icon:before {
+    font-family: 'icomoon';
+    content: "\79";
+}
+
+.pause-icon {
+    font-size: 14px;
+    color: red;
+    text-align: center;
+}
+
+.pause-icon:hover {
+    top: 2px !important;
+    font-size: 16px;
+    color: darkred;
+}
+
+.pause-icon:active {
+    color: red;
+}
+
 [class^="tile-icon-"], [class*=" tile-icon-"] {
     font-family: 'icomoon';
     font-size: 15px;
