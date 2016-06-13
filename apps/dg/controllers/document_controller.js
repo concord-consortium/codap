@@ -105,13 +105,6 @@ DG.DocumentController = SC.Object.extend(
         */
     ready: true,
 
-    /**
-      Provide client access to the game view.
-     */
-    gameView: function() {
-      return this._singletonViews.gameView || null;
-    }.property(),
-
       /**
        * Set by singleton AppController on startup
        * @property {SC.MenuPane}
@@ -527,20 +520,6 @@ DG.DocumentController = SC.Object.extend(
                               this.createComponentAndView( iComponent);
                             }.bind( this));
       }
-    },
-
-    /**
-      [DEPRECATED] Returns the collection with the specified name associated with the game of the specified name.
-      Clients should use the DG.DataContext API instead.
-      @param  {String}    iGameName -- The name of the game for which a collection is desired
-      @param  {String}    iCollectionName -- The name of the collection to be returned
-      @returns  {DG.CollectionClient}   The collection that matches the specified names
-     */
-    gameCollectionWithName: function( iGameName, iCollectionName) {
-      var gameSpec = DG.gameSelectionController.findGameByName( iGameName),
-          gameContext = gameSpec && DG.GameContext.getContextForGame( gameSpec),
-          collection = gameContext && gameContext.getCollectionByName( iCollectionName);
-      return collection;
     },
 
     /**
@@ -1239,26 +1218,49 @@ DG.DocumentController = SC.Object.extend(
       componentView.destroy();
     },
 
+
+    /**
+     * Close the document in an orderly way.
+     *
+     * (a) stop any globals from animating.
+     * (b) remove component controllers and components
+     * (c) remove contexts
+     * (d) remove globals
+     *
+     * Note: there are a number of singletons involved in, and complicating,
+     * this process. We wish to get to a single singleton managing dynamic
+     * objects, the app controller. The DG object should remain a singleton, but
+     * for managing constants and class prototypes. There should only ever be
+     * a single document controller, but a new one should be created with each
+     * new document.
+     */
     closeDocument: function() {
-      DG.ObjectMap.forEach( this.componentControllersMap,
-                            function( iComponentID, iController) {
-                              if( iController && iController.willDestroy)
-                                iController.willDestroy();
-                            });
+      DG.UndoHistory.clearUndoRedoHistory();
 
       DG.globalsController.stopAnimation();
-      DG.gameSelectionController.reset();
+
+      DG.ObjectMap.forEach( this.componentControllersMap,
+                            function( iComponentID, iController) {
+                              if( iController && iController.willDestroy) {
+                                iController.willDestroy();
+                              }
+                            });
+      DG.ObjectMap.forEach( this.componentControllersMap,
+          function( iComponentID, iController) {
+            if (iController) {
+              iController.destroy();
+            }
+          });
+      this.closeAllComponents();
+
       DG.DataContext.clearContextMap();
 
+      this.contexts = [];
 
       DG.globalsController.reset();
 
       DG.Document.destroyDocument(DG.activeDocument);
 
-      this.contexts = [];
-      this.closeAllComponents();
-
-      DG.UndoHistory.clearUndoRedoHistory();
    },
 
     closeAllComponents: function() {
@@ -1424,10 +1426,6 @@ DG.currDocumentController = function() {
   }
   return DG._currDocumentController;
 }.property();
-
-DG.gameCollectionWithName = function( iGameName, iCollectionName) {
-  return DG.currDocumentController().gameCollectionWithName( iGameName, iCollectionName);
-};
 
 /**
  * A global convenience function for dirtying the document.

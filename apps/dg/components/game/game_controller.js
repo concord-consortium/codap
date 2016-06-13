@@ -312,49 +312,6 @@ DG.GameController = DG.ComponentController.extend(
       /*
        * Old API
        */
-        case 'newCollection':
-        // Todo: I think this method can be moved here -- jms
-        DG.gameSelectionController.processNewCollectionArgs( tCmdObj.args);
-
-        // Extract the attribute names into an array for newCollectionWithAttributes().
-        var tAttrNames = [];
-        tCmdObj.args.attrs.forEach( function( iAttr) { tAttrNames.push( iAttr.name); });
-        this.newCollectionWithAttributes( tCmdObj.args.name, tAttrNames);
-        tRet.success = true;
-        SC.warn("Deprecated API Call: " + tCmdObj.action);
-        break;
-
-      case 'newCase':
-        this.addCaseToCollectionWithValues( tCmdObj.args.collection, tCmdObj.args.values);
-        tRet.success = true;
-        SC.warn("Deprecated API Call: " + tCmdObj.action);
-        break;
-
-      case 'requestFormulaObject':
-        tRet.success = DG.formulaObjectCoordinator.requestFormulaObject( tCmdObj.args.title,
-                                                                        tCmdObj.args.description,
-                                                                        tCmdObj.args.output, tCmdObj.args.inputs,
-                                                                        tCmdObj.args.descriptions,
-                                                                        tCmdObj.args.allow_user_variables);
-        tShouldDirtyDocument = false;
-        SC.warn("Deprecated API Call: " + tCmdObj.action);
-        break;
-
-      case 'updateFormulaObject':
-        tRet.success = DG.formulaObjectCoordinator.updateFormulaObject( tCmdObj.args.description,
-                                                                        tCmdObj.args.output, tCmdObj.args.inputs,
-                                                                        tCmdObj.args.descriptions,
-                                                                        tCmdObj.args.allow_user_variables);
-        tShouldDirtyDocument = false;
-        SC.warn("Deprecated API Call: " + tCmdObj.action);
-        break;
-
-      case 'requestFormulaValue':
-        tRet = DG.formulaObjectCoordinator.requestFormulaValue( tCmdObj.args.output, tCmdObj.args);
-        tShouldDirtyDocument = false;
-        SC.warn("Deprecated API Call: " + tCmdObj.action);
-        break;
-
       case 'requestAttributeValues':
         tRet = this.handleRequestAttributeValues( tCmdObj.args );
         tShouldDirtyDocument = false;
@@ -1035,11 +992,6 @@ DG.GameController = DG.ComponentController.extend(
       this.set('gameIsReady', true);
     },
 
-    queuedCases: [],  // When we get a request to add a case, we stash it in this array
-              // for later processing
-    addCasesTimer: null,  // Set when we get a case to add.
-    startQueueTime: null,
-
     _openGameName: '',
     _openParentCollectionName: '',
     _openParentCases: {},
@@ -1062,103 +1014,6 @@ DG.GameController = DG.ComponentController.extend(
 
     getParentCaseFor: function( iValues) {
       return this._openParentCases[ Object.keys( this._openParentCases).pop()];
-    },
-
-    addCasesFromQueue: function()
-    {
-      var this_ = this,
-          context = this.get('context'),
-          tCurrentGameName = this.getPath('context.currentName'),
-          parentCollectionName = context && context.get('parentCollectionName'),
-          parentCollection = context.get('parentCollection');
-
-      this.queuedCases.forEach( function( anItem) {
-        var iCollectionName = anItem.collectionName,
-            iValues = anItem.values,
-            collectionClient = DG.gameCollectionWithName( tCurrentGameName, iCollectionName),
-            attrIDs = collectionClient && collectionClient.getAttributeIDs(),
-            attrCount = attrIDs ? attrIDs.length : 0;
-
-        DG.logUser("caseCreated: %@ [%@]", iCollectionName, iValues.join(', '));
-
-        if (attrCount > iValues.length)
-          attrCount = iValues.length;
-
-        var isParentCollection = (iCollectionName === parentCollectionName);
-
-        // If we've switched games, close the open case from the previous game
-        if (tCurrentGameName !== this_._openGameName)
-          this_.closeParentCases();
-
-        // First child case for a given parent must "open" the parent case
-        if (!isParentCollection && !SC.none( parentCollection) &&
-            SC.none( this_._openParentCases[ iCollectionName])) {
-          var parentCase = parentCollection.createCase();
-          this_.openParentCase( tCurrentGameName, iCollectionName, parentCollectionName, parentCase);
-        }
-
-        var newCase = null;
-        if (iCollectionName !== this_._openParentCollectionName) {
-          var caseInitializerList = {};
-          // Link child cases to their parent case if there's an open parent case
-          if (!isParentCollection && !SC.none( this_._openParentCases[ iCollectionName])) {
-            caseInitializerList.parent = this_._openParentCases[ iCollectionName].get('id');
-          }
-          newCase = collectionClient.createCase( caseInitializerList);
-        }
-        else {
-          // Parent case was created earlier when it was "opened"
-          newCase = this_.getParentCaseFor( iValues);
-          // If we don't have an open parent case, then skip it.
-          if( newCase)
-            newCase.beginCaseValueChanges();
-        }
-
-        // If we don't have an open parent case, then skip it.
-        // Game must be sending us extraneous parent case requests.
-        if( newCase) {
-          for (var i = 0; i < attrCount; ++i) {
-            var tValue = DG.DataUtilities.canonicalizeInputValue( iValues[i]);
-            newCase.setValue( attrIDs[i], tValue);
-          }
-        }
-
-        // Close the open parent case once its values have been created/set.
-        if ((iCollectionName === this_._openParentCollectionName)) {
-          this_.closeParentCase( iValues);
-          // If we don't have an open parent case, then skip it.
-          if( newCase)
-            newCase.endCaseValueChanges();
-        }
-      });
-    },
-
-    addCaseToCollectionWithValues: function(iCollectionName, iValues)
-    {
-      var this_ = this,
-          tTime;
-
-      function processQueue() {
-  //      console.log('Queue length: ' + this_.queuedCases.length + ' at ',
-  //              (new Date()).valueOf() - this_.startQueueTime);
-        SC.run( function() {
-          this_.addCasesFromQueue();
-          this_.queuedCases.length = 0;
-        });
-      }
-
-      if( !SC.none( this.addCasesTimer))
-        this.addCasesTimer.invalidate();
-      tTime = (new Date()).valueOf();
-  //    console.log('New case at ' + (tTime - this.startQueueTime));
-      if( this.queuedCases.length === 0)
-        this.startQueueTime = tTime;
-
-      this.queuedCases.push( { collectionName: iCollectionName, values: iValues });
-      this.addCasesTimer = SC.Timer.schedule( {
-                              action: processQueue,
-                              interval: 20
-                            });
     },
 
     /**

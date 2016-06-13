@@ -894,14 +894,6 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create a new empty document
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
-
-      /**
-       * If we are still in the GamesMenu world, we need to find the new game.
-       */
-      if (!SC.none(iDefaultGameName)){
-        DG.gameSelectionController.setDefaultGame(iDefaultGameName);
-        DG.mainPage.addGameIfNotPresent();
-      }
     },
 
     /**
