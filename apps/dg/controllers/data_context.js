@@ -673,6 +673,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         attrCount = iChange.attributeIDs ? iChange.attributeIDs.get('length') : 0,
         valueArrayCount = iChange.values.get('length'),
         attrSpecs = [],
+        caseIDs,
         a, c;
 
     // If no attributes were specified, set them all using setCaseValuesFromArray().
@@ -682,7 +683,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         if( iCase && !iCase.get('isDestroyed'))
           this.setCaseValuesFromArray( iCase, iChange.values[ iIndex], iChange.collection);
       }.bind( this));
-      return { success: true };
+      caseIDs = iChange.cases.map(function (iCase) { return iCase.id; });
+      return { success: true, caseIDs: caseIDs};
     }
 
     // If attributes are specified, set the values individually.
@@ -716,7 +718,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                     });
     this.invalidateNodesAndNotify(attrNodes, iChange);
 
-    return { success: true };
+    return { success: true, caseIDs: iChange.caseIDs };
   },
   /**
    * Changes the specified values of the specified cases providing a hash keyed by attribute name.
@@ -732,8 +734,10 @@ DG.DataContext = SC.Object.extend((function() // closure
   doUpdateCasesFromHashOfNameValues: function (iChange) {
     var cases = iChange.cases;
     var success = true;
+    var caseIDs = [];
     cases.forEach(function (iCase, iCaseIx) {
       var values = iChange.values[iCaseIx];
+      caseIDs.push(iCase.id);
       if (values) {
         iCase.beginCaseValueChanges();
         DG.ObjectMap.forEach(values, function(key, value) {
@@ -748,7 +752,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         iCase.endCaseValueChanges();
       }
     }.bind(this));
-    return { success: success};
+    return { success: success, caseIDs: caseIDs};
   },
 
   /*
