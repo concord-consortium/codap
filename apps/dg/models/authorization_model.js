@@ -97,7 +97,7 @@ DG.Authorization = SC.Object.extend(
    * Indicates whether logging should be enabled for this user/session.
    * @property {Boolean}
    */
-  isLoggingEnabled: false,
+  isLoggingEnabled: true,
   
   /**
    * Counter which increments with every logging call.
@@ -114,7 +114,7 @@ DG.Authorization = SC.Object.extend(
     this.set('status', 0);
     this.set('sessionID', 0);
     this.set('isSaveEnabled', false);
-    this.set('isLoggingEnabled', false);
+    this.set('isLoggingEnabled', true);
     return this;
   }
   
