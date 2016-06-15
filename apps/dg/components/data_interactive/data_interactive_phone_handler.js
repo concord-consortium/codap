@@ -89,7 +89,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       destroy: function () {
         var contexts = DG.currDocumentController().get('contexts');
-
+        if (this.phone) {
+          this.phone.disconnect();
+        }
         sc_super();
         contexts.forEach(function (context) {
           context.removeObserver('changeCount', this, 'contextDataDidChange');
@@ -101,10 +103,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return;
         }
         var dataContextName = sender.name;
+
         var changes = sender.get('newChanges').filter(function (iChange) {
+          // filter out unsuccessful change attempts and those with
+          // a requester that matches this handler.
           return ((iChange.result && iChange.result.success) &&
               (!iChange.requester || (iChange.requester !== this.get('id'))));
         }.bind(this)).map(function (change) {
+          // fix up change objects by copying through certain result properties
+          // and converting objects to their id.
           var result = {};
           DG.ObjectMap.forEach(change.result, function (k, v) {
             switch (k) {

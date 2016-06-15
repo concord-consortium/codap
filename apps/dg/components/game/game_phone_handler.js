@@ -108,6 +108,9 @@ DG.GamePhoneHandler = SC.Object.extend(
        * Break loops
        */
       destroy: function () {
+        if (this.phone) {
+          this.phone.disconnect();
+        }
         sc_super();
       },
 
@@ -1051,7 +1054,7 @@ DG.GamePhoneHandler = SC.Object.extend(
           gameView.adjust('width', newWidth);
           gameView.adjust('height', newHeight);
         }
-      }.observes('context.gameDimensions'),
+      },
 
       /**
        Logs a user action with the specified action name and array of values.
