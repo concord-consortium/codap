@@ -88,6 +88,14 @@ DG.ContainerView = SC.View.extend(
         });
       }.property( 'childViews'),
 
+      allComponentViews: function() {
+        var tSavedMode = DG.STANDALONE_MODE;
+        DG.STANDALONE_MODE = false; // temporarily
+        var tViews = this.get('componentViews');
+        DG.STANDALONE_MODE = tSavedMode;
+        return tViews;
+      },
+
       /**
        * @property {Array of Object }
        */
@@ -274,7 +282,7 @@ DG.ContainerView = SC.View.extend(
        * @param{String} either 'cover' or 'uncover'
       */
       coverUpComponentViews: function( iAction) {
-        this.get('componentViews').forEach( function( iView) {
+        this.allComponentViews().forEach( function( iView) {
           iView.cover( iAction);
         });
       },
