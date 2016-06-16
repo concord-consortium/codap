@@ -431,6 +431,10 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         _this.cases.splice(priorIndex+1, 0, iCase);
         _this.updateCaseIDToIndexMap();
       }
+
+      /*
+       * start of addCase method
+       */
       var caseID = iCase.get('id'),
         parentID = iCase.getPath('parent.id'),
         caseIDToIndexMap = this.get('caseIDToIndexMap'),

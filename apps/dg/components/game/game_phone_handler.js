@@ -46,7 +46,7 @@ DG.GamePhoneHandler = SC.Object.extend(
        *
        * @property {iframePhone.IframePhoneRpcEndpoint}
        */
-      phone: null,
+      rpcEndpoint: null,
 
       /**
        * The game's controller.
@@ -108,8 +108,8 @@ DG.GamePhoneHandler = SC.Object.extend(
        * Break loops
        */
       destroy: function () {
-        if (this.phone) {
-          this.phone.disconnect();
+        if (this.rpcEndpoint) {
+          this.rpcEndpoint.disconnect();
         }
         sc_super();
       },
@@ -471,7 +471,7 @@ DG.GamePhoneHandler = SC.Object.extend(
             // for flash games we must find the embedded swf object, then call its 'doCommandFunc'
             tGameElement.doCommandFunc(SC.json.encode(tRestoreCommand));
           } else if (this.get('isPhoneInUse')) {
-            this.phone.call(tRestoreCommand, finishInitGame.bind(this));
+            this.rpcEndpoint.call(tRestoreCommand, finishInitGame.bind(this));
             return tReturn;
           }
         }
@@ -769,11 +769,11 @@ DG.GamePhoneHandler = SC.Object.extend(
             // then calling undo or redo here will likely fail because the game's undo stack would
             // probably have been cleared.
             var controller = this._controller();
-            controller.phone.call({operation: "undoAction"}, controller.handleUndoRedoCompleted);
+            controller.rpcEndpoint.call({operation: "undoAction"}, controller.handleUndoRedoCompleted);
           },
           redo: function () {
             var controller = this._controller();
-            controller.phone.call({operation: "redoAction"}, controller.handleUndoRedoCompleted);
+            controller.rpcEndpoint.call({operation: "redoAction"}, controller.handleUndoRedoCompleted);
           }
         }));
       },
@@ -1027,7 +1027,7 @@ DG.GamePhoneHandler = SC.Object.extend(
           callback(result);
         } else if (this.get('isPhoneInUse')) {
           // async path
-          this.phone.call(saveCommand, callback);
+          this.rpcEndpoint.call(saveCommand, callback);
         } else {
           callback({success: false});
         }

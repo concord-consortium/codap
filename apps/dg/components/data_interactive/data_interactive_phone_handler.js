@@ -27,6 +27,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
     /** @scope DG.DataInteractivePhoneHandler.prototype */ {
 
       /**
+       * @type {DG.GameController}
+       */
+      controller: null,
+
+      /**
        * @type {DG.DataInteractiveModel}
        */
       modelBinding: SC.Binding.oneWay('*controller.model'),
@@ -40,7 +45,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *
        * @property {iframePhone.IframePhoneRpcEndpoint}
        */
-      phone: null,
+      rpcEndpoint: null,
 
       /**
        * Whether activity has been detected on this channel.
@@ -89,22 +94,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       destroy: function () {
         var contexts = DG.currDocumentController().get('contexts');
-        if (this.phone) {
-          this.phone.disconnect();
+        if (this.rpcEndpoint) {
+          this.rpcEndpoint.disconnect();
         }
-        sc_super();
         contexts.forEach(function (context) {
           context.removeObserver('changeCount', this, 'contextDataDidChange');
         }.bind(this));
+        sc_super();
       },
 
-      contextDataDidChange: function (sender, key, value, rev) {
+      /**
+       * Called in response to data context change notices. We will filter out
+       * changes that this object originated and those that were marked
+       * unsuccessful. Then we will abstract the original change notice by
+       * extracting what may be needed at a bare minimum for the DI to determine
+       * their response to the notice.
+       *
+       * @param {@DG.DataContext} dataContext
+       */
+      contextDataDidChange: function (dataContext) {
         if (!this.connected) {
           return;
         }
-        var dataContextName = sender.name;
+        var dataContextName = dataContext.name;
 
-        var changes = sender.get('newChanges').filter(function (iChange) {
+        var changes = dataContext.get('newChanges').filter(function (iChange) {
           // filter out unsuccessful change attempts and those with
           // a requester that matches this handler.
           return ((iChange.result && iChange.result.success) &&
@@ -133,8 +147,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (!changes || changes.length === 0) {
           return;
         }
-        this.phone.call({
-          action: 'create',
+        this.rpcEndpoint.call({
+          action: 'notify',
           resource: 'dataContextChangeNotice[' + dataContextName + ']',
           values: changes
         }, function (response) {
@@ -144,8 +158,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         });
       },
 
+      /**
+       * CODAP's request of DI state (for saving)
+       * @param {function} callback
+       */
       requestDataInteractiveState: function (callback) {
-        this.phone.call({
+        this.rpcEndpoint.call({
           action: 'get',
           resource: 'interactiveState'
         }, callback);
@@ -156,10 +174,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * resource or an individual resource. This routine parses a resource
        * selector into its component parts and builds an equivalent object.
        *
-       *   * Base resources: [interactiveFrame, doc, logAction]
+       *   * Base resources: [interactiveFrame, logAction]
        *   * Doc resources: [dataContext, component, global]
        *   * DataContext resources: [collection, attributes]
        *   * Collection resources: [case]
+       *
+       *   Some examples of resource selectors:
+       *    * "dataContext[DataCard]", or
+       *    * "dataContext[DataCard2].collection[Measurements].attribute"
+       *
+       *   These would parse to objects, respectively:
+       *    * {dataContext: 'DataCard', type: 'dataContext'}
+       *    * {dataContext: 'DataCard2', collection: 'Measurements', attribute: null, type: 'attribute'}
        *
        * @param iResource {string}
        * @returns {{}}
@@ -185,7 +211,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return result;
       },
 
-      resolveResources: function (resourceSelectors) {
+      /**
+       *
+       * @param {object} resourceSelector Return value from parseResourceSelector
+       * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
+       */
+      resolveResources: function (resourceSelector) {
         function resolveContext(selector, myModel) {
           var context;
           if (SC.empty(selector)) {
@@ -194,44 +225,47 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (selector === '#default') {
             context = myModel.get('context');
           } else {
-            context = DG.currDocumentController().getContextByName(resourceSelectors.dataContext);
+            context = DG.currDocumentController().getContextByName(resourceSelector.dataContext);
           }
           return context;
         }
 
         var result = { interactiveFrame: this};
 
-        if (['interactiveFrame', 'logMessage'].indexOf(resourceSelectors.type) < 0) {
-          if (SC.none(resourceSelectors.dataContext)) {
-            resourceSelectors.dataContext = '#default';
+        if (['interactiveFrame', 'logMessage', 'dataContextList'].indexOf(resourceSelector.type) < 0) {
+          if (SC.none(resourceSelector.dataContext)) {
+            resourceSelector.dataContext = '#default';
             // set a flag in the result, so we can recognize this context as special.
             result.isDefaultDataContext = true;
           }
-          result.dataContext = resolveContext(resourceSelectors.dataContext, this.get('model'));
+          result.dataContext = resolveContext(resourceSelector.dataContext, this.get('model'));
         }
 
-        if (resourceSelectors.component) {
-          result.component = DG.currDocumentController().getComponentByName(resourceSelectors.component);
+        if (resourceSelector.component) {
+          result.component = DG.currDocumentController().getComponentByName(resourceSelector.component);
         }
-        if (resourceSelectors.global) {
-          result.global = DG.currDocumentController().getGlobalByName(resourceSelectors.global);
+        if (resourceSelector.global) {
+          result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
         }
-        if (resourceSelectors.collection) {
-          result.collection = result.dataContext.getCollectionByName(resourceSelectors.collection);
+        if (resourceSelector.collection) {
+          result.collection = result.dataContext &&
+              result.dataContext.getCollectionByName(resourceSelector.collection);
         }
-        if (resourceSelectors.attribute) {
-          result.attribute = result.dataContext.getAttributeByName(resourceSelectors.attribute);
+        if (resourceSelector.attribute) {
+          result.attribute = result.dataContext &&
+              result.dataContext.getAttributeByName(resourceSelector.attribute);
         }
-        if (resourceSelectors.caseByID) {
-          result.caseByID = result.collection && result.collection.getCaseByID(resourceSelectors.caseByID);
+        if (resourceSelector.caseByID) {
+          result.caseByID = result.collection && result.collection.getCaseByID(resourceSelector.caseByID);
         }
-        if (resourceSelectors.caseByIndex) {
-          result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelectors.caseByIndex));
+        if (resourceSelector.caseByIndex) {
+          result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
         }
-        DG.ObjectMap.forEach(resourceSelectors, function (key, value) {
+        DG.ObjectMap.forEach(resourceSelector, function (key, value) {
+          // Make sure we got values for every non-terminal selector.
           if (SC.none(result[key]) && key !== 'type') {
-            //throw (new Error('Unable to resolve %@: %@'.loc(key, value)));
-            DG.log('Unable to resolve %@: %@'.loc(key, value));
+            throw (new Error('Unable to resolve %@: %@'.loc(key, value)));
+            //DG.log('Unable to resolve %@: %@'.loc(key, value));
           }
         });
         return result;
@@ -282,27 +316,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           DG.log('Returning response: ' + JSON.stringify(result));
           iCallback(result);
         }
-      },
-
-      /**
-       Whether or not the document contains unsaved changes such that the user
-       should be prompted to confirm when closing the document, for instance.
-       @property   {Boolean}
-       */
-      hasUnsavedChanges: function () {
-        return this.get('changeCount') > this.get('savedChangeCount');
-      }.property(),
-
-      /**
-       Synchronize the saved change count with the full change count.
-       This method should be called when a save occurs, for instance.
-       */
-      updateSavedChangeCount: function () {
-        this.set('savedChangeCount', this.get('changeCount'));
-      },
-
-      /** todo: decide if we need this for this handler */
-      dispatchCommand: function (iCmd, iCallback) {
       },
 
       /**
@@ -359,24 +372,24 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleDataContext: {
         create: function (iResources, iValues) {
           var context;
-          var collections;
+          var collectionSpecs;
           var status = true;
           if (iValues.collections) {
-            collections = iValues.collections;
+            collectionSpecs = iValues.collections;
             delete iValues.collections;
           }
           context = DG.currDocumentController().createNewDataContext(iValues);
           if (iResources.isDefaultDataContext) {
             this.setPath('model.context', context);
           }
-          if (collections) {
-            collections.forEach(function (collection) {
-              var rslt;
-              if (collection.parent) {
-                collection.parent = context.getCollectionByName(collection.parent).collection;
+          if (collectionSpecs) {
+            collectionSpecs.forEach(function (collectionSpec) {
+              var collectionClient;
+              if (collectionSpec.parent) {
+                collectionSpec.parent = context.getCollectionByName(collectionSpec.parent).collection;
               }
-              rslt = context.createCollection(collection);
-              status = status && !SC.none(rslt);
+              collectionClient = context.createCollection(collectionSpec);
+              status = status && !SC.none(collectionClient);
             });
           }
           return {
@@ -402,7 +415,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var context = iResources.dataContext;
           var values;
           if (context) {
-            values = context.get('model').toArchive(true, true);
+            values = context.get('model').toArchive(true, true/*omit cases*/);
           }
           return {
             success: !SC.none(values),
@@ -478,7 +491,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleCollection: {
         get: function (iResources) {
           var model = iResources.collection.get('collection');
-          var values = model.toArchive(true);
+          var values = model.toArchive(true/*excludeCases*/);
           return {
             success: true,
             values: values
@@ -495,7 +508,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success) || success;
           return {
-            success: true,
+            success: success,
           };
         },
         update: function (iResources, iValues) {
@@ -509,7 +522,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success) || success;
           return {
-            success: true,
+            success: success,
           };
         }
         //delete: function (iResources) {
@@ -574,11 +587,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var attribute = iResources.attribute;
           var values;
-          if (attribute) {
-            values = attribute.toArchive();
-          }
+          DG.assert(!SC.none(attribute), 'Expected attribute not found');
+          values = attribute.toArchive();
           return {
-            success: !SC.none(values),
+            success: true,
             values: values
           };
         },
@@ -593,7 +605,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success);
           return {
-            success: success,
+            success: success
           };
         },
         update: function (iResources, iValues) {
@@ -608,7 +620,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var changeResult = context.applyChange(change);
           var success = (changeResult && changeResult.success);
           return {
-            success: success,
+            success: success
           };
         }
         //delete: function (iResources) {
@@ -647,21 +659,43 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 parent: iCase.parent
               },
               values: [iCase.values],
-              requester: this.get('id')
+              requester: requester
             });
             success = (changeResult && changeResult.success) && success;
             if (changeResult.caseIDs[0]) {
               caseIDs.push({id: changeResult.caseIDs[0]});
             }
           }
+
           var success = true;
           var context = iResources.dataContext;
           var collection = iResources.collection;
           var cases = Array.isArray(iValues)?iValues: [iValues];
           var caseIDs = [];
+          var requester = this.get('id');
           cases.forEach(createOneCase);
           return {success: success, values: caseIDs};
         },
+      },
+
+      /**
+       * Utility function to create a serializable representation of the case
+       * for return to the data interactive
+       * @param iCollection
+       * @param iCase
+       * @returns {{id: *, guid: *, parent: *, values: {}}}
+       */
+      makeSerializableCase: function (iCollection, iCase) {
+        var values = {};
+        iCollection.forEachAttribute(function (attr) {
+          values[attr.name] = iCase.getValue(attr.id);
+        });
+        return  {
+          id: iCase.id,
+          guid: iCase.id,
+          parent: (iCase.parent && iCase.parent.id),
+          values: values
+        };
       },
 
       handleCaseByIndex: {
@@ -671,7 +705,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var values;
           if (myCase) {
             values = {
-              'case': myCase.toArchive(),
+              'case': this.makeSerializableCase(collection, myCase),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
             };
             values.case.children = myCase.children.map(function (child) {return child.id;});
@@ -685,21 +719,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var context = iResources.dataContext;
           var collection = iResources.collection;
           var theCase = iResources.caseByIndex;
-          var ret = {success: false};
+          var success = false;
+          var changeResult;
           if (collection && theCase && iValues) {
-            ret = context.applyChange({
+            changeResult = context.applyChange({
               operation: 'updateCases',
               collection: collection,
               cases: [theCase],
               values: [iValues.values],
               requester: this.get('id')
             });
-            if (SC.none(ret)) {
-              DG.logWarn('UpdateCase failed to return a value');
-              ret = {success: true};
-            }
+            success = (changeResult && changeResult.success);
           }
-          return ret;
+          return {
+            success: success
+          };
         }
       },
 
@@ -711,7 +745,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var values;
           if (myCase) {
             values = {
-              'case': myCase.toArchive(),
+              'case': this.makeSerializableCase(collection, myCase),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
             };
             values.case.children = myCase.children.map(function (child) {return child.id;});
@@ -738,7 +772,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               DG.logWarn('UpdateCase failed to return a value');
               ret = {success: true};
             }
-        }
+          }
           return ret;
         }
 
@@ -746,10 +780,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCaseCount: {
         get: function (iResources) {
-          var values = iResources.collection.casesController.length();
+          var count = iResources.collection.casesController.length();
           return {
             success: true,
-            values: values
+            values: count
           };
         }
       },
@@ -841,6 +875,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
       },
+
       handleComponent: {
        create: function (iResource, iValues) {
          var doc = DG.currDocumentController();
@@ -934,7 +969,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       handleLogMessage: {
-        create: function (iResources, iValues) {
+        notify: function (iResources, iValues) {
           DG.logUser(iValues);
           return {
             success: true

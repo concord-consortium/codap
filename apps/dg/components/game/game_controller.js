@@ -117,13 +117,17 @@ DG.GameController = DG.ComponentController.extend(
           this.dataInteractivePhoneHandler.destroy();
           this.dataInteractivePhoneHandler = null;
         }
-        if (this.phone) {
-          this.phone.disconnect();
+        if (this.iframePhoneEndpoint) {
+          this.iframePhoneEndpoint.disconnect();
         }
         sc_super();
       },
 
-      phone: null,
+      /**
+       * The Parent Endpoint for the iFramePhone connection to the data interactive.
+       * @property {i
+       */
+      iframePhoneEndpoint: null,
 
       /**
        * Handles the old-style 'game' API using async iframePhone post-messaging
@@ -140,9 +144,9 @@ DG.GameController = DG.ComponentController.extend(
 
       activeChannel: function () {
         if (this.dataInteractivePhoneHandler.get('connected')) {
-          return this.dataInteractivePhoneHandler.phone;
+          return this.dataInteractivePhoneHandler.rpcEndpoint;
         } else if (this.gamePhoneHandler.get('connected')) {
-          return this.gamePhoneHandler.phone;
+          return this.gamePhoneHandler.rpcEndpoint;
         }
       }.property(),
 
@@ -179,18 +183,18 @@ DG.GameController = DG.ComponentController.extend(
           };
 
           //First discontinue listening to old interactive.
-          if (iHandler.phone) {
-            iHandler.phone.disconnect();
+          if (iHandler.rpcEndpoint) {
+            iHandler.rpcEndpoint.disconnect();
           }
 
           // Global flag used to indicate whether calls to application should be made via phone, or not.
           iHandler.set('isPhoneInUse', false);
 
-          iHandler.phone = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
-              iKey, iFrame, this.extractOrigin(iUrl), this.phone);
+          iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(wrapper.bind(this),
+              iKey, iFrame, this.extractOrigin(iUrl), this.iframePhoneEndpoint);
           // Let games/interactives know that they are talking to CODAP, specifically (rather than any
           // old iframePhone supporting page) and can use its API.
-          iHandler.phone.call({message: "codap-present"}, function (reply) {
+          iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
             DG.log('Got codap-present reply on channel: "' + iKey + '": ' + JSON.stringify(reply));
             // success or failure, getting a reply indicates we are connected
           });
@@ -198,7 +202,7 @@ DG.GameController = DG.ComponentController.extend(
 
         // We create a parent endpoint. The rpc endpoints will live within
         // the raw parent endpoint.
-        this.phone = new iframePhone.ParentEndpoint(iFrame,
+        this.iframePhoneEndpoint = new iframePhone.ParentEndpoint(iFrame,
             this.extractOrigin(iUrl), function () {DG.log('connected');});
         setupHandler(this.get('gamePhoneHandler'), 'codap-game');
         setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
