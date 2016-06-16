@@ -52,7 +52,7 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
 }
 
 .slick-cell.selected {
-    background-color: rgba(250, 28, 49, 0.3);
+    background-color: rgba(26, 122, 147, 0.3);
 }
 .slick-cell.editable {
   background-color: white;

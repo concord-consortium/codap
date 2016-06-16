@@ -248,7 +248,7 @@
 }
 
 .data-dot-colored-selected {
-    stroke: black !important;
+    stroke: #1a7a93 !important;
     stroke-width: 2 !important;
     stroke-opacity: 1 !important;
     pointer-events: all;
