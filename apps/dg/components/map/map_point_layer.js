@@ -130,7 +130,9 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     DG.assert( iCase );
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
     var tCircle = this._plottedElements[ iIndex],
-        tCoords = iRC.map.latLngToContainerPoint([iCase.getNumValue( iRC.latVarID ), iCase.getNumValue( iRC.longVarID)] ),
+        tLat = iCase.getNumValue( iRC.latVarID),
+        tLong = iCase.getNumValue( iRC.longVarID),
+        tCoords = iRC.map.latLngToContainerPoint([ tLat, tLong] ),
         tCoordX = tCoords.x,
         tCoordY = tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
