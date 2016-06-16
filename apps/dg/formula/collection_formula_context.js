@@ -118,7 +118,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @returns  {Number}    The index of the case with the specified ID
    */
   getCaseIndex: function( iCaseID) {
-    var map = this.collection && this.collection.caseIDToIndexMap;
+    var map = this.collection && this.collection.caseIDToGroupedIndexMap;
     return map && (map[ iCaseID] + 1); // 1-based index
   },
 

@@ -81,14 +81,18 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     cases: null,
 
     /**
-     * Map of case IDs to indices within parent cases
-     *
-     * ToDo: I think this property goes away. It is used in formulas.
-     * ToDo: propose implementing some other way.
+     * Map of case IDs to indices within the collection as a whole
      *
      * @property {Object} of {String}:{Number}
      */
     caseIDToIndexMap: null,
+
+    /**
+     * Map of case IDs to indices within parent cases
+     *
+     * @property {Object} of {String}:{Number}
+     */
+    caseIDToGroupedIndexMap: null,
 
     /**
      * Indicates whether parent/child links are configured correctly.
@@ -369,22 +373,81 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     * Returns the last case in the collection.
+     * @returns {*|boolean}
+     */
+    lastCase: function () {
+      return this.cases[this.cases.length - 1];
+    },
+    /**
      * Adds a new case to the collection.
 
      * @param   {DG.Case}  iCase The newly created case
      */
     addCase: function (iCase) {
+      // If we are in the top level collection we always append cases.
+      // We always append cases to the parent's case group, so if parent of the
+      // last case in this collection has an index not greater than this case we
+      // can append to this collection.
+      function caseShouldBeAddedAtEnd(iParentID, iParentCollection, iLastCase) {
+        if (SC.none(iParentID) || SC.none(iLastCase)) {
+          return true;
+        }
+        DG.assert(!SC.none(iParentCollection), 'parentCollection exists');
+        var parentCaseIndex = iParentCollection.caseIDToIndexMap[iParentID];
+        var lastCaseParentIndex = iParentCollection.caseIDToIndexMap[iLastCase.parent.id];
+
+        return (lastCaseParentIndex <= parentCaseIndex );
+      }
+      function insertCaseInCollection(iParentID, iCase) {
+        var parentCollection = _this.parent;
+        DG.assert(!SC.none(parentCollection), 'parentCollection does not exist');
+        var parentCaseIndex = parentCollection.caseIDToIndexMap[iParentID];
+        DG.assert(!SC.none(parentCaseIndex), 'parentCaseIndex does not exist');
+        var parentCase = parentCollection.cases[parentCaseIndex];
+        var parentsLastChild;
+        var priorIndex;
+
+        DG.assert(!SC.none(parentCase), 'parentCase does not exist');
+        if (parentCase.children.length > 1) { // the newly added case is already known
+                                              // at the parent level, so we adjust for it
+          parentsLastChild = parentCase.children[parentCase.children.length - 2];
+          priorIndex = _this.caseIDToIndexMap[parentsLastChild.id];
+        } else {
+          // if we get here, our parent is not the last case in the parent
+          // collection, and it doesn't have any children, so we perform a
+          // search of this collection to find the last case in this collection
+          // with a parent earlier in the parent collection than our parent.
+          _this.cases.some(function (iCase, ix) {
+            if (parentCollection.caseIDToIndexMap[iCase.parent.id] <= parentCaseIndex) {
+              priorIndex = ix;
+              return false;
+            } else {
+              return true;
+            }
+          });
+        }
+        DG.assert(!SC.none(priorIndex), 'parent\'s last child not in index map.');
+        _this.cases.splice(priorIndex+1, 0, iCase);
+        _this.updateCaseIDToIndexMap();
+      }
       var caseID = iCase.get('id'),
         parentID = iCase.getPath('parent.id'),
         caseIDToIndexMap = this.get('caseIDToIndexMap'),
-        caseCounts = this.get('caseCounts');
+        caseCounts = this.get('caseCounts'),
+        _this = this;
 
       if (SC.none(caseCounts[parentID])) {
         caseCounts[parentID] = 0;
       }
 
-      caseIDToIndexMap[caseID] = caseCounts[parentID]++;
-      this.cases.pushObject(iCase);
+      if (caseShouldBeAddedAtEnd(parentID, this.parent, this.lastCase())) {
+        this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
+        caseIDToIndexMap[caseID] = this.cases.length;
+        this.cases.pushObject(iCase);
+      } else {
+        insertCaseInCollection(parentID, iCase);
+      }
     },
 
     moveCase: function(iCase, position) {
@@ -598,16 +661,20 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * case IDs and indices must change, e.g. after deleting cases.
      */
     updateCaseIDToIndexMap: function () {
-      var caseIndices = {}, map = {};
-      this.cases.forEach(function (iCase) {
+      var caseIndices = {},
+          map = {},
+          groupedMap = {};
+      this.cases.forEach(function (iCase, ix) {
           if (!iCase.get('isDestroyed')) {
             var caseID = iCase.get('id'), parentID = iCase.getPath('parent.id');
             if (SC.none(caseIndices[parentID]))
               caseIndices[parentID] = 0;
-            map[caseID] = caseIndices[parentID]++;
+            groupedMap[caseID] = caseIndices[parentID]++;
+            map[caseID] = ix;
           }
         });
       this.set('caseIDToIndexMap', map);
+      this.set('caseIDToGroupedIndexMap', groupedMap);
       // The caseIndices map now indicates # cases for each parent
       this.set('caseCounts', caseIndices);
     },
