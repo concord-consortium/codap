@@ -443,7 +443,7 @@
 
 .play-icon {
     font-size: 14px;
-    color: lightgreen;
+    color: #2da343;
     text-align: center;
 }
 
@@ -464,7 +464,7 @@
 
 .pause-icon {
     font-size: 14px;
-    color: red;
+    color: #b55414;
     text-align: center;
 }
 
