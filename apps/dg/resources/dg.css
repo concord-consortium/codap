@@ -248,7 +248,7 @@
 }
 
 .data-dot-colored-selected {
-    stroke: black !important;
+    stroke: #1a7a93 !important;
     stroke-width: 2 !important;
     stroke-opacity: 1 !important;
     pointer-events: all;
@@ -443,7 +443,7 @@
 
 .play-icon {
     font-size: 14px;
-    color: lightgreen;
+    color: #2da343;
     text-align: center;
 }
 
@@ -464,7 +464,7 @@
 
 .pause-icon {
     font-size: 14px;
-    color: red;
+    color: #b55414;
     text-align: center;
 }
 

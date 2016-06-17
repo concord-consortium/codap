@@ -545,6 +545,17 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     *
+     * @param iId {Number}
+     * @returns {DG.Attribute}
+     */
+    getAttributeByID: function( iId) {
+      return this.attrs.find( function( iAttr) {
+        return iAttr.get('id') === iId;
+      });
+    },
+
+    /**
      * Returns an array of names for the attributes in the collection.
      * @returns {[String]}
      */

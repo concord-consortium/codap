@@ -231,12 +231,12 @@ DG.Case = DG.BaseModel.extend(
      */
     hasValue: function( iAttrID) {
       if (!SC.none( iAttrID)) {
-        var tAttr = DG.Attribute.getAttributeByID( iAttrID);
+        var tAttr = this.get('collection').getAttributeByID( iAttrID);
         if(tAttr && tAttr.get('hasFormula'))
           return !SC.empty( this.getValue( iAttrID));
 
-        if( this.get('_valuesMap') && !SC.empty( this.get('_valuesMap')[iAttrID]))
-          return true;
+        if( tAttr)
+          return this.get('_valuesMap') && !SC.empty( this.get('_valuesMap')[iAttrID]);
 
         var tParent = this.get('parent');
         return tParent && tParent.hasValue( iAttrID);
