@@ -894,14 +894,6 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create a new empty document
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
-
-      /**
-       * If we are still in the GamesMenu world, we need to find the new game.
-       */
-      if (!SC.none(iDefaultGameName)){
-        DG.gameSelectionController.setDefaultGame(iDefaultGameName);
-        DG.mainPage.addGameIfNotPresent();
-      }
     },
 
     /**
@@ -978,31 +970,6 @@ DG.appController = SC.Object.create((function () // closure
 
     receivedDeleteDocumentFailure: function(errorCode) {
       DG.appController.notifyStorageFailure('DG.AppController.deleteDocument.', errorCode);
-    },
-
-    /**
-     Delete all case data, except for open case IDs, after prompting user for OK/Cancel.
-     */
-    deleteAllCaseData: function () {
-
-      function doDelete() {
-        DG.logUser("deleteAllCaseData by User"); // deleted by user action, not game action
-        DG.doCommand({action: 'deleteAllCaseData'});
-        DG.dirtyCurrentDocument();
-      }
-
-      DG.AlertPane.warn({
-        message: 'DG.AppController.resetData.warnMessage',
-        description: 'DG.AppController.resetData.warnDescription',
-        buttons: [
-          { title: 'DG.AppController.resetData.okButtonTitle',
-            action: doDelete,
-            localize: YES
-          },
-          { title: 'DG.AppController.resetData.cancelButtonTitle', localize: YES }
-        ],
-        localize: YES
-      });
     },
 
     /**

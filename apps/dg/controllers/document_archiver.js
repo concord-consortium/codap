@@ -328,6 +328,7 @@ DG.DocumentArchiver = SC.Object.extend(
             tValuesArray.shift();
           }
           tDoc.contexts[0].collections[0].name = tChildName;
+          tDoc.contexts[0].name = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, '');
 
           tAttrNamesRow.forEach(function (iName) {
             tAttrsArray.push( {

@@ -297,30 +297,19 @@ DG.mainPage = SC.Page.design((function() {
     performKeyEquivalent: function(keystring, evt) {
       var tResult = YES;
       switch( keystring) {
-        case 'ctrl_o':
-          if( DG.authorizationController.getPath('currLogin.isSaveEnabled'))
-            DG.appController.openDocument();
-          break;
-        case 'ctrl_s':
-          if( DG.authorizationController.getPath('currLogin.isSaveEnabled'))
-            DG.appController.saveCODAPDocument();
-          break;
-        case 'alt_ctrl_shift_g':
-          DG.gameSelectionController.menuPane.popup();
-          break;
-        case 'alt_ctrl_c':
+        case 'ctrl_alt_c':
           DG.mainPage.toggleCalculator();
           break;
-        case 'alt_ctrl_t':
+        case 'ctrl_alt_t':
           DG.mainPage.openCaseTablesForEachContext();
           break;
-        case 'alt_ctrl_g':
+        case 'ctrl_alt_g':
           DG.mainPage.addGraph();
           break;
-        case 'alt_ctrl_s':
+        case 'ctrl_alt_s':
           DG.mainPage.addSlider();
           break;
-        case 'alt_ctrl_shift_t':
+        case 'ctrl_alt_shift_t':
           DG.mainPage.addText();
           break;
         case 'ctrl_z':
@@ -354,19 +343,6 @@ DG.mainPage = SC.Page.design((function() {
       if( iContext.allowMoreThanOne || !componentsOfType || !componentsOfType.length)
         DG.currDocumentController().createComponentAndView( null, iContext.type, iContext);
     },
-
-    /*
-      addGame() - Will be called from main after mainPage.mainPane has been
-        initialized. We can't describe the flashView as a childView because
-        it isn't simple enough; i.e. it requires using DG.ComponentView.
-        4/15/14 (wff) Removed observes('DG.gameSelectionController.currentGame') in order
-          to prevent a second gameview from being created during restore document.
-          Seems not to be needed at all for choosing from game menu.
-     */
-  addGame: function() {
-    if( !DG.currDocumentController().get('gameView'))
-      DG.currDocumentController().addGame( this.scrollView.contentView);
-  }//.observes('DG.gameSelectionController.currentGame')
 
   }), // mainPane
 

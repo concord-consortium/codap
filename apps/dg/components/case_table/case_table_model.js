@@ -62,6 +62,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
   collapsedNodes: null,
 
   init: function () {
+    sc_super();
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};
     this.preferredTableWidths = this.preferredTableWidths || {};
     this.collapsedNodes = this.collapsedNodes || [];

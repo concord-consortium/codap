@@ -41,6 +41,17 @@ DG.DataContextRecord = DG.BaseModel.extend(
      */
     document: null,
 
+      /**
+       * Externally specified identifier for data context.
+       * @type {string}
+       */
+      name: null,
+
+      /**
+       * Displayable name for data context
+       * @type {string}
+       */
+      title: null,
     /**
      * A relational link to the collections in this context.
      * @property {[DG.Collection]}
@@ -150,6 +161,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
             document: this.document && this.document.id || undefined,
             guid: this.id,
             flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
+            name: this.name,
+            title: this.title,
             collections: [],
             contextStorage: this.contextStorage
           };
@@ -162,9 +175,11 @@ DG.DataContextRecord = DG.BaseModel.extend(
           return false;
         });
 
-        while (root.children.length > 0) {
-          obj.collections.push(root.toArchive());
-          root = root.children[0];
+        if (root && root.children) {
+          while (root.children.length > 0) {
+            obj.collections.push(root.toArchive());
+            root = root.children[0];
+          }
         }
         if (!SC.none(root)) {
           obj.collections.push(root.toArchive());

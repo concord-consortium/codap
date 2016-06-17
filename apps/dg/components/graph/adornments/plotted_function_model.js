@@ -234,8 +234,10 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     Utility function for creating the DG.Formula.
    */
   createDGFormula: function( iSource) {
-    var context = DG.PlottedFunctionContext
-                      .create({ adornmentKey: this.get('adornmentKey'),
+    var owner = { type: 'plottedValue', id: 1, name: 'plottedValue1' },
+        context = DG.PlottedFunctionContext
+                      .create({ ownerSpec: owner,
+                                adornmentKey: this.get('adornmentKey'),
                                 plotModel: this.get('plotModel'),
                                 splitEval: this.get('splitEval'),
                                 collection: this.get('primaryCollection') });
@@ -297,6 +299,17 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     if( this._expression)
       this._expression.invalidate();
   }.observes('DG.globalsController.globalNameChanges'),
+  
+  /**
+    Observer function which invalidates the intermediate compile results
+    for the formula when global value names are added, removed, or changed.
+    These changes can affect the bindings of the formula, so a recompilation
+    is required when they occur.
+   */
+  globalValuesDidChange: function() {
+    if( this._expression)
+      this._expression.invalidate();
+  }.observes('DG.globalsController.globalValueChanges'),
   
   /**
     Evaluates the plotted function at the specified x value.

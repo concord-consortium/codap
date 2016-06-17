@@ -299,11 +299,16 @@ DG.CaseTableDataManager = SC.Object.extend({
   addItem: function (item) {},
 
   /**
-   * No-op
+   * Called for updateCase.
+   *
+   * We simply refresh.
+   * TODO: consider refreshing only if the item is visible.
    *
    * Method signature matches method of Slick Grid default DataView.
    */
-  updateItem: function (id, item) {},
+  updateItem: function (id, item) {
+    this.refresh();
+  },
 
   /**
    * No-op

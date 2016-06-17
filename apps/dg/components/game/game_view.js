@@ -184,33 +184,6 @@ DG.GameView = SC.View.extend(
 
             try {
 
-              // TODO: Eliminate all callbacks but DoCommand() once clients no longer call them.
-
-              // NewCollectionWithAttributes
-              contentWindow.NewCollectionWithAttributes = function (iCollectionName,
-                  iAttributeNames) {
-                SC.run(function () {
-                  target.newCollectionWithAttributes(iCollectionName,
-                      iAttributeNames);
-                });
-              };
-
-              // AddCaseToCollectionWithValues
-              contentWindow.AddCaseToCollectionWithValues = function (iCollectionName,
-                  iValues) {
-                SC.run(function () {
-                  target.addCaseToCollectionWithValues(iCollectionName,
-                      iValues);
-                });
-              };
-
-              // LogUserAction
-              contentWindow.LogUserAction = function (iActionString, iValues) {
-                SC.run(function () {
-                  target.logUserAction(iActionString, iValues);
-                });
-              };
-
               // DoCommand
               contentWindow.DoCommand = function (iCmd) {
                 var result;
