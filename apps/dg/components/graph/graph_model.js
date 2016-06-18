@@ -245,9 +245,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.invalidate();
       this.rescaleAxesFromData( true /* allow scale shrinkage */,
                                 true /* animate points */ );
+
+      this.addObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
     },
 
     destroy: function() {
+      this.removeObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
+
       sc_super();
     },
 
@@ -625,7 +629,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.invalidate();
         this.rescaleAxesFromData( false, /* no shrinkage allowed */ true /* animate */);
       }
-    }.observes('dataConfiguration.hiddenCases'),
+    },
 
     /**
      * Use the properties of the given object to restore my plot, axes, and legend.

@@ -46,7 +46,9 @@ DG.AlertPane =
   },
   
   warn: function( iArgs) {
-    SC.AlertPane.warn( DG.AlertPane.processArgs( iArgs));
+    SC.run( function() {
+      SC.AlertPane.warn( DG.AlertPane.processArgs( iArgs));
+    });
   },
   
   info: function( iArgs) {

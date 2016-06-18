@@ -96,9 +96,12 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          @property { Number }
          */
         pixelMin: function() {
-          return this.get('isVertical') ?
-              this.get('drawHeight') - this.getPath('otherAxisView.drawHeight') :
-              0;
+          var tResult = 0;
+          if( this.get('isVertical')) {
+            var tOtherDrawHeight = this.getPath('otherAxisView.drawHeight') || 0;
+            tResult = this.get('drawHeight') -  tOtherDrawHeight;
+          }
+          return tResult;
         }.property(),
         pixelMinDidChange: function() {
           this.notifyPropertyChange('pixelMin');
