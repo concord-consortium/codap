@@ -302,6 +302,11 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.addObserver('dataConfiguration', this, 'dataConfigurationDidChange');
     this.addObserver('xAxis', this, 'xAxisDidChange');
     this.addObserver('yAxis', this, 'yAxisDidChange');
+
+    this.addObserver('dataConfiguration.xAttributeDescription.attribute.colormap',
+        this, 'colorMapDidChange');
+    this.addObserver('dataConfiguration.yAttributeDescription.attribute.colormap',
+        this, 'colorMapDidChange');
   },
   
   /**
@@ -309,13 +314,13 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    */
   destroy: function() {
     // Detach the axes
-    this.set('xAxis', null);
-    this.set('yAxis', null);
     this.removeObserver('xAxis', this, 'xAxisDidChange');
     this.removeObserver('yAxis', this, 'yAxisDidChange');
-    
+    this.removeObserver('dataConfiguration.xAttributeDescription.attribute.colormap',
+        this, 'colorMapDidChange');
+    this.removeObserver('dataConfiguration.yAttributeDescription.attribute.colormap',
+        this, 'colorMapDidChange');
     // Detach the data Configuration
-    this.set('dataConfiguration', null);
     this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');
 
     // Destroy the adornment models
@@ -327,6 +332,10 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this._adornmentModels = null;
 
     sc_super();
+
+    this.set('xAxis', null);
+    this.set('yAxis', null);
+    this.set('dataConfiguration', null);
   },
   
   _observedXAxis: null,
@@ -689,8 +698,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
 
   colorMapDidChange: function() {
     this.invalidateCaches();
-  }.observes('dataConfiguration.xAttributeDescription.attribute.colormap',
-      'dataConfiguration.yAttributeDescription.attribute.colormap'),
+  },
 
   /**
     @param {Number} The index of the case to be selected.

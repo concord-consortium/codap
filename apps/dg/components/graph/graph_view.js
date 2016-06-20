@@ -112,7 +112,7 @@ DG.GraphView = SC.View.extend(
     iPlotView.endPropertyChanges();
 
     iPlotView.addObserver( 'plotDisplayDidChange', this, function() {
-    this.invokeLast( this.drawPlots);
+      this.invokeLast( this.drawPlots);
     });
   },
 
@@ -202,10 +202,14 @@ DG.GraphView = SC.View.extend(
     this.appendChild( tY2AxisView); // So it will be on top and drag-hilite will show over plot
     tY2AxisView.set('isVisible', tY2Axis.constructor !== DG.AxisModel);
     tLegendView.set('model', this.getPath('model.legend'));
+
+    this.addObserver('model.numberToggle.caseCount', this.handleNumberToggleCaseCountChange);
   },
   
   destroy: function() {
-    this.model.destroy(); // so that it can unlink observers
+    this.removeObserver('model.numberToggle.caseCount', this.handleNumberToggleCaseCountChange);
+    // wff, 6/18/16 - Destroying the model doesn't seem like a good idea. Not sure.
+    //this.model.destroy(); // so that it can unlink observers
     sc_super();
   },
 
@@ -440,7 +444,7 @@ DG.GraphView = SC.View.extend(
       }
       if( this_.getPath('model.dataConfiguration')) {
         tAttr = this_.getPath('model.dataConfiguration').attributesByPlace[tPlace][0].get('attribute');
-        if (tAttr !== -1) {
+        if (tAttr !== DG.Analysis.kNullAttribute) {
           tAttrType = tAttr.get('type');
         }
       }
@@ -687,7 +691,7 @@ DG.GraphView = SC.View.extend(
    */
   handleNumberToggleCaseCountChange: function() {
     this.renderLayout( this.renderContext( this.get('tagName')));
-  }.observes('model.numberToggle.caseCount'),
+  },
 
   mapPlotModelToPlotView: function( iPlotModel) {
     var tModelClass = iPlotModel && iPlotModel.constructor,

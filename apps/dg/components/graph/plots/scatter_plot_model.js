@@ -64,12 +64,26 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       squares: null,
 
+      init: function() {
+        sc_super();
+        this.addObserver('movableLine.slope',this.lineDidChange);
+        this.addObserver('movableLine.intercept',this.lineDidChange);
+      },
+
+      destroy: function() {
+        this.removeObserver('movableLine.slope',this.lineDidChange);
+        this.removeObserver('movableLine.intercept',this.lineDidChange);
+        sc_super();
+      },
+
       /**
        * Used for notification
        */
       lineDidChange: function () {
-        this.notifyPropertyChange('squares');
-      }.observes('.movableLine.slope', '.movableLine.intercept'),
+        SC.run(function() {
+          this.notifyPropertyChange('squares');
+        }.bind(this));
+      },
 
       /**
        * Utility function to create a movable line when needed
