@@ -43,8 +43,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
         dataContext: null,
         dataDisplayModel: null,
         legendView: null,
-        attributeMenu: null,
-        menuAnchorView: null,
         stylesPane: null,
 
         storeDimension: function (iDataConfiguration, iStorage, iDim) {
@@ -122,19 +120,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
         init: function () {
           sc_super();
-
-          // To Do: We need to have the menu dynamically compute its layout.
-          this.attributeMenu = DG.MenuPane.create({
-            layout: {width: 200, height: 150}
-          });
-          this.attributeMenu.selectedAxis = null;
-          this.attributeMenu.addObserver('selectedItem', this,
-              this.attributeMenuItemChanged);
-          this.menuAnchorView = SC.View.create({
-            layout: {left: 0, width: 20, top: 0, height: 20},
-            backgroundColor: 'transparent',
-            isVisible: false
-          });
         },
 
         createInspectorButtons: function () {
@@ -574,8 +559,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 });
               }
 
-              if (!SC.none(iNode.events))
-                iNode.unmousedown(mouseDownHandler); // In case it got added already
+              iNode.unmousedown(mouseDownHandler); // In case it got added already
               iNode.mousedown(mouseDownHandler);
             });
           }
@@ -601,6 +585,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
         setupAttributeMenu: function (event, iAxisView, iAttrIndex) {
           var tDataDisplayModel = this.get('dataDisplayModel'),
               tMenuLayout = {left: event.layerX, top: event.layerY, height: 20, width: 20},
+              tMenuAnchorView = SC.View.create({
+                layout: tMenuLayout,
+                backgroundColor: 'transparent'
+              }),
+
               tOrientation = iAxisView.get('orientation'),
           // The following parameter is supposed to specify the preferred position of the menu
           // relative to the anchor. But it doesn't seem to have any effect.
@@ -609,7 +598,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   [0, 2, 1, 3, 0] :
                   [0, 1, 3, 2, 0],
               tAxisKey = '',
-              tMenuItems;
+              tMenuItems,
+
+          tAttributeMenu = DG.MenuPane.create({});
+          tAttributeMenu.addObserver('selectedItem', this, this.attributeMenuItemChanged);
+
+          iAxisView.appendChild(tMenuAnchorView);
 
           if (iAxisView.instanceOf(DG.LegendView))
             tAxisKey = 'legend';
@@ -637,20 +631,17 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tMenuItems.push(tDataDisplayModel.createRemoveAttributeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
           if (tAxisKey !== 'y2')
             tMenuItems.push(tDataDisplayModel.createChangeAttributeTypeMenuItem(tAxisKey, kNotForSubmenu, iAttrIndex));
-          this.attributeMenu.set('items', tMenuItems);
-          this.attributeMenu.selectedAxis = tOrientation;
-          this.attributeMenu.isLegend = iAxisView.instanceOf(DG.LegendView);
+          tAttributeMenu.set('items', tMenuItems);
+          tAttributeMenu.selectedAxis = tOrientation;
+          tAttributeMenu.isLegend = iAxisView.instanceOf(DG.LegendView);
 
           // We need SC to accomplish the layout of the anchor view before we
           // show the popup menu. Initiating and ending a runloop seems to be one way
           // to accomplish this.
           SC.run(function(){
-            this.menuAnchorView.removeFromParent();
-            iAxisView.appendChild(this.menuAnchorView);
-            this.menuAnchorView.set('layout', tMenuLayout);
-            this.menuAnchorView.set('isVisible', true);
-            this.attributeMenu.popup(this.menuAnchorView, tPreferMatrix);
+            tAttributeMenu.popup(tMenuAnchorView, tPreferMatrix);
           }.bind(this));
+          iAxisView.removeChild(tMenuAnchorView);
         },
 
         /**
@@ -682,7 +673,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
          Handle a 'Change...' or 'Remove {location} Attribute' menu item.
          Menu items set up by setupAttributeMenu()
          */
-        attributeMenuItemChanged: function () {
+        attributeMenuItemChanged: function ( iMenu) {
+          var tNewItem = iMenu.get('selectedItem'),
+              tCollectionClient = tNewItem && tNewItem.collection,
+              tAxisOrientation = iMenu.selectedAxis,
+              tIsLegend = iMenu.islegend;
+
+          // For safety's sake, remove this method as an observer of iMenu
+          iMenu.removeObserver('selectedItem', this, this.attributeMenuItemChanged);
+
           DG.UndoHistory.execute(DG.Command.create({
             name: 'axis.attributeChange',
             undoString: 'DG.Undo.axisAttributeChange',
@@ -697,10 +696,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
-              var tNewItem = controller.attributeMenu.selectedItem,
-                  tCollectionClient = tNewItem && tNewItem.collection,
-                  tAxisOrientation = controller.attributeMenu.selectedAxis,
-                  tAttrRefs,
+              var tAttrRefs,
                   tDataDisplayModel = controller.get('dataDisplayModel'),
                   tDataContext = tNewItem && tNewItem.context;
               if (!tNewItem) {
@@ -713,7 +709,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   collection: tCollectionClient,
                   attributes: [tCollectionClient.attrsController.objectAt(tNewItem.contentIndex)]
                 };
-                if (controller.attributeMenu.isLegend) {
+                if (tIsLegend) {
                   tNewItem.log = "legendAttributeChange: { to attribute %@ }".fmt(tAttrRefs.attributes[0].get('name'));
                   tDataDisplayModel.changeAttributeForLegend(tDataContext, tAttrRefs);
                 } else {
@@ -724,7 +720,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 // remove or change attribute
                 tNewItem.itemAction.apply(tNewItem.target, tNewItem.args);
               }
-              controller.menuAnchorView.set('isVisible', false);
               this.log = tNewItem.log || 'Axis attribute menu item selected: %@'.fmt(tNewItem.title);
             },
             undo: function () {

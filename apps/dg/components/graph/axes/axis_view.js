@@ -259,6 +259,11 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
          */
         destroy: function() {
           this.otherAxisView = null;  // break circular references
+          this.get('labelNodes').forEach( function( iNode) {
+            iNode.remove();
+            iNode.destroy();
+          });
+          this._labelNodes = null;
           sc_super();
         },
 

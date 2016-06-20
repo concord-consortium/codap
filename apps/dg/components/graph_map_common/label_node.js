@@ -54,6 +54,13 @@ DG.LabelNode = SC.Object.extend(
         this.numColorsChanged();
       },
 
+      destroy: function() {
+        var tHandler = this.get('touchEndHandler');
+        this._textElement.undrag();
+        this.unmousedown(tHandler);
+        sc_super();
+      },
+
       numColorsChanged: function() {
         var tTextColor = 'blue',
             tPointColor = 'lightblue';
@@ -134,10 +141,28 @@ DG.LabelNode = SC.Object.extend(
       },
 
       unmousedown: function( iHandler) {
+
+        function unbindElement(iElement) {
+          var tEvents = iElement && iElement.events;
+          if( SC.isArray( tEvents)) {
+            var l = tEvents.length;
+            while (l--){
+              if (tEvents[l].name === 'click' || tEvents[l].name === 'touchend') {
+                tEvents[l].unbind();
+                tEvents.splice(l, 1);
+                !tEvents.length && delete iElement.events;
+              }
+            }
+          }
+        }
+/*
         this._textElement.unclick( iHandler);
         this._textElement.untouchend( iHandler);
-        this.set('touchEndHandler', null);
         this._circleElement && this._circleElement.unclick( iHandler);
+*/
+        unbindElement( this._textElement);
+        unbindElement( this._circleElement);
+        this.set('touchEndHandler', null);
       },
 
       ignoreTouchEnd: function() {
