@@ -213,6 +213,11 @@ DG.GraphView = SC.View.extend(
     sc_super();
   },
 
+  mouseDown: function() {
+    DG.globalEditorLock.commitCurrentEdit();
+    return false;
+  },
+
   /**
    * Draw my plot views
    */

@@ -109,6 +109,7 @@ DG.IconButton = SC.View.extend(
         return YES;
       },
       mouseDown: function(evt) {
+        DG.globalEditorLock.commitCurrentEdit();
         if( this.get('isEnabled')) {
           this.set( 'isMouseDown', YES);
           return YES; // so we get other events
