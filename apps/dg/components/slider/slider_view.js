@@ -25,8 +25,8 @@
 DG.SliderView = SC.View.extend(
   /** @scope DG.SliderView.prototype */
   (function() {
-    var kWidth = 23,
-        kThumbHeight = 15,
+    var kWidth = 30,
+        kThumbHeight = 42,
         kAxisHeight = 20,
         kButtonHeight = 18,
         kButtonWidth = 20,
@@ -131,6 +131,7 @@ DG.SliderView = SC.View.extend(
 
         this._previousValue = this.getPath('model.value');
 
+/*
         this.set( 'thumbView',
           DG.ImageView.create( {
             layout: { bottom: kAxisHeight, width: kWidth, height: kThumbHeight },
@@ -140,6 +141,18 @@ DG.SliderView = SC.View.extend(
             localize: true,
             touchPriority: true
           } ) );
+*/
+        this.set('thumbView',
+            DG.IconButton.create( {
+              layout: { bottom: kAxisHeight, width: 30, height: kThumbHeight },
+              iconExtent: { width: 34, height: kThumbHeight },
+              iconClass: 'thumb-icon',
+              classNames: 'display-styles'.w(),
+              toolTip: 'DG.SliderView.thumbView.toolTip', // "Start/stop animation"
+              localize: true,
+              touchPriority: true,
+              mouseDown: function() { return NO; }
+            }));
         this.appendChild( this.thumbView );
 
         this.set('startButton',
@@ -156,7 +169,7 @@ DG.SliderView = SC.View.extend(
 
         this.set('valueView',
           SC.LabelView.create(DG.MouseAndTouchView, {
-            layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + kThumbHeight },
+            layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
             classNames: 'slider-label'.w(),
             isEditable: true,
             exampleNode: null,
@@ -226,7 +239,7 @@ DG.SliderView = SC.View.extend(
         if( DG.isFinite( tCoord)) {
           var thumbView = this.get('thumbView');
           if( thumbView)
-            thumbView.adjust('left', 1 + tCoord - kWidth / 2);
+            thumbView.adjust('left', tCoord - kWidth / 2);
         }
       }.observes('thumbCoord'),
 

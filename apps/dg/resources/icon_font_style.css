@@ -203,3 +203,9 @@
 .moonicon-icon-marquee:before {
 	content: "\58";
 }
+.moonicon-icon-pause:before {
+	content: "\59";
+}
+.moonicon-icon-thumb:before {
+	content: "\5a";
+}
