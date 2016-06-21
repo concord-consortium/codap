@@ -69,13 +69,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           attribute: this.handleAttribute,
           attributeList: this.handleAttributeList,
           'case': this.handleCase,
-          caseByIndex: this.handleCaseByIndex,
-          caseByID: this.handleCaseByID,
+          caseByIndex: this.handleCaseByIndexOrID,
+          caseByID: this.handleCaseByIndexOrID,
           caseCount: this.handleCaseCount,
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
-          componentList: this.handleComponentList,
+          // Remove access to component information for now, or until
+          // di needs in this area become clearer.
+          //componentList: this.handleComponentList,
           dataContext: this.handleDataContext,
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
@@ -271,6 +273,39 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return result;
       },
 
+      filterResultValues: function (resultValues) {
+        var maxLevels = 10;
+        function renameKeys (obj) {
+          if (obj.guid !== null && obj.guid !== undefined) {
+            obj.id = obj.guid;
+          }
+          return obj;
+        }
+        function visit(obj, level) {
+          var k,v;
+          if ((level < 0) ||
+              (!obj) ||
+              (typeof obj === 'string') ||
+              (typeof obj === 'number') ||
+              (typeof obj === 'boolean')) {
+            return;
+          }
+          if (Array.isArray(obj))  {
+            obj.forEach(function (o) {
+              visit(o, level - 1);
+            });
+          } else if (typeof obj === 'object') {
+            for (k in obj) {
+              if (obj.hasOwnProperty(k)) {
+                v = obj[k];
+                visit(v, level - 1);
+              }
+            }
+            renameKeys(obj);
+          }
+        }
+        visit(resultValues, maxLevels);
+      },
       /**
        * Respond to requests from a Data Interactive.
        *
@@ -302,6 +337,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               if (handler[action]) {
                 SC.run(function () {
                   result = handler[action].call(this, resourceMap, iMessage.values) || {success: false};
+                  if (result.values) {
+                    this.filterResultValues(result.values);
+                  }
                 }.bind(this));
               } else {
                 DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
@@ -692,23 +730,22 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         });
         return  {
           id: iCase.id,
-          guid: iCase.id,
           parent: (iCase.parent && iCase.parent.id),
           values: values
         };
       },
 
-      handleCaseByIndex: {
+      handleCaseByIndexOrID: {
         get: function (iResources) {
           var collection = iResources.collection;
-          var myCase = iResources.caseByIndex;
+          var myCase = iResources.caseByIndex || iResources.caseByID;
           var values;
           if (myCase) {
             values = {
               'case': this.makeSerializableCase(collection, myCase),
               caseIndex: collection.getCaseIndexByID(myCase.get('id'))
             };
-            values.case.children = myCase.children.map(function (child) {return child.id;});
+            values['case'].children = myCase.children.map(function (child) {return child.id;});
           }
           return {
             success: !SC.none(values),
@@ -718,7 +755,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
           var collection = iResources.collection;
-          var theCase = iResources.caseByIndex;
+          var theCase = iResources.caseByIndex || iResources.caseByID;
           var success = false;
           var changeResult;
           if (collection && theCase && iValues) {
@@ -735,47 +772,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success
           };
         }
-      },
-
-      handleCaseByID: {
-
-        get: function (iResources) {
-          var collection = iResources.collection;
-          var myCase = iResources.caseByID;
-          var values;
-          if (myCase) {
-            values = {
-              'case': this.makeSerializableCase(collection, myCase),
-              caseIndex: collection.getCaseIndexByID(myCase.get('id'))
-            };
-            values.case.children = myCase.children.map(function (child) {return child.id;});
-          }
-          return {
-            success: !SC.none(values),
-            values: values
-          };
-        },
-        update: function (iResources, iValues) {
-          var context = iResources.dataContext;
-          var collection = iResources.collection;
-          var theCase = iResources.caseByID;
-          var ret = {success: false};
-          if (collection && theCase && iValues) {
-            ret = context.applyChange({
-              operation: 'updateCases',
-              collection: collection,
-              cases: [theCase],
-              values: [iValues.values],
-              requester: this.get('id')
-            });
-            if (SC.none(ret)) {
-              DG.logWarn('UpdateCase failed to return a value');
-              ret = {success: true};
-            }
-          }
-          return ret;
-        }
-
       },
 
       handleCaseCount: {
@@ -816,64 +812,58 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         /**
-         * Creates a selection list in this context. This collection will
-         * replace the current selection list. If collection is provided, this
-         * will be passed. Values are a array of case ids.
-         * @param iResources
-         * @param iValues
+         * Creates a selection list in this context. The values provided will
+         * replace the current selection list. Values are a array of case ids.
+         * @param {object} iResources
+         * @param {[number]} iValues
          * @returns {{success: boolean}}
          */
         create: function (iResources, iValues) {
-          var context = iResources.dataContext;
-          var collection = iResources.collection;
-          var cases;
-          if (collection) {
-            cases = iValues.map(function (caseID) {
-              return collection.getCaseByID(caseID);
-            });
-          } else {
-            cases = iValues.map(function (caseID) {
-              return context.getCaseByID(caseID);
-            });
-          }
-          var result = context.applyChange({
-            operation: 'selectCases',
-            collection: collection,
-            cases: cases,
-            select: true,
-            extend: false,
-            requester: this.get('id')
-          });
-          return {
-            success: result && result.success
-          };
+          return this.doSelect(iResources, iValues, false);
         },
+        /**
+         * Updates a selection list in this context. The values provided will
+         * amend the current selection list. Values are a array of case ids.
+         * @param {object}iResources
+         * @param {[number]} iValues
+         * @returns {{success: boolean}}
+         */
         update: function (iResources, iValues) {
-          var context = iResources.dataContext;
-          var collection = iResources.collection;
-          var cases;
-          if (collection) {
-            cases = iValues.map(function (caseID) {
-              return collection.getCaseByID(caseID);
-            });
-          } else {
-            cases = iValues.map(function (caseID) {
-              return context.getCaseByID(caseID);
-            });
-          }
-          var result = context.applyChange({
-            operation: 'selectCases',
-            collection: collection,
-            cases: cases,
-            select: true,
-            extend: true,
-            requester: this.get('id')
-          });
-          return {
-            success: result && result.success
-          };
-        }
+          return this.doSelect(iResources, iValues, true);
+        },
+      },
 
+      /**
+       * Utility to initiate a select action in a data context.
+       * @param {object} iResources
+       * @param {[number]} iValues
+       * @param {boolean} extend
+       * @returns {{success: (*|boolean)}}
+       */
+      doSelect: function (iResources, iValues, extend) {
+        var context = iResources.dataContext;
+        var collection = iResources.collection;
+        var cases;
+        if (collection) {
+          cases = iValues.map(function (caseID) {
+            return collection.getCaseByID(caseID);
+          });
+        } else {
+          cases = iValues.map(function (caseID) {
+            return context.getCaseByID(caseID);
+          });
+        }
+        var result = context.applyChange({
+          operation: 'selectCases',
+          collection: collection,
+          cases: cases,
+          select: true,
+          extend: extend,
+          requester: this.get('id')
+        });
+        return {
+          success: result && result.success
+        };
       },
 
       handleComponent: {
@@ -934,14 +924,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          };
        },
 
-       get: function (iResources) {
-         var component = iResources.component;
-         return {
-           success: true,
-           values: component.get('model').toArchive()
-         };
-       },
-
+       // remove, for now, or until we understand user needs
+       //get: function (iResources) {
+       //  var component = iResources.component;
+       //  return {
+       //    success: true,
+       //    values: component.get('model').toArchive()
+       //  };
+       //},
+       //
        'delete': function (iResource) {
          var component = iResource.component;
          component.destroy();
@@ -949,25 +940,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        }
       },
 
-      handleComponentList: {
-        get: function (iResources) {
-          var document = DG.currDocumentController();
-
-          var result = [];
-          DG.ObjectMap.forEach(document.get('components'), function(id, component) {
-            result.push( {
-              id: component.get('id'),
-              name: component.get('name'),
-              title: component.get('title')
-            });
-          });
-          return {
-            success: true,
-            values: result
-          };
-        }
-      },
-
+      // remove, for now, or until we understand user needs
+      //handleComponentList: {
+      //  get: function (iResources) {
+      //    var document = DG.currDocumentController();
+      //
+      //    var result = [];
+      //    DG.ObjectMap.forEach(document.get('components'), function(id, component) {
+      //      result.push( {
+      //        id: component.get('id'),
+      //        name: component.get('name'),
+      //        title: component.get('title')
+      //      });
+      //    });
+      //    return {
+      //      success: true,
+      //      values: result
+      //    };
+      //  }
+      //},
+      //
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.logUser(iValues);
