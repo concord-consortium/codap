@@ -74,6 +74,7 @@ DG.EditorLock = SC.Object.extend({
     @returns  {Boolean} True if the edit was completed successfully; false otherwise.
    */
   commitCurrentEdit: function() {
+    DG.mainPage.get('mainPane').makeFirstResponder( null);
     return window.Slick.GlobalEditorLock.commitCurrentEdit();
   },
 

@@ -272,10 +272,12 @@ DG.ComponentView = SC.View.extend(
               }.property(),
               inlineEditorWillBeginEditing: function (iEditor, iValue, iEditable) {
                 sc_super();
-                var tParent = this.get('parentView'),
+                var tComponentView = DG.ComponentView.findComponentViewParent(this),
+                    tParent = this.get('parentView'),
                     tFrame = tParent.get('frame'),
                     kXGap = 4, kYGap = 2,
                     tOrigin = DG.ViewUtilities.viewToWindowCoordinates({x: kXGap, y: kYGap}, tParent);
+                tComponentView.select();
                 tParent.set('userEdit', true);
 
                 // SC 1.10 introduced a new inline editor model in which

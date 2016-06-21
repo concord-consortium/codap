@@ -207,6 +207,7 @@ DG.ContainerView = SC.View.extend(
           this.bringToFront( iChildView);
         }
         if( iChildView !== tCurrentSelected && !tIsMinimized) {
+          DG.globalEditorLock.commitCurrentEdit();
           if( tCurrentSelected)
             tCurrentSelected.set('isSelected', false);
           this.set('selectedChildView', iChildView);

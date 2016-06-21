@@ -459,7 +459,7 @@
 
 .pause-icon:before {
     font-family: 'icomoon';
-    content: "\79";
+    content: "\59";
 }
 
 .pause-icon {
@@ -476,6 +476,27 @@
 
 .pause-icon:active {
     color: red;
+}
+
+.thumb-icon:before {
+    font-family: 'icomoon';
+    content: "\5a";
+}
+
+.thumb-icon {
+    font-size: 40px;
+    color: #999;
+    text-align: center;
+}
+
+.thumb-icon:hover {
+    /*top: -2px !important;*/
+    /*font-size: 48px;*/
+    color: #555;
+}
+
+.thumb-icon:active {
+    color: #555;
 }
 
 [class^="tile-icon-"], [class*=" tile-icon-"] {
