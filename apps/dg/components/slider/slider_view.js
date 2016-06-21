@@ -26,7 +26,7 @@ DG.SliderView = SC.View.extend(
   /** @scope DG.SliderView.prototype */
   (function() {
     var kWidth = 30,
-        kThumbHeight = 42,
+        kThumbHeight = 36,
         kAxisHeight = 20,
         kButtonHeight = 18,
         kButtonWidth = 20,
@@ -131,21 +131,10 @@ DG.SliderView = SC.View.extend(
 
         this._previousValue = this.getPath('model.value');
 
-/*
-        this.set( 'thumbView',
-          DG.ImageView.create( {
-            layout: { bottom: kAxisHeight, width: kWidth, height: kThumbHeight },
-            value: static_url( 'images/slider_thumb.png' ),
-            classNames: 'slider-thumb',
-            toolTip: 'DG.SliderView.thumbView.toolTip', // "Drag to change the slider's value"
-            localize: true,
-            touchPriority: true
-          } ) );
-*/
         this.set('thumbView',
             DG.IconButton.create( {
-              layout: { bottom: kAxisHeight, width: 30, height: kThumbHeight },
-              iconExtent: { width: 34, height: kThumbHeight },
+              layout: { bottom: kAxisHeight, width: kWidth, height: kThumbHeight },
+              iconExtent: { width: kWidth, height: kThumbHeight },
               iconClass: 'thumb-icon',
               classNames: 'display-styles'.w(),
               toolTip: 'DG.SliderView.thumbView.toolTip', // "Start/stop animation"
@@ -239,7 +228,7 @@ DG.SliderView = SC.View.extend(
         if( DG.isFinite( tCoord)) {
           var thumbView = this.get('thumbView');
           if( thumbView)
-            thumbView.adjust('left', tCoord - kWidth / 2);
+            thumbView.adjust('left', tCoord + 0.5 - kWidth / 2);
         }
       }.observes('thumbCoord'),
 
