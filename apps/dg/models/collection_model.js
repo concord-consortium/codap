@@ -390,10 +390,10 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       // last case in this collection has an index not greater than this case we
       // can append to this collection.
       function caseShouldBeAddedAtEnd(iParentID, iParentCollection, iLastCase) {
-        if (SC.none(iParentID) || SC.none(iLastCase)) {
+        if (SC.none(iParentID) || SC.none(iLastCase) || SC.none(iLastCase.parent)) {
           return true;
         }
-        DG.assert(!SC.none(iParentCollection), 'parentCollection exists');
+        DG.assert(!SC.none(iParentCollection), 'parentCollection should exist');
         var parentCaseIndex = iParentCollection.caseIDToIndexMap[iParentID];
         var lastCaseParentIndex = iParentCollection.caseIDToIndexMap[iLastCase.parent.id];
 
