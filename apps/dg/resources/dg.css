@@ -53,7 +53,7 @@
 .dg-busy-cover {
     cursor: wait;
     background-color: rgba(255, 255, 255, 0.01) !important;
-    z-index: 100;
+    z-index: 10000;
 }
 
 /* Default font for case tables */

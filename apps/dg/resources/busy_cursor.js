@@ -19,11 +19,18 @@
 DG.busyCursor = SC.Object.create({
 
   cover: null,
+  invocations: 0,
 
   /**
    * During lengthy processes, we cover up the entire document with an element whose cursor is a busy cursor.
    */
   show: function( iFunction) {
+    var invocation = function() {
+      this.invocations++;
+      iFunction();
+      this.hide();
+    }.bind( this);
+
     var tMainPane = DG.getPath('mainPage.mainPane'),
         tCover = this.get('cover');
     if( !tCover) {
@@ -35,9 +42,10 @@ DG.busyCursor = SC.Object.create({
       tMainPane.appendChild( tCover);
     }
     tCover.set('isVisible', true);
-    this.invokeLater(iFunction, 0);
+    this.invokeLater(invocation, 10);
     SC.run( function() {
-      SC.Event.simulateEvent( DG.mainPage.mainPane.$()[0], 'mousemove');
+      SC.Event.trigger(DG.mainPage.mainPane.$()[0], 'mousemove');
+      //SC.Event.simulateEvent( DG.mainPage.mainPane.$()[0], 'mousemove');
     }, this, true /* start a new run loop */);
   },
 
@@ -45,9 +53,12 @@ DG.busyCursor = SC.Object.create({
    * Uncover so regular cursors can show
    */
   hide: function() {
-    var tCover = this.get('cover');
-    if( tCover)
-      tCover.set('isVisible', false);
+    this.invocations--;
+    if( this.invocations <= 0) {
+      var tCover = this.get('cover');
+      if (tCover)
+        tCover.set('isVisible', false);
+    }
   }
 
 });

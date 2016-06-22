@@ -125,9 +125,7 @@ return {
 
       return this.get('storageInterface').login({username: iUser, password: iPassword, sessiontoken: iSessionID}).then(
         function(body) {
-          DG.busyCursor.show();
           this.receiveLoginSuccess(body);
-          DG.busyCursor.hide();
         }.bind(this),
         function(errorCode) {
           this.receiveLoginFailure(errorCode);

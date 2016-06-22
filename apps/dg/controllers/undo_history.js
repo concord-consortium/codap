@@ -65,7 +65,7 @@ DG.UndoHistory = SC.Object.create((function() {
     execute: function(command) {
       try {
         this._wrapAndRun(command, command.execute);
-      } catch(e) {
+      } catch (e) {
         // Just let exceptions bubble up, but clear the stacks...
         this._clearUndo();
         this._clearRedo();

@@ -337,14 +337,14 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     doOpenDocument: function(iDocumentId) {
-      DG.authorizationController.get('storageInterface').open({id: iDocumentId}).then(
-        function(body) {
-          this.receivedOpenDocumentSuccess(body, false);
-        }.bind(this),
-        function(errorCode) {
-          this.receivedOpenDocumentFailure(errorCode);
-        }.bind(this)
-      );
+        DG.authorizationController.get('storageInterface').open({id: iDocumentId}).then(
+            function (body) {
+              this.receivedOpenDocumentSuccess(body, false);
+            }.bind(this),
+            function (errorCode) {
+              this.receivedOpenDocumentFailure(errorCode);
+            }.bind(this)
+        );
     },
 
     /**
@@ -376,15 +376,12 @@ DG.appController = SC.Object.create((function () // closure
           this.notifyStorageFailure('', failure.message);
         }.bind(this));
       }
-
-      DG.busyCursor.hide();
     },
 
     /**
      openDocument callback function when there was an error.
      */
     receivedOpenDocumentFailure: function (errorCode) {
-      DG.busyCursor.hide();
       this.notifyStorageFailure('DG.AppController.openDocument.', errorCode);
     },
 
@@ -1081,7 +1078,6 @@ DG.appController = SC.Object.create((function () // closure
                 iDialog.showAlert(er);
               }
             }
-            DG.busyCursor.hide();
           }.bind(this));
         };
 

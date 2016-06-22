@@ -234,7 +234,6 @@ DG.DocumentArchiver = SC.Object.extend(
           deferred.reject(ex);
         }
         DG.ExternalDocumentCache.clear();
-        DG.busyCursor.hide();
       }.bind(this));
       return deferred;
     },
