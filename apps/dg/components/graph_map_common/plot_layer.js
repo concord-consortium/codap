@@ -834,7 +834,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   },
 
   showDataTip: function( iElement, iIndex) {
-    if( DG.NO_DATA_TIP_PREF)
+    if( DG.NO_DATA_TIP_PREF || this.getPath('paperSource.tempDisallowDataTips'))
       return;
     this.get('dataTip').show( iElement.attr('cx'), iElement.attr('cy'), iIndex);
   },

@@ -51,6 +51,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   */
   yAxisView: null,
 
+  /**
+   * Dynamically set to true/false during episodes such as marquee select
+   * @property {Boolean}
+   */
+  tempDisallowDataTips: false,
+
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
@@ -163,6 +169,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( iEvent.altKey)
         return; // Alt key has a different meaning
 
+      this_.set('tempDisallowDataTips', true);
+
       if( iEvent.shiftKey)
         tBaseSelection = this_.getPath( 'graphModel.selection').toArray();
       else {
@@ -197,6 +205,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     }
 
     function endMarquee( idX, idY) {
+      this_.set('tempDisallowDataTips', false);
+
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
 
