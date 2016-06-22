@@ -135,7 +135,8 @@ DG.DotChartModel = DG.PlotModel.extend(
           tCC = this.get('computationContext' );
       tCaseIDs.forEach( function( iCaseID) {
                           var tCase = DG.store.find( DG.Case, iCaseID);
-                          this.doForOneCase( tCase, tIndex++, tCC, addToCache);
+                          if( tCase)
+                            this.doForOneCase( tCase, tIndex++, tCC, addToCache);
                         }.bind( this));
     }
     else
