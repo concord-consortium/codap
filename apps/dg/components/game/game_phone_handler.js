@@ -306,7 +306,7 @@ DG.GamePhoneHandler = SC.Object.extend(
         }
       } catch (ex) {
         DG.logWarn('DG.GameController.doCommand: Caught exception: ' + ex);
-        DG.logWarn('Original command: ' + (tCmdObj && JSON.stringify(tCmdObj)));
+        //DG.logWarn('Original command: ' + (tCmdObj && JSON.stringify(tCmdObj)));
         tRet = tRet || {};
         tRet.success = false;
       }
@@ -516,9 +516,9 @@ DG.GamePhoneHandler = SC.Object.extend(
       notifyGameAboutExternalUndo: function () {
         if (this.get('gameIsReady') && DG.UndoHistory.get('enabled')) {
           if (DG.STANDALONE_MODE) {
-            this.gamePhone.call({operation: "standaloneUndoModeAvailable"});
+            this.rpcEndpoint.call({operation: "standaloneUndoModeAvailable"});
           } else {
-            this.gamePhone.call({operation: "externalUndoAvailable"});
+            this.rpcEndpoint.call({operation: "externalUndoAvailable"});
           }
         }
       }.observes('gameIsReady'),

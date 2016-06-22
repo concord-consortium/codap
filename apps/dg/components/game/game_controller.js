@@ -335,13 +335,18 @@ DG.GameController = DG.ComponentController.extend(
  * https://github.com/concord-consortium/codap/wiki/Data-Interactive-API#codap-initiated-actions
  * and must be fully specified (e.g. `{operation: 'xyz'}).
  *
+ * NOTE: This implementation only supports the case where there is one Data Interactive
+ * NOTE: ant that data interactive communicates through the Game API.
+ *
  * @param iCmd       An object representing the command to be send
  * @param iCallback  An optional callback passed back from the DI
  */
 DG.sendCommandToDI = function( iCmd, iCallback) {
-  var interactives = DG.currDocumentController().get('dataInteractives');
-  interactives && interactives.forEach(function (interactive) {
-    // TODO: translate command as appropriate for varying APIs
-  });
+  var interactives = DG.currDocumentController().get('dataInteractives'),
+      myController = (interactives && interactives.length === 1)? interactives[0] : undefined,
+      gameAPIHandler = myController && myController.gamePhoneHandler;
+  if (gameAPIHandler && gameAPIHandler.rpcEndpoint && gameAPIHandler.get('connected')) {
+    gameAPIHandler.rpcEndpoint.call(iCmd, iCallback);
+  }
 };
 
