@@ -814,21 +814,9 @@ DG.appController = SC.Object.create((function () // closure
      Close the current document and all its components.
      */
     closeDocument: function () {
-      SC.Benchmark.start('closeDocument');
-
-      // Destroy the views
-      DG.mainPage.closeAllComponents();
-
-      // Finish whatever we were in the middle of
-      if (DG.store) // We can get here without a store if we are opening a document specified as url param
-        DG.store.commitRecords();
-
       // Destroy the document and its contents
       DG.currDocumentController().closeDocument();
       DG.store = null;
-      SC.Benchmark.end('closeDocument');
-      SC.Benchmark.log('closeDocument');
-
     },
 
     /**
