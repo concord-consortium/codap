@@ -1063,6 +1063,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if( iEvent.stopImmediatePropagation)
       iEvent.stopImmediatePropagation();
 
+    // We make this funky call to mainPane because (we think) SlickGrid has swallowed the mousedown
+    // that would normally allow mainPane to hide the inspector picker.
+    DG.mainPage.mainPane.hideInspectorPicker();
     var tDragView = this._hiddenDragView,
         tAttributeName = column.attribute.get('name');
     SC.run( function () {

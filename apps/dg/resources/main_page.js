@@ -32,14 +32,21 @@ DG.mainPage = SC.Page.design((function() {
   mainPane: SC.MainPane.design({
 
     sendEvent: function(action, evt, target) {
-      if( (action === 'mouseDown' || action === 'touchStart') && this.get('inspectorPicker')) {
-        this.get('inspectorPicker').remove();
-        this.set('inspectorPicker', null);
+      if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
+        this.hideInspectorPicker();
       }
       else if( action === 'doubleClick') {
         console.log('doubleClick');
       }
       return sc_super();
+    },
+
+    hideInspectorPicker: function() {
+      var tInspectorPicker = this.get('inspectorPicker');
+      if( tInspectorPicker) {
+        tInspectorPicker.remove();
+        this.set('inspectorPicker', null);
+      }
     },
 
     /**
