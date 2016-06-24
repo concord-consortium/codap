@@ -1240,6 +1240,7 @@ DG.DocumentController = SC.Object.extend(
 
       DG.globalsController.stopAnimation();
 
+      DG.mainPage.closeAllComponents();
       DG.ObjectMap.forEach( this.componentControllersMap,
                             function( iComponentID, iController) {
                               if( iController && iController.willDestroy) {
