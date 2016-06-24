@@ -42,7 +42,15 @@ DG.ContainerView = SC.View.extend(
        * We don't worry about running out of numbers.
        * @property{Number}
        */
-      nextZIndex: 1,
+      nextZIndex: function() {
+        var tMaxZIndex = 1;
+        this.get('componentViews').forEach( function( iView) {
+          var tZIndex = iView.get('layout').zIndex;
+          if( tZIndex)
+              tMaxZIndex = Math.max( tMaxZIndex, tZIndex);
+        });
+        return tMaxZIndex + 1;
+      }.property(),
 
       /**
        * @property {DG.InspectorView}
