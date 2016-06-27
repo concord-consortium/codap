@@ -129,13 +129,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
               return tResult;
 
           tResult.push(DG.IconButton.create({
-            layout: {width: 32, left: 0},
+            layout: {width: 32, left: 0, height: 25},
             classNames: 'display-rescale'.w(),
             iconClass: 'moonicon-icon-scaleData',
             iconExtent: {width: 30, height: 25},
-            isEnabled: function () {
-              return this_.getPath('dataDisplayModel.canRescale');
-            }.property(),
             target: this,
             action: 'rescaleFunction',
             toolTip: 'DG.Inspector.rescale.toolTip',  // "Rescale graph axes to encompass data"
@@ -146,6 +143,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             },
             plotDidChange: function () {
               this.displayDidChange();
+              this.set('isEnabled', this_.getPath('dataDisplayModel.canRescale'))
               this.set('toolTip', this_.getPath('dataDisplayModel.canMixUp') ?
                   'DG.Inspector.mixUp.toolTip' : 'DG.Inspector.rescale.toolTip');
             }
@@ -677,7 +675,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var tNewItem = iMenu.get('selectedItem'),
               tCollectionClient = tNewItem && tNewItem.collection,
               tAxisOrientation = iMenu.selectedAxis,
-              tIsLegend = iMenu.islegend;
+              tIsLegend = iMenu.isLegend;
 
           // For safety's sake, remove this method as an observer of iMenu
           iMenu.removeObserver('selectedItem', this, this.attributeMenuItemChanged);
