@@ -183,6 +183,9 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
             var tModel = this_.get('model'),
                 tCurrentCoord = tDragStartCoord + ((tOrientation === 'horizontal') ? iDeltaX : iDeltaY),
                 tCategoryInCurrentCell = this_.whichCell( tCurrentCoord);
+            // Todo Touch is currently returning NaN for window coordinates. Fix this
+            if( isNaN(tCurrentCoord))
+                return;
             SC.run(function() {
               if( tCategoryInCurrentCell !== tCellBeingDragged) {
                 tModel.swapCategoriesByIndex( tCellBeingDragged, tCategoryInCurrentCell);
