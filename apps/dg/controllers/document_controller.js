@@ -409,7 +409,7 @@ DG.DocumentController = SC.Object.extend(
       iProperties.type = iModel.get('type');
       iProperties.model = iModel;
       var context = DG.DataContext.factory( iProperties);
-      this.get('contexts').push(context);
+      this.get('contexts').pushObject(context);
       return context;
     },
 
@@ -424,7 +424,6 @@ DG.DocumentController = SC.Object.extend(
         if (newContext) {
           newContext.restoreFromStorage(iContextModel.get('contextStorage'));
         }
-        //this.contexts.push(newContext);
       }.bind(this));
     },
 
@@ -434,7 +433,6 @@ DG.DocumentController = SC.Object.extend(
       if (contextRecord.contextStorage) {
         context.restoreFromStorage(contextRecord.contextStorage);
       }
-      //this.contexts.push(context);
       return context;
     },
 

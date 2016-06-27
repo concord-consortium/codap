@@ -55,15 +55,39 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handlerMap: null,
 
+      contextCountDidChange: function () {
+        DG.log('contextCountDidChange');
+        // re-add observers for all data contexts
+        DG.currDocumentController().contexts.forEach(function (context){
+          this.removeDataContextObserver(context);
+          this.addDataContextObserver(context);
+        }.bind(this));
+
+        // send notification to DI
+        this.rpcEndpoint.call({
+          action: 'notify',
+          resource: 'documentChangeNotice',
+          values: {
+            operation: 'dataContextCountChanged'
+          }
+        }, function (response) {
+          DG.log('Sent documentChangeNotice to Data Interactive');
+          DG.log('Response: ' + JSON.stringify(response));
+        });
+
+      },
       /**
        Initialization method
        */
       init: function () {
         sc_super();
         var contexts = DG.currDocumentController().get('contexts');
+
         contexts.forEach(function (context) {
-          context.addObserver('changeCount', this, this.contextDataDidChange);
+          this.addDataContextObserver(context);
         }.bind(this));
+
+        DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
 
         this.handlerMap = {
           attribute: this.handleAttribute,
@@ -100,9 +124,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           this.rpcEndpoint.disconnect();
         }
         contexts.forEach(function (context) {
-          context.removeObserver('changeCount', this, 'contextDataDidChange');
+          this.removeDataContextObserver(context);
         }.bind(this));
+        DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
+
         sc_super();
+      },
+
+      addDataContextObserver: function (iDataContext) {
+        iDataContext.addObserver('changeCount', this, this.contextDataDidChange);
+      },
+
+      removeDataContextObserver: function (iDataContext) {
+        iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
       },
 
       /**
@@ -369,6 +403,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           iResources.interactiveFrame.setPath('model.title', iValues.title);
           iResources.interactiveFrame.setPath('model.version', iValues.version);
           iResources.interactiveFrame.setPath('model.dimensions', iValues.dimensions);
+          iResources.interactiveFrame.setPath('controller.preventBringToFront', iValues.preventBringToFront);
+
           return {
             success: true
           };
