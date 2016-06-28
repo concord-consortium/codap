@@ -331,7 +331,8 @@ DG.DocumentArchiver = SC.Object.extend(
 
           tAttrNamesRow.forEach(function (iName) {
             tAttrsArray.push( {
-              name: String(iName)
+              name: String(iName),
+              editable: true
             });
           });
 
