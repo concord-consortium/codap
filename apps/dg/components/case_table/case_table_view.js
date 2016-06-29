@@ -80,7 +80,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * @param editable
        */
       inlineEditorWillBeginEditing: function (editor, value, editable) {
-        editor.value = this.parentView.get('collectionName');
+        sc_super();
+        editor.set('value', this.parentView.get('collectionName'));
       },
       /**
        * Capture the edit result.
