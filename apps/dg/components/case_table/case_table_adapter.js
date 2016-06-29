@@ -444,8 +444,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   /**
     Handles a mouse click in the table. Currently just adjusts the selection appropriately,
     depending on what modifier keys were pressed, etc.
-    @param  {Boolean}   Whether to extend the current selection (true) or replace it (false)
-    @param  {Object}    Object indicating which cell was clicked
+    @param  iExtend {Boolean}   Whether to extend the current selection (true) or replace it (false)
+    @param  iCell {Object}    Object indicating which cell was clicked
                             Object.row -- The clicked row
                             Object.cell -- The clicked column
    */
@@ -488,11 +488,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         tCollection = this.get('collection'),
         tCases = [];
     for( var i = iMinRow; i <= iMaxRow; ++i) {
-      var tRowInfo = tDataView.getItem( i),
-          tCase = tRowInfo && tRowInfo.theCase,
-          tGroupCaseID = tRowInfo && tRowInfo.__group && tRowInfo.value;
-      if( !SC.empty( tGroupCaseID))
+      var tCase = tDataView.getItem( i),
+          tGroupCaseID = tCase && tCase.__group && tCase.id;
+      if( !SC.empty( tGroupCaseID)) {
         tCase = tContext.getCaseByID(tGroupCaseID);
+      }
       if( tCase) tCases.push( tCase);
     }
     if( tCases.length) {
@@ -509,7 +509,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   
   /**
     Invalidates the rows corresponding to the specified cases.
-    @param  {Array of DG.Case}  The set of cases to mark as changed.
+    @param  iCases {Array of DG.Case}  The set of cases to mark as changed.
                                 If null/undefined, mark all cases changed.
    */
   markCasesChanged: function( iCases) {
@@ -616,7 +616,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
 /**
  * Slickgrid cell editor based on Slick.Editors.Text
- * @param args
+ * @param args {{container: {element}, column: {object}, grid: {object}}}
  * @constructor
  */
 DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
@@ -660,16 +660,16 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
 
   /**
    * Load the initial value to edit in the cell.
-   * Here we override the standard TextEditor.loadValue() method
-   * which expect the value to be a parameter of 'item'.
    * Instead we get it from our case data.
-   * @param item {} the row data with {id, parentID, theCase }
+   * @param item {DG.Case} the row case
    */
   this.loadValue = function (item) {
     var attributeID = Number( args.column.id),
-        caseAttributeValue = item.theCase && item.theCase.getValue(attributeID);
+        caseAttributeValue = item && item.getValue(attributeID);
+
     // SlickGrid wants a string in 'defaultValue'
     defaultValue = SC.none( caseAttributeValue ) ? "" : caseAttributeValue.toString();
+
     // Unchanged from TextEditor.loadValue() :
     $input.val(defaultValue);
     $input[0].defaultValue = defaultValue;
@@ -686,7 +686,7 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
    * Because the default editor modifies our row data, instead
    * of allowing the adapter to do it.  With this override we
    * don't need to handle the "onCellChanged" event.
-   * @param item {} -- the row data with {id, parentID, theCase }
+   * @param item {DG.Case}
    * @param state {String} -- the edited string value
    */
   this.applyValue = function (item, state) {
