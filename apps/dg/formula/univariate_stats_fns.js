@@ -167,6 +167,7 @@ DG.UnivariateStatsFns = {
    */
   percentile: DG.SortDataFunction.create({
 
+    // todo: Figure out what should be the min number of arguments. 2 or 1?
     requiredArgs: { min: 2, max: 2 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
