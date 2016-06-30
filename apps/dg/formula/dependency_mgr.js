@@ -382,11 +382,11 @@ DG.DependencyMgr = SC.Object.extend((function() {
             attributeID = iDependent && iDependent.id,
             attribute = attributeID && DG.Attribute.getAttributeByID(attributeID);
 
-        if (!iForceAggregate && dependency.simpleDependency) {
+        if (!iForceAggregate && dependency.simpleDependency && attribute) {
           attribute.invalidateCases(iCases);
           result.simpleDependencies.push(iDependent);
         }
-        if (iForceAggregate || dependency.aggFnIndices.length) {
+        if ((iForceAggregate || dependency.aggFnIndices.length) && attribute) {
           attribute.invalidateCases(null, dependency.aggFnIndices);
           result.aggregateDependencies.push(iDependent);
         }

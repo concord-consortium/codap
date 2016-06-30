@@ -37,7 +37,8 @@ DG.EditorLock = SC.Object.extend({
     @returns  {Boolean} True if the specified controller is active
    */
   isActive: function( iEditController) {
-    return window.Slick.GlobalEditorLock.isActive( iEditController);
+    return iEditController === DG.mainPage.getPath('mainPane.firstResponder') ||
+        window.Slick.GlobalEditorLock.isActive( iEditController);
   },
 
   /**
