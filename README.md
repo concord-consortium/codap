@@ -26,7 +26,12 @@ or the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.
 
 ## More Information
 
-* [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide)
-* [Data Interactive API](https://github.com/concord-consortium/codap/wiki/Data-Interactive-API)
-* [Data Interactive Tutorial](https://github.com/concord-consortium/codap/wiki/Data-Interactive-Tutorial)
+* [CODAP Data Interactive API](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-API): 
+An API that permits Data Interactives to exchange case data and context information with their CODAP host.
+* [CODAP Game API](https://github.com/concord-consortium/codap/wiki/CODAP-Game-API) (Deprecated):
+An API that permits Data Interactives to forward case data to their CODAP host. 
+* [CODAP Game API Tutorial](https://github.com/concord-consortium/codap/wiki/CODAP-Game-API-Tutorial) (Deprecated):
+How to write a simple CODAP Data Interactive using a Game API helper class.  
+* [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide):
+How to install and run a development environment to modify CODAP platform-level software.
 * [Release Notes](https://github.com/concord-consortium/codap/wiki/Release-Notes)
