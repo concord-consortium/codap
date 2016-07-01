@@ -127,7 +127,7 @@ DG = SC.Application.create((function () // closure
     iDefault = iDefault || '';
     var regexS = "[\\?&]" + iParam + "=([^&]*)";
     var regex = new RegExp(regexS);
-    var results = regex.exec(window.location.href);
+    var results = regex.exec(window.location.search);
     var encoded;
     if (SC.none(results)) {
       return iDefault;
