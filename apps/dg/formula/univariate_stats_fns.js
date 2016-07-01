@@ -162,6 +162,26 @@ DG.UnivariateStatsFns = {
   }),
 
   /**
+    percentile(expr)
+    Returns the aggregated percentile of its evaluated argument values.
+   */
+  percentile: DG.SortDataFunction.create({
+
+    // todo: Figure out what should be the min number of arguments. 2 or 1?
+    requiredArgs: { min: 2, max: 2 },
+
+    evaluate: function( iContext, iEvalContext, iInstance) {
+      var tPercValueFn = iInstance.argFns[1];
+      this.percValue = tPercValueFn ? tPercValueFn(iContext, iEvalContext) : undefined;
+      return sc_super();
+    },
+
+    extractResult: function (iCachedValues) {
+      return DG.MathUtilities.quantileOfSortedArray(iCachedValues, this.percValue);
+    }
+  }),
+
+  /**
     sum(expr)
     Returns the aggregated sum of its evaluated argument values.
    */

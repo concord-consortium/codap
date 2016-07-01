@@ -178,7 +178,7 @@ DG.MathUtilities = {
     } else {
       // quantile between two data values;
       // note that quantile algorithms vary on method used to get value here, there is no fixed standard.
-      return (iSortedArray[i1]*fraction + iSortedArray[i2]*(1.0-fraction));
+      return (iSortedArray[i2]*fraction + iSortedArray[i1]*(1.0-fraction));
     }
   },
 

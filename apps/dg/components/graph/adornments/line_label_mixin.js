@@ -31,14 +31,22 @@ DG.LineLabelMixin =
   /**
     Make the movable line. This only needs to be done once.
     Caller can optionally add the line element to this.myElements array.
-    @return {Rafael element} the text element
+    @return {Raphael element} the text element
   */
-  createTextElement: function() {
-    // Put the text below the hit segments in z-order so user can still hit the line
+  createBackgroundRect: function() {
     this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
         .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
+    return this.backgrndRect;
+  },
+
+  /**
+    Make the movable line. This only needs to be done once.
+    Caller can optionally add the line element to this.myElements array.
+    @return {Raphael element} the text element
+  */
+  createTextElement: function() {
     this.textElement = this.get('paper').text( 0, 0, '')
-      .attr({ font: 'caption', 'text-anchor': 'start', opacity: 0 });
+      .attr({ font: 'caption', 'text-anchor': 'start', opacity: 1 });
     return this.textElement;
   },
 
@@ -52,7 +60,7 @@ DG.LineLabelMixin =
     var kPadding = 5, // pixels
         tAxisView = this.get( 'valueAxisView'),
         tValue = this.get('value'),
-        tValueCoord = tAxisView.dataToCoordinate( tValue),
+        tValueCoord = !SC.none( tValue) ? tAxisView.dataToCoordinate( tValue) : -1000,
         tPaper = this.get('paper'),
         tValueString = this.get('valueString'),
         tTextElement = this.get('textElement'),
@@ -61,8 +69,8 @@ DG.LineLabelMixin =
         tTextAnchor = {},
         tBackgrndAnchor = {} ;
 
-    tTextBox = tTextElement.getBBox();
     tTextElement.attr( { text: tValueString } );
+    tTextBox = tTextElement.getBBox();
 
     if( tAxisView.get('orientation') === 'horizontal') {
       tAlign = tTextElement.attr('text-anchor');

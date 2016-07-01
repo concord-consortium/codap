@@ -80,6 +80,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     if( tAverageModel && tAverageModel.get('isVisible')) {
       if( ! this.textElement ) { // initialize the text element "average=", before updateSymbols()
         this.createTextElement();
+        this.createBackgroundRect();
         this.textElement.attr('opacity', 1);  // We don't show this element until user hovers,
                                               // at which point we need opacity to be 1
       }

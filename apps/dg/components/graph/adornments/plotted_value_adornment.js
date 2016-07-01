@@ -138,6 +138,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     this.myElements = [];
     this.valueSegment = this.get('paper').path('').attr( { stroke: 'red' });
     this.myElements.push( this.valueSegment);
+    this.myElements.push( this.createBackgroundRect());
     this.myElements.push( this.createTextElement());
     this.myElements.forEach( function( iElement) {
       tLayer.push( iElement);

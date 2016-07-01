@@ -248,9 +248,10 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
     this.createVisualization();
   },
 
-    // We want touches that get here to go no further, so we intercept and return YES
+    // This is the default implementation, but it's helpful to be explicit here in the code in case we find
+    // in the future we need modification
     touchStart: function(evt){
-      return YES; // Succeeding touch events come here
+      return NO; // Allows views up the hierarchy to respond. Particularly the component view
     },
     touchEnd: function(evt){
       return YES; // We handled it
@@ -258,9 +259,11 @@ DG.RaphaelBaseView = SC.View.extend( DG.Destroyable,
     touchesDragged: function( evt, touches) {
       return YES; // Ours to deal with
     },
+/*  My commenting this out, we allow marquee select to work in plots
     captureTouch: function( touch) {
-      return YES; // Don't let a containing view capture it
+      return YES; // Don't let a sub view capture it
     },
+*/
     // This is part of a hack to prevent both scroll view and raphael view from responding to touch
     touchPriority: YES
 });

@@ -273,7 +273,7 @@ DG.SliderController = DG.ComponentController.extend(
           sliderModel.set('animationDirection', iComponentStorage.animationDirection);
           sliderModel.set('animationMode', iComponentStorage.animationMode);
           var axisModel = sliderModel.get('axis');
-          if (axisModel && iComponentStorage.lowerBound && iComponentStorage.upperBound)
+          if (axisModel && !SC.none( iComponentStorage.lowerBound) && !SC.none( iComponentStorage.upperBound))
             axisModel.setLowerAndUpperBounds(iComponentStorage.lowerBound, iComponentStorage.upperBound);
         }
       }
