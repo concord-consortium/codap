@@ -126,6 +126,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('dataContext');
   }.observes('*model.dataContext'),
    
+  caseOrderDidChange: function() {
+    this._mustMoveElementsToNewCoordinates = true;
+  },
+
   selection: null,
   selectionBinding: '*model.casesController.selection',
 
@@ -285,11 +289,14 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       return;
 
     switch( operation) {
+      case 'createCollection':
+      case 'deleteCollection':
+      case 'resetCollections':
+        this.caseOrderDidChange(); // jshint ignore:line
+        // Deliberate fallthrough
       case 'createCase':
       case 'createCases':
       case 'deleteCases':
-      case 'createCollection':
-      case 'resetCollections':
         // usually dataDidChange, but derived classes can override
         var changeKey = this.get('changeKey');
         if( !SC.empty( changeKey)) {
@@ -500,6 +507,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   _plottedElements: null, // Kept in the same order as the data
   _mustCreatePlottedElements: true,
   _elementOrderIsValid: false,  // Set to false when selection changes
+  _mustMoveElementsToNewCoordinates: false,  // Set to true when collection is created or deleted
   
   /**
     If we're still valid, skip the whole render process.
@@ -531,6 +539,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         });
       tPlotElementLength = this._plottedElements.length = 0; // remove from array
       this._mustCreatePlottedElements = false;
+      this._mustMoveElementsToNewCoordinates = false;
       tRC.casesAdded = true; // ensure that cases are re-created below
     }
 
@@ -555,15 +564,21 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this_._elementOrderIsValid = false;
 
     // update case elements, adding them if necessary
-    if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded ) {
-      this.prepareToResetCoordinates();
-      tCases.forEach( function( iCase, iIndex) {
-                        if( iIndex >= tPlotElementLength )
-                          this_.callCreateCircle( tCases[ iIndex], iIndex, true);
-                        this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
-                      });
+    if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates ) {
+      this.resetCoordinates( tCases, tRC);
     }
     DG.assert( this._plottedElements.length === tCases.length );
+  },
+
+  resetCoordinates: function( iCases, iRC) {
+    var tPlotElementLength = this._plottedElements.length;
+    this.prepareToResetCoordinates();
+    iCases.forEach( function( iCase, iIndex) {
+      if( iIndex >= tPlotElementLength )
+        this.callCreateCircle( iCase, iIndex, true);
+      this.setCircleCoordinate( iRC, iCase, iIndex);
+    }.bind(this));
+    this._mustMoveElementsToNewCoordinates = false;
   },
 
   /**
@@ -631,6 +646,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     if(!tCases || !tSelection)
       return;
+
+    if( this._mustMoveElementsToNewCoordinates){
+      this.resetCoordinates( tCases, this.createRenderContext());
+    }
 
     tCases.forEach( function( iCase, iIndex) {
       var tIsSelected, tElement, tFrom, tTo, tClass;

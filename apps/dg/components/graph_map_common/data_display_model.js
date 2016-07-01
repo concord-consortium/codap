@@ -341,42 +341,50 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     handleOneDataContextChange: function( iNotifier, iChange) {
       var tOperation = iChange && iChange.operation;
 
-      if( tOperation === 'deleteAttributes') {
-        iChange.attrs.forEach(function (iAttr) {
+      switch( tOperation) {
+        case 'deleteAttributes':
+          iChange.attrs.forEach(function (iAttr) {
+            ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
+              var tDescKey = iKey + 'AttributeDescription',
+                  tAxisKey = iKey + 'Axis',
+                  tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+              if(tAttrs) {
+                tAttrs.forEach(function (iPlottedAttr, iIndex) {
+                  if (iPlottedAttr === iAttr.attribute) {
+                    if (iKey === 'legend')
+                      this.removeLegendAttribute();
+                    else
+                      this.removeAttribute(tDescKey, tAxisKey, iIndex);
+                  }
+                }.bind(this));
+              }
+            }.bind(this));
+          }.bind( this));
+          break;
+        case 'deleteCollection':
           ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
             var tDescKey = iKey + 'AttributeDescription',
                 tAxisKey = iKey + 'Axis',
+                tCollectionClient = this.getPath('dataConfiguration.'
+                    + tDescKey + '.collectionClient'),
                 tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
-            if(tAttrs) {
-              tAttrs.forEach(function (iPlottedAttr, iIndex) {
-                if (iPlottedAttr === iAttr.attribute) {
+            if (tCollectionClient && tAttrs) {
+              if (tCollectionClient === iChange.collection) {
+                tAttrs.forEach(function (iPlottedAttr, iIndex) {
                   if (iKey === 'legend')
                     this.removeLegendAttribute();
                   else
                     this.removeAttribute(tDescKey, tAxisKey, iIndex);
-                }
-              }.bind(this));
+                }.bind(this));
+              }
             }
-          }.bind(this));
-        }.bind( this));
-      } else if (tOperation === 'deleteCollection') {
-        ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
-          var tDescKey = iKey + 'AttributeDescription',
-              tAxisKey = iKey + 'Axis',
-              tCollectionClient = this.getPath('dataConfiguration.'
-                  + tDescKey + '.collectionClient'),
-              tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
-          if (tCollectionClient && tAttrs) {
-            if (tCollectionClient === iChange.collection) {
-              tAttrs.forEach(function (iPlottedAttr, iIndex) {
-                if (iKey === 'legend')
-                  this.removeLegendAttribute();
-                else
-                  this.removeAttribute(tDescKey, tAxisKey, iIndex);
-              }.bind(this));
-            }
-          }
-        }.bind(this));
+          }.bind(this)); // jshint ignore:line
+          // fallthrough deliberate
+        case 'createCollection':
+          this.notifyPropertyChange('caseOrder');
+          break;
+        default:
+          // Nothing to do
       }
       // Give the legend a chance
       var tLegend = this.get('legend');
