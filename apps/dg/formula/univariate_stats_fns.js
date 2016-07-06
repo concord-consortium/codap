@@ -38,7 +38,7 @@ DG.UnivariateStatsFns = {
    */
   count: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getValue( iContext, iEvalContext, iInstance);
@@ -62,7 +62,7 @@ DG.UnivariateStatsFns = {
    */
   min: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
@@ -92,7 +92,7 @@ DG.UnivariateStatsFns = {
    */
   max: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
@@ -122,7 +122,7 @@ DG.UnivariateStatsFns = {
    */
   mean: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
@@ -154,9 +154,9 @@ DG.UnivariateStatsFns = {
    */
   median: DG.SortDataFunction.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
-    extractResult: function( iCachedValues) {
+    extractResult: function( iCachedValues, iEvalContext, iInstance) {
       return DG.MathUtilities.medianOfNumericArray( iCachedValues);
     }
   }),
@@ -171,13 +171,20 @@ DG.UnivariateStatsFns = {
     requiredArgs: { min: 2, max: 2 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
-      var tPercValueFn = iInstance.argFns[1];
-      this.percValue = tPercValueFn ? tPercValueFn(iContext, iEvalContext) : undefined;
+      var tPercValueFn = iInstance.argFns[1],
+          percValue = tPercValueFn ? tPercValueFn(iContext, iEvalContext) : undefined;
+      // Note that the percentile argument could evaluate to a different value for every
+      // case, e.g. percentile(x, caseIndex/count(x)). The code here somewhat arbitrarily
+      // chooses the last evaluated percentile value to use for the aggregate evaluation.
+      // A fully general implementation would treat the percentile function as a semi-
+      // aggregate which could evaluate to a different value for every case.
+      if (!iInstance.caches) iInstance.caches = {};
+      iInstance.caches._percentile_ = percValue;
       return sc_super();
     },
 
-    extractResult: function (iCachedValues) {
-      return DG.MathUtilities.quantileOfSortedArray(iCachedValues, this.percValue);
+    extractResult: function (iCachedValues, iEvalContext, iInstance) {
+      return DG.MathUtilities.quantileOfSortedArray(iCachedValues, iInstance.caches._percentile_);
     }
   }),
 
@@ -187,7 +194,7 @@ DG.UnivariateStatsFns = {
    */
   sum: DG.ParentCaseAggregate.create({
   
-    requiredArgs: { min: 0, max: 1 },
+    requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);

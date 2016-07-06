@@ -154,16 +154,18 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend({
   /**
     Builds the array of argument expressions.
    */
-  marshalArguments: function( iEvalContext, iInstance) {
+  marshalArguments: function( iAggregateFn, iEvalContext, iInstance) {
     sc_super();
 
-    // if no argument was specified, make a reference to the primary
+    var reqArgs = iAggregateFn.get('requiredArgs'),
+        argCount = iInstance.args.length;
+    // if not enough arguments were specified, make a reference to the primary
     // univariate variable available, since some functions will use it
-    if (!iInstance.args.length && (this.get('adornmentKey') === 'plottedValue')) {
+    if ((argCount < reqArgs.min) && (this.get('adornmentKey') === 'plottedValue')) {
       var uniVarName = this.get('primaryVarName'),
           uniVarExpr = uniVarName && this.compileVariable(uniVarName);
       if (uniVarExpr)
-        iInstance.uniVarFn = DG.FormulaContext.createContextFunction(uniVarExpr);
+        iInstance.argFns.unshift(DG.FormulaContext.createContextFunction(uniVarExpr));
     }
   }
   

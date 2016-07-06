@@ -108,11 +108,23 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
       var tCase = cases.objectAt( i),
           e = { _case_: tCase, _id_: tCase && tCase.get('id') };
       // Perform any per-case evaluation
-      this.evalCase( iContext, e, iInstance);
+      if (this.filterCase( iContext, e, iInstance))
+        this.evalCase( iContext, e, iInstance);
     }
     
     // Complete the computation, returning the requested result
     return this.computeResults( iContext, iEvalContext, iInstance);
+  },
+  
+  /**
+    Returns true if the specified case passes the aggregate function filter argument.
+    Base class method always returns true. Derived classes may override as appropriate.
+    @param  {DG.FormulaContext}   iContext
+    @param  {Object}              iEvalContext -- { _case_: , _id_: }
+    @param  {Object}              iInstance -- The aggregate function instance from the context.
+   */
+  filterCase: function( iContext, iEvalContext, iInstance) {
+    return true;
   },
   
   /**
@@ -205,26 +217,32 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
   },
 
   /**
+    Returns true if the specified case passes the aggregate function filter argument.
+    Base class method always returns true. Derived classes may override as appropriate.
+    @param  {DG.FormulaContext}   iContext
+    @param  {Object}              iEvalContext -- { _case_: , _id_: }
+    @param  {Object}              iInstance -- The aggregate function instance from the context.
+   */
+  filterCase: function( iContext, iEvalContext, iInstance) {
+    var filterFn = iInstance.filterFn;
+    return filterFn ? filterFn( iContext, iEvalContext) : true;
+  },
+  
+  /**
     Returns the value of the first argument, primarily for the benefit of
-    univariate aggregate functions. If no arguments were specified, will
-    use the univariate axis variable if a function for it was provided.
-    Clients such as plotted values can set the 'uniVarFn' property of the
-    instance to enable defaulting to the univariate axis variable.
+    univariate aggregate functions.
    */
   getValue: function( iContext, iEvalContext, iInstance) {
-    var valueFn = iInstance.argFns[0] || iInstance.uniVarFn;
+    var valueFn = iInstance.argFns[0];
     return valueFn && valueFn( iContext, iEvalContext);
   },
   
   /**
     Returns the numeric value of the first argument, primarily for the benefit
-    of univariate aggregate functions. If no arguments were specified, will
-    use the univariate axis variable if a function for it was provided.
-    Clients such as plotted values can set the 'uniVarFn' property of the
-    instance to enable defaulting to the univariate axis variable.
+    of univariate aggregate functions.
    */
   getNumericValue: function( iContext, iEvalContext, iInstance) {
-    var valueFn = iInstance.argFns[0] || iInstance.uniVarFn;
+    var valueFn = iInstance.argFns[0];
     return valueFn && DG.getNumeric(valueFn( iContext, iEvalContext));
   },
   
@@ -256,7 +274,8 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
           tEvalContext = $.extend({}, iEvalContext,
                                   { _case_: tCase, _id_: tCase && tCase.get('id') }),
           cacheID = this.getGroupID(iContext, tEvalContext);
-      this.evalCase( iContext, tEvalContext, iInstance, cacheID);
+      if (this.filterCase( iContext, tEvalContext, iInstance))
+        this.evalCase( iContext, tEvalContext, iInstance, cacheID);
     }
     
     return this.computeResults( iContext, iEvalContext, iInstance);
@@ -304,7 +323,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
     @param  {Array of Number}   iCachedValues -- The array of cached values
     @returns  {Number|null}     Returns the result extracted from the array of values.
    */
-  extractResult: function( iCachedValues) {
+  extractResult: function( iCachedValues, iEvalContext, iInstance) {
     // Derived classes must override
     return null;
   },
@@ -324,7 +343,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
                             if( iCachedValues.length > 0) {
                               iCachedValues.sort( function( v1, v2) { return v1 - v2; });
                             }
-                            iInstance.results[ iKey] = this.extractResult( iCachedValues);
+                            iInstance.results[ iKey] = this.extractResult( iCachedValues, iEvalContext, iInstance);
                           }.bind( this));
     return this.queryCache( iContext, iEvalContext, iInstance);
   }
