@@ -10333,7 +10333,7 @@ CloudFileManagerClient = (function() {
     }
     return this._setState({
       dirty: isDirty,
-      saved: isDirty ? false : void 0
+      saved: this.state.saved && !isDirty
     });
   };
 
@@ -13403,7 +13403,14 @@ module.exports = React.createClass({
     return s.replace(/^\s+|\s+$/, '');
   },
   download: function(e) {
-    var json, ref1;
+    var json, makeBlobURL, ref1;
+    makeBlobURL = function(msg) {
+      var blob;
+      blob = new Blob([msg], {
+        type: 'text/plain'
+      });
+      return window.URL.createObjectURL(blob);
+    };
     if (this.state.trimmedFilename.length > 0) {
       json = this.props.content.getContent();
       if (json && !this.state.includeShareInfo) {
@@ -13414,7 +13421,7 @@ module.exports = React.createClass({
           delete json.metadata.shared;
         }
       }
-      e.target.setAttribute('href', "data:application/json," + (encodeURIComponent(JSON.stringify(json))));
+      e.target.setAttribute('href', makeBlobURL(JSON.stringify(json)));
       return this.props.close();
     } else {
       e.preventDefault();
