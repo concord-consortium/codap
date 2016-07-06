@@ -211,6 +211,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
 
         labelNodesDidChange: function() {
           this.notifyPropertyChange('labelNodes');
+          this.get('labelNodes'); // Should cause new text to be set in each label node.
         }.observes('*model.labels'),
 
         /**
