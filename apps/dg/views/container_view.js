@@ -102,7 +102,7 @@ DG.ContainerView = SC.View.extend(
         var tViews = this.get('componentViews');
         DG.STANDALONE_MODE = tSavedMode;
         return tViews;
-      },
+      }.property('childViews'),
 
       /**
        * @property {Array of Object }
@@ -190,7 +190,7 @@ DG.ContainerView = SC.View.extend(
        */
       destroyAllChildren: function () {
         this.select(null);  // To close inspector
-        var componentViews = this.get('componentViews');
+        var componentViews = this.get('allComponentViews');
         componentViews.forEach(function (iView) {
           if (iView && iView.willDestroy)
             iView.willDestroy();
