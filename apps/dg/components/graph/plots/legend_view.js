@@ -280,12 +280,6 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             SC.run(function() {
               this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
             }.bind(this));
-            if( !iEvent.shiftKey) {
-              this_._elementsToClear.forEach(function (iElement) {
-                iElement.removeClass(DG.PlotUtilities.kLegendKeySelected);
-              });
-            }
-            this.addClass(DG.PlotUtilities.kLegendKeySelected);
           }
           
           // Function passed to Raphael mouseDown event handler, which guarantees

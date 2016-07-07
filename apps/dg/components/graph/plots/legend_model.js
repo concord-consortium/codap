@@ -57,6 +57,14 @@ DG.LegendModel = SC.Object.extend(
   }.observes('*attributeDescription.attribute'),
 
   /**
+   * Some property of the attribute with the given ID has changed, typically its name or unit
+   * @param iAttrID {Number}
+   */
+  handleUpdateAttribute: function( iAttrID) {
+    this.labelDidChange();
+  },
+
+  /**
    Determined by asking attributeStats
    @property{Number}  >= 0
    */

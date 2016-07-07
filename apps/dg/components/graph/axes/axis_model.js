@@ -55,10 +55,18 @@ DG.AxisModel = SC.Object.extend(
       });
     }
     return tLabels;
-  }.property()/*.cacheable()*/,
+  }.property(),
   labelsDidChange: function() {
     this.notifyPropertyChange('labels');
   }.observes('*attributeDescription.attribute'),
+
+  /**
+   * Some property of the attribute with the given ID has changed, typically its name or unit
+   * @param iAttrID {Number}
+   */
+  handleUpdateAttribute: function( iAttrID) {
+    this.labelsDidChange();
+  },
 
   /**
     The string to use as a tooltip.
