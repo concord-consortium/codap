@@ -14954,7 +14954,7 @@ module.exports = React.createClass({
     var droppedUrls;
     e.preventDefault();
     if (e.dataTransfer) {
-      droppedUrls = (e.dataTransfer.getData('url') || dataTransfer.getData('text/uri-list') || '').split('\n');
+      droppedUrls = (e.dataTransfer.getData('url') || e.dataTransfer.getData('text/uri-list') || '').split('\n');
       if (droppedUrls.length > 1) {
         return this.props.client.alert(tr("~IMPORT_URL.MULTIPLE_URLS_DROPPED"));
       } else if (droppedUrls.length === 1) {
