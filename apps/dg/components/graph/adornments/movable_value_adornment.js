@@ -136,10 +136,8 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
               .drag( continueTranslate, beginTranslate, endTranslate);
 
     this.myElements = [ this.lineSeg, this.coverSeg ];
-    this.createTextElement();
-    if( this.backgrndRect)
-      this.myElements.push( this.backgrndRect);
-    this.myElements.push( this.textElement);
+    this.myElements.push( this.createBackgroundRect());
+    this.myElements.push( this.createTextElement());
     this.lineSeg.animatable = true;
     this.textElement.animatable = true;
     this.lineSeg.animate({ 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
