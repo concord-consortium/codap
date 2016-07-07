@@ -107,7 +107,8 @@ DG.PlotView = DG.PlotLayer.extend(
   
   /** Invalidate and update adornments shared by all plot types */
   updateAdornments: function() {
-    if( this.plottedCountAdorn ) {  // update counts if present
+    var tCountAdornModel = this.plottedCountAdorn && this.plottedCountAdorn.get('model');
+    if( tCountAdornModel ) {  // update counts if present
       this.plottedCountAdorn.get('model').setComputingNeeded();
       this.plottedCountAdorn.updateToModel();
     }
