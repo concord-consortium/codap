@@ -985,7 +985,7 @@ DG.appController = SC.Object.create((function () // closure
 
       var tType = tFile.type;
       if( tType === '')
-        adjustTypeBasedOnSuffix();
+        adjustTypeBasedOnSuffix(tFile);
 
       var tAlertDialog = {
         showAlert: function( iError) {
@@ -1004,6 +1004,7 @@ DG.appController = SC.Object.create((function () // closure
         }
       };
 
+      DG.log('Opening file "%@" of type %@'.loc(tFile && tFile.name, tType));
       if( tType === 'application/json') {
         DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
       }
