@@ -120,6 +120,19 @@ test('test DG.Attribute formulas', function() {
       {collection: tParentCollectionModel, name: 'pcLast', formula: 'last(childStr)', expect: 'child11'},
       {collection: tParentCollectionModel, name: 'ppPrev', formula: 'prev(parentNum)', expect: 3},
       {collection: tParentCollectionModel, name: 'ppNext', formula: 'next(parentNum)', expect: 5},
+      {collection: tParentCollectionModel, name: 'pcMin', formula: 'min(childNum)', expect: 9},
+      {collection: tParentCollectionModel, name: 'pcMax', formula: 'max(childNum)', expect: 11},
+      {collection: tParentCollectionModel, name: 'pcMean', formula: 'mean(childNum)', expect: 10},
+      {collection: tParentCollectionModel, name: 'pcMedian', formula: 'median(childNum)', expect: 10},
+      {collection: tParentCollectionModel, name: 'pcPercentile25', formula: 'percentile(childNum, 0.25)', expect: 9.5},
+      {collection: tParentCollectionModel, name: 'pcPercentile75', formula: 'percentile(childNum, 0.75)', expect: 10.5},
+      {collection: tParentCollectionModel, name: 'pcfCount', formula: 'count(childNum,childNum>=10)', expect: 2},
+      {collection: tParentCollectionModel, name: 'pcfMin', formula: 'min(childNum,childNum>=10)', expect: 10},
+      {collection: tParentCollectionModel, name: 'pcfMax', formula: 'max(childNum,childNum<=10)', expect: 10},
+      {collection: tParentCollectionModel, name: 'pcfMean', formula: 'mean(childNum,childNum<=10)', expect: 9.5},
+      {collection: tParentCollectionModel, name: 'pcfMedian', formula: 'mean(childNum,childNum<=10)', expect: 9.5},
+      {collection: tParentCollectionModel, name: 'pcfPercentile25', formula: 'percentile(childNum,0.25,childNum<=10)', expect: 9.25},
+      {collection: tParentCollectionModel, name: 'pcfPercentile75', formula: 'percentile(childNum,0.75,childNum<=10)', expect: 9.75},
 
       {collection: tChildCollectionModel, name: 'ccCopy', formula: 'childStr', expect: 'child'},
       {collection: tChildCollectionModel, name: 'ccSqrt', formula: 'sqrt(childNum)', expect: 3},
@@ -131,6 +144,20 @@ test('test DG.Attribute formulas', function() {
       {collection: tChildCollectionModel, name: 'ccLast', formula: 'last(childStr)', expect: 'child11'},
       {collection: tChildCollectionModel, name: 'ccPrev', formula: 'prev(childNum,8)', expect: 8},
       {collection: tChildCollectionModel, name: 'ccNext', formula: 'next(childStr,child12)', expect: 'child10'},
+      {collection: tChildCollectionModel, name: 'ccCount', formula: 'count(childNum)', expect: 3},
+      {collection: tChildCollectionModel, name: 'ccMin', formula: 'min(childNum)', expect: 9},
+      {collection: tChildCollectionModel, name: 'ccMax', formula: 'max(childNum)', expect: 11},
+      {collection: tChildCollectionModel, name: 'ccMean', formula: 'mean(childNum)', expect: 10},
+      {collection: tChildCollectionModel, name: 'ccMedian', formula: 'median(childNum)', expect: 10},
+      {collection: tChildCollectionModel, name: 'ccPercentile25', formula: 'percentile(childNum, 0.25)', expect: 9.5},
+      {collection: tChildCollectionModel, name: 'ccPercentile75', formula: 'percentile(childNum, 0.75)', expect: 10.5},
+      {collection: tChildCollectionModel, name: 'ccfCount', formula: 'count(childNum,childNum>=10)', expect: 2},
+      {collection: tChildCollectionModel, name: 'ccfMin', formula: 'min(childNum,childNum>=10)', expect: 10},
+      {collection: tChildCollectionModel, name: 'ccfMax', formula: 'max(childNum,childNum<=10)', expect: 10},
+      {collection: tChildCollectionModel, name: 'ccfMean', formula: 'mean(childNum,childNum<=10)', expect: 9.5},
+      {collection: tChildCollectionModel, name: 'ccfMedian', formula: 'mean(childNum,childNum<=10)', expect: 9.5},
+      {collection: tChildCollectionModel, name: 'ccfPercentile25', formula: 'percentile(childNum,0.25,childNum<=10)', expect: 9.25},
+      {collection: tChildCollectionModel, name: 'ccfPercentile75', formula: 'percentile(childNum,0.75,childNum<=10)', expect: 9.75},
     ],
     parentCase,
     childCase;
@@ -142,9 +169,11 @@ test('test DG.Attribute formulas', function() {
   tChildCollectionModel.createAttribute({ name: 'childStr'});
   // create a couple of cases
   tParentCollectionModel.createCase({values: {parentNum: 3, parentStr: 'parent3'}});
+  // parent unit tests focused on the middle case
   parentCase = tParentCollectionModel.createCase({values: {parentNum: 4, parentStr: 'parent'}});
   tParentCollectionModel.createCase({values: {parentNum: 5, parentStr: 'parent4'}});
 
+  // child unit tests focused on the first case
   childCase = tChildCollectionModel.createCase({values: {childNum: 9, childStr: 'child'}, parent: parentCase});
   tChildCollectionModel.createCase({values: {childNum: 10, childStr: 'child10'}, parent: parentCase});
   tChildCollectionModel.createCase({values: {childNum: 11, childStr: 'child11'}, parent: parentCase});

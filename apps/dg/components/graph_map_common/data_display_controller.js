@@ -143,7 +143,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             },
             plotDidChange: function () {
               this.displayDidChange();
-              this.set('isEnabled', this_.getPath('dataDisplayModel.canRescale'))
+              this.set('isEnabled', this_.getPath('dataDisplayModel.canRescale'));
               this.set('toolTip', this_.getPath('dataDisplayModel.canMixUp') ?
                   'DG.Inspector.mixUp.toolTip' : 'DG.Inspector.rescale.toolTip');
             }

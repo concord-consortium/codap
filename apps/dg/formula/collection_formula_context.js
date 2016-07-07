@@ -369,12 +369,26 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
   /**
     Builds the array of argument expressions.
    */
-  marshalArguments: function( iEvalContext, iInstance) {
-    var i, argCount = iInstance.args.length;
+  marshalArguments: function( iAggregateFn, iEvalContext, iInstance) {
+    var i, argCount = iInstance.args.length,
+        reqArgs = iAggregateFn.get('requiredArgs'),
+        aggFnArgCount = Math.min(argCount, reqArgs.max);
     iInstance.argFns = [];
-    for( i = 0; i < argCount; ++i) {
+    for( i = 0; i < aggFnArgCount; ++i) {
       iInstance.argFns.push( DG.FormulaContext.createContextFunction( iInstance.args[i]));
     }
+
+    // if an extra argument was specified, assume it's a filter argument
+    if (argCount === aggFnArgCount + 1)
+      iInstance.filterFn = DG.FormulaContext.createContextFunction( iInstance.args[argCount-1]);
+  },
+
+  validateArguments: function( iAggregateFn, iEvalContext, iInstance) {
+    // Make sure we have a valid number of arguments
+    var reqArgs = iAggregateFn.get('requiredArgs'),
+        argCount = iInstance.argFns.length;
+    if( (argCount < reqArgs.min) || (reqArgs.max < argCount))
+      throw new DG.FuncArgsError( iInstance.name, reqArgs);
   },
   
   /**
@@ -390,20 +404,17 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     var instance = this.aggFnInstances[ iAggFnIndex];
     
     var aggregateFn = this.aggFns[ instance.name],
-        result = aggregateFn && aggregateFn.queryCache( this, iEvalContext, instance),
-        argCount = instance.args.length;
+        result = aggregateFn && aggregateFn.queryCache( this, iEvalContext, instance);
 
     // Return the cached result if there is one
     if( result !== undefined)
       return result;
     
     // Marshal the arguments into individually callable functions.
-    this.marshalArguments(iEvalContext, instance);
+    this.marshalArguments(aggregateFn, iEvalContext, instance);
     
     // Make sure we have a valid number of arguments
-    var reqArgs = aggregateFn.get('requiredArgs');
-    if( (argCount < reqArgs.min) || (reqArgs.max < argCount))
-      throw new DG.FuncArgsError( instance.name, reqArgs);
+    this.validateArguments(aggregateFn, iEvalContext, instance);
     
     // Invoke the aggregate function with context and instance arguments
     return aggregateFn.evaluate( this, iEvalContext, instance);
