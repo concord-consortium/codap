@@ -359,6 +359,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if( tCircle) {
       this._plottedElements.push( tCircle );
       this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tCircle);
+      this._elementOrderIsValid = false; // So updateSelection will work
     }
     return tCircle;
   },
@@ -449,8 +450,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     Subclasses should call sc_super()
   */
   dataRangeDidChange: function( iSource, iQuestion, iKey, iChanges) {
+    this.removeExtraElements();
     this.updateAdornments();
     this.get('dataTip').handleChanges( iChanges);
+    this.updateSelection();
   },
 
   /**
@@ -510,10 +513,19 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   _mustMoveElementsToNewCoordinates: false,  // Set to true when collection is created or deleted
   
   /**
-    If we're still valid, skip the whole render process.
+   * Remove elements in _plottedElements beyond the length of the array of cases
    */
-  shouldDraw: function() {
-    return !this._isRenderingValid;
+  removeExtraElements: function() {
+    var tCasesLength = this.getPath('model.cases').length,
+        tPlotElementLength = this._plottedElements.length,
+        tLayerManager = this.get('layerManager');
+    for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
+      DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
+    }
+    if( tCasesLength < tPlotElementLength ) { // remove from array
+      this._plottedElements.length = tCasesLength;
+      this._elementOrderIsValid = false;
+    }
   },
 
   /**
@@ -525,9 +537,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     var this_ = this,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
-        tLayerManager = this.get('layerManager' ),
-        tPlotElementLength = this._plottedElements.length,
-        tIndex;
+        tLayerManager = this.get('layerManager' );
 
     if( SC.none( tCases))
       return; // No cases, nothing to draw
@@ -537,7 +547,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this._plottedElements.forEach( function( iElement) {
         tLayerManager.removeElement (iElement); // remove from plot
         });
-      tPlotElementLength = this._plottedElements.length = 0; // remove from array
+      this._plottedElements.length = 0; // remove from array
       this._mustCreatePlottedElements = false;
       this._mustMoveElementsToNewCoordinates = false;
       tRC.casesAdded = true; // ensure that cases are re-created below
@@ -545,12 +555,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     // remove extra case elements
     if( tRC.casesRemoved ) {
-      for( tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-        DG.PlotUtilities.doHideRemoveAnimation( this._plottedElements[ tIndex], tLayerManager);
-      }
-      if( tCases.length < tPlotElementLength ) { // remove from array
-        tPlotElementLength = this._plottedElements.length = tCases.length;
-      }
+      this.removeExtraElements();
     }
 
     // update the cached circle size (dependent on the number of cases)
@@ -560,7 +565,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     // If we're going to be adding cases, then we'll want to call updateSelection because
     // these new cases may be selected. Setting _elementOrderIsValid to false accomplishes this.
-    if( tPlotElementLength < tCases.length)
+    if( this._plottedElements.length < tCases.length)
       this_._elementOrderIsValid = false;
 
     // update case elements, adding them if necessary
