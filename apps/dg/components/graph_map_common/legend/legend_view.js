@@ -59,6 +59,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       rectangles: null,
 
       /**
+       * @property {DG.ChoroplethView}
+       */
+      choroplethView: null,
+
+      /**
        * @property {DG.Attribute}
        */
       plottedAttribute: function() {
@@ -72,13 +77,18 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         @property { Number }
       */
       desiredExtent: function() {
-        var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
-            tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth )),
-            tLabelHeight = this.get('labelExtent').y,
-            tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
-            tNumRows = this.get('isNumeric') ? 3 : (1 + Math.ceil( tNumCells / tNumColumns)),
-            tExtent = tNumRows * tLabelHeight;
-        DG.assert( isFinite(tExtent));
+        var tLabelHeight = this.get('labelExtent').y,
+            tExtent = tLabelHeight + 2 * kVMargin;
+        if( this.get('isNumeric')) {
+          tExtent += this.getPath('choroplethView.desiredExtent');
+        }
+        else {  // Categorical
+          var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
+              tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth )),
+              tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
+              tNumRows = Math.ceil( tNumCells / tNumColumns);
+          tExtent += tNumRows * tLabelHeight;
+        }
         return tExtent;
       }.property(),
       desiredExtentDidChange: function() {
@@ -167,12 +177,19 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        * @private
        * @property {Raphael element} Used to display continuous scale as a color gradient
        */
-      _gradientRect: null,
-
       _hiddenDragView: null,
 
       init: function() {
         sc_super();
+
+        this.choroplethView = DG.ChoroplethView.create( {
+          classNames: 'choropleth'.w(),
+          layout: { left: kHMargin, right: kHMargin, top: kVMargin, bottom: kVMargin },
+          isVisible: false,
+          model: this.get('model')
+        });
+        this.appendChild( this.choroplethView);
+
         this._hiddenDragView = SC.LabelView.create({
           classNames: 'drag-label'.w(),
           layout: {width: 100, height: 20, top: -50, left: 0},
@@ -201,66 +218,6 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         }
 
         /**
-         * drawNumericScale
-         */
-        function drawNumericScale() {
-          var tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc).colorString,
-              tMinMax = tAttrDesc.get('minMax'),
-              tMin = DG.Format.number().fractionDigits( 0, 2)(tMinMax.min),
-              tMax = DG.Format.number().fractionDigits( 0, 2)(tMinMax.max),
-              tLabelHeight = this_.get('labelExtent').y,
-              kStrokeWidth = 0.5,
-              kMaxTicks = 4,
-              kTickLength = 3,
-              tTick,
-              useSafariBugWorkaround = (SC.browser.isSafari),
-              tRect = { stroke: tAttrColor,
-                        'stroke-width': kStrokeWidth,
-                        width: tWidth,
-                        height: tHeight / 3,
-                        fill: ('0-#fff-' + tAttrColor )}; // Gradient from white to attribute color at 0 degrees
-
-          // create or update the gradient rectangle
-          if( useSafariBugWorkaround ) {
-            // temporary code to fix Bug 425 - Gradient bars in the legend show up as black in Safari
-            this_._elementsToClear.push( this_._paper.rect( kHMargin, kVMargin + tLabelHeight, 0, 0).attr( tRect ) );
-            // In Safari 5.1.1, the gradient rectangle renders correctly when first created, but resizes and rerenderings
-            // draw a black filled rectangle instead, so for our workaround we just re-create the rectangle every time.
-            // Failed test #1: this mysterious fix from Rafael appears to do nothing for us.
-            // In FireFox and *WebKit* the gradient is correct every time.
-            // which implies that the bug may migrate from Webkit to Safari and we can remove the special workaround.
-            // Rafael docs say "There is an inconvenient rendering bug in Safari (WebKit): sometimes the rendering should be forced. This method should help with dealing with this bug. "
-            //this_._paper.safari();
-            // Failed test #2: This log string outputs the exact gradient data, which can then be pasted in to the Rafael playground app
-            // console.log("using safari workaround; gradient for http://raphaeljs.com/playground.html below:");
-            // Tests show that the gradient displays correctly in the playground (CDM 2011-11-29)
-            //console.log( "paper.rect(" + kHMargin +","+ (kVMargin + tLabelHeight) + ", 0, 0).attr( " + JSON.stringify(tRect ) + ")");
-          }
-          else {
-            // original code: create the rect, update the parameters, and show if hidden
-            if( SC.none(this_._gradientRect)) {
-              this_._gradientRect = this_._paper.rect( kHMargin, kVMargin + tLabelHeight, 0, 0);
-            }
-            this_._gradientRect.attr( tRect ).show();
-          }
-
-          // re-create the tick marks every time
-          for( tTick = 0; tTick <= kMaxTicks; tTick++) {
-            var tX = kHMargin + kStrokeWidth + tTick * (tWidth - 2 * kStrokeWidth) / 4,
-                tBaseline = kVMargin + tLabelHeight + tHeight / 3;
-            this_._elementsToClear.push(
-                  this_._paper.line( tX, tBaseline,
-                                     tX, tBaseline + kTickLength)
-                    .attr( { stroke: tAttrColor }));
-          }
-          var tTextY = kVMargin + tLabelHeight + tHeight / 3 + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
-          this_._elementsToClear.push( this_._paper.text( kHMargin + kStrokeWidth, tTextY, tMin)
-              .attr({ 'text-anchor': 'start' }));
-          this_._elementsToClear.push( this_._paper.text( kHMargin + tWidth - 2 * kStrokeWidth, tTextY, tMax)
-              .attr({ 'text-anchor': 'end' }));
-        }
-
-        /**
          * drawCategoriesKey
          */
         function drawCategoriesKey() {
@@ -268,7 +225,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               tNumCells = this_.getPath('model.numberOfCells'),
               tNumRows = Math.ceil( tNumCells / tNumColumns),
               tRowHeight = tHeight / (tNumRows + 1), // adding one to include label
-              tSize = tRowHeight - 2 * kVMargin,
+              tSize = Math.max( 0, tRowHeight - 2 * kVMargin),
               tCellIndex,
               tRectangles = {},
               tCellNames = this_.getPath('model.cellNames')
@@ -316,12 +273,16 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           this_.selectionDidChange();
         }
 
+        var tChoroplethView = this.get('choroplethView');
         renderLabel();
         if( this.get('isNumeric'))
-          drawNumericScale();
+        {
+          tChoroplethView.set('model', this.get('model'));
+          tChoroplethView.set('isVisible', true);
+          tChoroplethView.adjust('top', kVMargin + this.get('labelExtent').y);
+        }
         else {
-          if( this._gradientRect)
-            this._gradientRect.hide();
+          tChoroplethView.set('isVisible', false);
           drawCategoriesKey();
         }
       },

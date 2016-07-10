@@ -401,10 +401,15 @@ DG.PlotView = DG.PlotLayer.extend(
    */
   createRenderContext: function() {
     var tModel = this.get('model'),
-        tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription' ),
+        tConfig = tModel.get('dataConfiguration'),
+        tLegendDesc = tConfig.get('legendAttributeDescription' ),
         tPlotIndex = this.get('plotIndex'),
         tYVarIDKey = (this.getPath('yAxisView.orientation') === 'vertical2') ? 'y2VarID' : 'yVarID',
-        tStrokeParams = this.getStrokeParams();
+        tStrokeParams = this.getStrokeParams(),
+        tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
+                            DG.MathUtilities.nQuantileValues(
+                                tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
+                            [];
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -435,7 +440,7 @@ DG.PlotView = DG.PlotLayer.extend(
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
             tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
-                this.attrColor || this.pointColor );
+                this.attrColor || this.pointColor, tQuantileValues );
         return tCaseColor.colorString || tCaseColor;
       }
     };

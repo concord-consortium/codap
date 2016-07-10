@@ -71,8 +71,13 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     var tModel = this.get('model');
     if( !tModel)
       return; // not ready yet
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
-        tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor;
+    var tConfig = tModel.get('dataConfiguration'),
+        tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+        tStrokeColorIsDefault = this.get('areaStrokeColor') === DG.PlotUtilities.kDefaultMapStrokeColor,
+        tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
+            DG.MathUtilities.nQuantileValues(
+                tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
+            [];
     return {
       map: this.get('map' ),
       areaVarID: tModel.getPath('dataConfiguration.areaAttributeDescription.attributeID'),
@@ -89,7 +94,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc);
+            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, null, tQuantileValues);
         return tCaseColor.colorString;
       }
     };

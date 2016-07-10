@@ -78,8 +78,8 @@ DG.PlotUtilities = {
   kMapAreaWithLegendUnselectedOpacity: 0.9,
   kMapAreaNoLegendSelectedBorderColor: 'black',
   kMapAreaWithLegendUnselectedBorderColor: 'white',
-  kMapAreaWithLegendSelectedBorderColor: 'black',
-  kMapAreaSelectedBorderWeight: 2,
+  kMapAreaWithLegendSelectedBorderColor: '#1a7a93',
+  kMapAreaSelectedBorderWeight: 3,
   kMapAreaUnselectedBorderWeight: 2,
 
 

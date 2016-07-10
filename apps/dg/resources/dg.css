@@ -361,6 +361,10 @@
     cursor: pointer;
 }
 
+.choro-rect {
+    cursor: pointer;
+}
+
 .sc-view.component-border {
     border: 1px white solid;
 }

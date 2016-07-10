@@ -183,6 +183,30 @@ DG.MathUtilities = {
   },
 
   /**
+   * For the given array of number, compute the quantiles
+   *  [ minValue, 1/iNumQuantiles quantile, ..., maxValue]
+   *  Note that the given array is modified; i.e. sorted.
+   *  The returned array has iNumQuantiles + 1 members.
+   * @param ioValues {Array of Number}
+   * @param iNumQuantiles {Integer}
+   * @returns {Array of Number}
+   */
+  nQuantileValues: function( ioValues, iNumQuantiles) {
+
+    function lessThan(a, b) {
+      return a - b;
+    } // for ascending numeric sort()
+
+    var tQValues = [];
+    ioValues.sort(lessThan);
+    for (var tQuintile = 0; tQuintile <= iNumQuantiles; tQuintile++) {
+      tQValues.push(DG.MathUtilities.quantileOfSortedArray(ioValues, tQuintile / iNumQuantiles));
+    }
+
+    return tQValues;
+  },
+
+  /**
    * Is the value a finite number? Unlike the global "isFinite", returns
    * false for (null || undefined || "").  Strings or Booleans are converted
    * to Numbers in the usual way.

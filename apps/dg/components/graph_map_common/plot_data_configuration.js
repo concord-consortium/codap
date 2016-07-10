@@ -559,6 +559,27 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property('xCollectionClient','yCollectionClient', 'legendCollectionClient'),
 
   /**
+   *
+   * @param iPlace {DG.GraphTypes.EPlace}
+   * @returns {Array of {Number}}
+   */
+  numericValuesForPlace: function ( iPlace) {
+    var tValues = [],
+        tAttrDesc = this.get('attributesByPlace')[iPlace][0],
+        tAttrID = tAttrDesc.getPath('attribute.id');
+    if (tAttrDesc.get('isNumeric')) {
+      var tCases = this.get('cases');
+      tValues = tCases ? (tCases.map(function (iCase) {
+        var tValue = iCase.getNumValue(tAttrID);
+        return isFinite(tValue) ? tValue : null;
+      })) : [].filter(function (iValue) {
+        return iValue !== null;
+      });
+    }
+    return tValues;
+  },
+
+  /**
    * @return {Number}
    */
   getCaseCount: function() {

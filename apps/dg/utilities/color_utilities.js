@@ -149,11 +149,12 @@ DG.ColorUtilities = {
    * @param {DG.ColorUtilities.Color} Color to be used if there is no color attribute
    * @returns {DG.ColorUtilities.Color}
    */
-  calcCaseColor: function (iCaseValue, iColorAttributeDescription, iNoAttrColor) {
+  calcCaseColor: function (iCaseValue, iColorAttributeDescription, iNoAttrColor, iQuantileValues) {
 
     // TODO: store common parameters such as attribute color so we don't need to recalc for every case.
     var newColor = null,
-        tAttribute = iColorAttributeDescription.get('attribute');
+        tAttribute = iColorAttributeDescription.get('attribute'),
+        tAttributeColor = tAttribute && DG.ColorUtilities.calcAttributeColor(iColorAttributeDescription);
 
     if (tAttribute === DG.Analysis.kNullAttribute) {
       newColor = iNoAttrColor || DG.ColorUtilities.kNoAttribCaseColor;
@@ -167,9 +168,20 @@ DG.ColorUtilities = {
         // get color from attribute's color map, or set to null
         newColor = DG.ColorUtilities.getCategoryColorFromColorMap(tColorMap, iCaseValue);
       }
+      else if( SC.isArray( iQuantileValues)) {
+        var tFoundIndex = -1,
+            tNumQuantiles = iQuantileValues.length - 1,
+            tMinMax = { min: 0, max: 1};
+        iQuantileValues.forEach( function( iQV, iIndex) {
+          if( iIndex <= tNumQuantiles) {
+            if( iQV <= iCaseValue && iCaseValue <= iQuantileValues[ iIndex + 1])
+                tFoundIndex = iIndex;
+          }
+        });
+        newColor = DG.ColorUtilities.calcContinuousColor(tMinMax, tAttributeColor, (tFoundIndex + 1)/ tNumQuantiles);
+      }
       if (!newColor) {
         // calculate color using TinkerPlots color-space algorithm
-        var tAttributeColor = DG.ColorUtilities.calcAttributeColor(iColorAttributeDescription);
         newColor = tIsNumeric ?
             DG.ColorUtilities.calcContinuousColor(
                 iColorAttributeDescription.get('minMax'), tAttributeColor, iCaseValue) :

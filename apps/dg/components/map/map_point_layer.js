@@ -60,9 +60,14 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     var tModel = this.get('model');
     if( !tModel)
       return; // not ready yet
-    var tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
+    var tConfig = tModel.get('dataConfiguration'),
+        tLegendDesc = tModel.getPath('dataConfiguration.legendAttributeDescription'),
         tLegendVarID = tLegendDesc && tLegendDesc.get('attributeID'),
-        tStrokeParams = this.getStrokeParams();
+        tStrokeParams = this.getStrokeParams(),
+        tQuantileValues = (tLegendDesc && tLegendDesc.get('isNumeric')) ?
+            DG.MathUtilities.nQuantileValues(
+                tConfig.numericValuesForPlace( DG.GraphTypes.EPlace.eLegend), 5):
+            [];
     return {
       // render needs (set all to true for now, maybe later we can optimize by not doing all of them?)
       casesAdded: true,
@@ -88,7 +93,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 
         DG.assert( iCase );
         var tColorValue = iCase.getValue( this.legendVarID),
-            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc, this.pointColor );
+            tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
+                this.pointColor, tQuantileValues );
         return tCaseColor.colorString;
       }
     };

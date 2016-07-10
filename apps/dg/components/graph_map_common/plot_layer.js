@@ -486,7 +486,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * @return {Boolean}
    */
   readyToDraw: function() {
-    return !SC.none( this.get('paper'));
+    return !SC.none( this.get('paper')) && !SC.none( this.getPath('model.dataConfiguration'));
   },
   
   /**
