@@ -77,46 +77,74 @@ DG.MapController = DG.DataDisplayController.extend(
           return sc_super();
         }
         else if (this.getPath('mapModel.areaVarID') !== DG.Analysis.kNullAttribute) {
+          var tPickerArray = [],
+              tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
 
-          var this_ = this,
               setColor = function (iColor) {
-                this_.setPath('mapModel.areaColor', iColor.toHexString());
-                this_.setPath('mapModel.areaTransparency', iColor.getAlpha());
-              },
+                this.setPath('mapModel.areaColor', iColor.toHexString());
+                this.setPath('mapModel.areaTransparency', iColor.getAlpha());
+              }.bind(this),
               setStroke = function (iColor) {
-                this_.setPath('mapModel.areaStrokeColor', iColor.toHexString());
-                this_.setPath('mapModel.areaStrokeTransparency', iColor.getAlpha());
-              },
+                this.setPath('mapModel.areaStrokeColor', iColor.toHexString());
+                this.setPath('mapModel.areaStrokeTransparency', iColor.getAlpha());
+              }.bind(this),
               getStylesLayer = function () {
-                return this_.stylesPane.layer();
-              },
+                return this.stylesPane.layer();
+              }.bind(this),
               kRowHeight = 20;
-          return [
-            DG.PickerControlView.create({
-              layout: {height: 2 * kRowHeight},
-              label: 'DG.Inspector.color',
-              controlView: DG.PickerColorControl.create({
-                layout: {width: 120},
-                classNames: 'map-fill-color'.w(),
-                initialColor: tinycolor(this.getPath('mapModel.areaColor'))
-                    .setAlpha(this.getPath('mapModel.areaTransparency')),
-                setColorFunc: setColor,
-                appendToLayerFunc: getStylesLayer
+
+          if( tLegendAttrDesc.get('isNull')) {
+            tPickerArray.push(
+              DG.PickerControlView.create({
+                layout: {height: 2 * kRowHeight},
+                label: 'DG.Inspector.color',
+                controlView: DG.PickerColorControl.create({
+                  layout: {width: 120},
+                  classNames: 'map-fill-color'.w(),
+                  initialColor: tinycolor(this.getPath('mapModel.areaColor'))
+                      .setAlpha(this.getPath('mapModel.areaTransparency')),
+                  setColorFunc: setColor,
+                  appendToLayerFunc: getStylesLayer
+                })
               })
-            }),
-            DG.PickerControlView.create({
-              layout: {height: 2 * kRowHeight},
-              label: 'DG.Inspector.stroke',
-              controlView: DG.PickerColorControl.create({
-                layout: {width: 120},
-                classNames: 'map-areaStroke-color'.w(),
-                initialColor: tinycolor(this.getPath('mapModel.areaStrokeColor'))
-                    .setAlpha(this.getPath('mapModel.areaStrokeTransparency')),
-                setColorFunc: setStroke,
-                appendToLayerFunc: getStylesLayer
-              })
+            );
+          }
+          else {
+            var tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+                tAttrColor = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc),
+                setLegendColor = function (iColor) {
+                  tColorMap['attribute-color'] = iColor.toHexString();
+                  this.setPath('mapModel.areaTransparency', iColor.getAlpha());
+                  this.get('mapModel').propertyDidChange('areaColor');  // To force update
+                }.bind(this);
+            tPickerArray.push(
+                DG.PickerControlView.create({
+                  layout: {height: 2 * kRowHeight},
+                  label: 'DG.Inspector.legendColor',
+                  controlView: DG.PickerColorControl.create({
+                    layout: {width: 120},
+                    classNames: 'map-fill-color'.w(),
+                    initialColor: tinycolor(tAttrColor.colorString)
+                        .setAlpha(this.getPath('mapModel.areaTransparency')),
+                    setColorFunc: setLegendColor,
+                    appendToLayerFunc: getStylesLayer
+                  })
+                })
+            );
+          }
+          tPickerArray.push(DG.PickerControlView.create({
+            layout: {height: 2 * kRowHeight},
+            label: 'DG.Inspector.stroke',
+            controlView: DG.PickerColorControl.create({
+              layout: {width: 120},
+              classNames: 'map-areaStroke-color'.w(),
+              initialColor: tinycolor(this.getPath('mapModel.areaStrokeColor'))
+                  .setAlpha(this.getPath('mapModel.areaStrokeTransparency')),
+              setColorFunc: setStroke,
+              appendToLayerFunc: getStylesLayer
             })
-          ];
+          }));
+          return tPickerArray;
         }
       }.property(),
 

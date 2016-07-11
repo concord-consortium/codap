@@ -377,6 +377,8 @@ SC.stringsFor('English', {
   'DG.Redo.graph.changeStrokeColor': "Redo changing stroke color",
   'DG.Undo.graph.changePointSize': "Undo changing point size",
   'DG.Redo.graph.changePointSize': "Redo changing point size",
+  'DG.Undo.graph.changeAttributeColor': "Undo changing attribute color",
+  'DG.Redo.graph.changeAttributeColor': "Redo changing attribute color",
   'DG.Undo.graph.toggleTransparent': "Undo toggling plot transparency",
   'DG.Redo.graph.toggleTransparent': "Redo toggling plot transparency",
   'DG.Undo.guide.show': "Undo showing the guide",
@@ -608,6 +610,7 @@ SC.stringsFor('English', {
   'DG.Inspector.pointSize': "Point size:",  // "Point size:"
   'DG.Inspector.transparency': "Transparency:",  // "Transparency:"
   'DG.Inspector.color': "Color:",  // "Color:"
+  'DG.Inspector.legendColor': "Legend color:",  // "Legend color:"
   'DG.Inspector.stroke': "Stroke:",  // "Stroke:"
   'DG.Inspector.rescale.toolTip': "Rescale display to show all the data",  // "Rescale display to show all the data"
   'DG.Inspector.mixUp.toolTip': "Mixup all the points",  // "Mixup all the points"

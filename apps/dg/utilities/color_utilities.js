@@ -68,6 +68,10 @@ DG.ColorUtilities = {
     };
   },
 
+  isRGB: function( iColor) {
+    return iColor && iColor.r !== null && iColor.g !== null && iColor.b !== null;
+  },
+
   /** hsbColor class for colors with Hue/Saturation/Brightness color model for color manipulation.
    @constructor
    @extends DG.ColorUtilities.Color
@@ -79,16 +83,20 @@ DG.ColorUtilities = {
     };
   },
 
+  isHSB: function( iColor) {
+    return iColor && iColor.h !== null && iColor.s !== null && iColor.b !== null;
+  },
+
   /* --------- Notes on updating of DG case icon colors.
 
-   if color attribute value has changed and...
-   numeric value change => attribute stats range change ? update all case colors : update 1 case color
-   category value change => attribute category list change ? update all case colors : update 1 case color
+    if color attribute value has changed and...
+    numeric value change => attribute stats range change ? update all case colors : update 1 case color
+    category value change => attribute category list change ? update all case colors : update 1 case color
 
-   if color attribute is in use and...
-   if attribute inserted or deleted => update all attribute colors => update all case colors.
+    if color attribute is in use and...
+    if attribute inserted or deleted => update all attribute colors => update all case colors.
 
-   ----------- */
+    ----------- */
 
   /**
    * calcAttributeColorFromIndex()
@@ -171,14 +179,15 @@ DG.ColorUtilities = {
       else if( SC.isArray( iQuantileValues)) {
         var tFoundIndex = -1,
             tNumQuantiles = iQuantileValues.length - 1,
-            tMinMax = { min: 0, max: 1};
+            tMinMax = { min: 0, max: 1},
+            tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttributeColor);
         iQuantileValues.forEach( function( iQV, iIndex) {
           if( iIndex <= tNumQuantiles) {
             if( iQV <= iCaseValue && iCaseValue <= iQuantileValues[ iIndex + 1])
                 tFoundIndex = iIndex;
           }
         });
-        newColor = DG.ColorUtilities.calcContinuousColor(tMinMax, tAttributeColor, (tFoundIndex + 1)/ tNumQuantiles);
+        newColor = this.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high, (tFoundIndex + 1)/ tNumQuantiles);
       }
       if (!newColor) {
         // calculate color using TinkerPlots color-space algorithm
@@ -223,6 +232,34 @@ DG.ColorUtilities = {
   },
 
   /**
+   * @param iColorMap  {} object with 'attribute-color' as the color key (see below).
+   * @returns {DG.ColorUtilities.Color}
+   */
+  getAttributeColorSpectrumEndsFromColorMap: function (iColorMap, iAttrColor) {
+    var tEnds = {},
+        tLow, tHigh;
+    if (iColorMap) {
+      tLow = iColorMap['low-attribute-color'] || 'rgb(255,255,255)';
+      tHigh = iColorMap['high-attribute-color'] || iColorMap['attribute-color'] || iAttrColor;
+      if (typeof tLow === 'string') {
+        tLow = DG.ColorUtilities.rgbColorString_to_PlatformColor(tLow);
+      }
+      if (typeof tHigh === 'string') {
+        tHigh = DG.ColorUtilities.rgbColorString_to_PlatformColor(tHigh);
+      }
+      else if(this.isHSB( tHigh))
+      {
+        tHigh = Raphael.hsb2rgb( tHigh.h, tHigh.s, tHigh.b);
+        tHigh.r /= 255;
+        tHigh.g /= 255;
+        tHigh.b /= 255;
+      }
+      tEnds = {low: tLow, high: tHigh};
+    }
+    return tEnds;
+  },
+
+  /**
    * calcContinuousColor()
    *      Calculate the icon fill color for this numeric value of a continuous
    *      variable.  Creates a gradient from white for the lowest numeric value,
@@ -250,6 +287,32 @@ DG.ColorUtilities = {
       tSaturation *= tScale;
       tBrightness = DG.ColorUtilities.gammaCorrect(1.0 - ((1.0 - tBrightness) * tScale));
       tCaseColor = DG.ColorUtilities.hsb_to_PlatformColor(tHue, tSaturation, tBrightness);
+    }
+    return tCaseColor;
+  },
+
+  /**
+   * calcGradientColor()
+   *      Calculate the icon fill color for this numeric value of a continuous
+   *      variable.  Creates a gradient from iColor1 for the lowest numeric value,
+   *      to iColor2 for the highest numeric value. Returns the
+   *      missing value color for any non-numeric case values.
+   * @param {DG.AttributeStats} iMinMax
+   * @param {DG.ColorUtilities.rgbColor} iColor1
+   * @param {DG.ColorUtilities.rgbColor} iColor2
+   * @param iCaseValue
+   * @returns {DG.ColorUtilities.Color}
+   */
+  calcGradientColor: function (iMinMax, iColor1, iColor2, iCaseValue) {
+    var tCaseColor = DG.ColorUtilities.kMissingValueCaseColor,
+        tRange = iMinMax.max - iMinMax.min;
+    // if we have a valid numeric range and case value along that range
+    if (DG.isFinite(tRange) && DG.isFinite(iCaseValue) && this.isRGB( iColor1) && this.isRGB( iColor2)) {
+      var tScale = Math.max( 0, Math.min( 1, (iCaseValue - iMinMax.min) / tRange)),
+          tRed = iColor1.r + tScale * (iColor2.r - iColor1.r),
+          tGreen = iColor1.g + tScale * (iColor2.g - iColor1.g),
+          tBlue = iColor1.b + tScale * (iColor2.b - iColor1.b)
+      tCaseColor = DG.ColorUtilities.rgb_to_PlatformColor(tRed, tGreen, tBlue);
     }
     return tCaseColor;
   },
@@ -382,6 +445,10 @@ DG.ColorUtilities = {
       }
     }
     return tPlatformColor;
+  },
+
+  hsbColor_to_RgbColor: function( iHsbColor) {
+
   },
 
   /**
@@ -557,10 +624,11 @@ DG.ColorUtilities = {
    * @return {String} String of form #rrggbb, hex colors if match found.
    */
   colorNameToHexColor: function (color_string) {
-
+    var tPrefix = '';
     // strip any leading #, remove spaces, make lower case
     if (color_string.charAt(0) === '#') { // remove # if any
       color_string = color_string.substr(1, 6);
+      tPrefix = '#';
     }
     color_string = color_string.replace(/ /g, '');
     color_string = color_string.toLowerCase();
@@ -568,8 +636,9 @@ DG.ColorUtilities = {
     // try simple matches
     if (DG.ColorUtilities.simpleColorNames.hasOwnProperty(color_string)) {
       color_string = DG.ColorUtilities.simpleColorNames[color_string];
+      tPrefix = '#';
     }
-    color_string = '#' + color_string; // add back in the #
+    color_string = tPrefix + color_string; // add back in the prefix
 
     return color_string;
   },

@@ -415,10 +415,44 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   }
                 });
               },
+              createSetAttributeColorCommand = function (name, alphaAttr, iColor) {
+                return DG.Command.create({
+                  name: 'data.style.'+name,
+                  undoString: 'DG.Undo.graph.'+name,
+                  redoString: 'DG.Redo.graph.'+name,
+                  log: "Changed attribute color",
+                  execute: function() {
+                    this.reduceKey = this.name + currentOpenSession;
+                    this._beforeStorage = {
+                      color: tColorMap['attribute-color'],
+                      alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
+                    };
+                    tColorMap['attribute-color'] = iColor.toHexString();
+                    this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
+                    this_.get('dataDisplayModel').propertyDidChange('pointColor');
+                  },
+                  undo: function () {
+                    tColorMap['attribute-color'] = this._beforeStorage.color;
+                    this_.setPath('dataDisplayModel.' + alphaAttr, this._beforeStorage.alpha);
+                  },
+                  reduce: function (previous) {
+                    if (previous.reduceKey === this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                });
+              },
               setColor = function (iColor) {
                 currentOpenSession = currentOpenSession || Math.random();
-                DG.UndoHistory.execute(createSetColorAndAlphaCommand("changePointColor",
-                    "pointColor", "transparency", iColor));
+                if( SC.none( tColorMap)) {
+                  DG.UndoHistory.execute(createSetColorAndAlphaCommand("changePointColor",
+                      "pointColor", "transparency", iColor));
+                }
+                else {
+                  DG.UndoHistory.execute(createSetAttributeColorCommand("changeAttributeColor",
+                      "transparency", iColor));
+                }
               },
               setColorFinalized = function () {
                 currentOpenSession = null;
@@ -470,7 +504,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   })
                 })
               ];
-          if (!tLegendAttrDesc.get('isCategorical')) {
+          var tInitialColor;
+          if (tLegendAttrDesc.get('isNull')) {
+            tInitialColor = tinycolor(this.getPath('dataDisplayModel.pointColor'))
+                  .setAlpha(this.getPath('dataDisplayModel.transparency'));
             tResult.push(
                 DG.PickerControlView.create({
                   layout: {height: 2 * kRowHeight},
@@ -478,8 +515,29 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   controlView: DG.PickerColorControl.create({
                     layout: {width: 120},
                     classNames: 'graph-point-color'.w(),
-                    initialColor: tinycolor(this.getPath('dataDisplayModel.pointColor'))
-                        .setAlpha(this.getPath('dataDisplayModel.transparency')),
+                    initialColor: tInitialColor,
+                    setColorFunc: setColor,
+                    closedFunc: setColorFinalized,
+                    appendToLayerFunc: getStylesLayer
+                  })
+                })
+            );
+          }
+          else if( tLegendAttrDesc.get('isNumeric')) {
+            if(tColorMap && SC.none( tColorMap['attribute-color'])) {
+              tColorMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc).colorString;
+            }
+            var tAttrColor = tColorMap && tColorMap['attribute-color'];
+                tInitialColor = tinycolor(tAttrColor)
+                    .setAlpha(this.getPath('dataDisplayModel.transparency'));
+            tResult.push(
+                DG.PickerControlView.create({
+                  layout: {height: 2 * kRowHeight},
+                  label: 'DG.Inspector.legendColor',
+                  controlView: DG.PickerColorControl.create({
+                    layout: {width: 120},
+                    classNames: 'graph-point-color'.w(),
+                    initialColor: tInitialColor,
                     setColorFunc: setColor,
                     closedFunc: setColorFinalized,
                     appendToLayerFunc: getStylesLayer

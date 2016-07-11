@@ -95,7 +95,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
         var tColorValue = iCase.getValue( this.legendVarID),
             tCaseColor = DG.ColorUtilities.calcCaseColor( tColorValue, this.legendDesc,
                 this.pointColor, tQuantileValues );
-        return tCaseColor.colorString;
+        return tCaseColor.colorString || tCaseColor;
       }
     };
   },

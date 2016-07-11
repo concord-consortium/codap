@@ -198,6 +198,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.appendChild( this._hiddenDragView);
       },
 
+      displayDidChange: function() {
+        sc_super();
+        this.get('choroplethView').displayDidChange();
+      },
+
       doDraw: function doDraw() {
         var this_ = this,
             tAttrDesc = this.getPath('model.attributeDescription'),

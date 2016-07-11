@@ -81,18 +81,24 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                     tQuintileValues = DG.MathUtilities.nQuantileValues(tValues, tQuintileN),
                     tMinValue = tQuintileValues[0],
                     tMaxValue = tQuintileValues[tQuintileN],
-                    tMinMax = {min: 0, max: 1};
+                    tMinMax = {min: 0, max: 1},
+                    tColorMap = tAttrDesc.getPath('attribute.colormap'),
+                    tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc),
+                    tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap(tColorMap, tAttrColor);
                 tQuintileValues.forEach(function (iStartValue, iIndex) {
                   if (iIndex < tQuintileN) {
                     var tStopValue = tQuintileValues[iIndex + 1],
                         tLeft = tWidth * (iStartValue - tMinValue) / (tMaxValue - tMinValue),
                         tRight = tLeft + tWidth * ( tStopValue - iStartValue) / (tMaxValue - tMinValue),
-                        tColor = DG.ColorUtilities.calcContinuousColor(tMinMax, tAttrColor, (iIndex + 1)/ tQuintileN),
+                        tColor = DG.ColorUtilities.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high,
+                            (iIndex + 1)/ tQuintileN),
                         tRect = this._paper.rect(tLeft, 0, 0, 0)
                             .attr({
                               width: tRight - tLeft, height: kRectHeight,
-                              fill: tColor.colorString,
-                              'stroke-width': kStrokeWidth
+                              fill: tColor.colorString || tColor,
+                              'stroke-width': kStrokeWidth,
+                              title: '%@ – %@'.fmt( Math.round(iStartValue * 100) / 100,
+                                  Math.round(tStopValue * 100) / 100)
                             })
                             .addClass('choro-rect')
                             .click( function( iEvent) {
