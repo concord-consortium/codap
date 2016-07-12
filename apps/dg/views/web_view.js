@@ -21,11 +21,12 @@
  * and an error message, if the load fails. In particular, if the load of a
  * page from another origin fails, the underlying message will be visible. We
  * won't be able to interrogate the IFrame, so the error message will be the
- * only indication the software or the user has of the failure.
+ * only indication the user has of the failure.
  * @extends SC.View
  */
 DG.WebView = SC.View.extend(
 /** @scope DG.WebView.prototype */ {
+      classNames: ['dg-web-view'],
       childViews: ['loadingView', 'webView'],
 
       /**
@@ -40,41 +41,40 @@ DG.WebView = SC.View.extend(
        */
       isLoading: true,
 
+      loadingMessage: function () {
+        return this.isLoading ? 'DG.GameView.loading'.loc() : 'DG.GameView.loadError'.loc();
+      }.property('isLoading'),
+
       /**
        * The purpose of this view is to provide a background to the WebView
        * while it is loading and, if it fails, provide an error message.
        * When the iframe loads, if it loads correctly, it will cover this view.
        */
-      loadingView: SC.LabelView.extend({
-        urlBinding: '*parentView.value',
+      loadingView: SC.View.extend({
+        childViews: ['urlLabel', 'messageLabel'],
         isLoadingBinding: '*parentView.isLoading',
-        classNames: ['dg-web-view'],
-        classNameBindings: ['isLoading:dg-loading'],
-        value: function () {
-          if (this.getPath('isLoading')) {
-            return 'DG.GameView.loading'.loc(this.get('url'));
-          } else {
-            return 'DG.GameView.loadError'.loc(this.get('url'));
-          }
-        }.property('url', 'isLoading')
+        classNames: ['dg-web-view-backdrop'],
+        classNameBindings: [
+          'isLoading:dg-interactive-loading'
+        ],
+        urlLabel: SC.LabelView.extend({
+          layout: { left: 10, right: 0, top: 0, height: 36 },
+          valueBinding: '*parentView.parentView.value',
+          classNames: ['dg-web-view-url']
+        }),
+        messageLabel: SC.LabelView.extend({
+          layout: { left: 20, right: 20, top: 40, height: 40 },
+          valueBinding: '*parentView.parentView.loadingMessage',
+          classNames: ['dg-web-view-message']
+        })
       }),
 
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
-        valueBinding: '*parentView.value',
-        controllerBinding: '*parentView.controller',
 
-        /**
-         * If the URL is a web URL return the origin.
-         *
-         * The origin is scheme://domain_name.port
-         */
-        extractOrigin: function (url) {
-          var re = /([^:]*:\/\/[^\/]*)/;
-          if (/^http.*/i.test(url)) {
-            return re.exec(url)[1];
-          }
-        },
+        valueBinding: '*parentView.value',
+
+        controllerBinding: '*parentView.controller',
 
         /**
          * @override SC.WebView.iframeDidLoad

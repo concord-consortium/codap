@@ -102,6 +102,8 @@ DG.GameController = DG.ComponentController.extend(
         this.dataInteractivePhoneHandler = DG.DataInteractivePhoneHandler.create({
           controller: this,
         });
+        this.gamePhoneHandler.addObserver('connected', this, 'connectionDidChange');
+        this.dataInteractivePhoneHandler.addObserver('connected', this, 'connectionDidChange');
       },
 
       /**
@@ -109,6 +111,8 @@ DG.GameController = DG.ComponentController.extend(
        */
       destroy: function() {
         this.setPath('model.content', null);
+        this.removeObserver('gamePhoneHandler.connected', this, 'connectionDidChange');
+        this.removeObserver('dataInteractivePhoneHandler.connected', this, 'connectionDidChange');
         if (this.gamePhoneHandler) {
           this.gamePhoneHandler.destroy();
           this.gamePhoneHandler = null;
@@ -149,6 +153,10 @@ DG.GameController = DG.ComponentController.extend(
           return this.gamePhoneHandler.rpcEndpoint;
         }
       }.property(),
+
+      connectionDidChange: function () {
+        this.notifyPropertyChange('activeChannel');
+      },
 
       setUpChannels: function (iFrame, iUrl) {
         var setupHandler = function (iHandler, iKey) {

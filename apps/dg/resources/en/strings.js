@@ -658,8 +658,8 @@ SC.stringsFor('English', {
   'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
   
   // Game View
-  'DG.GameView.loading': 'Loading: %@',
-  'DG.GameView.loadError': 'An error occurred accessing this page: %@',
+  'DG.GameView.loading': 'Loading',
+  'DG.GameView.loadError': 'If you can see this text, loading the above URL may have failed. You can check the link in another browser tab or report the error to http://codap.concord.org/help.',
 
   // Controllers
   'DG.Component.closeComponent.confirmCloseMessage': 'Are you sure?',
