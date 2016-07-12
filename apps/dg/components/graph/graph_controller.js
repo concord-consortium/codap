@@ -62,6 +62,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           }.bind(this);
 
           storage.isTransparent = this.getPath('graphModel.isTransparent');
+          storage.plotBackgroundColor = this.getPath('graphModel.plotBackgroundColor');
+          storage.plotBackgroundOpacity = this.getPath('graphModel.plotBackgroundOpacity');
 
           this.storeDimension(dataConfiguration, storage, 'x');
           this.storeDimension(dataConfiguration, storage, 'y');
@@ -377,16 +379,16 @@ DG.GraphController = DG.DataDisplayController.extend(
         }.observes('*plotView.dragData', '*legendView.dragData'),
 
         styleControls: function () {
-          var this_ = this,
-              tResult = sc_super();
+          var tResult = sc_super();
+/*
           tResult.push( SC.CheckboxView.create({
             layout: {height: 25 },
             title: 'DG.Inspector.graphTransparency',
-            value: this_.getPath('graphModel.isTransparent'),
+            value: this.getPath('graphModel.isTransparent'),
             classNames: 'graph-transparent-check'.w(),
             localize: true,
             valueDidChange: function () {
-              var turningTransparent = !this_.getPath('graphModel.isTransparent'),
+              var turningTransparent = !this.getPath('graphModel.isTransparent'),
                   logMessage = "Made plot background " + (turningTransparent ? "transparent" : "opaque");
               DG.UndoHistory.execute(DG.Command.create({
                 name: 'plot.transparencyChange',
@@ -394,14 +396,43 @@ DG.GraphController = DG.DataDisplayController.extend(
                 redoString: 'DG.Redo.graph.toggleTransparent',
                 log: logMessage,
                 execute: function() {
-                  this_.get('graphModel').toggleProperty('isTransparent');
+                  this.get('graphModel').toggleProperty('isTransparent');
                 },
                 undo: function() {
-                  this_.get('graphModel').toggleProperty('isTransparent');
+                  this.get('graphModel').toggleProperty('isTransparent');
                 }
               }));
             }.observes('value')
-          }));
+          }.bind(this));
+*/
+          var
+              kRowHeight = 20,
+              tBkgColor = tinycolor(this.getPath('graphModel.plotBackgroundColor') || 'white'),
+              tOpacity = this.getPath('graphModel.plotBackgroundOpacity');
+          tOpacity = SC.none( tOpacity) ? 1 : tOpacity;
+          var tInitialColor = tBkgColor.setAlpha(tOpacity),
+              getStylesLayer = function () {
+                return this.stylesPane.layer();
+              }.bind(this),
+              setColor = function( iColor) {
+                this.setPath('graphModel.plotBackgroundColor', iColor.toHexString());
+                this.setPath('graphModel.plotBackgroundOpacity', iColor.getAlpha());
+              }.bind(this);
+          tResult.push(
+              DG.PickerControlView.create({
+                layout: {height: 2 * kRowHeight},
+                label: 'DG.Inspector.backgroundColor',
+                controlView: DG.PickerColorControl.create({
+                  layout: {width: 120},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tInitialColor,
+                  setColorFunc: setColor,
+                  //closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+              })
+          );
+
           return tResult;
         }.property()
       };

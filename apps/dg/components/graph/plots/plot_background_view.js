@@ -33,7 +33,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   displayProperties: ['xAxisView.model.lowerBound', 'xAxisView.model.upperBound',
                       'yAxisView.model.lowerBound', 'yAxisView.model.upperBound',
                       'xAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
-                      'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells'],
+                      'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
+                      'backgroundColor'],
 
   classNames: 'plot-view'.w(),
   classNameBindings: ['graphModel.isTransparent:plot-view-transparent'],
@@ -61,6 +62,17 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   // Private properties
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
+  colorDidChange: function() {
+    var tStoredColor = this.getPath('graphModel.plotBackgroundColor'),
+        tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
+        tNewColor = tStoredColor ? SC.Color.from( tStoredColor) : null;
+    if( !tNewColor)
+        return;
+    if( !SC.none(tStoredOpacity))
+        tNewColor.set('a', tStoredOpacity);
+    this.set('backgroundColor', tNewColor.get('cssText'));
+  }.observes('.graphModel.plotBackgroundColor', '.graphModel.plotBackgroundOpacity'),
+
   /**
    * Additional setup after creating the view
    */
@@ -71,6 +83,12 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       iPlotView.didCreateLayer();
     } );
     tGraphView.drawPlots();
+  },
+
+  init: function() {
+    sc_super();
+    this.set('backgroundColor', 'white');
+    this.colorDidChange();
   },
 
   /**

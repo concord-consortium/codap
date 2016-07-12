@@ -569,10 +569,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
         tAttrID = tAttrDesc.getPath('attribute.id');
     if (tAttrDesc.get('isNumeric')) {
       var tCases = this.get('cases');
-      tValues = tCases ? (tCases.map(function (iCase) {
+      tValues = (tCases ? (tCases.map(function (iCase) {
         var tValue = iCase.getNumValue(tAttrID);
         return isFinite(tValue) ? tValue : null;
-      })) : [].filter(function (iValue) {
+      })) : []).filter(function (iValue) {
         return iValue !== null;
       });
     }

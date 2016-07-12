@@ -611,6 +611,7 @@ SC.stringsFor('English', {
   'DG.Inspector.transparency': "Transparency:",  // "Transparency:"
   'DG.Inspector.color': "Color:",  // "Color:"
   'DG.Inspector.legendColor': "Legend color:",  // "Legend color:"
+  'DG.Inspector.backgroundColor': "Background\ncolor:",  // "Background color:"
   'DG.Inspector.stroke': "Stroke:",  // "Stroke:"
   'DG.Inspector.rescale.toolTip': "Rescale display to show all the data",  // "Rescale display to show all the data"
   'DG.Inspector.mixUp.toolTip': "Mixup all the points",  // "Mixup all the points"

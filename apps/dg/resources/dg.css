@@ -683,11 +683,11 @@ body.dg .sc-view.doc-background {
 }
 
 .plot-view {
-    background-color: white;
+    /*background-color: white;*/
 }
 
 .plot-view-transparent {
-    background-color: transparent;
+    background-color: transparent !important;
 }
 
 .graph-view {
@@ -914,4 +914,24 @@ input.editor-text {
     animation-duration: 1s;
     animation-iteration-count: infinite;
     animation-name: pulse;
+}
+
+  /*Overrides for Spectrum */
+.sp-container, .sp-container button, .sp-container input, .sp-color, .sp-hue, .sp-clear {
+    font: normal 12px "MuseoSans-500", sans-serif !important;
+}
+.sp-replacer {
+    border-color: #c6c6c6 !important;
+}
+
+.sp-replacer:hover, .sp-replacer.sp-active {
+    border-color: #888888 !important;
+}
+
+.sp-container {
+    border: solid 1px #cccccc !important;
+}
+
+.sp-palette .sp-thumb-el:hover, .sp-palette .sp-thumb-el.sp-thumb-active {
+    border-color: #888888 !important;
 }

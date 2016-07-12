@@ -199,8 +199,8 @@ DG.MathUtilities = {
 
     var tQValues = [];
     ioValues.sort(lessThan);
-    for (var tQuintile = 0; tQuintile <= iNumQuantiles; tQuintile++) {
-      tQValues.push(DG.MathUtilities.quantileOfSortedArray(ioValues, tQuintile / iNumQuantiles));
+    for (var tQuantile = 0; tQuantile <= iNumQuantiles; tQuantile++) {
+      tQValues.push(DG.MathUtilities.quantileOfSortedArray(ioValues, tQuantile / iNumQuantiles));
     }
 
     return tQValues;

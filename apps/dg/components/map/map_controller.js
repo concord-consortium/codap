@@ -72,13 +72,15 @@ DG.MapController = DG.DataDisplayController.extend(
        * I have to do my own thing.
        */
       styleControls: function () {
+        var tLegendAttrDesc = this.getPath('mapModel.dataConfiguration.legendAttributeDescription'),
+            tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+            tAttrColor = !tLegendAttrDesc.get('isNull') ? DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc) : null;
 
         if (this.getPath('mapModel.hasLatLongAttributes')) {
           return sc_super();
         }
         else if (this.getPath('mapModel.areaVarID') !== DG.Analysis.kNullAttribute) {
           var tPickerArray = [],
-              tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
 
               setColor = function (iColor) {
                 this.setPath('mapModel.areaColor', iColor.toHexString());
@@ -109,28 +111,103 @@ DG.MapController = DG.DataDisplayController.extend(
               })
             );
           }
-          else {
-            var tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
-                tAttrColor = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc),
+          else if( tLegendAttrDesc.get('isNumeric')){
+             var setLowColor = function( iColor) {
+                  tColorMap['low-attribute-color'] = iColor.toHexString();
+                  setLegendColor( iColor);
+                },
+                setHighColor = function( iColor) {
+                  tColorMap['high-attribute-color'] = iColor.toHexString();
+                  setLegendColor( iColor);
+                },
                 setLegendColor = function (iColor) {
-                  tColorMap['attribute-color'] = iColor.toHexString();
                   this.setPath('mapModel.areaTransparency', iColor.getAlpha());
                   this.get('mapModel').propertyDidChange('areaColor');  // To force update
-                }.bind(this);
+                }.bind(this),
+                tControlView = SC.View.create(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_HORIZONTAL,
+                      layout: {width: 120 },
+                      isResizable: false,
+                      isClosable: false,
+                      //defaultFlowSpacing: {right: 5},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP
+                    }
+                ),
+                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttrColor),
+                tLowEndColor = tinycolor(tSpectrumEnds.low.colorString)
+                    .setAlpha(this.getPath('dataDisplayModel.transparency')),
+                tHighEndColor = tinycolor(tSpectrumEnds.high.colorString)
+                    .setAlpha(this.getPath('dataDisplayModel.transparency'));
+            tControlView.appendChild( DG.PickerColorControl.create({
+                  layout: {width: 60},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tLowEndColor,
+                  setColorFunc: setLowColor,
+                  //closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+            );
+            tControlView.appendChild( DG.PickerColorControl.create({
+                  layout: {width: 60},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tHighEndColor,
+                  setColorFunc: setHighColor,
+                  //closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+            );
             tPickerArray.push(
                 DG.PickerControlView.create({
                   layout: {height: 2 * kRowHeight},
                   label: 'DG.Inspector.legendColor',
-                  controlView: DG.PickerColorControl.create({
-                    layout: {width: 120},
-                    classNames: 'map-fill-color'.w(),
-                    initialColor: tinycolor(tAttrColor.colorString)
-                        .setAlpha(this.getPath('mapModel.areaTransparency')),
-                    setColorFunc: setLegendColor,
-                    appendToLayerFunc: getStylesLayer
-                  })
+                  controlView: tControlView
                 })
             );
+          }
+          else if( tLegendAttrDesc.get('isCategorical')) {
+            var setCategoryColor = function (iColor, iColorKey) {
+                  tColorMap[iColorKey] = iColor.toHexString();
+                  this.setPath('mapModel.transparency', iColor.getAlpha());
+                  this.get('mapModel').propertyDidChange('areaColor');
+                }.bind(this),
+                tContentView = SC.View.create(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_VERTICAL,
+                      isResizable: false,
+                      isClosable: false,
+                      defaultFlowSpacing: {bottom: 5},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP,
+                    }
+                ),
+                tScrollView = SC.ScrollView.create({
+                  layout: {height: 100},
+                  hasHorizontalScroller: false,
+                  contentView: tContentView
+                }),
+                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
+            DG.ObjectMap.forEach(tCategoryMap, function (iCategory) {
+              var tInitialColor = tColorMap[iCategory] ?
+                  tColorMap[iCategory] :
+                  DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
+              tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(this.getPath('mapModel.transparency'));
+              tContentView.appendChild(DG.PickerControlView.create({
+                layout: {height: 2 * kRowHeight},
+                label: iCategory,
+                controlView: DG.PickerColorControl.create({
+                  layout: {width: 120},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tInitialColor,
+                  colorKey: iCategory,
+                  setColorFunc: setCategoryColor,
+                  //closedFunc: setCategoryColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+              }));
+            }.bind(this));
+            tPickerArray.push(tScrollView);
           }
           tPickerArray.push(DG.PickerControlView.create({
             layout: {height: 2 * kRowHeight},

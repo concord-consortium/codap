@@ -307,6 +307,7 @@ DG.ColorUtilities = {
     var tCaseColor = DG.ColorUtilities.kMissingValueCaseColor,
         tRange = iMinMax.max - iMinMax.min;
     // if we have a valid numeric range and case value along that range
+    // Todo: consider interpolating with hsb instead of rgb
     if (DG.isFinite(tRange) && DG.isFinite(iCaseValue) && this.isRGB( iColor1) && this.isRGB( iColor2)) {
       var tScale = Math.max( 0, Math.min( 1, (iCaseValue - iMinMax.min) / tRange)),
           tRed = iColor1.r + tScale * (iColor2.r - iColor1.r),
@@ -391,11 +392,34 @@ DG.ColorUtilities = {
   rgb_to_PlatformColor: function (red, green, blue) {
     // note: although SVG 'Interface RGBColor' says float is OK, not all libraries work
     // correctly unless values are integer. (E.g. Leaflet)
+
+    return this.rgb_to_hex( red, green, blue);
+    /*
     return ("rgb(" +
         Math.round(red * 255) + "," +
         Math.round(green * 255) + "," +
         Math.round(blue * 255) + ")"
     );
+*/
+  },
+
+  /**
+   * rgb_to_hex()
+   *      convert a color in Red, Green, Blue (RGB) color space, range [0-1],
+   *      to a hex string.
+   * @param red
+   * @param green
+   * @param blue
+   * @returns {string} #hhhhhh
+   */
+  rgb_to_hex: function (red, green, blue) {
+
+    function componentToHex(c) {
+      var hex = (Math.round( c * 255)).toString(16);
+      return hex.length === 1 ? "0" + hex : hex;
+    }
+
+    return "#" + componentToHex(red) + componentToHex(green) + componentToHex(blue);
   },
 
   /**
@@ -445,10 +469,6 @@ DG.ColorUtilities = {
       }
     }
     return tPlatformColor;
-  },
-
-  hsbColor_to_RgbColor: function( iHsbColor) {
-
   },
 
   /**

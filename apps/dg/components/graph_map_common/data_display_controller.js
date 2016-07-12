@@ -415,19 +415,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   }
                 });
               },
-              createSetAttributeColorCommand = function (name, alphaAttr, iColor) {
+              createSetAttributeColorCommand = function (name, end, alphaAttr, iColor) {
                 return DG.Command.create({
                   name: 'data.style.'+name,
                   undoString: 'DG.Undo.graph.'+name,
                   redoString: 'DG.Redo.graph.'+name,
-                  log: "Changed attribute color",
+                  log: "Changed" + end + " attribute color",
                   execute: function() {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
-                      color: tColorMap['attribute-color'],
+                      color: tColorMap[end + '-attribute-color'],
                       alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
                     };
-                    tColorMap['attribute-color'] = iColor.toHexString();
+                    tColorMap[end + '-attribute-color'] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
@@ -445,14 +445,18 @@ DG.DataDisplayController = DG.ComponentController.extend(
               },
               setColor = function (iColor) {
                 currentOpenSession = currentOpenSession || Math.random();
-                if( SC.none( tColorMap)) {
-                  DG.UndoHistory.execute(createSetColorAndAlphaCommand("changePointColor",
-                      "pointColor", "transparency", iColor));
-                }
-                else {
-                  DG.UndoHistory.execute(createSetAttributeColorCommand("changeAttributeColor",
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand("changePointColor",
+                    "pointColor", "transparency", iColor));
+              },
+              setLowColor = function (iColor) {
+                currentOpenSession = currentOpenSession || Math.random();
+                  DG.UndoHistory.execute(createSetAttributeColorCommand("changeAttributeColor", "low",
                       "transparency", iColor));
-                }
+              },
+              setHighColor = function (iColor) {
+                currentOpenSession = currentOpenSession || Math.random();
+                  DG.UndoHistory.execute(createSetAttributeColorCommand("changeAttributeColor", "high",
+                      "transparency", iColor));
               },
               setColorFinalized = function () {
                 currentOpenSession = null;
@@ -504,9 +508,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   })
                 })
               ];
-          var tInitialColor;
           if (tLegendAttrDesc.get('isNull')) {
-            tInitialColor = tinycolor(this.getPath('dataDisplayModel.pointColor'))
+            var tInitialColor = tinycolor(this.getPath('dataDisplayModel.pointColor'))
                   .setAlpha(this.getPath('dataDisplayModel.transparency'));
             tResult.push(
                 DG.PickerControlView.create({
@@ -527,21 +530,46 @@ DG.DataDisplayController = DG.ComponentController.extend(
             if(tColorMap && SC.none( tColorMap['attribute-color'])) {
               tColorMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc).colorString;
             }
-            var tAttrColor = tColorMap && tColorMap['attribute-color'];
-                tInitialColor = tinycolor(tAttrColor)
+            var tAttrColor = tColorMap && tColorMap['attribute-color'],
+                tControlView = SC.View.create(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_HORIZONTAL,
+                      layout: {width: 120 },
+                      isResizable: false,
+                      isClosable: false,
+                      //defaultFlowSpacing: {right: 5},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP
+                    }
+                ),
+                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttrColor),
+                tLowEndColor = tinycolor(tSpectrumEnds.low.colorString)
+                    .setAlpha(this.getPath('dataDisplayModel.transparency')),
+                tHighEndColor = tinycolor(tSpectrumEnds.high.colorString)
                     .setAlpha(this.getPath('dataDisplayModel.transparency'));
+            tControlView.appendChild( DG.PickerColorControl.create({
+                  layout: {width: 60},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tLowEndColor,
+                  setColorFunc: setLowColor,
+                  closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+            );
+            tControlView.appendChild( DG.PickerColorControl.create({
+                  layout: {width: 60},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tHighEndColor,
+                  setColorFunc: setHighColor,
+                  closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+            );
             tResult.push(
                 DG.PickerControlView.create({
                   layout: {height: 2 * kRowHeight},
                   label: 'DG.Inspector.legendColor',
-                  controlView: DG.PickerColorControl.create({
-                    layout: {width: 120},
-                    classNames: 'graph-point-color'.w(),
-                    initialColor: tInitialColor,
-                    setColorFunc: setColor,
-                    closedFunc: setColorFinalized,
-                    appendToLayerFunc: getStylesLayer
-                  })
+                  controlView:tControlView
                 })
             );
           }

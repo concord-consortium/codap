@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global tinycolor, Promise */
+
 sc_require('components/graph_map_common/data_display_model');
 
 /** @class  DG.GraphModel - The model for a graph.
@@ -34,7 +36,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     }.property(),
 
     isTransparent: false, // part of model state that determines whether plot views are transparent
-    
+    plotBackgroundColor: null, // part of model state that specifies color of plot background. Default is white
+    plotBackgroundOpacity: 1, // part of model state that specifies opacity of plot background. Default is 1
+
     /**
      * @property {DG.NumberToggleModel}
      */
@@ -672,6 +676,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       if( !SC.none( iStorage.isTransparent))
         this.set('isTransparent', iStorage.isTransparent);
+      if( !SC.none( iStorage.plotBackgroundColor))
+        this.set('plotBackgroundColor', iStorage.plotBackgroundColor);
+      if( !SC.none( iStorage.plotBackgroundOpacity))
+        this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 

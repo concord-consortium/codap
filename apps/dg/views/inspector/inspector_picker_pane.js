@@ -36,6 +36,10 @@ DG.InspectorPickerPane = SC.PickerPane.extend(
       init: function () {
         sc_super();
         DG.mainPage.mainPane.set('inspectorPicker', this);
+        this.set('removeTarget', this);
+      },
+      removeAction: function() {
+        console.log('removeAction');
       }
     });
 

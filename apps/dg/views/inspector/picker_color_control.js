@@ -47,6 +47,17 @@ DG.PickerColorControl = SC.View.extend(
             showAlpha: true,
             showInitial: true,
             showButtons: false,
+            togglePaletteOnly: true,
+            togglePaletteMoreText: 'more',
+            togglePaletteLessText: 'less',
+            showPaletteOnly: true,
+            showPalette: true,
+            palette: [
+              ['black', 'darkgray', 'lightgray', 'white'],
+              ['rgb(200,50,50);', 'rgb(255,150,50);', 'yellow', 'rgb(100,150,100);'],
+              ['rgb(50,150,150);', 'rgb(50,100,150);', 'rgb(50,150,200);', 'rgb(100,100,150);'],
+              ['rgb(100,100,150);', 'rgb(200,100,150);', 'rgb(100,150,150);', 'rgb(200,100,150);']
+            ],
             move: function (iColor) {
               if( this.setColorFunc)
                 this.setColorFunc( iColor, this.colorKey);
