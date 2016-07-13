@@ -171,7 +171,13 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * The displayed name of the collection
      * @property {String}
      */
-    title: null,
+    _title: null,
+    title: function (k, v) {
+      if (!SC.none(v)) {
+        this._title = v;
+      }
+      return this._title || this.name;
+    }.property(),
 
     /**
      * Initializes the DG.Collection object.

@@ -506,6 +506,10 @@ DG.appController = SC.Object.create((function () // closure
       // Parse the document contents from the retrieved docText.
       newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
 
+      if (SC.none(newDocument)) {
+        throw new Error('DG.AppController.validateDocument.parseError'.loc(iName));
+      }
+
       // set the id of the current document into the data context.
       newDocument.contexts[0].document = documentController.get('documentID');
 

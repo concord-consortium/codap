@@ -204,7 +204,7 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.missingRequiredProperty' : 'Required property not found: %@1',
   'DG.AppController.validateDocument.unexpectedProperty' : 'Unexpected top-level property: %@1',
   'DG.AppController.validateDocument.unresolvedID' : 'Unresolved id: %@1',
-  'DG.AppController.validateDocument.parseError' : 'Parse error: %@1',
+  'DG.AppController.validateDocument.parseError' : 'Parse error in document: %@1',
   'DG.AppController.validateDocument.invalidDocument' : 'Invalid JSON Document: %@1',
 
 

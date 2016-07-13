@@ -251,7 +251,7 @@ DG.DocumentArchiver = SC.Object.extend(
      *   according to the [rfc4180](http://www.ietf.org/rfc/rfc4180.txt) standard.
      * @param {string} iFileName The name of the file or URL from which the
      *   CSV text was extracted.
-     * @returns {Object} A streamable CODAP document.
+     * @returns {Object||undefined} A streamable CODAP document.
      */
     convertCSVDataToCODAPDocument: function (iText, iFileName) {
 
@@ -345,8 +345,9 @@ DG.DocumentArchiver = SC.Object.extend(
             });
             tCasesArray.push( tCase);
           });
-
           return tDoc;
+        } else {
+          DG.logWarn('CSV or Tab-delimited parsing failed: ' + iFileName);
         }
       } // parseText
 

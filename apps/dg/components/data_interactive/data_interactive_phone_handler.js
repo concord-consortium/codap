@@ -34,7 +34,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       /**
        * @type {DG.DataInteractiveModel}
        */
-      modelBinding: SC.Binding.oneWay('*controller.model'),
+      modelBinding: SC.Binding.oneWay('*controller.model.content'),
 
       idBinding: SC.Binding.oneWay('*model.id'),
 

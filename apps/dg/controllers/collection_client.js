@@ -47,8 +47,8 @@ DG.CollectionClient = SC.Object.extend(
     }
     return this.collection && this.collection.get('name');
   }.property('collection').cacheable(),
-      
-  titleBinding: 'collection.title',
+
+  titleBinding: '.collection.title',
 
   collapseChildren: function () {
     return this.collection && this.collection.get('collapseChildren');

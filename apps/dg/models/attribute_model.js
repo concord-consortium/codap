@@ -42,6 +42,17 @@ DG.Attribute = DG.BaseModel.extend(
     name: '',
 
     /**
+     * The displayable name of the attribute
+     */
+    _title: null,
+    title: function (k, v) {
+      if (!SC.none(v)) {
+        this._title = v;
+      }
+      return this._title || this.get('name');
+    }.property(),
+
+    /**
      * The formula for the attribute
      * @property {String}
      */
@@ -346,12 +357,12 @@ DG.Attribute = DG.BaseModel.extend(
     },
     toArchive: function () {
       return {
-        name: this.name,
+        name: this.get('name'),
         type: this.type,
-        title: this.title,
+        title: this.get('title'),
         defaultMin: this.defaultMin,
         defaultMax: this.defaultMax,
-        description: this.description,
+        description: this.get('description'),
         colormap: this.colormap || undefined,
         blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
         editable: this.editable,

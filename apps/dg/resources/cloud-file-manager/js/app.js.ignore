@@ -13405,11 +13405,14 @@ module.exports = React.createClass({
   download: function(e) {
     var json, makeBlobURL, ref1;
     makeBlobURL = function(msg) {
-      var blob;
+      var blob, wURL;
+      wURL = window.URL || window.webkitURL;
       blob = new Blob([msg], {
         type: 'text/plain'
       });
-      return window.URL.createObjectURL(blob);
+      if (wURL) {
+        return wURL.createObjectURL(blob);
+      }
     };
     if (this.state.trimmedFilename.length > 0) {
       json = this.props.content.getContent();
