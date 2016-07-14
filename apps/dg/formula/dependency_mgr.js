@@ -62,7 +62,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
     The data context for which dependencies are being tracked
     @type {DG.DataContext}
    */
-  context: null,
+  dataContext: null,
 
   /**
     The nodes of the dependency graph
@@ -150,7 +150,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
   },
 
   /**
-    Adds the specified node to the dependency map if it's not already present
+    Removes the specified node from the dependency map if it's present
     @param  {object}  iNodeSpec - the node specification
     @param  {string}  .type - the type of the node
     @param  {string}  .id - the id of the node
@@ -164,8 +164,8 @@ DG.DependencyMgr = SC.Object.extend((function() {
     var key = this.createKey(iNodeSpec),
         node = this._nodes[key];
     if (node && !(node.dependents && node.dependents.length)) {
-      DG.depMgrLog("DG.DependencyMgr.removeNode: Removing %@ '%@' from the dependency graph",
-                  iNodeSpec.type, iNodeSpec.name);
+      DG.depMgrLog("DG.DependencyMgr[%@].removeNode: Removing %@ '%@' from the dependency graph",
+                  this.getPath('dataContext.name'), iNodeSpec.type, iNodeSpec.name);
       delete this._nodes[key];
     }
   },
@@ -183,6 +183,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
     @param {string}     .id - the id of the node
     @param {number[]} .aggFnIndices - the indices of any dependent aggregate functions
     @param {function} .dependentContext - formula context for invalidation
+    @param {object}   .srcDependencyMgr - DependencyMgr responsible for independent node
    */
   registerDependency: function(iDependency) {
     var dependentNode = this.findNode(iDependency.dependentSpec),
@@ -191,7 +192,8 @@ DG.DependencyMgr = SC.Object.extend((function() {
                                       : ["a new non-aggregate", "a new aggregate"],
         independentNode = this.findOrRegisterNode(iDependency.independentSpec);
 
-    DG.depMgrLog("DG.DependencyMgr.registerDependency:\n%@ '%@' has %@ dependency on %@ '%@'",
+    DG.depMgrLog("DG.DependencyMgr[%@].registerDependency:\n%@ '%@' has %@ dependency on %@ '%@'",
+                this.getPath('dataContext.name'),
                 iDependency.dependentSpec.type, iDependency.dependentSpec.name,
                 descriptors[iDependency.aggFnIndices.length > 0 ? 1 : 0],
                 iDependency.independentSpec.type, iDependency.independentSpec.name);
@@ -200,8 +202,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
               "DG.DependencyMgr.registerDependency: dependentNode not found!",
               "Formulas should be registered before they are compiled.");
 
-    this._addDependency(dependentNode, independentNode,
-                        iDependency.aggFnIndices, iDependency.dependentContext);
+    this._addDependency(dependentNode, independentNode, iDependency);
     this._addDependent(dependentNode, independentNode);
   },
 
@@ -213,18 +214,19 @@ DG.DependencyMgr = SC.Object.extend((function() {
     @param {object}   iDependentContext - formula context for invalidation
     @private
    */
-  _addDependency: function(iDependentNode, iIndependentNode, iAggFnIndices, iDependentContext) {
+  _addDependency: function(iDependentNode, iIndependentNode, iDependency) {
     var dependencies = iDependentNode.dependencies,
         dependencyCount = dependencies.length,
         i, dependency,
-        aggFnIndexCount = iAggFnIndices ? iAggFnIndices.length : 0;
+        aggFnIndices = iDependency.aggFnIndices,
+        aggFnIndexCount = aggFnIndices ? aggFnIndices.length : 0;
     for (i = 0; i < dependencyCount; ++i) {
       dependency = dependencies[i];
       // do we already have this dependency in the list?
       if (0 === _compareNodeSpecs(dependency.node, iIndependentNode)) {
         if (aggFnIndexCount) {
           // keep track of aggFnIndices affected
-          iAggFnIndices.forEach(function(iAggFnIndex) {
+          aggFnIndices.forEach(function(iAggFnIndex) {
             if (dependency.aggFnIndices.indexOf(iAggFnIndex) < 0) {
               dependency.aggFnIndices.push(iAggFnIndex);
             }
@@ -239,8 +241,9 @@ DG.DependencyMgr = SC.Object.extend((function() {
     // if it's not already present in the list, add it
     dependencies.push({ node: iIndependentNode,
                         simpleDependency: !aggFnIndexCount,
-                        aggFnIndices: aggFnIndexCount ? iAggFnIndices.slice() : [],
-                        dependentContext: iDependentContext });
+                        aggFnIndices: aggFnIndexCount ? aggFnIndices.slice() : [],
+                        dependentContext: iDependency.dependentContext,
+                        srcDependencyMgr: iDependency.srcDependencyMgr });
   },
 
   /**
@@ -327,6 +330,9 @@ DG.DependencyMgr = SC.Object.extend((function() {
       dependency = dependencies[i];
       dependency.simpleDependency = false;
       dependency.aggFnIndices = [];
+      // clear remote dependencies such as those created from lookup functions
+      if (dependency.srcDependencyMgr && (this !== dependency.srcDependencyMgr))
+        dependency.srcDependencyMgr._clearDependencies(iDependentSpec);
     }
   },
 
@@ -351,12 +357,16 @@ DG.DependencyMgr = SC.Object.extend((function() {
       dependency = dependencies[i];
       if (!dependency.simpleDependency && !dependency.aggFnIndices.length) {
         independentNode = dependency.node;
-        DG.depMgrLog("DG.DependencyMgr._pruneDependencies:\nRemoving dependence of %@ '%@' on %@ '%@'",
+        DG.depMgrLog("DG.DependencyMgr[%@]._pruneDependencies:\nRemoving dependence of %@ '%@' on %@ '%@'",
+                    this.getPath('dataContext.name'), 
                     dependentNode.type, dependentNode.name,
                     independentNode.type, independentNode.name);
         this._removeDependent(dependentNode, independentNode);
         dependencies.splice(i, 1);
       }
+      // prune remote dependencies such as those created from lookup functions
+      if (dependency.srcDependencyMgr && (this !== dependency.srcDependencyMgr))
+        dependency.srcDependencyMgr._pruneDependencies(iDependentSpec);
     }
   },
 
@@ -388,8 +398,8 @@ DG.DependencyMgr = SC.Object.extend((function() {
           dependency.dependentContext
             .invalidateDependent(result, iDependent, dependency, iCases, iForceAggregate);
         }
-        DG.depMgrLog("DG.DependencyMgr.invalidateDependents: Invalidating %@ '%@'",
-                    iDependent.type, iDependent.name);
+        DG.depMgrLog("DG.DependencyMgr[%@].invalidateDependents: Invalidating %@ '%@'",
+                      this.getPath('dataContext.name'), iDependent.type, iDependent.name);
         // recursively invalidate additional affected nodes
         invalidateDependents(iDependent, iForceAggregate || dependency.aggFnIndices.length);
       }.bind(this));
