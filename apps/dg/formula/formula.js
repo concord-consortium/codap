@@ -328,14 +328,15 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
     var fnName = iNode.name.name,
         isAggFn = iContext.isAggregate(fnName),
         i, len = iNode.args && iNode.args.length,
-        args = [];
+        aggFnIndices = [], args = [];
     iContext.beginFunctionContext({ name: fnName, isAggregate: isAggFn });
     for( i = 0; i < len; ++i) {
       args.push( visit( iNode.args[i]));
     }
+    aggFnIndices = iContext.getAggregateFunctionIndices();
     iContext.endFunctionContext({ name: fnName });
     // Pass function references to the context
-    return iContext.compileFunction( fnName, args);
+    return iContext.compileFunction( fnName, args, aggFnIndices);
   }
   
   function visitTerm( iNode) {

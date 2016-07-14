@@ -86,15 +86,38 @@ DG.FormulaContext = SC.Object.extend( (function() {
 
   /**
     Called when a dependency is identified during compilation.
-    Derived classes may override as appropriate.
-    @param {object}   iNodeSpec - the specs of the node being depended upon
-    @param {string}   .type - the type of the node being depended upon
-    @param {string}   .id - the id of the node being depended upon
-    @param {string}   .name - the name of the node being depended upon
+    @param {object}   iDependency
+    @param {object}   .dependentSpec - the specs of the node that is dependant
+    @param {string}     .type - the type of the node that is dependant
+    @param {string}     .id - the id of the node that is dependant
+    @param {string}     .name - the name of the node that is dependant
+                        defaults to the ownerSpec of the current context
+    @param {object}   .independentSpec - the specs of the node being depended upon
+    @param {string}     .type - the type of the node being depended upon
+    @param {string}     .id - the id of the node being depended upon
+    @param {string}     .name - the name of the node being depended upon
+    @param {number[]} .aggFnIndices - array of aggregate function indices
+                          defaults to the aggregate functions on the stack
+                          at compile time when the variable is bound
+    @param {object}   .dependentContext - the formula context for the dependent node
    */
-  registerDependency: function(iNodeSpec) {
+  registerDependency: function(iDependency) {
   },
 
+  /**
+    Invalidation function for use with the dependency manager.
+    Called by the dependency manager when invalidating nodes as a result
+    of tracked dependencies.
+    @param {object}     ioResult
+    @param {object}     iDependent
+    @param {object}     iDependency
+    @param {DG.Case[]}  iCases - array of cases affected
+                                 if no cases specified, all cases are affected
+    @param {boolean}    iForceAggregate - treat the dependency as an aggregate dependency
+   */
+  invalidateDependent: function(ioResult, iDependent, iDependency, iCases, iForceAggregate) {
+  },
+  
   /**
     Returns true if the specified function name refers to an aggregate function.
     Derived classes may override as appropriate.
@@ -423,12 +446,16 @@ DG.FormulaContext = SC.Object.extend( (function() {
     binding to global functions such as ln(), log(), round(), etc. as well
     as the standard JavaScript Math functions (sin(), cos(), atan()), etc.
     @param    {String}    iName -- The name of the function to be called.
-    @param    {Array}     iArgs -- the arguments to the function
+    @param    {String[]}  iArgs -- array of arguments to the function
+    @param    {Number[]}  iAggFnIndices -- array of aggregate function indices
+                            indicating the aggregate function call stack, which
+                            determines the aggregates that must be invalidated
+                            when a dependent changes.
     @returns  {String}    The JavaScript code for calling the specified function
     @throws   {DG.FuncReferenceError} Throws DG.FuncReferenceError for function
                                       names that are not recognized.
    */
-  compileFunction: function( iName, iArgs) {
+  compileFunction: function( iName, iArgs, iAggFnIndices) {
     
     // Functions provided by built-in '_fns' property of context
     var _fns = this.get('_fns');

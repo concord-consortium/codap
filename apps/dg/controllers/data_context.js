@@ -1296,7 +1296,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }.bind(this);
 
     if (!result.simpleDependencies.length && !result.aggregateDependencies.length) {
-      DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents");
+      //DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents");
     }
     else {
       if (!iChange && result.simpleDependencies.length) {
@@ -1328,21 +1328,21 @@ DG.DataContext = SC.Object.extend((function() // closure
       // handle simple dependencies, but only for updateCases
       if (result.simpleDependencies.length &&
           iChange && (iChange.operation === 'updateCases')) {
-        DG.log("DG.DataContext.invalidateNodesAndNotify: simpleDependents: [%@]",
-                result.simpleDependencies.map(function(iDep) {
-                                            return "'" + iDep.name + "'";
-                                          })
-                                          .join(", "));
+        // DG.log("DG.DataContext.invalidateNodesAndNotify: simpleDependents: [%@]",
+        //         result.simpleDependencies.map(function(iDep) {
+        //                                     return "'" + iDep.name + "'";
+        //                                   })
+        //                                   .join(", "));
         simpleNotification = convertDependenciesToNotification(result.simpleDependencies, iChange);
       }
 
       // handle aggregate dependencies
       if (result.aggregateDependencies.length) {
-        DG.log("DG.DataContext.invalidateNodesAndNotify: aggregateDependents: [%@]",
-                result.aggregateDependencies.map(function(iDep) {
-                                                return "'" + iDep.name + "'";
-                                              })
-                                              .join(", "));
+        // DG.log("DG.DataContext.invalidateNodesAndNotify: aggregateDependents: [%@]",
+        //         result.aggregateDependencies.map(function(iDep) {
+        //                                         return "'" + iDep.name + "'";
+        //                                       })
+        //                                       .join(", "));
         aggregateNotification = convertDependenciesToNotification(result.aggregateDependencies);
       }
 
