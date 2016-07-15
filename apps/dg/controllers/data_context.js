@@ -176,11 +176,13 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasDataInteractive: function () {
-    var components = DG.currDocumentController().get('components');
-    return DG.ObjectMap.values(components).some(function (component) {
-      var id = (component.getPath('content.context.id'));
-      return (component.get('type') === 'DG.GameView') && (!SC.none(id) && id === this.get('id'));
+    var dataInteractives = DG.currDocumentController().get('dataInteractives');
+    var myID = this.get('id');
+    var hasSome = dataInteractives && DG.ObjectMap.values(dataInteractives).some(function (dataInteractive) {
+      var id = (dataInteractive.getPath('context.id'));
+      return (!SC.none(id) && (id === myID));
     }.bind(this));
+    return hasSome;
   }.property(),
 
   /**
