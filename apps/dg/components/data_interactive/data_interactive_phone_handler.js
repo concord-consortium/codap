@@ -254,13 +254,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @returns {{interactiveFrame: DG.DataInteractivePhoneHandler}}
        */
       resolveResources: function (resourceSelector, action) {
-        function resolveContext(selector, myModel) {
+        function resolveContext(selector, myContext) {
           var context;
           if (SC.empty(selector)) {
             return;
           }
           if (selector === '#default') {
-            context = myModel.get('context');
+            context = myContext;
           } else {
             context = DG.currDocumentController().getContextByName(resourceSelector.dataContext);
           }
@@ -274,12 +274,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'dataContextList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
-          if (SC.none(resourceSelector.dataContext) && (action !== 'create' && resourceSelector.type !== 'dataContext')) {
-            resourceSelector.dataContext = '#default';
+          if (SC.none(resourceSelector.dataContext) ) {
+            if (action !== 'create' || resourceSelector.type !== 'dataContext') {
+              resourceSelector.dataContext = '#default';
+            }
             // set a flag in the result, so we can recognize this context as special.
             result.isDefaultDataContext = true;
           }
-          result.dataContext = resolveContext(resourceSelector.dataContext, this.get('model'));
+          result.dataContext = resolveContext(resourceSelector.dataContext, this.getPath('controller.context'));
         }
 
         if (resourceSelector.component) {
@@ -461,15 +463,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           context = DG.currDocumentController().createNewDataContext(iValues);
           if (iResources.isDefaultDataContext) {
-            this.setPath('model.context', context);
+            this.setPath('controller.context', context);
           }
           if (collectionSpecs) {
             collectionSpecs.forEach(function (collectionSpec) {
               var collectionClient;
+              var parentCollectionClient;
+              var hasParent = false;
+              var error = false;
               if (collectionSpec.parent) {
-                collectionSpec.parent = context.getCollectionByName(collectionSpec.parent).collection;
+                parentCollectionClient = context.getCollectionByName(
+                    collectionSpec.parent);
+                hasParent = true;
               }
-              collectionClient = context.createCollection(collectionSpec);
+              if (hasParent) {
+                if (parentCollectionClient) {
+                  collectionSpec.parent = parentCollectionClient.collection;
+                } else {
+                  DG.log( 'Attempt to create collection "%@": Unknown parent: "%@"'
+                          .loc(collectionSpec.name, collectionSpec.parent));
+                  error = true;
+                }
+              }
+              if (!error) {
+                collectionClient = context.createCollection(collectionSpec);
+              }
               status = status && !SC.none(collectionClient);
             });
           }
