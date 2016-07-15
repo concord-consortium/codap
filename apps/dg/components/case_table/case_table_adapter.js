@@ -385,7 +385,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       this.updateColumnInfo();
     this.markCasesChanged();
     this.gridDataView.refresh();
-  }.observes('.collection.attrFormulaChanges','.collection.attrFormulaDependentChanges'),
+  }.observes('.collection.attrFormulaChanges'),
   
   /**
     Refreshes the contents of the table.
