@@ -368,25 +368,27 @@ DG.GamePhoneHandler = SC.Object.extend(
        */
       handleInitGame: function (iArgs, iCallback) {
         var finishInitGame = function () {
-          // Ordinarily a component controller's model.content is the model that store's the
-          // underlying state. But the model for a game controller (a Component) doesn't have
-          // a natural content. So, as a workaround, we make ourselves its content so we can provide
-          // a default title.
-          this.set('defaultTitle', iArgs.name);
-          this.setPath('model.content', this);
+          SC.run(function () {
+            // Ordinarily a component controller's model.content is the model that store's the
+            // underlying state. But the model for a game controller (a Component) doesn't have
+            // a natural content. So, as a workaround, we make ourselves its content so we can provide
+            // a default title.
+            this.set('defaultTitle', iArgs.name);
+            this.setPath('model.content', this);
 
-          // Once all the collections and attributes are created,
-          // we're ready to play the game.
-          this.set('gameIsReady', true);
-          this.notifyPropertyChange('gameIsReady');
+            // Once all the collections and attributes are created,
+            // we're ready to play the game.
+            this.set('gameIsReady', true);
+            this.notifyPropertyChange('gameIsReady');
 
-          if ((iArgs.log === undefined) || iArgs.log)
-            DG.logUser("initGame: '%@', Collections: [%@]", tCurrentGameName,
-                tGameCollections.getEach('name').join(", "));
-          this.updateLayout();
-          if (iCallback) {
-            iCallback();
-          }
+            if ((iArgs.log === undefined) || iArgs.log)
+              DG.logUser("initGame: '%@', Collections: [%@]", tCurrentGameName,
+                  tGameCollections.getEach('name').join(", "));
+            this.updateLayout();
+            if (iCallback) {
+              iCallback();
+            }
+          }.bind(this));
         }.bind(this);
 
         //DG.log('InitGame: ' + JSON.stringify(iArgs));
