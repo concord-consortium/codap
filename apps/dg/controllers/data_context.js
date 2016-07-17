@@ -1256,7 +1256,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         changeCollectionID = changeCollection && changeCollection.get('id'),
         changeCases = (iChange && iChange.cases) || [],
         result = this.get('dependencyMgr').invalidateNodes(iNodes),
-        simpleNotification, aggregateNotification;
+        simpleNotification, aggregateNotification,
+        externalDataContexts = [];
 
     var convertDependenciesToNotification = function(iDependencies, iChange) {
       var notification = { operation: 'dependentCases', changes: [], isComplete: true },
@@ -1267,11 +1268,22 @@ DG.DataContext = SC.Object.extend((function() // closure
         var type = iDep.type,
             attr = type === DG.DEP_TYPE_ATTRIBUTE
                     ? DG.Attribute.getAttributeByID(iDep.id) : null,
+            dataContextRecord, dataContextID, dataContext,
             collectionRecord = attr && attr.get('collection'),
             collectionID = collectionRecord && collectionRecord.get('id'),
             collectionClient = collectionID && this.getCollectionByID(collectionID),
             affectedCases,
             change = collectionChanges[collectionID];
+        if (!collectionClient) {
+          // we may have an external data context reference
+          dataContextRecord = collectionRecord && collectionRecord.get('context');
+          dataContextID = dataContextRecord && dataContextRecord.get('id');
+          dataContext = DG.DataContext.retrieveContextFromMap(null, dataContextID);
+          collectionClient = dataContext && collectionID && 
+                              dataContext.getCollectionByID(collectionID);
+          if (externalDataContexts.indexOf(dataContext) < 0)
+            externalDataContexts.push(dataContext);
+        }
         if (!change) {
           // For simple dependencies within the same collection as the original
           // change, only the cases originally changed can be affected.
@@ -1281,7 +1293,8 @@ DG.DataContext = SC.Object.extend((function() // closure
           // from a child collection attribute formula to a parent collection
           // attribute, but for now we make this simplifying assumption.
           affectedCases = collectionID === changeCollectionID ? changeCases : [];
-          change = collectionChanges[collectionID] = { collection: collectionClient,
+          change = collectionChanges[collectionID] = { dataContext: dataContext || this,
+                                                        collection: collectionClient,
                                                         attributeIDs: [ iDep.id ],
                                                         cases: affectedCases };
         }
@@ -1350,8 +1363,13 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       if (simpleNotification)
         this.applyChange(simpleNotification);
-      if (aggregateNotification)
+      if (aggregateNotification) {
         this.applyChange(aggregateNotification);
+        // signal any dependent contexts to update as well
+        externalDataContexts.forEach(function(iDataContext) {
+          iDataContext.applyChange(aggregateNotification);
+        });
+      }
     }
   },
 

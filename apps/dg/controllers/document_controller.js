@@ -1349,6 +1349,15 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
+     * Retrieve data context by name.
+     * @param {string} name
+     * @returns {DG.DataContext}
+     */
+    getContextByTitle: function (name) {
+      return this.contexts.find(function(context) { return context.get('title') === name; });
+    },
+
+    /**
      * Retrieve data context by id.
      *
      * @param {number} id
