@@ -272,6 +272,13 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
       attribute.invalidateCases(null, iDependency.aggFnIndices);
       ioResult.aggregateDependencies.push(iDependent);
     }
+
+    // If we're invalidating a lookup...() function as a result of an invalidation
+    // cascade in the source context, start an invalidation cascade locally.
+    var dependencyMgr = this.get('dependencyMgr');
+    if (iDependency.srcDependencyMgr && (dependencyMgr !== iDependency.srcDependencyMgr)) {
+      dependencyMgr.invalidateNodes([iDependent]);
+    }
   },
 
   /**

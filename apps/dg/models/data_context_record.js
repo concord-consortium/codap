@@ -101,7 +101,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     init: function () {
       this.collections = {};
-      this.dependencyMgr = DG.DependencyMgr.create();
+      this.dependencyMgr = DG.DependencyMgr.create({ dataContext: this });
       this.dataSet = DG.DataSet.create({dataContextRecord: this});
       sc_super();
     },
@@ -246,7 +246,7 @@ DG.DataContextRecord.createContext = function( iProperties) {
       DG.Collection.createCollection(iProps);
     });
   }
-  DG.log('Create context: ');
+  DG.log("Create context: '%@'", tContext.name);
 
   return tContext;
 };
