@@ -131,8 +131,10 @@ DG.AttributeStats = SC.Object.extend(
             }
             this.numericStats.setIfChanged('squaredDeviations', null);  // We can't compute this without iteration
           }
-          else if( tInfo.isNominal) {
-            this.numericStats.setIfChanged('attributeType', DG.Analysis.EAttributeType.eCategorical);
+          else if( tInfo.isNominal && !isNaN( tValue)) {
+            this.numericStats.setIfChanged('attributeType',
+                DG.ColorUtilities.isColorSpecString( tValue) ? DG.Analysis.EAttributeType.eColor :
+                  DG.Analysis.EAttributeType.eCategorical);
           }
         }.bind( this ),
 
@@ -218,23 +220,29 @@ DG.AttributeStats = SC.Object.extend(
 
       // We don't have a value stored, so we compute the answer
       if( tAttributes.length === 0 )
-        return DG.Analysis.EAttributeType.eNone;
-
-      // If our first attribute has a type assigned, we return it
-      switch( tAttributes[ 0].get('type')) {
-        case 'nominal':
-          return DG.Analysis.EAttributeType.eCategorical;
-        case 'numeric':
-          return DG.Analysis.EAttributeType.eNumeric;
-        default:
+      {
+        this._attributeType = DG.Analysis.EAttributeType.eNone;
+      }
+      else {
+        // If our first attribute has a type assigned, we return it
+        switch( tAttributes[ 0].get('type')) {
+          case 'nominal':
+            this._attributeType = DG.Analysis.EAttributeType.eCategorical;
+          case 'numeric':
+            this._attributeType = DG.Analysis.EAttributeType.eNumeric;
+          default:
           // Do nothing
+        }
       }
 
-      // Finally, determine the type from the actual values, if any
-      if( !this._numericCacheIsValid )
-        this._computeNumericStats();
+      // If we still haven't got a type, determine it from the actual values, if any
+      if(SC.none( this._attributeType)) {
+        if( !this._numericCacheIsValid )
+          this._computeNumericStats();
+        this._attributeType = this.getPath( 'numericStats.attributeType' );
+      }
 
-      return this.getPath( 'numericStats.attributeType' );
+      return this._attributeType;
     }.property('attributes'),
 
     attributeTypeDidChange: function() {
@@ -251,6 +259,7 @@ DG.AttributeStats = SC.Object.extend(
         tCaseCount = 0,
         tAttributeType,
         tDataIsNumeric = true,
+        tColorValuesExist = false,
         tMin = Number.POSITIVE_INFINITY,
         tMax = Number.NEGATIVE_INFINITY,
         tPositiveMin = Number.MAX_VALUE,
@@ -279,8 +288,8 @@ DG.AttributeStats = SC.Object.extend(
          // Let infinity and NaN through as numbers. And don't let null be treated as categorical
          else if( (typeof iCaseValue !== 'number') && !SC.empty( iCaseValue ) ) {
            tValue = String( iCaseValue );
-           if( tDataIsNumeric && !SC.empty( tValue ) )
-             tDataIsNumeric = false;
+           tDataIsNumeric = tDataIsNumeric && SC.empty( tValue );
+           tColorValuesExist = tColorValuesExist || DG.ColorUtilities.isColorSpecString(tValue);
          }
        }
 
@@ -318,7 +327,8 @@ DG.AttributeStats = SC.Object.extend(
           }
         }
         tAttributeType = tDataIsNumeric ? DG.Analysis.EAttributeType.eNumeric :
-                         DG.Analysis.EAttributeType.eCategorical;
+            (tColorValuesExist ? DG.Analysis.EAttributeType.eColor :
+                DG.Analysis.EAttributeType.eCategorical);
         this.numericStats.set( 'attributeType', tAttributeType );
         this._numericCacheIsValid = true;
       this.numericStats.endPropertyChanges();
@@ -335,7 +345,7 @@ DG.AttributeStats = SC.Object.extend(
 
     numberOfCellsDidChange: function() {
       this.notifyPropertyChange('numberOfCells');
-    }.observes('*numericStats.numberOfCells'),
+    }.observes('*categoricalStats.numberOfCells'),
 
     /**
      @property{Number} The number of categorical cells

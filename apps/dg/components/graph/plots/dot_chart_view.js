@@ -75,6 +75,8 @@ DG.DotChartView = DG.PlotView.extend(
   }.property('orientation', 'yAxisView', 'xAxisView'),
 
   dataDidChange: function() {
+    if( !this.getPath('model.dataConfiguration'))
+        return; // Can happen during destroy
     // Override because we're going to do the work in updatePoints
     this.get('model').invalidateCaches();
     this.updatePoints();

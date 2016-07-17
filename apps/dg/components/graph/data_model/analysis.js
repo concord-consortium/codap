@@ -30,7 +30,8 @@ DG.Analysis = {
         eNone: 0,
         eNumeric: 1,
         eCategorical: 2,
-        eBoundary: 3
+        eBoundary: 3,
+        eColor: 4
   },
 
   /**
@@ -51,7 +52,11 @@ DG.Analysis = {
    * Constant to indicate a null attribute. It's inconvenient to use null because in a property
       function you can't distinguish between a desire to set it to null and a value of null.
    */
-  kNullAttribute: null
+  kNullAttribute: null,
+
+  forceColorToCategorical: function( iType) {
+    return (iType === this.EAttributeType.eColor) ? this.EAttributeType.eCategorical : iType;
+  }
 
 };
 

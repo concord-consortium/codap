@@ -79,15 +79,20 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       desiredExtent: function() {
         var tLabelHeight = this.get('labelExtent').y,
             tExtent = tLabelHeight + 2 * kVMargin;
-        if( this.get('isNumeric')) {
-          tExtent += this.getPath('choroplethView.desiredExtent');
-        }
-        else {  // Categorical
-          var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
-              tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth )),
-              tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
-              tNumRows = Math.ceil( tNumCells / tNumColumns);
-          tExtent += tNumRows * tLabelHeight;
+        switch( this.get('attributeType')) {
+          case DG.Analysis.EAttributeType.eNumeric:
+            tExtent += this.getPath('choroplethView.desiredExtent');
+            break;
+          case DG.Analysis.EAttributeType.eCategorical:
+            var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
+                tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth )),
+                tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
+                tNumRows = Math.ceil( tNumCells / tNumColumns);
+            tExtent += tNumRows * tLabelHeight;
+            break;
+          case DG.Analysis.EAttributeType.eColor:
+            tNumRows = 1;
+            break;
         }
         return tExtent;
       }.property(),
@@ -280,15 +285,16 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
         var tChoroplethView = this.get('choroplethView');
         renderLabel();
-        if( this.get('isNumeric'))
-        {
-          tChoroplethView.set('model', this.get('model'));
-          tChoroplethView.set('isVisible', true);
-          tChoroplethView.adjust('top', kVMargin + this.get('labelExtent').y);
-        }
-        else {
-          tChoroplethView.set('isVisible', false);
-          drawCategoriesKey();
+        switch( this.get('attributeType')) {
+          case DG.Analysis.EAttributeType.eNumeric:
+            tChoroplethView.set('model', this.get('model'));
+            tChoroplethView.set('isVisible', true);
+            tChoroplethView.adjust('top', kVMargin + this.get('labelExtent').y);
+            break;
+          case DG.Analysis.EAttributeType.eCategorical:
+            tChoroplethView.set('isVisible', false);
+            drawCategoriesKey();
+            break;
         }
       },
 
@@ -337,7 +343,16 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.notifyPropertyChange('isNumeric');
       }.observes('*model.attributeDescription.isNumeric'),
 
+      /**
+       * attributeType
+       * @property {DG.Analysis.EAttributeType}
+       */
+      attributeType: function() {
+        return this.getPath('model.attributeDescription.attributeType');
+      }.property(),
+
       attributeTypeDidChange: function() {
+        this.notifyPropertyChange('attributeType');
         this.displayDidChange();
       }.observes('*model.attributeDescription.attributeStats.attributeType'),
 

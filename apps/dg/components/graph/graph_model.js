@@ -18,8 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global tinycolor, Promise */
-
 sc_require('components/graph_map_common/data_display_model');
 
 /** @class  DG.GraphModel - The model for a graph.
