@@ -104,6 +104,10 @@ DG.FormulaContext = SC.Object.extend( (function() {
   registerDependency: function(iDependency) {
   },
 
+  invalidateNamespace: function() {
+    this.notifyPropertyChange('namespaceChange');
+  },
+
   /**
     Invalidation function for use with the dependency manager.
     Called by the dependency manager when invalidating nodes as a result
@@ -180,6 +184,11 @@ DG.FormulaContext = SC.Object.extend( (function() {
       if( vars && (vars[iName] !== undefined))
         return 'c.vars.' + iName;
     }
+    this.registerDependency({ independentSpec: {
+                                type: DG.DEP_TYPE_UNDEFINED,
+                                id: iName,
+                                name: iName
+                            }});
     return '(function(){throw new DG.VarReferenceError(' + iName + ');})()';
   },
   

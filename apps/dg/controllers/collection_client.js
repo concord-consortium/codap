@@ -71,7 +71,6 @@ DG.CollectionClient = SC.Object.extend(
   casesController: null,
   
   attrFormulaChanges: null,
-  attrFormulaDependentChanges: 0,
   
   /**
     Returns true if this collection contains attributes with formulas that
@@ -287,15 +286,6 @@ DG.CollectionClient = SC.Object.extend(
     @param    {DG.Attribute}  iAttribute -- The attribute being added
    */
   didCreateAttribute: function( iAttribute) {
-    // Ultimately, we want all formula changes to be notified automatically, as the following
-    // line would suggest. Currently, however, using the DG.MemoryDataSource, it seems that
-    // minor changes like adding new cases result in many "all properties changed" notifications,
-    // which result in many spurious calls to this.attributeFormulaDidChange. Therefore, for
-    // the short term we only notify when we know we've made the change (see guaranteeAttribute
-    // below). This issue should be revisited when we have a real data source/back end.
-    //iAttribute.addObserver('formula', this, 'attributeFormulaDidChange');
-    
-    iAttribute.addObserver('dependentChange', this, 'attrFormulaDependentDidChange');
   },
   
   /**
@@ -304,7 +294,6 @@ DG.CollectionClient = SC.Object.extend(
     Removes necessary observers from each attribute in the collection.
    */
   willDestroyAttribute: function( iAttribute) {
-    iAttribute.removeObserver('dependentChange', this, 'attrFormulaDependentDidChange');
   },
 
   makeAttributeNameLegal: function (iName) {
@@ -522,14 +511,6 @@ DG.CollectionClient = SC.Object.extend(
       }
       this.set('attrFormulaChanges', attrID);
     this.endPropertyChanges();
-  },
-  
-  /**
-    Observer function for attribute formulas' 'dependentChange' notifications.
-    Increments the 'attrFormulaDependentChanges' property, triggering observers.
-   */
-  attrFormulaDependentDidChange: function() {
-    this.incrementProperty('attrFormulaDependentChanges');
   },
   
   /**

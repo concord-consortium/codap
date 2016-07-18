@@ -209,6 +209,7 @@ DG.Attribute = DG.BaseModel.extend(
                         collection: this.get('collection') });
       this._dgFormula = DG.Formula.create({ context: context });
 
+      this._dgFormula.addObserver('namespaceChange', this, 'namespaceDidChange');
       this._dgFormula.addObserver('dependentChange', this, 'dependentDidChange');
     },
 
@@ -218,6 +219,7 @@ DG.Attribute = DG.BaseModel.extend(
      */
     destroyDGFormula: function() {
       this._dgFormula.removeObserver('dependentChange', this, 'dependentDidChange');
+      this._dgFormula.removeObserver('namespaceChange', this, 'namespaceDidChange');
       this._dgFormula.destroy();
       this._dgFormula = null;
     },
@@ -338,6 +340,14 @@ DG.Attribute = DG.BaseModel.extend(
         this._cachedValues = {};
       }
     }.observes('formula'),
+
+    namespaceDidChange: function() {
+      // mark all cached values as invalid
+      DG.ObjectMap.forEach(this._cachedValues,
+                            function(id, iCachedValue) {
+                              iCachedValue.isValid = false;
+                            });
+    },
 
     /**
      Observer function called when an attribute formula notifies

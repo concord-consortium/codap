@@ -39,6 +39,7 @@ DG.depMgrLog = function() {};
  */
 DG.DEP_TYPE_ATTRIBUTE = 'attribute';
 DG.DEP_TYPE_GLOBAL = 'global';
+DG.DEP_TYPE_UNDEFINED = 'undefined';
 
 /**
  * A class for managing formula dependencies
@@ -55,6 +56,29 @@ DG.DependencyMgr = SC.Object.extend((function() {
     if (iNodeSpec1.id > iNodeSpec2.id) return 1;
     return 0;
   }
+
+  // utility function for recursively invalidating dependents
+  function _invalidateDependents(ioResult, iDepMgr, iIndNode, iForceAggregate) {
+
+    iIndNode.dependents.forEach(function(iDependent) {
+
+      // if we've already invalidated this node, we don't need to do so again
+      if (iDependent.lastInvalidation >= iDepMgr._currentInvalidation) return;
+      iDependent.lastInvalidation = iDepMgr._currentInvalidation;
+
+      // Call the specified invalidation function
+      var dependency = iDepMgr._findDependency(iDependent, iIndNode);
+      if (dependency && dependency.dependentContext) {
+        dependency.dependentContext
+          .invalidateDependent(ioResult, iDependent, dependency, [], iForceAggregate);
+      }
+      DG.depMgrLog("DG.DependencyMgr[%@]._invalidateDependents: Invalidating %@ '%@'",
+                    iDepMgr.getPath('dataContext.name'), iDependent.type, iDependent.name);
+      // recursively invalidate additional affected nodes
+      _invalidateDependents(ioResult, iDepMgr, iDependent,
+                            iForceAggregate || dependency.aggFnIndices.length);
+    });
+  };
 
   return {
 
@@ -125,6 +149,38 @@ DG.DependencyMgr = SC.Object.extend((function() {
    */
   findOrRegisterNode: function(iNodeSpec) {
     return this.findNode(iNodeSpec) || this.registerNode(iNodeSpec);
+  },
+
+  /**
+    Returns any nodes which match a name in the specified list, or an empty array
+    @param    {string[]}  iNames - array of names to match with nodes
+    @returns  {object[]}  array of nodes with matching names (possibly empty).
+   */
+  findNodesWithNames: function(iNames) {
+    var result = [];
+    DG.ObjectMap.forEach(this._nodes, function(iNodeSpec, iNode) {
+      // if it matches a name on our list, add it to the results
+      if (iNames.indexOf(iNode.name) >= 0)
+        result.push(iNode);
+    });
+    return result;
+  },
+
+  /*
+    Returns the immediate dependents of the specified nodes.
+   */
+  findDependentsOfNodes: function(iNodes) {
+    var result = [];
+    iNodes.forEach(function(iNode) {
+      var dependents = iNode && iNode.dependents;
+      if (dependents) {
+        dependents.forEach(function(iDependent) {
+          if (result.indexOf(iDependent) < 0)
+            result.push(iDependent);
+        });
+      }
+    });
+    return result;
   },
 
   /**
@@ -371,6 +427,30 @@ DG.DependencyMgr = SC.Object.extend((function() {
   },
 
   /**
+    Invalidate nodes with the specified names. Designed to handle name changes,
+    object creation/deletion, and other namespace-affecting changes.
+    returns an object indicating the affected nodes.
+    @param {string[]}   iNames
+    @returns {object}   result
+                        .simpleDependencies[]
+                        .aggregateDependencies[]
+   */
+  invalidateNames: function(iNames) {
+    var i, result = { simpleDependencies: [], aggregateDependencies: [] };
+
+    // increment our invalidation counter
+    ++this._currentInvalidation;
+
+    // invalidate dependents of the named nodes
+    var nodes = this.findNodesWithNames(iNames);
+    nodes.forEach(function(iNode) {
+      _invalidateDependents(result, this, nodes[i], true);
+    });
+
+    return result;
+  },
+
+  /**
     Invalidate the specified nodes; returns an object indicating the affected nodes.
     @param {object[]}   iNodeSpecs
     @returns {object}   result
@@ -384,27 +464,6 @@ DG.DependencyMgr = SC.Object.extend((function() {
     // increment our invalidation counter
     ++this._currentInvalidation;
 
-    var invalidateDependents = function(iIndNode, iForceAggregate) {
-
-      iIndNode.dependents.forEach(function(iDependent) {
-
-        // if we've already invalidated this node, we don't need to do so again
-        if (iDependent.lastInvalidation >= this._currentInvalidation) return;
-        iDependent.lastInvalidation = this._currentInvalidation;
-
-        // Call the specified invalidation function
-        var dependency = this._findDependency(iDependent, iIndNode);
-        if (dependency && dependency.dependentContext) {
-          dependency.dependentContext
-            .invalidateDependent(result, iDependent, dependency, iCases, iForceAggregate);
-        }
-        DG.depMgrLog("DG.DependencyMgr[%@].invalidateDependents: Invalidating %@ '%@'",
-                      this.getPath('dataContext.name'), iDependent.type, iDependent.name);
-        // recursively invalidate additional affected nodes
-        invalidateDependents(iDependent, iForceAggregate || dependency.aggFnIndices.length);
-      }.bind(this));
-    }.bind(this);
-
     // invalidate the initial set of nodes
     for (i = 0; i < nodeSpecCount; ++i) {
       var indNode = this.findNode(iNodeSpecs[i]);
@@ -412,7 +471,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
         // invalidate each node
         indNode.lastInvalidation = this._currentInvalidation;
         // invalidate dependents of each node
-        invalidateDependents(indNode);
+        _invalidateDependents(result, this, indNode);
       }
     }
 
