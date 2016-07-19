@@ -25,7 +25,9 @@ sc_require('components/graph/adornments/plot_adornment_model');
 
   @extends DG.GlobalFormulaContext
 */
-DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend({
+DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
+
+  return {
 
   /**
     Set on construction: ['plottedValue' | 'plottedFunction']
@@ -163,13 +165,36 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend({
     // univariate variable available, since some functions will use it
     if ((argCount < reqArgs.min) && (this.get('adornmentKey') === 'plottedValue')) {
       var uniVarName = this.get('primaryVarName'),
-          uniVarExpr = uniVarName && this.compileVariable(uniVarName);
+          uniVarExpr = uniVarName
+                        && this.compileVariable(uniVarName, iInstance.aggFnIndices);
       if (uniVarExpr)
         iInstance.argFns.unshift(DG.FormulaContext.createContextFunction(uniVarExpr));
     }
-  }
+  },
   
- });
+  /**
+    Called by the DependencyMgr to invalidate dependent nodes.
+    @param {object}     ioResult
+    @param {object}     iDependent
+    @param {object}     iDependency
+    @param {DG.Case[]}  iCases - array of cases affected
+                                 if no cases specified, all cases are affected
+    @param {boolean}    iForceAggregate - treat the dependency as an aggregate dependency
+   */
+  invalidateDependent: function(ioResult, iDependent, iDependency, iCases, iForceAggregate) {
+    // invalidate affected aggregate functions
+    if (iDependency.aggFnIndices)
+      this.invalidateFunctions(iDependency.aggFnIndices);
+    // Note that there is a redundancy between this notification, which indicates when
+    // any dependent has changed, and the DG.GlobalFormulaContext sending of the same
+    // notification when a global value changes. Ultimately, the GlobalFormulaContext
+    // mechanism should be disabled, but we leave that for another day.
+    this.notifyPropertyChange('dependentChange');
+  }
+
+  }; // return from function closure
+}())); // function closure
+
 
 /** @class  The model for a plotted function.
 
@@ -183,14 +208,14 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     Determines whether plotted value computations are evaluated over
     subplots when a univariate plot is split. Defaults to false for
     now since the subplot rendering hasn't been implemented yet.
-    @type {boolean}
+    @property {boolean}
     @default {false}
    */
   splitEval: false,
 
   /**
     The algebraic expression to plot.
-    @type {DG.Formula}
+    @property {DG.Formula}
   */
   _expression: null,
   
@@ -303,23 +328,13 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
   }.observes('DG.globalsController.globalNameChanges'),
   
   /**
-    Observer function which invalidates the intermediate compile results
-    for the formula when global value names are added, removed, or changed.
-    These changes can affect the bindings of the formula, so a recompilation
-    is required when they occur.
-   */
-  globalValuesDidChange: function() {
-    if( this._expression)
-      this._expression.invalidate();
-  }.observes('DG.globalsController.globalValueChanges'),
-  
-  /**
     Evaluates the plotted function at the specified x value.
     @param    {Object}            The set of values available to the expression the expression
     @returns  {Number|undefined}  The evaluated result
    */
   evaluate: function( iEvalContext) {
     if( !this._expression) return;
+
     // Note that this will propagate any exceptions thrown.
     return this._expression.evaluate( iEvalContext);
   },

@@ -31,26 +31,6 @@ sc_require('formula/formula_context');
 DG.GlobalFormulaContext = DG.FormulaContext.extend({
 
   /**
-    Initialization method.
-    Adds observer for global value changes.
-   */
-  init: function() {
-    sc_super();
-    DG.globalsController.addObserver('globalNameChanges', this, 'globalNamesDidChange');
-    DG.globalsController.addObserver('globalValueChanges', this, 'globalValuesDidChange');
-  },
-  
-  /**
-    Destruction method.
-    Removes observer for global value changes.
-   */
-  destroy: function() {
-    DG.globalsController.removeObserver('globalNameChanges', this, 'globalNamesDidChange');
-    DG.globalsController.removeObserver('globalValueChanges', this, 'globalValuesDidChange');
-    sc_super();
-  },
-  
-  /**
     Compiles a variable reference into the JavaScript code for accessing
     the appropriate value. For the PlottedFunctionContext, this means
     binding to 'x' and any global values (e.g. sliders).
@@ -65,8 +45,11 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
     var globalValue = DG.globalsController.getGlobalValueByName( iName);
     if( globalValue) {
       // register the dependency for tracking/invalidation purposes
-      this.registerDependency({ type: DG.DEP_TYPE_GLOBAL,
-                                id: globalValue.get('id'), name: iName });
+      this.registerDependency({ independentSpec: {
+                                  type: DG.DEP_TYPE_GLOBAL,
+                                  id: globalValue.get('id'),
+                                  name: iName }
+                              });
 
       // Having identified the global value to be referenced, we attach
       // a function that can access the appropriate value, making use of
@@ -111,40 +94,6 @@ DG.GlobalFormulaContext = DG.FormulaContext.extend({
     // If we don't match any variables we're in charge of,
     // let the base class have a crack at it.
     return sc_super();
-  },
-  
-  /**
-    Observer method called when global value names (e.g. sliders)
-    are change, e.g. created, deleted, or renamed. Formulas must
-    recompile in case they are affected by the name changes.
-    Sends out a 'dependentChange' notification to notify clients.
-   */
-  globalNamesDidChange: function() {
-    // Eventually, we can be more selective, e.g. only notify
-    // if there are unbound names in the formula, but for now
-    // we assume that all name changes require notification.
-    this.notifyPropertyChange('namespaceChange');
-  },
-
-  /**
-    Observer method called when global values (e.g. sliders) change.
-    This method determines whether the formula is affected based on
-    whether the global values that are referenced in the formula are
-    among those whose value changed. If so, we notify by sending out
-    a 'dependentChange' notification.
-   */
-  globalValuesDidChange: function() {
-    // Get the list of global values that have changed
-    var changes = DG.globalsController.get('globalValueChanges'),
-        i, changeCount = changes && changes.length;
-    // Loop through the list to see if we reference any of them
-    for( i = 0; i < changeCount; ++i) {
-      // If we have an entry in our 'g' map, then we have a reference.
-      if( this.g && this.g[ changes[i]]) {
-        this.notifyPropertyChange('dependentChange');
-        return;
-      }
-    }
   }
   
  });

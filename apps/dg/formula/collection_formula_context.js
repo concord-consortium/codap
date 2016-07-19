@@ -29,7 +29,9 @@ sc_require('formula/global_formula_context');
 
   @extends DG.GlobalFormulaContext
 */
-DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
+DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
+
+  return {
 
   /**
     Properties of the formula owner for use by the dependency manager.
@@ -218,17 +220,65 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
 
   /**
     Called when a dependency is identified during compilation.
-    @param {object}   iNodeSpec - the specs of the node being depended upon
-    @param {string}   .type - the type of the node being depended upon
-    @param {string}   .id - the id of the node being depended upon
-    @param {string}   .name - the name of the node being depended upon
+    @param {object}   iDependency
+    @param {object}   .dependentSpec - the specs of the node that is dependant
+    @param {string}     .type - the type of the node that is dependant
+    @param {string}     .id - the id of the node that is dependant
+    @param {string}     .name - the name of the node that is dependant
+    @param {object}   .independentSpec - the specs of the node being depended upon
+    @param {string}     .type - the type of the node being depended upon
+    @param {string}     .id - the id of the node being depended upon
+    @param {string}     .name - the name of the node being depended upon
+    @param {number[]} .aggFnIndices - array of aggregate function indices
+    @param {object}   .dependentContext - the formula context for the dependent node
    */
-  registerDependency: function(iNodeSpec) {
-    this.get('dependencyMgr').registerDependency({
-              dependentSpec: this.get('ownerSpec'),
-              independentSpec: iNodeSpec,
-              aggFnIndices: this.getAggregateFunctionIndices()
-            });
+  registerDependency: function(iDependency) {
+    var dependency = SC.clone(iDependency);
+    if (!dependency.dependentSpec)
+      dependency.dependentSpec = this.get('ownerSpec');
+    DG.assert(dependency.independentSpec);
+    if (!dependency.aggFnIndices)
+      dependency.aggFnIndices = this.getAggregateFunctionIndices();
+    if (!dependency.dependentContext)
+      dependency.dependentContext = this;
+    this.get('dependencyMgr').registerDependency(dependency);
+  },
+
+  /**
+    Invalidation function for use with the dependency manager.
+    Called by the dependency manager when invalidating nodes as a result
+    of tracked dependencies.
+    @param {object}     ioResult
+    @param {object}     iDependent
+    @param {object}     iDependency
+    @param {DG.Case[]}  iCases - array of cases affected
+                                 if no cases specified, all cases are affected
+    @param {boolean}    iForceAggregate - treat the dependency as an aggregate dependency
+   */
+  invalidateDependent: function(ioResult, iDependent, iDependency, iCases, iForceAggregate) {
+    var attributeID = iDependent && iDependent.id,
+        attribute = attributeID && DG.Attribute.getAttributeByID(attributeID);
+
+    // invalidate specific cases when there's a simple dependency
+    if (attribute && !iForceAggregate && iDependency.simpleDependency) {
+      attribute.invalidateCases(iCases);
+      ioResult.simpleDependencies.push(iDependent);
+    }
+    // Invalidate all cases when there's an aggregate dependency
+    // or if we're forcing all dependencies to be treated as aggregate.
+    // The latter happens when we're processing simple dependencies among
+    // aggregate function arguments.
+    if (attribute && (iForceAggregate || iDependency.aggFnIndices.length)) {
+      attribute.invalidateCases(null, iDependency.aggFnIndices);
+      ioResult.aggregateDependencies.push(iDependent);
+    }
+
+    // If we're invalidating a lookup...() function as a result of an invalidation
+    // cascade in the source context, start an invalidation cascade locally.
+    var dependencyMgr = this.get('dependencyMgr');
+    if (iDependency.srcDependencyMgr && (dependencyMgr !== iDependency.srcDependencyMgr)) {
+      dependencyMgr.invalidateNodes([iDependent]);
+    }
   },
 
   /**
@@ -240,7 +290,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     @throws   {VarReferenceError} Base class throws VarReferenceError for
                                   variable names that are not recognized.
    */
-  compileVariable: function( iName) {
+  compileVariable: function( iName, iAggFnIndices) {
     // Client is responsible for putting '_id_' into the evaluation context.
     // This context's getCaseIndex() method provides the implementation,
     // which requires the caseIDToIndexMap, which is built on demand.
@@ -252,8 +302,13 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
 
     if( attribute) {
       // register the dependency for tracking/invalidation purposes
-      this.registerDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
-                                id: attribute.get('id'), name: iName });
+      this.registerDependency({ independentSpec: {
+                                  type: DG.DEP_TYPE_ATTRIBUTE,
+                                  id: attribute.get('id'),
+                                  name: iName
+                                },
+                                aggFnIndices: iAggFnIndices
+                              });
 
       // Having identified the attribute to be referenced, we attach a
       // function that can access the appropriate value, making use of
@@ -409,7 +464,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     // Return the cached result if there is one
     if( result !== undefined)
       return result;
-    
+
     // Marshal the arguments into individually callable functions.
     this.marshalArguments(aggregateFn, iEvalContext, instance);
     
@@ -417,7 +472,9 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     this.validateArguments(aggregateFn, iEvalContext, instance);
     
     // Invoke the aggregate function with context and instance arguments
-    return aggregateFn.evaluate( this, iEvalContext, instance);
+    result = aggregateFn.evaluate( this, iEvalContext, instance);
+
+    return result;
   },
   
   /**
@@ -460,12 +517,16 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     compute over the attributes and cases of the collection.
     
     @param    {String}    iName -- The name of the function to be called.
-    @param    {Array}     iArgs -- the arguments to the function
+    @param    {String[]}  iArgs -- array of arguments to the function
+    @param    {Number[]}  iAggFnIndices -- array of aggregate function indices
+                            indicating the aggregate function call stack, which
+                            determines the aggregates that must be invalidated
+                            when a dependent changes.
     @returns  {String}    The JavaScript code for calling the specified function
     @throws   {DG.FuncReferenceError} Throws DG.FuncReferenceError for function
                                       names that are not recognized.
    */
-  compileFunction: function( iName, iArgs) {
+  compileFunction: function( iName, iArgs, iAggFnIndices) {
   
     // If this is an aggregate function reference, dispatch it as such.
     if( this.isAggregate( iName)) {
@@ -476,7 +537,8 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
       
       // We push the name and arguments into the instance rather than marshaling
       // them into JavaScript text for the JavaScript interpreter.
-      this.aggFnInstances.push({ name: iName, args: iArgs });
+      this.aggFnInstances.push({ index: aggFnIndex, name: iName, args: iArgs,
+                                  aggFnIndices: iAggFnIndices });
       
       // The JavaScript code simply passes in the instance index.
       // At evaluation-time, evalAggregate() can extract the contents of the instance.
@@ -486,7 +548,10 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend({
     // base class handles non-aggregate functions
     return sc_super();
   }
-});
+  
+  }; // end of closure return statement
+
+}()));
 
 /**
   "Class" method for registering a module of aggregate functions.
