@@ -1415,7 +1415,9 @@ DG.DocumentController = SC.Object.extend(
                   if (result && result.success) {
                     gameStore.savedGameState = result.values || result.state;
                   } else {
-                    DG.logWarn("No channel to Data Interactive: " + (gameStore.get('gameName') || gameStore.get('name')));
+                    DG.logWarn("No channel to Data Interactive: " +
+                        gameStore.currentGameName ||
+                          (gameStore.get && (gameStore.get('gameName') || gameStore.get('name'))));
                     result = {success: false};
                   }
                   resolve(result);

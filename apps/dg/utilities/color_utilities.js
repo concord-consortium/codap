@@ -22,6 +22,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global tinycolor */
+
 /**
  @namespace Color gradient and color transformation utility functions
  */
@@ -70,6 +72,18 @@ DG.ColorUtilities = {
 
   isRGB: function( iColor) {
     return iColor && iColor.r !== null && iColor.g !== null && iColor.b !== null;
+  },
+
+  /**
+   * Used to validate color specification for a 'legend' that colors points by the attribute value.
+   * We only allow this for rgb and hex specification of color. We disallow normal color words like 'red'
+   * and 'blue' because they will occur frequently at places we don't wish to color points.
+   * @param iColorString
+   * @returns {boolean|*|null}
+   */
+  isColorSpecString: function( iColorString) {
+    return (iColorString.indexOf('rgb') === 0 || iColorString.indexOf('#') === 0) &&
+            tinycolor( iColorString).isValid();
   },
 
   /** hsbColor class for colors with Hue/Saturation/Brightness color model for color manipulation.
@@ -171,23 +185,33 @@ DG.ColorUtilities = {
     } else {
       // we have an attribute and non-missing case value, now get stored or computed color
       var tIsNumeric = iColorAttributeDescription.get('isNumeric'),
+          tAttributeType = iColorAttributeDescription.get('attributeType'),
           tColorMap = tAttribute.get('colormap');
-      if (!tIsNumeric) {
-        // get color from attribute's color map, or set to null
-        newColor = DG.ColorUtilities.getCategoryColorFromColorMap(tColorMap, iCaseValue);
-      }
-      else if( SC.isArray( iQuantileValues)) {
-        var tFoundIndex = -1,
-            tNumQuantiles = iQuantileValues.length - 1,
-            tMinMax = { min: 0, max: 1},
-            tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttributeColor);
-        iQuantileValues.forEach( function( iQV, iIndex) {
-          if( iIndex <= tNumQuantiles) {
-            if( iQV <= iCaseValue && iCaseValue <= iQuantileValues[ iIndex + 1])
-                tFoundIndex = iIndex;
+      switch (tAttributeType) {
+        case DG.Analysis.EAttributeType.eCategorical:
+          // get color from attribute's color map, or set to null
+          newColor = DG.ColorUtilities.getCategoryColorFromColorMap(tColorMap, iCaseValue);
+          break;
+        case DG.Analysis.EAttributeType.eColor:
+          var tCaseColor = tinycolor(iCaseValue);
+          if (tCaseColor.isValid())
+            newColor = tCaseColor.toString();
+          break;
+        case DG.Analysis.EAttributeType.eNumeric:
+          if (SC.isArray(iQuantileValues)) {
+            var tFoundIndex = -1,
+                tNumQuantiles = iQuantileValues.length - 1,
+                tMinMax = {min: 0, max: 1},
+                tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap(tColorMap, tAttributeColor);
+            iQuantileValues.forEach(function (iQV, iIndex) {
+              if (iIndex <= tNumQuantiles) {
+                if (iQV <= iCaseValue && iCaseValue <= iQuantileValues[iIndex + 1])
+                  tFoundIndex = iIndex;
+              }
+            });
+            newColor = this.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high, (tFoundIndex + 1) / tNumQuantiles);
           }
-        });
-        newColor = this.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high, (tFoundIndex + 1)/ tNumQuantiles);
+          break;
       }
       if (!newColor) {
         // calculate color using TinkerPlots color-space algorithm
@@ -312,7 +336,7 @@ DG.ColorUtilities = {
       var tScale = Math.max( 0, Math.min( 1, (iCaseValue - iMinMax.min) / tRange)),
           tRed = iColor1.r + tScale * (iColor2.r - iColor1.r),
           tGreen = iColor1.g + tScale * (iColor2.g - iColor1.g),
-          tBlue = iColor1.b + tScale * (iColor2.b - iColor1.b)
+          tBlue = iColor1.b + tScale * (iColor2.b - iColor1.b);
       tCaseColor = DG.ColorUtilities.rgb_to_PlatformColor(tRed, tGreen, tBlue);
     }
     return tCaseColor;
@@ -394,13 +418,6 @@ DG.ColorUtilities = {
     // correctly unless values are integer. (E.g. Leaflet)
 
     return this.rgb_to_hex( red, green, blue);
-    /*
-    return ("rgb(" +
-        Math.round(red * 255) + "," +
-        Math.round(green * 255) + "," +
-        Math.round(blue * 255) + ")"
-    );
-*/
   },
 
   /**

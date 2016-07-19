@@ -90,6 +90,7 @@ DG.Formula = SC.Object.extend({
     This function just propagates the notification to clients of the formula.
    */
   namespaceDidChange: function( iNotifier, iKey) {
+    this.invalidateContext();
     this.notifyPropertyChange( iKey);
     // For some clients, just knowing that a dependent may have changed is sufficient.
     this.notifyPropertyChange('dependentChange');

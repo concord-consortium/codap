@@ -86,7 +86,7 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                     tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc),
                     tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap(tColorMap, tAttrColor);
                 tQuintileValues.forEach(function (iStartValue, iIndex) {
-                  if (iIndex < tQuintileN) {
+                  if ((typeof iStartValue === 'number') && iIndex < tQuintileN) {
                     var tStopValue = tQuintileValues[iIndex + 1],
                         tLeft = tWidth * (iStartValue - tMinValue) / (tMaxValue - tMinValue),
                         tRight = tLeft + tWidth * ( tStopValue - iStartValue) / (tMaxValue - tMinValue),

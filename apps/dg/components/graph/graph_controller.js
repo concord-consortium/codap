@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global tinycolor */
+
 sc_require('components/graph_map_common/data_display_controller');
 
 /** @class

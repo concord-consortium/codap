@@ -194,6 +194,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     this.changes = [];
     this.collectionsDidChange();
 
+    DG.globalsController.addObserver('globalNameChanges', this, 'globalNamesDidChange');
     DG.globalsController.addObserver('globalValueChanges', this, 'globalValuesDidChange');
   },
 
@@ -201,6 +202,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     Destruction method.
    */
   destroy: function() {
+    DG.globalsController.removeObserver('globalNameChanges', this, 'globalNamesDidChange');
     DG.globalsController.removeObserver('globalValueChanges', this, 'globalValuesDidChange');
 
     var i, collectionCount = this.get('collectionCount');
@@ -978,6 +980,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
+        names = [],
         result = { success: false, attrs: [], attrIDs: [] };
     
     // Function to update each individual attribute
@@ -994,8 +997,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         attribute.beginPropertyChanges();
         DG.ObjectMap.forEach( iAttrProps,
                               function( iKey, iValue) {
+                                var oldName;
                                 if (iKey === 'name') {
+                                  oldName = attribute.get('name');
+                                  if (names.indexOf(oldName) < 0)
+                                    names.push(oldName);
                                   iValue = collection.makeAttributeNameLegal(iValue);
+                                  if (names.indexOf(iValue) < 0)
+                                    names.push(iValue);
                                 }
                                 if( iKey !== "id") {
                                   attribute.set( iKey, iValue);
@@ -1011,6 +1020,10 @@ DG.DataContext = SC.Object.extend((function() // closure
     // Create/update each specified attribute
     if( collection && iChange.attrPropsArray)
       iChange.attrPropsArray.forEach( updateAttribute);
+
+    // invalidate affected formulas
+    this.invalidateNamesAndNotify(names);
+
     return result;
   },
 
@@ -1190,6 +1203,26 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
 
   /**
+    Handler for global value (e.g. slider) name changes.
+    Invalidates all dependent nodes and sends out an appropriate
+    'namespaceChange' notification, indicating that all cases of
+    the dependent attributes are affected.
+    @param  {object}  iNotifier - generally the DG.globalsController
+    @param  {string}  iKey - generally 'globalValuesChanged'
+   */
+  globalNamesDidChange: function(iNotifier, iKey) {
+    var changes = iNotifier && iNotifier.get(iKey),
+        names = [];
+    changes.forEach(function(iChange) {
+      if (iChange.oldName && (names.indexOf(iChange.oldName) < 0))
+        names.push(iChange.oldName);
+      if (iChange.newName && (names.indexOf(iChange.newName) < 0))
+        names.push(iChange.newName);
+    });
+    this.invalidateNamesAndNotify(names);
+  },
+
+  /**
     Handler for global value (e.g. slider) changes.
     Invalidates all dependent nodes and sends out an appropriate
     'dependentCases' notification, indicating that all cases of
@@ -1211,6 +1244,27 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       this.invalidateNodesAndNotify(nodes);
     }
+  },
+
+  /*
+    Notifies clients of namespace changes that affect formulas.
+    Invalidates the specified nodes in the DependencyMgr, which invalidates
+    all dependent nodes and then returns the sets of nodes that are affected.
+    Calls invalidateNodesAndNotify(), so see description of that function
+    for the notifications that can be triggered.
+   */
+  invalidateNamesAndNotify: function(iNames) {
+    var dependencyMgr = this.get('dependencyMgr'),
+        namedNodes = dependencyMgr.findNodesWithNames(iNames),
+        dependentNodes = dependencyMgr.findDependentsOfNodes(namedNodes);
+    dependentNodes.forEach(function(iNode) {
+      var dependency = iNode.dependencies && iNode.dependencies[0],
+          formulaContext = dependency && dependency.dependentContext;
+      if (formulaContext)
+        formulaContext.invalidateNamespace();
+    });
+    // we don't really need to invalidate the named nodes
+    this.invalidateNodesAndNotify(namedNodes);
   },
 
   /**

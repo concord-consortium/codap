@@ -248,21 +248,21 @@ DG.PlotDataConfiguration = SC.Object.extend(
     @property {DG.Analysis.EAttributeType}
   */
   xType: function() {
-    return this.getPath('xAttributeDescription.attributeType');
+    return DG.Analysis.forceColorToCategorical(this.getPath('xAttributeDescription.attributeType'));
   }.property(),
 
   /**
     @property {DG.Analysis.EAttributeType}
   */
   yType: function() {
-    return this.getPath('yAttributeDescription.attributeType');
+    return DG.Analysis.forceColorToCategorical(this.getPath('yAttributeDescription.attributeType'));
   }.property(),
 
   /**
     @property {DG.Analysis.EAttributeType}
   */
   y2Type: function() {
-    return this.getPath('y2AttributeDescription.attributeType');
+    return DG.Analysis.forceColorToCategorical(this.getPath('y2AttributeDescription.attributeType'));
   }.property(),
 
   xTypeDidChange: function() {
@@ -412,11 +412,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
         tDescription.set('role', iRole);
       if(!SC.none( iType))
         tDescription.setPath('attributeStats.attributeType', iType);
-      else {
-        var tType = tDescription.get('isNumeric') ? DG.Analysis.EAttributeType.eNumeric :
-                                                    DG.Analysis.EAttributeType.eCategorical;
-        tDescription.setPath('attributeStats.attributeType', tType);
-      }
     this._casesCache = null;
     tDescription.invalidateCaches( this.get('cases'));  // So that notification order won't be important
     tDescription.endPropertyChanges();
