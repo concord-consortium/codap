@@ -491,11 +491,12 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @param parent {DG.Case} The parent case for this set of cases.
      */
     recreateCases: function (items, parent) {
-      var createdCases = [];
+      var collectionID = this.get('id'),
+          createdCases = [];
       // Look for a case that references the item. If found we position it
       function findOrCreateCaseForItem (item, parent, collection) {
-        var tCase = collection.cases.findProperty('item', item);
-        if (SC.none(tCase)) {
+        var tCase = DG.Case.findCase(collectionID, item.get('id'));
+        if (!tCase) {
           tCase = DG.Case.createCase({
             parent: parent,
             collection: collection,

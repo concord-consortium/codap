@@ -31,6 +31,9 @@ sc_require('models/data_item');
 
 DG.DataSet = SC.Object.extend((function() // closure
 /** @scope DG.DataSet.prototype */ {
+
+  var nextDataItemID = 1;
+
   return {
     /**
      *  An array of data in the data set.
@@ -47,7 +50,7 @@ DG.DataSet = SC.Object.extend((function() // closure
     attrs: null,
 
     /**
-     *  Order of registered groups. This ordering
+     * Order of registered groups. This ordering
      * is established by insertion and removal of groups. Groups are not moved,
      * but are created at a position relative to other groups.
      *
@@ -153,8 +156,13 @@ DG.DataSet = SC.Object.extend((function() // closure
 
       if (data.constructor === DG.DataItem) {
         dataItem = data;
+        if (!dataItem.id) {
+          DG.logWarn("DG.DataSet.addDataItem: Received DataItem without ID!");
+          dataItem.id = nextDataItemID++;
+        }
       } else if (typeof data === 'object') {
         dataItem = DG.DataItem.create({
+          id: nextDataItemID++,
           dataSet: this,
           values: mapAttributeNamesToIDs(data)
         });

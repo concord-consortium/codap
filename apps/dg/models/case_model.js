@@ -87,12 +87,13 @@ DG.Case = DG.BaseModel.extend(
      */
     init: function() {
       sc_super();
+
+      DG.Case._addCaseToItemMap(this);
+
       this.children = [];
       if (this.parent) {
         this.parent.children.pushObject(this);
       }
-      //this._valuesMap = {};
-      //this.setValueMapFromArray();
     },
 
     verify: function () {
@@ -119,6 +120,9 @@ DG.Case = DG.BaseModel.extend(
       if (this.collection) {
         this.collection.cases.removeObject(this);
       }
+
+      DG.Case._removeCaseFromItemMap(this);
+
       sc_super();
     },
 
@@ -296,6 +300,48 @@ DG.Case = DG.BaseModel.extend(
     }
 
   }) ;
+
+/*
+  Map from { collectionID: { itemID: DG.Case }}
+  Used for looking up cases from items.
+ */
+DG.Case._itemCaseMaps = {};
+
+/*
+  Adds a (new) case to the item case map.
+ */
+DG.Case._addCaseToItemMap = function(iCase) {
+  var collectionID = iCase.getPath('collection.id'),
+      itemID = iCase.getPath('item.id'),
+      itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
+  if (itemID && collectionID) {
+    if (!itemCaseMap)
+      DG.Case._itemCaseMaps[collectionID] = itemCaseMap = {};
+    itemCaseMap[itemID] = iCase;
+  }
+};
+
+/*
+  Removes a case from the item case map.
+ */
+DG.Case._removeCaseFromItemMap = function(iCase) {
+  var collectionID = iCase.getPath('collection.id'),
+      itemID = iCase.getPath('item.id'),
+      itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
+  if (itemID && itemCaseMap) {
+    delete itemCaseMap[itemID];
+    if (!DG.ObjectMap.length(itemCaseMap))
+      delete DG.Case._itemCaseMaps[collectionID];
+  }
+};
+
+/*
+  Find a case (if any) that corresponds to the specified item.
+ */
+DG.Case.findCase = function(iCollectionID, iItemID) {
+  var itemCaseMap = iCollectionID && DG.Case._itemCaseMaps[iCollectionID];
+  return itemCaseMap && iItemID && itemCaseMap[iItemID];
+};
 
 /**
  * Creates a new case with the specified properties.
