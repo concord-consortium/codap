@@ -31,12 +31,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       controller: null,
 
-      /**
-       * @type {DG.DataInteractiveModel}
-       */
-      modelBinding: SC.Binding.oneWay('*controller.model.content'),
-
-      idBinding: SC.Binding.oneWay('*model.id'),
+      idBinding: SC.Binding.oneWay('*controller.model.id'),
 
       /**
        * Handles communication over PostMessage interface.
@@ -168,6 +163,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               case 'success':
               case 'caseIDs':
               case 'caseID':
+              case 'attrIDs':
                 result[k] = v;
                 break;
               case 'collection':
@@ -267,11 +263,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return context;
         }
 
-        var result = { interactiveFrame: this};
+        var result = { interactiveFrame: this.get('controller')};
 
         if (['interactiveFrame',
               'logMessage',
-              'dataContextList'].indexOf(resourceSelector.type) < 0) {
+              'dataContextList',
+              'UndoChangeNotice',
+              'undoableActionPerformed'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
@@ -407,11 +405,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleInteractiveFrame: {
         update: function (iResources, iValues) {
-          iResources.interactiveFrame.setPath('model.title', iValues.title);
-          iResources.interactiveFrame.setPath('model.version', iValues.version);
-          iResources.interactiveFrame.setPath('model.dimensions', iValues.dimensions);
+          var diModel = iResources.interactiveFrame.getPath('model.content');
+          DG.assert(diModel, 'DataInteractiveModel  exists' );
+          DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
+          diModel.set('title', iValues.title);
+          diModel.set('version', iValues.version);
+          diModel.set('dimensions', iValues.dimensions);
           if (!SC.none(iValues.preventBringToFront)) {
-            iResources.interactiveFrame.setPath('controller.preventBringToFront', iValues.preventBringToFront);
+            // Todo 7/2016: we should be managing this value in the model only,
+            // and deriving the value in the controller.
+            this.controller.set('preventBringToFront', iValues.preventBringToFront);
+            diModel.set('preventBringToFront', iValues.preventBringToFront);
           }
 
           return {
@@ -420,14 +424,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
 
         get: function (iResources) {
+          var diModel = iResources.interactiveFrame.getPath('model.content');
+          var componentStorage = iResources.interactiveFrame.getPath('model.componentStorage');
+          DG.assert(diModel, 'DataInteractiveModel  exists' );
+          DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
 
           var tReturnValues = {};
-          var interactiveFrame = iResources.interactiveFrame;
-          tReturnValues.title = interactiveFrame.getPath('model.title');
-          tReturnValues.version = interactiveFrame.getPath('model.version');
-          tReturnValues.dimensions = interactiveFrame.getPath('model.dimensions');
-          tReturnValues.savedState = interactiveFrame.getPath(
-              'model.componentStorage.savedGameState');
+          tReturnValues.title = diModel.get('title');
+          tReturnValues.version = diModel.get('version');
+          tReturnValues.dimensions = diModel.get('dimensions');
+          tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
+          if (componentStorage) {
+            DG.log('Sending data interactive, %@, state: %@'.loc(
+                tReturnValues.title, JSON.stringify(componentStorage.savedGameState)));
+            tReturnValues.savedState = componentStorage.savedGameState;
+          }
           return {
             success: true,
             values: tReturnValues
