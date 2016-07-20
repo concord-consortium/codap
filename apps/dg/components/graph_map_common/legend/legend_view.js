@@ -336,12 +336,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        * @property {Boolean}
        */
       isNumeric: function() {
-        return this.getPath('model.attributeDescription.isNumeric');
+        return this.getPath('model.isNumeric');
       }.property(),
 
       isNumericDidChange: function() {
+        // TODO: Check whether this function is necessary.
+        // Is anyone listening for 'isNumeric' notifications from the view?
+        // If so, they should be listening to the model instead.
         this.notifyPropertyChange('isNumeric');
-      }.observes('*model.attributeDescription.isNumeric'),
+      }.observes('*model.isNumeric'),
 
       /**
        * attributeType
