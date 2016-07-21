@@ -228,8 +228,10 @@ DG.AttributeStats = SC.Object.extend(
         switch( tAttributes[ 0].get('type')) {
           case 'nominal':
             this._attributeType = DG.Analysis.EAttributeType.eCategorical;
+            break;
           case 'numeric':
             this._attributeType = DG.Analysis.EAttributeType.eNumeric;
+            break;
           default:
           // Do nothing
         }
