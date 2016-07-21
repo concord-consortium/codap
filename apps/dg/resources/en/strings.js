@@ -459,6 +459,10 @@ SC.stringsFor('English', {
   'DG.Formula.FuncArgsErrorPlural.description': "The '%@' function expects %@ arguments",
   'DG.Formula.FuncArgsErrorRange.message': "'%@' expects %@-%@ arguments",
   'DG.Formula.FuncArgsErrorRange.description': "The '%@' function expects %@-%@ arguments",
+  'DG.Formula.LookupDataSetError.message': "'%@': unrecognized data set",
+  'DG.Formula.LookupDataSetError.description': "Data set '%@' is unrecognized",
+  'DG.Formula.LookupAttrError.message': "'%@' not found in data set '%@'",
+  'DG.Formula.LookupAttrError.description': "Attribute '%@' not found in data set '%@'",
 
   // DG.TableController
   'DG.TableController.headerMenuItems.editAttribute': "Edit Formula...",
