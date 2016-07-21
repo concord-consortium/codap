@@ -44,6 +44,18 @@ DG.LegendModel = SC.Object.extend(
   selectionMap: null,
 
   /**
+   * isNumeric
+   * @property {Boolean}
+   */
+  isNumeric: function() {
+    return this.getPath('attributeDescription.isNumeric');
+  }.property(),
+
+  isNumericDidChange: function() {
+    this.notifyPropertyChange('isNumeric');
+  }.observes('*attributeDescription.isNumeric'),
+
+  /**
     The string that will be used to label the legend.
     @property { String }
   */
@@ -148,8 +160,25 @@ DG.LegendModel = SC.Object.extend(
   handleOneDataContextChange: function( iNotifier, iChange) {
     var tOperation = iChange && iChange.operation;
 
-    if( tOperation === 'selectCases') {
-      this.updateSelection();
+    switch (tOperation) {
+      case 'createCases':
+      case 'deleteCases':
+      case 'updateCases':
+      case 'dependentCases':
+        // Changes to categorical legends are handled via numberOfCellsDidChange()
+        // and cellMapDidChange() notifications which bubble up from the AttributeStats.
+        // In code review with Bill we decided to leave the handling of numerical
+        // legend changes here for now. At some point, either both numeric and
+        // categorical should be handled here (and the observers of AttributeStats
+        // could potentially be removed) or the AttributeStats notification should
+        // be fixed so that the numeric case works that way as well and this code
+        // could potentially be removed.
+        if (this.get('isNumeric'))
+          this.numericRangeDidChange();
+        break;
+      case 'selectCases':
+        this.updateSelection();
+        break;
     }
   },
 
