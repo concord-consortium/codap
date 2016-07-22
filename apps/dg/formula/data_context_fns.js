@@ -29,6 +29,36 @@ sc_require('formula/collection_formula_context');
  */
 DG.DataContextLookupFns = (function() {
 
+  /** @class DG.LookupDataSetError
+
+    Error class for data context lookup errors.
+
+    @extends Error
+  */
+  var LookupDataSetError = function(iName) {
+    this.name = 'EvalError';
+    this.message = 'DG.Formula.LookupDataSetError.message'.loc(iName);
+    this.description = 'DG.Formula.LookupDataSetError.description'.loc(iName);
+    this.reference = iName;
+  };
+  LookupDataSetError.prototype = new Error();
+  LookupDataSetError.prototype.constructor = LookupDataSetError;
+
+  /** @class DG.LookupAttrError
+
+    Error class for attribute lookup errors in data context lookup functions.
+
+    @extends Error
+  */
+  var LookupAttrError = function(iAttrName, iContextName) {
+    this.name = 'EvalError';
+    this.message = 'DG.Formula.LookupAttrError.message'.loc(iAttrName, iContextName);
+    this.description = 'DG.Formula.LookupAttrError.description'.loc(iAttrName, iContextName);
+    this.reference = iAttrName;
+  };
+  LookupAttrError.prototype = new Error();
+  LookupAttrError.prototype.constructor = LookupAttrError;
+
   /*
     Utility function for binding an attribute reference in a
     separate data context.
@@ -48,6 +78,7 @@ DG.DataContextLookupFns = (function() {
           attributeName: attrName,
           attributeID: attrID
         };
+    if (!attrID) throw new LookupAttrError(attrName, iDataContext.get('title'));
     return binding;
   }
 
@@ -108,6 +139,7 @@ DG.DataContextLookupFns = (function() {
             contextName = contextFn && contextFn(iContext, iEvalContext),
             dataContext = contextName &&
                             DG.currDocumentController().getContextByTitle(contextName);
+        if (!dataContext) throw new LookupDataSetError(contextName);
 
         binding = bindContextVar(dataContext, iInstance.argFns[1], iContext, iEvalContext);
         registerDependency(binding, iContext, iInstance);
@@ -173,6 +205,7 @@ DG.DataContextLookupFns = (function() {
         contextName = contextFn && contextFn(iContext, iEvalContext);
         dataContext = contextName &&
                         DG.currDocumentController().getContextByTitle(contextName);
+        if (!dataContext) throw new LookupDataSetError(contextName);
       }
       if (!iInstance.caches.valueBinding) {
         valueBinding = bindContextVar(dataContext, iInstance.argFns[1],
@@ -198,12 +231,14 @@ DG.DataContextLookupFns = (function() {
         var keyValueMap = {},
             cases = keyBinding.collection &&
                       keyBinding.collection.getPath('casesController.arrangedObjects');
-        cases.forEach(function(iCase) {
-          var key = iCase && iCase.getValue(keyBinding.attributeID),
-              value = iCase && iCase.getValue(valueBinding.attributeID);
-          if (keyValueMap[key] == null)
-            keyValueMap[key] = value;
-        });
+        if (cases) {
+          cases.forEach(function(iCase) {
+            var key = iCase && iCase.getValue(keyBinding.attributeID),
+                value = iCase && iCase.getValue(valueBinding.attributeID);
+            if (keyValueMap[key] == null)
+              keyValueMap[key] = value;
+          });
+        }
         iInstance.caches.keyValueMap = keyValueMap;
       }
 

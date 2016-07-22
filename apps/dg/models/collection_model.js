@@ -715,6 +715,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         caseName: this.get('caseName'),
         childAttrName: this.get('childAttrName'),
         collapseChildren: this.get('collapseChildren'),
+        defaults: this.get('defaults'),
         guid: this.get('id'),
         labels: this.labels,
         name: this.get('name'),
