@@ -1403,7 +1403,8 @@ DG.DocumentController = SC.Object.extend(
           var model = gameController.get('model');
           var modelStorage = model.get('componentStorage');
           if (!modelStorage) model.set('componentStorage', {});
-          var gameStore = gameController.get('context') || model.get('componentStorage');
+          var gameStore = gameController.get('isUsingDataInteractiveChannel') ?
+            model.get('componentStorage') : gameController.get('context');
 
 
           // create an array of promises, one for each data interactive.
@@ -1435,13 +1436,13 @@ DG.DocumentController = SC.Object.extend(
         });
       }
 
-      // Prepare the component-specific storage for saving
-      DG.ObjectMap.forEach( this.componentControllersMap,
-          function( iComponentID, iController) {
-            iController.willSaveComponent();
-          });
-
       returnPromise = Promise.all(promises).then(function () {
+        // Prepare the component-specific storage for saving
+        DG.ObjectMap.forEach( this.componentControllersMap,
+            function( iComponentID, iController) {
+              iController.willSaveComponent();
+            });
+
         this.contexts.forEach(function (iContext) {
           iContext.willSaveContext();
         });

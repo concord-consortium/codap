@@ -146,13 +146,24 @@ DG.GameController = DG.ComponentController.extend(
        */
       dataInteractivePhoneHandler: null,
 
+      /**
+       * Return the phone handler that is connected. (Only one should be connected.)
+       * @property { DG.DataInteractivePhoneHandler | DG.GamePhoneHandler }
+       */
       activeChannel: function () {
         if (this.dataInteractivePhoneHandler.get('connected')) {
-          return this.dataInteractivePhoneHandler.rpcEndpoint;
+          return this.dataInteractivePhoneHandler;
         } else if (this.gamePhoneHandler.get('connected')) {
-          return this.gamePhoneHandler.rpcEndpoint;
+          return this.gamePhoneHandler;
         }
       }.property(),
+
+      /**
+       * @property {Boolean}
+       */
+      isUsingDataInteractiveChannel: function() {
+        return this.get('activeChannel') === this.dataInteractivePhoneHandler;
+      }.property('activeChannel'),
 
       connectionDidChange: function () {
         this.notifyPropertyChange('activeChannel');
