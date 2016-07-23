@@ -209,6 +209,7 @@ DG.PlottedValueAdornment.createFormulaEditView = function( iPlottedValue) {
               value: 'value =',
               backgroundColor: 'gray'
             }),
+            desiredExtent: 20,
             keyDown: function( evt) {
               var tKey = evt.which;
               if( tKey === SC.Event.KEY_RETURN) {

@@ -74,6 +74,11 @@ DG.PlotView = DG.PlotLayer.extend(
 
   _areAdornmentsInitialized: false,
 
+  /**
+   @property {DG.FormulaTextEditView}
+   */
+  functionEditView: null,
+
   /** @property {DG.PlottedCountAdornment} */
   plottedCountAdorn: null,
 
@@ -85,6 +90,12 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   destroy: function() {
+    if( this.functionEditView)
+    {
+      this.functionEditView.removeFromParent();
+      this.functionEditView.destroy();
+      this.functionEditView = null;
+    }
     sc_super();
   },
 

@@ -105,6 +105,7 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
 DG.PlottedFunctionAdornment.createFormulaEditView = function( iPlottedFunction) {
   return DG.FormulaTextEditView.create({
             layout: { height: 20 },
+            desiredExtent: 20,
             borderStyle: SC.BORDER_BEZEL,
             isVisible: false,
             hint: 'Type an expression e.g. x*x/30 - 50',

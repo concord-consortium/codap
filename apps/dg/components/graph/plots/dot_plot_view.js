@@ -112,11 +112,6 @@ DG.DotPlotView = DG.PlotView.extend(
   overlap: 0,
 
   /**
-  @property {DG.FormulaTextEditView}
-  */
-  functionEditView: null,
-
-  /**
   @property {DG.PlottedValueAdornment}
   */
   plottedValueAdorn: null,
@@ -577,11 +572,13 @@ DG.DotPlotView = DG.PlotView.extend(
   plottedValueChanged: function() {
     var plotModel = this.get('model'),
         tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue');
-    if( SC.none( this.functionEditView)) {
-      this.functionEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
-      this.get('parentView').appendChild( this.functionEditView);
+    var tFunctionEditView = this.get('functionEditView');
+    if( SC.none( tFunctionEditView)) {
+      tFunctionEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
+      this.set('functionEditView', tFunctionEditView);
+      this.get('parentView').set('functionEditorView', tFunctionEditView);
     }
-    this.functionEditView.set('isVisible', tPlottedValue.get('isVisible'));
+    tFunctionEditView.set('isVisible', tPlottedValue.get('isVisible'));
 
     if( SC.none( this.plottedValueAdorn)) {
       this.plottedValueAdorn = DG.PlottedValueAdornment.create({

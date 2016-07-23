@@ -61,11 +61,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
   movableLineAdorn: null,
   
   /**
-  @property {DG.FormulaTextEditView}
-  */
-  functionEditView: null,
-  
-  /**
   @property {DG.PlottedFunctionAdornment}
   */
   functionAdorn: null,
@@ -491,13 +486,15 @@ DG.ScatterPlotView = DG.PlotView.extend(
     var model = this.get('model'),
         tPlottedFunction = model && model.getAdornmentModel('plottedFunction');
     if( !tPlottedFunction) return;
+    var tFunctionEditView = this.get('functionEditView');
     
-    if( !this.functionEditView) {
-      this.functionEditView = DG.PlottedFunctionAdornment.createFormulaEditView( tPlottedFunction);
-      this.get('parentView').appendChild( this.functionEditView);
+    if( !tFunctionEditView) {
+      tFunctionEditView = DG.PlottedFunctionAdornment.createFormulaEditView( tPlottedFunction);
+      this.set('functionEditView', tFunctionEditView);
+      this.get('parentView').set('functionEditorView', tFunctionEditView);
     }
-    this.functionEditView.set('isVisible', tPlottedFunction.get('isVisible'));
-    this.functionEditView.set('formulaExpression', tPlottedFunction.get('expression'));
+    tFunctionEditView.set('isVisible', tPlottedFunction.get('isVisible'));
+    tFunctionEditView.set('formulaExpression', tPlottedFunction.get('expression'));
 
     if( SC.none( this.functionAdorn)) {
       this.functionAdorn = DG.PlottedFunctionAdornment.create({

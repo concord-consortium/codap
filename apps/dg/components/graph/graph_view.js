@@ -46,6 +46,23 @@ DG.GraphView = SC.View.extend(
       numberToggleView: null,
       rescaleButton: null,
 
+      _functionEditorView: null,
+      functionEditorView: function( iKey, iValue) {
+        if( iValue !== undefined) {
+          if( this._functionEditorView)
+          {
+            this.removeChild( this._functionEditorView);
+          }
+          if( iValue)
+          {
+            this.appendChild( iValue);
+            iValue.addObserver('isVisible', this, this.handleAxisOrLegendLayoutChange);
+          }
+          this._functionEditorView = iValue;
+        }
+        return this._functionEditorView;
+      }.property(),
+
       /**
        * Returns the first plotView in _plotViews, if any. When used to set,
        * wipes out the current array and replaces it with a new array
@@ -217,6 +234,20 @@ DG.GraphView = SC.View.extend(
         sc_super();
       },
 
+      /**
+       * Override to deal with observing functionEditorView
+       * @param iChildView {DG.FormulaTextEditView}
+       */
+      removeChild: function( iChildView) {
+        if( iChildView === this._functionEditorView)
+        {
+          this._functionEditorView.removeObserver('isVisible', this, this.handleAxisOrLegendLayoutChange);
+          this._functionEditorView = null;
+        }
+
+        sc_super();
+      },
+
       mouseDown: function () {
         DG.globalEditorLock.commitCurrentEdit();
         return false;
@@ -348,6 +379,7 @@ DG.GraphView = SC.View.extend(
             tPlotViews = this.get('plotViews'),
             tLegendView = this.get('legendView'),
             tNumberToggleView = this.get('numberToggleView'),
+            tFunctionView = this.get('functionEditorView'),
             tRescaleButton = this.get('rescaleButton'),
             tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
             tXHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
@@ -355,23 +387,26 @@ DG.GraphView = SC.View.extend(
             tSpaceForY2 = (!tY2AxisView || !tHasY2Attribute) ? 0 : tY2AxisView.get('desiredExtent'),
             tY2DesiredWidth = !tY2AxisView ? 0 : tY2AxisView.get('desiredExtent'),
             tLegendHeight = !tLegendView ? 0 : tLegendView.get('desiredExtent'),
-            tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent') : 0;
+            tNumberToggleHeight = tShowNumberToggle ? tNumberToggleView.get('desiredExtent') : 0,
+            tFunctionViewHeight = (tFunctionView && tFunctionView.get('isVisible')) ?
+                tFunctionView.get('desiredExtent') : 0;
 
         if (!SC.none(tXAxisView) && !SC.none(tYAxisView) && ( tPlotViews.length > 0)) {
           if (firstTime) {
             // set or reset all layout parameters (initializes all parameters)
             tXAxisView.set('layout', {left: tYWidth, right: tSpaceForY2, bottom: tLegendHeight, height: tXHeight});
-            tYAxisView.set('layout', {left: 0, top: tNumberToggleHeight, bottom: tLegendHeight, width: tYWidth});
+            tYAxisView.set('layout', {left: 0, top: tNumberToggleHeight + tFunctionViewHeight,
+              bottom: tLegendHeight, width: tYWidth});
             tY2AxisView.set('layout', {
               right: 0,
-              top: tNumberToggleHeight,
+              top: tNumberToggleHeight + tFunctionViewHeight,
               bottom: tLegendHeight,
               width: tY2DesiredWidth
             });
             tPlotBackground.set('layout', {
               left: tYWidth,
               right: tSpaceForY2,
-              top: tNumberToggleHeight,
+              top: tNumberToggleHeight + tFunctionViewHeight,
               bottom: tXHeight + tLegendHeight
             });
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
@@ -386,23 +421,24 @@ DG.GraphView = SC.View.extend(
               tXAxisView.notifyPropertyChange('drawHeight');
 
             var tCurrYWidth = tYAxisView.get('layout').width;
-            tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth, top: tNumberToggleHeight});
+            tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth, top: tNumberToggleHeight + tFunctionViewHeight});
             if (tCurrYWidth !== tYWidth)
               tYAxisView.notifyPropertyChange('drawWidth');
 
-            tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth, top: tNumberToggleHeight});
+            tY2AxisView.adjust({bottom: tLegendHeight, width: tY2DesiredWidth,
+              top: tNumberToggleHeight + tFunctionViewHeight});
             if (!tHasY2Attribute) {
               tY2AxisView.set('isVisible', false);
             }
             tPlotBackground.adjust({
               left: tYWidth,
               right: tSpaceForY2,
-              top: tNumberToggleHeight,
+              top: tNumberToggleHeight + tFunctionViewHeight,
               bottom: tXHeight + tLegendHeight
             });
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
-              tNumberToggleView.adjust('height', tNumberToggleHeight);
+              tNumberToggleView.adjust('height', tNumberToggleHeight + tFunctionViewHeight);
           }
           if (tNumberToggleView) {
             tNumberToggleView.set('isVisible', tShowNumberToggle);
@@ -719,7 +755,8 @@ DG.GraphView = SC.View.extend(
        */
       handleAxisOrLegendLayoutChange: function () {
         this.renderLayout(this.renderContext(this.get('tagName')));
-      }.observes('*xAxisView.desiredExtent', '*yAxisView.desiredExtent', '*legendView.desiredExtent', '*y2AxisView.desiredExtent'),
+      }.observes('*xAxisView.desiredExtent', '*yAxisView.desiredExtent',
+          '*legendView.desiredExtent', '.legendView.labelNode', '*y2AxisView.desiredExtent'),
 
       /**
        * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
