@@ -840,7 +840,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       name: "data.deleteCases",
       undoString: 'DG.Undo.data.deleteCases',
       redoString: 'DG.Redo.data.deleteCases',
-      log: 'Deleted %@ cases'.fmt(deletedCases.length),
       _beforeStorage: {
         context: this
       },
@@ -856,6 +855,8 @@ DG.DataContext = SC.Object.extend((function() // closure
 
         // Store the set of deleted cases, along with their values
         this._beforeStorage.deletedCases = deletedCases;
+        this.log = "Deleted %@ case%@"
+                      .fmt(deletedCases.length, deletedCases.length === 1 ? "" : "s");
       },
       undo: function() {
         var createdCases;
@@ -1706,6 +1707,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     @param    {DG.CollectionClient}   iCollection -- The collection that was added
    */
   didAddCollection: function( iCollection) {
+    iCollection.addObserver('caseIndices', this, 'caseIndicesDidChange');
     iCollection.addObserver('attrFormulaChanges', this, 'attrFormulaDidChange');
   },
   
@@ -1715,7 +1717,17 @@ DG.DataContext = SC.Object.extend((function() // closure
     @param    {DG.CollectionClient}   iCollection -- The collection that will be removed
    */
   willRemoveCollection: function( iCollection) {
+    iCollection.removeObserver('caseIndices', this, 'caseIndicesDidChange');
     iCollection.removeObserver('attrFormulaChanges', this, 'attrFormulaDidChange');
+  },
+
+  /*
+    Observer function which invalidates formulas that depend on 'caseIndex'
+    when case indices change.
+   */
+  caseIndicesDidChange: function() {
+    var nodes = this.get('dependencyMgr').findNodesWithNames(['caseIndex']);
+    this.invalidateNodesAndNotify(nodes);
   },
   
   /**

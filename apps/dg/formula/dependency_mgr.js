@@ -39,6 +39,7 @@ DG.depMgrLog = function() {};
  */
 DG.DEP_TYPE_ATTRIBUTE = 'attribute';
 DG.DEP_TYPE_GLOBAL = 'global';
+DG.DEP_TYPE_SPECIAL = 'special';
 DG.DEP_TYPE_UNDEFINED = 'undefined';
 
 /**
@@ -78,7 +79,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
       _invalidateDependents(ioResult, iDepMgr, iDependent,
                             iForceAggregate || dependency.aggFnIndices.length);
     });
-  };
+  }
 
   return {
 
