@@ -622,6 +622,7 @@ SC.stringsFor('English', {
   'DG.Inspector.hideShow.toolTip': "Show all cases or hide selected/unselected cases",  // "Show all cases or hide selected/unselected cases"
   'DG.Inspector.delete.toolTip': "Delete selected or unselected cases",  // "Delete selected or unselected cases"
   'DG.Inspector.sliderValues.toolTip': "Set slider animation direction, speed, …",  // "Set slider animation direction, speed, …"
+  'DG.Inspector.webViewEditURL.toolTip': "Edit the URL of the displayed web page",  // "Edit the URL of the displayed web page"
 
   'DG.Inspector.selection.selectAll': "Select All Cases",           // "Select All Cases"
   'DG.Inspector.selection.deleteSelectedCases': "Delete Selected Cases",  // "Delete Selected Cases"

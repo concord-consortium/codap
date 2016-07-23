@@ -35,17 +35,27 @@ DG.WebViewController = DG.ComponentController.extend(
     theURL: '',
     title: 'DG.WebView.defaultTitle'.loc(),
 
-    /**
-    Get the menu items from the graph and its components.
-      @property { Array of menu items }
-    */
-    gearMenuItems: function() {
-      return [
-        { title: "Edit URL", target: this, itemAction: this.editURL, isEnabled: true }
-      ];
-    }.property(),
+      /**
+       *
+       * @returns {Array}
+       */
+      createInspectorButtons: function() {
+        var tButtons = sc_super();
+        tButtons.push(DG.IconButton.create({
+              layout: {width: 32},
+              classNames: 'web-view-url'.w(),
+              iconClass: 'moonicon-icon-mediaTool',
+              showBlip: false,
+              target: this,
+              action: 'editURL',
+              toolTip: 'DG.Inspector.webViewEditURL.toolTip',
+              localize: true
+            })
+        );
+        return tButtons;
+      },
 
-    editURL: function() {
+      editURL: function() {
 
       var this_ = this,
           tDialog = null;
