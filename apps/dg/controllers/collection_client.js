@@ -338,17 +338,10 @@ DG.CollectionClient = SC.Object.extend(
         // Attribute already exists:
         // copy the formula property, if there is one.
         if( iProperties.formula !== undefined) {
-          // Don't allow formula assignment for non-'editable' attributes,
-          // unless they already have a formula (for legacy document support).
-          if( tAttribute.get('editable') || tAttribute.get('hasFormula'))
-            this.setAttributeFormula( tAttribute, iProperties.formula);
-          else {
-            var attrName = tAttribute.get('name');
-            DG.AlertPane.error({
-                  message: 'DG.CollectionClient.cantEditFormulaErrorMsg'.loc( attrName),
-                  description: 'DG.CollectionClient.cantEditFormulaErrorDesc'.loc(),
-                  localize: false }); // We've already done the localization
-          }
+          // we used to ban formula changes if editable flag not set.
+          // Now, data interactive is considered to preempt the setting
+          // in the document.
+          this.setAttributeFormula( tAttribute, iProperties.formula);
         }
         // copy the attribute colors
         if (!SC.none( iProperties.colormap)) {
