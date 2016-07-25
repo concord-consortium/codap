@@ -165,7 +165,7 @@ DG.CollectionClient = SC.Object.extend(
     @param    {DG.CollectionModel}  iCollection -- The collection to be used as this object's model
    */
   setTargetCollection: function( iCollection) {
-    this.collection = iCollection;
+    this.set('collection', iCollection);
     this.attrsController.set('content', iCollection.attrs);
     this.casesController.set('content', iCollection.cases);
     
@@ -456,12 +456,23 @@ DG.CollectionClient = SC.Object.extend(
     return caseIDToIndexMap && caseIDToIndexMap[iCaseID];
   },
 
+  /**
+   * @param iCaseID {number|string}
+   * @returns {DG.Cases}
+   */
   getCaseByID: function(iCaseID) {
     var ix = this.getCaseIndexByID(iCaseID);
     if (!SC.none(ix)) {
       return this.getCaseAt(ix);
     }
   },
+
+  /**
+   * Observer function which notifies when case indices change.
+   */
+  caseIndicesDidChange: function() {
+    this.notifyPropertyChange('caseIndices');
+  }.observes('*collection.caseIDToIndexMap'),
 
   /**
     Returns true if the case at the specified index is selected, false otherwise.
