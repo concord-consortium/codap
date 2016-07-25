@@ -120,6 +120,30 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   collections: null,
 
+    /**
+     * Return the total number of cases, obtained by summing the case count over all collections
+     * @property{ Number }
+     */
+    totalCaseCount: function() {
+      var tTotalCount = 0;
+      this.forEachCollection( function( iCollection) {
+        tTotalCount += iCollection.getPath('collection.cases').length;
+      });
+      return tTotalCount;
+    }.property('collectionCount'),
+
+    /**
+     * Returns a single array containing all cases of all collections
+     * @property {[DG.Case]}
+     */
+    allCases: function() {
+      var tResult = [];
+      this.forEachCollection( function( iCollection) {
+        tResult = tResult.concat(iCollection.getPath('collection.cases'));
+      });
+      return tResult;
+    }.property('collectionCount'),
+
   /**
    *  The collections for which this controller is responsible.
    *  Clients expect the order of this array to be parent --> child.

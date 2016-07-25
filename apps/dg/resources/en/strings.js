@@ -626,7 +626,8 @@ SC.stringsFor('English', {
 
   'DG.Inspector.selection.selectAll': "Select All Cases",           // "Select All Cases"
   'DG.Inspector.selection.deleteSelectedCases': "Delete Selected Cases",  // "Delete Selected Cases"
-  'DG.Inspector.selection.deleteUnselectedCases': "Delete UnSelected Cases",    // "Delete UnSelected Cases"
+  'DG.Inspector.selection.deleteUnselectedCases': "Delete Unselected Cases",    // "Delete Unselected Cases"
+  'DG.Inspector.deleteAll': "Delete All Cases",           // "Delete All Cases"
 
   // Display Inspector
   'DG.Inspector.displayValues.toolTip': "Change what is shown along with the points",  // "Change what is shown along with the points"

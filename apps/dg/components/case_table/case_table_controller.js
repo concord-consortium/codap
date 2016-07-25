@@ -610,6 +610,39 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
+       Delete the currently unselected cases.
+       Passes the request on to the data context to do the heavy lifting.
+       */
+      deleteUnselectedCases: function(){
+        var tContext = this.get('dataContext'),
+            tSelectedCases = tContext.getSelectedCases(),
+            tAllCases = tContext.get('allCases'),
+            tUnselected = DG.ArrayUtils.subtract( tAllCases, tSelectedCases,
+            function( iCase) {
+              return iCase.get('id');
+            });
+        var tChange = {
+          operation: 'deleteCases',
+          cases: DG.copy(tUnselected)
+        };
+        tContext.applyChange( tChange);
+      },
+
+      /**
+       Delete all cases represented by the case table.
+       Passes the request on to the data context to do the heavy lifting.
+       */
+      deleteAllCases: function(){
+        var tContext = this.get('dataContext'),
+            tAllCases = tContext.get('allCases');
+        var tChange = {
+          operation: 'deleteCases',
+          cases: DG.copy(tAllCases)
+        };
+        tContext.applyChange( tChange);
+      },
+
+      /**
        * Method to create a new attribute with formula.
        * NOTE: this method will also replace the formula of an existing attribute of the same name (case sensitive)
        * @param iProperties --properties to pass on to the applyNewAttribute() method.
@@ -965,10 +998,11 @@ DG.CaseTableController = DG.ComponentController.extend(
 
       showDeletePopup: function() {
         var tDataContext = this.get('dataContext'),
-            //tCases = tModel.get('cases'),
             tSelection = tDataContext && tDataContext.getSelectedCases(),
             tDeleteIsEnabled = tSelection && tSelection.get('length') > 0,
-            //tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
+            tCaseCount = tDataContext.get('totalCaseCount'),
+            tDeleteUnselectedIsEnabled = (tCaseCount > 0) &&
+                (!tSelection || tSelection.get('length') < tCaseCount),
             tItems = [
               {
                 title: 'DG.Inspector.selection.selectAll',
@@ -982,14 +1016,21 @@ DG.CaseTableController = DG.ComponentController.extend(
                 target: this,
                 action: 'deleteSelectedCases',
                 isEnabled: tDeleteIsEnabled
-              }/*,
+              },
               {
                 title: 'DG.Inspector.selection.deleteUnselectedCases',
                 localize: true,
                 target: this,
                 action: 'deleteUnselectedCases',
                 isEnabled: tDeleteUnselectedIsEnabled
-              }*/
+              },
+              {
+                title: 'DG.Inspector.deleteAll',
+                localize: true,
+                target: this,
+                action: 'deleteAllCases',
+                isEnabled: tCaseCount > 0
+              }
             ],
             tMenu = DG.MenuPane.create({
               classNames: 'delete-popup'.w(),
