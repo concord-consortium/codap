@@ -232,14 +232,23 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       Delete the currently selected cases.
       Passes the request on to the data context to do the heavy lifting.
      */
-    // Todo: CaseTableController::deleteSelectedCases first deselects before deleting. Figure
-    //  out how to refactor to combine this decision in one place.
     deleteSelectedCases: function() {
-      var tChange = {
-            operation: 'deleteCases',
-            cases: DG.copy( this.get('selection'))
-          };
-      this.get('dataContext').applyChange( tChange);
+      var tContext = this.get('dataContext'),
+          tSelectedCases = this.get('selection'),
+          tChange;
+      if( tContext) {
+        tChange = {
+          operation: 'selectCases',
+          select: false,
+          cases: tSelectedCases
+        };
+        tContext.applyChange( tChange);
+        tChange = {
+          operation: 'deleteCases',
+          cases: tSelectedCases
+        };
+        tContext.applyChange( tChange);
+      }
     },
 
     /**

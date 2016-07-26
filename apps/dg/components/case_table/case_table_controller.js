@@ -623,7 +623,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             });
         var tChange = {
           operation: 'deleteCases',
-          cases: DG.copy(tUnselected)
+          cases: tUnselected
         };
         tContext.applyChange( tChange);
       },
@@ -637,7 +637,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tAllCases = tContext.get('allCases');
         var tChange = {
           operation: 'deleteCases',
-          cases: DG.copy(tAllCases)
+          cases: tAllCases
         };
         tContext.applyChange( tChange);
       },

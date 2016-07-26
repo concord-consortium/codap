@@ -181,15 +181,20 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 tCases = tModel.get('cases'),
                 tDeleteSelectedIsEnabled = tSelection && tSelection.get('length') !== 0,
                 tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
-            // TODO: Provide localization by defining in dg.strings
                 tMenuItems = [
-                  {title: "Select All", target: tModel, action: 'selectAll', isEnabled: true},
+                  {title: 'DG.Inspector.selection.selectAll',
+                    localize: true,
+                    target: tModel, action: 'selectAll', isEnabled: true},
                   {
-                    title: "Delete Selected Cases", target: tModel, action: 'deleteSelectedCases',
+                    title: 'DG.Inspector.selection.deleteSelectedCases',
+                    localize: true,
+                    target: tModel, action: 'deleteSelectedCases',
                     isEnabled: tDeleteSelectedIsEnabled
                   },
                   {
-                    title: "Delete Unselected Cases", target: tModel, action: 'deleteUnselectedCases',
+                    title: 'DG.Inspector.selection.deleteUnselectedCases',
+                    localize: true,
+                    target: tModel, action: 'deleteUnselectedCases',
                     isEnabled: tDeleteUnselectedIsEnabled
                   }
                 ];
