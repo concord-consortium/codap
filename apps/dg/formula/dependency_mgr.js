@@ -58,26 +58,51 @@ DG.DependencyMgr = SC.Object.extend((function() {
     return 0;
   }
 
-  // utility function for recursively invalidating dependents
+  /**
+    Recursive function to invalidate a single dependency and all of the downstream
+    dependents that are affected by it.
+    @param  {object}  ioResult - dependencies are accumulated and returned in this object
+    @param  {object}  iDepMgr - the dependency manager
+    @param  {object}  iDependent - the dependent node
+    @param  {object}  iDependency - the dependency to be invalidated
+    @param  {boolean} iForceAggregate - true if the dependency should be treated as aggregate
+   */
+  function _invalidateDependency(ioResult, iDepMgr, iDependent, iDependency, iForceAggregate) {
+    if (iDependent)
+      iDependent.lastInvalidation = iDepMgr._currentInvalidation;
+
+    if (iDependency && iDependency.dependentContext) {
+      iDependency.dependentContext
+        .invalidateDependent(ioResult, iDependent, iDependency, [], iForceAggregate);
+    }
+    DG.depMgrLog("DG.DependencyMgr[%@]._invalidateDependency: Invalidating %@ '%@'",
+                  iDepMgr.getPath('dataContext.name'), iDependent.type, iDependent.name);
+    if (iDependent && iDependency) {
+      // recursively invalidate additional affected nodes
+      _invalidateDependents(ioResult, iDepMgr, iDependent,
+                            iForceAggregate || (iDependency.aggFnIndices.length > 0));
+    }
+  }
+
+  /**
+    Recursive function to invalidate all dependents of a single nod and all of
+    the downstream dependents that are affected by them.
+    @param  {object}  ioResult - dependencies are accumulated and returned in this object
+    @param  {object}  iDepMgr - the dependency manager
+    @param  {object}  iIndNode - the independent node
+    @param  {boolean} iForceAggregate - true if the dependency should be treated as aggregate
+   */
   function _invalidateDependents(ioResult, iDepMgr, iIndNode, iForceAggregate) {
 
     iIndNode.dependents.forEach(function(iDependent) {
 
       // if we've already invalidated this node, we don't need to do so again
       if (iDependent.lastInvalidation >= iDepMgr._currentInvalidation) return;
-      iDependent.lastInvalidation = iDepMgr._currentInvalidation;
 
       // Call the specified invalidation function
       var dependency = iDepMgr._findDependency(iDependent, iIndNode);
-      if (dependency && dependency.dependentContext) {
-        dependency.dependentContext
-          .invalidateDependent(ioResult, iDependent, dependency, [], iForceAggregate);
-      }
-      DG.depMgrLog("DG.DependencyMgr[%@]._invalidateDependents: Invalidating %@ '%@'",
-                    iDepMgr.getPath('dataContext.name'), iDependent.type, iDependent.name);
-      // recursively invalidate additional affected nodes
-      _invalidateDependents(ioResult, iDepMgr, iDependent,
-                            iForceAggregate || dependency.aggFnIndices.length);
+      if (dependency)
+        _invalidateDependency(ioResult, iDepMgr, iDependent, dependency, iForceAggregate);
     });
   }
 
@@ -228,6 +253,20 @@ DG.DependencyMgr = SC.Object.extend((function() {
   },
 
   /**
+    Returns the dependency object for the specified dependent and independent
+    nodes. Returns undefined if no dependency exists between the nodes.
+    @param    {object}  iDependentSpec - specifier for the dependent node
+    @param    {object}  iIndependentSpec - specifier for the independent node
+    @returns  {object}  dependency object between the specified nodes
+   */
+  findDependency: function(iDependentSpec, iIndependentSpec) {
+    var dependentNode = this.findNode(iDependentSpec),
+        independentNode = this.findNode(iIndependentSpec);
+    return dependentNode && independentNode &&
+            this._findDependency(dependentNode, independentNode);
+  },
+
+  /**
     Registers the specified dependency, adding a new node for the independent
     node if necessary (the dependent node should already be present because
     a formula should be registered before it is compiled).
@@ -309,7 +348,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
    */
   _findDependency: function(iDependentNode, iIndependentNode) {
     var dependentNode = this.findNode(iDependentNode),
-        dependencies = dependentNode.dependencies,
+        dependencies = dependentNode && dependentNode.dependencies,
         dependencyCount = dependencies.length,
         i, dependency;
     for (i = 0; i < dependencyCount; ++i) {
@@ -452,13 +491,36 @@ DG.DependencyMgr = SC.Object.extend((function() {
   },
 
   /**
+    Invalidate a particular dependent of a particular node.
+    returns an object indicating the affected nodes.
+    @param {object}   iDependentSpec - specifier for the dependent node
+    @param {object}   iIndependentSpec - specifier for the independent node
+    @param {boolean}  iForceAggregate - true if the dependency should be treated as aggregate
+    @returns {object}   result
+                        .simpleDependencies[]
+                        .aggregateDependencies[]
+   */
+  invalidateDependency: function(iDependentSpec, iIndependentSpec, iForceAggregate) {
+    var dependentNode = this.findNode(iDependentSpec),
+        dependency = this.findDependency(iDependentSpec, iIndependentSpec),
+        result = { simpleDependencies: [], aggregateDependencies: [] };
+    if (dependency) {
+      // increment our invalidation counter
+      ++this._currentInvalidation;
+      // invalidate the specified dependency
+      _invalidateDependency(result, this, dependentNode, dependency, iForceAggregate);
+    }
+    return result;
+  },
+
+  /**
     Invalidate the specified nodes; returns an object indicating the affected nodes.
     @param {object[]}   iNodeSpecs
     @returns {object}   result
                         .simpleDependencies[]
                         .aggregateDependencies[]
    */
-  invalidateNodes: function(iNodeSpecs, iCases) {
+  invalidateNodes: function(iNodeSpecs) {
     var i, nodeSpecCount = iNodeSpecs.length,
         result = { simpleDependencies: [], aggregateDependencies: [] };
 
@@ -469,8 +531,6 @@ DG.DependencyMgr = SC.Object.extend((function() {
     for (i = 0; i < nodeSpecCount; ++i) {
       var indNode = this.findNode(iNodeSpecs[i]);
       if (indNode) {
-        // invalidate each node
-        indNode.lastInvalidation = this._currentInvalidation;
         // invalidate dependents of each node
         _invalidateDependents(result, this, indNode);
       }

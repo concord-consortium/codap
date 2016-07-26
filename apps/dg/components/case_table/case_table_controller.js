@@ -271,6 +271,9 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
           break;
+        case 'cmdRandomizeAttribute':
+          this.randomizeAttribute( columnID);
+          break;
         case 'cmdRenameAttribute':
           this.renameAttribute( columnID);
           break;
@@ -775,6 +778,33 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
+       * Randomize a single attribute
+       */
+      randomizeAttribute: function(iAttrID) {
+        var dataContext = this.get('dataContext');
+        if (dataContext && iAttrID) {
+          dataContext.invalidateDependencyAndNotify({ type: DG.DEP_TYPE_ATTRIBUTE,
+                                                      id: iAttrID },
+                                                    { type: DG.DEP_TYPE_SPECIAL,
+                                                      id: 'random' },
+                                                    true /* force aggregate */);
+        }
+      },
+
+      /**
+       * Randomize all attributes
+       */
+      randomizeAllAttributes: function() {
+        var dataContext = this.get('dataContext'),
+            dependencyMgr = dataContext && dataContext.get('dependencyMgr'),
+            randomNode = dependencyMgr &&
+                          dependencyMgr.findNode({ type: DG.DEP_TYPE_SPECIAL,
+                                                    id: 'random' });
+        if (dataContext)
+          dataContext.invalidateDependentsAndNotify([randomNode]);
+      },
+
+      /**
        * Rename an attribute. Brings up the Rename Attribute dialog.
        *
        */
@@ -1053,6 +1083,22 @@ DG.CaseTableController = DG.ComponentController.extend(
             dgAction: 'newAttribute'
           });
         }.bind(this));
+        tItems.push({
+          title: 'DG.Inspector.randomizeAllAttributes', // "Randomize Attributes"
+          localize: true,
+          target: this,
+          dgAction: 'randomizeAllAttributes',
+          isEnabled: !!(function() {
+                        var depMgr = tDataContext && tDataContext.get('dependencyMgr'),
+                            randomNode = depMgr && depMgr.findNode({ type: DG.DEP_TYPE_SPECIAL,
+                                                                      id: 'random' }),
+                            dependents = randomNode && depMgr.findDependentsOfNodes([randomNode]);
+                            // enabled if any attributes are dependents
+                            return dependents && dependents.some(function(iDependent) {
+                              return iDependent.type === DG.DEP_TYPE_ATTRIBUTE;
+                            })
+                      }.bind(this))()
+        });
         tItems.push({
           title: 'DG.Inspector.exportCaseData', // "Export Case Data..."
           localize: true,
