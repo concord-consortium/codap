@@ -312,6 +312,10 @@ DG.ComponentView = SC.View.extend(
                     redoString: 'DG.Redo.componentTitleChange',
                     execute: function () {
                       this._beforeStorage = tComponentView.getPath('model.title');
+                      // If the title has already been changed (e.g. due to notification),
+                      // then use the previous title for purposes of logging the change.
+                      if (this._beforeStorage === value)
+                        this._beforeStorage = tComponentView.getPath('model._prevTitle');
                       tComponentView.setPath('model.title', value);
                       this._value;
                       this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
