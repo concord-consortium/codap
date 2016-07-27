@@ -9,8 +9,8 @@
 //  a list of dependencies (nodes that a given node references in its
 //  formula) and dependents (nodes whose formulas reference this node).
 //  The dependency graph must be kept up to date with any changes to
-//  formulas, etc., at which point the invalidateNodes() method can be
-//  called to invalidate the relevant attribute values and return a
+//  formulas, etc., at which point the invalidateDependentsOf() method can
+//  be called to invalidate the relevant attribute values and return a
 //  list of affected attributes in each affected collection.
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
@@ -520,7 +520,7 @@ DG.DependencyMgr = SC.Object.extend((function() {
                         .simpleDependencies[]
                         .aggregateDependencies[]
    */
-  invalidateNodes: function(iNodeSpecs) {
+  invalidateDependentsOf: function(iNodeSpecs) {
     var i, nodeSpecCount = iNodeSpecs.length,
         result = { simpleDependencies: [], aggregateDependencies: [] };
 

@@ -466,8 +466,8 @@ SC.stringsFor('English', {
 
   // DG.TableController
   'DG.TableController.headerMenuItems.editAttribute': "Edit Formula...",
-  'DG.TableController.headerMenuItems.randomizeAttribute': "Randomize Attribute",
-  'DG.TableController.headerMenuItems.renameAttribute': "Rename Attribute...",
+  'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
+  'DG.TableController.headerMenuItems.renameAttribute': "Rename...",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
@@ -654,7 +654,7 @@ SC.stringsFor('English', {
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "Make new attributes. Export case data.",  // "Make new attributes. Export case data."
   'DG.Inspector.newAttribute': "New Attribute in %@...",  // "New Attribute in %@..."
-  'DG.Inspector.randomizeAllAttributes': "Randomize Attributes", // "Randomize Attributes"
+  'DG.Inspector.randomizeAllAttributes': "Rerandomize All", // "Randomize Attributes"
   'DG.Inspector.exportCaseData': "Export Case Data...", // "Export Case Data..."
 
   // Map Inspector

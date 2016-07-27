@@ -1096,7 +1096,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                             // enabled if any attributes are dependents
                             return dependents && dependents.some(function(iDependent) {
                               return iDependent.type === DG.DEP_TYPE_ATTRIBUTE;
-                            })
+                            });
                       }.bind(this))()
         });
         tItems.push({

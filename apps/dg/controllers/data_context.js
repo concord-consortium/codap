@@ -1301,7 +1301,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             {string}    .operation (e.g. 'createCases'|'updateCases'|'deleteCases')
    */
   invalidateDependentsAndNotify: function(iNodes, iChange) {
-    var result = this.get('dependencyMgr').invalidateNodes(iNodes);
+    var result = this.get('dependencyMgr').invalidateDependentsOf(iNodes);
     this.notifyInvalidationResult(result, iChange);
   },
 
