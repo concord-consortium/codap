@@ -277,7 +277,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     // cascade in the source context, start an invalidation cascade locally.
     var dependencyMgr = this.get('dependencyMgr');
     if (iDependency.srcDependencyMgr && (dependencyMgr !== iDependency.srcDependencyMgr)) {
-      dependencyMgr.invalidateNodes([iDependent]);
+      dependencyMgr.invalidateDependentsOf([iDependent]);
     }
   },
 

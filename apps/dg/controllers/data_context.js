@@ -544,7 +544,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       attr = collection.getAttributeAt(i);
       attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
     }
-    this.invalidateNodesAndNotify(attrNodes, iChange);
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return result;
   },
@@ -744,7 +744,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                       return { type: DG.DEP_TYPE_ATTRIBUTE, id: iSpec.attributeID,
                                 name: attr.get('name') };
                     });
-    this.invalidateNodesAndNotify(attrNodes, iChange);
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return { success: true, caseIDs: iChange.caseIDs };
   },
@@ -946,7 +946,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
       }
     });
-    this.invalidateNodesAndNotify(attrNodes, iChange);
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return { success: true };
   },
@@ -1267,7 +1267,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
       });
 
-      this.invalidateNodesAndNotify(nodes);
+      this.invalidateDependentsAndNotify(nodes);
     }
   },
 
@@ -1275,8 +1275,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     Notifies clients of namespace changes that affect formulas.
     Invalidates the specified nodes in the DependencyMgr, which invalidates
     all dependent nodes and then returns the sets of nodes that are affected.
-    Calls invalidateNodesAndNotify(), so see description of that function
-    for the notifications that can be triggered.
+    Calls invalidateDependentsAndNotify(), so see description of that
+    function for the notifications that can be triggered.
    */
   invalidateNamesAndNotify: function(iNames) {
     var dependencyMgr = this.get('dependencyMgr'),
@@ -1288,8 +1288,35 @@ DG.DataContext = SC.Object.extend((function() // closure
       if (formulaContext)
         formulaContext.invalidateNamespace();
     });
-    // we don't really need to invalidate the named nodes
-    this.invalidateNodesAndNotify(namedNodes);
+    // invalidate dependents of the named nodes
+    this.invalidateDependentsAndNotify(namedNodes);
+  },
+
+  /**
+    Invalidates all dependents of the specified nodes and sends out
+    appropriate dependentCases notifications. See notifyInvalidationResult
+    for details of the notifications.
+    @param  {object[]}  iNodes - array of nodes whose dependents are to be invalidated
+    @param  {object}    iChange - optional change object
+            {string}    .operation (e.g. 'createCases'|'updateCases'|'deleteCases')
+   */
+  invalidateDependentsAndNotify: function(iNodes, iChange) {
+    var result = this.get('dependencyMgr').invalidateDependentsOf(iNodes);
+    this.notifyInvalidationResult(result, iChange);
+  },
+
+  /**
+    Invalidates a particular dependent of the specified node and sends out
+    appropriate dependentCases notifications. See notifyInvalidationResult
+    for details of the notifications.
+    @param  {object}  iDependentSpec - specifier for the dependent node
+    @param  {object}  iIndependentSpec - specifier for the independent node
+    @param  {boolean} iForceAggregate - true if the dependence should be treated as aggregate
+   */
+  invalidateDependencyAndNotify: function(iDependentSpec, iIndependentSpec, iForceAggregate) {
+    var result = this.get('dependencyMgr')
+                  .invalidateDependency(iDependentSpec, iIndependentSpec, iForceAggregate);
+    this.notifyInvalidationResult(result);
   },
 
   /**
@@ -1330,11 +1357,10 @@ DG.DataContext = SC.Object.extend((function() // closure
                                     are to be changed for each case.
               {Array of DG.Case}    iChange.changes.cases -- DG.Case objects to be changed
    */
-  invalidateNodesAndNotify: function(iNodes, iChange) {
+  notifyInvalidationResult: function(iResult, iChange) {
     var changeCollection = iChange && iChange.collection,
         changeCollectionID = changeCollection && changeCollection.get('id'),
         changeCases = (iChange && iChange.cases) || [],
-        result = this.get('dependencyMgr').invalidateNodes(iNodes),
         simpleNotification, aggregateNotification,
         externalDataContexts = [];
 
@@ -1389,15 +1415,15 @@ DG.DataContext = SC.Object.extend((function() // closure
       return notification;
     }.bind(this);
 
-    if (!result.simpleDependencies.length && !result.aggregateDependencies.length) {
-      //DG.log("DG.DataContext.invalidateNodesAndNotify: No dependents");
+    if (!iResult.simpleDependencies.length && !iResult.aggregateDependencies.length) {
+      //DG.log("DG.DataContext.invalidateDependentsAndNotify: No dependents");
     }
     else {
-      if (!iChange && result.simpleDependencies.length) {
+      if (!iChange && iResult.simpleDependencies.length) {
         // global value changes affect all cases, like aggregate functions
-        result.aggregateDependencies = result.aggregateDependencies.concat(
-                                          result.simpleDependencies);
-        result.simpleDependencies = [];
+        iResult.aggregateDependencies = iResult.aggregateDependencies.concat(
+                                          iResult.simpleDependencies);
+        iResult.simpleDependencies = [];
       }
 
       // check if all changed cases are from the same collection
@@ -1420,24 +1446,24 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
 
       // handle simple dependencies, but only for updateCases
-      if (result.simpleDependencies.length &&
+      if (iResult.simpleDependencies.length &&
           iChange && (iChange.operation === 'updateCases')) {
         // DG.log("DG.DataContext.invalidateNodesAndNotify: simpleDependents: [%@]",
-        //         result.simpleDependencies.map(function(iDep) {
+        //         iResult.simpleDependencies.map(function(iDep) {
         //                                     return "'" + iDep.name + "'";
         //                                   })
         //                                   .join(", "));
-        simpleNotification = convertDependenciesToNotification(result.simpleDependencies, iChange);
+        simpleNotification = convertDependenciesToNotification(iResult.simpleDependencies, iChange);
       }
 
       // handle aggregate dependencies
-      if (result.aggregateDependencies.length) {
+      if (iResult.aggregateDependencies.length) {
         // DG.log("DG.DataContext.invalidateNodesAndNotify: aggregateDependents: [%@]",
-        //         result.aggregateDependencies.map(function(iDep) {
+        //         iResult.aggregateDependencies.map(function(iDep) {
         //                                         return "'" + iDep.name + "'";
         //                                       })
         //                                       .join(", "));
-        aggregateNotification = convertDependenciesToNotification(result.aggregateDependencies);
+        aggregateNotification = convertDependenciesToNotification(iResult.aggregateDependencies);
       }
 
       if (simpleNotification)
@@ -1451,7 +1477,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }
   },
-
 
     /**
      * A utility to find the last collection in the context.
