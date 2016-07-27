@@ -659,6 +659,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             defaultAttrName = iDefaultAttrName || '', // was DG.TableController.newAttrDlg.defaultAttrName'.loc(),  // "new_attr"
             defaultAttrFormula = iDefaultAttrFormula || '',
             kAttributesCategory = 'DG.TableController.newAttrDialog.AttributesCategory'.loc(),
+            kSpecialCategory = 'DG.TableController.newAttrDialog.SpecialCategory'.loc(),
             kGlobalsCategory = 'DG.TableController.newAttrDialog.GlobalsCategory'.loc(),
             kConstantsCategory = 'DG.TableController.newAttrDialog.ConstantsCategory'.loc(),
             kFunctionsCategory = 'DG.TableController.newAttrDialog.FunctionsCategory'.loc();
@@ -696,11 +697,18 @@ DG.CaseTableController = DG.ComponentController.extend(
           appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames(),
                                     kAttributesCategory);
         });
-        appendArrayOfNamesToMenu( tGlobalNames, kGlobalsCategory);
+        if (kSpecialCategory !== kConstantsCategory)
+          appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
+        appendArrayOfNamesToMenu(tGlobalNames, kGlobalsCategory);
+        if (kSpecialCategory === kConstantsCategory)
+          appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
         appendArrayOfNamesToMenu([ "e", "π" ]);
         tCompletionData.push({ label: "e", value: "e", category: kConstantsCategory });
+        tCompletionData.push({ label: "π", value: "π", category: kConstantsCategory,
+                                fontFamily: "Symbol,serif", fontSize: "130%" });
         // match against "pi", but render "π"
-        tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory });
+        tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
+                                fontFamily: "Symbol,serif", fontSize: "130%" });
 
         appendNamesToCompletionData(DG.FormulaContext.getFunctionNamesWithParentheses(),
                                     kFunctionsCategory);

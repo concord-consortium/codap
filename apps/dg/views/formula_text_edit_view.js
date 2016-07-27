@@ -32,6 +32,20 @@ sc_require('views/text_field_view');
 DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
 /** @scope DG.FormulaTextEditView.prototype */
 
+  /*
+    Utility function for testing whether a jQuery event was
+    ultimately triggered by a key event.
+   */
+  function isKeyDownEvent(iEvent, iOptionalKeyCode) {
+    // recurse our way down to the most original event
+    if (iEvent.originalEvent)
+      return isKeyDownEvent(iEvent.originalEvent, iOptionalKeyCode);
+            // test whether it's a key event
+    return /^key/.test(iEvent.type) &&
+            // if a particular keyCode was specified, test whether it was the one
+            ((iOptionalKeyCode == null) || (iOptionalKeyCode === iEvent.keyCode));
+  }
+
   // Keycodes that can be used in identifiers.
   // May have to be expanded to handle internationalization.
   function isIdentifierKeyCode(iKeyCode) {
@@ -54,6 +68,45 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
               SC.Event.KEY_PAGEUP, SC.Event.KEY_PAGEDOWN].indexOf(iKeyCode) >= 0);
   }
 
+  /*
+    Replace the appropriate portion of the original string with the
+    contents (value) of the focused or selected item.
+   */
+  function autocompleteReplace(iInstance, iItem, iMatchPos, iMatchStr) {
+    var element = iInstance.element.get(0),
+        orgText = iInstance && iInstance.term,
+        replaceStr = iItem.value,
+        replaceLen = replaceStr.length,
+        newText, caretPos;
+
+    // Don't add parentheses at end of function name if there are
+    // already parentheses immediately following the string to replace.
+    if ((replaceLen > 2) && 
+        (replaceStr[replaceStr.length - 2] === '(') &&
+        (orgText[iMatchPos + iMatchStr.length] === '(')) {
+      replaceStr = replaceStr.substr(0, replaceLen - 2);
+    }
+
+    // Replace the matched part of the string with the selected string
+    if (iMatchStr) {
+      newText = orgText.substr(0, iMatchPos) +
+                replaceStr +
+                orgText.substr(iMatchPos + iMatchStr.length);
+      iInstance._value(newText);
+      // set the caret position after the replacement
+      // (or between the parentheses in the case of functions)
+      if (element) {
+        caretPos = iMatchPos + replaceStr.length;
+        if (replaceStr.indexOf("()") > 0)
+          -- caretPos;
+        else if (iItem.value.indexOf("()") > 0)
+          ++ caretPos;
+        element.selectionStart = element.selectionEnd = caretPos;
+      }
+      return false;
+    }
+  }
+
 return {
 
   autoCorrect: false,
@@ -66,57 +119,6 @@ return {
 
   didAppendToDocument: function() {
     DG.FormulaTextEditView.initializeAutoComplete();
-
-    /*
-      Utility function for testing whether a jQuery event was
-      ultimately triggered by a key event.
-     */
-    function isKeyDownEvent(iEvent) {
-      // recurse our way down to the most original event
-      if (iEvent.originalEvent)
-        return isKeyDownEvent(iEvent.originalEvent);
-      // test whether it's a key event
-      return /^key/.test(iEvent.type);
-    }
-
-    /*
-      Replace the appropriate portion of the original string with the
-      contents (value) of the focused or selected item.
-     */
-    function autocompleteReplace(iInstance, iItem, iMatchPos, iMatchStr) {
-      var element = iInstance.element.get(0),
-          orgText = iInstance && iInstance.term,
-          replaceStr = iItem.value,
-          replaceLen = replaceStr.length,
-          newText, caretPos;
-
-      // Don't add parentheses at end of function name if there are
-      // already parentheses immediately following the string to replace.
-      if ((replaceLen > 2) && 
-          (replaceStr[replaceStr.length - 2] === '(') &&
-          (orgText[iMatchPos + iMatchStr.length] === '(')) {
-        replaceStr = replaceStr.substr(0, replaceLen - 2);
-      }
-
-      // Replace the matched part of the string with the selected string
-      if (iMatchStr) {
-        newText = orgText.substr(0, iMatchPos) +
-                  replaceStr +
-                  orgText.substr(iMatchPos + iMatchStr.length);
-        iInstance._value(newText);
-        // set the caret position after the replacement
-        // (or between the parentheses in the case of functions)
-        if (element) {
-          caretPos = iMatchPos + replaceStr.length;
-          if (replaceStr.indexOf("()") > 0)
-            -- caretPos;
-          else if (iItem.value.indexOf("()") > 0)
-            ++ caretPos;
-          element.selectionStart = element.selectionEnd = caretPos;
-        }
-        return false;
-      }
-    }
 
     // Initialize the autocomplete widget when we are appended to the DOM.
     var textArea = this.$('textarea');
@@ -134,6 +136,7 @@ return {
                       frame = this.frame(),
                       width = frame.width;
                   this._ac_isOpen = true;
+                  this._ac_selectedWithTab = false;
 
                   widget.css({
                           zIndex: 9999, // make sure it's on top
@@ -158,7 +161,7 @@ return {
                   }
                 }.bind(this),
 
-                // called when the user selects and item from the menu
+                // called when the user selects an item from the menu
                 select: function(event, ui) {
                   var instance = textArea.catcomplete('instance'),
                       matchPos = this._ac_matchPos || 0,
@@ -166,6 +169,7 @@ return {
                   // We do our own replacing since we sometimes match a substring and
                   // we also set the caret (e.g. inside the parentheses for functions).
                   if (instance) {
+                    this._ac_selectedWithTab = isKeyDownEvent(event, SC.Event.KEY_TAB);
                     autocompleteReplace(instance, ui.item, matchPos, matchStr);
                     return false;
                   }
@@ -189,6 +193,14 @@ return {
         tCurrent = this.get('value'),
         tSelection = this.get('selection'),
         acInstance = this.$('textarea').catcomplete('instance');
+
+    // If tab key was used to exit the autocomplete menu, don't
+    // let SproutCore use it to exit the text field as well.
+    if ((evt.keyCode === SC.Event.KEY_TAB) && this._ac_selectedWithTab) {
+      this._ac_selectedWithTab = false;
+      // indicate we've handled the event, otherwise we tab out of the edit field
+      return true;
+    }
 
     // If a non-matchable character is typed while the autocomplete menu is open,
     // restore the original text (and selection position if possible) and close
@@ -359,7 +371,10 @@ DG.FormulaTextEditView.initializeAutoComplete = function() {
       if (preMatchStr)
         $('<span>').text(preMatchStr).appendTo(itemTag);
       if (matchStr)
-        $('<span>').css({ fontWeight: 'bold' }).text(matchStr).appendTo(itemTag);
+        $('<span>').css({ fontWeight: 'bold',
+                          fontFamily: item.fontFamily || 'inherit',
+                          fontSize: item.fontSize || 'inherit' })
+                    .text(matchStr).appendTo(itemTag);
       if (postMatchStr)
         $('<span>').text(postMatchStr).appendTo(itemTag);
       return $( "<li>" )

@@ -474,8 +474,9 @@ SC.stringsFor('English', {
   'DG.TableController.newAttrDlg.applyTooltip': "Define the new attribute using the name and (optional) formula",
   'DG.TableController.newAttrDlg.mustEnterAttrNameMsg': "Please enter a name for the new attribute",
   'DG.TableController.newAttrDialog.AttributesCategory': "Attributes",
+  'DG.TableController.newAttrDialog.SpecialCategory': "Special",
   'DG.TableController.newAttrDialog.GlobalsCategory': "Globals",
-  'DG.TableController.newAttrDialog.ConstantsCategory': "Constants",
+  'DG.TableController.newAttrDialog.ConstantsCategory': "Constants",  // Set to "Special" to combine with 'caseIndex'
   'DG.TableController.newAttrDialog.FunctionsCategory': "Functions",
   'DG.TableController.renameAttributePrompt': "Enter a new name for the attribute:",
   'DG.TableController.renameAttributeOKTip': "Accept the new attribute name",
