@@ -1448,7 +1448,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       // handle simple dependencies, but only for updateCases
       if (iResult.simpleDependencies.length &&
           iChange && (iChange.operation === 'updateCases')) {
-        // DG.log("DG.DataContext.invalidateNodesAndNotify: simpleDependents: [%@]",
+        // DG.log("DG.DataContext.notifyInvalidationResult: simpleDependents: [%@]",
         //         iResult.simpleDependencies.map(function(iDep) {
         //                                     return "'" + iDep.name + "'";
         //                                   })
@@ -1458,7 +1458,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       // handle aggregate dependencies
       if (iResult.aggregateDependencies.length) {
-        // DG.log("DG.DataContext.invalidateNodesAndNotify: aggregateDependents: [%@]",
+        // DG.log("DG.DataContext.notifyInvalidationResult: aggregateDependents: [%@]",
         //         iResult.aggregateDependencies.map(function(iDep) {
         //                                         return "'" + iDep.name + "'";
         //                                       })
@@ -1776,7 +1776,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   caseIndicesDidChange: function() {
     var nodes = this.get('dependencyMgr').findNodesWithNames(['caseIndex']);
-    this.invalidateNodesAndNotify(nodes);
+    this.invalidateDependentsAndNotify(nodes);
   },
   
   /**
@@ -1800,7 +1800,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     var attr = DG.Attribute.getAttributeByID(attrID),
         attrNodes = [{ type: DG.DEP_TYPE_ATTRIBUTE, id: attrID, name: attr.get('name') }];
-    this.invalidateNodesAndNotify(attrNodes);
+    this.invalidateDependentsAndNotify(attrNodes);
   },
   
   /**
