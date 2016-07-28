@@ -87,6 +87,8 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
       replaceStr = replaceStr.substr(0, replaceLen - 2);
     }
 
+    if (iMatchStr === replaceStr) return;
+
     // Replace the matched part of the string with the selected string
     if (iMatchStr) {
       newText = orgText.substr(0, iMatchPos) +
@@ -103,7 +105,11 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
           ++ caretPos;
         element.selectionStart = element.selectionEnd = caretPos;
       }
-      return false;
+      // let SproutCore know we've changed the value
+      SC.run(function() {
+        if (iInstance.options._dg_editView)
+          iInstance.options._dg_editView.fieldValueDidChange();
+      });
     }
   }
 
