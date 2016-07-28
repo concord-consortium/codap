@@ -32,6 +32,19 @@ DG.main = function main() {
 
   SC.$('body' ).addClass( 'dg');
 
+  // Fix to support touch events in non-SproutCore elements like jQuery UI widgets.
+  // By default, SC.RootResponder swallows all touch events except for those
+  // intended for specific browser tags (input, textarea, a, select). For non-SC
+  // elements to work correctly on touch devices, they need to receive touch events
+  // as well. To do so, we monkey-patch SC.RootResponder's ignoreTouchHandle() method
+  // to ignore (i.e. allow to be dispatched) touch events in views that have the
+  // 'dg-wants-touch' class (or any of its ancestors have the class), which we can
+  // then apply to any element that needs it, such as the jQueryUI autocomplete menu.
+  var orgIgnoreTouchHandle = SC.RootResponder.prototype.ignoreTouchHandle;
+  SC.RootResponder.prototype.ignoreTouchHandle = function(evt) {
+    return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
+  }
+
   DG.getPath('mainPage.mainPane').append();
 
   var documentLoaded = false;
