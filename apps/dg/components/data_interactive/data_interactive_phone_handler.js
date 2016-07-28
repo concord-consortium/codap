@@ -408,14 +408,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var diModel = iResources.interactiveFrame.getPath('model.content');
           DG.assert(diModel, 'DataInteractiveModel  exists' );
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
-          diModel.set('title', iValues.title);
-          diModel.set('version', iValues.version);
-          diModel.set('dimensions', iValues.dimensions);
-          if (!SC.none(iValues.preventBringToFront)) {
-            // Todo 7/2016: we should be managing this value in the model only,
-            // and deriving the value in the controller.
-            this.controller.set('preventBringToFront', iValues.preventBringToFront);
-            diModel.set('preventBringToFront', iValues.preventBringToFront);
+          if (iValues) {
+            diModel.set('title', iValues.title);
+            diModel.set('version', iValues.version);
+            diModel.set('dimensions', iValues.dimensions);
+            if (!SC.none(iValues.preventBringToFront)) {
+              // Todo 7/2016: we should be managing this value in the model only,
+              // and deriving the value in the controller.
+              this.controller.set('preventBringToFront', iValues.preventBringToFront);
+              diModel.set('preventBringToFront', iValues.preventBringToFront);
+            }
           }
 
           return {
