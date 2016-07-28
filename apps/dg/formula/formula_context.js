@@ -415,7 +415,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     'ln': { min:1, max:1 },
     'log': { min:1, max:1 },
     'number': { min:1, max:1 },
-    'random': { min:0, max:2 },
+    'random': { min:0, max:2, isRandom: true },
     'round': { min:1, max:2 },
     'string': { min:1, max:1 },
     'trunc': { min:1, max:1 },
@@ -465,24 +465,41 @@ DG.FormulaContext = SC.Object.extend( (function() {
                                       names that are not recognized.
    */
   compileFunction: function( iName, iArgs, iAggFnIndices) {
+
+    var checkArgsAndRandom = function(iName, iFns, iFnPropsMap) {
+      var fnProps = iFnPropsMap && iFnPropsMap[iName],
+          isRandom = fnProps && fnProps.isRandom;
+      // validate arguments
+      checkArgs(iName, iArgs, iFnPropsMap);
+      if (isRandom) {
+        // register the 'random' dependency for invalidation
+        this.registerDependency({ independentSpec: {
+                                    type: DG.DEP_TYPE_SPECIAL,
+                                    id: 'random',
+                                    name: 'random'
+                                  },
+                                  aggFnIndices: iAggFnIndices
+                                });
+      }
+    }.bind(this);
     
     // Functions provided by built-in '_fns' property of context
     var _fns = this.get('_fns');
     if( _fns && typeof _fns[iName] === 'function') {
-      checkArgs( iName, iArgs, this.get('_fnsArgs'));
+      checkArgsAndRandom( iName, iArgs, this.get('_fnsArgs'));
       return 'c._fns.' + iName + '(' + iArgs + ')';
     }
 
     // Other functions of JavaScript Math object
     if( typeof Math[iName] === 'function') {
-      checkArgs( iName, iArgs, this._MathArgs);
+      checkArgsAndRandom( iName, iArgs, this._MathArgs);
       return 'Math.' + iName + '(' + iArgs + ')';
     }
 
     // Functions provided by client-provided 'fns' property of context
     var fns = this.get('fns');
     if( fns && typeof fns[iName] === 'function') {
-      checkArgs( iName, iArgs, this.get('fnsArgs'));
+      checkArgsAndRandom( iName, iArgs, this.get('fnsArgs'));
       return 'c.fns.' + iName + '(' + iArgs + ')';
     }
 

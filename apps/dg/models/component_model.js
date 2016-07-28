@@ -50,10 +50,14 @@ DG.Component = DG.BaseModel.extend(
       }.property(),
 
       defaultTitleChanged: function() {
+        // stash previous title for logging purposes
+        this.set('_prevTitle', this.get('title'));
         this.set('title', this.getPath('content.defaultTitle'));
       }.observes('*content.defaultTitle'),
 
       contentTitleChanged: function() {
+        // stash previous title for logging purposes
+        this.set('_prevTitle', this.get('title'));
         this.set('title', this.getPath('content.title'));
       }.observes('*content.title'),
 

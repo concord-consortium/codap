@@ -466,13 +466,19 @@ SC.stringsFor('English', {
 
   // DG.TableController
   'DG.TableController.headerMenuItems.editAttribute': "Edit Formula...",
-  'DG.TableController.headerMenuItems.renameAttribute': "Rename Attribute...",
+  'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
+  'DG.TableController.headerMenuItems.renameAttribute': "Rename...",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint': "If desired, type a formula for computing values of this attribute",
   'DG.TableController.newAttrDlg.applyTooltip': "Define the new attribute using the name and (optional) formula",
   'DG.TableController.newAttrDlg.mustEnterAttrNameMsg': "Please enter a name for the new attribute",
+  'DG.TableController.newAttrDialog.AttributesCategory': "Attributes",
+  'DG.TableController.newAttrDialog.SpecialCategory': "Special",
+  'DG.TableController.newAttrDialog.GlobalsCategory': "Globals",
+  'DG.TableController.newAttrDialog.ConstantsCategory': "Constants",  // Set to "Special" to combine with 'caseIndex'
+  'DG.TableController.newAttrDialog.FunctionsCategory': "Functions",
   'DG.TableController.renameAttributePrompt': "Enter a new name for the attribute:",
   'DG.TableController.renameAttributeOKTip': "Accept the new attribute name",
   'DG.TableController.renameAttributeInvalidMsg': "Attribute names may not be empty",
@@ -653,6 +659,7 @@ SC.stringsFor('English', {
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "Make new attributes. Export case data.",  // "Make new attributes. Export case data."
   'DG.Inspector.newAttribute': "New Attribute in %@...",  // "New Attribute in %@..."
+  'DG.Inspector.randomizeAllAttributes': "Rerandomize All", // "Randomize Attributes"
   'DG.Inspector.exportCaseData': "Export Case Data...", // "Export Case Data..."
 
   // Map Inspector

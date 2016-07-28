@@ -268,7 +268,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             collectionID: collection.get('id').toString(),
             attribute: iAttribute,
             // Slick.Grid properties
-            id: iAttribute.get('id').toString(),
+            id: attrID,
             name: getColumnHeaderString( iAttribute),
             field: attrName,
             toolTip: getToolTipString( iAttribute),
@@ -281,6 +281,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                     command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
+                    command: 'cmdRandomizeAttribute',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      var depMgr = context && context.get('dependencyMgr'),
+                          dependency = depMgr &&
+                                        depMgr.findDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
+                                                                id: attrID },
+                                                              { type: DG.DEP_TYPE_SPECIAL,
+                                                                id: 'random' });
+                      ioMenuItem.disabled = !dependency;
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),

@@ -212,6 +212,29 @@
     text-decoration: none;
 }
 
+/*
+  Adapted from autocomplete example at http://jqueryui.com/autocomplete/#categories
+ */
+.ui-autocomplete-category {
+    font-style: italic;
+    font-weight: bold;
+    list-style: none;
+    padding: .2em .4em;
+    margin: .4em 0 .2em;
+    line-height: 1;
+}
+
+.ui-menu.ui-autocomplete .ui-menu-item {
+    list-style: none;
+}
+
+/*
+  Apply background color to active (focused) menu item
+ */
+.ui-menu .ui-menu-item-wrapper.ui-state-active {
+    background: #DDDDDD;
+}
+
 .drag-label {
     font-family: Montserrat-Regular !important;
     font-size: 14px !important;
