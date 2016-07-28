@@ -77,10 +77,12 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
   },
 
   didDeleteCases: function (iCases) {
-    iCases.forEach(function (iCase) {
-      var id = iCase.get('id');
-      delete this.collapsedNodes[id];
-    }.bind(this));
+    if (iCases) {
+      iCases.forEach(function (iCase) {
+        var id = iCase.get('id');
+        delete this.collapsedNodes[id];
+      }.bind(this));
+    }
   },
   /**
    * Whether node is collapsed and not hidden by another collapsed node.

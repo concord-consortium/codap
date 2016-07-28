@@ -210,6 +210,7 @@ DG.CreateAttributeFormulaView = function( iProperties) {
       formulaPrompt: 'formula.leftAccessoryView.value',
       formulaValue: 'formula.value',
       formulaExpression: 'formula.formulaExpression',
+      formulaCompletions: 'formula.completionData',
       formulaNames: 'formula.names',
       formulaHint: 'formula.hint',
       formulaIsEnabled: 'formula.isEnabled',

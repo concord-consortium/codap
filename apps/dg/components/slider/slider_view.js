@@ -348,11 +348,13 @@ DG.SliderView = SC.View.extend(
       valueViewWasEdited: function() {
         // regular expression for matching 'variable = value'
         // TODO: Do better with white space
-        var kMatchExp = /^\s*([a-zA-Z][\w]*)\s*=\s*([+\-]?[0-9.]+)/,
+        // TODO: Handle scientific notation? Thousands separators? Internationalization?
+        var kMatchExp = /^\s*([a-zA-Z_][\w]*)\s*=\s*([+\-]?[0-9.]+)/,
             tResult, tNewValue, tNewName;
         // We only want to parse the expression if the user actually edited it
         if( this.get('userEdit')) {
           var tNewString = this.getPath('valueView.value');
+          tNewString = tNewString.replace('\u2212', '-');
           this.set('userEdit', false);
           tResult = kMatchExp.exec( tNewString);
           DG.logUser("sliderEdit: { expression: '%@', result: %@ }",

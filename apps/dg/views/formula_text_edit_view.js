@@ -29,8 +29,85 @@ sc_require('views/text_field_view');
 
   @extends DG.TextFieldView
 */
-DG.FormulaTextEditView = DG.TextFieldView.extend(
-/** @scope DG.FormulaTextEditView.prototype */ {
+DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
+/** @scope DG.FormulaTextEditView.prototype */
+
+  /*
+    Utility function for testing whether a jQuery event was
+    ultimately triggered by a key event.
+   */
+  function isKeyDownEvent(iEvent, iOptionalKeyCode) {
+    // recurse our way down to the most original event
+    if (iEvent.originalEvent)
+      return isKeyDownEvent(iEvent.originalEvent, iOptionalKeyCode);
+            // test whether it's a key event
+    return /^key/.test(iEvent.type) &&
+            // if a particular keyCode was specified, test whether it was the one
+            ((iOptionalKeyCode == null) || (iOptionalKeyCode === iEvent.keyCode));
+  }
+
+  // Keycodes that can be used in identifiers.
+  // May have to be expanded to handle internationalization.
+  function isIdentifierKeyCode(iKeyCode) {
+    return ((iKeyCode >= 0x30) && (iKeyCode <= 0x39) ||   // number keys
+            (iKeyCode >= 0x41) && (iKeyCode <= 0x5A) ||   // letter keys
+            (iKeyCode >= 0x60) && (iKeyCode <= 0x69) ||   // numpad number keys
+            (iKeyCode === 0xBD));                         // underscore
+  }
+
+  // Adds backspace key (can put up autocomplete menu after backspace)
+  function isIdentifierOrBackspaceKeyCode(iKeyCode) {
+    return isIdentifierKeyCode(iKeyCode) ||
+            (iKeyCode === SC.Event.KEY_BACKSPACE);
+  }
+
+  // Adds menu navigation keys -- shouldn't dismiss menu after these keys
+  function isAutoCompleteKeyCode(iKeyCode) {
+    return isIdentifierKeyCode(iKeyCode) ||
+            ([SC.Event.KEY_UP, SC.Event.KEY_DOWN,
+              SC.Event.KEY_PAGEUP, SC.Event.KEY_PAGEDOWN].indexOf(iKeyCode) >= 0);
+  }
+
+  /*
+    Replace the appropriate portion of the original string with the
+    contents (value) of the focused or selected item.
+   */
+  function autocompleteReplace(iInstance, iItem, iMatchPos, iMatchStr) {
+    var element = iInstance.element.get(0),
+        orgText = iInstance && iInstance.term,
+        replaceStr = iItem.value,
+        replaceLen = replaceStr.length,
+        newText, caretPos;
+
+    // Don't add parentheses at end of function name if there are
+    // already parentheses immediately following the string to replace.
+    if ((replaceLen > 2) && 
+        (replaceStr[replaceStr.length - 2] === '(') &&
+        (orgText[iMatchPos + iMatchStr.length] === '(')) {
+      replaceStr = replaceStr.substr(0, replaceLen - 2);
+    }
+
+    // Replace the matched part of the string with the selected string
+    if (iMatchStr) {
+      newText = orgText.substr(0, iMatchPos) +
+                replaceStr +
+                orgText.substr(iMatchPos + iMatchStr.length);
+      iInstance._value(newText);
+      // set the caret position after the replacement
+      // (or between the parentheses in the case of functions)
+      if (element) {
+        caretPos = iMatchPos + replaceStr.length;
+        if (replaceStr.indexOf("()") > 0)
+          -- caretPos;
+        else if (iItem.value.indexOf("()") > 0)
+          ++ caretPos;
+        element.selectionStart = element.selectionEnd = caretPos;
+      }
+      return false;
+    }
+  }
+
+return {
 
   autoCorrect: false,
 
@@ -39,6 +116,71 @@ DG.FormulaTextEditView = DG.TextFieldView.extend(
   names: [],  // Will be filled with attribute and global variable names by client
 
   _disableNextSelectRoot: false,
+
+  didAppendToDocument: function() {
+    DG.FormulaTextEditView.initializeAutoComplete();
+
+    // Initialize the autocomplete widget when we are appended to the DOM.
+    var textArea = this.$('textarea');
+    textArea.catcomplete({
+                // stash a backpointer into the options
+                _dg_editView: this,
+                autoFocus: true,
+                position: { my: 'left top', at: 'left bottom', of: this.get('layer') },
+                // filled in by caller
+                source: this.get('completionData'),
+
+                // called when the menu is opened
+                open: function(event, ui) {
+                  var widget = textArea.catcomplete('widget'),
+                      frame = this.frame(),
+                      width = frame.width;
+                  this._ac_isOpen = true;
+                  this._ac_selectedWithTab = false;
+
+                  widget.css({
+                          zIndex: 9999, // make sure it's on top
+                          width: width  // match width of menu to width of dialog
+                         });
+                }.bind(this),
+
+                // called when an item is focused in the menu
+                focus: function(event, ui) {
+                  var instance = textArea.catcomplete('instance'),
+                      matchPos = this._ac_matchPos || 0,
+                      matchStr = this._ac_matchStr || (instance ? instance.term : "");
+                  if (isKeyDownEvent(event)) {
+                    // If we've matched a substring instead of the full contents,
+                    // we must do the replacing ourselves, but only if the focus
+                    // occurred as the result of a user keypress (e.g. not when
+                    // auto-focusing initially).
+                    if (instance) {
+                      autocompleteReplace(instance, ui.item, matchPos, matchStr);
+                      return false;
+                    }
+                  }
+                }.bind(this),
+
+                // called when the user selects an item from the menu
+                select: function(event, ui) {
+                  var instance = textArea.catcomplete('instance'),
+                      matchPos = this._ac_matchPos || 0,
+                      matchStr = this._ac_matchStr || (instance ? instance.term : "");
+                  // We do our own replacing since we sometimes match a substring and
+                  // we also set the caret (e.g. inside the parentheses for functions).
+                  if (instance) {
+                    this._ac_selectedWithTab = isKeyDownEvent(event, SC.Event.KEY_TAB);
+                    autocompleteReplace(instance, ui.item, matchPos, matchStr);
+                    return false;
+                  }
+                }.bind(this),
+
+                // called when the menu is closed
+                close: function(event, ui) {
+                  this._ac_isOpen = false;
+                }.bind(this)
+              });
+  },
   
   _selectRootElement: function() {
     if( !this._disableNextSelectRoot)
@@ -49,7 +191,39 @@ DG.FormulaTextEditView = DG.TextFieldView.extend(
   keyDown: function( evt) {
     var kMinus = DG.UNICODE.MINUS_SIGN,
         tCurrent = this.get('value'),
-        tSelection = this.get('selection');
+        tSelection = this.get('selection'),
+        acInstance = this.$('textarea').catcomplete('instance');
+
+    // If tab key was used to exit the autocomplete menu, don't
+    // let SproutCore use it to exit the text field as well.
+    if ((evt.keyCode === SC.Event.KEY_TAB) && this._ac_selectedWithTab) {
+      this._ac_selectedWithTab = false;
+      // indicate we've handled the event, otherwise we tab out of the edit field
+      return true;
+    }
+
+    // If a non-matchable character is typed while the autocomplete menu is open,
+    // restore the original text (and selection position if possible) and close
+    // the autocomplete menu. This handles the escape key and other non-text keys.
+    if (!isAutoCompleteKeyCode(evt.keyCode)) {
+      // We can get here after the menu has been closed when the escape key is
+      // pressed, so we special-case it so that we restore things in that case.
+      if (acInstance && (this._ac_isOpen || (evt.keyCode === SC.Event.KEY_ESC))) {
+        // restore the original text
+        acInstance._value(acInstance.term);
+        if (this._ac_matchPos && this._ac_matchStr) {
+          // restore the selection position
+          var element = acInstance.element.get(0),
+              endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
+          if (element)
+            element.selectionStart = element.selectionEnd = endMatchPos;
+        }
+        // close the autocomplete menu
+        if (this._ac_isOpen)
+          this.$('textarea').catcomplete('close');
+      }
+    }
+
     if( evt.getCharString() === '-') {
       if( !SC.none( tCurrent)) {
         tCurrent = tCurrent.slice( 0, tSelection.get( 'start')) +
@@ -73,50 +247,45 @@ DG.FormulaTextEditView = DG.TextFieldView.extend(
     return sc_super();
   },
   keyUp: function( evt) {
-    var tSel = this.get('selection'),
-        tCurrent = this.get('value'),
-        tNames = this.get('names'),
-        kRegLastWord = /\b[a-zA-Z_][\w]*$/,
-        tMatch = typeof tCurrent === "string" && !SC.empty( tCurrent)
-                  ? tCurrent.match( kRegLastWord) : null;
-    
-    // Weird bug: It is possible to get here after closing the calculator and then switching
-    // to the model table with the world not looking the way we expect. If so, just bail.
-    if( !tSel) return NO;
-    
-    function isValidChar( iCode) {
-      return !(iCode < 32 || (iCode >= 33 && iCode <= 46) || (iCode >= 112 && iCode <= 123) ||
-              (iCode >= 91 && iCode <= 93));
+        // Use DOM mechanisms to get the selection position and field
+        // contents because the SC mechanisms (e.g. this.get('selection'))
+        // aren't always up-to-date at this point.
+    var element = this.$('textarea').get(0),
+        selStart = element && element.selectionStart,
+        tCurrent = element && element.value,
+        // the string up to the caret position
+        tBeforeCaret = selStart ? tCurrent.substr(0, selStart) : tCurrent,
+        // the string up to the caret plus one more char
+        tBeyondCaret = selStart ? tCurrent.substr(0, selStart + 1) : tCurrent,
+        // TODO: support unicode letters (e.g. accented characters).
+        // Should then call removeDiacritics() to sanitize the search string.
+        kRegLastWord = /\b([a-zA-Z_][\w]*)$/,
+        kRegLastWordPlus = /\b([a-zA-Z_][\w]*).?$/,
+        tBeforeMatch = tBeforeCaret && typeof tBeforeCaret === "string"
+                        ? tBeforeCaret.match( kRegLastWord) : null,
+        tBeyondMatch = tBeyondCaret && typeof tBeyondCaret === "string"
+                        ? tBeyondCaret.match( kRegLastWordPlus) : null,
+        tSearchStr = tBeforeMatch && tBeforeMatch[1],
+        tBeyondStr = tBeyondMatch && tBeyondMatch[1],
+        // If the before-caret word match is different than the beyond-caret
+        // word match, then the caret is in the middle of the word and we
+        // shouldn't try to bring up the autocomplete menu.
+        caretInMiddleOfWord = (tSearchStr !== tBeyondStr);
+
+    // To support autocompletion of partial field contents, we need to detect
+    // the appropriate conditions and launch the search ourselves, because by
+    // default jQueryUI's autocomplete widget only matches the full text.
+    if (isIdentifierOrBackspaceKeyCode(evt.keyCode) && !caretInMiddleOfWord &&
+        tSearchStr && tSearchStr.length && (tSearchStr.length < tCurrent.length)) {
+      this._ac_matchPos = selStart && (selStart - tSearchStr.length);
+      this._ac_matchStr = tSearchStr;
+      this.$('textarea').catcomplete('search', tSearchStr);
+    }
+    else if (!isAutoCompleteKeyCode(evt.keyCode)) {
+      this._ac_matchPos = null;
+      this._ac_matchStr = null;
     }
     
-    function getSuggestion( iRoot) {
-      var tSuggestion = iRoot,
-          tIndex, tTrial;
-      
-      for( tIndex = 0; tIndex < tNames.length; tIndex++) {
-        tTrial = tNames[ tIndex];
-        if( tTrial.indexOf( iRoot) === 0) {
-          tSuggestion = tTrial;
-          break;
-        }
-      }
-      
-      return tSuggestion;
-    }
-    
-    if( (tSel.start > 0) && (tSel.end === tCurrent.length) && isValidChar( evt.keyCode) &&
-        (tNames.length > 0) && !SC.none( tMatch)) {
-      var tRoot = tMatch[ 0],
-          tSuggest = getSuggestion( tRoot),
-          tNew = tCurrent.replace( kRegLastWord, tSuggest);
-      // If we actually found something, change the value and selection.
-      // Note that doing so when there is supposedly no change can, in certain circumstances
-      // move the selection to the end of the field when that is not what we want.
-      if( tSuggest !== tRoot) {
-        this.set('value', tNew);
-        this.setSelection( tCurrent.length, tNew.length);
-      }
-    }
     return sc_super();
   },
   performValidateKeyDown: function( evt) {
@@ -134,5 +303,87 @@ DG.FormulaTextEditView = DG.TextFieldView.extend(
     }
   }.property( 'value')
   
-});
+};
+
+})());
+
+/*
+  One-time initialization of our customized autocomplete widget.
+ */
+DG.FormulaTextEditView.isAutoCompleteInitialized = false;
+DG.FormulaTextEditView.initializeAutoComplete = function() {
+  if (DG.FormulaTextEditView.isAutoCompleteInitialized) return;
+
+  // from http://stackoverflow.com/a/6969486
+  function escapeRegExp(str) {
+    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+
+  /*
+    Adapted from autocomplete example at http://jqueryui.com/autocomplete/#categories
+   */
+  $.widget( "custom.catcomplete", $.ui.autocomplete, {
+    _create: function() {
+      this._super();
+      this.widget().menu( "option", "items", "> :not(.ui-autocomplete-category)" );
+    },
+
+    // override menu rendering to support categories
+    _renderMenu: function( ul, items ) {
+      var that = this,
+          currentCategory = "";
+      $.each( items, function( index, item ) {
+        var li;
+        if ( item.category !== currentCategory ) {
+          ul.append( "<li class='ui-autocomplete-category'>" + item.category + "</li>" );
+          currentCategory = item.category;
+        }
+        li = that._renderItemData( ul, item );
+        if ( item.category ) {
+          li.attr( "aria-label", item.category + " : " + item.label );
+        }
+      });
+    },
+
+    // override item rendering to support highlighting the internal match
+    _renderItem: function( ul, item ) {
+      var searchStr = this.options._dg_editView._ac_matchStr || this.term,
+          searchLen = searchStr.length,
+          re = new RegExp(escapeRegExp(searchStr), 'i'),
+          // match against label, which has had diacritics removed
+          match = re.exec(item.label);
+
+      if (!match) {
+        return $( "<li>" )
+          .append( $( "<div>" ).text( item.value ) )
+          .appendTo( ul );
+      }
+
+      var matchLoc = match.index,
+          preMatchStr = matchLoc > 0 ? item.value.substr(0, matchLoc) : "",
+          // Note: Removing diacritics can change the length of the string.
+          // In that case, we could end up highlighting the wrong characters
+          // in the menu item.
+          matchStr = (matchLoc != null) ? item.value.substr(matchLoc, searchLen) : "",
+          postMatchStr = matchLoc + searchLen < item.value.length
+                          ? item.value.substr(matchLoc + searchLen) : "",
+          itemTag = $('<div>');
+      if (preMatchStr)
+        $('<span>').text(preMatchStr).appendTo(itemTag);
+      if (matchStr)
+        $('<span>').css({ fontWeight: 'bold',
+                          fontFamily: item.fontFamily || 'inherit',
+                          fontSize: item.fontSize || 'inherit' })
+                    .text(matchStr).appendTo(itemTag);
+      if (postMatchStr)
+        $('<span>').text(postMatchStr).appendTo(itemTag);
+      return $( "<li>" )
+        .append( itemTag )
+        .appendTo( ul );
+    }
+  });
+
+  DG.FormulaTextEditView.isAutoCompleteInitialized = true;
+};
+
 

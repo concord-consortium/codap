@@ -277,7 +277,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     // cascade in the source context, start an invalidation cascade locally.
     var dependencyMgr = this.get('dependencyMgr');
     if (iDependency.srcDependencyMgr && (dependencyMgr !== iDependency.srcDependencyMgr)) {
-      dependencyMgr.invalidateNodes([iDependent]);
+      dependencyMgr.invalidateDependentsOf([iDependent]);
     }
   },
 
@@ -294,7 +294,17 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     // Client is responsible for putting '_id_' into the evaluation context.
     // This context's getCaseIndex() method provides the implementation,
     // which requires the caseIDToIndexMap, which is built on demand.
-    if( iName === 'caseIndex') return 'c.getCaseIndex(e._id_)';
+    if( iName === 'caseIndex') {
+      // register the 'caseIndex' dependency for invalidation
+      this.registerDependency({ independentSpec: {
+                                  type: DG.DEP_TYPE_SPECIAL,
+                                  id: 'caseIndex',
+                                  name: 'caseIndex'
+                                },
+                                aggFnIndices: iAggFnIndices
+                              });
+      return 'c.getCaseIndex(e._id_)';
+    }
     
     var attribute = this.getAttributeByName(iName),
         collection = attribute && this.getCollectionForAttribute(attribute),
