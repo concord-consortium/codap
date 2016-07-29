@@ -289,6 +289,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     addAttribute: function (attr, position) {
       attr.set('collection', this);
+
       if (SC.none(position)) {
         this.attrs.pushObject(attr);
       } else {
@@ -613,6 +614,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         }
       }
       this.attrs.removeAt(ix, 1);
+
+      attr.set('collection', null);
       return attr;
     },
 
