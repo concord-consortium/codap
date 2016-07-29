@@ -27,7 +27,9 @@ sc_require('formula/collection_formula_context');
   perform univariate statistical computations such as count() mean(),
   median(), sum(), etc.
  */
-DG.UnivariateStatsFns = {
+DG.UnivariateStatsFns = (function() {
+
+return {
 
   /**
     count([expr])
@@ -66,7 +68,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.min > value)
@@ -96,7 +98,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.max < value)
@@ -126,7 +128,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           cache.count += 1;
@@ -198,7 +200,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
         else
@@ -208,5 +210,7 @@ DG.UnivariateStatsFns = {
   })
   
 };
+
+}());
 
 DG.CollectionFormulaContext.registerAggFnModule( DG.UnivariateStatsFns);
