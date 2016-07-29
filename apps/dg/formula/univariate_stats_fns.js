@@ -164,6 +164,47 @@ return {
   }),
 
   /**
+    variance(expr)
+    Returns the aggregated sample standard deviation of its evaluated argument values.
+   */
+  variance: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      return this.computeVarianceFromCache(iCache);
+    }
+  }),
+
+  /**
+    stdDev(expr)
+    Returns the aggregated sample standard deviation of its evaluated argument values.
+   */
+  stdDev: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      return Math.sqrt(this.computeVarianceFromCache(iCache));
+    }
+  }),
+
+  /**
+    stdErr(expr)
+    Returns the aggregated standard error of its evaluated argument values.
+   */
+  stdErr: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      var count = iCache.values && iCache.values.length,
+          stdDev = Math.sqrt(this.computeVarianceFromCache(iCache));
+      return stdDev / Math.sqrt(count);
+    }
+  }),
+
+  /**
     percentile(expr)
     Returns the aggregated percentile of its evaluated argument values.
    */
