@@ -112,7 +112,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     this.collectionAttrRefCounts = {};
     this.aggFnInstances = [];
     this.aggFnCount = 0;
-  },
+  }.observes('collection'),
 
   /**
     Returns the case index for the give case ID.
