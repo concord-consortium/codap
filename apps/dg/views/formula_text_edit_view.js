@@ -87,6 +87,8 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
       replaceStr = replaceStr.substr(0, replaceLen - 2);
     }
 
+    if (iMatchStr === replaceStr) return;
+
     // Replace the matched part of the string with the selected string
     if (iMatchStr) {
       newText = orgText.substr(0, iMatchPos) +
@@ -103,7 +105,11 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
           ++ caretPos;
         element.selectionStart = element.selectionEnd = caretPos;
       }
-      return false;
+      // let SproutCore know we've changed the value
+      SC.run(function() {
+        if (iInstance.options._dg_editView)
+          iInstance.options._dg_editView.fieldValueDidChange();
+      });
     }
   }
 
@@ -133,14 +139,19 @@ return {
                 // called when the menu is opened
                 open: function(event, ui) {
                   var widget = textArea.catcomplete('widget'),
-                      frame = this.frame(),
-                      width = frame.width;
+                      formulaFrame = this.frame(),
+                      formulaWidth = formulaFrame.width,
+                      maxMenuHeight = $(window).height() - widget.offset().top - 5;
                   this._ac_isOpen = true;
                   this._ac_selectedWithTab = false;
 
                   widget.css({
-                          zIndex: 9999, // make sure it's on top
-                          width: width  // match width of menu to width of dialog
+                          // make sure it's on top
+                          zIndex: 9999,
+                          // match width of menu to width of dialog
+                          width: formulaWidth,
+                          // set maximum height before scrolling kicks in
+                          maxHeight: maxMenuHeight
                          });
                 }.bind(this),
 

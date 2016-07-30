@@ -214,8 +214,18 @@ DG.Attribute = DG.BaseModel.extend(
     },
 
     /**
-     Utility function for destroying the DG.Formula when necessary
-     and cleanup up the necessary observers.
+      Update the formula context when the collection changes
+     */
+    collectionDidChange: function() {
+      if (this.hasFormula()) {
+        this._cachedValues = {};
+        this.setPath('_dgFormula.context.collection', this.get('collection'));
+      }
+    }.observes('collection'),
+
+    /**
+      Utility function for destroying the DG.Formula when necessary
+      and cleanup up the necessary observers.
      */
     destroyDGFormula: function() {
       this._dgFormula.removeObserver('dependentChange', this, 'dependentDidChange');

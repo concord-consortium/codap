@@ -213,6 +213,16 @@
 }
 
 /*
+  Adapted from https://jqueryui.com/resources/demos/autocomplete/maxheight.html
+ */
+.ui-autocomplete {
+    /* max-height: 3000px; */
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+/*
   Adapted from autocomplete example at http://jqueryui.com/autocomplete/#categories
  */
 .ui-autocomplete-category {
