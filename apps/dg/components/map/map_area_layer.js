@@ -252,8 +252,12 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
           handleMouseover = function( iEvent) {
             tFeature = this.features[ iIndex];
-            tPopup = L.popup({ closeButton: false }, tFeature);
-            tPopup.options.offset[1] = -20;
+            tPopup = L.popup({
+                  closeButton: false,
+                  autoPan: false,
+                  offset: L.point(0, -20)
+                },
+                tFeature);
             tPopup.setContent( this.calcTooltip( iCase));
             SC.Timer.schedule( { target: this,
                                 action: function() {
