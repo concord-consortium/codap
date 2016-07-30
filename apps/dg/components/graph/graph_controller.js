@@ -382,7 +382,35 @@ DG.GraphController = DG.DataDisplayController.extend(
 
         styleControls: function () {
           var tResult = sc_super();
-/*
+          var
+              kRowHeight = 20,
+              tBkgColor = tinycolor(this.getPath('graphModel.plotBackgroundColor') || 'white'),
+              tOpacity = this.getPath('graphModel.plotBackgroundOpacity');
+          tOpacity = SC.none( tOpacity) ? 1 : tOpacity;
+          var tInitialColor = tBkgColor.setAlpha(tOpacity),
+              getStylesLayer = function () {
+                return this.stylesPane.layer();
+              }.bind(this),
+              setColor = function (iColor) {
+                SC.run(function () {
+                  this.setPath('graphModel.plotBackgroundColor', iColor.toHexString());
+                  this.setPath('graphModel.plotBackgroundOpacity', iColor.getAlpha());
+                }.bind(this));
+              }.bind(this);
+          tResult.push(
+              DG.PickerControlView.create({
+                layout: {height: 2 * kRowHeight},
+                label: 'DG.Inspector.backgroundColor',
+                controlView: DG.PickerColorControl.create({
+                  layout: {width: 120},
+                  classNames: 'graph-point-color'.w(),
+                  initialColor: tInitialColor,
+                  setColorFunc: setColor,
+                  //closedFunc: setColorFinalized,
+                  appendToLayerFunc: getStylesLayer
+                })
+              })
+          );
           tResult.push( SC.CheckboxView.create({
             layout: {height: 25 },
             title: 'DG.Inspector.graphTransparency',
@@ -399,41 +427,13 @@ DG.GraphController = DG.DataDisplayController.extend(
                 log: logMessage,
                 execute: function() {
                   this.get('graphModel').toggleProperty('isTransparent');
-                },
+                }.bind(this),
                 undo: function() {
                   this.get('graphModel').toggleProperty('isTransparent');
-                }
+                }.bind(this)
               }));
-            }.observes('value')
-          }.bind(this));
-*/
-          var
-              kRowHeight = 20,
-              tBkgColor = tinycolor(this.getPath('graphModel.plotBackgroundColor') || 'white'),
-              tOpacity = this.getPath('graphModel.plotBackgroundOpacity');
-          tOpacity = SC.none( tOpacity) ? 1 : tOpacity;
-          var tInitialColor = tBkgColor.setAlpha(tOpacity),
-              getStylesLayer = function () {
-                return this.stylesPane.layer();
-              }.bind(this),
-              setColor = function( iColor) {
-                this.setPath('graphModel.plotBackgroundColor', iColor.toHexString());
-                this.setPath('graphModel.plotBackgroundOpacity', iColor.getAlpha());
-              }.bind(this);
-          tResult.push(
-              DG.PickerControlView.create({
-                layout: {height: 2 * kRowHeight},
-                label: 'DG.Inspector.backgroundColor',
-                controlView: DG.PickerColorControl.create({
-                  layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
-                  initialColor: tInitialColor,
-                  setColorFunc: setColor,
-                  //closedFunc: setColorFinalized,
-                  appendToLayerFunc: getStylesLayer
-                })
-              })
-          );
+            }.bind(this).observes('value')
+          }));
 
           return tResult;
         }.property()
