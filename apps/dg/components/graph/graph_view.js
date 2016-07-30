@@ -239,7 +239,7 @@ DG.GraphView = SC.View.extend(
        * @param iChildView {DG.FormulaTextEditView}
        */
       removeChild: function( iChildView) {
-        if( iChildView === this._functionEditorView)
+        if( iChildView && iChildView === this._functionEditorView)
         {
           this._functionEditorView.removeObserver('isVisible', this, this.handleAxisOrLegendLayoutChange);
           this._functionEditorView = null;
@@ -412,6 +412,7 @@ DG.GraphView = SC.View.extend(
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
             if (tNumberToggleView)
               tNumberToggleView.set('layout', {left: tYWidth, height: tNumberToggleHeight});
+            this.makeSubviewFrontmost(tY2AxisView);
           }
           else {
             // adjust() method avoids triggering observers if layout parameter is already at correct value.
@@ -469,8 +470,11 @@ DG.GraphView = SC.View.extend(
        * @param iChildView
        */
       makeSubviewFrontmost: function (iChildView) {
-        this.removeChild(iChildView);
-        this.appendChild(iChildView);
+        if( iChildView && this.get('childViews').indexOf( iChildView) >= 0)
+        {
+          this.removeChild(iChildView);
+          this.appendChild(iChildView);
+        }
       },
 
       /**
