@@ -261,8 +261,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
               kMargin = 20,
               kLeading = 5,
               kRowHeight = 20;
-          DG.InspectorPickerPane.create(
+          if( this.getPath('valuesPane.removedByClickInButton')) {
+            this.setPath('valuesPane.removedByClickInButton', false);
+            return;
+          }
+          this.valuesPane = DG.InspectorPickerPane.create(
               {
+                buttonIconClass: 'moonicon-icon-values',  // So we can identify closure through click on button icon
                 classNames: 'inspector-picker'.w(),
                 layout: {width: 200, height: 260},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -295,15 +300,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
                           this.appendChild(SC.CheckboxView.create(iDesc));
                         }.bind(this));
                       }
-                    }),
-                transitionIn: SC.View.SCALE_IN/*,
-               popup: function() {
-               var tFrame = this.getPath('contentView.frame'),
-               tBottom = tFrame.y + tFrame.height;
-               this.adjust({ height: tBottom + kLeading})
-               sc_super();
-               }*/
-              }).popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
+                    })
+              });
+          this.valuesPane.popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
         },
 
         /**
@@ -314,9 +313,14 @@ DG.DataDisplayController = DG.ComponentController.extend(
               kTitleHeight = 26,
               kMargin = 20,
               kLeading = 5;
+          if( this.getPath('stylesPane.removedByClickInButton')) {
+            this.setPath('stylesPane.removedByClickInButton', false);
+            return;
+          }
 
           this.stylesPane = DG.InspectorPickerPane.create(
               {
+                buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
                 classNames: 'inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -342,15 +346,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                           this.appendChild(iControl);
                         }.bind(this));
                       }
-                    }),
-                popup: function () {
-                  sc_super();
-                  var tHeight = 0;
-                  this.getPath('contentView.childViews').forEach(function (iView) {
-                    tHeight += iView.frame().height + kLeading;
-                  });
-                  this.adjust('height', tHeight);
-                }
+                    })
               });
           this.stylesPane.popup(this.get('inspectorButtons')[4], SC.PICKER_POINTER);
         },

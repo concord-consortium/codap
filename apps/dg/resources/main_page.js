@@ -33,7 +33,7 @@ DG.mainPage = SC.Page.design((function() {
 
     sendEvent: function(action, evt, target) {
       if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
-        this.hideInspectorPicker();
+        this.hideInspectorPicker( target);
       }
       else if( action === 'doubleClick') {
         console.log('doubleClick');
@@ -41,9 +41,14 @@ DG.mainPage = SC.Page.design((function() {
       return sc_super();
     },
 
-    hideInspectorPicker: function() {
+    hideInspectorPicker: function( iTarget) {
       var tInspectorPicker = this.get('inspectorPicker');
       if( tInspectorPicker) {
+        // We can detect that the mousedown causing us to hide the inspectorPicker occurred in
+        // the button that brings it up. In which case, when we handle that event, we won't want
+        // to show that inspector picker again for this mouse click. Convoluted? Yes!
+        if( iTarget.iconClass && iTarget.iconClass === tInspectorPicker.buttonIconClass)
+            tInspectorPicker.set('removedByClickInButton', true);
         tInspectorPicker.remove();
         this.set('inspectorPicker', null);
       }

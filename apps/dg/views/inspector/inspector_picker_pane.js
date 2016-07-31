@@ -31,6 +31,12 @@
 DG.InspectorPickerPane = SC.PickerPane.extend(
     /** @scope DG.InspectorPickerPane.prototype */ {
 
+      /**
+       * We will set this to true if we find ourselves responding to a mousedown in this pickerpane's
+       * icon button, so that this fact can be detected and we'll be left removed.
+       */
+      removedByClickInButton: false,
+
       isModal: false,
 
       init: function () {
@@ -38,6 +44,16 @@ DG.InspectorPickerPane = SC.PickerPane.extend(
         DG.mainPage.mainPane.set('inspectorPicker', this);
         this.set('removeTarget', this);
       },
+      popup: function () {
+        var kLeading = 5,
+            tHeight = 0;
+        this.getPath('contentView.childViews').forEach(function (iView) {
+          tHeight += iView.frame().height + kLeading;
+        });
+        this.adjust('height', tHeight);
+        sc_super();
+      },
+      transitionIn: SC.View.SCALE_IN,
       removeAction: function() {
         console.log('removeAction');
       }
