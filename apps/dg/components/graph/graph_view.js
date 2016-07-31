@@ -84,6 +84,7 @@ DG.GraphView = SC.View.extend(
 
       _plotViews: null,
       _drawPlotsInvocations: 0, // Used to limit redrawing of plots to what is necessary
+      _displayDidChangeInvocationsOfDrawPlots: 0, // Another attempt to limit redrawing
 
       plotViews: function () {
         return this._plotViews;
@@ -130,13 +131,19 @@ DG.GraphView = SC.View.extend(
         iPlotView.endPropertyChanges();
 
         iPlotView.addObserver('plotDisplayDidChange', this, function () {
-          this.invokeLast(function () {
-            this.drawPlots();
+          this._displayDidChangeInvocationsOfDrawPlots++;
+          this.invokeOnceLater(function () {
+            this._displayDidChangeInvocationsOfDrawPlots--;
+            if( this._displayDidChangeInvocationsOfDrawPlots === 0)
+            {
+              this.drawPlots();
+            }
           });
         });
       },
 
       init: function () {
+        this.currTime = 0; // For measuring time spent
 
         function getAxisViewClass(iAxis, iAttributeType) {
           switch (iAxis.constructor) {
@@ -257,12 +264,19 @@ DG.GraphView = SC.View.extend(
        * Draw my plot views
        */
       drawPlots: function () {
+        //console.profile('drawPlots');
         var tPlotViews = this.get('plotViews'),
-            tNumPlots = tPlotViews.length;
+            tNumPlots = tPlotViews.length,
+            tTime = Date.now(),
+            tTimeAdded;
         this.get('plotViews').forEach(function (iPlotView, iIndex) {
           if (iPlotView.readyToDraw())
             iPlotView.doDraw(iIndex, tNumPlots);
         });
+        tTimeAdded = Date.now() - tTime;
+        this.currTime += tTimeAdded;
+        console.log('drawPlots: added ' + tTimeAdded + 'ms for a total of ' + this.currTime + 'ms');
+        //console.profileEnd();
       },
 
       pointsDidChange: function () {
