@@ -47,7 +47,7 @@ DG.mainPage = SC.Page.design((function() {
         // We can detect that the mousedown causing us to hide the inspectorPicker occurred in
         // the button that brings it up. In which case, when we handle that event, we won't want
         // to show that inspector picker again for this mouse click. Convoluted? Yes!
-        if( iTarget.iconClass && iTarget.iconClass === tInspectorPicker.buttonIconClass)
+        if( iTarget && iTarget.iconClass && iTarget.iconClass === tInspectorPicker.buttonIconClass)
             tInspectorPicker.set('removedByClickInButton', true);
         tInspectorPicker.remove();
         this.set('inspectorPicker', null);
