@@ -437,12 +437,16 @@ DG.appController = SC.Object.create((function () // closure
         $.ajax(iURL, {
           type: 'GET',
           contentType: 'text/plain'
-        }).then(function(data) {
-          var doc = (typeof data === 'string')? data: JSON.stringify(data);
-          return this.openJsonDocument(doc);
-        }.bind(this), function (msg) {
-          DG.logWarn(msg);
-        });
+        }).then(function (data) {
+            SC.run(function() {
+                var doc = (typeof data === 'string')? data: JSON.stringify(data);
+                return this.openJsonDocument(doc);
+              }.bind(this)
+            );
+          }.bind(this), function (msg) {
+            DG.logWarn(msg);
+          }
+        );
       }
     },
 
