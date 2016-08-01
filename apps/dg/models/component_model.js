@@ -38,29 +38,25 @@ DG.Component = DG.BaseModel.extend(
        * The title of this component. Can be edited by user.
        * @property {String}
        */
-      _title: null,
       title: function( iKey, iValue) {
-        if( iValue !== undefined) {
-          this._title = iValue;
+        if (!SC.none(iValue)) {
+          this.setPath('content.title', iValue);
         }
-        else if (SC.none(this._title)) {
-          this._title = this.getPath('content.defaultTitle');
-        }
-        return this._title;
+        return this.getPath('content.title') || this.getPath('content.defaultTitle');
       }.property(),
 
       defaultTitleChanged: function() {
-        // stash previous title for logging purposes
-        this.set('_prevTitle', this.get('title'));
-        this.set('title', this.getPath('content.defaultTitle'));
+        this.notifyPropertyChange('title');
       }.observes('*content.defaultTitle'),
 
       contentTitleChanged: function() {
-        // stash previous title for logging purposes
-        this.set('_prevTitle', this.get('title'));
-        this.set('title', this.getPath('content.title'));
+        this.notifyPropertyChange('title');
       }.observes('*content.title'),
 
+      /*
+       * The width and height of this component in pixels to be used in layout.
+       * @property {Object}
+       */
       dimensions: function() {
         return this.getPath('content.dimensions');
       }.property(),
@@ -69,6 +65,10 @@ DG.Component = DG.BaseModel.extend(
         this.notifyPropertyChange('dimensions');
       }.observes('*content.dimensions'),
 
+      /*
+       * An arbitrary version string to be presented in the header.
+       * @property {string}
+       */
       version: function() {
         return this.getPath('content.version');
       }.property(),
@@ -80,6 +80,7 @@ DG.Component = DG.BaseModel.extend(
       /**
        * Content is an arbitrary javascript object, serializable, and defined
        * by the Component.
+       * @property {object}
        */
       content: function (iKey, iValue) {
         if (iValue !== undefined) {
@@ -105,13 +106,13 @@ DG.Component = DG.BaseModel.extend(
        * Is only a value when we are minimized
        * If we are not minimized, this is null
        * When we are minimized, this is the height of the component to return to when unminimized
-       * @property{Number}
+       * @property {Number}
        */
       savedHeight: null,
 
       /**
        * Per-component storage, in a component specific format.
-       * @property {JSON}
+       * @property {object} must be serializable
        */
       componentStorage: null,
 
@@ -128,11 +129,10 @@ DG.Component = DG.BaseModel.extend(
         }
         sc_super();
       },
+
       toArchive: function () {
         var obj = {},
             tStorage = this.get('componentStorage');
-        if( tStorage)
-          tStorage.title = this.get('title');
         obj = {
           type: this.type,
           guid: this.id,

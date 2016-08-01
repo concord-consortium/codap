@@ -29,8 +29,31 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
   id: null,
   idBinding: '*context.id',
 
-  name: null,
-  nameBinding: '*context.name',
+  /**
+   * Name of the case table, always the data context name.
+   * @property {string}
+   */
+  name: function (k, v) {
+    if (!SC.none(v)) {
+      this.setPath('context.name');
+    }
+    return this.getPath('context.name');
+  }.property(),
+
+  /**
+   * Title of the case table: always the data context title.
+   * @property {string}
+   */
+  title: function(k, v) {
+    if (!SC.none(v)) {
+      this.setPath('context.title', v);
+    }
+    return this.getPath('context.title');
+  }.property(),
+
+  titleDidChange: function () {
+    return this.notifyPropertyChange('title');
+  }.observes('*context.title'),
 
   defaultTitle: function() {
     return this.getPath('context.defaultTitle');

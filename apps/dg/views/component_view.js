@@ -252,6 +252,7 @@ DG.ComponentView = SC.View.extend(
             layout: {height: kTitleBarHeight},
             classNames: ['titlebar'],
             isSelected: false,
+            userEdit: false,
             classNameBindings: ['isSelected:titlebar-selected'],
             childViews: 'statusView versionView minimize closeBox titleView'.w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
@@ -263,10 +264,6 @@ DG.ComponentView = SC.View.extend(
               value: function (key, iValue) {
                 if (!SC.none(iValue)) {
                   this._value = iValue;
-                }
-                if (SC.none(this._value)) {
-                  var tComponentView = DG.ComponentView.findComponentViewParent(this);
-                  this._value = tComponentView ? tComponentView.getPath('model.title') : '';
                 }
                 return this._value;
               }.property(),
@@ -303,9 +300,14 @@ DG.ComponentView = SC.View.extend(
               },
               valueChanged: function () {
                 var tComponentView = DG.ComponentView.findComponentViewParent(this),
+                    tParent = this.get('parentView'),
                     value = this.get('value'),
                     this_ = this;
+                if (!tParent.userEdit) {
+                  return;
+                }
                 if (tComponentView) {
+                  tParent.userEdit = false;
                   DG.UndoHistory.execute(DG.Command.create({
                     name: 'component.titleChange',
                     undoString: 'DG.Undo.componentTitleChange',

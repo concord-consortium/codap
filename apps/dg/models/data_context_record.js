@@ -168,8 +168,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
             document: this.document && this.document.id || undefined,
             guid: this.id,
             flexibleGroupingChangeFlag: this.flexibleGroupingChangeFlag,
-            name: this.name,
-            title: this.title,
+            name: this.get('name'),
+            title: this.get('title'),
             collections: [],
             contextStorage: this.contextStorage
           };
@@ -210,6 +210,15 @@ DG.DataContextRecord = DG.BaseModel.extend(
   });
 
 DG.DataContextRecord.createContext = function( iProperties) {
+  function makeDataContextName() {
+    var doc = DG.currDocumentController();
+    var ix = 1;
+    var name = 'DG.DataContext.baseName'.loc(ix);
+    while (doc.getContextByName(name)) {
+      name = 'DG.DataContext.baseName'.loc(++ix);
+    }
+    return name;
+  }
   var tContext, shadowCopy = {};
   if( SC.none( iProperties)) iProperties = {};
   if( !SC.none( iProperties.externalDocumentId)) {
@@ -237,8 +246,9 @@ DG.DataContextRecord.createContext = function( iProperties) {
   if (iProperties.document) {
     iProperties.document.contexts[tContext.get('id')] = tContext;
   }
+  // Make unique name, if none provided.
   if (SC.empty(tContext.name)) {
-    tContext.name = 'context' + tContext.get('id');
+    tContext.name = makeDataContextName();
   }
   if (iProperties.collections) {
     iProperties.collections.forEach(function (iProps) {

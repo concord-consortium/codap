@@ -441,6 +441,7 @@ SC.stringsFor('English', {
   'DG.DataContext.setOfCasesLabel': "a collection",
   'DG.DataContext.collapsedRowString': "%@1 of %@2",
   'DG.DataContext.noData': "No Data",   // "No Data"
+  'DG.DataContext.baseName': 'Data_Set_%@1',
 
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "The formula for attribute \"%@\" is not editable.",

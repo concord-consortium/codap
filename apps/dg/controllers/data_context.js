@@ -47,7 +47,12 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   model: null,
 
-  nameBinding: '.model.name',
+  name: function (k, v) {
+    if (!SC.none(v)){
+      this.setPath('model.name');
+    }
+    return this.getPath('model.name');
+  }.property(),
 
   titleBinding: '.model.title',
 
