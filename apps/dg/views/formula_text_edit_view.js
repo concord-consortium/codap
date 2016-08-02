@@ -225,26 +225,20 @@ return {
       return true;
     }
 
-    // If a non-matchable character is typed while the autocomplete menu is open,
-    // restore the original text (and selection position if possible) and close
-    // the autocomplete menu. This handles the escape key and other non-text keys.
-    if (!isAutoCompleteKeyCode(evt.keyCode)) {
-      // We can get here after the menu has been closed when the escape key is
-      // pressed, so we special-case it so that we restore things in that case.
-      if (acInstance && (this._ac_isOpen || (evt.keyCode === SC.Event.KEY_ESC))) {
-        // restore the original text
-        acInstance._value(acInstance.term);
-        if (this._ac_matchPos && this._ac_matchStr) {
-          // restore the selection position
-          var element = acInstance.element.get(0),
-              endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
-          if (element)
-            element.selectionStart = element.selectionEnd = endMatchPos;
-        }
-        // close the autocomplete menu
-        if (this._ac_isOpen)
-          this.$('textarea').catcomplete('close');
+    // Restore the original text and caret position on escape key.
+    if (acInstance && (evt.keyCode === SC.Event.KEY_ESC)) {
+      // restore the original text
+      acInstance._value(acInstance.term);
+      if (this._ac_matchPos && this._ac_matchStr) {
+        // restore the selection position
+        var element = acInstance.element.get(0),
+            endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
+        if (element)
+          element.selectionStart = element.selectionEnd = endMatchPos;
       }
+      // close the autocomplete menu
+      if (this._ac_isOpen)
+        this.$('textarea').catcomplete('close');
     }
 
     if( evt.getCharString() === '-') {
