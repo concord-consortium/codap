@@ -32,6 +32,29 @@ DG.main = function main() {
 
   SC.$('body' ).addClass( 'dg');
 
+  // The ostensible purpose of the FastClick library is to reduce the 300ms
+  // delay that many browsers introduce between the handling of a mouse up
+  // or touch end event and the sending of the click event. In this case,
+  // however, it happens to improve the behavior of the jQueryUI
+  // autocomplete library on mobile Safari, which otherwise requires two
+  // clicks to select an item from the menu.
+  // See http://stackoverflow.com/a/33233802, for example.
+  var attachFastClick = Origami.fastclick;
+  attachFastClick(document.body);
+
+  // Fix to support touch events in non-SproutCore elements like jQuery UI widgets.
+  // By default, SC.RootResponder swallows all touch events except for those
+  // intended for specific browser tags (input, textarea, a, select). For non-SC
+  // elements to work correctly on touch devices, they need to receive touch events
+  // as well. To do so, we monkey-patch SC.RootResponder's ignoreTouchHandle() method
+  // to ignore (i.e. allow to be dispatched) touch events in views that have the
+  // 'dg-wants-touch' class (or any of its ancestors have the class), which we can
+  // then apply to any element that needs it, such as the jQueryUI autocomplete menu.
+  var orgIgnoreTouchHandle = SC.RootResponder.prototype.ignoreTouchHandle;
+  SC.RootResponder.prototype.ignoreTouchHandle = function(evt) {
+    return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
+  }
+
   DG.getPath('mainPage.mainPane').append();
 
   var documentLoaded = false;

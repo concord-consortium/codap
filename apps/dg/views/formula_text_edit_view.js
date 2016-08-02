@@ -141,7 +141,19 @@ return {
                   var widget = textArea.catcomplete('widget'),
                       formulaFrame = this.frame(),
                       formulaWidth = formulaFrame.width,
-                      maxMenuHeight = $(window).height() - widget.offset().top - 5;
+                      // We want to make sure the menu is visible/fits in the window.
+                      // On mobile Safari, there is no reliable way to determine
+                      //  1) when/whether the virtual keyboard is shown
+                      //  2) the height of the virtual keyboard if it is shown
+                      //  3) the height of the window excluding the virtual keyboard
+                      // and even the unreliable methods are often iOS-version-specific.
+                      // Therefore, we simply punt and hard-code a value that seems to work.
+                      // Apparently, on Android resize events are fired when the keyboard
+                      // is shown, so there is reason to believe that the default code
+                      // will work there, although I haven't tried it yet.
+                      maxMenuHeight = SC.browser.isMobileSafari
+                                          ? 125
+                                          : $(window).height() - widget.offset().top - 5;
                   this._ac_isOpen = true;
                   this._ac_selectedWithTab = false;
 
@@ -198,7 +210,7 @@ return {
       sc_super();
     this._disableNextSelectRoot = false;
   },
-  
+
   keyDown: function( evt) {
     var kMinus = DG.UNICODE.MINUS_SIGN,
         tCurrent = this.get('value'),
@@ -343,6 +355,10 @@ DG.FormulaTextEditView.initializeAutoComplete = function() {
     _renderMenu: function( ul, items ) {
       var that = this,
           currentCategory = "";
+      // add 'dg-wants-touch' class so SC.RootResponder won't swallow touch
+      // events targeted to our menu. See comment in main.js for details.
+      if (!$(ul).hasClass('dg-wants-touch'))
+        $(ul).addClass('dg-wants-touch');
       $.each( items, function( index, item ) {
         var li;
         if ( item.category !== currentCategory ) {
