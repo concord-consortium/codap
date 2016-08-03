@@ -951,6 +951,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                typeClass = 'DG.GraphView';
              break;
            case 'caseTable':
+             // In the absense of this parameter CODAP will attempt to bypass
+             // duplicate creation of components when a document is saved and
+             // restored. This cannot happen with tables, however.
+             iValues.allowMoreThanOne = true;
                typeClass = 'DG.TableView';
              break;
            case 'map':
