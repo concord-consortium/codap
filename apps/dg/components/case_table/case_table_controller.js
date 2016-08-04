@@ -713,7 +713,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
                                 fontFamily: "Symbol,serif", fontSize: "130%" });
 
-        appendNamesToCompletionData(DG.FormulaContext.getFunctionNamesWithParentheses(),
+        appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'),
                                     kFunctionsCategory);
 
           // Use SC.mixin() to combine iProperties with the rest of the default properties

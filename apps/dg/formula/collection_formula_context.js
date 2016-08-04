@@ -18,7 +18,6 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('formula/aggregate_function');
 sc_require('formula/global_formula_context');
 
 /** @class DG.CollectionFormulaContext
@@ -408,15 +407,6 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
   },
   
   /**
-    Object which contains aggregate function implementations.
-    Note that by defining this as an object here, we're defining it
-    as part of the class definition, which means it will be part of
-    the prototype that is shared across object instances.
-    @property {Map of {Name: Function} pairs}
-   */
-  aggFns: {},
-  
-  /**
     Returns true if this context's formula contains aggregate functions, false otherwise.
     @property {Boolean}
    */
@@ -428,7 +418,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     Returns true if the specified function name refers to an aggregate function.
    */
   isAggregate: function( iName) {
-    return SC.kindOf( this.aggFns[ iName], DG.AggregateFunction);
+    return DG.functionRegistry.isAggregate(iName);
   },
   
   /**
@@ -468,7 +458,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
 
     var instance = this.aggFnInstances[ iAggFnIndex];
     
-    var aggregateFn = this.aggFns[ instance.name],
+    var aggregateFn = DG.functionRegistry.getAggregate(instance.name),
         result = aggregateFn && aggregateFn.queryCache( this, iEvalContext, instance);
 
     // Return the cached result if there is one
@@ -562,17 +552,3 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
   }; // end of closure return statement
 
 }()));
-
-/**
-  "Class" method for registering a module of aggregate functions.
-  Assumes that the properties of iModule are "derived classes" of
-  DG.AggregateFunction, whose name can be extracted from the names
-  of the properties of the module object.
-  @param    {Object}  iModule -- Map from function name {String} to {DG.AggregateFunction}
- */
-DG.CollectionFormulaContext.registerAggFnModule = function( iModule) {
-  DG.FormulaContext.registerFnModule( iModule);
-  DG.ObjectMap.copy( DG.CollectionFormulaContext.prototype.aggFns, iModule);
-};
-
-

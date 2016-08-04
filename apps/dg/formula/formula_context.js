@@ -18,8 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('formula/formula_common');
-sc_require('utilities/object_map');
+sc_require('formula/function_registry');
 
 /** @class DG.FormulaContext
 
@@ -34,14 +33,14 @@ DG.FormulaContext = SC.Object.extend( (function() {
     Utility function for check argument count.
     @param    {String}    iName -- The name of the function
     @param    {Array}     iArgs -- The arguments to the function
-    @param    {Object}    iArgSpecs -- An object which contains argument specs
-                            for multiple functions, e.g. iArgsSpecs[iName] is
-                            the specification for the 'iName' function. The
-                            specification is an object with 'min' and 'max' properties.
+    @param    {Object}    iFnProps -- An object which contains argument specs for
+                            multiple functions, e.g. iArgsSpecs[iName] is the
+                            specification for the 'iName' function. The specification
+                            is an object with 'minArgs' and 'maxArgs' properties.
    */
   var checkArgs = function( iName, iArgs, iArgSpecs) {
         var fArgs = iArgSpecs && iArgSpecs[iName];
-        if( fArgs && (iArgs.length < fArgs.min))
+        if( fArgs && (iArgs.length < fArgs.minArgs))
           throw new DG.FuncArgsError( iName, fArgs);
       };
 
@@ -82,6 +81,15 @@ DG.FormulaContext = SC.Object.extend( (function() {
       -- this._functionContextStack.length;
     else
       DG.logError("Error: DG.FormulaContext.endFunctionContext -- attempt to end incorrect function context");
+  },
+
+  /**
+    Returns an array of aggregate function indices representing the aggregate
+    functions that are on the _functionContextStack at the moment.
+    @returns {number[]}
+   */
+  getAggregateFunctionIndices: function() {
+    return [];
   },
 
   /**
@@ -224,14 +232,6 @@ DG.FormulaContext = SC.Object.extend( (function() {
    */
   hasAggregates: false,
 
-  /**
-    List of function names for use in the Functions popup menu.
-    Will need to become hierarchical as the number of functions increases
-    beyond the capacity of a simple flat popup menu.
-    @property   {array[string]}   Names of functions, e.g. ["abs","acos", ...]
-   */
-  fnNames: [],
-  
   /**
     Property which provides implementation of functions supported by the FormulaContext.
     @property   {Object}  Map of function name {String} to function implementations {Function}.
@@ -409,44 +409,44 @@ DG.FormulaContext = SC.Object.extend( (function() {
     Property which provides meta-data about the functions supported by the '_fns' property.
     @property   {Object}  Map of name {String} to {Object}.
    */
-  _fnsArgs: {
-    'boolean': { min:1, max:1 },
-    'frac': { min:1, max:1 },
-    'ln': { min:1, max:1 },
-    'log': { min:1, max:1 },
-    'number': { min:1, max:1 },
-    'random': { min:0, max:2, isRandom: true },
-    'round': { min:1, max:2 },
-    'string': { min:1, max:1 },
-    'trunc': { min:1, max:1 },
-    'greatCircleDistance': { min:4, max:4 },
-    'secondsToDate': { min:1, max:1 },
-    'month': { min:1, max:1 }
+  _fnsProps: {
+    'boolean': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion' },
+    'frac': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'ln': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'log': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'number': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion' },
+    'random': { minArgs:0, maxArgs:2, isRandom: true, category: 'DG.Formula.FuncCategoryRandom' },
+    'round': { minArgs:1, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'string': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion' },
+    'trunc': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'greatCircleDistance': { minArgs:4, maxArgs:4, category: 'DG.Formula.FuncCategoryOther' },
+    'secondsToDate': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime' },
+    'month': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime' }
   },
   
   /**
     Property which provides meta-data about the functions supported by the JavaScript Math class.
     @property   {Object}  Map of name {String} to {Object}.
    */
-  _MathArgs: {
-    'abs': { min:1, max:1 },
-    'acos': { min:1, max:1 },
-    'asin': { min:1, max:1 },
-    'atan': { min:1, max:1 },
-    'atan2': { min:2, max:2 },
-    'ceil': { min:1, max:1 },
-    'cos': { min:1, max:1 },
-    'exp': { min:1, max:1 },
-    'floor': { min:1, max:1 },
-    //'log': { min:1, max:1 },    // replaced by DG version
-    //'max': { min:1, max:'n' },  // replaced by aggregate version
-    //'min': { min:1, max:'n' },  // replaced by aggregate version
-    'pow': { min:2, max:2 },
-    //'random': { min:0, max:0 }, // replaced by DG version
-    //'round': { min:1, max:1 },  // replaced by DG version
-    'sin': { min:1, max:1 },
-    'sqrt': { min:1, max:1 },
-    'tan': { min:1, max:1 }
+  _MathFnProps: {
+    'abs': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'acos': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'asin': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'atan': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'atan2': { minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'ceil': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'cos': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'exp': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'floor': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    //'log': { minArgs:1, maxArgs:1 },    // replaced by DG version
+    //'max': { minArgs:1, maxArgs:'n' },  // replaced by aggregate version
+    //'min': { minArgs:1, maxArgs:'n' },  // replaced by aggregate version
+    'pow': { minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryArithmetic' },
+    //'random': { minArgs:0, maxArgs:0 }, // replaced by DG version
+    //'round': { minArgs:1, maxArgs:1 },  // replaced by DG version
+    'sin': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' },
+    'sqrt': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryArithmetic' },
+    'tan': { minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryTrigonometric' }
   },
   
   /**
@@ -486,20 +486,20 @@ DG.FormulaContext = SC.Object.extend( (function() {
     // Functions provided by built-in '_fns' property of context
     var _fns = this.get('_fns');
     if( _fns && typeof _fns[iName] === 'function') {
-      checkArgsAndRandom( iName, iArgs, this.get('_fnsArgs'));
+      checkArgsAndRandom( iName, iArgs, this.get('_fnsProps'));
       return 'c._fns.' + iName + '(' + iArgs + ')';
     }
 
     // Other functions of JavaScript Math object
     if( typeof Math[iName] === 'function') {
-      checkArgsAndRandom( iName, iArgs, this._MathArgs);
+      checkArgsAndRandom( iName, iArgs, this._MathFnProps);
       return 'Math.' + iName + '(' + iArgs + ')';
     }
 
     // Functions provided by client-provided 'fns' property of context
     var fns = this.get('fns');
     if( fns && typeof fns[iName] === 'function') {
-      checkArgsAndRandom( iName, iArgs, this.get('fnsArgs'));
+      checkArgsAndRandom( iName, iArgs, this.get('fnsProps'));
       return 'c.fns.' + iName + '(' + iArgs + ')';
     }
 
@@ -522,20 +522,20 @@ DG.FormulaContext = SC.Object.extend( (function() {
     // Functions provided by built-in '_fns' property of context
     var _fns = this.get('_fns');
     if( _fns && typeof _fns[iName] === 'function') {
-      checkArgs( iName, iArgs, this.get('_fnsArgs'));
+      checkArgs( iName, iArgs, this.get('_fnsProps'));
       return _fns[iName].apply( _fns, iArgs);
     }
 
     // Other functions of JavaScript Math object
     if( typeof Math[iName] === 'function') {
-      checkArgs( iName, iArgs, this._MathArgs);
+      checkArgs( iName, iArgs, this._MathFnProps);
       return Math[iName].apply( Math, iArgs);
     }
 
     // Functions provided by client-provided 'fns' property of context
     var fns = this.get('fns');
     if( fns && typeof fns[iName] === 'function') {
-      checkArgs( iName, iArgs, this.get('fnsArgs'));
+      checkArgs( iName, iArgs, this.get('fnsProps'));
       return fns[iName].apply( fns, iArgs);
     }
 
@@ -558,36 +558,7 @@ DG.FormulaContext.createContextFunction = function( iExpression) {
   return new Function('c', 'e', 'return ' + iExpression);
 };
 
-/**
-  Adds the names of the functions in iModule to the fnNames property,
-  for use in creating the function popup menu. The properties of the
-  iModule object are assumed to be functions, and the names are taken
-  from the names of the properties. This will need some adjustment when
-  localization is taken into account.
-  @param  {Object}  iModule -- Properties are functions
- */
-DG.FormulaContext.registerFnModule = function( iModule) {
-  var fnNames = DG.FormulaContext.prototype.fnNames;
-  // Use push.apply() to push the array elements instead of the array.
-  fnNames.push.apply( fnNames, DG.ObjectMap.keys( iModule));
-  fnNames.sort();
-};
-
-/**
-  Register the base function modules built into the context.
- */
-DG.FormulaContext.registerFnModule( DG.FormulaContext.prototype._fns);
-DG.FormulaContext.registerFnModule( DG.FormulaContext.prototype._MathArgs);
-
-/**
-  Returns an array of function names for all the supported functions,
-  along with empty parentheses after the function name.
-  @returns  {Array of String}   The array of function names (with parentheses)
- */
-DG.FormulaContext.getFunctionNamesWithParentheses = function() {
-  var names = DG.FormulaContext.prototype.fnNames;
-  return names.map( function( iName) {
-                      return iName + "()";
-                    });
-};
+// Register the base function modules built into the context.
+DG.functionRegistry.registerFunctions(DG.FormulaContext.prototype._fnsProps);
+DG.functionRegistry.registerFunctions(DG.FormulaContext.prototype._MathFnProps);
 
