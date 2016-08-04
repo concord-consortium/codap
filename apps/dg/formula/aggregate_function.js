@@ -284,6 +284,97 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
 });
 
 
+/** @class DG.CachedValuesParentCaseAggregate
+
+  The DG.CachedValuesParentCaseAggregate "class" is the base "class" for aggregate function
+  implementation classes which must iterate through all of the cases to perform
+  their aggregate computation, and which compute/cache their results over a
+  single parent case.
+
+  @extends SC.CachedValuesParentCaseAggregate
+ */
+DG.CachedValuesParentCaseAggregate = DG.ParentCaseAggregate.extend({
+
+  /**
+    Perform any per-case computation and/or caching.
+    For the SortDataFunction, this method simply caches its values for later sorting.
+    @param  {DG.FormulaContext}   iContext
+    @param  {Object}              iEvalContext -- { _case_: , _id_: }
+    @param  {Object}              iInstance -- The aggregate function instance from the context.
+    @param  {Number|null}         iCacheID -- The cache ID to use for cache lookups for this case.
+   */
+  evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+    var value = this.getNumericValue( iContext, iEvalContext, iInstance);
+    if( !isNaN(value)) {
+      var cache = iInstance.caches[ iCacheID];
+      if( cache) {
+        cache.sum += value;
+        cache.values.push(value);
+      }
+      else
+        iInstance.caches[ iCacheID] = { sum: value, values: [value] };
+    }
+  },
+
+  /**
+    Compute the final value from the specified cache.
+    @param  {Object}              iCache -- contents of the appropriate cache
+    @returns  {Number|String|...}
+   */
+  computeResultFromCache: function(iCache) {
+    // derived classes must override
+  },
+
+  /**
+    Complete the computation for a given case.
+    For the SortDataFunction, this requires sorting the values within each parent case,
+    and then caching the extracted results from each parent case group.
+    @param  {DG.FormulaContext}   iContext
+    @param  {Object}              iEvalContext -- { _case_: , _id_: }
+    @param  {Object}              iInstance -- The aggregate function instance from the context.
+    @returns  {Number|String|...}
+   */
+  computeResults: function( iContext, iEvalContext, iInstance) {
+
+    DG.ObjectMap.forEach(
+        iInstance.caches,
+        function(iKey, iCache) {
+          iInstance.results[iKey] = this.computeResultFromCache(iCache);
+        }.bind(this));
+    return this.queryCache(iContext, iEvalContext, iInstance);
+  },
+
+  /*
+    Utility function for computing the variance using the
+    "corrected two-pass algorithm" from Numerical Recipes
+    from the values cached during the first pass.
+   */
+  computeVarianceFromCache: function(iCache) {
+    // must have at least two values to compute stdDev
+    if (iCache.values && (iCache.values.length > 1)) {
+      var count = iCache.values.length,
+          mean = iCache.sum / count,
+          sumDev = 0,
+          sumSqrDev = 0,
+          i, dev;
+
+      // corrected two-pass algorithm from Numerical Recipes
+      for (i = 0; i < count; ++i) {
+        dev = iCache.values[i] - mean;
+        sumDev += dev;
+        sumSqrDev += dev * dev;
+      }
+
+      // second term serves as a round-off correction factor
+      return ((sumSqrDev - (sumDev * sumDev) / count)) / (count - 1);
+    }
+    // if not enough values, return an error
+    return NaN;
+  }
+
+});
+
+
 /** @class DG.SortDataFunction
 
   The DG.SortDataFunction "class" is the base "class" for aggregate function
@@ -307,7 +398,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
     var value = this.getNumericValue(iContext, iEvalContext, iInstance);
     // Currently, we only sort numeric values.
     // To support a Fathom-like alphanumeric sort, we would have to change the test here.
-    if( DG.isFinite( value)) {
+    if( !isNaN(value)) {
       var cache = iInstance.caches[ iCacheID];
       if( cache) {
         cache.push( value);

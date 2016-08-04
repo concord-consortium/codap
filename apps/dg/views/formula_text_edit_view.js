@@ -141,7 +141,19 @@ return {
                   var widget = textArea.catcomplete('widget'),
                       formulaFrame = this.frame(),
                       formulaWidth = formulaFrame.width,
-                      maxMenuHeight = $(window).height() - widget.offset().top - 5;
+                      // We want to make sure the menu is visible/fits in the window.
+                      // On mobile Safari, there is no reliable way to determine
+                      //  1) when/whether the virtual keyboard is shown
+                      //  2) the height of the virtual keyboard if it is shown
+                      //  3) the height of the window excluding the virtual keyboard
+                      // and even the unreliable methods are often iOS-version-specific.
+                      // Therefore, we simply punt and hard-code a value that seems to work.
+                      // Apparently, on Android resize events are fired when the keyboard
+                      // is shown, so there is reason to believe that the default code
+                      // will work there, although I haven't tried it yet.
+                      maxMenuHeight = SC.browser.isMobileSafari
+                                          ? 125
+                                          : $(window).height() - widget.offset().top - 5;
                   this._ac_isOpen = true;
                   this._ac_selectedWithTab = false;
 
@@ -198,7 +210,7 @@ return {
       sc_super();
     this._disableNextSelectRoot = false;
   },
-  
+
   keyDown: function( evt) {
     var kMinus = DG.UNICODE.MINUS_SIGN,
         tCurrent = this.get('value'),
@@ -213,26 +225,20 @@ return {
       return true;
     }
 
-    // If a non-matchable character is typed while the autocomplete menu is open,
-    // restore the original text (and selection position if possible) and close
-    // the autocomplete menu. This handles the escape key and other non-text keys.
-    if (!isAutoCompleteKeyCode(evt.keyCode)) {
-      // We can get here after the menu has been closed when the escape key is
-      // pressed, so we special-case it so that we restore things in that case.
-      if (acInstance && (this._ac_isOpen || (evt.keyCode === SC.Event.KEY_ESC))) {
-        // restore the original text
-        acInstance._value(acInstance.term);
-        if (this._ac_matchPos && this._ac_matchStr) {
-          // restore the selection position
-          var element = acInstance.element.get(0),
-              endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
-          if (element)
-            element.selectionStart = element.selectionEnd = endMatchPos;
-        }
-        // close the autocomplete menu
-        if (this._ac_isOpen)
-          this.$('textarea').catcomplete('close');
+    // Restore the original text and caret position on escape key.
+    if (acInstance && (evt.keyCode === SC.Event.KEY_ESC)) {
+      // restore the original text
+      acInstance._value(acInstance.term);
+      if (this._ac_matchPos && this._ac_matchStr) {
+        // restore the selection position
+        var element = acInstance.element.get(0),
+            endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
+        if (element)
+          element.selectionStart = element.selectionEnd = endMatchPos;
       }
+      // close the autocomplete menu
+      if (this._ac_isOpen)
+        this.$('textarea').catcomplete('close');
     }
 
     if( evt.getCharString() === '-') {
@@ -343,6 +349,10 @@ DG.FormulaTextEditView.initializeAutoComplete = function() {
     _renderMenu: function( ul, items ) {
       var that = this,
           currentCategory = "";
+      // add 'dg-wants-touch' class so SC.RootResponder won't swallow touch
+      // events targeted to our menu. See comment in main.js for details.
+      if (!$(ul).hasClass('dg-wants-touch'))
+        $(ul).addClass('dg-wants-touch');
       $.each( items, function( index, item ) {
         var li;
         if ( item.category !== currentCategory ) {

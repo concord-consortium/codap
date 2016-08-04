@@ -211,10 +211,21 @@ DG.MathUtilities = {
    * false for (null || undefined || "").  Strings or Booleans are converted
    * to Numbers in the usual way.
    * @param val
-   * @return {Boolean} true if the value is finite..
+   * @return {Boolean} true if the value is finite.
    */
   isFinite: function( val ) {
-    return (!SC.empty(val)) && isFinite( val);
+    return !SC.empty(val) && isFinite(val);
+  },
+
+  /**
+   * Is the specified value numeric? Unlike the global "isNaN", returns
+   * false for (null || undefined || "").  Strings or Booleans are converted
+   * to Numbers in the usual way.
+   * @param val
+   * @return {Boolean} true if the value is numeric
+   */
+  isNumeric: function(val) {
+    return !SC.empty(val) && !isNaN(val);
   },
 
   /**

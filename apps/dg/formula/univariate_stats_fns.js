@@ -27,7 +27,9 @@ sc_require('formula/collection_formula_context');
   perform univariate statistical computations such as count() mean(),
   median(), sum(), etc.
  */
-DG.UnivariateStatsFns = {
+DG.UnivariateStatsFns = (function() {
+
+return {
 
   /**
     count([expr])
@@ -66,7 +68,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.min > value)
@@ -96,7 +98,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.max < value)
@@ -126,7 +128,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           cache.count += 1;
@@ -158,6 +160,47 @@ DG.UnivariateStatsFns = {
 
     extractResult: function( iCachedValues, iEvalContext, iInstance) {
       return DG.MathUtilities.medianOfNumericArray( iCachedValues);
+    }
+  }),
+
+  /**
+    variance(expr)
+    Returns the aggregated sample standard deviation of its evaluated argument values.
+   */
+  variance: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      return this.computeVarianceFromCache(iCache);
+    }
+  }),
+
+  /**
+    stdDev(expr)
+    Returns the aggregated sample standard deviation of its evaluated argument values.
+   */
+  stdDev: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      return Math.sqrt(this.computeVarianceFromCache(iCache));
+    }
+  }),
+
+  /**
+    stdErr(expr)
+    Returns the aggregated standard error of its evaluated argument values.
+   */
+  stdErr: DG.CachedValuesParentCaseAggregate.create({
+  
+    requiredArgs: { min: 1, max: 1 },
+
+    computeResultFromCache: function(iCache) {
+      var count = iCache.values && iCache.values.length,
+          stdDev = Math.sqrt(this.computeVarianceFromCache(iCache));
+      return stdDev / Math.sqrt(count);
     }
   }),
 
@@ -198,7 +241,7 @@ DG.UnivariateStatsFns = {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( DG.isFinite( value)) {
+      if( !isNaN(value)) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
         else
@@ -208,5 +251,7 @@ DG.UnivariateStatsFns = {
   })
   
 };
+
+}());
 
 DG.CollectionFormulaContext.registerAggFnModule( DG.UnivariateStatsFns);

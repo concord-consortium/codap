@@ -90,11 +90,11 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         })
       }),
       functionPopup: SC.PopupButtonView.extend({
-        layout: { top: 112, left: 150, width: 140, height: 24 },
+        layout: { top: 112, left: 150, width: 170, height: 24 },
         localize: true,
         title: 'DG.AttrFormView.functionMenuTitle',
         menu: SC.MenuPane.extend({
-          layout: { width: 100 },
+          layout: { width: 150 },
           items: null // filled in later
         })
       }),
