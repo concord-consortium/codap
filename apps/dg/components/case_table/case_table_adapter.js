@@ -274,6 +274,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
+            hasDependentInteractive: function () {
+              return this.context.get('hasGameInteractive');
+            },
             header: {
               menu : {
                 items: [
@@ -298,13 +301,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
                     command: 'cmdRenameAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('renameable') || context.get('hasDataInteractive');
+                      ioMenuItem.disabled = !iColumn.attribute.get('renameable') || iColumn.hasDependentInteractive();
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable') || context.get('hasDataInteractive');
+                      ioMenuItem.disabled = !iColumn.attribute.get('deleteable') || iColumn.hasDependentInteractive();
                     }
                   }
                 ]
@@ -611,16 +614,30 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * Returns whether the attribute can be dropped in the case table associated
      * with this adapter.
      *
-     * Generally this is permitted if the attribute is a
-     * part of a collection in the case table's context.
+     * If the attribute is a part of this collection, then the it may be dropped
+     * if the context is not owned by a game-based interactive
+     *
+     * If the attribute is a part of a collection in this context, but not this
+     * collection it may be dropped if it is not owned by any data interactive.
+     *
+     * If the attribute is a part of another context, then it may not be dropped.
      *
      * @param attr
      * @returns {boolean}
      */
     canAcceptDrop: function (attr) {
+      var canAcceptDrop = false;
       var tContext = this.get('dataContext');
-      var collection = attr.collection;
-      return (!SC.none(tContext.getCollectionByID(collection.id)) && !tContext.get('hasDataInteractive'));
+      var attrCollection = attr.collection;
+      if (!SC.none(tContext.getCollectionByID(attrCollection.id))) {
+        if (attrCollection.getAttributeByID(attr.get('id'))) {
+          canAcceptDrop = !tContext.get('hasGameInteractive');
+        } else {
+          canAcceptDrop = !tContext.get('hasDataInteractive');
+        }
+      }
+
+      return canAcceptDrop;
     }
 
   }; // end return from closure

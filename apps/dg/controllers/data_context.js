@@ -220,6 +220,21 @@ DG.DataContext = SC.Object.extend((function() // closure
   }.property(),
 
   /**
+   * Whether there are Data Interactives for which are affiliated with this
+   * data context.
+   * @type {boolean}
+   */
+  hasGameInteractive: function () {
+    var dataInteractives = DG.currDocumentController().get('dataInteractives');
+    var myID = this.get('id');
+    var hasSome = dataInteractives && DG.ObjectMap.values(dataInteractives).some(function (dataInteractive) {
+      var id = (dataInteractive.getPath('context.id'));
+      return (!SC.none(id) && (id === myID) && dataInteractive.activeChannel().constructor === DG.GamePhoneHandler);
+    }.bind(this));
+    return hasSome;
+  }.property(),
+
+  /**
     Initialization method.
    */
   init: function() {
