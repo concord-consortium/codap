@@ -39,6 +39,7 @@ DG.main = function main() {
   // autocomplete library on mobile Safari, which otherwise requires two
   // clicks to select an item from the menu.
   // See http://stackoverflow.com/a/33233802, for example.
+  /* global Origami */
   var attachFastClick = Origami.fastclick;
   attachFastClick(document.body);
 
@@ -53,7 +54,7 @@ DG.main = function main() {
   var orgIgnoreTouchHandle = SC.RootResponder.prototype.ignoreTouchHandle;
   SC.RootResponder.prototype.ignoreTouchHandle = function(evt) {
     return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
-  }
+  };
 
   DG.getPath('mainPage.mainPane').append();
 

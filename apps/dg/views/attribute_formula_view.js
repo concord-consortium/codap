@@ -160,14 +160,14 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
                               subMenu: iFnNames.map(function(iName) {
                                                       return iName + "()";
                                                     })
-                            })
+                            });
                           });
     // sort the categories
     items.sort(function(iItem1, iItem2) {
                   if (iItem1.title < iItem2.title) return -1;
                   if (iItem2.title < iItem1.title) return 1;
                   return 0;
-                })
+                });
     this.setPath('contentView.functionPopup.menu.items', items);
   },
   

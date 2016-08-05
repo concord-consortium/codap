@@ -34,6 +34,8 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       fnNamesArray = [],
       // flag indicating whether function names are currently sorted
       fnNamesSorted = true,
+      // simple functions
+      fns = {},
       // aggregate functions
       aggFns = {};
 
@@ -57,8 +59,12 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       // mark it as needing to be sorted
       fnNamesSorted = false;
     });
-  };
+  }
 
+  /**
+    Process the objects in the fnModuleQueue to map function names.
+    Create a sorted array of categories from the function names.
+   */
   function prepareFunctionNames() {
     if (fnModuleQueue.length) {
       fnModuleQueue.forEach(function(iModule) {
@@ -75,7 +81,7 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       fnNamesArray.sort();
       fnNamesSorted = true;
     }
-  };
+  }
 
   return {
     /**
@@ -98,6 +104,10 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       return fnNamesArray;
     }.property(),
 
+    /**
+      Return a flat array of function names with parentheses added.
+      @type {string[]}
+     */
     namesWithParentheses: function() {
       var fns = this.get('namesArray');
       return fns.map(function(iName) {
@@ -106,24 +116,57 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
     }.property(),
 
     /**
+      Returns the internal non-aggregate function objects map (currently
+      still required by DG.FormulaContext for compiled evaluation).
+      @returns  {object}  map of function names to function objects
+     */
+    functions: function() {
+      return fns;
+    }.property(),
+
+    /**
       Register the specified functions.
+      @param    {object}  iFunctions - map of function name to aggregate function objects
      */
     registerFunctions: function(iFunctions) {
       fnModuleQueue.push(iFunctions);
+      DG.ObjectMap.copy(fns, iFunctions);
     },
 
     /**
       Register the specified aggregate functions.
+      @param    {object}  iFunctions - map of function name to aggregate function objects
      */
     registerAggregates: function(iFunctions) {
-      this.registerFunctions(iFunctions);
+      fnModuleQueue.push(iFunctions);
       DG.ObjectMap.copy(aggFns, iFunctions);
     },
 
+    /**
+      Return the function object for the specified function name.
+      @param    {string}  iFnName - the name of the function
+      @returns  {object}  the requested function object
+     */
+    getFunction: function(iFnName) {
+      return iFnName && fns[iFnName];
+    },
+
+    /**
+      Return whether the specified function name corresponds to
+      an aggregate function.
+      @param    {string}  iFnName - the name of the function
+      @returns  {boolean} whether the function is an aggregate function
+     */
     isAggregate: function(iFnName) {
       return iFnName && (aggFns[iFnName] != null);
     },
 
+    /**
+      Returns the aggregate function object for the specified
+      function name.
+      @param    {string}  iFnName - the name of the function
+      @returns  {object}  the requested function object
+     */
     getAggregate: function(iFnName) {
       return iFnName && aggFns[iFnName];
     }

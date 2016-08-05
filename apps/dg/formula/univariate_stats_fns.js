@@ -27,7 +27,7 @@ sc_require('formula/function_registry');
   perform univariate statistical computations such as count() mean(),
   median(), sum(), etc.
  */
-DG.functionRegistry.registerAggregates(function() {
+DG.functionRegistry.registerAggregates((function() {
 
 return {
 
@@ -252,4 +252,4 @@ return {
   
 };
 
-}());
+}()));
