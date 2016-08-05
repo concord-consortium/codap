@@ -981,7 +981,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       if( !currTransformIsIdentity)
         iPlottedElement.transform( '');
 
-      iPlottedElement.attr( iAttrs);
+      //iPlottedElement.attr( iAttrs);
+      // We use a modified version of Raphael's 'attr' because we're always dealing with circles
+      DG.PlotUtilities.setPlottedPointAttributes( iPlottedElement, iAttrs);
+
       // Some points got made but never had a chance to finish their creation animation
 //      if( iPlottedElement.attr('stroke-opacity') < 1 ) {
 //        iPlottedElement.animate( {'fill-opacity': DG.PlotUtilities.kDefaultPointOpacity, 'stroke-opacity': 1 },

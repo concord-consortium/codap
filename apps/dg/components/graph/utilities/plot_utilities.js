@@ -355,6 +355,92 @@ DG.PlotUtilities = {
         else
           this.remove();
       });
+  },
+
+  /**
+   * Modification of Raphael's setFillAndStroke, tuned to CODAP's situation of just working with circle elements
+   * @param o {Raphael Element}
+   * @param params {Object}
+   */
+  setPlottedPointAttributes: function( o, params) {
+    var node = o.node,
+        attrs = o.attrs,
+        vis = node.style.visibility,
+        R = Raphael,
+        has = "hasOwnProperty";
+    node.style.visibility = "hidden";
+    for (var att in params) {
+      if (params[has](att)) {
+        if (!R._availableAttrs[has](att)) {
+          continue;
+        }
+        var value = params[att];
+        attrs[att] = value;
+        switch (att) {
+          case "cursor":
+            node.style.cursor = value;
+            break;
+          case "transform":
+            o.transform(value);
+            break;
+          case "cx":
+            node.setAttribute(att, value);
+            o._.dirty = 1;
+            break;
+          case "cy":
+            node.setAttribute(att, value);
+            o._.dirty = 1;
+            break;
+          case "r":
+            if (o.type == "rect") { // jshint ignore:line
+              $(node, {rx: value, ry: value});
+            } else {
+              node.setAttribute(att, value);
+            }
+            o._.dirty = 1;
+            break;
+          case "stroke-width":
+            node.setAttribute(att, value);
+            break;
+          case "fill":
+            var clr = R.getRGB(value);
+            if (!clr.error) {
+              delete params.gradient;
+              delete attrs.gradient;
+              !R.is(attrs.opacity, "undefined") &&
+              R.is(params.opacity, "undefined") &&
+              $(node, {opacity: attrs.opacity});
+              !R.is(attrs["fill-opacity"], "undefined") &&
+              R.is(params["fill-opacity"], "undefined") &&
+              $(node, {"fill-opacity": attrs["fill-opacity"]});
+            }
+            clr[has]("opacity") && $(node, {"fill-opacity": clr.opacity > 1 ?
+                clr.opacity / 100 : clr.opacity});  // jshint ignore:line
+          case "stroke":
+            clr = R.getRGB(value);
+            node.setAttribute(att, clr.hex);
+            att == "stroke" && clr[has]("opacity") &&   // jshint ignore:line
+              $(node, {"stroke-opacity": clr.opacity > 1 ? clr.opacity / 100 : clr.opacity});
+            break;
+          case "opacity":
+            if (attrs.gradient && !attrs[has]("stroke-opacity")) {
+              $(node, {"stroke-opacity": value > 1 ? value / 100 : value});
+            }  // jshint ignore:line
+          // fall
+          default:
+            att == "font-size" && (value = toInt(value, 10) + "px");  // jshint ignore:line
+            var cssrule = att.replace(/(\-.)/g, function (w) {
+              return w.substring(1).toUpperCase();
+            });
+            node.style[cssrule] = value;
+            o._.dirty = 1;
+            node.setAttribute(att, value);
+            break;
+        }
+      }
+    }
+
+    node.style.visibility = vis;
   }
 
 };
