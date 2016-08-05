@@ -266,16 +266,16 @@ DG.GraphView = SC.View.extend(
       drawPlots: function () {
         //console.profile('drawPlots');
         var tPlotViews = this.get('plotViews'),
-            tNumPlots = tPlotViews.length,
+            tNumPlots = tPlotViews.length;/*,
             tTime = Date.now(),
-            tTimeAdded;
+            tTimeAdded;*/
         this.get('plotViews').forEach(function (iPlotView, iIndex) {
           if (iPlotView.readyToDraw())
             iPlotView.doDraw(iIndex, tNumPlots);
         });
-        tTimeAdded = Date.now() - tTime;
-        this.currTime += tTimeAdded;
-        console.log('drawPlots: added ' + tTimeAdded + 'ms for a total of ' + this.currTime + 'ms');
+        //tTimeAdded = Date.now() - tTime;
+        //this.currTime += tTimeAdded;
+        //console.log('drawPlots: added ' + tTimeAdded + 'ms for a total of ' + this.currTime + 'ms');
         //console.profileEnd();
       },
 
