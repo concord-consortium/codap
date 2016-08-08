@@ -448,6 +448,16 @@ SC.stringsFor('English', {
   'DG.CollectionClient.cantEditFormulaErrorDesc': "Create a new attribute to be able to specify a formula.",
 
   // DG.Formula
+  'DG.Formula.FuncCategoryArithmetic': "Arithmetic Functions",
+  'DG.Formula.FuncCategoryConversion': "Other Functions", // put into "Other" for now
+  'DG.Formula.FuncCategoryDateTime': "Date/Time Functions",
+  'DG.Formula.FuncCategoryLookup': "Lookup Functions",
+  'DG.Formula.FuncCategoryOther': "Other Functions",
+  'DG.Formula.FuncCategoryRandom': "Other Functions", // put into "Other" for now
+  'DG.Formula.FuncCategoryStatistical': "Statistical Functions",
+  'DG.Formula.FuncCategoryString': "String Functions",
+  'DG.Formula.FuncCategoryTrigonometric': "Trigonometric Functions",
+
   'DG.Formula.SyntaxErrorMiddle': "Syntax error: '%@'",
   'DG.Formula.SyntaxErrorEnd': "Incomplete expression",
   'DG.Formula.VarReferenceError.message': "'%@': unknown variable",

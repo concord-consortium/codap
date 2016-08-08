@@ -19,7 +19,7 @@
 // ==========================================================================
 
 sc_require('formula/aggregate_function');
-sc_require('formula/collection_formula_context');
+sc_require('formula/function_registry');
 
 /** @class DG.UnivariateStatsFns
 
@@ -27,7 +27,7 @@ sc_require('formula/collection_formula_context');
   perform univariate statistical computations such as count() mean(),
   median(), sum(), etc.
  */
-DG.UnivariateStatsFns = (function() {
+DG.functionRegistry.registerAggregates((function() {
 
 return {
 
@@ -252,6 +252,4 @@ return {
   
 };
 
-}());
-
-DG.CollectionFormulaContext.registerAggFnModule( DG.UnivariateStatsFns);
+}()));

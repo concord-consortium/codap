@@ -19,7 +19,7 @@
 // ==========================================================================
 
 sc_require('formula/aggregate_function');
-sc_require('formula/collection_formula_context');
+sc_require('formula/function_registry');
 
 /** @class DG.DataContextLookupFns
 
@@ -27,7 +27,7 @@ sc_require('formula/collection_formula_context');
   functions that evaluate the arguments in a specified data context.
   These functions potentially include lookupByKey() and lookupByIndex(), etc.
  */
-DG.DataContextLookupFns = (function() {
+DG.functionRegistry.registerAggregates((function() {
 
   /** @class DG.LookupDataSetError
 
@@ -120,6 +120,8 @@ DG.DataContextLookupFns = (function() {
    */
   lookupByIndex: DG.AggregateFunction.create({
   
+    category: 'DG.Formula.FuncCategoryLookup',
+  
     requiredArgs: { min: 3, max: 3 },
 
     /**
@@ -190,6 +192,8 @@ DG.DataContextLookupFns = (function() {
    */
   lookupByKey: DG.AggregateFunction.create({
   
+    category: 'DG.Formula.FuncCategoryLookup',
+  
     requiredArgs: { min: 4, max: 4 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
@@ -249,6 +253,4 @@ DG.DataContextLookupFns = (function() {
   })
   
   };
-})();
-
-DG.CollectionFormulaContext.registerAggFnModule( DG.DataContextLookupFns);
+})());

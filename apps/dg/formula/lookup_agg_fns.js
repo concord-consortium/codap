@@ -19,7 +19,7 @@
 // ==========================================================================
 
 sc_require('formula/aggregate_function');
-sc_require('formula/collection_formula_context');
+sc_require('formula/function_registry');
 
 /** @class DG.LookupAggFns
 
@@ -27,7 +27,7 @@ sc_require('formula/collection_formula_context');
   functions that evaluate the arguments in the context of other cases.
   These functions potentially include first(), last(), prev(), next(), etc.
  */
-DG.LookupAggFns = {
+DG.functionRegistry.registerAggregates({
 
   /**
     first(expr)
@@ -35,6 +35,8 @@ DG.LookupAggFns = {
     the first game/run itself, depending on the context in which it is used.
    */
   first: DG.AggregateFunction.create({
+
+    category: 'DG.Formula.FuncCategoryLookup',
   
     requiredArgs: { min: 1, max: 1 },
 
@@ -84,6 +86,8 @@ DG.LookupAggFns = {
     the last game/run itself, depending on the context in which it is used.
    */
   last: DG.AggregateFunction.create({
+  
+    category: 'DG.Formula.FuncCategoryLookup',
   
     requiredArgs: { min: 1, max: 1 },
 
@@ -135,6 +139,8 @@ DG.LookupAggFns = {
     if no default is specified.
    */
   next: DG.AggregateFunction.create({
+  
+    category: 'DG.Formula.FuncCategoryLookup',
   
     requiredArgs: { min: 1, max: 2 },
 
@@ -189,6 +195,8 @@ DG.LookupAggFns = {
    */
   prev: DG.AggregateFunction.create({
   
+    category: 'DG.Formula.FuncCategoryLookup',
+  
     requiredArgs: { min: 1, max: 2 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
@@ -232,7 +240,4 @@ DG.LookupAggFns = {
     }
   
   })
-  
-};
-
-DG.CollectionFormulaContext.registerAggFnModule( DG.LookupAggFns);
+});

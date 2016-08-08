@@ -166,6 +166,8 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
  */
 DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
 
+  category: 'DG.Formula.FuncCategoryStatistical',
+
   // find the parent case that corresponds to the EvalContext's _collectionID_
   // if the _collectionID_ is the evaluated case, then default to its parent
   getGroupID: function(iContext, iEvalContext) {

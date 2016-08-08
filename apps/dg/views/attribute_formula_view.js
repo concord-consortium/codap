@@ -94,7 +94,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         localize: true,
         title: 'DG.AttrFormView.functionMenuTitle',
         menu: SC.MenuPane.extend({
-          layout: { width: 150 },
+          layout: { width: 180 },
           items: null // filled in later
         })
       }),
@@ -148,8 +148,27 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     this.setPath('contentView.cancel.target', this);
     this.setPath('contentView.cancel.action', 'close');
     
-    this.setPath('contentView.functionPopup.menu.items',
-                  DG.FormulaContext.getFunctionNamesWithParentheses());
+    /*
+      Build function menu and submenus from the function names.
+     */
+    var items = [],
+        namesMap = DG.functionRegistry.get('namesMap');
+    DG.ObjectMap.forEach(namesMap,
+                          function(iCategory, iFnNames) {
+                            items.push({
+                              title: iCategory,
+                              subMenu: iFnNames.map(function(iName) {
+                                                      return iName + "()";
+                                                    })
+                            });
+                          });
+    // sort the categories
+    items.sort(function(iItem1, iItem2) {
+                  if (iItem1.title < iItem2.title) return -1;
+                  if (iItem2.title < iItem1.title) return 1;
+                  return 0;
+                });
+    this.setPath('contentView.functionPopup.menu.items', items);
   },
   
   /**

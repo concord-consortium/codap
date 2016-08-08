@@ -199,8 +199,6 @@ test("Basic tests with default compile and evaluation contexts", function() {
   floatEquals( buildAndEval("frac(-1.5)"), -0.5, "frac(x) -- the fractional part of x");
   floatEquals( buildAndEval("ln(10)"), Math.LN10, "ln(x) -- natural logarithm");
   floatEquals( buildAndEval("log(e)"), Math.LOG10E, "log(x) -- base 10 logarithm");
-  equals( buildAndEval("max(1,2,3,4,5)"), 5, "max(x1,...) -- max of arbitrary arguments");
-  equals( buildAndEval("min(1,2,3,4,5)"), 1, "min(x1,...) -- min of arbitrary arguments");
   equals( buildAndEval("pow(2,3)"), 8, "pow(x,y) -- x^y");
   inRange( buildAndEval("random()"), 0, 1, "random() -- pseudo-random number generation");
   inRange( buildAndEval("random(10)"), 0, 10, "random(max) -- pseudo-random number generation");
