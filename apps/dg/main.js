@@ -398,33 +398,39 @@ DG.main = function main() {
 
           case 'openedFile':
             SC.run(function() {
-              DG.cfmClient.hideBlockingModal();
-              docContentsPromise(event.data.content)
-                .then(function(iDocContents) {
-                  SC.run(function() {
-                    var metadata = event.data.content.metadata,
-                          sharedMetadata = metadata && metadata.shared,
-                          cfmSharedMetadata = sharedMetadata
-                                                ? $.extend(true, {}, sharedMetadata)
-                                                : {};
-                      DG.appController.closeAndNewDocument();
-                      DG.store = DG.ModelStore.create();
-                      DG.currDocumentController()
-                        .setDocument(DG.Document.createDocument(iDocContents));
-                      DG.splash.hideSplash();
-                      if(event.callback) {
-                        // acknowledge successful open; return shared metadata
-                        event.callback(null, cfmSharedMetadata);
-                      }
-                    },  // then() error handler
-                    function(iReason) {
-                      DG.AlertPane.error({
-                        localize: true,
-                        message: 'DG.AppController.openDocument.error.general'
+              DG.splash.showSplash();
+            });
+
+            setTimeout(function(){
+              SC.run(function() {
+                DG.cfmClient.hideBlockingModal();
+                docContentsPromise(event.data.content)
+                  .then(function(iDocContents) {
+                    SC.run(function() {
+                      var metadata = event.data.content.metadata,
+                            sharedMetadata = metadata && metadata.shared,
+                            cfmSharedMetadata = sharedMetadata
+                                                  ? $.extend(true, {}, sharedMetadata)
+                                                  : {};
+                        DG.appController.closeAndNewDocument();
+                        DG.store = DG.ModelStore.create();
+                        DG.currDocumentController()
+                          .setDocument(DG.Document.createDocument(iDocContents));
+                        DG.splash.hideSplash();
+                        if(event.callback) {
+                          // acknowledge successful open; return shared metadata
+                          event.callback(null, cfmSharedMetadata);
+                        }
+                      },  // then() error handler
+                      function(iReason) {
+                        DG.AlertPane.error({
+                          localize: true,
+                          message: 'DG.AppController.openDocument.error.general'
+                        });
                       });
                     });
-                  });
-            });
+              });
+            }, 0);
             break;
 
           case 'savedFile':
