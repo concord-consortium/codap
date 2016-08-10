@@ -39,8 +39,10 @@ test("Basic tests with default compile and evaluation contexts", function() {
   function isEquivalent( iValue1, iValue2) {
     // Must have same JavaScript types
     var type1 = typeof iValue1,
-        type2 = typeof iValue2;
-    if( type1 !== type2) return false;
+        type2 = typeof iValue2,
+        isDate1 = DG.isDate(iValue1),
+        isDate2 = DG.isDate(iValue2);
+    if((type1 !== type2) || (isDate1 !== isDate2)) return false;
     // Numeric results require a bit more consideration
     if( type1 === 'number') {
       // NaN-status must be equivalent
@@ -52,6 +54,9 @@ test("Basic tests with default compile and evaluation contexts", function() {
       var diffProportion = Math.abs( iValue1 - iValue2) / 
                           Math.max( Math.abs( iValue1), Math.abs( iValue2));
       return diffProportion < 1e-10;
+    }
+    else if (isDate1 && isDate2) {
+      return Number(iValue1) === Number(iValue2);
     }
     // All non-numeric results must be identical
     return iValue1 === iValue2;
@@ -76,11 +81,23 @@ test("Basic tests with default compile and evaluation contexts", function() {
   function floatEquals( iResult, iExpected, iDescription, iTolerance) {
     var diff = Math.abs( iResult - iExpected),
         tolerance = iTolerance || 1e-10;
-    return ok( diff < tolerance, "%@:  Result: %@, Expected: %@".fmt( iDescription, iResult, iExpected));
+    return ok( diff < tolerance, "%@: Result: %@, Expected: %@".fmt( iDescription, iResult, iExpected));
   }
   
   function inRange( iVal, iMin, iMax, iDescription) {
     return ok( (iMin <= iVal) && (iVal <= iMax), iDescription);
+  }
+
+  function dateEquals(iDate1, iDate2, iDescription) {
+    // facillitate comparison between JS/DG Dates by converting
+    // to milliseconds for DG Dates
+    var numDate1 = iDate1.valueOf === Date.prototype.valueOf
+                      ? Number(iDate1)          // JS Date object
+                      : Number(iDate1) * 1000,  // DG Date object
+        numDate2 = iDate2.valueOf === Date.prototype.valueOf
+                      ? Number(iDate2)          // JS Date object
+                      : Number(iDate2) * 1000;  // DG Date object
+    return ok((iDate1 === iDate2) || (numDate1 === numDate2), iDescription);
   }
  
   //console.profile("formula unit test profile");
@@ -109,6 +126,32 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("trunc(1.5)"), 1, "trunc(x) -- truncate to integer");
   equals( buildAndEval("trunc(-1.5)"), -1, "trunc(x) -- truncate to integer");
 
+  // date/time functions
+  var d99 = new Date(1999, 11, 31, 12, 34, 56), // 12/31/1999 12:34:56
+      d00 = new Date(2000, 11, 31, 12, 34, 56), // 12/31/2000 12:34:56
+      d99Secs = Number(d99) / 1000,
+      d2000101 = new Date(2000, 0, 1),          // 1/1/2000 00:00:00
+      c = DG.FormulaContext.create({ vars: { d99: d99, d99Secs: d99Secs, d00: d00 } });
+  dateEquals(buildAndEval("date(1999, 12, 31, 12, 34, 56)"), d99, "date(1999, 12, 31, 12, 34, 56)");
+  dateEquals(buildAndEval("date(99, 12, 31, 12, 34, 56)"), d99, "date(99, 12, 31, 12, 34, 56)");
+  dateEquals(buildAndEval("date(0, 12, 31, 12, 34, 56)"), d00, "date(0, 12, 31, 12, 34, 56)");
+  dateEquals(buildAndEval("date(2000, 1, 1)"), d2000101, "date(2000, 1, 1)");
+  dateEquals(buildAndEval("date(d99Secs)", c), d99, "date(d99Secs)");
+  equals(buildAndEval("number(date(d99Secs))", c), d99Secs, "number(date(d99Secs))");
+  equals(buildAndEval("year(d99)", c), 1999, "year(d99)");
+  equals(buildAndEval("month(d99)", c), 12, "month(d99)");
+  equals(buildAndEval("month(date(2000, 1, 1))"), 1, "month(date(2000, 1, 1))");
+  equals(buildAndEval("monthName(d99)", c), "December", "monthName(d99)");
+  equals(buildAndEval("monthName(date(2000, 1, 1))"), "January", "monthName(date(2000, 1, 1))");
+  equals(buildAndEval("dayOfMonth(d99)", c), 31, "dayOfMonth(d99)");
+  equals(buildAndEval("dayOfWeek(d99)", c), 6, "dayOfWeek(d99)");
+  equals(buildAndEval("dayOfWeekName(d99)", c), "Friday", "dayOfWeekName(d99)");
+  equals(buildAndEval("hours(d99)", c), 12, "hours(d99)");
+  equals(buildAndEval("minutes(d99)", c), 34, "minutes(d99)");
+  equals(buildAndEval("seconds(d99)", c), 56, "seconds(d99)");
+  dateEquals(buildAndEval("date(1999, 12, 31, 12, 34, 55)+1"), d99, "date(1999, 12, 31, 12, 34, 55)+1");
+  dateEquals(buildAndEval("date(1999, 12, 31, 12, 34, 57)-1"), d99, "date(1999, 12, 31, 12, 34, 57)-1");
+
   // other functions
   equals( buildAndEval("isFinite(0)"), true, "isFinite(0)");
   equals( buildAndEval("isFinite('0')"), true, "isFinite('0')");
@@ -117,6 +160,8 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("isFinite(0/1)"), true, "isFinite(0/1)");
   equals( buildAndEval("isFinite(1/0)"), false, "isFinite(1/0)");
   equals( buildAndEval("isFinite(0/0)"), false, "isFinite(0/0)");
+  equals( buildAndEval("number('0')"), 0, "number('0')");
+  equals( buildAndEval("number(date(2000, 1, 1))"), 946713600, "number(date(2000, 1, 1))");
   inRange( buildAndEval("random()"), 0, 1, "random() -- pseudo-random number generation");
   inRange( buildAndEval("random(10)"), 0, 10, "random(max) -- pseudo-random number generation");
   inRange( buildAndEval("random(5,10)"), 5, 10, "random(min,max) -- pseudo-random number generation");

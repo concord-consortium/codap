@@ -137,10 +137,6 @@ test("Basic tests with default compile and evaluation contexts", function() {
     return ok( diff < tolerance, "%@:  Result: %@, Expected: %@".fmt( iDescription, iResult, iExpected));
   }
   
-  function inRange( iVal, iMin, iMax, iDescription) {
-    return ok( (iMin <= iVal) && (iVal <= iMax), iDescription);
-  }
- 
   //console.profile("formula unit test profile");
   
   equals( buildAndEval("1"), 1, "numeric literal");

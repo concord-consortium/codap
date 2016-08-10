@@ -131,24 +131,6 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {DG.DataItem} the item.
      */
     addDataItem: function (data) {
-      /**
-       * Set the value map from the value array. Called during initialization.
-       *
-       */
-      var mapAttributeNamesToIDs = function (dataMap) {
-        var valuesMap = {};
-        var attrs = this.attrs;
-        DG.ObjectMap.forEach(dataMap, function (iKey, iValue) {
-          var attr = attrs.findProperty('name', iKey);
-          if( !SC.none( attr)) {
-            valuesMap[attr.id] = iValue;
-          } else {
-            valuesMap[iKey] = iValue;
-          }
-        });
-        return valuesMap;
-      }.bind(this);
-
       var dataItem;
       var ix;
 
@@ -164,7 +146,7 @@ DG.DataSet = SC.Object.extend((function() // closure
         dataItem = DG.DataItem.create({
           id: nextDataItemID++,
           dataSet: this,
-          values: mapAttributeNamesToIDs(data)
+          values: DG.DataUtilities.canonicalizeAttributeValues(this.attrs, data)
         });
       }
 
