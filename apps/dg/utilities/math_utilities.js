@@ -321,4 +321,5 @@ DG.MathUtilities = {
 };
 
 DG.isFinite = DG.MathUtilities.isFinite;
+DG.isNumeric = DG.MathUtilities.isNumeric;
 DG.getNumeric = DG.MathUtilities.getNumeric;
