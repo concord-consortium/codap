@@ -34,12 +34,6 @@ DG.appController = SC.Object.create((function () // closure
   return {  // return from closure
 
     /**
-     * File menu.
-     * @property {SC.MenuPane}
-     */
-    fileMenuPane: null,
-
-    /**
      * Options menu.
      * @property {SC.MenuPane}
      */
@@ -66,11 +60,6 @@ DG.appController = SC.Object.create((function () // closure
       // to create these menus somewhere else, but for now we just wrap them
       // in a run loop to quiet the warnings.
       SC.run(function() {
-        this.fileMenuPane = DG.MenuPane.create({
-          items: this.get('fileMenuItems'),
-          itemLayerIdKey: 'id',
-          layout: {width: 165}
-        });
         this.tileMenuPane = DG.MenuPane.create({
           showTileList: function (iAnchor) {
             this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
@@ -131,98 +120,6 @@ DG.appController = SC.Object.create((function () // closure
       };
     },
 
-    // always include dev items, for now. jms 7/3/2014
-    _fileMenuIncludesDevItems: true, //DG.IS_DEV_BUILD,
-
-    fileMenuItems: function () {
-      var stdItems = [
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
-            target: this,
-            dgAction: 'closeCurrentDocument',
-            isEnabled: YES,
-            id: 'dg-fileMenutItem-open-doc'
-          },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
-            target: this,
-            dgAction: 'copyDocument',
-            id: 'dg-fileMenuItem-copy-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
-          {
-            localize: true,
-            title: 'DG.AppController.revertDocument.title', // "Revert to Original..."
-            target: this,
-            dgAction: 'revertDocumentToOriginal',
-            id: 'dg-fileMenuItem-revert-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
-            target: this,
-            dgAction: 'closeCurrentDocument',
-            id:'dg-fileMenuItme-close-doc'},
-          {
-            isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
-            target: this,
-            dgAction: 'loadManager',
-            id: 'dg-fileMenuItem-doc-mgr',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
-            target: this,
-            dgAction: 'importData',
-            id:'dg-fileMenuItem-import-doc'}
-        ],
-        docServerItems = [
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
-            target: this,
-            dgAction: 'showShareLink',
-            id: 'dg-fileMenuItem-share-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
-          }
-        ],
-        devItems = [
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
-            target: this,
-            dgAction: 'exportDocument',
-            id: 'dg-fileMenuItem-export-doc'}
-        ], finalItems;
-
-        if (!DG.AUTOSAVE) {
-          stdItems.splice(1, 0, {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
-            target: this,
-            dgAction: 'saveCODAPDocument',
-            id: 'dg-fileMenuItem-save-doc',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
-          );
-        }
-
-        finalItems = stdItems.concat([]);
-        if (DG.documentServer) {
-          finalItems = finalItems.concat( docServerItems );
-        }
-        if (this._fileMenuIncludesDevItems) {
-          finalItems = finalItems.concat( devItems );
-        }
-        return finalItems;
-    }.property(),
-
     documentNameDidChange: function () {
       // Update document title
       var documentController = DG.currDocumentController
@@ -233,12 +130,6 @@ DG.appController = SC.Object.create((function () // closure
       }
       $('title').text(nameString + 'CODAP');
     }.observes('DG._currDocumentController.documentName'),
-
-    loginDidChange: function () {
-      var isDeveloper = DG.authorizationController.get('isUserDeveloper');
-      this._fileMenuIncludesDevItems = this._fileMenuIncludesDevItems || isDeveloper;
-      this.fileMenuPane.set('items', this.get('fileMenuItems'));
-    }.observes('DG.authorizationController.isUserDeveloper'),
 
     optionMenuItems: function () {
       return [
