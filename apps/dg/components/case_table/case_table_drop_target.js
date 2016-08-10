@@ -53,7 +53,10 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         }.property(),
 
         isDropEnabled: function () {
-          return !this.dataContext.get('hasDataInteractive');
+          var dataInteractiveController
+              = this.dataContext.get('owningDataInteractive');
+          return SC.none(dataInteractiveController)
+              || !dataInteractiveController.get('preventDataContextReorg');
         }.property(),
 
         isDropEnabledDidChange: function () {

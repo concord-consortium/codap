@@ -210,13 +210,23 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasDataInteractive: function () {
+    !SC.none(this.owningDataInteractive());
+  }.property(),
+
+  /**
+   * Returns the Data Interactives for which are affiliated with this
+   * data context.
+   * @type {DG.GameController}
+   */
+  owningDataInteractive: function () {
     var dataInteractives = DG.currDocumentController().get('dataInteractives');
     var myID = this.get('id');
-    var hasSome = dataInteractives && DG.ObjectMap.values(dataInteractives).some(function (dataInteractive) {
+    var found = dataInteractives && DG.ObjectMap.values(dataInteractives).find(function (dataInteractive) {
       var id = (dataInteractive.getPath('context.id'));
       return (!SC.none(id) && (id === myID));
     }.bind(this));
-    return hasSome;
+    DG.assert(SC.none(found) || found.constructor === DG.GameController, "Found Game Controller");
+    return found;
   }.property(),
 
   /**
@@ -225,13 +235,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasGameInteractive: function () {
-    var dataInteractives = DG.currDocumentController().get('dataInteractives');
-    var myID = this.get('id');
-    var hasSome = dataInteractives && DG.ObjectMap.values(dataInteractives).some(function (dataInteractive) {
-      var id = (dataInteractive.getPath('context.id'));
-      return (!SC.none(id) && (id === myID) && dataInteractive.activeChannel().constructor === DG.GamePhoneHandler);
-    }.bind(this));
-    return hasSome;
+    var owning = this.owningDataInteractive();
+    return !SC.none(owning)
+        && (owning.activeChannel().constructor === DG.GamePhoneHandler);
   }.property(),
 
   /**

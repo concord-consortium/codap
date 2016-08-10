@@ -94,6 +94,13 @@ DG.GameController = DG.ComponentController.extend(
        */
       preventBringToFront: true,
 
+      /**
+       * If true, prevent collection reorganization for this data interactive's
+       * data context.
+       *
+       */
+      preventDataContextReorg: true,
+
       init: function () {
         sc_super();
         this.gamePhoneHandler = DG.GamePhoneHandler.create({

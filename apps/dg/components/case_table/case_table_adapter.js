@@ -301,12 +301,16 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
                     command: 'cmdRenameAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
+                      // we disable the menu item if not renameable or the
+                      // context is owned by a data interactive that speaks the Game API
                       ioMenuItem.disabled = !iColumn.attribute.get('renameable') || iColumn.hasDependentInteractive();
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
                     command: 'cmdDeleteAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
+                      // we disable the menu item if not deleteable or the
+                      // context is owned by a data interactive that speaks the Game API
                       ioMenuItem.disabled = !iColumn.attribute.get('deleteable') || iColumn.hasDependentInteractive();
                     }
                   }

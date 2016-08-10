@@ -418,6 +418,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               this.controller.set('preventBringToFront', iValues.preventBringToFront);
               diModel.set('preventBringToFront', iValues.preventBringToFront);
             }
+            if (!SC.none(iValues.preventDataContextReorg)) {
+              // Todo 7/2016: we should be managing this value in the model only,
+              // and deriving the value in the controller.
+              this.controller.set('preventDataContextReorg', iValues.preventDataContextReorg);
+              diModel.set('preventDataContextReorg', iValues.preventDataContextReorg);
+            }
           }
 
           return {
