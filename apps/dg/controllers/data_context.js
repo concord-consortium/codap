@@ -49,12 +49,17 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   name: function (k, v) {
     if (!SC.none(v)){
-      this.setPath('model.name');
+      this.setPath('model.name', v);
     }
     return this.getPath('model.name');
   }.property(),
 
-  titleBinding: '.model.title',
+  title: function (k, v) {
+    if (!SC.none(v)){
+      this.setPath('model.title', v);
+    }
+    return this.getPath('model.title');
+  }.property(),
 
   /**
     The Dependency Manager object for this context
