@@ -47,7 +47,7 @@ cat > $INDEX_HTML << END_DOC
 </head>
 <body>
 <script type="text/javascript">
-  var s = window.location.search;
+  var s = window.location.search + window.location.hash;
   window.location.replace("$REDIRECT_PATH" + s);
 </script>
 </body>
