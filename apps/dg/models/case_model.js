@@ -31,8 +31,38 @@ sc_require('models/base_model');
  *
  * @extends SC.Object
  */
-DG.Case = DG.BaseModel.extend(
-  /** @scope DG.Case.prototype */ {
+DG.Case = DG.BaseModel.extend((function() {
+  /** @scope DG.Case.prototype */
+
+  /**
+    Default formatting for Date objects.
+    Uses toLocaleDateString() for default date formatting.
+    Optionally uses toLocaleTimeString() for default time formatting.
+   */
+  function formatDate(x) {
+    if (!(x && DG.isDate(x))) return "";
+    // use a JS Date object for formatting, since our valueOf()
+    // change seems to affect string formatting
+    var date = new Date(Number(x) * 1000),
+        h = date.getHours(),
+        m = date.getMinutes(),
+        s = date.getSeconds(),
+        ms = date.getMilliseconds(),
+        hasTime = (h + m + s + ms) > 0,
+        dateStr = date.toLocaleDateString(),
+        timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
+    return dateStr + timeStr;
+  }
+
+  /**
+    Utility function to convert dates to strings while leaving
+    all other values alone.
+   */
+  function convertValue(x) {
+    return DG.isDate(x) ? formatDate(x) : x;
+  }
+
+  return {
 
     /**
      * Revision counter for the case.
@@ -139,11 +169,12 @@ DG.Case = DG.BaseModel.extend(
     },
 
     /**
-     * Returns the value of the specified attribute for this case.
+     * Returns the raw value of the specified attribute for this case.
+     * Dates are returned as Dates rather than converted to strings.
      * @param {Number} iAttrID ID of the attribute for which the value should be returned.
      * @returns {Number | String | null}
      */
-    getValue: function( iAttrID) {
+    getRawValue: function( iAttrID) {
 
       if( !SC.none( iAttrID)) {
 
@@ -174,6 +205,17 @@ DG.Case = DG.BaseModel.extend(
     },
 
     /**
+     * Returns the value of the specified attribute for this case.
+     * Dates are converted to strings.
+     * @param {Number} iAttrID ID of the attribute for which the value should be returned.
+     * @returns {Number | String | null}
+     */
+    getValue: function( iAttrID) {
+      var rawValue = this.getRawValue(iAttrID);
+      return rawValue != null ? convertValue(rawValue) : rawValue;
+    },
+
+    /**
      * Returns the numeric value of the specified attribute for this case.
      * Note that the built-in isFinite() can be used with the result (rather than
      * DG.isFinite()) because nulls/undefineds/etc. have already been filtered out.
@@ -186,8 +228,13 @@ DG.Case = DG.BaseModel.extend(
      * @returns {Number}
      */
     getNumValue: function( iAttrID, oOptInfo) {
-      var value = this.getValue( iAttrID),
-        valType = typeof value;
+      var value = this.getRawValue( iAttrID),
+          valType = typeof value;
+      if (DG.isDate(value)) {
+        // treat dates numerically
+        value = Number(value);
+        valType = "number";
+      }
       if( oOptInfo) {
         oOptInfo.type = valType;
         // Note: we don't consider non-primitive types (e.g. objects, arrays, etc.)
@@ -213,7 +260,12 @@ DG.Case = DG.BaseModel.extend(
      */
     getStrValue: function( iAttrID, oOptInfo) {
       var value = this.getValue( iAttrID),
-        valType = typeof value;
+          valType = typeof value;
+      if (DG.isDate(value)) {
+        // treat dates as strings
+        value = convertValue(value);
+        valType = "string";
+      }
       if( oOptInfo) {
         oOptInfo.type = valType;
       }
@@ -298,8 +350,8 @@ DG.Case = DG.BaseModel.extend(
       this.values = null;
       return result;
     }
-
-  }) ;
+  };
+})());
 
 /*
   Map from { collectionID: { itemID: DG.Case }}

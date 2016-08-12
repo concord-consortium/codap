@@ -1,5 +1,5 @@
 // ==========================================================================
-//                    Data Context Lookup Functions
+//                          Basic Functions
 //  
 //  Author:   Kirk Swenson
 //
@@ -223,59 +223,6 @@ DG.functionRegistry.registerFunctions((function() {
             Math.cos(lat1 * Math.PI / 180) * Math.cos (lat2 * Math.PI / 180) * 
               Math.pow(Math.sin((Math.PI / 180) * deltaLong/2), 2);
         return 2*6371*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-      }
-    },
-
-    /**
-      Returns the month corresponding to the given date
-      @param    {String|Number}  A date string or number of seconds in epoch
-      @returns  {String}  The month for the given date
-     */
-    'month': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime',
-      evalFn: function(x) {
-        if( DG.isFinite(x))
-          x *= 1000;
-        var tDate = new Date( x);
-        switch( tDate.getMonth()) {
-          case 0:
-            return 'January';
-          case 1:
-            return 'February';
-          case 2:
-            return 'March';
-          case 3:
-            return 'April';
-          case 4:
-            return 'May';
-          case 5:
-            return 'June';
-          case 6:
-            return 'July';
-          case 7:
-            return 'August';
-          case 8:
-            return 'September';
-          case 9:
-            return 'October';
-          case 10:
-            return 'November';
-          case 11:
-            return 'December';
-        }
-      }
-    },
-
-    /**
-      Returns a string treating the argument as seconds in an epoch
-      @param    {Number}  A number of seconds in the epoch beginning Jan 1, 1970
-      @returns  {String}  A date
-     */
-    'secondsToDate': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime',
-      evalFn: function(x) {
-        var tDate = new Date(x * 1000);
-        return tDate.toLocaleDateString();
       }
     }
   };

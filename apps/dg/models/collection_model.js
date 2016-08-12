@@ -346,7 +346,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var newCase;
       var _this = this;
       var dataSet = this.get('dataSet');
-      var values = this.mapAttributeNamesToIDs(iProperties.values);
+      var values = DG.DataUtilities.canonicalizeAttributeValues(this.attrs, iProperties.values);
       var parent = iProperties.parent;
 
       // Relate it to its parent collection
@@ -644,20 +644,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     getAttributeNames: function () {
       return this.attrs.getEach('name');
-    },
-
-    mapAttributeNamesToIDs: function (dataMap) {
-      var valuesMap = {};
-      var attrs = this.attrs;
-      DG.ObjectMap.forEach(dataMap, function (iKey, iValue) {
-        var attr = attrs.findProperty('name', iKey);
-        if( !SC.none( attr)) {
-          valuesMap[attr.id] = iValue;
-        } else {
-          valuesMap[iKey] = iValue;
-        }
-      });
-      return valuesMap;
     },
 
     /**

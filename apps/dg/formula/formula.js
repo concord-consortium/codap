@@ -29,7 +29,9 @@ sc_require('formula/formula_context');
 
   @extends SC.Object
  */
-DG.Formula = SC.Object.extend({
+DG.Formula = SC.Object.extend((function() {
+
+return {
 
   /**
     The compilation/evaluation context for the formula.
@@ -248,8 +250,10 @@ DG.Formula = SC.Object.extend({
     return DG.Formula.evaluatePostfix( postfix, context, iEvalContext);
   }
   //@endif
-  
-});
+
+};
+
+}()));
 
 /**
   Addition function which handles types by our rules rather than JavaScript's.
@@ -260,6 +264,8 @@ DG.Formula = SC.Object.extend({
 DG.Formula.add = function(iOperand1, iOperand2) {
   var empty1 = SC.empty(iOperand1),
       empty2 = SC.empty(iOperand2),
+      isDate1 = DG.isDate(iOperand1),
+      isDate2 = DG.isDate(iOperand2),
       num1 = Number(iOperand1),
       num2 = Number(iOperand2),
       // booleans and strings (if possible) converted, not null values
@@ -267,7 +273,7 @@ DG.Formula.add = function(iOperand1, iOperand2) {
       isNumeric2 = !empty2 && (num2 === num2);
   // values interpretable as numeric are added numerically
   if (isNumeric1 && isNumeric2)
-    return num1 + num2;
+    return isDate1 !== isDate2 ? DG.createDate((num1 + num2)) : num1 + num2;
 
   // NaNs propagate
   if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
@@ -287,6 +293,44 @@ DG.Formula.add = function(iOperand1, iOperand2) {
 
   // no more special cases - concatenate strings
   return String(iOperand1) + String(iOperand2);
+};
+
+/**
+  Addition function which handles types by our rules rather than JavaScript's.
+  Numbers and values interpretable as numeric (e.g. booleans, some strings)
+  are added numerically. NaNs propagate. Null values propagate or concatenate
+  depending on context. Otherwise, concatenate as strings.
+ */
+DG.Formula.sub = function(iOperand1, iOperand2) {
+  var empty1 = SC.empty(iOperand1),
+      empty2 = SC.empty(iOperand2),
+      isDate1 = DG.isDate(iOperand1),
+      isDate2 = DG.isDate(iOperand2),
+      num1 = Number(iOperand1),
+      num2 = Number(iOperand2),
+      // booleans and strings (if possible) converted, not null values
+      isNumeric1 = !empty1 && (num1 === num1),
+      isNumeric2 = !empty2 && (num2 === num2);
+  // dates are divided by 1000 and added numerically
+  // values interpretable as numeric are added numerically
+  if (isNumeric1 && isNumeric2) {
+    // date minus number results in date
+    // all other combinations result in a number
+    return (isDate1 && !isDate2) ? DG.createDate((num1 - num2)) : num1 - num2;
+  }
+
+  // NaNs propagate
+  if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
+    return NaN;
+
+  // null values propagate
+  if (empty1 && empty2)
+    return '';
+  // null values dominate numeric values
+  if ((empty1 && isNumeric2) || (isNumeric1 && empty2))
+    return '';
+  // no more special cases - let JavaScript do what it will
+  return iOperand1 - iOperand2;
 };
 
 /**
@@ -358,6 +402,10 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
     // Convert x+y to DG.Formula.add(x,y)
     if( iNode.operator === '+')
       return 'DG.Formula.add(' + leftTerm + ',' + rightTerm + ')';
+
+    // Convert x-y to DG.Formula.sub(x,y)
+    if( iNode.operator === '-')
+      return 'DG.Formula.sub(' + leftTerm + ',' + rightTerm + ')';
 
     // Convert x^y to Math.pow(x,y)
     if( iNode.operator === '^')
@@ -446,7 +494,7 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     case '/':   return left / right;
     case '%':   return left % right;
     case '+':   return DG.Formula.add(left, right);
-    case '-':   return left - right;
+    case '-':   return DG.Formula.sub(left, right);
     case '<':   return left < right;
     case '>':   return left > right;
     case '<=':  return left <= right;

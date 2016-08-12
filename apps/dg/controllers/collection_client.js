@@ -529,6 +529,7 @@ DG.CollectionClient = SC.Object.extend(
   
   /**
     Applies the specified function to each value of the specified attribute.
+    Passes the raw value (i.e. including Dates) to the specified callback function.
     @param    {Number}              iAttrID -- The ID of the attribute whose values are to be iterated
     @param    {Function}            iFunction -- The function to apply to each value of the specified attribute
     @returns  {DG.CollectionClient} this, for method chaining
@@ -536,7 +537,7 @@ DG.CollectionClient = SC.Object.extend(
   forEachAttributeValue: function( iAttrID, iFunction) {
     var cases = this.getPath('casesController.arrangedObjects');
     cases.forEach( function( iCase) {
-                    var caseValue = iCase.getValue( iAttrID);
+                    var caseValue = iCase.getRawValue( iAttrID);
                     iFunction( caseValue);
                   });
     return this;

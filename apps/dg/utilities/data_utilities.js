@@ -53,6 +53,39 @@ DG.DataUtilities.isMissingValue = function( iValue ) {
 };
 
 /**
+  Returns a DG date object constructed from its arguments.
+  Currently this is a JavaScript Date object, but could be
+  replaced with another (e.g. moment.js) object at some point.
+ */
+DG.DataUtilities.createDate = function(/* iArgs */) {
+  var args = [Date].concat(Array.prototype.slice.call(arguments)),
+      date;
+
+  // convert from seconds to milliseconds
+  if ((args.length >= 2) && (Number(args[1]) >= 10000))
+    args[1] = Number(args[1]) * 1000;
+
+  // Call Date constructor with specified arguments
+  // cf. http://stackoverflow.com/a/8843181
+  /* jshint -W058 */
+  date = new (Function.bind.apply(Date, args));
+
+  // replace default numeric conversion (milliseconds) with our own (seconds)
+  date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };
+
+  return date;
+};
+DG.createDate = DG.DataUtilities.createDate;
+
+/**
+  Returns true if the specified value is a DG date object.
+ */
+DG.DataUtilities.isDate = function(iValue) {
+  return iValue && (iValue instanceof Date);
+};
+DG.isDate = DG.DataUtilities.isDate;
+
+/**
   Canonicalize/sanitize case values sent to us from the game.
   Currently, we only check for the "undefined" string, but this is
   the appropriate place to perform any other validation as well.
@@ -60,10 +93,37 @@ DG.DataUtilities.isMissingValue = function( iValue ) {
   @returns          The canonicalized value
  */
 DG.DataUtilities.canonicalizeInputValue = function( iValue) {
-  var tValue = iValue;
-  if( tValue === "undefined")
-    tValue = null;
-  return tValue;
+  // canonicalize null, undefined, and "undefined"
+  if ((iValue == null) || (iValue === "undefined")) return "";
+
+  // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
+  var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
+  if (ISO_8601_FULL.test(iValue)) return DG.createDate(iValue);
+
+  return iValue;
+};
+
+/**
+  Canonicalize/sanitize case values sent to us from the game.
+  This function also converts a map of property names to values
+  to one that maps attribute IDs to values.
+  @param    iAttrs  The set of attributes
+  @param    iValue  A map from attribute names to values
+  @returns          The canonicalized value map (attribute IDs to values)
+ */
+DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap) {
+  var valuesMap = {};
+  DG.ObjectMap.forEach(iDataMap, function (iKey, iValue) {
+    var attr = iAttrs.findProperty('name', iKey),
+        value = DG.DataUtilities.canonicalizeInputValue(iValue);
+    if(attr != null) {
+      valuesMap[attr.id] = value;
+    }
+    else {
+      valuesMap[iKey] = value;
+    }
+  });
+  return valuesMap;
 };
 
 /**
