@@ -1234,10 +1234,11 @@ DG.DocumentController = SC.Object.extend(
      * new document.
      */
     closeDocument: function() {
-      DG.UndoHistory.clearUndoRedoHistory();
-
+      /** stop any animation and then destroy globals */
       DG.globalsController.stopAnimation();
+      DG.globalsController.reset();
 
+      // Close components
       DG.mainPage.closeAllComponents();
       DG.ObjectMap.forEach( this.componentControllersMap,
                             function( iComponentID, iController) {
@@ -1245,28 +1246,30 @@ DG.DocumentController = SC.Object.extend(
                                 iController.willDestroy();
                               }
                             });
+      // We need to call closeAllComponents before destroying the controllers
+      // Otherwise notifications do not happen that reset the guide button.
+      this.closeAllComponents();
       DG.ObjectMap.forEach( this.componentControllersMap,
           function( iComponentID, iController) {
             if (iController) {
               iController.destroy();
             }
           });
-      this.closeAllComponents();
+      this.componentControllersMap = {};
 
+      // remove dataContexts
       DG.DataContext.clearContextMap();
-
       this.contexts = [];
 
-      DG.globalsController.reset();
-
+      // remove document
       DG.Document.destroyDocument(DG.activeDocument);
 
-   },
+      // clean up undo history.
+      DG.UndoHistory.clearUndoRedoHistory();
+    },
 
     closeAllComponents: function() {
       this._singletonViews = {};
-
-      this.componentControllersMap = {};
 
       // Reset the guide
       this.get('guideModel').reset();
