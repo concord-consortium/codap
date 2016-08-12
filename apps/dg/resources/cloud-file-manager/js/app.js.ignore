@@ -9495,6 +9495,8 @@ CloudFileManager = (function() {
       return this.client.openProviderFile(providerName, providerParams);
     } else if (hashParams.copyParams) {
       return this.client.openCopiedFile(hashParams.copyParams);
+    } else {
+      return this.client.ready();
     }
   };
 
@@ -9665,6 +9667,10 @@ CloudFileManagerClient = (function() {
     return this._event('connected', {
       client: this
     });
+  };
+
+  CloudFileManagerClient.prototype.ready = function() {
+    return this._event('ready');
   };
 
   CloudFileManagerClient.prototype.listen = function(listener) {
@@ -10459,7 +10465,8 @@ CloudFileManagerClient = (function() {
           if (!_this.appOptions.wrapFileContent) {
             content.addMetadata(iSharedMetadata);
           }
-          return _this._updateState(content, metadata, additionalState, hashParams);
+          _this._updateState(content, metadata, additionalState, hashParams);
+          return _this.ready();
         }
       };
     })(this));

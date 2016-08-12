@@ -313,7 +313,6 @@ DG.main = function main() {
         message: DialogContents({}), // jshint ignore:line
         onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
       );
-      DG.splash.hideSplash();
     }
   }
 
@@ -359,15 +358,11 @@ DG.main = function main() {
               syncDocumentDirtyState();
             });
 
-            // this is an unfortunately cfm-specific way to find out if the cfm
-            // is going to try an open a document after the connection
-            if (DG.cfm.appOptions.hashParams.sharedContentId || DG.cfm.appOptions.hashParams.fileParams) {
-              DG.set('showUserEntryView', false);
-            } else {
-              cfmShowUserEntryView();
-            }
-
             break;
+
+          case "ready":
+            cfmShowUserEntryView();
+            DG.splash.hideSplash();
 
           case "closedFile":
             cfmShowUserEntryView();
@@ -416,7 +411,7 @@ DG.main = function main() {
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
                           .setDocument(DG.Document.createDocument(iDocContents));
-                        DG.splash.hideSplash();
+                        DG.set('showUserEntryView', false);
                         if(event.callback) {
                           // acknowledge successful open; return shared metadata
                           event.callback(null, cfmSharedMetadata);
