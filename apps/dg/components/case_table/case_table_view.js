@@ -1048,7 +1048,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @param  {*} iArgs {{scrollTop: number, scrollLeft: number}}
    */
   handleScroll: function( iEvent, iArgs) {
-    this.set('scrollPos', iArgs);
+    //DG.log('%@:handleScroll(%@,%@)'.loc(this.get('collectionName'), iArgs.scrollTop, iArgs.scrollLeft));
+    var scrollPos = this.get('scrollPos');
+    // set scroll only if _values_ changed
+    if (SC.none(scrollPos)
+        || scrollPos.scrollTop !== iArgs.scrollTop
+        || scrollPos.scrollLeft !== iArgs.scrollLeft) {
+      this.set('scrollPos', {
+        scrollTop: iArgs.scrollTop,
+        scrollLeft: iArgs.scrollLeft
+      });
+    }
   },
   
   /**
