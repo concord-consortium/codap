@@ -363,6 +363,7 @@ DG.main = function main() {
           case "ready":
             cfmShowUserEntryView();
             DG.splash.hideSplash();
+            break;
 
           case "closedFile":
             cfmShowUserEntryView();
