@@ -61,11 +61,12 @@ DG.FormulaTextEditView = DG.TextFieldView.extend((function() {
             (iKeyCode === SC.Event.KEY_BACKSPACE);
   }
 
-  // Adds menu navigation keys -- shouldn't dismiss menu after these keys
-  function isAutoCompleteKeyCode(iKeyCode) {
-    return isIdentifierKeyCode(iKeyCode) ||
-            ([SC.Event.KEY_UP, SC.Event.KEY_DOWN,
-              SC.Event.KEY_PAGEUP, SC.Event.KEY_PAGEDOWN].indexOf(iKeyCode) >= 0);
+  // keys that should result in dismissal of the autocomplete menu
+  function isEndAutoCompleteKeyCode(iKeyCode) {
+    return ([SC.Event.KEY_ESC,
+            SC.Event.KEY_LEFT, SC.Event.KEY_RIGHT,
+            SC.Event.KEY_HOME, SC.Event.KEY_END]
+              .indexOf(iKeyCode) >= 0);
   }
 
   /*
@@ -201,6 +202,7 @@ return {
                 // called when the menu is closed
                 close: function(event, ui) {
                   this._ac_isOpen = false;
+                  this._ac_matchPos = this._ac_matchStr = null;
                 }.bind(this)
               });
   },
@@ -225,17 +227,22 @@ return {
       return true;
     }
 
-    // Restore the original text and caret position on escape key.
-    if (acInstance && (evt.keyCode === SC.Event.KEY_ESC)) {
-      // restore the original text
-      acInstance._value(acInstance.term);
-      if (this._ac_matchPos && this._ac_matchStr) {
-        // restore the selection position
-        var element = acInstance.element.get(0),
-            endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
-        if (element)
-          element.selectionStart = element.selectionEnd = endMatchPos;
+    // dismiss the autocomplete menu on navigation and escape keys
+    if (acInstance && isEndAutoCompleteKeyCode(evt.keyCode)) {
+
+      // Restore the original text and caret position on escape key.
+      if (evt.keyCode === SC.Event.KEY_ESC) {
+        // restore the original text
+        acInstance._value(acInstance.term);
+        if (this._ac_matchPos && this._ac_matchStr) {
+          // restore the selection position
+          var element = acInstance.element.get(0),
+              endMatchPos = this._ac_matchPos + this._ac_matchStr.length;
+          if (element)
+            element.selectionStart = element.selectionEnd = endMatchPos;
+        }
       }
+
       // close the autocomplete menu
       if (this._ac_isOpen)
         this.$('textarea').catcomplete('close');
@@ -298,11 +305,7 @@ return {
       this._ac_matchStr = tSearchStr;
       this.$('textarea').catcomplete('search', tSearchStr);
     }
-    else if (!isAutoCompleteKeyCode(evt.keyCode)) {
-      this._ac_matchPos = null;
-      this._ac_matchStr = null;
-    }
-    
+
     return sc_super();
   },
   performValidateKeyDown: function( evt) {
