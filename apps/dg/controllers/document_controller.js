@@ -1251,7 +1251,7 @@ DG.DocumentController = SC.Object.extend(
       this.closeAllComponents();
       DG.ObjectMap.forEach( this.componentControllersMap,
           function( iComponentID, iController) {
-            if (iController) {
+            if (iController && iController.constructor !== DG.GuideController) {
               iController.destroy();
             }
           });
