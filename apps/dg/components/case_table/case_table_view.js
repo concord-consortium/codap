@@ -783,7 +783,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
         gridAdapter.refresh();
-        this._slickGrid.scrollRowIntoView( this._slickGrid.getDataLength(), true);
       }
       
       // Render with our changes
@@ -1345,6 +1344,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this._slickGrid.render();
     }
   },
+
+  scrollToCase: function (iCaseID) {
+    if (SC.none(iCaseID)) {
+      return;
+    }
+    var dataView = this.getPath('gridAdapter.gridDataView');
+
+    var row = dataView.getRowById(iCaseID);
+    if (row < 0) {
+      return;
+    }
+    this.scrollToView([row]);
+  },
+
   /**
    * Reset selection display. If recurse is set will reset child table
    *

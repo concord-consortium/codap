@@ -367,6 +367,14 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
       doCreateCases: function (iChange) {
         this.caseCountDidChange( iChange);
+        if (iChange.result && iChange.result.caseIDs) {
+          // The dataView is not necessarily updated until the end of the run loop,
+          // so we defer scrolling...
+          this.invokeNext(function () {
+            this.get('contentView').scrollToCaseByID(iChange.collection,
+                iChange.result.caseIDs[iChange.result.caseIDs.length - 1]);
+          });
+        }
       },
       doUpdateCases: function (iChange) {
         this.doChangeCaseValues(iChange);

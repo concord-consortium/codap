@@ -272,8 +272,8 @@ DG.CaseTableDataManager = SC.Object.extend({
    *
    * Method signature matches method of Slick Grid default DataView.
    *
-   * Note that a case table that is part of a collapsed group is not considered
-   * to be a part of the table.
+   * Note that a case that is part of a collapsed group is not considered
+   * to be a part of the case table.
    *
    * @param iCaseID {number}
    * @returns {Number}

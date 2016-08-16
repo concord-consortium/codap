@@ -565,14 +565,23 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     });
   },
 
-    findViewForCollection: function (iCollection) {
-      var childTableViews = this.get('childTableViews') || [];
-      return childTableViews.find(function (childTableView) {
-        var viewCollection = childTableView.getPath('gridAdapter.collection');
-        return viewCollection === iCollection;
-      });
+  scrollToCaseByID: function (collectionClient, caseID) {
+    if (SC.none(collectionClient)) {
+      return;
     }
-  }; // end return from closure
+    DG.assert(collectionClient.constructor === DG.CollectionClient, 'Correct type');
+    var view = this.findViewForCollection(collectionClient);
+    view.scrollToCase(caseID);
+  },
+
+  findViewForCollection: function (iCollection) {
+    var childTableViews = this.get('childTableViews') || [];
+    return childTableViews.find(function (childTableView) {
+      var viewCollection = childTableView.getPath('gridAdapter.collection');
+      return viewCollection === iCollection;
+    });
+  }
+}; // end return from closure
   
 }()));
 
