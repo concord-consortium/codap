@@ -307,7 +307,7 @@ DG.CachedValuesParentCaseAggregate = DG.ParentCaseAggregate.extend({
    */
   evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
     var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-    if( !isNaN(value)) {
+    if( value != null) {
       var cache = iInstance.caches[ iCacheID];
       if( cache) {
         cache.sum += value;
@@ -400,7 +400,7 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
     var value = this.getNumericValue(iContext, iEvalContext, iInstance);
     // Currently, we only sort numeric values.
     // To support a Fathom-like alphanumeric sort, we would have to change the test here.
-    if( !isNaN(value)) {
+    if( value != null) {
       var cache = iInstance.caches[ iCacheID];
       if( cache) {
         cache.push( value);

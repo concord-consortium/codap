@@ -68,7 +68,7 @@ return {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( !isNaN(value)) {
+      if( value != null) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.min > value)
@@ -98,7 +98,7 @@ return {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( !isNaN(value)) {
+      if( value != null) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           if( cache.max < value)
@@ -128,7 +128,7 @@ return {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( !isNaN(value)) {
+      if( value != null) {
         var cache = iInstance.caches[ iCacheID];
         if( cache) {
           cache.count += 1;
@@ -241,7 +241,7 @@ return {
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
       var value = this.getNumericValue( iContext, iEvalContext, iInstance);
-      if( !isNaN(value)) {
+      if( value != null) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
         else
