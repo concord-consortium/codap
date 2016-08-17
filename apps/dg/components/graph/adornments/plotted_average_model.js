@@ -174,8 +174,10 @@ DG.PlottedStDevModel = DG.PlottedMeanStDevModel.extend(
 
     // compute st.dev. of cases in each cell
     tValues.forEach( function( iValue ) {
-      if( iValue.count > 0 ) {
-        iValue.stdev = Math.sqrt(( iValue.sumOfSquares / iValue.count) - ( iValue.mean * iValue.mean ));
+      if( iValue.count > 1 ) {
+        iValue.stdev = Math.sqrt(( iValue.sumOfSquares -
+                                  ( iValue.mean * iValue.mean ) * iValue.count) /
+                                    (iValue.count - 1));
         iValue.stDevMinus1 = iValue.mean - iValue.stdev;
       }
     });
