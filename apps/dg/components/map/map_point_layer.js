@@ -138,16 +138,19 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     var tCircle = this._plottedElements[ iIndex],
         tLat = iCase.getNumValue( iRC.latVarID),
         tLong = iCase.getNumValue( iRC.longVarID),
-        tCoords = iRC.map.latLngToContainerPoint([ tLat, tLong] ),
-        tCoordX = tCoords.x,
-        tCoordY = tCoords.y,
+        tValid = !(Number.isNaN(tLat) || Number.isNaN(tLong)),
+        tCoords = tValid? iRC.map.latLngToContainerPoint([ tLat, tLong] ): null,
+        tCoordX = tCoords && tCoords.x,
+        tCoordY = tCoords && tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);
 
      // show or hide if needed, then update
      this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
-     var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
-       stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
-     this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
+     if (!tIsMissingCase) {
+       var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
+         stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
+       this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
+     }
   },
   
   createCircle: function( iDatum, iIndex, iAnimate) {
