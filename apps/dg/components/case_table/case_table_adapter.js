@@ -367,7 +367,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               editable: true, // user-editable cells for columns with an 'editable' property only
               enableAddRow: false, // don't add an extra blank row at the end
               asyncEditorLoading: false,
-              autoEdit: true, // single click to edit an 'editable' attribute's cell
+              autoEdit: false, // double click to edit an 'editable' attribute's cell
               editCommandHandler: function( iItem, iColumn, iEditCommand) {
                                     // Called after the cell edit has been deactivated
                                     SC.run(function() {
