@@ -358,10 +358,16 @@ DG.main = function main() {
               syncDocumentDirtyState();
             });
 
+            if ( !SC.empty(DG.startingDocUrl)) {
+              DG.cfmClient.openUrlFile(DG.startingDocUrl);
+            }
+
             break;
 
           case "ready":
-            cfmShowUserEntryView();
+            if ( SC.empty(DG.startingDocUrl)) {
+              cfmShowUserEntryView();
+            }
             DG.splash.hideSplash();
             break;
 
@@ -566,9 +572,6 @@ DG.main = function main() {
     } else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-      documentLoaded = true;
-    } else if ( !SC.empty(DG.startingDocUrl)) {
-      DG.appController.openDocumentFromUrl(DG.startingDocUrl);
       documentLoaded = true;
     }
   }
