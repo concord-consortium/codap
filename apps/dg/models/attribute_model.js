@@ -220,6 +220,7 @@ DG.Attribute = DG.BaseModel.extend(
       if (this.hasFormula()) {
         this._cachedValues = {};
         this.setPath('_dgFormula.context.collection', this.get('collection'));
+        this._dgFormula.invalidate();
       }
     }.observes('collection'),
 
