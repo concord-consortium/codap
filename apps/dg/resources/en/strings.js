@@ -473,7 +473,7 @@ SC.stringsFor('English', {
 
   'DG.Formula.DateLongDaySunday': "Sunday",
   'DG.Formula.DateLongDayMonday': "Monday",
-  'DG.Formula.DateLongDaySTuesday': "Tuesday",
+  'DG.Formula.DateLongDayTuesday': "Tuesday",
   'DG.Formula.DateLongDayWednesday': "Wednesday",
   'DG.Formula.DateLongDayThursday': "Thursday",
   'DG.Formula.DateLongDayFriday': "Friday",
