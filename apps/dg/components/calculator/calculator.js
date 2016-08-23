@@ -204,7 +204,7 @@ DG.Calculator = SC.View.extend( (function() // closure
       var kTop = kTopMargin + kMargin + this.editView.layout.height;
       this.set( 'layout', { top: 3, left: 5,
           width: 1.5 * kGap + kColumnCount * kColumnWidth,
-          height: kTop + kRowCount * kRowHeight + kMargin }
+          height: kTop + kRowCount * kRowHeight + kMargin*3 }
       );
 
       // All but two child views we can lay out automatically. We only need to provide
