@@ -276,8 +276,8 @@ DG.DocumentArchiver = SC.Object.extend(
       function parseText() {
         var tValuesArray,
           tCollectionRow,
-          tChildName = 'cases',// Child Collection Name: should be first
-                                  // line of CSV
+          tContextName = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
+          tChildName = tContextName || 'cases',
           tAttrNamesRow,// Column Header Names: should be second row
           tDoc = {
             name: 'DG.Document.defaultDocumentName'.loc(),
@@ -329,7 +329,7 @@ DG.DocumentArchiver = SC.Object.extend(
             tValuesArray.shift();
           }
           tDoc.contexts[0].collections[0].name = tChildName;
-          tDoc.contexts[0].name = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, '');
+          tDoc.contexts[0].name = tContextName;
 
           tAttrNamesRow.forEach(function (iName) {
             tAttrsArray.push( {

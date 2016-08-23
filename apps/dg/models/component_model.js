@@ -38,20 +38,27 @@ DG.Component = DG.BaseModel.extend(
        * The title of this component. Can be edited by user.
        * @property {String}
        */
+      _title: null,
       title: function( iKey, iValue) {
-        if (!SC.none(iValue)) {
-          this.setPath('content.title', iValue);
+        if( iValue !== undefined) {
+          this._title = iValue;
+          if (this.getPath('content.title')) {
+            this.setPath('content.title', iValue);
+          }
         }
-        return this.getPath('content.title') || this.getPath('content.defaultTitle');
+        else if (SC.none(this._title)) {
+          this._title = this.getPath('content.title') || this.getPath('content.defaultTitle');
+        }
+        return this._title;
       }.property(),
 
-      defaultTitleChanged: function() {
-        this.notifyPropertyChange('title');
-      }.observes('*content.defaultTitle'),
+      //defaultTitleChanged: function() {
+      //  this.notifyPropertyChange('title');
+      //}.observes('*content.defaultTitle'),
 
-      contentTitleChanged: function() {
-        this.notifyPropertyChange('title');
-      }.observes('*content.title'),
+      //contentTitleChanged: function() {
+      //  this.notifyPropertyChange('title');
+      //}.observes('*content.title'),
 
       /*
        * The width and height of this component in pixels to be used in layout.
@@ -133,6 +140,8 @@ DG.Component = DG.BaseModel.extend(
       toArchive: function () {
         var obj = {},
             tStorage = this.get('componentStorage');
+        if( tStorage)
+          tStorage.title = this.get('title');
         obj = {
           type: this.type,
           guid: this.id,

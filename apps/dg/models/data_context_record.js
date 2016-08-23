@@ -53,7 +53,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
       if (value) {
         this._title = value;
       }
-      return this._title || this.name || this.get('defaultTitle');
+      return this._title || this.get('defaultTitle') || this.name ;
     }.property('_title', 'name'),
 
     /**
@@ -67,7 +67,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
       var tTitle = '';
       DG.ObjectMap.forEach(this.collections, function (collectionKey){
         if( !SC.empty( tTitle))
-          tTitle += ' / ';
+          tTitle += '/';
         tTitle += this.collections[collectionKey].get('name');
       }.bind(this));
       return tTitle;

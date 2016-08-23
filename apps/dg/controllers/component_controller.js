@@ -110,7 +110,7 @@ DG.ComponentController = SC.Object.extend((function () // closure
      */
     createComponentStorage: function () {
       // Derived classes should override to return component-specific storage.
-      return null;
+      return {title: this.getPath('model.title')};
     },
 
     /**
