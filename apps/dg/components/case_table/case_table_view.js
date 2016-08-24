@@ -42,7 +42,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * so that clicks on row boundaries have the expected user effect.
    */
   var kHeaderHeight = 59,//29,
-      kAutoScrollInterval = 200;  // msec == 5 rows/sec
+      kAutoScrollInterval = 200;  //jshint ignore: line
+                                  // msec == 5 rows/sec
 
   return {  // return from closure
 
@@ -487,7 +488,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
                                       gridAdapter.gridColumns, gridAdapter.gridOptions);
     
-    this._slickGrid.setSelectionModel(new DG.CaseTableRowSelectionModel({ selectActiveRow: false }));
+    this._slickGrid.setSelectionModel(new DG.CaseTableRowSelectionModel({
+      selectActiveRow: true,
+      caseTableAdapter: this.gridAdapter
+    }));
     
     /*
      * Add a column header menu to each column.
@@ -819,19 +823,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
-  mouseDown: function( iEvent) {
-    // TODO: Consider the effects of modifier keys
-    return this.touchStart( iEvent);
-  },
-  
-  mouseDragged: function( iEvent) {
-    this.touchesDragged( iEvent);
-  },
-
-  mouseUp: function( iEvent) {
-    this.touchEnd( iEvent);
-  },
-
   /**
     Returns the touch position in view coordinates.
     @param    {Object}    iTouch The touch event
@@ -886,159 +877,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   
   captureTouch: function(touch) {
     return YES;
-  },
-  
-  /**
-    Handle the initial touch-down event.
-    For body cells, selects the clicked cell.
-    @param    {Object}    touch The touch event
-    @returns  {Boolean}   YES, indicating that further touch events are desired
-   */
-  touchStart: function(touch) {
-    DG.ViewUtilities.componentViewForView( this).select();
-    // Without this check for whether the click is in the visible part of the table,
-    // we can get here for clicks that are actually handled by the platform scroll bar.
-    // This is particularly bad, because we get the down but not the corresponding up
-    // (which is apparently swallowed by the scroll bar), so we end up starting the
-    // mouse move tracker and possibly the autoscroll timer without ever having a
-    // means to end them. Better to avoid handling such clicks entirely.
-    // Note that in my testing there are a couple pixels outside the scroll bar which
-    // are rejected by this test but should not be. I'm choosing not to attempt to
-    // tweak it by a couple pixels because a false negative (incorrect rejection)
-    // is much less noticeable than a false positive (incorrect acceptance), so
-    // a couple pixels of margin between us and the danger zone seems acceptable.
-    var viewPos = this.touchPosInView( touch),
-        tableSize = this._slickGrid && this._slickGrid.getVisibleSize();
-    if( !tableSize ||
-        (viewPos.x > tableSize.width) ||
-        (viewPos.y - kHeaderHeight > tableSize.height)) {
-       return NO;
-    }
-    
-    // The click is in the visible part of the table. Start the drag-select process.
-    this._touchStartTouch = touch;
-    this._touchStartCell = this.cellFromTouch( touch);
-    if( this._touchStartCell && (this._touchStartCell.row >= 0)) {
-      // body touch -- selects the clicked cell
-      var isExtending = DG.Core.isExtendingFromEvent( touch);
-      this.get('gridAdapter').handleCellClick( isExtending, this._touchStartCell);
-    }
-    return YES;
-  },
-  
-  _autoScrollRow: null,
-  _autoScrollIncrement: 0,
-  _autoScrollTimer: null,
-  
-  /**
-    Timer function called when the auto-scroll timer fires.
-    Attempts to show one more row in the direction of scroll.
-   */
-  _autoScrollTimerFunc: function() {
-    var adapter = this.get('gridAdapter'),
-        rowCount = adapter && adapter.get('visibleRowCount'),
-        nextRow = this._autoScrollRow + this._autoScrollIncrement;
-    if( this._slickGrid && adapter) {
-      if( (nextRow >= 0) && (nextRow < rowCount)) {
-        // Select the range from the start row to the current row,
-        // and scroll the new row into view.
-        var minRow = Math.min( this._touchStartCell.row, nextRow),
-            maxRow = Math.max( this._touchStartCell.row, nextRow);
-        this._autoScrollRow = nextRow;
-        adapter.selectRowsInRange( minRow, maxRow);
-        this._slickGrid.scrollRowIntoView( this._autoScrollRow);
-      }
-    }
-    // If the table or adapter are gone, kill the timer
-    else if( this._autoScrollTimer) {
-      this._autoScrollTimer.invalidate();
-      this._autoScrollTimer = null;
-    }
-  },
-  
-  /**
-    Handle touch-drag events, which are sent repeatedly during a drag.
-    For header cells, drag the attribute name
-    For body cells, selects all rows touched by the drag.
-
-    @param    {Object}    iEvent The touch event
-    @param    {[Object]}  iTouches An array of touches.
-   */
-  touchesDragged: function( iEvent, iTouches) {
-    var touchStartRow = this._touchStartCell && this._touchStartCell.row;
-    if( !SC.none( touchStartRow)) {
-      if( touchStartRow < 0) {
-        // header drag
-        if( SC.none( this._touchDragCell)) {
-          // table header drag -- drag attribute from column header
-          this._touchDragCell = this._touchStartCell;
-          var columnInfo = this.get('gridAdapter').gridColumns[this._touchDragCell.cell];
-          this.handleHeaderDragStart( iEvent, { column: columnInfo });
-        }
-      }
-      else if( this._touchStartCell.row >= 0) {
-        // table body drag -- select range from start row to current row
-        // mouse moves don't have the touches array, so we simulate an array of one event
-        if( !iTouches) iTouches = [ iEvent ];
-        iTouches.forEach( function( iTouch) {
-                            var viewPos = this.touchPosInView( iTouch),
-                                tableSize = this._slickGrid.getVisibleSize(),
-                                cell = this.bodyCellFromTouch( iTouch),
-                                minRow = Math.min( this._touchStartCell.row, cell.row),
-                                maxRow = Math.max( this._touchStartCell.row, cell.row);
-                            this.get('gridAdapter').selectRowsInRange( minRow, maxRow);
-                            // make sure the newly-selected row is visible
-                            this._autoScrollRow = cell.row >= 0 ? cell.row : Math.max( 0, minRow - 1);
-                            this._slickGrid.scrollRowIntoView( this._autoScrollRow);
-                            
-                            // If we're off the edge of the table, set up an autoscroll timer
-                            // First determine the direction (if any) to autoscroll
-                            if( viewPos.y < kHeaderHeight)
-                              this._autoScrollIncrement = -1; // autoscroll at the top
-                            else if (viewPos.y > tableSize.height)
-                              this._autoScrollIncrement = 1;  // autoscroll at the bottom
-                            else
-                              this._autoScrollIncrement = 0;  // no autoscroll
-                            // If necessary, set up the autoscroll timer
-                            if( this._autoScrollIncrement !== 0) {
-                              if( !this._autoScrollTimer) {
-                                this._autoScrollTimer = SC.Timer.schedule({
-                                                                  target: this,
-                                                                  action: '_autoScrollTimerFunc',
-                                                                  interval: kAutoScrollInterval, 
-                                                                  repeats: YES });
-                              }
-                              else {
-                                // The timer already exists because it was set up previously.
-                                // Reset the timer so that it doesn't fire until at least
-                                // kAutoScrollInterval from now. This prevents mouse/touch moves from
-                                // increasing the effective autoscroll rate beyond what's intended.
-                                this._autoScrollTimer.set('lastFireTime', Date.now());
-                                this._autoScrollTimer.schedule();
-                              }
-                            }
-                            // no autoscroll required -- invalidate the timer if it exists.
-                            else if( this._autoScrollTimer) {
-                              this._autoScrollTimer.invalidate();
-                              this._autoScrollTimer = null;
-                            }
-                          }.bind( this));
-      }
-    }
-  },
-
-  /**
-    Ends the handling of this touch.
-    @param    {Object}    touch The touch event
-   */
-  touchEnd: function(touch) {
-    // Reset touch 
-    if( this._autoScrollTimer) {
-      // Release autoscroll timer
-      this._autoScrollTimer.invalidate();
-      this._autoScrollTimer = null;
-    }
-    this._touchStartTouch = this._touchStartCell = this._touchDragCell = null;
   },
 
   /**

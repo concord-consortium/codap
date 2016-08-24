@@ -387,9 +387,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     childTableViews.forEach( function( iTableView) { iTableView.refresh(); });
   },
   
-  mouseDown: function() {
-    // Background clicks should complete any current edit
-    DG.globalEditorLock.commitCurrentEdit();
+  mouseDown: function(ev) {
+    // if not in a current edit, background clicks should complete any edit
+    if (ev.target.tagName !== 'INPUT') {
+      DG.globalEditorLock.commitCurrentEdit();
+    }
   },
 
     /**

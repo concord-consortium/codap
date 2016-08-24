@@ -464,42 +464,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
   
   /**
-    Handles a mouse click in the table. Currently just adjusts the selection appropriately,
-    depending on what modifier keys were pressed, etc.
-    @param  iExtend {Boolean}   Whether to extend the current selection (true) or replace it (false)
-    @param  iCell {Object}    Object indicating which cell was clicked
-                            Object.row -- The clicked row
-                            Object.cell -- The clicked column
-   */
-  handleCellClick: function( iExtend, iCell) {
-    var tDataView = this.get('gridDataView'),
-        tRowInfo = iCell && (iCell.row >= 0) && tDataView && tDataView.getItem( iCell.row),
-        tCase = tRowInfo,
-        tContext = this.get('dataContext'),
-        tCollection = this.get('collection'),
-        tIsSelected = tCollection && tCase && tCollection.isCaseSelected( tCase);
-    
-    var tChange = {
-          operation: 'selectCases',
-          collection: tCollection,
-          cases: [ tCase ],
-          select: iExtend ? !tIsSelected : true,
-          extend: iExtend
-        };
-    if( tCase) {
-      tContext.applyChange( tChange);
-    }
-    else if( !iExtend) {
-      // Clicking outside the table should complete any active edit
-      DG.globalEditorLock.commitCurrentEdit();
-      // deselect all
-      tChange.cases = null;
-      tChange.select = false;
-      tContext.applyChange( tChange);
-    }
-  },
-
-  /**
     Selects the cases in the range of rows specified.
     @param    {Number}    iMinRow -- The starting row index
     @param    {Number}    iMaxRow -- The ending row index
@@ -528,6 +492,25 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       tContext.applyChange( tChange);
     }
   },
+    /**
+     * Selects a range of cases based on an array of row indices.
+     * @param rows {[number]} Array of row indices
+     */
+    selectRowsInList: function (iRowIndices) {
+      var tDataView = this.get('gridDataView'),
+          tContext = this.get('dataContext'),
+          tCollection = this.get('collection'),
+          tChange = {
+            operation: 'selectCases',
+            collection: tCollection,
+            cases: iRowIndices.map(function (iRowIndex) {
+              return tDataView.getItem( iRowIndex);
+            }),
+            select: true,
+            extend: false
+          };
+      tContext.applyChange( tChange);
+    },
   
   /**
     Invalidates the rows corresponding to the specified cases.
@@ -665,42 +648,42 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
     var kLeftArrowKeyCode = 37,
         kRightArrowKeyCode = 39;
     $input = SC.$("<INPUT type=text class='editor-text' />")
-        .appendTo(args.container)
-        .bind("keydown.nav", function (e) {
-          if (e.keyCode === kLeftArrowKeyCode || e.keyCode === kRightArrowKeyCode) {
-            e.stopImmediatePropagation();
-          }
-        })
-        .bind("blur", function(e) {
-          // Attempt to complete the edit whenever we lose focus
-          DG.globalEditorLock.commitCurrentEdit();
-        })
-        .bind('click', function (e) {
-          // for unknown reasons, click in the input box does not
-          // position the input caret, so we do it ourselves...
-          function positionCaret($el, text, xPosition) {
-            var $div = $('<div>').text(text);
-            var length = text.length;
-            var pos;
-            $div.css({
-              position: 'absolute',
-              left: '-100px',
-              top: '-100px',
-              fontWeight: $el.css('font-weight'),
-              fontFamily: $el.css('font-family'),
-              fontSize: $el.css('font-size')
-            });
-            $('body').append($div);
-            pos = Math.round(xPosition*length/$div.width());
-            $div.remove();
-            $el[0].setSelectionRange(pos, pos);
-          }
-          positionCaret($(this), $(this).val(), e.offsetX);
-          e.preventDefault();
+      .appendTo(args.container)
+      .bind("keydown.nav", function (e) {
+        if (e.keyCode === kLeftArrowKeyCode || e.keyCode === kRightArrowKeyCode) {
           e.stopImmediatePropagation();
-        })
-        .focus()
-        .select();
+        }
+      })
+      .bind("blur", function(e) {
+        // Attempt to complete the edit whenever we lose focus
+        DG.globalEditorLock.commitCurrentEdit();
+      })
+      .bind('click', function (e) {
+        // for unknown reasons, click in the input box does not
+        // position the input caret, so we do it ourselves...
+        function positionCaret($el, text, xPosition) {
+          var $div = $('<div>').text(text);
+          var length = text.length;
+          var pos;
+          $div.css({
+            position: 'absolute',
+            left: '-100px',
+            top: '-100px',
+            fontWeight: $el.css('font-weight'),
+            fontFamily: $el.css('font-family'),
+            fontSize: $el.css('font-size')
+          });
+          $('body').append($div);
+          pos = Math.round(xPosition*length/$div.width());
+          $div.remove();
+          $el[0].setSelectionRange(pos, pos);
+        }
+        positionCaret($(this), $(this).val(), e.offsetX);
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      })
+      .focus()
+      .select();
   };
 
   this.destroy = function () {

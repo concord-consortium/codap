@@ -24,6 +24,7 @@
 /* global Slick */
 DG.CaseTableRowSelectionModel = function (options) {
   var _grid;
+  var _caseTableAdapter;
   var _ranges = [];
   var _self = this;
   var _handler = new Slick.EventHandler();
@@ -35,20 +36,24 @@ DG.CaseTableRowSelectionModel = function (options) {
 
   function init(grid) {
     _options = $.extend(true, {}, _defaults, options);
+    _caseTableAdapter = _options.caseTableAdapter;
     _grid = grid;
     _handler.subscribe(_grid.onActiveCellChanged,
         wrapHandler(handleActiveCellChange));
     _handler.subscribe(_grid.onKeyDown,
         wrapHandler(handleKeyDown));
-    // CC Change: Temporarily removing this selection processing to avoid duplicate
-    // processing
-    //
-    //_handler.subscribe(_grid.onClick,
-    //    wrapHandler(handleClick));
+    _handler.subscribe(_grid.onClick,
+        wrapHandler(handleClick));
   }
 
   function destroy() {
     _handler.unsubscribeAll();
+  }
+
+  function notifyContextOfSelectionChange(rows) {
+    SC.run(function () {
+      _caseTableAdapter.selectRowsInList(rows);
+    });
   }
 
   function wrapHandler(handler) {
@@ -109,42 +114,45 @@ DG.CaseTableRowSelectionModel = function (options) {
   }
 
   function handleActiveCellChange(e, data) {
-    if (_options.selectActiveRow && data.row != null) {
-      setSelectedRanges([new Slick.Range(data.row, 0, data.row, _grid.getColumns().length - 1)]);
+    var selectedRows = getSelectedRows();
+
+    if (_options.selectActiveRow
+        && data.row != null
+        && (selectedRows.indexOf(data.row) < 0)) {
+      notifyContextOfSelectionChange([data.row]);
     }
   }
 
   function handleKeyDown(e) {
-    //var activeRow = _grid.getActiveCell();
-    //if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which === 38 || e.which === 40)) {
-    //  var selectedRows = getSelectedRows();
-    //  selectedRows.sort(function (x, y) {
-    //    return x - y;
-    //  });
-    //
-    //  if (!selectedRows.length) {
-    //    selectedRows = [activeRow.row];
-    //  }
-    //
-    //  var top = selectedRows[0];
-    //  var bottom = selectedRows[selectedRows.length - 1];
-    //  var active;
-    //
-    //  if (e.which === 40) {
-    //    active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
-    //  } else {
-    //    active = activeRow.row < bottom ? --bottom : --top;
-    //  }
-    //
-    //  if (active >= 0 && active < _grid.getDataLength()) {
-    //    _grid.scrollRowIntoView(active);
-    //    _ranges = rowsToRanges(getRowsRange(top, bottom));
-    //    setSelectedRanges(_ranges);
-    //  }
-    //
-    //  e.preventDefault();
-    //  e.stopPropagation();
-    //}
+    var activeRow = _grid.getActiveCell();
+    if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which === 38 || e.which === 40)) {
+      var selectedRows = getSelectedRows();
+      selectedRows.sort(function (x, y) {
+        return x - y;
+      });
+
+      if (!selectedRows.length) {
+        selectedRows = [activeRow.row];
+      }
+
+      var top = selectedRows[0];
+      var bottom = selectedRows[selectedRows.length - 1];
+      var active;
+
+      if (e.which === 40) {
+        active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
+      } else {
+        active = activeRow.row < bottom ? --bottom : --top;
+      }
+
+      if (active >= 0 && active < _grid.getDataLength()) {
+        _grid.scrollRowIntoView(active);
+        notifyContextOfSelectionChange(getRowsRange(top, bottom));
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+    }
   }
 
   function handleClick(e) { // jshint ignore:line
@@ -183,8 +191,7 @@ DG.CaseTableRowSelectionModel = function (options) {
       }
     }
 
-    _ranges = rowsToRanges(selection);
-    setSelectedRanges(_ranges);
+    notifyContextOfSelectionChange(selection);
     e.stopImmediatePropagation();
 
     return true;
