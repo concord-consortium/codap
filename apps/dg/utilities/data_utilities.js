@@ -81,7 +81,7 @@ DG.createDate = DG.DataUtilities.createDate;
   Returns true if the specified value is a DG date object.
  */
 DG.DataUtilities.isDate = function(iValue) {
-  return iValue && (iValue instanceof Date);
+  return iValue instanceof Date;
 };
 DG.isDate = DG.DataUtilities.isDate;
 

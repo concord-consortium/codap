@@ -150,6 +150,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   floatEquals( buildAndEval("e"), Math.E, "'e' constant literal");
   floatEquals( buildAndEval("pi"), Math.PI, "'pi' constant literal");
   floatEquals( buildAndEval("π"), Math.PI, "'π' constant literal");
+  equals( buildAndEval("0+1"), 1, "simple numeric addition");
   equals( buildAndEval("1+1"), 2, "simple numeric addition");
   equals( buildAndEval("1+'2'"), 3, "strings converted to numbers if possible");
   equals( buildAndEval("'1'+2"), 3, "strings converted to numbers if possible");

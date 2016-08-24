@@ -986,6 +986,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
+        attrNames = [],
         didCreateAttribute = false,
         result = { success: false, attrs: [], attrIDs: []},
         _this = this;
@@ -1005,6 +1006,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       if( attribute) {
         if( !hadAttribute)
           didCreateAttribute = true;
+        attrNames.push(attribute.get('name'));
         // For now, return success if any attribute is created successfully
         result.success = true;
         result.attrs.push( attribute);
@@ -1015,6 +1017,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // Create/update each specified attribute
     if( collection && iChange.attrPropsArray)
       iChange.attrPropsArray.forEach( createAttribute);
+    this.invalidateNamesAndNotify(attrNames);
     // For now we assume success
     if( !didCreateAttribute)
       iChange.operation = 'updateAttributes';
@@ -1220,6 +1223,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
                         : iChange.collection,
+        deletedNodes = [],
         result = { success: true, attrIDs: [] };
     
     // Function to delete each individual attribute
@@ -1229,7 +1233,8 @@ DG.DataContext = SC.Object.extend((function() // closure
                         ? collection.getAttributeByID( iAttr.id)
                         : null;
       if( attribute) {
-        DG.Attribute.destroyAttribute( iAttr.attribute);
+        deletedNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: iAttr.id });
+        DG.Attribute.destroyAttribute( attribute);
         result.attrIDs.push( iAttr.id);
       }
     }
@@ -1237,6 +1242,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // Create/update each specified attribute
     if( collection && iChange.attrs) {
       iChange.attrs.forEach( deleteAttribute);
+      this.invalidateDependentsAndNotify(deletedNodes);
       DG.store.commitRecords();
     }
     return result;
