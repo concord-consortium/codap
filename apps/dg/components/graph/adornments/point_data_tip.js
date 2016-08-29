@@ -62,7 +62,7 @@ DG.PointDataTip = DG.DataTip.extend(
             tValue = tCase && tCase.getValue(tAttrID);
             if (SC.none(tValue)) return null;
 
-            if (tAttrDesc.get('isNumeric')) {
+            if (tAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eNumeric) {
               tDigits = (iKey === 'legend') ?
                   DG.PlotUtilities.findFractionDigitsForRange(tAttrDesc.getPath('attributeStats.minMax')) :
                   DG.PlotUtilities.findFractionDigitsForAxis(this_.getPath('plotLayer.' + iKey + 'AxisView'));

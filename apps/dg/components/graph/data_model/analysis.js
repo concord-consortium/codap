@@ -30,8 +30,9 @@ DG.Analysis = {
         eNone: 0,
         eNumeric: 1,
         eCategorical: 2,
-        eBoundary: 3,
-        eColor: 4
+        eDateTime: 3,
+        eBoundary: 4,
+        eColor: 5
   },
 
   /**

@@ -343,7 +343,11 @@ DG.DocumentArchiver = SC.Object.extend(
               values: {}
             };
             tAttrNamesRow.forEach( function( iName, iIndex) {
-              tCase.values[ iName] = iValues[ iIndex];
+              var tValue = iValues[ iIndex];
+              if( DG.isDateString( tValue)) {
+                tValue = DG.createDate( tValue);
+              }
+              tCase.values[ iName] = tValue;
             });
             tCasesArray.push( tCase);
           });

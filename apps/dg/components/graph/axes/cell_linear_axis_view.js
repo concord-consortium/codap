@@ -38,10 +38,37 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     displayProperties: 'model.lowerBound model.upperBound model.tickGap'.w(),
 
     /**
+     * @property { DG.NumericAxisViewHelper or DG.DateTimeAxisViewHelper}
+     */
+    _axisViewHelper: null,
+    axisViewHelper: function() {
+      if( !this._axisViewHelper) {
+        var tHelperClass = (this.get('isDateTime')) ?
+                              DG.DateTimeAxisViewHelper : DG.NumericAxisViewHelper;
+        this._axisViewHelper = tHelperClass.create( {
+          axisView: this
+        });
+      }
+      return this._axisViewHelper;
+    }.property('isDateTime'),
+
+    attributeDidChange: function() {
+      this._axisViewHelper = null;
+    }.observes('model.attributeDescription.attribute'),
+
+    /**
     I work with numbers.
       @return { Boolean }
     */
     isNumeric: true,
+
+    isDateTime: function() {
+      return this.getPath('model.attributeDescription.attributeType') ===
+          DG.Analysis.EAttributeType.eDateTime;
+    }.property(),
+    attributeTypeChanged: function() {
+      this.notifyPropertyChange('isDateTime');
+    }.observes('model.attributeDescription.attributeType'),
 
     /**
       @property {Number} The coordinate at which the zero line should be drawn. Null if zero
@@ -91,170 +118,9 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     */
     doDraw: function doDraw() {
       var this_ = this,
-          tModel = this.get('model'),
-          tLower = tModel.get('lowerBound'),
-          tUpper = tModel.get('upperBound'),
-          tBaseline = this.get('axisLineCoordinate'),
           tOrientation = this.get('orientation'),
-          tTickGap = this_.getPath( 'model.tickGap'),
-          tStart = Math.ceil( tLower / tTickGap) * tTickGap,
-          tTickCount = Math.floor( Math.abs(( tUpper - tStart) / tTickGap)),
-          tLabelString,
-          tMaxNumberExtent = DG.RenderingUtilities.kDefaultFontHeight,
-          tFracDigits = (tTickGap < 1) ? Math.ceil( Math.abs( Math.log( tTickGap) / Math.LN10)) : 0,
-          tFormat = DG.Format.number().group("").fractionDigits( 0, tFracDigits)
+          tHelper = this.get('axisViewHelper')
           ;
-
-      function drawTicks()
-      {
-        /* Return the frequency of drawing value labels that will not cause collisions.
-          A returned value of 1 means draw every value label, 2 means draw every other,
-          etc. */
-        function findWorkableGap( iStart, iOffset) {
-          var mScaleIsReversed = false,
-              tModulus = 1,
-              tWorkableGapFound = false,  // guarantee first time through loop
-              tHalfWidth, tHalfHeight
-              ;
-
-          while (!tWorkableGapFound) {
-            var lastPixelUsed = 0,
-                firstTime = true,
-                tModifiedTickGap = tModulus * tTickGap,
-                tTickIndex;
-
-            tTickCount = Math.floor( Math.abs( (tUpper - iStart) / tModifiedTickGap));
-            tWorkableGapFound = true; // assume success
-
-            for( tTickIndex = 0;
-                  (tTickIndex <= tTickCount) && tWorkableGapFound  ;
-                  tTickIndex++) {
-              var spot = iStart + tTickIndex * tModifiedTickGap,
-                  tickPixel = this_.dataToCoordinate( spot + iOffset),
-                  tTextExtent;
-
-              tLabelString = tFormat( spot);
-
-              tTextExtent = DG.RenderingUtilities.textExtentOnCanvas( this_._paper, tLabelString);
-
-              switch( tOrientation) {
-                case 'vertical':
-                case 'vertical2':
-                  tHalfHeight = tTextExtent.y / 2;
-
-                  if (firstTime || (Math.abs( lastPixelUsed - tickPixel) > tHalfHeight)) {
-                    firstTime = false;
-                    lastPixelUsed = tickPixel + (mScaleIsReversed ?
-                                    tHalfHeight : -tHalfHeight);
-                  }
-                  else {  // Nope, text is on top of itself
-                    tWorkableGapFound = false;
-                    tModulus++;
-                  }
-                  break;
-                case 'horizontal':
-                  // By pretending half the width is a bit greater than it is, we leave
-                  // room between
-                  tHalfWidth = 5 * tTextExtent.x / 8;
-
-                  // Only draw label if we aren't going to collide with the previous number
-                  if (firstTime || (Math.abs( tickPixel - lastPixelUsed)  > tHalfWidth)) {
-                    firstTime = false;
-                    lastPixelUsed = tickPixel + (mScaleIsReversed ?
-                                    -tHalfWidth : tHalfWidth);
-                  }
-                  else {  // Nope, text is on top of itself
-                    tWorkableGapFound = false;
-                    tModulus++;
-                  }
-                  break;
-              }
-            }
-          }
-          return tModulus;
-        }
-
-        var //tOffset = mIntegerBinOffsetting ? 0.5 : 0.0;
-            tOffset = 0,
-            // Compute the frequency for drawing text so it doesn't bump itself
-            tDrawValueModulus = findWorkableGap( tStart, tOffset),
-            // If we're not drawing every label for lack of space, then compute a start
-            // value for the draw value counter so that we choose to draw sensible labels;
-            // e.g. include 0, include integers, ...
-            //tInitialDrawValueCounter = FindInitialDrawValueCounter( tStart, tDrawValueModulus);
-            tInitialDrawValueCounter = 0,
-            // If there's enough screen space, we'll add some intermediate ticks.
-            //tNumSubIntervals = FindNumSubIntervals( tStart, tOffset, iCellNumber, tDrawValueModulus * mTickGap);
-            //tNumSubIntervals = 0,
-            tCounter = tInitialDrawValueCounter,
-//            tSubTickPixelGap = (this_.cellDataToCoordinate( tCellNumber, tStart + 2 * tTickGap + tOffset) -
-//                      this_.cellDataToCoordinate( tCellNumber, tStart + tTickGap + tOffset)) /
-//                          tNumSubIntervals,
-            tPixelMax = this_.get('pixelMax'),
-            tTickIndex = 0,
-            tTickLength = (tOrientation === 'vertical2') ? -kTickLength : kTickLength,
-            tAxisGap = (tOrientation === 'vertical2') ? -kAxisGap : kAxisGap,
-            tAnchor = (tOrientation === 'vertical2') ? 'start' : 'end';
-
-        this_.forEachTickDo( function( iSpot, iTickPixel) {
-          var tNum, tLabelExtent, tWidth, tHeight;
-              tLabelString = tFormat( iSpot);
-              tNum = this_._paper.text( 0, 0, tLabelString)
-                  .addClass('axis-tick-label');
-              this_._elementsToClear.push( tNum);
-              tLabelExtent = DG.RenderingUtilities.getExtentForTextElement(
-                                tNum, DG.RenderingUtilities.kDefaultFontHeight);
-              tWidth = tLabelExtent.width;
-              tHeight = tLabelExtent.height;
-
-          switch( tOrientation) {
-            case 'vertical':
-            case 'vertical2':
-              iTickPixel += tPixelMax;  // offset by top of axis
-              if( (iTickPixel < this_.get('pixelMin')) && (tTickIndex >= 0))
-                this_._elementsToClear.push(
-                  this_._paper.line( tBaseline, iTickPixel, tBaseline - tTickLength, iTickPixel)
-                        .attr( { stroke: DG.PlotUtilities.kAxisColor }));
-              //DrawSubTicks( iTickPixel, tSubTickPixelGap, tNumSubIntervals);
-
-              if (tCounter === 0) {
-                if( (iTickPixel < this_.get('pixelMin')) && (tTickIndex >= 0)) {
-                  tNum.attr( { x: tBaseline - tTickLength - tAxisGap,
-                               y: iTickPixel,
-                              'text-anchor': tAnchor });
-//                  tNum.node.setAttribute( 'style', tNum.node.getAttribute('style') +
-//                            'dominant-baseline:middle');
-//                  tNum.node.setAttribute( 'dominant-baseline', 'middle');
-                  tMaxNumberExtent = Math.max( tMaxNumberExtent, tWidth);
-                }
-              }
-              else
-                tNum.hide();
-              break;
-
-            case 'horizontal':
-              iTickPixel += this_.get('pixelMin');  // offset by left start of axis
-              if( (iTickPixel >= this_.get('pixelMin')) && (tTickIndex >= 0))
-                this_._elementsToClear.push(
-                  this_._paper.line( iTickPixel, tBaseline, iTickPixel, tBaseline + tTickLength)
-                        .attr( { stroke: DG.PlotUtilities.kAxisColor }));
-              //DrawSubTicks( iTickPixel, tSubTickPixelGap, tNumSubIntervals);
-              if (tCounter === 0) {
-                if ((iTickPixel >= this_.get('pixelMin')) && (tTickIndex >= 0)) {
-                  tNum.attr({ x: iTickPixel + 1,
-                              y: tBaseline + tTickLength + tAxisGap + tHeight / 3 });
-                  tMaxNumberExtent = Math.max( tMaxNumberExtent, tHeight);
-                }
-              }
-              else
-                tNum.hide();
-              break;
-          }
-          if( tTickIndex >= 0)
-            tCounter = (tCounter + 1) % tDrawValueModulus;
-          tTickIndex++;
-        });
-      } // drawTicks
 
       function setupEventHandling() {
         var tFrame = this_.get('frame'),
@@ -322,8 +188,8 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
             //DG.SoundUtilities.drag();
             var tDelta = this_.get('isVertical') ? idY : idX,
                 tLowerBound = this_.getPath('model.lowerBound'),
-                tCurrentDelta = this_.coordinateToDataGivenCell( 0, 0) -
-                        this_.coordinateToDataGivenCell( 0, tDelta),
+                tCurrentDelta = tHelper.coordinateToDataGivenCell( 0, 0) -
+                    tHelper.coordinateToDataGivenCell( 0, tDelta),
                 tIncDelta = tCurrentDelta - (tLowerBound - this_._lowerBoundAtDragStart);
             this_.get('model').translate( tIncDelta);
           }
@@ -497,125 +363,18 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
       // ===============Main body of doDraw===============
 
       this._elementsToClear.push( this.renderAxisLine());
-      drawTicks();
+      this.get('axisViewHelper').drawTicks();
       setupEventHandling();
       this.renderLabel();
-      this.setIfChanged('maxNumberExtent', tMaxNumberExtent);
     },
 
     /**
-     * @property Cache of information about this axis
+     Given the value to plot return the coordinate along this axis.
+     @return {Number}
      */
-    info: function() {
-      var tInfo = {
-              lowerBound: this.getPath('model.lowerBound'),
-              upperBound: this.getPath('model.upperBound'),
-              range: null,
-              cellWidth: this.get('fullCellWidth'),
-              pixelMax: this.get('pixelMax')
-            };
-      tInfo.range = tInfo.upperBound - tInfo.lowerBound;
-      return tInfo;
-    }.property().cacheable(),
-    infoDidChange: function() {
-      this.notifyPropertyChange('info');
-    }.observes('*model.lowerBound', '*model.upperBound', 'fullCellWidth', 'pixelMax'),
-
-    /**
-    Given the value to plot and its cell number, give the coordinate along this axis.
-    @return {Number}
-    */
-    cellDataToCoordinateUsingCache: function( iCell, iData, iCache) {
-      if (!isFinite( iData))
-        return null;
-
-      var tCoordinate = SC.none( iData) ? null : (iData - iCache.lowerBound) * iCache.cellWidth / iCache.range;
-      if(!SC.none(tCoordinate))
-        switch( this.get('orientation')) {
-          case 'vertical':
-          case 'vertical2':
-            tCoordinate = iCache.pixelMax + (iCell + 1) * iCache.cellWidth - tCoordinate;
-            break;
-
-          case 'horizontal':
-            tCoordinate = iCell * iCache.cellWidth + tCoordinate;
-            break;
-        }
-
-      return tCoordinate;
-    },
-
-    /**
-    Given the value to plot and its cell number, give the coordinate along this axis.
-    @return {Number}
-    */
-    cellDataToCoordinate: function( iCell, iData) {
-      return this.cellDataToCoordinateUsingCache( iCell, iData, this.get('info'));
-    },
-
-    /**
-    Given the value to plot return the coordinate along this axis.
-    @return {Number}
-    */
     dataToCoordinate: function( iData) {
-      return this.cellDataToCoordinate( 0, iData);
+      return this.get('axisViewHelper').dataToCoordinate( iData);
     },
-
-    /**
-    Given the value to plot return the coordinate along this axis.
-    @return {Number}
-    */
-    dataToCoordinateUsingCache: function( iData, iCache) {
-      return this.cellDataToCoordinateUsingCache( 0, iData, iCache);
-    },
-
-    /**
-    Given a coordinate, return the result of the linear transformation
-    to data value. The value will be relative to the given cell; i.e., if
-    the user has dragged outside of that cell, the returned value is as though
-    that cell continued on in both directions.
-    @return {Number} in world coordinates
-    */
-    coordinateToDataGivenCell: function( iCell, iCoord) {
-      var tData = 0,
-        tCellWidth = this.get('fullCellWidth'),
-        tLowerBound, tUpperBound, tPixelMin, tPixelMax, tPixelDistance;
-      if (tCellWidth !== 0) {
-        tLowerBound = this.getPath('model.lowerBound');
-        tUpperBound = this.getPath('model.upperBound');
-//        TBool tReverseScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleReversed();
-//        TBool tLogScale = ((ds_CCellLinearAxis*) mAxisP)->IsScaleLogarithmic();
-
-        if( this.get('isVertical')) {
-          tPixelMin = this.get('pixelMax') + tCellWidth * (iCell + 1);
-          tPixelMax = tPixelMin - tCellWidth;
-          iCoord += this.get('pixelMax'); // offset by the top of the axis
-        } else {
-          tPixelMin = this.get('pixelMin') + tCellWidth * iCell;
-          tPixelMax = tPixelMin + tCellWidth;
-          iCoord += this.get('pixelMin'); // offset by the left of the axis
-        }
-        tPixelDistance = iCoord - tPixelMin;
-        tData = tLowerBound + tPixelDistance * (tUpperBound - tLowerBound) / ( tPixelMax - tPixelMin);
-//        TDouble tLogLinearParam( ((ds_CCellLinearAxis*) mAxisP)->
-//                        GetLogLinearTransitionParam()); // 0 => linear; 1 => log
-        // tPixelDistance is the number of pixels from the relevant axis boundary to the given coordinate
-//        TLength tPixelDistance( tReverseScale ? (pixelMax - iCoord) : (iCoord - pixelMin));
-        // For a vertical scale, tPixelDistance is negative, but tCellWidth is positive. That won't work for a
-        // log scale so we have to change the sign.
-//        if( tLogScale && (mOrientation === ds_kVertical))
-//          tPixelDistance *= -1;
-//        tData = ((tLogLinearParam === 0) ? 0 :
-//                tLogLinearParam * tLowerBounds * 
-//                  pow( 10, log10( tUpperBounds / tLowerBounds) * tPixelDistance / tCellWidth))
-//            +
-//            ((tLogLinearParam === 1) ? 0 :
-//                (1 - tLogLinearParam) * (tLowerBounds + tPixelDistance * (tUpperBound - tLowerBound)
-//                              / ( tPixelMax - tPixelMin)));
-      }
-
-      return tData;
-},
 
     /**
     Given a coordinate, return the result of the linear transformation
@@ -623,7 +382,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
     @return {Number} in world coordinates.
     */
     coordinateToData: function( iCoord) {
-      return this.coordinateToDataGivenCell( this.whichCell( iCoord), iCoord);
+      return this.get('axisViewHelper').coordinateToData( iCoord);
     },
 
     /**
@@ -653,17 +412,7 @@ DG.CellLinearAxisView = DG.CellAxisView.extend(
       @param {Function} to be called for each tick
     */
     forEachTickDo: function( iDoF) {
-      var tTickIndex,
-        tLower = this.getPath('model.lowerBound'),
-        tUpper = this.getPath('model.upperBound'),
-        tTickGap = this.getPath('model.tickGap'),
-        tStart = Math.ceil( tLower / tTickGap) * tTickGap,
-        tTickCount = Math.abs( (tUpper - tStart) / tTickGap),
-        tSpot;
-      for( tTickIndex = 0; tTickIndex <= tTickCount; tTickIndex++)  {
-        tSpot = tStart + tTickIndex * tTickGap;
-        iDoF( tSpot, this.dataToCoordinate( tSpot));
-      }
+      this.get('axisViewHelper').forEachTickDo( iDoF);
     },
 
     _isDragging: false,
