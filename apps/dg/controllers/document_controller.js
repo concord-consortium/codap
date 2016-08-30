@@ -634,6 +634,7 @@ DG.DocumentController = SC.Object.extend(
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent(tParams);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
+        tComponent.set('title', iParams.title);
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
             defaultFirstResponder.beginEditing();

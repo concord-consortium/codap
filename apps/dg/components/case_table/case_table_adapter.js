@@ -367,7 +367,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               editable: true, // user-editable cells for columns with an 'editable' property only
               enableAddRow: false, // don't add an extra blank row at the end
               asyncEditorLoading: false,
-              autoEdit: true, // single click to edit an 'editable' attribute's cell
+              autoEdit: false, // double click to edit an 'editable' attribute's cell
               editCommandHandler: function( iItem, iColumn, iEditCommand) {
                                     // Called after the cell edit has been deactivated
                                     SC.run(function() {
@@ -661,6 +661,7 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
   var defaultValue;
 
   this.init = function () {
+
     var kLeftArrowKeyCode = 37,
         kRightArrowKeyCode = 39;
     $input = SC.$("<INPUT type=text class='editor-text' />")
@@ -673,6 +674,30 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
         .bind("blur", function(e) {
           // Attempt to complete the edit whenever we lose focus
           DG.globalEditorLock.commitCurrentEdit();
+        })
+        .bind('click', function (e) {
+          // for unknown reasons, click in the input box does not
+          // position the input caret, so we do it ourselves...
+          function positionCaret($el, text, xPosition) {
+            var $div = $('<div>').text(text);
+            var length = text.length;
+            var pos;
+            $div.css({
+              position: 'absolute',
+              left: '-100px',
+              top: '-100px',
+              fontWeight: $el.css('font-weight'),
+              fontFamily: $el.css('font-family'),
+              fontSize: $el.css('font-size')
+            });
+            $('body').append($div);
+            pos = Math.round(xPosition*length/$div.width());
+            $div.remove();
+            $el[0].setSelectionRange(pos, pos);
+          }
+          positionCaret($(this), $(this).val(), e.offsetX);
+          e.preventDefault();
+          e.stopImmediatePropagation();
         })
         .focus()
         .select();
