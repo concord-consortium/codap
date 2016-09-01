@@ -148,8 +148,9 @@ DG.main = function main() {
           enableLaraSharing: true,
           providers: [
             {
-              "displayName": "Example Documents",
               "name": "readOnly",
+              "displayName": "Example Documents",
+              "urlDisplayName": "examples",
               "src": DG.exampleListURL,
               alphabetize: true,
               // json: [
