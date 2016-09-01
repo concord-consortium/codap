@@ -188,7 +188,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0348',
+    BUILD_NUM: '0350',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
