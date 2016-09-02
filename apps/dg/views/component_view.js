@@ -303,12 +303,7 @@ DG.ComponentView = SC.View.extend(
                     tParent = this.get('parentView'),
                     value = this.get('value'),
                     this_ = this;
-                // This is a hack. There are conditions in which we can get here
-                // and the parent does not exist, so we protect against it.
-                // The parent should always exist, though, if the titleview exists.
-                // It appears that the problem may result from the incomplete
-                // teardown of old components. 9/2016
-                if (!(tParent && tParent.userEdit)) {
+                if (!tParent.userEdit) {
                   return;
                 }
                 if (tComponentView) {
