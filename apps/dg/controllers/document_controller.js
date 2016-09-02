@@ -1273,7 +1273,8 @@ DG.DocumentController = SC.Object.extend(
       this._singletonViews = {};
 
       // Reset the guide
-      this.get('guideModel').reset();
+      if( this._guideController)
+        this._guideController.reset();
     },
 
     findComponentsByType: function (iType) {

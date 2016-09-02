@@ -145,6 +145,7 @@ DG.SliderView = SC.View.extend(
         this.appendChild( this.thumbView );
 
         this.set('startButton',
+
           DG.IconButton.create( {
             layout: {top: kGap + 2, left: 2, width: kButtonWidth + 2, height: kButtonHeight + 2},
             iconExtent: { width: kButtonWidth, height: kButtonHeight },
@@ -154,6 +155,7 @@ DG.SliderView = SC.View.extend(
             toolTip: 'DG.SliderView.startButton.toolTip', // "Start/stop animation"
             localize: true
           }));
+
         this.appendChild( this.startButton );
 
         this.set('valueView',

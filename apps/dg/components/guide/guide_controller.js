@@ -37,6 +37,11 @@ DG.GuideController = DG.ComponentController.extend(
 
     guideMenuPane: null,
 
+    reset: function() {
+      this.guideModel.reset();
+      this.set('view', null); // because it gets destroyed in closeAllComponents, so we don't want to hang onto it
+    },
+
     updateViewTitle: function() {
       var tTitle = this.getPath('guideModel.title');
       this.setPath('view.title', tTitle);
