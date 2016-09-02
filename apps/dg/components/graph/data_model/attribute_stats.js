@@ -119,15 +119,17 @@ DG.AttributeStats = SC.Object.extend(
           if( isFinite( tValue)) {
             this.numericStats.incrementProperty( 'count' );
             this.numericStats.set('sum', this.numericStats.sum + tValue);
-            if( isBetterMin( tValue, this.numericStats.rangeMin))
-              this.numericStats.set('rangeMin', tValue);
-            if( isBetterMax( tValue, this.numericStats.rangeMax))
-              this.numericStats.set('rangeMax', tValue);
-            if( tValue > 0 ) {
-              if( isBetterMin( tValue, this.numericStats.positiveMin))
-                this.numericStats.set('positiveMin', tValue);
-              if( isBetterMax( tValue, this.numericStats.positiveMax))
-                this.numericStats.set('positiveMax', tValue);
+            if (!tInfo.isNominal) {
+              if( isBetterMin( tValue, this.numericStats.rangeMin))
+                this.numericStats.set('rangeMin', tValue);
+              if( isBetterMax( tValue, this.numericStats.rangeMax))
+                this.numericStats.set('rangeMax', tValue);
+              if( tValue > 0 ) {
+                if( isBetterMin( tValue, this.numericStats.positiveMin))
+                  this.numericStats.set('positiveMin', tValue);
+                if( isBetterMax( tValue, this.numericStats.positiveMax))
+                  this.numericStats.set('positiveMax', tValue);
+              }
             }
             this.numericStats.setIfChanged('squaredDeviations', null);  // We can't compute this without iteration
           }
