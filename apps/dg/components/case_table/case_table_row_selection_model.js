@@ -30,6 +30,11 @@ DG.CaseTableRowSelectionModel = function (options) {
   var _handler = new Slick.EventHandler();
   var _inHandler;
   var _options;
+  var _inDrag = false;
+  var _dragStartRow;
+  var _dragStartY = null;
+  var _dragStartClientY = null;
+
   var _defaults = {
     selectActiveRow: true
   };
@@ -44,6 +49,14 @@ DG.CaseTableRowSelectionModel = function (options) {
         wrapHandler(handleKeyDown));
     _handler.subscribe(_grid.onClick,
         wrapHandler(handleClick));
+    _handler.subscribe(_grid.onDragInit,
+        wrapHandler(handleDragInit));
+    _handler.subscribe(_grid.onDragStart,
+        wrapHandler(handleDragStart));
+    _handler.subscribe(_grid.onDrag,
+        wrapHandler(handleDrag));
+    _handler.subscribe(_grid.onDragEnd,
+        wrapHandler(handleDragEnd));
   }
 
   function destroy() {
@@ -153,6 +166,62 @@ DG.CaseTableRowSelectionModel = function (options) {
       e.preventDefault();
       e.stopPropagation();
     }
+  }
+
+  function handleDragInit(e) {
+    _inDrag = true;
+    e.stopImmediatePropagation();
+    DG.log("init drag");
+  }
+
+  function handleDragStart(e) {
+    var activeCell = _grid.getCellFromEvent(e);
+    var activeCellBox = _grid.getCellNodeBox(activeCell.row, activeCell.cell);
+    // We prepare for computing future drag offsets by capturing the current
+    // row, its reported vertical coordinate and the 'client' coordinate.
+    // These are needed to compute the current vertical position in the grid's
+    // coordinate system.
+    _dragStartRow = activeCell && activeCell.row;
+    _dragStartY = (activeCellBox.top + activeCellBox.bottom) / 2;
+    _dragStartClientY = e.clientY;
+
+    var selection = activeCell && [activeCell.row];
+
+    if (selection) {
+      notifyContextOfSelectionChange(selection);
+    }
+
+    e.stopImmediatePropagation();
+  }
+
+  function handleDrag(e) {
+    // Compute the active cell from the pixel offset from the starting position
+    // Cannot use the target to compute the offset since, on mobile, the target
+    // never varies from the original target of the drag start.
+    var yOffset = _dragStartY + (e.clientY - _dragStartClientY);
+    var activeCell = _grid.getCellFromPoint(0, yOffset);
+    var selection;
+    var ix, start, end;
+
+    if (activeCell && (_dragStartRow !== null) && (_dragStartRow !== undefined)) {
+      selection = [];
+      start = Math.min(_dragStartRow, activeCell.row);
+      end = Math.max(_dragStartRow, activeCell.row);
+      for (ix = start; ix <= end; ix += 1) {
+        selection.push(ix);
+      }
+      notifyContextOfSelectionChange(selection);
+    }
+
+    e.stopImmediatePropagation();
+  }
+
+  function handleDragEnd(e) {
+    e.stopImmediatePropagation();
+    _inDrag = false;
+    _dragStartRow = undefined;
+    _dragStartY = null;
+    _dragStartClientY = null;
   }
 
   function handleClick(e) { // jshint ignore:line
