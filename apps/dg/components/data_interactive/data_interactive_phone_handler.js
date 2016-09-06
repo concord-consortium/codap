@@ -147,7 +147,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (!this.connected) {
           return;
         }
-        var dataContextName = dataContext.name;
+        var dataContextName = dataContext.get('name');
 
         var changes = dataContext.get('newChanges').filter(function (iChange) {
           // filter out unsuccessful change attempts and those with
