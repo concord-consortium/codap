@@ -143,8 +143,10 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
           wrapFileContent: false,
-          mimeType: 'application/x-codap-document',
-          // extension: '.codap', <-- disabled for now
+          mimeType: 'application/json',
+          readableMimeTypes: ['application/x-codap-document'],
+          extension: 'codap',
+          readableExtensions: ["json", ""],
           enableLaraSharing: true,
           providers: [
             {
@@ -289,9 +291,9 @@ DG.main = function main() {
                                     this.createNewDocument();
                                 }
                               }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 0}, 
+          React.DOM.div({style: {margin: 10}, key: 0},
                         React.DOM.button({ref: 'authorizeButton',
-                                          onClick: this.authorizeUrlDocument}, 
+                                          onClick: this.authorizeUrlDocument},
                                           "Authorize Startup Document")),
           React.DOM.div({style: {margin: 10}, key: 1},
                         React.DOM.button({ref: 'newButton',
