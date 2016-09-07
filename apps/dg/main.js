@@ -177,7 +177,7 @@ DG.main = function main() {
             {
               "name": "googleDrive",
               "mimeType": "application/json",
-              "clientId": "1095918012594-svs72eqfalasuc4t1p1ps1m8r9b8psso.apps.googleusercontent.com"
+              "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
             },
             "localFile"//,
             //"localStorage"
