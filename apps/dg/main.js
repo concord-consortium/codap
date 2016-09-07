@@ -395,6 +395,7 @@ DG.main = function main() {
           case 'newedFile':
             SC.run(function() {
               DG.appController.closeAndNewDocument();
+              DG.splash.hideSplash();
             });
             break;
 
