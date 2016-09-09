@@ -143,8 +143,10 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
           wrapFileContent: false,
-          mimeType: 'application/x-codap-document',
-          // extension: '.codap', <-- disabled for now
+          mimeType: 'application/json',
+          readableMimeTypes: ['application/x-codap-document'],
+          extension: 'codap',
+          readableExtensions: ["json", ""],
           enableLaraSharing: true,
           providers: [
             {
@@ -178,7 +180,7 @@ DG.main = function main() {
             {
               "name": "googleDrive",
               "mimeType": "application/json",
-              "clientId": "1095918012594-svs72eqfalasuc4t1p1ps1m8r9b8psso.apps.googleusercontent.com"
+              "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
             },
             "localFile"//,
             //"localStorage"
@@ -290,9 +292,9 @@ DG.main = function main() {
                                     this.createNewDocument();
                                 }
                               }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 0}, 
+          React.DOM.div({style: {margin: 10}, key: 0},
                         React.DOM.button({ref: 'authorizeButton',
-                                          onClick: this.authorizeUrlDocument}, 
+                                          onClick: this.authorizeUrlDocument},
                                           "Authorize Startup Document")),
           React.DOM.div({style: {margin: 10}, key: 1},
                         React.DOM.button({ref: 'newButton',
@@ -396,6 +398,7 @@ DG.main = function main() {
           case 'newedFile':
             SC.run(function() {
               DG.appController.closeAndNewDocument();
+              DG.splash.hideSplash();
             });
             break;
 

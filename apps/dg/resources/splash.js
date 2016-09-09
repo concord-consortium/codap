@@ -30,16 +30,36 @@ DG.splash = SC.Object.create({
       tSplash = SC.PanelPane.create({
         classNames: ['dg-splash'],
         layout: {width: kRatio * kHeight + 2 * kPadding, height: kHeight + 2 * kPadding, centerX: 0, centerY: 0},
-        contentView: SC.ImageView.extend({
-          layout: { left: kPadding, right: kPadding, top: kPadding, bottom: kPadding },
-          value: static_url('images/codap-splash-screen.png'),
-          click: function () {
-            DG.splash.hideSplash();
-          },
-          keyDown: function () {
-            DG.splash.hideSplash();
-          },
-          acceptsFirstResponder: true
+        contentView: SC.View.extend({
+          childViews: 'splash spinner'.w(),
+          backgroundColor: '#FFF',
+
+          splash: SC.ImageView.extend({
+            layout: { left: kPadding, right: kPadding, top: kPadding, bottom: kPadding },
+            value: static_url('images/codap-splash-screen.png'),
+            click: function () {
+              DG.splash.hideSplash();
+            },
+            keyDown: function () {
+              DG.splash.hideSplash();
+            },
+            acceptsFirstResponder: true
+          }),
+
+          spinner: SC.ImageView.extend({
+            init: function () {
+              sc_super();
+              var _this = this;
+              window.setTimeout(function() {
+                _this.set('isVisible', YES);
+              }, 2000);
+            },
+            layout: { centerX: 0, bottom: kPadding+6, height: 32, width: 32 },
+            value: static_url('images/spinner.gif'),
+            canLoadInBackground: YES,
+            useCanvas: NO,
+            isVisible: NO
+          })
         }),
         acceptsKeyPane: true,
         close: function() {
