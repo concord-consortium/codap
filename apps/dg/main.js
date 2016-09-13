@@ -561,6 +561,11 @@ DG.main = function main() {
             break;
         }
       });
+
+      // Add CFM-specific global functions
+      DG.exportFile = function(data, extension, mimetype, callback) {
+        DG.cfmClient.saveSecondaryFileAsDialog(data, extension, mimetype, callback);
+      }
     }
   }
 

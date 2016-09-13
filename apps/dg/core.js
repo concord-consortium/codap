@@ -413,6 +413,9 @@ DG = SC.Application.create((function () // closure
       return SC.clone(iObject, YES);
     },
 
+    // CFM functions, null until connected
+    exportFile: null,
+
     iUser: getUrlParameter('username'),
     iPassword: getUrlParameter('password'),
     iSessionID: getUrlParameter('sessionid'),
