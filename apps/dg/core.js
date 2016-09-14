@@ -356,7 +356,7 @@ DG = SC.Application.create((function () // closure
      */
     componentMode: getUrlParameter('componentMode', 'no'),
 
-    hideCFMMenu: getUrlParameter('launchFromLara') === 'true',
+    hideCFMMenu: !!getUrlParameter('launchFromLara'),
 
     toolButtons: [ // These appear on the left side of the tool shelf
       //'fileMenu',
