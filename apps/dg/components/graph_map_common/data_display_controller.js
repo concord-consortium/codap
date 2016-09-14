@@ -973,32 +973,12 @@ DG.DataDisplayController = DG.ComponentController.extend(
           };
 
           var saveImage = function (pngObject) {
-            var saveImageFromDialog = function () {
-              var rawDocName = tDialog.get('value');
-              var docName = (/.*\.png$/.test(rawDocName))
-                  ? rawDocName
-                  : (rawDocName + '.png');
-
-              if (!SC.empty(docName)) {
-                docName = docName.trim();
-                window.saveAs(pngObject, docName);
-              }
-
-              // Close the open/save dialog.
-              tDialog.close();
-            };
-            var tDialog = DG.CreateSingleTextDialog({
-              prompt: 'DG.AppController.exportDocument.prompt'.loc() +
-              " (Safari users may need to control-click <a href=\"" + pngObject +
-              "\">this link</a>)",
-              escapePromptHTML: false,
-              okTitle: 'DG.AppController.saveDocument.okTitle', // "Save"
-              okTooltip: 'DG.AppController.saveDocument.okTooltip', // "Save the document with the specified name"
-              okAction: function () {
-                saveImageFromDialog();
-              },
-              cancelVisible: true
+            var reader = new FileReader();
+            reader.addEventListener("loadend", function() {
+              var data = reader.result.split(",").pop();  // get rid of base64 header
+              DG.exportFile(data, "png", "image/png");
             });
+            reader.readAsDataURL(pngObject);
           };
 
           var canvas = makeCanvasEl(width, height);
