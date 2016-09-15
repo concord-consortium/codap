@@ -171,7 +171,6 @@ DG.CaseTableRowSelectionModel = function (options) {
   function handleDragInit(e) {
     _inDrag = true;
     e.stopImmediatePropagation();
-    DG.log("init drag");
   }
 
   function handleDragStart(e) {

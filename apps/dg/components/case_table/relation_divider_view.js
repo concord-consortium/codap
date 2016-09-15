@@ -101,7 +101,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
    */
   displayDidChange: function() {
     sc_super();
-    
+
     var headerView = this.get('headerView'),
         dividerView = this.get('dividerView');
     if( headerView) headerView.displayDidChange();
@@ -212,7 +212,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
   }),
 
   dividerView: DG.RaphaelBaseView.extend({
-    
+
     layout: { left: 0, top: 54, right: 0, bottom: 0 },
     
     backgroundColor: 'white',
@@ -474,7 +474,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
 
       function updateRelationsLines() {
         if (!leftTable || !rightTable || leftTable.get('gridWidth') === 0 || rightTable.get('gridWidth') === 0) {
-          DG.log('DoDraw called on RelationDividerView, but tables not ready.');
+          //DG.log('DoDraw called on RelationDividerView, but tables not ready.');
           return;
         }
         var leftViewport = leftTable.get('gridViewport');
