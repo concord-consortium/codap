@@ -283,8 +283,11 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        Observer function called when the number of rows in the parent table changes.
        */
       rowCountDidChange: function(iNotifier) {
+        if (!iNotifier) {
+          return;
+        }
         this.get('dividerViews').forEach(function (view) {
-          if (view.get('rightTable') === iNotifier) {
+          if ((view.get('leftTable') === iNotifier) || (view.get('rightTable') === iNotifier)) {
             view.displayDidChange();
           }
         });
@@ -451,8 +454,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
   setCaseTableAdapters: function( iAdapters) {
     function setUpDividerView(parentTable, childTable, relationView) {
       if( relationView && parentTable && childTable) {
+        relationView.beginPropertyChanges();
         relationView.set('leftTable', parentTable);
         relationView.set('rightTable', childTable);
+        relationView.endPropertyChanges();
       }
     }
     var contentView = this.get('contentView');
