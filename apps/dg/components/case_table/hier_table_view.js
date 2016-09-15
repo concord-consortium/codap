@@ -70,6 +70,17 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     isReady: false,
 
     /**
+     * Observes when the component's selection state changes. We need to
+     * remove header menus when the component goes out of selection.
+     */
+    isSelectedDidChange: function () {
+      if (!this.getPath('parentView.parentView.isSelected')) {
+        DG.log('Hiding Header Menus');
+        this.contentView.hideHeaderMenus();
+      }
+    }.observes('parentView.parentView.isSelected'),
+
+    /**
      * The maximum width the DG.Component will permit by dragging.
      *
      * @type {number} pixels
@@ -179,6 +190,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       }.property(),
 
       childTableLayoutDidChange: function( iNotifier) {
+        this.hideHeaderMenus();
         this.displayDidChange();
       },
 
@@ -302,6 +314,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
             view.displayDidChange();
           });
         }.bind( this));
+      },
+
+      hideHeaderMenus: function() {
+        this.get('childTableViews').forEach(function (view) {
+          view.hideHeaderMenu();
+        });
       },
 
       model: SC.outlet('parentView.parentView.model')

@@ -274,6 +274,7 @@
     $.extend(this, {
       "init": init,
       "destroy": destroy,
+      "hideMenu": hideMenu,
 
       "onBeforeMenuShow": new Slick.Event(),
       "onCommand": new Slick.Event()

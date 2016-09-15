@@ -477,14 +477,26 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                         }.bind(this));
     }
   },
-  
+
   /**
-    Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
+   * Slick grid header menu plugin.
+   * @type {Slick.Plugins.HeaderMenu}
    */
+  headerMenu: null,
+
+  hideHeaderMenu: function() {
+    if (this.headerMenu) {
+      this.headerMenu.hideMenu();
+    }
+  },
+    /**
+     Initializes the SlickGrid from the contents of the adapter (DG.CaseTableAdapter).
+     */
   initGridView: function() {
     var gridLayer = this.tableView.get('layer'),
         gridAdapter = this.get('gridAdapter'),
-        dataView = gridAdapter && gridAdapter.gridDataView;
+        dataView = gridAdapter && gridAdapter.gridDataView,
+        hierTableView = this.get('parentView');
     this._slickGrid = new Slick.Grid( gridLayer, gridAdapter.gridDataView,
                                       gridAdapter.gridColumns, gridAdapter.gridOptions);
     
@@ -498,13 +510,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
      * Wrapped in @if(debug) so that only developers see it for now.
      */
     if( DG.supports('caseTableHeaderMenus')) {
-      var headerMenuPlugin = new Slick.Plugins.HeaderMenu({
+      this.headerMenu = new Slick.Plugins.HeaderMenu({
                                                 buttonIsCell: true,
                                                 buttonImage: static_url("images/down.gif")
                                               });
-      this._slickGrid.registerPlugin(headerMenuPlugin);
+      this._slickGrid.registerPlugin(this.headerMenu);
 
-      headerMenuPlugin.onBeforeMenuShow.subscribe(function(e, args) {
+      this.headerMenu.onBeforeMenuShow.subscribe(function(e, args) {
+        hierTableView.hideHeaderMenus();
         var enabledItems = 0;
         // call any associated updater functions, e.g. to enable/disable
         if( args.menu && args.menu.items && args.menu.items.length) {
@@ -520,7 +533,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         return (enabledItems > 0);
       });
 
-      headerMenuPlugin.onCommand.subscribe(function(e, args) {
+      this.headerMenu.onCommand.subscribe(function(e, args) {
         SC.run(function () {
           var controller;
           for( var view = this; view && !controller; view = view.get('parentView')) {
