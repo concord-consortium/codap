@@ -33,6 +33,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Cell layout constants
   var kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
+      kMaxStringLength = 256,
       
       // The tooltip string for the column depends on whether it has a formula, description, etc.
       getToolTipString = function( iAttribute) {
@@ -375,7 +376,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     });
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                return iRowItem.getValue(iColumnInfo.id);
+                var value = iRowItem.getStrValue(iColumnInfo.id);
+                return value &&
+                    ((value.length < kMaxStringLength)?
+                        value:
+                        value.substring(0, kMaxStringLength));
               }
            };
     return this.gridOptions;
