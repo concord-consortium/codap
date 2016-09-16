@@ -68,8 +68,8 @@
     font-size: 15px;
     color: rgba(15,38,51,1);
     text-align: center;
-    padding-top: 7px;
-    padding-bottom: 7px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     background-color: rgba(15, 38, 51,0.1);
     white-space: nowrap;
 }
@@ -979,4 +979,12 @@ input.editor-text {
 
 .sp-palette .sp-thumb-el:hover, .sp-palette .sp-thumb-el.sp-thumb-active {
     border-color: #888888 !important;
+}
+
+.text-measurer {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
+    width: auto;
+    white-space: nowrap;
 }
