@@ -427,12 +427,13 @@ DG.appController = SC.Object.create((function () // closure
     setOpenedDocumentUnshared: NO,
 
     /**
-     * Opens a document from a URL.
+     * Opens a document from a URL.:
      *
      * @param {string} iURL The url of a CODAP document.
+     * @param {string} iType ('json', 'csv')
      * @return {Deferred|undefined}
      */
-    openDocumentFromUrl: function (iURL) {
+    openDocumentFromUrl: function (iURL, iType) {
       if (iURL) {
         $.ajax(iURL, {
           type: 'GET',
@@ -440,7 +441,11 @@ DG.appController = SC.Object.create((function () // closure
         }).then(function (data) {
             SC.run(function() {
                 var doc = (typeof data === 'string')? data: JSON.stringify(data);
-                return this.openJsonDocument(doc);
+                if (iType === 'json') {
+                  return this.openJsonDocument(doc);
+                } else if (iType === 'csv') {
+                  return this.importText(doc, iURL);
+                }
               }.bind(this)
             );
           }.bind(this), function (msg) {
@@ -532,8 +537,8 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      *
-     * @param iURL - the URL of a data interactive or json document. If path extension
-     * is json, assume it is the later.
+     * @param iURL - the URL of a data interactive, csv or json document based on
+     * file extension in pathname.
      * @returns {Boolean}
      */
     importURL: function (iURL) {
@@ -557,7 +562,9 @@ DG.appController = SC.Object.create((function () // closure
       urlParser.href = iURL;
 
       if (urlParser.pathname.match(/.*\.json$/)) {
-        this.openDocumentFromUrl(iURL);
+        this.openDocumentFromUrl(iURL, 'json');
+      } else if (urlParser.pathname.toLocaleLowerCase().match(/.*\.csv/)){
+        this.openDocumentFromUrl(iURL, 'csv');
       } else {
         addInteractive();
       }
