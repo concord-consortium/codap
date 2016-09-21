@@ -235,9 +235,11 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasGameInteractive: function () {
-    var owning = this.owningDataInteractive();
-    return !SC.none(owning)
-        && (owning.activeChannel().constructor === DG.GamePhoneHandler);
+    var owningDataInteractive = this.owningDataInteractive();
+    var activeChannel = owningDataInteractive && owningDataInteractive.activeChannel();
+    // Its possible that the owning interactive has not contacted codap, so has not
+    // established a channel. We assume this is a Game Interactive.
+    return SC.none(activeChannel) || (activeChannel.constructor === DG.GamePhoneHandler);
   }.property(),
 
   /**
