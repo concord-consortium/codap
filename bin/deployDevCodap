@@ -22,7 +22,7 @@ export PATH
 
 # set up local symbols
 TEMPDIR=/tmp/$PROGNAME.$$
-SERVER=codap.concord.org
+SERVER=codap-server.concord.org
 SERVER_DIR=public_html
 
 # modify env variables if there is an rc file
