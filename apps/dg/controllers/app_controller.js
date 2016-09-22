@@ -563,7 +563,7 @@ DG.appController = SC.Object.create((function () // closure
 
       if (urlParser.pathname.match(/.*\.json$/)) {
         this.openDocumentFromUrl(iURL, 'json');
-      } else if (urlParser.pathname.toLocaleLowerCase().match(/.*\.csv/)){
+      } else if (urlParser.pathname.toLocaleLowerCase().match(/.*\.csv$/)){
         this.openDocumentFromUrl(iURL, 'csv');
       } else {
         addInteractive();
