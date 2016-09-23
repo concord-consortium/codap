@@ -239,7 +239,11 @@ DG.DataContext = SC.Object.extend((function() // closure
     var activeChannel = owningDataInteractive && owningDataInteractive.activeChannel();
     // Its possible that the owning interactive has not contacted codap, so has not
     // established a channel. We assume this is a Game Interactive.
-    return SC.none(activeChannel) || (activeChannel.constructor === DG.GamePhoneHandler);
+    if (owningDataInteractive) {
+      return SC.none(activeChannel) || (activeChannel.constructor === DG.GamePhoneHandler);
+    } else {
+      return false;
+    }
   }.property(),
 
   /**
