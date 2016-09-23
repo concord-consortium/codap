@@ -91,7 +91,14 @@ DG.CaseValueAnimator = SC.Object.extend(
 
       // tween - Simple tween using iAnimationProportion
       function tween( iStart, iDelta, iAnimationProportion) {
-        return iStart - iAnimationProportion * iDelta;
+        var tResult;
+        if( DG.isDate( iStart)) {
+          tResult = DG.createDate( iStart - iAnimationProportion * iDelta);
+        }
+        else {
+          tResult = iStart - iAnimationProportion * iDelta;
+        }
+        return tResult;
       }
       
       this.attributeIDs.forEach( function( iAttributeID) { tAttributeIDs.push( iAttributeID); });
@@ -135,7 +142,7 @@ DG.CaseValueAnimator = SC.Object.extend(
         this_.cases.forEach( function(iCase) {
           var tValues = [];
           this_.attributeIDs.forEach( function(iID) {
-            tValues.push( iCase.getValue( iID));
+            tValues.push( iCase.getRawValue( iID));
           });
           this_.startingValues.push( tValues);
         });

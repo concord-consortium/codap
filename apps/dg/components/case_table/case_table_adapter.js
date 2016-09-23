@@ -749,6 +749,9 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
           attributeIDs: [ columnId ],
           values: [ [value] ]
         };
+    if( DG.isDate(new Date( value))) {
+      tChange.values = [[DG.createDate( value)]];
+    }
     context.applyChange( tChange );
     var collectionName = item.getPath('collection.name') || "",
         caseIndex = args.grid.getData().getIdxById( item.id) + 1;

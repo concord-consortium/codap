@@ -305,7 +305,9 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
 */
 DG.DotPlotModel.configureRoles = function( iConfig) {
   var tXType = iConfig.get('xType'),
-      tAxisKey = (tXType === DG.Analysis.EAttributeType.eNumeric) ? 'x' : 'y',
+      tXIsNumeric = tXType === DG.Analysis.EAttributeType.eNumeric ||
+          tXType === DG.Analysis.EAttributeType.eDateTime,
+      tAxisKey = tXIsNumeric ? 'x' : 'y',
       tOtherAxisKey = (tAxisKey === 'x') ? 'y' : 'x';
   iConfig.setPath( tAxisKey + 'AttributeDescription.role',
                     DG.Analysis.EAnalysisRole.ePrimaryNumeric);

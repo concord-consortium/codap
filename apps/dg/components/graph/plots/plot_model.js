@@ -507,7 +507,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('axisBounds');
   },
 
-  animateSelectionBackToStart: function( iAttrIDs, iDeltas) {
+  /**
+   * For selected cases, the values given by the array of attribute IDs will be animated by the amounts
+   * specified in the array of deltas.
+   * @param iAttrIDs {[Number]}
+   * @param iDeltas {[Number]}
+   * @param iDisableAnimation {Boolean} Default is false
+   */
+  animateSelectionBackToStart: function( iAttrIDs, iDeltas, iDisableAnimation) {
     if( SC.none( this.caseValueAnimator))
       this.caseValueAnimator = DG.CaseValueAnimator.create();
     else  // We must end the animation before setting animator properties
@@ -517,6 +524,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.caseValueAnimator.set( 'cases', DG.copy( this.get('selection')));
     this.caseValueAnimator.set( 'attributeIDs', iAttrIDs);
     this.caseValueAnimator.set( 'deltas', iDeltas);
+    this.caseValueAnimator.set( 'disableAnimation', iDisableAnimation);
 
     this.caseValueAnimator.animate();
   },

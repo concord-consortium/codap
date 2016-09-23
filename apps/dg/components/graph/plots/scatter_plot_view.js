@@ -199,16 +199,30 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
   
   createCircle: function( iDatum, iIndex, iAnimate) {
-    var this_ = this,
-        tXVarID = this_.getPath('model.xVarID'),
-        tYPath = 'model.' + (this.getPath('model.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
-        tYVarID = this.getPath(tYPath);
+    var this_ = this;
+
+    function getVarIDs() {
+      var tXVarID = this_.getPath('model.xVarID'),
+          tYPath = 'model.' + (this_.getPath('model.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
+          tYVarID = this_.getPath(tYPath);
+      return { x: tXVarID, y: tYVarID };
+    }
 
     function changeCaseValues( iDeltaValues) {
-      var tChange = {
+
+      function getProperValue( iCase, iDelta, iAxisKey) {
+        var tValue = iCase.getNumValue( this_.getPath('model.' + iAxisKey + 'VarID')) + iDelta;
+        if( this_.getPath(iAxisKey + 'AxisView.isDateTime')) {
+          tValue = DG.createDate( tValue);
+        }
+        return tValue;
+      }
+
+      var tVarIDs = getVarIDs(),
+          tChange = {
             operation: 'updateCases',
             cases: [],
-            attributeIDs: [ tXVarID, tYVarID],
+            attributeIDs: [ tVarIDs.x, tVarIDs.y],
             values: [ [], [] ]
           },
           tDataContext = this_.get('dataContext');
@@ -217,18 +231,19 @@ DG.ScatterPlotView = DG.PlotView.extend(
       // declared in the closure. The array pointed to by such a closure is not updated!
       this_.getPath('model.casesController.selection').forEach( function( iCase) {
         tChange.cases.push( iCase);
-        tChange.values[0].push( iCase.getNumValue( tXVarID) + iDeltaValues.x);
-        tChange.values[1].push( iCase.getNumValue( tYVarID) + iDeltaValues.y);
+        tChange.values[0].push( getProperValue( iCase, iDeltaValues.x, 'x'));
+        tChange.values[1].push( getProperValue( iCase, iDeltaValues.y, 'y'));
       });
       tDataContext.applyChange( tChange);
     }
     
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoords) {
       var tCase = this_.getPath('model.cases')[ iCaseIndex],
-          tDeltaX = tCase.getNumValue( tXVarID) - iStartWorldCoords.x,
-          tDeltaY = tCase.getNumValue( tYVarID) - iStartWorldCoords.y;
+          tVarIDs = getVarIDs(),
+          tDeltaX = tCase.getNumValue( tVarIDs.x) - iStartWorldCoords.x,
+          tDeltaY = tCase.getNumValue( tVarIDs.y) - iStartWorldCoords.y;
       if((tDeltaX !== 0) || (tDeltaY !== 0))
-        this_.get('model').animateSelectionBackToStart([ tXVarID, tYVarID], [ tDeltaX, tDeltaY]);
+        this_.get('model').animateSelectionBackToStart([ tVarIDs.x, tVarIDs.y], [ tDeltaX, tDeltaY]);
     }
     
     function completeHoverAnimation() {
@@ -274,9 +289,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 SC.run( function() {
                   var tNewX = this_.get('xAxisView').coordinateToData( this.ox + dx),
                       tNewY = this_.get('yAxisView').coordinateToData( this.oy + dy),
+                      tVarIDs = getVarIDs(),
                       tCase = this_.getPath('model.cases')[ this.index],
-                      tOldX = tCase.getNumValue( tXVarID),
-                      tOldY = tCase.getNumValue( tYVarID),
+                      tOldX = tCase.getNumValue( tVarIDs.x),
+                      tOldY = tCase.getNumValue( tVarIDs.y),
                       tCurrTransform = this.transform();
                   // Note that we ignore invalid values. Matt managed to convert some dragged values
                   // to NaNs during testing, which then couldn't animate back to their original
@@ -292,14 +308,15 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 }, this);
             },
             function (x, y) { // begin
-              var tCase = this_.getPath('model.cases')[ this.index];
+              var tCase = this_.getPath('model.cases')[ this.index],
+                  tVarIDs = getVarIDs();
               tIsDragging = true;
               // Save the initial screen coordinates
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
               // Save the initial world coordinates
-              this.wx = tCase.getNumValue( tXVarID);
-              this.wy = tCase.getNumValue( tYVarID);
+              this.wx = tCase.getNumValue( tVarIDs.x);
+              this.wy = tCase.getNumValue( tVarIDs.y);
               this.animate({opacity: kOpaque }, DG.PlotUtilities.kDataTipShowTime, "bounce");
             },
             function() {  // end

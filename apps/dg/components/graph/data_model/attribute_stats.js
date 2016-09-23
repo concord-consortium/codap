@@ -119,6 +119,11 @@ DG.AttributeStats = SC.Object.extend(
           if( isFinite( tValue)) {
             this.numericStats.incrementProperty( 'count' );
             this.numericStats.set('sum', this.numericStats.sum + tValue);
+            // The condition !tInfo.isNominal got added during datetime axis development.
+            // But I (Bill) cannot reconstruct the reason. It appears it should always be true.
+            // For now, we leave the if clause and assert its truth so we have a chance of uncovering
+            // the conditions under which it is false.
+            DG.assert(!tInfo.isNominal);
             if (!tInfo.isNominal) {
               if( isBetterMin( tValue, this.numericStats.rangeMin))
                 this.numericStats.set('rangeMin', tValue);
@@ -234,6 +239,9 @@ DG.AttributeStats = SC.Object.extend(
           case 'numeric':
             this._attributeType = DG.Analysis.EAttributeType.eNumeric;
             break;
+          case 'datetime':
+            this._attributeType = DG.Analysis.EAttributeType.eDateTime;
+            break;
           default:
           // Do nothing
         }
@@ -257,84 +265,104 @@ DG.AttributeStats = SC.Object.extend(
      Run through all attributes and their values and cache computed statistics.
      @private
      */
-    _computeNumericStats:function () {
+    _computeNumericStats: function () {
       var tCases = this._cases,
-        tAttributes = this.get('attributes' ),
-        tCaseCount = 0,
-        tAttributeType,
-        tDataIsNumeric = true,
-        tColorValuesExist = false,
-        tMin = Number.POSITIVE_INFINITY,
-        tMax = Number.NEGATIVE_INFINITY,
-        tPositiveMin = Number.MAX_VALUE,
-        tPositiveMax = -Number.MAX_VALUE,
-        tSum = 0,
-        tSumDiffs = 0,
-        tSumSquareDiffs = 0,
-        //tDataIsInteger = true,
-        tMean,
-        tValues = [];
+          tAttributes = this.get('attributes'),
+          tCaseCount = 0,
+          tAttributeType,
+          tDataIsNumeric = true,  // True both for numbers and dates
+          tDataIsDateTime = true,
+          tColorValuesExist = false,
+          tMin = Number.POSITIVE_INFINITY,
+          tMax = Number.NEGATIVE_INFINITY,
+          tPositiveMin = Number.MAX_VALUE,
+          tPositiveMax = -Number.MAX_VALUE,
+          tSum = 0,
+          tSumDiffs = 0,
+          tSumSquareDiffs = 0,
+      //tDataIsInteger = true,
+          tMean,
+          tValues = [];
 
-      function addCaseValueToStats( iCaseValue ) {
-         var tValue = Number( iCaseValue );
-         if( !SC.empty( iCaseValue ) && isFinite( tValue ) ) {
-           tCaseCount++;
-           if( tValue < tMin ) tMin = tValue;
-           if( tValue > tMax ) tMax = tValue;
-           tSum += tValue;
-           //tDataIsInteger = tDataIsInteger && (Math.floor( tValue ) === tValue);
-           tValues.push( tValue );
-           if( tValue > 0 ) {
-             tPositiveMin = Math.min( tValue, tPositiveMin );
-             tPositiveMax = Math.max( tValue, tPositiveMax );
-           }
-         }
-         // Let infinity and NaN through as numbers. And don't let null be treated as categorical
-         else if( (typeof iCaseValue !== 'number') && !SC.empty( iCaseValue ) ) {
-           tValue = String( iCaseValue );
-           tDataIsNumeric = tDataIsNumeric && SC.empty( tValue );
-           tColorValuesExist = tColorValuesExist || DG.ColorUtilities.isColorSpecString(tValue);
-         }
-       }
+      function addCaseValueToStats(iCaseValue) {
+        // We have to determine whether iCaseValue is a date.
+        // If it is numeric, it is not a date
+        var tIsNumeric = DG.isNumeric( iCaseValue),
+            tValue = Number(iCaseValue),
+            tDate = tIsNumeric ? null : DG.createDate(iCaseValue);
+        tDataIsDateTime = tDataIsDateTime && DG.isDate(tDate) && DG.isFinite( tDate.valueOf());
+        if (!SC.empty(iCaseValue) && isFinite(tValue)) {
+          tCaseCount++;
+          if (tValue < tMin) tMin = tValue;
+          if (tValue > tMax) tMax = tValue;
+          tSum += tValue;
+          //tDataIsInteger = tDataIsInteger && (Math.floor( tValue ) === tValue);
+          tValues.push(tValue);
+          if (tValue > 0) {
+            tPositiveMin = Math.min(tValue, tPositiveMin);
+            tPositiveMax = Math.max(tValue, tPositiveMax);
+          }
+        }
+        else if (tDataIsDateTime) {
+          tCaseCount++;
+          if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
+          if (tDate.valueOf() > tMax) tMax = tDate.valueOf();
+        }
+        // Let infinity and NaN through as numbers. And don't let null be treated as categorical
+        else if ((typeof iCaseValue !== 'number') && !SC.empty(iCaseValue)) {
+          tValue = String(iCaseValue);
+          tDataIsNumeric = tDataIsNumeric && SC.empty(tValue);
+          tColorValuesExist = tColorValuesExist || DG.ColorUtilities.isColorSpecString(tValue);
+        }
+      }
 
       this.numericStats.reset();
 
       this.numericStats.beginPropertyChanges();
-        if( SC.isArray( tCases)) {
-          tAttributes.forEach( function( iAttribute) {
-            var tVarID = iAttribute.get('id');
-            tCases.forEach( function ( iCase ) {
-              addCaseValueToStats( iCase.getValue( tVarID ) );
-            } );
+      if (SC.isArray(tCases)) {
+        tAttributes.forEach(function (iAttribute) {
+          var tVarID = iAttribute.get('id');
+          tCases.forEach(function (iCase) {
+            addCaseValueToStats(iCase.getValue(tVarID));
           });
-        }
+        });
+      }
 
-        if( tCaseCount > 0 ) {
-          this.numericStats.set( 'count', tCaseCount );
-          this.numericStats.set( 'sum', tSum );
-          this.numericStats.set( 'rangeMin', tMin );
-          this.numericStats.set( 'rangeMax', tMax );
-          tMean = tSum / tCaseCount;
-          tValues.forEach( function ( iValue ) {
-            var tDiff = iValue - tMean;
-            tSumDiffs += tDiff;
-            tSumSquareDiffs += tDiff * tDiff;
-          } );
-          // The second term serves as a correction factor for roundoff error.
-          // See Numeric Recipes in C, section 14.1 for details.
-          tSumSquareDiffs -= tSumDiffs * tSumDiffs / tCaseCount;
-          this.numericStats.set( 'squaredDeviations', tSumSquareDiffs );
+      if (tCaseCount > 0) {
+        this.numericStats.set('count', tCaseCount);
+        this.numericStats.set('sum', tSum);
+        this.numericStats.set('rangeMin', tMin);
+        this.numericStats.set('rangeMax', tMax);
+        tMean = tSum / tCaseCount;
+        tValues.forEach(function (iValue) {
+          var tDiff = iValue - tMean;
+          tSumDiffs += tDiff;
+          tSumSquareDiffs += tDiff * tDiff;
+        });
+        // The second term serves as a correction factor for roundoff error.
+        // See Numeric Recipes in C, section 14.1 for details.
+        tSumSquareDiffs -= tSumDiffs * tSumDiffs / tCaseCount;
+        this.numericStats.set('squaredDeviations', tSumSquareDiffs);
 
-          if( tPositiveMin <= tPositiveMax ) {
-            this.numericStats.set( 'positiveMin', tPositiveMin );
-            this.numericStats.set( 'positiveMax', tPositiveMax );
-          }
+        if (tPositiveMin <= tPositiveMax) {
+          this.numericStats.set('positiveMin', tPositiveMin);
+          this.numericStats.set('positiveMax', tPositiveMax);
         }
-        tAttributeType = tDataIsNumeric ? DG.Analysis.EAttributeType.eNumeric :
-            (tColorValuesExist ? DG.Analysis.EAttributeType.eColor :
-                DG.Analysis.EAttributeType.eCategorical);
-        this.numericStats.set( 'attributeType', tAttributeType );
-        this._numericCacheIsValid = true;
+      }
+      if (tDataIsDateTime) {
+        tAttributeType = DG.Analysis.EAttributeType.eDateTime;
+      }
+      else if (tDataIsNumeric) {
+        tAttributeType = DG.Analysis.EAttributeType.eNumeric;
+      }
+      else if (tColorValuesExist) {
+        tAttributeType = DG.Analysis.EAttributeType.eColor;
+      }
+      else {
+        tAttributeType = DG.Analysis.EAttributeType.eCategorical;
+      }
+      this.numericStats.set('attributeType', tAttributeType);
+      this._numericCacheIsValid = true;
       this.numericStats.endPropertyChanges();
     },
 

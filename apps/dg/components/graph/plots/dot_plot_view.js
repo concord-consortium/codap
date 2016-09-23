@@ -285,7 +285,7 @@ DG.DotPlotView = DG.PlotView.extend(
 
   createCircle: function( iDatum, iIndex, iAnimate) {
     var this_ = this,
-      tNumericPlace = this.getPath('model.primaryAxisPlace');
+        tNumericPlace = this.getPath('model.primaryAxisPlace');
 
     function changeCaseValues( iDelta) {
       var tPrimaryVarID = this_.getPath('model.primaryVarID'),
@@ -300,8 +300,12 @@ DG.DotPlotView = DG.PlotView.extend(
       // Note that we have to get the cases dynamically rather than have a variable
       // declared in the closure. The array pointed to by such a closure is not updated!
       this_.getPath('model.casesController.selection').forEach( function( iCase) {
+        var tValue = iCase.getNumValue( tPrimaryVarID) + iDelta;
+        if( this_.getPath('primaryAxisView.isDateTime')) {
+          tValue = DG.createDate( tValue);
+        }
         tChange.cases.push( iCase);
-        tChange.values[0].push( iCase.getNumValue( tPrimaryVarID) + iDelta);
+        tChange.values[0].push( tValue);
       });
       tDataContext.applyChange( tChange);
     }
