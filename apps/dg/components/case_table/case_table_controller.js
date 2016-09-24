@@ -879,7 +879,6 @@ DG.CaseTableController = DG.ComponentController.extend(
               return DG.currDocumentController().componentControllersMap[this._componentId];
             },
             execute: function() {
-              tAttrRef = tDataContext.getAttrRefByName( iOldAttrName);
               var change = {
                               operation: 'updateAttributes',
                               collection: tAttrRef && tAttrRef.collection,
@@ -888,8 +887,6 @@ DG.CaseTableController = DG.ComponentController.extend(
               tDataContext.applyChange( change);
             },
             undo: function() {
-              tDataContext = this._controller().get('dataContext');
-              tAttrRef = tDataContext.getAttrRefByName( iAttrName);
               var change = {
                               operation: 'updateAttributes',
                               collection: tAttrRef && tAttrRef.collection,
