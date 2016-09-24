@@ -279,6 +279,7 @@ DG.DocumentArchiver = SC.Object.extend(
           tContextName = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
           tChildName = tContextName || 'cases',
           tAttrNamesRow,// Column Header Names: should be second row
+          tAttrNames,
           tDoc = {
             name: 'DG.Document.defaultDocumentName'.loc(),
             components: [],
@@ -331,9 +332,13 @@ DG.DocumentArchiver = SC.Object.extend(
           tDoc.contexts[0].collections[0].name = tChildName;
           tDoc.contexts[0].name = tContextName;
 
-          tAttrNamesRow.forEach(function (iName) {
+          tAttrNames = tAttrNamesRow.map(function (iName) {
+            return DG.Attribute.legalizeAttributeName(String(iName));
+          });
+
+          tAttrNames.forEach(function (iName) {
             tAttrsArray.push( {
-              name: String(iName),
+              name: iName,
               editable: true
             });
           });
@@ -342,7 +347,7 @@ DG.DocumentArchiver = SC.Object.extend(
             var tCase = {
               values: {}
             };
-            tAttrNamesRow.forEach( function( iName, iIndex) {
+            tAttrNames.forEach( function( iName, iIndex) {
               var tValue = iValues[ iIndex];
               if( DG.isDateString( tValue)) {
                 tValue = DG.createDate( tValue);

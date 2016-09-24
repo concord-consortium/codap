@@ -297,18 +297,7 @@ DG.CollectionClient = SC.Object.extend(
   },
 
   makeAttributeNameLegal: function (iName) {
-    var tReg = /\((.*)\)/,  // Identifies first parenthesized substring
-        tMatch = tReg.exec( iName),
-        tNewName = iName;
-    // If there is a parenthesized substring, stash it as the unit and remove it from the name
-    if( tMatch && tMatch.length > 1) {
-      tNewName = iName.replace(tReg, '');  // Get rid of parenthesized units
-    }
-    // TODO: We are eliminating all but Latin characters here. We should be more general and allow
-    // non-Latin alphameric characters.
-    tNewName = tNewName.replace(/\W$/, ''); // Get rid of trailing white space
-    tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
-    return tNewName;
+    return DG.Attribute.legalizeAttributeName(iName);
   },
 
   /**
