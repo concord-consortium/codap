@@ -271,17 +271,21 @@ DG.ContainerView = SC.View.extend(
         @param {String} Default is 'top'
       */
       positionNewComponent: function( iView, iPosition) {
-        var tViewRect = iView.get( 'frame'),
-            tDocRect = this.parentView.get('clippingFrame');
-        var tLoc = DG.ViewUtilities.findEmptyLocationForRect(
+        var this_ = this,
+            tViewRect = iView.get( 'frame'),
+            tDocRect = this.parentView.get('clippingFrame'),
+            tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
                                       this.get('componentViews'),
-                                      iPosition);
-        iView.adjust( 'left', tLoc.x);
-        iView.adjust( 'top', tLoc.y);
+                                      iPosition),
+            tOptions = { duration: 0.5, timing: 'ease-in-out' };
         this.invokeNext( function() {
-          this.select( iView);
+          iView.animate( { left: tLoc.x, top: tLoc.y }, tOptions,
+                        function() {
+                          this.select();
+                          this_.updateFrame();
+                        });
         }.bind( this));
       },
       

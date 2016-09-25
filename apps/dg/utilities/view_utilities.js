@@ -106,14 +106,136 @@ DG.ViewUtilities = {
 
   /* findEmptyLocationForRect: Given a component rectangle, a container rectangle and
     an array of views, return a location at which the component rectangle will fit.
-    Note that the bottom of the container rectangle is ignored so that the location
-    returned can be below the bottom.
+
+    If there is no empty rectangle such that the given rectangle fits, position it in the
+    center and adjust down and right until there is no component whose top left is the same
+    as the proposed location.
+
     Note that given rectangles and view frames are expected to have form
       { x, y, width, height }.
     In fact, rectangles that come from components like the about box have NAN's for
     x and y. We just consider them to be floating on top of everything and not intersecting.
   */
   findEmptyLocationForRect: function (iItemRect, iContainerRect, iViews, iPosition) {
+    var
+        kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
+        tStartAtBottom = (iPosition === 'bottom'),
+        tLoc = {x: kGap,
+          y: tStartAtBottom ? iContainerRect.height - iItemRect.height - kGap : kGap },
+        tSuccess = false,
+        tViewRects = iViews.map(function (iView) {
+          return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
+        });
+
+    function intersectRect(r1, r2) {
+      var tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
+          r2.x + r2.width < r1.x ||
+          r2.y > r1.y + r1.height ||
+          r2.y + r2.height < r1.y);
+      return tRes;
+    }
+
+    /*  intersects - Iterate through iViews, returning true for the first view
+     that intersects iItemRect placed at the given location, false
+     if none intersect.
+     */
+    function intersects(iTopLeft) {
+      return !tViewRects.every(
+          function (iViewRect) {
+            return !intersectRect(iViewRect,
+                {
+                  x: iTopLeft.x,
+                  y: iTopLeft.y,
+                  width: iItemRect.width,
+                  height: iItemRect.height
+                });
+          });
+    }
+
+    function onTopOfViewRectTopLeft(iTopLeft) {
+      return !tViewRects.every(
+          function (iViewRect) {
+            return !( iTopLeft.x === iViewRect.x && iTopLeft.y === iViewRect.y);
+          });
+    }
+
+    // Work our way through the visible portion of the document
+    while (!tSuccess && tLoc.y + iItemRect.height < iContainerRect.height && tLoc.y >= kGap) {
+      tLoc.x = kGap;
+      // left to right, making sure we got through at least once
+      while (!tSuccess) {
+        // Positioned at tLoc, does the item rect intersect any view rects?
+        if (intersects(tLoc)) {
+          tLoc.x += kGap;
+          if (tLoc.x + iItemRect.width > iContainerRect.x + iContainerRect.width)
+            break;
+        }
+        else
+          tSuccess = true;
+      }
+      if (!tSuccess)
+        tLoc.y += (tStartAtBottom ? -kGap : kGap);
+    }
+
+    if( !tSuccess) {
+      // Choose a location that will center the item rect in the container
+      tLoc = { x: Math.round((iContainerRect.width - iItemRect.width) / 2),
+              y: Math.round((iContainerRect.height - iItemRect.height) / 2)
+      };
+      // Adjust down and to the right until there tLoc is not on top of the upper-right corner of a view rect
+      while( !tSuccess) {
+        if( !onTopOfViewRectTopLeft( tLoc)) {
+          tSuccess = true;
+        }
+        else {
+          tLoc = { x: tLoc.x + kGap, y: tLoc.y + this.kTitleBarHeight };
+        }
+      }
+    }
+
+    return tLoc;
+  },
+  
+  /* normalFormForRect: The given rectangle is expected to have properties left, top,
+    right, and bottom. Return a rectangle with left <= right and bottom <= top.
+  */
+  normalFormForRect: function( iRect) {
+    return { left: Math.min( iRect.left, iRect.right),
+              top: Math.max( iRect.bottom, iRect.top),
+              right: Math.max( iRect.left, iRect.right),
+              bottom: Math.min( iRect.bottom, iRect.top)
+        };
+  },
+
+  /* ptInRect: The given point should have properties x and y. The given rectangle should
+    be in the form { x, y, width, height }. width and height >= 0.
+    Return true if the given point is within or on the boundary of the given rectangle.
+  */
+  ptInRect: function( iPoint, iRect) {
+    return (iPoint.x >= iRect.x) && (iPoint.x <= iRect.x + iRect.width) &&
+           (iPoint.y >= iRect.y) && (iPoint.y <= iRect.y + iRect.height);
+  },
+
+  /**
+   *
+   * @param iView {SC.View} normally a child view of a ComponentView
+   */
+  componentViewForView: function( iView) {
+    while( iView && !(iView instanceof DG.ComponentView)) {
+      iView = iView.get('parentView');
+    }
+    return iView;
+  },
+
+  /**
+   *
+   * @param iItemRect
+   * @param iContainerRect
+   * @param iViews
+   * @param iPosition
+   * @returns {{ success: {Boolean} loc: { x: {Number}, y: {Number}}}}
+   */
+  doesEmptyLocationForRectExist: function (iItemRect, iContainerRect, iViews, iPosition) {
     var
         kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
         tLoc = {x: kGap, y: kGap},
@@ -167,41 +289,44 @@ DG.ViewUtilities = {
       }
       if (!tSuccess)
         tLoc.y += (tStartAtBottom ? -kGap : kGap);
-      if( tLoc.y < kGap)
-        tSuccess = true;  // We started at the bottom and didn't find an empty location
+      if( tLoc.y < kGap || tLoc.y + iItemRect.height > iContainerRect.height)
+        break;  // We didn't find anything
     }
-    return tLoc;
-  },
-  
-  /* normalFormForRect: The given rectangle is expected to have properties left, top,
-    right, and bottom. Return a rectangle with left <= right and bottom <= top.
-  */
-  normalFormForRect: function( iRect) {
-    return { left: Math.min( iRect.left, iRect.right),
-              top: Math.max( iRect.bottom, iRect.top),
-              right: Math.max( iRect.left, iRect.right),
-              bottom: Math.min( iRect.bottom, iRect.top)
-        };
-  },
-
-  /* ptInRect: The given point should have properties x and y. The given rectangle should
-    be in the form { x, y, width, height }. width and height >= 0.
-    Return true if the given point is within or on the boundary of the given rectangle.
-  */
-  ptInRect: function( iPoint, iRect) {
-    return (iPoint.x >= iRect.x) && (iPoint.x <= iRect.x + iRect.width) &&
-           (iPoint.y >= iRect.y) && (iPoint.y <= iRect.y + iRect.height);
+    return { success: tSuccess, loc: tLoc };
   },
 
   /**
+   * If iItemRect cannot be positioned within iContainerRect without overlapping iViews, then
+   * resize and reposition the views until there is room.
    *
-   * @param iView {SC.View} normally a child view of a ComponentView
+   * Return a rectangle that can be used for a new component.
+   *
+   * @param iItemRect
+   * @param iContainerRect
+   * @param iViews [ DG.ComponentView ]
+   * @return {{x: {Number}, y: {Number}, width: {Number}, height: {Number}}}
    */
-  componentViewForView: function( iView) {
-    while( iView && !(iView instanceof DG.ComponentView)) {
-      iView = iView.get('parentView');
+  makeRoomForNewComponent: function( iItemRect, iContainerRect, iViews) {
+    var
+        kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
+        tViewRects = iViews.map(function (iView) {
+          return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
+        }),
+        tTestResult = this.doesEmptyLocationForRectExist( iItemRect, iContainerRect, iViews);
+
+    if( tTestResult.success) {
+      return { x: tTestResult.loc.x, y: tTestResult.loc.y, width: iItemRect.width, height: iItemRect.height };
     }
-    return iView;
+    else {
+      // Decide whether the components should be made less wide or less tall
+
+      // Compute the percentage shrinkage
+
+      // For each view, shrink it as computed and move it to abut the previous view if any
+
+      // Position and shrink the given rectangle and return it
+
+    }
   }
 
 };

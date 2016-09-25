@@ -733,6 +733,7 @@ DG.ComponentView.addComponent = function (iParams) {
   if (!tUseLayoutForPosition)
     tSuperView.positionNewComponent(tComponentView, iParams.position);
   tSuperView.appendChild(tComponentView);
+  tComponentView.bringToFront();
   tSuperView.updateFrame();
 
   // We want to be sure the component view is visible. iSuperView's parent is a scroll view
