@@ -281,10 +281,17 @@ DG.ContainerView = SC.View.extend(
                                       iPosition),
             tOptions = { duration: 0.5, timing: 'ease-in-out' };
         this.invokeNext( function() {
-          iView.animate( { left: tLoc.x, top: tLoc.y }, tOptions,
+          iView.adjust( { left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
+                          width: 0, height: 0 });
+          iView.animate( { left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height }, tOptions,
                         function() {
+                          // map component doesn't come out right without the following kludge
+                          this.adjust('width', tViewRect.width + 1);
+                          this.adjust('width', tViewRect.width);
                           this.select();
                           this_.updateFrame();
+                          if( this.get('contentView').beginEditing)
+                              this.get('contentView').beginEditing();
                         });
         }.bind( this));
       },

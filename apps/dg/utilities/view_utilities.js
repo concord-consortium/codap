@@ -179,8 +179,8 @@ DG.ViewUtilities = {
 
     if( !tSuccess) {
       // Choose a location that will center the item rect in the container
-      tLoc = { x: Math.round((iContainerRect.width - iItemRect.width) / 2),
-              y: Math.round((iContainerRect.height - iItemRect.height) / 2)
+      tLoc = { x: Math.max( this.kGridSize, Math.round((iContainerRect.width - iItemRect.width) / 2)),
+              y: Math.max( this.kGridSize, Math.round((iContainerRect.height - iItemRect.height) / 2))
       };
       // Adjust down and to the right until there tLoc is not on top of the upper-right corner of a view rect
       while( !tSuccess) {
