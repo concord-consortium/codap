@@ -63,14 +63,13 @@
 }
 
 .dg-case-table-title {
-    font-family: Montserrat-Bold;
-    font-weight: bold;
+    font-style: italic;
     font-size: 15px;
     color: rgba(15,38,51,1);
     text-align: center;
     padding-top: 4px;
     padding-bottom: 4px;
-    background-color: rgba(15, 38, 51,0.1);
+    background-color: #F0F0F0;
     white-space: nowrap;
 }
 

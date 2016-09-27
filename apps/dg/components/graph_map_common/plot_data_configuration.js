@@ -398,11 +398,13 @@ DG.PlotDataConfiguration = SC.Object.extend(
       in the collection hierarchy, so iAttrRefs will need to consist of an array of collection/attribute pairs.
    */
   setAttributeAndCollectionClient: function( iDescription, iAttrRefs, iRole, iType) {
+    this._casesCache = null;  // because setting a new attribute and collection client can require recomputation of cases
     var tDescription = this.get( iDescription);
     //tDescription.invalidateCaches();  // So that notification order won't be important
     tDescription.removeAllAttributes();
     tDescription.beginPropertyChanges();
       tDescription.set('collectionClient', (iAttrRefs && iAttrRefs.collection) || null);
+      tDescription.setCases( this.get('cases'));
       if( !SC.none( iAttrRefs)) {
         iAttrRefs.attributes.forEach( function( iAttribute) {
           tDescription.addAttribute( iAttribute);

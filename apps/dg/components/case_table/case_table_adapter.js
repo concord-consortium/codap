@@ -749,7 +749,7 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
           attributeIDs: [ columnId ],
           values: [ [value] ]
         };
-    if( DG.isDate(new Date( value))) {
+    if( DG.isDateString(value)) {
       tChange.values = [[DG.createDate( value)]];
     }
     context.applyChange( tChange );

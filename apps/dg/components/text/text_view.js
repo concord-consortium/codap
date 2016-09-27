@@ -29,8 +29,6 @@ DG.TextView = SC.View.extend(
 
       backgroundColor: 'white',
 
-      // We're saying that the TextView wraps an SC.TextFieldView. Any reason we shouldn't
-      // simply use an SC.TextFieldView?
       childViews: ['editView'],
       editView: DG.TextFieldView.design({
         layout: { left: 2, right: 2, top: 2, bottom: 2 },
@@ -51,7 +49,11 @@ DG.TextView = SC.View.extend(
 
       defaultFirstResponder: function () {
         return this.get('editView');
-      }.property()
+      }.property(),
+
+      beginEditing: function() {
+        this.get('editView').beginEditing();
+      }
 
     }
 );

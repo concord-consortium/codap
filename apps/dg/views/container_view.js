@@ -271,17 +271,30 @@ DG.ContainerView = SC.View.extend(
         @param {String} Default is 'top'
       */
       positionNewComponent: function( iView, iPosition) {
-        var tViewRect = iView.get( 'frame'),
-            tDocRect = this.parentView.get('clippingFrame');
-        var tLoc = DG.ViewUtilities.findEmptyLocationForRect(
+        var this_ = this,
+            tViewRect = iView.get( 'frame'),
+            tDocRect = this.parentView.get('clippingFrame'),
+            tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
                                       this.get('componentViews'),
-                                      iPosition);
-        iView.adjust( 'left', tLoc.x);
-        iView.adjust( 'top', tLoc.y);
+                                      iPosition),
+            tOptions = { duration: 0.5, timing: 'ease-in-out' };
         this.invokeNext( function() {
-          this.select( iView);
+          iView.adjust( { left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
+                          width: 0, height: 0 });
+          iView.animate( { left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height }, tOptions,
+                        function() {
+                          // map component doesn't come out right without the following kludge
+                          this.adjust('width', tViewRect.width + 1);
+                          this.adjust('width', tViewRect.width);
+                          this.select();
+                          this_.updateFrame();
+                          // beginEditing applies only to text component, but couldn't find a better place to put this
+                          // Better would be to define something like 'didReachFinalPosition' as a generic component
+                          if( this.get('contentView').beginEditing)
+                              this.get('contentView').beginEditing();
+                        });
         }.bind( this));
       },
       

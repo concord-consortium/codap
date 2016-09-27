@@ -161,6 +161,10 @@ DG.AttributePlacementDescription = SC.Object.extend(
     this.attributeStats.endPropertyChanges();
   },
 
+  setCases: function( iCases) {
+    this.attributeStats.setCases( iCases);
+  },
+
   /**
    * Return ID of first attribute.
     @property { Number }

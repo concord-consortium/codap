@@ -106,8 +106,11 @@ DG.ViewUtilities = {
 
   /* findEmptyLocationForRect: Given a component rectangle, a container rectangle and
     an array of views, return a location at which the component rectangle will fit.
-    Note that the bottom of the container rectangle is ignored so that the location
-    returned can be below the bottom.
+
+    If there is no empty rectangle such that the given rectangle fits, position it in the
+    center and adjust down and right until there is no component whose top left is the same
+    as the proposed location.
+
     Note that given rectangles and view frames are expected to have form
       { x, y, width, height }.
     In fact, rectangles that come from components like the about box have NAN's for
@@ -116,9 +119,10 @@ DG.ViewUtilities = {
   findEmptyLocationForRect: function (iItemRect, iContainerRect, iViews, iPosition) {
     var
         kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
-        tLoc = {x: kGap, y: kGap},
-        tSuccess = false,
         tStartAtBottom = (iPosition === 'bottom'),
+        tLoc = {x: kGap,
+          y: tStartAtBottom ? iContainerRect.height - iItemRect.height - kGap : kGap },
+        tSuccess = false,
         tViewRects = iViews.map(function (iView) {
           return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
         });
@@ -148,11 +152,15 @@ DG.ViewUtilities = {
           });
     }
 
-    if( tStartAtBottom)
-      tLoc.y = iContainerRect.height - iItemRect.height - kGap;
+    function onTopOfViewRectTopLeft(iTopLeft) {
+      return !tViewRects.every(
+          function (iViewRect) {
+            return !( iTopLeft.x === iViewRect.x && iTopLeft.y === iViewRect.y);
+          });
+    }
 
-    // top to bottom
-    while (!tSuccess) {
+    // Work our way through the visible portion of the document
+    while (!tSuccess && tLoc.y + iItemRect.height < iContainerRect.height && tLoc.y >= kGap) {
       tLoc.x = kGap;
       // left to right, making sure we got through at least once
       while (!tSuccess) {
@@ -167,9 +175,24 @@ DG.ViewUtilities = {
       }
       if (!tSuccess)
         tLoc.y += (tStartAtBottom ? -kGap : kGap);
-      if( tLoc.y < kGap)
-        tSuccess = true;  // We started at the bottom and didn't find an empty location
     }
+
+    if( !tSuccess) {
+      // Choose a location that will center the item rect in the container
+      tLoc = { x: Math.max( this.kGridSize, Math.round((iContainerRect.width - iItemRect.width) / 2)),
+              y: Math.max( this.kGridSize, Math.round((iContainerRect.height - iItemRect.height) / 2))
+      };
+      // Adjust down and to the right until there tLoc is not on top of the upper-right corner of a view rect
+      while( !tSuccess) {
+        if( !onTopOfViewRectTopLeft( tLoc)) {
+          tSuccess = true;
+        }
+        else {
+          tLoc = { x: tLoc.x + kGap, y: tLoc.y + this.kTitleBarHeight };
+        }
+      }
+    }
+
     return tLoc;
   },
   
