@@ -939,6 +939,10 @@ if (typeof Slick === "undefined") {
               if (options.syncColumnCellResize) {
                 applyColumnWidths();
                 updateCanvasWidth(true);
+                // [CC]
+                // Modification to add access to intermediate values during
+                // column resizing. Needed for two-line table headers.
+                trigger(self.onColumnResizing, {});
               }
             })
             .bind("dragend touchend", function (e, dd) {
@@ -3383,6 +3387,11 @@ if (typeof Slick === "undefined") {
       "onDragEnd": new Slick.Event(),
       "onSelectedRowsChanged": new Slick.Event(),
       "onCellCssStylesChanged": new Slick.Event(),
+
+      // [CC]
+      // Customization to add new event for in progress notifications of
+      // column resizing.
+      "onColumnResizing": new Slick.Event(),
 
       // Methods
       "registerPlugin": registerPlugin,

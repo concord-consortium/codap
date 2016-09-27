@@ -119,7 +119,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
       iContext.addClass( ['slick-header','ui-state-default'], YES);
     },
     
-    classNames: ['slick-header-column'],
+    classNames: [],
     
     backgroundColor: '#E6E6E6',
 

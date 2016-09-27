@@ -362,6 +362,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   buildGridOptions: function() {
     this.gridOptions = {
               rowHeight: kDefaultRowHeight,
+              headerRowHeight: kDefaultRowHeight*2,
               enableColumnReorder: false,
               syncColumnCellResize: true,
               leaveSpaceForNewRows: false,
