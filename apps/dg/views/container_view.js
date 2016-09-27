@@ -290,6 +290,8 @@ DG.ContainerView = SC.View.extend(
                           this.adjust('width', tViewRect.width);
                           this.select();
                           this_.updateFrame();
+                          // beginEditing applies only to text component, but couldn't find a better place to put this
+                          // Better would be to define something like 'didReachFinalPosition' as a generic component
                           if( this.get('contentView').beginEditing)
                               this.get('contentView').beginEditing();
                         });

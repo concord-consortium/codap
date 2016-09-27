@@ -273,7 +273,7 @@ DG.AttributeStats = SC.Object.extend(
       _computeNumericStats: function () {
         var tCases = this._cases,
             tAttributes = this.get('attributes'),
-            tCaseCount = 0,
+            tNumericCaseCount = 0,
             tAttributeType,
             tDataIsNumeric = true,  // True both for numbers and dates
             tDataIsDateTime = tCases.length > 0,
@@ -297,7 +297,7 @@ DG.AttributeStats = SC.Object.extend(
               tDate = tIsNumeric ? null : DG.createDate(iCaseValue);
           tDataIsDateTime = tDataIsDateTime && DG.isDate(tDate) && DG.isFinite(tDate.valueOf());
           if (!SC.empty(iCaseValue) && isFinite(tValue)) {
-            tCaseCount++;
+            tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
             if (tValue > tMax) tMax = tValue;
             tSum += tValue;
@@ -309,13 +309,12 @@ DG.AttributeStats = SC.Object.extend(
             }
           }
           else if (tDataIsDateTime) {
-            tCaseCount++;
+            tNumericCaseCount++;
             if (tDate.valueOf() < tMin) tMin = tDate.valueOf();
             if (tDate.valueOf() > tMax) tMax = tDate.valueOf();
           }
           // Let infinity and NaN through as numbers. And don't let null be treated as categorical
           else if ((typeof iCaseValue !== 'number') && !SC.empty(iCaseValue)) {
-            tCaseCount++;
             tValue = String(iCaseValue);
             tDataIsNumeric = tDataIsNumeric && SC.empty(tValue);
             tColorValuesExist = tColorValuesExist || DG.ColorUtilities.isColorSpecString(tValue);
@@ -334,12 +333,12 @@ DG.AttributeStats = SC.Object.extend(
           });
         }
 
-        if (tCaseCount > 0) {
-          this.numericStats.set('count', tCaseCount);
+        if (tNumericCaseCount > 0) {
+          this.numericStats.set('count', tNumericCaseCount);
           this.numericStats.set('sum', tSum);
           this.numericStats.set('rangeMin', tMin);
           this.numericStats.set('rangeMax', tMax);
-          tMean = tSum / tCaseCount;
+          tMean = tSum / tNumericCaseCount;
           tValues.forEach(function (iValue) {
             var tDiff = iValue - tMean;
             tSumDiffs += tDiff;
@@ -347,7 +346,7 @@ DG.AttributeStats = SC.Object.extend(
           });
           // The second term serves as a correction factor for roundoff error.
           // See Numeric Recipes in C, section 14.1 for details.
-          tSumSquareDiffs -= tSumDiffs * tSumDiffs / tCaseCount;
+          tSumSquareDiffs -= tSumDiffs * tSumDiffs / tNumericCaseCount;
           this.numericStats.set('squaredDeviations', tSumSquareDiffs);
 
           if (tPositiveMin <= tPositiveMax) {
