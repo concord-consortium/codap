@@ -314,6 +314,13 @@ DG.Calculator = SC.View.extend( (function() // closure
           this._justEvaled = NO;
       }
       return true;
+    },
+
+    /**
+     * We've animated to our initial position and along the way lost editing focus.
+     */
+    didReachInitialPosition: function() {
+      this.editView.beginEditing();
     }
 
   };  // end return from closure

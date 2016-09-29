@@ -641,5 +641,12 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
         }
       }.observes('selection'),
 
+      /**
+       * We've animated to our initial position and along the way lost our bounds.
+       */
+      didReachInitialPosition: function() {
+        this.fitBounds();
+      }
+
     }
 );

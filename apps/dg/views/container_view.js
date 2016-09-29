@@ -286,16 +286,21 @@ DG.ContainerView = SC.View.extend(
           iView.animate( { left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height }, tOptions,
                         function() {
                           // map component doesn't come out right without the following kludge
+                          // Todo: Figure out how to do this with less kludge. Possibly install the contentView
+                          // after the animation has completed? Or set the size of the contentView and simply
+                          // expand onto it.
                           this.adjust('width', tViewRect.width + 1);
                           this.adjust('width', tViewRect.width);
+                          this.adjust('height', tViewRect.height + 1);
+                          this.adjust('height', tViewRect.height);
                           this.select();
                           this_.updateFrame();
                           // beginEditing applies only to text component, but couldn't find a better place to put this
                           // Better would be to define something like 'didReachFinalPosition' as a generic component
-                          if( this.get('contentView').beginEditing)
-                              this.get('contentView').beginEditing();
+                          this.didReachInitialPosition();
                         });
         }.bind( this));
+        iView.adjust( { width: 0, height: 0 });
       },
       
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.

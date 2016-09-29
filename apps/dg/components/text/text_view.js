@@ -51,6 +51,13 @@ DG.TextView = SC.View.extend(
         return this.get('editView');
       }.property(),
 
+      /**
+       * We've animated to our initial position and along the way lost editing focus.
+       */
+      didReachInitialPosition: function() {
+        this.beginEditing();
+      },
+
       beginEditing: function() {
         this.get('editView').beginEditing();
       }
