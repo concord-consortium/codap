@@ -107,8 +107,9 @@ DG.PointDataTip = DG.DataTip.extend(
       /**
        *  We set the tip origin and the case index before calling sc_super()
        */
-      show: function (iX, iY, iIndex) {
+      show: function (iX, iY, iR, iIndex) {
         this.set('tipOrigin', {x: iX, y: iY});
+        this.set('tipSourceRadius', iR );
         this.set('caseIndex', iIndex);
 
         sc_super();

@@ -56,7 +56,7 @@ DG.DataTip = DG.ToolTip.extend(
       this.set('paperSource', this.get('plotLayer'));
   },
 
-  show: function( iX, iY, iIndex) {
+  show: function( iX, iY, iR, iIndex) {
     this.set('caseIndex', iIndex);
     sc_super();
   },
