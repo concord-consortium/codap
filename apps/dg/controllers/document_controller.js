@@ -857,9 +857,6 @@ DG.DocumentController = SC.Object.extend(
                                 isResizable: true}
                               );
           this._component = tView.getPath('controller.model');
-          this.invokeLater( function() {
-            tView.get('contentView').beginEditing();
-          });
         },
         undo: function() {
           var controller = DG.currDocumentController().componentControllersMap[this._component.get('id')],
