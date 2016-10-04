@@ -320,15 +320,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         [SCBUG]
       */
       drawWidth: function() {
-        return this.get('frame').width - 2 * DG.ViewUtilities.kBorderWidth;
-      }.property('frame'),
-
-      /**
-        @property { Number }  Takes into account any borders the parent views may have
-        [SCBUG]
-      */
-      drawHeight: function() {
-        return this.get('frame').height;
+        return Math.max( 0, this.get('frame').width - 2 * DG.ViewUtilities.kBorderWidth);
       }.property('frame'),
 
       /**
