@@ -463,6 +463,9 @@ DG.DotPlotView = DG.PlotView.extend(
           tColorDesc = this_.getPath('model.dataConfiguration.legendAttributeDescription'),
           tColorID = tColorDesc.get('attributeID'),
           tMaxInBin, tPixelsOutside;
+      tCases = tCases.filter( function( iCase) {
+        return DG.isFinite( iCase.getNumValue( tNumericVarID));
+      });
 
       if( tMaxThatFit <= 0) // If things are really tight, overlap points directly on top of each other
         return iBinWidth;
