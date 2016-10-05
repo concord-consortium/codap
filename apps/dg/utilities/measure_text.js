@@ -24,7 +24,7 @@
  */
 DG.measureTextWidth = function (text, iStyle) {
   var kSelector = 'text-measurer';
-  var style = 'initial';
+  var style = {'font': 'initial'};
   if (iStyle) {
     style = iStyle;
   }
