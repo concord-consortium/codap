@@ -207,6 +207,69 @@ DG.MathUtilities = {
   },
 
   /**
+   * Returns an object that has the slope and intercept
+   * @param iValues [{x: {Number}, y: {Number}}]
+   * @param iInterceptLocked {Boolean}
+   * @returns {{slope: {Number}, intercept: {Number}}}
+   */
+  leastSquaresLinearRegression: function( iValues, iInterceptLocked) {
+    var tSlopeIntercept = { slope: NaN, intercept: NaN };
+
+    function computeBivariateStats() {
+      var tResult = {
+            count: 0,
+            xSum: 0,
+            xSumOfSquares: 0,
+            xSumSquaredDeviations: 0,
+            ySum: 0,
+            ySumOfSquares: 0,
+            sumOfProductDiffs: 0
+          },
+          tSumDiffs = 0;
+      iValues.forEach(function (iPair) {
+        if (isFinite(iPair.x) && isFinite(iPair.y)) {
+          tResult.count += 1;
+          tResult.xSum += iPair.x;
+          tResult.xSumOfSquares += (iPair.x * iPair.x );
+          tResult.ySum += iPair.y;
+          tResult.ySumOfSquares += (iPair.y * iPair.y );
+        }
+      });
+      if( tResult.count > 0) {
+        tResult.xMean = tResult.xSum / tResult.count;
+        tResult.yMean = tResult.ySum / tResult.count;
+        iValues.forEach(function (iPair) {
+          var tDiff;
+          if (isFinite(iPair.x) && isFinite(iPair.y)) {
+            tResult.sumOfProductDiffs += (iPair.x - tResult.xMean) * (iPair.y - tResult.yMean);
+            tDiff = iPair.x - tResult.xMean;
+            tResult.xSumSquaredDeviations += tDiff * tDiff;
+            tSumDiffs += tDiff;
+          }
+        });
+        // Subtract a correction factor for roundoff error.
+        // See Numeric Recipes in C, section 14.1 for details.
+        tResult.xSumSquaredDeviations -= (tSumDiffs * tSumDiffs / tResult.count);
+      }
+      return tResult;
+    }
+
+    var tBiStats = computeBivariateStats();
+    if( tBiStats.count > 1) {
+      if (iInterceptLocked) {
+        tSlopeIntercept.slope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
+            (tBiStats.xSumSquaredDeviations + tBiStats.xMean * tBiStats.xSum);
+        tSlopeIntercept.intercept = 0;
+      }
+      else {
+        tSlopeIntercept.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
+        tSlopeIntercept.intercept = tBiStats.yMean - tSlopeIntercept.slope * tBiStats.xMean;
+      }
+    }
+    return tSlopeIntercept;
+  },
+
+  /**
    * Is the value a finite number? Unlike the global "isFinite", returns
    * false for (null || undefined || "").  Strings or Booleans are converted
    * to Numbers in the usual way.

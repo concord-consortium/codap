@@ -28,6 +28,7 @@ DG.PlotUtilities = {
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
   kDefaultMovableLineColor: "steelblue",
+  kDefaultLSRLColor: "green",
   kLineHighlightColor: "rgba(255, 0, 0, 0.3)",
   kPlotCellFill: 'rgba(128, 128, 128, 0)', // transparent
   kPlotCellStroke: '#eee',
@@ -291,7 +292,7 @@ DG.PlotUtilities = {
 
     DG.assert( isFinite( iSlope));
 
-    if( isNaN( iSlope) || isNaN( iIntercept)) {
+    if( isNaN( iSlope) || isNaN( iIntercept) || SC.none( iSlope) || SC.none( iIntercept)) {
       return { slopeDigits: 0, interceptDigits: 0 };
     }
 
