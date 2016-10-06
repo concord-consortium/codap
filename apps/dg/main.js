@@ -85,8 +85,6 @@ DG.main = function main() {
     // parse url
     var parsedURL = $('<a>', {href:url})[0];
     var hash = parsedURL.hash;
-    var documentServer = DG.get('documentServer');
-    var startingDocId = DG.get('startingDocId');
     var startingDataInteractive = DG.get('startingDataInteractive');
 
     if (DG.get('runKey'))
@@ -173,6 +171,11 @@ DG.main = function main() {
               }
             },
             {
+              "name": "googleDrive",
+              "mimeType": "application/json",
+              "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
+            },
+            {
               "name": "documentStore",
               "displayName": "Concord Cloud",
               "deprecationPhase": 1,
@@ -180,11 +183,6 @@ DG.main = function main() {
               "patchObjectHash": function(obj) {
                 return obj.guid || JSON.stringify(obj);
               }
-            },
-            {
-              "name": "googleDrive",
-              "mimeType": "application/json",
-              "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
             },
             "localFile"//,
             //"localStorage"
