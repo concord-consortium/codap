@@ -869,7 +869,7 @@ DG.appController = SC.Object.create((function () // closure
     importFile: function ( tFile) {
 
       function adjustTypeBasedOnSuffix( tFile) {
-        var tRegEx = /\.[^\/]+$/,
+        var tRegEx = /\.[^.\/]+$/,
             tSuffix = tFile.name.match(tRegEx),
             tNewType = tType;
         if( !SC.empty(tSuffix))
