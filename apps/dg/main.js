@@ -178,7 +178,18 @@ DG.main = function main() {
             {
               "name": "documentStore",
               "displayName": "Concord Cloud",
-              "deprecationPhase": 1,
+              "deprecationPhase": (function() { // IIFE to keep code localized
+                                    // queryParam overrides defaults for testing
+                                    var phase = DG.getQueryParam('deprecationPhase');
+                                    if (phase) return Number(phase);
+
+                                    var currDate = new Date(),
+                                        phase2Date = new Date(2016, 10, 15),
+                                        phase3Date = new Date(2017, 0, 1);
+                                    if (currDate >= phase3Date) return 3;
+                                    if (currDate >= phase2Date) return 2;
+                                    return 1;
+                                  })(),
               "patch": true,
               "patchObjectHash": function(obj) {
                 return obj.guid || JSON.stringify(obj);
