@@ -1,8 +1,8 @@
 // ==========================================================================
 //                      DG.CaseTableController
-// 
+//
 //  The controller for tables.
-//  
+//
 //  Authors:  William Finzer, Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -271,11 +271,11 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
           break;
+        case 'cmdEditAttribute':
+          this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
+          break;
         case 'cmdRandomizeAttribute':
           this.randomizeAttribute( columnID);
-          break;
-        case 'cmdRenameAttribute':
-          this.renameAttribute( columnID);
           break;
         case 'cmdDeleteAttribute':
           this.deleteAttribute( columnID);
@@ -439,7 +439,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               var collectionID = iAdapter.getPath('collection.id');
               adapters[collectionID] = { adapter: iAdapter, cases: [] };
             });
- 
+
         function identifyCasesChanged(iCases) {
           if (iCases) {
             iCases.forEach(function(iCase) {
@@ -855,82 +855,266 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Rename an attribute. Brings up the Rename Attribute dialog.
+       * Edit an attribute's properties. Brings up the Edit Attribute dialog.
        *
        */
-      renameAttribute: function( iAttrID) {
+      editAttribute: function( iAttrID, iMenuItem) {
         var tDataContext = this.get('dataContext'),
-            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tCollectionClient = tDataContext && tAttrRef &&
-                                tDataContext.getCollectionForAttribute( tAttrRef.attribute),
-            tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
-            tDialog;
-        if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID);
+
+        if( !DG.assert( tAttrRef, "editAttribute() is missing the attribute reference"))
           return;
 
-        var doRenameAttribute = function( iAttrID, iAttrName, iOldAttrName) {
-          DG.UndoHistory.execute(DG.Command.create({
-            name: "caseTable.renameAttribute",
-            undoString: 'DG.Undo.caseTable.renameAttribute',
-            redoString: 'DG.Redo.caseTable.renameAttribute',
-            log: 'Rename attribute "%@"'.fmt(iAttrName),
-            _componentId: this.getPath('model.id'),
-            _controller: function() {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
-            execute: function() {
-              var change = {
-                              operation: 'updateAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iAttrName }]
-                            };
-              tDataContext.applyChange( change);
-            },
-            undo: function() {
-              var change = {
-                              operation: 'updateAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iOldAttrName }]
-                            };
-              tDataContext.applyChange( change);
-            },
-            redo: function() {
-              tDataContext = this._controller().get('dataContext');
-              this.execute();
-            }
-          }));
-        }.bind(this);
+        this.showEditAttributePane(tAttrRef, iMenuItem);
+      },
 
-        function handleRenameAttributeOK() {
-          // newAttrName: value of single-text-dialog: cannot be empty string
-          var newAttrName = tDialog.get('value'),
-              tExistingAttr = tCollectionClient && newAttrName &&
-                              tCollectionClient.getAttributeByName( newAttrName);
-          // if the name didn't change, then there's nothing to do
-          if( newAttrName === tAttrName) {
-            tDialog.close();
-            return;
+      /**
+       * Updates an attribute undo-ably based on attribute properties.
+       *
+       * This method is called from the attribute editing dialog.
+       *
+       * @param iAttrRef {{collection:  {DG.CollectionClient}
+   *                       attribute:   {DG.Attribute}
+   *                       position:    {number}}}
+       * @param iChangedAttrProps {object}
+       */
+      updateAttribute: function(iAttrRef, iChangedAttrProps) {
+        var tDataContext = this.get('dataContext');
+        var tAttr = iAttrRef.attribute;
+        var tOldAttrProps = {
+          id: tAttr.get('id'),
+          name: tAttr.get('name'),
+          type: tAttr.get('type'),
+          unit: tAttr.get('unit'),
+          editable: tAttr.get('editable'),
+          precision: tAttr.get('precision'),
+          description: tAttr.get('description'),
+        };
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttribute",
+          undoString: 'DG.Undo.caseTable.editAttribute',
+          redoString: 'DG.Redo.caseTable.editAttribute',
+          log: 'Edit attribute "%@"'.fmt(iChangedAttrProps.name),
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var change = {
+                            operation: 'updateAttributes',
+                            collection: iAttrRef && iAttrRef.collection,
+                            attrPropsArray: [Object.assign({ id: iAttrRef.attribute.get('id')}, iChangedAttrProps)]
+                          };
+            tDataContext.applyChange( change);
+          },
+          undo: function() {
+            var change = {
+                            operation: 'updateAttributes',
+                            collection: iAttrRef && iAttrRef.collection,
+                            attrPropsArray: [tOldAttrProps]
+                          };
+            tDataContext.applyChange( change);
+          },
+          redo: function() {
+            tDataContext = this._controller().get('dataContext');
+            this.execute();
           }
-          if( newAttrName && !tExistingAttr) {
-            tDialog.close();
-            doRenameAttribute( iAttrID, newAttrName, tAttrName);
-          }
-          else if( tExistingAttr) {
-            DG.AlertPane.info({
-              message: 'DG.TableController.renameAttributeDuplicateMsg',
-              description: 'DG.TableController.renameAttributeDuplicateDesc',
-              localize: true
-            });
-          }
+        }));
+      },
+
+      showEditAttributePane: function (iAttrRef, menuItem) {
+        var kRowHeight = 20;
+        var kControlHeight = kRowHeight - 2;
+        var kTitleHeight = 26;
+        var kControlWidth = 140;
+        var kMargin = 20;
+        var kLeading = 5;
+
+        var tAttr = iAttrRef.attribute;
+        var this_ = this;
+
+        if( this.getPath('attributePane.removedByClickInButton')) {
+          this.setPath('attributePane.removedByClickInButton', false);
+          return;
         }
+        var attributePane = SC.PalettePane.create({
+          buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
+          classNames: 'inspector-picker'.w(),
+          layout: {width: 250, height: 280, centerX: 0, centerY: 0},
+          contentView: SC.View.extend(SC.FlowedLayout, {
+            codapAttr: iAttrRef.attr,
+            layoutDirection: SC.LAYOUT_VERTICAL,
+            isResizable: false,
+            isClosable: false,
+            defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+            canWrap: false,
+            align: SC.ALIGN_TOP,
+            layout: {right: 5},
+            childViews: [
+              'title',
+              'nameCtl',
+              'descriptionCtl',
+              'typeCtl',
+              'unitCtl',
+              'precisionCtl',
+              'editableCtl',
+              'applyOrCancelCtl'
+            ],
 
-        tDialog = DG.CreateSingleTextDialog( {
-                        prompt: 'DG.TableController.renameAttributePrompt',
-                        textValue: tAttrName,
-                        okTarget: null,
-                        okAction: handleRenameAttributeOK,
-                        okTooltip: 'DG.TableController.renameAttributeOKTip'
-                      });
+            title: DG.PickerTitleView.extend({
+              layout: {height: kTitleHeight},
+              flowSpacing: {left: 0, bottom: kLeading},
+              title: 'DG.TableController.attributeEditor.title',
+              localize: true,
+            }),
+
+            nameCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight},
+              label: 'name',
+              controlView: SC.TextFieldView.extend({
+                layout: {
+                  centerY: 0,
+                  width: kControlWidth,
+                  height: kControlHeight
+                },
+                backgroundColor: 'white'
+              })
+            }),
+
+            descriptionCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight*4},
+              label: 'description',
+              controlView: SC.TextFieldView.extend({
+                layout: {
+                  centerY: 0,
+                  width: kControlWidth,
+                  height: kControlHeight*4
+                },
+                isTextArea: true,
+                backgroundColor: 'white'
+              })
+            }),
+
+            typeCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight * 1.5},
+              label: 'type',
+              controlView: SC.SelectView.extend({
+                layout: {
+                  width: kControlWidth,
+                  height: 24
+                },
+                itemTitleKey: 'title',
+                itemValueKey: 'title',
+                items: DG.Attribute.attributeTypes.map(function (type) {return {title: type};}),
+                value: null
+              })
+            }),
+
+            unitCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight},
+              label: 'unit',
+              controlView: SC.TextFieldView.extend({
+                layout: {
+                  width: kControlWidth,
+                  height: kControlHeight
+                },
+                backgroundColor: 'white'
+              })
+            }),
+
+            precisionCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight},
+              label: 'precision',
+              controlView: SC.TextFieldView.extend({
+                layout: {width: kControlWidth},
+                backgroundColor: 'white',
+                validator: SC.Validator.PositiveInteger
+              })
+            }),
+
+            editableCtl: DG.PickerControlView.create({
+              layout: {height: kRowHeight},
+              label: 'editable',
+              controlView: SC.RadioView.extend({
+                layout: {width: kControlWidth},
+                items: [
+                  { title: 'True', value: true, enabled: true},
+                  { title: 'False', value: false, enabled: true}
+                ],
+                value: [true],
+                itemTitleKey: 'title',
+                itemValueKey: 'value',
+                itemIsEnabledKey: 'enabled',
+                layoutDirection: SC.LAYOUT_HORIZONTAL
+              })
+            }),
+
+            applyOrCancelCtl: SC.View.create(SC.FlowedLayout, {
+              layoutDirection: SC.LAYOUT_VERTICAL,
+              defaultFlowSpacing: 5,
+              align: SC.ALIGN_CENTER,
+              layout: {
+                width: kControlWidth,
+                height: 24,
+              },
+              childViews: 'cancel apply'.w(),
+              cancel: SC.ButtonView.design({
+                layout: {  width: 90 },
+                titleMinWidth: 0,
+                title: 'DG.AttrFormView.cancelBtnTitle',  // "Cancel"
+                target: attributePane,
+                action: 'close',
+                toolTip: 'DG.AttrFormView.cancelBtnTooltip',  // "Dismiss the dialog without making any changes"
+                localize: true,
+                isCancel: true
+              }),
+              apply: SC.ButtonView.design({
+                layout: { width: 90 },
+                titleMinWidth: 0,
+                title: 'DG.AttrFormView.applyBtnTitle', // "Apply"
+                target: attributePane,
+                action: 'update',
+                toolTip: '',
+                localize: true,
+                isDefault: true
+              })
+            }),
+
+            init: function () {
+              sc_super();
+              if (tAttr) {
+                DG.ObjectMap.forEach(tAttr, function(key, val) {
+                  var ctlName = key + 'Ctl';
+                  if (!SC.none(this[ctlName]) && !SC.none(val)) {
+                    this.setPath(ctlName + '.controlView.value', val);
+                  }
+                }.bind(this));
+              }
+              //this_.get('attributeControls').forEach(function (iControl) {
+              //  this.appendChild(iControl);
+              //}.bind(this));
+            }
+          }),
+          update: function () {
+            var attr = {
+              name: this.getPath('contentView.nameCtl.controlView.value'),
+              description: this.getPath('contentView.descriptionCtl.controlView.value'),
+              type: this.getPath('contentView.typeCtl.controlView.value'),
+              unit: this.getPath('contentView.unitCtl.controlView.value'),
+              precision: this.getPath('contentView.precisionCtl.controlView.value'),
+              editable: this.getPath('contentView.editableCtl.controlView.value')
+            };
+            DG.log('setting attribute: ' + JSON.stringify(attr));
+            this_.updateAttribute(iAttrRef, attr);
+            this.close();
+          },
+          close: function () {
+            DG.log('Closing Attribute Editor');
+            this.remove();
+            this.destroy();
+          }
+        });
+        attributePane.append();
       },
 
       /**

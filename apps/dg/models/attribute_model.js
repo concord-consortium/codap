@@ -457,3 +457,12 @@ DG.Attribute.legalizeAttributeName = function (iName) {
 DG.Attribute.destroyAttribute = function( iAttribute) {
   iAttribute.destroy();
 };
+
+/**
+ * Valid Attribute types
+ *
+ * Empty string names an untyped attribute.
+ *
+ * @type {string[]}
+ */
+DG.Attribute.attributeTypes = ['', 'nominal', 'numeric', 'date'];

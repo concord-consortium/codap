@@ -311,6 +311,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.open': "Redo showing case tables",
   'DG.Undo.caseTable.renameAttribute': "Undo renaming case table attribute",
   'DG.Redo.caseTable.renameAttribute': "Redo renaming case table attribute",
+  'DG.Undo.caseTable.editAttribute': "Undo editing case table attribute",
+  'DG.Redo.caseTable.editAttribute': "Redo editing case table attribute",
   'DG.Undo.caseTable.createAttribute': "Undo creating case table attribute",
   'DG.Redo.caseTable.createAttribute': "Redo creating case table attribute",
   'DG.Undo.caseTable.editAttributeFormula': "Undo editing case table attribute formula",
@@ -514,7 +516,8 @@ SC.stringsFor('English', {
   'DG.Formula.LookupAttrError.description': "Attribute '%@' not found in data set '%@'",
 
   // DG.TableController
-  'DG.TableController.headerMenuItems.editAttribute': "Edit Formula...",
+  'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
+  'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
   'DG.TableController.headerMenuItems.renameAttribute': "Rename...",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
@@ -542,6 +545,7 @@ SC.stringsFor('English', {
   'DG.TableController.setScoreDlg.applyTooltip': "Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint': "Type a formula for computing values of this attribute",
 
+  'DG.TableController.attributeEditor.title': 'Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
 
