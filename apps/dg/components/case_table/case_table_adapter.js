@@ -511,6 +511,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             collection: tCollection,
             cases: iRowIndices.map(function (iRowIndex) {
               return tDataView.getItem( iRowIndex);
+            }).filter( function( iCase) {
+              // We filter because, at least in FireFox, we can get to a row that is one beyond the end
+              // which therefore has no case
+              return !SC.none( iCase);
             }),
             select: true,
             extend: false
