@@ -13183,6 +13183,7 @@ DocumentStoreProvider = (function(superClass) {
 
   DocumentStoreProvider.prototype.filterTabComponent = function(capability, defaultComponent) {
     if (capability === 'save' && this.disableForNextSave) {
+      this.disableForNextSave = false;
       return null;
     } else {
       return defaultComponent;
@@ -13199,7 +13200,7 @@ DocumentStoreProvider = (function(superClass) {
 
   DocumentStoreProvider.prototype.deprecationMessage = function() {
     var messages;
-    messages = [tr('~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_1'), tr('~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_2')];
+    messages = [tr('~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_1'), tr('~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_2'), tr('~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_3')];
     if (this.options.deprecationPhase > 0 && this.options.deprecationPhase <= messages.length) {
       return messages[this.options.deprecationPhase - 1];
     } else {
@@ -13472,6 +13473,7 @@ DocumentStoreProvider = (function(superClass) {
       message: this.deprecationMessage(),
       yesTitle: tr('~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE'),
       noTitle: tr('~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER'),
+      hideNoButton: deprecationPhase >= 3,
       callback: (function(_this) {
         return function() {
           _this.disableForNextSave = true;
@@ -13912,8 +13914,8 @@ GoogleDriveProvider = (function(superClass) {
         });
         return request.execute(function(result) {
           var i, item, len, list, ref1, type;
-          if (!result) {
-            return callback('Unable to list files');
+          if (!result || result.error) {
+            return callback(_this._apiError(result, 'Unable to list files'));
           }
           list = [];
           ref1 = result != null ? result.items : void 0;
@@ -14514,7 +14516,7 @@ LaraProvider = (function(superClass) {
           metadata.providerData = _.merge({}, docStoreMetadata, {
             url: runStateUrl
           });
-          codapUrl = window.location.origin || "${window.location.protocol}//${window.location.host}";
+          codapUrl = window.location.origin ? "" + window.location.origin + window.location.pathname : window.location.protocol + "//" + window.location.host + window.location.pathname;
           reportUrlLaraParams = {
             recordid: createResponse.id,
             accessKeys: {
@@ -14907,8 +14909,8 @@ CloudMetadata = (function() {
       return name;
     }
     extension = CloudMetadata.Extension || defaultExtension;
-    if ((extension != null) && name.substr(-extension.length + 1) !== ("." + extension)) {
-      return name + "." + extension;
+    if (extension) {
+      return this.newExtension(name, extension);
     } else {
       return name;
     }
@@ -16040,8 +16042,9 @@ module.exports = {
   "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "I'll do it later",
-  "~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_1": "<div style=\"text-align: left\">\n  <p style=\"margin: 10px 0;\">\n    <strong>The Concord Cloud is shutting down soon!</strong>\n  </p>\n  <ul style=\"margin: 10px 20px;\">\n    <li>Nov. 1: Saving to the Concord Cloud will be disabled.</li>\n    <li>Jan. 1: Opening from the Concord Cloud will be disabled.</li>\n  </ul>\n  <p style=\"margin: 10px 0;\">\n    Please save your documents to another location as soon as possible.\n  </p>\n</div>",
-  "~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_2": "<div style=\"text-align: left\">\n  <p style=\"margin: 10px 0;\">\n    <strong>The Concord Cloud is shutting down soon!</strong>\n  </p>\n  <ul style=\"margin: 10px 20px;\">\n    <li>Nov. 1: Saving to the Concord Cloud was disabled.</li>\n    <li>Jan. 1: Opening from the Concord Cloud will be disabled.</li>\n  </ul>\n  <p style=\"margin: 10px 0;\">\n    Please save your documents to another location as soon as possible.\n  </p>\n</div>"
+  "~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_1": "<div style=\"text-align: left\">\n  <p style=\"margin: 10px 0;\">\n    <strong>The Concord Cloud is shutting down soon!</strong>\n  </p>\n  <ul style=\"margin: 10px 20px;\">\n    <li>Nov 15, 2016: Saving to the Concord Cloud will be disabled.</li>\n    <li>Jan 1, 2017: Opening from the Concord Cloud will be disabled.</li>\n  </ul>\n  <p style=\"margin: 10px 0;\">\n    Please save your documents to another location as soon as possible.\n  </p>\n</div>",
+  "~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_2": "<div style=\"text-align: left\">\n  <p style=\"margin: 10px 0;\">\n    <strong>The Concord Cloud is shutting down soon!</strong>\n  </p>\n  <ul style=\"margin: 10px 20px;\">\n    <li>Nov 15, 2016: Saving to the Concord Cloud was disabled.</li>\n    <li>Jan 1, 2017: Opening from the Concord Cloud will be disabled.</li>\n  </ul>\n  <p style=\"margin: 10px 0;\">\n    Please save your documents to another location as soon as possible.\n  </p>\n</div>",
+  "~CONCORD_CLOUD_DEPRECATION.SAVE_PHASE_3": "<div style=\"text-align: left\">\n  <p style=\"margin: 10px 0;\">\n    <strong>The Concord Cloud has been shut down!</strong>\n  </p>\n  <ul style=\"margin: 10px 20px;\">\n    <li>Nov 15, 2016: Saving to the Concord Cloud was disabled.</li>\n    <li>Jan 1, 2017: Opening from the Concord Cloud was disabled.</li>\n  </ul>\n  <p style=\"margin: 10px 0;\">\n    Please save your documents to another location.\n  </p>\n</div>"
 };
 
 
@@ -16514,9 +16517,9 @@ module.exports = React.createClass({
       className: 'buttons'
     }, button({
       onClick: this.confirm
-    }, this.props.yesTitle || tr('~CONFIRM_DIALOG.YES')), button({
+    }, this.props.yesTitle || tr('~CONFIRM_DIALOG.YES')), (!this.props.hideNoButton ? button({
       onClick: this.reject
-    }, this.props.noTitle || tr('~CONFIRM_DIALOG.NO')))));
+    }, this.props.noTitle || tr('~CONFIRM_DIALOG.NO')) : void 0))));
   }
 });
 
@@ -16885,7 +16888,7 @@ FileList = React.createFactory(React.createClass({
   render: function() {
     var isSubFolder, j, len, list, metadata, ref1;
     list = [];
-    isSubFolder = this.props.folder !== null;
+    isSubFolder = this.props.folder != null;
     if (isSubFolder) {
       list.push(div({
         key: 'parent',
@@ -16918,7 +16921,7 @@ FileDialogTab = React.createClass({
   mixins: [AuthorizeMixin],
   getInitialState: function() {
     var initialState, ref1, ref2;
-    initialState = this.getStateForFolder(((ref1 = this.props.client.state.metadata) != null ? ref1.parent : void 0) || null);
+    initialState = this.getStateForFolder((ref1 = this.props.client.state.metadata) != null ? ref1.parent : void 0, true) || null;
     initialState.filename = ((ref2 = initialState.metadata) != null ? ref2.name : void 0) || '';
     return initialState;
   },
@@ -16938,14 +16941,28 @@ FileDialogTab = React.createClass({
       list: list
     });
   },
-  getStateForFolder: function(folder) {
-    var metadata, ref1;
-    metadata = this.isOpen() ? ((ref1 = this.state) != null ? ref1.metadata : void 0) || null : _.cloneDeep(this.props.client.state.metadata);
-    if (metadata != null) {
-      metadata.parent = folder;
+  getSaveMetadata: function() {
+    var saveMetadata;
+    saveMetadata = this.props.client.state.metadata ? _.clone(this.props.client.state.metadata) : null;
+    if (saveMetadata) {
+      if (this.props.provider === saveMetadata.provider) {
+        saveMetadata.providerData = _.cloneDeep(saveMetadata.providerData);
+      } else {
+        saveMetadata.provider = null;
+        saveMetadata.providerData = null;
+      }
     }
-    if (this.props.client.state.metadata && (this.props.provider !== this.props.client.state.metadata.provider)) {
+    return saveMetadata;
+  },
+  getStateForFolder: function(folder, initialFolder) {
+    var metadata, ref1, ref2;
+    metadata = this.isOpen() ? ((ref1 = this.state) != null ? ref1.metadata : void 0) || null : this.getSaveMetadata();
+    if (initialFolder && (((ref2 = this.props.client.state.metadata) != null ? ref2.provider : void 0) !== this.props.provider)) {
       folder = null;
+    } else {
+      if (metadata != null) {
+        metadata.parent = folder;
+      }
     }
     return {
       folder: folder,
@@ -16955,9 +16972,7 @@ FileDialogTab = React.createClass({
   },
   fileSelected: function(metadata) {
     if ((metadata != null ? metadata.type : void 0) === CloudMetadata.Folder) {
-      return this.setState({
-        folder: metadata
-      });
+      return this.setState(this.getStateForFolder(metadata));
     } else if ((metadata != null ? metadata.type : void 0) === CloudMetadata.File) {
       return this.setState({
         filename: metadata.name,

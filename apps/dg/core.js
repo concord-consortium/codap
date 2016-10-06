@@ -228,6 +228,10 @@ DG = SC.Application.create((function () // closure
 
     defaultLogServerLoginURLSecure: 'https://cc-log-manager.herokuapp.com/api/logs',
 
+    getQueryParam: function(iParam, iDefault) {
+      return getUrlParameter(iParam, iDefault);
+    },
+
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
      * key if this is an SRRI build (also expected to be in in strings.js).
