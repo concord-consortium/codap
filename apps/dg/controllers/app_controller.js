@@ -949,17 +949,8 @@ DG.appController = SC.Object.create((function () // closure
           SC.run(function() {
             try {
               if (iType === 'JSON') {
-                that.openJsonDocument(this.result, true).then(function() {
-                    DG.log('Opened: ' + iFile.name);
-                    if (DG.cfmClient) {
-                      DG.cfmClient.rename(null, iFile.name);
-                    }
-                  },
-                  function (msg) {
-                    DG.logError('JSON file open failed: ' + iFile.name);
-                    DG.logError(msg);
-                    iDialog.showAlert(new Error(msg));
-                  });
+                DG.cfmClient.openLocalFile(iFile);
+                DG.log('Opened: ' + iFile.name);
               }
               else if (iType === 'TEXT') {
                 that.importText(this.result, iFile.name);
