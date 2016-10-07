@@ -260,6 +260,9 @@ DG.main = function main() {
                   reject(iReason);
                 });
       }
+      else {
+        resolve(iDocContents);
+      }
     });
   }
 
