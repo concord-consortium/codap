@@ -351,6 +351,10 @@ SC.stringsFor('English', {
   'DG.Redo.graph.showConnectingLine': "Redo showing connecting line",
   'DG.Undo.graph.hideConnectingLine': "Undo hiding connecting line",
   'DG.Redo.graph.hideConnectingLine': "Redo hiding connecting line",
+  'DG.Undo.graph.showLSRL': "Undo showing least squares line",
+  'DG.Redo.graph.showLSRL': "Redo showing least squares line",
+  'DG.Undo.graph.hideLSRL': "Undo hiding least squares line",
+  'DG.Redo.graph.hideLSRL': "Redo hiding least squares line",
   'DG.Undo.graph.showSquares': "Undo showing squares",
   'DG.Redo.graph.showSquares': "Redo showing squares",
   'DG.Undo.graph.hideSquares': "Undo hiding squares",
@@ -694,6 +698,7 @@ SC.stringsFor('English', {
   'DG.Inspector.graphInterceptLocked': "Intercept Locked",  // "Intercept Locked"
   'DG.Inspector.graphPlottedFunction': "Plotted Function",  // "Plotted Function"
   'DG.Inspector.graphSquares': "Squares of Residuals",  // "Squares of Residuals"
+  'DG.Inspector.graphLSRL': "Least Squares Line",  // "Least Squares Line"
   'DG.Inspector.graphMovableValue': "Movable Value",  // "Movable Value"
   'DG.Inspector.graphPlottedMean': "Mean",  // "Mean"
   'DG.Inspector.graphPlottedMedian': "Median",  // "Median"
