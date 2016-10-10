@@ -61,6 +61,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
   movableLineAdorn: null,
   
   /**
+  @property {DG.LSRLAdornment}
+  */
+  lsrlAdorn: null,
+
+  /**
   @property {DG.PlottedFunctionAdornment}
   */
   functionAdorn: null,
@@ -117,10 +122,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( this.connectingLineAdorn ) {
       this.connectingLineAdorn.invalidateModel();
     }
-
-    // update plotted function
-    if (this.functionAdorn)
-      this.functionAdorn.updateToModel();
+    this.updateAdornments();
   },
   
   /**
@@ -151,13 +153,22 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.connectingLineAdorn.updateToModel();
     }
 
-    // update plotted function
-    if (this.functionAdorn)
-      this.functionAdorn.updateToModel();
+    this.updateAdornments();
     
     this.rescaleOnParentCaseCompletion( tCases);
 
     sc_super();
+  },
+
+  updateAdornments: function() {
+    var tLsrlAdorn = this.get('lsrlAdorn');
+    if (tLsrlAdorn) {
+      tLsrlAdorn.get('model').setComputingNeeded();
+      tLsrlAdorn.updateToModel();
+    }
+    // update plotted function
+    if (this.functionAdorn)
+      this.functionAdorn.updateToModel();
   },
 
   /**
@@ -421,6 +432,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( !SC.none( this.movableLineAdorn))
       this.movableLineAdorn.updateToModel();
 
+    if( !SC.none( this.lsrlAdorn))
+      this.lsrlAdorn.updateToModel();
+
     if( !SC.none( this.functionAdorn))
       this.functionAdorn.updateToModel();
 
@@ -456,6 +470,26 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.movableLineAdorn.updateVisibility();
     }
   }.observes('*model.movableLine.isVisible'),
+
+  /**
+    Presumably our model has created an lsr line. We need to create our adornment.
+  */
+  lsrlChanged: function() {
+    if( !this.readyToDraw())
+      return;
+    var tLsrLine = this.getPath('model.lsrLine');
+    // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
+    if( tLsrLine) {
+      if( !this.lsrlAdorn) {
+        var tAdorn = DG.LSRLAdornment.create( {
+                          parentView: this, model: tLsrLine, paperSource: this.get('paperSource'),
+                          layerName: DG.LayerNames.kAdornments } );
+        tAdorn.createElements();
+        this.lsrlAdorn = tAdorn;
+      }
+      this.lsrlAdorn.updateVisibility();
+    }
+  }.observes('*model.lsrLine.isVisible'),
 
   /**
     Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
@@ -529,6 +563,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
   didCreateLayer: function() {
     sc_super();
     this.movableLineChanged();
+    this.lsrlChanged();
     this.plottedFunctionChanged();
   },
   

@@ -18,52 +18,15 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/adornments/plot_adornment_model');
+sc_require('components/graph/adornments/twoD_line_model');
 
 /** @class  DG.MovableLineModel - The model for a movable line.
 
-  @extends DG.PlotAdornmentModel
+  @extends DG.TwoDLineModel
 */
-DG.MovableLineModel = DG.PlotAdornmentModel.extend(
-/** @scope DG.MovableLineModel.prototype */ 
+DG.MovableLineModel = DG.TwoDLineModel.extend(
+/** @scope DG.TwoDLineModel.prototype */
 {
-  /**
-    The current slope of the line.
-    @property { Number }
-  */
-  slope: null,
-
-  /**
-    The current intercept of the line.
-    @property { Number }
-  */
-  intercept: null,
-
-  /**
-    True if the line is vertical
-    @property { Boolean }
-  */
-  isVertical: false,
-
-  /**
-    If the line is vertical, it intersects the x-axis at this world value.
-    @property { Number }
-  */
-  xIntercept: null,
-
-  /**
-    Is the intercept locked at the origin?
-    @property { Boolean }
-  */
-  isInterceptLocked: function( iKey, iLocked) {
-    if( iLocked !== undefined) {
-      this._interceptLocked = iLocked;
-      if( iLocked)
-        this.set('intercept', 0);
-    }
-    return this._interceptLocked;
-  }.property(),
-
   /**
     True if we need to compute a new slope and intercept to force within plot bounds
     @return { Boolean }
@@ -107,21 +70,6 @@ DG.MovableLineModel = DG.PlotAdornmentModel.extend(
       this.forceThroughOriginAndPoint( { x: tUpperX, y: (tUpperY + tLowerY) /2 });
     }
     this._needsComputing = false;
-  },
-
-  /**
-    Use the bounds of the given axes to recompute slope and intercept.
-  */
-  recomputeSlopeAndInterceptIfNeeded: function( iXAxis, iYAxis) {
-    if( this.isComputingNeeded( iXAxis, iYAxis))
-      this.recomputeSlopeAndIntercept( iXAxis, iYAxis);
-  },
-
-  /**
-    Use the bounds of the given axes to recompute slope and intercept.
-  */
-  toggleInterceptLocked: function() {
-    this.set('isInterceptLocked', !this._interceptLocked);
   },
 
   /**
@@ -171,31 +119,6 @@ DG.MovableLineModel = DG.PlotAdornmentModel.extend(
   },
 
   /**
-    Private cache.
-    @property { Boolean }
-  */
-  _needsComputing: null,
-
-  /**
-    Private cache.
-    @property { Boolean }
-  */
-  _interceptLocked: null,
-
-  /**
-    Provide reasonable defaults.
-  */
-  init: function() {
-    sc_super();
-    this.slope = 1;
-    this.intercept = 0;
-    this.isVertical = false;
-    this.xIntercept = null;
-    this._interceptLocked = false;
-    this._needsComputing = true;
-  },
-
-  /**
    * @return { Object } with properties specific to a given subclass
    */
   createStorage: function() {
@@ -203,7 +126,6 @@ DG.MovableLineModel = DG.PlotAdornmentModel.extend(
     DG.ObjectMap.copy( tStorage, {
       intercept: this.get('intercept'),
       slope: this.get('slope'),
-      isInterceptLocked: this.get('isInterceptLocked'),
       isVertical: this.get('isVertical'),
       xIntercept: this.get('xIntercept')
     });
@@ -217,7 +139,6 @@ DG.MovableLineModel = DG.PlotAdornmentModel.extend(
     sc_super();
     this.set('intercept', iStorage.intercept);
     this.set('slope', iStorage.slope);
-    this.set('isInterceptLocked', iStorage.isInterceptLocked);
     this.set('isVertical', iStorage.isVertical);
     this.set('xIntercept', iStorage.xIntercept);
   }

@@ -18,13 +18,13 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('components/graph/adornments/plot_adornment');
+sc_require('components/graph/adornments/twoD_line_adornment');
 
 /** @class  Draws a movable line.
 
-  @extends DG.PlotAdornment
+  @extends DG.TwoDLineAdornment
 */
-DG.MovableLineAdornment = DG.PlotAdornment.extend(
+DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 /** @scope DG.MovableLineAdornment.prototype */ 
 {
   kLineSlideCur: DG.Browser.customCursorStr(static_url('cursors/LineSlide.cur'), 8, 8),
@@ -34,12 +34,6 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
   kLineTopRight: DG.Browser.customCursorStr(static_url('cursors/LinePivotTopRight.cur'), 12, 5),
 
   /**
-    The movable line itself is a single line element
-    @property { Raphael line element }
-  */
-  lineSeg: null,
-
-  /**
     The line is covered by three nearly transparent wider segments for hitting and hilighting
     @property { Raphael line element }
   */
@@ -47,75 +41,12 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
   secondSegHit: null,
   thirdSegHit: null,
 
-  equation: null,
-
   /**
     The line is defined by two pivot points
     @property { Point as in { x: <>, y: <> } } in world coordinates
   */
   pivot1: null,
   pivot2: null,
-
-  /**
-    Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
-    which observers to add/remove from the model.
-    
-    @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
-   */
-  modelPropertiesToObserve: [ ['slope', 'updateToModel'], ['intercept', 'updateToModel'],
-                              ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel']],
-
-  /**
-    The returned string should have a reasonable number of significant digits for the
-      circumstances.
-    @property { String read only }
-  */
-  equationString: function() {
-    var this_ = this;
-
-    function equationForFiniteSlopeLine() {
-      var tIntercept = this_.getPath('model.intercept'),
-        tSlope = this_.getPath('model.slope'),
-        tDigits = DG.PlotUtilities.findNeededFractionDigits(
-                tSlope, tIntercept,
-                this_.get('xAxisView'), this_.get('yAxisView')),
-        tIntNumFormat = DG.Format.number().fractionDigits( 0, tDigits.interceptDigits),
-        tInterceptString = tIntNumFormat( tIntercept),
-        tSlopeNumFormat = DG.Format.number().fractionDigits( 0, tDigits.slopeDigits),
-        tSlopeString = tSlopeNumFormat( tSlope) + " ",
-        tSign = (tIntercept < 0) ? " " : " + ",
-        tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
-        tXVar = this_.getPath('xAxisView.model.firstAttributeName'),
-        tFirstTerm;
-      // When the intercept string is zero, don't display it (even if the numeric value is not zero).
-      if( tInterceptString === "0")
-        tInterceptString = tSign = "";
-      // Note that a space has been added to the number part of the slope.
-      if( tSlopeString === "1 ")
-        tSlopeString = "";
-      if( tSlopeString === "0 ") {
-        tFirstTerm = '';
-        tSign = '';
-      }
-      else
-        tFirstTerm = tSlopeString + tXVar;
-      return tYVar + " = " + tFirstTerm + tSign + tInterceptString;
-    }
-
-    function equationForInfiniteSlopeLine() {
-      var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this_.get('xAxisView')),
-          tXIntercept = this_.getPath( 'model.xIntercept'),
-          tXVar = this_.getPath('xAxisView.model.label');
-      return tXVar + " = " + DG.Format.number().fractionDigits( 0, tDigits)( tXIntercept);
-    }
-
-    if( this.getPath( 'model.isVertical'))
-      return equationForInfiniteSlopeLine();
-    else
-      return equationForFiniteSlopeLine();
-
-  }.property('model.intercept', 'model.slope', 'model.isVertical', 'model.xIntercept',
-              'xAxisView.model.firstAttributeName', 'yAxisView.model.firstAttributeName' ).cacheable(),
 
   /**
     Make the pieces of the movable line. This only needs to be done once.
@@ -291,6 +222,8 @@ DG.MovableLineAdornment = DG.PlotAdornment.extend(
    the left of tIntercepts.pt2. 
   */
   updateToModel: function() {
+    if( !this.getPath('model.isVisible'))
+        return;
     if( this.myElements === null)
       this.createElements();
     var tXAxisView = this.get( 'xAxisView'),
