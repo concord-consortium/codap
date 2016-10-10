@@ -465,4 +465,16 @@ DG.Attribute.destroyAttribute = function( iAttribute) {
  *
  * @type {string[]}
  */
-DG.Attribute.attributeTypes = ['', 'nominal', 'numeric', 'date'];
+DG.Attribute.TYPE_UNSPECIFIED = 'none';
+DG.Attribute.TYPE_NOMINAL = 'nominal';
+DG.Attribute.TYPE_NUMERIC = 'numeric';
+DG.Attribute.TYPE_DATE = 'date';
+DG.Attribute.TYPE_QUALITATIVE = 'qualitative';
+
+DG.Attribute.attributeTypes = [
+  DG.Attribute.TYPE_UNSPECIFIED,
+  DG.Attribute.TYPE_NOMINAL,
+  DG.Attribute.TYPE_NUMERIC,
+  DG.Attribute.TYPE_DATE,
+  DG.Attribute.TYPE_QUALITATIVE
+];

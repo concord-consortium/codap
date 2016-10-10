@@ -309,8 +309,6 @@ SC.stringsFor('English', {
   'DG.Redo.toggleComponent.delete.calcView': "Redo hiding the calculator",
   'DG.Undo.caseTable.open': "Undo showing case tables",
   'DG.Redo.caseTable.open': "Redo showing case tables",
-  'DG.Undo.caseTable.renameAttribute': "Undo renaming case table attribute",
-  'DG.Redo.caseTable.renameAttribute': "Redo renaming case table attribute",
   'DG.Undo.caseTable.editAttribute': "Undo editing case table attribute",
   'DG.Redo.caseTable.editAttribute': "Redo editing case table attribute",
   'DG.Undo.caseTable.createAttribute': "Undo creating case table attribute",
@@ -519,8 +517,6 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
   'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
-  'DG.TableController.headerMenuItems.renameAttribute': "Rename...",
-  'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint': "If desired, type a formula for computing values of this attribute",
@@ -531,8 +527,6 @@ SC.stringsFor('English', {
   'DG.TableController.newAttrDialog.GlobalsCategory': "Globals",
   'DG.TableController.newAttrDialog.ConstantsCategory': "Constants",  // Set to "Special" to combine with 'caseIndex'
   'DG.TableController.newAttrDialog.FunctionsCategory': "Functions",
-  'DG.TableController.renameAttributePrompt': "Enter a new name for the attribute:",
-  'DG.TableController.renameAttributeOKTip': "Accept the new attribute name",
   'DG.TableController.renameAttributeInvalidMsg': "Attribute names may not be empty",
   'DG.TableController.renameAttributeInvalidDesc': "Please enter a valid attribute name",
   'DG.TableController.renameAttributeDuplicateMsg': "An attribute with that name already exists",
@@ -541,6 +535,9 @@ SC.stringsFor('English', {
   'DG.TableController.deleteAttribute.confirmDescription': "This action cannot be undone.",
   'DG.TableController.deleteAttribute.okButtonTitle': "Delete Attribute",
   'DG.TableController.deleteAttribute.cancelButtonTitle': "Cancel",
+  'DG.TableController.attrEditor.precisionHint': "Number of digits after decimal point",
+  'DG.TableController.attrEditor.unitHint': "Unit of measure, if applicable",
+  'DG.TableController.attrEditor.descriptionHint': "Describe the attribute",
   'DG.TableController.scoreAttrName': "score",
   'DG.TableController.setScoreDlg.applyTooltip': "Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint': "Type a formula for computing values of this attribute",
@@ -548,6 +545,11 @@ SC.stringsFor('English', {
   'DG.TableController.attributeEditor.title': 'Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
+  'DG.CaseTable.attribute.type.none': '',
+  'DG.CaseTable.attribute.type.nominal': 'nominal',
+  'DG.CaseTable.attribute.type.numeric': 'numeric',
+  'DG.CaseTable.attribute.type.date': 'date',
+  'DG.CaseTable.attribute.type.qualitative': 'qualitative',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',

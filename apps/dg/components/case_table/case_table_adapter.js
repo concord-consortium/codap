@@ -60,7 +60,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
         if( SC.none( cellValue))
           cellValue = "";
-        else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
+        else if( DG.isNumeric(cellValue)) {
           var attrPrecision = colInfo.attribute.get('precision'),
               roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
               multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
@@ -341,10 +341,19 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                           function( iColumn) {
                                             return iAttribute.get('id').toString() === iColumn.id;
                                           });
+    var isQual = iAttribute.get('type') === 'qualitative';
+
     if( column) {
+
       column.name = getColumnHeaderString( iAttribute);
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);
+      column.formatter = isQual ? qualBarFormatter : cellFormatter;
+      if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
+        column.editor = DG.CaseTableCellEditor;
+      else
+        delete column.editor;
+
       this.gridDataView.refresh();
       return true;
     }
