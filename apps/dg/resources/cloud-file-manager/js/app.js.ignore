@@ -11963,7 +11963,7 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('load') : void 0 : void 0) {
+    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('load', metadata) : void 0 : void 0) {
       return metadata.provider.load(metadata, (function(_this) {
         return function(err, content) {
           if (err) {
@@ -12198,7 +12198,7 @@ CloudFileManagerClient = (function() {
   CloudFileManagerClient.prototype.createNewInFolder = function(providerName, folder) {
     var provider;
     provider = this.providers[providerName];
-    if (provider && provider.can('setFolder')) {
+    if (provider && provider.can('setFolder', this.state.metadata)) {
       if (this.state.metadata == null) {
         this.state.metadata = new CloudMetadata({
           type: CloudMetadata.File,
@@ -12276,7 +12276,7 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save') : void 0 : void 0) {
+    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) {
       this._setState({
         saving: metadata
       });
@@ -12580,7 +12580,7 @@ CloudFileManagerClient = (function() {
       };
     })(this);
     if (newName !== ((ref = this.state.metadata) != null ? ref.name : void 0)) {
-      if ((ref1 = this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('rename') : void 0 : void 0) {
+      if ((ref1 = this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('rename', metadata) : void 0 : void 0) {
         return this.state.metadata.provider.rename(this.state.metadata, newName, (function(_this) {
           return function(err, metadata) {
             if (err) {
@@ -12661,7 +12661,7 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save') : void 0 : void 0) {
+    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) {
       this._setState({
         saving: metadata
       });
@@ -12697,7 +12697,7 @@ CloudFileManagerClient = (function() {
     shouldAutoSave = (function(_this) {
       return function() {
         var ref, ref1, ref2;
-        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('save') : void 0 : void 0);
+        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('save', _this.state.metadata) : void 0 : void 0);
       };
     })(this);
     if (interval > 1000) {
@@ -12904,7 +12904,7 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype._closeCurrentFile = function() {
     var ref, ref1;
-    if ((ref = this.state.metadata) != null ? (ref1 = ref.provider) != null ? ref1.can('close') : void 0 : void 0) {
+    if ((ref = this.state.metadata) != null ? (ref1 = ref.provider) != null ? ref1.can('close', this.state.metadata) : void 0 : void 0) {
       return this.state.metadata.provider.close(this.state.metadata);
     }
   };
@@ -14313,6 +14313,7 @@ LaraProvider = (function(superClass) {
     this.removableQueryParams = ['launchFromLara', 'runAsGuest'];
     this.laraParams = this.urlParams.launchFromLara ? this.decodeParams(this.urlParams.launchFromLara) : null;
     this.openSavedParams = null;
+    this.collaboratorUrls = [];
     this.docStoreUrl = new DocumentStoreUrl(this.urlParams.documentServer);
     this.savedContent = new PatchableContent(this.options.patchObjectHash);
   }
@@ -14357,6 +14358,13 @@ LaraProvider = (function(superClass) {
       }
     }
     return rawData;
+  };
+
+  LaraProvider.prototype.can = function(capability, metadata) {
+    var hasReadOnlyAccess, ref, ref1, ref2, ref3, requiresWriteAccess;
+    hasReadOnlyAccess = ((metadata != null ? (ref = metadata.providerData) != null ? (ref1 = ref.accessKeys) != null ? ref1.readOnly : void 0 : void 0 : void 0) != null) && ((metadata != null ? (ref2 = metadata.providerData) != null ? (ref3 = ref2.accessKeys) != null ? ref3.readWrite : void 0 : void 0 : void 0) == null);
+    requiresWriteAccess = ['save', 'remove', 'rename'].indexOf(capability) >= 0;
+    return LaraProvider.__super__.can.call(this, capability, metadata) && !(requiresWriteAccess && hasReadOnlyAccess);
   };
 
   LaraProvider.prototype.load = function(metadata, callback) {
@@ -14448,7 +14456,7 @@ LaraProvider = (function(superClass) {
   };
 
   LaraProvider.prototype.openSaved = function(openSavedParams, callback) {
-    var metadata, processInitialRunState, updateInteractiveRunStateAndLoad;
+    var loadProviderFile, metadata, processInitialRunState, ref;
     metadata = new CloudMetadata({
       type: CloudMetadata.File,
       provider: this
@@ -14457,28 +14465,171 @@ LaraProvider = (function(superClass) {
       openSavedParams = this.decodeParams(openSavedParams);
     }
     this.openSavedParams = openSavedParams;
-    if (openSavedParams && openSavedParams.recordid) {
-      metadata.providerData = openSavedParams;
-      this.load(metadata, (function(_this) {
-        return function(err, content) {
+    this.collaboratorUrls = (openSavedParams != null ? (ref = openSavedParams.collaboratorUrls) != null ? ref.length : void 0 : void 0) > 0 ? openSavedParams.collaboratorUrls : [];
+    loadProviderFile = (function(_this) {
+      return function(providerData, callback) {
+        metadata.providerData = providerData;
+        return _this.load(metadata, function(err, content) {
           _this.client.removeQueryParams(_this.removableQueryParams);
           return callback(err, content, metadata);
-        };
-      })(this));
-      return;
+        });
+      };
+    })(this);
+    if (openSavedParams != null ? openSavedParams.recordid : void 0) {
+      return loadProviderFile(openSavedParams);
     }
     processInitialRunState = (function(_this) {
       return function(runStateUrl, sourceID, readOnlyKey, runState) {
-        var createParams, docStoreParams, method, rawData, ref, ref1, ref2, url;
-        rawData = _this.extractRawDataFromRunState(runState);
-        docStoreParams = rawData.docStore;
-        if ((docStoreParams != null) && (docStoreParams.recordid != null) && ((((ref = docStoreParams.accessKeys) != null ? ref.readOnly : void 0) != null) || (((ref1 = docStoreParams.accessKeys) != null ? ref1.readWrite : void 0) != null))) {
-          metadata.providerData = _.cloneDeep(docStoreParams);
-          _this.load(metadata, function(err, content) {
-            _this.client.removeQueryParams(_this.removableQueryParams);
-            return callback(err, content, metadata);
-          });
-          return;
+        var becomeLeader, cloneDoc, createParams, docStore, existingRunState, finished, haveCollaborators, method, processCreateResponse, ref1, ref2, ref3, removeCollaborator, setFollowers, updateInteractiveRunStates, url;
+        existingRunState = _this.extractRawDataFromRunState(runState);
+        docStore = existingRunState.docStore;
+        haveCollaborators = _this.collaboratorUrls.length > 0;
+        updateInteractiveRunStates = function(urls, newDocStore, callback) {
+          var learnerParam, learnerUrl, newRunState, processQueue, rawData, updateRunState, urlQueue;
+          newRunState = _.cloneDeep(existingRunState);
+          newRunState.docStore = newDocStore;
+          rawData = JSON.stringify(newRunState);
+          learnerUrl = (newRunState.learner_url != null) && typeof newRunState.learner_url === "string" ? newRunState.learner_url : null;
+          learnerParam = learnerUrl ? "&learner_url=" + (encodeURIComponent(learnerUrl)) : "";
+          updateRunState = function(url, done) {
+            return $.ajax({
+              type: 'PUT',
+              url: url + "?raw_data=" + (encodeURIComponent(rawData)) + learnerParam,
+              dataType: 'json',
+              xhrFields: {
+                withCredentials: true
+              }
+            }).done(function(data, status, jqXHR) {
+              if ((data != null ? data.success : void 0) === false) {
+                return done("Could not open the specified document because an error occurred [updateState] (" + data.message + ")");
+              } else {
+                return done(null);
+              }
+            }).fail(function(jqXHR, status, error) {
+              return done("Could not open the specified document because an error occurred [updateState]");
+            });
+          };
+          urlQueue = urls.slice();
+          processQueue = function() {
+            var url;
+            if (urlQueue.length === 0) {
+              return callback(null);
+            } else {
+              url = urlQueue.shift();
+              return updateRunState(url, function(err) {
+                if (err) {
+                  return callback(err);
+                } else {
+                  return processQueue();
+                }
+              });
+            }
+          };
+          return processQueue();
+        };
+        processCreateResponse = function(createResponse) {
+          var codapUrl, encodedLaraParams, reportUrlLaraParams;
+          docStore = {
+            recordid: createResponse.id,
+            accessKeys: {
+              readOnly: createResponse.readAccessKey,
+              readWrite: createResponse.readWriteAccessKey
+            }
+          };
+          codapUrl = window.location.origin ? "" + window.location.origin + window.location.pathname : window.location.protocol + "//" + window.location.host + window.location.pathname;
+          reportUrlLaraParams = {
+            recordid: createResponse.id,
+            accessKeys: {
+              readOnly: createResponse.readAccessKey
+            }
+          };
+          encodedLaraParams = _this.encodeParams(reportUrlLaraParams);
+          if (existingRunState.lara_options == null) {
+            existingRunState.lara_options = {};
+          }
+          return existingRunState.lara_options.reporting_url = codapUrl + "?launchFromLara=" + encodedLaraParams;
+        };
+        if (((docStore != null ? docStore.recordid : void 0) != null) && ((((ref1 = docStore.accessKeys) != null ? ref1.readOnly : void 0) != null) || (((ref2 = docStore.accessKeys) != null ? ref2.readWrite : void 0) != null))) {
+          cloneDoc = function(callback) {
+            var createParams, method, ref3, url;
+            createParams = {
+              source: docStore.recordid,
+              accessKey: "RO::" + docStore.accessKeys.readOnly
+            };
+            ref3 = _this.docStoreUrl.v2CreateDocument(createParams), method = ref3.method, url = ref3.url;
+            return $.ajax({
+              type: method,
+              url: url,
+              dataType: 'json'
+            }).done(function(createResponse, status, jqXHR) {
+              processCreateResponse(createResponse);
+              return callback(null);
+            }).fail(function(jqXHR, status, error) {
+              return callback("Could not open the specified document because an error occurred [createCopy]");
+            });
+          };
+          setFollowers = function(err, callback) {
+            var collaboratorParams;
+            if (err) {
+              return callback(err);
+            } else {
+              collaboratorParams = _.cloneDeep(docStore);
+              collaboratorParams.collaborator = 'follower';
+              return updateInteractiveRunStates(_this.collaboratorUrls, collaboratorParams, callback);
+            }
+          };
+          becomeLeader = function(err, callback) {
+            if (err) {
+              return callback(err);
+            } else {
+              docStore.collaborator = 'leader';
+              return updateInteractiveRunStates([runStateUrl], docStore, callback);
+            }
+          };
+          removeCollaborator = function(err, callback) {
+            if (err) {
+              return callback(err);
+            } else {
+              delete docStore.collaborator;
+              return updateInteractiveRunStates([runStateUrl], docStore, callback);
+            }
+          };
+          finished = function(err) {
+            if (err) {
+              return callback(err);
+            } else {
+              return loadProviderFile(_.cloneDeep(docStore), callback);
+            }
+          };
+          if (docStore.collaborator) {
+            if (docStore.collaborator === 'leader') {
+              if (haveCollaborators) {
+                return setFollowers(null, finished);
+              } else {
+                return removeCollaborator(null, finished);
+              }
+            } else {
+              if (haveCollaborators) {
+                return cloneDoc(function(err) {
+                  return becomeLeader(err, (function(err) {
+                    return setFollowers(err, finished);
+                  }));
+                });
+              } else {
+                return cloneDoc(function(err) {
+                  return removeCollaborator(err, finished);
+                });
+              }
+            }
+          } else {
+            if (haveCollaborators) {
+              return becomeLeader(null, function(err) {
+                return setFollowers(err, finished);
+              });
+            } else {
+              return finished();
+            }
+          }
         }
         if (!sourceID) {
           callback("Could not open the specified document because an error occurred [noSource]");
@@ -14490,65 +14641,42 @@ LaraProvider = (function(superClass) {
         if (readOnlyKey) {
           createParams.accessKey = "RO::" + readOnlyKey;
         }
-        ref2 = _this.docStoreUrl.v2CreateDocument(createParams), method = ref2.method, url = ref2.url;
+        ref3 = _this.docStoreUrl.v2CreateDocument(createParams), method = ref3.method, url = ref3.url;
         return $.ajax({
           type: method,
           url: url,
           dataType: 'json'
-        }).done(function(data, status, jqXHR) {
-          return updateInteractiveRunStateAndLoad(runStateUrl, runState, data);
+        }).done(function(createResponse, status, jqXHR) {
+          var providerData, updateFinished;
+          processCreateResponse(createResponse);
+          if (haveCollaborators) {
+            docStore.collaborator = 'leader';
+          }
+          providerData = _.merge({}, docStore, {
+            url: runStateUrl
+          });
+          updateFinished = function() {
+            return loadProviderFile(providerData, callback);
+          };
+          return updateInteractiveRunStates([runStateUrl], docStore, function(err) {
+            if (err) {
+              return callback(err);
+            } else if (haveCollaborators) {
+              docStore.collaborator = 'follower';
+              return updateInteractiveRunStates(_this.collaboratorUrls, docStore, function(err) {
+                if (err) {
+                  return callback(err);
+                } else {
+                  return updateFinished();
+                }
+              });
+            } else {
+              return updateFinished();
+            }
+          });
         }).fail(function(jqXHR, status, error) {
           return callback("Could not open the specified document because an error occurred [createCopy]");
         });
-      };
-    })(this);
-    updateInteractiveRunStateAndLoad = (function(_this) {
-      return function(runStateUrl, runState, createResponse) {
-        var codapUrl, docStoreMetadata, encodedLaraParams, learnerUrl, putUrl, rawData, reportUrlLaraParams;
-        if ((runState != null) && (createResponse.id != null) && ((createResponse.readAccessKey != null) || (createResponse.readWriteAccessKey != null))) {
-          docStoreMetadata = {
-            recordid: createResponse.id,
-            accessKeys: {
-              readOnly: createResponse.readAccessKey,
-              readWrite: createResponse.readWriteAccessKey
-            }
-          };
-          metadata.providerData = _.merge({}, docStoreMetadata, {
-            url: runStateUrl
-          });
-          codapUrl = window.location.origin ? "" + window.location.origin + window.location.pathname : window.location.protocol + "//" + window.location.host + window.location.pathname;
-          reportUrlLaraParams = {
-            recordid: createResponse.id,
-            accessKeys: {
-              readOnly: createResponse.readAccessKey
-            }
-          };
-          encodedLaraParams = _this.encodeParams(reportUrlLaraParams);
-          rawData = _this.extractRawDataFromRunState(runState);
-          rawData.docStore = docStoreMetadata;
-          if (rawData.lara_options == null) {
-            rawData.lara_options = {};
-          }
-          rawData.lara_options.reporting_url = codapUrl + "?launchFromLara=" + encodedLaraParams;
-          rawData = JSON.stringify(rawData);
-          learnerUrl = (runState.learner_url != null) && typeof runState.learner_url === "string" ? runState.learner_url : null;
-          putUrl = ("" + openSavedParams.url) + ("?raw_data=" + (encodeURIComponent(rawData))) + (learnerUrl ? "&learner_url=" + (encodeURIComponent(learnerUrl)) : "");
-          return $.ajax({
-            type: 'PUT',
-            url: putUrl,
-            dataType: 'json',
-            xhrFields: {
-              withCredentials: true
-            }
-          }).done(function(data, status, jqXHR) {
-            return _this.load(metadata, function(err, content) {
-              _this.client.removeQueryParams(_this.removableQueryParams);
-              return callback(err, content, metadata);
-            });
-          }).fail(function(jqXHR, status, error) {
-            return callback("Could not open the specified document because an error occurred [updateState]");
-          });
-        }
       };
     })(this);
     if (openSavedParams && openSavedParams.url) {
