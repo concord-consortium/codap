@@ -517,6 +517,7 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
   'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
+  'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
   'DG.TableController.newAttrDlg.formulaHint': "If desired, type a formula for computing values of this attribute",
