@@ -318,12 +318,14 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.editAttributeFormula': "Redo editing case table attribute formula",
   'DG.Undo.caseTable.deleteAttribute': "Undo deleting case table attribute",
   'DG.Redo.caseTable.deleteAttribute': "Redo deleting case table attribute",
-  'DG.Undo.caseTable.moveAttribute': "Undo moving case table attribute",
-  'DG.Redo.caseTable.moveAttribute': "Redo moving case table attribute",
   'DG.Undo.caseTable.createCollection': "Undo create new collection",
   'DG.Redo.caseTable.createCollection': "Redo create new collection",
   'DG.Undo.caseTable.collectionNameChange': 'Undo rename collection',
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
+  'DG.Undo.caseTable.groupToggleExpandCollapseAll': 'Undo toggle expand/collapse all',
+  'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
+  'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
+  'DG.Redo.caseTable.expandCollapseOneCase': 'Redo expand or collapse of a group',
   'DG.Undo.document.rename': "Undo renaming the document",
   'DG.Redo.document.rename': "Redo renaming the document",
   'DG.Undo.document.share': "Undo sharing the document",
@@ -440,6 +442,9 @@ SC.stringsFor('English', {
   'DG.Redo.component.close': "Redo closing component",
   'DG.Undo.component.minimize': "Undo minimizing component",
   'DG.Redo.component.minimize': "Redo minimizing component",
+  'DG.Undo.dataContext.moveAttribute': "Undo moving case table attribute",
+  'DG.Redo.dataContext.moveAttribute': "Redo moving case table attribute",
+
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",

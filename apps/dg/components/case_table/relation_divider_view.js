@@ -328,17 +328,37 @@ DG.RelationDividerView = SC.View.extend( (function() {
       function expandCollapseClickHandler( iEvent) {
         var parentInfo = this.dgChildIDRange,
             isContained = (parentInfo && parentInfo.isContained),
-            isCollapsed = (parentInfo && parentInfo.isCollapsed);
+            isCollapsed = (parentInfo && parentInfo.isCollapsed),
+            parentID = this.dgParentID;
         parentInfo.isCollapsed = !isCollapsed;
         if( leftTable && !isContained) {
-          if( parentInfo.isCollapsed)
-            leftTable.collapseCase( this.dgParentID);
-          else
-            leftTable.expandCase( this.dgParentID);
-  
-          // Expanding/collapsing changes the set of rows that are selected
-          rightTable.updateSelectedRows(true);
-          rightTable.incrementProperty('expandCollapseCount');
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.expandCollapseOneCase',
+            undoString: 'DG.Undo.caseTable.expandCollapseOneCase',
+            redoString: 'DG.Redo.caseTable.expandCollapseOneCase',
+            log: '%@ case %@'.loc(isCollapsed?'Expand':'Collapse', this.dgParentID),
+            execute: function () {
+              if(isCollapsed) {
+                leftTable.expandCase( parentID);
+              }
+              else {
+                leftTable.collapseCase( parentID);
+              }
+              rightTable.updateSelectedRows(true);
+              rightTable.incrementProperty('expandCollapseCount');
+            },
+            undo: function () {
+              if( isCollapsed)
+                leftTable.collapseCase( parentID);
+              else
+                leftTable.expandCase( parentID);
+              rightTable.updateSelectedRows(true);
+              rightTable.incrementProperty('expandCollapseCount');
+            },
+            redo: function () {
+              this.execute();
+            }
+          }));
         }
       }
 

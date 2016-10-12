@@ -559,61 +559,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * @param {number} position
      */
     requestMoveAttribute: function (attr, position) {
-
-      DG.UndoHistory.execute(DG.Command.create({
-        name: 'caseTable.moveAttribute',
-        undoString: 'DG.Undo.caseTable.moveAttribute',
-        redoString: 'DG.Redo.caseTable.moveAttribute',
-        log: 'move attribute {attribute: "%@", position: %@}'.loc(attr.name, position),
-        _beforeStorage: {
-          context: this.get('dataContext'),
-          toCollection: this.get('collection'),
-          fromCollectionID: attr.collection.id,
-          fromCollectionName: attr.collection.name,
-          fromCollectionParent: attr.collection.parent,
-          fromCollectionChild: attr.collection.children[0],
-          fromPosition: attr.collection.attrs.indexOf(attr),
-          changeFlag: this.getPath('dataContext.flexibleGroupingChangeFlag')
-        },
-        execute: function () {
-          var tContext = this._beforeStorage.context,
-              tCollection = this._beforeStorage.toCollection,
-              tChange = {
-                operation: 'moveAttribute',
-                attr: attr,
-                toCollection: tCollection,
-                position: position
-              };
-          tContext.applyChange(tChange);
-          tContext.set('flexibleGroupingChangeFlag', true);
-        },
-        undo: function () {
-          var tContext = this._beforeStorage.context,
-              tCollection = tContext.getCollectionByID(this._beforeStorage.fromCollectionID),
-              tChange;
-          if (tCollection) {
-            tChange = {
-              operation: 'moveAttribute',
-              attr: attr,
-              toCollection: tCollection,
-              position: this._beforeStorage.fromPosition
-            };
-          } else {
-            tChange = {
-              operation: 'createCollection',
-              properties: {
-                id: this._beforeStorage.fromCollectionID,
-                name: this._beforeStorage.fromCollectionName,
-                parent: this._beforeStorage.fromCollectionParent,
-                children: [this._beforeStorage.fromCollectionChild]
-              },
-              attributes: [attr]
-            };
-          }
-          tContext.applyChange(tChange);
-          tContext.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
-        }
-      }));
+      var tContext = this.get('dataContext'),
+          tCollection = this.get('collection'),
+          tChange = {
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: tCollection,
+            position: position
+          };
+      tContext.applyChange(tChange);
     },
 
     /**

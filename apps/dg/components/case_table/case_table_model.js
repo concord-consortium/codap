@@ -82,13 +82,13 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * or superseded by a collapsed case in a higher order table.
    * @type [{{isCollapsed: boolean, isHidden: boolean, collapsedCase: DG.Case}}]
    */
-  collapsedNodes: null,
+  _collapsedNodes: null,
 
   init: function () {
     sc_super();
     this.preferredAttributeWidths = this.preferredAttributeWidths || {};
     this.preferredTableWidths = this.preferredTableWidths || {};
-    this.collapsedNodes = this.collapsedNodes || [];
+    this._collapsedNodes = this._collapsedNodes || {};
   },
 
   getPreferredAttributeWidth: function (attrID) {
@@ -103,22 +103,18 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
     if (iCases) {
       iCases.forEach(function (iCase) {
         var id = iCase.get('id');
-        delete this.collapsedNodes[id];
+        delete this._collapsedNodes[id];
       }.bind(this));
     }
   },
+
   /**
    * Whether node is collapsed and not hidden by another collapsed node.
    * @param iCase {DG.Case}
    * @returns {*|boolean}
    */
   isCollapsedNode: function (iCase) {
-    var node = this.collapsedNodes[iCase.id];
-    var isCollapsed = false;
-    if (node) {
-      isCollapsed = node.isCollapsed && !node.isHidden;
-    }
-    return isCollapsed;
+    return (this._collapsedNodes[iCase.id] && !this.isHiddenNode(iCase));
   },
 
   /**
@@ -127,17 +123,15 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    */
   isHiddenNode: function (iCase) {
     var parent = iCase.get('parent');
-    var isHidden = false;
-    var parentCollapseState;
     if (parent) {
-      parentCollapseState = this.collapsedNodes[parent.id];
-      if (parentCollapseState && parentCollapseState.isCollapsed) {
-        isHidden = true;
+      if (this._collapsedNodes[parent.id]) {
+        return true;
       } else {
-        isHidden = this.isHiddenNode(parent);
+        return this.isHiddenNode(parent);
       }
+    } else {
+      return false;
     }
-    return isHidden;
   },
 
   /**
@@ -151,17 +145,7 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   collapseNode: function(iCase) {
-    var collapseState = this.collapsedNodes[iCase.id];
-    if (!collapseState) {
-      collapseState = {
-        collapsedCase: iCase
-      };
-      this.collapsedNodes[iCase.id] = collapseState;
-    }
-    collapseState.isCollapsed = true;
-    this.collapsedNodes.forEach(function (cs) {
-      cs.isHidden = this.isHiddenNode(cs.collapsedCase);
-    }.bind(this));
+    this._collapsedNodes[iCase.id] = true;
   },
 
   /**
@@ -172,16 +156,21 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   expandNode: function (iCase) {
-    var collapseState = this.collapsedNodes[iCase.id];
-    if (!collapseState) {
-      collapseState = {
-        collapsedCase: iCase
-      };
-      this.collapsedNodes[iCase.id] = collapseState;
+    delete this._collapsedNodes[iCase.id];
+  },
+
+  /**
+   * Returns an array of case IDs corresponding to collapsed nodes whether hidden or not.
+   */
+  collapsedNodes: function () {
+    var key;
+    var rtn = [];
+    for(key in this._collapsedNodes) {
+      if (this._collapsedNodes.hasOwnProperty(key)) {
+        rtn.push(key);
+      }
     }
-    collapseState.isCollapsed = false;
-    this.collapsedNodes.forEach(function (cs) {
-      cs.isHidden = this.isHiddenNode(cs.collapsedCase);
-    }.bind(this));
-  }
+    return rtn;
+  }.property()
+
 });

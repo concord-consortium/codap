@@ -222,9 +222,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         }.bind(this));
         storage.attributeWidths = attributeWidths;
 
-        collapsedNodes.forEach(function (node, key) {
-          if (node.isCollapsed) {
-            this.addLink(storage, 'collapsedNodes', node.collapsedCase);
+        collapsedNodes.forEach(function (caseID, key) {
+          var tCase = dataContext.getCaseByID(caseID);
+          if (tCase) {
+            this.addLink(storage, 'collapsedNodes', tCase);
           }
         }.bind(this));
 

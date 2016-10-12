@@ -631,11 +631,13 @@ DG.CollectionClient = SC.Object.extend(
     var tCollection = this.get('collection'),
         tCases = tCollection.get('cases'),
         tDeletedCaseIDs = [],
+        tDeletedCases = [],
         ix,
         iCase;
     for (ix = tCases.length - 1; ix >= 0; ix --) {
       iCase = tCases[ix];
       if (iCase._deletable) {
+        tDeletedCases.push(iCase);
         tDeletedCaseIDs.push(iCase.id);
         tCollection.deleteCase(iCase, true);
       }
@@ -644,6 +646,7 @@ DG.CollectionClient = SC.Object.extend(
       this.didDeleteCases();
     }
     //DG.log("Did delete %@ cases".loc(tDeletedCaseIDs.length));
+    return tDeletedCases;
   },
 
   /**

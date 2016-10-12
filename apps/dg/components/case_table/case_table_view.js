@@ -425,8 +425,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         this.get('parentView').tableDidScroll(this);
       }
     }.observes('scrollPos'),
+
     tableDidExpandCollapse: function () {
-      this.get('parentView').tableDidExpandCollapse(this);
+      var parentView =this.get('parentView');
+      if (parentView) {
+        parentView.tableDidExpandCollapse(this);
+      }
     }.observes('expandCollapseCount'),
   /**
     The number of rows in the table. This property is updated as rows are added/removed.
@@ -1078,29 +1082,53 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var collection = this.getPath('gridAdapter.collection');
     var cases = collection.get('casesController');
     var dataView = this.getPath('gridAdapter.gridDataView');
+    var model = this.parentView.get('model');
 
     DG.assert( collection);
     DG.assert( cases);
+    var priorExpCoState = model.get('collapsedNodes');
 
-    //DG.log('expandCollapseAll: [expand/collection/cases]: '
-    //    + [iExpand, this.get('collectionName'), cases.get('length')].join('/'));
-    this.beginDataViewUpdate(true);
-    cases.forEach(function (myCase) {
-      try {
-        if (iExpand) {
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'caseTable.groupToggleExpandCollapseAll',
+      undoString: 'DG.Undo.caseTable.groupToggleExpandCollapseAll',
+      redoString: 'DG.Redo.caseTable.groupToggleExpandCollapseAll',
+      log: 'Expand/Collapse all',
+      execute: function () {
+        //DG.log('expandCollapseAll: [expand/collection/cases]: '
+        //    + [iExpand, this.get('collectionName'), cases.get('length')].join('/'));
+        this.beginDataViewUpdate(true);
+        cases.forEach(function (myCase) {
+          try {
+            if (iExpand) {
+              dataView.expandGroup( myCase.id);
+            } else {
+              dataView.collapseGroup( myCase.id);
+            }
+          } catch (e) {
+            DG.logError('expandCollapseAll: ' + e);
+          }
+        });
+        this.endDataViewUpdate(true);
+        this.childTable._refreshDataView(true);
+      }.bind(this),
+      undo: function () {
+        this.beginDataViewUpdate(true);
+        cases.forEach(function (myCase) {
           dataView.expandGroup( myCase.id);
-        } else {
-          dataView.collapseGroup( myCase.id);
-        }
-      } catch (e) {
-        DG.logError('expandCollapseAll: ' + e);
+        });
+        priorExpCoState.forEach(function (caseID) {
+          dataView.collapseGroup(caseID);
+        });
+        this.updateSelectedRows(true);
+        this.incrementProperty('expandCollapseCount');
+        this.endDataViewUpdate(true);
+        this.childTable._refreshDataView(true);
+      }.bind(this),
+      redo: function () {
+        this.execute();
       }
-    }.bind(this));
-    this.endDataViewUpdate(true);
-    this.childTable._refreshDataView(true);
+    }));
 
-    this.updateSelectedRows(true);
-    this.incrementProperty('expandCollapseCount');
   },
 
     /**
