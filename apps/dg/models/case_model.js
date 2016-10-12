@@ -199,7 +199,7 @@ DG.Case = DG.BaseModel.extend((function() {
         // Need for this seems to have been brought about by a particular import of boundary file data. Can't hurt.
         var tParent = this.get('parent');
         if( tParent /*&& tParent.getValue*/)
-          return tParent.getValue( iAttrID);
+          return tParent.getRawValue( iAttrID);
       }
       // if we get here, return value is undefined
     },
