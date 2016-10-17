@@ -549,6 +549,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._gridEventHandler = new Slick.EventHandler();
     
     // Subscribe to SlickGrid events which call our event handlers directly.
+    this.subscribe('onClick', this.handleClick);
     this.subscribe('onScroll', this.handleScroll);
     this.subscribe('onHeaderClick', this.handleHeaderClick);
     this.subscribe('onHeaderDragInit', function( iEvent, iDragData) {
@@ -969,6 +970,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleHeaderClick: function( iEvent) {
     DG.globalEditorLock.commitCurrentEdit();
+  },
+
+  /**
+   * Clear menu, if present
+   * @param iEvent
+   */
+  handleClick: function (iEvent) {
+    var hierTableView = this.get('parentView');
+    hierTableView.hideHeaderMenus();
   },
 
   /**
