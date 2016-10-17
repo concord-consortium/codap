@@ -1206,6 +1206,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       },
       undo: function () {
         var toCollection = toCollectionClient.get('collection');
+        var fromCollectionProperties;
+        var newCollection;
         iAttr = toCollection.removeAttribute(iAttr);
         if (toCollection.get('attrs').length === 0) {
           dataContext.destroyCollection(toCollection);
@@ -1228,7 +1230,24 @@ DG.DataContext = SC.Object.extend((function() // closure
           });
         });
 
-        fromCollection.addAttribute(iAttr, originalPosition);
+        if (fromCollection.get('attrs').length === 0) {
+          fromCollectionProperties = {
+            parent: fromCollection.parent,
+            name: fromCollection.get('name'),
+            title: fromCollection.get('title'),
+            context: fromCollection.get('context'),
+            children: [fromCollection.children && fromCollection.children[0]]
+          };
+          newCollection = dataContext.createCollection(fromCollectionProperties);
+          dataContext.applyChange({
+            operation: 'createCollection',
+            collection: fromCollection,
+            isComplete: true
+          });
+          newCollection.get('collection').addAttribute(iAttr, 0);
+        } else {
+          fromCollection.addAttribute(iAttr, originalPosition);
+        }
         dataContext.regenerateCollectionCases();
       },
       redo: function () {
@@ -1258,55 +1277,52 @@ DG.DataContext = SC.Object.extend((function() // closure
    *      new collection. If undefined, appends to the end of the attribute list.
    */
   moveAttribute:  function (attr, toCollectionClient, position) {
+    var fromCollection = attr.get('collection');
 
-
+    if (fromCollection === toCollectionClient.get('collection')) {
+      // if intra-collection move, we simply delegate to the collection
+      this._moveAttributeWithinCollection(attr, toCollectionClient, position);
+    } else {
+      // inter-collection moves are more complex: we need to reconstruct the
+      // cases in the collection
+      this._moveAttributeBetweenCollections(attr, fromCollection, toCollectionClient,
+          position);
+    }
+  },
+  /**
+   * Moves an attribute either within a collection or between collections.
+   *
+   * @param iChange {Object} Describes the change
+   *    {string} .operation            -- "moveAttribute"
+   *    {DG.Attribute} .attr           -- the attribute to move.
+   *    {DG.CollectionClient} .toCollection -- the collection to
+   *                                     move the attribute to. Defaults
+   *                                     to the existing collection.
+   *    {integer} .position           -- the position to be occupied by
+   *                                     the attribute indexed from the
+   *                                     left. 0 means leftmost. If not
+   *                                     specified, placed rightmost.
+   * @return {Object}
+   *    {Boolean}               .success
+   */
+  doMoveAttribute: function( iChange) {
+    try {
+      var attr = iChange.attr;
       var fromCollection = attr.get('collection');
+      var toCollection = iChange.toCollection || fromCollection;
+      var position = iChange.position;
+      var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
+          ? toCollection : this.getCollectionByID(toCollection.id);
 
-      if (fromCollection === toCollectionClient.get('collection')) {
-        // if intra-collection move, we simply delegate to the collection
-        this._moveAttributeWithinCollection(attr, toCollectionClient, position);
-      } else {
-        // inter-collection moves are more complex: we need to reconstruct the
-        // cases in the collection
-        this._moveAttributeBetweenCollections(attr, fromCollection, toCollectionClient,
-            position);
-      }
+      this.moveAttribute(attr, toCollectionClient, position);
+      return {success: true};
+    } catch (ex) {
+      DG.logWarn(ex);
+      return {success: false};
+    }
+  },
 
-    },
-    /**
-     * Moves an attribute either within a collection or between collections.
-     *
-     * @param iChange {Object} Describes the change
-     *    {string} .operation            -- "moveAttribute"
-     *    {DG.Attribute} .attr           -- the attribute to move.
-     *    {DG.CollectionClient} .toCollection -- the collection to
-     *                                     move the attribute to. Defaults
-     *                                     to the existing collection.
-     *    {integer} .position           -- the position to be occupied by
-     *                                     the attribute indexed from the
-     *                                     left. 0 means leftmost. If not
-     *                                     specified, placed rightmost.
-     * @return {Object}
-     *    {Boolean}               .success
-     */
-    doMoveAttribute: function( iChange) {
-      try {
-        var attr = iChange.attr;
-        var fromCollection = attr.get('collection');
-        var toCollection = iChange.toCollection || fromCollection;
-        var position = iChange.position;
-        var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
-            ? toCollection : this.getCollectionByID(toCollection.id);
-
-        this.moveAttribute(attr, toCollectionClient, position);
-        return {success: true};
-      } catch (ex) {
-        DG.logWarn(ex);
-        return {success: false};
-      }
-    },
-
-    /**
+  /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
               {String}  .operation - "deleteAttributes"
@@ -1833,12 +1849,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     return newCollectionClient;
   },
 
-    destroyCollection: function (collectionClient) {
-      var id = collectionClient.get('id');
-      this.willRemoveCollection(collectionClient);
-      this._collectionClients[id].destroy();
-      delete this._collectionClients[id];
-    },
+  destroyCollection: function (collectionClient) {
+    var id = collectionClient.get('id');
+    this.willRemoveCollection(collectionClient);
+    this._collectionClients[id].destroy();
+    delete this._collectionClients[id];
+  },
+
   /**
     Called from createCollection to give derived classes a chance to do something.
     @param  {DG.CollectionClient} iNewCollection -- The collection that was just created
