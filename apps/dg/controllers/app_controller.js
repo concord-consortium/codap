@@ -867,13 +867,24 @@ DG.appController = SC.Object.create((function () // closure
       Imports a dragged or selected file
       */
     importFile: function ( tFile) {
+      var recognizedMimeMap = {
+        'text/csv': 'text/csv',
+        'application/csv': 'text/csv',
+        'text/plain': 'text/plain',
+        'text/tab-separated-values': 'text/plain',
+        'application/json': 'application/json',
+        'application/x-javascript': 'application/json',
+        'text/javascript': 'application/json',
+        'text/x-javascript': 'application/json',
+        'text/x-json': 'application/json'
+      };
 
       function adjustTypeBasedOnSuffix( tFile) {
         var tRegEx = /\.[^.\/]+$/,
             tSuffix = tFile.name.match(tRegEx),
             tNewType = tType;
         if( !SC.empty(tSuffix))
-          tSuffix = tSuffix[0];
+          tSuffix = tSuffix[0].toLowerCase();
         switch( tSuffix) {
           case '.csv':
             tNewType = 'text/csv';
@@ -886,12 +897,14 @@ DG.appController = SC.Object.create((function () // closure
             tNewType = 'application/json';
             break;
         }
-        tType = tNewType;
+        return tNewType;
       }
 
-      var tType = tFile.type;
-      if( tType === '')
-        adjustTypeBasedOnSuffix(tFile);
+      var tType = recognizedMimeMap[tFile.type];
+      // if we do not find a mime type we recognize, fall back to suffix-based
+      // typing.
+      if( SC.none(tType))
+        tType = adjustTypeBasedOnSuffix(tFile);
 
       var tAlertDialog = {
         showAlert: function( iError) {
