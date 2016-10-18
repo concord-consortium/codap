@@ -123,12 +123,9 @@ DG.AttributeStats = SC.Object.extend(
               if (isFinite(tValue)) {
                 this.numericStats.incrementProperty('count');
                 this.numericStats.set('sum', this.numericStats.sum + tValue);
-                // The condition !tInfo.isNominal got added during datetime axis development.
-                // But I (Bill) cannot reconstruct the reason. It appears it should always be true.
-                // For now, we leave the if clause and assert its truth so we have a chance of uncovering
-                // the conditions under which it is false.
-                DG.assert(!tInfo.isNominal);
-                if (!tInfo.isNominal) {
+                // boolean values get converted to 0 and 1. For purposes of computing
+                // ranges we wish to avoid these.
+                if (tInfo.type !== 'boolean') {
                   if (isBetterMin(tValue, this.numericStats.rangeMin))
                     this.numericStats.set('rangeMin', tValue);
                   if (isBetterMax(tValue, this.numericStats.rangeMax))
