@@ -14476,7 +14476,7 @@ LaraProvider = (function(superClass) {
       };
     })(this);
     if (openSavedParams != null ? openSavedParams.recordid : void 0) {
-      return loadProviderFile(openSavedParams);
+      return loadProviderFile(openSavedParams, callback);
     }
     processInitialRunState = (function(_this) {
       return function(runStateUrl, sourceID, readOnlyKey, runState) {
