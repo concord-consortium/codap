@@ -963,6 +963,7 @@ DG.appController = SC.Object.create((function () // closure
             try {
               if (iType === 'JSON') {
                 DG.cfmClient.openLocalFile(iFile);
+                window.location.hash = '';
                 DG.log('Opened: ' + iFile.name);
               }
               else if (iType === 'TEXT') {
