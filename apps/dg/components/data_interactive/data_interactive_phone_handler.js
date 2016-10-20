@@ -345,6 +345,37 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
         visit(resultValues, maxLevels);
       },
+      handleOneCommand: function (iCmd) {
+        var result = {success: false};
+
+        // parse the resource name into constituent parts
+        var selectorMap = iCmd.resource && this.parseResourceSelector(
+                iCmd.resource);
+
+        // resolve identified resources
+        var resourceMap = this.resolveResources(selectorMap, iCmd.action);
+
+        var action = iCmd.action;
+        var type = selectorMap && selectorMap.type;
+
+        var handler = type && this.handlerMap[type];
+
+        if (handler) {
+          if (handler[action]) {
+            SC.run(function () {
+              result = handler[action].call(this, resourceMap, iCmd.values) || {success: false};
+              if (result.values) {
+                this.filterResultValues(result.values);
+              }
+            }.bind(this));
+          } else {
+            DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
+          }
+        } else {
+          DG.logWarn("Unknown message type: " + type);
+        }
+        return result;
+      },
       /**
        * Respond to requests from a Data Interactive.
        *
@@ -357,34 +388,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       doCommand: function (iMessage, iCallback) {
         this.setIfChanged('connected', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
-        var result = ({success: false});
+        var result = {success: false};
         try {
           if (!SC.none(iMessage)) {
-            // parse the resource name into constituent parts
-            var selectorMap = iMessage.resource && this.parseResourceSelector(
-                iMessage.resource);
-
-            // resolve identified resources
-            var resourceMap = this.resolveResources(selectorMap, iMessage.action);
-
-            var action = iMessage.action;
-            var type = selectorMap && selectorMap.type;
-
-            var handler = type && this.handlerMap[type];
-
-            if (handler) {
-              if (handler[action]) {
-                SC.run(function () {
-                  result = handler[action].call(this, resourceMap, iMessage.values) || {success: false};
-                  if (result.values) {
-                    this.filterResultValues(result.values);
-                  }
-                }.bind(this));
-              } else {
-                DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
-              }
+            if (Array.isArray(iMessage)) {
+              result = iMessage.map(function (cmd) {
+                return this.handleOneCommand(cmd);
+              }.bind(this));
             } else {
-              DG.logWarn("Unknown message type: " + type);
+              result = this.handleOneCommand(iMessage);
             }
           }
         } catch (ex) {
