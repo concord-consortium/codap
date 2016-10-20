@@ -57,6 +57,14 @@ DG.ContainerView = SC.View.extend(
        */
       inspectorView: null,
 
+      /**
+       * These rectangles are in addition to rectangles occupied by componentViews. Typically,
+       * they are reserved for the duration of an animation of a component to its final location, and
+       * then given up.
+       * @property { [{{left: {Number}, top: {Number}, width: {Number}, height: {Number}}}]
+       */
+      reservedRects: null,
+
       // We want the container to encompass the entire window or the
       // entire content, whichever is greater.
       layout: { left: 0, top: 0, minWidth: '100%', minHeight: '100%' },
@@ -77,6 +85,7 @@ DG.ContainerView = SC.View.extend(
 
       init: function() {
         sc_super();
+        this.reservedRects = [];
         this.set('inspectorView', DG.InspectorView.create( {
           componentContainer: this
         }));
@@ -274,12 +283,18 @@ DG.ContainerView = SC.View.extend(
         var this_ = this,
             tViewRect = iView.get( 'frame'),
             tDocRect = this.parentView.get('clippingFrame'),
+            tViewRects = this.get('componentViews').map(function (iView) {
+              return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
+            }),
+            tReservedRects = this.get('reservedRects'),
             tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
-                                      this.get('componentViews'),
+                                      tViewRects.concat( tReservedRects),
                                       iPosition),
+            tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
             tOptions = { duration: 0.5, timing: 'ease-in-out' };
+        tReservedRects.push( tFinalRect);
         this.invokeNext( function() {
           iView.adjust( { left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
                           width: 0, height: 0 });
@@ -295,6 +310,7 @@ DG.ContainerView = SC.View.extend(
                           this.adjust('height', tViewRect.height);
                           this.select();
                           this_.updateFrame();
+                          tReservedRects.splice( tReservedRects.indexOf( tFinalRect), 1);
                           // beginEditing applies only to text component, but couldn't find a better place to put this
                           // Better would be to define something like 'didReachFinalPosition' as a generic component
                           this.didReachInitialPosition();

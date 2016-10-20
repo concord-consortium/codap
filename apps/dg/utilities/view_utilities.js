@@ -116,16 +116,13 @@ DG.ViewUtilities = {
     In fact, rectangles that come from components like the about box have NAN's for
     x and y. We just consider them to be floating on top of everything and not intersecting.
   */
-  findEmptyLocationForRect: function (iItemRect, iContainerRect, iViews, iPosition) {
+  findEmptyLocationForRect: function (iItemRect, iContainerRect, iViewRects, iPosition) {
     var
         kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
         tStartAtBottom = (iPosition === 'bottom'),
         tLoc = {x: kGap,
           y: tStartAtBottom ? iContainerRect.height - iItemRect.height - kGap : kGap },
-        tSuccess = false,
-        tViewRects = iViews.map(function (iView) {
-          return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
-        });
+        tSuccess = false;
 
     function intersectRect(r1, r2) {
       var tRes = (!isNaN(r1.x) && !isNaN(r1.y)) && !(r2.x > r1.x + r1.width ||
@@ -140,7 +137,7 @@ DG.ViewUtilities = {
      if none intersect.
      */
     function intersects(iTopLeft) {
-      return !tViewRects.every(
+      return !iViewRects.every(
           function (iViewRect) {
             return !intersectRect(iViewRect,
                 {
@@ -153,7 +150,7 @@ DG.ViewUtilities = {
     }
 
     function onTopOfViewRectTopLeft(iTopLeft) {
-      return !tViewRects.every(
+      return !iViewRects.every(
           function (iViewRect) {
             return !( iTopLeft.x === iViewRect.x && iTopLeft.y === iViewRect.y);
           });
