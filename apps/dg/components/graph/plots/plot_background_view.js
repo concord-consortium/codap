@@ -63,7 +63,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   _backgroundForClick: null,  // We make this once and keep it sized properly.
 
   colorDidChange: function() {
-    var tStoredColor = this.getPath('graphModel.plotBackgroundColor'),
+    var tStoredColor = this.getPath('graphModel.plotBackgroundColor') || 'white',
         tStoredOpacity = this.getPath('graphModel.plotBackgroundOpacity'),
         tNewColor = tStoredColor ? SC.Color.from( tStoredColor) : null;
     if( !tNewColor)

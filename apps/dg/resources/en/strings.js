@@ -383,6 +383,8 @@ SC.stringsFor('English', {
   'DG.Redo.graph.changePointSize': "Redo changing point size",
   'DG.Undo.graph.changeAttributeColor': "Undo changing attribute color",
   'DG.Redo.graph.changeAttributeColor': "Redo changing attribute color",
+  'DG.Undo.graph.changeBackgroundColor': "Undo changing graph background color",
+  'DG.Redo.graph.changeBackgroundColor': "Redo changing graph background color",
   'DG.Undo.graph.toggleTransparent': "Undo toggling plot transparency",
   'DG.Redo.graph.toggleTransparent': "Redo toggling plot transparency",
   'DG.Undo.guide.show': "Undo showing the guide",

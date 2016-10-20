@@ -384,6 +384,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           var tResult = sc_super();
           var
               kRowHeight = 20,
+              this_ = this,
+              currentOpenSession = null,
               tBkgColor = tinycolor(this.getPath('graphModel.plotBackgroundColor') || 'white'),
               tOpacity = this.getPath('graphModel.plotBackgroundOpacity');
           tOpacity = SC.none( tOpacity) ? 1 : tOpacity;
@@ -391,12 +393,41 @@ DG.GraphController = DG.DataDisplayController.extend(
               getStylesLayer = function () {
                 return this.stylesPane.layer();
               }.bind(this),
+              createSetColorAndAlphaCommand = function (name, colorAttr, alphaAttr, iColor) {
+                return DG.Command.create({
+                  name: 'data.style.'+name,
+                  undoString: 'DG.Undo.graph.'+name,
+                  redoString: 'DG.Redo.graph.'+name,
+                  log: "Changed background color",
+                  execute: function() {
+                    this.reduceKey = this.name + currentOpenSession;
+                    this._beforeStorage = {
+                      color: this_.getPath('graphModel.' + colorAttr),
+                      alpha: this_.getPath('graphModel.' + alphaAttr)
+                    };
+                    this_.setPath('graphModel.' + colorAttr, iColor.toHexString());
+                    this_.setPath('graphModel.' + alphaAttr, iColor.getAlpha());
+                  },
+                  undo: function () {
+                    this_.setPath('graphModel.' + colorAttr, this._beforeStorage.color);
+                    this_.setPath('graphModel.' + alphaAttr, this._beforeStorage.alpha);
+                  },
+                  reduce: function (previous) {
+                    if (previous.reduceKey === this.reduceKey) {
+                      this._beforeStorage = previous._beforeStorage;
+                      return this;
+                    }
+                  }
+                });
+              },
               setColor = function (iColor) {
-                SC.run(function () {
-                  this.setPath('graphModel.plotBackgroundColor', iColor.toHexString());
-                  this.setPath('graphModel.plotBackgroundOpacity', iColor.getAlpha());
-                }.bind(this));
-              }.bind(this);
+                currentOpenSession = currentOpenSession || Math.random();
+                DG.UndoHistory.execute(createSetColorAndAlphaCommand("changeBackgroundColor",
+                    "plotBackgroundColor", "plotBackgroundOpacity", iColor));
+              },
+              setColorFinalized = function () {
+                currentOpenSession = null;
+              };
           tResult.push(
               DG.PickerControlView.create({
                 layout: {height: 2 * kRowHeight},
@@ -406,7 +437,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                   classNames: 'graph-point-color'.w(),
                   initialColor: tInitialColor,
                   setColorFunc: setColor,
-                  //closedFunc: setColorFinalized,
+                  closedFunc: setColorFinalized,
                   appendToLayerFunc: getStylesLayer
                 })
               })
