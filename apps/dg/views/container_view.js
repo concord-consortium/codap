@@ -283,6 +283,8 @@ DG.ContainerView = SC.View.extend(
         var this_ = this,
             tViewRect = iView.get( 'frame'),
             tDocRect = this.parentView.get('clippingFrame'),
+            tFrameWithinParent = this.computeFrameWithParentFrame(),
+            tOffset = { x: -tFrameWithinParent.x, y: -tFrameWithinParent.y},
             tViewRects = this.get('componentViews').map(function (iView) {
               return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
             }),
@@ -290,6 +292,7 @@ DG.ContainerView = SC.View.extend(
             tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
+                                      tOffset,
                                       tViewRects.concat( tReservedRects),
                                       iPosition),
             tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},

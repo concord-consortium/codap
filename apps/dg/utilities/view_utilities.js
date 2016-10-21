@@ -115,13 +115,19 @@ DG.ViewUtilities = {
       { x, y, width, height }.
     In fact, rectangles that come from components like the about box have NAN's for
     x and y. We just consider them to be floating on top of everything and not intersecting.
+    iItemRect is the rect we are trying to place
+    iContainerRect is the visible rect in the browser window, with an upper left corner of 0, 0
+    iOffset is the offset of that rect from the true top of the frame
+    iViewRects are the rectangles where we cannot place iItemRect
+    iPosition is either 'top' or 'bottom'
+    return the location { x, y } for the rectangle.
   */
-  findEmptyLocationForRect: function (iItemRect, iContainerRect, iViewRects, iPosition) {
+  findEmptyLocationForRect: function (iItemRect, iContainerRect, iOffset, iViewRects, iPosition) {
     var
         kGap = DG.ViewUtilities.kGridSize, // Also used to increment during search
         tStartAtBottom = (iPosition === 'bottom'),
-        tLoc = {x: kGap,
-          y: tStartAtBottom ? iContainerRect.height - iItemRect.height - kGap : kGap },
+        tLoc = {x: kGap + iOffset.x,
+          y: (tStartAtBottom ? iContainerRect.height - iItemRect.height - kGap : kGap) + iOffset.y },
         tSuccess = false;
 
     function intersectRect(r1, r2) {
@@ -157,14 +163,15 @@ DG.ViewUtilities = {
     }
 
     // Work our way through the visible portion of the document
-    while (!tSuccess && tLoc.y + iItemRect.height < iContainerRect.height && tLoc.y >= kGap) {
-      tLoc.x = kGap;
+    while (!tSuccess && tLoc.y + iItemRect.height < iOffset.y + iContainerRect.height &&
+              tLoc.y >= iOffset.y + kGap) {
+      tLoc.x = iOffset.x + kGap;
       // left to right, making sure we got through at least once
       while (!tSuccess) {
         // Positioned at tLoc, does the item rect intersect any view rects?
         if (intersects(tLoc)) {
           tLoc.x += kGap;
-          if (tLoc.x + iItemRect.width > iContainerRect.x + iContainerRect.width)
+          if (tLoc.x + iItemRect.width > iOffset.x + iContainerRect.x + iContainerRect.width)
             break;
         }
         else
@@ -176,8 +183,10 @@ DG.ViewUtilities = {
 
     if( !tSuccess) {
       // Choose a location that will center the item rect in the container
-      tLoc = { x: Math.max( this.kGridSize, Math.round((iContainerRect.width - iItemRect.width) / 2)),
-              y: Math.max( this.kGridSize, Math.round((iContainerRect.height - iItemRect.height) / 2))
+      tLoc = { x: iOffset.x +
+                    Math.max( this.kGridSize, Math.round((iContainerRect.width - iItemRect.width) / 2)),
+              y: iOffset.y +
+                    Math.max( this.kGridSize, Math.round((iContainerRect.height - iItemRect.height) / 2))
       };
       // Adjust down and to the right until there tLoc is not on top of the upper-right corner of a view rect
       while( !tSuccess) {
