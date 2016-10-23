@@ -286,3 +286,48 @@ DG.PlottedIQRModel = DG.PlottedQuantileModel.extend(
   }
 });
 DG.PlotAdornmentModel.registry.plottedIQR = DG.PlottedIQRModel;
+
+DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
+/** @scope DG.PlottedBoxPlotModel.prototype */
+{
+  /**
+   * Compute or re-compute the Median, Q1, Q3, lowerWhisker, upperWhisker for each cell.
+   * My base class will have computed everything except the lower and upper whisker.
+   *    A whisker extends at most 1.5 times the IQR beyond the appropriate percentile, but
+   *    stops at the closest value that doesn't exceed it.
+   */
+  recomputeValue: function() {
+    this.beginPropertyChanges();  // Postpone notification until after we compute whisker ends
+
+    sc_super();
+
+    var tValues = this.get('values');
+    if( !tValues)
+    {
+      this.endPropertyChanges();
+      return;
+    }
+
+    // also compute IQR
+    tValues.forEach( function( iValue ) {
+      if( iValue.vals.length > 0 ) {
+        var tMaxWhiskerLength = 1.5 * iValue.IQR,
+            tIndex;
+        iValue.lowerWhisker = iValue.Q1 - tMaxWhiskerLength;
+        tIndex = 0;
+        while( iValue.vals[ tIndex] < iValue.lowerWhisker)
+          tIndex++;
+        iValue.lowerWhisker = iValue.vals[ tIndex];
+
+        iValue.upperWhisker = iValue.Q3 + tMaxWhiskerLength;
+        tIndex = iValue.vals.length - 1;
+        while( iValue.vals[ tIndex] > iValue.upperWhisker)
+          tIndex--;
+        iValue.upperWhisker = iValue.vals[ tIndex];
+      }
+    });
+
+    this.endPropertyChanges();
+  }
+});
+DG.PlotAdornmentModel.registry.plottedBoxPlot = DG.PlottedBoxPlotModel;

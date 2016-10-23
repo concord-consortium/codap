@@ -192,7 +192,7 @@ DG.PlotAdornment = SC.Object.extend(
   },
 
   showElements: function() {
-    if( this.get('isHidden')) {
+    //if( this.get('isHidden')) {
       this.myElements.forEach(function (iElement) {
         iElement.show();
         if (iElement.animatable) {
@@ -200,12 +200,12 @@ DG.PlotAdornment = SC.Object.extend(
         }
       });
       this.set('isHidden', false);
-    }
+    //}
   },
 
   hideElements: function () {
-    if( !this.get('isHidden'))
-    {
+    //if( !this.get('isHidden'))
+    //{
       this.myElements.forEach(function (iElement) {
         if (iElement.animatable) {
           iElement.animate({'stroke-opacity': 0, opacity: 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
@@ -217,7 +217,7 @@ DG.PlotAdornment = SC.Object.extend(
           iElement.hide();
       });
       this.set('isHidden', true);
-    }
+    //}
   },
 
   /**

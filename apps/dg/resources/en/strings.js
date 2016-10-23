@@ -627,6 +627,7 @@ SC.stringsFor('English', {
   'DG.PlottedAverageAdornment.medianValueTitle': "median=%@", // "median=123.456"
   'DG.PlottedAverageAdornment.stDevValueTitle': "\xB11 SD, %@", // "st.dev=123.456"
   'DG.PlottedAverageAdornment.iqrValueTitle': "IQR=%@", // "iqr=123.456"
+  'DG.PlottedAverageAdornment.boxPlotTitle': "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
   'DG.PlottedCountAdornment.title': "%@ %@, %@%", // "12 cases, 50%"
 
   // DG.GraphModel
@@ -713,6 +714,7 @@ SC.stringsFor('English', {
   'DG.Inspector.graphPlottedMedian': "Median",  // "Median"
   'DG.Inspector.graphPlottedStDev': "Standard Deviation",  // "Standard Deviation"
   'DG.Inspector.graphPlottedIQR': "Interquartile Range",  // "Interquartile Range"
+  'DG.Inspector.graphPlottedBoxPlot': "Box Plot",  // "Box Plot"
   'DG.Inspector.graphPlottedValue': "Plotted Value",  // "Plotted Value"
 
   // Table Inspector

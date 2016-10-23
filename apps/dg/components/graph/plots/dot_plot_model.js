@@ -145,10 +145,17 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
   },
   
   /**
-   Toggle the visibility of the Standard Deviation.
+   Toggle the visibility of the IQR.
    */
   togglePlottedIQR: function() {
     this.toggleAverage('plottedIQR', 'togglePlottedIQR');
+  },
+
+  /**
+   Toggle the visibility of the Box Plot.
+   */
+  togglePlottedBoxPlot: function() {
+    this.toggleAverage('plottedBoxPlot', 'togglePlottedBoxPlot');
   },
 
   /**
@@ -165,7 +172,7 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     var kAllowShrinkage = true, kAnimate = true, kDontLog = false;
     this.rescaleAxesFromData( kAllowShrinkage, kAnimate, kDontLog);
     
-    ['movableValue','plottedMean','plottedMedian','plottedStDev','plottedIQR','plottedCount'].
+    ['movableValue','plottedMean','plottedMedian','plottedStDev','plottedBoxPlot','plottedCount'].
       forEach( function( iAdornmentKey) {
                   var adornmentModel = this.getAdornmentModel( iAdornmentKey);
                   if( adornmentModel) {
@@ -280,11 +287,11 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
         }.observes('value')
       },
       {
-        title: 'DG.Inspector.graphPlottedIQR',
-        value: this_.isAdornmentVisible('plottedIQR'),
-        classNames: 'graph-plottedIQR-check'.w(),
+        title: 'DG.Inspector.graphPlottedBoxPlot',
+        value: this_.isAdornmentVisible('plottedBoxPlot'),
+        classNames: 'graph-plottedBoxPlot-check'.w(),
         valueDidChange: function () {
-          this_.togglePlottedIQR();
+          this_.togglePlottedBoxPlot();
         }.observes('value')
       },
       {
