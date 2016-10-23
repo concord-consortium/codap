@@ -201,6 +201,12 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             this_.movableLine.toggleInterceptLocked();
             this_.movableLine.recomputeSlopeAndInterceptIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
           }
+          if (SC.none(this_.lsrLine)) {
+            this_.createLSRLLine(); // Default is to be unlocked
+          }
+          else {
+            this_.lsrLine.toggleInterceptLocked();
+          }
         }
 
         var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
@@ -210,11 +216,15 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
           log: "lockIntercept: %@".fmt(willLock),
           execute: function () {
-            this._undoData = this_.movableLine.createStorage();
+            this._undoData = {
+              movableLine: this_.movableLine.createStorage(),
+              lsrlStorage: this_.lsrLine.createStorage()
+            };
             toggle();
           },
           undo: function () {
-            this_.movableLine.restoreStorage(this._undoData);
+            this_.movableLine.restoreStorage(this._undoData.movableLine);
+            this_.lsrLine.restoreStorage(this._undoData.lsrlStorage);
           }
         }));
       },
@@ -362,7 +372,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             value: this_.get('isInterceptLocked'),
             classNames: 'graph-interceptLocked-check'.w(),
             isEnabled: function () {
-              return this_.get('isMovableLineVisible') || this_.get('isLSRLLineVisible');
+              return this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
             }.property(),
             valueDidChange: function () {
               this_.toggleInterceptLocked();

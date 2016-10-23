@@ -42,6 +42,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
   modelPropertiesToObserve: [ ['slope', 'updateToModel'], ['intercept', 'updateToModel'],
+                              ['isInterceptLocked', 'updateToModel'],
                               ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel']],
 
   /**
