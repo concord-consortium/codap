@@ -624,7 +624,7 @@ DG.DocumentController = SC.Object.extend(
 
       if( isRestoring) {
         if(DG.STANDALONE_MODE && (iParams.componentClass.constructor === DG.GameView)) {
-          iParams.useLayout = true;
+          tParams.useLayout = true;
           tParams.layout = {};
         }
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
