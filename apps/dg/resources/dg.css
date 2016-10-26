@@ -73,11 +73,18 @@
     white-space: nowrap;
 }
 
+.dg-qualitative-backing {
+    display: inline-block;
+    height: 7px;
+    border-radius: 3px;
+    background-color: lightgrey;
+}
+
 .dg-qualitative-bar {
     display: inline-block;
-    height: 8px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
+    position: absolute;
+    height: 7px;
+    border-radius: 3px 0px 0px 3px;
 }
 
 .calculator label {

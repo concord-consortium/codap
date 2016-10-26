@@ -77,9 +77,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var color = DG.PlotUtilities.kDefaultPointColor,
             kColumnDefaultWidth = 60,
             kPadding = 10,
-            tWidth = (kColumnDefaultWidth - kPadding) * value / 100;
+            tFullWidth = kColumnDefaultWidth - kPadding,
+            tWidth = tFullWidth * value / 100;
 
-        return "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span>";
+        return "<span class='dg-qualitative-backing' style='width:" + tFullWidth + "px'>" +
+        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
       };
 
   return {  // return from closure
