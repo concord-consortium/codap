@@ -84,12 +84,6 @@ DG.PlotAdornment = SC.Object.extend(
   myElements: null,
 
   /**
-   * Used to keep track of whether myElements are hidden or not
-   * @property {Boolean}
-   */
-  isHidden: true,
-  
-  /**
    * The key into the layerManager to get the layer we use to display
    * @property { String }
    */
@@ -192,32 +186,27 @@ DG.PlotAdornment = SC.Object.extend(
   },
 
   showElements: function() {
-    //if( this.get('isHidden')) {
-      this.myElements.forEach(function (iElement) {
-        iElement.show();
-        if (iElement.animatable) {
-          iElement.animate({'stroke-opacity': 1, opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-        }
-      });
-      this.set('isHidden', false);
-    //}
+    this.myElements.forEach(function (iElement) {
+      iElement.show();
+      if (iElement.animatable) {
+        iElement.animate({'stroke-opacity': 1, opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+      }
+    });
+    this.set('isHidden', false);
   },
 
   hideElements: function () {
-    //if( !this.get('isHidden'))
-    //{
-      this.myElements.forEach(function (iElement) {
-        if (iElement.animatable) {
-          iElement.animate({'stroke-opacity': 0, opacity: 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-              function () {
-                iElement.hide();
-              });
-        }
-        else
-          iElement.hide();
-      });
-      this.set('isHidden', true);
-    //}
+    this.myElements.forEach(function (iElement) {
+      if (iElement.animatable) {
+        iElement.animate({'stroke-opacity': 0, opacity: 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
+            function () {
+              iElement.hide();
+            });
+      }
+      else
+        iElement.hide();
+    });
+    this.set('isHidden', true);
   },
 
   /**

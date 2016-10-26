@@ -302,30 +302,27 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
     sc_super();
 
     var tValues = this.get('values');
-    if( !tValues)
-    {
-      this.endPropertyChanges();
-      return;
+    if( tValues) {
+
+      // also compute IQR
+      tValues.forEach(function (iValue) {
+        if (iValue.vals.length > 0) {
+          var tMaxWhiskerLength = 1.5 * iValue.IQR,
+              tWhiskerCandidate, tIndex;
+          tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
+          tIndex = 0;
+          while (iValue.vals[tIndex] < tWhiskerCandidate)
+            tIndex++;
+          iValue.lowerWhisker = iValue.vals[tIndex];
+
+          tWhiskerCandidate = iValue.Q3 + tMaxWhiskerLength;
+          tIndex = iValue.vals.length - 1;
+          while (iValue.vals[tIndex] > tWhiskerCandidate)
+            tIndex--;
+          iValue.upperWhisker = iValue.vals[tIndex];
+        }
+      });
     }
-
-    // also compute IQR
-    tValues.forEach( function( iValue ) {
-      if( iValue.vals.length > 0 ) {
-        var tMaxWhiskerLength = 1.5 * iValue.IQR,
-            tIndex;
-        iValue.lowerWhisker = iValue.Q1 - tMaxWhiskerLength;
-        tIndex = 0;
-        while( iValue.vals[ tIndex] < iValue.lowerWhisker)
-          tIndex++;
-        iValue.lowerWhisker = iValue.vals[ tIndex];
-
-        iValue.upperWhisker = iValue.Q3 + tMaxWhiskerLength;
-        tIndex = iValue.vals.length - 1;
-        while( iValue.vals[ tIndex] > iValue.upperWhisker)
-          tIndex--;
-        iValue.upperWhisker = iValue.vals[ tIndex];
-      }
-    });
 
     this.endPropertyChanges();
   }

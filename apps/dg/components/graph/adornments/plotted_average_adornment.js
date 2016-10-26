@@ -54,9 +54,6 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     return (tLayerManager && this.layerName) ? tLayerManager[ this.shadingLayerName] :null;
   }.property('paperSource', 'shadingLayerName' ),
 
-  init: function() {
-    sc_super();
-  },
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
@@ -671,9 +668,14 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
        */
       titleString: function( axisValue, iStatValues) {
         var tPrecision = this.titlePrecision + (this.getPath('model.precision') || 0);
+
+        function convertValue( iValue) {
+          return DG.MathUtilities.isNumeric( iValue) ? iValue.toFixed( tPrecision) : '';
+        }
+
         return this.titleResource.loc( iStatValues.lowerWhisker.toFixed( tPrecision),
-            iStatValues.Q1.toFixed( tPrecision), iStatValues.median.toFixed( tPrecision),
-            iStatValues.Q3.toFixed( tPrecision),
-            iStatValues.upperWhisker.toFixed( tPrecision), iStatValues.IQR.toFixed( tPrecision));
+            convertValue(iStatValues.Q1), convertValue(iStatValues.median),
+            convertValue(iStatValues.Q3),
+            convertValue(iStatValues.upperWhisker), convertValue(iStatValues.IQR));
       }
     });

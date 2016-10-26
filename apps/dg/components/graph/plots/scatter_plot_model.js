@@ -194,22 +194,17 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var this_ = this;
 
         function toggle() {
-          if (SC.none(this_.movableLine)) {
-            this_.createMovableLine(); // Default is to be unlocked
-          }
-          else {
+          if( !SC.none(this_.movableLine)) {
             this_.movableLine.toggleInterceptLocked();
             this_.movableLine.recomputeSlopeAndInterceptIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
           }
-          if (SC.none(this_.lsrLine)) {
-            this_.createLSRLLine(); // Default is to be unlocked
-          }
-          else {
+          if( !SC.none(this_.lsrLine)) {
             this_.lsrLine.toggleInterceptLocked();
           }
         }
 
-        var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
+        var willLock = (this.movableLine && !this.movableLine.get('isInterceptLocked')) ||
+                      (this.lsrLine && !this.lsrLine.get('isInterceptLocked'));
         DG.UndoHistory.execute(DG.Command.create({
           name: "graph.toggleLockIntercept",
           undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
@@ -217,8 +212,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           log: "lockIntercept: %@".fmt(willLock),
           execute: function () {
             this._undoData = {
-              movableLine: this_.movableLine.createStorage(),
-              lsrlStorage: this_.lsrLine.createStorage()
+              movableLine: this_.movableLine ? this_.movableLine.createStorage() : null,
+              lsrlStorage: this_.lsrLine ? this_.lsrLine.createStorage() : null
             };
             toggle();
           },
