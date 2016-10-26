@@ -31,6 +31,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       controller: null,
 
+      /**
+       * We need to be able to set title.
+       */
+      view: function() {
+        return this.getPath('controller.view');
+      }.property(),
+
       idBinding: SC.Binding.oneWay('*controller.model.id'),
 
       /**
@@ -418,10 +425,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleInteractiveFrame: {
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
+          var title = iValues.title || iValues.name || '';
           DG.assert(diModel, 'DataInteractiveModel  exists' );
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
           if (iValues) {
             diModel.set('title', iValues.title);
+            this.setPath('view.title', title);
+
             diModel.set('version', iValues.version);
             diModel.set('dimensions', iValues.dimensions);
             if (!SC.none(iValues.preventBringToFront)) {
