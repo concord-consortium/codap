@@ -296,30 +296,38 @@ DG.ContainerView = SC.View.extend(
                                       tViewRects.concat( tReservedRects),
                                       iPosition),
             tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
-            tOptions = { duration: 0.5, timing: 'ease-in-out' };
-        tReservedRects.push( tFinalRect);
-        this.invokeNext( function() {
-          iView.adjust( { left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
-                          width: 0, height: 0 });
-          iView.animate( { left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height }, tOptions,
-                        function() {
-                          // map component doesn't come out right without the following kludge
-                          // Todo: Figure out how to do this with less kludge. Possibly install the contentView
-                          // after the animation has completed? Or set the size of the contentView and simply
-                          // expand onto it.
-                          this.adjust('width', tViewRect.width + 1);
-                          this.adjust('width', tViewRect.width);
-                          this.adjust('height', tViewRect.height + 1);
-                          this.adjust('height', tViewRect.height);
-                          this.select();
-                          this_.updateFrame();
-                          tReservedRects.splice( tReservedRects.indexOf( tFinalRect), 1);
-                          // beginEditing applies only to text component, but couldn't find a better place to put this
-                          // Better would be to define something like 'didReachFinalPosition' as a generic component
-                          this.didReachInitialPosition();
-                        });
-        }.bind( this));
-        iView.adjust( { width: 0, height: 0 });
+            tOptions = { duration: 0.5, timing: 'ease-in-out'},
+            tIsGameView = iView.get('contentView').constructor === DG.GameView;
+        if( tIsGameView) {
+          iView.adjust( tFinalRect);
+        }
+        else {
+          tReservedRects.push(tFinalRect);
+          this.invokeNext(function () {
+            iView.adjust({
+              left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
+              width: 0, height: 0
+            });
+            iView.animate({left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height}, tOptions,
+                function () {
+                  // map component doesn't come out right without the following kludge
+                  // Todo: Figure out how to do this with less kludge. Possibly install the contentView
+                  // after the animation has completed? Or set the size of the contentView and simply
+                  // expand onto it.
+                  this.adjust('width', tViewRect.width + 1);
+                  this.adjust('width', tViewRect.width);
+                  this.adjust('height', tViewRect.height + 1);
+                  this.adjust('height', tViewRect.height);
+                  this.select();
+                  this_.updateFrame();
+                  tReservedRects.splice(tReservedRects.indexOf(tFinalRect), 1);
+                  // beginEditing applies only to text component, but couldn't find a better place to put this
+                  // Better would be to define something like 'didReachFinalPosition' as a generic component
+                  this.didReachInitialPosition();
+                });
+          }.bind(this));
+          iView.adjust({width: 0, height: 0});
+        }
       },
       
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.
