@@ -35,15 +35,21 @@ DG.appController = SC.Object.create((function () // closure
 
     /**
      * Options menu.
-     * @property {SC.MenuPane}
+     * @property {DG.MenuPane}
      */
     optionMenuPane: null,
 
     /**
-     * Options menu.
+     * Guide menu.
      * @property {SC.MenuPane}
      */
     guideMenuPane: null,
+
+    /**
+     * Help menu.
+     * @property {DG.MenuPane}
+     */
+    helpMenuPane: null,
 
     autoSaveTimer: null,
 
@@ -94,6 +100,11 @@ DG.appController = SC.Object.create((function () // closure
         this.guideMenuPane = SC.MenuPane.create({
           layout: {width: 250}
         });
+        this.helpMenuPane = DG.MenuPane.create({
+          items: this.get('helpMenuItems'),
+          itemLayerIdKey: 'id',
+          layout: {width: 150}
+        });
       }.bind(this));
 
       this.autoSaveTimer = SC.Timer.schedule({
@@ -136,8 +147,14 @@ DG.appController = SC.Object.create((function () // closure
         { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
           target: this, dgAction: 'viewWebPage', id: 'dg-optionMenuItem-view_webpage' },
         { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
-          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide' },
-        { isSeparator: YES },
+          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide' }
+      ];
+    }.property(),
+
+    helpMenuItems: function () {
+      return [
+        { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
+          target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' },
         { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
@@ -1469,22 +1486,37 @@ DG.appController = SC.Object.create((function () // closure
       window.history.replaceState("codap", docName + " - CODAP", newUrl);
     }.observes('DG.authorizationController.currLogin.user', 'DG._currDocumentController.documentName', 'DG._currDocumentController.externalDocumentId'),
 
+    openWebView: function( iURL, iTitle, iWidth, iHeight) {
+      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
+          tLayout = { left: (tDocFrame.width - iWidth) / 2, top: (tDocFrame.height - iHeight) / 2,
+            width: iWidth, height: iHeight };
+
+      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
+      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          iURL, iTitle, tLayout);
+    },
+
     /**
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
-      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
-          kWidth = 975, kHeight = 500,
-          tLayout = { left: (tDocFrame.width - kWidth) / 2, top: (tDocFrame.height - kHeight) / 2,
-                      width: kWidth, height: kHeight };
+      var kWidth = 975, kHeight = 500;
+      this.openWebView( DG.get('showWebSiteURL'), 'DG.AppController.showWebSiteTitle'.loc(), kWidth, kHeight);
+    },
 
-      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        DG.get('showWebSiteURL'),
-        'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
-          tLayout);
-
-
+    /**
+     Open a new tab with the CODAP website.
+     */
+    showHelpSite: function () {
+      var tHelpURL = DG.get('showHelpURL'),
+          tWidth = 400, tHeight = 400,
+          tBrowser = SC.browser;
+      if(tBrowser.name === SC.BROWSER.safari && tBrowser.os === SC.OS.ios) {
+        this.openWebView( DG.get('showHelpURL'), 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
+      }
+      else {
+        window.open(tHelpURL);
+      }
     }
 
   }; // end return from closure

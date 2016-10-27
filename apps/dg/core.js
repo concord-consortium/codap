@@ -378,6 +378,7 @@ DG = SC.Application.create((function () // closure
       'redoButton',
       'tileListButton',
       'optionButton',
+      'helpButton',
       'guideButton'
     ],
 

@@ -148,6 +148,17 @@ DG.RightButtonData = {
     localize: true,
     isVisible: false,
     classNames: ['dg-guide-button']
+  },
+
+  helpButton: {
+    title: 'DG.ToolButtonData.help.title',  // "Guide"
+    iconClass: 'moonicon-icon-help',
+    target: 'DG.appController.helpMenuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.help.toolTip',  // "View or change CODAP options"
+    localize: true,
+    isVisible: true,
+    classNames: ['dg-help-button']
   }
 
 };

@@ -64,8 +64,8 @@
 }
 .moonicon-icon-help:before {
 	content: "\68";
-	font-size: 18px;
-	color: white;
+	font-size: 24px;
+	color: #4c4c4c;
 }
 .moonicon-icon-hideShow:before {
 	content: "\69";
