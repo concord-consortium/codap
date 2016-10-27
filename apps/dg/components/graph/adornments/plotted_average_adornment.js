@@ -670,7 +670,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         var tPrecision = this.titlePrecision + (this.getPath('model.precision') || 0);
 
         function convertValue( iValue) {
-          return DG.MathUtilities.isNumeric( iValue) ? iValue.toFixed( tPrecision) : '';
+          return DG.MathUtilities.isNumeric( iValue) ? Number( iValue).toFixed( tPrecision) : '';
         }
 
         return this.titleResource.loc( iStatValues.lowerWhisker.toFixed( tPrecision),
