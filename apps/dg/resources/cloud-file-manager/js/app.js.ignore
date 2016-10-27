@@ -14606,7 +14606,9 @@ LaraProvider = (function(superClass) {
               if (haveCollaborators) {
                 return setFollowers(null, finished);
               } else {
-                return removeCollaborator(null, finished);
+                return cloneDoc(function(err) {
+                  return removeCollaborator(err, finished);
+                });
               }
             } else {
               if (haveCollaborators) {
