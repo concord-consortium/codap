@@ -985,10 +985,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                typeClass = 'DG.GraphView';
              break;
            case 'caseTable':
-             // In the absense of this parameter CODAP will attempt to bypass
-             // duplicate creation of components when a document is saved and
-             // restored. This cannot happen with tables, however.
-             iValues.allowMoreThanOne = true;
                typeClass = 'DG.TableView';
              break;
            case 'map':
@@ -1014,7 +1010,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          if (!SC.none(typeClass)) {
            iValues[document] = doc;
            iValues.type = typeClass;
-           //rtn = doc.createComponentAndView(DG.Component.createComponent(iValues), typeClass);
+           // the allowMoreThanOne=false restriction is historical. It prevented
+           // proliferation of components when a document was repeatedly opened
+           // we default to allowing any number. It is a DI's responsibility
+           // to avoid proliferation.
+           iValues.allowMoreThanOne = true;
            rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
          } else {
            DG.log('Unknown component type: ' + type);
