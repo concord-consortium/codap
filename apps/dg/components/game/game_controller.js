@@ -348,31 +348,52 @@ DG.GameController = DG.ComponentController.extend(
           dataContext.set('formulas', iComponentStorage.currentGameFormulas);
 
         this.set('gameIsReady', true);
-      },
-
-
+      }
     }) ;
 
 
 /**
- * This entry point allows other parts of the code to send arbitrary commands to the
- * DataInteractive, if one exists. The commands should be one of the existing commands
- * defined in the list of CODAP-Initiated Actions,
- * https://github.com/concord-consortium/codap/wiki/Data-Interactive-API#codap-initiated-actions
- * and must be fully specified (e.g. `{operation: 'xyz'}).
+ * This entry point allows other parts of the code to send arbitrary notifications
+ * to all DataInteractives currently running. The notification should be as defined
+ * in https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-API#codap-initiated-actions.
+ * If supported for the Game API (https://github.com/concord-consortium/codap/wiki/CODAP-Game-API-(Deprecated))
+ * and the Data Interactive has connected through that channel, it will convert the
+ * notification and issue it. Otherwise it will not send the command.
  *
- * NOTE: This implementation only supports the case where there is one Data Interactive
- * NOTE: ant that data interactive communicates through the Game API.
+ * No monitoring of the actual receipt of the notification is possible through
+ * this method. It is possible that the notifications will be made and fail on the
+ * DI side.
  *
  * @param iCmd       An object representing the command to be send
- * @param iCallback  An optional callback passed back from the DI
+ * @return the number of DataInteractives that the event was issued to.
  */
-DG.sendCommandToDI = function( iCmd, iCallback) {
-  var interactives = DG.currDocumentController().get('dataInteractives'),
-      myController = (interactives && interactives.length === 1)? interactives[0] : undefined,
-      gameAPIHandler = myController && myController.gamePhoneHandler;
-  if (gameAPIHandler && gameAPIHandler.rpcEndpoint && gameAPIHandler.get('connected')) {
-    gameAPIHandler.rpcEndpoint.call(iCmd, iCallback);
+DG.sendCommandToDI = function( iCmd) {
+  function translateNotification(notification) {
+    if (notification && notification.resource === 'undoChangeNotice') {
+      return {operation: notification.values.operation};
+    }
   }
+  var controllers = DG.currDocumentController().get('dataInteractives');
+  var gameNotification = null;
+  controllers.forEach(function (controller) {
+    var name = controller.getPath('view.title');
+    var activeChannel = controller.get('activeChannel');
+    var gamePhoneHandler = controller.get('gamePhoneHandler');
+    function handleResponse(response) {
+      //if (!response || !response.success) {
+        //DG.log('Data Interactive Notification to %@ failed: %@'.loc(name, JSON.stringify(iCmd)));
+      //}
+    }
+    if (activeChannel === gamePhoneHandler) {
+      if (!gameNotification) {
+        gameNotification = translateNotification(iCmd);
+      }
+      activeChannel.rpcEndpoint.call(gameNotification, handleResponse);
+      DG.log('sendCommandToDI: sent game notification to %@: %@'.loc(name, JSON.stringify(gameNotification)));
+    } else if (activeChannel) {
+      activeChannel.rpcEndpoint.call(iCmd, handleResponse);
+      DG.log('sendCommandToDI: sent notification to %@: %@'.loc(name, JSON.stringify(iCmd)));
+    }
+  });
 };
 
