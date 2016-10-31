@@ -468,10 +468,12 @@ DG.appController = SC.Object.create((function () // closure
       // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
       var urlParser = document.createElement('a');
       urlParser.href = iURL;
+      var pathname = urlParser.pathname.toLocaleLowerCase();
 
-      if (urlParser.pathname.match(/.*\.json$/)) {
-        this.openDocumentFromUrl(iURL, 'json');
-      } else if (urlParser.pathname.toLocaleLowerCase().match(/.*\.csv$/)){
+      if (pathname.match(/.*\.(json|codap)$/)) {
+        DG.cfmClient.openUrlFile(iURL);
+      } else if (pathname.match(/.*\.csv$/)){
+        // CFM should be importing this document
         this.openDocumentFromUrl(iURL, 'csv');
       } else {
         addInteractive();
