@@ -52,7 +52,7 @@ DG.DataItem = SC.Object.extend({
    * @param {*} value
    */
   setValue: function (attributeID, value) {
-    this.values[attributeID] = value;
+    this.values[attributeID] = DG.DataUtilities.canonicalizeInputValue( value);
   },
 
   /**

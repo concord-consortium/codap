@@ -109,6 +109,8 @@ DG.isDateString = DG.DataUtilities.isDateString;
 DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   // canonicalize null, undefined, and "undefined"
   if ((iValue == null) || (iValue === "undefined")) return "";
+  if( typeof iValue !== 'string')
+      return iValue;
 
   // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
   var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
