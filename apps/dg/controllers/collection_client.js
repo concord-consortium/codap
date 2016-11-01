@@ -1,6 +1,6 @@
 // ==========================================================================
 //                        DG.CollectionClient
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -28,7 +28,7 @@ DG.CollectionClient = SC.Object.extend(
 /** @scope DG.CollectionClient.prototype */ {
 
   collection: null, // DG.Collection
-  
+
   /**
    * The id of the underlying DG.CollectionRecord.
    * @property {Number}
@@ -36,7 +36,7 @@ DG.CollectionClient = SC.Object.extend(
   id: function() {
     return this.collection && this.collection.get('id');
   }.property('collection').cacheable(),
-  
+
   /**
    * The name of the collection with which this object is associated.
    * @property {String}
@@ -69,9 +69,9 @@ DG.CollectionClient = SC.Object.extend(
   attrsController: null,
 
   casesController: null,
-  
+
   attrFormulaChanges: null,
-  
+
   /**
     Returns true if this collection contains attributes with formulas that
     use aggregate functions. The presence of aggregate function references
@@ -87,7 +87,7 @@ DG.CollectionClient = SC.Object.extend(
     }
     return false;
   }.property(),
-  
+
   init: function() {
     sc_super();
     this.attrsController = SC.ArrayController.create({});
@@ -105,7 +105,7 @@ DG.CollectionClient = SC.Object.extend(
     this.collection.destroy();
     sc_super();
   },
-  
+
   /**
    * Indicates whether parent/child links are configured correctly.
    * Games using the revised API (Aug 2011) should set this to true.
@@ -145,10 +145,10 @@ DG.CollectionClient = SC.Object.extend(
    */
   isAncestorOf: function( iOtherCollection) {
     var myCollectionModel = this.get('collection');
-    return myCollectionModel && 
+    return myCollectionModel &&
             myCollectionModel.isAncestorOf( iOtherCollection.get('collection'));
   },
-  
+
   /**
     Returns true if this collection is descended from iOtherCollection.
     @param {DG.CollectionClient} iOtherCollection The collection to test for ancestry.
@@ -156,7 +156,7 @@ DG.CollectionClient = SC.Object.extend(
    */
   isDescendantOf: function( iOtherCollection) {
     var myCollectionModel = this.get('collection');
-    return myCollectionModel && 
+    return myCollectionModel &&
             myCollectionModel.isDescendantOf( iOtherCollection.get('collection'));
   },
 
@@ -168,7 +168,7 @@ DG.CollectionClient = SC.Object.extend(
     this.set('collection', iCollection);
     this.attrsController.set('content', iCollection.attrs);
     this.casesController.set('content', iCollection.cases);
-    
+
     // When restoring documents, we need to process the restored attributes
     this.forEachAttribute( function( iAttribute) {
                             this.didCreateAttribute( iAttribute);
@@ -235,7 +235,7 @@ DG.CollectionClient = SC.Object.extend(
   getAttributeByID: function(iAttrID) {
     return !SC.none( iAttrID) ? this.attrsController.findProperty('id', Number(iAttrID)) : undefined;
   },
-  
+
   /**
     Returns the attribute whose name matches the specified name.
     @param    {String}        iAttrName -- The name of the attribute to be returned
@@ -244,7 +244,7 @@ DG.CollectionClient = SC.Object.extend(
   getAttributeByName: function(iAttrName) {
     return !SC.empty( iAttrName) ? this.attrsController.findProperty('name', iAttrName) : undefined;
   },
-  
+
   /**
     Returns the index of the specified attribute name in the list of attribute names.
     @param    {String}        iAttrName -- The name of the attribute whose index is to be returned
@@ -265,7 +265,7 @@ DG.CollectionClient = SC.Object.extend(
   hasAttribute: function( iAttrName) {
     return this.getAttributeIndexByName( iAttrName) >= 0;
   },
-  
+
   /**
     Creates a new attribute with the specified properties.
     @param    {Object}        iProperties -- Initial property values
@@ -275,19 +275,19 @@ DG.CollectionClient = SC.Object.extend(
     var newAttribute = this.collection.createAttribute( iProperties || {});
 
     if( newAttribute) this.didCreateAttribute( newAttribute);
-    
+
     return newAttribute;
   },
-  
+
   /**
-    Utility function called when an attribute is added to the collection or 
+    Utility function called when an attribute is added to the collection or
     when the DG.CollectionClient is first attached to an existing collection.
     Adds necessary observers for each attribute in the collection.
     @param    {DG.Attribute}  iAttribute -- The attribute being added
    */
   didCreateAttribute: function( iAttribute) {
   },
-  
+
   /**
     Utility function called when an attribute is about to be removed from the collection
     or when the DG.CollectionClient is first attached to an existing collection.
@@ -352,7 +352,7 @@ DG.CollectionClient = SC.Object.extend(
         tAttribute = this.createAttribute( iProperties);
       }
     }
-    
+
     return tAttribute;
   },
 
@@ -368,7 +368,7 @@ DG.CollectionClient = SC.Object.extend(
         willHaveFormula = !SC.empty( iFormula),
         preserveComputedValues = didHaveFormula && !willHaveFormula,
         preservedValues = [];
-    
+
     // Preserve computed values if necessary
     if( preserveComputedValues) {
       // preserve computed values
@@ -377,10 +377,10 @@ DG.CollectionClient = SC.Object.extend(
                                     preservedValues.push( iValue);
                                   });
     }
-    
+
     // Set the new formula (which may erase the formula)
     iAttribute.set('formula', iFormula);
-    
+
     // Restore the preserved computed values if necessary
     if( preserveComputedValues) {
       // set the preserved values as the new case values
@@ -393,7 +393,7 @@ DG.CollectionClient = SC.Object.extend(
     // for details of why we're signalling manually.
     this.attributeFormulaDidChange(iAttribute);
   },
-  
+
   /**
     Applies the specified function to each attribute in the collection.
     @param    {Function}      iFunction to be applied to each attribute
@@ -411,7 +411,59 @@ DG.CollectionClient = SC.Object.extend(
   getCaseIDs: function() {
     return this.casesController.getEach('id');
   },
-  
+
+  getCases: function () {
+    var cases = [];
+    this.casesController.forEach(function (_case) {
+      cases.push(_case);
+    });
+    return cases;
+  },
+
+  searchCases: function (query) {
+    var queryKeys = Object.keys(query),
+        attrNameToIdMap = {};
+
+    this.forEachAttribute(function (attr) {
+      attrNameToIdMap[attr.name] = attr.id;
+    });
+
+    return this.casesController.filter(function (iCase) {
+      var allTestsMatches = true;
+      queryKeys.forEach(function (queryKey) {
+        var attrValue = iCase.getValue(attrNameToIdMap[queryKey]),
+            queryValue = query[queryKey],
+            testMatches;
+
+        switch (queryValue.test) {
+          case '==':
+            testMatches = attrValue == queryValue.value;
+            break;
+          case '!=':
+            testMatches = attrValue != queryValue.value;
+            break;
+          case '<':
+            testMatches = attrValue < queryValue.value;
+            break;
+          case '<=':
+            testMatches = attrValue <= queryValue.value;
+            break;
+          case '>=':
+            testMatches = attrValue >= queryValue.value;
+            break;
+          case '>':
+            testMatches = attrValue > queryValue.value;
+            break;
+          default:
+            testMatches = false;
+            break;
+        }
+        allTestsMatches = allTestsMatches && testMatches;
+      });
+      return allTestsMatches;
+    });
+  },
+
   /**
     Returns the number of cases in the collection.
     @returns  {Number}    The number of cases in the collection
@@ -465,7 +517,7 @@ DG.CollectionClient = SC.Object.extend(
     var tSelection = this.getPath('casesController.selection');
     return iCase && tSelection ? tSelection.contains( iCase) : false;
   },
-  
+
   /**
     Returns true if the case at the specified index is selected, false otherwise.
     @param    iCaseIndex {Number}    The index of the case whose selection status is to be returned
@@ -476,7 +528,7 @@ DG.CollectionClient = SC.Object.extend(
         tSelection = this.getPath('casesController.selection');
     return tCase && tSelection ? tSelection.contains( tCase) : false;
   },
-  
+
   /**
     Creates a new case with the specified initial properties.
 
@@ -490,7 +542,7 @@ DG.CollectionClient = SC.Object.extend(
   createCase: function( iProperties) {
     return this.collection.createCase( iProperties || {});
   },
-  
+
   /**
     Updates the 'attrFormulaChanges' property, triggering any observers of that property.
    */
@@ -505,7 +557,7 @@ DG.CollectionClient = SC.Object.extend(
       this.set('attrFormulaChanges', attrID);
     this.endPropertyChanges();
   },
-  
+
   /**
     Apples the specified function to each case in the collection.
     @param    {Function}  iFunction The function to apply to each case
@@ -515,7 +567,7 @@ DG.CollectionClient = SC.Object.extend(
     this.casesController.forEach( iFunction);
     return this;
   },
-  
+
   /**
     Applies the specified function to each value of the specified attribute.
     Passes the raw value (i.e. including Dates) to the specified callback function.
@@ -531,7 +583,7 @@ DG.CollectionClient = SC.Object.extend(
                   });
     return this;
   },
-  
+
   /**
     Set multiple values for the specified case from an array of values.
     The values are assumed to be in canonical attribute order, which is
@@ -561,7 +613,7 @@ DG.CollectionClient = SC.Object.extend(
     }
     iCase.endCaseValueChanges();
   },
-  
+
   /**
     Set multiple attribute values from the specified array of values.
    */
@@ -572,7 +624,7 @@ DG.CollectionClient = SC.Object.extend(
                       iCase.setValue( iAttrID, iValues[ iIndex]);
                   });
   },
-  
+
   /**
     Delete the specified case.
     Client should call didDeleteCases() after deleting a batch of cases.
@@ -581,7 +633,7 @@ DG.CollectionClient = SC.Object.extend(
   deleteCase: function( iCase) {
     this.get('collection').deleteCase( iCase);
   },
-  
+
   /**
     This function should be called whenever cases are deleted to allow
     the collection a chance to synchronize store contents, ID to index
@@ -591,7 +643,7 @@ DG.CollectionClient = SC.Object.extend(
 
     this.get('collection').updateCaseIDToIndexMap();
   },
-  
+
   /**
     Deletes the currently selected cases from the collection.
    */
@@ -604,7 +656,7 @@ DG.CollectionClient = SC.Object.extend(
     });
     this.didDeleteCases();
   },
-  
+
   /**
     Deletes all cases from the collection.
    */
@@ -659,7 +711,7 @@ DG.CollectionClient = SC.Object.extend(
     var collection = this.getPath('collection');
     return collection && collection.toLink();
   },
-  
+
   debugLog: function(iPrompt) {
     this.get('collection').debugLog(iPrompt);
   }

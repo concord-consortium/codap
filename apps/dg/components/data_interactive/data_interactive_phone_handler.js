@@ -98,6 +98,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           caseByIndex: this.handleCaseByIndexOrID,
           caseByID: this.handleCaseByIndexOrID,
           caseCount: this.handleCaseCount,
+          caseList: this.handleCaseList,
+          caseSearch: this.handleCaseSearch,
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
@@ -181,6 +183,30 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 DG.log('unhandled result property: ' + k );
             }
           });
+
+          result.cases = [];
+          (change.cases || []).forEach(function (iCase) {
+            var values = {};
+
+            iCase.collection.attrs.forEach(function (attr) {
+              values[attr.name] = iCase.getValue(attr.id);
+            });
+
+            result.cases.push({
+              id: iCase.id,
+              parent : iCase.parent && iCase.parent.id,
+              context: {
+                id: iCase.collection.context.id,
+                name: iCase.collection.context.name
+              },
+              collection: {
+                id: iCase.collection.id,
+                name: iCase.collection.name,
+                parent: iCase.collection.parent ? {id: iCase.collection.parent.id, name: iCase.collection.parent.name} : null
+              },
+              values: values
+            })
+          })
 
           return {operation: change.operation, result: result};
         });
@@ -800,7 +826,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleCase: {
         create: function (iResources, iValues) {
           function createOneCase(iCase) {
-            var changeResult = context.applyChange({
+            var request = {
               operation: 'createCases',
               collection: collection,
               properties: {
@@ -808,8 +834,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               },
               values: [iCase.values],
               requester: requester
-            });
+            },
+            changeResult = context.applyChange(request);
             success = (changeResult && changeResult.success) && success;
+            request.cases = success ? [collection.getCaseByID(changeResult.caseID)] : [];
             if (changeResult.caseIDs[0]) {
               caseIDs.push({id: changeResult.caseIDs[0]});
             }
@@ -881,6 +909,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: success
           };
+        },
+        'delete': function (iResources) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var theCase = iResources.caseByIndex || iResources.caseByID;
+          var success = false;
+          var changeResult;
+          if (collection && theCase) {
+            changeResult = context.applyChange({
+              operation: 'deleteCases',
+              collection: collection,
+              cases: [theCase],
+              values: [],
+              requester: this.get('id')
+            });
+            success = (changeResult && changeResult.success);
+          }
+          return {
+            success: success
+          };
         }
       },
 
@@ -906,6 +954,30 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
           return {success: success, values: caseIDs};
+        }
+      },
+
+      handleCaseList: {
+        get: function (iResources) {
+          var cases = iResources.collection.getCases().map(function (iCase) {
+            return this.makeSerializableCase(iResources.collection, iCase);
+          }.bind(this))
+          return {
+            success: true,
+            values: cases
+          };
+        }
+      },
+
+      handleCaseSearch: {
+        get: function (iResources, iValues) {
+          var cases = iResources.collection.searchCases(iValues).map(function (iCase) {
+            return this.makeSerializableCase(iResources.collection, iCase);
+          }.bind(this))
+          return {
+            success: true,
+            values: cases
+          };
         }
       },
 
