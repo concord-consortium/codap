@@ -31,7 +31,7 @@ DG.DotPlotView = DG.PlotView.extend(
                       'secondaryAxisView.model.numberOfCells', 'overlap'],
 
   autoDestroyProperties: ['movableValueAdorn', 'plottedValueAdorn',
-                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedIQRAdorn'],
+                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'],
 
   /**
   @property{DG.CellLinearAxisView}
