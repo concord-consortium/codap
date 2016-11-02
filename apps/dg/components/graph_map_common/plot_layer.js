@@ -270,6 +270,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this.removeObserver('model.dataConfiguration.dataContext.selectionChangeCount', this, 'selectionChangeCount');
     if( this.cleanupTimer)
       this.cleanupTimer.invalidate();
+    this.hideDataTip();
 
     sc_super();
 
