@@ -234,7 +234,8 @@ DG.functionRegistry.registerFunctions((function() {
     },
 
     /**
-      Returns the first part of the specified string, to the number of characters specified.
+      Returns a substring of the specified string, determined by its position and
+      length arguments.
       @param    {String}  iString - the string to search within
       @param    {Number}  iPosition - the offset of the first character to return
       @param    {Number}  iLength - the number of characters to return
