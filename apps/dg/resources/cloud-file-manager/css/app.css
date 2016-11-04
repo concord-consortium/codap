@@ -516,6 +516,21 @@
 .urlImport input {
   margin-bottom: 20px;
 }
+.localFileSave .saveArea {
+  margin-top: 10px;
+  height: 250px;
+  color: #000;
+}
+.localFileSave .saveArea .shareCheckbox input[type=checkbox] {
+  width: initial !important;
+  margin-right: 5px;
+}
+.localFileSave .note {
+  color: #000;
+  margin: 10px 0;
+  font-style: italic;
+  font-size: 0.9em;
+}
 .menu-bar {
   font-family: 'Arial', 'Helvetica', 'sans-serif';
   width: 100%;
@@ -627,7 +642,7 @@
   top: 3px;
 }
 .modal {
-  z-index: 100;
+  z-index: 200;
 }
 .modal .modal-background {
   position: absolute;
@@ -639,10 +654,10 @@
   width: 'auto';
   background-color: #777;
   opacity: 0.5;
-  z-index: 2;
+  z-index: 200;
 }
 .modal .modal-content {
-  z-index: 3;
+  z-index: 201;
   position: absolute;
   top: 0;
   left: 0;
@@ -998,7 +1013,7 @@
   padding: 10px;
   padding-bottom: 50px;
 }
-.tabbed-panel .workspace-tab-component .dialogTab input {
+.tabbed-panel .workspace-tab-component .dialogTab input[type=text] {
   width: 100%;
   font-size: 20px;
   padding: 5px;
@@ -1060,6 +1075,31 @@
   background-color: #3c94a1;
 }
 .tabbed-panel .workspace-tab-component .dialogTab .buttons button.disabled {
+  background-color: #777;
+}
+.tabbed-panel .workspace-tab-component .dialogTab .buttons a {
+  padding: 15px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: bold;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: none;
+  font-family: 'Museo Sans', 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #fff;
+  background-color: #72bfca;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  border: 0;
+  margin-right: 0px;
+  text-decoration: none;
+}
+.tabbed-panel .workspace-tab-component .dialogTab .buttons a:hover {
+  background-color: #3c94a1;
+}
+.tabbed-panel .workspace-tab-component .dialogTab .buttons a.disabled {
   background-color: #777;
 }
 body {
