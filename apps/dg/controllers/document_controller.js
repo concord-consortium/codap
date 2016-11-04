@@ -448,14 +448,14 @@ DG.DocumentController = SC.Object.extend(
       var docView = DG.mainPage.get('docView'),
           type = (iComponent && iComponent.get('type')) || iComponentType,
           tView = null,
-          isInitialization = iArgs && iArgs.initiatedViaCommand ? false : true;
+          isInitialization = !(iArgs && iArgs.initiatedViaCommand);
       try {
         switch( type) {
         case 'DG.FlashView':  // For backward compatibility
           if( iComponent)
             iComponent.set('type', 'DG.GameView');
-          // fallthrough intentional
           /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+          // fallthrough intentional
         case 'DG.GameView':
           tView = this.addGame( docView, iComponent, isInitialization);
           break;
@@ -1383,7 +1383,7 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
-     * Ensures that that the state of all components, data contexts and
+     * Ensures that the state of all components, data contexts and
      * data contexts are current and up-to-date.
      *
      * Saves the current state of all the current Data Interactives into the

@@ -946,7 +946,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           var makeCanvasBlob = function (canvas) {
             var canvasDataURL = canvas.toDataURL("image/png");
             var canvasData = atob(canvasDataURL.substring("data:image/png;base64,".length));
-            var canvasAsArray = new Uint8Array(canvasData.length);
+            var canvasAsArray = new Uint8Array(canvasData.length);  /* global Uint8Array */
 
             for (var i = 0, len = canvasData.length; i < len; ++i) {
               canvasAsArray[i] = canvasData.charCodeAt(i);

@@ -58,8 +58,6 @@ DG.main = function main() {
 
   DG.getPath('mainPage.mainPane').append();
 
-  var documentLoaded = false;
-
   DG.appController.documentNameDidChange();
 
   DG.showUserEntryView = true;
@@ -585,11 +583,9 @@ DG.main = function main() {
       var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
       DG.appController.openDocumentNamed( DG.startingDocName, owner);
       DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
-      documentLoaded = true;
     } else if( !SC.empty( DG.startingDocId)) {
       DG.appController.openDocumentWithId( DG.startingDocId);
       DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-      documentLoaded = true;
     }
   }
 
@@ -610,4 +606,4 @@ DG.main = function main() {
 };
 
 /* exported main */
-function main() { DG.main(); }
+window.main = function() { DG.main(); };

@@ -1015,12 +1015,14 @@ DG.appController = SC.Object.create((function () // closure
         });
       }.bind( this);
 
+      var docName;
+
       var cancelCloseDocument = function () {
         DG.logUser("cancelCloseDocument: '%@'", docName);
       };
 
       if ((iType === 'JSON') && DG.currDocumentController().get('hasUnsavedChanges')) {
-        var docName = DG.currDocumentController().get('documentName');
+        docName = DG.currDocumentController().get('documentName');
         DG.logUser("confirmCloseDocument?: '%@'", docName);
         DG.AlertPane.warn({
           message: 'DG.AppController.closeDocument.warnMessage',

@@ -664,7 +664,6 @@ DG.DocumentArchiver = SC.Object.extend(
         var documentController = DG.currDocumentController(),
             existingSaveInProgress = documentController.get('saveInProgress'),
             saveInProgress,
-            exportPromise,
             oldDifferentialSaving,
             documentArchive;
 
@@ -682,7 +681,7 @@ DG.DocumentArchiver = SC.Object.extend(
         DG.USE_DIFFERENTIAL_SAVING = false;
         saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
 
-        exportPromise = documentController.captureCurrentDocumentState(false)
+        documentController.captureCurrentDocumentState(false)
         // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
         .then(function (da) {
           var promises = [];

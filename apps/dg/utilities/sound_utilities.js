@@ -61,7 +61,7 @@ DG.sounds = SC.Object.extend( {
     // With preloading (see initAudio()) we crashed on certain browsers.
     // For now, we disable audio completely, but leave the implementation
     // in place for further testing/development down the road.
-    if( true)
+    if( true) // eslint-disable-line no-constant-condition
       return;
     
     if( sound && sound.path && !sound.audio)

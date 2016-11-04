@@ -24,7 +24,7 @@ module("DG.Document", {
 });
 
 test("test DG.Document", function () {
-  var document, id;
+  var document;
 
   ok(SC.empty(DG.activeDocument), "Before document creation there is no DG.activeDocument");
 
@@ -34,7 +34,6 @@ test("test DG.Document", function () {
       appVersion: "myVersion",
       appBuildNum: "myBuildNum"
     });
-  id = document.id;
 
   ok(!SC.empty(document), "Can create document");
   ok(!SC.empty(DG.activeDocument), "After creation there is an DG.activeDocument");

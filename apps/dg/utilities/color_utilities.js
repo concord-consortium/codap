@@ -600,6 +600,7 @@ DG.ColorUtilities = {
   rgbColorString_to_PlatformColor: function (iColor, iWantHSB) {
 
     // Allow assignments as comparisons
+    /* eslint no-cond-assign: "off" */
     /* jshint boss:true */
 
     // convert color name to hex color

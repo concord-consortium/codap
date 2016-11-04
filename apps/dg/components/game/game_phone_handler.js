@@ -123,7 +123,7 @@ DG.GamePhoneHandler = SC.Object.extend(
       getOpenCaseIDs: function (iExcludeChildren) {
         var tGameContext = this.get('context'),
             tOpenCaseIDs = [],
-            tIncludeChildCases = (iExcludeChildren ? false : true);
+            tIncludeChildCases = !iExcludeChildren;
 
         // Adds the id of the specified case and all of its child cases to tOpenCaseIDs.
         function addCase(iCase) {

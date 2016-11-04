@@ -649,7 +649,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
           return this.getPlottedAttributesIncludeIDs( changedAttrIDs);
         }
         /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
-        // fall-through intentional -- w/o attribute IDs, rely on collection
+        // fall through intentional -- w/o attribute IDs, rely on collection
       case 'createCase':
       case 'createCases':
         // Only if the case(s) created are in a collection that is being plotted
