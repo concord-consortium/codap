@@ -418,7 +418,8 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var newDocument, context, contextRecord,
-          documentController = DG.currDocumentController();
+          documentController = DG.currDocumentController(),
+          caseTable;
 
       // Parse the document contents from the retrieved docText.
       newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
@@ -438,7 +439,9 @@ DG.appController = SC.Object.create((function () // closure
       context.restoreFromStorage(contextRecord.contextStorage);
 
       // add case table
-      documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+      caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+
+      DG.dirtyCurrentDocument(caseTable);
 
       return true;
     },
