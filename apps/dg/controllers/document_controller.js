@@ -202,13 +202,13 @@ DG.DocumentController = SC.Object.extend(
      * 1 = Public
      * @property {Number}
      */
-    documentPermissions: function() {
-      return this.getPath('content._permissions') || 0;
-    }.property(),
+    // documentPermissions: function() {
+    //   return this.getPath('content._permissions') || 0;
+    // }.property(),
 
-    documentPermissionsDidChange: function() {
-      this.notifyPropertyChange('documentPermissions');
-    }.observes('*content._permissions'),
+    // documentPermissionsDidChange: function() {
+    //   this.notifyPropertyChange('documentPermissions');
+    // }.observes('*content._permissions'),
 
     sharedMetadata: function(iKey, iSharedMetadata) {
       if(iSharedMetadata !== undefined) {
@@ -243,29 +243,29 @@ DG.DocumentController = SC.Object.extend(
     _changedObjects: null,
     _skipPatchNextTime: [],
 
-    _lastCopiedDocument: null,
-    externalDocumentId: null,
+    // _lastCopiedDocument: null,
+    // externalDocumentId: null,
 
-    isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled').bool(),
+    // isSaveEnabledBinding: SC.Binding.oneWay('DG.authorizationController.isSaveEnabled').bool(),
 
-    canBeCopied: function() {
-      return this.get('isSaveEnabled') &&
-             this.get('documentName') !== SC.String.loc('DG.Document.defaultDocumentName') &&
-             this.get('externalDocumentId');
-    }.property('isSaveEnabled','documentName','savedChangeCount','externalDocumentId'),
+    // canBeCopied: function() {
+    //   return this.get('isSaveEnabled') &&
+    //          this.get('documentName') !== SC.String.loc('DG.Document.defaultDocumentName') &&
+    //          this.get('externalDocumentId');
+    // }.property('isSaveEnabled','documentName','savedChangeCount','externalDocumentId'),
 
-    canBeReverted: function() {
-      return this.get('canBeCopied');
-    }.property('canBeCopied'),
+    // canBeReverted: function() {
+    //   return this.get('canBeCopied');
+    // }.property('canBeCopied'),
 
-    canBeShared: function() {
-      return this.get('canBeCopied');
-    }.property('canBeCopied'),
+    // canBeShared: function() {
+    //   return this.get('canBeCopied');
+    // }.property('canBeCopied'),
 
     /**
      * Set when save is in progress
      */
-    saveInProgress: null,
+    // saveInProgress: null,
 
     init: function() {
       sc_super();
@@ -333,7 +333,7 @@ DG.DocumentController = SC.Object.extend(
         this.clearChangedObjects();
         this.set('changeCount', 0);
         this.updateSavedChangeCount();
-        this.set('externalDocumentId', null);
+        // this.set('externalDocumentId', null);
         this.set('ready', true);
       } catch (e) {
         DG.logError(e);
@@ -1375,12 +1375,12 @@ DG.DocumentController = SC.Object.extend(
     /*
      *  todo: move to DocumentArchiver
      */
-    signalSaveInProgress: function() {
-      var saveInProgress = $.Deferred();
-      saveInProgress.done(function() { this.set('saveInProgress', null); }.bind(this));
-      this.set('saveInProgress', saveInProgress);
-      return saveInProgress;
-    },
+    // signalSaveInProgress: function() {
+    //   var saveInProgress = $.Deferred();
+    //   saveInProgress.done(function() { this.set('saveInProgress', null); }.bind(this));
+    //   this.set('saveInProgress', saveInProgress);
+    //   return saveInProgress;
+    // },
 
     /**
      * Ensures that the state of all components, data contexts and

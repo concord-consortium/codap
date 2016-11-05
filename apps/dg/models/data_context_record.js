@@ -161,8 +161,8 @@ DG.DataContextRecord = DG.BaseModel.extend(
       }
       var obj;
       var root;
-      fullData = fullData || false;
-      if ( fullData || SC.none(this.externalDocumentId) ) {
+      fullData = true;
+      if ( fullData) {
         obj = {
             type: this.type,
             document: this.document && this.document.id || undefined,
@@ -191,11 +191,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
         if (!SC.none(root)) {
           obj.collections.push(root.toArchive(excludeCases));
         }
-      } else {
-        obj = {
-          externalDocumentId: this.externalDocumentId
-        };
       }
+      // else {
+      //   obj = {
+      //     externalDocumentId: this.externalDocumentId
+      //   };
+      // }
       return obj;
     },
 
@@ -221,21 +222,21 @@ DG.DataContextRecord.createContext = function( iProperties) {
   }
   var tContext, shadowCopy = {};
   if( SC.none( iProperties)) iProperties = {};
-  if( !SC.none( iProperties.externalDocumentId)) {
-    // We should be loading this info from an external document.
-    var body = DG.ExternalDocumentCache.fetch(iProperties.externalDocumentId);
+  // if( !SC.none( iProperties.externalDocumentId)) {
+  //   // We should be loading this info from an external document.
+  //   var body = DG.ExternalDocumentCache.fetch(iProperties.externalDocumentId);
 
-    if (body) {
-      if (!SC.none(body.externalDocumentId)) {
-        iProperties.externalDocumentId = body.externalDocumentId;
-        delete body.externalDocumentId;
-      }
-      shadowCopy = $.extend(true, shadowCopy, body);
-      iProperties = $.extend(body, iProperties);
-    } else {
-      // FIXME What do we do when the document wasn't pre-fetched?
-    }
-  }
+  //   if (body) {
+  //     if (!SC.none(body.externalDocumentId)) {
+  //       iProperties.externalDocumentId = body.externalDocumentId;
+  //       delete body.externalDocumentId;
+  //     }
+  //     shadowCopy = $.extend(true, shadowCopy, body);
+  //     iProperties = $.extend(body, iProperties);
+  //   } else {
+  //     // FIXME What do we do when the document wasn't pre-fetched?
+  //   }
+  // }
   if( SC.none( iProperties.type)) iProperties.type = 'DG.DataContext';
   if (!iProperties.document) {
     iProperties.document = DG.currDocumentController().content;

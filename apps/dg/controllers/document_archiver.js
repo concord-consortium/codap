@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global Promise */
+///* global Promise */
 /**
  * @class DocumentArchiver
  *
@@ -35,8 +35,7 @@
  *
  * @extends SC.Object
  */
-/* globals CSV: true, jiff:true */
-sc_require('libraries/jiff');
+/* globals CSV: true */
 
 DG.DocumentArchiver = SC.Object.extend(
 /** @scope DG.DocumentArchiver.prototype */ {
@@ -140,21 +139,21 @@ DG.DocumentArchiver = SC.Object.extend(
         doc = iDocument;
       }
 
-      if (DG.ExternalDocumentCache) {
-        subDocs = DG.ExternalDocumentCache.fetchAll().map(function (iFragment) {
-          var parsedFragment = {};
-          if (typeof iDocument === 'string') {
-            try {
-              parsedFragment = JSON.parse(iFragment);
-            } catch (ex) {
-              errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
-            }
-          } else {
-            parsedFragment = iFragment;
-          }
-          return parsedFragment;
-        });
-      }
+      // if (DG.ExternalDocumentCache) {
+      //   subDocs = DG.ExternalDocumentCache.fetchAll().map(function (iFragment) {
+      //     var parsedFragment = {};
+      //     if (typeof iDocument === 'string') {
+      //       try {
+      //         parsedFragment = JSON.parse(iFragment);
+      //       } catch (ex) {
+      //         errors.push('DG.AppController.validateDocument.parseError'.loc(ex));
+      //       }
+      //     } else {
+      //       parsedFragment = iFragment;
+      //     }
+      //     return parsedFragment;
+      //   });
+      // }
 
       if (doc) {
         requiredProperties.forEach(function (prop) {
@@ -186,57 +185,57 @@ DG.DocumentArchiver = SC.Object.extend(
      *                                the storage server.
      * @returns {[Promise]}
      */
-    loadExternalDocuments: function(iDocumentIds) {
-      var promises = [], i, len;
+    // loadExternalDocuments: function(iDocumentIds) {
+    //   var promises = [], i, len;
 
-      var sendRequest = function(id) {
-        return DG.authorizationController.get('storageInterface').open({id: id}).then(
-          function(body) {
-            DG.ExternalDocumentCache.cache(id, body);
-          },
-          function(errorCode) {
-            DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
-          }
-        );
-      }.bind(this);
+    //   var sendRequest = function(id) {
+    //     return DG.authorizationController.get('storageInterface').open({id: id}).then(
+    //       function(body) {
+    //         DG.ExternalDocumentCache.cache(id, body);
+    //       },
+    //       function(errorCode) {
+    //         DG.logError('openDocumentFailed:' + JSON.stringify({id: id, message: errorCode }) );
+    //       }
+    //     );
+    //   }.bind(this);
 
-      for (i = 0, len = iDocumentIds.length; i < len; i++) {
-        promises.push(sendRequest(iDocumentIds[i]));
-      }
+    //   for (i = 0, len = iDocumentIds.length; i < len; i++) {
+    //     promises.push(sendRequest(iDocumentIds[i]));
+    //   }
 
-      return promises;
-    },
+    //   return promises;
+    // },
 
     /**
       Open the specified document text as a new document, returning the newly-created document.
      */
-    openDocument: function( iStore, iDocText) {
-      var deferred = $.Deferred(),
-          externalDocIds = DG.StringUtilities.scan(iDocText,
-            /"externalDocumentId": ?"?(\d+)"?/g, function(m) { return m[1]; }),
-          promises = this.loadExternalDocuments(externalDocIds);
+    // openDocument: function( iStore, iDocText) {
+    //   var deferred = $.Deferred(),
+    //       externalDocIds = DG.StringUtilities.scan(iDocText,
+    //         /"externalDocumentId": ?"?(\d+)"?/g, function(m) { return m[1]; }),
+    //       promises = this.loadExternalDocuments(externalDocIds);
 
-      Promise.all(promises).then(function() {
-        try {
-          var docArchive = SC.json.decode( iDocText),
-            validationErrors;
+    //   Promise.all(promises).then(function() {
+    //     try {
+    //       var docArchive = SC.json.decode( iDocText),
+    //         validationErrors;
 
-          validationErrors = this.isValidJsonDocument(docArchive);
-          if (validationErrors.length > 0) {
-            deferred.reject(new Error('DG.AppController.validateDocument.invalidDocument'.loc(
-              JSON.stringify(validationErrors))));
-          }
-          else {
-            DG.store = DG.ModelStore.create();
-            deferred.resolve(DG.Document.createDocument(docArchive));
-          }
-        } catch (ex) {
-          deferred.reject(ex);
-        }
-        DG.ExternalDocumentCache.clear();
-      }.bind(this));
-      return deferred;
-    },
+    //       validationErrors = this.isValidJsonDocument(docArchive);
+    //       if (validationErrors.length > 0) {
+    //         deferred.reject(new Error('DG.AppController.validateDocument.invalidDocument'.loc(
+    //           JSON.stringify(validationErrors))));
+    //       }
+    //       else {
+    //         DG.store = DG.ModelStore.create();
+    //         deferred.resolve(DG.Document.createDocument(docArchive));
+    //       }
+    //     } catch (ex) {
+    //       deferred.reject(ex);
+    //     }
+    //     DG.ExternalDocumentCache.clear();
+    //   }.bind(this));
+    //   return deferred;
+    // },
 
     /**
      * Converts a string representing the contents of a CSV or tab-delimited
@@ -407,13 +406,13 @@ DG.DocumentArchiver = SC.Object.extend(
      * Signature of `callback`:
      *      {Object} docArchive an object representing the document suitable for JSON-conversion
      */
-    exportDocument: function(callback, fullData) {
-      var documentController = DG.currDocumentController();
-      documentController.captureCurrentDocumentState(fullData)
-        .then(function (streamableDocument) {
-            return callback(streamableDocument);
-        });
-    },
+    // exportDocument: function(callback, fullData) {
+    //   var documentController = DG.currDocumentController();
+    //   documentController.captureCurrentDocumentState(fullData)
+    //     .then(function (streamableDocument) {
+    //         return callback(streamableDocument);
+    //     });
+    // },
 
     /**
      * Oversees exporting of all data contexts. Returns a promise that is
@@ -425,20 +424,20 @@ DG.DocumentArchiver = SC.Object.extend(
      * @param {boolean} saveAll   Whether to save all or only those with a defined
      *                            external document ID.
      */
-    exportDataContexts: function(iDocument, callback, saveAll) {
-      var promises = [];
-      iDocument.contexts.forEach(function(iContext) {
-        var model = iContext.get('model');
-        // We call the callback that will, presumably, save the context if
-        // the saveAll flag is set or there is an externalDocumentId, indicating
-        // that the context was saved as a fragment before. Therefore, saveAll
-        // should be set on first save.
-        if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
-          promises.push(callback(model, model.toArchive(true), iDocument));
-        }
-      });
-      return Promise.all(promises);
-    },
+    // exportDataContexts: function(iDocument, callback, saveAll) {
+    //   var promises = [];
+    //   iDocument.contexts.forEach(function(iContext) {
+    //     var model = iContext.get('model');
+    //     // We call the callback that will, presumably, save the context if
+    //     // the saveAll flag is set or there is an externalDocumentId, indicating
+    //     // that the context was saved as a fragment before. Therefore, saveAll
+    //     // should be set on first save.
+    //     if ( saveAll || !SC.none(model.get('externalDocumentId'))) {
+    //       promises.push(callback(model, model.toArchive(true), iDocument));
+    //     }
+    //   });
+    //   return Promise.all(promises);
+    // },
 
       /**
        * Archive the document into durable form, and save it.
@@ -448,176 +447,176 @@ DG.DocumentArchiver = SC.Object.extend(
        * @param {integer} iDocumentPermissions  Encodes document permissions. So far,
        *                                        0: unshared, 1: shared
        */
-      saveDocument: function( iDocumentName, iDocumentPermissions) {
-        var originalDocId = DG.currDocumentController().get('externalDocumentId');
-        /**
-         * @param {DG.DataContext} context The related context.
-         * @param {object} docArchive      An archive of the DataContextRecord.
-         *
-         * @type {function(this:DG.DocumentArchiver)}
-         */
-        var exportDataContextCallback = function(context, dataContextArchive) {
-          // Ensure that _permissions matches the main document
-          var savePromise;
-          var needsSave = false;
-          var cleanedDocArchive;
-          var shouldSkipPatch;
-          var differences;
-          var externalDocumentId = context.get('externalDocumentId');
-          var openedFromShared = false;
-          var shouldPatchAnyway = false;
-          // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
+      // saveDocument: function( iDocumentName, iDocumentPermissions) {
+      //   var originalDocId = DG.currDocumentController().get('externalDocumentId');
+      //   /**
+      //    * @param {DG.DataContext} context The related context.
+      //    * @param {object} docArchive      An archive of the DataContextRecord.
+      //    *
+      //    * @type {function(this:DG.DocumentArchiver)}
+      //    */
+      //   var exportDataContextCallback = function(context, dataContextArchive) {
+      //     // Ensure that _permissions matches the main document
+      //     var savePromise;
+      //     var needsSave = false;
+      //     var cleanedDocArchive;
+      //     var shouldSkipPatch;
+      //     var differences;
+      //     var externalDocumentId = context.get('externalDocumentId');
+      //     var openedFromShared = false;
+      //     var shouldPatchAnyway = false;
+      //     // Only use differential saving if 1) enabled and 2) we've already saved it at least once (ie have a document id)
 
-          if( !SC.none( iDocumentPermissions)) {
-            if (dataContextArchive._permissions !== iDocumentPermissions) {
-              needsSave = true;
-            }
-            dataContextArchive._permissions = iDocumentPermissions;
-          }
+      //     if( !SC.none( iDocumentPermissions)) {
+      //       if (dataContextArchive._permissions !== iDocumentPermissions) {
+      //         needsSave = true;
+      //       }
+      //       dataContextArchive._permissions = iDocumentPermissions;
+      //     }
 
-          // FIXME If we toggle splitting on and off, we'll need to change this test
-          if( DG.assert( !SC.none(dataContextArchive))
-              && (needsSave
-                || documentController.objectHasUnsavedChanges(context)
-                || SC.none(context.get('externalDocumentId'))
-                || context._openedFromSharedDocument
-              ) ) {
-            documentController.clearChangedObject(context);
-            cleanedDocArchive = JSON.parse(JSON.stringify(dataContextArchive)); // Strips all keys with undefined values
+      //     // FIXME If we toggle splitting on and off, we'll need to change this test
+      //     if( DG.assert( !SC.none(dataContextArchive))
+      //         && (needsSave
+      //           || documentController.objectHasUnsavedChanges(context)
+      //           || SC.none(context.get('externalDocumentId'))
+      //           || context._openedFromSharedDocument
+      //         ) ) {
+      //       documentController.clearChangedObject(context);
+      //       cleanedDocArchive = JSON.parse(JSON.stringify(dataContextArchive)); // Strips all keys with undefined values
 
-            // If we are opening from a shared document, the first save of
-            // each context should be a full save.
-            shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1;
-            openedFromShared = context._openedFromSharedDocument;
-            delete context._openedFromSharedDocument;
+      //       // If we are opening from a shared document, the first save of
+      //       // each context should be a full save.
+      //       shouldSkipPatch = documentController._skipPatchNextTime.indexOf(context) !== -1;
+      //       openedFromShared = context._openedFromSharedDocument;
+      //       delete context._openedFromSharedDocument;
 
-            shouldPatchAnyway = context._forcePatch;
-            delete context._forcePatch;
+      //       shouldPatchAnyway = context._forcePatch;
+      //       delete context._forcePatch;
 
-            if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !openedFromShared && !SC.none(externalDocumentId)) {
-              differences = jiff.diff(context.savedShadowCopy(),
-                  cleanedDocArchive, function(obj) {
-                    return obj.guid || JSON.stringify(obj);
-                  });
-              if (differences.length === 0 && !shouldPatchAnyway) { return; }
-              savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, differences, this, false, true);
-            } else {
-              savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, dataContextArchive, this);
-            }
-            var fail = function() {
-              DG.dirtyCurrentDocument(context);
-              if (openedFromShared) {
-                context._openedFromSharedDocument = true;
-              }
-              if (shouldPatchAnyway) {
-                context._forcePatch = true;
-              }
-            };
-            savePromise.then(function(externalContextId) {
-              if (externalContextId) {
-                if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
-                  context.updateSavedShadowCopy(cleanedDocArchive);
-                }
-                // remove this context from the skip list.
-                if (shouldSkipPatch) {
-                  documentController._skipPatchNextTime.splice(documentController._skipPatchNextTime.indexOf(context), 1);
-                }
-              } else {
-                fail();
-              }
-            }.bind(this), fail);
-          }
-          return savePromise;
-        }.bind(this);
+      //       if (DG.USE_DIFFERENTIAL_SAVING && !shouldSkipPatch && !openedFromShared && !SC.none(externalDocumentId)) {
+      //         differences = jiff.diff(context.savedShadowCopy(),
+      //             cleanedDocArchive, function(obj) {
+      //               return obj.guid || JSON.stringify(obj);
+      //             });
+      //         if (differences.length === 0 && !shouldPatchAnyway) { return; }
+      //         savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, differences, this, false, true);
+      //       } else {
+      //         savePromise = this.streamExternalDataContextToCloudStorage(context, iDocumentName, dataContextArchive, this);
+      //       }
+      //       var fail = function() {
+      //         DG.dirtyCurrentDocument(context);
+      //         if (openedFromShared) {
+      //           context._openedFromSharedDocument = true;
+      //         }
+      //         if (shouldPatchAnyway) {
+      //           context._forcePatch = true;
+      //         }
+      //       };
+      //       savePromise.then(function(externalContextId) {
+      //         if (externalContextId) {
+      //           if (DG.USE_DIFFERENTIAL_SAVING || shouldSkipPatch) {
+      //             context.updateSavedShadowCopy(cleanedDocArchive);
+      //           }
+      //           // remove this context from the skip list.
+      //           if (shouldSkipPatch) {
+      //             documentController._skipPatchNextTime.splice(documentController._skipPatchNextTime.indexOf(context), 1);
+      //           }
+      //         } else {
+      //           fail();
+      //         }
+      //       }.bind(this), fail);
+      //     }
+      //     return savePromise;
+      //   }.bind(this);
 
-        /**
-         * Streams the main document to a storage server.
-         *
-         * @param {object} A streamable form of the CODAP document.
-         *
-         * @type {function(this:DG.DocumentArchiver)}
-         */
-        var exportMainDocument = function(docArchive) {
-          // determine if we need to save the main document
-          var openedFromShared = documentController.get('content')._openedFromSharedDocument,
-              needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || openedFromShared;
-          delete documentController.get('content')._openedFromSharedDocument;
-          var reply;
-          if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
-            docArchive._permissions = iDocumentPermissions;
-            this.setPath('content._permissions', iDocumentPermissions);
-            needsSave = true;
-          }
+      //   *
+      //    * Streams the main document to a storage server.
+      //    *
+      //    * @param {object} A streamable form of the CODAP document.
+      //    *
+      //    * @type {function(this:DG.DocumentArchiver)}
+         
+      //   var exportMainDocument = function(docArchive) {
+      //     // determine if we need to save the main document
+      //     var openedFromShared = documentController.get('content')._openedFromSharedDocument,
+      //         needsSave = documentController.objectHasUnsavedChanges(documentController.get('content')) || openedFromShared;
+      //     delete documentController.get('content')._openedFromSharedDocument;
+      //     var reply;
+      //     if( !SC.none( iDocumentPermissions) && docArchive._permissions !== iDocumentPermissions) {
+      //       docArchive._permissions = iDocumentPermissions;
+      //       this.setPath('content._permissions', iDocumentPermissions);
+      //       needsSave = true;
+      //     }
 
-          if( DG.assert( !SC.none(docArchive))) {
-            if (needsSave) {
-              reply = this.streamDocumentToCloudStorage(iDocumentName, docArchive, this)
-                  .then(function(success) {
-                    if (!success) {
-                      DG.dirtyCurrentDocument();
-                    } else if (originalDocId !== DG.currDocumentController().get('externalDocumentId')) {
-                      // Our doc id changed, so we need to re-save all of our contexts
-                      DG.currDocumentController().contexts.forEach(function(iContext) {
-                        var context = iContext.get('model');
-                        context._forcePatch = true;
-                        DG.dirtyCurrentDocument(context);
-                      });
-                      DG.currDocumentController().invokeLater(function() { DG.appController.autoSaveDocument(true); });
-                    }
-                    saveInProgress.resolve(success);
-                  }, function() {
-                    DG.dirtyCurrentDocument();
-                    if (openedFromShared) {
-                      documentController.get('content')._openedFromSharedDocument = true;
-                    }
-                    saveInProgress.resolve();
-                  });
-            } else {
-              this.invokeLater(function() { saveInProgress.resolve(); });
-              reply = Promise.resolve(true);
-            }
-          }
-          documentController.clearChangedObject(documentController.get('content'));
-          return reply;
-        }.bind(this);
+      //     if( DG.assert( !SC.none(docArchive))) {
+      //       if (needsSave) {
+      //         reply = this.streamDocumentToCloudStorage(iDocumentName, docArchive, this)
+      //             .then(function(success) {
+      //               if (!success) {
+      //                 DG.dirtyCurrentDocument();
+      //               } else if (originalDocId !== DG.currDocumentController().get('externalDocumentId')) {
+      //                 // Our doc id changed, so we need to re-save all of our contexts
+      //                 DG.currDocumentController().contexts.forEach(function(iContext) {
+      //                   var context = iContext.get('model');
+      //                   context._forcePatch = true;
+      //                   DG.dirtyCurrentDocument(context);
+      //                 });
+      //                 DG.currDocumentController().invokeLater(function() { DG.appController.autoSaveDocument(true); });
+      //               }
+      //               saveInProgress.resolve(success);
+      //             }, function() {
+      //               DG.dirtyCurrentDocument();
+      //               if (openedFromShared) {
+      //                 documentController.get('content')._openedFromSharedDocument = true;
+      //               }
+      //               saveInProgress.resolve();
+      //             });
+      //       } else {
+      //         this.invokeLater(function() { saveInProgress.resolve(); });
+      //         reply = Promise.resolve(true);
+      //       }
+      //     }
+      //     documentController.clearChangedObject(documentController.get('content'));
+      //     return reply;
+      //   }.bind(this);
 
-        /*
-           -------------- saveDocument begins here ----------
-         */
-        var documentController = DG.currDocumentController(),
-            existingSaveInProgress = documentController.get('saveInProgress'),
-            saveInProgress,
-            exportPromise;
-        if (!SC.none(existingSaveInProgress)) {
-          DG.logWarn('Request to save, but save in progress: deferring.');
-          existingSaveInProgress.done(function() {
-            DG.appController.autoSaveDocument(true);
-          });
-          return;
-        }
+      //   /*
+      //      -------------- saveDocument begins here ----------
+      //    */
+      //   var documentController = DG.currDocumentController(),
+      //       existingSaveInProgress = documentController.get('saveInProgress'),
+      //       saveInProgress,
+      //       exportPromise;
+      //   if (!SC.none(existingSaveInProgress)) {
+      //     DG.logWarn('Request to save, but save in progress: deferring.');
+      //     existingSaveInProgress.done(function() {
+      //       DG.appController.autoSaveDocument(true);
+      //     });
+      //     return;
+      //   }
 
-        saveInProgress = documentController.signalSaveInProgress();
+      //   saveInProgress = documentController.signalSaveInProgress();
 
-        documentController.updateSavedChangeCount();
-        exportPromise = documentController.captureCurrentDocumentState(false/*resource fork only*/);
-        // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
-        exportPromise.then(function (iStreamableDocument) {
-          return this.exportDataContexts(documentController,
-              exportDataContextCallback, DG.FORCE_SPLIT_DOCUMENT);
-        }.bind(this))
-        .then(function() {
-            return exportMainDocument(documentController.content.toArchive());
-        }, function() {
-          saveInProgress.resolve();
-        })
-        // at this point I want to call .catch, but the sproutcore js assemble
-        // complains, so we call then with a null resolve function.
-        .then(
-          null,
-          function (msg) {
-          DG.logWarn('DocumentController.saveDocument: ' + msg);
-        });
-      },
+      //   documentController.updateSavedChangeCount();
+      //   exportPromise = documentController.captureCurrentDocumentState(false/*resource fork only*/);
+      //   // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+      //   exportPromise.then(function (iStreamableDocument) {
+      //     return this.exportDataContexts(documentController,
+      //         exportDataContextCallback, DG.FORCE_SPLIT_DOCUMENT);
+      //   }.bind(this))
+      //   .then(function() {
+      //       return exportMainDocument(documentController.content.toArchive());
+      //   }, function() {
+      //     saveInProgress.resolve();
+      //   })
+      //   // at this point I want to call .catch, but the sproutcore js assemble
+      //   // complains, so we call then with a null resolve function.
+      //   .then(
+      //     null,
+      //     function (msg) {
+      //     DG.logWarn('DocumentController.saveDocument: ' + msg);
+      //   });
+      // },
 
       /**
        Archive the document into durable form, and save it.
@@ -625,90 +624,90 @@ DG.DocumentArchiver = SC.Object.extend(
        @param {String} iDocumentName   The unique Id of the document as known to the server.
        todo: move to DocumentArchiver
        */
-      copyDocument: function( iDocumentName, iDocumentPermissions) {
+      // copyDocument: function( iDocumentName, iDocumentPermissions) {
 
-        var streamOutDataContexts = function(context, dataContextArchive) {
-          if( DG.assert( !SC.none(dataContextArchive))) {
-            // Ensure that _permissions matches the main document
-            if( !SC.none( iDocumentPermissions)) {
-              dataContextArchive._permissions = iDocumentPermissions;
-            }
-            return this.streamExternalDataContextToCloudStorage(
-                context, iDocumentName, dataContextArchive, this, true);
-          }
-        }.bind(this);
+      //   var streamOutDataContexts = function(context, dataContextArchive) {
+      //     if( DG.assert( !SC.none(dataContextArchive))) {
+      //       // Ensure that _permissions matches the main document
+      //       if( !SC.none( iDocumentPermissions)) {
+      //         dataContextArchive._permissions = iDocumentPermissions;
+      //       }
+      //       return this.streamExternalDataContextToCloudStorage(
+      //           context, iDocumentName, dataContextArchive, this, true);
+      //     }
+      //   }.bind(this);
 
-        var streamOutMainDocument = function( docArchive) {
-          docArchive.name = iDocumentName;
-          if (!SC.none(iDocumentPermissions))
-            docArchive._permissions = iDocumentPermissions;
+      //   var streamOutMainDocument = function( docArchive) {
+      //     docArchive.name = iDocumentName;
+      //     if (!SC.none(iDocumentPermissions))
+      //       docArchive._permissions = iDocumentPermissions;
 
-          if (DG.assert(!SC.none(docArchive))) {
-            return this.streamDocumentToCloudStorage(iDocumentName, docArchive, this, true)
-              .then(function() {
-                // Set the externalDocumentIds back
-                DG.currDocumentController().contexts.forEach(function (iContext) {
-                  var model = iContext.get('model');
-                  if ( !SC.none(model.get('externalDocumentId'))) {
-                    model.set('externalDocumentId', model.get('oldExternalDocumentId'));
-                    model.set('oldExternalDocumentId', null);
-                  }
-                });
-                saveInProgress.resolve();
-              }.bind(this));
-          }
-        }.bind(this);
+      //     if (DG.assert(!SC.none(docArchive))) {
+      //       return this.streamDocumentToCloudStorage(iDocumentName, docArchive, this, true)
+      //         .then(function() {
+      //           // Set the externalDocumentIds back
+      //           DG.currDocumentController().contexts.forEach(function (iContext) {
+      //             var model = iContext.get('model');
+      //             if ( !SC.none(model.get('externalDocumentId'))) {
+      //               model.set('externalDocumentId', model.get('oldExternalDocumentId'));
+      //               model.set('oldExternalDocumentId', null);
+      //             }
+      //           });
+      //           saveInProgress.resolve();
+      //         }.bind(this));
+      //     }
+      //   }.bind(this);
 
-        /* ----------  copyDocument starts here ------------------ */
+      //   /* ----------  copyDocument starts here ------------------ */
 
-        var documentController = DG.currDocumentController(),
-            existingSaveInProgress = documentController.get('saveInProgress'),
-            saveInProgress,
-            oldDifferentialSaving,
-            documentArchive;
+      //   var documentController = DG.currDocumentController(),
+      //       existingSaveInProgress = documentController.get('saveInProgress'),
+      //       saveInProgress,
+      //       oldDifferentialSaving,
+      //       documentArchive;
 
-        // if there is  a save in progress, retry when it is done.
-        if (!SC.none(existingSaveInProgress)) {
-          existingSaveInProgress.done(function() {
-            this.copyDocument(iDocumentName, iDocumentPermissions);
-          }.bind(this));
-          return;
-        }
+      //   // if there is  a save in progress, retry when it is done.
+      //   if (!SC.none(existingSaveInProgress)) {
+      //     existingSaveInProgress.done(function() {
+      //       this.copyDocument(iDocumentName, iDocumentPermissions);
+      //     }.bind(this));
+      //     return;
+      //   }
 
-        saveInProgress = documentController.signalSaveInProgress();
+      //   saveInProgress = documentController.signalSaveInProgress();
 
-        oldDifferentialSaving = DG.USE_DIFFERENTIAL_SAVING;
-        DG.USE_DIFFERENTIAL_SAVING = false;
-        saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
+      //   oldDifferentialSaving = DG.USE_DIFFERENTIAL_SAVING;
+      //   DG.USE_DIFFERENTIAL_SAVING = false;
+      //   saveInProgress.done(function() { DG.USE_DIFFERENTIAL_SAVING = oldDifferentialSaving; });
 
-        documentController.captureCurrentDocumentState(false)
-        // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
-        .then(function (da) {
-          var promises = [];
-          // save archive for when we export the main document
-          documentArchive = da;
-          documentController.contexts.forEach(function(iContext, ix) {
-            var model = iContext.get('model');
-            var dataContextArchive = model.toArchive(true);
-            delete dataContextArchive.externalDocumentId;
-            promises.push(streamOutDataContexts(model, model.toArchive(true))
-                .then(function(documentID) {
-                  documentArchive.contexts[ix].externalDocumentId = documentID;
-                }));
-          });
-          return Promise.all(promises);
-        }.bind(this))
-        .then(function() {
-          streamOutMainDocument(documentArchive);
-        }.bind(this))
-          // at this point I want to call .catch, but the sproutcore js assemble
-          // complains, so we call then with a null resolve function.
-        .then(
-          null,
-          function (msg) {
-            DG.logWarn(msg);
-          });
-      },
+      //   documentController.captureCurrentDocumentState(false)
+      //   // FIXME This forces data contexts to always be in a separate doc. Should this depend on other factors?
+      //   .then(function (da) {
+      //     var promises = [];
+      //     // save archive for when we export the main document
+      //     documentArchive = da;
+      //     documentController.contexts.forEach(function(iContext, ix) {
+      //       var model = iContext.get('model');
+      //       var dataContextArchive = model.toArchive(true);
+      //       delete dataContextArchive.externalDocumentId;
+      //       promises.push(streamOutDataContexts(model, model.toArchive(true))
+      //           .then(function(documentID) {
+      //             documentArchive.contexts[ix].externalDocumentId = documentID;
+      //           }));
+      //     });
+      //     return Promise.all(promises);
+      //   }.bind(this))
+      //   .then(function() {
+      //     streamOutMainDocument(documentArchive);
+      //   }.bind(this))
+      //     // at this point I want to call .catch, but the sproutcore js assemble
+      //     // complains, so we call then with a null resolve function.
+      //   .then(
+      //     null,
+      //     function (msg) {
+      //       DG.logWarn(msg);
+      //     });
+      // },
 
       /**
        Saves the specified document object to the server.
@@ -721,57 +720,57 @@ DG.DocumentArchiver = SC.Object.extend(
        is received. The called method should check for errors
        and perform any other appropriate tasks upon completion.
        */
-      streamDocumentToCloudStorage: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
-        var saveOpts = { content: iDocumentArchive},
-            numericId = DG.currDocumentController().get('externalDocumentId');
+      // streamDocumentToCloudStorage: function(iDocumentId, iDocumentArchive, iReceiver, isCopying) {
+      //   var saveOpts = { content: iDocumentArchive},
+      //       numericId = DG.currDocumentController().get('externalDocumentId');
 
-        saveOpts.name = iDocumentId;
-        if (!isCopying && !SC.none(numericId)) {
-          saveOpts.id = numericId;
-        }
-        return DG.authorizationController.get('storageInterface').save(saveOpts).then(
-            function(body) {
-              return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
-            },
-            function(errorCode) {
-              return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
-            }
-        );
-      },
+      //   saveOpts.name = iDocumentId;
+      //   if (!isCopying && !SC.none(numericId)) {
+      //     saveOpts.id = numericId;
+      //   }
+      //   return DG.authorizationController.get('storageInterface').save(saveOpts).then(
+      //       function(body) {
+      //         return iReceiver.receivedSaveDocumentSuccess.call(iReceiver, body, isCopying);
+      //       },
+      //       function(errorCode) {
+      //         return iReceiver.receivedSaveDocumentFailure.call(iReceiver, errorCode, isCopying);
+      //       }
+      //   );
+      // },
 
-      receivedSaveDocumentSuccess: function(body, isCopy) {
-        return new Promise(function(resolve, reject) {
-          var newDocId = body.id;
-          if (isCopy) {
-            var url = DG.appController.copyLink(newDocId);
-            if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
-              url = $.param.querystring(url, {runAsGuest: 'true'});
-            }
-            var win = window.open(url, '_blank');
-            if (win) {
-              win.focus();
-            } else {
-              DG.appController.showCopyLink(url);
-            }
-          } else {
-            DG.currDocumentController().set('externalDocumentId', ''+newDocId);
-            DG.appController.triggerSaveNotification();
-          }
-          resolve(true);
-        }.bind(this));
-      },
+      // receivedSaveDocumentSuccess: function(body, isCopy) {
+      //   return new Promise(function(resolve, reject) {
+      //     var newDocId = body.id;
+      //     if (isCopy) {
+      //       var url = DG.appController.copyLink(newDocId);
+      //       if (DG.authorizationController.getPath('currLogin.user') === 'guest') {
+      //         url = $.param.querystring(url, {runAsGuest: 'true'});
+      //       }
+      //       var win = window.open(url, '_blank');
+      //       if (win) {
+      //         win.focus();
+      //       } else {
+      //         DG.appController.showCopyLink(url);
+      //       }
+      //     } else {
+      //       DG.currDocumentController().set('externalDocumentId', ''+newDocId);
+      //       DG.appController.triggerSaveNotification();
+      //     }
+      //     resolve(true);
+      //   }.bind(this));
+      // },
 
       /**
        * @param errorCode
        * @param isCopy
        * @returns {*}
        */
-      receivedSaveDocumentFailure: function(errorCode, isCopy) {
-        return new Promise(function(resolve, reject) {
-          var messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
-          DG.appController.notifyStorageFailure(messageBase, errorCode, resolve);
-        }.bind(this));
-      },
+      // receivedSaveDocumentFailure: function(errorCode, isCopy) {
+      //   return new Promise(function(resolve, reject) {
+      //     var messageBase = 'DG.AppController.' + (isCopy ? 'copyDocument' : 'saveDocument') + '.';
+      //     DG.appController.notifyStorageFailure(messageBase, errorCode, resolve);
+      //   }.bind(this));
+      // },
 
       /**
        * Saves an external data context to the connected cloud storage.
@@ -786,33 +785,33 @@ DG.DocumentArchiver = SC.Object.extend(
        * @returns {Promise}               Fullfilled after the handler for the response
        *                                  completes
        */
-      streamExternalDataContextToCloudStorage: function(contextModel, iDocumentName,
-          iDocumentArchive, iReceiver, isCopying, isDifferential) {
-        var opts = {content: iDocumentArchive},
-            externalDocumentId = contextModel.get('externalDocumentId'),
-            parentDocumentId = !DG.currDocumentController().get('content')._openedFromSharedDocument ? DG.currDocumentController().get('externalDocumentId') : null;
+      // streamExternalDataContextToCloudStorage: function(contextModel, iDocumentName,
+      //     iDocumentArchive, iReceiver, isCopying, isDifferential) {
+      //   var opts = {content: iDocumentArchive},
+      //       externalDocumentId = contextModel.get('externalDocumentId'),
+      //       parentDocumentId = !DG.currDocumentController().get('content')._openedFromSharedDocument ? DG.currDocumentController().get('externalDocumentId') : null;
 
-        if (!isCopying && !SC.none(externalDocumentId)) {
-          opts.id = externalDocumentId;
-          if (isDifferential) {
-            opts.differential = true;
-          }
-        }
-        opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
+      //   if (!isCopying && !SC.none(externalDocumentId)) {
+      //     opts.id = externalDocumentId;
+      //     if (isDifferential) {
+      //       opts.differential = true;
+      //     }
+      //   }
+      //   opts.name = '%@-context-%@'.fmt(iDocumentName, SC.guidFor(contextModel));
 
-        if (!isCopying && !SC.none(parentDocumentId)) {
-          opts.params = {parentDocumentId: parentDocumentId};
-        }
+      //   if (!isCopying && !SC.none(parentDocumentId)) {
+      //     opts.params = {parentDocumentId: parentDocumentId};
+      //   }
 
-        return DG.authorizationController.get('storageInterface').save(opts).then(
-            function(body) {
-              return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
-            },
-            function(errorCode) {
-              return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
-            }
-        );
-      },
+      //   return DG.authorizationController.get('storageInterface').save(opts).then(
+      //       function(body) {
+      //         return iReceiver.receivedSaveExternalDataContextSuccess.call(iReceiver, body, isCopying, contextModel);
+      //       },
+      //       function(errorCode) {
+      //         return iReceiver.receivedSaveExternalDataContextFailure.call(iReceiver, errorCode, isCopying, contextModel);
+      //       }
+      //   );
+      // },
 
       /**
        * Called to handle response from a save data context.
@@ -825,21 +824,21 @@ DG.DocumentArchiver = SC.Object.extend(
        * @param contextModel
        * @returns {Promise} of the new ID for the data context.
        */
-      receivedSaveExternalDataContextSuccess: function(body, isCopy, contextModel) {
-        return new Promise(function(resolve, reject) {
-          var newDocId = body.id;
-          SC.run(function() {
-            if (isCopy) {
-              contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
-            }
-            contextModel.set('externalDocumentId', ''+newDocId);
+      // receivedSaveExternalDataContextSuccess: function(body, isCopy, contextModel) {
+      //   return new Promise(function(resolve, reject) {
+      //     var newDocId = body.id;
+      //     SC.run(function() {
+      //       if (isCopy) {
+      //         contextModel.set('oldExternalDocumentId', contextModel.get('externalDocumentId'));
+      //       }
+      //       contextModel.set('externalDocumentId', ''+newDocId);
 
-            this.invokeLater(function() {
-              resolve(newDocId);
-            });
-          }.bind(this));
-        }.bind(this));
-      },
+      //       this.invokeLater(function() {
+      //         resolve(newDocId);
+      //       });
+      //     }.bind(this));
+      //   }.bind(this));
+      // },
 
       /**
        * @param errorCode
@@ -847,15 +846,15 @@ DG.DocumentArchiver = SC.Object.extend(
        * @param contextModel
        * @returns {*}
        */
-      receivedSaveExternalDataContextFailure: function(errorCode, isCopy, contextModel) {
-        return new Promise(function(resolve, reject) {
-          if (errorCode === 'error.invalidPatch') {
-            this._skipPatchNextTime.push(contextModel);
-          }
-          DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
-          reject();
-        }.bind(this));
-      }
+      // receivedSaveExternalDataContextFailure: function(errorCode, isCopy, contextModel) {
+      //   return new Promise(function(resolve, reject) {
+      //     if (errorCode === 'error.invalidPatch') {
+      //       this._skipPatchNextTime.push(contextModel);
+      //     }
+      //     DG.appController.notifyStorageFailure('DG.AppController.saveDocument.', errorCode);
+      //     reject();
+      //   }.bind(this));
+      // }
 
     }
 );
