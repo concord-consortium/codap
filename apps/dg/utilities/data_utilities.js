@@ -124,7 +124,7 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   This function also converts a map of property names to values
   to one that maps attribute IDs to values.
   @param    iAttrs  The set of attributes
-  @param    iValue  A map from attribute names to values
+  @param    iDataMap  A map from attribute names to values
   @returns          The canonicalized value map (attribute IDs to values)
  */
 DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap) {

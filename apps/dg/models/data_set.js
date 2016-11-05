@@ -50,8 +50,8 @@ DG.DataSet = SC.Object.extend((function() // closure
     attrs: null,
 
     /**
-     * Order of registered groups. This ordering
-     * is established by insertion and removal of groups. Groups are not moved,
+     * Order of registered collections. This ordering
+     * is established by insertion and removal of collections. Collections are not moved,
      * but are created at a position relative to other groups.
      *
      * ToDo: make into a cacheable method that derives values from collection
