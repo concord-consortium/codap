@@ -18,6 +18,9 @@
 
 sc_require('models/attribute_model');
 
+// polyfill for Math.log10 in PhantomJS
+Math.log10 = Math.log10 || function(x) { return Math.log(x) / Math.LN10; };
+
 module('DG.Attribute', {
   setup: function() {
     DG.Document.createDocument();
