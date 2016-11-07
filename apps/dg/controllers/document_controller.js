@@ -1420,12 +1420,18 @@ DG.currDocumentController = function() {
 
 /**
  * A global convenience function for dirtying the document.
+ *
+ * @param changedObject The object that caused the document to be dirty
+ * @param retainUndo (optional) If set, do not inform UndoHistory of the change,
+ * avoiding stack truncation.
  */
-DG.dirtyCurrentDocument = function(changedObject) {
+DG.dirtyCurrentDocument = function(changedObject, retainUndo) {
   // Tell the UndoHistory that something changed the document.
   // If this didn't occur inside a Command.execute, then it will clear
   // the undo stack.
-  DG.UndoHistory.documentWasChanged();
+  if (!retainUndo) {
+    DG.UndoHistory.documentWasChanged();
+  }
 
   if (SC.none(changedObject)) {
     changedObject = DG.currDocumentController().get('content');

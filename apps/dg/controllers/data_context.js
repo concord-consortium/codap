@@ -375,7 +375,8 @@ DG.DataContext = SC.Object.extend((function() // closure
 
 
     var result = { success: false },
-        shouldDirtyDoc = true;
+        shouldDirtyDoc = true,
+        shouldRetainUndo = false;
     switch( iChange.operation) {
       case 'createCollection':
         result = this.doCreateCollection( iChange);
@@ -392,9 +393,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         result = this.doCreateCases( iChange);
         if( result.caseIDs && result.caseIDs.length)
           result.caseID = result.caseIDs[0];
+        shouldRetainUndo = true;
         break;
       case 'createCases':
         result = this.doCreateCases( iChange);
+        shouldRetainUndo = true;
         break;
       case 'updateCases':
         result = this.doUpdateCases( iChange);
@@ -428,7 +431,7 @@ DG.DataContext = SC.Object.extend((function() // closure
             + iChange.operation);
     }
     if( shouldDirtyDoc)
-      DG.dirtyCurrentDocument(this.get('model'));
+      DG.dirtyCurrentDocument(this.get('model'), shouldRetainUndo);
     return result;
   },
   
