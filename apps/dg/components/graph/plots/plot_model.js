@@ -250,16 +250,17 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   plottedCount: null,
 
   /**
-    @property { Boolean, read only }
+    @return { Boolean }
   */
-  isPlottedCountVisible: function() {
-    return !SC.none( this.plottedCount) && this.plottedCount.get('isVisible');
-  }.property('plottedCount'),
+  shouldPlottedCountBeChecked: function( iWhat) {
+    var tPlottedCount = this.get('plottedCount');
+    return !SC.none( tPlottedCount) && tPlottedCount.get('isShowing' + iWhat);
+  },
 
   /**
     If we need to make a count model, do so. In any event toggle its visibility.
   */
-  togglePlottedCount: function() {
+  togglePlottedCount: function( iWhat) {
     var this_ = this;
 
     function toggle() {
@@ -270,18 +271,18 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
           this_.plottedCount.recomputeValue(); // initialize
         this_.endPropertyChanges();  // Default is to be visible
       }
-      else {
-        var tWantVisible = !this_.plottedCount.get('isVisible');
-        this_.plottedCount.set('isVisible', tWantVisible );
-      }
+      var tCurrentValue = this_.getPath('plottedCount.isShowing' + iWhat);
+      this_.setPath('plottedCount.isShowing' + iWhat, !tCurrentValue);
     }
 
-    var isShowCount = !this.plottedCount || !this.plottedCount.get('isVisible');
+    var tInitialValue = this_.getPath('plottedCount.isShowing' + iWhat),
+        tUndo = tInitialValue ? ('DG.Undo.graph.hide' + iWhat) : ('DG.Undo.graph.show' + iWhat),
+        tRedo = tInitialValue ? ('DG.Redo.graph.hide' + iWhat) : ('DG.Redo.graph.show' + iWhat);
     DG.UndoHistory.execute(DG.Command.create({
       name: "graph.toggleCount",
-      undoString: (isShowCount ? 'DG.Undo.graph.showcount' : 'DG.Undo.graph.hidecount'),
-      redoString: (isShowCount ? 'DG.Redo.graph.showcount' : 'DG.Redo.graph.hidecount'),
-      log: "togglePlottedCount: %@".fmt(isShowCount ? "show" : "hide"),
+      undoString: tUndo,
+      redoString: tRedo,
+      log: ("togglePlotted" + iWhat + ": %@").fmt(tInitialValue ? "hide" : "show"),
       execute: function() {
         toggle();
       }.bind(this),
@@ -530,17 +531,30 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   },
 
   checkboxDescriptions: function() {
-    var this_ = this;
-    return [
+    var this_ = this,
+        tXHasCells = this.get('xAxis').numberOfCells() > 1,
+        tYHasCells = this.get('yAxis').numberOfCells() > 1,
+        tDescriptions = [
       {
         title: 'DG.Inspector.graphCount',
-        value: this_.get('isPlottedCountVisible'),
+        value: this_.shouldPlottedCountBeChecked('Count'),
         classNames: 'graph-count-check'.w(),
         valueDidChange: function () {
-          this_.togglePlottedCount();
+          this_.togglePlottedCount('Count');
         }.observes('value')
       }
     ];
+    if( tXHasCells || tYHasCells) {
+      tDescriptions.push( {
+        title: 'DG.Inspector.graphPercent',
+        value: this_.shouldPlottedCountBeChecked('Percent'),
+        classNames: 'graph-percent-check'.w(),
+        valueDidChange: function () {
+          this_.togglePlottedCount('Percent');
+        }.observes('value')
+      });
+    }
+    return tDescriptions;
   }.property(),
 
   /**
@@ -829,30 +843,17 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
    */
   copyAdornmentModels: function( iNewPlotModel ) {
     DG.assert( (typeof iNewPlotModel === "object") && (iNewPlotModel instanceof DG.PlotModel));
-    var tAdornmentModels = {};
+    var tAdornmentModels = {},
+        tPlottedCount = this.get('plottedCount');
 
-    if( this.get('isPlottedCountVisible')) {  // copy Show Count for all PlotModel types
+    if( tPlottedCount) {  // copy plottedCount for all PlotModel types
       DG.log("transferring Show Count to new plot of type %@", iNewPlotModel.constructor );
-      tAdornmentModels.plottedCount = DG.PlottedCountModel.create({plotModel: iNewPlotModel});
+      tAdornmentModels.plottedCount = tPlottedCount;
+      tPlottedCount.set('plotModel', iNewPlotModel);
     }
 
     return tAdornmentModels;
   },
-
-  /**
-   * Transfer adornment properties from the old model to this model.
-   * To be used for adornments models that work across plot types,
-   * when changing from one plot model to another.
-   * @param iOldPlotModel
-   */
-  /*  use copyAdornmentModels() instead
-  transferAdornmentModels: function( iOldPlotModel ) {
-    if( iOldPlotModel.get('isPlottedCountVisible')) {
-      DG.log("transfering Show Count to new plot of type %@", this.constructor );
-      this.set('plottedCount', DG.PlottedCountModel.create({plotModel: this}));
-    }
-  },
-  */
 
   /**
    * Get an array of non-missing case counts in each axis cell.

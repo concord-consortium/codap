@@ -334,10 +334,14 @@ SC.stringsFor('English', {
   'DG.Redo.document.unshare': "Redo stop sharing the document",
   'DG.Undo.game.add': "Undo adding a game to the document",
   'DG.Redo.game.add': "Redo adding a game to the document",
-  'DG.Undo.graph.showcount': "Undo showing graph count",
-  'DG.Redo.graph.showcount': "Redo showing graph count",
-  'DG.Undo.graph.hidecount': "Undo hiding graph count",
-  'DG.Redo.graph.hidecount': "Redo hiding graph count",
+  'DG.Undo.graph.showCount': "Undo showing count",
+  'DG.Redo.graph.showCount': "Redo showing count",
+  'DG.Undo.graph.hideCount': "Undo hiding count",
+  'DG.Redo.graph.hideCount': "Redo hiding count",
+  'DG.Undo.graph.showPercent': "Undo showing percent",
+  'DG.Redo.graph.showPercent': "Redo showing percent",
+  'DG.Undo.graph.hidePercent': "Undo hiding percent",
+  'DG.Redo.graph.hidePercent': "Redo hiding percent",
   'DG.Undo.graph.showMovableLine': "Undo showing movable line",
   'DG.Redo.graph.showMovableLine': "Redo showing movable line",
   'DG.Undo.graph.hideMovableLine': "Undo hiding movable line",
@@ -709,6 +713,10 @@ SC.stringsFor('English', {
   // Graph Inspector
   'DG.Inspector.graphTransparency': "Transparent",  // "Transparent"
   'DG.Inspector.graphCount': "Count",  // "Count"
+  'DG.Inspector.graphPercent': "Percent",  // "Percent"
+  'DG.Inspector.graphRow': "Row",  // "Row"
+  'DG.Inspector.graphColumn': "Column",  // "Column"
+  'DG.Inspector.graphCell': "Cell",  // "Cell"
   'DG.Inspector.graphConnectingLine': "Connecting Lines",  // "Connecting Lines"
   'DG.Inspector.graphMovableLine': "Movable Line",  // "Movable Line"
   'DG.Inspector.graphInterceptLocked': "Intercept Locked",  // "Intercept Locked"

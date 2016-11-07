@@ -529,7 +529,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
       for( var tProperty in tAdornmentModels ) {
         if( tAdornmentModels.hasOwnProperty( tProperty )) {
-          tOperativePlot.setIfChanged( tProperty, tAdornmentModels[tProperty] );
+          var tModel = tAdornmentModels[tProperty];
+          tOperativePlot.setIfChanged( tProperty, tModel);
         }
       }
       tOperativePlot.endPropertyChanges();
@@ -713,6 +714,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
     checkboxDescriptions: function() {
       return this.getPath('plot.checkboxDescriptions');
+    }.property('plot'),
+
+    lastValueControls: function() {
+      return this.getPath('plot.lastValueControls');
     }.property('plot'),
 
     /**
