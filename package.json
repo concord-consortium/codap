@@ -1,0 +1,23 @@
+{
+  "name": "CODAP",
+  "description": "Common Online Data Analysis Platform",
+  "main": "apps/dg/index.html",
+  "scripts": {
+    "lint": "eslint apps",
+    "test": "sc-phantom --include-targets=/dg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concord-consortium/codap.git"
+  },
+  "author": "Concord Consortium",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/concord-consortium/codap/issues"
+  },
+  "homepage": "http://codap.concord.org/",
+  "devDependencies": {
+    "eslint": "^3.9.1",
+    "phantomjs-prebuilt": "^2.1.13"
+  }
+}

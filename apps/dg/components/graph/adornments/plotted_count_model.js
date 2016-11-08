@@ -25,6 +25,7 @@
 // ==========================================================================
 
 sc_require('components/graph/adornments/plot_adornment_model');
+sc_require('components/graph/data_model/analysis');
 
 /**
  * @class  The model for a plotted count and/or percent.
