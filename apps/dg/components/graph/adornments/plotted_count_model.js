@@ -25,7 +25,6 @@
 // ==========================================================================
 
 sc_require('components/graph/adornments/plot_adornment_model');
-//sc_require('components/graph/data_model/analysis'); // DG.Analysis.EPercentKind.eRow
 
 /**
  * @class  The model for a plotted count and/or percent.
@@ -94,7 +93,7 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
          */
         setComputingNeeded: function () {
           this._needsComputing = true;
-        }.observes('plotModel', 'percentKind'),
+        }.observes('plotModel'),
 
         /**
          Convenience method

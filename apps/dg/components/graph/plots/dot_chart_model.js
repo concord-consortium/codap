@@ -358,6 +358,7 @@ DG.DotChartModel = DG.PlotModel.extend(
             var tPlottedCount = this_.get('plottedCount');
             if( tPlottedCount)
               tPlottedCount.removeObserver('isShowingPercent', this, this.isShowingPercentChanged);
+            this_.removeObserver('plottedCount', this, this.addIsShowingPercentObserver);
           }
         })
       );
