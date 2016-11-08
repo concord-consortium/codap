@@ -204,6 +204,10 @@
     background-color: #0066bb;
 }
 
+.inspector-radio {
+    padding-left: 24px;
+}
+
 .ace.menu .sc-menu-item.focus span, .ace.menu .sc-menu-item a:hover span {
     color: #79B2BC;
     text-decoration: underline;

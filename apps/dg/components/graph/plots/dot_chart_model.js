@@ -282,7 +282,53 @@ DG.DotChartModel = DG.PlotModel.extend(
       this.set('_maxInCell', tMaxInCell);
     this.endPropertyChanges();
   },
-  
+
+  lastValueControls: function() {
+    var this_ = this,
+        kControlValues = {
+          row: 'DG.Inspector.graphRow'.loc(),
+          column: 'DG.Inspector.graphColumn'.loc(),
+          cell: 'DG.Inspector.graphCell'.loc()
+        },
+        tNumOnX = this.getPath('xAxis.numberOfCells'),
+        tNumOnY = this.getPath('yAxis.numberOfCells'),
+        tControls = [];
+
+    function mapValueToPercentKind( iValue) {
+      var tKind = -1;
+      switch( iValue) {
+        case kControlValues.row:
+          tKind = DG.Analysis.EPercentKind.eRow;
+          break;
+        case kControlValues.column:
+          tKind = DG.Analysis.EPercentKind.eColumn;
+          break;
+        case kControlValues.cell:
+          tKind = DG.Analysis.EPercentKind.eCell;
+      }
+      return tKind;
+    }
+
+/*  Not yet ready for prime time
+    if( tNumOnX > 1 && tNumOnY > 1) {
+      tControls.push(
+        SC.RadioView.create( {
+          items: [ kControlValues.row, kControlValues.column, kControlValues.cell],
+          value: 'DG.Inspector.graphRow'.loc(),
+          isEnabled: this_.getPath('plottedCount.isShowingPercent'),
+          layoutDirection: SC.LAYOUT_VERTICAL,
+          layout: { height: 65 },
+          classNames: 'inspector-radio'.w(),
+          valueDidChange: function () {
+            this_.setPath('plottedCount.percentKind', mapValueToPercentKind( this.value));
+          }.observes('value')
+        })
+      );
+    }
+*/
+    return tControls;
+  }.property('plot'),
+
   /**
     @property{Boolean}
     @private

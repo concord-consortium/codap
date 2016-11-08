@@ -27,80 +27,133 @@
 sc_require('components/graph/adornments/plot_adornment_model');
 
 /**
- * @class  The model for a plotted average (mean or median).
+ * @class  The model for a plotted count and/or percent.
  * @extends SC.Object
-*/
+ */
 DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
-/** @scope DG.PlottedCountModel.prototype */
-{
-  values: null,       // [{ count|percent }], one element per cell
-  //precision: 0,     // decimal precision of percent being displayed
-  plotModel: null,    // {DG.PlotModel}
+    /** @scope DG.PlottedCountModel.prototype */
+    (function () {
 
-  /*init: function() {
-    sc_super();
-    this.values = [];
-  },
-  */
+      return {
 
-  /**
-   * True if we need to compute new values to match new cells.
-   * Note that this does not detect data changes where means need recomputing anyway.
-   * @return { Boolean }
-   */
-  isComputingNeeded: function() {
-    return this._needsComputing && this.get('isVisible');
-  },
+        values: null,       // [{ count|percent }], one element per cell
+        //precision: 0,     // decimal precision of percent being displayed
+        plotModel: null,    // {DG.PlotModel}
 
-  /**
-   * Note that our mean values are out of date, for lazy evaluation.
-   * Dependencies, which will require a recompute
-   *  - case-attribute-values added/deleted/changed for the primary and secondary axis attribute(s)
-   *  - primary or secondary axis attributes changed (from one attribute to another)
-   *  - axis models changed (must be up to date when we use them here)
-   */
-  setComputingNeeded: function() {
-    this._needsComputing = true;
-  },
-  
-  /**
-    Use the bounds of the given axes to recompute slope and intercept.
-  */
-  recomputeValueIfNeeded: function() {
-    if( this.isComputingNeeded())
-      this.recomputeValue();
-  },
+        isVisible: false, // opposite of base class
 
-  /** compute counts */
-  recomputeValue: function() {
+        _isShowingCount: false,
+        /**
+         * @property {Boolean}
+         */
+        isShowingCount: function (iKey, iValue) {
+          if (!SC.none(iValue) && iValue !== this._isShowingCount) {
+            this._isShowingCount = iValue;
+            this.set('isVisible', this._isShowingCount || this._isShowingPercent);
+          }
+          return this._isShowingCount;
+        }.property(),
 
-    // get non-missing case count in each cell, and cell index, from plot models
-    DG.assert( this.plotModel && this.plotModel.getCellCaseCounts );
-    var tTotalCount = 0,
-        tValueArray = this.plotModel.getCellCaseCounts();
+        _isShowingPercent: false,
+        /**
+         * @property {Boolean}
+         */
+        isShowingPercent: function (iKey, iValue) {
+          if (!SC.none(iValue) && iValue !== this._isShowingPercent) {
+            this._isShowingPercent = iValue;
+            this.set('isVisible', this._isShowingCount || this._isShowingPercent);
+          }
+          return this._isShowingPercent;
+        }.property(),
 
-    // compute percents from counts
-    tValueArray.forEach( function( iCell ) {
-      tTotalCount += iCell.count;
-    });
-    tValueArray.forEach( function( iCell ) {
-      if( tTotalCount > 0 && iCell.count > 0 ) {
-        iCell.percent = 100 * iCell.count / tTotalCount;
-      } else {
-        iCell.percent = 0; // if 0 cases then 0%
-      }
-    });
+        /**
+         * @property {ePercentKind}
+         */
+        percentKind: DG.Analysis.EPercentKind.eRow,
 
-    this.set( 'values', tValueArray ); // we expect view to observe this change
-    this._needsComputing = false;
-  },
+        /**
+         * True if we need to compute new values to match new cells.
+         * @return { Boolean }
+         */
+        isComputingNeeded: function () {
+          return this._needsComputing && this.get('isVisible');
+        },
 
-  /**
-    Private cache.
-    @property { Boolean }
-  */
-  _needsComputing: true
+        /**
+         * Note that our values are out of date, for lazy evaluation.
+         */
+        setComputingNeeded: function () {
+          this._needsComputing = true;
+        }.observes('plotModel'),
 
-});
+        /**
+         Convenience method
+         */
+        recomputeValueIfNeeded: function () {
+          if (this.isComputingNeeded())
+            this.recomputeValue();
+        },
+
+        /** compute counts */
+        recomputeValue: function () {
+
+          // Take this opportunity to turn off showing percent if there is only one cell
+          if( this.get('isShowingPercent') &&
+              (this.getPath('plotModel.xAxis.numberOfCells') * this.getPath('plotModel.yAxis.numberOfCells') === 1)) {
+            this.set('isShowingPercent', false);
+          }
+
+          // get non-missing case count in each cell, and cell index, from plot models
+          DG.assert(this.plotModel && this.plotModel.getCellCaseCounts);
+          var tTotalCount = 0,
+              tValueArray = this.plotModel.getCellCaseCounts();
+
+          // compute percents from counts
+          tValueArray.forEach(function (iCell) {
+            tTotalCount += iCell.count;
+          });
+          tValueArray.forEach(function (iCell) {
+            if (tTotalCount > 0 && iCell.count > 0) {
+              iCell.percent = 100 * iCell.count / tTotalCount;
+            } else {
+              iCell.percent = 0; // if 0 cases then 0%
+            }
+          });
+
+          this.set('values', tValueArray); // we expect view to observe this change
+          this._needsComputing = false;
+        },
+
+        /**
+         Private cache.
+         @property { Boolean }
+         */
+        _needsComputing: true,
+
+        /**
+         Returns an object which contains properties that should be written
+         out with the document for archiving purposes.
+         */
+        createStorage: function () {
+          var tStorage = sc_super();
+          tStorage.isShowingCount = this.get('isShowingCount') || false;
+          tStorage.isShowingPercent = this.get('isShowingPercent') || false;
+          tStorage.percentKind = SC.none(this.get('percentKind')) ? undefined : this.get('percentKind');
+          return tStorage;
+        },
+
+        /**
+         Set the contents of the adornment model from the restored storage.
+         */
+        restoreStorage: function (iStorage) {
+          this.set('isShowingCount', SC.none( iStorage.isShowingCount) ? iStorage.isVisible : iStorage.isShowingCount);
+          this.set('isShowingPercent', iStorage.isShowingPercent || false);
+          this.set('percentKind', SC.none(iStorage.isShowingPercent) ? DG.Analysis.EPercentKind.eRow :
+              iStorage.percentKind);
+          sc_super();
+        }
+
+      };
+    }()));
 
 DG.PlotAdornmentModel.registry.plottedCount = DG.PlottedCountModel;
