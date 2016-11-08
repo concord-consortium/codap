@@ -551,13 +551,13 @@ DG.CaseTableController = DG.ComponentController.extend(
 
         DG.CreateExportCaseDataDialog({
           prompt: 'DG.AppController.exportCaseData.prompt',
-          textLimit: 1000000,
-          textValue: exportCollection(tStartingMenuItem),
           collectionMenuTitle: tStartingMenuItem,
           collectionMenuItems: tMenuItems,
           collectionMenuItemAction: exportCollection,
-          okTitle: 'DG.AppController.exportDocument.okTitle',
-          okTooltip: 'DG.AppController.exportDocument.okTooltip'
+          exportTitle: 'DG.AppController.exportDocument.exportTitle',
+          exportTooltip: 'DG.AppController.exportDocument.exportTooltip',
+          cancelTitle: 'DG.AppController.exportDocument.cancelTitle',
+          cancelTooltip: 'DG.AppController.exportDocument.cancelTooltip'
         });
       },
 

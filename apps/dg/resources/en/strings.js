@@ -169,11 +169,11 @@ SC.stringsFor('English', {
   'DG.AppController.importData.okTitle' : "Import",
   'DG.AppController.importData.okTooltip' : "Import the specified data",
   'DG.AppController.exportDocument.prompt' : "Filename:",
-  'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
-  'DG.AppController.exportCaseData.okTitle' : "Done",
-  'DG.AppController.exportCaseData.okTooltip' : "Done with export",
-  'DG.AppController.exportDocument.okTitle' : "Done",
-  'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
+  'DG.AppController.exportCaseData.prompt' : "Export the case data, from:",
+  'DG.AppController.exportDocument.exportTitle' : "Export",
+  'DG.AppController.exportDocument.exportTooltip' : "Export data to a file",
+  'DG.AppController.exportDocument.cancelTitle' : "Cancel",
+  'DG.AppController.exportDocument.cancelTooltip' : "Cancel the export",
   'DG.AppController.feedbackDialog.dialogTitle' : "Provide Feedback",
   'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
   'DG.AppController.feedbackDialog.messageText' : "Please help us continue to improve our product. Questions, bug reports and feature requests are all welcome. Thank you!",
@@ -744,7 +744,7 @@ SC.stringsFor('English', {
 
   // Game Controller
   'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
-  
+
   // Game View
   'DG.GameView.loading': 'Loading',
   'DG.GameView.loadError': 'If you can see this text, loading the above URL may have failed. You can check the link in another browser tab or report the error to http://codap.concord.org/help.',
