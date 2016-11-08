@@ -284,15 +284,15 @@ DG.DotChartModel = DG.PlotModel.extend(
   },
 
   lastValueControls: function() {
-    var this_ = this,
+    var tControls = sc_super(),
+        this_ = this,
         kControlValues = {
           row: 'DG.Inspector.graphRow'.loc(),
           column: 'DG.Inspector.graphColumn'.loc(),
           cell: 'DG.Inspector.graphCell'.loc()
         },
         tNumOnX = this.getPath('xAxis.numberOfCells'),
-        tNumOnY = this.getPath('yAxis.numberOfCells'),
-        tControls = [];
+        tNumOnY = this.getPath('yAxis.numberOfCells');
 
     function mapValueToPercentKind( iValue) {
       var tKind = -1;
@@ -309,23 +309,59 @@ DG.DotChartModel = DG.PlotModel.extend(
       return tKind;
     }
 
-/*  Not yet ready for prime time
+    function mapPercentKindToValue( iPercentKind) {
+      var tValue = '';
+      switch( iPercentKind) {
+        case DG.Analysis.EPercentKind.eRow:
+          tValue = kControlValues.row;
+          break;
+        case DG.Analysis.EPercentKind.eColumn:
+          tValue = kControlValues.column;
+          break;
+        case DG.Analysis.EPercentKind.eCell:
+          tValue = kControlValues.cell;
+          break;
+      }
+      return tValue;
+    }
+
     if( tNumOnX > 1 && tNumOnY > 1) {
       tControls.push(
         SC.RadioView.create( {
           items: [ kControlValues.row, kControlValues.column, kControlValues.cell],
           value: 'DG.Inspector.graphRow'.loc(),
-          isEnabled: this_.getPath('plottedCount.isShowingPercent'),
           layoutDirection: SC.LAYOUT_VERTICAL,
           layout: { height: 65 },
           classNames: 'inspector-radio'.w(),
           valueDidChange: function () {
             this_.setPath('plottedCount.percentKind', mapValueToPercentKind( this.value));
-          }.observes('value')
+          }.observes('value'),
+          init: function() {
+            sc_super();
+            this_.addObserver('plottedCount', this, this.addIsShowingPercentObserver);
+            this.addIsShowingPercentObserver();
+          },
+          addIsShowingPercentObserver: function() {
+            var tPlottedCount = this_.get('plottedCount'),
+                tPercentKind;
+            if( tPlottedCount) {
+              tPlottedCount.addObserver('isShowingPercent', this, this.isShowingPercentChanged);
+              tPercentKind = tPlottedCount.get('percentKind');
+              this.set('value', mapPercentKindToValue( tPercentKind));
+            }
+            this.isShowingPercentChanged();
+          },
+          isShowingPercentChanged: function() {
+            this.set( 'isEnabled', this_.getPath('plottedCount.isShowingPercent'));
+          },
+          destroy: function() {
+            var tPlottedCount = this_.get('plottedCount');
+            if( tPlottedCount)
+              tPlottedCount.removeObserver('isShowingPercent', this, this.isShowingPercentChanged);
+          }
         })
       );
     }
-*/
     return tControls;
   }.property('plot'),
 

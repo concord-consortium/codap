@@ -25,6 +25,7 @@
 // ==========================================================================
 
 sc_require('components/graph/adornments/plot_adornment_model');
+//sc_require('components/graph/data_model/analysis'); // DG.Analysis.EPercentKind.eRow
 
 /**
  * @class  The model for a plotted count and/or percent.
@@ -69,22 +70,31 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
         /**
          * @property {ePercentKind}
          */
-        percentKind: DG.Analysis.EPercentKind.eRow,
+        _percentKind: null,
+        percentKind: function(iKey, iValue) {
+          if( !SC.none( iValue)) {
+            this._percentKind = iValue;
+            this._needsComputing = true;
+          }
+          if( SC.none( this._percentKind))
+              this._percentKind = DG.Analysis.EPercentKind.eRow;
+          return this._percentKind;
+        }.property(),
 
-        /**
-         * True if we need to compute new values to match new cells.
-         * @return { Boolean }
-         */
-        isComputingNeeded: function () {
-          return this._needsComputing && this.get('isVisible');
-        },
+          /**
+           * True if we need to compute new values to match new cells.
+           * @return { Boolean }
+           */
+          isComputingNeeded: function () {
+            return this._needsComputing && this.get('isVisible');
+          },
 
         /**
          * Note that our values are out of date, for lazy evaluation.
          */
         setComputingNeeded: function () {
           this._needsComputing = true;
-        }.observes('plotModel'),
+        }.observes('plotModel', 'percentKind'),
 
         /**
          Convenience method
@@ -97,28 +107,82 @@ DG.PlottedCountModel = DG.PlotAdornmentModel.extend(
         /** compute counts */
         recomputeValue: function () {
 
+          function computeCellPercents() {
+            var tTotalCount = 0;
+            tValueArray.forEach(function (iCell) {
+              tTotalCount += iCell.count;
+            });
+            tValueArray.forEach(function (iCell) {
+              if (tTotalCount > 0 && iCell.count > 0) {
+                iCell.percent = 100 * iCell.count / tTotalCount;
+              } else {
+                iCell.percent = 0; // if 0 cases then 0%
+              }
+            });
+          }
+
+          function computeRowPercents() {
+            var tRowCounts = [];
+            for( var i = 0; i < tNumOnY; i++) {
+              tRowCounts[ i] = 0;
+            }
+            tValueArray.forEach(function (iCell, iIndex) {
+              var tRow = iIndex % tNumOnY;
+              tRowCounts[ tRow] += iCell.count;
+            });
+            tValueArray.forEach(function (iCell, iIndex) {
+              var tRow = iIndex % tNumOnY,
+                  tRowCount = tRowCounts[ tRow];
+              if (tRowCount > 0 && iCell.count > 0) {
+                iCell.percent = 100 * iCell.count / tRowCount;
+              } else {
+                iCell.percent = 0; // if 0 cases then 0%
+              }
+            });
+          }
+
+          function computeColumnPercents() {
+            var tColumnCounts = [];
+            for( var i = 0; i < tNumOnX; i++) {
+              tColumnCounts[ i] = 0;
+            }
+            tValueArray.forEach(function (iCell, iIndex) {
+              var tColumn = Math.floor( iIndex / tNumOnY);
+              tColumnCounts[ tColumn] += iCell.count;
+            });
+            tValueArray.forEach(function (iCell, iIndex) {
+              var tColumn = Math.floor( iIndex / tNumOnY),
+                  tColumnCount = tColumnCounts[ tColumn];
+              if (tColumnCount > 0 && iCell.count > 0) {
+                iCell.percent = 100 * iCell.count / tColumnCount;
+              } else {
+                iCell.percent = 0; // if 0 cases then 0%
+              }
+            });
+          }
+
+          var tNumOnX = this.getPath('plotModel.xAxis.numberOfCells'),
+              tNumOnY = this.getPath('plotModel.yAxis.numberOfCells'),
+              tPercentKind = (tNumOnX > 1 && tNumOnY > 1) ? this.get('percentKind') : DG.Analysis.EPercentKind.eCell;
           // Take this opportunity to turn off showing percent if there is only one cell
-          if( this.get('isShowingPercent') &&
-              (this.getPath('plotModel.xAxis.numberOfCells') * this.getPath('plotModel.yAxis.numberOfCells') === 1)) {
+          if( this.get('isShowingPercent') && (tNumOnX * tNumOnY === 1)) {
             this.set('isShowingPercent', false);
           }
 
           // get non-missing case count in each cell, and cell index, from plot models
           DG.assert(this.plotModel && this.plotModel.getCellCaseCounts);
-          var tTotalCount = 0,
-              tValueArray = this.plotModel.getCellCaseCounts();
-
-          // compute percents from counts
-          tValueArray.forEach(function (iCell) {
-            tTotalCount += iCell.count;
-          });
-          tValueArray.forEach(function (iCell) {
-            if (tTotalCount > 0 && iCell.count > 0) {
-              iCell.percent = 100 * iCell.count / tTotalCount;
-            } else {
-              iCell.percent = 0; // if 0 cases then 0%
-            }
-          });
+          var tValueArray = this.plotModel.getCellCaseCounts();
+          switch( tPercentKind) {
+            case DG.Analysis.EPercentKind.eCell:
+              computeCellPercents();
+              break;
+            case DG.Analysis.EPercentKind.eRow:
+              computeRowPercents();
+              break;
+            case DG.Analysis.EPercentKind.eColumn:
+              computeColumnPercents();
+              break;
+          }
 
           this.set('values', tValueArray); // we expect view to observe this change
           this._needsComputing = false;

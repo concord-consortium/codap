@@ -48,7 +48,8 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    */
   modelPropertiesToObserve: [ ['values', 'updateToModel'],
                               ['isShowingCount', 'updateSymbols'],
-                              ['isShowingPercent', 'updateSymbols']],
+                              ['isShowingPercent', 'updateSymbols'],
+                              ['percentKind', 'updateToModel']],
 
   /** do we want the average to be visible and up to date? Yes if our model 'isVisible' */
   wantVisible: function() {
