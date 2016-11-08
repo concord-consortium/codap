@@ -37,13 +37,23 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     The lower bound of the axis in world coordinates.
     @property { Number }
   */
-  lowerBound: null,
+  __lowerBound: null,
+  lowerBound: function( iKey, iValue) {
+    if( !SC.none( iKey) && !SC.none( iValue))
+        this.__lowerBound = iValue;
+    return this.__lowerBound;
+  }.property(),
 
   /**
     The upper bound of the axis in world coordinates.
     @property { Number }
   */
-  upperBound: null,
+  __upperBound: null,
+  upperBound: function( iKey, iValue) {
+    if( !SC.none( iKey) && !SC.none( iValue))
+      this.__upperBound = iValue;
+    return this.__upperBound;
+  }.property(),
 
   /**
     Should the zero be locked at one end of the axis?

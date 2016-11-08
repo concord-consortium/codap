@@ -490,6 +490,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tNewPlotClass, tNewPlot, tOperativePlot,
         tPlotTable,
         tAdornmentModels = {};
+      // DateTime types are treated as numeric for the purposes of synching with a plot
+      tXType = (tXType === DG.Analysis.EAttributeType.eDateTime) ? DG.Analysis.EAttributeType.eNumeric : tXType;
+      tYType = (tYType === DG.Analysis.EAttributeType.eDateTime) ? DG.Analysis.EAttributeType.eNumeric : tYType;
       // The elements of this table are the classes for the new plot under each of the 9
       //  possible pairs for x and y attribute types.
       tPlotTable = [
@@ -526,7 +529,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       tOperativePlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
       for( var tProperty in tAdornmentModels ) {
         if( tAdornmentModels.hasOwnProperty( tProperty )) {
-          tOperativePlot.setIfChanged( tProperty, tAdornmentModels[tProperty] );
+          var tModel = tAdornmentModels[tProperty];
+          tOperativePlot.setIfChanged( tProperty, tModel);
         }
       }
       tOperativePlot.endPropertyChanges();
@@ -710,6 +714,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
     checkboxDescriptions: function() {
       return this.getPath('plot.checkboxDescriptions');
+    }.property('plot'),
+
+    lastValueControls: function() {
+      return this.getPath('plot.lastValueControls');
     }.property('plot'),
 
     /**

@@ -235,9 +235,15 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasGameInteractive: function () {
-    var owning = this.owningDataInteractive();
-    return !SC.none(owning)
-        && (owning.activeChannel().constructor === DG.GamePhoneHandler);
+    var owningDataInteractive = this.owningDataInteractive();
+    var activeChannel = owningDataInteractive && owningDataInteractive.activeChannel();
+    // Its possible that the owning interactive has not contacted codap, so has not
+    // established a channel. We assume this is a Game Interactive.
+    if (owningDataInteractive) {
+      return SC.none(activeChannel) || (activeChannel.constructor === DG.GamePhoneHandler);
+    } else {
+      return false;
+    }
   }.property(),
 
   /**
@@ -412,6 +418,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'moveAttribute':
         result = this.doMoveAttribute(iChange);
+        shouldDirtyDoc = false;
         break;
       case 'resetCollections':
         result = this.doResetCollections( iChange );
@@ -837,7 +844,8 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doDeleteCases: function( iChange) {
     var deletedCases = [],
-        this_ = this;
+        this_ = this,
+        allCollections = this.collections;
 
     iChange.ids = [];
     iChange.collectionIDs = {};
@@ -855,9 +863,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       var tParent = iCase.parent;
 
       // We store the set of deleted cases for later undoing.
-      deletedCases.push( {
-        oldCase: iCase
-      });
+      deletedCases.push( iCase );
       iChange.ids.push( iCase.get('id'));
 
       // keep track of the affected collections
@@ -899,6 +905,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         context: this
       },
       execute: function() {
+        deletedCases = [];
         // Delete each case
         iChange.cases.forEach( deleteCaseAndChildren);
 
@@ -917,20 +924,23 @@ DG.DataContext = SC.Object.extend((function() // closure
         var createdCases;
         var collectionMap = {};
 
-        this._beforeStorage.deletedCases.forEach(function (iCase) {
-          var item = iCase.oldCase.item;
-          item.set('deleted', false);
-        });
-        createdCases = this._beforeStorage.context.regenerateCollectionCases();
-        // Assemble cases by collection.
-        createdCases.forEach(function(iCase) {
-          var collection = this_.getCollectionForCase( iCase);
-          var id = collection && collection.get('id');
-          if (SC.none(collectionMap[id])) {
-            collectionMap[id] = [];
-          }
-          collectionMap[id].push(iCase);
-        });
+        // add cases back in collection order
+        allCollections.forEach(function(iCollection){
+          this._beforeStorage.deletedCases.forEach(function (iCase, ix) {
+            var item = iCase.item;
+            var myCollection = iCase.collection;
+            if (myCollection && myCollection === iCollection) {
+              item.set('deleted', false);
+              myCollection.addCase(iCase);
+              DG.log('Adding case: ' + iCase.id);
+              if (!collectionMap[iCollection.id]) {
+                collectionMap[iCollection.id] = [];
+              }
+              collectionMap[iCollection.id].push(iCase);
+            }
+          });
+        }.bind(this));
+        createdCases = this._beforeStorage.context.regenerateCollectionCases().createdCases;
         // emit change notifications for created cases.
         DG.ObjectMap.forEach(collectionMap, function (collectionID, cases) {
           var undoChange = {
@@ -951,18 +961,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         };
       },
       redo: function() {
-        // create a new change object, based on the old one, without modifying
-        // the old change object (in case we undo and redo again later)
-        var newChange = SC.clone(iChange);
-        newChange.cases = this._afterStorage.cases;
-        newChange.ids.length = 0;
-        delete newChange.result;
-
-        this_.applyChange( newChange);        // Delete each case
-
-        // Store the set of deleted cases, along with their values
-        this._beforeStorage.deletedCases = deletedCases;
-
+        this.execute();
       }
     }));
 
@@ -1097,6 +1096,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   regenerateCollectionCases: function () {
     var topCollection = this.getCollectionAtIndex(0);
     var createdCases;
+    var deletedCases = [];
 
     // drop all cases
     this.forEachCollection(function (collection) { collection.markCasesForDeletion(); });
@@ -1105,110 +1105,224 @@ DG.DataContext = SC.Object.extend((function() // closure
     createdCases = topCollection.get('collection').recreateCases();
 
     // delete cases that remain marked for deletion
-    this.forEachCollection(function (collection) { collection.deleteMarkedCases(); });
+    this.forEachCollection(function (collection) {
+      var collectionDeletedCases = collection.deleteMarkedCases();
+      deletedCases = deletedCases.concat(collectionDeletedCases);
+    });
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
 
-    return createdCases;
+    return {createdCases: createdCases, deletedCases: deletedCases};
   },
 
-    /**
-     * Move an attribute from its current collection to a new collection.
-     *
-     * If moving an attribute leaves its original collection vacant, delete this
-     * collection.
-     *
-     * @param attr {DG.Attribute} The attribute to move.
-     * @param toCollectionClient {DG.CollectionClient} The new collection.
-     * @param {number|undefined} position The position in the order of attributes in the
-     *      new collection. If undefined, appends to the end of the attribute list.
-     */
-  moveAttribute:  function (attr, toCollectionClient, position) {
-
-      function moveWithinCollection(attr, collectionClient, position) {
-        var name = attr.name;
-        var attributeNames;
-        var ix;
-        attributeNames = collectionClient.getAttributeNames();
-        ix = attributeNames.indexOf(name);
-        if (ix !== -1) {
+  _moveAttributeWithinCollection: function(attr, collectionClient, position) {
+    var dataContext = this;
+    var name = attr.name;
+    var attributeNames = collectionClient.getAttributeNames();
+    var ix = attributeNames.indexOf(name);
+    var newPosition = (ix >= position)? position: position - 1;
+    var changeFlag = this.get('flexibleGroupingChangeFlag');
+    if (ix !== -1) {
+      DG.UndoHistory.execute(DG.Command.create({
+        name: 'dataContext.moveAttribute',
+        undoString: 'DG.Undo.dataContext.moveAttribute',
+        redoString: 'DG.Redo.dataContext.moveAttribute',
+        log: 'move attribute {attribute: "%@", position: %@}'
+            .loc(attr.name, position),
+        execute: function () {
           attributeNames.removeAt(ix);
-          attributeNames.insertAt(position, name);
+          attributeNames.insertAt(newPosition, name);
           collectionClient.reorderAttributes(attributeNames);
-        } else {
-          DG.logWarn('Reordering attribute, "' + name +
-              '", not in collection, "' + collectionClient.get('name') + '"');
+          dataContext.set('flexibleGroupingChangeFlag', true);
+        },
+        undo: function () {
+          attributeNames.removeAt(newPosition);
+          attributeNames.insertAt(ix, name);
+          collectionClient.reorderAttributes(attributeNames);
+          dataContext.set('flexibleGroupingChangeFlag', changeFlag);
+
+          // notify about this change, but mark as complete, so
+          // it is not re-executed
+          var tChange = {
+            isComplete: true,
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: collectionClient,
+            position: ix
+          };
+          dataContext.applyChange(tChange);
+        },
+        redo: function () {
+          this.execute();
+          // notify
+          var tChange = {
+            isComplete: true,
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: collectionClient,
+            position: position
+          };
+          dataContext.applyChange(tChange);
         }
+      }));
+    } else {
+      DG.logWarn('Reordering attribute, "' + name +
+          '", not in collection, "' + collectionClient.get('name') + '"');
+    }
+  },
+
+  _moveAttributeBetweenCollections:  function (iAttr, fromCollection, toCollectionClient, position) {
+    var dataContext = this;
+    var allCollections = this.collections;
+    var originalPosition = fromCollection.get('attrs').findIndex(function (attr) {
+      return attr === iAttr;
+    });
+    DG.assert(originalPosition !== -1, 'Moving attribute is found in original collection');
+    var casesAffected;
+    // remove attribute from old collection
+    DG.UndoHistory.execute(DG.Command.create({
+      name: 'dataContext.moveAttribute',
+      undoString: 'DG.Undo.dataContext.moveAttribute',
+      redoString: 'DG.Redo.dataContext.moveAttribute',
+      log: 'move attribute {attribute: "%@", position: %@}'
+          .loc(iAttr.name, position),
+      execute: function () {
+        iAttr = fromCollection.removeAttribute(iAttr);
+
+        if (fromCollection.get('attrs').length === 0) {
+          dataContext.destroyCollection(fromCollection);
+          dataContext.applyChange( {
+            operation: 'deleteCollection',
+            collection: fromCollection,
+            isComplete: true
+          });
+        }
+
+        // add attribute to new collection
+        toCollectionClient.get('collection').addAttribute(iAttr, position);
+
+        casesAffected = dataContext.regenerateCollectionCases();
+      },
+      undo: function () {
+        var toCollection = toCollectionClient.get('collection');
+        var fromCollectionProperties;
+        var newCollection;
+        iAttr = toCollection.removeAttribute(iAttr);
+        if (toCollection.get('attrs').length === 0) {
+          dataContext.destroyCollection(toCollection);
+          dataContext.applyChange( {
+            operation: 'deleteCollection',
+            collection: toCollection,
+            isComplete: true
+          });
+        }
+        // add cases back in collection order
+        allCollections.forEach(function(iCollection){
+          casesAffected.deletedCases.forEach(function (iCase, ix) {
+            var item = iCase.item;
+            var myCollection = iCase.collection;
+            if (myCollection && myCollection === iCollection) {
+              item.set('deleted', false);
+              myCollection.addCase(iCase);
+              DG.log('Adding case: ' + iCase.id);
+            }
+          });
+        });
+
+        if (fromCollection.get('attrs').length === 0) {
+          fromCollectionProperties = {
+            parent: fromCollection.parent,
+            name: fromCollection.get('name'),
+            title: fromCollection.get('title'),
+            context: fromCollection.get('context'),
+            children: [fromCollection.children && fromCollection.children[0]]
+          };
+          newCollection = dataContext.createCollection(fromCollectionProperties);
+          dataContext.applyChange({
+            operation: 'createCollection',
+            collection: fromCollection,
+            isComplete: true
+          });
+          newCollection.get('collection').addAttribute(iAttr, 0);
+        } else {
+          fromCollection.addAttribute(iAttr, originalPosition);
+        }
+        dataContext.regenerateCollectionCases();
+      },
+      redo: function () {
+        this.execute();
+        // notify
+        var tChange = {
+          isComplete: true,
+          operation: 'moveAttribute',
+          attr: iAttr,
+          toCollection: toCollectionClient,
+          position: position
+        };
+        dataContext.applyChange(tChange);
       }
+    }));
+  },
 
-     function moveBetweenCollections (attr, fromCollection, toCollectionClient, position) {
-       // remove attribute from old collection
-       attr = fromCollection.removeAttribute(attr);
+  /**
+   * Move an attribute from its current collection to a new collection.
+   *
+   * If moving an attribute leaves its original collection vacant, delete this
+   * collection.
+   *
+   * @param attr {DG.Attribute} The attribute to move.
+   * @param toCollectionClient {DG.CollectionClient} The new collection.
+   * @param {number|undefined} position The position in the order of attributes in the
+   *      new collection. If undefined, appends to the end of the attribute list.
+   */
+  moveAttribute:  function (attr, toCollectionClient, position) {
+    var fromCollection = attr.get('collection');
 
-       if (fromCollection.get('attrs').length === 0) {
-         this_.destroyCollection(fromCollection);
-         this_.applyChange( {
-           operation: 'deleteCollection',
-           collection: fromCollection,
-           isComplete: true
-         });
-       }
-
-       // add attribute to new collection
-       toCollectionClient.get('collection').addAttribute(attr, position);
-
-       this_.regenerateCollectionCases();
-     }
-
+    if (fromCollection === toCollectionClient.get('collection')) {
+      // if intra-collection move, we simply delegate to the collection
+      this._moveAttributeWithinCollection(attr, toCollectionClient, position);
+    } else {
+      // inter-collection moves are more complex: we need to reconstruct the
+      // cases in the collection
+      this._moveAttributeBetweenCollections(attr, fromCollection, toCollectionClient,
+          position);
+    }
+  },
+  /**
+   * Moves an attribute either within a collection or between collections.
+   *
+   * @param iChange {Object} Describes the change
+   *    {string} .operation            -- "moveAttribute"
+   *    {DG.Attribute} .attr           -- the attribute to move.
+   *    {DG.CollectionClient} .toCollection -- the collection to
+   *                                     move the attribute to. Defaults
+   *                                     to the existing collection.
+   *    {integer} .position           -- the position to be occupied by
+   *                                     the attribute indexed from the
+   *                                     left. 0 means leftmost. If not
+   *                                     specified, placed rightmost.
+   * @return {Object}
+   *    {Boolean}               .success
+   */
+  doMoveAttribute: function( iChange) {
+    try {
+      var attr = iChange.attr;
       var fromCollection = attr.get('collection');
-      var this_ = this;
+      var toCollection = iChange.toCollection || fromCollection;
+      var position = iChange.position;
+      var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
+          ? toCollection : this.getCollectionByID(toCollection.id);
 
-      if (fromCollection === toCollectionClient.get('collection')) {
-        // if intra-collection move, we simply delegate to the collection
-        moveWithinCollection(attr, toCollectionClient, position);
-      } else {
-        // inter-collection moves are more complex: we need to reconstruct the
-        // cases in the collection
-        moveBetweenCollections(attr, fromCollection, toCollectionClient,
-            position);
-      }
+      this.moveAttribute(attr, toCollectionClient, position);
+      return {success: true};
+    } catch (ex) {
+      DG.logWarn(ex);
+      return {success: false};
+    }
+  },
 
-    },
-    /**
-     * Moves an attribute either within a collection or between collections.
-     *
-     * @param iChange {Object} Describes the change
-     *    {string} .operation            -- "moveAttribute"
-     *    {DG.Attribute} .attr           -- the attribute to move.
-     *    {DG.CollectionClient} .toCollection -- the collection to
-     *                                     move the attribute to. Defaults
-     *                                     to the existing collection.
-     *    {integer} .position           -- the position to be occupied by
-     *                                     the attribute indexed from the
-     *                                     left. 0 means leftmost. If not
-     *                                     specified, placed rightmost.
-     * @return {Object}
-     *    {Boolean}               .success
-     */
-    doMoveAttribute: function( iChange) {
-      try {
-        var attr = iChange.attr;
-        var fromCollection = attr.get('collection');
-        var toCollection = iChange.toCollection || fromCollection;
-        var position = iChange.position;
-        var toCollectionClient = (toCollection.instanceOf(DG.CollectionClient))
-            ? toCollection : this.getCollectionByID(toCollection.id);
-
-        this.moveAttribute(attr, toCollectionClient, position);
-        return {success: true};
-      } catch (ex) {
-        DG.logWarn(ex);
-        return {success: false};
-      }
-    },
-
-    /**
+  /**
     Deletes the specified attributes.
     @param  {Object}    iChange - The change request object
               {String}  .operation - "deleteAttributes"
@@ -1735,12 +1849,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     return newCollectionClient;
   },
 
-    destroyCollection: function (collectionClient) {
-      var id = collectionClient.get('id');
-      this.willRemoveCollection(collectionClient);
-      this._collectionClients[id].destroy();
-      delete this._collectionClients[id];
-    },
+  destroyCollection: function (collectionClient) {
+    var id = collectionClient.get('id');
+    this.willRemoveCollection(collectionClient);
+    this._collectionClients[id].destroy();
+    delete this._collectionClients[id];
+  },
+
   /**
     Called from createCollection to give derived classes a chance to do something.
     @param  {DG.CollectionClient} iNewCollection -- The collection that was just created

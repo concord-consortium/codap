@@ -188,7 +188,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0353',
+    BUILD_NUM: '0360',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -227,6 +227,10 @@ DG = SC.Application.create((function () // closure
     defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
 
     defaultLogServerLoginURLSecure: 'https://cc-log-manager.herokuapp.com/api/logs',
+
+    getQueryParam: function(iParam, iDefault) {
+      return getUrlParameter(iParam, iDefault);
+    },
 
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
@@ -356,7 +360,7 @@ DG = SC.Application.create((function () // closure
      */
     componentMode: getUrlParameter('componentMode', 'no'),
 
-    hideCFMMenu: getUrlParameter('launchFromLara') === 'true',
+    hideCFMMenu: !!getUrlParameter('launchFromLara'),
 
     toolButtons: [ // These appear on the left side of the tool shelf
       //'fileMenu',
@@ -374,6 +378,7 @@ DG = SC.Application.create((function () // closure
       'redoButton',
       'tileListButton',
       'optionButton',
+      'helpButton',
       'guideButton'
     ],
 

@@ -28,13 +28,14 @@ DG.PlotUtilities = {
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
   kDefaultMovableLineColor: "steelblue",
+  kDefaultLSRLColor: "green",
   kLineHighlightColor: "rgba(255, 0, 0, 0.3)",
   kPlotCellFill: 'rgba(128, 128, 128, 0)', // transparent
   kPlotCellStroke: '#eee',
   kStrokeDarkerFactor: 3,
   kPointRadiusLogBase: 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   kPointRadiusMax: 10,
-  kPointRadiusMin: 5,
+  kPointRadiusMin: 2,
   kDefaultPointColor: '#e6805b',
   kDefaultStrokeColor: 'white',
   kDefaultStrokeColorWithLegend: 'lightgrey',
@@ -78,7 +79,7 @@ DG.PlotUtilities = {
   kMapAreaWithLegendUnselectedOpacity: 0.9,
   kMapAreaNoLegendSelectedBorderColor: 'black',
   kMapAreaWithLegendUnselectedBorderColor: 'white',
-  kMapAreaWithLegendSelectedBorderColor: '#1a7a93',
+  kMapAreaWithLegendSelectedBorderColor: 'red',
   kMapAreaSelectedBorderWeight: 3,
   kMapAreaUnselectedBorderWeight: 2,
 
@@ -291,7 +292,7 @@ DG.PlotUtilities = {
 
     DG.assert( isFinite( iSlope));
 
-    if( isNaN( iSlope) || isNaN( iIntercept)) {
+    if( isNaN( iSlope) || isNaN( iIntercept) || SC.none( iSlope) || SC.none( iIntercept)) {
       return { slopeDigits: 0, interceptDigits: 0 };
     }
 

@@ -66,6 +66,11 @@ DG.ToolTip = SC.Object.extend(
   */
   tipOrigin: null,
 
+  /**
+   * If the element from which this tip derives is a circle, this is its radius
+   */
+  tipSourceRadius: null,
+
   tipIsEmpty: function() {
     return SC.empty(this.get('text'));
   }.property('text'),
@@ -103,13 +108,14 @@ DG.ToolTip = SC.Object.extend(
         tShadowYOffset,
         kTextXOffset = 15,
         tTextYOffset,
-        tX, tY,
+        tX, tY, tRadius,
         tExtent,
         tRectWidth,
         tRectHeight;
 
-    tX = this.tipOrigin.x;
-    tY = this.tipOrigin.y;
+    tRadius = this.tipSourceRadius ? this.tipSourceRadius : 0;
+    tX = this.tipOrigin.x + tRadius;
+    tY = this.tipOrigin.y + tRadius;
     this._tipTextElement.attr( { text: this.get('text') });
     tExtent = DG.RenderingUtilities.getExtentForTextElement( this._tipTextElement, 12);
     tRectWidth = tExtent.width + 10;
@@ -122,7 +128,13 @@ DG.ToolTip = SC.Object.extend(
     if( tX + tShadowXOffset > tPaper.width)
       tX -= (tX + tShadowXOffset) - tPaper.width;
     if( tY + tShadowYOffset + tRectHeight > tPaper.height)
-      tY -= tShadowYOffset + tRectHeight;
+      tY -= (tY + tShadowYOffset + tRectHeight) - tPaper.height;
+    // If the tip rectangle encompasses tipOrigin, move the tip rectangle up and to the left
+    if( DG.ViewUtilities.ptInRect( this.tipOrigin,
+            { x: tX, y: tY, width: tRectWidth + kShadowWidth, height: tRectHeight + kShadowWidth })) {
+      tX = Math.max( 0, this.tipOrigin.x - tRadius - tRectWidth - kShadowWidth - kRectXOffset);
+      tY = Math.max( 0, this.tipOrigin.y - tRadius - tRectHeight - kShadowWidth - kRectYOffset);
+    }
     this._tipTextElement.attr({ x: tX + kTextXOffset, y: tY + tTextYOffset });
 
     this._tipShadowElement.attr( { 'path': 'M'+ (tX + tShadowXOffset) + ' ' + (tY + tShadowYOffset) +

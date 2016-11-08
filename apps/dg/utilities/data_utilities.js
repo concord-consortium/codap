@@ -86,6 +86,20 @@ DG.DataUtilities.isDate = function(iValue) {
 DG.isDate = DG.DataUtilities.isDate;
 
 /**
+  Returns true if the specified value is a string that can be converted to a valid date.
+ Note that a string that can be coerced to a number is not a valid date string even though
+ it could be converted to a date.
+ */
+DG.DataUtilities.isDateString = function(iValue) {
+  if( typeof iValue === 'string' && isNaN(Number(iValue))) {
+    return !isNaN( new Date( iValue).valueOf());
+  }
+  else
+    return false;
+};
+DG.isDateString = DG.DataUtilities.isDateString;
+
+/**
   Canonicalize/sanitize case values sent to us from the game.
   Currently, we only check for the "undefined" string, but this is
   the appropriate place to perform any other validation as well.
@@ -95,6 +109,8 @@ DG.isDate = DG.DataUtilities.isDate;
 DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   // canonicalize null, undefined, and "undefined"
   if ((iValue == null) || (iValue === "undefined")) return "";
+  if( typeof iValue !== 'string')
+      return iValue;
 
   // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
   var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;

@@ -85,8 +85,6 @@ DG.main = function main() {
     // parse url
     var parsedURL = $('<a>', {href:url})[0];
     var hash = parsedURL.hash;
-    var documentServer = DG.get('documentServer');
-    var startingDocId = DG.get('startingDocId');
     var startingDataInteractive = DG.get('startingDataInteractive');
 
     if (DG.get('runKey'))
@@ -95,11 +93,7 @@ DG.main = function main() {
     hash = hash && hash.length >= 1 && hash.slice(1);
 
     if (SC.empty(hash)) {
-      if (documentServer && startingDocId) {
-        // translate to new form
-        parsedURL.hash = '#file=documentStore:%@'.loc(startingDocId);
-        window.history.replaceState(null, window.document.title, parsedURL.href);
-      } else if (startingDataInteractive) {
+      if (startingDataInteractive) {
         DG.set('showUserEntryView', false);
         openDataInteractive(startingDataInteractive);
       }
@@ -170,8 +164,7 @@ DG.main = function main() {
               // ]
             },
             {
-              "name": "documentStore",
-              "displayName": "Concord Cloud",
+              "name": "lara",
               "patch": true,
               "patchObjectHash": function(obj) {
                 return obj.guid || JSON.stringify(obj);
@@ -181,6 +174,26 @@ DG.main = function main() {
               "name": "googleDrive",
               "mimeType": "application/json",
               "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
+            },
+            {
+              "name": "documentStore",
+              "displayName": "Concord Cloud",
+              "deprecationPhase": (function() { // IIFE to keep code localized
+                                    // queryParam overrides defaults for testing
+                                    var phase = DG.getQueryParam('deprecationPhase');
+                                    if (phase) return Number(phase);
+
+                                    var currDate = new Date(),
+                                        phase2Date = new Date(2016, 10, 15),
+                                        phase3Date = new Date(2017, 0, 1);
+                                    if (currDate >= phase3Date) return 3;
+                                    if (currDate >= phase2Date) return 2;
+                                    return 1;
+                                  })(),
+              "patch": true,
+              "patchObjectHash": function(obj) {
+                return obj.guid || JSON.stringify(obj);
+              }
             },
             "localFile"//,
             //"localStorage"
@@ -235,16 +248,21 @@ DG.main = function main() {
                                   return dataContextPromise(iDataContext);
                                 });
       // Once all external document references have been resolved...
-      Promise.all(dataContextPromises)
-        .then(function(iResolvedDataContexts) {
-                // replace the array of pre-processed context objects
-                // with the array of resolved context promises
-                iDocContents.contexts = iResolvedDataContexts;
-                resolve(iDocContents);
-              },
-              function(iReason) {
-                reject(iReason);
-              });
+      if (dataContextPromises) {
+        Promise.all(dataContextPromises)
+          .then(function(iResolvedDataContexts) {
+                  // replace the array of pre-processed context objects
+                  // with the array of resolved context promises
+                  iDocContents.contexts = iResolvedDataContexts;
+                  resolve(iDocContents);
+                },
+                function(iReason) {
+                  reject(iReason);
+                });
+      }
+      else {
+        resolve(iDocContents);
+      }
     });
   }
 
@@ -275,10 +293,7 @@ DG.main = function main() {
         DG.cfmClient.openFileDialog();
       },
       componentDidMount: function() {
-        if (hasFileInUrl)
-          this.refs.authorizeButton.focus();
-        else
-          this.refs.newButton.focus();
+        this.refs.newButton.focus();
       },
       render: function () {
         return React.DOM.div({onKeyDown: function(evt) {
@@ -292,10 +307,6 @@ DG.main = function main() {
                                     this.createNewDocument();
                                 }
                               }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 0},
-                        React.DOM.button({ref: 'authorizeButton',
-                                          onClick: this.authorizeUrlDocument},
-                                          "Authorize Startup Document")),
           React.DOM.div({style: {margin: 10}, key: 1},
                         React.DOM.button({ref: 'newButton',
                                           onClick: this.createNewDocument},
@@ -304,10 +315,7 @@ DG.main = function main() {
                         React.DOM.button({ref: 'openButton',
                                           onClick: this.openDocument},
                                           "Open Document or Browse Examples"))
-        ].filter(function(div, index) {
-          // only include authorization option if a document was specified in the URL
-          return hasFileInUrl || (index !== 0);
-        }));
+        ]);
       }
     }));
     if (DG.get('showUserEntryView')) {

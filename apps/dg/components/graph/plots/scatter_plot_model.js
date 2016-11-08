@@ -44,14 +44,30 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.observes('*movableLine.isVisible'),
 
       /**
+       @property { DG.LSRLModel }
+       */
+      lsrLine: null,
+
+      /**
+       @property { Boolean, read only }
+       */
+      isLSRLVisible: function () {
+        return !SC.none(this.lsrLine) && this.lsrLine.get('isVisible');
+      }.property(),
+      isLSRLVisibleDidChange: function() {
+        this.notifyPropertyChange('isLSRLVisible');
+      }.observes('*lsrLine.isVisible'),
+
+      /**
        @property { Boolean, read only }
        */
       isInterceptLocked: function () {
-        return !SC.none(this.movableLine) && this.movableLine.get('isInterceptLocked');
+        return !SC.none(this.movableLine) && this.movableLine.get('isInterceptLocked') ||
+            !SC.none(this.lsrLine) && this.lsrLine.get('isInterceptLocked');
       }.property(),
       isInterceptLockedDidChange: function() {
         this.notifyPropertyChange('isInterceptLocked');
-      }.observes('*movableLine.isInterceptLocked'),
+      }.observes('*movableLine.isInterceptLocked', '*lsrLine.isInterceptLocked'),
 
       /**
        @property { Boolean }
@@ -68,11 +84,15 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         sc_super();
         this.addObserver('movableLine.slope',this.lineDidChange);
         this.addObserver('movableLine.intercept',this.lineDidChange);
+        this.addObserver('lsrLine.slope',this.lineDidChange);
+        this.addObserver('lsrLine.intercept',this.lineDidChange);
       },
 
       destroy: function() {
         this.removeObserver('movableLine.slope',this.lineDidChange);
         this.removeObserver('movableLine.intercept',this.lineDidChange);
+        this.removeObserver('lsrLine.slope',this.lineDidChange);
+        this.removeObserver('lsrLine.intercept',this.lineDidChange);
         sc_super();
       },
 
@@ -129,33 +149,77 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
+       * Utility function to create an lsr line when needed
+       */
+      createLSRLLine: function () {
+        if (SC.none(this.lsrLine)) {
+          this.set('lsrLine', DG.LSRLModel.create( { plotModel: this }));
+        }
+      },
+
+      /**
+       If we need to make a movable line, do so. In any event toggle its visibility.
+       */
+      toggleLSRLLine: function () {
+        var this_ = this;
+
+        function toggle() {
+          if (SC.none(this_.lsrLine)) {
+            this_.createLSRLLine(); // Default is to be visible
+          }
+          else {
+            this_.lsrLine.set('isVisible', !this_.lsrLine.get('isVisible'));
+          }
+        }
+
+        var willShow = !this.lsrLine || !this.lsrLine.get('isVisible');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "graph.toggleLSRLLine",
+          undoString: (willShow ? 'DG.Undo.graph.showLSRL' : 'DG.Undo.graph.hideLSRL'),
+          redoString: (willShow ? 'DG.Redo.graph.showLSRL' : 'DG.Redo.graph.hideLSRL'),
+          log: "toggleLSRL: %@".fmt(willShow ? "show" : "hide"),
+          execute: function () {
+            toggle();
+          },
+          undo: function () {
+            toggle();
+          }
+        }));
+      },
+
+      /**
        If we need to make a movable line, do so. In any event toggle whether its intercept is locked.
        */
       toggleInterceptLocked: function () {
         var this_ = this;
 
         function toggle() {
-          if (SC.none(this_.movableLine)) {
-            this_.createMovableLine(); // Default is to be unlocked
-          }
-          else {
+          if( !SC.none(this_.movableLine)) {
             this_.movableLine.toggleInterceptLocked();
             this_.movableLine.recomputeSlopeAndInterceptIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
           }
+          if( !SC.none(this_.lsrLine)) {
+            this_.lsrLine.toggleInterceptLocked();
+          }
         }
 
-        var willLock = !this.movableLine || !this.movableLine.get('isInterceptLocked');
+        var willLock = (this.movableLine && !this.movableLine.get('isInterceptLocked')) ||
+                      (this.lsrLine && !this.lsrLine.get('isInterceptLocked'));
         DG.UndoHistory.execute(DG.Command.create({
           name: "graph.toggleLockIntercept",
           undoString: (willLock ? 'DG.Undo.graph.lockIntercept' : 'DG.Undo.graph.unlockIntercept'),
           redoString: (willLock ? 'DG.Redo.graph.lockIntercept' : 'DG.Redo.graph.unlockIntercept'),
           log: "lockIntercept: %@".fmt(willLock),
           execute: function () {
-            this._undoData = this_.movableLine.createStorage();
+            this._undoData = {
+              movableLine: this_.movableLine ? this_.movableLine.createStorage() : null,
+              lsrlStorage: this_.lsrLine ? this_.lsrLine.createStorage() : null
+            };
             toggle();
           },
           undo: function () {
-            this_.movableLine.restoreStorage(this._undoData);
+            this_.movableLine.restoreStorage(this._undoData.movableLine);
+            this_.lsrLine.restoreStorage(this._undoData.lsrlStorage);
           }
         }));
       },
@@ -213,7 +277,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
-       Convenience method for toggling Boolean property
+       * Toggle where the squares drawn from points to lines and functions are being shown
        */
       toggleShowSquares: function () {
         var this_ = this;
@@ -291,11 +355,19 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }.observes('value')
           },
           {
+            title: 'DG.Inspector.graphLSRL',
+            value: this_.get('isLSRLVisible'),
+            classNames: 'graph-lsrl-check'.w(),
+            valueDidChange: function () {
+              this_.toggleLSRLLine();
+            }.observes('value')
+          },
+          {
             title: 'DG.Inspector.graphInterceptLocked',
             value: this_.get('isInterceptLocked'),
             classNames: 'graph-interceptLocked-check'.w(),
             isEnabled: function () {
-              return this_.get('isMovableLineVisible');
+              return this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
             }.property(),
             valueDidChange: function () {
               this_.toggleInterceptLocked();
@@ -303,19 +375,13 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             init: function() {
               sc_super();
               this_.addObserver('isMovableLineVisible', this, 'displayDidChange');
+              this_.addObserver('isLSRLLineVisible', this, 'displayDidChange');
             },
             destroy: function() {
               this_.removeObserver('isMovableLineVisible', this, 'displayDidChange');
+              this_.removeObserver('isLSRLLineVisible', this, 'displayDidChange');
               sc_super();
             }
-          },
-          {
-            title: 'DG.Inspector.graphSquares',
-            value: this_.get('areSquaresVisible'),
-            classNames: 'graph-squares-check'.w(),
-            valueDidChange: function () {
-              this_.toggleShowSquares();
-            }.observes('value')
           },
           {
             title: 'DG.Inspector.graphPlottedFunction',
@@ -323,6 +389,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             classNames: 'graph-plottedFunction-check'.w(),
             valueDidChange: function () {
               this_.togglePlotFunction();
+            }.observes('value')
+          },
+          {
+            title: 'DG.Inspector.graphSquares',
+            value: this_.get('areSquaresVisible'),
+            classNames: 'graph-squares-check'.w(),
+            valueDidChange: function () {
+              this_.toggleShowSquares();
             }.observes('value')
           }
         ]);
@@ -333,11 +407,16 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       createStorage: function () {
         var tStorage = sc_super(),
-            tMovableLine = this.get('movableLine');
+            tMovableLine = this.get('movableLine'),
+            tLSRL = this.get('lsrLine');
         if (!SC.none(tMovableLine))
           tStorage.movableLineStorage = tMovableLine.createStorage();
+        if (!SC.none(tLSRL) && tLSRL.get('isVisible'))
+          tStorage.lsrLineStorage = tLSRL.createStorage();
         if (this.get('areSquaresVisible'))
           tStorage.areSquaresVisible = true;
+        if (this.get('isLSRLVisible'))
+          tStorage.isLSRLVisible = true;
 
         return tStorage;
       },
@@ -357,6 +436,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
          *  we call sc_super().
          */
         this.moveAdornmentStorage(iStorage, 'movableLine', iStorage.movableLineStorage);
+        this.moveAdornmentStorage(iStorage, 'lsrLine', iStorage.lsrLineStorage);
         this.moveAdornmentStorage(iStorage, 'plottedFunction', iStorage.plottedFunctionStorage);
 
         sc_super();
@@ -365,6 +445,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           if (SC.none(this.movableLine))
             this.createMovableLine();
           this.get('movableLine').restoreStorage(iStorage.movableLineStorage);
+        }
+        if (iStorage.lsrLineStorage) {
+          if (SC.none(this.lsrLine))
+            this.createLSRLLine();
+          this.get('lsrLine').restoreStorage(iStorage.lsrLineStorage);
         }
         if (iStorage.areSquaresVisible)
           this.toggleShowSquares();

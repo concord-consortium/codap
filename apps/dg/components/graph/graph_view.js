@@ -301,6 +301,7 @@ DG.GraphView = SC.View.extend(
 
       prepareToSelectPoints: function () {
         this.get('plotViews').forEach(function (iPlotView) {
+          iPlotView.hideDataTip();
           iPlotView.preparePointSelection();
         });
       },

@@ -31,6 +31,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       controller: null,
 
+      /**
+       * We need to be able to set title.
+       */
+      view: function() {
+        return this.getPath('controller.view');
+      }.property(),
+
       idBinding: SC.Binding.oneWay('*controller.model.id'),
 
       /**
@@ -103,8 +110,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           //globalList: this.handleGlobalList,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
-          selectionList: this.handleSelectionList//,
-          //undoChangeNotice: this.handleUndoChangeNotice
+          selectionList: this.handleSelectionList,
+          undoChangeNotice: this.handleUndoChangeNotice
         };
 
 
@@ -268,7 +275,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (['interactiveFrame',
               'logMessage',
               'dataContextList',
-              'UndoChangeNotice',
+              'undoChangeNotice',
               'undoableActionPerformed'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
@@ -345,6 +352,37 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
         visit(resultValues, maxLevels);
       },
+      handleOneCommand: function (iCmd) {
+        var result = {success: false};
+
+        // parse the resource name into constituent parts
+        var selectorMap = iCmd.resource && this.parseResourceSelector(
+                iCmd.resource);
+
+        // resolve identified resources
+        var resourceMap = this.resolveResources(selectorMap, iCmd.action);
+
+        var action = iCmd.action;
+        var type = selectorMap && selectorMap.type;
+
+        var handler = type && this.handlerMap[type];
+
+        if (handler) {
+          if (handler[action]) {
+            SC.run(function () {
+              result = handler[action].call(this, resourceMap, iCmd.values) || {success: false};
+              if (result.values) {
+                this.filterResultValues(result.values);
+              }
+            }.bind(this));
+          } else {
+            DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
+          }
+        } else {
+          DG.logWarn("Unknown message type: " + type);
+        }
+        return result;
+      },
       /**
        * Respond to requests from a Data Interactive.
        *
@@ -357,34 +395,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       doCommand: function (iMessage, iCallback) {
         this.setIfChanged('connected', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
-        var result = ({success: false});
+        var result = {success: false};
         try {
           if (!SC.none(iMessage)) {
-            // parse the resource name into constituent parts
-            var selectorMap = iMessage.resource && this.parseResourceSelector(
-                iMessage.resource);
-
-            // resolve identified resources
-            var resourceMap = this.resolveResources(selectorMap, iMessage.action);
-
-            var action = iMessage.action;
-            var type = selectorMap && selectorMap.type;
-
-            var handler = type && this.handlerMap[type];
-
-            if (handler) {
-              if (handler[action]) {
-                SC.run(function () {
-                  result = handler[action].call(this, resourceMap, iMessage.values) || {success: false};
-                  if (result.values) {
-                    this.filterResultValues(result.values);
-                  }
-                }.bind(this));
-              } else {
-                DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
-              }
+            if (Array.isArray(iMessage)) {
+              result = iMessage.map(function (cmd) {
+                return this.handleOneCommand(cmd);
+              }.bind(this));
             } else {
-              DG.logWarn("Unknown message type: " + type);
+              result = this.handleOneCommand(iMessage);
             }
           }
         } catch (ex) {
@@ -406,10 +425,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleInteractiveFrame: {
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
+          var title = iValues.title || iValues.name || '';
           DG.assert(diModel, 'DataInteractiveModel  exists' );
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
           if (iValues) {
             diModel.set('title', iValues.title);
+            this.setPath('view.title', title);
+
             diModel.set('version', iValues.version);
             diModel.set('dimensions', iValues.dimensions);
             if (!SC.none(iValues.preventBringToFront)) {
@@ -442,6 +464,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           tReturnValues.version = diModel.get('version');
           tReturnValues.dimensions = diModel.get('dimensions');
           tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
+          // For now (10/2016) this is a constant that serves for this API
+          // the function a special message served for the Game API, to convey the
+          // availability of undo. Its setting should not be a constant, being
+          // influenced by (a) Standalone mode and (b) embedded mode. This is
+          // TODO
+          tReturnValues.externalUndoAvailable = true;
           if (componentStorage) {
             DG.log('Sending data interactive, %@, state: %@'.loc(
                 tReturnValues.title, JSON.stringify(componentStorage.savedGameState)));
@@ -957,10 +985,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                typeClass = 'DG.GraphView';
              break;
            case 'caseTable':
-             // In the absense of this parameter CODAP will attempt to bypass
-             // duplicate creation of components when a document is saved and
-             // restored. This cannot happen with tables, however.
-             iValues.allowMoreThanOne = true;
                typeClass = 'DG.TableView';
              break;
            case 'map':
@@ -986,7 +1010,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          if (!SC.none(typeClass)) {
            iValues[document] = doc;
            iValues.type = typeClass;
-           //rtn = doc.createComponentAndView(DG.Component.createComponent(iValues), typeClass);
+           // the allowMoreThanOne=false restriction is historical. It prevented
+           // proliferation of components when a document was repeatedly opened
+           // we default to allowing any number. It is a DI's responsibility
+           // to avoid proliferation.
+           iValues.allowMoreThanOne = true;
            rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
          } else {
            DG.log('Unknown component type: ' + type);
@@ -1051,8 +1079,49 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true
           };
         }
-      }
+      },
 
+      handleUndoChangeNotice: {
+        /**
+         * The DataInteractive performed an undoable action
+         *
+         * We don't perform any action, because the external game has already performed the
+         * action. We simply store this new command in the stack, and the undo/redo of this
+         * command call undo/redo on the game.
+         */
+        notify: function (iResources, iValues) {
+          function handleUndoRedoCompleted (ret) {
+            if (ret && ret.success === false) {
+              // The Data Interactive was not able to successfully undo or redo an action
+              DG.UndoHistory.showErrorAlert(true, {message: "Data Interactive error"});
+            }
+          }
+
+          var logMessage = iValues && iValues.logMessage ? iValues.logMessage : "Unknown action";
+          var rpcEndpoint = this.get('rpcEndpoint');
+
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'interactive.undoableAction',
+            undoString: 'DG.Undo.interactiveUndoableAction',
+            redoString: 'DG.Redo.interactiveUndoableAction',
+            log: 'Interactive action occurred: ' + logMessage,
+            _componentId: this.getPath('component.model.id'),
+            execute: function () {
+            },
+            undo: function () {
+              // FIXME If the game component was removed and then re-added via an undo,
+              // then calling undo or redo here will likely fail because the game's undo stack would
+              // probably have been cleared.
+              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
+              rpcEndpoint.call(message, handleUndoRedoCompleted);
+            },
+            redo: function () {
+              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
+              rpcEndpoint.call(message, handleUndoRedoCompleted);
+            }
+          }));
+        }
+      }
       //get: function (iResources) {
       //  return {
       //    success: true,

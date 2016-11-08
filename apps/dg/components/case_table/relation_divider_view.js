@@ -101,7 +101,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
    */
   displayDidChange: function() {
     sc_super();
-    
+
     var headerView = this.get('headerView'),
         dividerView = this.get('dividerView');
     if( headerView) headerView.displayDidChange();
@@ -119,7 +119,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
       iContext.addClass( ['slick-header','ui-state-default'], YES);
     },
     
-    classNames: ['slick-header-column'],
+    classNames: [],
     
     backgroundColor: '#E6E6E6',
 
@@ -212,7 +212,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
   }),
 
   dividerView: DG.RaphaelBaseView.extend({
-    
+
     layout: { left: 0, top: 54, right: 0, bottom: 0 },
     
     backgroundColor: 'white',
@@ -328,17 +328,37 @@ DG.RelationDividerView = SC.View.extend( (function() {
       function expandCollapseClickHandler( iEvent) {
         var parentInfo = this.dgChildIDRange,
             isContained = (parentInfo && parentInfo.isContained),
-            isCollapsed = (parentInfo && parentInfo.isCollapsed);
+            isCollapsed = (parentInfo && parentInfo.isCollapsed),
+            parentID = this.dgParentID;
         parentInfo.isCollapsed = !isCollapsed;
         if( leftTable && !isContained) {
-          if( parentInfo.isCollapsed)
-            leftTable.collapseCase( this.dgParentID);
-          else
-            leftTable.expandCase( this.dgParentID);
-  
-          // Expanding/collapsing changes the set of rows that are selected
-          rightTable.updateSelectedRows(true);
-          rightTable.incrementProperty('expandCollapseCount');
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.expandCollapseOneCase',
+            undoString: 'DG.Undo.caseTable.expandCollapseOneCase',
+            redoString: 'DG.Redo.caseTable.expandCollapseOneCase',
+            log: '%@ case %@'.loc(isCollapsed?'Expand':'Collapse', this.dgParentID),
+            execute: function () {
+              if(isCollapsed) {
+                leftTable.expandCase( parentID);
+              }
+              else {
+                leftTable.collapseCase( parentID);
+              }
+              rightTable.updateSelectedRows(true);
+              rightTable.incrementProperty('expandCollapseCount');
+            },
+            undo: function () {
+              if( isCollapsed)
+                leftTable.collapseCase( parentID);
+              else
+                leftTable.expandCase( parentID);
+              rightTable.updateSelectedRows(true);
+              rightTable.incrementProperty('expandCollapseCount');
+            },
+            redo: function () {
+              this.execute();
+            }
+          }));
         }
       }
 
@@ -474,7 +494,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
 
       function updateRelationsLines() {
         if (!leftTable || !rightTable || leftTable.get('gridWidth') === 0 || rightTable.get('gridWidth') === 0) {
-          DG.log('DoDraw called on RelationDividerView, but tables not ready.');
+          //DG.log('DoDraw called on RelationDividerView, but tables not ready.');
           return;
         }
         var leftViewport = leftTable.get('gridViewport');

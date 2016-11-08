@@ -93,7 +93,6 @@ DG.mainPage = SC.Page.design((function() {
         },
 
         classNames: 'leftSide'.w(),
-        layout: { left: 0, right: 20 },
         didAppendToDocument: function() {
           /* global Promise */
           DG.cfmViewConfig = Promise.resolve({
@@ -101,27 +100,6 @@ DG.mainPage = SC.Page.design((function() {
                               navBarId: this.getPath('layer.id')
                             });
         }
-      }),
-
-      rightSide: SC.View.design(SC.FlowedLayout, {
-        layout: { width: 20, right: 0 },
-        classNames: 'right-side'.w(),
-        childViews: 'helpButton'.w(),
-        align: SC.ALIGN_RIGHT,
-        canWrap: false,
-        shouldResizeHeight: false,
-        defaultFlowSpacing: { top: (kInfobarHeight - 18) / 2 },
-
-        helpButton: DG.IconButton.design( {
-          layout: { width: 18 },
-          flowSpacing: { left: 5, top: -2, right: 5 },
-          iconClass: 'moonicon-icon-help',
-          target: 'DG.appController',
-          action: 'showHelp',
-          toolTip: 'DG.ToolButtonData.help.toolTip',  // "Open a web view showing help for CODAP"
-          localize: true,
-          classNames: ['navBar-help']
-        })
       })
     }),
 

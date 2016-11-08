@@ -161,6 +161,10 @@ DG.AttributePlacementDescription = SC.Object.extend(
     this.attributeStats.endPropertyChanges();
   },
 
+  setCases: function( iCases) {
+    this.attributeStats.setCases( iCases);
+  },
+
   /**
    * Return ID of first attribute.
     @property { Number }
@@ -171,10 +175,13 @@ DG.AttributePlacementDescription = SC.Object.extend(
   }.property('attribute'),
 
   /**
+   * Both datetime and numeric data are treated as numeric.
     @property {Boolean}
   */
   isNumeric: function() {
-    return this.get('attributeType') === DG.Analysis.EAttributeType.eNumeric;
+    var tType = this.get('attributeType');
+    return tType === DG.Analysis.EAttributeType.eNumeric ||
+        tType === DG.Analysis.EAttributeType.eDateTime;
   }.property('attributeType'),
   
   /**

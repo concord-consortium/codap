@@ -254,106 +254,121 @@ DG.DocumentArchiver = SC.Object.extend(
      * @returns {Object||undefined} A streamable CODAP document.
      */
     convertCSVDataToCODAPDocument: function (iText, iFileName) {
+      /**
+       * Returns table stats object:
+       *   numRows {number}
+       *   maxCols {number}
+       *   headerRows {[number]} Array of row indices of header rows
+       *   rowLengthCounts {[number]} sparse array of counts of row lengths
+       */
+      function getTableStats(table) {
+        var stats = {
+          numRows: 0,
+          maxCols: 0,
+          rowLengthCounts: [],
+          preponderantLength: 0
+        };
 
-      // trims empty columns from right side of
-      function trimTrailingColumns(arr) {
-        var newArr = [];
-        arr.forEach(function (row) {
-          var value;
-          if (Array.isArray(row)) {
-            do {
-              value = row.pop();
-            } while(value === '');
-            if (!SC.empty(value)) row.push(value);
+        stats.numRows = table.length;
+        table.forEach(function (row) {
+          var len = row.length;
+          if (stats.rowLengthCounts[len]) {
+            stats.rowLengthCounts[len]++;
+          } else {
+            stats.rowLengthCounts[len] = 1;
           }
-          if (row.length) {
-            newArr.push(row);
+          stats.maxCols = Math.max(stats.maxCols, len);
+        });
+        var maxCount = 0;
+        stats.rowLengthCounts.forEach(function (count, ix) {
+          if (maxCount < count) {
+            maxCount = count;
+            stats.preponderantLength = ix;
           }
         });
-        return newArr;
+        console.log('stats: ' + JSON.stringify(stats));
+        return stats;
+      }
+      function guaranteeUnique(name, nameArray) {
+        var ix = 0;
+        var newName = name;
+        while (nameArray.indexOf(newName) >= 0) {
+          ix++;
+          newName = name + '_' + ix;
+        }
+        return newName;
       }
 
-      function parseText() {
-        var tValuesArray,
-          tCollectionRow,
-          tContextName = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
-          tChildName = tContextName || 'cases',
-          tAttrNamesRow,// Column Header Names: should be second row
-          tDoc = {
-            name: 'DG.Document.defaultDocumentName'.loc(),
-            components: [],
-            contexts: [
-              {
-                "type": "DG.DataContext",
-                "collections": [
-                  {
-                    "attrs": [],
-                    "cases": []
-                  }
-                ],
-                "contextStorage": {
-                  "gameUrl": iFileName
+      var tValuesArray,
+        tContextName = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
+        tChildName = tContextName || 'cases',
+        tAttrNamesRow,// Column Header Names: should be second row
+        tAttrNames = [], tTableStats, ix,
+        tDoc = {
+          name: 'DG.Document.defaultDocumentName'.loc(),
+          components: [],
+          contexts: [
+            {
+              "type": "DG.DataContext",
+              "collections": [
+                {
+                  "attrs": [],
+                  "cases": []
                 }
+              ],
+              "contextStorage": {
+                "gameUrl": iFileName
               }
-            ],
-            appName: DG.APPNAME,
-            appVersion: DG.VERSION,
-            appBuildNum: DG.BUILD_NUM,
-            globalValues: []
-          },
-          tAttrsArray = tDoc.contexts[0].collections[0].attrs,
-          tCasesArray = tDoc.contexts[0].collections[0].cases;
-
-        CSV.RELAXED = true;
-        CSV.IGNORE_RECORD_LENGTH = true;
-        tValuesArray = CSV.parse(iText);
-        if (tValuesArray && tValuesArray.length >= 2) {
-          tValuesArray = trimTrailingColumns(tValuesArray);
-          tCollectionRow = tValuesArray.shift();
-          tAttrNamesRow = tValuesArray[0];
-
-          if (Array.isArray(tCollectionRow)) {
-            // check if it looks like name row is missing. We conclude this
-            // if the first row (tCollectioRow) has at least as many columns defined as the next row.
-            if (tAttrNamesRow.length <= tCollectionRow.length) {
-              // don't have a collection (title) row
-              tAttrNamesRow = tCollectionRow;
-            } else {
-              // do have a collection (title) row
-              tChildName = tCollectionRow[0];
-              tValuesArray.shift();
             }
+          ],
+          appName: DG.APPNAME,
+          appVersion: DG.VERSION,
+          appBuildNum: DG.BUILD_NUM,
+          globalValues: []
+        },
+        tAttrsArray = tDoc.contexts[0].collections[0].attrs,
+        tCasesArray = tDoc.contexts[0].collections[0].cases;
+
+      CSV.RELAXED = true;
+      CSV.IGNORE_RECORD_LENGTH = true;
+      tValuesArray = CSV.parse(iText);
+      tTableStats = getTableStats(tValuesArray);
+
+      if (!tValuesArray || tValuesArray.length < 1) {
+        DG.logWarn('CSV or Tab-delimited parsing failed: ' + iFileName);
+        return;
+      }
+
+      tAttrNamesRow = tValuesArray.shift();
+
+      tDoc.contexts[0].collections[0].name = tChildName;
+      tDoc.contexts[0].name = tContextName;
+
+      for (ix = 0; ix < tTableStats.maxCols; ix += 1) {
+         tAttrNames.push(guaranteeUnique(DG.Attribute.legalizeAttributeName(tAttrNamesRow[ix]), tAttrNames));
+      }
+
+      tAttrNames.forEach(function (iName) {
+        tAttrsArray.push( {
+          name: iName,
+          editable: true
+        });
+      });
+
+      tValuesArray.forEach( function( iValues) {
+        var tCase = {
+          values: {}
+        };
+        tAttrNames.forEach( function( iName, iIndex) {
+          var tValue = iValues[ iIndex];
+          if( DG.isDateString( tValue)) {
+            tValue = DG.createDate( tValue);
           }
-          else {
-            tChildName = tCollectionRow;
-            tValuesArray.shift();
-          }
-          tDoc.contexts[0].collections[0].name = tChildName;
-          tDoc.contexts[0].name = tContextName;
-
-          tAttrNamesRow.forEach(function (iName) {
-            tAttrsArray.push( {
-              name: String(iName),
-              editable: true
-            });
-          });
-
-          tValuesArray.forEach( function( iValues) {
-            var tCase = {
-              values: {}
-            };
-            tAttrNamesRow.forEach( function( iName, iIndex) {
-              tCase.values[ iName] = iValues[ iIndex];
-            });
-            tCasesArray.push( tCase);
-          });
-          return tDoc;
-        } else {
-          DG.logWarn('CSV or Tab-delimited parsing failed: ' + iFileName);
-        }
-      } // parseText
-
-      return parseText();
+          tCase.values[ iName] = tValue;
+        });
+        tCasesArray.push( tCase);
+      });
+      return tDoc;
     },
 
     /**

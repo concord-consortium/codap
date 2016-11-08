@@ -31,7 +31,7 @@ DG.DotPlotView = DG.PlotView.extend(
                       'secondaryAxisView.model.numberOfCells', 'overlap'],
 
   autoDestroyProperties: ['movableValueAdorn', 'plottedValueAdorn',
-                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedIQRAdorn'],
+                          'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'],
 
   /**
   @property{DG.CellLinearAxisView}
@@ -90,8 +90,8 @@ DG.DotPlotView = DG.PlotView.extend(
   /** @property {DG.plottedStDevAdorn} */
   plottedStDevAdorn: null,
   
-  /** @property {DG.plottedIQRAdorn} */
-  plottedIQRAdorn: null,
+  /** @property {DG.plottedBoxPlotAdorn} */
+  plottedBoxPlotAdorn: null,
 
   /**
   The bins stretch from numeric axis' lower to upper bounds and have width 2 * point radius.
@@ -158,14 +158,12 @@ DG.DotPlotView = DG.PlotView.extend(
   },
 
   numberOfCellsDidChange: function() {
-    if( this.plottedMeanAdorn )
-      this.plottedMeanAdorn.get('model' ).setComputingNeeded();
-    if( this.plottedMedianAdorn )
-      this.plottedMedianAdorn.get('model' ).setComputingNeeded();
-    if( this.plottedStDevAdorn )
-      this.plottedStDevAdorn.get('model' ).setComputingNeeded();
-    if( this.plottedIQRAdorn )
-      this.plottedIQRAdorn.get('model' ).setComputingNeeded();
+    ['plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'].
+        forEach( function( iKey) {
+            if( this.getPath( iKey + '.model')) {
+              this.getPath( iKey + '.model').setComputingNeeded();
+            }
+          }.bind( this));
   }.observes('*secondaryAxisView.model.numberOfCells'),
 
   /**
@@ -198,7 +196,7 @@ DG.DotPlotView = DG.PlotView.extend(
     updateOneAvgAdorn( this.plottedMeanAdorn );
     updateOneAvgAdorn( this.plottedMedianAdorn );
     updateOneAvgAdorn( this.plottedStDevAdorn );
-    updateOneAvgAdorn( this.plottedIQRAdorn );
+    updateOneAvgAdorn( this.plottedBoxPlotAdorn );
 
     if (this.plottedValueAdorn) {
       this.plottedValueAdorn.updateToModel();
@@ -285,7 +283,7 @@ DG.DotPlotView = DG.PlotView.extend(
 
   createCircle: function( iDatum, iIndex, iAnimate) {
     var this_ = this,
-      tNumericPlace = this.getPath('model.primaryAxisPlace');
+        tNumericPlace = this.getPath('model.primaryAxisPlace');
 
     function changeCaseValues( iDelta) {
       var tPrimaryVarID = this_.getPath('model.primaryVarID'),
@@ -300,8 +298,12 @@ DG.DotPlotView = DG.PlotView.extend(
       // Note that we have to get the cases dynamically rather than have a variable
       // declared in the closure. The array pointed to by such a closure is not updated!
       this_.getPath('model.casesController.selection').forEach( function( iCase) {
+        var tValue = iCase.getNumValue( tPrimaryVarID) + iDelta;
+        if( this_.getPath('primaryAxisView.isDateTime')) {
+          tValue = DG.createDate( tValue);
+        }
         tChange.cases.push( iCase);
-        tChange.values[0].push( iCase.getNumValue( tPrimaryVarID) + iDelta);
+        tChange.values[0].push( tValue);
       });
       tDataContext.applyChange( tChange);
     }
@@ -418,7 +420,7 @@ DG.DotPlotView = DG.PlotView.extend(
     updateAverageAdorn( this.plottedMeanAdorn );
     updateAverageAdorn( this.plottedMedianAdorn );
     updateAverageAdorn( this.plottedStDevAdorn );
-    updateAverageAdorn( this.plottedIQRAdorn );
+    updateAverageAdorn( this.plottedBoxPlotAdorn );
       
     if( !SC.none( this.plottedValueAdorn))
       this.plottedValueAdorn.updateToModel();
@@ -459,6 +461,9 @@ DG.DotPlotView = DG.PlotView.extend(
           tColorDesc = this_.getPath('model.dataConfiguration.legendAttributeDescription'),
           tColorID = tColorDesc.get('attributeID'),
           tMaxInBin, tPixelsOutside;
+      tCases = tCases.filter( function( iCase) {
+        return DG.isFinite( iCase.getNumValue( tNumericVarID));
+      });
 
       if( tMaxThatFit <= 0) // If things are really tight, overlap points directly on top of each other
         return iBinWidth;
@@ -540,9 +545,9 @@ DG.DotPlotView = DG.PlotView.extend(
   /**
    Presumably our model has created a plotted IQR. We need to create our adornment.
    */
-  plottedIQRChanged: function() {
-    this.adornmentDidChange('plottedIQR', 'plottedIQRAdorn', DG.PlottedIQRAdornment);
-  }.observes('.model.plottedIQR'),
+  plottedBoxPlotChanged: function() {
+    this.adornmentDidChange('plottedBoxPlot', 'plottedBoxPlotAdorn', DG.PlottedBoxPlotAdornment);
+  }.observes('.model.plottedBoxPlot'),
   
   /**
     Update an adornment after a change to its corresponding adornment model.

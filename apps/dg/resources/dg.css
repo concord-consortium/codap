@@ -63,22 +63,28 @@
 }
 
 .dg-case-table-title {
-    font-family: Montserrat-Bold;
-    font-weight: bold;
+    font-style: italic;
     font-size: 15px;
     color: rgba(15,38,51,1);
     text-align: center;
-    padding-top: 7px;
-    padding-bottom: 7px;
-    background-color: rgba(15, 38, 51,0.1);
+    padding-top: 4px;
+    padding-bottom: 4px;
+    background-color: #F0F0F0;
     white-space: nowrap;
+}
+
+.dg-qualitative-backing {
+    display: inline-block;
+    height: 7px;
+    border-radius: 3px;
+    background-color: lightgrey;
 }
 
 .dg-qualitative-bar {
     display: inline-block;
-    height: 8px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
+    position: absolute;
+    height: 7px;
+    border-radius: 3px 0px 0px 3px;
 }
 
 .calculator label {
@@ -196,6 +202,10 @@
 
 .inspector-picker-color {
     background-color: #0066bb;
+}
+
+.inspector-radio {
+    padding-left: 24px;
 }
 
 .ace.menu .sc-menu-item.focus span, .ace.menu .sc-menu-item a:hover span {
@@ -579,7 +589,6 @@
 .tile-icon-guide:before {
     content: "\64";
 }
-
 .titleview {
     cursor: text;
     text-align: center;
@@ -979,4 +988,12 @@ input.editor-text {
 
 .sp-palette .sp-thumb-el:hover, .sp-palette .sp-thumb-el.sp-thumb-active {
     border-color: #888888 !important;
+}
+
+.text-measurer {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
+    width: auto;
+    white-space: nowrap;
 }

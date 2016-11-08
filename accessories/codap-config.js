@@ -9,5 +9,6 @@ DG.toolButtons = [
   'calcButton',
   'textButton',
   'optionButton',
+  'helpButton',
   'guideButton'
 ];

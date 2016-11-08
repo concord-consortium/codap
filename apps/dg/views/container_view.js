@@ -57,6 +57,14 @@ DG.ContainerView = SC.View.extend(
        */
       inspectorView: null,
 
+      /**
+       * These rectangles are in addition to rectangles occupied by componentViews. Typically,
+       * they are reserved for the duration of an animation of a component to its final location, and
+       * then given up.
+       * @property { [{{left: {Number}, top: {Number}, width: {Number}, height: {Number}}}]
+       */
+      reservedRects: null,
+
       // We want the container to encompass the entire window or the
       // entire content, whichever is greater.
       layout: { left: 0, top: 0, minWidth: '100%', minHeight: '100%' },
@@ -77,6 +85,7 @@ DG.ContainerView = SC.View.extend(
 
       init: function() {
         sc_super();
+        this.reservedRects = [];
         this.set('inspectorView', DG.InspectorView.create( {
           componentContainer: this
         }));
@@ -271,18 +280,54 @@ DG.ContainerView = SC.View.extend(
         @param {String} Default is 'top'
       */
       positionNewComponent: function( iView, iPosition) {
-        var tViewRect = iView.get( 'frame'),
-            tDocRect = this.parentView.get('clippingFrame');
-        var tLoc = DG.ViewUtilities.findEmptyLocationForRect(
+        var this_ = this,
+            tViewRect = iView.get( 'frame'),
+            tDocRect = this.parentView.get('clippingFrame'),
+            tFrameWithinParent = this.computeFrameWithParentFrame(),
+            tOffset = { x: -tFrameWithinParent.x, y: -tFrameWithinParent.y},
+            tViewRects = this.get('componentViews').map(function (iView) {
+              return iView.get('isVisible') ? iView.get('frame') : {x: 0, y: 0, width: 0, height: 0};
+            }),
+            tReservedRects = this.get('reservedRects'),
+            tLoc = DG.ViewUtilities.findEmptyLocationForRect(
                                       tViewRect,
                                       tDocRect,
-                                      this.get('componentViews'),
-                                      iPosition);
-        iView.adjust( 'left', tLoc.x);
-        iView.adjust( 'top', tLoc.y);
-        this.invokeNext( function() {
-          this.select( iView);
-        }.bind( this));
+                                      tOffset,
+                                      tViewRects.concat( tReservedRects),
+                                      iPosition),
+            tFinalRect = { x: tLoc.x, y: tLoc.y, width: tViewRect.width, height: tViewRect.height},
+            tOptions = { duration: 0.5, timing: 'ease-in-out'},
+            tIsGameView = iView.get('contentView').constructor === DG.GameView;
+        if( tIsGameView) {
+          iView.adjust( tFinalRect);
+        }
+        else {
+          tReservedRects.push(tFinalRect);
+          this.invokeNext(function () {
+            iView.adjust({
+              left: DG.ViewUtilities.kGridSize, top: DG.ViewUtilities.kGridSize,
+              width: 0, height: 0
+            });
+            iView.animate({left: tLoc.x, top: tLoc.y, width: tViewRect.width, height: tViewRect.height}, tOptions,
+                function () {
+                  // map component doesn't come out right without the following kludge
+                  // Todo: Figure out how to do this with less kludge. Possibly install the contentView
+                  // after the animation has completed? Or set the size of the contentView and simply
+                  // expand onto it.
+                  this.adjust('width', tViewRect.width + 1);
+                  this.adjust('width', tViewRect.width);
+                  this.adjust('height', tViewRect.height + 1);
+                  this.adjust('height', tViewRect.height);
+                  this.select();
+                  this_.updateFrame();
+                  tReservedRects.splice(tReservedRects.indexOf(tFinalRect), 1);
+                  // beginEditing applies only to text component, but couldn't find a better place to put this
+                  // Better would be to define something like 'didReachFinalPosition' as a generic component
+                  this.didReachInitialPosition();
+                });
+          }.bind(this));
+          iView.adjust({width: 0, height: 0});
+        }
       },
       
       /** coverUpComponentViews - Request each component view to cover up its contents with a see-through layer.

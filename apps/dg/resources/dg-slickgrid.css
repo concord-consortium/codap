@@ -20,13 +20,66 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
 /*
  * slick.grid.css style overrides/extensions
  */
+.slick-header.ui-state-default, .slick-header-column.ui-state-default, .slick-header-columns {
+  background-image: none;
+}
+
+.slick-header-columns {
+  height: 30px;
+  line-height: 1.2em;
+
+}
+
 .slick-header-column.ui-state-default {
   text-align: center;
   font-weight: bold;
-
-  height: 14px;
-  line-height: 14px;
+  height: 30px;
+  float: none;
+  vertical-align: top;
 }
+
+.slick-column-name {
+  overflow: hidden; /* avoid spill-over into next column */
+  position: relative;
+  display: block; /* slickgrid creates spans. To avoid unnecessary code changes,
+                     we make the span behave like a div. */
+  line-height: 1.2em;
+}
+
+.slick-column-name .two-line-header-line-1, .slick-column-name .two-line-header-line-2 {
+  display: block;
+  text-align: left;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.slick-column-name .two-line-header-line-1 {
+  word-wrap: break-word;
+  word-break: break-all;
+  height: 2.4em;
+}
+
+.slick-column-name .two-line-header-line-2 {
+  display:none;
+  direction: rtl; /* The second line, when visible, will present the end of the
+                     string. RTL does this. */
+  -webkit-unicode-bidi: plaintext;
+  unicode-bidi: plaintext; /* Prevents browser repositioning punctuation. */
+}
+
+.slick-column-name.two-line-header-truncating .two-line-header-line-1 {
+  text-overflow: ellipsis;
+  height: 1.2em;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+.slick-column-name.two-line-header-truncating .two-line-header-line-2 {
+  height: 1.2em;
+  white-space: nowrap;
+  display: block;
+}
+
 
 .slick-cell, .slick-headerrow-column {
   z-index: auto;

@@ -323,7 +323,14 @@ DG.PlotView = DG.PlotLayer.extend(
       // return the number of children of the given case in the parent collection
       var tParentCase = tParentCollectionClient.getCaseAt( iCaseIndex),
           tParentCaseChildren = tParentCase && tParentCase.get('children');
-      return( tParentCaseChildren ? tParentCaseChildren.get('length') : 0 );
+      if( tParentCaseChildren) {
+        tParentCaseChildren = tParentCaseChildren.filter( function( iCase) {
+          return tCases.indexOf( iCase) >= 0;
+        });
+        return tParentCaseChildren.get('length');
+      }
+      else
+          return 0;
     }
     function getParentToChildTransformation( iNewToOld, iOldToNew ) {
       // fill iNewToOld[] with child case index to parent case index mapping

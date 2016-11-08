@@ -33,6 +33,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Cell layout constants
   var kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
+      kMaxStringLength = 256,
       
       // The tooltip string for the column depends on whether it has a formula, description, etc.
       getToolTipString = function( iAttribute) {
@@ -59,7 +60,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
         if( SC.none( cellValue))
           cellValue = "";
-        else if( SC.typeOf( cellValue) === SC.T_NUMBER) {
+        else if( DG.isNumeric(cellValue)) {
           var attrPrecision = colInfo.attribute.get('precision'),
               roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
               multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
@@ -76,9 +77,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var color = DG.PlotUtilities.kDefaultPointColor,
             kColumnDefaultWidth = 60,
             kPadding = 10,
-            tWidth = (kColumnDefaultWidth - kPadding) * value / 100;
+            tFullWidth = kColumnDefaultWidth - kPadding,
+            tWidth = tFullWidth * value / 100;
 
-        return "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span>";
+        return "<span class='dg-qualitative-backing' style='width:" + tFullWidth + "px'>" +
+        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
       };
 
   return {  // return from closure
@@ -281,6 +284,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               menu : {
                 items: [
                   { title: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                    command: 'cmdEditAttribute',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.editFormula'.loc(),
                     command: 'cmdEditFormula',
                     updater: function( iColumn, iMenu, ioMenuItem) {
                       ioMenuItem.disabled = !iColumn.attribute.get('editable');
@@ -296,14 +305,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                               { type: DG.DEP_TYPE_SPECIAL,
                                                                 id: 'random' });
                       ioMenuItem.disabled = !dependency;
-                    }
-                  },
-                  { title: 'DG.TableController.headerMenuItems.renameAttribute'.loc(),
-                    command: 'cmdRenameAttribute',
-                    updater: function( iColumn, iMenu, ioMenuItem) {
-                      // we disable the menu item if not renameable or the
-                      // context is owned by a data interactive that speaks the Game API
-                      ioMenuItem.disabled = !iColumn.attribute.get('renameable') || iColumn.hasDependentInteractive();
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
@@ -342,10 +343,19 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                           function( iColumn) {
                                             return iAttribute.get('id').toString() === iColumn.id;
                                           });
+    var isQual = iAttribute.get('type') === 'qualitative';
+
     if( column) {
+
       column.name = getColumnHeaderString( iAttribute);
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);
+      column.formatter = isQual ? qualBarFormatter : cellFormatter;
+      if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
+        column.editor = DG.CaseTableCellEditor;
+      else
+        delete column.editor;
+
       this.gridDataView.refresh();
       return true;
     }
@@ -361,6 +371,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   buildGridOptions: function() {
     this.gridOptions = {
               rowHeight: kDefaultRowHeight,
+              headerRowHeight: kDefaultRowHeight*2,
               enableColumnReorder: false,
               syncColumnCellResize: true,
               leaveSpaceForNewRows: false,
@@ -375,7 +386,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     });
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                return iRowItem.getValue(iColumnInfo.id);
+                var value = iRowItem.getStrValue(iColumnInfo.id);
+                return value &&
+                    ((value.length < kMaxStringLength)?
+                        value:
+                        value.substring(0, kMaxStringLength));
               }
            };
     return this.gridOptions;
@@ -505,6 +520,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             collection: tCollection,
             cases: iRowIndices.map(function (iRowIndex) {
               return tDataView.getItem( iRowIndex);
+            }).filter( function( iCase) {
+              // We filter because, at least in FireFox, we can get to a row that is one beyond the end
+              // which therefore has no case
+              return !SC.none( iCase);
             }),
             select: true,
             extend: false
@@ -540,61 +559,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
      * @param {number} position
      */
     requestMoveAttribute: function (attr, position) {
-
-      DG.UndoHistory.execute(DG.Command.create({
-        name: 'caseTable.moveAttribute',
-        undoString: 'DG.Undo.caseTable.moveAttribute',
-        redoString: 'DG.Redo.caseTable.moveAttribute',
-        log: 'move attribute {attribute: "%@", position: %@}'.loc(attr.name, position),
-        _beforeStorage: {
-          context: this.get('dataContext'),
-          toCollection: this.get('collection'),
-          fromCollectionID: attr.collection.id,
-          fromCollectionName: attr.collection.name,
-          fromCollectionParent: attr.collection.parent,
-          fromCollectionChild: attr.collection.children[0],
-          fromPosition: attr.collection.attrs.indexOf(attr),
-          changeFlag: this.getPath('dataContext.flexibleGroupingChangeFlag')
-        },
-        execute: function () {
-          var tContext = this._beforeStorage.context,
-              tCollection = this._beforeStorage.toCollection,
-              tChange = {
-                operation: 'moveAttribute',
-                attr: attr,
-                toCollection: tCollection,
-                position: position
-              };
-          tContext.applyChange(tChange);
-          tContext.set('flexibleGroupingChangeFlag', true);
-        },
-        undo: function () {
-          var tContext = this._beforeStorage.context,
-              tCollection = tContext.getCollectionByID(this._beforeStorage.fromCollectionID),
-              tChange;
-          if (tCollection) {
-            tChange = {
-              operation: 'moveAttribute',
-              attr: attr,
-              toCollection: tCollection,
-              position: this._beforeStorage.fromPosition
-            };
-          } else {
-            tChange = {
-              operation: 'createCollection',
-              properties: {
-                id: this._beforeStorage.fromCollectionID,
-                name: this._beforeStorage.fromCollectionName,
-                parent: this._beforeStorage.fromCollectionParent,
-                children: [this._beforeStorage.fromCollectionChild]
-              },
-              attributes: [attr]
-            };
-          }
-          tContext.applyChange(tChange);
-          tContext.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
-        }
-      }));
+      var tContext = this.get('dataContext'),
+          tCollection = this.get('collection'),
+          tChange = {
+            operation: 'moveAttribute',
+            attr: attr,
+            toCollection: tCollection,
+            position: position
+          };
+      tContext.applyChange(tChange);
     },
 
     /**
@@ -743,6 +716,9 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
           attributeIDs: [ columnId ],
           values: [ [value] ]
         };
+    if( DG.isDateString(value)) {
+      tChange.values = [[DG.createDate( value)]];
+    }
     context.applyChange( tChange );
     var collectionName = item.getPath('collection.name') || "",
         caseIndex = args.grid.getData().getIdxById( item.id) + 1;

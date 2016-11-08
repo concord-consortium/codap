@@ -755,27 +755,23 @@ DG.GamePhoneHandler = SC.Object.extend(
        */
       handleUndoableAction: function (iArgs) {
         var logMessage = iArgs && iArgs.logMessage ? iArgs.logMessage : "Unknown action";
+        var rpcEndpoint = this.get('rpcEndpoint');
+        var handleUndoRedoCompleted = this.handleUndoRedoCompleted;
         DG.UndoHistory.execute(DG.Command.create({
           name: 'interactive.undoableAction',
           undoString: 'DG.Undo.interactiveUndoableAction',
           redoString: 'DG.Redo.interactiveUndoableAction',
           log: 'Interactive action occurred: ' + logMessage,
-          _componentId: this.getPath('model.id'),
-          _controller: function () {
-            return DG.currDocumentController().componentControllersMap[this._componentId];
-          },
           execute: function () {
           },
           undo: function () {
             // FIXME If the game component was removed and then re-added via an undo,
             // then calling undo or redo here will likely fail because the game's undo stack would
             // probably have been cleared.
-            var controller = this._controller();
-            controller.rpcEndpoint.call({operation: "undoAction"}, controller.handleUndoRedoCompleted);
+            rpcEndpoint.call({operation: "undoAction"}, handleUndoRedoCompleted);
           },
           redo: function () {
-            var controller = this._controller();
-            controller.rpcEndpoint.call({operation: "redoAction"}, controller.handleUndoRedoCompleted);
+            rpcEndpoint.call({operation: "redoAction"}, handleUndoRedoCompleted);
           }
         }));
       },

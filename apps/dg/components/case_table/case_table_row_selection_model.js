@@ -138,7 +138,13 @@ DG.CaseTableRowSelectionModel = function (options) {
 
   function handleKeyDown(e) {
     var activeRow = _grid.getActiveCell();
-    if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey && (e.which === 38 || e.which === 40)) {
+
+    var kUpArrowKeyCode = 38;
+    var kDownArrowKeyCode = 40;
+
+    // handle shift-upArrow and shift-downArrow
+    if (activeRow && e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey &&
+        (e.which === kUpArrowKeyCode || e.which === kDownArrowKeyCode)) {
       var selectedRows = getSelectedRows();
       selectedRows.sort(function (x, y) {
         return x - y;
@@ -152,7 +158,7 @@ DG.CaseTableRowSelectionModel = function (options) {
       var bottom = selectedRows[selectedRows.length - 1];
       var active;
 
-      if (e.which === 40) {
+      if (e.which === kDownArrowKeyCode) {
         active = activeRow.row < bottom || top === bottom ? ++bottom : ++top;
       } else {
         active = activeRow.row < bottom ? --bottom : --top;
@@ -171,7 +177,6 @@ DG.CaseTableRowSelectionModel = function (options) {
   function handleDragInit(e) {
     _inDrag = true;
     e.stopImmediatePropagation();
-    DG.log("init drag");
   }
 
   function handleDragStart(e) {
@@ -234,7 +239,7 @@ DG.CaseTableRowSelectionModel = function (options) {
     var idx = $.inArray(cell.row, selection);
 
     if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-      return false;
+      selection = [cell.row];
     }
     else if (_grid.getOptions().multiSelect) {
       if (idx === -1 && (e.ctrlKey || e.metaKey)) {
@@ -246,16 +251,15 @@ DG.CaseTableRowSelectionModel = function (options) {
         });
         _grid.setActiveCell(cell.row, cell.cell);
       } else if (selection.length && e.shiftKey) {
-        var last = selection.pop();
-        var from = Math.min(cell.row, last);
+        selection.sort(function (a, b) {return a-b;});
+        var first = selection[0];
+        var last = selection[selection.length - 1];
+        var from = Math.min(cell.row, first);
         var to = Math.max(cell.row, last);
         selection = [];
         for (var i = from; i <= to; i++) {
-          if (i !== last) {
-            selection.push(i);
-          }
+          selection.push(i);
         }
-        selection.push(last);
         _grid.setActiveCell(cell.row, cell.cell);
       }
     }

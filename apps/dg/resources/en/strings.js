@@ -276,7 +276,8 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.guideMenu.title': "Guide",
   'DG.ToolButtonData.guideMenu.toolTip': "Show the guide for this activity and navigate within it",
   'DG.ToolButtonData.guideMenu.showGuide': "Show Guide",
-  'DG.ToolButtonData.help.toolTip': "Open a web view showing help for CODAP",
+  'DG.ToolButtonData.help.title': "Help",
+  'DG.ToolButtonData.help.toolTip': "Open a browser tab showing help for CODAP",
 
   'DG.Slider.direction': "Animation Direction:",  // Direction
   'DG.Slider.backAndForth': "Back and Forth",   // Back and Forth
@@ -309,20 +310,22 @@ SC.stringsFor('English', {
   'DG.Redo.toggleComponent.delete.calcView': "Redo hiding the calculator",
   'DG.Undo.caseTable.open': "Undo showing case tables",
   'DG.Redo.caseTable.open': "Redo showing case tables",
-  'DG.Undo.caseTable.renameAttribute': "Undo renaming case table attribute",
-  'DG.Redo.caseTable.renameAttribute': "Redo renaming case table attribute",
+  'DG.Undo.caseTable.editAttribute': "Undo editing case table attribute",
+  'DG.Redo.caseTable.editAttribute': "Redo editing case table attribute",
   'DG.Undo.caseTable.createAttribute': "Undo creating case table attribute",
   'DG.Redo.caseTable.createAttribute': "Redo creating case table attribute",
   'DG.Undo.caseTable.editAttributeFormula': "Undo editing case table attribute formula",
   'DG.Redo.caseTable.editAttributeFormula': "Redo editing case table attribute formula",
   'DG.Undo.caseTable.deleteAttribute': "Undo deleting case table attribute",
   'DG.Redo.caseTable.deleteAttribute': "Redo deleting case table attribute",
-  'DG.Undo.caseTable.moveAttribute': "Undo moving case table attribute",
-  'DG.Redo.caseTable.moveAttribute': "Redo moving case table attribute",
   'DG.Undo.caseTable.createCollection': "Undo create new collection",
   'DG.Redo.caseTable.createCollection': "Redo create new collection",
   'DG.Undo.caseTable.collectionNameChange': 'Undo rename collection',
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
+  'DG.Undo.caseTable.groupToggleExpandCollapseAll': 'Undo toggle expand/collapse all',
+  'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
+  'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
+  'DG.Redo.caseTable.expandCollapseOneCase': 'Redo expand or collapse of a group',
   'DG.Undo.document.rename': "Undo renaming the document",
   'DG.Redo.document.rename': "Redo renaming the document",
   'DG.Undo.document.share': "Undo sharing the document",
@@ -331,10 +334,14 @@ SC.stringsFor('English', {
   'DG.Redo.document.unshare': "Redo stop sharing the document",
   'DG.Undo.game.add': "Undo adding a game to the document",
   'DG.Redo.game.add': "Redo adding a game to the document",
-  'DG.Undo.graph.showcount': "Undo showing graph count",
-  'DG.Redo.graph.showcount': "Redo showing graph count",
-  'DG.Undo.graph.hidecount': "Undo hiding graph count",
-  'DG.Redo.graph.hidecount': "Redo hiding graph count",
+  'DG.Undo.graph.showCount': "Undo showing count",
+  'DG.Redo.graph.showCount': "Redo showing count",
+  'DG.Undo.graph.hideCount': "Undo hiding count",
+  'DG.Redo.graph.hideCount': "Redo hiding count",
+  'DG.Undo.graph.showPercent': "Undo showing percent",
+  'DG.Redo.graph.showPercent': "Redo showing percent",
+  'DG.Undo.graph.hidePercent': "Undo hiding percent",
+  'DG.Redo.graph.hidePercent': "Redo hiding percent",
   'DG.Undo.graph.showMovableLine': "Undo showing movable line",
   'DG.Redo.graph.showMovableLine': "Redo showing movable line",
   'DG.Undo.graph.hideMovableLine': "Undo hiding movable line",
@@ -351,6 +358,10 @@ SC.stringsFor('English', {
   'DG.Redo.graph.showConnectingLine': "Redo showing connecting line",
   'DG.Undo.graph.hideConnectingLine': "Undo hiding connecting line",
   'DG.Redo.graph.hideConnectingLine': "Redo hiding connecting line",
+  'DG.Undo.graph.showLSRL': "Undo showing least squares line",
+  'DG.Redo.graph.showLSRL': "Redo showing least squares line",
+  'DG.Undo.graph.hideLSRL': "Undo hiding least squares line",
+  'DG.Redo.graph.hideLSRL': "Redo hiding least squares line",
   'DG.Undo.graph.showSquares': "Undo showing squares",
   'DG.Redo.graph.showSquares': "Redo showing squares",
   'DG.Undo.graph.hideSquares': "Undo hiding squares",
@@ -379,6 +390,8 @@ SC.stringsFor('English', {
   'DG.Redo.graph.changePointSize': "Redo changing point size",
   'DG.Undo.graph.changeAttributeColor': "Undo changing attribute color",
   'DG.Redo.graph.changeAttributeColor': "Redo changing attribute color",
+  'DG.Undo.graph.changeBackgroundColor': "Undo changing graph background color",
+  'DG.Redo.graph.changeBackgroundColor': "Redo changing graph background color",
   'DG.Undo.graph.toggleTransparent': "Undo toggling plot transparency",
   'DG.Redo.graph.toggleTransparent': "Redo toggling plot transparency",
   'DG.Undo.guide.show': "Undo showing the guide",
@@ -433,6 +446,9 @@ SC.stringsFor('English', {
   'DG.Redo.component.close': "Redo closing component",
   'DG.Undo.component.minimize': "Undo minimizing component",
   'DG.Redo.component.minimize': "Redo minimizing component",
+  'DG.Undo.dataContext.moveAttribute': "Undo moving case table attribute",
+  'DG.Redo.dataContext.moveAttribute': "Redo moving case table attribute",
+
 
   // DG.DataContext
   'DG.DataContext.singleCaseName': "case",
@@ -471,6 +487,19 @@ SC.stringsFor('English', {
   'DG.Formula.DateLongMonthNovember': "November",
   'DG.Formula.DateLongMonthDecember': "December",
 
+  'DG.Formula.DateShortMonthJanuary': "Jan",
+  'DG.Formula.DateShortMonthFebruary': "Feb",
+  'DG.Formula.DateShortMonthMarch': "Mar",
+  'DG.Formula.DateShortMonthApril': "Apr",
+  'DG.Formula.DateShortMonthMay': "May",
+  'DG.Formula.DateShortMonthJune': "Jun",
+  'DG.Formula.DateShortMonthJuly': "Jul",
+  'DG.Formula.DateShortMonthAugust': "Aug",
+  'DG.Formula.DateShortMonthSeptember': "Sep",
+  'DG.Formula.DateShortMonthOctober': "Oct",
+  'DG.Formula.DateShortMonthNovember': "Nov",
+  'DG.Formula.DateShortMonthDecember': "Dec",
+
   'DG.Formula.DateLongDaySunday': "Sunday",
   'DG.Formula.DateLongDayMonday': "Monday",
   'DG.Formula.DateLongDayTuesday': "Tuesday",
@@ -497,9 +526,9 @@ SC.stringsFor('English', {
   'DG.Formula.LookupAttrError.description': "Attribute '%@' not found in data set '%@'",
 
   // DG.TableController
-  'DG.TableController.headerMenuItems.editAttribute': "Edit Formula...",
+  'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
+  'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
-  'DG.TableController.headerMenuItems.renameAttribute': "Rename...",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
@@ -511,8 +540,6 @@ SC.stringsFor('English', {
   'DG.TableController.newAttrDialog.GlobalsCategory': "Globals",
   'DG.TableController.newAttrDialog.ConstantsCategory': "Constants",  // Set to "Special" to combine with 'caseIndex'
   'DG.TableController.newAttrDialog.FunctionsCategory': "Functions",
-  'DG.TableController.renameAttributePrompt': "Enter a new name for the attribute:",
-  'DG.TableController.renameAttributeOKTip': "Accept the new attribute name",
   'DG.TableController.renameAttributeInvalidMsg': "Attribute names may not be empty",
   'DG.TableController.renameAttributeInvalidDesc': "Please enter a valid attribute name",
   'DG.TableController.renameAttributeDuplicateMsg': "An attribute with that name already exists",
@@ -521,12 +548,21 @@ SC.stringsFor('English', {
   'DG.TableController.deleteAttribute.confirmDescription': "This action cannot be undone.",
   'DG.TableController.deleteAttribute.okButtonTitle': "Delete Attribute",
   'DG.TableController.deleteAttribute.cancelButtonTitle': "Cancel",
+  'DG.TableController.attrEditor.precisionHint': "Number of digits after decimal point",
+  'DG.TableController.attrEditor.unitHint': "Unit of measure, if applicable",
+  'DG.TableController.attrEditor.descriptionHint': "Describe the attribute",
   'DG.TableController.scoreAttrName': "score",
   'DG.TableController.setScoreDlg.applyTooltip': "Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint': "Type a formula for computing values of this attribute",
 
+  'DG.TableController.attributeEditor.title': 'Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
+  'DG.CaseTable.attribute.type.none': '',
+  'DG.CaseTable.attribute.type.nominal': 'nominal',
+  'DG.CaseTable.attribute.type.numeric': 'numeric',
+  'DG.CaseTable.attribute.type.date': 'date',
+  'DG.CaseTable.attribute.type.qualitative': 'qualitative',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',
@@ -601,6 +637,7 @@ SC.stringsFor('English', {
   'DG.PlottedAverageAdornment.medianValueTitle': "median=%@", // "median=123.456"
   'DG.PlottedAverageAdornment.stDevValueTitle': "\xB11 SD, %@", // "st.dev=123.456"
   'DG.PlottedAverageAdornment.iqrValueTitle': "IQR=%@", // "iqr=123.456"
+  'DG.PlottedAverageAdornment.boxPlotTitle': "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
   'DG.PlottedCountAdornment.title': "%@ %@, %@%", // "12 cases, 50%"
 
   // DG.GraphModel
@@ -676,16 +713,22 @@ SC.stringsFor('English', {
   // Graph Inspector
   'DG.Inspector.graphTransparency': "Transparent",  // "Transparent"
   'DG.Inspector.graphCount': "Count",  // "Count"
+  'DG.Inspector.graphPercent': "Percent",  // "Percent"
+  'DG.Inspector.graphRow': "Row",  // "Row"
+  'DG.Inspector.graphColumn': "Column",  // "Column"
+  'DG.Inspector.graphCell': "Cell",  // "Cell"
   'DG.Inspector.graphConnectingLine': "Connecting Lines",  // "Connecting Lines"
   'DG.Inspector.graphMovableLine': "Movable Line",  // "Movable Line"
   'DG.Inspector.graphInterceptLocked': "Intercept Locked",  // "Intercept Locked"
   'DG.Inspector.graphPlottedFunction': "Plotted Function",  // "Plotted Function"
   'DG.Inspector.graphSquares': "Squares of Residuals",  // "Squares of Residuals"
+  'DG.Inspector.graphLSRL': "Least Squares Line",  // "Least Squares Line"
   'DG.Inspector.graphMovableValue': "Movable Value",  // "Movable Value"
   'DG.Inspector.graphPlottedMean': "Mean",  // "Mean"
   'DG.Inspector.graphPlottedMedian': "Median",  // "Median"
   'DG.Inspector.graphPlottedStDev': "Standard Deviation",  // "Standard Deviation"
   'DG.Inspector.graphPlottedIQR': "Interquartile Range",  // "Interquartile Range"
+  'DG.Inspector.graphPlottedBoxPlot': "Box Plot",  // "Box Plot"
   'DG.Inspector.graphPlottedValue': "Plotted Value",  // "Plotted Value"
 
   // Table Inspector

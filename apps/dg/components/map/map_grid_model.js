@@ -48,8 +48,9 @@ DG.MapGridModel = SC.Object.extend((function () // closure
       []
     ];
     this.getRect = function (iLongIndex, iLatIndex) {
-      if(iLongIndex < this.rectangles.length)
+      if(this.rectangles[iLongIndex] && !SC.none( this.rectangles[ iLongIndex][iLatIndex])) {
         return this.rectangles[iLongIndex][iLatIndex];
+      }
       else
         return null;
     };

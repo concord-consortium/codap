@@ -1,8 +1,8 @@
 // ==========================================================================
 //                      DG.CaseTableController
-// 
+//
 //  The controller for tables.
-//  
+//
 //  Authors:  William Finzer, Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -21,6 +21,7 @@
 // ==========================================================================
 
 sc_require('controllers/component_controller');
+sc_require('components/case_table/attribute_editor_view');
 
 /** @class
 
@@ -221,9 +222,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         }.bind(this));
         storage.attributeWidths = attributeWidths;
 
-        collapsedNodes.forEach(function (node, key) {
-          if (node.isCollapsed) {
-            this.addLink(storage, 'collapsedNodes', node.collapsedCase);
+        collapsedNodes.forEach(function (caseID, key) {
+          var tCase = dataContext.getCaseByID(caseID);
+          if (tCase) {
+            this.addLink(storage, 'collapsedNodes', tCase);
           }
         }.bind(this));
 
@@ -271,11 +273,11 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdEditFormula':
           this.editAttributeFormula( columnID);
           break;
+        case 'cmdEditAttribute':
+          this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
+          break;
         case 'cmdRandomizeAttribute':
           this.randomizeAttribute( columnID);
-          break;
-        case 'cmdRenameAttribute':
-          this.renameAttribute( columnID);
           break;
         case 'cmdDeleteAttribute':
           this.deleteAttribute( columnID);
@@ -439,7 +441,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               var collectionID = iAdapter.getPath('collection.id');
               adapters[collectionID] = { adapter: iAdapter, cases: [] };
             });
- 
+
         function identifyCasesChanged(iCases) {
           if (iCases) {
             iCases.forEach(function(iCase) {
@@ -855,85 +857,76 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Rename an attribute. Brings up the Rename Attribute dialog.
+       * Edit an attribute's properties. Brings up the Edit Attribute dialog.
        *
        */
-      renameAttribute: function( iAttrID) {
+      editAttribute: function( iAttrID, iMenuItem) {
         var tDataContext = this.get('dataContext'),
-            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID),
-            tCollectionClient = tDataContext && tAttrRef &&
-                                tDataContext.getCollectionForAttribute( tAttrRef.attribute),
-            tAttrName = tAttrRef && tAttrRef.attribute.get('name'),
-            tDialog;
-        if( !DG.assert( tAttrRef, "renameAttribute() is missing the attribute reference"))
+            tAttrRef = tDataContext && tDataContext.getAttrRefByID( iAttrID);
+
+        if( !DG.assert( tAttrRef, "editAttribute() is missing the attribute reference"))
           return;
 
-        var doRenameAttribute = function( iAttrID, iAttrName, iOldAttrName) {
-          DG.UndoHistory.execute(DG.Command.create({
-            name: "caseTable.renameAttribute",
-            undoString: 'DG.Undo.caseTable.renameAttribute',
-            redoString: 'DG.Redo.caseTable.renameAttribute',
-            log: 'Rename attribute "%@"'.fmt(iAttrName),
-            _componentId: this.getPath('model.id'),
-            _controller: function() {
-              return DG.currDocumentController().componentControllersMap[this._componentId];
-            },
-            execute: function() {
-              tAttrRef = tDataContext.getAttrRefByName( iOldAttrName);
-              var change = {
-                              operation: 'updateAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iAttrName }]
-                            };
-              tDataContext.applyChange( change);
-            },
-            undo: function() {
-              tDataContext = this._controller().get('dataContext');
-              tAttrRef = tDataContext.getAttrRefByName( iAttrName);
-              var change = {
-                              operation: 'updateAttributes',
-                              collection: tAttrRef && tAttrRef.collection,
-                              attrPropsArray: [{ id: tAttrRef.attribute.get('id'), name: iOldAttrName }]
-                            };
-              tDataContext.applyChange( change);
-            },
-            redo: function() {
-              tDataContext = this._controller().get('dataContext');
-              this.execute();
-            }
-          }));
-        }.bind(this);
+        this.showEditAttributePane(tAttrRef, iMenuItem);
+      },
 
-        function handleRenameAttributeOK() {
-          // newAttrName: value of single-text-dialog: cannot be empty string
-          var newAttrName = tDialog.get('value'),
-              tExistingAttr = tCollectionClient && newAttrName &&
-                              tCollectionClient.getAttributeByName( newAttrName);
-          // if the name didn't change, then there's nothing to do
-          if( newAttrName === tAttrName) {
-            tDialog.close();
-            return;
+      /**
+       * Updates an attribute undo-ably based on attribute properties.
+       *
+       * This method is called from the attribute editing dialog.
+       *
+       * @param iAttrRef {{collection:  {DG.CollectionClient}
+   *                       attribute:   {DG.Attribute}
+   *                       position:    {number}}}
+       * @param iChangedAttrProps {object}
+       */
+      updateAttribute: function(iAttrRef, iChangedAttrProps) {
+        var tDataContext = this.get('dataContext');
+        var tAttr = iAttrRef.attribute;
+        var tOldAttrProps = {
+          id: tAttr.get('id'),
+          name: tAttr.get('name'),
+          type: tAttr.get('type'),
+          unit: tAttr.get('unit'),
+          editable: tAttr.get('editable'),
+          precision: tAttr.get('precision'),
+          description: tAttr.get('description'),
+        };
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.editAttribute",
+          undoString: 'DG.Undo.caseTable.editAttribute',
+          redoString: 'DG.Redo.caseTable.editAttribute',
+          log: 'Edit attribute "%@"'.fmt(iChangedAttrProps.name),
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function() {
+            var change = {
+                            operation: 'updateAttributes',
+                            collection: iAttrRef && iAttrRef.collection,
+                            attrPropsArray: [Object.assign({ id: iAttrRef.attribute.get('id')}, iChangedAttrProps)]
+                          };
+            tDataContext.applyChange( change);
+          },
+          undo: function() {
+            var change = {
+                            operation: 'updateAttributes',
+                            collection: iAttrRef && iAttrRef.collection,
+                            attrPropsArray: [tOldAttrProps]
+                          };
+            tDataContext.applyChange( change);
+          },
+          redo: function() {
+            tDataContext = this._controller().get('dataContext');
+            this.execute();
           }
-          if( newAttrName && !tExistingAttr) {
-            tDialog.close();
-            doRenameAttribute( iAttrID, newAttrName, tAttrName);
-          }
-          else if( tExistingAttr) {
-            DG.AlertPane.info({
-              message: 'DG.TableController.renameAttributeDuplicateMsg',
-              description: 'DG.TableController.renameAttributeDuplicateDesc',
-              localize: true
-            });
-          }
-        }
+        }));
+      },
 
-        tDialog = DG.CreateSingleTextDialog( {
-                        prompt: 'DG.TableController.renameAttributePrompt',
-                        textValue: tAttrName,
-                        okTarget: null,
-                        okAction: handleRenameAttributeOK,
-                        okTooltip: 'DG.TableController.renameAttributeOKTip'
-                      });
+      showEditAttributePane: function (iAttrRef, menuItem) {
+        var attributePane = DG.AttributeEditorView.create({attrRef: iAttrRef, attrUpdater: this});
+        attributePane.append();
       },
 
       /**

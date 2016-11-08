@@ -54,11 +54,10 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     return (tLayerManager && this.layerName) ? tLayerManager[ this.shadingLayerName] :null;
   }.property('paperSource', 'shadingLayerName' ),
 
-
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
-    
+
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
   // Disabled, needs redesign to avoid redundancy with DG.DotPlotView calls to updateToModel()
@@ -97,13 +96,14 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
    * @param iAxisValue {Number} Value along numeric axis, for positioning
    * @param iFractionFromTop {Number} used to position text on cross-axis
    * @param iElementID {Number} Rafael element id of the text, so we can find and update it on the fly.
+   * @param iValue {Object} Has the statistics for the current cell
    */
-  updateTextElement: function( iShow, iDisplayValue, iAxisValue, iFractionFromTop, iElementID ) {
+  updateTextElement: function( iShow, iDisplayValue, iAxisValue, iFractionFromTop, iValue, iElementID ) {
     DG.assert( this.textElement );
     if( iShow && DG.isFinite( iDisplayValue ) ) {
       // set up parameters used by DG.LineLabelMixin.updateTextToModel()
       this.value = iAxisValue; // for St.Dev., iAxisValue not equal to iDisplayValue
-      this.valueString = this.titleString( iDisplayValue );
+      this.valueString = this.titleString( iDisplayValue, iValue );
       this.valueAxisView = this.getPath('parentView.primaryAxisView');
       this.updateTextToModel( iFractionFromTop );
       this.textElement.show();
@@ -160,7 +160,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
         tCellHeight = (tNumValues ? (Math.abs(tSecondaryAxisView.get('pixelMax') - tSecondaryAxisView.get('pixelMin'))/tNumValues) : 0),
         p = { x:0, y:0, symSize:this.symSize, cellHeight:tCellHeight-this.cellGap },
         tOffScreen = -3 * this.symSize; // negative view coordinate to move off screen to hide
-    var tWorldCoord, tViewCoord, i, tSpread, tStat;
+    var tWorldCoord, tViewCoord, i, tSpread, tSpreadStart, tLowerWhisker, tUpperWhisker, tStat;
     var tSymbol, tCover, tBackground, kElemsPerCell=3; // rafael elements
 
     function overScope() {
@@ -169,7 +169,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       this.animate( tAttributes, tAdornment.hoverDelay );
       if( this.textStatValue !== tAdornment.value ) // avoid redundant log statments since adornment made visible
         tAdornment.updateHoverLog( tAdornment.statisticKey+"="+this.textStatValue );
-      tAdornment.updateTextElement( true, this.textStatValue, this.textAxisPosition, this.textCrossPosition, this.id );
+      tAdornment.updateTextElement( true, this.textStatValue, this.textAxisPosition, this.textCrossPosition,
+          this.value, this.id );
     }
 
     function outScope() {
@@ -187,10 +188,20 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       tStat = tValuesArray[i][this.statisticKey]; // user-visible statistic value: number or undefined
       tWorldCoord = tValuesArray[i][this.centerKey]; // center value to plot: number or undefined
       tSpread = tValuesArray[i][this.spreadKey]; // spread value to plot: number or undefined;
+      tSpreadStart = tValuesArray[i][this.spreadStartKey]; // world coord of lower end of spread
+      tLowerWhisker = tValuesArray[i][this.lowerKey]; // end of lower whisker to plot: number or undefined;
+      tUpperWhisker = tValuesArray[i][this.upperKey]; // end of upper whisker to plot: number or undefined;
       tViewCoord = ( isFinite( tWorldCoord ) ? tPrimaryAxisView.dataToCoordinate( tWorldCoord) : tOffScreen );
       p.width = ( isFinite( tSpread )? Math.abs(tPrimaryAxisView.dataToCoordinate( tWorldCoord+tSpread) - tViewCoord) : 0 );
       p.x = ( tIsHorizontal ? tViewCoord : i*tCellHeight );
       p.y = ( tIsHorizontal ? (i+1)*tCellHeight : tViewCoord );
+      p.spreadStart = ( isFinite( tSpreadStart) ?
+          tPrimaryAxisView.dataToCoordinate( tSpreadStart) : tOffScreen);
+      p.lowerWhisker = ( isFinite( tLowerWhisker) ?
+          p.spreadStart - tPrimaryAxisView.dataToCoordinate( tLowerWhisker) : 0);
+      p.upperWhisker = ( isFinite( tUpperWhisker) ?
+          (tIsHorizontal ? tPrimaryAxisView.dataToCoordinate( tUpperWhisker) - (p.spreadStart + p.width) :
+              -(p.spreadStart - p.width - tPrimaryAxisView.dataToCoordinate( tUpperWhisker))) : 0);
 
       // create symbol and invisible cover line elements as needed (set constant attributes here)
       if( i*kElemsPerCell >= tNumElements ) {
@@ -229,6 +240,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
       tCover.textStatValue = tStat;
       tCover.textAxisPosition = this.getTextPositionOnAxis( tWorldCoord, tSpread );
       tCover.textCrossPosition = ((1/tNumValues) * (i + this.titleFraction)); // text position in range [0-1] on cross axis
+      tCover.value = tValuesArray[ i];
 
       tSymbol.toFront(); // keep averages on top of cases
       tCover.toFront();  // keep cover on top of average symbol
@@ -239,7 +251,8 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
       // if mouse is now over an element with text showing, update the text now.
       if( this.textShowingForID === tCover.id ) {
-        this.updateTextElement( true, tCover.textStatValue, tCover.textAxisPosition, tCover.textCrossPosition, tCover.id );
+        this.updateTextElement( true, tCover.textStatValue, tCover.textAxisPosition, tCover.textCrossPosition,
+            tCover.id, tCover.value );
       }
     }
 
@@ -258,7 +271,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     var tLayer = this.get('layer' ),
         tShadingLayer = this.get('shadingLayer' ),
         i, j, tElement;
-    
+
     for( i=iDesiredNumSymbols, j=this.myElements.length; i<j; ++i ) {
       tElement = this.myElements[i];
       tLayer.prepareToMoveOrRemove( tElement);
@@ -310,7 +323,7 @@ DG.PlottedAverageAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   titleString: function( axisValue ) {
     // convert resource to string with rounding, and insert axis value number
     DG.assert( isFinite( axisValue ));
-    var tPrecision = this.titlePrecision + (this.get('model.precision') || 0);
+    var tPrecision = this.titlePrecision + (this.getPath('model.precision') || 0);
     return this.titleResource.loc( axisValue.toFixed( tPrecision ));
   }
 
@@ -483,7 +496,6 @@ DG.PlottedStDevAdornment = DG.PlottedAverageAdornment.extend(
 });
 
 
-
 /**
  * @class  Plots a computed Inter-Quartile Range (IQR), between the first and third quartiles (Q1 and Q3).
  * @extends DG.PlottedAverageAdornment
@@ -561,3 +573,109 @@ DG.PlottedIQRAdornment = DG.PlottedAverageAdornment.extend(
     return iCenterValue + iSpreadValue; // text going to the right of the shading
   }
 });
+
+/**
+ * @class  Plots a box plot showing whiskers, Q1, Q3, and median.
+ * @extends DG.PlottedAverageAdornment
+ */
+DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
+    /** @scope DG.PlottedIQRAdornment.prototype */
+    {
+      statisticKey: 'IQR', /** {String} key to relevant statistic in this.model.values[i][statisticKey] */
+    centerKey: 'median',  /** {String} key to relevant center point in this.model.values[i][centerKey] */
+    spreadKey: 'IQR', /** {String} key to relevant spread value in this.model.values[i][width] */
+    spreadStartKey: 'Q1',
+    lowerKey: 'lowerWhisker',
+    upperKey: 'upperWhisker',
+    titleResource: 'DG.PlottedAverageAdornment.boxPlotTitle', /** {String} resource string for this.titleString() */
+    titleFraction: 0.8,   /** {Number} fraction-from-top for placement of average=123 text */
+    hoverColor: "rgba(255, 48, 0, 0.3)", /** color of line when mouse over cover line */
+    bgStroke: '#FFb280',
+      bgStrokeWidth:  0.5,
+      bgFill: '#FFb280',
+      symStroke: '#F30',
+      symStrokeWidth: 1,
+
+      /**
+       * Create the path string for the box plot. It is centered in the cell and 1/3 of the cellHeight in width
+       * @param p {x,y,width,lowerWhisker,upperWhisker,cellHeight} of reference point, (.x,.y) is Q1,
+       *        the two whiskers are lengths in pixels .width is IQR in pixels.
+       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+       */
+      symbolPath: function( p, iIsHorizontal ) {
+        var tBoxWidth = p.cellHeight / 3;
+        if( iIsHorizontal ) {
+          var tYCenter = p.y - p.cellHeight / 2;
+          // Start at the lower whisker, line to Q1. Draw the box. Draw the median line. Draw the upper whisker.
+          return 'M%@,%@ h%@ M%@,%@ v%@ h%@ v%@ h%@ z M%@,%@ v%@ M%@,%@ h%@'.fmt(
+              p.spreadStart - p.lowerWhisker, tYCenter, p.lowerWhisker,
+              p.spreadStart, tYCenter,
+              -tBoxWidth / 2, p.width, tBoxWidth, -p.width,
+              p.x, p.y - p.cellHeight / 3, -p.cellHeight / 3,
+              p.spreadStart + p.width, tYCenter, p.upperWhisker);
+        } else {
+          var tXCenter = p.x + p.cellHeight / 2;
+          return 'M%@,%@ v%@ M%@,%@ h%@ v%@ h%@ v%@ z M%@,%@ h%@ M%@,%@ v%@'.fmt(
+              tXCenter, p.spreadStart - p.lowerWhisker, p.lowerWhisker,
+              tXCenter, p.spreadStart,
+              -tBoxWidth / 2, -p.width, tBoxWidth, p.width,
+              p.x + p.cellHeight / 3, p.y, p.cellHeight / 3,
+              tXCenter, p.spreadStart - p.width, p.upperWhisker);
+        }
+      },
+
+      /**
+       * Create the path string for the invisible popup cover region.
+       * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+       */
+      coverPath: function( p, iIsHorizontal ) {
+        return this.symbolPath( p, iIsHorizontal);
+      },
+
+      /**
+       * Create the path string for the rectangular body of the box plot
+       * @param p {x,y,width,cellHeight} of reference point, (.x,.y) is Q1, .width is IQR in pixels.
+       * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
+       */
+      backgroundPath: function( p, iIsHorizontal ) {
+        var tBoxWidth = p.cellHeight / 3;
+        if( iIsHorizontal ) {
+          var tYCenter = p.y - p.cellHeight / 2;
+          // Start at the lower whisker, line to Q1. Draw the box. Draw the median line. Draw the upper whisker.
+          return 'M%@,%@ v%@ h%@ v%@ h%@ z'.fmt(
+              p.spreadStart, tYCenter,
+              -tBoxWidth / 2, p.width, tBoxWidth, -p.width);
+        } else {
+          var tXCenter = p.x + p.cellHeight / 2;
+          return 'M%@,%@ h%@ v%@ h%@ v%@ z'.fmt(
+              tXCenter, p.spreadStart,
+              -tBoxWidth / 2, -p.width, tBoxWidth, p.width);
+        }
+      },
+
+      /**
+       * Get the desired axis position of the pop-up text, in the attribute's coordinates.
+       * @param iCenterValue
+       * @param iSpreadValue
+       */
+      getTextPositionOnAxis: function( iCenterValue, iSpreadValue ) {
+        return iCenterValue + iSpreadValue; // text going to the right of the shading
+      },
+
+      /**
+       * @return {String} title string to show when hovering over average symbol/line
+       */
+      titleString: function( axisValue, iStatValues) {
+        var tPrecision = this.titlePrecision + (this.getPath('model.precision') || 0);
+
+        function convertValue( iValue) {
+          return DG.MathUtilities.isNumeric( iValue) ? Number( iValue).toFixed( tPrecision) : '';
+        }
+
+        return this.titleResource.loc( iStatValues.lowerWhisker.toFixed( tPrecision),
+            convertValue(iStatValues.Q1), convertValue(iStatValues.median),
+            convertValue(iStatValues.Q3),
+            convertValue(iStatValues.upperWhisker), convertValue(iStatValues.IQR));
+      }
+    });

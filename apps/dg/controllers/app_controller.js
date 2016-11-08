@@ -34,22 +34,22 @@ DG.appController = SC.Object.create((function () // closure
   return {  // return from closure
 
     /**
-     * File menu.
-     * @property {SC.MenuPane}
-     */
-    fileMenuPane: null,
-
-    /**
      * Options menu.
-     * @property {SC.MenuPane}
+     * @property {DG.MenuPane}
      */
     optionMenuPane: null,
 
     /**
-     * Options menu.
+     * Guide menu.
      * @property {SC.MenuPane}
      */
     guideMenuPane: null,
+
+    /**
+     * Help menu.
+     * @property {DG.MenuPane}
+     */
+    helpMenuPane: null,
 
     autoSaveTimer: null,
 
@@ -66,11 +66,6 @@ DG.appController = SC.Object.create((function () // closure
       // to create these menus somewhere else, but for now we just wrap them
       // in a run loop to quiet the warnings.
       SC.run(function() {
-        this.fileMenuPane = DG.MenuPane.create({
-          items: this.get('fileMenuItems'),
-          itemLayerIdKey: 'id',
-          layout: {width: 165}
-        });
         this.tileMenuPane = DG.MenuPane.create({
           showTileList: function (iAnchor) {
             this.set('items', DG.mainPage.mainPane.scrollView.contentView.get('tileMenuItems'));
@@ -105,6 +100,11 @@ DG.appController = SC.Object.create((function () // closure
         this.guideMenuPane = SC.MenuPane.create({
           layout: {width: 250}
         });
+        this.helpMenuPane = DG.MenuPane.create({
+          items: this.get('helpMenuItems'),
+          itemLayerIdKey: 'id',
+          layout: {width: 150}
+        });
       }.bind(this));
 
       this.autoSaveTimer = SC.Timer.schedule({
@@ -131,98 +131,6 @@ DG.appController = SC.Object.create((function () // closure
       };
     },
 
-    // always include dev items, for now. jms 7/3/2014
-    _fileMenuIncludesDevItems: true, //DG.IS_DEV_BUILD,
-
-    fileMenuItems: function () {
-      var stdItems = [
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.openDocument', // "Open Document..."
-            target: this,
-            dgAction: 'closeCurrentDocument',
-            isEnabled: YES,
-            id: 'dg-fileMenutItem-open-doc'
-          },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.copyDocument', // "Make a copy..."
-            target: this,
-            dgAction: 'copyDocument',
-            id: 'dg-fileMenuItem-copy-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeCopied').bool() },
-          {
-            localize: true,
-            title: 'DG.AppController.revertDocument.title', // "Revert to Original..."
-            target: this,
-            dgAction: 'revertDocumentToOriginal',
-            id: 'dg-fileMenuItem-revert-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeReverted').bool() },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.closeDocument',  // "Close Document..."
-            target: this,
-            dgAction: 'closeCurrentDocument',
-            id:'dg-fileMenuItme-close-doc'},
-          {
-            isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.documentManager', // "Document Manager..."
-            target: this,
-            dgAction: 'loadManager',
-            id: 'dg-fileMenuItem-doc-mgr',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' },
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.importData', // "Import Data..."
-            target: this,
-            dgAction: 'importData',
-            id:'dg-fileMenuItem-import-doc'}
-        ],
-        docServerItems = [
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.showShareLink', // "Share document..."
-            target: this,
-            dgAction: 'showShareLink',
-            id: 'dg-fileMenuItem-share-doc',
-            isEnabledBinding: SC.Binding.oneWay('DG._currDocumentController.canBeShared').bool()
-          }
-        ],
-        devItems = [
-          { isSeparator: YES },
-          {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.exportDocument', // "Export JSON Document..."
-            target: this,
-            dgAction: 'exportDocument',
-            id: 'dg-fileMenuItem-export-doc'}
-        ], finalItems;
-
-        if (!DG.AUTOSAVE) {
-          stdItems.splice(1, 0, {
-            localize: true,
-            title: 'DG.AppController.fileMenuItems.saveDocument', // "Save Document..."
-            target: this,
-            dgAction: 'saveCODAPDocument',
-            id: 'dg-fileMenuItem-save-doc',
-            isEnabledBinding: 'DG.authorizationController.isSaveEnabled' }
-          );
-        }
-
-        finalItems = stdItems.concat([]);
-        if (DG.documentServer) {
-          finalItems = finalItems.concat( docServerItems );
-        }
-        if (this._fileMenuIncludesDevItems) {
-          finalItems = finalItems.concat( devItems );
-        }
-        return finalItems;
-    }.property(),
-
     documentNameDidChange: function () {
       // Update document title
       var documentController = DG.currDocumentController
@@ -234,19 +142,19 @@ DG.appController = SC.Object.create((function () // closure
       $('title').text(nameString + 'CODAP');
     }.observes('DG._currDocumentController.documentName'),
 
-    loginDidChange: function () {
-      var isDeveloper = DG.authorizationController.get('isUserDeveloper');
-      this._fileMenuIncludesDevItems = this._fileMenuIncludesDevItems || isDeveloper;
-      this.fileMenuPane.set('items', this.get('fileMenuItems'));
-    }.observes('DG.authorizationController.isUserDeveloper'),
-
     optionMenuItems: function () {
       return [
         { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
           target: this, dgAction: 'viewWebPage', id: 'dg-optionMenuItem-view_webpage' },
         { localize: true, title: 'DG.AppController.optionMenuItems.configureGuide', // "Configure Guide..."
-          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide' },
-        { isSeparator: YES },
+          target: this, dgAction: 'configureGuide', id: 'dg-optionMenuItem-configure-guide' }
+      ];
+    }.property(),
+
+    helpMenuItems: function () {
+      return [
+        { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
+          target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
           target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' },
         { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
@@ -427,12 +335,13 @@ DG.appController = SC.Object.create((function () // closure
     setOpenedDocumentUnshared: NO,
 
     /**
-     * Opens a document from a URL.
+     * Opens a document from a URL.:
      *
      * @param {string} iURL The url of a CODAP document.
+     * @param {string} iType ('json', 'csv')
      * @return {Deferred|undefined}
      */
-    openDocumentFromUrl: function (iURL) {
+    openDocumentFromUrl: function (iURL, iType) {
       if (iURL) {
         $.ajax(iURL, {
           type: 'GET',
@@ -440,7 +349,11 @@ DG.appController = SC.Object.create((function () // closure
         }).then(function (data) {
             SC.run(function() {
                 var doc = (typeof data === 'string')? data: JSON.stringify(data);
-                return this.openJsonDocument(doc);
+                if (iType === 'json') {
+                  return this.openJsonDocument(doc);
+                } else if (iType === 'csv') {
+                  return this.importText(doc, iURL);
+                }
               }.bind(this)
             );
           }.bind(this), function (msg) {
@@ -505,7 +418,8 @@ DG.appController = SC.Object.create((function () // closure
 
       // Create document-specific store.
       var newDocument, context, contextRecord,
-          documentController = DG.currDocumentController();
+          documentController = DG.currDocumentController(),
+          caseTable;
 
       // Parse the document contents from the retrieved docText.
       newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
@@ -525,15 +439,17 @@ DG.appController = SC.Object.create((function () // closure
       context.restoreFromStorage(contextRecord.contextStorage);
 
       // add case table
-      documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+      caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+
+      DG.dirtyCurrentDocument(caseTable);
 
       return true;
     },
 
     /**
      *
-     * @param iURL - the URL of a data interactive or json document. If path extension
-     * is json, assume it is the later.
+     * @param iURL - the URL of a data interactive, csv or json document based on
+     * file extension in pathname.
      * @returns {Boolean}
      */
     importURL: function (iURL) {
@@ -555,9 +471,13 @@ DG.appController = SC.Object.create((function () // closure
       // from: http://www.abeautifulsite.net/parsing-urls-in-javascript/
       var urlParser = document.createElement('a');
       urlParser.href = iURL;
+      var pathname = urlParser.pathname.toLocaleLowerCase();
 
-      if (urlParser.pathname.match(/.*\.json$/)) {
-        this.openDocumentFromUrl(iURL);
+      if (pathname.match(/.*\.(json|codap)$/)) {
+        DG.cfmClient.openUrlFile(iURL);
+      } else if (pathname.match(/.*\.csv$/)){
+        // CFM should be importing this document
+        this.openDocumentFromUrl(iURL, 'csv');
       } else {
         addInteractive();
       }
@@ -969,13 +889,24 @@ DG.appController = SC.Object.create((function () // closure
       Imports a dragged or selected file
       */
     importFile: function ( tFile) {
+      var recognizedMimeMap = {
+        'text/csv': 'text/csv',
+        'application/csv': 'text/csv',
+        'text/plain': 'text/plain',
+        'text/tab-separated-values': 'text/plain',
+        'application/json': 'application/json',
+        'application/x-javascript': 'application/json',
+        'text/javascript': 'application/json',
+        'text/x-javascript': 'application/json',
+        'text/x-json': 'application/json'
+      };
 
       function adjustTypeBasedOnSuffix( tFile) {
-        var tRegEx = /\.[^\/]+$/,
+        var tRegEx = /\.[^.\/]+$/,
             tSuffix = tFile.name.match(tRegEx),
             tNewType = tType;
         if( !SC.empty(tSuffix))
-          tSuffix = tSuffix[0];
+          tSuffix = tSuffix[0].toLowerCase();
         switch( tSuffix) {
           case '.csv':
             tNewType = 'text/csv';
@@ -988,12 +919,14 @@ DG.appController = SC.Object.create((function () // closure
             tNewType = 'application/json';
             break;
         }
-        tType = tNewType;
+        return tNewType;
       }
 
-      var tType = tFile.type;
-      if( tType === '')
-        adjustTypeBasedOnSuffix(tFile);
+      var tType = recognizedMimeMap[tFile.type];
+      // if we do not find a mime type we recognize, fall back to suffix-based
+      // typing.
+      if( SC.none(tType))
+        tType = adjustTypeBasedOnSuffix(tFile);
 
       var tAlertDialog = {
         showAlert: function( iError) {
@@ -1051,17 +984,9 @@ DG.appController = SC.Object.create((function () // closure
           SC.run(function() {
             try {
               if (iType === 'JSON') {
-                that.openJsonDocument(this.result, true).then(function() {
-                    DG.log('Opened: ' + iFile.name);
-                    if (DG.cfmClient) {
-                      DG.cfmClient.rename(null, iFile.name);
-                    }
-                  },
-                  function (msg) {
-                    DG.logError('JSON file open failed: ' + iFile.name);
-                    DG.logError(msg);
-                    iDialog.showAlert(new Error(msg));
-                  });
+                DG.cfmClient.openLocalFile(iFile);
+                window.location.hash = '';
+                DG.log('Opened: ' + iFile.name);
               }
               else if (iType === 'TEXT') {
                 that.importText(this.result, iFile.name);
@@ -1566,22 +1491,37 @@ DG.appController = SC.Object.create((function () // closure
       window.history.replaceState("codap", docName + " - CODAP", newUrl);
     }.observes('DG.authorizationController.currLogin.user', 'DG._currDocumentController.documentName', 'DG._currDocumentController.externalDocumentId'),
 
+    openWebView: function( iURL, iTitle, iWidth, iHeight) {
+      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
+          tLayout = { left: (tDocFrame.width - iWidth) / 2, top: (tDocFrame.height - iHeight) / 2,
+            width: iWidth, height: iHeight };
+
+      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
+      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
+          iURL, iTitle, tLayout);
+    },
+
     /**
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
-      var tDocFrame = DG.mainPage.mainPane.scrollView.frame(),
-          kWidth = 975, kHeight = 500,
-          tLayout = { left: (tDocFrame.width - kWidth) / 2, top: (tDocFrame.height - kHeight) / 2,
-                      width: kWidth, height: kHeight };
+      var kWidth = 975, kHeight = 500;
+      this.openWebView( DG.get('showWebSiteURL'), 'DG.AppController.showWebSiteTitle'.loc(), kWidth, kHeight);
+    },
 
-      //var windowFeatures = "location=yes,scrollbars=yes,status=yes,titlebar=yes";
-      DG.currDocumentController().addWebView(DG.mainPage.get('docView'), null,
-        DG.get('showWebSiteURL'),
-        'DG.AppController.showWebSiteTitle'.loc(), //'About CODAP'
-          tLayout);
-
-
+    /**
+     Open a new tab with the CODAP website.
+     */
+    showHelpSite: function () {
+      var tHelpURL = DG.get('showHelpURL'),
+          tWidth = 400, tHeight = 400,
+          tBrowser = SC.browser;
+      if(tBrowser.name === SC.BROWSER.safari && tBrowser.os === SC.OS.ios) {
+        this.openWebView( DG.get('showHelpURL'), 'DG.AppController.showHelpTitle'.loc(), tWidth, tHeight);
+      }
+      else {
+        window.open(tHelpURL);
+      }
     }
 
   }; // end return from closure

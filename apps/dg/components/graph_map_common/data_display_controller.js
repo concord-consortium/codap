@@ -299,6 +299,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
                           iDesc.localize = true;
                           this.appendChild(SC.CheckboxView.create(iDesc));
                         }.bind(this));
+/*
+                        this_.getPath('dataDisplayModel.lastValueControls').forEach(function (iControl) {
+                          this.appendChild(iControl);
+                        }.bind(this));
+*/
                       }
                     })
               });

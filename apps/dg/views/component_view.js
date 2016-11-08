@@ -651,6 +651,20 @@ DG.ComponentView = SC.View.extend(
           if (contentView && contentView.didAppendToDocument) {
             contentView.didAppendToDocument();
           }
+        },
+
+        /**
+         * When a component view is created by the user, it animates to its initial position, expanding
+         * from zero size to its initial size. Then it is selected This process is problematic for some
+         * content views. E.g. a text component will have lost editing focus, a case table will not be displaying
+         * its cases any longer, and a map will no longer have the correct bounds. If the content view defines
+         * this method, we'll pass it along and thus give it a chance to fix things up.
+         */
+        didReachInitialPosition: function () {
+          var contentView = this.get('contentView');
+          if (contentView && contentView.didReachInitialPosition) {
+            contentView.didReachInitialPosition();
+          }
         }
       };  // object returned closure
     }()) // function closure
@@ -730,14 +744,13 @@ DG.ComponentView.addComponent = function (iParams) {
 
   var tComponentView = this._createComponent(iParams);
 
-  if (!tUseLayoutForPosition)
+  if (!tUseLayoutForPosition) {
     tSuperView.positionNewComponent(tComponentView, iParams.position);
+  }
   tSuperView.appendChild(tComponentView);
+  tComponentView.bringToFront();
   tSuperView.updateFrame();
 
-  // We want to be sure the component view is visible. iSuperView's parent is a scroll view
-  // and it can accomplish this for us.
-  tComponentView.scrollToVisible();
   return tComponentView;
 };
 
