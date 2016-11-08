@@ -317,7 +317,7 @@ DG.main = function main() {
 
     if (DG.cfm) {
       DG.cfm.clientConnect(function (event) {
-        /* global jiff */
+        /* global nodeDeepEqual */
         var docController, docContent, docMetadata,
             cfmSharedMetadata;
 
@@ -466,8 +466,7 @@ DG.main = function main() {
                     this.causedChange = false;
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
-                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                      if(diff && diff.length) {
+                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }
@@ -511,8 +510,7 @@ DG.main = function main() {
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
                       this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
-                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                      if(diff && diff.length) {
+                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }
