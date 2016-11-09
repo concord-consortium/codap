@@ -56,6 +56,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 
   updateToModel: function() {
     var tModel = this.get('model');
+    if( !tModel.get('isVisible')) // Only update if we're visible
+        return;
     tModel.recomputeSlopeAndInterceptIfNeeded();
     var tSlope = tModel.get('slope'),
         tIntercept = tModel.get('intercept');
