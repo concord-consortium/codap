@@ -42,15 +42,24 @@ return {
   
     requiredArgs: { min: 0, max: 1 },
 
+    evaluate: function( iContext, iEvalContext, iInstance) {
+      // if we have an argument, use the base class iteration method
+      if (iInstance.argFns[0] != null) {
+        return sc_super();
+      }
+
+      // if no argument, just count child cases
+      var childCases = iEvalContext._case_ && iEvalContext._case_.get('children');
+      return childCases ? childCases.get('length') : 0;
+    },
+
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var hasArgument = iInstance.argFns[0] != null,
-          value = hasArgument && this.getValue( iContext, iEvalContext, iInstance);
+      var value = this.getValue( iContext, iEvalContext, iInstance);
       // Count:
-      //  -- all cases if there are no arguments (!valueFn)
       //  -- non-empty values except for boolean false and empty string
       //      (this way count(x>0) returns the expected result)
       // We don't use the cache, since all we need is the result counts.
-      if(!hasArgument || (!SC.empty(value) && (value !== false))) {
+      if(!SC.empty(value) && (value !== false)) {
         if( iInstance.results[ iCacheID])
           ++iInstance.results[ iCacheID];
         else
