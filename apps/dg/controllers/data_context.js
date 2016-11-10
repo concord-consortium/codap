@@ -1487,7 +1487,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
   /**
     Invalidate all attributes of the specified collections.
-    @param {[DG.Collection|DG.CollectionClient]}  array of collections affected
+    @param {[DG.Collection|DG.CollectionClient]} collections - array of collections affected
     @param {object} iChange - [optional] the change that triggered the invalidation
    */
   invalidateAttrsOfCollections: function(collections, iChange) {
