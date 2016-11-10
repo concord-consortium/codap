@@ -223,7 +223,9 @@ return {
     // todo: Figure out what should be the min number of arguments. 2 or 1?
     requiredArgs: { min: 2, max: 2 },
 
-    evaluate: function( iContext, iEvalContext, iInstance) {
+    preEvaluate: function(iContext, iEvalContext, iInstance) {
+      sc_super();
+
       var tPercValueFn = iInstance.argFns[1],
           percValue = tPercValueFn ? tPercValueFn(iContext, iEvalContext) : undefined;
       // Note that the percentile argument could evaluate to a different value for every
@@ -233,7 +235,6 @@ return {
       // aggregate which could evaluate to a different value for every case.
       if (!iInstance.caches) iInstance.caches = {};
       iInstance.caches._percentile_ = percValue;
-      return sc_super();
     },
 
     extractResult: function (iCachedValues, iEvalContext, iInstance) {
