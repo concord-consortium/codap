@@ -70,12 +70,12 @@ test('non-objects', function () {
 
 test('arguments class', function () {
     t.ok(equal(
-        (function(){return arguments})(1,2,3),
-        (function(){return arguments})(1,2,3),
+        (function(){return arguments}(1,2,3)),
+        (function(){return arguments}(1,2,3)),
         "compares arguments"
     ));
     t.notOk(equal(
-        (function(){return arguments})(1,2,3),
+        (function(){return arguments}(1,2,3)),
         [1,2,3],
         "differenciates array and arguments"
     ));

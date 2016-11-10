@@ -207,13 +207,12 @@ DG.SliderView = SC.View.extend(
 
       willDestroy: function() {
         console.log('SliderView.willDestroy');
-        this._destroy;
         sc_super();
       },
 
       destroy: function () {
         console.log('SliderView.destroy');
-        this._destroy;
+        this._destroy();
         sc_super();
       },
 

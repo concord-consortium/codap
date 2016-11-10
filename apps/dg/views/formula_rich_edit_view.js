@@ -32,6 +32,8 @@ sc_require('views/text_field_view');
 DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
 /** @scope DG.FormulaTextEditView.prototype */
 
+  /* global CodeMirror */
+
   function isMatchableChar(ch) {
     // to prevent autocomplete of literal strings, include any quotes in the string to match
     if ((ch === '"') || (ch === '\'')) return true;
@@ -134,7 +136,6 @@ return {
     var textArea = this.$('textarea'),
         textAreaNode = textArea[0];
 
-    /* global CodeMirror */
     this._cm = CodeMirror.fromTextArea(textAreaNode, {
       lineWrapping: true,
       extraKeys: {
