@@ -179,8 +179,11 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
                       'stroke-opacity': 0 });
     this.lineSeg.animatable = true;
 
+    this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
+        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
     // Put the text below the hit segments in z-order so user can still hit the line
-    this.equation = tPaper.text( 0, 0, '').attr({ font: 'caption', opacity: 0 });
+    this.equation = tPaper.text( 0, 0, '')
+        .attr({ font: 'caption', opacity: 0, stroke: DG.PlotUtilities.kDefaultMovableLineColor });
     this.equation.animatable = true;
 
     // Hints (implemented as titles here) were good, but they cause layering problems that
@@ -205,7 +208,8 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     // Tune up the line rendering a bit
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
-    this.myElements = [ this.lineSeg, this.equation, this.firstSegHit, this.secondSegHit, this.thirdSegHit ];
+    this.myElements = [ this.lineSeg, this.backgrndRect, this.equation,
+      this.firstSegHit, this.secondSegHit, this.thirdSegHit ];
     this.myElements.forEach( function( iElement) {
       tLayer.push( iElement);
     });
@@ -261,7 +265,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
                                       y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 }),
         tPaperWidth = this.get('paper').width,
         tPaperHeight = this.get('paper').height,
-        tBreakPt1, tBreakPt2, tTextBox, tTextWidth, tAlign;
+        tBreakPt1, tBreakPt2, tTextBox, tTextWidth, tAlign, tBackgrndX;
 
     if( tLocked) {
       // The only break point is the origin, if it's visible.
@@ -320,10 +324,12 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     if( tTextAnchor.x < tPaperWidth / 2) {
       tAlign = 'start';
       tTextAnchor.x = Math.min( tTextAnchor.x, tPaperWidth - tTextWidth);
+      tBackgrndX = tTextAnchor.x;
     }
     else {
       tAlign = 'end';
       tTextAnchor.x = Math.max( tTextAnchor.x, tTextWidth);
+      tBackgrndX = tTextAnchor.x - tTextBox.width;
     }
     // We don't want the equation to sit on the line because then we can't drag it
     tTextAnchor.y += tTextBox.height / 2;
@@ -331,6 +337,8 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
     tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
 
     // At last set the equation attributes
+    this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
+      width: tTextWidth, height: tTextBox.height })
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString') });
   },

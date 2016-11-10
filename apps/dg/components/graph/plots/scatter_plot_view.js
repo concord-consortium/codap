@@ -370,6 +370,32 @@ DG.ScatterPlotView = DG.PlotView.extend(
     var this_ = this;
     
     function drawSquares() {
+
+      function showSquaresForLine( iLine, iColor) {
+        var tSlope = iLine.get('slope'),
+            tIntercept = iLine.get('intercept');
+        tCases.forEach( function( iCase) {
+          var tWorldX = iCase.getNumValue( tXVarID),
+              tWorldY = iCase.getNumValue( tYVarID),
+              tPtX = tXAxisView.dataToCoordinate( tWorldX),
+              tPtY = tYAxisView.dataToCoordinate( tWorldY),
+              tLineY = tYAxisView.dataToCoordinate( tSlope * tWorldX + tIntercept),
+              tLineX = tPtX + tPtY - tLineY,
+              tX = Math.min( tPtX, tLineX),
+              tY = Math.min( tPtY, tLineY),
+              tSide = Math.abs( tLineY - tPtY),
+              tRectString = DG.RenderingUtilities.pathForFrame({ x: tX, y: tY,
+                width: tSide, height: tSide }),
+              tRect = tPaper.path( tRectString)
+                  .attr( { stroke: iColor});
+          if( tAnimateShow) {
+            tRect.attr( {'stroke-opacity': 0})
+                .animate({'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+          }
+          this_._squares.push( tRect);
+        });
+      }
+
       var tVisible = this_.getPath('model.areSquaresVisible' ),
           tAnimateRemove = !tVisible && this_._squares && (this_._squares.length > 0),
           tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0));
@@ -395,28 +421,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
           tYAxisView = this_.get('yAxisView' ),
           tPaper = this_.get('paper');
       if( this_.getPath('model.isMovableLineVisible')) {
-        var tSlope = this_.getPath('model.movableLine.slope'),
-            tIntercept = this_.getPath('model.movableLine.intercept');
-        tCases.forEach( function( iCase) {
-          var tWorldX = iCase.getNumValue( tXVarID),
-              tWorldY = iCase.getNumValue( tYVarID),
-              tPtX = tXAxisView.dataToCoordinate( tWorldX),
-              tPtY = tYAxisView.dataToCoordinate( tWorldY),
-              tLineY = tYAxisView.dataToCoordinate( tSlope * tWorldX + tIntercept),
-              tLineX = tPtX + tPtY - tLineY,
-              tX = Math.min( tPtX, tLineX),
-              tY = Math.min( tPtY, tLineY),
-              tSide = Math.abs( tLineY - tPtY),
-              tRectString = DG.RenderingUtilities.pathForFrame({ x: tX, y: tY,
-                                                          width: tSide, height: tSide }),
-              tRect = tPaper.path( tRectString)
-                      .attr( { stroke: 'red'});
-          if( tAnimateShow) {
-            tRect.attr( {'stroke-opacity': 0})
-              .animate({'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-          }
-          this_._squares.push( tRect);
-        });
+        showSquaresForLine( this_.getPath('model.movableLine'), DG.PlotUtilities.kDefaultMovableLineColor);
+      }
+      if( this_.getPath('model.isLSRLVisible')) {
+        showSquaresForLine( this_.getPath('model.lsrLine'), DG.PlotUtilities.kDefaultLSRLColor);
       }
     }
     

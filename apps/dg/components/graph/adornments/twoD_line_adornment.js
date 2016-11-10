@@ -35,6 +35,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 
   equation: null,
 
+  backgrndRect:null,
+
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
