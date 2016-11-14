@@ -40,15 +40,7 @@ DG.supportFuncs = {
    */
   caseTableHeaderMenus: function() {
     return true;
-  },
-
-  /**
-    Enable the "Shared" check-box in the save document dialog
-    for setting document permissions when documents are saved.
-   */
-  // docSavePermissions: function() {
-  //   return DG.IS_INQUIRY_SPACE_BUILD || !!DG.documentServer;
-  // }
+  }
 
 };
 

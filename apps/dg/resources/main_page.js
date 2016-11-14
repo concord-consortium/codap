@@ -133,56 +133,6 @@ DG.mainPage = SC.Page.design((function() {
 
       }),
 
-      // rightButtons: SC.View.design(SC.FlowedLayout, {
-      //   layout: { top: 0, right: 10, width: 0, height: kToolbarHeight - 1 },
-      //   align: SC.ALIGN_RIGHT,
-      //   canWrap: false,
-      //   shouldResizeHeight: false,
-      //   defaultFlowSpacing: { right: 10, top: kIconTopPadding },
-      //   childViews: 'logoutButton'.w(),
-
-      //   logoutButton: SC.ButtonView.design({
-      //     layout: { centerY:0, height:24, width:80 },
-      //     localize: true,
-      //     title: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'), // "Logout"
-      //     target: 'DG.appController',
-      //     action: 'logout',
-      //     userBinding: 'DG.authorizationController.currLogin.user',
-      //     isVisible: function() {
-      //       return DG.documentServer && this.get('user') === 'guest';
-      //     }.property('user'),
-      //     toolTip: (DG.documentServer ? 'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.toolTip'),  // "Log out the current user"
-      //     userDidChange: function () {
-      //       var user = this.get('user');
-      //       this.set('title', DG.documentServer && user === 'guest' ?
-      //           'DG.Authorization.loginPane.login' : 'DG.mainPage.mainPane.logoutButton.title'); // "Logout"
-      //     }.observes('user')
-      //   }),
-      // init: function() {
-      //   sc_super();
-      //     // create right buttons, right-justified
-      //     DG.rightButtons.forEach( function( iButtonName ) {
-      //       var tButton = DG.RightButtonData[iButtonName];
-      //       tButton.classNames.push('toolshelf-button');
-      //       this[ iButtonName] = DG.IconButton.create( tButton);
-      //       this[ iButtonName].set('layout', { width: kButtonWidth/*, height: 40*/ });
-      //       this.appendChild( this[ iButtonName ]);
-      //     }.bind(this));
-      //     DG.currDocumentController().set('guideButton', this.guideButton);
-      //   },
-      //   /**
-      //    * Override this so that the child views will have a height that fits with their icon and label.
-      //    * Without this, the menu for the options popup appears too low.
-      //    * @param iChild {SC.View}
-      //    * @param iLayout {Object}
-      //    */
-      //   applyPlanToView: function( iChild, iLayout) {
-      //     SC.FlowedLayout.applyPlanToView.apply(this, arguments);
-      //     if( iChild.adjustHeight)
-      //       iChild.adjustHeight();
-      //   }
-      // })
-
     }), // topView
 
     scrollView: SC.ScrollView.design({
