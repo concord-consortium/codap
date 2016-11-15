@@ -576,13 +576,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
 
     // invalidate dependents; aggregate functions may need to recalculate
-    var i, attr, attrCount = collection.getAttributeCount(),
-        attrNodes = [];
-    for (i = 0; i < attrCount; ++i) {
-      attr = collection.getAttributeAt(i);
-      attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
-    }
-    this.invalidateDependentsAndNotify(attrNodes, iChange);
+    this.invalidateAttrsOfCollections([collection], iChange);
 
     return result;
   },
@@ -919,6 +913,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         this._beforeStorage.deletedCases = deletedCases;
         this.log = "Deleted %@ case%@"
                       .fmt(deletedCases.length, deletedCases.length === 1 ? "" : "s");
+
+        // invalidate dependents; aggregate functions may need to recalculate
+        this_.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
       },
       undo: function() {
         var createdCases;
@@ -959,24 +956,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         this._afterStorage = {
           cases: createdCases
         };
+
+        // invalidate dependents; aggregate functions may need to recalculate
+        this_.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
       },
       redo: function() {
         this.execute();
       }
     }));
-
-    // invalidate dependents; aggregate functions may need to recalculate
-    var attrNodes = [];
-    DG.ObjectMap.forEach(iChange.collectionIDs, function(id, iCollectionClient) {
-      var i, attr, attrCount = iCollectionClient.getAttributeCount();
-      for (i = 0; i < attrCount; ++i) {
-        attr = iCollectionClient.getAttributeAt(i);
-        if (attr) {
-          attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
-        }
-      }
-    });
-    this.invalidateDependentsAndNotify(attrNodes, iChange);
 
     return { success: true };
   },
@@ -1093,10 +1080,30 @@ DG.DataContext = SC.Object.extend((function() // closure
      * or destruction.
      * @return {[DG.Case]}
      */
-  regenerateCollectionCases: function () {
-    var topCollection = this.getCollectionAtIndex(0);
-    var createdCases;
-    var deletedCases = [];
+  regenerateCollectionCases: function (affectedCollections) {
+    var topCollection = this.getCollectionAtIndex(0),
+        collections = {},   // map from id to collection
+        createdCases,       // array of created cases
+        deletedCases = [];  // array of deleted cases
+
+    function addTrackedCollection(collection) {
+      var collectionID = collection && collection.get('id');
+      if (collectionID && !collections[collectionID])
+        collections[collectionID] = collection;
+      // child collections are affected as well
+      var children = collection && collection.get('children');
+      if (children) {
+        children.forEach(function(child) {
+          addTrackedCollection(child);
+        });
+      }
+    }
+
+    if (affectedCollections && affectedCollections.length) {
+      affectedCollections.forEach(function(collection) {
+        addTrackedCollection(collection);
+      });
+    }
 
     // drop all cases
     this.forEachCollection(function (collection) { collection.markCasesForDeletion(); });
@@ -1104,16 +1111,26 @@ DG.DataContext = SC.Object.extend((function() // closure
     // starting with top collection, recreate cases
     createdCases = topCollection.get('collection').recreateCases();
 
+    // track affected collections
+    if (createdCases) {
+      createdCases.forEach(function(iCase) {
+        addTrackedCollection(iCase.get('collection'));
+      });
+    }
+
     // delete cases that remain marked for deletion
     this.forEachCollection(function (collection) {
       var collectionDeletedCases = collection.deleteMarkedCases();
       deletedCases = deletedCases.concat(collectionDeletedCases);
+      if (deletedCases && deletedCases.length)
+        addTrackedCollection(collection);
     });
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
 
-    return {createdCases: createdCases, deletedCases: deletedCases};
+    return { collections: DG.ObjectMap.values(collections),
+            createdCases: createdCases, deletedCases: deletedCases };
   },
 
   /**
@@ -1217,6 +1234,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   _moveAttributeBetweenCollections:  function (iAttr, fromCollection, toCollectionClient, position) {
     var dataContext = this;
     var allCollections = this.collections;
+    var toCollection = toCollectionClient.get('collection');
     var originalPosition = fromCollection.get('attrs').findIndex(function (attr) {
       return attr === iAttr;
     });
@@ -1242,9 +1260,10 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
 
         // add attribute to new collection
-        toCollectionClient.get('collection').addAttribute(iAttr, position);
+        toCollection.addAttribute(iAttr, position);
 
-        casesAffected = dataContext.regenerateCollectionCases();
+        casesAffected = dataContext.regenerateCollectionCases([fromCollection, toCollection]);
+        dataContext.invalidateAttrsOfCollections(casesAffected.collections);
       },
       undo: function () {
         var toCollection = toCollectionClient.get('collection');
@@ -1290,7 +1309,8 @@ DG.DataContext = SC.Object.extend((function() // closure
         } else {
           fromCollection.addAttribute(iAttr, originalPosition);
         }
-        dataContext.regenerateCollectionCases();
+        var casesAffectedByUndo = dataContext.regenerateCollectionCases([fromCollection, toCollection]);
+        dataContext.invalidateAttrsOfCollections(casesAffectedByUndo.collections);
       },
       redo: function () {
         this.execute();
@@ -1303,6 +1323,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           position: position
         };
         dataContext.applyChange(tChange);
+        dataContext.invalidateAttrsOfCollections(casesAffected.collections);
       }
     }));
   },
@@ -1407,7 +1428,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   doDeleteCollection: function (iChange) {
     var collection = iChange.collection;
     this.destroyCollection(collection);
-    this.regenerateCollectionCases();
+    this.regenerateCollectionCases([collection]);
     return { success: true};
   },
 
@@ -1462,6 +1483,28 @@ DG.DataContext = SC.Object.extend((function() // closure
 
       this.invalidateDependentsAndNotify(nodes);
     }
+  },
+
+  /**
+    Invalidate all attributes of the specified collections.
+    @param {[DG.Collection|DG.CollectionClient]} collections - array of collections affected
+    @param {object} iChange - [optional] the change that triggered the invalidation
+   */
+  invalidateAttrsOfCollections: function(collections, iChange) {
+    var attrNodes = [];
+    if (!collections || !collections.length) return;
+    collections.forEach(function(collection) {
+      var collectionModel = collection instanceof DG.Collection
+                              ? collection
+                              : collection.get('collection'),
+          collectionAttrs = collectionModel && collectionModel.get('attrs');
+      if (collectionAttrs) {
+        collectionAttrs.forEach(function(attr) {
+          attrNodes.push({ type: DG.DEP_TYPE_ATTRIBUTE, id: attr.get('id'), name: attr.get('name') });
+        });
+      }
+    });
+    this.invalidateDependentsAndNotify(attrNodes, iChange);
   },
 
   /*

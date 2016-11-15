@@ -99,7 +99,9 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
   /**
    * Exports the data using the CFM
    */
-  export: function() {
+  // We quote export below because it is a javascript reserved word. The
+  // yuicompressor embedded in Sproutcore build chokes.
+  'export': function() {
     var menuItemString = this.getPath('contentView.collectionPopup.title'),
         menuItemAction = this.getPath('contentView.collectionPopup.itemAction');
     if( !SC.empty( menuItemString)) {
