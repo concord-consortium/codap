@@ -156,9 +156,9 @@ DG.appController = SC.Object.create((function () // closure
         { localize: true, title: 'DG.AppController.optionMenuItems.help', // "Help...",
           target: this, dgAction: 'showHelpSite', id: 'dg-optionMenuItem-help-website' },
         { localize: true, title: 'DG.AppController.optionMenuItems.toWebSite', // "CODAP website...",
-          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' },
-        { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
-          target: this, dgAction: 'reportProblem', id: 'dg-optionMenuItems-report-problem' }
+          target: this, dgAction: 'showWebSite', id: 'dg-optionMenuItem-codap-website' }
+        // { localize: true, title: 'DG.AppController.optionMenuItems.reportProblem', // "Report Problem..."
+        //   target: this, dgAction: 'reportProblem', id: 'dg-optionMenuItems-report-problem' }
       ];
     }.property(),
 
