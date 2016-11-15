@@ -1,6 +1,7 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.CloudFileManager = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict'
 
+exports.byteLength = byteLength
 exports.toByteArray = toByteArray
 exports.fromByteArray = fromByteArray
 
@@ -8,23 +9,17 @@ var lookup = []
 var revLookup = []
 var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
 
-function init () {
-  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-  for (var i = 0, len = code.length; i < len; ++i) {
-    lookup[i] = code[i]
-    revLookup[code.charCodeAt(i)] = i
-  }
-
-  revLookup['-'.charCodeAt(0)] = 62
-  revLookup['_'.charCodeAt(0)] = 63
+var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+for (var i = 0, len = code.length; i < len; ++i) {
+  lookup[i] = code[i]
+  revLookup[code.charCodeAt(i)] = i
 }
 
-init()
+revLookup['-'.charCodeAt(0)] = 62
+revLookup['_'.charCodeAt(0)] = 63
 
-function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
+function placeHoldersCount (b64) {
   var len = b64.length
-
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
@@ -34,9 +29,19 @@ function toByteArray (b64) {
   // represent one byte
   // if there is only one, then the three characters before it represent 2 bytes
   // this is just a cheap hack to not do indexOf twice
-  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+}
 
+function byteLength (b64) {
   // base64 is 4/3 + up to two characters of the original data
+  return b64.length * 3 / 4 - placeHoldersCount(b64)
+}
+
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
+  var len = b64.length
+  placeHolders = placeHoldersCount(b64)
+
   arr = new Arr(len * 3 / 4 - placeHolders)
 
   // if there are placeholders, only get up to the last complete 4 chars
@@ -11699,12 +11704,14 @@ module.exports = new CloudFileManager();
 
 
 },{"./client":54,"./ui":66,"./utils/get-hash-param":67,"./views/app-view":74}],54:[function(require,module,exports){
-var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, ReadOnlyProvider, URLProvider, cloudContentFactory, isString, tr,
+var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, isString, tr,
   hasProp = {}.hasOwnProperty;
 
 tr = require('./utils/translate');
 
 isString = require('./utils/is-string');
+
+base64Array = require('base64-js');
 
 CloudFileManagerUI = (require('./ui')).CloudFileManagerUI;
 
@@ -12276,13 +12283,16 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) {
+    if ((metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) && !metadata.forceSaveDialog) {
       this._setState({
         saving: metadata
       });
       currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
       return metadata.provider.save(currentContent, metadata, (function(_this) {
         return function(err, statusCode) {
+          var isLocalFile;
+          isLocalFile = metadata.provider instanceof LocalFileProvider;
+          metadata.forceSaveDialog = isLocalFile;
           if (err) {
             metadata.autoSaveDisabled = true;
             _this._setState({
@@ -12298,7 +12308,7 @@ CloudFileManagerClient = (function() {
           if (_this.state.metadata !== metadata) {
             _this._closeCurrentFile();
           }
-          metadata.autoSaveDisabled = false;
+          metadata.autoSaveDisabled = !!isLocalFile;
           _this._fileChanged('savedFile', currentContent, metadata, {
             saved: true
           }, _this._getHashParams(metadata));
@@ -12446,8 +12456,10 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.canEditShared = function() {
-    var ref, ref1;
-    return ((ref = this.state.currentContent) != null ? ref.get("shareEditKey") : void 0) && !((ref1 = this.state.currentContent) != null ? ref1.get("isUnshared") : void 0);
+    var accessKeys, ref, ref1, ref2, shareEditKey;
+    accessKeys = ((ref = this.state.currentContent) != null ? ref.get("accessKeys") : void 0) || {};
+    shareEditKey = (ref1 = this.state.currentContent) != null ? ref1.get("shareEditKey") : void 0;
+    return (shareEditKey || accessKeys.readWrite) && !((ref2 = this.state.currentContent) != null ? ref2.get("isUnshared") : void 0);
   };
 
   CloudFileManagerClient.prototype.setShareState = function(shared, callback) {
@@ -12562,6 +12574,37 @@ CloudFileManagerClient = (function() {
     })(this));
   };
 
+  CloudFileManagerClient.prototype.getDownloadUrl = function(content, includeShareInfo, mimeType) {
+    var blob, contentToSave, downloadUrl, json, ref, wURL;
+    if (mimeType == null) {
+      mimeType = 'text/plain';
+    }
+    if (typeof content === "string") {
+      if (mimeType.indexOf("image") >= 0) {
+        contentToSave = base64Array.toByteArray(content);
+      } else {
+        contentToSave = content;
+      }
+    } else if (includeShareInfo) {
+      contentToSave = JSON.stringify(content.getContent());
+    } else {
+      json = content.clone().getContent();
+      delete json.sharedDocumentId;
+      delete json.shareEditKey;
+      delete json.isUnshared;
+      delete json.accessKeys;
+      if (((ref = json.metadata) != null ? ref.shared : void 0) != null) {
+        delete json.metadata.shared;
+      }
+      contentToSave = JSON.stringify(json);
+    }
+    wURL = window.URL || window.webkitURL;
+    downloadUrl = wURL ? (blob = new Blob([contentToSave], {
+      type: mimeType
+    }), wURL.createObjectURL(blob)) : null;
+    return downloadUrl;
+  };
+
   CloudFileManagerClient.prototype.rename = function(metadata, newName, callback) {
     var _rename, dirty, ref, ref1, ref2;
     dirty = this.state.dirty;
@@ -12643,7 +12686,13 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.saveSecondaryFileAsDialog = function(stringContent, extension, mimeType, callback) {
-    return this._ui.saveSecondaryFileAsDialog((function(_this) {
+    var data;
+    data = {
+      content: stringContent,
+      extension: extension,
+      mimeType: mimeType
+    };
+    return this._ui.saveSecondaryFileAsDialog(data, (function(_this) {
       return function(metadata) {
         if (extension) {
           metadata.filename = CloudMetadata.newExtension(metadata.filename, extension);
@@ -12956,7 +13005,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":55,"./providers/document-store-share-provider":56,"./providers/google-drive-provider":58,"./providers/lara-provider":59,"./providers/local-file-provider":60,"./providers/localstorage-provider":61,"./providers/provider-interface":63,"./providers/readonly-provider":64,"./providers/url-provider":65,"./ui":66,"./utils/is-string":70,"./utils/translate":72}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":55,"./providers/document-store-share-provider":56,"./providers/google-drive-provider":58,"./providers/lara-provider":59,"./providers/local-file-provider":60,"./providers/localstorage-provider":61,"./providers/provider-interface":63,"./providers/readonly-provider":64,"./providers/url-provider":65,"./ui":66,"./utils/is-string":70,"./utils/translate":72,"base64-js":1}],55:[function(require,module,exports){
 var CloudMetadata, DocumentStoreAuthorizationDialog, DocumentStoreProvider, DocumentStoreUrl, PatchableContent, ProviderInterface, button, cloudContentFactory, div, getHashParam, getQueryParam, isString, jiff, pako, ref, span, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -14716,7 +14765,7 @@ module.exports = LaraProvider;
 
 
 },{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34}],60:[function(require,module,exports){
-var LocalFileListTab, LocalFileProvider, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
+var LocalFileListTab, LocalFileProvider, LocalFileSaveTab, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -14728,7 +14777,9 @@ ProviderInterface = (require('./provider-interface')).ProviderInterface;
 
 cloudContentFactory = (require('./provider-interface')).cloudContentFactory;
 
-LocalFileListTab = React.createFactory(require('../views/local-file-tab-view'));
+LocalFileListTab = React.createFactory(require('../views/local-file-tab-list-view'));
+
+LocalFileSaveTab = React.createFactory(require('../views/local-file-tab-save-view'));
 
 LocalFileProvider = (function(superClass) {
   extend(LocalFileProvider, superClass);
@@ -14740,12 +14791,14 @@ LocalFileProvider = (function(superClass) {
       name: LocalFileProvider.Name,
       displayName: this.options.displayName || (tr('~PROVIDER.LOCAL_FILE')),
       capabilities: {
-        save: false,
+        save: true,
         load: true,
         list: true,
         remove: false,
         rename: false,
-        close: false
+        close: false,
+        autoSave: false,
+        saveUnwrapped: true
       }
     });
   }
@@ -14755,12 +14808,18 @@ LocalFileProvider = (function(superClass) {
   LocalFileProvider.prototype.filterTabComponent = function(capability, defaultComponent) {
     if (capability === 'list') {
       return LocalFileListTab;
+    } else if ((capability === 'save') || (capability === 'saveUnwrapped')) {
+      return LocalFileSaveTab;
     } else {
       return defaultComponent;
     }
   };
 
   LocalFileProvider.prototype.list = function(metadata, callback) {};
+
+  LocalFileProvider.prototype.save = function(content, metadata, callback) {
+    return typeof callback === "function" ? callback(null) : void 0;
+  };
 
   LocalFileProvider.prototype.load = function(metadata, callback) {
     var reader;
@@ -14782,7 +14841,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":72,"../views/local-file-tab-view":82,"./provider-interface":63}],61:[function(require,module,exports){
+},{"../utils/translate":72,"../views/local-file-tab-list-view":82,"../views/local-file-tab-save-view":83,"./provider-interface":63}],61:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15235,6 +15294,9 @@ CloudContent = (function() {
     }
     if (this._.sharedDocumentId != null) {
       shared.sharedDocumentId = this._.sharedDocumentId;
+    }
+    if (this._.accessKeys != null) {
+      shared.accessKeys = this._.accessKeys;
     }
     return shared;
   };
@@ -15763,9 +15825,9 @@ tr = require('./utils/translate');
 isString = require('./utils/is-string');
 
 CloudFileManagerUIEvent = (function() {
-  function CloudFileManagerUIEvent(type, data) {
+  function CloudFileManagerUIEvent(type, data1) {
     this.type = type;
-    this.data = data != null ? data : {};
+    this.data = data1 != null ? data1 : {};
   }
 
   return CloudFileManagerUIEvent;
@@ -15773,7 +15835,7 @@ CloudFileManagerUIEvent = (function() {
 })();
 
 CloudFileManagerUIMenu = (function() {
-  CloudFileManagerUIMenu.DefaultMenu = ['newFileDialog', 'openFileDialog', 'revertSubMenu', 'separator', 'save', 'createCopy', 'shareSubMenu', 'downloadDialog', 'renameDialog'];
+  CloudFileManagerUIMenu.DefaultMenu = ['newFileDialog', 'openFileDialog', 'revertSubMenu', 'separator', 'save', 'createCopy', 'shareSubMenu', 'renameDialog'];
 
   function CloudFileManagerUIMenu(options, client) {
     this.options = options;
@@ -15954,8 +16016,8 @@ CloudFileManagerUI = (function() {
     return this._showProviderDialog('saveFileAs', tr('~DIALOG.SAVE_AS'), callback);
   };
 
-  CloudFileManagerUI.prototype.saveSecondaryFileAsDialog = function(callback) {
-    return this._showProviderDialog('saveSecondaryFileAs', tr('~DIALOG.EXPORT_AS'), callback);
+  CloudFileManagerUI.prototype.saveSecondaryFileAsDialog = function(data, callback) {
+    return this._showProviderDialog('saveSecondaryFileAs', tr('~DIALOG.EXPORT_AS'), callback, data);
   };
 
   CloudFileManagerUI.prototype.openFileDialog = function(callback) {
@@ -16017,11 +16079,12 @@ CloudFileManagerUI = (function() {
     return this.listenerCallback(new CloudFileManagerUIEvent('showConfirmDialog', params));
   };
 
-  CloudFileManagerUI.prototype._showProviderDialog = function(action, title, callback) {
+  CloudFileManagerUI.prototype._showProviderDialog = function(action, title, callback, data) {
     return this.listenerCallback(new CloudFileManagerUIEvent('showProviderDialog', {
       action: action,
       title: title,
-      callback: callback
+      callback: callback,
+      data: data
     }));
   };
 
@@ -16132,6 +16195,8 @@ module.exports = {
   "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} was deleted",
   "~FILE_DIALOG.LOADING": "Loading...",
   "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error loading folder contents ***",
+  "~FILE_DIALOG.DOWNLOAD": "Download",
+  "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: Mac Safari users may need to control-click the %{download} button",
   "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
   "~DOWNLOAD_DIALOG.CANCEL": "Cancel",
   "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
@@ -16251,7 +16316,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":84}],74:[function(require,module,exports){
+},{"../utils/translate":72,"./modal-dialog-view":85}],74:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -16321,11 +16386,11 @@ App = React.createClass({
   componentWillMount: function() {
     this.props.client.listen((function(_this) {
       return function(event) {
-        var fileStatus, message, providerName, ref1, ref2;
+        var fileStatus, message, providerName, ref1, ref2, ref3;
         fileStatus = event.state.saving ? {
           message: tr('~FILE_STATUS.SAVING'),
           type: 'info'
-        } : event.state.saved ? (providerName = event.state.metadata.provider.displayName, message = providerName ? tr('~FILE_STATUS.SAVED_TO_PROVIDER', {
+        } : event.state.saved ? (providerName = (ref1 = event.state.metadata.provider) != null ? ref1.displayName : void 0, message = providerName ? tr('~FILE_STATUS.SAVED_TO_PROVIDER', {
           providerName: providerName
         }) : tr('~FILE_STATUS.SAVED'), {
           message: message,
@@ -16336,13 +16401,13 @@ App = React.createClass({
         } : null;
         _this.setState({
           filename: _this.getFilename(event.state.metadata),
-          provider: (ref1 = event.state.metadata) != null ? ref1.provider : void 0,
+          provider: (ref2 = event.state.metadata) != null ? ref2.provider : void 0,
           fileStatus: fileStatus
         });
         switch (event.type) {
           case 'connected':
             return _this.setState({
-              menuItems: ((ref2 = _this.props.client._ui.menu) != null ? ref2.items : void 0) || []
+              menuItems: ((ref3 = _this.props.client._ui.menu) != null ? ref3.items : void 0) || []
             });
         }
       };
@@ -16486,6 +16551,7 @@ App = React.createClass({
       dialog: this.state.providerDialog,
       close: this.closeDialogs
     }) : this.state.downloadDialog ? DownloadDialog({
+      client: this.props.client,
       filename: this.state.downloadDialog.filename,
       mimeType: this.state.downloadDialog.mimeType,
       content: this.state.downloadDialog.content,
@@ -16540,7 +16606,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":70,"../utils/translate":72,"./alert-dialog-view":73,"./blocking-modal-view":76,"./confirm-dialog-view":77,"./download-dialog-view":78,"./import-tabbed-dialog-view":81,"./menu-bar-view":83,"./provider-tabbed-dialog-view":87,"./rename-dialog-view":88,"./share-dialog-view":90}],75:[function(require,module,exports){
+},{"../utils/is-string":70,"../utils/translate":72,"./alert-dialog-view":73,"./blocking-modal-view":76,"./confirm-dialog-view":77,"./download-dialog-view":78,"./import-tabbed-dialog-view":81,"./menu-bar-view":84,"./provider-tabbed-dialog-view":88,"./rename-dialog-view":89,"./share-dialog-view":91}],75:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -16606,7 +16672,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":86}],77:[function(require,module,exports){
+},{"./modal-view":87}],77:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -16654,7 +16720,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":84}],78:[function(require,module,exports){
+},{"../utils/translate":72,"./modal-dialog-view":85}],78:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -16668,22 +16734,21 @@ tr = require('../utils/translate');
 module.exports = React.createClass({
   displayName: 'DownloadDialogView',
   getInitialState: function() {
-    var filename, includeShareInfo, state;
+    var filename, state;
     filename = CloudMetadata.withExtension(this.props.filename || (tr("~MENUBAR.UNTITLED_DOCUMENT")), 'json');
-    includeShareInfo = false;
     return state = {
       filename: filename,
-      trimmedFilename: this.trim(filename)
+      trimmedFilename: this.trim(filename),
+      includeShareInfo: false,
+      shared: this.props.client.isShared()
     };
   },
   componentDidMount: function() {
-    this.filename = ReactDOM.findDOMNode(this.refs.filename);
-    this.filename.focus();
-    return this.includeShareInfo = ReactDOM.findDOMNode(this.refs.includeShareInfo);
+    return this.refs.filename.focus();
   },
   updateFilename: function() {
     var filename;
-    filename = this.filename.value;
+    filename = this.refs.filename.value;
     return this.setState({
       filename: filename,
       trimmedFilename: this.trim(filename)
@@ -16691,39 +16756,34 @@ module.exports = React.createClass({
   },
   updateIncludeShareInfo: function() {
     return this.setState({
-      includeShareInfo: this.includeShareInfo.checked
+      includeShareInfo: this.refs.includeShareInfo.checked
     });
   },
   trim: function(s) {
     return s.replace(/^\s+|\s+$/, '');
   },
-  download: function(e) {
-    var json, makeBlobURL, ref1;
-    makeBlobURL = function(msg) {
-      var blob, wURL;
-      wURL = window.URL || window.webkitURL;
-      blob = new Blob([msg], {
-        type: 'text/plain'
-      });
-      if (wURL) {
-        return wURL.createObjectURL(blob);
+  download: function(e, simulateClick) {
+    if (!this.downloadDisabled()) {
+      this.refs.download.setAttribute('href', this.props.client.getDownloadUrl(this.props.content, this.state.includeShareInfo));
+      if (simulateClick) {
+        this.refs.download.click();
       }
-    };
-    if (this.state.trimmedFilename.length > 0) {
-      json = this.props.content.getContent();
-      if (json && !this.state.includeShareInfo) {
-        delete json.sharedDocumentId;
-        delete json.shareEditKey;
-        delete json.isUnshared;
-        if (((ref1 = json.metadata) != null ? ref1.shared : void 0) != null) {
-          delete json.metadata.shared;
-        }
-      }
-      e.target.setAttribute('href', makeBlobURL(JSON.stringify(json)));
       return this.props.close();
     } else {
+      if (e != null) {
+        e.preventDefault();
+      }
+      return this.refs.filename.focus();
+    }
+  },
+  downloadDisabled: function() {
+    return this.state.trimmedFilename.length === 0;
+  },
+  watchForEnter: function(e) {
+    if (e.keyCode === 13 && !this.downloadDisabled()) {
       e.preventDefault();
-      return this.filename.focus();
+      e.stopPropagation();
+      return this.download(null, true);
     }
   },
   render: function() {
@@ -16737,19 +16797,21 @@ module.exports = React.createClass({
       ref: 'filename',
       placeholder: 'Filename',
       value: this.state.filename,
-      onChange: this.updateFilename
-    }), this.props.shared ? div({
+      onChange: this.updateFilename,
+      onKeyDown: this.watchForEnter
+    }), this.state.shared ? div({
       className: 'download-share'
     }, input({
       type: 'checkbox',
       ref: 'includeShareInfo',
       value: this.state.includeShareInfo,
       onChange: this.updateIncludeShareInfo
-    }, tr('~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO'))) : void 0, div({
+    }), tr('~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO')) : void 0, div({
       className: 'buttons'
     }, a({
       href: '#',
-      className: (this.state.trimmedFilename.length === 0 ? 'disabled' : ''),
+      ref: 'download',
+      className: (this.downloadDisabled() ? 'disabled' : ''),
       download: this.state.trimmedFilename,
       onClick: this.download
     }, tr('~DOWNLOAD_DIALOG.DOWNLOAD')), button({
@@ -16759,7 +16821,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72,"./modal-dialog-view":84}],79:[function(require,module,exports){
+},{"../providers/provider-interface":63,"../utils/translate":72,"./modal-dialog-view":85}],79:[function(require,module,exports){
 var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
@@ -17246,7 +17308,7 @@ ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
 
 TabbedPanel = require('./tabbed-panel-view');
 
-LocalFileTab = React.createFactory(require('./local-file-tab-view'));
+LocalFileTab = React.createFactory(require('./local-file-tab-list-view'));
 
 UrlTab = React.createFactory(require('./url-tab-view'));
 
@@ -17321,7 +17383,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./local-file-tab-view":82,"./modal-tabbed-dialog-view":85,"./tabbed-panel-view":91,"./url-tab-view":92}],82:[function(require,module,exports){
+},{"../utils/translate":72,"./local-file-tab-list-view":82,"./modal-tabbed-dialog-view":86,"./tabbed-panel-view":92,"./url-tab-view":93}],82:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -17410,6 +17472,151 @@ module.exports = React.createClass({
 
 
 },{"../providers/provider-interface":63,"../utils/translate":72}],83:[function(require,module,exports){
+var CloudMetadata, a, button, cloudContentFactory, div, input, ref, tr;
+
+ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
+
+tr = require('../utils/translate');
+
+CloudMetadata = (require('../providers/provider-interface')).CloudMetadata;
+
+cloudContentFactory = (require('../providers/provider-interface')).cloudContentFactory;
+
+module.exports = React.createClass({
+  displayName: 'LocalFileSaveTab',
+  getInitialState: function() {
+    var extension, filename, hasPropsContent, ref1, ref2, ref3, state;
+    hasPropsContent = ((ref1 = this.props.dialog.data) != null ? ref1.content : void 0) != null;
+    filename = ((ref2 = this.props.client.state.metadata) != null ? ref2.name : void 0) || (tr("~MENUBAR.UNTITLED_DOCUMENT"));
+    extension = hasPropsContent && this.props.dialog.data.extension ? this.props.dialog.data.extension : 'json';
+    return state = {
+      filename: filename,
+      downloadFilename: this.getDownloadFilename(hasPropsContent, filename, extension),
+      extension: extension,
+      mimeType: hasPropsContent && (this.props.dialog.data.mimeType != null) ? this.props.dialog.data.mimeType : 'text/plain',
+      shared: this.props.client.isShared(),
+      hasPropsContent: hasPropsContent,
+      includeShareInfo: hasPropsContent,
+      gotContent: hasPropsContent,
+      content: (ref3 = this.props.dialog.data) != null ? ref3.content : void 0
+    };
+  },
+  componentDidMount: function() {
+    if (!this.state.hasPropsContent) {
+      return this.props.client._event('getContent', {
+        shared: this.props.client._sharedMetadata()
+      }, (function(_this) {
+        return function(content) {
+          var envelopedContent, ref1, ref2;
+          envelopedContent = cloudContentFactory.createEnvelopedCloudContent(content);
+          if ((ref1 = _this.props.client.state) != null) {
+            if ((ref2 = ref1.currentContent) != null) {
+              ref2.copyMetadataTo(envelopedContent);
+            }
+          }
+          return _this.setState({
+            gotContent: true,
+            content: envelopedContent
+          });
+        };
+      })(this));
+    }
+  },
+  filenameChanged: function() {
+    var filename;
+    filename = this.refs.filename.value;
+    return this.setState({
+      filename: filename,
+      downloadFilename: this.getDownloadFilename(this.state.hasPropsContent, filename, this.state.extension)
+    });
+  },
+  includeShareInfoChanged: function() {
+    return this.setState({
+      includeShareInfo: this.refs.includeShareInfo.checked
+    });
+  },
+  getDownloadFilename: function(hasPropsContent, filename, extension) {
+    var newName;
+    newName = filename.replace(/^\s+|\s+$/, '');
+    if (hasPropsContent) {
+      return CloudMetadata.newExtension(newName, extension);
+    } else {
+      return CloudMetadata.withExtension(newName, extension);
+    }
+  },
+  confirm: function(e, simulateClick) {
+    var metadata;
+    if (!this.confirmDisabled()) {
+      this.refs.download.href = this.props.client.getDownloadUrl(this.state.content, this.state.includeShareInfo, this.state.mimeType);
+      if (simulateClick) {
+        this.refs.download.click();
+      }
+      metadata = new CloudMetadata({
+        name: this.state.downloadFilename.split('.')[0],
+        type: CloudMetadata.File,
+        parent: null,
+        provider: this.props.provider
+      });
+      this.props.dialog.callback(metadata);
+      return this.props.close();
+    } else {
+      return e != null ? e.preventDefault() : void 0;
+    }
+  },
+  cancel: function() {
+    return this.props.close();
+  },
+  watchForEnter: function(e) {
+    if (e.keyCode === 13 && !this.confirmDisabled()) {
+      e.preventDefault();
+      e.stopPropagation();
+      return this.confirm(null, true);
+    }
+  },
+  confirmDisabled: function() {
+    return (this.state.downloadFilename.length === 0) || !this.state.gotContent;
+  },
+  render: function() {
+    var confirmDisabled;
+    confirmDisabled = this.confirmDisabled();
+    return div({
+      className: 'dialogTab localFileSave'
+    }, input({
+      type: 'text',
+      ref: 'filename',
+      value: this.state.filename,
+      placeholder: tr("~FILE_DIALOG.FILENAME"),
+      onChange: this.filenameChanged,
+      onKeyDown: this.watchForEnter
+    }), div({
+      className: 'saveArea'
+    }, this.state.shared && !this.state.hasPropsContent ? div({
+      className: 'shareCheckbox'
+    }, input({
+      type: 'checkbox',
+      ref: 'includeShareInfo',
+      value: this.state.includeShareInfo,
+      onChange: this.includeShareInfoChanged
+    }), tr('~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO')) : void 0), div({
+      className: 'note'
+    }, tr('~FILE_DIALOG.DOWNLOAD_NOTE', {
+      download: tr('~FILE_DIALOG.DOWNLOAD')
+    })), div({
+      className: 'buttons'
+    }, a({
+      href: '#',
+      ref: 'download',
+      className: (confirmDisabled ? 'disabled' : ''),
+      download: this.state.downloadFilename,
+      onClick: this.confirm
+    }, tr('~FILE_DIALOG.DOWNLOAD')), button({
+      onClick: this.cancel
+    }, tr("~FILE_DIALOG.CANCEL"))));
+  }
+});
+
+
+},{"../providers/provider-interface":63,"../utils/translate":72}],84:[function(require,module,exports){
 var Dropdown, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -17570,7 +17777,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./dropdown-view":79}],84:[function(require,module,exports){
+},{"../utils/translate":72,"./dropdown-view":79}],85:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -17603,7 +17810,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":86}],85:[function(require,module,exports){
+},{"./modal-view":87}],86:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -17624,7 +17831,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":84,"./tabbed-panel-view":91}],86:[function(require,module,exports){
+},{"./modal-dialog-view":85,"./tabbed-panel-view":92}],87:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -17695,7 +17902,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],87:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -17767,7 +17974,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72,"./file-dialog-tab-view":80,"./modal-tabbed-dialog-view":85,"./select-provider-dialog-tab-view":89,"./tabbed-panel-view":91}],88:[function(require,module,exports){
+},{"../providers/provider-interface":63,"../utils/translate":72,"./file-dialog-tab-view":80,"./modal-tabbed-dialog-view":86,"./select-provider-dialog-tab-view":90,"./tabbed-panel-view":92}],89:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -17836,7 +18043,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":84}],89:[function(require,module,exports){
+},{"../utils/translate":72,"./modal-dialog-view":85}],90:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -17851,7 +18058,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],90:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 var ModalDialog, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -18157,7 +18364,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":68,"../utils/translate":72,"./modal-dialog-view":84,"svg-social-icons/lib/icons.json":51}],91:[function(require,module,exports){
+},{"../utils/get-query-param":68,"../utils/translate":72,"./modal-dialog-view":85,"svg-social-icons/lib/icons.json":51}],92:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -18269,7 +18476,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],92:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;

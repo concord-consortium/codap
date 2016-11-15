@@ -240,6 +240,8 @@ DG.CaseTableRowSelectionModel = function (options) {
 
     if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
       selection = [cell.row];
+      notifyContextOfSelectionChange(selection);
+      return false;
     }
     else if (_grid.getOptions().multiSelect) {
       if (idx === -1 && (e.ctrlKey || e.metaKey)) {

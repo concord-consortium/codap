@@ -46,7 +46,10 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
     
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
-  modelPropertiesToObserve: [ ['values', 'updateToModel'] ],
+  modelPropertiesToObserve: [ ['values', 'updateToModel'],
+                              ['isShowingCount', 'updateSymbols'],
+                              ['isShowingPercent', 'updateSymbols'],
+                              ['percentKind', 'updateToModel']],
 
   /** do we want the average to be visible and up to date? Yes if our model 'isVisible' */
   wantVisible: function() {
@@ -58,6 +61,8 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    * @param iAnimate {Boolean} [optional] if true then animate to new symbol location.
    */
   updateToModel: function( iAnimate ) {
+    if( typeof iAnimate === 'object')
+        iAnimate = false; // because we get here through notification, which passes an object
     var tCountModel = this.get('model');
 
     // only recompute and update symbols if visible, this.updateVisibility() handles everything else
@@ -73,15 +78,35 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    */
   updateSymbols: function( iAnimate ) {
 
-    var tValuesArray = this.getPath('model.values'),
+    function formatValueString( iValue) {
+      var tValueString = '';
+      if( tShowCount && !tShowPercent) {
+        tValueString = iValue.count.toString();
+      }
+      else if( tShowPercent && !tShowCount) {
+        tValueString = '%@%'.fmt( Math.round(iValue.percent));
+      }
+      else if( tShowCount && tShowPercent) {
+        tValueString = '%@ (%@%)'.fmt( iValue.count, Math.round(iValue.percent));
+      }
+      return tValueString;
+    }
+
+    var tModel = this.get('model'),
+        tValuesArray = tModel.get('values'),
+        tShowCount = tModel.get('isShowingCount'),
+        tShowPercent = tModel.get('isShowingPercent'),
         tNumValues = tValuesArray.length,
         tNumElements = this.myElements.length;
 
     this.updateNumCells();
     if( tNumValues !==( this.numCellsOnX * this.numCellsOnY )) {
       // TODO: find the places where this happens and fix (Chainsaw: thickness vs. ?)
-      // zero length array indicates that the model was not able to compute values and aborted; we should also, until model is complete again.
-      if( tNumValues > 0 ) DG.logWarn("DG.PlottedCountAdornment.updateSymbols has mismatch of %@ values and %@ cells", tNumValues, ( this.numCellsOnX * this.numCellsOnY ));
+      // zero length array indicates that the model was not able to compute values and aborted; we should also,
+      // until model is complete again.
+      if( tNumValues > 0 )
+        DG.logWarn("DG.PlottedCountAdornment.updateSymbols has mismatch of %@ values and %@ cells", tNumValues,
+            ( this.numCellsOnX * this.numCellsOnY ));
       this.removeExtraSymbols( 0 );
       return;
     }
@@ -106,27 +131,22 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       tAttrs = { // position in upper-right of cell, with margin
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
           y: this.marginY + tYOffset/3 + (tIndexY*tCellHeight ),
-          text: tValue.count.toString(),
-          title: this.getTitle( tValue.count, tValue.percent )
+          text: formatValueString( tValue)
       };
 
-      if( tIsNewElement ) {   // create text element
-        // TODO: test title on IE, does it work?
-        tTextElem = tPaper.text( tAttrs.x, tAttrs.y, tAttrs.text);
-        tTextElem.attr({ 'title': tAttrs.title, 'text-anchor': 'end', fill: this.textColor });
-        this.myElements.push( tTextElem );
-        tLayer.push( tTextElem);
-        // TODO: iAnimate is not currently being set. Fix or eliminate parameter
-//      if( iAnimate) {
-        tTextElem.attr({ opacity: 0})
-          .animate({ opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
-//      }
+      if (tIsNewElement) {   // create text element
+        tTextElem = tPaper.text(tAttrs.x, tAttrs.y, tAttrs.text);
+        tTextElem.attr({'text-anchor': 'end', fill: this.textColor});
+        this.myElements.push(tTextElem);
+        tLayer.push(tTextElem);
       } else {                // update text element
         tTextElem = this.myElements[i];
-        tTextElem.attr( tAttrs );
+        tTextElem.attr(tAttrs);
       }
-      //tTextElem.data( 'count', tValue.count );      // save for hover or update test
-      //tTextElem.data( 'percent', tValue.percent );  // save for hover or update test
+      if (iAnimate) {
+        tTextElem.attr({opacity: 0})
+            .animate({opacity: 1}, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+      }
     }
 
     // remove extra symbols (if number of cells has shrunk)
@@ -170,34 +190,15 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
    * of X and Y.
    */
   updateNumCells: function() {
-    var tParentView = this.get('parentView'),
-        tPrimaryAxisView = tParentView.get('primaryAxisView'),
-        tSecondaryAxisView = tParentView.get('secondaryAxisView'),
-        tXAxisView = tParentView.get('xAxisView'),
-        tYAxisView = tParentView.get('yAxisView');
+    var tPlot = this.getPath('model.plotModel'),
+        tXAxis = tPlot.get('xAxis'),
+        tYAxis = tPlot.get('yAxis'),
+        tSecondaryAxis = tPlot.get('secondaryAxisModel');
 
-    this.xIsPrimaryAxis =( tPrimaryAxisView ? (tPrimaryAxisView.get('orientation') === 'horizontal') : true );
-
-    if( tPrimaryAxisView ) {
-      if( this.xIsPrimaryAxis ) {
-        tXAxisView = tPrimaryAxisView;
-      } else {
-        tYAxisView = tPrimaryAxisView;
-      }
-    }
-    if( tSecondaryAxisView ) {
-      if( this.xIsPrimaryAxis ) {
-        tYAxisView = tSecondaryAxisView;
-      } else {
-        tXAxisView = tSecondaryAxisView;
-      }
-    }
-
-    this.numCellsOnX = tXAxisView.get('numberOfCells') || 1;
-    this.numCellsOnY = tYAxisView.get('numberOfCells') || 1;
-    this.numCellsOnSecondary = this.xIsPrimaryAxis ? this.numCellsOnY : this.numCellsOnX;
-    DG.assert( this.numCellsOnX > 0, "expecting 1+ cells in X" );
-    DG.assert( this.numCellsOnY > 0, "expecting 1+ cells in Y" );
+    this.xIsPrimaryAxis = tSecondaryAxis === tYAxis;
+    this.numCellsOnX = tXAxis.get('numberOfCells') || 1;
+    this.numCellsOnY = tYAxis.get('numberOfCells') || 1;
+    this.numCellsOnSecondary = tSecondaryAxis ? tSecondaryAxis.get('numberOfCells') : 1;
   }
 
 });

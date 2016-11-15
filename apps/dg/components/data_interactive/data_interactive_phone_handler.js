@@ -108,6 +108,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
           //globalList: this.handleGlobalList,
+          item: this.handleItems,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
           selectionList: this.handleSelectionList,
@@ -381,6 +382,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         } else {
           DG.logWarn("Unknown message type: " + type);
         }
+
         return result;
       },
       /**
@@ -889,6 +891,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: count
           };
+        }
+      },
+
+      handleItems: {
+        create: function (iResources, iValues) {
+          var success = false;
+          var context = iResources.dataContext;
+          var caseIDs;
+          if (context) {
+            caseIDs = context.addItems(iValues);
+            if (caseIDs) {
+              success = true;
+            }
+          }
+          return {success: success, values: caseIDs};
         }
       },
 

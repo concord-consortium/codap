@@ -18,6 +18,9 @@
 
 sc_require('models/attribute_model');
 
+// polyfill for Math.log10 in PhantomJS
+Math.log10 = Math.log10 || function(x) { return Math.log(x) / Math.LN10; };
+
 module('DG.Attribute', {
   setup: function() {
     DG.Document.createDocument();
@@ -111,7 +114,8 @@ test('test DG.Attribute formulas', function() {
       {collection: tParentCollectionModel, name: 'ppString', formula: 'parentStr + string(parentNum)', expect: 'parent4'},
       {collection: tParentCollectionModel, name: 'ppTan', formula: 'tan(parentNum)', expect: Math.tan(4)},
       {collection: tParentCollectionModel, name: 'ppTrunc', formula: 'trunc(parentNum/5)', expect: 0},
-      {collection: tParentCollectionModel, name: 'pcCount', formula: 'count(childNum)', expect: 3},
+      {collection: tParentCollectionModel, name: 'pcCount', formula: 'count()', expect: 3},
+      {collection: tParentCollectionModel, name: 'pcCountAttr', formula: 'count(childNum)', expect: 3},
       {collection: tParentCollectionModel, name: 'pcCountExpr', formula: 'count(childNum>=10)', expect: 2},
       {collection: tParentCollectionModel, name: 'pcMean', formula: 'mean(childNum)', expect: 10},
       {collection: tParentCollectionModel, name: 'pcMedian', formula: 'median(childNum)', expect: 10},
@@ -144,7 +148,8 @@ test('test DG.Attribute formulas', function() {
       {collection: tChildCollectionModel, name: 'ccLast', formula: 'last(childStr)', expect: 'child11'},
       {collection: tChildCollectionModel, name: 'ccPrev', formula: 'prev(childNum,8)', expect: 8},
       {collection: tChildCollectionModel, name: 'ccNext', formula: 'next(childStr,child12)', expect: 'child10'},
-      {collection: tChildCollectionModel, name: 'ccCount', formula: 'count(childNum)', expect: 3},
+      {collection: tChildCollectionModel, name: 'ccCount', formula: 'count()', expect: 0},
+      {collection: tChildCollectionModel, name: 'ccCountAttr', formula: 'count(childNum)', expect: 3},
       {collection: tChildCollectionModel, name: 'ccMin', formula: 'min(childNum)', expect: 9},
       {collection: tChildCollectionModel, name: 'ccMax', formula: 'max(childNum)', expect: 11},
       {collection: tChildCollectionModel, name: 'ccMean', formula: 'mean(childNum)', expect: 10},

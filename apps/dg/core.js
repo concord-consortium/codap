@@ -188,7 +188,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0360',
+    BUILD_NUM: '0361',
 
     /**
      * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
@@ -417,6 +417,9 @@ DG = SC.Application.create((function () // closure
     clone: function (iObject) {
       return SC.clone(iObject, YES);
     },
+
+    // CFM functions, null until connected
+    exportFile: null,
 
     iUser: getUrlParameter('username'),
     iPassword: getUrlParameter('password'),

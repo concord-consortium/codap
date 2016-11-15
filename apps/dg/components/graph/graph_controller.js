@@ -103,20 +103,6 @@ DG.GraphController = DG.DataDisplayController.extend(
           // we make below (e.g. to axis bounds) will stick.
           graphModel.stopAnimation();
 
-          // Older versions had a single plotModelStorage, so we make ourselves backward compatible
-          if (iStorage.plotModelStorage) {
-            var plotModel = graphModel.get('plot');
-            if (plotModel)
-              plotModel.restoreStorage(iStorage.plotModelStorage);
-          }
-          // Newer versions always store an array of plot models even if there is only one.
-          else if (iStorage.plotModels) {
-            var tPlots = graphModel.get('plots');
-            tPlots.forEach(function (iPlot, iIndex) {
-              iPlot.restoreStorage(iStorage.plotModels[iIndex].plotModelStorage);
-            });
-          }
-
           // Configure the axes
           var xAxis = graphModel.get('xAxis'),
               yAxis = graphModel.get('yAxis'),

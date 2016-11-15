@@ -169,9 +169,11 @@ SC.stringsFor('es', {
   'DG.AppController.importData.okTitle' : "Import",
   'DG.AppController.importData.okTooltip' : "Import the specified data",
   'DG.AppController.exportDocument.prompt' : "Filename:",
-  'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
-  'DG.AppController.exportCaseData.okTitle' : "Done",
-  'DG.AppController.exportCaseData.okTooltip' : "Done with export",
+  'DG.AppController.exportCaseData.prompt' : "Export the case data, from:",
+  'DG.AppController.exportCaseData.exportTitle' : "Export",
+  'DG.AppController.exportCaseData.exportTooltip' : "Export data to a file",
+  'DG.AppController.exportCaseData.cancelTitle' : "Cancel",
+  'DG.AppController.exportCaseData.cancelTooltip' : "Cancel the export",
   'DG.AppController.exportDocument.okTitle' : "Done",
   'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
   'DG.AppController.feedbackDialog.dialogTitle' : "Provide Feedback",
@@ -652,7 +654,7 @@ SC.stringsFor('es', {
 
   // Game Controller
   'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
-  
+
   // Game View
   'DG.GameView.loading': 'Loading: %@',
   'DG.GameView.loadError': 'An error occurred accessing this page: %@',

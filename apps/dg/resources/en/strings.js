@@ -169,11 +169,11 @@ SC.stringsFor('English', {
   'DG.AppController.importData.okTitle' : "Import",
   'DG.AppController.importData.okTooltip' : "Import the specified data",
   'DG.AppController.exportDocument.prompt' : "Filename:",
-  'DG.AppController.exportCaseData.prompt' : "Copy the case data, from:",
-  'DG.AppController.exportCaseData.okTitle' : "Done",
-  'DG.AppController.exportCaseData.okTooltip' : "Done with export",
-  'DG.AppController.exportDocument.okTitle' : "Done",
-  'DG.AppController.exportDocument.okTooltip' : "Done with CODAP export",
+  'DG.AppController.exportCaseData.prompt' : "Export the case data, from:",
+  'DG.AppController.exportDocument.exportTitle' : "Export",
+  'DG.AppController.exportDocument.exportTooltip' : "Export data to a file",
+  'DG.AppController.exportDocument.cancelTitle' : "Cancel",
+  'DG.AppController.exportDocument.cancelTooltip' : "Cancel the export",
   'DG.AppController.feedbackDialog.dialogTitle' : "Provide Feedback",
   'DG.AppController.feedbackDialog.subHeaderText' : "Your feedback is important to us!",
   'DG.AppController.feedbackDialog.messageText' : "Please help us continue to improve our product. Questions, bug reports and feature requests are all welcome. Thank you!",
@@ -334,10 +334,14 @@ SC.stringsFor('English', {
   'DG.Redo.document.unshare': "Redo stop sharing the document",
   'DG.Undo.game.add': "Undo adding a game to the document",
   'DG.Redo.game.add': "Redo adding a game to the document",
-  'DG.Undo.graph.showcount': "Undo showing graph count",
-  'DG.Redo.graph.showcount': "Redo showing graph count",
-  'DG.Undo.graph.hidecount': "Undo hiding graph count",
-  'DG.Redo.graph.hidecount': "Redo hiding graph count",
+  'DG.Undo.graph.showCount': "Undo showing count",
+  'DG.Redo.graph.showCount': "Redo showing count",
+  'DG.Undo.graph.hideCount': "Undo hiding count",
+  'DG.Redo.graph.hideCount': "Redo hiding count",
+  'DG.Undo.graph.showPercent': "Undo showing percent",
+  'DG.Redo.graph.showPercent': "Redo showing percent",
+  'DG.Undo.graph.hidePercent': "Undo hiding percent",
+  'DG.Redo.graph.hidePercent': "Redo hiding percent",
   'DG.Undo.graph.showMovableLine': "Undo showing movable line",
   'DG.Redo.graph.showMovableLine': "Redo showing movable line",
   'DG.Undo.graph.hideMovableLine': "Undo hiding movable line",
@@ -503,6 +507,14 @@ SC.stringsFor('English', {
   'DG.Formula.DateLongDayThursday': "Thursday",
   'DG.Formula.DateLongDayFriday': "Friday",
   'DG.Formula.DateLongDaySaturday': "Saturday",
+
+                                        /* "mm/dd/yy", "mm/dd/yyyy" */
+  'DG.Utilities.date.localDatePattern': '(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?)',
+                                    /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
+  'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)',
+                                    /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
+  'DG.Utilities.date.iso8601Pattern': '(?:\\d{4}-[01]\\d-[0-3]\\d(?:T[0-3]\\d:[0-5]\\d:[0-5]\\d(?:(?:[-+]?[01]\\d:[0-5]\\d)|Z)?)?)',
+
 
   'DG.Formula.SyntaxErrorMiddle': "Syntax error: '%@'",
   'DG.Formula.SyntaxErrorEnd': "Incomplete expression",
@@ -709,6 +721,10 @@ SC.stringsFor('English', {
   // Graph Inspector
   'DG.Inspector.graphTransparency': "Transparent",  // "Transparent"
   'DG.Inspector.graphCount': "Count",  // "Count"
+  'DG.Inspector.graphPercent': "Percent",  // "Percent"
+  'DG.Inspector.graphRow': "Row",  // "Row"
+  'DG.Inspector.graphColumn': "Column",  // "Column"
+  'DG.Inspector.graphCell': "Cell",  // "Cell"
   'DG.Inspector.graphConnectingLine': "Connecting Lines",  // "Connecting Lines"
   'DG.Inspector.graphMovableLine': "Movable Line",  // "Movable Line"
   'DG.Inspector.graphInterceptLocked': "Intercept Locked",  // "Intercept Locked"
@@ -736,7 +752,7 @@ SC.stringsFor('English', {
 
   // Game Controller
   'DG.GameController.continuityError': 'Sorry, after columns in the case table have been reordered, new data cannot be accepted.',
-  
+
   // Game View
   'DG.GameView.loading': 'Loading',
   'DG.GameView.loadError': 'If you can see this text, loading the above URL may have failed. You can check the link in another browser tab or report the error to http://codap.concord.org/help.',

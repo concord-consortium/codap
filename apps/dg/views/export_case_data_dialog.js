@@ -40,7 +40,7 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
 
   contentView: SC.View.extend({
 
-    childViews: 'promptView collectionPopup editView okButton'.w(),
+    childViews: 'promptView collectionPopup exportButton cancelButton'.w(),
     promptView: SC.LabelView.extend({
       layerId: 'export_case_data_prompt', // use dg.css #export_case_data_prompt for text properties
       layout: { top: 10, left: 10, right: 210, height:24 },
@@ -55,33 +55,34 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
         items: null // filled in later
       })
     }),
-    editView: SC.TextFieldView.design({
-      layout: { top: 40, left: 10, right: 10, height:44 },
-      value: '',
-      isTextArea: true, // multiple lines with scroll bar
-      spellCheckEnabled: false
-    }),
-    okButton: SC.ButtonView.design({
-      layout: { bottom:5, right: 10, height:24, width: 90 },
+    exportButton: SC.ButtonView.design({
+      layout: { bottom:5, right: 110, height:24, width: 90 },
       titleMinWidth: 0,
       localize: true,
       title: '',
       target: null,
       action: null,
       isDefault: true
+    }),
+    cancelButton: SC.ButtonView.design({
+      layout: { bottom:5, right: 10, height:24, width: 90 },
+      titleMinWidth: 0,
+      localize: true,
+      title: '',
+      target: null,
+      action: null,
+      isDefault: false
     })
   }),
-  
-  value: function() {
-    return this.getPath('contentView.editView.value');
-  }.property(),
-  
+
   init: function() {
     sc_super();
-    
-    // OK simply closes the dialog
-    this.setPath('contentView.okButton.target', this);
-    this.setPath('contentView.okButton.action', 'close');
+
+    this.setPath('contentView.exportButton.target', this);
+    this.setPath('contentView.exportButton.action', 'export');
+
+    this.setPath('contentView.cancelButton.target', this);
+    this.setPath('contentView.cancelButton.action', 'close');
   },
 
   /**
@@ -89,24 +90,29 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
    */
   collectionSelected: function() {
     // Extract the text of the selected item
-    var menuItemString = this.getPath('contentView.collectionPopup.menu.selectedItem.title'),
+    var menuItemString = this.getPath('contentView.collectionPopup.menu.selectedItem.title');
+    if( !SC.empty( menuItemString)) {
+      this.setPath('contentView.collectionPopup.title', menuItemString ); // update menu
+    }
+  }.observes('.contentView.collectionPopup.menu.selectedItem'),
+
+  /**
+   * Exports the data using the CFM
+   */
+  // We quote export below because it is a javascript reserved word. The
+  // yuicompressor embedded in Sproutcore build chokes.
+  'export': function() {
+    var menuItemString = this.getPath('contentView.collectionPopup.title'),
         menuItemAction = this.getPath('contentView.collectionPopup.itemAction');
     if( !SC.empty( menuItemString)) {
-      var caseDataString = menuItemAction( menuItemString), // get new case data to match the menu item
-          stringLength = caseDataString.length,
-          editView = this.getPath('contentView.editView');
-      this.setPath('contentView.collectionPopup.title', menuItemString ); // update menu
-      if( editView ) {
-        editView.set('value', caseDataString ); // update export text
-        editView.set('selection', SC.TextSelection.create({ start:0, end:stringLength })); // select all text, ready for user to do Edit:Copy
-      }
+      var caseDataString = menuItemAction( menuItemString); // get new case data to match the menu item
+      this.close();
+      DG.exportFile(caseDataString, "csv", "text/plain");
     }
-    // Clear the selected item so the same item can be selected multiple times
-    //this.setPath('contentView.collectionPopup.menu.selectedItem', null);
-  }.observes('.contentView.collectionPopup.menu.selectedItem'),
-  
+  },
+
   /**
-   * Close the dialog. Used by okButton.action.
+   * Close the dialog. Used by cancelButton.action.
    */
   close: function() {
     this.remove();
@@ -116,7 +122,7 @@ DG.ExportCaseDataDialog = SC.PalettePane.extend(
 
 /**
   Brings up the export dialog with the properties specified by the client.
-  
+
   @param {Object} iProperties   Configuration properties for export dialog.
                                 See the kParamMap below for details.
   @returns  {DG.ExportCaseDataDialog} the created dialog
@@ -126,21 +132,17 @@ DG.CreateExportCaseDataDialog = function( iProperties) {
       kParamMap = {
         prompt: 'promptView.value',
 
-        textValue: 'editView.value',
-        textHint: 'editView.hint',
-        textLimit: 'editView.maxLength',
-        textIsMultiLine: 'editView.isTextArea',
-
-        okTitle: 'okButton.title',
-        okTooltip: 'okButton.toolTip',
+        exportTitle: 'exportButton.title',
+        exportTooltip: 'exportButton.toolTip',
+        cancelTitle: 'cancelButton.title',
+        cancelTooltip: 'cancelButton.toolTip',
 
         collectionMenuTitle: 'collectionPopup.title',
         collectionMenuItems: 'collectionPopup.menu.items',
         collectionMenuItemAction: 'collectionPopup.itemAction' // non-standard param used by collectionSelected()
       },
-      tContentView = tDialog.get('contentView'),
-      tEditView = tContentView.editView;
-  
+      tContentView = tDialog.get('contentView');
+
   // Loop through client-specified properties, applying them to the
   // appropriate property via its path given in the kParamMap.
   DG.ObjectMap.forEach( iProperties,
@@ -152,7 +154,6 @@ DG.CreateExportCaseDataDialog = function( iProperties) {
 
   // Put up the dialog
   tDialog.append();
-  tEditView.becomeFirstResponder(); // selects both the field, and all text in the field, apparently
 
   return tDialog;
 };

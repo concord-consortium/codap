@@ -85,17 +85,23 @@ DG.DataUtilities.isDate = function(iValue) {
 };
 DG.isDate = DG.DataUtilities.isDate;
 
+DG._isDateRegex = null;
+
 /**
   Returns true if the specified value is a string that can be converted to a valid date.
  Note that a string that can be coerced to a number is not a valid date string even though
  it could be converted to a date.
  */
 DG.DataUtilities.isDateString = function(iValue) {
-  if( typeof iValue === 'string' && isNaN(Number(iValue))) {
-    return !isNaN( new Date( iValue).valueOf());
+  if (!this._isDateRegex) {
+    // assemble the regular expression from localized strings
+    //
+    this._isDateRegex = new RegExp('^(?:(?:'
+        + 'DG.Utilities.date.localDatePattern'.loc() + '(?: '
+        + 'DG.Utilities.date.timePattern'.loc() + ')?)|'
+        + 'DG.Utilities.date.iso8601Pattern'.loc() + ')$', 'i');
   }
-  else
-    return false;
+  return (typeof iValue === 'string' && this._isDateRegex.test(iValue.toLowerCase()));
 };
 DG.isDateString = DG.DataUtilities.isDateString;
 
@@ -124,7 +130,7 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   This function also converts a map of property names to values
   to one that maps attribute IDs to values.
   @param    iAttrs  The set of attributes
-  @param    iValue  A map from attribute names to values
+  @param    iDataMap  A map from attribute names to values
   @returns          The canonicalized value map (attribute IDs to values)
  */
 DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap) {
