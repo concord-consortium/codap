@@ -146,20 +146,7 @@ DG.main = function main() {
               "displayName": "Example Documents",
               "urlDisplayName": "examples",
               "src": DG.exampleListURL,
-              alphabetize: true,
-              // json: [
-              //   {
-              //     type: "folder",
-              //     name: "Unsorted Examples",
-              //     url: 'DG.AppController.exampleList.ExampleListURL'.loc()
-              //   },
-              //   {
-              //     type: "folder",
-              //     name: "Alphabetized Examples",
-              //     alphabetize: true,
-              //     url: 'DG.AppController.exampleList.ExampleListURL'.loc()
-              //   }
-              // ]
+              alphabetize: true
             },
             {
               "name": "lara",
@@ -330,7 +317,7 @@ DG.main = function main() {
 
     if (DG.cfm) {
       DG.cfm.clientConnect(function (event) {
-        /* global jiff */
+        /* global nodeDeepEqual */
         var docController, docContent, docMetadata,
             cfmSharedMetadata;
 
@@ -479,8 +466,7 @@ DG.main = function main() {
                     this.causedChange = false;
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
-                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                      if(diff && diff.length) {
+                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }
@@ -524,8 +510,7 @@ DG.main = function main() {
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
                       this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
-                      var diff = jiff.diff(docSharedMetadata, cfmSharedMetadata);
-                      if(diff && diff.length) {
+                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }
@@ -578,17 +563,6 @@ DG.main = function main() {
   if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
     DG.splash.showSplash();
   }
-  else {  // If componentMode is requested, open starting doc found in url params
-    if( !SC.empty( DG.startingDocName)) {
-      var owner = !SC.empty( DG.startingDocOwner) ? DG.startingDocOwner : DG.iUser;
-      DG.appController.openDocumentNamed( DG.startingDocName, owner);
-      DG.startingDocName = '';  // Signal that there is no longer a starting doc to open
-    } else if( !SC.empty( DG.startingDocId)) {
-      DG.appController.openDocumentWithId( DG.startingDocId);
-      DG.startingDocId = '';  // Signal that there is no longer a starting doc to open
-    }
-  }
-
 
   translateQueryParameters();
 
