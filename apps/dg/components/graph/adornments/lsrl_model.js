@@ -37,13 +37,15 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
               tCases = this.getPath('plotModel.cases'),
               tXVarID = this.getPath('plotModel.xVarID'),
               tYVarID = this.getPath('plotModel.yVarID');
-          tCases.forEach( function ( iCase) {
-            var tXValue = iCase.getNumValue(tXVarID),
-                tYValue = iCase.getNumValue(tYVarID);
-            if (isFinite(tXValue) && isFinite(tYValue)) {
-              tValues.push( { x: tXValue, y: tYValue});
-            }
-          });
+          if( Array.isArray(tCases)) {
+            tCases.forEach(function (iCase) {
+              var tXValue = iCase.getNumValue(tXVarID),
+                  tYValue = iCase.getNumValue(tYVarID);
+              if (isFinite(tXValue) && isFinite(tYValue)) {
+                tValues.push({x: tXValue, y: tYValue});
+              }
+            });
+          }
           return tValues;
         }.bind( this);
 
