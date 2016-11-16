@@ -28,6 +28,11 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
     /** @scope DG.TwoDLineModel.prototype */
     {
       /**
+       * @property {Number}
+       */
+      rSquared: null,
+
+      /**
        We compute the slope and intercept of the lsrl for the displayed points
        */
       recomputeSlopeAndIntercept: function () {
@@ -50,7 +55,8 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
         }.bind( this);
 
         var tInterceptIsLocked = this.get('isInterceptLocked'),
-            tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( getValuePairs(), tInterceptIsLocked);
+            tValuePairs = getValuePairs(),
+            tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tValuePairs, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
             isNaN(tSlopeIntercept.intercept) && isNaN( this.get('intercept'))) {
           return; // not covered by setIfChanged
@@ -58,6 +64,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
         this.beginPropertyChanges();
           this.setIfChanged('slope', tSlopeIntercept.slope);
           this.setIfChanged('intercept', tSlopeIntercept.intercept);
+          this.setIfChanged('rSquared', tSlopeIntercept.rSquared);
           this.setIfChanged('isVertical', !isFinite(tSlopeIntercept.slope));
           this.setIfChanged('xIntercept', null);
         this.endPropertyChanges();

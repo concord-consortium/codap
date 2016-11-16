@@ -27,6 +27,15 @@ sc_require('components/graph/adornments/twoD_line_adornment');
 DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 /** @scope DG.LSRLAdornment.prototype */ 
 {
+  equationString: function() {
+    var tResult = sc_super(),
+        tFormat = DG.Format.number().fractionDigits( 0, 3),
+        tRSquared = this.getPath('model.rSquared'),
+        tRSquaredString = SC.none( tRSquared) ? '' : tFormat( tRSquared);
+
+    return tResult + ', r2 = ' + tRSquaredString;
+  }.property(),
+
   /**
     Make the pieces of the line. This only needs to be done once.
   */
@@ -125,7 +134,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 
     // At last set the equation attributes
     this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
-      width: tTextWidth, height: tTextBox.height })
+      width: tTextWidth, height: tTextBox.height });
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString') });
   }
