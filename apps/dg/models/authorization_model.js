@@ -26,74 +26,6 @@ DG.Authorization = SC.Object.extend(
 /** @scope DG.Authorization.prototype */ {
 
   /**
-   * The user name.
-   * @property {String}
-   */
-  user: '',
-  
-  /**
-   * The user's password.
-   * @property {String}
-   */
-  passwd: '',
-  
-  /**
-   * The status of the current login credentials.
-   * Currently, 0 (falsy) means not logged in, 1 (truthy) means logged in.
-   * @property {Number}
-   */
-  status: 0,
-  
-  /**
-   * Used to decide whether to display 'invalid user or password' message
-   * @property {Boolean}
-   */
-  failedLoginAttempt: false,
-  
-  /**
-   * [Computed] The status message string of the current login credentials.
-   * @property {String}
-   */
-  statusMsg: function() {
-    var hasUser = !SC.empty(this.get('user'));
-    var hasStatus = (this.get('status') !== 0);
-    if (hasUser && !hasStatus) {
-      return '<img src=\''+static_url('ajax-loader.gif')+'\'>';
-    }
-    if (this.failedLoginAttempt) {
-      //default to general error
-      var msg = ('DG.Authorization.loginPane.' + this.get('errorCode'));
-      if (msg.loc() === msg)
-        msg = 'DG.Authorization.loginPane.error.general';
-      return msg.loc();
-    }
-    return '';
-  }.property('user', 'status'),
-
-  /**
-   * Returns true if the 'user' is non-empty and the 'status' is non-zero.
-   */
-  isValid: function() {
-    var hasUser = !SC.empty(this.get('user'));
-    var hasStatus = (this.get('status') !== 0);
-    
-    return hasUser && hasStatus;
-  }.property('user', 'status'),
-
-  
-  /**
-   * The session ID associated with the current login credentials.
-   * @property {Number}
-   */
-  sessionID: 0,
-  
-  /**
-   * Indicates whether save/restore should be enabled for this user/session.
-   * @property {Boolean}
-   */
-  isSaveEnabled: false,
-  
-  /**
    * Indicates whether logging should be enabled for this user/session.
    * @property {Boolean}
    */
@@ -109,11 +41,6 @@ DG.Authorization = SC.Object.extend(
    * Clears the current login credentials.
    */
   clear: function() {
-    this.set('user', '');
-    this.set('passwd', '');
-    this.set('status', 0);
-    this.set('sessionID', 0);
-    this.set('isSaveEnabled', false);
     this.set('isLoggingEnabled', true);
     return this;
   }

@@ -160,10 +160,6 @@ DG = SC.Application.create((function () // closure
       (window.location.href.indexOf('localhost:4020') >= 0);
   };
 
-  var isTestBuild = function () {
-    return (window.location.href.indexOf('-test.') >= 0);
-  };
-
   var noDataTipPref = function () {
     var noDtParam = getUrlParameter('no_dt');
     return !SC.empty(noDtParam) && noDtParam === 'true';
@@ -190,33 +186,11 @@ DG = SC.Application.create((function () // closure
      */
     BUILD_NUM: '0361',
 
-    /**
-     * The subdomain for the Drupal site which must be hosted on the same domain.  This is used for various interactions
-     * between the client app and the Drupal site directly for things like creating links for users to navigate to the
-     * Drupal site.  Interactions which are done programmatically, like authentication, in which the user is not directly
-     * involve in is done using the server as the middleman for security purposes.
-     */
-    DRUPAL_SUBDOMAIN: 'play', // see also getDrupalSubdomain()
-
     IS_DG_BUILD: isDGBuild(),
 
     IS_INQUIRY_SPACE_BUILD: isInquirySpaceBuild(),
 
     IS_SRRI_BUILD: isSrriBuild(),
-
-    USE_DIFFERENTIAL_SAVING: true,
-
-    USE_COMPRESSION: true,
-
-    FORCE_SPLIT_DOCUMENT: true,
-
-    AUTOSAVE: (function() {
-      var runKey = getUrlParameter('runKey');
-      if (!SC.none(runKey) && runKey.length > 0) {
-        return true;
-      }
-      return false;
-    })(),
 
     exampleListURL: 'https://codap-resources.concord.org/examples/index.json',
 
@@ -249,18 +223,6 @@ DG = SC.Application.create((function () // closure
       return key;
     },
 
-    // get the drupal subdomain sub-string, eg. "play-srri.", "play-srri-test." to form 'play-srri-test.kcptech.com", etc.
-    getDrupalSubdomain: function () {
-      var domainString = DG.DRUPAL_SUBDOMAIN;
-      if (DG.IS_SRRI_BUILD) {
-        domainString += '-srri';
-      }
-      if (isTestBuild()) {
-        domainString += '-test';
-      }
-      return domainString + '.';
-    },
-
     IS_DEV_BUILD: isDevBuild(),
 
     NO_DATA_TIP_PREF: noDataTipPref(),
@@ -277,13 +239,6 @@ DG = SC.Application.create((function () // closure
     store: null,
 
     urlParamGames: getUrlParameter('moreGames'),
-
-    /**
-     * startingDocName can be passed as a Url parameter named doc.
-     * DG will attempt to open this document on startup.
-     *
-     */
-    startingDocName: getUrlParameter('doc'),
 
     startingDocUrl: getUrlParameter('url'),
 
@@ -313,45 +268,11 @@ DG = SC.Application.create((function () // closure
     }.property('urlParamGames, _startingDataInteractive'),
 
     /**
-     * startingDocOwner can be passed as a Url parameter named doc.
-     * It is a second parameter required for DG to open a document
-     * on startup.  It is the username of the owner of the document in the
-     * database.
-     */
-    startingDocOwner: getUrlParameter('owner'),
-
-    /**
-     * startingDocId can be passed as a Url parameter named doc. It is a parameter that can be used instead of startingDocName and
-     * startingDocOwner to open a document on startup.  It is the id of the document in the database.
-     */
-    startingDocId: getUrlParameter('recordid'),
-
-    /**
-     * documentServer can be passed as a Url parameter named documentServer. It is the server from which DG will use to open/save
-     * documents. It should be formatted as a full url, to which 'document/*' will be appended.
-     * A trailing slash (/) will be appended if it is omitted.
-     * ex: 'http://docs.example.com/', 'https://www.example.com/docserver/'
-     */
-    documentServer: (function() {
-      var docServer = getUrlParameter('documentServer') || '';
-      if (docServer.length > 0 && SC.none(docServer.match(/\/$/))) {
-        docServer += '/';
-      }
-      return docServer;
-    })(),
-
-    /**
      * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
      * anonymous read-write access to documents. It can be any string.
      * ex: 'e342d47a-d3e5-48b8-9675-8622e40bb2c8'
      */
     runKey: getUrlParameter('runKey') || '',
-
-    /**
-     * runAsGuest can be passed as a Url parameter named runAsGuest. It is a boolean which tells the login logic to avoid prompting
-     * for a login if a user isn't currently logged in, and instead runs as guest automatically.
-     */
-    runAsGuest: getUrlParameter('runAsGuest') === 'true',
 
     /**
      * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
@@ -360,11 +281,9 @@ DG = SC.Application.create((function () // closure
      */
     componentMode: getUrlParameter('componentMode', 'no'),
 
-    hideCFMMenu: !!getUrlParameter('launchFromLara'),
+    hideCFMMenu: !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara'),
 
     toolButtons: [ // These appear on the left side of the tool shelf
-      //'fileMenu',
-      //'gameMenu',
       'tableButton',
       'graphButton',
       'mapButton',
@@ -420,10 +339,6 @@ DG = SC.Application.create((function () // closure
 
     // CFM functions, null until connected
     exportFile: null,
-
-    iUser: getUrlParameter('username'),
-    iPassword: getUrlParameter('password'),
-    iSessionID: getUrlParameter('sessionid'),
 
     enableUndoHistory: true //getUrlParameter('undo') === 'true'
 
