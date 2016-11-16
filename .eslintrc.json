@@ -1,0 +1,48 @@
+{
+  "env": {
+    "browser": true
+  },
+  "globals": { "DG": false, "Raphael": false, "$": false, "SC": false, "sc_require": false,
+                "sc_super": false, "static_url": false, "NO": false, "YES": false },
+  "extends": [ "eslint:recommended" ],
+  "rules": {
+    // possible errors
+    "no-console": "off",
+    "no-template-curly-in-string": "warn",
+    "no-unreachable": "error",
+    "no-unsafe-negation": "warn",
+
+    // best practices
+    "array-callback-return": "warn",
+    "block-scoped-var": "warn",
+    "eqeqeq": ["error", "allow-null"],
+    "no-alert": "error",
+    "no-caller": "error",
+    "no-eval": "error",
+    "no-extra-bind": "off",
+    "no-global-assign": "error",
+    "no-invalid-this": "off",
+    "no-loop-func": "warn",
+    "no-unused-expressions": "off",
+    "no-useless-call": "off",
+    "no-useless-escape": "off",
+
+    // variables
+    "no-unused-vars": ["warn", { "vars": "all", "args": "none" }],
+    "no-use-before-define": "off",
+
+    // node.js/CommonJS
+    "no-mixed-requires": "warn",
+
+    // stylistic issues
+    "eol-last": "off",
+    "func-name-matching": "error",
+    "linebreak-style": ["error", "unix"],
+    "no-bitwise": "warn",
+    "no-unneeded-ternary": "warn",
+    "no-underscore-dangle": "off",
+    "quote-props": ["error", "as-needed", { "keywords": true, "unnecessary": false }],
+    "quotes": "off",
+    "semi": ["error", "always"]
+  }
+}

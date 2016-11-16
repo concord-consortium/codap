@@ -156,6 +156,7 @@ DG.CasePlotView = DG.PlotView.extend(
      */
     drawData: function() {
       var tIncrementBy,
+          tLoopIndex = 0,
       animateSomePoints = function() {
         // If the user closes the graph component while the animation is happening, we're likely to
         // crash because we no longer have paper to draw points on. Detect and bail!
@@ -196,7 +197,7 @@ DG.CasePlotView = DG.PlotView.extend(
 
       this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
       if( this._mustCreatePlottedElements ) {
-        var tLoopIndex = 0;
+        tLoopIndex = 0;
         this._plottedElements.forEach( function( iElement ) {
           iElement.remove();
         } );

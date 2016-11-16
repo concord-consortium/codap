@@ -172,7 +172,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tLabelSpecs = this.get('labelSpecs') || [],
           tCollision = false,
           tPrevLabelEnd,
-          tDragStartCoord, tCellBeingDragged, tOriginalCellIndex;
+          tDragStartCoord, tCellBeingDragged, tOriginalCellIndex; // eslint-disable-line no-unused-vars
 
       var beginDrag = function ( iWindowX, iWindowY) {
             tOriginalCellIndex = tCellBeingDragged = this.cellNum;

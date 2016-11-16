@@ -39,6 +39,7 @@ DG.debugForceReload = function() {
   Global function used to drop into the JavaScript debugger, if one is running.
 */
 DG.debugLaunchDebugger = function() {
+  /* eslint no-eval: "off" */
   /* jslint evil:true */
   eval('debugger');
 };
@@ -266,10 +267,11 @@ DG.Debug = SC.Object.create( (function() {
 
         // Stop in debugger in debug builds
         if( stopInDebugger ) {
-            //@if(debug)
+          //@if(debug)
+            /* eslint no-eval: "off" */
             /* jslint evil:true */
             eval('debugger');
-            //@endif
+          //@endif
         }
 
         // Show the assertion failure alert
@@ -408,6 +410,7 @@ DG.Debug = SC.Object.create( (function() {
       DG.Debug.logErrorRaw( "Exception: " + iException.message);
 
       //@if(debug)
+        /* eslint no-eval: "off" */
         /* jslint evil:true */
         eval('debugger');
       //@endif
@@ -455,10 +458,9 @@ SC.Logger._outputMessage = function(type, timestampStr, indentation, message, or
   This can be useful when logging to help identify objects.
  */
 DG.Debug.scObjectID = function( iObject) {
-  var scIDKey, scIDValue = "";
+  var scIDValue = "";
   DG.ObjectMap.findKey( iObject, function( iKey, iValue) {
     if( iKey.substr(0,10) === 'SproutCore') {
-      scIDKey = iKey;
       scIDValue = iValue;
       return true;
     }

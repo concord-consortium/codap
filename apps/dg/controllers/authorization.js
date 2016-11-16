@@ -398,6 +398,7 @@ return {
             parameters = {value: parameters};
           }
         } catch (e) {
+          // ignore exceptions
         }
       }
 

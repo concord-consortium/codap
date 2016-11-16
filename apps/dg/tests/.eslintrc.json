@@ -1,0 +1,5 @@
+{
+  // additional unit testing global variables
+  "globals": { "equals": false, "module": false, "ok": false, "same": false,
+                "start": false, "stop": false, "test": false }
+}

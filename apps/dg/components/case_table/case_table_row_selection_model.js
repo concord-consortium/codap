@@ -30,7 +30,7 @@ DG.CaseTableRowSelectionModel = function (options) {
   var _handler = new Slick.EventHandler();
   var _inHandler;
   var _options;
-  var _inDrag = false;
+  var _inDrag = false;  // eslint-disable-line no-unused-vars
   var _dragStartRow;
   var _dragStartY = null;
   var _dragStartClientY = null;

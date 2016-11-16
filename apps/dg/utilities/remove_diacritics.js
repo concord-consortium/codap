@@ -275,9 +275,9 @@ var defaultDiacriticsRemovalMap = [{
 }];
 
 /* exported removeDiacritics */
-function removeDiacritics(str) {
+window.removeDiacritics =function(str) {
     for (var i = 0; i < defaultDiacriticsRemovalMap.length; i++) {
         str = str.replace(defaultDiacriticsRemovalMap[i].letters, defaultDiacriticsRemovalMap[i].base);
     }
     return str;
-}
+};

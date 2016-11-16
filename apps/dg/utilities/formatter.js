@@ -370,6 +370,7 @@ DG.Format.time = function(type) {
   /** @private */
   function format(t) {
     function toInt(fl) {
+      /* eslint no-bitwise: "off" */
       /* jshint ignore: start */
       return fl >> 0; // bit-shift zero places: converts to 32 bit int
       /* jshint ignore: end */

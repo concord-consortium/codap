@@ -780,7 +780,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               }
             },
             undo: function() {
-              var tChange, tResult, action;
+              var tChange, tResult, action; // eslint-disable-line no-unused-vars
               tContext = this._controller().get('dataContext');
               if (isNew) {
                 tRef = tContext.getAttrRefByName( tAttributeName);
@@ -800,7 +800,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               if( tResult.success) {
                 action = isNew ? "attributeCreate" : "attributeEditFormula";
               } else {
-                  this.set('causedChange', false);
+                this.set('causedChange', false);
               }
             },
             redo: function() {
