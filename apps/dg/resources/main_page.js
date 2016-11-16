@@ -106,7 +106,7 @@ DG.mainPage = SC.Page.design((function() {
     topView: SC.View.design({
       classNames: 'toolshelf-background'.w(),
       layout: { top: kInfobarHeight, height: kToolbarHeight - 1 },
-      childViews: 'iconButtons'.w(),
+      childViews: 'iconButtons rightButtons'.w(),
 
       iconButtons: SC.View.design(SC.FlowedLayout, {
         classNames: 'icon-buttons'.w(),
@@ -130,9 +130,41 @@ DG.mainPage = SC.Page.design((function() {
             this.appendChild( this[ iButtonName ]);
           }.bind(this));
         }
+      }), // iconButtons
 
-      }),
+      rightButtons: SC.View.design(SC.FlowedLayout, {
+        layout: { top: 0, right: 10, width: 0, height: kToolbarHeight - 1 },
+        align: SC.ALIGN_RIGHT,
+        canWrap: false,
+        shouldResizeHeight: false,
+        defaultFlowSpacing: { right: 10, top: kIconTopPadding },
+        childViews: 'logoutButton'.w(),
 
+        init: function() {
+          sc_super();
+          // create right buttons, right-justified
+          DG.rightButtons.forEach( function( iButtonName ) {
+            var tButton = DG.RightButtonData[iButtonName];
+            tButton.classNames.push('toolshelf-button');
+            this[ iButtonName] = DG.IconButton.create( tButton);
+            this[ iButtonName].set('layout', { width: kButtonWidth/*, height: 40*/ });
+            this.appendChild( this[ iButtonName ]);
+          }.bind(this));
+          DG.currDocumentController().set('guideButton', this.guideButton);
+        },
+
+        /**
+         * Override this so that the child views will have a height that fits with their icon and label.
+         * Without this, the menu for the options popup appears too low.
+         * @param iChild {SC.View}
+         * @param iLayout {Object}
+         */
+        applyPlanToView: function( iChild, iLayout) {
+          SC.FlowedLayout.applyPlanToView.apply(this, arguments);
+          if( iChild.adjustHeight)
+            iChild.adjustHeight();
+        }
+      }) // rightButtons
     }), // topView
 
     scrollView: SC.ScrollView.design({
