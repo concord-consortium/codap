@@ -38,10 +38,24 @@ DG.functionRegistry.registerAggregates({
 
     category: 'DG.Formula.FuncCategoryLookup',
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 1, max: 2 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
-      var valueFn = iInstance.argFns[0];
+      var valueFn = iInstance.argFns[0],
+          filterFn = iInstance.argFns[1];
+
+      // Find the first of the specified cases which passes the filter
+      function getFirstFilteredCase(iCases) {
+        if (!iCases) return null;
+        if (!filterFn) return iCases.firstObject();
+
+        var i, tCase, count = iCases.get('length');
+        for (i = 0; i < count; ++i) {
+          tCase = iCases.objectAt(i);
+          if (filterFn(iContext, { _case_: tCase, _id_: tCase.get('id') }))
+            return tCase;
+        }
+      }
       
       // The appropriate evaluation context for the first() argument
       // is the first case, i.e. the case at index 0.
@@ -51,8 +65,8 @@ DG.functionRegistry.registerAggregates({
             siblings = parentCase ? parentCase.get('children')
                                   : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
-            firstCase = siblings && siblings.firstObject(),
-            tmpEvalContext = firstCase ? { _caseMap_: {} } : null;
+            firstCase = getFirstFilteredCase(siblings),
+            tmpEvalContext = { _caseMap_: {} };
         // The appropriate first case depends on the attribute argument.
         // We stash a map of potential first cases into the evaluation context
         // and then upstream clients can choose the appropriate one.
@@ -60,10 +74,12 @@ DG.functionRegistry.registerAggregates({
           tmpEvalContext._caseMap_[firstCase.getPath('collection.id')] = firstCase;
         }
         while (children && children.length > 0) {
-          firstCase = children.firstObject();
-          var childCollectionID = firstCase && firstCase.getPath('collection.id');
-          tmpEvalContext._caseMap_[childCollectionID] = firstCase;
-          children = firstCase.get('children');
+          firstCase = getFirstFilteredCase(children);
+          if (firstCase) {
+            var childCollectionID = firstCase.getPath('collection.id');
+            tmpEvalContext._caseMap_[childCollectionID] = firstCase;
+          }
+          children = firstCase && firstCase.get('children');
         }
         for (; parentCase; parentCase = parentCase.get('parent')) {
           var parentCollectionID = parentCase.getPath('collection.id');
@@ -73,10 +89,8 @@ DG.functionRegistry.registerAggregates({
       }
       
       var firstEvalContext = valueFn && getFirstEvalContext( iContext, iEvalContext);
-      
-      return firstEvalContext
-                    ? valueFn( iContext, firstEvalContext)
-                    : undefined;
+      if (firstEvalContext && DG.ObjectMap.length(firstEvalContext._caseMap_))
+        return valueFn(iContext, firstEvalContext);
     }
   }),
   
@@ -89,10 +103,24 @@ DG.functionRegistry.registerAggregates({
   
     category: 'DG.Formula.FuncCategoryLookup',
   
-    requiredArgs: { min: 1, max: 1 },
+    requiredArgs: { min: 1, max: 2 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
-      var valueFn = iInstance.argFns[0];
+      var valueFn = iInstance.argFns[0],
+          filterFn = iInstance.argFns[1];
+      
+      // Find the last of the specified cases which passes the filter
+      function getLastFilteredCase(iCases) {
+        if (!iCases) return null;
+        if (!filterFn) return iCases.lastObject();
+
+        var i, tCase, count = iCases.get('length');
+        for (i = count - 1; i >= 0; --i) {
+          tCase = iCases.objectAt(i);
+          if (filterFn(iContext, { _case_: tCase, _id_: tCase.get('id') }))
+            return tCase;
+        }
+      }
       
       // The appropriate evaluation context for the last() argument
       // is the last case, i.e. the case at index [length-1].
@@ -102,8 +130,8 @@ DG.functionRegistry.registerAggregates({
             siblings = parentCase ? parentCase.get('children')
                                   : (iContext && iContext.getPath('collection.cases')),
             children = iCase && iCase.get('children'),
-            lastCase = siblings && siblings.lastObject(),
-            tmpEvalContext = lastCase ? { _caseMap_: {} } : null;
+            lastCase = getLastFilteredCase(siblings),
+            tmpEvalContext = { _caseMap_: {} };
         // The appropriate last case depends on the attribute argument.
         // We stash a map of potential last cases into the evaluation context
         // and then upstream clients can choose the appropriate one.
@@ -111,10 +139,12 @@ DG.functionRegistry.registerAggregates({
           tmpEvalContext._caseMap_[lastCase.getPath('collection.id')] = lastCase;
         }
         while (children && children.length > 0) {
-          lastCase = children.lastObject();
-          var childCollectionID = lastCase && lastCase.getPath('collection.id');
-          tmpEvalContext._caseMap_[childCollectionID] = lastCase;
-          children = lastCase.get('children');
+          lastCase = getLastFilteredCase(children);
+          if (lastCase) {
+            var childCollectionID = lastCase.getPath('collection.id');
+            tmpEvalContext._caseMap_[childCollectionID] = lastCase;
+          }
+          children = lastCase && lastCase.get('children');
         }
         for (; parentCase; parentCase = parentCase.get('parent')) {
           var parentCollectionID = parentCase.getPath('collection.id');
@@ -124,10 +154,8 @@ DG.functionRegistry.registerAggregates({
       }
       
       var lastEvalContext = valueFn && getLastEvalContext( iContext, iEvalContext);
-      
-      return lastEvalContext
-                    ? valueFn( iContext, lastEvalContext)
-                    : undefined;
+      if (lastEvalContext && DG.ObjectMap.length(lastEvalContext._caseMap_))
+        return valueFn( iContext, lastEvalContext);
     }
   }),
   
@@ -142,11 +170,25 @@ DG.functionRegistry.registerAggregates({
   
     category: 'DG.Formula.FuncCategoryLookup',
   
-    requiredArgs: { min: 1, max: 2 },
+    requiredArgs: { min: 1, max: 3 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
-          defaultFn = iInstance.argFns[1];
+          defaultFn = iInstance.argFns[1],
+          filterFn = iInstance.argFns[2];
+      
+      // Find the next case which passes the filter
+      function getNextFilteredCase(iCases, iIndex) {
+        if (!iCases || (iIndex < 0)) return null;
+        if (!filterFn) return iCases.objectAt(iIndex);
+
+        var i, tCase, count = iCases.get('length');
+        for (i = iIndex; i < count; ++i) {
+          tCase = iCases.objectAt(i);
+          if (filterFn(iContext, { _case_: tCase, _id_: tCase.get('id') }))
+            return tCase;
+        }
+      }
       
       // The appropriate evaluation context for the next() argument is
       // the subsequent case, i.e. the case at the subsequent index.
@@ -155,12 +197,9 @@ DG.functionRegistry.registerAggregates({
             parentCase = iCase && iCase.get('parent'),
             siblings = parentCase ? parentCase.get('children')
                                   : (iContext && iContext.getPath('collection.cases')),
-            caseCount = siblings && siblings.get('length'),
             thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-            nextCase = siblings && (thisCaseIndex < caseCount)
-                              ? siblings.objectAt( thisCaseIndex) // 0-based index
-                              : null,
-            tmpEvalContext = nextCase ? { _caseMap_: {} } : null;
+            nextCase = getNextFilteredCase(siblings, thisCaseIndex),    // 0-based index
+            tmpEvalContext = { _caseMap_: {} };
 
         // The appropriate next case depends on the attribute argument.
         // We stash a map of potential next cases into the evaluation context
@@ -180,7 +219,7 @@ DG.functionRegistry.registerAggregates({
       var nextEvalContext = valueFn && getNextEvalContext( iContext, iEvalContext);
       
       // default to undefined (empty) if no user-specified default
-      return nextEvalContext
+      return nextEvalContext && DG.ObjectMap.length(nextEvalContext._caseMap_)
                     ? valueFn( iContext, nextEvalContext)
                     : defaultFn ? defaultFn( iContext, iEvalContext) : undefined;
     }
@@ -197,11 +236,25 @@ DG.functionRegistry.registerAggregates({
   
     category: 'DG.Formula.FuncCategoryLookup',
   
-    requiredArgs: { min: 1, max: 2 },
+    requiredArgs: { min: 1, max: 3 },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
-          defaultFn = iInstance.argFns[1];
+          defaultFn = iInstance.argFns[1],
+          filterFn = iInstance.argFns[2];
+      
+      // Find the previous case which passes the filter
+      function getPrevFilteredCase(iCases, iIndex) {
+        if (!iCases || (iIndex < 0)) return null;
+        if (!filterFn) return iCases.objectAt(iIndex);
+
+        var i, tCase;
+        for (i = iIndex; i >= 0; --i) {
+          tCase = iCases.objectAt(i);
+          if (filterFn(iContext, { _case_: tCase, _id_: tCase.get('id') }))
+            return tCase;
+        }
+      }
       
       // The appropriate evaluation context for the prev() argument
       // is the previous case, i.e. the case at the previous index.
@@ -210,11 +263,9 @@ DG.functionRegistry.registerAggregates({
             parentCase = iCase && iCase.get('parent'),
             siblings = parentCase ? parentCase.get('children')
                                   : (iContext && iContext.getPath('collection.cases')),
-            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
-            prevCase = siblings && (thisCaseIndex >= 2)
-                              ? siblings.objectAt( thisCaseIndex - 2)  // 0-based index
-                              : null,
-            tmpEvalContext = prevCase ? { _caseMap_: {} } : null;
+            thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),    // 1-based index
+            prevCase = getPrevFilteredCase(siblings, thisCaseIndex - 2),  // 0-based index
+            tmpEvalContext = { _caseMap_: {} };
 
         // The appropriate prev case depends on the attribute argument.
         // We stash a map of potential prev cases into the evaluation context
@@ -234,7 +285,7 @@ DG.functionRegistry.registerAggregates({
       var prevEvalContext = valueFn && getPrevEvalContext( iContext, iEvalContext);
 
       // default to undefined (empty) if no user-specified default
-      return prevEvalContext
+      return prevEvalContext && DG.ObjectMap.length(prevEvalContext._caseMap_)
                     ? valueFn( iContext, prevEvalContext)
                     : defaultFn ? defaultFn( iContext, iEvalContext) : undefined;
     }
