@@ -23,9 +23,12 @@
 // localized string added to this file!
 //
 SC.stringsFor('English', {
+  // main.js
+  'DG.main.userEntryView.title': "What would you like to do?",
+  'DG.main.userEntryView.openDocument': "Open Document or Browse Examples",
+  'DG.main.userEntryView.newDocument': "Create New Document",
+
   // mainPage.js
-  // 'DG.mainPage.mainPane.logoutButton.title': "Logout",
-  // 'DG.mainPage.mainPane.logoutButton.toolTip': "Log out the current user",
   'DG.mainPage.mainPane.undoButton.title': "Undo",
   'DG.mainPage.mainPane.undoButton.toolTip': "Undo the last action",
   'DG.mainPage.mainPane.redoButton.title': "Redo",

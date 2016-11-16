@@ -259,10 +259,8 @@ DG.main = function main() {
   }
 
   function cfmShowUserEntryView() {
-    var hasFileInUrl = (window.location.search.indexOf('file=') >= 0) ||
-                            (window.location.hash.indexOf('file=') >= 0),
 
-    DialogContents = React.createFactory(React.createClass({
+    var DialogContents = React.createFactory(React.createClass({
       close: function () {
         DG.cfmClient.hideBlockingModal();
       },
@@ -278,34 +276,29 @@ DG.main = function main() {
         DG.cfmClient.openFileDialog();
       },
       componentDidMount: function() {
-        this.refs.newButton.focus();
+        this.refs.openButton.focus();
       },
       render: function () {
         return React.DOM.div({onKeyDown: function(evt) {
                                 // escape key
                                 if (evt.keyCode === 27) this.createNewDocument();
                                 // return/enter
-                                else if (evt.keyCode === 13) {
-                                  if (hasFileInUrl)
-                                    this.authorizeUrlDocument();
-                                  else
-                                    this.createNewDocument();
-                                }
+                                else if (evt.keyCode === 13) this.openDocument();
                               }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 1},
-                        React.DOM.button({ref: 'newButton',
-                                          onClick: this.createNewDocument},
-                                          "Create New Document")),
           React.DOM.div({style: {margin: 10}, key: 2},
                         React.DOM.button({ref: 'openButton',
                                           onClick: this.openDocument},
-                                          "Open Document or Browse Examples"))
+                                          'DG.main.userEntryView.openDocument'.loc())),
+          React.DOM.div({style: {margin: 10}, key: 1},
+                        React.DOM.button({ref: 'newButton',
+                                          onClick: this.createNewDocument},
+                                          'DG.main.userEntryView.newDocument'.loc()))
         ]);
       }
     }));
     if (DG.get('showUserEntryView')) {
       DG.cfmClient.showBlockingModal({
-        title: "What would you like to do?",
+        title: 'DG.main.userEntryView.title'.loc(),
         message: DialogContents({}), // jshint ignore:line
         onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
       );
