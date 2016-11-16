@@ -1128,7 +1128,9 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     // sort collections
     topCollection.get('collection').reorderCases(0, []);
-
+    this.forEachCollection(function (collection) {
+      collection.get('collection').updateCaseIDToIndexMap();
+    });
     return { collections: DG.ObjectMap.values(collections),
             createdCases: createdCases, deletedCases: deletedCases };
   },
