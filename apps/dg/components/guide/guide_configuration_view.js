@@ -157,7 +157,7 @@ DG.GuideConfigurationView = SC.PalettePane.extend(
                 return iRowView.get('rowObject');
               } )
         .filter( function( iObject) {
-                  return iObject ? true : false;
+                  return !!iObject;
                 });
     }.property(),
 

@@ -316,17 +316,20 @@ DG.DependencyMgr = SC.Object.extend((function() {
         i, dependency,
         aggFnIndices = iDependency.aggFnIndices,
         aggFnIndexCount = aggFnIndices ? aggFnIndices.length : 0;
+
+    function trackFnIndices(iAggFnIndex) {
+      if (aggFnIndices.indexOf(iAggFnIndex) < 0) {
+        aggFnIndices.push(iAggFnIndex);
+      }
+    }
+
     for (i = 0; i < dependencyCount; ++i) {
       dependency = dependencies[i];
       // do we already have this dependency in the list?
       if (0 === _compareNodeSpecs(dependency.node, iIndependentNode)) {
         if (aggFnIndexCount) {
           // keep track of aggFnIndices affected
-          aggFnIndices.forEach(function(iAggFnIndex) {
-            if (dependency.aggFnIndices.indexOf(iAggFnIndex) < 0) {
-              dependency.aggFnIndices.push(iAggFnIndex);
-            }
-          });
+          aggFnIndices.forEach(trackFnIndices);
         }
         else {
           dependency.simpleDependency = true;

@@ -41,8 +41,9 @@ DG.PickerColorControl = SC.View.extend(
           this.set('lastColor', this.get('initialColor'));
         }
         this.invokeLast(function () {
+          /* global tinycolor */
           this.$('#custom1').spectrum({
-            color: tinycolor(this.initialColor), // jshint ignore:line
+            color: tinycolor(this.initialColor),
             appendTo: this.appendToLayerFunc(),
             showAlpha: true,
             showInitial: true,

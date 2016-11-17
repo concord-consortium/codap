@@ -392,7 +392,7 @@ DG.PlotUtilities = {
             node.setAttribute(att, value);
             o._.dirty = 1;
             break;
-          case "r":
+          case "r":                 // eslint-disable-next-line eqeqeq
             if (o.type == "rect") { // jshint ignore:line
               $(node, {rx: value, ry: value});
             } else {
@@ -417,9 +417,10 @@ DG.PlotUtilities = {
             }
             clr[has]("opacity") && $(node, {"fill-opacity": clr.opacity > 1 ?
                 clr.opacity / 100 : clr.opacity});  // jshint ignore:line
+            // fall through
           case "stroke":
             clr = R.getRGB(value);
-            node.setAttribute(att, clr.hex);
+            node.setAttribute(att, clr.hex);            // eslint-disable-next-line eqeqeq
             att == "stroke" && clr[has]("opacity") &&   // jshint ignore:line
               $(node, {"stroke-opacity": clr.opacity > 1 ? clr.opacity / 100 : clr.opacity});
             break;
@@ -427,9 +428,9 @@ DG.PlotUtilities = {
             if (attrs.gradient && !attrs[has]("stroke-opacity")) {
               $(node, {"stroke-opacity": value > 1 ? value / 100 : value});
             }  // jshint ignore:line
-          // fall
-          default:
-            att == "font-size" && (value = toInt(value, 10) + "px");  // jshint ignore:line
+          // fall through
+          default:                                                      // eslint-disable-next-line eqeqeq
+            att == "font-size" && (value = parseInt(value, 10) + "px"); // jshint ignore:line
             var cssrule = att.replace(/(\-.)/g, function (w) {
               return w.substring(1).toUpperCase();
             });

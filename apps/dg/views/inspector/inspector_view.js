@@ -57,7 +57,8 @@ DG.InspectorView = DG.DraggableView.extend(
                 var tChildren = this.get('childViews'),
                     tChild;
                 // We call removeChild for each member of the array. This has the side effect of modifying the array
-                while (tChild = tChildren[0]) {  // jshint ignore:line
+                                                  // eslint-disable-next-line no-cond-assign
+                while (tChild = tChildren[0]) {   // jshint ignore:line
                   this.removeChild(tChild);
                 }
               }.bind(this),

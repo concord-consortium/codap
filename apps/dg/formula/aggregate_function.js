@@ -78,6 +78,11 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
   queryCache: function( iContext, iEvalContext, iInstance) {
     return iInstance.results ? iInstance.results[ iEvalContext._id_] : undefined;
   },
+
+  preEvaluate: function(iContext, iEvalContext, iInstance) {
+    iInstance.caches = {};
+    iInstance.results = {};
+  },
   
   /**
     Evaluates the aggregate function and returns a computed result for the specified case.
@@ -96,14 +101,14 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
     var cachedResult = this.queryCache( iContext, iEvalContext, iInstance);
     if( cachedResult !== undefined) return cachedResult;
 
+    this.preEvaluate(iContext, iEvalContext, iInstance);
+
     // Prepare for iteration over all the cases.
     var collection = iContext && iContext.getCollectionToIterate(),
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
     // iterate over all the cases.
-    if (!iInstance.caches) iInstance.caches = {};
-    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           e = { _case_: tCase, _id_: tCase && tCase.get('id') };
@@ -265,12 +270,12 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
     var cachedResult = this.queryCache( iContext, iEvalContext, iInstance);
     if( cachedResult !== undefined) return cachedResult;
 
+    this.preEvaluate(iContext, iEvalContext, iInstance);
+
     var collection = iContext && iContext.getCollectionToIterate(),
         cases = collection && collection.get('cases'),
         caseCount = cases && cases.get('length');
 
-    if (!iInstance.caches) iInstance.caches = {};
-    if (!iInstance.results) iInstance.results = {};
     for( var i = 0; i < caseCount; ++i) {
       var tCase = cases.objectAt( i),
           tEvalContext = $.extend({}, iEvalContext,

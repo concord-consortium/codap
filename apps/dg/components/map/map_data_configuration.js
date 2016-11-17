@@ -311,6 +311,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             });
           }
           catch (er) {
+            // ignore exceptions
           }
         });
 

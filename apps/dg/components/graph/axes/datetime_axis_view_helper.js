@@ -445,7 +445,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           tThisLabel = getLevelLabelForValue(iLevel, tLowerBoundsMS);
           tFirstLabelString = tThisLabel.labelString;	// Make a copy because it might be what we end up drawing
 
-          while (true) {
+          while (true) {  // eslint-disable-line no-constant-condition
             tNextLabel = getNextLevelLabelForValue(iLevel, tThisLabel.labelDate);
             if (isNaN(tNextLabel.labelDate))
               break;	// we break on invalid dates. Instead of breaking, we could attempt to go on to format any valid

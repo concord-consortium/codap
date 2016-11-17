@@ -42,7 +42,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * so that clicks on row boundaries have the expected user effect.
    */
   var kHeaderHeight = 59,//29,
-      kAutoScrollInterval = 200;  //jshint ignore: line
+                                  // eslint-disable-next-line no-unused-vars
+      kAutoScrollInterval = 200;  // jshint ignore: line
                                   // msec == 5 rows/sec
 
   return {  // return from closure

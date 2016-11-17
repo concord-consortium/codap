@@ -69,9 +69,9 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
   doDraw: function doDraw() {
     var this_ = this,
         tMarquee,
-        tLastRect,
+        tLastRect,  // eslint-disable-line no-unused-vars
         tStartPt,
-        tBaseSelection = [];
+        tBaseSelection = [];  // eslint-disable-line no-unused-vars
 
     function startMarquee( iWindowX, iWindowY, iEvent) {
       if( iEvent.shiftKey) {
