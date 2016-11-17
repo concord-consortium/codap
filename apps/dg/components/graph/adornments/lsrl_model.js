@@ -65,6 +65,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
           this.setIfChanged('slope', tSlopeIntercept.slope);
           this.setIfChanged('intercept', tSlopeIntercept.intercept);
           this.setIfChanged('rSquared', tSlopeIntercept.rSquared);
+          this.setIfChanged('sumSquaresResiduals', tSlopeIntercept.sumSquaresResiduals);
           this.setIfChanged('isVertical', !isFinite(tSlopeIntercept.slope));
           this.setIfChanged('xIntercept', null);
         this.endPropertyChanges();

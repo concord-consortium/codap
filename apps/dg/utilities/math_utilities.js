@@ -210,10 +210,10 @@ DG.MathUtilities = {
    * Returns an object that has the slope and intercept
    * @param iValues [{x: {Number}, y: {Number}}]
    * @param iInterceptLocked {Boolean}
-   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}}}
+   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sumSquaresResiduals: { Number}}
    */
   leastSquaresLinearRegression: function( iValues, iInterceptLocked) {
-    var tSlopeIntercept = { slope: NaN, intercept: NaN, rSquared: NaN };
+    var tSlopeIntercept = { slope: NaN, intercept: NaN, rSquared: NaN, sumSquaresResiduals: NaN };
 
     function computeBivariateStats() {
       var tResult = {
@@ -272,6 +272,10 @@ DG.MathUtilities = {
         tSlopeIntercept.intercept = tBiStats.yMean - tSlopeIntercept.slope * tBiStats.xMean;
         tSlopeIntercept.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
             (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations);
+        tSlopeIntercept.sumSquaresResiduals = tBiStats.ySumSquaredDeviations +
+            (tBiStats.ySum / tBiStats.count) * (tBiStats.ySum - tSlopeIntercept.slope * tBiStats.xSum) -
+                tSlopeIntercept.intercept * tBiStats.ySum -
+                tSlopeIntercept.slope * tBiStats.sumOfProductDiffs;
       }
     }
     return tSlopeIntercept;
