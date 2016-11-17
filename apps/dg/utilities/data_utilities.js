@@ -122,7 +122,8 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
   if (ISO_8601_FULL.test(iValue)) return DG.createDate(iValue);
 
-  return iValue;
+  // Now, all we have left are plain strings. Trim them.
+  return iValue.trim();
 };
 
 /**

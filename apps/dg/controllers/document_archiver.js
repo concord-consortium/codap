@@ -285,7 +285,7 @@ DG.DocumentArchiver = SC.Object.extend(
           if( DG.isDateString( tValue)) {
             tValue = DG.createDate( tValue);
           }
-          tCase.values[ iName] = tValue;
+          tCase.values[ iName] = DG.DataUtilities.canonicalizeInputValue(tValue);
         });
         tCasesArray.push( tCase);
       });
