@@ -52,6 +52,11 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   xIntercept: null,
 
   /**
+   * @property {Number}
+   */
+  sumSquaresResiduals: null,
+
+  /**
     Is the intercept locked at the origin?
     @property { Boolean }
   */

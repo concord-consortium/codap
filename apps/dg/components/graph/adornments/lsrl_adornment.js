@@ -27,6 +27,15 @@ sc_require('components/graph/adornments/twoD_line_adornment');
 DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 /** @scope DG.LSRLAdornment.prototype */ 
 {
+  equationString: function() {
+    var tResult = sc_super(),
+        tFormat = DG.Format.number().fractionDigits( 0, 3),
+        tRSquared = this.getPath('model.rSquared'),
+        tRSquaredString = SC.none( tRSquared) ? '' : tFormat( tRSquared);
+
+    return tResult + ', r2 = ' + tRSquaredString;
+  }.property(),
+
   /**
     Make the pieces of the line. This only needs to be done once.
   */
@@ -40,14 +49,17 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
                       'stroke-opacity': 0 });
     this.lineSeg.animatable = true;
 
+    this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
+        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
     // Put the text below the hit segments in z-order so user can still hit the line
-    this.equation = tPaper.text( 0, 0, '').attr({ font: 'caption', opacity: 0 });
+    this.equation = tPaper.text( 0, 0, '')
+        .attr({ font: 'caption', opacity: 0, stroke: DG.PlotUtilities.kDefaultLSRLColor });
     this.equation.animatable = true;
 
     // Tune up the line rendering a bit
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
-    this.myElements = [ this.lineSeg, this.equation ];
+    this.myElements = [ this.lineSeg, this.backgrndRect, this.equation ];
     this.myElements.forEach( function( iElement) {
       tLayer.push( iElement);
     });
@@ -56,6 +68,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 
   updateToModel: function() {
     var tModel = this.get('model');
+    if( !tModel.get('isVisible')) // Only update if we're visible
+        return;
     tModel.recomputeSlopeAndInterceptIfNeeded();
     var tSlope = tModel.get('slope'),
         tIntercept = tModel.get('intercept');
@@ -95,7 +109,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
                                       y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 }),
         tPaperWidth = this.get('paper').width,
         tPaperHeight = this.get('paper').height,
-        tTextBox, tTextWidth, tAlign;
+        tTextBox, tTextWidth, tAlign, tBackgrndX;
 
     DG.RenderingUtilities.updateLine( this.lineSeg,
                 worldToScreen( tIntercepts.pt1), worldToScreen( tIntercepts.pt2));
@@ -106,10 +120,12 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     if( tTextAnchor.x < tPaperWidth / 2) {
       tAlign = 'start';
       tTextAnchor.x = Math.min( tTextAnchor.x, tPaperWidth - tTextWidth);
+      tBackgrndX = tTextAnchor.x;
     }
     else {
       tAlign = 'end';
       tTextAnchor.x = Math.max( tTextAnchor.x, tTextWidth);
+      tBackgrndX = tTextAnchor.x - tTextBox.width;
     }
     // We don't want the equation to sit on the line
     tTextAnchor.y += tTextBox.height / 2;
@@ -117,6 +133,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
 
     // At last set the equation attributes
+    this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
+      width: tTextWidth, height: tTextBox.height });
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString') });
   }

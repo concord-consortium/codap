@@ -210,10 +210,10 @@ DG.MathUtilities = {
    * Returns an object that has the slope and intercept
    * @param iValues [{x: {Number}, y: {Number}}]
    * @param iInterceptLocked {Boolean}
-   * @returns {{slope: {Number}, intercept: {Number}}}
+   * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sumSquaresResiduals: { Number}}
    */
   leastSquaresLinearRegression: function( iValues, iInterceptLocked) {
-    var tSlopeIntercept = { slope: NaN, intercept: NaN };
+    var tSlopeIntercept = { slope: NaN, intercept: NaN, rSquared: NaN, sumSquaresResiduals: NaN };
 
     function computeBivariateStats() {
       var tResult = {
@@ -223,9 +223,11 @@ DG.MathUtilities = {
             xSumSquaredDeviations: 0,
             ySum: 0,
             ySumOfSquares: 0,
+            ySumSquaredDeviations: 0,
             sumOfProductDiffs: 0
           },
-          tSumDiffs = 0;
+          tSumDiffsX = 0,
+          tSumDiffsY = 0;
       iValues.forEach(function (iPair) {
         if (isFinite(iPair.x) && isFinite(iPair.y)) {
           tResult.count += 1;
@@ -239,17 +241,21 @@ DG.MathUtilities = {
         tResult.xMean = tResult.xSum / tResult.count;
         tResult.yMean = tResult.ySum / tResult.count;
         iValues.forEach(function (iPair) {
-          var tDiff;
+          var tDiffX, tDiffY;
           if (isFinite(iPair.x) && isFinite(iPair.y)) {
             tResult.sumOfProductDiffs += (iPair.x - tResult.xMean) * (iPair.y - tResult.yMean);
-            tDiff = iPair.x - tResult.xMean;
-            tResult.xSumSquaredDeviations += tDiff * tDiff;
-            tSumDiffs += tDiff;
+            tDiffX = iPair.x - tResult.xMean;
+            tResult.xSumSquaredDeviations += tDiffX * tDiffX;
+            tSumDiffsX += tDiffX;
+            tDiffY = iPair.y - tResult.yMean;
+            tResult.ySumSquaredDeviations += tDiffY * tDiffY;
+            tSumDiffsY += tDiffY;
           }
         });
         // Subtract a correction factor for roundoff error.
         // See Numeric Recipes in C, section 14.1 for details.
-        tResult.xSumSquaredDeviations -= (tSumDiffs * tSumDiffs / tResult.count);
+        tResult.xSumSquaredDeviations -= (tSumDiffsX * tSumDiffsX / tResult.count);
+        tResult.ySumSquaredDeviations -= (tSumDiffsY * tSumDiffsY / tResult.count);
       }
       return tResult;
     }
@@ -264,6 +270,12 @@ DG.MathUtilities = {
       else {
         tSlopeIntercept.slope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
         tSlopeIntercept.intercept = tBiStats.yMean - tSlopeIntercept.slope * tBiStats.xMean;
+        tSlopeIntercept.rSquared = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
+            (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations);
+        tSlopeIntercept.sumSquaresResiduals = tBiStats.ySumSquaredDeviations +
+            (tBiStats.ySum / tBiStats.count) * (tBiStats.ySum - tSlopeIntercept.slope * tBiStats.xSum) -
+                tSlopeIntercept.intercept * tBiStats.ySum -
+                tSlopeIntercept.slope * tBiStats.sumOfProductDiffs;
       }
     }
     return tSlopeIntercept;
