@@ -105,14 +105,6 @@ DG.Case = DG.BaseModel.extend((function() {
     }.property(),
 
     /**
-     * An object whose properties represent the values of the case.
-     *
-     * Only used to persist the object as JSON.
-     * @property {Object}
-     */
-    values: null,
-
-    /**
      * Initialization function for the case.
      */
     init: function() {
@@ -318,21 +310,19 @@ DG.Case = DG.BaseModel.extend((function() {
     /**
      Override to handle 'values' specially.
      During runtime, the _valuesMap, which maps from attrID to value,
-     is the definitive contents of the case. In this method, we copy
-     the contents of the _valuesMap to the 'values' property, which
-     maps from attrName to value, for archival purposes.
+     is the definitive contents of the case. In this method, we copy the
+     contents of the _valuesMap to the 'archivableValues' property, which
+     maps from attrName to value and converts values for archival purposes.
      */
-    genArchive: function() {
+    archivableValues: function() {
       var values = {};
       var valuesMap = this.get('_valuesMap');
       var attrs = this.collection.attrs;
       attrs.forEach(function (attr, ix) {
-        values[attr.name] = valuesMap[attr.id];
+        values[attr.name] = convertValue(valuesMap[attr.id]);
       });
-      // Note that in the absence of a doPostArchive() method, we don't
-      // have an opportunity to clear the 'values' between saves.
-      this.set('values', values);
-    },
+      return values;
+    }.property(),
 
 
     debugLog: function(iPrompt) {
@@ -341,13 +331,11 @@ DG.Case = DG.BaseModel.extend((function() {
 
     toArchive: function () {
       var result;
-      this.genArchive();
       result = {
         parent: (this.get('parent') && this.get('parent').id)  || undefined,
         guid: this.id,
-        values: this.values
+        values: this.get('archivableValues')
       };
-      this.values = null;
       return result;
     }
   };
