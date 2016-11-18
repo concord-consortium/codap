@@ -23,9 +23,23 @@
 // localized string added to this file!
 //
 SC.stringsFor('English', {
+
+  // CFM/File menu
+  'DG.fileMenu.menuItem.newDocument': "New",
+  'DG.fileMenu.menuItem.openDocument': "Open...",
+  'DG.fileMenu.menuItem.closeDocument': "Close",
+  'DG.fileMenu.menuItem.importFile': "Import...",
+  'DG.fileMenu.menuItem.revertTo': "Revert...",
+    'DG.fileMenu.menuItem.revertToOpened': "Recently opened state",
+    'DG.fileMenu.menuItem.revertToShared': "Shared view",
+  'DG.fileMenu.menuItem.saveDocument': "Save...",
+  'DG.fileMenu.menuItem.copyDocument': "Create a copy",
+  'DG.fileMenu.menuItem.share': "Share...",
+    'DG.fileMenu.menuItem.shareGetLink': "Get link to shared view",
+    'DG.fileMenu.menuItem.shareUpdate': "Update shared view",
+  'DG.fileMenu.menuItem.renameDocument': "Rename",
+
   // mainPage.js
-  // 'DG.mainPage.mainPane.logoutButton.title': "Logout",
-  // 'DG.mainPage.mainPane.logoutButton.toolTip': "Log out the current user",
   'DG.mainPage.mainPane.undoButton.title': "Undo",
   'DG.mainPage.mainPane.undoButton.toolTip': "Undo the last action",
   'DG.mainPage.mainPane.redoButton.title': "Redo",
