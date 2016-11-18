@@ -12283,16 +12283,13 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if ((metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) && !metadata.forceSaveDialog) {
+    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('resave', metadata) : void 0 : void 0) {
       this._setState({
         saving: metadata
       });
       currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
       return metadata.provider.save(currentContent, metadata, (function(_this) {
         return function(err, statusCode) {
-          var isLocalFile;
-          isLocalFile = metadata.provider instanceof LocalFileProvider;
-          metadata.forceSaveDialog = isLocalFile;
           if (err) {
             metadata.autoSaveDisabled = true;
             _this._setState({
@@ -12308,7 +12305,9 @@ CloudFileManagerClient = (function() {
           if (_this.state.metadata !== metadata) {
             _this._closeCurrentFile();
           }
-          metadata.autoSaveDisabled = !!isLocalFile;
+          if (metadata.autoSaveDisabled != null) {
+            delete metadata.autoSaveDisabled;
+          }
           _this._fileChanged('savedFile', currentContent, metadata, {
             saved: true
           }, _this._getHashParams(metadata));
@@ -12746,7 +12745,7 @@ CloudFileManagerClient = (function() {
     shouldAutoSave = (function(_this) {
       return function() {
         var ref, ref1, ref2;
-        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('save', _this.state.metadata) : void 0 : void 0);
+        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('resave', _this.state.metadata) : void 0 : void 0);
       };
     })(this);
     if (interval > 1000) {
@@ -12985,9 +12984,9 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype._getHashParams = function(metadata) {
-    var ref;
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.canOpenSaved() : void 0 : void 0) {
-      return "#file=" + (metadata.provider.urlDisplayName || metadata.provider.name) + ":" + (encodeURIComponent(metadata.provider.getOpenSavedParams(metadata)));
+    var openSavedParams, ref, ref1;
+    if ((metadata != null ? (ref = metadata.provider) != null ? ref.canOpenSaved() : void 0 : void 0) && ((openSavedParams = metadata != null ? (ref1 = metadata.provider) != null ? ref1.getOpenSavedParams(metadata) : void 0 : void 0) != null)) {
+      return "#file=" + (metadata.provider.urlDisplayName || metadata.provider.name) + ":" + (encodeURIComponent(openSavedParams));
     } else if ((metadata != null ? metadata.provider : void 0) instanceof URLProvider && window.location.hash.indexOf("#file=http") === 0) {
       return window.location.hash;
     } else {
@@ -13081,6 +13080,8 @@ DocumentStoreProvider = (function(superClass) {
       urlDisplayName: this.options.urlDisplayName,
       capabilities: {
         save: this.isNotDeprecated('save'),
+        resave: this.isNotDeprecated('save'),
+        "export": false,
         load: this.isNotDeprecated('load'),
         list: this.isNotDeprecated('list'),
         remove: this.isNotDeprecated('remove'),
@@ -13091,9 +13092,11 @@ DocumentStoreProvider = (function(superClass) {
     this.urlParams = {
       documentServer: getQueryParam("documentServer"),
       recordid: getQueryParam("recordid"),
-      runKey: getQueryParam("runKey")
+      runKey: getQueryParam("runKey"),
+      docName: getQueryParam("doc"),
+      docOwner: getQueryParam("owner")
     };
-    this.removableQueryParams = ['recordid'];
+    this.removableQueryParams = ['recordid', 'doc', 'owner'];
     this.docStoreUrl = new DocumentStoreUrl(this.urlParams.documentServer);
     this.user = null;
     this.savedContent = new PatchableContent(this.options.patchObjectHash);
@@ -13101,8 +13104,16 @@ DocumentStoreProvider = (function(superClass) {
 
   DocumentStoreProvider.Name = 'documentStore';
 
+  DocumentStoreProvider.prototype.can = function(capability, metadata) {
+    var ref1;
+    if (((capability === 'save') || (capability === 'resave')) && (metadata != null ? (ref1 = metadata.providerData) != null ? ref1.owner : void 0 : void 0)) {
+      return false;
+    }
+    return DocumentStoreProvider.__super__.can.call(this, capability, metadata);
+  };
+
   DocumentStoreProvider.prototype.isAuthorizationRequired = function() {
-    return !this.urlParams.runKey;
+    return !(this.urlParams.runKey || (this.urlParams.docName && this.urlParams.docOwner));
   };
 
   DocumentStoreProvider.prototype.authorized = function(authCallback) {
@@ -13265,7 +13276,15 @@ DocumentStoreProvider = (function(superClass) {
 
   DocumentStoreProvider.prototype.handleUrlParams = function() {
     if (this.urlParams.recordid) {
-      this.client.openProviderFile(this.name, this.urlParams.recordid);
+      this.client.openProviderFile(this.name, {
+        id: this.urlParams.recordid
+      });
+      return true;
+    } else if (this.urlParams.docName && this.urlParams.docOwner) {
+      this.client.openProviderFile(this.name, {
+        name: this.urlParams.docName,
+        owner: this.urlParams.docOwner
+      });
       return true;
     } else {
       return false;
@@ -13314,23 +13333,36 @@ DocumentStoreProvider = (function(superClass) {
   };
 
   DocumentStoreProvider.prototype.load = function(metadata, callback) {
-    var ref1, withCredentials;
+    var recordid, ref1, ref2, ref3, ref4, ref5, requestData, withCredentials;
     withCredentials = !metadata.sharedContentId ? true : false;
+    recordid = ((ref1 = metadata.providerData) != null ? ref1.id : void 0) || metadata.sharedContentId;
+    requestData = {};
+    if (recordid) {
+      requestData.recordid = recordid;
+    }
+    if (this.urlParams.runKey) {
+      requestData.runKey = this.urlParams.runKey;
+    }
+    if (!recordid) {
+      if ((ref2 = metadata.providerData) != null ? ref2.name : void 0) {
+        requestData.recordname = (ref3 = metadata.providerData) != null ? ref3.name : void 0;
+      }
+      if ((ref4 = metadata.providerData) != null ? ref4.owner : void 0) {
+        requestData.owner = (ref5 = metadata.providerData) != null ? ref5.owner : void 0;
+      }
+    }
     return $.ajax({
       url: this.docStoreUrl.loadDocument(),
       dataType: 'json',
-      data: {
-        recordid: ((ref1 = metadata.providerData) != null ? ref1.id : void 0) || metadata.sharedContentId,
-        runKey: this.urlParams.runKey ? this.urlParams.runKey : void 0
-      },
+      data: requestData,
       context: this,
       xhrFields: {
         withCredentials: withCredentials
       },
       success: function(data) {
-        var content, ref2;
+        var content, ref6;
         content = cloudContentFactory.createEnvelopedCloudContent(data);
-        metadata.rename(metadata.name || data.docName || data.name || ((ref2 = data.content) != null ? ref2.name : void 0));
+        metadata.rename(metadata.name || metadata.providerData.name || data.docName || data.name || ((ref6 = data.content) != null ? ref6.name : void 0));
         if (metadata.name) {
           content.addMetadata({
             docName: metadata.filename
@@ -13347,11 +13379,11 @@ DocumentStoreProvider = (function(superClass) {
         })(this)
       },
       error: function(jqXHR) {
-        var message, ref2;
+        var message, ref6;
         if (jqXHR.status === 403) {
           return;
         }
-        message = metadata.sharedContentId ? "Unable to load document '" + metadata.sharedContentId + "'. Perhaps the file was not shared?" : "Unable to load " + (metadata.name || ((ref2 = metadata.providerData) != null ? ref2.id : void 0) || 'file');
+        message = metadata.sharedContentId ? "Unable to load document '" + metadata.sharedContentId + "'. Perhaps the file was not shared?" : "Unable to load " + (metadata.name || ((ref6 = metadata.providerData) != null ? ref6.id : void 0) || 'file');
         return callback(message);
       }
     });
@@ -13490,13 +13522,14 @@ DocumentStoreProvider = (function(superClass) {
   };
 
   DocumentStoreProvider.prototype.openSaved = function(openSavedParams, callback) {
-    var metadata;
+    var metadata, providerData;
+    providerData = typeof openSavedParams === "object" ? openSavedParams : {
+      id: openSavedParams
+    };
     metadata = new CloudMetadata({
       type: CloudMetadata.File,
       provider: this,
-      providerData: {
-        id: openSavedParams
-      }
+      providerData: providerData
     });
     return this.load(metadata, (function(_this) {
       return function(err, content) {
@@ -13822,13 +13855,14 @@ GoogleDriveProvider = (function(superClass) {
       urlDisplayName: this.options.urlDisplayName,
       capabilities: {
         save: true,
+        resave: true,
+        "export": true,
         load: true,
         list: true,
         remove: false,
         rename: true,
         close: true,
-        setFolder: true,
-        saveUnwrapped: true
+        setFolder: true
       }
     });
     this.authToken = null;
@@ -14348,6 +14382,8 @@ LaraProvider = (function(superClass) {
       name: LaraProvider.Name,
       capabilities: {
         save: true,
+        resave: true,
+        "export": false,
         load: true,
         list: false,
         remove: false,
@@ -14450,10 +14486,11 @@ LaraProvider = (function(superClass) {
     });
   };
 
-  LaraProvider.prototype.save = function(cloudContent, metadata, callback) {
-    var content, method, params, patchResults, ref, ref1, ref2, url;
+  LaraProvider.prototype.save = function(cloudContent, metadata, callback, disablePatch) {
+    var canPatch, content, method, params, patchResults, ref, ref1, ref2, url;
     content = cloudContent.getContent();
-    patchResults = this.savedContent.createPatch(content, this.options.patch && metadata.overwritable);
+    canPatch = this.options.patch && metadata.overwritable && !disablePatch;
+    patchResults = this.savedContent.createPatch(content, canPatch);
     if (patchResults.shouldPatch && !patchResults.diffLength) {
       callback(null);
       return;
@@ -14486,15 +14523,19 @@ LaraProvider = (function(superClass) {
       },
       error: function(jqXHR) {
         var error1, responseJson;
-        try {
-          responseJson = JSON.parse(jqXHR.responseText);
-          if (responseJson.message === 'error.duplicate') {
-            return callback("Unable to create " + metadata.name + ". File already exists.");
-          } else {
-            return callback("Unable to save " + metadata.name + ": [" + responseJson.message + "]");
+        if (patchResults.shouldPatch) {
+          return this.save(cloudContent, metadata, callback, true);
+        } else {
+          try {
+            responseJson = JSON.parse(jqXHR.responseText);
+            if (responseJson.message === 'error.duplicate') {
+              return callback("Unable to create " + metadata.name + ". File already exists.");
+            } else {
+              return callback("Unable to save " + metadata.name + ": [" + responseJson.message + "]");
+            }
+          } catch (error1) {
+            return callback("Unable to save " + metadata.name);
           }
-        } catch (error1) {
-          return callback("Unable to save " + metadata.name);
         }
       }
     });
@@ -14792,13 +14833,13 @@ LocalFileProvider = (function(superClass) {
       displayName: this.options.displayName || (tr('~PROVIDER.LOCAL_FILE')),
       capabilities: {
         save: true,
+        resave: false,
+        "export": true,
         load: true,
         list: true,
         remove: false,
         rename: false,
-        close: false,
-        autoSave: false,
-        saveUnwrapped: true
+        close: false
       }
     });
   }
@@ -14808,7 +14849,7 @@ LocalFileProvider = (function(superClass) {
   LocalFileProvider.prototype.filterTabComponent = function(capability, defaultComponent) {
     if (capability === 'list') {
       return LocalFileListTab;
-    } else if ((capability === 'save') || (capability === 'saveUnwrapped')) {
+    } else if ((capability === 'save') || (capability === 'export')) {
       return LocalFileSaveTab;
     } else {
       return defaultComponent;
@@ -14867,12 +14908,13 @@ LocalStorageProvider = (function(superClass) {
       urlDisplayName: this.options.urlDisplayName,
       capabilities: {
         save: true,
+        resave: true,
+        "export": true,
         load: true,
         list: true,
         remove: true,
         rename: true,
-        close: false,
-        saveUnwrapped: true
+        close: false
       }
     });
   }
@@ -15478,6 +15520,8 @@ ReadOnlyProvider = (function(superClass) {
       urlDisplayName: this.options.urlDisplayName,
       capabilities: {
         save: false,
+        resave: false,
+        "export": false,
         load: true,
         list: true,
         remove: false,
@@ -15777,6 +15821,8 @@ URLProvider = (function(superClass) {
     URLProvider.__super__.constructor.call(this, {
       capabilities: {
         save: false,
+        resave: false,
+        "export": false,
         load: false,
         list: false,
         remove: false,
@@ -15932,7 +15978,9 @@ CloudFileManagerUIMenu = (function() {
         } else {
           menuItem.enabled || (menuItem.enabled = true);
         }
-        menuItem.items = item.items || getItems(item.name);
+        if (items.items) {
+          menuItem.items = getItems(item.items);
+        }
       }
       items.push(menuItem);
     }
@@ -17142,6 +17190,7 @@ FileDialogTab = React.createClass({
       } else {
         saveMetadata.provider = null;
         saveMetadata.providerData = null;
+        saveMetadata.forceSaveDialog = false;
       }
     }
     return saveMetadata;
@@ -17929,7 +17978,7 @@ module.exports = React.createClass({
         case 'saveFileAs':
           return ['save', FileDialogTab];
         case 'saveSecondaryFileAs':
-          return ['saveUnwrapped', FileDialogTab];
+          return ['export', FileDialogTab];
         case 'createCopy':
           return ['save', FileDialogTab];
         case 'selectProvider':

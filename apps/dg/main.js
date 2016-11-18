@@ -134,6 +134,41 @@ DG.main = function main() {
           appBuildNum: DG.BUILD_NUM,
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
+          ui: {
+            menu: [
+              { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
+              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
+              {
+                name: 'DG.fileMenu.menuItem.closeDocument'.loc(),
+                action: function () {
+                          DG.cfmClient.closeFileDialog(function () {
+                            SC.run(function() {
+                              DG.appController.closeAndNewDocument();
+                            });
+                          });
+                        }
+              },
+              { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
+              {
+                name: 'DG.fileMenu.menuItem.revertTo'.loc(),
+                items: [
+                  { name: 'DG.fileMenu.menuItem.revertToOpened'.loc(), action: 'revertToLastOpenedDialog'},
+                  { name: 'DG.fileMenu.menuItem.revertToShared'.loc(), action: 'revertToSharedDialog'}
+                ]
+              },
+              'separator',
+              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileAsDialog' },
+              { name: 'DG.fileMenu.menuItem.copyDocument'.loc(), action: 'createCopy' },
+              {
+                name: 'DG.fileMenu.menuItem.share'.loc(),
+                items: [
+                  { name: 'DG.fileMenu.menuItem.shareGetLink'.loc(), action: 'shareGetLink' },
+                  { name: 'DG.fileMenu.menuItem.shareUpdate'.loc(), action: 'shareUpdate' }
+                ]
+              },
+              { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
+            ],
+          },
           wrapFileContent: false,
           mimeType: 'application/json',
           readableMimeTypes: ['application/x-codap-document'],
@@ -334,20 +369,6 @@ DG.main = function main() {
                                              appBuildNum: DG.BUILD_NUM
                                             });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
-            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
-              name: "Import ...",
-              action: DG.cfmClient.importDataDialog.bind(DG.cfmClient)
-            });
-            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
-              name: "Close",
-              action: function () {
-                DG.cfmClient.closeFileDialog(function () {
-                  SC.run(function() {
-                    DG.appController.closeAndNewDocument();
-                  });
-                });
-              }
-            });
 
             // synchronize document dirty state on document change
             DG.currDocumentController().addObserver('hasUnsavedChanges', function() {
