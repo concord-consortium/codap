@@ -25,6 +25,8 @@ or the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.
 ---
 
 ## More Information
+If you are interested in contributing to the CODAP web app development, follow the Developer Guide.
+If you are interested in creating a data interactive to be used in CODAP, follow the CODAP Data Interactive API.
 
 * [CODAP Data Interactive API](https://github.com/concord-consortium/codap/wiki/CODAP-Data-Interactive-API): 
 An API that permits Data Interactives to exchange case data and context information with their CODAP host.
