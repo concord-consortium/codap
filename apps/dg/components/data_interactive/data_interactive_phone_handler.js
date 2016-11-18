@@ -646,18 +646,63 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues) {
+          // returns a parent key for the appropriate parent, if any.
+          function mapParent (context, parentName) {
+            var parentKey;
+            var collections;
+            var collection;
+
+            if (!SC.none(parentName)) {
+              collection = context.getCollectionByName(parentName);
+              parentKey = collection? collection.get('id'): parentName;
+            } else {
+              collections = context.get('collections');
+              if (collections && collections.length > 0) {
+                parentKey = collections[collections.length - 1].get('id');
+              }
+            }
+            return parentKey;
+          }
+
+          // returns a success indicator and ids.
+          function createOneCollection(iContext, iCollectionSpec, iRequester) {
+            var change = {
+              operation: 'createCollection',
+              properties: iCollectionSpec,
+              attributes: ( iCollectionSpec && iCollectionSpec.attributes ),
+              requester: iRequester.get('id')
+            };
+            iCollectionSpec.parent = mapParent(iContext, iCollectionSpec.parent);
+            var changeResult = iContext.applyChange(change);
+            var success = (changeResult && changeResult.success);
+            var ids = changeResult.collection && {
+                  id: changeResult.collection.get('id'),
+                  name: changeResult.collection.get('name')
+                };
+            return {
+              success: success,
+              values: ids
+            };
+          }
+
           var context = iResources.dataContext;
-          var change = {
-            operation: 'createCollection',
-            properties: iValues,
-            attributes: ( iValues && iValues.attributes ),
-            requester: this.get('id')
-          };
-          var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success) || success;
-          return {
-            success: success,
-          };
+          var success = true;
+          var collectionIdentifiers = [];
+
+          if (!Array.isArray(iValues)) {
+            iValues = [iValues];
+          }
+
+          iValues.every(function (iCollectionSpec) {
+            var rslt = createOneCollection(context, iCollectionSpec, this);
+            success = success && rslt.success;
+            if (success) {
+            collectionIdentifiers.push(rslt.values);
+            }
+            return success;
+          }.bind(this));
+
+          return {success: success, values: collectionIdentifiers};
         },
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
