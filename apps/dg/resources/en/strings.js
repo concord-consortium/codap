@@ -39,6 +39,11 @@ SC.stringsFor('English', {
     'DG.fileMenu.menuItem.shareUpdate': "Update shared view",
   'DG.fileMenu.menuItem.renameDocument': "Rename",
 
+  // main.js
+  'DG.main.userEntryView.title': "What would you like to do?",
+  'DG.main.userEntryView.openDocument': "Open Document or Browse Examples",
+  'DG.main.userEntryView.newDocument': "Create New Document",
+
   // mainPage.js
   'DG.mainPage.mainPane.undoButton.title': "Undo",
   'DG.mainPage.mainPane.undoButton.toolTip': "Undo the last action",

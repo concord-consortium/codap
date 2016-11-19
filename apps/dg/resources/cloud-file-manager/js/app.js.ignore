@@ -15978,7 +15978,7 @@ CloudFileManagerUIMenu = (function() {
         } else {
           menuItem.enabled || (menuItem.enabled = true);
         }
-        if (items.items) {
+        if (item.items) {
           menuItem.items = getItems(item.items);
         }
       }
