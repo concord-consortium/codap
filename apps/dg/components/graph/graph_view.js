@@ -568,12 +568,13 @@ DG.GraphView = SC.View.extend(
         handleOneAxis('model.xAxis', 'xAxisView');
         handleOneAxis('model.yAxis', 'yAxisView');
         handleOneAxis('model.y2Axis', 'y2AxisView');
-        this.get('xAxisView').set('otherAxisView', this.get('yAxisView'));
-        this.get('yAxisView').set('otherAxisView', this.get('xAxisView'));
-        this.get('y2AxisView').set('otherAxisView', this.get('xAxisView'));
-        this.get('y2AxisView').set('otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
-        this.get('y2AxisView').set('xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
-        this.get('yAxisMultiTarget').set('otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
+        this.setPath('xAxisView.otherAxisView', this.get('yAxisView'));
+        this.setPath('yAxisView.otherAxisView', this.get('xAxisView'));
+        this.setPath('y2AxisView.otherAxisView', this.get('xAxisView'));
+        this.setPath('y2AxisView.otherYAttributeDescription', this.getPath('model.yAxis.attributeDescription'));
+        this.setPath('y2AxisView.xAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
+        this.setPath('yAxisMultiTarget.attributeDescription', this.getPath('model.yAxis.attributeDescription'));
+        this.setPath('yAxisMultiTarget.otherAttributeDescription', this.getPath('model.xAxis.attributeDescription'));
         this.renderLayout(this.renderContext(this.get('tagName')), tInitLayout);
       }.observes('.model.xAxis', '.model.yAxis', '.model.y2Axis'),
 
