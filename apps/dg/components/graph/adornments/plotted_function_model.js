@@ -261,10 +261,12 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
     Utility function for creating the DG.Formula.
    */
   createDGFormula: function( iSource) {
-    var owner = { type: 'plottedValue', id: 1, name: 'plottedValue1' },
+    var adornmentKey = this.get('adornmentKey'),
+        id = this.get('id'),
+        owner = { type: adornmentKey, id: id, name: adornmentKey + id },
         context = DG.PlottedFunctionContext
                       .create({ ownerSpec: owner,
-                                adornmentKey: this.get('adornmentKey'),
+                                adornmentKey: adornmentKey,
                                 plotModel: this.get('plotModel'),
                                 splitEval: this.get('splitEval'),
                                 collection: this.get('primaryCollection') });
