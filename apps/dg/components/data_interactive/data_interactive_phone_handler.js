@@ -98,7 +98,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           caseByIndex: this.handleCaseByIndexOrID,
           caseByID: this.handleCaseByIndexOrID,
           caseCount: this.handleCaseCount,
-          caseList: this.handleCaseList,
           caseSearch: this.handleCaseSearch,
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
@@ -335,6 +334,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
         if (resourceSelector.caseByIndex) {
           result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
+        }
+        if (resourceSelector.caseSearch) {
+          result.caseSearch = result.collection && result.collection.searchCases(resourceSelector.caseSearch);
         }
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
           // Make sure we got values for every non-terminal selector.
@@ -957,27 +959,20 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-      handleCaseList: {
-        get: function (iResources) {
-          var cases = iResources.collection.getCases().map(function (iCase) {
-            return this.makeSerializableCase(iResources.collection, iCase);
-          }.bind(this))
-          return {
-            success: true,
-            values: cases
-          };
-        }
-      },
-
       handleCaseSearch: {
-        get: function (iResources, iValues) {
-          var cases = iResources.collection.searchCases(iValues).map(function (iCase) {
-            return this.makeSerializableCase(iResources.collection, iCase);
-          }.bind(this))
+        get: function (iResources) {
+          var success = iResources.caseSearch !== null,
+              cases = [];
+
+          if (success) {
+            cases = iResources.caseSearch.map(function (iCase) {
+              return this.makeSerializableCase(iResources.collection, iCase);
+            }.bind(this));
+          }
           return {
-            success: true,
+            success: success,
             values: cases
-          };
+          }
         }
       },
 

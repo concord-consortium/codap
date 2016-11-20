@@ -412,56 +412,73 @@ DG.CollectionClient = SC.Object.extend(
     return this.casesController.getEach('id');
   },
 
-  getCases: function () {
-    var cases = [];
-    this.casesController.forEach(function (_case) {
-      cases.push(_case);
-    });
-    return cases;
-  },
-
-  searchCases: function (query) {
-    var queryKeys = Object.keys(query),
-        attrNameToIdMap = {};
+  parseSearchQuery: function (queryString) {
+    // for now this is a simple single expression of "left op right" where op is a comparison operator
+    // this could be expanded (along with the testCaseAgainstQuery method below) using the shunting yard algorithm
+    var matches = queryString.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/),
+        trim = function (s) { return s.replace(/^\s+|\s+$/, ''); },
+        parsedQuery = {
+          valid: !!matches,
+          left: matches && trim(matches[1]),
+          op: matches && matches[2],
+          right: matches && trim(matches[3])
+        },
+        attrNameToIdMap = {},
+        parseOperand = function (value) {
+          var numberValue = Number(value),
+              parsedValue = value === 'true' ? true : (value === 'false' ? false : (isNaN(numberValue) ? value : numberValue));
+          return {
+            value: parsedValue,
+            id: attrNameToIdMap[value]
+          }
+        };
 
     this.forEachAttribute(function (attr) {
       attrNameToIdMap[attr.name] = attr.id;
     });
 
-    return this.casesController.filter(function (iCase) {
-      var allTestsMatches = true;
-      queryKeys.forEach(function (queryKey) {
-        var attrValue = iCase.getValue(attrNameToIdMap[queryKey]),
-            queryValue = query[queryKey],
-            testMatches;
+    parsedQuery.left = parseOperand(parsedQuery.left);
+    parsedQuery.right = parseOperand(parsedQuery.right);
 
-        switch (queryValue.test) {
-          case '==':
-            testMatches = attrValue == queryValue.value;
-            break;
-          case '!=':
-            testMatches = attrValue != queryValue.value;
-            break;
-          case '<':
-            testMatches = attrValue < queryValue.value;
-            break;
-          case '<=':
-            testMatches = attrValue <= queryValue.value;
-            break;
-          case '>=':
-            testMatches = attrValue >= queryValue.value;
-            break;
-          case '>':
-            testMatches = attrValue > queryValue.value;
-            break;
-          default:
-            testMatches = false;
-            break;
-        }
-        allTestsMatches = allTestsMatches && testMatches;
-      });
-      return allTestsMatches;
-    });
+    // valid queries must have at least one side with a defined attribute
+    parsedQuery.valid = !!(parsedQuery.valid && (parsedQuery.left.id || parsedQuery.right.id));
+
+    return parsedQuery;
+  },
+
+  testCaseAgainstQuery: function (iCase, parsedQuery) {
+    var getValue = function (attr) {
+          return attr.id ? iCase.getValue(attr.id) : attr.value;
+        },
+        leftValue = getValue(parsedQuery.left),
+        rightValue = getValue(parsedQuery.right);
+
+    if (!parsedQuery.valid) {
+      return false;
+    }
+
+    switch (parsedQuery.op) {
+      case '==': return leftValue === rightValue;
+      case '!=': return leftValue !== rightValue;
+      case '<':  return leftValue <   rightValue;
+      case '<=': return leftValue <=  rightValue;
+      case '>=': return leftValue >=  rightValue;
+      case '>':  return leftValue >   rightValue;
+      default:   return false;
+    }
+  },
+
+  searchCases: function (queryString) {
+    var parsedQuery = this.parseSearchQuery(queryString);
+
+    // return null to signal an invalid query
+    if (!parsedQuery.valid) {
+      return null;
+    }
+
+    return this.casesController.filter(function (iCase) {
+      return this.testCaseAgainstQuery(iCase, parsedQuery);
+    }.bind(this));
   },
 
   /**
