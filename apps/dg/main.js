@@ -15,9 +15,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*globals React */
+/*globals React, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
+sc_require('libraries/iframe-phone');
 
 // This is the function that will start your app running.  The default
 // implementation will load any fixtures you have created then instantiate
@@ -77,6 +78,24 @@ DG.main = function main() {
 
       DG.currDocumentController().setDocument(newDocument);
     }
+  }
+  function startEmbeddedServer() {
+    var controller = DG.ComponentController.extend({}).create(),
+        iHandler = DG.DataInteractivePhoneHandler.create({
+          controller: controller
+        }),
+        iframePhoneHandler = function (command, callback) {
+          iHandler.set('isPhoneInUse', true);
+          iHandler.doCommand(command, function (ret) {
+            DG.doCommandResponseHandler(ret, callback);
+          });
+        };
+
+    iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+
+    iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
+      DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
+    });
   }
   function translateQueryParameters() {
     var url = window.location.href;
@@ -604,11 +623,29 @@ DG.main = function main() {
     }
   }
 
-  if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
+  if(( DG.componentMode !== 'yes') && ( DG.embeddedMode !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
     DG.splash.showSplash();
   }
 
-  translateQueryParameters();
+  if (DG.embeddedMode === 'yes') {
+    // make the application transparent
+    ['html, body', '.sc-main', 'body.dg .sc-view.doc-background'].forEach(function (selector) {
+      var rule = 'background: transparent !important;',
+          firstSheet = document.styleSheets[0];
+
+      if ("insertRule" in firstSheet) {
+        firstSheet.insertRule(selector + "{" + rule + "}");
+      }
+      else if ("addRule" in firstSheet) {
+        firstSheet.addRule(selector, rule);
+      }
+    });
+
+    startEmbeddedServer();
+  }
+  else {
+    translateQueryParameters();
+  }
 
   // load the CFM library
   var cfmLoaded = cfmGlobalsLoaded().then(cfmAppLoaded);

@@ -285,6 +285,14 @@ DG = SC.Application.create((function () // closure
 
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
 
+    /**
+     * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars or the background image and
+     *  a iframePhone server will be setup to enable communication with the outside page.
+     *  The default is 'no'.
+     */
+    embeddedMode: getUrlParameter('embeddedMode', 'no'),
+
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
       'graphButton',
