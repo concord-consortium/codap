@@ -177,6 +177,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     this.updateTextToModel( 1/4); // offset from top of plot
   }.observes('DG.globalsController.globalNameChanges'),
 
+  valueAxisAttrDidChange: function() {
+    this.get('model').invalidateExpression();
+  }.observes('*valueAxisView.model.firstAttributeName'),
+
   /**
 
   */
