@@ -81,41 +81,58 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
   },
 
   /**
-    * Compute or re-compute the lines. Creates an array of world coordinate values
-    * to connect, which also determines the connection order.
-    * If these cases have parents, then the array is an array of arrays of world
-    * coordinate values.
+    * Compute or re-compute the lines. Creates an array of objects, each having a color and
+    * an array of world coordinate values to connect, which also determines the connection order.
     */
   recomputeValue: function() {
     var tCases = this.getPath('plotModel.cases'),
         tParents = [],
         tXVarID = this.getPath( 'plotModel.xVarID'),
         tYKey = 'plotModel.' + (this.getPath('plotModel.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
-        tYVarID = this.getPath(tYKey);
+        tYVarID = this.getPath(tYKey),
+        tLegendDesc = this.getPath('plotModel.dataConfiguration.legendAttributeDescription');
     if( !( tXVarID && tYVarID )) {
       return; // too early to recompute, caller must try again later.
     }
 
+    var getColorMap = function() {
+      var tMap = null,
+          tLegendIsCategorical = tLegendDesc.get('isCategorical'),
+          tFirstCase = tCases[0];
+      if( tLegendIsCategorical && tFirstCase) {
+        var tCaseParentCollectionID = tFirstCase.getPath('parent.collection.id'),
+            tLegendCollID = tLegendDesc.getPath( 'collectionClient.id');
+        if( tCaseParentCollectionID === tLegendCollID)
+            tMap = tLegendDesc.getPath('attribute.colormap');
+      }
+      return tMap;
+    }.bind( this);
+
     // create an array of points to connect for each parent collection
-    var tValues = {};
+    var tValues = {},
+        tColorMap = getColorMap();
     tCases.forEach( function( iCase, iIndex ) {
       var tXVal = iCase.getNumValue( tXVarID),
           tYVal = iCase.getNumValue( tYVarID ),
           tParent = iCase.get('parent' ),
           tParentID = tParent ? tParent.get('id') : 'top';
-      if( isFinite( tXVal) && isFinite( tYVal)) { // if both values exist (else skip missing points)
-        if( !tValues[ tParentID]) {
-          tValues[ tParentID] = [];
-          tParents.push( tParent);
+      if (isFinite(tXVal) && isFinite(tYVal)) { // if both values exist (else skip missing points)
+        if (!tValues[tParentID]) {
+          tValues[tParentID] = {
+            color: (tColorMap ? (tColorMap[iCase.getValue(tLegendDesc.getPath('attribute.id'))]) :
+                null),
+            coordinates: []
+          };
+        }
+        tParents.push(tParent);
       }
-        tValues[ tParentID].push( { x: tXVal, y: tYVal, theCase: iCase } );
-      }
+      tValues[ tParentID].coordinates.push( { x: tXVal, y: tYVal, theCase: iCase } );
     });
 
     if( this.get('sortOnXValues')) {
-      DG.ObjectMap.forEach(tValues, function (iKey, iArray) {
+      DG.ObjectMap.forEach(tValues, function (iKey, iLine) {
         // sort on x value (then y if x equal) for proper connection order
-        iArray.sort(function (a, b) {
+        iLine.coordinates.sort(function (a, b) {
           return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : ((a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0)));
         });
       });
