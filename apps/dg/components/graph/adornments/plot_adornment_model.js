@@ -20,6 +20,9 @@
  * @class  DG.PlotAdornmentModel -- Base class for plot adornment models.
  * @extends SC.Object
  */
+
+DG.PlotAdornmentModelNextID = 0;
+
 DG.PlotAdornmentModel = SC.Object.extend(
 /** @scope DG.PlotAdornmentModel.prototype */
 {
@@ -41,6 +44,13 @@ DG.PlotAdornmentModel = SC.Object.extend(
    */
   isVisible: true,
   
+  /**
+    Initialization method
+   */
+  init: function() {
+    this.set('id', ++ DG.PlotAdornmentModelNextID);
+  },
+
   /**
     Destruction method
    */

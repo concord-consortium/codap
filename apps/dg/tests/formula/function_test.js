@@ -153,6 +153,10 @@ test("Basic tests with default compile and evaluation contexts", function() {
   dateEquals(buildAndEval("date(1999, 12, 31, 12, 34, 57)-1"), d99, "date(1999, 12, 31, 12, 34, 57)-1");
 
   // other functions
+  equals( buildAndEval("if(true,1,0)"), 1, "if(true,1,0)");
+  equals( buildAndEval("if(true,1)"), 1, "if(true,1)");
+  equals( buildAndEval("if(false,1,0)"), 0, "if(false,1,0)");
+  equals( buildAndEval("if(false,1)"), '', "if(false,1)");
   equals( buildAndEval("isFinite(0)"), true, "isFinite(0)");
   equals( buildAndEval("isFinite('0')"), true, "isFinite('0')");
   equals( buildAndEval("isFinite('')"), false, "isFinite('')");
