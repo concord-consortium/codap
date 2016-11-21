@@ -12484,6 +12484,7 @@ CloudFileManagerClient = (function() {
           sharedContent = cloudContentFactory.createEnvelopedCloudContent(stringContent);
           sharedContent.addMetadata(sharingMetadata);
           currentContent = _this._createOrUpdateCurrentContent(stringContent, _this.state.metadata);
+          sharedContent.set('docName', currentContent.get('docName'));
           if (shared) {
             currentContent.remove('isUnshared');
           } else {
