@@ -97,10 +97,40 @@ DG.main = function main() {
       }
     }
   }
+  function cfmUrl(filename) {
+    var url = null,
+        a;
+
+    if (DG.cfmBaseUrl) {
+      // safely parse the url and check to only allow codap.concord.org or a domain with no tld (like localhost or dev)
+      a = document.createElement("A");
+      a.href = DG.cfmBaseUrl;
+      if ((a.hostname === 'codap.concord.org') || (a.hostname.indexOf('.') === -1)) {
+        a.pathname = (a.pathname[a.pathname.length - 1] === '/' ? a.pathname : (a.pathname + '/')) + filename;
+        url = a.href;
+        DG.logWarn('Loading the ' + filename + ' CFM file from ' + url);
+      }
+      else {
+        DG.logError('The cfmBaseUrl domain (' + a.hostname + ') either needs to be codap.concord.org or not have a TLD (like localhost)');
+      }
+    }
+
+    if (!url) {
+      // static_url is run at build time so we have to directly reference the paths
+      if (filename === 'globals.js') {
+        url = static_url('cloud-file-manager/js/globals.js.ignore');
+      }
+      else if (filename === 'app.js') {
+        url = static_url('cloud-file-manager/js/app.js.ignore');
+      }
+    }
+
+    return url;
+  }
   function cfmGlobalsLoaded() {
     return new Promise(function(resolve, reject) {
                 $.ajax({
-                  url: static_url('cloud-file-manager/js/globals.js.ignore'),
+                  url: cfmUrl('globals.js'),
                   dataType: 'script',
                   success: function() {
                     resolve(true);
@@ -114,7 +144,7 @@ DG.main = function main() {
   function cfmAppLoaded() {
     return new Promise(function(resolve, reject) {
                 $.ajax({
-                  url: static_url('cloud-file-manager/js/app.js.ignore'),
+                  url: cfmUrl('app.js'),
                   dataType: 'script',
                   success: function() {
                     resolve(true);
