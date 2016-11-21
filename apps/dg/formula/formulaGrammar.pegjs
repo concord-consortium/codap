@@ -90,17 +90,21 @@ UnicodeConnectorPunctuation
   = Pc
 
 ReservedWord
-  = Keyword
-  / BooleanLiteral
+  = /* Keyword
+  / */ BooleanLiteral
 
+/*
+ * Commented out to remove keywords from the grammar.
+ * Not completely removed in case we change our minds.
 Keyword
-  = /*(
+  = (
         "else"
       / "if"
       / "switch"
       / "then"
-    )*/
+    )
     !IdentifierPart
+*/
 
 Literal
   = BooleanLiteral
