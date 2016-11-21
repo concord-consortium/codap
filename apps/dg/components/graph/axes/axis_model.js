@@ -98,7 +98,7 @@ DG.AxisModel = SC.Object.extend(
   }.property(),
   firstAttributeNameDidChange: function() {
     this.notifyPropertyChange('firstAttributeName');
-  }.observes('*attributeDescription.attributes'),
+  }.observes('*attributeDescription.attribute', '*attributeDescription.attributes'),
 
   /**
   One by default. Subclasses will likely override.

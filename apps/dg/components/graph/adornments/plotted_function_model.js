@@ -323,9 +323,16 @@ DG.PlottedFunctionModel = DG.PlotAdornmentModel.extend(
    */
   globalNamesDidChange: function() {
     // Name changes require recompilation
+    this.invalidateExpression();
+  }.observes('DG.globalsController.globalNameChanges'),
+
+  /**
+    Invalidate the expression so it gets recompiled/evaluated.
+   */
+  invalidateExpression: function() {
     if( this._expression)
       this._expression.invalidate();
-  }.observes('DG.globalsController.globalNameChanges'),
+  },
   
   /**
     Evaluates the plotted function at the specified x value.
