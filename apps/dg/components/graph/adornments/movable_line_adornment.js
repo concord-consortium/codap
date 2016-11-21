@@ -338,7 +338,7 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 
     // At last set the equation attributes
     this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
-      width: tTextWidth, height: tTextBox.height })
+      width: tTextWidth, height: tTextBox.height });
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString') });
   },

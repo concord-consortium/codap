@@ -216,21 +216,6 @@ DG.functionRegistry.registerFunctions((function() {
     },
 
     /**
-      Returns a date object created from its argument treated as seconds in an epoch
-      @param    {Number}  A number of seconds in the epoch beginning Jan 1, 1970
-      @returns  {Date}    the corresponding date object
-     */
-    'secondsToDate': {
-      minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime',
-      evalFn: function(x) {
-        var date = new Date(x * 1000);
-        // eliminate time within the day
-        return DG.createDate(date.getFullYear(), date.getMonth(), date.getDate());
-        // return tDate.toLocaleDateString();
-      }
-    },
-
-    /**
       Returns a date object corresponding to the current date with no time (i.e. midnight)
       @returns  {Date}    the corresponding date object
      */

@@ -94,12 +94,12 @@ ReservedWord
   / BooleanLiteral
 
 Keyword
-  = (
+  = /*(
         "else"
       / "if"
       / "switch"
       / "then"
-    )
+    )*/
     !IdentifierPart
 
 Literal
@@ -179,11 +179,11 @@ SingleStringCharacters
 
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) char_:SourceCharacter { return char_;     }
-  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / "\\" sequence:EscapeSequence { return sequence; }
 
 SingleStringCharacter
   = !("'" / "\\" / LineTerminator) char_:SourceCharacter { return char_;     }
-  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / "\\" sequence:EscapeSequence { return sequence; }
 
 EscapeSequence
   = CharacterEscapeSequence
