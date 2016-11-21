@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Usage:
 #   1.  cd to the top-level dg directory (where the Makefile lives)
 #   2a. Type bin/jslint-git.sh
