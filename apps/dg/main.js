@@ -134,6 +134,41 @@ DG.main = function main() {
           appBuildNum: DG.BUILD_NUM,
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
+          ui: {
+            menu: [
+              { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
+              { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
+              {
+                name: 'DG.fileMenu.menuItem.closeDocument'.loc(),
+                action: function () {
+                          DG.cfmClient.closeFileDialog(function () {
+                            SC.run(function() {
+                              DG.appController.closeAndNewDocument();
+                            });
+                          });
+                        }
+              },
+              { name: 'DG.fileMenu.menuItem.importFile'.loc(), action: 'importDataDialog' },
+              {
+                name: 'DG.fileMenu.menuItem.revertTo'.loc(),
+                items: [
+                  { name: 'DG.fileMenu.menuItem.revertToOpened'.loc(), action: 'revertToLastOpenedDialog'},
+                  { name: 'DG.fileMenu.menuItem.revertToShared'.loc(), action: 'revertToSharedDialog'}
+                ]
+              },
+              'separator',
+              { name: 'DG.fileMenu.menuItem.saveDocument'.loc(), action: 'saveFileAsDialog' },
+              { name: 'DG.fileMenu.menuItem.copyDocument'.loc(), action: 'createCopy' },
+              {
+                name: 'DG.fileMenu.menuItem.share'.loc(),
+                items: [
+                  { name: 'DG.fileMenu.menuItem.shareGetLink'.loc(), action: 'shareGetLink' },
+                  { name: 'DG.fileMenu.menuItem.shareUpdate'.loc(), action: 'shareUpdate' }
+                ]
+              },
+              { name: 'DG.fileMenu.menuItem.renameDocument'.loc(), action: 'renameDialog' }
+            ],
+          },
           wrapFileContent: false,
           mimeType: 'application/json',
           readableMimeTypes: ['application/x-codap-document'],
@@ -259,10 +294,8 @@ DG.main = function main() {
   }
 
   function cfmShowUserEntryView() {
-    var hasFileInUrl = (window.location.search.indexOf('file=') >= 0) ||
-                            (window.location.hash.indexOf('file=') >= 0),
 
-    DialogContents = React.createFactory(React.createClass({
+    var DialogContents = React.createFactory(React.createClass({
       close: function () {
         DG.cfmClient.hideBlockingModal();
       },
@@ -278,34 +311,29 @@ DG.main = function main() {
         DG.cfmClient.openFileDialog();
       },
       componentDidMount: function() {
-        this.refs.newButton.focus();
+        this.refs.openButton.focus();
       },
       render: function () {
         return React.DOM.div({onKeyDown: function(evt) {
                                 // escape key
                                 if (evt.keyCode === 27) this.createNewDocument();
                                 // return/enter
-                                else if (evt.keyCode === 13) {
-                                  if (hasFileInUrl)
-                                    this.authorizeUrlDocument();
-                                  else
-                                    this.createNewDocument();
-                                }
+                                else if (evt.keyCode === 13) this.openDocument();
                               }.bind(this)}, [
-          React.DOM.div({style: {margin: 10}, key: 1},
-                        React.DOM.button({ref: 'newButton',
-                                          onClick: this.createNewDocument},
-                                          "Create New Document")),
           React.DOM.div({style: {margin: 10}, key: 2},
                         React.DOM.button({ref: 'openButton',
                                           onClick: this.openDocument},
-                                          "Open Document or Browse Examples"))
+                                          'DG.main.userEntryView.openDocument'.loc())),
+          React.DOM.div({style: {margin: 10}, key: 1},
+                        React.DOM.button({ref: 'newButton',
+                                          onClick: this.createNewDocument},
+                                          'DG.main.userEntryView.newDocument'.loc()))
         ]);
       }
     }));
     if (DG.get('showUserEntryView')) {
       DG.cfmClient.showBlockingModal({
-        title: "What would you like to do?",
+        title: 'DG.main.userEntryView.title'.loc(),
         message: DialogContents({}), // jshint ignore:line
         onDrop: function () { DG.cfmClient.hideBlockingModal(); }}
       );
@@ -334,20 +362,6 @@ DG.main = function main() {
                                              appBuildNum: DG.BUILD_NUM
                                             });
             DG.cfmClient._ui.setMenuBarInfo("Version "+DG.VERSION+" ("+DG.BUILD_NUM+")");
-            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
-              name: "Import ...",
-              action: DG.cfmClient.importDataDialog.bind(DG.cfmClient)
-            });
-            DG.cfmClient.insertMenuItemAfter('openFileDialog', {
-              name: "Close",
-              action: function () {
-                DG.cfmClient.closeFileDialog(function () {
-                  SC.run(function() {
-                    DG.appController.closeAndNewDocument();
-                  });
-                });
-              }
-            });
 
             // synchronize document dirty state on document change
             DG.currDocumentController().addObserver('hasUnsavedChanges', function() {

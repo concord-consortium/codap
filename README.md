@@ -38,3 +38,7 @@ How to write a simple CODAP Data Interactive using a Game API helper class.
 * [Developer Guide](https://github.com/concord-consortium/codap/wiki/Developer-Guide):
 How to install and run a development environment to modify CODAP platform-level software.
 * [Release Notes](https://github.com/concord-consortium/codap/wiki/Release-Notes)
+
+You can also check out the [CODAP Forum](https://groups.google.com/a/concord.org/forum/#!forum/codap) for questions and discussions on the use of CODAP.
+
+For help, send email to <codap-help@concord.org>

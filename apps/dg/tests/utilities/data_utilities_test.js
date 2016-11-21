@@ -83,14 +83,18 @@ test("Tests data utilities", function() {
   testValidDateString('2016-11-09T07:18:02-07:00');
   testValidDateString('2016-11-10T21:27:42Z');
   // invalid strings
+  testInvalidDateString();
   testInvalidDateString('');
   testInvalidDateString('a');
   testInvalidDateString('123');
   testInvalidDateString('123%');
-  testInvalidDateString('September 1, 2016');
-  testInvalidDateString('11/ 9/2016');
   testInvalidDateString('//');
   testInvalidDateString(':');
   testInvalidDateString('::');
+  // likely meant to be dates, but not recognized, yet.
+  testInvalidDateString('September 1, 2016');
+  testInvalidDateString('11/ 9/2016');
+  testInvalidDateString('12/31');
+  testInvalidDateString('1/2');
 
 });
