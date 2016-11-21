@@ -66,6 +66,7 @@ DG.PlotUtilities = {
   kHighlightHideTime: 250, // milliseconds delay time before various tips/highlighting disappears
   kDataHoverTransform: 's1.5',  // scale 1.5 times on hover
   kDataCreateTransform: 's2',   // scale 2 times on create
+  kBoxplotMaxWidth: 20,
 
   // Constants for maps
   kDefaultMapFillOpacity: '0.5',
