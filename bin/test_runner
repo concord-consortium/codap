@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
