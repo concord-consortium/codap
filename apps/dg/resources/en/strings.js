@@ -123,7 +123,7 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.mapButton.title': "Map",
   'DG.ToolButtonData.mapButton.toolTip': "Make a map",
   'DG.ToolButtonData.optionMenu.title': "Options",
-  'DG.ToolButtonData.optionMenu.toolTip': "Help, activities, learn about CODAP, ...",
+  'DG.ToolButtonData.optionMenu.toolTip': "Display website, configure guide...",
   'DG.ToolButtonData.tileListMenu.title': "Tiles",
   'DG.ToolButtonData.tileListMenu.toolTip': "Show the list of tiles in the document",
   'DG.ToolButtonData.guideMenu.title': "Guide",
