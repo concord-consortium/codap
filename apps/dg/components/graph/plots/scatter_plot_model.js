@@ -111,11 +111,24 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       createMovableLine: function () {
         if (SC.none(this.movableLine)) {
           this.beginPropertyChanges();
-          this.set('movableLine', DG.MovableLineModel.create());
+          this.set('movableLine', DG.MovableLineModel.create( {
+            plotModel: this,
+            showSumSquares: this.get('areSquaresVisible')
+          }));
           this.movableLine.recomputeSlopeAndIntercept(this.get('xAxis'), this.get('yAxis'));
           this.endPropertyChanges();
         }
       },
+
+      squaresVisibilityChanged: function() {
+        var tMovableLine = this.get('movableLine'),
+            tLSRL = this.get('lsrLine'),
+            tSquaresVisible = this.get('areSquaresVisible');
+        if( tMovableLine)
+            tMovableLine.set('showSumSquares', tSquaresVisible);
+        if( tLSRL)
+            tLSRL.set('showSumSquares', tSquaresVisible);
+      }.observes('areSquaresVisible'),
 
       /**
        If we need to make a movable line, do so. In any event toggle its visibility.
@@ -153,7 +166,10 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       createLSRLLine: function () {
         if (SC.none(this.lsrLine)) {
-          this.set('lsrLine', DG.LSRLModel.create( { plotModel: this }));
+          this.set('lsrLine', DG.LSRLModel.create( {
+            plotModel: this,
+            showSumSquares: this.get('areSquaresVisible')
+          }));
         }
       },
 

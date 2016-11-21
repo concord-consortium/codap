@@ -45,7 +45,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
    */
   modelPropertiesToObserve: [ ['slope', 'updateToModel'], ['intercept', 'updateToModel'],
                               ['isInterceptLocked', 'updateToModel'],
-                              ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel']],
+                              ['isVertical', 'updateToModel'], ['xIntercept', 'updateToModel'],
+                              ['sumSquaresResiduals', 'updateToModel']],
 
   /**
     The returned string should have a reasonable number of significant digits for the
@@ -97,7 +98,19 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       return equationForFiniteSlopeLine();
 
   }.property('model.intercept', 'model.slope', 'model.isVertical', 'model.xIntercept',
-              'xAxisView.model.firstAttributeName', 'yAxisView.model.firstAttributeName' ).cacheable()
+              'xAxisView.model.firstAttributeName', 'yAxisView.model.firstAttributeName' ).cacheable(),
+
+  sumResidSquaredString: function() {
+    var tResult = '';
+    if( this.getPath('model.showSumSquares')) {
+      var tSumSquares = this.getPath('model.sumSquaresResiduals'),
+          tMaxDec = tSumSquares > 100 ? 0 : 3,
+          tFormat = DG.Format.number().fractionDigits(0, tMaxDec),
+          tSquaresString = SC.none(tSumSquares) ? '' : tFormat(tSumSquares);
+      tResult = ', ' + 'DG.ScatterPlotModel.sumSquares'.loc() + tSquaresString;
+    }
+    return tResult;
+  }.property()
 
 });
 
