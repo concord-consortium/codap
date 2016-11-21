@@ -47,8 +47,6 @@ DG.formulaParser = (function(){
         "IdentifierStart": parse_IdentifierStart,
         "IdentifierPart": parse_IdentifierPart,
         "UnicodeLetter": parse_UnicodeLetter,
-        "ReservedWord": parse_ReservedWord,
-        "Keyword": parse_Keyword,
         "Literal": parse_Literal,
         "BooleanLiteral": parse_BooleanLiteral,
         "NumericLiteral": parse_NumericLiteral,
@@ -306,7 +304,7 @@ DG.formulaParser = (function(){
         pos1 = pos;
         pos2 = pos;
         reportFailures++;
-        result0 = parse_ReservedWord();
+        result0 = parse_BooleanLiteral();
         reportFailures--;
         if (result0 === null) {
           result0 = "";
@@ -416,33 +414,6 @@ DG.formulaParser = (function(){
         result0 = parse_Lu();
         if (result0 === null) {
           result0 = parse_Ll();
-        }
-        return result0;
-      }
-      
-      function parse_ReservedWord() {
-        var result0;
-        
-        result0 = parse_Keyword();
-        if (result0 === null) {
-          result0 = parse_BooleanLiteral();
-        }
-        return result0;
-      }
-      
-      function parse_Keyword() {
-        var result0;
-        var pos0;
-        
-        pos0 = pos;
-        reportFailures++;
-        result0 = parse_IdentifierPart();
-        reportFailures--;
-        if (result0 === null) {
-          result0 = "";
-        } else {
-          result0 = null;
-          pos = pos0;
         }
         return result0;
       }
