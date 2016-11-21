@@ -283,6 +283,8 @@ DG = SC.Application.create((function () // closure
 
     hideCFMMenu: !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara'),
 
+    cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
+
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
       'graphButton',
