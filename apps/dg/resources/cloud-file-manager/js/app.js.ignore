@@ -12279,44 +12279,52 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.saveFile = function(stringContent, metadata, callback) {
-    var currentContent, ref;
+    var ref;
     if (callback == null) {
       callback = null;
     }
     if (metadata != null ? (ref = metadata.provider) != null ? ref.can('resave', metadata) : void 0 : void 0) {
-      this._setState({
-        saving: metadata
-      });
-      currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
-      return metadata.provider.save(currentContent, metadata, (function(_this) {
-        return function(err, statusCode) {
-          if (err) {
-            metadata.autoSaveDisabled = true;
-            _this._setState({
-              metadata: metadata,
-              saving: null
-            });
-            if (statusCode === 403) {
-              return _this.confirmAuthorizeAndSave(stringContent, callback);
-            } else {
-              return _this.alert(err);
-            }
-          }
-          if (_this.state.metadata !== metadata) {
-            _this._closeCurrentFile();
-          }
-          if (metadata.autoSaveDisabled != null) {
-            delete metadata.autoSaveDisabled;
-          }
-          _this._fileChanged('savedFile', currentContent, metadata, {
-            saved: true
-          }, _this._getHashParams(metadata));
-          return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
-        };
-      })(this));
+      return this.saveFileNoDialog(stringContent, metadata, callback);
     } else {
       return this.saveFileDialog(stringContent, callback);
     }
+  };
+
+  CloudFileManagerClient.prototype.saveFileNoDialog = function(stringContent, metadata, callback) {
+    var currentContent;
+    if (callback == null) {
+      callback = null;
+    }
+    this._setState({
+      saving: metadata
+    });
+    currentContent = this._createOrUpdateCurrentContent(stringContent, metadata);
+    return metadata.provider.save(currentContent, metadata, (function(_this) {
+      return function(err, statusCode) {
+        if (err) {
+          metadata.autoSaveDisabled = true;
+          _this._setState({
+            metadata: metadata,
+            saving: null
+          });
+          if (statusCode === 403) {
+            return _this.confirmAuthorizeAndSave(stringContent, callback);
+          } else {
+            return _this.alert(err);
+          }
+        }
+        if (_this.state.metadata !== metadata) {
+          _this._closeCurrentFile();
+        }
+        if (metadata.autoSaveDisabled != null) {
+          delete metadata.autoSaveDisabled;
+        }
+        _this._fileChanged('savedFile', currentContent, metadata, {
+          saved: true
+        }, _this._getHashParams(metadata));
+        return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
+      };
+    })(this));
   };
 
   CloudFileManagerClient.prototype.saveFileDialog = function(stringContent, callback) {
@@ -12823,13 +12831,13 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype._dialogSave = function(stringContent, metadata, callback) {
     if (stringContent !== null) {
-      return this.saveFile(stringContent, metadata, callback);
+      return this.saveFileNoDialog(stringContent, metadata, callback);
     } else {
       return this._event('getContent', {
         shared: this._sharedMetadata()
       }, (function(_this) {
         return function(stringContent) {
-          return _this.saveFile(stringContent, metadata, callback);
+          return _this.saveFileNoDialog(stringContent, metadata, callback);
         };
       })(this));
     }
