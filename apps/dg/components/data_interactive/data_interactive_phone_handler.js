@@ -204,8 +204,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 parent: iCase.collection.parent ? {id: iCase.collection.parent.id, name: iCase.collection.parent.name} : null
               },
               values: values
-            })
-          })
+            });
+          });
 
           return {operation: change.operation, result: result};
         });
@@ -1017,7 +1017,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: success,
             values: cases
-          }
+          };
         }
       },
 

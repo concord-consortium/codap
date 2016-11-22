@@ -430,7 +430,7 @@ DG.CollectionClient = SC.Object.extend(
           return {
             value: parsedValue,
             id: attrNameToIdMap[value]
-          }
+          };
         };
 
     this.forEachAttribute(function (attr) {
