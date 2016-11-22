@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Makes a pivotal tracker story documenting the start of the build process. 
+# The story, a Release type story will be created
+# with the build label provided on the command line.
+#
+# Requires ~/.ptrc initialized with PROJECT_ID and TOKEN and Pivotal Tracker
+# USER_NAME. See https://www.pivotaltracker.com/help/api#Getting_Started
+#
+PROGNAME=`basename $0`
+DIRNAME=`dirname $0`
+
+. ~/.ptrc
+
+function usage(){
+  echo usage: $PROGNAME build_label 2>&1
+  exit 1
+}
+
+API_URL="https://www.pivotaltracker.com/services/v5"
+API_SERVICE="projects/$PROJECT_ID/stories"
+
+[ "$1" = "" ] && usage
+
+DT=`date "+%m/%d/%Y"`
+DATA='{"name":"'$1'","description":"Build","story_type":"release","current_state": "unstarted"}'
+
+curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$DATA" ${API_URL}/${API_SERVICE} | jq '.' 
+
