@@ -90,14 +90,16 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         tXVarID = this.getPath( 'plotModel.xVarID'),
         tYKey = 'plotModel.' + (this.getPath('plotModel.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
         tYVarID = this.getPath(tYKey),
-        tLegendDesc = this.getPath('plotModel.dataConfiguration.legendAttributeDescription');
+        /* For maps, plotModel is pointing to a mapDataConfiguration whereas for graphs it's pointing to a Plot. */
+        tLegendDesc = this.getPath('plotModel.dataConfiguration.legendAttributeDescription') ||
+            this.getPath('plotModel.legendAttributeDescription');
     if( !( tXVarID && tYVarID )) {
       return; // too early to recompute, caller must try again later.
     }
 
     var getColorMap = function() {
       var tMap = null,
-          tLegendIsCategorical = tLegendDesc.get('isCategorical'),
+          tLegendIsCategorical = tLegendDesc && tLegendDesc.get('isCategorical'),
           tFirstCase = tCases[0];
       if( tLegendIsCategorical && tFirstCase) {
         var tCaseParentCollectionID = tFirstCase.getPath('parent.collection.id'),
