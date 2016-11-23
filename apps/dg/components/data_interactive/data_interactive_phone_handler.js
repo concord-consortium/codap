@@ -102,9 +102,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
-          // Remove access to component information for now, or until
-          // di needs in this area become clearer.
-          //componentList: this.handleComponentList,
+          componentList: this.handleComponentList,
           dataContext: this.handleDataContext,
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
@@ -1137,14 +1135,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
            default:
          }
          if (!SC.none(typeClass)) {
-           iValues[document] = doc;
+           iValues.document = doc;
            iValues.type = typeClass;
            // the allowMoreThanOne=false restriction is historical. It prevented
            // proliferation of components when a document was repeatedly opened
            // we default to allowing any number. It is a DI's responsibility
            // to avoid proliferation.
            iValues.allowMoreThanOne = true;
-           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+           //rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+           rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
          } else {
            DG.log('Unknown component type: ' + type);
          }
@@ -1166,14 +1165,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        },
 
        // remove, for now, or until we understand user needs
-       //get: function (iResources) {
-       //  var component = iResources.component;
-       //  return {
-       //    success: true,
-       //    values: component.get('model').toArchive()
-       //  };
-       //},
-       //
+       get: function (iResources) {
+         var component = iResources.component;
+         return {
+           success: true,
+           values: component.get('model').toArchive()
+         };
+       },
+
        'delete': function (iResource) {
          var component = iResource.component;
          component.destroy();
@@ -1181,26 +1180,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        }
       },
 
-      // remove, for now, or until we understand user needs
-      //handleComponentList: {
-      //  get: function (iResources) {
-      //    var document = DG.currDocumentController();
-      //
-      //    var result = [];
-      //    DG.ObjectMap.forEach(document.get('components'), function(id, component) {
-      //      result.push( {
-      //        id: component.get('id'),
-      //        name: component.get('name'),
-      //        title: component.get('title')
-      //      });
-      //    });
-      //    return {
-      //      success: true,
-      //      values: result
-      //    };
-      //  }
-      //},
-      //
+      handleComponentList: {
+        get: function (iResources) {
+          var document = DG.currDocumentController();
+
+          var result = [];
+          DG.ObjectMap.forEach(document.get('components'), function(id, component) {
+            result.push( {
+              id: component.get('id'),
+              name: component.get('name'),
+              title: component.get('title')
+            });
+          });
+          return {
+            success: true,
+            values: result
+          };
+        }
+      },
+
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.logUser(iValues);
