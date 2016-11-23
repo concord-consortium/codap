@@ -371,7 +371,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
   /**
     Generate the svg needed to display the plot
   */
-  doDraw: function doDraw() {
+  doDraw: function doDraw( iIndex, iNumPlots, iChangedProperty) {
     var this_ = this;
     
     function drawSquares() {
@@ -439,8 +439,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
     
     this.updateSelection();
 
-    if( !SC.none( this.connectingLineAdorn) && this.connectingLineAdorn.wantVisible())
-       this.connectingLineAdorn.updateToModel();
+    if( !SC.none( this.connectingLineAdorn) && this.connectingLineAdorn.wantVisible()) {
+      if( iChangedProperty === 'pointColor')
+          this.connectingLineAdorn.invalidateModel();
+      this.connectingLineAdorn.updateToModel();
+    }
     
     if( !SC.none( this.movableLineAdorn))
       this.movableLineAdorn.updateToModel();

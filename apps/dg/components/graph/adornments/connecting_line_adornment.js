@@ -147,7 +147,8 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       var tCoordinates = iObject.coordinates,
           tNumValues = tCoordinates ? tCoordinates.length : 0,
           tPath = 'M0,0', // use empty path if no points to connect
-          tLineColor = iObject.color ? iObject.color.colorString :
+          tLineColor = iObject.color ?
+              (typeof iObject.color === 'string' ? iObject.color : iObject.color.colorString) :
               DG.ColorUtilities.calcAttributeColorFromIndex( iLineNum % kCount, kCount).colorString,
           i,
           tLine;
