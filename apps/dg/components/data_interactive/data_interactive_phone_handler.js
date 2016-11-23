@@ -239,7 +239,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * resource or an individual resource. This routine parses a resource
        * selector into its component parts and builds an equivalent object.
        *
-       *   * Base resources: [interactiveFrame, logAction]
+       *   * Base resources: [interactiveFrame, logMessage]
        *   * Doc resources: [dataContext, component, global]
        *   * DataContext resources: [collection, attributes]
        *   * Collection resources: [case]
@@ -1226,29 +1226,45 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
 
-          var logMessage = iValues && iValues.logMessage ? iValues.logMessage : "Unknown action";
-          var rpcEndpoint = this.get('rpcEndpoint');
+          function registerUndoChangeNotice(logMessage, rpcEndpoint) {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'interactive.undoableAction',
+              undoString: 'DG.Undo.interactiveUndoableAction',
+              redoString: 'DG.Redo.interactiveUndoableAction',
+              log: 'Interactive action occurred: ' + logMessage,
+              execute: function () {
+              },
+              undo: function () {
+                // FIXME If the game component was removed and then re-added via an undo,
+                // then calling undo or redo here will likely fail because the game's undo stack would
+                // probably have been cleared.
+                var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
+                rpcEndpoint.call(message, handleUndoRedoCompleted);
+              },
+              redo: function () {
+                var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
+                rpcEndpoint.call(message, handleUndoRedoCompleted);
+              }
+            }));
+            return true;
+          }
 
-          DG.UndoHistory.execute(DG.Command.create({
-            name: 'interactive.undoableAction',
-            undoString: 'DG.Undo.interactiveUndoableAction',
-            redoString: 'DG.Redo.interactiveUndoableAction',
-            log: 'Interactive action occurred: ' + logMessage,
-            _componentId: this.getPath('component.model.id'),
-            execute: function () {
-            },
-            undo: function () {
-              // FIXME If the game component was removed and then re-added via an undo,
-              // then calling undo or redo here will likely fail because the game's undo stack would
-              // probably have been cleared.
-              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
-              rpcEndpoint.call(message, handleUndoRedoCompleted);
-            },
-            redo: function () {
-              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
-              rpcEndpoint.call(message, handleUndoRedoCompleted);
-            }
-          }));
+          var logMessage = iValues && iValues.logMessage ? iValues.logMessage : "Unknown action";
+          var success = true;
+
+          switch (iValues.operation){
+            case 'undoableActionPerformed':
+              success = registerUndoChangeNotice(logMessage, this.get('rpcEndpoint'));
+              break;
+            case 'undoButtonPress':
+              DG.UndoHistory.undo();
+              break;
+
+            case 'redoButtonPress':
+              DG.UndoHistory.redo();
+              break;
+          }
+          return {success: success};
         }
       }
       //get: function (iResources) {
