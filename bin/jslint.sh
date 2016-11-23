@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Usage:
 #   1.  cd to the top-level dg directory (where the Makefile lives)
 #   2a. Type bin/jslint.sh filename
@@ -36,7 +36,7 @@ sed -e 's/\(.*\)for\(.*\)var\([[:space:]][[:space:]]*\)\([a-z][[:alnum:]_]*\)\(.
     -e 's/\(.*\)\/\/ fallthrough\(.*\)/\1break;/' \
     -e 's/\(.*\)Raphael(\(.*\)/\1 new Raphael(\2/' \
     $1 > $1_js
-    
+
 # Run jslint4java and use grep to filter out unwanted results
 # What we ignore:
 # "Mixed spaces and tabs"

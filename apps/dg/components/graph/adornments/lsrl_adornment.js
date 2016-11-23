@@ -33,7 +33,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
         tRSquared = this.getPath('model.rSquared'),
         tRSquaredString = SC.none( tRSquared) ? '' : tFormat( tRSquared);
 
-    return tResult + ', r2 = ' + tRSquaredString;
+    return tResult + 'DG.ScatterPlotModel.rSquared'.loc() + tRSquaredString + this.get('sumResidSquaredString');
   }.property(),
 
   /**

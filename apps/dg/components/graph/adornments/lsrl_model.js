@@ -37,25 +37,8 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
        */
       recomputeSlopeAndIntercept: function () {
 
-        var getValuePairs = function() {
-          var tValues = [],
-              tCases = this.getPath('plotModel.cases'),
-              tXVarID = this.getPath('plotModel.xVarID'),
-              tYVarID = this.getPath('plotModel.yVarID');
-          if( Array.isArray(tCases)) {
-            tCases.forEach(function (iCase) {
-              var tXValue = iCase.getNumValue(tXVarID),
-                  tYValue = iCase.getNumValue(tYVarID);
-              if (isFinite(tXValue) && isFinite(tYValue)) {
-                tValues.push({x: tXValue, y: tYValue});
-              }
-            });
-          }
-          return tValues;
-        }.bind( this);
-
         var tInterceptIsLocked = this.get('isInterceptLocked'),
-            tValuePairs = getValuePairs(),
+            tValuePairs = this.getCoordinates(),
             tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tValuePairs, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
             isNaN(tSlopeIntercept.intercept) && isNaN( this.get('intercept'))) {

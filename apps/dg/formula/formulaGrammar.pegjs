@@ -90,9 +90,12 @@ UnicodeConnectorPunctuation
   = Pc
 
 ReservedWord
-  = Keyword
-  / BooleanLiteral
+  = /* Keyword
+  / */ BooleanLiteral
 
+/*
+ * Commented out to remove keywords from the grammar.
+ * Not completely removed in case we change our minds.
 Keyword
   = (
         "else"
@@ -101,6 +104,7 @@ Keyword
       / "then"
     )
     !IdentifierPart
+*/
 
 Literal
   = BooleanLiteral
@@ -179,11 +183,11 @@ SingleStringCharacters
 
 DoubleStringCharacter
   = !('"' / "\\" / LineTerminator) char_:SourceCharacter { return char_;     }
-  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / "\\" sequence:EscapeSequence { return sequence; }
 
 SingleStringCharacter
   = !("'" / "\\" / LineTerminator) char_:SourceCharacter { return char_;     }
-  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / "\\" sequence:EscapeSequence { return sequence; }
 
 EscapeSequence
   = CharacterEscapeSequence

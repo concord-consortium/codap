@@ -52,6 +52,11 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   xIntercept: null,
 
   /**
+   * Set by my plotModel when squares of residuals are showing
+   */
+  showSumSquares: false,
+
+  /**
    * @property {Number}
    */
   sumSquaresResiduals: null,
@@ -128,8 +133,25 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   },
 
   /**
-   * @return { Object } with properties specific to a given subclass
+   * @return { [{x:{Number}, y: {Number}}] } with properties specific to a given subclass
    */
+  getCoordinates: function() {
+    var tValues = [],
+        tCases = this.getPath('plotModel.cases'),
+        tXVarID = this.getPath('plotModel.xVarID'),
+        tYVarID = this.getPath('plotModel.yVarID');
+    if( Array.isArray(tCases)) {
+      tCases.forEach(function (iCase) {
+        var tXValue = iCase.getNumValue(tXVarID),
+            tYValue = iCase.getNumValue(tYVarID);
+        if (isFinite(tXValue) && isFinite(tYValue)) {
+          tValues.push({x: tXValue, y: tYValue});
+        }
+      });
+    }
+    return tValues;
+  },
+
   createStorage: function() {
     var tStorage = sc_super();
     DG.ObjectMap.copy( tStorage, {

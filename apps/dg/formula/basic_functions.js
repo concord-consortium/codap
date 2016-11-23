@@ -110,6 +110,13 @@ DG.functionRegistry.registerFunctions((function() {
       evalFn: function(x) { return x - trunc(x); }
     },
 
+    'if': {
+      minArgs: 2, maxArgs: 3, category: 'DG.Formula.FuncCategoryOther',
+      evalFn: function(condition, trueValue, falseValue) {
+        return condition ? trueValue : falseValue || '';
+      }
+    },
+
     'isFinite': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(x) { return DG.isFinite(x); }

@@ -603,7 +603,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
        * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
        */
       symbolPath: function( p, iIsHorizontal ) {
-        var tBoxWidth = p.cellHeight / 3;
+        var tBoxWidth = Math.min( p.cellHeight / 3, DG.PlotUtilities.kBoxplotMaxWidth);
         if( iIsHorizontal ) {
           var tYCenter = p.y - p.cellHeight / 2;
           // Start at the lower whisker, line to Q1. Draw the box. Draw the median line. Draw the upper whisker.
@@ -611,7 +611,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
               p.spreadStart - p.lowerWhisker, tYCenter, p.lowerWhisker,
               p.spreadStart, tYCenter,
               -tBoxWidth / 2, p.width, tBoxWidth, -p.width,
-              p.x, p.y - p.cellHeight / 3, -p.cellHeight / 3,
+              p.x, tYCenter - tBoxWidth / 2, tBoxWidth,
               p.spreadStart + p.width, tYCenter, p.upperWhisker);
         } else {
           var tXCenter = p.x + p.cellHeight / 2;
@@ -639,7 +639,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
        * @return {String} M:move-to absolute: v:vertical-line-to relative: h:horizontal-line-to
        */
       backgroundPath: function( p, iIsHorizontal ) {
-        var tBoxWidth = p.cellHeight / 3;
+        var tBoxWidth = Math.min( p.cellHeight / 3, DG.PlotUtilities.kBoxplotMaxWidth);
         if( iIsHorizontal ) {
           var tYCenter = p.y - p.cellHeight / 2;
           // Start at the lower whisker, line to Q1. Draw the box. Draw the median line. Draw the upper whisker.

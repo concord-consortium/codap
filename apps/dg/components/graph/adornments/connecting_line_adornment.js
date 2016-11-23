@@ -35,12 +35,12 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
   /**
    * @property {Number}
    */
-  unselectedLineWidth: 3,
+  unselectedLineWidth: 2,
 
   /**
    * @property {Number}
    */
-  selectedLineWidth: 6,
+  selectedLineWidth: 4,
 
   _dataTip: null,     // {DG.LineDataTip}
 
@@ -129,7 +129,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
    */
   doUpdateLine: function( iAnimate, getCoordsFunc ) {
     var this_ = this,
-        tArrayOfValuesArrays = this.getPath('model.values'),
+        tArrayOfCoordinatesArrays = this.getPath('model.values'),
         kCount = 10,  // This is fixed so we get same colors no matter how many lines there are
         tPaper = this.get('paper' ),
         tLayer = this.get('layer');
@@ -140,18 +140,20 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       }.bind( this));
       return;
     }
-    if( !tArrayOfValuesArrays)
+    if( !tArrayOfCoordinatesArrays)
       return; // Can happen in scatterplot that has multiple attributes
 
-    tArrayOfValuesArrays.forEach( function( iValues, iLineNum) {
-      var tNumValues = iValues ? iValues.length : 0,
+    tArrayOfCoordinatesArrays.forEach( function( iObject, iLineNum) {
+      var tCoordinates = iObject.coordinates,
+          tNumValues = tCoordinates ? tCoordinates.length : 0,
           tPath = 'M0,0', // use empty path if no points to connect
-          tLineColor = DG.ColorUtilities.calcAttributeColorFromIndex( iLineNum % kCount, kCount).colorString,
+          tLineColor = iObject.color ? iObject.color.colorString :
+              DG.ColorUtilities.calcAttributeColorFromIndex( iLineNum % kCount, kCount).colorString,
           i,
           tLine;
       // create a new path, connecting each sorted data point
       for( i=0; i<tNumValues; ++i ) {
-        var tCoords = getCoordsFunc( iValues[i].x, iValues[i].y);
+        var tCoords = getCoordsFunc( tCoordinates[i].x, tCoordinates[i].y);
         if( i===0 ) {
           tPath = 'M%@,%@'.fmt( tCoords.x, tCoords.y ); // move to first line
         } else {
@@ -186,7 +188,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
         tLine.attr( { 'stroke-opacity': 1 });
     });
 
-    while( this.myElements.length > tArrayOfValuesArrays.length) {
+    while( this.myElements.length > tArrayOfCoordinatesArrays.length) {
       var tLast = this.myElements.pop();
       tLayer.prepareToMoveOrRemove( tLast);
       tLast.remove();
@@ -201,17 +203,18 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     if( !this.get('paper'))
       return;
     // TODO: Encapsulate access to selection in plotModel.
-    var tArrayOfValuesArrays = this.getPath('model.values' ) || [], // In certain situations 'model.values' can be null
+    var tArrayOfCoordinatesArrays = this.getPath('model.values' ) || [], // In certain situations 'model.values' can be null
         tSelection = this.getPath('model.plotModel.selection');
-    tArrayOfValuesArrays.forEach( function( iValues, iLineNum) {
+    tArrayOfCoordinatesArrays.forEach( function( iObject, iLineNum) {
       var
-          tNumValues = iValues ? iValues.length : 0,
+          tCoordinates = iObject.coordinates,
+          tNumValues = tCoordinates ? tCoordinates.length : 0,
           tAllSelected = true,
           tLine = this.myElements[ iLineNum],
           i;
       if( tLine) {
         for( i = 0; i < tNumValues; ++i) {
-          tAllSelected = tAllSelected && tSelection.indexOf( iValues[i].theCase) >= 0;
+          tAllSelected = tAllSelected && tSelection.indexOf( tCoordinates[i].theCase) >= 0;
           if( !tAllSelected)
             break;
         }

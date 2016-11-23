@@ -499,6 +499,8 @@ SC.stringsFor('English', {
   // DG.ScatterPlotModel
   'DG.ScatterPlotModel.UnlockIntercept': "Unlock Intercept",
   'DG.ScatterPlotModel.LockIntercept': "Lock Intercept at Zero",
+  'DG.ScatterPlotModel.sumSquares': "\n∑resid^2 = ",
+  'DG.ScatterPlotModel.rSquared': ",r^2 = ",
 
   // DG.LegendView
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"

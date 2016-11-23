@@ -161,10 +161,15 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
 
   updateAdornments: function() {
-    var tLsrlAdorn = this.get('lsrlAdorn');
+    var tLsrlAdorn = this.get('lsrlAdorn'),
+        tMovableLineAdorn = this.get('movableLineAdorn'),
+        tSquaresAreShowing = this.getPath('model.areSquaresVisible');
     if (tLsrlAdorn) {
       tLsrlAdorn.get('model').setComputingNeeded();
       tLsrlAdorn.updateToModel();
+    }
+    if( tMovableLineAdorn && tSquaresAreShowing) {
+      tMovableLineAdorn.get('model').slopeOrInterceptChanged();  // Forces recomputation of sum of squares of residuals
     }
     // update plotted function
     if (this.functionAdorn)

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Make a deployment package for CODAP. This is a zip file that can be
 # unzipped in any web server accessible location and run from there.
@@ -57,7 +57,7 @@ END_DOC
 #
 # Fix absolute references
 files=`find $WORK_DIR -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
-for t in $files ; do 
+for t in $files ; do
     sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g;s%DataGames/%../../../../DataGames/%g' $t > /tmp/$PROGNAME_replace.$$ &&
     mv /tmp/$PROGNAME_replace.$$ $t
 done

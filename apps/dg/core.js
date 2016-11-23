@@ -184,7 +184,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0361',
+    BUILD_NUM: '0363',
 
     IS_DG_BUILD: isDGBuild(),
 
@@ -282,6 +282,8 @@ DG = SC.Application.create((function () // closure
     componentMode: getUrlParameter('componentMode', 'no'),
 
     hideCFMMenu: !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara'),
+
+    cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
 
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',

@@ -46,6 +46,23 @@ DG.MovableLineModel = DG.TwoDLineModel.extend(
   },
 
   /**
+   * If we are showing squares, we must recompute the sum of squares of residuals
+   */
+  slopeOrInterceptChanged: function() {
+    var tSlope = this.get('slope'),
+        tInter = this.get('intercept'),
+        tSumSquares = 0;
+    if( this.get('showSumSquares')) {
+      this.getCoordinates().forEach( function( iCoordinates) {
+        var tLineY = tInter + tSlope * iCoordinates.x,
+            tResid = iCoordinates.y - tLineY;
+        tSumSquares += tResid * tResid;
+      });
+      this.set('sumSquaresResiduals', tSumSquares);
+    }
+  }.observes('slope', 'intercept', 'showSumSquares'),
+
+  /**
     Use the bounds of the given axes to recompute slope and intercept.
   */
   recomputeSlopeAndIntercept: function( iXAxis, iYAxis) {
