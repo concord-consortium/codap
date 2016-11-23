@@ -1334,6 +1334,16 @@ DG.DocumentController = SC.Object.extend(
     },
 
     /**
+     * Retrieve component by name.
+     * @param {string} name
+     * @returns {DG.Component}
+     */
+    getComponentByName: function (name) {
+      var components = DG.ObjectMap.values(DG.currDocumentController().get('components'));
+      return components.find(function(c) { return c.get('name') === name; });
+    },
+
+    /**
      * Ensures that the state of all components, data contexts and
      * data contexts are current and up-to-date.
      *
