@@ -768,6 +768,12 @@ body.dg .sc-view.doc-background {
     background-color: #d3d3d3;
 }
 
+.graph-adornment tspan {
+    font-family: 'Montserrat-Regular', sans-serif;
+    font-size: 12px;
+    font-weight: lighter;
+}
+
 .rescale-button {
     background-image: static_url('images/rescale.png');
     cursor: pointer;

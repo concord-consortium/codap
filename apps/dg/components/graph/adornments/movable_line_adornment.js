@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('components/graph/adornments/twoD_line_adornment');
+sc_require('components/graph/utilities/plot_utilities');
 
 /** @class  Draws a movable line.
 
@@ -27,6 +28,8 @@ sc_require('components/graph/adornments/twoD_line_adornment');
 DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 /** @scope DG.MovableLineAdornment.prototype */ 
 {
+  defaultColor: DG.PlotUtilities.kDefaultMovableLineColor,
+
   kLineSlideCur: DG.Browser.customCursorStr(static_url('cursors/LineSlide.cur'), 8, 8),
   kLineBotLeft: DG.Browser.customCursorStr(static_url('cursors/LinePivotBotLeft.cur'), 5, 12),
   kLineBotRight: DG.Browser.customCursorStr(static_url('cursors/LinePivotBotRight.cur'), 12, 12),
@@ -177,19 +180,9 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
 
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
-    var tPaper = this.get('paper'),
-        tLayer = this.get('layer');
-    this.lineSeg = tPaper.line( 0, 0, 0, 0)
-              .attr({ stroke: DG.PlotUtilities.kDefaultMovableLineColor,
-                      'stroke-opacity': 0 });
-    this.lineSeg.animatable = true;
+    sc_super(); // Creates lineSeg, backgrndRect, and equation
 
-    this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
-    // Put the text below the hit segments in z-order so user can still hit the line
-    this.equation = tPaper.text( 0, 0, '')
-        .attr({ font: 'caption', opacity: 0, stroke: DG.PlotUtilities.kDefaultMovableLineColor });
-    this.equation.animatable = true;
+    var tLayer = this.get('layer');
 
     // Hints (implemented as titles here) were good, but they cause layering problems that
     // prevent hitting the line if you are directly over lineSeg. Consider adding the hover
@@ -210,14 +203,10 @@ DG.MovableLineAdornment = DG.TwoDLineAdornment.extend(
               .hover( overScope, outScope)
               .drag( continueRotation2, beginRotation, endRotation);
 
-    // Tune up the line rendering a bit
-    this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
-
-    this.myElements = [ this.lineSeg, this.backgrndRect, this.equation,
-      this.firstSegHit, this.secondSegHit, this.thirdSegHit ];
-    this.myElements.forEach( function( iElement) {
+    [ this.firstSegHit, this.secondSegHit, this.thirdSegHit].forEach( function( iElement) {
+      this.myElements.push( iElement);
       tLayer.push( iElement);
-    });
+    }.bind( this));
     return this.myElements;
   },
 
