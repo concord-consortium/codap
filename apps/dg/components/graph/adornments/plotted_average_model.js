@@ -215,7 +215,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
 
     // initialize the values
     for( i=0, j=tNumCells; i<j; ++i ) {
-      tValues.push({ vals: [], median: undefined });
+      tValues.push({ vals: [], cases: [], median: undefined });
     }
 
     // collect array of numeric cases in each cell, excluding missing/non-numeric/non-finite values
@@ -228,6 +228,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
         var iValue = tValues[tCellNumber];
         if( isFinite( tNumericValue )) { // if numeric value not missing
           iValue.vals.push( tNumericValue );
+          iValue.cases.push( iCase);
         }
       }
     });

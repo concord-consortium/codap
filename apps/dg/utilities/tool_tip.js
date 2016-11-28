@@ -157,11 +157,11 @@ DG.ToolTip = SC.Object.extend(
                 .attr({ 'text-anchor': 'start', 'opacity': 0 })
                 .addClass( DG.PlotUtilities.kToolTipTextClassName);
     this._tipShadowElement = tPaper.path('')
-                .addClass( DG.PlotUtilities.kToolTipShadowClassName)
-                .attr('stroke-opacity', 0 );
+                .attr('stroke-opacity', 0 )
+                .addClass( DG.PlotUtilities.kToolTipShadowClassName);
     this._tipRectElement = tPaper.rect( 0, 0, 0, 0)
-                .addClass( DG.PlotUtilities.kToolTipClassName)
-                .attr('opacity', 0 );
+                .attr('opacity', 0 )
+                .addClass( DG.PlotUtilities.kToolTipClassName);
 
     this.updateTip();
 
