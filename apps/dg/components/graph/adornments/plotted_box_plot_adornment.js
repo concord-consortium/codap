@@ -240,10 +240,18 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           tSpec.upperWhisker = ( isFinite(tUpperWhisker) ?
               (tIsHorizontal ? tPrimaryAxisView.dataToCoordinate(tUpperWhisker) - (tSpec.Q1 + tSpec.width) :
                   -(tSpec.Q1 - tSpec.width - tPrimaryAxisView.dataToCoordinate(tUpperWhisker))) : 0);
+          tSpec.lowerOutliers = [];
+          tValuesArray[ iIndex].lowerOutliers.forEach( function( iOutlier) {
+            tSpec.lowerOutliers.push( tPrimaryAxisView.dataToCoordinate( iOutlier));
+          });
+          tSpec.upperOutliers = [];
+          tValuesArray[ iIndex].upperOutliers.forEach( function( iOutlier) {
+            tSpec.upperOutliers.push( tPrimaryAxisView.dataToCoordinate( iOutlier));
+          });
 
           // create and update the boxplot elements
           var tSymbol, tLowerRect, tUpperRect, tLowerWhiskerCover, tUpperWhiskerCover, tMedianCover,
-              tQ1Cover, tQ3Cover;
+              tQ1Cover, tQ3Cover, tLowerOutliers, tUpperOutliers;
           if (iIndex * kElemsPerCell >= tNumElements) {
             tSymbol = tPaper.path('M0,0')
                 .attr({stroke: this.symStroke, 'stroke-width': this.symStrokeWidth, 'stroke-opacity': 0});

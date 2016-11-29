@@ -308,18 +308,24 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
       // also compute IQR
       tValues.forEach(function (iValue) {
         if (iValue.vals.length > 0) {
+          iValue.upperOutliers = [];
+          iValue.lowerOutliers = [];
           var tMaxWhiskerLength = 1.5 * iValue.IQR,
               tWhiskerCandidate, tIndex;
           tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
           tIndex = 0;
-          while (iValue.vals[tIndex] < tWhiskerCandidate)
+          while (iValue.vals[tIndex] < tWhiskerCandidate) {
+            iValue.lowerOutliers.push( iValue.vals[tIndex]);
             tIndex++;
+          }
           iValue.lowerWhisker = iValue.vals[tIndex];
 
           tWhiskerCandidate = iValue.Q3 + tMaxWhiskerLength;
           tIndex = iValue.vals.length - 1;
-          while (iValue.vals[tIndex] > tWhiskerCandidate)
+          while (iValue.vals[tIndex] > tWhiskerCandidate) {
+            iValue.upperOutliers.push( iValue.vals[tIndex]);
             tIndex--;
+          }
           iValue.upperWhisker = iValue.vals[tIndex];
         }
       });
