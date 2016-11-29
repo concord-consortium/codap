@@ -14361,7 +14361,7 @@ module.exports = GoogleDriveProvider;
 
 
 },{"../utils/is-string":70,"../utils/translate":72,"./provider-interface":63,"diff":12}],59:[function(require,module,exports){
-var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam,
+var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -14378,6 +14378,8 @@ PatchableContent = require('./patchable-content');
 getQueryParam = require('../utils/get-query-param');
 
 base64 = (require('js-base64')).Base64;
+
+pako = require('pako');
 
 LaraProvider = (function(superClass) {
   extend(LaraProvider, superClass);
@@ -14814,7 +14816,7 @@ LaraProvider = (function(superClass) {
 module.exports = LaraProvider;
 
 
-},{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34}],60:[function(require,module,exports){
+},{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34,"pako":35}],60:[function(require,module,exports){
 var LocalFileListTab, LocalFileProvider, LocalFileSaveTab, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
