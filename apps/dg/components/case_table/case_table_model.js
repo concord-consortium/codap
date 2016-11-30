@@ -145,7 +145,9 @@ DG.CaseTableModel = SC.Object.extend(/** @scope DG.CaseTableModel.prototype */ {
    * @param iCase {DG.Case}
    */
   collapseNode: function(iCase) {
-    this._collapsedNodes[iCase.id] = true;
+    if (iCase) {
+      this._collapsedNodes[iCase.id] = true;
+    }
   },
 
   /**
