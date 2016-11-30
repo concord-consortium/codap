@@ -398,23 +398,26 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 .animate({'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
           }
           this_._squares.push( tRect);
+          tAdornmentLayer.push( tRect);
         });
       }
 
       var tVisible = this_.getPath('model.areSquaresVisible' ),
           tAnimateRemove = !tVisible && this_._squares && (this_._squares.length > 0),
-          tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0));
+          tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0)),
+          tLayerManager = this_.get('layerManager'),
+          tAdornmentLayer = tLayerManager[DG.LayerNames.kAdornments];
       if( !this_._squares)
         this_._squares = [];
       this_._squares.forEach( function( iElement) {
         if( tAnimateRemove) {
           iElement.animate( { 'stroke-opacity': 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>',
                             function() {
-                              iElement.remove();
+                              tLayerManager.removeElement(iElement);
                             });
         }
         else
-          iElement.remove();
+          tLayerManager.removeElement(iElement);
       });
       this_._squares = [];
       if( !tVisible)

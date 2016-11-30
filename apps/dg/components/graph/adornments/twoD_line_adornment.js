@@ -118,14 +118,14 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
     var tPaper = this.get('paper'),
-        tLayer = this.get('layer'),
+        tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
         tDefaultColor = this.get('defaultColor');
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
         .attr({ stroke: tDefaultColor, 'stroke-opacity': 0 });
     this.lineSeg.animatable = true;
 
     this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
+        .attr({ fill: 'yellow', 'stroke-width': 0, 'fill-opacity': 0.8 });
     // Put the text below the hit segments in z-order so user can still hit the line
     this.equation = tPaper.text( 0, 0, '')
         .attr({ 'stroke-opacity': 0, fill: tDefaultColor })

@@ -101,7 +101,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
       tBackgrndX = tTextAnchor.x - tTextBox.width;
     }
     // We don't want the equation to sit on the line
-    tTextAnchor.y += tTextBox.height / 2;
+    tTextAnchor.y += 3 * tTextBox.height / 2;
     // Keep the equation inside the plot bounds
     tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
 

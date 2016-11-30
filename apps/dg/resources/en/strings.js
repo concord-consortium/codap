@@ -503,8 +503,8 @@ SC.stringsFor('English', {
   // DG.ScatterPlotModel
   'DG.ScatterPlotModel.UnlockIntercept': "Unlock Intercept",
   'DG.ScatterPlotModel.LockIntercept': "Lock Intercept at Zero",
-  'DG.ScatterPlotModel.sumSquares': ",\n∑resid^2 = %@", // sumOfResidualsSquared
-  'DG.ScatterPlotModel.rSquared': ", r^2 = %@", // r-squared
+  'DG.ScatterPlotModel.sumSquares': ",\nSum of squares = %@", // sumOfResidualsSquared
+  'DG.ScatterPlotModel.rSquared': ",\nr^2 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
 
