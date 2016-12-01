@@ -13379,7 +13379,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to load " + (metadata.name || 'file') + " due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.LOAD_403_ERROR", {
+              filename: metadata.name || 'the file'
+            }), 403);
           };
         })(this)
       },
@@ -13388,7 +13390,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        message = metadata.sharedContentId ? "Unable to load document '" + metadata.sharedContentId + "'. Perhaps the file was not shared?" : "Unable to load " + (metadata.name || ((ref6 = metadata.providerData) != null ? ref6.id : void 0) || 'file');
+        message = metadata.sharedContentId ? tr("~DOCSTORE.LOAD_SHARED_404_ERROR") : tr("~DOCSTORE.LOAD_404_ERROR", {
+          filename: metadata.name || ((ref6 = metadata.providerData) != null ? ref6.id : void 0) || 'the file'
+        });
         return callback(message);
       }
     });
@@ -13437,7 +13441,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to save '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.SAVE_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13449,12 +13455,19 @@ DocumentStoreProvider = (function(superClass) {
           }
           responseJson = JSON.parse(jqXHR.responseText);
           if (responseJson.message === 'error.duplicate') {
-            return callback("Unable to create " + metadata.name + ".  File already exists.");
+            return callback(tr("~DOCSTORE.SAVE_DUPLICATE_ERROR", {
+              filename: metadata.name
+            }));
           } else {
-            return callback("Unable to save " + metadata.name + ": [" + responseJson.message + "]");
+            return callback(tr("~DOCSTORE.SAVE_ERROR_WITH_MESSAGE", {
+              filename: metadata.name,
+              message: responseJson.message
+            }));
           }
         } catch (error) {
-          return callback("Unable to save " + metadata.name);
+          return callback(tr("~DOCSTORE.SAVE_ERROR", {
+            filename: metadata.name
+          }));
         }
       }
     });
@@ -13477,7 +13490,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to remove '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.REMOVE_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13485,7 +13500,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        return callback("Unable to remove " + metadata.name);
+        return callback(tr("~DOCSTORE.REMOVE_ERROR", {
+          filename: metadata.name
+        }));
       }
     });
   };
@@ -13509,7 +13526,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to rename '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.RENAME_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13517,7 +13536,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        return callback("Unable to rename " + metadata.name);
+        return callback(tr("~DOCSTORE.RENAME_ERROR", {
+          filename: metadata.name
+        }));
       }
     });
   };
@@ -16293,6 +16314,17 @@ module.exports = {
   "~ALERT_DIALOG.TITLE": "Alert",
   "~ALERT_DIALOG.CLOSE": "Close",
   "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
+  "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
+  "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
+  "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
+  "~DOCSTORE.SAVE_403_ERROR": "You don't have permission to save '%{filename}'.<br><br>You may need to log in again.",
+  "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Unable to create %{filename}.  File already exists.",
+  "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Unable to save %{filename}: [%{message}]",
+  "~DOCSTORE.SAVE_ERROR": "Unable to save %{filename}",
+  "~DOCSTORE.REMOVE_403_ERROR": "You don't have permission to remove %{filename}.<br><br>You may need to log in again.",
+  "~DOCSTORE.REMOVE_ERROR": "Unable to remove %{filename}",
+  "~DOCSTORE.RENAME_403_ERROR": "You don't have permission to rename %{filename}.<br><br>You may need to log in again.",
+  "~DOCSTORE.RENAME_ERROR": "Unable to rename %{filename}",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alert",
   "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
