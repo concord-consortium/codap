@@ -216,7 +216,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           if( tContext){
             tContext.removeObserver('changeCount', this, 'handleDataContextNotification');
           }
-          this.setPath('dataConfiguration.dataContext', iValue);
+          iValue && this.setPath('dataConfiguration.dataContext', iValue);
           iValue.addObserver('changeCount', this, 'handleDataContextNotification');
         }
         return this;
@@ -406,6 +406,9 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
         case 'createCollection':
           this.notifyPropertyChange('caseOrder');
           break;
+        case 'deleteDataContext':
+          this.dataContextWasDeleted();
+          break;
         default:
           // Nothing to do
       }
@@ -416,6 +419,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
 
+    dataContextWasDeleted: function () {
+      DG.log('dataContextWasDeleted');
+      // var tComponentView = this.get('view'),
+      //     tContainerView = tComponentView && tComponentView.get('parentView');
+      // tController.willCloseComponent();
+      // tController.willSaveComponent();
+      // if (tContainerView) {
+      //   tContainerView.removeComponentView( tComponentView);
+      // }
+    },
     /**
      * One or more of the attributes used on this graph has been changed; e.g. by having its name changed.
      * We pass responsibility for dealing with the change to the appropriate sub-model.

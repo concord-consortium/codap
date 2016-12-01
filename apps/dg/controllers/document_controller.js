@@ -374,6 +374,27 @@ DG.DocumentController = SC.Object.extend(
       return context;
     },
 
+      /**
+       * Destroys the identified data context.
+       * @param dataContextID
+       * @return whether successful. That is whether there was a dataContext
+       *    with the id to be destroyed.
+       */
+      destroyDataContext: function (dataContextID) {
+        var dataContext = this.getContextByID(dataContextID);
+        var dataContextIndex = this.contexts.findIndex(function (dc) { return dc===dataContext; });
+        if (dataContext) {
+          if (dataContextIndex >= 0) {
+            dataContext.applyChange({operation: 'deleteDataContext'});
+            this.contexts.splice(dataContextIndex, 1);
+          } else {
+            DG.warn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
+          }
+        } else {
+          return false;
+        }
+      },
+
     /**
       Creates an appropriate DG.DataContext for each DG.DataContextRecord in the document.
       Can be used after restoring a document, for instance.

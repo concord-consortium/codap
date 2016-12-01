@@ -614,12 +614,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         'delete': function (iResources, iValues) {
           var context = iResources.dataContext;
+          var documentController = DG.currDocumentController();
           if (context) {
-            context.destroy();
-          }
+            documentController.destroyDataContext(context.get('id'));
           return {
             success: true
           };
+          } else {
+            return {
+              success: false
+            };
+          }
         }
       },
 

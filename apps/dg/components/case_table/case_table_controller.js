@@ -344,6 +344,9 @@ DG.CaseTableController = DG.ComponentController.extend(
             this.caseCountDidChange( iChange);
             this.dataContextDidChange();
             break;
+          case 'deleteDataContext':
+            this.dataContextWasDeleted();
+            break;
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
           }
@@ -430,6 +433,13 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
       },
 
+      dataContextWasDeleted: function () {
+        var tComponentView = this.get('view'),
+            tContainerView = tComponentView.get('parentView');
+        this.willCloseComponent();
+        this.willSaveComponent();
+        tContainerView.removeComponentView( tComponentView);
+      },
       /**
         Called when the data context notifies that case values have changed.
         @param iChange {Object}  An object describing the nature of the change

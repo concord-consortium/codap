@@ -271,7 +271,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       var collection = this.getCollectionAtIndex( i);
       if( collection) this.willRemoveCollection( collection);
     }
-    delete DG.DataContext._contextMap[this.model.id];
+    // delete DG.DataContext._contextMap[this.model.id];
     this.model.destroy();
     sc_super();
   },
@@ -427,6 +427,9 @@ DG.DataContext = SC.Object.extend((function() // closure
         break;
       case 'resetCollections':
         result = this.doResetCollections( iChange );
+        break;
+      case 'deleteDataContext':
+        result = this.destroy();
         break;
       default:
         DG.logWarn('DataContext.performChange: unknown operation: '

@@ -537,17 +537,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   viewDidResize: function() {
     sc_super();
-    if( this._slickGrid) {
-      // We must use invokeLast() here because at this point the SproutCore
-      // 'layout' has changed, but the corresponding DOM changes haven't
-      // necessarily happened yet. Since SlickGrid queries the DOM objects
-      // directly (via jQuery), we don't want to resize until the views have
-      // finished updating the DOM.
-      this.invokeLast( function() {
-                          this._slickGrid.resizeCanvas();
-                          this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
-                        }.bind(this));
-    }
+    // We must use invokeLast() here because at this point the SproutCore
+    // 'layout' has changed, but the corresponding DOM changes haven't
+    // necessarily happened yet. Since SlickGrid queries the DOM objects
+    // directly (via jQuery), we don't want to resize until the views have
+    // finished updating the DOM.
+    this.invokeLast( function() {
+      if( this._slickGrid) {
+        this._slickGrid.resizeCanvas();
+        this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
+      }
+    }.bind(this));
   },
 
   /**
