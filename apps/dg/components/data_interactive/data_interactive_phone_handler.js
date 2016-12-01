@@ -382,33 +382,39 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleOneCommand: function (iCmd) {
         var result = {success: false};
 
-        // parse the resource name into constituent parts
-        var selectorMap = iCmd.resource && this.parseResourceSelector(
-                iCmd.resource);
+        try {
+          // parse the resource name into constituent parts
+          var selectorMap = iCmd.resource && this.parseResourceSelector(
+                  iCmd.resource);
 
-        // resolve identified resources
-        var resourceMap = this.resolveResources(selectorMap, iCmd.action);
+          // resolve identified resources
+          var resourceMap = this.resolveResources(selectorMap, iCmd.action);
 
-        var action = iCmd.action;
-        var type = selectorMap && selectorMap.type;
+          var action = iCmd.action;
+          var type = selectorMap && selectorMap.type;
 
-        var handler = type && this.handlerMap[type];
+          var handler = type && this.handlerMap[type];
 
-        if (handler) {
-          if (handler[action]) {
-            SC.run(function () {
-              result = handler[action].call(this, resourceMap, iCmd.values) || {success: false};
-              if (result.values) {
-                this.filterResultValues(result.values);
-              }
-            }.bind(this));
+          if (handler) {
+            if (handler[action]) {
+              SC.run(function () {
+                result = handler[action].call(this, resourceMap, iCmd.values) || {success: false};
+                if (result.values) {
+                  this.filterResultValues(result.values);
+                }
+              }.bind(this));
+            } else {
+              result.values={error: 'Unsupported action: %@/%@'.loc(action,type)};
+
+            }
           } else {
-            DG.logWarn('Unsupported action: %@/%@'.loc(action,type));
+            DG.logWarn("Unknown message type: " + type);
+            result.values={error: "Unknown message type: " + type};
           }
-        } else {
-          DG.logWarn("Unknown message type: " + type);
+        } catch (ex) {
+          DG.logWarn(ex);
+          result.values={error: ex.toString()};
         }
-
         return result;
       },
       /**
@@ -424,22 +430,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         this.setIfChanged('connected', true);
         DG.log('Handle Request: ' + JSON.stringify(iMessage));
         var result = {success: false};
-        try {
-          if (!SC.none(iMessage)) {
-            if (Array.isArray(iMessage)) {
-              result = iMessage.map(function (cmd) {
-                return this.handleOneCommand(cmd);
-              }.bind(this));
-            } else {
-              result = this.handleOneCommand(iMessage);
-            }
+        if (!SC.none(iMessage)) {
+          if (Array.isArray(iMessage)) {
+            result = iMessage.map(function (cmd) {
+              return this.handleOneCommand(cmd);
+            }.bind(this));
+          } else {
+            result = this.handleOneCommand(iMessage);
           }
-        } catch (ex) {
-          DG.logWarn(ex);
-        } finally {
-          DG.log('Returning response: ' + JSON.stringify(result));
-          iCallback(result);
         }
+        DG.log('Returning response: ' + JSON.stringify(result));
+        iCallback(result);
       },
 
       /**
