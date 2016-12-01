@@ -222,6 +222,38 @@
     text-decoration: none;
 }
 
+.CodeMirror {
+    font-size: 14px;
+}
+
+.CodeMirror-hints {
+    z-index: 101;
+}
+
+.cm-variable {
+    color: black;
+}
+
+.cm-variable.codap-Special {
+    color: red;
+}
+
+.cm-variable.codap-Globals {
+    color: maroon;
+}
+
+.cm-variable.codap-Constants {
+    color: teal;
+}
+
+.cm-variable.codap-Attributes {
+    color: magenta;
+}
+
+.cm-variable.codap-Functions {
+    color: blue;
+}
+
 /*
   Adapted from https://jqueryui.com/resources/demos/autocomplete/maxheight.html
  */

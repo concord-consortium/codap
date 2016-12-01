@@ -255,6 +255,16 @@ return {
 
 }()));
 
+/*
+ * Regular expression for matching an identifier in a CODAP formula which handles Unicode chars u0000-u02FF. 
+ * Subset of https://github.com/mathiasbynens/unicode-data/blob/master/8.0.0/properties/Alphabetic-regex.js.
+ * For full Unicode support, should consider a library like XRegExp (https://github.com/slevithan/xregexp).
+ */
+DG.Formula.identifierRegExp = (function() {
+  var firstChar = 'A-Za-z_\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE';
+  return new RegExp('[%@][%@]*'.fmt(firstChar, '0-9' + firstChar));
+})();
+
 /**
   Addition function which handles types by our rules rather than JavaScript's.
   Numbers and values interpretable as numeric (e.g. booleans, some strings)

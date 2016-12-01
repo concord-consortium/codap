@@ -21,7 +21,7 @@
 // ==========================================================================
 
 sc_require('formula/formula_context');
-sc_require('views/formula_text_edit_view');
+sc_require('views/formula_rich_edit_view');
 
 /** @class
 
@@ -53,7 +53,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         layout: { top: 5, right: 5, width: 12, height: 24 },
         value: "="
       }),
-      formula: DG.FormulaTextEditView.design({
+      formula: DG.FormulaRichEditView.design({
         layout: { top: 34, left: 5, right: 5, height:72 },
         value: '',
         isTextArea: true,
@@ -169,6 +169,14 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
                   return 0;
                 });
     this.setPath('contentView.functionPopup.menu.items', items);
+  },
+
+  keyDown: function(evt) {
+    if (evt.keyCode === SC.Event.KEY_ESC) {
+      this.close();
+      return YES;
+    }
+    return NO;
   },
   
   /**
