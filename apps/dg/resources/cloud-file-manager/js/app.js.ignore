@@ -12490,16 +12490,12 @@ CloudFileManagerClient = (function() {
           } else {
             currentContent.set('isUnshared', true);
           }
-          if (shared) {
-            return _this.state.shareProvider.share(currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
-              if (err) {
-                return _this.alert(err);
-              }
-              return typeof callback === "function" ? callback(null, sharedContentId, currentContent) : void 0;
-            });
-          } else {
-            return typeof callback === "function" ? callback(null) : void 0;
-          }
+          return _this.state.shareProvider.share(shared, currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
+            if (err) {
+              return _this.alert(err);
+            }
+            return typeof callback === "function" ? callback(null, sharedContentId, currentContent) : void 0;
+          });
         };
       })(this));
     }
@@ -13383,7 +13379,7 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to load '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback("Unable to load " + (metadata.name || 'file') + " due to a permissions error.\nYou may need to log in again.", 403);
           };
         })(this)
       },
@@ -13622,13 +13618,15 @@ DocumentStoreShareProvider = (function() {
     };
   };
 
-  DocumentStoreShareProvider.prototype.share = function(masterContent, sharedContent, metadata, callback) {
+  DocumentStoreShareProvider.prototype.share = function(shared, masterContent, sharedContent, metadata, callback) {
     var accessKey, accessKeys, documentID, method, params, ref, ref1, runKey, url;
     documentID = masterContent.get('sharedDocumentId');
     accessKeys = masterContent.get('accessKeys');
     runKey = masterContent.get('shareEditKey');
     accessKey = (accessKeys != null ? accessKeys.readWrite : void 0) || runKey;
-    params = {};
+    params = {
+      shared: shared
+    };
     if (accessKey) {
       params.accessKey = 'RW::' + accessKey;
     }
@@ -13664,7 +13662,7 @@ DocumentStoreShareProvider = (function() {
           return callback("Unable to update shared '" + docName + "'");
         }
       });
-    } else {
+    } else if (shared) {
       params.shared = true;
       ref1 = this.docStoreUrl.v2CreateDocument(params), method = ref1.method, url = ref1.url;
       return $.ajax({
@@ -13697,6 +13695,8 @@ DocumentStoreShareProvider = (function() {
           return callback("Unable to share '" + docName + "'");
         }
       });
+    } else {
+      return callback("Unable to unshare '" + docName + "'");
     }
   };
 
@@ -16267,6 +16267,7 @@ module.exports = {
   "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
   "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
   "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
+  "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
   "~SHARE_UPDATE.TITLE": "Shared View Updated",
   "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
   "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
@@ -17688,6 +17689,9 @@ tr = require('../utils/translate');
 module.exports = React.createClass({
   displayName: 'MenuBar',
   componentWillMount: function() {
+    if (window.addEventListener) {
+      window.addEventListener('mousedown', this.checkBlur, true);
+    }
     return this.props.client._ui.listen((function(_this) {
       return function(event) {
         switch (event.type) {
@@ -17702,6 +17706,11 @@ module.exports = React.createClass({
         }
       };
     })(this));
+  },
+  componentWillUnmount: function() {
+    if (window.removeEventListener) {
+      return window.removeEventListener('mousedown', this.checkBlur, true);
+    }
   },
   getFilename: function(props) {
     var ref1;
@@ -17801,6 +17810,11 @@ module.exports = React.createClass({
   help: function() {
     return window.open(this.props.options.help, '_blank');
   },
+  checkBlur: function(e) {
+    if (this.state.editingFilename && e.target !== this.filename()) {
+      return this.filenameBlurred();
+    }
+  },
   render: function() {
     var ref1;
     return div({
@@ -17815,7 +17829,6 @@ module.exports = React.createClass({
       ref: 'filename',
       value: this.state.editableFilename,
       onChange: this.filenameChanged,
-      onBlur: this.filenameBlurred,
       onKeyDown: this.watchForEnter
     })) : div({
       className: 'menu-bar-content-filename',
@@ -17939,6 +17952,14 @@ module.exports = React.createClass({
     } else {
       return dimensions;
     }
+  },
+  updateStyles: function() {
+    var dimensions;
+    dimensions = this.getDimensions();
+    return this.setState({
+      backgroundStyle: this.getBackgroundStyle(dimensions),
+      contentStyle: this.getContentStyle(dimensions)
+    });
   },
   componentDidMount: function() {
     $(window).bind('keyup', this.watchForEscape);
@@ -18119,9 +18140,11 @@ module.exports = SelectProviderDialogTab;
 
 
 },{}],91:[function(require,module,exports){
-var ModalDialog, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
+var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
+
+SHOW_LONGEVITY_WARNING = false;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
 
@@ -18419,7 +18442,9 @@ module.exports = React.createClass({
       className: 'buttons'
     }, button({
       onClick: this.props.close
-    }, tr('~SHARE_DIALOG.CLOSE')))));
+    }, tr('~SHARE_DIALOG.CLOSE'))), SHOW_LONGEVITY_WARNING ? div({
+      className: 'longevity-warning'
+    }, tr('~SHARE_DIALOG.LONGEVITY_WARNING')) : void 0));
   }
 });
 

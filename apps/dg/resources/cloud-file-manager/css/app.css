@@ -949,6 +949,9 @@
 .share-dialog .buttons button.disabled {
   background-color: #777;
 }
+.share-dialog .longevity-warning {
+  margin: 20px 30px;
+}
 .tabbed-panel {
   display: flex;
   flex-direction: row;
