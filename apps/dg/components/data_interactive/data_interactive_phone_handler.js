@@ -102,9 +102,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           collection: this.handleCollection,
           collectionList: this.handleCollectionList,
           component: this.handleComponent,
-          // Remove access to component information for now, or until
-          // di needs in this area become clearer.
-          //componentList: this.handleComponentList,
+          componentList: this.handleComponentList,
           dataContext: this.handleDataContext,
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
@@ -239,7 +237,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * resource or an individual resource. This routine parses a resource
        * selector into its component parts and builds an equivalent object.
        *
-       *   * Base resources: [interactiveFrame, logAction]
+       *   * Base resources: [interactiveFrame, logMessage]
        *   * Doc resources: [dataContext, component, global]
        *   * DataContext resources: [collection, attributes]
        *   * Collection resources: [case]
@@ -1137,14 +1135,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
            default:
          }
          if (!SC.none(typeClass)) {
-           iValues[document] = doc;
+           iValues.document = doc;
            iValues.type = typeClass;
            // the allowMoreThanOne=false restriction is historical. It prevented
            // proliferation of components when a document was repeatedly opened
            // we default to allowing any number. It is a DI's responsibility
            // to avoid proliferation.
            iValues.allowMoreThanOne = true;
-           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+           //rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+           rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
          } else {
            DG.log('Unknown component type: ' + type);
          }
@@ -1166,14 +1165,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        },
 
        // remove, for now, or until we understand user needs
-       //get: function (iResources) {
-       //  var component = iResources.component;
-       //  return {
-       //    success: true,
-       //    values: component.get('model').toArchive()
-       //  };
-       //},
-       //
+       get: function (iResources) {
+         var component = iResources.component;
+         return {
+           success: true,
+           values: component.get('model').toArchive()
+         };
+       },
+
        'delete': function (iResource) {
          var component = iResource.component;
          component.destroy();
@@ -1181,26 +1180,25 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        }
       },
 
-      // remove, for now, or until we understand user needs
-      //handleComponentList: {
-      //  get: function (iResources) {
-      //    var document = DG.currDocumentController();
-      //
-      //    var result = [];
-      //    DG.ObjectMap.forEach(document.get('components'), function(id, component) {
-      //      result.push( {
-      //        id: component.get('id'),
-      //        name: component.get('name'),
-      //        title: component.get('title')
-      //      });
-      //    });
-      //    return {
-      //      success: true,
-      //      values: result
-      //    };
-      //  }
-      //},
-      //
+      handleComponentList: {
+        get: function (iResources) {
+          var document = DG.currDocumentController();
+
+          var result = [];
+          DG.ObjectMap.forEach(document.get('components'), function(id, component) {
+            result.push( {
+              id: component.get('id'),
+              name: component.get('name'),
+              title: component.get('title')
+            });
+          });
+          return {
+            success: true,
+            values: result
+          };
+        }
+      },
+
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.logUser(iValues);
@@ -1226,29 +1224,45 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
 
-          var logMessage = iValues && iValues.logMessage ? iValues.logMessage : "Unknown action";
-          var rpcEndpoint = this.get('rpcEndpoint');
+          function registerUndoChangeNotice(logMessage, rpcEndpoint) {
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'interactive.undoableAction',
+              undoString: 'DG.Undo.interactiveUndoableAction',
+              redoString: 'DG.Redo.interactiveUndoableAction',
+              log: 'Interactive action occurred: ' + logMessage,
+              execute: function () {
+              },
+              undo: function () {
+                // FIXME If the game component was removed and then re-added via an undo,
+                // then calling undo or redo here will likely fail because the game's undo stack would
+                // probably have been cleared.
+                var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
+                rpcEndpoint.call(message, handleUndoRedoCompleted);
+              },
+              redo: function () {
+                var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
+                rpcEndpoint.call(message, handleUndoRedoCompleted);
+              }
+            }));
+            return true;
+          }
 
-          DG.UndoHistory.execute(DG.Command.create({
-            name: 'interactive.undoableAction',
-            undoString: 'DG.Undo.interactiveUndoableAction',
-            redoString: 'DG.Redo.interactiveUndoableAction',
-            log: 'Interactive action occurred: ' + logMessage,
-            _componentId: this.getPath('component.model.id'),
-            execute: function () {
-            },
-            undo: function () {
-              // FIXME If the game component was removed and then re-added via an undo,
-              // then calling undo or redo here will likely fail because the game's undo stack would
-              // probably have been cleared.
-              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
-              rpcEndpoint.call(message, handleUndoRedoCompleted);
-            },
-            redo: function () {
-              var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
-              rpcEndpoint.call(message, handleUndoRedoCompleted);
-            }
-          }));
+          var logMessage = iValues && iValues.logMessage ? iValues.logMessage : "Unknown action";
+          var success = true;
+
+          switch (iValues.operation){
+            case 'undoableActionPerformed':
+              success = registerUndoChangeNotice(logMessage, this.get('rpcEndpoint'));
+              break;
+            case 'undoButtonPress':
+              DG.UndoHistory.undo();
+              break;
+
+            case 'redoButtonPress':
+              DG.UndoHistory.redo();
+              break;
+          }
+          return {success: success};
         }
       }
       //get: function (iResources) {

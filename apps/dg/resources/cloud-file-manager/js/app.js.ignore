@@ -12490,16 +12490,12 @@ CloudFileManagerClient = (function() {
           } else {
             currentContent.set('isUnshared', true);
           }
-          if (shared) {
-            return _this.state.shareProvider.share(currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
-              if (err) {
-                return _this.alert(err);
-              }
-              return typeof callback === "function" ? callback(null, sharedContentId, currentContent) : void 0;
-            });
-          } else {
-            return typeof callback === "function" ? callback(null) : void 0;
-          }
+          return _this.state.shareProvider.share(shared, currentContent, sharedContent, _this.state.metadata, function(err, sharedContentId) {
+            if (err) {
+              return _this.alert(err);
+            }
+            return typeof callback === "function" ? callback(null, sharedContentId, currentContent) : void 0;
+          });
         };
       })(this));
     }
@@ -13383,7 +13379,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to load '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.LOAD_403_ERROR", {
+              filename: metadata.name || 'the file'
+            }), 403);
           };
         })(this)
       },
@@ -13392,7 +13390,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        message = metadata.sharedContentId ? "Unable to load document '" + metadata.sharedContentId + "'. Perhaps the file was not shared?" : "Unable to load " + (metadata.name || ((ref6 = metadata.providerData) != null ? ref6.id : void 0) || 'file');
+        message = metadata.sharedContentId ? tr("~DOCSTORE.LOAD_SHARED_404_ERROR") : tr("~DOCSTORE.LOAD_404_ERROR", {
+          filename: metadata.name || ((ref6 = metadata.providerData) != null ? ref6.id : void 0) || 'the file'
+        });
         return callback(message);
       }
     });
@@ -13441,7 +13441,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to save '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.SAVE_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13453,12 +13455,19 @@ DocumentStoreProvider = (function(superClass) {
           }
           responseJson = JSON.parse(jqXHR.responseText);
           if (responseJson.message === 'error.duplicate') {
-            return callback("Unable to create " + metadata.name + ".  File already exists.");
+            return callback(tr("~DOCSTORE.SAVE_DUPLICATE_ERROR", {
+              filename: metadata.name
+            }));
           } else {
-            return callback("Unable to save " + metadata.name + ": [" + responseJson.message + "]");
+            return callback(tr("~DOCSTORE.SAVE_ERROR_WITH_MESSAGE", {
+              filename: metadata.name,
+              message: responseJson.message
+            }));
           }
         } catch (error) {
-          return callback("Unable to save " + metadata.name);
+          return callback(tr("~DOCSTORE.SAVE_ERROR", {
+            filename: metadata.name
+          }));
         }
       }
     });
@@ -13481,7 +13490,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to remove '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.REMOVE_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13489,7 +13500,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        return callback("Unable to remove " + metadata.name);
+        return callback(tr("~DOCSTORE.REMOVE_ERROR", {
+          filename: metadata.name
+        }));
       }
     });
   };
@@ -13513,7 +13526,9 @@ DocumentStoreProvider = (function(superClass) {
         403: (function(_this) {
           return function() {
             _this.user = null;
-            return callback("Unable to rename '" + metadata.name + "' due to a permissions error.\nYou may need to log in again.", 403);
+            return callback(tr("~DOCSTORE.RENAME_403_ERROR", {
+              filename: metadata.name
+            }), 403);
           };
         })(this)
       },
@@ -13521,7 +13536,9 @@ DocumentStoreProvider = (function(superClass) {
         if (jqXHR.status === 403) {
           return;
         }
-        return callback("Unable to rename " + metadata.name);
+        return callback(tr("~DOCSTORE.RENAME_ERROR", {
+          filename: metadata.name
+        }));
       }
     });
   };
@@ -13622,13 +13639,15 @@ DocumentStoreShareProvider = (function() {
     };
   };
 
-  DocumentStoreShareProvider.prototype.share = function(masterContent, sharedContent, metadata, callback) {
+  DocumentStoreShareProvider.prototype.share = function(shared, masterContent, sharedContent, metadata, callback) {
     var accessKey, accessKeys, documentID, method, params, ref, ref1, runKey, url;
     documentID = masterContent.get('sharedDocumentId');
     accessKeys = masterContent.get('accessKeys');
     runKey = masterContent.get('shareEditKey');
     accessKey = (accessKeys != null ? accessKeys.readWrite : void 0) || runKey;
-    params = {};
+    params = {
+      shared: shared
+    };
     if (accessKey) {
       params.accessKey = 'RW::' + accessKey;
     }
@@ -13664,7 +13683,7 @@ DocumentStoreShareProvider = (function() {
           return callback("Unable to update shared '" + docName + "'");
         }
       });
-    } else {
+    } else if (shared) {
       params.shared = true;
       ref1 = this.docStoreUrl.v2CreateDocument(params), method = ref1.method, url = ref1.url;
       return $.ajax({
@@ -13697,6 +13716,8 @@ DocumentStoreShareProvider = (function() {
           return callback("Unable to share '" + docName + "'");
         }
       });
+    } else {
+      return callback("Unable to unshare '" + docName + "'");
     }
   };
 
@@ -14361,7 +14382,7 @@ module.exports = GoogleDriveProvider;
 
 
 },{"../utils/is-string":70,"../utils/translate":72,"./provider-interface":63,"diff":12}],59:[function(require,module,exports){
-var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam,
+var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -14378,6 +14399,8 @@ PatchableContent = require('./patchable-content');
 getQueryParam = require('../utils/get-query-param');
 
 base64 = (require('js-base64')).Base64;
+
+pako = require('pako');
 
 LaraProvider = (function(superClass) {
   extend(LaraProvider, superClass);
@@ -14814,7 +14837,7 @@ LaraProvider = (function(superClass) {
 module.exports = LaraProvider;
 
 
-},{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34}],60:[function(require,module,exports){
+},{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34,"pako":35}],60:[function(require,module,exports){
 var LocalFileListTab, LocalFileProvider, LocalFileSaveTab, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16265,6 +16288,7 @@ module.exports = {
   "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
   "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
   "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
+  "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
   "~SHARE_UPDATE.TITLE": "Shared View Updated",
   "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
   "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
@@ -16290,6 +16314,17 @@ module.exports = {
   "~ALERT_DIALOG.TITLE": "Alert",
   "~ALERT_DIALOG.CLOSE": "Close",
   "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
+  "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
+  "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
+  "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
+  "~DOCSTORE.SAVE_403_ERROR": "You don't have permission to save '%{filename}'.<br><br>You may need to log in again.",
+  "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Unable to create %{filename}.  File already exists.",
+  "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Unable to save %{filename}: [%{message}]",
+  "~DOCSTORE.SAVE_ERROR": "Unable to save %{filename}",
+  "~DOCSTORE.REMOVE_403_ERROR": "You don't have permission to remove %{filename}.<br><br>You may need to log in again.",
+  "~DOCSTORE.REMOVE_ERROR": "Unable to remove %{filename}",
+  "~DOCSTORE.RENAME_403_ERROR": "You don't have permission to rename %{filename}.<br><br>You may need to log in again.",
+  "~DOCSTORE.RENAME_ERROR": "Unable to rename %{filename}",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alert",
   "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
   "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
@@ -17686,6 +17721,9 @@ tr = require('../utils/translate');
 module.exports = React.createClass({
   displayName: 'MenuBar',
   componentWillMount: function() {
+    if (window.addEventListener) {
+      window.addEventListener('mousedown', this.checkBlur, true);
+    }
     return this.props.client._ui.listen((function(_this) {
       return function(event) {
         switch (event.type) {
@@ -17700,6 +17738,11 @@ module.exports = React.createClass({
         }
       };
     })(this));
+  },
+  componentWillUnmount: function() {
+    if (window.removeEventListener) {
+      return window.removeEventListener('mousedown', this.checkBlur, true);
+    }
   },
   getFilename: function(props) {
     var ref1;
@@ -17799,6 +17842,11 @@ module.exports = React.createClass({
   help: function() {
     return window.open(this.props.options.help, '_blank');
   },
+  checkBlur: function(e) {
+    if (this.state.editingFilename && e.target !== this.filename()) {
+      return this.filenameBlurred();
+    }
+  },
   render: function() {
     var ref1;
     return div({
@@ -17813,7 +17861,6 @@ module.exports = React.createClass({
       ref: 'filename',
       value: this.state.editableFilename,
       onChange: this.filenameChanged,
-      onBlur: this.filenameBlurred,
       onKeyDown: this.watchForEnter
     })) : div({
       className: 'menu-bar-content-filename',
@@ -17937,6 +17984,14 @@ module.exports = React.createClass({
     } else {
       return dimensions;
     }
+  },
+  updateStyles: function() {
+    var dimensions;
+    dimensions = this.getDimensions();
+    return this.setState({
+      backgroundStyle: this.getBackgroundStyle(dimensions),
+      contentStyle: this.getContentStyle(dimensions)
+    });
   },
   componentDidMount: function() {
     $(window).bind('keyup', this.watchForEscape);
@@ -18117,9 +18172,11 @@ module.exports = SelectProviderDialogTab;
 
 
 },{}],91:[function(require,module,exports){
-var ModalDialog, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
+var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
+
+SHOW_LONGEVITY_WARNING = false;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
 
@@ -18417,7 +18474,9 @@ module.exports = React.createClass({
       className: 'buttons'
     }, button({
       onClick: this.props.close
-    }, tr('~SHARE_DIALOG.CLOSE')))));
+    }, tr('~SHARE_DIALOG.CLOSE'))), SHOW_LONGEVITY_WARNING ? div({
+      className: 'longevity-warning'
+    }, tr('~SHARE_DIALOG.LONGEVITY_WARNING')) : void 0));
   }
 });
 

@@ -142,14 +142,14 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.mapButton.title': "Map",
   'DG.ToolButtonData.mapButton.toolTip': "Make a map",
   'DG.ToolButtonData.optionMenu.title': "Options",
-  'DG.ToolButtonData.optionMenu.toolTip': "Help, activities, learn about CODAP, ...",
+  'DG.ToolButtonData.optionMenu.toolTip': "Display a website, configure guide...",
   'DG.ToolButtonData.tileListMenu.title': "Tiles",
   'DG.ToolButtonData.tileListMenu.toolTip': "Show the list of tiles in the document",
   'DG.ToolButtonData.guideMenu.title': "Guide",
   'DG.ToolButtonData.guideMenu.toolTip': "Show the guide for this activity and navigate within it",
   'DG.ToolButtonData.guideMenu.showGuide': "Show Guide",
   'DG.ToolButtonData.help.title': "Help",
-  'DG.ToolButtonData.help.toolTip': "Open a browser tab showing help for CODAP",
+  'DG.ToolButtonData.help.toolTip': "Help for CODAP, learn about CODAP project",
 
   'DG.Slider.direction': "Animation Direction:",  // Direction
   'DG.Slider.backAndForth': "Back and Forth",   // Back and Forth
