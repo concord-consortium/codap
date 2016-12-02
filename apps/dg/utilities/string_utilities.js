@@ -20,6 +20,17 @@
 
 DG.StringUtilities = {
 
+  // from http://stackoverflow.com/a/6969486
+  escapeRegExpRE: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+
+  escapeRegExp: function(str) {
+    return str.replace(DG.StringUtilities.escapeRegExpRE, "\\$&");
+  },
+
+  createEscapedRegExp: function(str, flags) {
+    return new RegExp(DG.StringUtilities.escapeRegExp(str), flags);
+  },
+
   /**
    * The returned string is guaranteed to begin with iPrefix.
    * @param iString {String}

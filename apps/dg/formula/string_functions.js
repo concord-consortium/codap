@@ -25,11 +25,6 @@ sc_require('formula/function_registry');
  */
 DG.functionRegistry.registerFunctions((function() {
 
-  // from http://stackoverflow.com/a/6969486
-  function escapeRegExp(str) {
-    return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  }
-
   return {
     /**
       Returns true if the specified string contains the specified target string
@@ -218,7 +213,7 @@ DG.functionRegistry.registerFunctions((function() {
       evalFn: function(iString, iTarget, iReplace) {
         var string = String(iString), target = String(iTarget);
         if (!target) return string;
-        var re = new RegExp(escapeRegExp(target), 'g');
+        var re = DG.StringUtilities.createEscapedRegExp(target, 'g');
         return string.replace(re, iReplace);
       }
     },

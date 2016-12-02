@@ -671,11 +671,16 @@ DG.CaseTableController = DG.ComponentController.extend(
                             // Eventually, we will want some form of unique name generator
             defaultAttrName = iDefaultAttrName || '', // was DG.TableController.newAttrDlg.defaultAttrName'.loc(),  // "new_attr"
             defaultAttrFormula = iDefaultAttrFormula || '',
-            kAttributesCategory = 'DG.TableController.newAttrDialog.AttributesCategory'.loc(),
-            kSpecialCategory = 'DG.TableController.newAttrDialog.SpecialCategory'.loc(),
-            kGlobalsCategory = 'DG.TableController.newAttrDialog.GlobalsCategory'.loc(),
-            kConstantsCategory = 'DG.TableController.newAttrDialog.ConstantsCategory'.loc(),
-            kFunctionsCategory = 'DG.TableController.newAttrDialog.FunctionsCategory'.loc();
+            kAttributesCategory = { key: 'Attributes',
+                                    name: 'DG.TableController.newAttrDialog.AttributesCategory'.loc() },
+            kSpecialCategory = { key: 'Special',
+                                  name: 'DG.TableController.newAttrDialog.SpecialCategory'.loc() },
+            kGlobalsCategory = { key: 'Globals',
+                                  name: 'DG.TableController.newAttrDialog.GlobalsCategory'.loc() },
+            kConstantsCategory = { key: 'Constants',
+                                    name: 'DG.TableController.newAttrDialog.ConstantsCategory'.loc() },
+            kFunctionsCategory = { key: 'Functions',
+                                    name: 'DG.TableController.newAttrDialog.FunctionsCategory'.loc() };
 
         function appendNamesToCompletionData(iNames, iCategory) {
           /* global removeDiacritics */
@@ -701,19 +706,18 @@ DG.CaseTableController = DG.ComponentController.extend(
             tOperandsMenu.push('--');
           tOperandsMenu = tOperandsMenu.concat( iNamesArray.sort());
 
-          if (iCategory)
+          if (iCategory && iCategory.name)
             appendNamesToCompletionData(iNamesArray, iCategory);
         }
 
         collectionRecords.forEach(function (collectionRecord) {
           var collectionContext = tDataContext.getCollectionByName(collectionRecord.name);
-          appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames(),
-                                    kAttributesCategory);
+          appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames(), kAttributesCategory);
         });
-        if (kSpecialCategory !== kConstantsCategory)
+        if (kSpecialCategory.name !== kConstantsCategory.name)
           appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
         appendArrayOfNamesToMenu(tGlobalNames, kGlobalsCategory);
-        if (kSpecialCategory === kConstantsCategory)
+        if (kSpecialCategory.name === kConstantsCategory.name)
           appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
         appendArrayOfNamesToMenu([ "e", "π" ]);
         tCompletionData.push({ label: "e", value: "e", category: kConstantsCategory });
@@ -723,8 +727,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
                                 fontFamily: "Symbol,serif", fontSize: "130%" });
 
-        appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'),
-                                    kFunctionsCategory);
+        appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'), kFunctionsCategory);
 
           // Use SC.mixin() to combine iProperties with the rest of the default properties
           // that are passed to the new attribute dialog.
