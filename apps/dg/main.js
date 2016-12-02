@@ -98,22 +98,14 @@ DG.main = function main() {
     });
   }
   function translateQueryParameters() {
-    var url = window.location.href;
-    // parse url
-    var parsedURL = $('<a>', {href:url})[0];
-    var hash = parsedURL.hash;
     var startingDataInteractive = DG.get('startingDataInteractive');
 
     if (DG.get('runKey'))
       DG.set('showUserEntryView', false);
 
-    hash = hash && hash.length >= 1 && hash.slice(1);
-
-    if (SC.empty(hash)) {
-      if (startingDataInteractive) {
-        DG.set('showUserEntryView', false);
-        openDataInteractive(startingDataInteractive);
-      }
+    if (startingDataInteractive) {
+      DG.set('showUserEntryView', false);
+      openDataInteractive(startingDataInteractive);
     }
   }
   function cfmUrl(filename) {

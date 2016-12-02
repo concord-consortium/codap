@@ -251,10 +251,11 @@ DG = SC.Application.create((function () // closure
     _startingDataInteractive: getUrlParameter('di'),
 
     startingDataInteractive: function() {
-      var parsedGames;
+      var parsedGames, hash;
 
       if (this._startingDataInteractive) {
-        return this._startingDataInteractive;
+        hash = window.location.hash;
+        return this._startingDataInteractive + (hash.length > 1 ? hash : '');
       } else if (this.urlParamGames) {
         try {
           parsedGames = JSON.parse(this.urlParamGames);
