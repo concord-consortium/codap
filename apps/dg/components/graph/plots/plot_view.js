@@ -83,6 +83,12 @@ DG.PlotView = DG.PlotLayer.extend(
   plottedCountAdorn: null,
 
   /**
+   * Used by both dot plot and scatter plot
+   * @property {DG.PlottedValueAdornment}
+   */
+  plottedValueAdorn: null,
+
+  /**
     Prepare dependencies.
   */
   init: function() {
@@ -483,6 +489,31 @@ DG.PlotView = DG.PlotLayer.extend(
       this.plottedCountAdorn.updateToModel();
     }
   }.observes('.model.plottedCount'),
+
+  /**
+   The visibility of the model's plotted function has changed. We respond accordingly.
+   */
+  plottedValueChanged: function() {
+    var plotModel = this.get('model'),
+        tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue');
+    var tFunctionEditView = this.get('functionEditView');
+    if( SC.none( tFunctionEditView)) {
+      tFunctionEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
+      this.set('functionEditView', tFunctionEditView);
+      this.get('parentView').set('functionEditorView', tFunctionEditView);
+    }
+    tFunctionEditView.set('isVisible', tPlottedValue.get('isVisible'));
+
+    if( SC.none( this.plottedValueAdorn)) {
+      this.plottedValueAdorn = DG.PlottedValueAdornment.create({
+        parentView: this,
+        model: tPlottedValue,
+        paperSource: this.get('paperSource'),
+        layerName: DG.LayerNames.kAdornments,
+        valueAxisView: this.get('primaryAxisView')
+      });
+    }
+  }.observes('.model.plottedValue'),
 
   /**
     Called when the order of the categories on an axis changes (e.g. cells are dragged)

@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('components/graph/adornments/twoD_line_adornment');
+sc_require('components/graph/utilities/plot_utilities');
 
 /** @class  Draws a least squares regression line.
 
@@ -27,44 +28,16 @@ sc_require('components/graph/adornments/twoD_line_adornment');
 DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 /** @scope DG.LSRLAdornment.prototype */ 
 {
+  defaultColor: DG.PlotUtilities.kDefaultLSRLColor,
+
   equationString: function() {
     var tResult = sc_super(),
         tFormat = DG.Format.number().fractionDigits( 0, 3),
         tRSquared = this.getPath('model.rSquared'),
         tRSquaredString = SC.none( tRSquared) ? '' : tFormat( tRSquared);
 
-    return tResult + 'DG.ScatterPlotModel.rSquared'.loc() + tRSquaredString + this.get('sumResidSquaredString');
+    return tResult + 'DG.ScatterPlotModel.rSquared'.loc( tRSquaredString) + this.get('sumResidSquaredString');
   }.property(),
-
-  /**
-    Make the pieces of the line. This only needs to be done once.
-  */
-  createElements: function() {
-    if( this.myElements && (this.myElements.length > 0))
-      return; // already created
-    var tPaper = this.get('paper'),
-        tLayer = this.get('layer');
-    this.lineSeg = tPaper.line( 0, 0, 0, 0)
-              .attr({ stroke: DG.PlotUtilities.kDefaultLSRLColor,
-                      'stroke-opacity': 0 });
-    this.lineSeg.animatable = true;
-
-    this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({ fill: 'white', 'stroke-width': 0, 'fill-opacity': 0.6 });
-    // Put the text below the hit segments in z-order so user can still hit the line
-    this.equation = tPaper.text( 0, 0, '')
-        .attr({ font: 'caption', opacity: 0, stroke: DG.PlotUtilities.kDefaultLSRLColor });
-    this.equation.animatable = true;
-
-    // Tune up the line rendering a bit
-    this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
-
-    this.myElements = [ this.lineSeg, this.backgrndRect, this.equation ];
-    this.myElements.forEach( function( iElement) {
-      tLayer.push( iElement);
-    });
-    return this.myElements;
-  },
 
   updateToModel: function() {
     var tModel = this.get('model');
@@ -128,7 +101,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
       tBackgrndX = tTextAnchor.x - tTextBox.width;
     }
     // We don't want the equation to sit on the line
-    tTextAnchor.y += tTextBox.height / 2;
+    tTextAnchor.y += 3 * tTextBox.height / 2;
     // Keep the equation inside the plot bounds
     tTextAnchor.y = Math.min( Math.max( tTextAnchor.y, tTextBox.height / 2), tPaperHeight - tTextBox.height / 2);
 

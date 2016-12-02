@@ -53,11 +53,15 @@ DG.MovableLineModel = DG.TwoDLineModel.extend(
         tInter = this.get('intercept'),
         tSumSquares = 0;
     if( this.get('showSumSquares')) {
-      this.getCoordinates().forEach( function( iCoordinates) {
-        var tLineY = tInter + tSlope * iCoordinates.x,
-            tResid = iCoordinates.y - tLineY;
-        tSumSquares += tResid * tResid;
-      });
+      if( this.get('isVertical'))
+          tSumSquares = Infinity;
+      else {
+        this.getCoordinates().forEach(function (iCoordinates) {
+          var tLineY = tInter + tSlope * iCoordinates.x,
+              tResid = iCoordinates.y - tLineY;
+          tSumSquares += tResid * tResid;
+        });
+      }
       this.set('sumSquaresResiduals', tSumSquares);
     }
   }.observes('slope', 'intercept', 'showSumSquares'),

@@ -215,7 +215,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
 
     // initialize the values
     for( i=0, j=tNumCells; i<j; ++i ) {
-      tValues.push({ vals: [], median: undefined });
+      tValues.push({ vals: [], cases: [], median: undefined });
     }
 
     // collect array of numeric cases in each cell, excluding missing/non-numeric/non-finite values
@@ -228,6 +228,7 @@ DG.PlottedQuantileModel = DG.PlottedAverageModel.extend(
         var iValue = tValues[tCellNumber];
         if( isFinite( tNumericValue )) { // if numeric value not missing
           iValue.vals.push( tNumericValue );
+          iValue.cases.push( iCase);
         }
       }
     });
@@ -307,18 +308,24 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
       // also compute IQR
       tValues.forEach(function (iValue) {
         if (iValue.vals.length > 0) {
+          iValue.upperOutliers = [];
+          iValue.lowerOutliers = [];
           var tMaxWhiskerLength = 1.5 * iValue.IQR,
               tWhiskerCandidate, tIndex;
           tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
           tIndex = 0;
-          while (iValue.vals[tIndex] < tWhiskerCandidate)
+          while (iValue.vals[tIndex] < tWhiskerCandidate) {
+            iValue.lowerOutliers.push( iValue.vals[tIndex]);
             tIndex++;
+          }
           iValue.lowerWhisker = iValue.vals[tIndex];
 
           tWhiskerCandidate = iValue.Q3 + tMaxWhiskerLength;
           tIndex = iValue.vals.length - 1;
-          while (iValue.vals[tIndex] > tWhiskerCandidate)
+          while (iValue.vals[tIndex] > tWhiskerCandidate) {
+            iValue.upperOutliers.push( iValue.vals[tIndex]);
             tIndex--;
+          }
           iValue.upperWhisker = iValue.vals[tIndex];
         }
       });

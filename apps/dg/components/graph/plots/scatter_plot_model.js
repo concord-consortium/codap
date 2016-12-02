@@ -408,6 +408,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }.observes('value')
           },
           {
+            title: 'DG.Inspector.graphPlottedValue',
+            value: this_.isAdornmentVisible('plottedValue'),
+            classNames: 'graph-plottedValue-check'.w(),
+            valueDidChange: function () {
+              this_.togglePlotValue();
+            }.observes('value')
+          },
+          {
             title: 'DG.Inspector.graphSquares',
             value: this_.get('areSquaresVisible'),
             classNames: 'graph-squares-check'.w(),

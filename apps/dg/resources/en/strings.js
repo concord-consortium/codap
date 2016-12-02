@@ -220,10 +220,14 @@ SC.stringsFor('English', {
   'DG.Redo.graph.lockIntercept': "Redo locking line intercept",
   'DG.Undo.graph.unlockIntercept': "Undo unlocking line intercept",
   'DG.Redo.graph.unlockIntercept': "Redo unlocking line intercept",
-  'DG.Undo.graph.showPlotFunction': "Undo showing plot function",
-  'DG.Redo.graph.showPlotFunction': "Redo showing plot function",
-  'DG.Undo.graph.hidePlotFunction': "Undo hiding plot function",
-  'DG.Redo.graph.hidePlotFunction': "Redo hiding plot function",
+  'DG.Undo.graph.showPlotFunction': "Undo showing plotted function",
+  'DG.Redo.graph.showPlotFunction': "Redo showing plotted function",
+  'DG.Undo.graph.hidePlotFunction': "Undo hiding plotted function",
+  'DG.Redo.graph.hidePlotFunction': "Redo hiding plotted function",
+  'DG.Undo.graph.showPlotValue': "Undo showing plotted value",
+  'DG.Redo.graph.showPlotValue': "Redo showing plotted value",
+  'DG.Undo.graph.hidePlotValue': "Undo hiding plotted value",
+  'DG.Redo.graph.hidePlotValue': "Redo hiding plotted value",
   'DG.Undo.graph.showConnectingLine': "Undo showing connecting line",
   'DG.Redo.graph.showConnectingLine': "Redo showing connecting line",
   'DG.Undo.graph.hideConnectingLine': "Undo hiding connecting line",
@@ -499,8 +503,10 @@ SC.stringsFor('English', {
   // DG.ScatterPlotModel
   'DG.ScatterPlotModel.UnlockIntercept': "Unlock Intercept",
   'DG.ScatterPlotModel.LockIntercept': "Lock Intercept at Zero",
-  'DG.ScatterPlotModel.sumSquares': "\n∑resid^2 = ",
-  'DG.ScatterPlotModel.rSquared': ",r^2 = ",
+  'DG.ScatterPlotModel.sumSquares': ",\nSum of squares = %@", // sumOfResidualsSquared
+  'DG.ScatterPlotModel.rSquared': ",\nr^2 = %@", // r-squared
+  'DG.ScatterPlotModel.slopeIntercept': "%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
+  'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
 
   // DG.LegendView
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"

@@ -251,10 +251,11 @@ DG = SC.Application.create((function () // closure
     _startingDataInteractive: getUrlParameter('di'),
 
     startingDataInteractive: function() {
-      var parsedGames;
+      var parsedGames, hash;
 
       if (this._startingDataInteractive) {
-        return this._startingDataInteractive;
+        hash = window.location.hash;
+        return this._startingDataInteractive + (hash.length > 1 ? hash : '');
       } else if (this.urlParamGames) {
         try {
           parsedGames = JSON.parse(this.urlParamGames);
@@ -284,6 +285,14 @@ DG = SC.Application.create((function () // closure
     hideCFMMenu: !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara'),
 
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
+
+    /**
+     * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars or the background image and
+     *  a iframePhone server will be setup to enable communication with the outside page.
+     *  The default is 'no'.
+     */
+    embeddedMode: getUrlParameter('embeddedMode', 'no'),
 
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',

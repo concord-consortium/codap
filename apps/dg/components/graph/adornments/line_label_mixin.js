@@ -46,7 +46,8 @@ DG.LineLabelMixin =
   */
   createTextElement: function() {
     this.textElement = this.get('paper').text( 0, 0, '')
-      .attr({ font: 'caption', 'text-anchor': 'start', opacity: 1 });
+        .attr({ 'text-anchor': 'start', opacity: 1 });
+    this.textElement.addClass('graph-adornment');
     return this.textElement;
   },
 

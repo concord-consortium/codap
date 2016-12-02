@@ -11,6 +11,7 @@
     "build:parser": "pegjs --export-var 'DG.formulaParser' 'apps/dg/formula/formulaGrammar.pegjs' 'apps/dg/formula/formulaParser.js'",
     "clean": "rm -rf tmp",
     "clean-and-build": "clear && npm run clean && npm run build:local",
+    "clean-and-serve": "clear && npm run clean && npm run codap",
     "codap:comment": "echo Usage: `npm run codap` launches sc-server. Point browser at http://localhost:4020/dg or `npm run open:dev`.",
     "codap": "sproutcore server",
     "deploy:dev:comment": "echo Usage: `npm run deploy:dev -- {deployName}` builds and deploys CODAP to 'https://codap.concord.org/~user/deployName'",

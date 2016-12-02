@@ -258,6 +258,32 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   },
 
   /**
+   * If we need to make a plotted Value, do so. In any event toggle its visibility.
+   * This method gets used by both DotPlotModel and ScatterPlotModel.
+   */
+  togglePlotValue: function() {
+    var this_ = this;
+
+    function toggle() {
+      this_.toggleAdornmentVisibility('plottedValue', 'togglePlotValue');
+    }
+
+    var willShow = !this.isAdornmentVisible('plottedValue');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.togglePlotValue",
+      undoString: (willShow ? 'DG.Undo.graph.showPlotValue' : 'DG.Undo.graph.hidePlotValue'),
+      redoString: (willShow ? 'DG.Redo.graph.showPlotValue' : 'DG.Redo.graph.hidePlotValue'),
+      log: "togglePlotValue: %@".fmt(willShow ? "show" : "hide"),
+      execute: function () {
+        toggle();
+      },
+      undo: function () {
+        toggle();
+      }
+    }));
+  },
+
+  /**
     If we need to make a count model, do so. In any event toggle its visibility.
   */
   togglePlottedCount: function( iWhat) {

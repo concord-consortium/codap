@@ -112,11 +112,6 @@ DG.DotPlotView = DG.PlotView.extend(
   overlap: 0,
 
   /**
-  @property {DG.PlottedValueAdornment}
-  */
-  plottedValueAdorn: null,
-
-  /**
     Before we recompute coordinates, we need to zero out the bin array.
   */
   prepareToResetCoordinates: function() {
@@ -570,31 +565,6 @@ DG.DotPlotView = DG.PlotView.extend(
       tAdornment.updateToModel();
     }
   },
-
-  /**
-    The visibility of the model's plotted function has changed. We respond accordingly.
-  */
-  plottedValueChanged: function() {
-    var plotModel = this.get('model'),
-        tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue');
-    var tFunctionEditView = this.get('functionEditView');
-    if( SC.none( tFunctionEditView)) {
-      tFunctionEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
-      this.set('functionEditView', tFunctionEditView);
-      this.get('parentView').set('functionEditorView', tFunctionEditView);
-    }
-    tFunctionEditView.set('isVisible', tPlottedValue.get('isVisible'));
-
-    if( SC.none( this.plottedValueAdorn)) {
-      this.plottedValueAdorn = DG.PlottedValueAdornment.create({
-                                  parentView: this, 
-                                  model: tPlottedValue, 
-                                  paperSource: this.get('paperSource'),
-                                  layerName: DG.LayerNames.kAdornments,
-                                  valueAxisView: this.get('primaryAxisView')
-                               });
-    }
-  }.observes('.model.plottedValue'),
 
   /**
    * This function gets called by a scheduled timer. We force a recomputation of overlap and a redisplay.

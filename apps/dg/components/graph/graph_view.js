@@ -263,7 +263,7 @@ DG.GraphView = SC.View.extend(
       /**
        * Draw my plot views
        */
-      drawPlots: function () {
+      drawPlots: function ( iChangedProperty) {
         //console.profile('drawPlots');
         var tPlotViews = this.get('plotViews'),
             tNumPlots = tPlotViews.length;/*,
@@ -271,7 +271,7 @@ DG.GraphView = SC.View.extend(
             tTimeAdded;*/
         this.get('plotViews').forEach(function (iPlotView, iIndex) {
           if (iPlotView.readyToDraw())
-            iPlotView.doDraw(iIndex, tNumPlots);
+            iPlotView.doDraw(iIndex, tNumPlots, iChangedProperty);
         });
         //tTimeAdded = Date.now() - tTime;
         //this.currTime += tTimeAdded;
@@ -279,8 +279,8 @@ DG.GraphView = SC.View.extend(
         //console.profileEnd();
       },
 
-      pointsDidChange: function () {
-        this.drawPlots();
+      pointsDidChange: function ( iModel, iProperty) {
+        this.drawPlots( iProperty);
         this.get('legendView').displayDidChange();
       }.observes('model.pointColor', 'model.strokeColor', 'model.pointSizeMultiplier',
           'model.transparency', 'model.strokeTransparency'),

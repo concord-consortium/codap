@@ -15,9 +15,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-/*globals React */
+/*globals React, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
+sc_require('libraries/iframe-phone');
 
 // This is the function that will start your app running.  The default
 // implementation will load any fixtures you have created then instantiate
@@ -31,17 +32,6 @@ DG.main = function main() {
  DG.Browser.init(); // Import any DG specific browser hacks we need.
 
   SC.$('body' ).addClass( 'dg');
-
-  // The ostensible purpose of the FastClick library is to reduce the 300ms
-  // delay that many browsers introduce between the handling of a mouse up
-  // or touch end event and the sending of the click event. In this case,
-  // however, it happens to improve the behavior of the jQueryUI
-  // autocomplete library on mobile Safari, which otherwise requires two
-  // clicks to select an item from the menu.
-  // See http://stackoverflow.com/a/33233802, for example.
-  /* global Origami */
-  var attachFastClick = Origami.fastclick;
-  attachFastClick(document.body);
 
   // Fix to support touch events in non-SproutCore elements like jQuery UI widgets.
   // By default, SC.RootResponder swallows all touch events except for those
@@ -78,23 +68,33 @@ DG.main = function main() {
       DG.currDocumentController().setDocument(newDocument);
     }
   }
+  function startEmbeddedServer() {
+    var controller = DG.ComponentController.extend({}).create(),
+        iHandler = DG.DataInteractivePhoneHandler.create({
+          controller: controller
+        }),
+        iframePhoneHandler = function (command, callback) {
+          iHandler.set('isPhoneInUse', true);
+          iHandler.doCommand(command, function (ret) {
+            DG.doCommandResponseHandler(ret, callback);
+          });
+        };
+
+    iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+
+    iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
+      DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
+    });
+  }
   function translateQueryParameters() {
-    var url = window.location.href;
-    // parse url
-    var parsedURL = $('<a>', {href:url})[0];
-    var hash = parsedURL.hash;
     var startingDataInteractive = DG.get('startingDataInteractive');
 
     if (DG.get('runKey'))
       DG.set('showUserEntryView', false);
 
-    hash = hash && hash.length >= 1 && hash.slice(1);
-
-    if (SC.empty(hash)) {
-      if (startingDataInteractive) {
-        DG.set('showUserEntryView', false);
-        openDataInteractive(startingDataInteractive);
-      }
+    if (startingDataInteractive) {
+      DG.set('showUserEntryView', false);
+      openDataInteractive(startingDataInteractive);
     }
   }
   function cfmUrl(filename) {
@@ -604,11 +604,29 @@ DG.main = function main() {
     }
   }
 
-  if( DG.componentMode !== 'yes') { // Usual DG game situation is that we're not in component mode
+  if(( DG.componentMode !== 'yes') && ( DG.embeddedMode !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
     DG.splash.showSplash();
   }
 
-  translateQueryParameters();
+  if (DG.embeddedMode === 'yes') {
+    // make the application transparent
+    ['html, body', '.sc-main', 'body.dg .sc-view.doc-background'].forEach(function (selector) {
+      var rule = 'background: transparent !important;',
+          firstSheet = document.styleSheets[0];
+
+      if ("insertRule" in firstSheet) {
+        firstSheet.insertRule(selector + "{" + rule + "}");
+      }
+      else if ("addRule" in firstSheet) {
+        firstSheet.addRule(selector, rule);
+      }
+    });
+
+    startEmbeddedServer();
+  }
+  else {
+    translateQueryParameters();
+  }
 
   // load the CFM library
   var cfmLoaded = cfmGlobalsLoaded().then(cfmAppLoaded);

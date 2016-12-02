@@ -371,7 +371,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
   /**
     Generate the svg needed to display the plot
   */
-  doDraw: function doDraw() {
+  doDraw: function doDraw( iIndex, iNumPlots, iChangedProperty) {
     var this_ = this;
     
     function drawSquares() {
@@ -398,23 +398,26 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 .animate({'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
           }
           this_._squares.push( tRect);
+          tAdornmentLayer.push( tRect);
         });
       }
 
       var tVisible = this_.getPath('model.areSquaresVisible' ),
           tAnimateRemove = !tVisible && this_._squares && (this_._squares.length > 0),
-          tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0));
+          tAnimateShow = tVisible && (!this_._squares || (this_._squares.length === 0)),
+          tLayerManager = this_.get('layerManager'),
+          tAdornmentLayer = tLayerManager[DG.LayerNames.kAdornments];
       if( !this_._squares)
         this_._squares = [];
       this_._squares.forEach( function( iElement) {
         if( tAnimateRemove) {
           iElement.animate( { 'stroke-opacity': 0 }, DG.PlotUtilities.kDefaultAnimationTime, '<>',
                             function() {
-                              iElement.remove();
+                              tLayerManager.removeElement(iElement);
                             });
         }
         else
-          iElement.remove();
+          tLayerManager.removeElement(iElement);
       });
       this_._squares = [];
       if( !tVisible)
@@ -439,8 +442,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
     
     this.updateSelection();
 
-    if( !SC.none( this.connectingLineAdorn) && this.connectingLineAdorn.wantVisible())
-       this.connectingLineAdorn.updateToModel();
+    if( !SC.none( this.connectingLineAdorn) && this.connectingLineAdorn.wantVisible()) {
+      if( iChangedProperty === 'pointColor')
+          this.connectingLineAdorn.invalidateModel();
+      this.connectingLineAdorn.updateToModel();
+    }
     
     if( !SC.none( this.movableLineAdorn))
       this.movableLineAdorn.updateToModel();

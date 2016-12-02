@@ -158,13 +158,6 @@ DG.DotPlotModel = DG.PlotModel.extend( DG.NumericPlotModelMixin,
     this.toggleAverage('plottedBoxPlot', 'togglePlottedBoxPlot');
   },
 
-  /**
-    If we need to make a plotted Value, do so. In any event toggle its visibility.
-  */
-  togglePlotValue: function() {
-    this.toggleAdornmentVisibility('plottedValue', 'togglePlotValue');
-  },
-
   handleDataConfigurationChange: function() {
     if( !DG.assert( !this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
       return;
