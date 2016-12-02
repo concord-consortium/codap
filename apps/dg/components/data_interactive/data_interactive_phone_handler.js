@@ -1165,8 +1165,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
            // we default to allowing any number. It is a DI's responsibility
            // to avoid proliferation.
            iValues.allowMoreThanOne = true;
-           //rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
-           rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
+           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
+           //rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
          } else {
            DG.log('Unknown component type: ' + type);
          }
