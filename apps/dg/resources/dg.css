@@ -230,27 +230,38 @@
     z-index: 101;
 }
 
+/* unmatched identifiers */
 .cm-variable {
     color: black;
 }
 
+/* unmatched function names */
+.cm-function {
+    color: black;
+}
+
+/* matched special values (e.g. caseIndex) */
 .cm-variable.codap-Special {
     color: red;
 }
 
+/* matched global values (e.g. sliders) */
 .cm-variable.codap-Globals {
     color: maroon;
 }
 
+/* matched constants (e.g. e, pi) */
 .cm-variable.codap-Constants {
     color: teal;
 }
 
+/* matched attributes */
 .cm-variable.codap-Attributes {
     color: magenta;
 }
 
-.cm-variable.codap-Functions {
+/* matched functions */
+.cm-function.codap-Functions {
     color: blue;
 }
 

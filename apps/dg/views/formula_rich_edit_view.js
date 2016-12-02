@@ -138,41 +138,66 @@ return {
     this._cm = CodeMirror.fromTextArea(textAreaNode, {
       lineWrapping: true,
       extraKeys: {
-        Tab: false,
-        '-': function(cm) { cm.replaceSelection(DG.UNICODE.MINUS_SIGN); }
+        Tab: false
       },
       mode: 'codapFormula',
       hintOptions: {
         completeSingle: false,
         completionData: this.get('completionData'),
-        hint: codapFormulaHints
+        hint: codapFormulaHints,
+        extraKeys: {
+          Esc: function(cm, menu) {
+            menu.close();
+            if (this._lastEscKeyEvent) {
+              // prevent event from bubbling up to dialog
+              this._lastEscKeyEvent.stopPropagation();
+              this._lastEscKeyEvent = null;
+            }
+            return true;
+          }
+        }
+      }
+    });
+
+    this._cm.on('keydown', function(cm, evt) {
+      if (evt.keyCode === SC.Event.KEY_ESC) {
+        // capture event so it can be prevented from bubbling up to dialog
+        this._lastEscKeyEvent = evt;
       }
     });
 
     this._cm.on('changes', function(cm, changes) {
-      this.$('.cm-variable').each(function(index, node) {
+      // semantic coloring; adds an appropriate CSS class indicating
+      // the category of an identifier, e.g. 'codap-Attributes'.
+      this.$('.cm-variable, .cm-function').each(function(index, node) {
         var classes = this.className
                           .split(' ')
                           .filter(function(iClass) {
                                     return !/codap-[A-Za-z]*/.test(iClass);
                                   }),
+            isVariable = classes.indexOf('cm-variable') >= 0,
+            isFunction = classes.indexOf('cm-function') >= 0,
             nodeText = $(node).text(),
             completions = cm.options.hintOptions && cm.options.hintOptions.completionData,
             i, completionCount = completions && completions.length;
+        // linear search could be replaced with faster (e.g. binary) search
+        // if performance becomes a problem.
         for (i = 0; i < completionCount; ++i) {
-          if ((nodeText === completions[i].value) ||
-              (nodeText + '()' === completions[i].value)) {
+          if ((isVariable && (nodeText === completions[i].value)) ||
+              (isFunction && (nodeText + '()' === completions[i].value))) {
             classes.push('codap-' + completions[i].category.key);
           }
         }
         this.className = classes.join(' ');
       });
       SC.run(function() {
+        // synchronize SproutCore model
         this._cm.save();
         this.fieldValueDidChange();
       }.bind(this));
     }.bind(this));
 
+    // show hints (autocomplete menu) on keystrokes
     this._cm.on("inputRead", function(editor, change) {
       if (DG.Formula.identifierRegExp.test(change.text))
         editor.showHint();

@@ -260,9 +260,20 @@ return {
  * Subset of https://github.com/mathiasbynens/unicode-data/blob/master/8.0.0/properties/Alphabetic-regex.js.
  * For full Unicode support, should consider a library like XRegExp (https://github.com/slevithan/xregexp).
  */
+DG.Formula.identifierRegExpFirstCharSet = 'A-Za-z_\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE';
+
+// matches simple identifiers
 DG.Formula.identifierRegExp = (function() {
-  var firstChar = 'A-Za-z_\\xAA\\xB5\\xBA\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\u02C1\\u02C6-\\u02D1\\u02E0-\\u02E4\\u02EC\\u02EE';
-  return new RegExp('[%@][%@]*'.fmt(firstChar, '0-9' + firstChar));
+  var firstChar = DG.Formula.identifierRegExpFirstCharSet,
+      otherChars = '0-9' + firstChar;
+  return new RegExp('[%@][%@]*'.fmt(firstChar, otherChars));
+})();
+
+// matches function names, i.e. identifiers followed by a left-parenthesis
+DG.Formula.functionRegExp = (function() {
+  var firstChar = DG.Formula.identifierRegExpFirstCharSet,
+      otherChars = '0-9' + firstChar;
+  return new RegExp('[%@][%@]*(?=\\()'.fmt(firstChar, otherChars));
 })();
 
 /**

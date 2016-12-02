@@ -188,7 +188,10 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     if( !SC.empty( insertionString)) {
       var formulaView = this.getPath('contentView.formula');
       // Replace the current selection with the selected item text
-      if( formulaView) formulaView.replaceSelectionWithString( insertionString);
+      if( formulaView) {
+        formulaView.becomeFirstResponder();
+        formulaView.replaceSelectionWithString( insertionString);
+      }
     }
     // Clear the selected item so the same item can be selected multiple times
     this.setPath('contentView.operandPopup.menu.selectedItem', null);
@@ -206,6 +209,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         var selectionStart = formulaView.getPath('selection.start'),
             insertionLength = insertionString.length,
             newSelection = selectionStart + insertionLength - 1;
+        formulaView.becomeFirstResponder();
         // Replace the current selection with the selected item text
         formulaView.replaceSelectionWithString( insertionString);
         // Put the insertion caret between the parentheses for a function
