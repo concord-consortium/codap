@@ -95,6 +95,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           attribute: this.handleAttribute,
           attributeList: this.handleAttributeList,
           'case': this.handleCase,
+          allCases: this.handleAllCases,
           caseByIndex: this.handleCaseByIndexOrID,
           caseByID: this.handleCaseByIndexOrID,
           caseCount: this.handleCaseCount,
@@ -896,7 +897,28 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var requester = this.get('id');
           cases.forEach(createOneCase);
           return {success: success, values: caseIDs};
-        },
+        }
+      },
+
+      handleAllCases: {
+        'delete': function (iResources) {
+          var context = iResources.dataContext;
+          var success = false;
+          var changeResult, cases;
+          if (context) {
+            cases = context.get('allCases');
+            changeResult = context.applyChange({
+              operation: 'deleteCases',
+              cases: cases,
+              values: [],
+              requester: this.get('id')
+            });
+            success = (changeResult && changeResult.success);
+          }
+          return {
+            success: success
+          };
+        }
       },
 
       /**
