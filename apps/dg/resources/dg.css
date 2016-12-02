@@ -639,7 +639,7 @@
 }
 
 body.dg .sc-view.doc-background {
-    background: static_url('images/bg-grid-grey.png') !important;
+    background: static_url('images/bg-grid-grey.png');
 }
 
 .sc-main {
