@@ -477,7 +477,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( !this.readyToDraw())
       return;
     var tMovableLine = this.getPath('model.movableLine');
-    // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
     if( tMovableLine) {
       if( !this.movableLineAdorn) {
         var tAdorn = DG.MovableLineAdornment.create( {
@@ -488,6 +487,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       }
       this.movableLineAdorn.updateVisibility();
     }
+    this.updateSquaresVisibility();
   }.observes('*model.movableLine.isVisible'),
 
   /**
@@ -508,6 +508,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       }
       this.lsrlAdorn.updateVisibility();
     }
+    this.updateSquaresVisibility();
   }.observes('*model.lsrLine.isVisible'),
 
   /**
@@ -547,6 +548,16 @@ DG.ScatterPlotView = DG.PlotView.extend(
     // We may be able to get away with less at some point.
     this._isRenderingValid = false;
     this.displayDidChange();
+  },
+
+  /**
+   * If squares are visible, but neither line is visible, we have to hide the squares.
+   */
+  updateSquaresVisibility: function() {
+    if( this.getPath('model.areSquaresVisible') && !this.getPath('lsrlAdorn.model.isVisible') &&
+      !this.getPath('movableLineAdorn.model.isVisible')) {
+      this.setPath('model.areSquaresVisible', false);
+    }
   },
   
   /**
