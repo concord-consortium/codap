@@ -77,7 +77,7 @@ DG.PlotView = DG.PlotLayer.extend(
   /**
    @property {DG.FormulaTextEditView}
    */
-  functionEditView: null,
+  plottedValueEditView: null,
 
   /** @property {DG.PlottedCountAdornment} */
   plottedCountAdorn: null,
@@ -96,11 +96,11 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   destroy: function() {
-    if( this.functionEditView)
+    if( this.plottedValueEditView)
     {
-      this.functionEditView.removeFromParent();
-      this.functionEditView.destroy();
-      this.functionEditView = null;
+      this.plottedValueEditView.removeFromParent();
+      this.plottedValueEditView.destroy();
+      this.plottedValueEditView = null;
     }
     sc_super();
   },
@@ -496,13 +496,13 @@ DG.PlotView = DG.PlotLayer.extend(
   plottedValueChanged: function() {
     var plotModel = this.get('model'),
         tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue');
-    var tFunctionEditView = this.get('functionEditView');
-    if( SC.none( tFunctionEditView)) {
-      tFunctionEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
-      this.set('functionEditView', tFunctionEditView);
-      this.get('parentView').set('functionEditorView', tFunctionEditView);
+    var tPlottedValueEditView = this.get('plottedValueEditView');
+    if( SC.none( tPlottedValueEditView)) {
+      tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
+      this.set('plottedValueEditView', tPlottedValueEditView);
+      this.get('parentView').set('plottedValueEditorView', tPlottedValueEditView);
     }
-    tFunctionEditView.set('isVisible', tPlottedValue.get('isVisible'));
+    tPlottedValueEditView.set('isVisible', tPlottedValue.get('isVisible'));
 
     if( SC.none( this.plottedValueAdorn)) {
       this.plottedValueAdorn = DG.PlottedValueAdornment.create({
