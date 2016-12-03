@@ -89,7 +89,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
               dataContext = null;
 
           if (!SC.none(contextID)) {
-            dataContext = DG.DataContext.retrieveContextFromMap(iDocumentID, contextID);
+            dataContext = DG.currDocumentController().getContextByID(contextID);
             if (dataContext) {
               this.set('dataContext', dataContext);
               this.setPath('dataDisplayModel.dataConfiguration.dataContext', dataContext);

@@ -279,7 +279,7 @@ DG.DocumentController = SC.Object.extend(
         this.set('ready', false);
         this.set('content', iDocument);
 
-        DG.DataContext.clearContextMap();
+        // DG.DataContext.clearContextMap();
         DG.Component.clearContentMap();
         this.componentControllersMap = {};
         this._caseTableComponents = {};
@@ -786,7 +786,7 @@ DG.DocumentController = SC.Object.extend(
 
           if (SC.none(iComponent) && SC.none(this._component) && DG.ObjectMap.length(tContextIds) === 1) {
             tController.set('dataContext',
-              DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
+                docController.getContextByID(tContextIds[0]));
           }
           tView = docController.createComponentView(iComponent || this._component, {
                                   parentView: iParentView,
@@ -1241,7 +1241,7 @@ DG.DocumentController = SC.Object.extend(
       this.componentControllersMap = {};
 
       // remove dataContexts
-      DG.DataContext.clearContextMap();
+      // DG.DataContext.clearContextMap();
       this.contexts = [];
 
       // remove document

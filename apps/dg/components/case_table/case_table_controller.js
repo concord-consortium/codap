@@ -237,7 +237,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         if (caseTableModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
               collapsedNodesCount = DG.ArchiveUtils.getLinkCount(iStorage, 'collapsedNodes'),
-              dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
+              dataContext = contextID && DG.currDocumentController().getContextByID(contextID),
               attributeWidths = {},
               ix = 0;
           if (iStorage.attributeWidths) {
