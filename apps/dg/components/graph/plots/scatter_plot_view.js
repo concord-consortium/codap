@@ -93,6 +93,12 @@ DG.ScatterPlotView = DG.PlotView.extend(
     var model = this.get('model');
     if( model) model.removeObserver('squares', this, 'squaresDidChange');
     if( model) model.removeObserver('areSquaresVisible', this, 'squaresDidChange');
+    if( this._squares) {
+      var tLayerManager = this.get('layerManager');
+      this._squares.forEach( function( iElement) {
+        tLayerManager.removeElement( iElement);
+      });
+    }
 
     sc_super();
   },
