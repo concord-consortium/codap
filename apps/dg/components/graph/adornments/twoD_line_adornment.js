@@ -59,6 +59,31 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     var this_ = this;
 
     function equationForFiniteSlopeLine() {
+
+      var handleDateTime = function() {
+        var tLower = this_.getPath('xAxisView.model.lowerBound'),
+            tUpper = this_.getPath('xAxisView.model.upperBound'),
+            tRange = tUpper - tLower;
+        if( tRange < 120) {
+          // leave in seconds
+          tXVar = 'DG.ScatterPlotModel.secondsLabel'.loc();
+        }
+        else if( tRange < 60 * 60 * 2) { // 2 hours
+          tSlope *= 60; // per minute
+          tXVar = 'DG.ScatterPlotModel.minutesLabel'.loc();
+        }
+        else if( tRange < 3600 * 24 * 2) { // 2 days
+          tSlope *= 3600; // per hour
+          tXVar = 'DG.ScatterPlotModel.hoursLabel'.loc();
+        }
+        else {
+          tSlope *= 3600 * 24; // per day
+          tXVar = 'DG.ScatterPlotModel.daysLabel'.loc();
+        }
+        tSlopeString = tSlopeNumFormat(tSlope) + " ";
+        tInterceptString = tSign = "";
+      }.bind( this);
+
       var kSlopeInterceptForm = 'DG.ScatterPlotModel.slopeIntercept',// y,slope,x,signInt,Int
           tIntercept = this_.getPath('model.intercept'),
           tSlope = this_.getPath('model.slope'),
@@ -70,8 +95,12 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tSlopeNumFormat = DG.Format.number().fractionDigits(0, tDigits.slopeDigits),
           tSlopeString = tSlopeNumFormat(tSlope) + " ",
           tSign = (tIntercept < 0) ? " " : " + ",
+          tXIsDateTime = this_.getPath('xAxisView.isDateTime'),
           tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
           tXVar = this_.getPath('xAxisView.model.firstAttributeName');
+      if( tXIsDateTime) {
+        handleDateTime();
+      }
       // When the intercept string is zero, don't display it (even if the numeric value is not zero).
       if (tInterceptString === "0")
         tInterceptString = tSign = "";

@@ -507,6 +507,10 @@ SC.stringsFor('English', {
   'DG.ScatterPlotModel.rSquared': ",\nr^2 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
+  'DG.ScatterPlotModel.daysLabel': "per day",// per day - used in equation for line when x is a datetime axis
+  'DG.ScatterPlotModel.hoursLabel': "per hour",// per hour - used in equation for line when x is a datetime axis
+  'DG.ScatterPlotModel.minutesLabel': "per minute",// per minute - used in equation for line when x is a datetime axis
+  'DG.ScatterPlotModel.secondsLabel': "per seconds",// per second - used in equation for line when x is a datetime axis
 
   // DG.LegendView
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"
