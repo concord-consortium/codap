@@ -272,7 +272,8 @@ DG.PlotUtilities = {
         tCurrCoords, tTrialCoords,
         tGreatestDiff,
         tApproxIntercept, tApproxSlope,
-        oInterceptDigits = 2, oSlopeDigits = 3;
+        oInterceptDigits = 2,
+        oSlopeDigits = (iSlope < 0.001 && iSlope !== 0) ? Math.abs(Math.floor( Math.log10( Math.abs(iSlope)))) + 1 : 3;
 
     function convertToScreen( iWorldPts) {
       iWorldPts.pt1.x = iXAxisView.dataToCoordinate( iWorldPts.pt1.x);
@@ -290,8 +291,6 @@ DG.PlotUtilities = {
       tDiff = Math.max( tDiff, Math.abs( tTrialCoords.pt2.y - tCurrCoords.pt2.y));
       return tDiff;
     }
-
-    DG.assert( isFinite( iSlope));
 
     if( isNaN( iSlope) || isNaN( iIntercept) || SC.none( iSlope) || SC.none( iIntercept)) {
       return { slopeDigits: 0, interceptDigits: 0 };
