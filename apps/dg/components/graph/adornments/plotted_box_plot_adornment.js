@@ -95,33 +95,17 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           this.boxPlotSymbols = [];
         },
 
-        _dataTip: null,
-        dataTip: function () {
-          if (!this._dataTip) {
+        _infoTip: null,
+        infoTip: function () {
+          if (!this._infoTip) {
             var this_ = this;
-            this._dataTip = DG.DataTip.create({
+            this._infoTip = DG.InfoTip.create({
               paperSource: function () {
                 return this_.get('paperSource');
               }.property(),
-              layerName: 'dataTip',
-              getDataTipText: function () {
-                var tResult = '';
-                if (this.info) {
-                  tResult = this.info.tipString.loc(this.info.tipValue);
-                }
-                return tResult;
-              },
-
-              show: function (iInfo) {
-                this.tipOrigin = {x: iInfo.x, y: iInfo.y};
-                this.info = {tipString: iInfo.tipString, tipValue: iInfo.tipValue};
-
-                sc_super();
-              }
-
             });
           }
-          return this._dataTip;
+          return this._infoTip;
         }.property(),
 
         /**
@@ -163,7 +147,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
             this.stop();
             this.animate(tAttributes, this_.hoverDelay);
             var tBBox = this.getBBox();
-            this_.get('dataTip').show({
+            this_.get('infoTip').show({
               x: tBBox.x, y: tBBox.y - 2,
               tipString: this.info.tipString, tipValue: this.info.tipValue
             });
@@ -173,7 +157,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
             var tAttributes = {stroke: DG.RenderingUtilities.kTransparent};
             this.stop();
             this.animate(tAttributes, DG.PlotUtilities.kHighlightHideTime);
-            this_.get('dataTip').hide();
+            this_.get('infoTip').hide();
           }
 
           function select() {

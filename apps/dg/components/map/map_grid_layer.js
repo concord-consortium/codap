@@ -32,6 +32,13 @@ DG.MapGridLayer = SC.Object.extend(
 
   mapSource: null,
 
+  /**
+   * paperSource is the same as mapSource
+   */
+  paperSource: function() {
+    return this.get('mapSource');
+  }.property( 'mapSource'),
+
   map: function() {
     return this.getPath('mapSource.mapLayer.map');
   }.property(),
@@ -40,6 +47,19 @@ DG.MapGridLayer = SC.Object.extend(
    * {@property L.rectangle[]}
    */
   grid: null,
+
+  _infoTip: null,
+  infoTip: function () {
+    if (!this._infoTip) {
+      var this_ = this;
+      this._infoTip = DG.InfoTip.create({
+        paperSource: function () {
+          return this_.get('paperSource');
+        }.property(),
+      });
+    }
+    return this._infoTip;
+  }.property(),
 
   showTips: false,
 
@@ -63,7 +83,8 @@ DG.MapGridLayer = SC.Object.extend(
     Draw the grid cells
   */
   addGridLayer: function() {
-    var tMap = this.get('map'),
+    var this_ = this,
+        tMap = this.get('map'),
         tModel = this.get('model');
     if( !tMap || !tModel)
       return;
@@ -73,7 +94,7 @@ DG.MapGridLayer = SC.Object.extend(
         tDataContext = tModel.getPath('dataConfiguration.dataContext'),
         tCollection = tModel.getPath('dataConfiguration.collectionClient'),
         tIndex = 0,
-        tPopup, tRect;
+        tRect;
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
       var tLocalIndex = tIndex,
           handleClick = function( iEvent) {
@@ -86,30 +107,18 @@ DG.MapGridLayer = SC.Object.extend(
             tRect = tModel.get('rectArray').getRect( iLongIndex, iLatIndex);
             if( (tRect.count === 0) || !this.get('showTips'))
               return;
-            tPopup = L.popup({ closeButton: false, autoPan: false }, tRectangles[ tLocalIndex]);
-            tPopup.options.offset[1] = -10;
-            if( SC.none(tLegendAttrID)) {
-              tPopup.setContent(tDataContext.getCaseCountString(tCollection, tRect.count));
-            }
-            else {
-              tPopup.setContent(tModel.getCategoryBreakdownString( tRect.cases, tLegendAttrID));
-            }
-            SC.Timer.schedule( { target: this,
-              action: function() {
-                // Note the funky check for _map. We have to do this because the grid size slider dragging can
-                // be over the grid rectangles and the rectangles may not yet be assigned a map.
-                if( tPopup && tRectangles[ tLocalIndex]._map)
-                  tRectangles[ tLocalIndex].bindPopup( tPopup).openPopup();
-              },
-              interval: 500 });
-
+            var tTipString = SC.none( tLegendAttrID) ?
+                tDataContext.getCaseCountString(tCollection, tRect.count) :
+                tModel.getCategoryBreakdownString( tRect.cases, tLegendAttrID),
+                tCoords = this_.get('map').latLngToContainerPoint(tRect.rect[0]);
+            this_.get('infoTip').show({
+              x: tCoords.x, y: tCoords.y,
+              tipString: tTipString
+            });
           }.bind(this),
 
           handleMouseout = function( iEvent) {
-            if( tPopup) {
-              tPopup._close();
-              tPopup = null;
-            }
+            this_.get('infoTip').hide();
           }.bind( this);
 
       tOptions.fillOpacity = iRect.count / tMaxCount;

@@ -283,11 +283,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           if (!this.getPath('model.centerAndZoomBeingRestored')) {
             this.fitBounds();
           }
-          // if model's pointsShouldBeVisible has not previously been set or it is set to true, we make the
-          //  the pointView visible.
-          if (tMakeVisible !== false)
-            tMakeVisible = true;
-          tMapPointView.set('isVisible', tMakeVisible);
           this.setPathIfChanged('marqueeTool.isVisible', tMakeVisible);
           this.setPathIfChanged('model.pointsShouldBeVisible', tMakeVisible);
           if( tMakeVisible && this.getPath('model.linesShouldBeVisible')) {
@@ -309,21 +304,15 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
       pointVisibilityChanged: function() {
         var tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
-            tLinesAreVisible = this.getPath('model.connectingLineModel.isVisible'),
-            tWaitTime = tPointsAreVisible ? 0 : DG.PlotUtilities.kDefaultAnimationTime,
             tModel = this.get('model'),
             tFillOpacity = tPointsAreVisible ? tModel.get( 'transparency')|| DG.PlotUtilities.kDefaultPointOpacity : 1,
             tStrokeOpacity = tPointsAreVisible ? tModel.get( 'strokeTransparency') || DG.PlotUtilities.kDefaultStrokeOpacity : 1,
             tAttrs = { 'fill-opacity': tFillOpacity, 'stroke-opacity':  tStrokeOpacity};
         // todo: The following invokeLater could be eliminated with the function passed in as a completion of
         // animation callback
-        this.invokeLater(function() {
-          this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
-        }.bind(this), tWaitTime);
         this.get('layerManager').setVisibility( DG.LayerNames.kPoints, tPointsAreVisible, tAttrs);
         this.get('layerManager').setVisibility( DG.LayerNames.kSelectedPoints, tPointsAreVisible, tAttrs);
         this.updateMarqueeToolVisibility();
-        this.setPath('mapGridLayer.showTips', !tPointsAreVisible);
       }.observes('model.pointsShouldBeVisible'),
 
       /**
@@ -347,10 +336,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       lineVisibilityChanged: function() {
         var tMapModel = this.get('model' ),
             tAdornModel = tMapModel && tMapModel.get( 'connectingLineModel' ),
-            tPointsAreVisible = this.getPath('model.pointsShouldBeVisible'),
             tLinesAreVisible = tMapModel.get('linesShouldBeVisible'),
-            tAdorn = this.get('connectingLineAdorn'),
-            tWaitTime = tLinesAreVisible ? 0 : DG.PlotUtilities.kDefaultAnimationTime;
+            tAdorn = this.get('connectingLineAdorn');
             tAdornModel.set('isVisible', tLinesAreVisible);
         if( tAdornModel && tLinesAreVisible && !tAdorn) {
           tAdorn = DG.MapConnectingLineAdornment.create({ parentView: this, model: tAdornModel, paperSource: this,
@@ -365,9 +352,6 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
             this.updateMarqueeToolVisibility();
           }
         }.bind( this));
-        this.invokeLater(function() {
-          this.setPath('mapPointView.isVisible', tPointsAreVisible || tLinesAreVisible);
-        }.bind(this), tWaitTime);
       }.observes('.model.linesShouldBeVisible'),
 
       addAreaLayer: function () {
