@@ -269,9 +269,13 @@ DG.SliderView = SC.View.extend(
 
       mouseDragged: function( iEvent) {
         if( tDraggingThumb) {
-          var tDelta = iEvent.pageX - tMouseDownInfo.pagePoint.x,
+          var tPixelMax = this.getPath('axisView.pixelMax'),
+              tPixelMin = this.getPath('axisView.pixelMin'),
+              tDelta = iEvent.pageX - tMouseDownInfo.pagePoint.x,
               tNewCoord = tMouseDownInfo.thumbCoord + tDelta,
-              tNewValue = this.get('axisView').coordinateToData( tNewCoord);
+              tNewValue;
+          tNewCoord = Math.min( Math.max( tNewCoord, tPixelMin), tPixelMax);
+          tNewValue = this.get('axisView').coordinateToData( tNewCoord);
           this.setPath('model.value', tNewValue);
         }
       },
