@@ -399,6 +399,7 @@
 .menu-showing li i {
   float: right;
   margin-right: -10px;
+  margin-top: 2px;
 }
 .menu-hidden li:hover,
 .menu-showing li:hover {
@@ -518,7 +519,7 @@
 }
 .localFileSave .saveArea {
   margin-top: 10px;
-  height: 250px;
+  height: 232px;
   color: #000;
 }
 .localFileSave .saveArea .shareCheckbox input[type=checkbox] {

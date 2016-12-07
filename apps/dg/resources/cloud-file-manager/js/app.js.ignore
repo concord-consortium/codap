@@ -11703,7 +11703,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":66,"./utils/get-hash-param":67,"./views/app-view":74}],54:[function(require,module,exports){
+},{"./client":54,"./ui":67,"./utils/get-hash-param":68,"./views/app-view":75}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, isString, tr,
   hasProp = {}.hasOwnProperty;
 
@@ -12578,8 +12578,8 @@ CloudFileManagerClient = (function() {
     })(this));
   };
 
-  CloudFileManagerClient.prototype.getDownloadUrl = function(content, includeShareInfo, mimeType) {
-    var blob, contentToSave, downloadUrl, json, ref, wURL;
+  CloudFileManagerClient.prototype.getDownloadBlob = function(content, includeShareInfo, mimeType) {
+    var contentToSave, json, ref;
     if (mimeType == null) {
       mimeType = 'text/plain';
     }
@@ -12602,11 +12602,20 @@ CloudFileManagerClient = (function() {
       }
       contentToSave = JSON.stringify(json);
     }
-    wURL = window.URL || window.webkitURL;
-    downloadUrl = wURL ? (blob = new Blob([contentToSave], {
+    return new Blob([contentToSave], {
       type: mimeType
-    }), wURL.createObjectURL(blob)) : null;
-    return downloadUrl;
+    });
+  };
+
+  CloudFileManagerClient.prototype.getDownloadUrl = function(content, includeShareInfo, mimeType) {
+    var wURL;
+    if (mimeType == null) {
+      mimeType = 'text/plain';
+    }
+    wURL = window.URL || window.webkitURL;
+    if (wURL) {
+      return wURL.createObjectURL(this.getDownloadBlob(content, includeShareInfo, mimeType));
+    }
   };
 
   CloudFileManagerClient.prototype.rename = function(metadata, newName, callback) {
@@ -13009,7 +13018,197 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":55,"./providers/document-store-share-provider":56,"./providers/google-drive-provider":58,"./providers/lara-provider":59,"./providers/local-file-provider":60,"./providers/localstorage-provider":61,"./providers/provider-interface":63,"./providers/readonly-provider":64,"./providers/url-provider":65,"./ui":66,"./utils/is-string":70,"./utils/translate":72,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/provider-interface":64,"./providers/readonly-provider":65,"./providers/url-provider":66,"./ui":67,"./utils/is-string":71,"./utils/translate":73,"base64-js":1}],55:[function(require,module,exports){
+/* FileSaver.js
+ * A saveAs() FileSaver implementation.
+ * 1.3.2
+ * 2016-06-16 18:25:19
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: MIT
+ *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs || (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement) || view.safari
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = true  // [CC 2016-12-05] type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.saveAs = saveAs;
+} else if ((typeof define !== "undefined" && define !== null) && (define.amd !== null)) {
+  define("FileSaver.js", function() {
+    return saveAs;
+  });
+}
+
+},{}],56:[function(require,module,exports){
 var CloudMetadata, DocumentStoreAuthorizationDialog, DocumentStoreProvider, DocumentStoreUrl, PatchableContent, ProviderInterface, button, cloudContentFactory, div, getHashParam, getQueryParam, isString, jiff, pako, ref, span, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -13605,7 +13804,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":67,"../utils/get-query-param":68,"../utils/is-string":70,"../utils/translate":72,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"jiff":20,"pako":35}],56:[function(require,module,exports){
+},{"../utils/get-hash-param":68,"../utils/get-query-param":69,"../utils/is-string":71,"../utils/translate":73,"./document-store-url":58,"./patchable-content":63,"./provider-interface":64,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -13728,7 +13927,7 @@ DocumentStoreShareProvider = (function() {
 module.exports = DocumentStoreShareProvider;
 
 
-},{"./document-store-url":57,"./provider-interface":63,"pako":35}],57:[function(require,module,exports){
+},{"./document-store-url":58,"./provider-interface":64,"pako":35}],58:[function(require,module,exports){
 var DocumentStoreUrl, defaultDocStoreUrl;
 
 defaultDocStoreUrl = "//document-store.concord.org";
@@ -13822,7 +14021,7 @@ DocumentStoreUrl = (function() {
 module.exports = DocumentStoreUrl;
 
 
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var CloudMetadata, GoogleDriveAuthorizationDialog, GoogleDriveProvider, ProviderInterface, button, cloudContentFactory, div, isString, jsdiff, ref, span, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -14381,7 +14580,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":70,"../utils/translate":72,"./provider-interface":63,"diff":12}],59:[function(require,module,exports){
+},{"../utils/is-string":71,"../utils/translate":73,"./provider-interface":64,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -14837,7 +15036,7 @@ LaraProvider = (function(superClass) {
 module.exports = LaraProvider;
 
 
-},{"../utils/get-query-param":68,"./document-store-url":57,"./patchable-content":62,"./provider-interface":63,"js-base64":34,"pako":35}],60:[function(require,module,exports){
+},{"../utils/get-query-param":69,"./document-store-url":58,"./patchable-content":63,"./provider-interface":64,"js-base64":34,"pako":35}],61:[function(require,module,exports){
 var LocalFileListTab, LocalFileProvider, LocalFileSaveTab, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -14914,7 +15113,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":72,"../views/local-file-tab-list-view":82,"../views/local-file-tab-save-view":83,"./provider-interface":63}],61:[function(require,module,exports){
+},{"../utils/translate":73,"../views/local-file-tab-list-view":83,"../views/local-file-tab-save-view":84,"./provider-interface":64}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15072,7 +15271,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":72,"./provider-interface":63}],62:[function(require,module,exports){
+},{"../utils/translate":73,"./provider-interface":64}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -15130,7 +15329,7 @@ PatchableContent = (function() {
 module.exports = PatchableContent;
 
 
-},{"jiff":20}],63:[function(require,module,exports){
+},{"jiff":20}],64:[function(require,module,exports){
 var CloudContent, CloudContentFactory, CloudFile, CloudMetadata, ProviderInterface, div, isString,
   hasProp = {}.hasOwnProperty;
 
@@ -15523,7 +15722,7 @@ module.exports = {
 };
 
 
-},{"../utils/is-string":70}],64:[function(require,module,exports){
+},{"../utils/is-string":71}],65:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, ReadOnlyProvider, cloudContentFactory, isArray, isString, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15833,7 +16032,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":69,"../utils/is-string":70,"../utils/translate":72,"./provider-interface":63}],65:[function(require,module,exports){
+},{"../utils/is-array":70,"../utils/is-string":71,"../utils/translate":73,"./provider-interface":64}],66:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15895,7 +16094,7 @@ URLProvider = (function(superClass) {
 module.exports = URLProvider;
 
 
-},{"./provider-interface":63}],66:[function(require,module,exports){
+},{"./provider-interface":64}],67:[function(require,module,exports){
 var CloudFileManagerUI, CloudFileManagerUIEvent, CloudFileManagerUIMenu, isString, tr;
 
 tr = require('./utils/translate');
@@ -16179,7 +16378,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":70,"./utils/translate":72}],67:[function(require,module,exports){
+},{"./utils/is-string":71,"./utils/translate":73}],68:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -16201,7 +16400,7 @@ module.exports = function(param) {
 };
 
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 module.exports = function(param) {
   var regex, regexS, results;
   param = param.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -16216,19 +16415,19 @@ module.exports = function(param) {
 };
 
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 module.exports = function(value) {
   return Array.isArray(value || {}.toString.call(value === '[object Array]'));
 };
 
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 module.exports = function(param) {
   return Object.prototype.toString.call(param) === '[object String]';
 };
 
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 module.exports = {
   "~MENUBAR.UNTITLED_DOCUMENT": "Untitled Document",
   "~MENU.NEW": "New",
@@ -16276,7 +16475,7 @@ module.exports = {
   "~FILE_DIALOG.LOADING": "Loading...",
   "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error loading folder contents ***",
   "~FILE_DIALOG.DOWNLOAD": "Download",
-  "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: Mac Safari users may need to control-click the %{download} button",
+  "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: On Safari file may be \"Unknown\" and should be manually renamed with a .codap extension.",
   "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
   "~DOWNLOAD_DIALOG.CANCEL": "Cancel",
   "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
@@ -16335,7 +16534,7 @@ module.exports = {
 };
 
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 var defaultLang, translate, translations, varRegExp;
 
 translations = {};
@@ -16369,7 +16568,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/en-us":71}],73:[function(require,module,exports){
+},{"./lang/en-us":72}],74:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -16408,7 +16607,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":85}],74:[function(require,module,exports){
+},{"../utils/translate":73,"./modal-dialog-view":86}],75:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -16698,7 +16897,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":70,"../utils/translate":72,"./alert-dialog-view":73,"./blocking-modal-view":76,"./confirm-dialog-view":77,"./download-dialog-view":78,"./import-tabbed-dialog-view":81,"./menu-bar-view":84,"./provider-tabbed-dialog-view":88,"./rename-dialog-view":89,"./share-dialog-view":91}],75:[function(require,module,exports){
+},{"../utils/is-string":71,"../utils/translate":73,"./alert-dialog-view":74,"./blocking-modal-view":77,"./confirm-dialog-view":78,"./download-dialog-view":79,"./import-tabbed-dialog-view":82,"./menu-bar-view":85,"./provider-tabbed-dialog-view":89,"./rename-dialog-view":90,"./share-dialog-view":92}],76:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -16728,7 +16927,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -16764,7 +16963,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":87}],77:[function(require,module,exports){
+},{"./modal-view":88}],78:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -16812,7 +17011,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":85}],78:[function(require,module,exports){
+},{"../utils/translate":73,"./modal-dialog-view":86}],79:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -16913,7 +17112,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72,"./modal-dialog-view":85}],79:[function(require,module,exports){
+},{"../providers/provider-interface":64,"../utils/translate":73,"./modal-dialog-view":86}],80:[function(require,module,exports){
 var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
@@ -16959,9 +17158,9 @@ DropdownItem = React.createFactory(React.createClass({
         className: classes.join(' '),
         onClick: this.clicked,
         onMouseEnter: this.mouseEnter
-      }, name, this.props.item.items ? i({
+      }, this.props.item.items ? i({
         className: 'icon-inspectorArrow-collapse'
-      }) : void 0);
+      }) : void 0, name);
     }
   }
 }));
@@ -17095,7 +17294,7 @@ DropDown = React.createClass({
 module.exports = DropDown;
 
 
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -17394,7 +17593,7 @@ FileDialogTab = React.createClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72,"./authorize-mixin":75}],81:[function(require,module,exports){
+},{"../providers/provider-interface":64,"../utils/translate":73,"./authorize-mixin":76}],82:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -17476,7 +17675,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./local-file-tab-list-view":82,"./modal-tabbed-dialog-view":86,"./tabbed-panel-view":92,"./url-tab-view":93}],82:[function(require,module,exports){
+},{"../utils/translate":73,"./local-file-tab-list-view":83,"./modal-tabbed-dialog-view":87,"./tabbed-panel-view":93,"./url-tab-view":94}],83:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -17564,8 +17763,8 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72}],83:[function(require,module,exports){
-var CloudMetadata, a, button, cloudContentFactory, div, input, ref, tr;
+},{"../providers/provider-interface":64,"../utils/translate":73}],84:[function(require,module,exports){
+var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
 
@@ -17574,6 +17773,8 @@ tr = require('../utils/translate');
 CloudMetadata = (require('../providers/provider-interface')).CloudMetadata;
 
 cloudContentFactory = (require('../providers/provider-interface')).cloudContentFactory;
+
+FileSaver = require('../lib/file-saver');
 
 module.exports = React.createClass({
   displayName: 'LocalFileSaveTab',
@@ -17584,6 +17785,7 @@ module.exports = React.createClass({
     extension = hasPropsContent && this.props.dialog.data.extension ? this.props.dialog.data.extension : 'json';
     return state = {
       filename: filename,
+      supportsDownloadAttribute: document.createElement('a').download !== void 0,
       downloadFilename: this.getDownloadFilename(hasPropsContent, filename, extension),
       extension: extension,
       mimeType: hasPropsContent && (this.props.dialog.data.mimeType != null) ? this.props.dialog.data.mimeType : 'text/plain',
@@ -17638,11 +17840,19 @@ module.exports = React.createClass({
     }
   },
   confirm: function(e, simulateClick) {
-    var metadata;
+    var blob, metadata;
     if (!this.confirmDisabled()) {
-      this.refs.download.href = this.props.client.getDownloadUrl(this.state.content, this.state.includeShareInfo, this.state.mimeType);
-      if (simulateClick) {
-        this.refs.download.click();
+      if (this.state.supportsDownloadAttribute) {
+        this.refs.download.href = this.props.client.getDownloadUrl(this.state.content, this.state.includeShareInfo, this.state.mimeType);
+        if (simulateClick) {
+          this.refs.download.click();
+        }
+      } else {
+        blob = this.props.client.getDownloadBlob(this.state.content, this.state.includeShareInfo, this.state.mimeType);
+        FileSaver.saveAs(blob, this.state.downloadFilename, true);
+        if (e != null) {
+          e.preventDefault();
+        }
       }
       metadata = new CloudMetadata({
         name: this.state.downloadFilename.split('.')[0],
@@ -17651,19 +17861,24 @@ module.exports = React.createClass({
         provider: this.props.provider
       });
       this.props.dialog.callback(metadata);
-      return this.props.close();
+      this.props.close();
     } else {
-      return e != null ? e.preventDefault() : void 0;
+      if (e != null) {
+        e.preventDefault();
+      }
     }
   },
+  contextMenu: function(e) {
+    this.refs.download.href = this.props.client.getDownloadUrl(this.state.content, this.state.includeShareInfo, this.state.mimeType);
+  },
   cancel: function() {
-    return this.props.close();
+    this.props.close();
   },
   watchForEnter: function(e) {
     if (e.keyCode === 13 && !this.confirmDisabled()) {
       e.preventDefault();
       e.stopPropagation();
-      return this.confirm(null, true);
+      this.confirm(null, true);
     }
   },
   confirmDisabled: function() {
@@ -17701,7 +17916,8 @@ module.exports = React.createClass({
       ref: 'download',
       className: (confirmDisabled ? 'disabled' : ''),
       download: this.state.downloadFilename,
-      onClick: this.confirm
+      onClick: this.confirm,
+      onContextMenu: this.contextMenu
     }, tr('~FILE_DIALOG.DOWNLOAD')), button({
       onClick: this.cancel
     }, tr("~FILE_DIALOG.CANCEL"))));
@@ -17709,7 +17925,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72}],84:[function(require,module,exports){
+},{"../lib/file-saver":55,"../providers/provider-interface":64,"../utils/translate":73}],85:[function(require,module,exports){
 var Dropdown, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -17882,7 +18098,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./dropdown-view":79}],85:[function(require,module,exports){
+},{"../utils/translate":73,"./dropdown-view":80}],86:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -17915,7 +18131,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":87}],86:[function(require,module,exports){
+},{"./modal-view":88}],87:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -17936,7 +18152,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":85,"./tabbed-panel-view":92}],87:[function(require,module,exports){
+},{"./modal-dialog-view":86,"./tabbed-panel-view":93}],88:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -18015,7 +18231,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],88:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -18087,7 +18303,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":63,"../utils/translate":72,"./file-dialog-tab-view":80,"./modal-tabbed-dialog-view":86,"./select-provider-dialog-tab-view":90,"./tabbed-panel-view":92}],89:[function(require,module,exports){
+},{"../providers/provider-interface":64,"../utils/translate":73,"./file-dialog-tab-view":81,"./modal-tabbed-dialog-view":87,"./select-provider-dialog-tab-view":91,"./tabbed-panel-view":93}],90:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -18156,7 +18372,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72,"./modal-dialog-view":85}],90:[function(require,module,exports){
+},{"../utils/translate":73,"./modal-dialog-view":86}],91:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -18171,7 +18387,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -18481,7 +18697,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":68,"../utils/translate":72,"./modal-dialog-view":85,"svg-social-icons/lib/icons.json":51}],92:[function(require,module,exports){
+},{"../utils/get-query-param":69,"../utils/translate":73,"./modal-dialog-view":86,"svg-social-icons/lib/icons.json":51}],93:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -18593,7 +18809,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -18674,6 +18890,6 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":72}]},{},[52,53])(53)
+},{"../utils/translate":73}]},{},[52,53])(53)
 });
 //# sourceURL=cfm/app.js.ignore
