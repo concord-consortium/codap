@@ -313,7 +313,8 @@ DG.appController = SC.Object.create((function () // closure
         'text/javascript': 'application/json',
         'text/x-javascript': 'application/json',
         'text/x-json': 'application/json'
-      };
+      },
+      tType = recognizedMimeMap[tFile.type] || adjustTypeBasedOnSuffix(tFile);
 
       function adjustTypeBasedOnSuffix( tFile) {
         var tRegEx = /\.[^.\/]+$/,
@@ -330,17 +331,12 @@ DG.appController = SC.Object.create((function () // closure
             break;
           case '.json':
           case '.codap':
+          default:  // treat unknown files as .codap files and check contents
             tNewType = 'application/json';
             break;
         }
         return tNewType;
       }
-
-      var tType = recognizedMimeMap[tFile.type];
-      // if we do not find a mime type we recognize, fall back to suffix-based
-      // typing.
-      if( SC.none(tType))
-        tType = adjustTypeBasedOnSuffix(tFile);
 
       var tAlertDialog = {
         showAlert: function( iError) {
