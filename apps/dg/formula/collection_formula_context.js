@@ -531,6 +531,19 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     // If this is an aggregate function reference, dispatch it as such.
     if( this.isAggregate( iName)) {
     
+      // Some functions (e.g. count()) have an implicit dependency on 'caseIndex'
+      var _fn = DG.functionRegistry.getAggregate(iName);
+      if (_fn && _fn.isCaseIndexDependent(iArgs)) {
+        // register the 'caseIndex' dependency for invalidation
+        this.registerDependency({ independentSpec: {
+                                    type: DG.DEP_TYPE_SPECIAL,
+                                    id: 'caseIndex',
+                                    name: 'caseIndex'
+                                  },
+                                  aggFnIndices: iAggFnIndices
+                                });
+      }
+
       // Internal aggregate function instances are identified by auto-generated index.
       // This way, mean(x)/mean(y) results in two separate instances.
       var aggFnIndex = this.aggFnCount++;

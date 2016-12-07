@@ -153,6 +153,30 @@ DG.appController = SC.Object.create((function () // closure
     }.property(),
 
     /**
+     * Imports text (e.g. from a CSV file) to the document from a URL.
+     *
+     * @param {string} iURL The url of a text (e.g. CSV) file
+     * @return {Deferred|undefined}
+     */
+    importTextFromUrl: function (iURL) {
+      if (iURL) {
+        $.ajax(iURL, {
+          type: 'GET',
+          contentType: 'text/plain'
+        }).then(function (data) {
+            SC.run(function() {
+                var doc = (typeof data === 'string')? data: JSON.stringify(data);
+                return this.importText(doc, iURL);
+              }.bind(this)
+            );
+          }.bind(this), function (msg) {
+            DG.logWarn(msg);
+          }
+        );
+      }
+    },
+
+    /**
      *
      * @param iText String  either CSV or tab-delimited
      * @param iName String  document name
@@ -221,7 +245,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.cfmClient.openUrlFile(iURL);
       } else if (pathname.match(/.*\.csv$/)){
         // CFM should be importing this document
-        this.openDocumentFromUrl(iURL, 'csv');
+        this.importTextFromUrl(iURL);
       } else {
         addInteractive();
       }
@@ -313,7 +337,8 @@ DG.appController = SC.Object.create((function () // closure
         'text/javascript': 'application/json',
         'text/x-javascript': 'application/json',
         'text/x-json': 'application/json'
-      };
+      },
+      tType = recognizedMimeMap[tFile.type] || adjustTypeBasedOnSuffix(tFile);
 
       function adjustTypeBasedOnSuffix( tFile) {
         var tRegEx = /\.[^.\/]+$/,
@@ -330,17 +355,12 @@ DG.appController = SC.Object.create((function () // closure
             break;
           case '.json':
           case '.codap':
+          default:  // treat unknown files as .codap files and check contents
             tNewType = 'application/json';
             break;
         }
         return tNewType;
       }
-
-      var tType = recognizedMimeMap[tFile.type];
-      // if we do not find a mime type we recognize, fall back to suffix-based
-      // typing.
-      if( SC.none(tType))
-        tType = adjustTypeBasedOnSuffix(tFile);
 
       var tAlertDialog = {
         showAlert: function( iError) {

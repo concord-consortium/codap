@@ -159,6 +159,9 @@ return {
       }
     });
 
+    // initialize coloring
+    this.addSemanticClasses(this._cm);
+
     this._cm.on('keydown', function(cm, evt) {
       if (evt.keyCode === SC.Event.KEY_ESC) {
         // capture event so it can be prevented from bubbling up to dialog
@@ -169,27 +172,8 @@ return {
     this._cm.on('changes', function(cm, changes) {
       // semantic coloring; adds an appropriate CSS class indicating
       // the category of an identifier, e.g. 'codap-Attributes'.
-      this.$('.cm-variable, .cm-function').each(function(index, node) {
-        var classes = this.className
-                          .split(' ')
-                          .filter(function(iClass) {
-                                    return !/codap-[A-Za-z]*/.test(iClass);
-                                  }),
-            isVariable = classes.indexOf('cm-variable') >= 0,
-            isFunction = classes.indexOf('cm-function') >= 0,
-            nodeText = $(node).text(),
-            completions = cm.options.hintOptions && cm.options.hintOptions.completionData,
-            i, completionCount = completions && completions.length;
-        // linear search could be replaced with faster (e.g. binary) search
-        // if performance becomes a problem.
-        for (i = 0; i < completionCount; ++i) {
-          if ((isVariable && (nodeText === completions[i].value)) ||
-              (isFunction && (nodeText + '()' === completions[i].value))) {
-            classes.push('codap-' + completions[i].category.key);
-          }
-        }
-        this.className = classes.join(' ');
-      });
+      this.addSemanticClasses(cm);
+
       SC.run(function() {
         // synchronize SproutCore model
         this._cm.save();
@@ -209,6 +193,32 @@ return {
   becomeFirstResponder: function() {
     if (this._cm)
       this._cm.focus();
+  },
+
+  // semantic coloring; adds an appropriate CSS class indicating
+  // the category of an identifier, e.g. 'codap-Attributes'.
+  addSemanticClasses: function(cm) {
+    this.$('.cm-variable, .cm-function').each(function(index, node) {
+      var classes = this.className
+                        .split(' ')
+                        .filter(function(iClass) {
+                                  return !/codap-[A-Za-z]*/.test(iClass);
+                                }),
+          isVariable = classes.indexOf('cm-variable') >= 0,
+          isFunction = classes.indexOf('cm-function') >= 0,
+          nodeText = $(node).text(),
+          completions = cm.options.hintOptions && cm.options.hintOptions.completionData,
+          i, completionCount = completions && completions.length;
+      // linear search could be replaced with faster (e.g. binary) search
+      // if performance becomes a problem.
+      for (i = 0; i < completionCount; ++i) {
+        if ((isVariable && (nodeText === completions[i].value)) ||
+            (isFunction && (nodeText + '()' === completions[i].value))) {
+          classes.push('codap-' + completions[i].category.key);
+        }
+      }
+      this.className = classes.join(' ');
+    });
   },
 
   formulaExpression: function( iKey, iValue) {

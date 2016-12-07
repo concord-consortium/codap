@@ -213,7 +213,7 @@ DG.MathUtilities = {
    * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sumSquaresResiduals: { Number}}
    */
   leastSquaresLinearRegression: function( iValues, iInterceptLocked) {
-    var tSlopeIntercept = { slope: NaN, intercept: NaN, rSquared: NaN, sumSquaresResiduals: NaN };
+    var tSlopeIntercept = { slope: null, intercept: null, rSquared: null, sumSquaresResiduals: null };
 
     function computeBivariateStats() {
       var tResult = {
