@@ -455,21 +455,23 @@ DG.main = function main() {
                             cfmSharedMetadata = sharedMetadata
                                                   ? $.extend(true, {}, sharedMetadata)
                                                   : {};
+
+                        // check if this is a valid CODAP document
+                        if (!iDocContents || (iDocContents.appName !== DG.APPNAME) || !iDocContents.appVersion || !iDocContents.appBuildNum) {
+                          event.callback('DG.AppController.openDocument.error.invalid_format'.loc());
+                          return;
+                        }
+
                         DG.appController.closeAndNewDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
                           .setDocument(DG.Document.createDocument(iDocContents));
                         DG.set('showUserEntryView', false);
-                        if(event.callback) {
-                          // acknowledge successful open; return shared metadata
-                          event.callback(null, cfmSharedMetadata);
-                        }
+                        // acknowledge successful open; return shared metadata
+                        event.callback(null, cfmSharedMetadata);
                       },  // then() error handler
                       function(iReason) {
-                        DG.AlertPane.error({
-                          localize: true,
-                          message: 'DG.AppController.openDocument.error.general'
-                        });
+                        event.callback('DG.AppController.openDocument.error.general'.loc());
                       });
                     });
               });
