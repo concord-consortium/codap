@@ -28,10 +28,19 @@
 DG.AggregateFunction = SC.Object.extend({
 
   /**
-    By default, aggregate functions accepts virtually any number of arguments.
+    By default, aggregate functions accept virtually any number of arguments.
     @property   {Object}  min: minimum # of arguments, max: maximum number of arguments
    */
   requiredArgs: { min: 0, max: 999 },
+
+  /**
+    By default, aggregate functions are not caseIndex-dependent.
+    @param {Array of function arguments}  iArgs
+    @returns  {Boolean}
+   */
+  isCaseIndexDependent: function(iArgs) {
+    return false;
+  },
   
   /**
     Returns a computed result from the cache.

@@ -298,7 +298,9 @@ DG.DependencyMgr = SC.Object.extend((function() {
               "DG.DependencyMgr.registerDependency: dependentNode not found!",
               "Formulas should be registered before they are compiled.");
 
+    // register the dependency on the independentNode with the dependent node
     this._addDependency(dependentNode, independentNode, iDependency);
+    // register a pointer from the independentNode back to the dependentNode
     this._addDependent(dependentNode, independentNode);
   },
 
@@ -315,21 +317,20 @@ DG.DependencyMgr = SC.Object.extend((function() {
         dependencyCount = dependencies.length,
         i, dependency,
         aggFnIndices = iDependency.aggFnIndices,
-        aggFnIndexCount = aggFnIndices ? aggFnIndices.length : 0;
-
-    function trackFnIndices(iAggFnIndex) {
-      if (aggFnIndices.indexOf(iAggFnIndex) < 0) {
-        aggFnIndices.push(iAggFnIndex);
-      }
-    }
+        j, aggFnIndexCount = aggFnIndices ? aggFnIndices.length : 0;
 
     for (i = 0; i < dependencyCount; ++i) {
       dependency = dependencies[i];
       // do we already have this dependency in the list?
       if (0 === _compareNodeSpecs(dependency.node, iIndependentNode)) {
+        // if already present, update the existing dependency
         if (aggFnIndexCount) {
-          // keep track of aggFnIndices affected
-          aggFnIndices.forEach(trackFnIndices);
+          // merge aggFnIndices with existing dependency
+          for (j = 0; j < aggFnIndexCount; ++j) {
+            var aggFnIndex = aggFnIndices[j];
+            if (dependency.aggFnIndices.indexOf(aggFnIndex) < 0)
+              dependency.aggFnIndices.push(aggFnIndex);
+          }
         }
         else {
           dependency.simpleDependency = true;
