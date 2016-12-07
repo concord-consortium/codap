@@ -1,6 +1,4 @@
-
-// TODO: remove next line when integrating with CODAP
-DG = window.DG || {};
+/* global React, ReactDOM */
 
 // this would be defined once in CODAP
 DG.React = {
@@ -30,7 +28,7 @@ DG.React = {
 
   // wait for React to become available when the CFM loads
   ready: function (callback) {
-    if (React && ReactDOM) {
+    if (window.React && window.ReactDOM) {
       callback();
     }
     else {

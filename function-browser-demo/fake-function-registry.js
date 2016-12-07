@@ -18,7 +18,6 @@ String.prototype.loc = function () {
   return strings[this] || this;
 };
 
-DG = window.DG || {};
 DG.functionRegistry = {
   functions: function () {
     return{

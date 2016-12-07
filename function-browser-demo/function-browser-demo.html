@@ -102,11 +102,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
 
+    <script>
+      /* global DG:true */
+      DG = {};
+    </script>
+
     <!-- this fakes part of the existing function registry -->
     <script src="fake-function-registry.js"></script>
 
-    <script src="dg-react.js"></script>
-    <script src="dg-react-function-browser.js"></script>
+    <script src="../apps/dg/react/dg-react.js"></script>
+    <script src="../apps/dg/react/function-browser.js"></script>
 
     <script>
       DG.React.ready(function () {

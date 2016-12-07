@@ -1,4 +1,4 @@
-
+/* global React, ReactDOM */
 DG.React.ready(function () {
   var div = React.DOM.div,
       ul = React.DOM.ul,
@@ -6,8 +6,7 @@ DG.React.ready(function () {
       span = React.DOM.span,
       italic = React.DOM.i,
       h1 = React.DOM.h1,
-      h2 = React.DOM.h2,
-      strong = React.DOM.strong;
+      h2 = React.DOM.h2;
 
   DG.React.Components.FunctionBrowser = DG.React.createComponent({
     getInitialState: function () {
@@ -61,9 +60,9 @@ DG.React.ready(function () {
           definition.args = definition.args || [];
           if (definition.maxArgs) {
             // 99 is used to signify variable args for string concat and join
-            maxArgs = definition.maxArgs == 99 ? 2 : definition.maxArgs;
+            maxArgs = definition.maxArgs === 99 ? 2 : definition.maxArgs;
             for (i = 0; i < maxArgs; i++) {
-              if (i == definition.args.length) {
+              if (i === definition.args.length) {
                 definition.args.push({
                   name: "abcdefghijklmnopqrstuvwxyz"[i],
                   type: "any",
@@ -163,8 +162,8 @@ DG.React.ready(function () {
               italic({}, arg.required ? 'required' : 'optional'),
               ')');
           }),
-          examples = (fn.definition.examples || []).map(function (example) {
-            return div({}, example);
+          examples = (fn.definition.examples || []).map(function (example, index) {
+            return div({key: 'example-' + index}, example);
           }),
           fnClicked = function () {
             self.selectFunction(fn);
