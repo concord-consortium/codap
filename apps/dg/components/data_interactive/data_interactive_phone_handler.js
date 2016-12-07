@@ -326,7 +326,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
         if (resourceSelector.attribute) {
           result.attribute = result.dataContext &&
-              result.dataContext.getAttributeByName(resourceSelector.attribute);
+              (result.dataContext.getAttributeByName(resourceSelector.attribute) ||
+              result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)));
         }
         if (resourceSelector.caseByID) {
           result.caseByID = result.collection && result.collection.getCaseByID(resourceSelector.caseByID);
