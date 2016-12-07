@@ -104,7 +104,8 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.unresolvedID' : 'Unresolved id: %@1',
   'DG.AppController.validateDocument.parseError' : 'Parse error in document: %@1',
   'DG.AppController.validateDocument.invalidDocument' : 'Invalid JSON Document: %@1',
-
+  'DG.AppController.openDocument.error.general': 'Unable to open document',
+  'DG.AppController.openDocument.error.invalid_format': 'CODAP can not read this type of document',
 
   'DG.SingleTextDialog.okButton.title': "OK",
   'DG.SingleTextDialog.cancelButton.title': "Cancel",

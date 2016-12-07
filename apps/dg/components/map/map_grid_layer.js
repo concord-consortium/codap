@@ -93,11 +93,9 @@ DG.MapGridLayer = SC.Object.extend(
         tMaxCount = tModel.get('rectArray').maxCount,
         tDataContext = tModel.getPath('dataConfiguration.dataContext'),
         tCollection = tModel.getPath('dataConfiguration.collectionClient'),
-        tIndex = 0,
         tRect;
     tModel.forEachRect( function( iRect, iLongIndex, iLatIndex) {
-      var tLocalIndex = tIndex,
-          handleClick = function( iEvent) {
+      var handleClick = function( iEvent) {
             var tExtend = iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey;
             tModel.selectCasesInRect( iLongIndex, iLatIndex, tExtend);
           }.bind( this),
@@ -127,7 +125,6 @@ DG.MapGridLayer = SC.Object.extend(
                         .on('mouseover', handleMouseover)
                         .on('mouseout', handleMouseout);
       tRectangles.push(tLeafRect);
-      tIndex++;
     }.bind( this));
 
     this.set('grid', tRectangles);

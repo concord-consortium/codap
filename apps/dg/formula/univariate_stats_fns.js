@@ -42,6 +42,11 @@ return {
   
     requiredArgs: { min: 0, max: 1 },
 
+    // count() with no arguments must be invalidated when case indices change
+    isCaseIndexDependent: function(iArgs) {
+      return !iArgs || !iArgs.length;
+    },
+
     evaluate: function( iContext, iEvalContext, iInstance) {
       // if we have an argument, use the base class iteration method
       if (iInstance.argFns[0] != null) {
