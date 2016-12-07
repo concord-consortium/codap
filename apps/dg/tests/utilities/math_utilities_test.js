@@ -36,9 +36,9 @@ test("Tests leastSquaresLinearRegression", function() {
 
   var tSinglePoint = [{x: 1, y: 1 }];
   tResult = DG.MathUtilities.leastSquaresLinearRegression( tSinglePoint, false);
-  ok(!isFinite(tResult.slope) && !isFinite(tResult.intercept) &&
-      !isFinite(tResult.rSquared) && !isFinite(tResult.sumSquaresResiduals),
-  'LSR of single point produces NaNs');
+  ok((tResult.slope === null) && (tResult.intercept === null) &&
+      (tResult.rSquared === null) && (tResult.sumSquaresResiduals === null),
+  'LSR of single point produces Nulls');
 
   var tVerticalLine = [{x: 1, y: 1 }, {x: 1, y: 2 }, {x: 1, y: 3 }];
   tResult = DG.MathUtilities.leastSquaresLinearRegression( tVerticalLine, false);
