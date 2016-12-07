@@ -153,6 +153,30 @@ DG.appController = SC.Object.create((function () // closure
     }.property(),
 
     /**
+     * Imports text (e.g. from a CSV file) to the document from a URL.
+     *
+     * @param {string} iURL The url of a text (e.g. CSV) file
+     * @return {Deferred|undefined}
+     */
+    importTextFromUrl: function (iURL) {
+      if (iURL) {
+        $.ajax(iURL, {
+          type: 'GET',
+          contentType: 'text/plain'
+        }).then(function (data) {
+            SC.run(function() {
+                var doc = (typeof data === 'string')? data: JSON.stringify(data);
+                return this.importText(doc, iURL);
+              }.bind(this)
+            );
+          }.bind(this), function (msg) {
+            DG.logWarn(msg);
+          }
+        );
+      }
+    },
+
+    /**
      *
      * @param iText String  either CSV or tab-delimited
      * @param iName String  document name
@@ -221,7 +245,7 @@ DG.appController = SC.Object.create((function () // closure
         DG.cfmClient.openUrlFile(iURL);
       } else if (pathname.match(/.*\.csv$/)){
         // CFM should be importing this document
-        this.openDocumentFromUrl(iURL, 'csv');
+        this.importTextFromUrl(iURL);
       } else {
         addInteractive();
       }
