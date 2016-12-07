@@ -6,7 +6,10 @@ DG.React.ready(function () {
       span = React.DOM.span,
       italic = React.DOM.i,
       h1 = React.DOM.h1,
-      h2 = React.DOM.h2;
+      h2 = React.DOM.h2,
+      kLeftAngleBracketChar = '&#x2039;',
+      kRightAngleBracketChar = '&#x203a;',
+      kInfoIconChar = '&#9432;';  // http://stackoverflow.com/a/33878610
 
   DG.React.Components.FunctionBrowser = DG.React.createComponent({
     getInitialState: function () {
@@ -106,7 +109,7 @@ DG.React.ready(function () {
 
     renderHeader: function (parentName, itemName, onClick) {
       return div({className: 'react-function-browser-header', onClick: onClick},
-        span({dangerouslySetInnerHTML: {__html:'&#x2039; ' + parentName}}),
+        span({dangerouslySetInnerHTML: {__html:kLeftAngleBracketChar + ' ' + parentName}}),
         itemName
       );
     },
@@ -118,7 +121,7 @@ DG.React.ready(function () {
               self.setState({category: category});
             };
             return li({key: category.name, onClick: clicked},
-              div({dangerouslySetInnerHTML: {__html:'&#x203a;'}}),
+              div({dangerouslySetInnerHTML: {__html:kRightAngleBracketChar}}),
               span({}, category.name)
             );
           });
@@ -137,7 +140,7 @@ DG.React.ready(function () {
                 hasInfo = !!fn.definition.description || !!fn.definition.examples;
 
             return li({key: fn.name},
-              hasInfo ? div({onClick: infoClicked, dangerouslySetInnerHTML: {__html:'&#x1f6c8;'}}) : null,
+              hasInfo ? div({onClick: infoClicked, dangerouslySetInnerHTML: {__html:kInfoIconChar}}) : null,
               span({onClick: fnClicked, title: fn.definition.description},
                 fn.name,
                 italic({}, '(' + fn.argList + ')')
