@@ -1,0 +1,136 @@
+<html>
+  <head>
+    <title>Function Browser Demo</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+
+      #formulaWrapper {
+        margin: 20px 10px;
+      }
+      #formula {
+        width: 500px;
+        height: 50px;
+      }
+      #buttons {
+        margin: 20px 10px;
+      }
+
+      /* this would defined in CODAP */
+      .react-function-browser {
+        margin-top: 10px;
+        white-space: pre;
+        border: 1px solid #000;
+        font-size: 12px;
+      }
+      .react-function-browser ul {
+        margin: 10px;
+        padding: 0;
+        list-style-type: none;
+        cursor: pointer;
+      }
+      .react-function-browser li {
+        margin: 0;
+        padding: 3px;
+        min-width: 150px;
+      }
+      .react-function-browser li div {
+        float: right;
+      }
+      .react-function-browser li span {
+        display: inline-block;
+        margin-right: 10px;
+      }
+      .react-function-browser li span i,
+      .react-function-browser-function-info h1 i {
+        color: #555;
+        font-style: normal;
+      }
+      .react-function-browser li span:hover,
+      .react-function-browser-header span:hover,
+      .react-function-browser li div:hover,
+      .react-function-browser-function-info h1:hover {
+        text-decoration: underline;
+        color: #72bfca;
+      }
+      .react-function-browser-header {
+        font-weight: bold;
+        border-bottom: 1px solid #777;
+        padding: 5px;
+      }
+      .react-function-browser-header span {
+        margin-right: 5px;
+        cursor: pointer;
+        font-weight: normal;
+      }
+      .react-function-browser-function-info {
+        margin: 10px;
+      }
+      .react-function-browser-function-info h1 {
+        font-size: 14px;
+        margin: 5px 0;
+        cursor: pointer;
+      }
+      .react-function-browser-function-info h2 {
+        font-size: 12px;
+        margin: 5px 0;
+        color: #555;
+      }
+      .react-function-browser-function-info div {
+        margin: 7px 0;
+      }
+      .react-function-browser-function-info ul {
+        margin: 5px 0;
+        cursor: initial;
+      }
+    </style>
+  </head>
+  <body>
+    Function Browser Demo
+
+    <div id="formulaWrapper">
+      <textarea id="formula"></textarea>
+    </div>
+
+    <div id="buttons">
+      <button id="testButton">--- Insert Function ---</button>
+    </div>
+
+    <!-- these would all be already loaded by CODAP, faking it here -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+
+    <!-- this fakes part of the existing function registry -->
+    <script src="fake-function-registry.js"></script>
+
+    <script src="dg-react.js"></script>
+    <script src="dg-react-function-browser.js"></script>
+
+    <script>
+      DG.React.ready(function () {
+        // this code would be called by the React view handler in the DG app
+        var testButton = document.getElementById("testButton"),
+            componentDiv = document.createElement("div"),
+            formulaArea = document.getElementById("formula");
+
+        document.body.appendChild(componentDiv); // NOTE: component div should be inserted at the body level so that the absolute positioning works correctly
+        testButton.onclick = function (e) {
+          var component = DG.React.Components.FunctionBrowser({anchor: testButton, functions: DG.functionRegistry.functions(), onSelect: selectedFunction});
+          DG.React.toggleRender(componentDiv, component);
+        };
+
+        function selectedFunction(name, argList, info) {
+          var start;
+          formulaArea.value += name + "(";
+          start = formulaArea.value.length;
+          formulaArea.value += argList + ")";
+          formulaArea.selectionStart = start;
+          formulaArea.selectionEnd = start + argList.length;
+          formulaArea.focus();
+        }
+      });
+    </script>
+  </body>
+</html>
