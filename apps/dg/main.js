@@ -86,6 +86,20 @@ DG.main = function main() {
       DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
     });
   }
+  function validateDocument(content) {
+    if (!content) return false;
+
+    // Legacy documents created manually using scripts can have empty metadata fields.
+    // We grandfather these documents in by requiring that the metadata fields exist and are empty.
+    // We log when these files are encountered, however, in hopes that they eventually get fixed.
+    if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
+      DG.log("File '%@' bypassed validation with empty metadata." +
+              " This file should be resaved with valid metadata.", content.name);
+      return true;
+    }
+
+    return ((content.appName === DG.APPNAME) && !!content.appVersion && !!content.appBuildNum);
+  }
   function translateQueryParameters() {
     var startingDataInteractive = DG.get('startingDataInteractive');
 
@@ -457,7 +471,7 @@ DG.main = function main() {
                                                   : {};
 
                         // check if this is a valid CODAP document
-                        if (!iDocContents || (iDocContents.appName !== DG.APPNAME) || !iDocContents.appVersion || !iDocContents.appBuildNum) {
+                        if (!validateDocument(iDocContents)) {
                           event.callback('DG.AppController.openDocument.error.invalid_format'.loc());
                           return;
                         }

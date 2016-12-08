@@ -137,7 +137,9 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
 DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap) {
   var valuesMap = {};
   DG.ObjectMap.forEach(iDataMap, function (iKey, iValue) {
-    var attr = iAttrs.findProperty('name', iKey),
+
+    var attr = iAttrs.findProperty('name', iKey) ||
+            iAttrs.findProperty('name', DG.Attribute.legalizeAttributeName(iKey)),
         value = DG.DataUtilities.canonicalizeInputValue(iValue);
     if(attr != null) {
       valuesMap[attr.id] = value;

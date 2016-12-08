@@ -804,7 +804,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       if (values) {
         iCase.beginCaseValueChanges();
         DG.ObjectMap.forEach(values, function(key, value) {
-          var attr = this.getAttributeByName(key);
+          var attr = this.getAttributeByName(key)
+              || this.getAttributeByName(DG.Attribute.legalizeAttributeName(key));
           if (attr) {
             iCase.setValue(attr.id, value);
           } else {
