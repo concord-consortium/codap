@@ -620,6 +620,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( tAttributes.length === 0)
         return;
       if (tAttributes.length === 1) {
+        if( iAxisKey === 'xAxis')
+          tConfig.get('yAttributeDescription').removeAllAttributesButFirst();
+
         // If we are removing the last x or y-axis attribute and there is a y2-axis attribute, remove the latter first.
         if( ((iAxisKey === 'yAxis') || (iAxisKey === 'xAxis')) && this.getY2Plot())
           this.removeAttribute( 'y2AttributeDescription', 'y2Axis', 0);

@@ -110,6 +110,14 @@ DG.AttributePlacementDescription = SC.Object.extend(
     this.notifyPropertyChange('attribute');
   },
 
+  removeAllAttributesButFirst: function() {
+    while( this._attributes.length > 1) {
+      this._attributes.pop().removeObserver('collection', this, 'collectionDidChange');
+    }
+    this.invalidateCaches();
+    this.notifyPropertyChange('attribute');
+  },
+
   collectionDidChange: function() {
     this.notifyPropertyChange('collection');
   },
