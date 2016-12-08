@@ -1,0 +1,66 @@
+.react-function-browser {
+  margin-top: 10px;
+  white-space: pre;
+  border: 1px solid #000;
+  font-size: 12px;
+}
+.react-function-browser ul {
+  margin: 10px;
+  padding: 0;
+  list-style-type: none;
+  cursor: pointer;
+}
+.react-function-browser li {
+  margin: 0;
+  padding: 3px;
+  min-width: 150px;
+}
+.react-function-browser li div {
+  float: right;
+}
+.react-function-browser li span {
+  display: inline-block;
+  margin-right: 10px;
+}
+.react-function-browser li span i,
+.react-function-browser-function-info h1 i {
+  color: #555;
+  font-style: normal;
+}
+.react-function-browser li span:hover,
+.react-function-browser-header span:hover,
+.react-function-browser li div:hover,
+.react-function-browser-function-info h1:hover {
+  text-decoration: underline;
+  color: #72bfca;
+}
+.react-function-browser-header {
+  font-weight: bold;
+  border-bottom: 1px solid #777;
+  padding: 5px;
+}
+.react-function-browser-header span {
+  margin-right: 5px;
+  cursor: pointer;
+  font-weight: normal;
+}
+.react-function-browser-function-info {
+  margin: 10px;
+}
+.react-function-browser-function-info h1 {
+  font-size: 14px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+.react-function-browser-function-info h2 {
+  font-size: 12px;
+  margin: 5px 0;
+  color: #555;
+}
+.react-function-browser-function-info div {
+  margin: 7px 0;
+}
+.react-function-browser-function-info ul {
+  margin: 5px 0;
+  cursor: initial;
+}
