@@ -1,14 +1,19 @@
 .react-function-browser {
-  margin-top: 10px;
+  margin: 3px 0;
   white-space: pre;
   border: 1px solid #000;
   font-size: 12px;
+  z-index: 105;
+  background-color: white;
 }
 .react-function-browser ul {
   margin: 10px;
   padding: 0;
   list-style-type: none;
   cursor: pointer;
+}
+.react-function-browser ul li {
+  list-style-type: none;
 }
 .react-function-browser li {
   margin: 0;

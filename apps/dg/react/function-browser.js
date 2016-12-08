@@ -22,16 +22,26 @@ DG.React.ready(function () {
     },
 
     componentDidMount: function () {
-      var containerNode = ReactDOM.findDOMNode(this.props.anchor),
-          $containerNode = $(containerNode),
-          position = $containerNode.offset();
-      this.setState({
-        style: {
-          position: 'absolute',
-          top: position.top + $containerNode.height(),
-          left: position.left
-        }
-      });
+      var anchorNode = ReactDOM.findDOMNode(this.props.anchor),
+          anchorBounds = anchorNode.getBoundingClientRect(),
+          containerNode = ReactDOM.findDOMNode(this.props.container),
+          containerBounds = containerNode.getBoundingClientRect(),
+          spaceAbove = anchorBounds.top - containerBounds.top,
+          spaceBelow = containerBounds.bottom - anchorBounds.bottom,
+          kReservedHeight = 300,
+          kReservedMargin = 6,
+          style = { position: 'absolute', left: anchorBounds.left, overflow: 'auto' };
+      if ((spaceBelow < kReservedHeight) && (spaceBelow < spaceAbove)) {
+        // place above anchor if not enough room below
+        style.bottom = containerBounds.bottom - anchorBounds.top;
+        style.maxHeight = anchorBounds.top - kReservedMargin;
+      }
+      else {
+        // place below anchor if there's enough room
+        style.top = anchorBounds.bottom;
+        style.maxHeight = containerBounds.bottom - anchorBounds.bottom - kReservedMargin;
+      }
+      this.setState({ style: style });
     },
 
     categorize: function (functions) {
@@ -192,7 +202,7 @@ DG.React.ready(function () {
     },
 
     render: function () {
-      var contents;
+      var contents = null;
       if (this.state.style) {
         if (this.state.fn) {
           contents = this.renderFunction(this.state.category, this.state.fn);
@@ -203,12 +213,8 @@ DG.React.ready(function () {
         else {
           contents = this.renderCategoryList(this.state.categories);
         }
-        return div({className: 'react-function-browser', style: this.state.style}, contents);
       }
-      else {
-        // must return empty div so it renders and componentDidMount can find it
-        return div({});
-      }
+      return div({className: 'react-function-browser', style: this.state.style}, contents);
     }
   }, [DG.React.HighOrderComponents.UnmountOnOutsideClick]);
 

@@ -55,7 +55,12 @@
 
         document.body.appendChild(componentDiv); // NOTE: component div should be inserted at the body level so that the absolute positioning works correctly
         testButton.onclick = function (e) {
-          var component = DG.React.Components.FunctionBrowser({anchor: testButton, functions: DG.functionRegistry.functions(), onSelect: selectedFunction});
+          var component = DG.React.Components.FunctionBrowser({
+                                                anchor: testButton,
+                                                container: document.body,
+                                                functions: DG.functionRegistry.functions(),
+                                                onSelect: selectedFunction
+                                              });
           DG.React.toggleRender(componentDiv, component);
         };
 

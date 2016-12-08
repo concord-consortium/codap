@@ -93,10 +93,27 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         layout: { top: 112, left: 150, width: 170, height: 24 },
         localize: true,
         title: 'DG.AttrFormView.functionMenuTitle',
-        menu: SC.MenuPane.extend({
-          layout: { width: 180 },
-          items: null // filled in later
-        })
+        mouseDown: function() {
+          if (this._fbDiv && DG.React.Components.FunctionBrowser) {
+            var onSelectFunction = function(name, argList, info) {
+                  this.getPath('parentView.formula').replaceSelectionWithString("%@(%@)".fmt(name, argList));
+                }.bind(this),
+                fbComponent = DG.React.Components.FunctionBrowser({
+                                                    anchor: this.get('layer'),
+                                                    container: DG.mainPage.mainPane.get('layer'),
+                                                    functions: DG.functionRegistry.functions(),
+                                                    onSelect: onSelectFunction
+                                                  });
+            DG.React.toggleRender(this._fbDiv, fbComponent);
+          }
+        },
+        action: null,
+        didAppendToDocument: function() {
+          this._fbDiv = document.createElement("div");
+          // NOTE: component div should be inserted at the body level
+          // so that the absolute positioning works correctly.
+          document.body.appendChild(this._fbDiv);
+        }
       }),
       apply: SC.ButtonView.design({
         layout: { bottom:5, right: 5, height:24, width: 90 },
