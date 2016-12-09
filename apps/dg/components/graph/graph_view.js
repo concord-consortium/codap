@@ -253,6 +253,10 @@ DG.GraphView = SC.View.extend(
 
       destroy: function () {
         this.removeObserver('model.numberToggle.caseCount', this.handleNumberToggleCaseCountChange);
+        // Plotviews are not actually subviews so sc_super doesn't destroy them
+        this.get('plotViews').forEach( function( iPlotView) {
+          iPlotView.destroy();
+        });
         // wff, 6/18/16 - Destroying the model doesn't seem like a good idea. Not sure.
         //this.model.destroy(); // so that it can unlink observers
         sc_super();
