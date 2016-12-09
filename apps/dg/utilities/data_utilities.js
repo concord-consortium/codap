@@ -68,7 +68,7 @@ DG.DataUtilities.createDate = function(/* iArgs */) {
   // Call Date constructor with specified arguments
   // cf. http://stackoverflow.com/a/8843181
   /* jshint -W058 */
-  date = new (Function.bind.apply(Date, args));
+  date = new (Function.bind.apply(Date, args))();
 
   // replace default numeric conversion (milliseconds) with our own (seconds)
   date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };

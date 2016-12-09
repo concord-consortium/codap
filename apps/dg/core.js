@@ -49,6 +49,7 @@ if (!Object.keys) Object.keys = function (o) {
  */
 
 if (!Function.prototype.bind) {
+  /* eslint new-cap:off */
   Function.prototype.bind = function (oThis) {
     if (typeof this !== "function") {
       // closest thing possible to the ECMAScript 5 internal IsCallable function

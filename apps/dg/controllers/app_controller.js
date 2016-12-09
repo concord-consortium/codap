@@ -338,6 +338,7 @@ DG.appController = SC.Object.create((function () // closure
         'text/x-javascript': 'application/json',
         'text/x-json': 'application/json'
       },
+      /* jshint -W003 */
       tType = recognizedMimeMap[tFile.type] || adjustTypeBasedOnSuffix(tFile);
 
       function adjustTypeBasedOnSuffix( tFile) {
@@ -355,6 +356,8 @@ DG.appController = SC.Object.create((function () // closure
             break;
           case '.json':
           case '.codap':
+            /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
+            // fallthrough intentional
           default:  // treat unknown files as .codap files and check contents
             tNewType = 'application/json';
             break;

@@ -378,7 +378,7 @@ DG.DotChartView = DG.PlotView.extend(
     }
     function caseLocationViaMap( iIndex ) {
       // use our case index map to go from current case index to previous case index
-      return tOldPointAttrs[ tNewToOldCaseMap [iIndex]];
+      return tOldPointAttrs[ tNewToOldCaseMap[iIndex]];
     }
 
     DG.sounds.playMixup();
@@ -410,7 +410,7 @@ DG.DotChartView = DG.PlotView.extend(
     if( hasVanishingElements ){
       // create a vanishing element for each old point that needs one (used if many-to-one animation)
       tOldPointAttrs.forEach( function( iOldAttrs, iIndex ) {
-        var tNewIndex = tOldToNewCaseMap [ iIndex ],
+        var tNewIndex = tOldToNewCaseMap[ iIndex ],
             tNewAttrs = tNewPointAttrs[ tNewIndex ];
         if( SC.none(tNewIndex) || SC.none( tNewAttrs ) || (iOldAttrs.r===0))
           return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden

@@ -71,7 +71,7 @@ DG.SvgScene.pathBasis = (function() {
   };
 
   return convert;
-})();
+}());
 
 /**
  * @private Interpolates the given points using the basis spline interpolation.

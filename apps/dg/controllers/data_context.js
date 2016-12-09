@@ -210,7 +210,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    * @type {boolean}
    */
   hasDataInteractive: function () {
-    !SC.none(this.owningDataInteractive());
+    return !SC.none(this.owningDataInteractive());
   }.property(),
 
   /**

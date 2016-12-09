@@ -7,40 +7,58 @@
   "extends": [ "eslint:recommended" ],
   "rules": {
     // possible errors
-    "no-console": "off",
-    "no-template-curly-in-string": "warn",
+    "no-console": "off",    // 19 console statements
+    "no-extra-parens": "off",   // liberal use of extra parens
+    "no-prototype-builtins": "off", // 8 calls to hasOwnProperty
+    "no-template-curly-in-string": "error",
     "no-unreachable": "error",
-    "no-unsafe-negation": "warn",
+    "no-unsafe-negation": "error",
 
     // best practices
-    "array-callback-return": "warn",
+    "array-callback-return": "error",
     "block-scoped-var": "warn",
+    "consistent-return": "off", // liberal use of inconsistent returns, e.g. SproutCore properties
+    "dot-notation": ["warn", { "allowKeywords": false }],
     "eqeqeq": ["error", "allow-null"],
     "no-alert": "error",
     "no-caller": "error",
     "no-eval": "error",
-    "no-extra-bind": "off",
+    "no-extra-bind": "off", // 18 extra binds
     "no-global-assign": "error",
-    "no-invalid-this": "off",
+    "no-implicit-globals": "off",   // 4 implicit globals
+    "no-invalid-this": "error",
     "no-loop-func": "warn",
-    "no-unused-expressions": "off",
-    "no-useless-call": "off",
-    "no-useless-escape": "off",
+    "no-new-wrappers": "error",
+    "no-proto": "error",
+    "no-unmodified-loop-condition": "error",
+    "no-unused-expressions": ["error", { "allowShortCircuit": true }],
+    "no-useless-call": "error",
+    "no-useless-concat": "warn",
+    "no-useless-escape": "off", // 34 unnecessary escapes
+    "no-useless-return": "error",
+    "no-with": "error",
+    "radix": "error",
+    "wrap-iife": "warn",
 
     // variables
+    "no-shadow-restricted-names": "error",
     "no-unused-vars": ["warn", { "vars": "all", "args": "none" }],
-    "no-use-before-define": "off",
+    "no-use-before-define": ["off", { "functions": false }],    // 169 used before defined
 
     // node.js/CommonJS
     "no-mixed-requires": "warn",
 
     // stylistic issues
-    "eol-last": "off",
+    "eol-last": "off",  // 13 files missing final EOLs
     "func-name-matching": "error",
     "linebreak-style": ["error", "unix"],
+    "new-cap": ["warn", { "capIsNew": false }],
+    "new-parens": "warn",
     "no-bitwise": "warn",
+    "no-lonely-if": "off",  // 8 lonely ifs
+    "no-underscore-dangle": "off",  // liberal use of leading underscores
     "no-unneeded-ternary": "warn",
-    "no-underscore-dangle": "off",
+    "no-whitespace-before-property": "warn",
     "quote-props": ["error", "as-needed", { "keywords": true, "unnecessary": false }],
     "quotes": "off",
     "semi": ["error", "always"]

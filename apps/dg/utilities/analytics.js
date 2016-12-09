@@ -103,4 +103,4 @@ DG.Analytics.trackTimingEnd = function(category) {
   }
 };
 
-})();
+}());
