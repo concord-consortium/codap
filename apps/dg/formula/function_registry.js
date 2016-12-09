@@ -28,8 +28,8 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
 
       // queue of function modules ready to be processed
   var fnModuleQueue = [],
-      // map of category names -> arrays of function names
-      fnNamesMap = {},
+      // map of category names -> { map of function names -> function info objects }
+      fnInfoMap = {},
       // array of uncategorized function names
       fnNamesArray = [],
       // flag indicating whether function names are currently sorted
@@ -52,8 +52,14 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       // add it to the categorized map
       var rawCategory = iProps.category || 'DG.Formula.FuncCategoryOther',
           category = rawCategory.loc();
-      if (!fnNamesMap[category]) fnNamesMap[category] = [];
-      fnNamesMap[category].push(iName);
+      if (!fnInfoMap[category]) fnInfoMap[category] = {};
+      fnInfoMap[category][iName] = {
+        name: iName,
+        displayName: iName,
+        category: category,
+        minArgs: iProps.requiredArgs ? iProps.requiredArgs.min : iProps.minArgs,
+        maxArgs: iProps.requiredArgs ? iProps.requiredArgs.max : iProps.maxArgs
+      };
       // add it to the uncategorized array
       fnNamesArray.push(iName);
       // mark it as needing to be sorted
@@ -74,10 +80,6 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
     }
 
     if (!fnNamesSorted) {
-      DG.ObjectMap.forEach(fnNamesMap,
-                            function(iCategory, iFnNames) {
-                              iFnNames.sort();
-                            });
       fnNamesArray.sort();
       fnNamesSorted = true;
     }
@@ -85,18 +87,17 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
 
   return {
     /**
-      Return the function names map, which maps category strings to
+      Returns the function names map, which maps category strings to
       arrays of function names for use in building menus, browsers, etc.
       @type {object}
      */
-    namesMap: function() {
+    categorizedFunctionInfo: function() {
       prepareFunctionNames();
-      return fnNamesMap;
+      return fnInfoMap;
     }.property(),
 
     /**
-      Return the function names map, which maps category strings to
-      arrays of function names for use in building menus, browsers, etc.
+      Returns a flat array of function names.
       @type {string[]}
      */
     namesArray: function() {
@@ -105,7 +106,7 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
     }.property(),
 
     /**
-      Return a flat array of function names with parentheses added.
+      Returns a flat array of function names with parentheses added.
       @type {string[]}
      */
     namesWithParentheses: function() {

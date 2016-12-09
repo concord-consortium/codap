@@ -15,7 +15,7 @@ DG.React.ready(function () {
     getInitialState: function () {
       return {
         style: null,
-        categories: this.categorize(this.props.functions),
+        categories: this.categorize(this.props.categorizedFunctionInfo),
         category: null,
         fn: null
       };
@@ -44,36 +44,29 @@ DG.React.ready(function () {
       this.setState({ style: style });
     },
 
-    categorize: function (functions) {
-      var categoryMap = {},
-          categories = [],
+    categorize: function(categorizedFunctionInfo) {
+      var categories = [],
           categoryNames;
 
-      Object.keys(functions).forEach(function (fnName) {
-        var fn = functions[fnName],
-            categoryName = fn.category.loc();
-        categoryMap[categoryName] = categoryMap[categoryName] || {};
-        categoryMap[categoryName].functionMap = categoryMap[categoryName].functionMap || {};
-        categoryMap[categoryName].functionMap[fnName] = fn;
-      });
-
-      categoryNames = Object.keys(categoryMap);
+      categoryNames = Object.keys(categorizedFunctionInfo);
       categoryNames.sort();
-      categoryNames.forEach(function (categoryName) {
-        var functionNames = Object.keys(categoryMap[categoryName].functionMap),
+      categoryNames.forEach(function(categoryName) {
+        var functionNames = Object.keys(categorizedFunctionInfo[categoryName]),
             functions = [];
 
         functionNames.sort();
         functionNames.forEach(function (functionName) {
-          var definition = categoryMap[categoryName].functionMap[functionName],
+          var definition = categorizedFunctionInfo[categoryName][functionName],
               argList = [],
               i, maxArgs, requiredArgs, optionalArgs;
 
+          // 99 is used to signify variable args for string concat and join
+          maxArgs = definition.args ? definition.args.length
+                                    : definition.maxArgs > 20 ? 2 : definition.maxArgs;
+
           // create the args if not found
           definition.args = definition.args || [];
-          if (definition.maxArgs) {
-            // 99 is used to signify variable args for string concat and join
-            maxArgs = definition.maxArgs === 99 ? 2 : definition.maxArgs;
+          if (maxArgs) {
             for (i = 0; i < maxArgs; i++) {
               if (i === definition.args.length) {
                 definition.args.push({
