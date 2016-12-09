@@ -253,7 +253,7 @@ DG.main = function main() {
                                     if (currDate >= phase3Date) return 3;
                                     if (currDate >= phase2Date) return 2;
                                     return 1;
-                                  })(),
+                                  }()),
               "patch": true,
               "patchObjectHash": function(obj) {
                 return obj.guid || JSON.stringify(obj);

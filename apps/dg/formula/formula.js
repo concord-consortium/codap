@@ -267,14 +267,14 @@ DG.Formula.identifierRegExp = (function() {
   var firstChar = DG.Formula.identifierRegExpFirstCharSet,
       otherChars = '0-9' + firstChar;
   return new RegExp('[%@][%@]*'.fmt(firstChar, otherChars));
-})();
+}());
 
 // matches function names, i.e. identifiers followed by a left-parenthesis
 DG.Formula.functionRegExp = (function() {
   var firstChar = DG.Formula.identifierRegExpFirstCharSet,
       otherChars = '0-9' + firstChar;
   return new RegExp('[%@][%@]*(?=\\()'.fmt(firstChar, otherChars));
-})();
+}());
 
 /**
   Addition function which handles types by our rules rather than JavaScript's.

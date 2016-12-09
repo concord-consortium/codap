@@ -684,8 +684,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      */
     debugLog: function (iPrompt) {
       DG.log((iPrompt || "") + " Collection " +
-        this.get('id') + ", " + " Attrs: [" +
-        this.getAttributeIDs() + "], " + " Cases: [" + this.getCaseIDs() + "]");
+        this.get('id') + ", Attrs: [" +
+        this.getAttributeIDs() + "], Cases: [" + this.getCaseIDs() + "]");
     },
 
     toArchive: function (excludeCases) {

@@ -319,7 +319,6 @@ DG.ComponentView = SC.View.extend(
                       if (this._beforeStorage === value)
                         this._beforeStorage = tComponentView.getPath('model._prevTitle');
                       tComponentView.setPath('model.title', value);
-                      this._value;
                       this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
                     },
                     undo: function () {
