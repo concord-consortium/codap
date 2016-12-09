@@ -307,9 +307,9 @@ DG.PlottedBoxPlotModel = DG.PlottedIQRModel.extend(
 
       // also compute IQR
       tValues.forEach(function (iValue) {
+        iValue.upperOutliers = [];
+        iValue.lowerOutliers = [];
         if (iValue.vals.length > 0) {
-          iValue.upperOutliers = [];
-          iValue.lowerOutliers = [];
           var tMaxWhiskerLength = 1.5 * iValue.IQR,
               tWhiskerCandidate, tIndex;
           tWhiskerCandidate = iValue.Q1 - tMaxWhiskerLength;
