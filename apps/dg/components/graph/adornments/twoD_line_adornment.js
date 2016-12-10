@@ -81,7 +81,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tXVar = 'DG.ScatterPlotModel.daysLabel'.loc();
         }
         tSlopeString = tSlopeNumFormat(tSlope) + " ";
-        tInterceptString = tSign = "";
+        if( tSlopeString !== "0 ")  // Implies intercept is meaningless because 0 of x-axis is arbitrary
+          tInterceptString = tSign = "";
       }.bind( this);
 
       var kSlopeInterceptForm = 'DG.ScatterPlotModel.slopeIntercept',// y,slope,x,signInt,Int

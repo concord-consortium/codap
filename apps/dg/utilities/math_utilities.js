@@ -113,8 +113,8 @@ DG.MathUtilities = {
     *  @returns boolean true if value is in the range
     */
   isInRange: function( iNumber, iMin, iMax ) {
-    DG.assert( typeof iNumber === 'number' && isFinite( iNumber ));
-    return( iMin <= iNumber && iNumber <= iMax );
+    DG.assert( typeof iNumber === 'number');
+    isFinite( iNumber) ? ( iMin <= iNumber && iNumber <= iMax ) : false;
   },
 
   /**
