@@ -171,6 +171,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tHideShowButton);
 
+/*
           var showDeletePopup = function () {
             var tMenu = DG.MenuPane.create({
                   classNames: 'display-delete-popup'.w(),
@@ -212,6 +213,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             toolTip: 'DG.Inspector.delete.toolTip',
             localize: true
           }));
+*/
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
@@ -305,7 +307,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       }
                     })
               });
-          this.valuesPane.popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
+          this.valuesPane.popup(this.get('inspectorButtons')[2], SC.PICKER_POINTER);
         },
 
         /**
@@ -351,7 +353,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       }
                     })
               });
-          this.stylesPane.popup(this.get('inspectorButtons')[4], SC.PICKER_POINTER);
+          this.stylesPane.popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
         },
 
         styleControls: function () {
