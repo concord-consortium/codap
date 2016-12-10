@@ -383,8 +383,8 @@ SC.stringsFor('English', {
   'DG.Formula.DateLongDayFriday': "Friday",
   'DG.Formula.DateLongDaySaturday': "Saturday",
 
-                                        /* "mm/dd/yy", "mm/dd/yyyy" */
-  'DG.Utilities.date.localDatePattern': '(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?)',
+                                        /* "dd-mmm-yyyy", "dd-mmm-yy", "mm/dd/yy", "mm/dd/yyyy" */
+  'DG.Utilities.date.localDatePattern': '(?:(?:[0-3]?\\d\-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\-\\d{2}(?:\\d{2})?)|(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?))',
                                     /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
   'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)',
                                     /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
