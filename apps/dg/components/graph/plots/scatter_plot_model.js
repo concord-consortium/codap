@@ -380,22 +380,23 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           },
           {
             title: 'DG.Inspector.graphInterceptLocked',
-            value: this_.get('isInterceptLocked'),
             classNames: 'graph-interceptLocked-check'.w(),
-            isEnabled: function () {
-              return this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
-            }.property(),
             valueDidChange: function () {
               this_.toggleInterceptLocked();
             }.observes('value'),
+            lineVisibilityChanged: function() {
+              this.value = this_.get('isInterceptLocked');
+              this.set('isEnabled', this_.get('isMovableLineVisible') || this_.get('isLSRLVisible'));
+            },
             init: function() {
               sc_super();
-              this_.addObserver('isMovableLineVisible', this, 'displayDidChange');
-              this_.addObserver('isLSRLLineVisible', this, 'displayDidChange');
+              this.lineVisibilityChanged();
+              this_.addObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
+              this_.addObserver('isLSRLVisible', this, 'lineVisibilityChanged');
             },
             destroy: function() {
-              this_.removeObserver('isMovableLineVisible', this, 'displayDidChange');
-              this_.removeObserver('isLSRLLineVisible', this, 'displayDidChange');
+              this_.removeObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
+              this_.removeObserver('isLSRLVisible', this, 'lineVisibilityChanged');
               sc_super();
             }
           },
@@ -419,6 +420,22 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             title: 'DG.Inspector.graphSquares',
             value: this_.get('areSquaresVisible'),
             classNames: 'graph-squares-check'.w(),
+            lineVisibilityChanged: function() {
+              var tLineIsVisible = this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
+              this.set('isEnabled', tLineIsVisible);
+              if( this_.get('areSquaresVisible') && !tLineIsVisible)
+                this.set('value', false);
+            },
+            init: function() {
+              sc_super();
+              this.lineVisibilityChanged();
+              this_.addObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
+              this_.addObserver('isLSRLVisible', this, 'lineVisibilityChanged');
+            },
+            destroy: function() {
+              this_.removeObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
+              this_.removeObserver('isLSRLVisible', this, 'lineVisibilityChanged');
+            },
             valueDidChange: function () {
               this_.toggleShowSquares();
             }.observes('value')
