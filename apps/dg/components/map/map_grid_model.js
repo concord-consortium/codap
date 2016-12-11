@@ -307,15 +307,11 @@ DG.MapGridModel = SC.Object.extend((function () // closure
         }
       });
       DG.ObjectMap.forEach( tCategories, function( iCat, iCount) {
-        if( SC.empty( tResult)) {
-          tResult = '<p>';
-        }
-        else {
-          tResult += '<br/>';
+        if( !SC.empty( tResult)) {
+          tResult += '\n';
         }
         tResult += iCat + ': ' + iCount + ' (' + (Math.round(1000 * iCount/tTotalCount) / 10) + '%)';
       });
-      tResult += '</p>';
       return tResult;
     },
 
