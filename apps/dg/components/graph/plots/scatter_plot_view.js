@@ -33,7 +33,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                       'yAxisView.pixelMin', 'yAxisView.pixelMax',
                       'model.areSquaresVisible', 'model.squares'],
   
-  autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn'],
+  autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn','lsrlAdorn'],
 
 
   /** @property {DG.ConnectingLineAdornment} */
