@@ -130,7 +130,27 @@
   },
 
   /*
-   * Statistics Functions
+   * Lookup Functions
+   */
+  "first": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Other Functions
+   */
+  "boolean": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Statistical Functions
    */
   "count": {
     "displayName": "count",
@@ -151,6 +171,83 @@
       "count() with no arguments is interpreted differently depending on the context. In an attribute formula it returns the number of child cases. In a plotted value, it is equivalent to count(xAxisAttribute).",
       "count(height) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"].",
       "count(height, age<18) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"] for the cases with a value for the age attribute that is less than 18."
+    ]
+  },
+
+  /*
+   * String Functions
+   */
+  "beginsWith": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "charAt": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "concat": {
+    "displayName": "concat",
+    "description": "Combines multiple strings into a single string.",
+    "args": [
+      {
+        "name": "str1",
+        "type": "string",
+        "description": "the first string"
+      },
+      {
+        "name": "str2",
+        "type": "string",
+        "description": "the next string"
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "additional strings"
+      }
+    ],
+    "examples": [
+    ]
+  },
+
+  "endsWith": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "join": {
+    "displayName": "join",
+    "description": "Combines multiple strings into a single string with a delimiter.",
+    "args": [
+      {
+        "name": "delimiter",
+        "type": "string",
+        "description": "the string used to separate the other strings"
+      },
+      {
+        "name": "str1",
+        "type": "string",
+        "description": "the first string"
+      },
+      {
+        "name": "str2",
+        "type": "string",
+        "description": "the next string"
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "additional strings"
+      }
+    ],
+    "examples": [
     ]
   }
 
