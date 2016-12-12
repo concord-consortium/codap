@@ -18,6 +18,14 @@
 
 sc_require('utilities/object_map');
 
+/*
+ * For full localization, we will need to allow localization of function names.
+ * In preparation for that eventuality, localized function string resources
+ * contain a displayName field. Until the code is prepared to actually use
+ * the displayName field appropriately, however, this flag prevents its use.
+ */
+DG.useFunctionDisplayNames = false;
+
 /** @class DG.FunctionRegistry
  *
  * A registry of the functions available in CODAP.
@@ -34,6 +42,8 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       fnNamesArray = [],
       // flag indicating whether function names are currently sorted
       fnNamesSorted = true,
+      // localized strings to be loaded from resources
+      fnStringsMap = null,
       // simple functions
       fns = {},
       // aggregate functions
@@ -51,15 +61,39 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
     DG.ObjectMap.forEach(iModule, function(iName, iProps) {
       // add it to the categorized map
       var rawCategory = iProps.category || 'DG.Formula.FuncCategoryOther',
-          category = rawCategory.loc();
+          category = rawCategory.loc(),
+          fnStrings = (fnStringsMap && fnStringsMap[iName]) || {},
+          // for historical reasons, aggregate functions specify arguments
+          // differently than non-aggregate functions.
+          minArgs = iProps.requiredArgs ? iProps.requiredArgs.min : iProps.minArgs,
+          maxArgs = iProps.requiredArgs ? iProps.requiredArgs.max : iProps.maxArgs;
+      // if the number of arguments are specified in the function strings documentation,
+      // then use that number rather than the function's own maxArgs. This allows the
+      // documentation for functions with arbitrary number of arguments (e.g. concat())
+      // to control the number of arguments to display.
+      if (fnStrings.args && fnStrings.args.length)
+        maxArgs = fnStrings.args.length;
       if (!fnInfoMap[category]) fnInfoMap[category] = {};
-      fnInfoMap[category][iName] = {
-        name: iName,
-        displayName: iName,
-        category: category,
-        minArgs: iProps.requiredArgs ? iProps.requiredArgs.min : iProps.minArgs,
-        maxArgs: iProps.requiredArgs ? iProps.requiredArgs.max : iProps.maxArgs
-      };
+      var fnInfo = {
+            name: iName,
+            displayName: DG.useFunctionDisplayNames ? (fnStrings.displayName || iName) : iName,
+            category: category,
+            description: fnStrings.description,
+            minArgs: minArgs,
+            maxArgs: maxArgs,
+            args: fnStrings.args,
+            examples: fnStrings.examples
+          };
+      if (fnInfo.args) {
+        // specify required/optional arguments
+        fnInfo.args = fnInfo.args.map(function(arg, index) {
+                        if (arg && (index < minArgs))
+                          arg.required = true;
+                        return arg;
+                      });
+      }
+      fnInfoMap[category][iName] = fnInfo;
+
       // add it to the uncategorized array
       fnNamesArray.push(iName);
       // mark it as needing to be sorted
@@ -71,17 +105,53 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
     Process the objects in the fnModuleQueue to map function names.
     Create a sorted array of categories from the function names.
    */
-  function prepareFunctionNames() {
-    if (fnModuleQueue.length) {
-      fnModuleQueue.forEach(function(iModule) {
-                              processFnModule(iModule);
-                            });
-      fnModuleQueue = [];
+  function prepareFunctionInfo() {
+
+    // called after loading the localizable function strings
+    function processFunctionInfo() {
+      if (fnModuleQueue.length) {
+        fnModuleQueue.forEach(function(iModule) {
+                                processFnModule(iModule);
+                              });
+        fnModuleQueue = [];
+      }
+
+      if (!fnNamesSorted) {
+        fnNamesArray.sort();
+        fnNamesSorted = true;
+      }
     }
 
-    if (!fnNamesSorted) {
-      fnNamesArray.sort();
-      fnNamesSorted = true;
+    /*
+     * Process the localizable function strings.
+     */
+    if (!fnStringsMap) {
+      $.ajax({
+        url: static_url('function_strings.json'),
+        dataType: 'text'
+      })
+      .done(function(text) {
+        try {
+          // We allow comments in function strings documentation,
+          // so we remove them before parsing.
+          var json = window.stripJsonComments(text);
+          fnStringsMap = JSON.parse(json);
+        }
+        catch(e) {
+          // function strings parse errors are logged, but we can continue
+          DG.log("%@: %@", e.name, e.message);
+          fnStringsMap = {};
+        }
+      })
+      .fail(function(jqxhr, textStatus, error) {
+        // log errors loading the function strings
+        DG.log("Error loading 'function-strings.json': '%@'", error);
+        fnStringsMap = {};
+      })
+      .always(function() {
+        // we always process the function info, with or without the function strings
+        processFunctionInfo();
+      });
     }
   }
 
@@ -92,7 +162,7 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       @type {object}
      */
     categorizedFunctionInfo: function() {
-      prepareFunctionNames();
+      prepareFunctionInfo();
       return fnInfoMap;
     }.property(),
 
@@ -101,7 +171,7 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
       @type {string[]}
      */
     namesArray: function() {
-      prepareFunctionNames();
+      prepareFunctionInfo();
       return fnNamesArray;
     }.property(),
 

@@ -30,7 +30,7 @@ DG.React.ready(function () {
           spaceBelow = containerBounds.bottom - anchorBounds.bottom,
           kReservedHeight = 300,
           kReservedMargin = 6,
-          style = { position: 'absolute', left: anchorBounds.left, overflow: 'auto' };
+          style = { position: 'absolute', left: anchorBounds.left };
       if ((spaceBelow < kReservedHeight) && (spaceBelow < spaceAbove)) {
         // place above anchor if not enough room below
         style.bottom = containerBounds.bottom - anchorBounds.top;
@@ -161,15 +161,16 @@ DG.React.ready(function () {
 
     renderFunction: function (category, fn) {
       var self = this,
-          argItems = fn.definition.args.map(function (arg) {
-            return li({key: arg.name},
-              arg.name + (arg.description ? ': ' + arg.description : ''),
+          argItems = fn.definition.args.map(function (arg, index) {
+            return li({key: 'arg-' + index},
+              italic({}, arg.name + (arg.description ? ': ' : '')),
+              arg.description || '',
               ' (',
               italic({}, arg.required ? 'required' : 'optional'),
               ')');
           }),
           examples = (fn.definition.examples || []).map(function (example, index) {
-            return div({key: 'example-' + index}, example);
+            return li({key: 'example-' + index}, example);
           }),
           fnClicked = function () {
             self.selectFunction(fn);
@@ -188,7 +189,7 @@ DG.React.ready(function () {
           ) : null,
           examples ? div({},
             h2({}, 'Examples'),
-            examples
+            ul({}, examples)
           ) : null
         )
       );

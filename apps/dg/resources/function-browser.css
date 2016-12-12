@@ -1,27 +1,30 @@
 .react-function-browser {
   margin: 3px 0;
-  white-space: pre;
   border: 1px solid #000;
   font-size: 12px;
   z-index: 105;
   background-color: white;
+  max-width: 300px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .react-function-browser ul {
+  width: 100%;
   margin: 10px;
   padding: 0;
   list-style-type: none;
   cursor: pointer;
 }
 .react-function-browser ul li {
-  list-style-type: none;
-}
-.react-function-browser li {
+  width: 100%;
   margin: 0;
   padding: 3px;
+  list-style-type: none;
   min-width: 150px;
 }
 .react-function-browser li div {
   float: right;
+  margin-right: 20px;
 }
 .react-function-browser li span {
   display: inline-block;
@@ -30,7 +33,6 @@
 .react-function-browser li span i,
 .react-function-browser-function-info h1 i {
   color: #555;
-  font-style: normal;
 }
 .react-function-browser li span:hover,
 .react-function-browser-header span:hover,
@@ -54,11 +56,13 @@
 }
 .react-function-browser-function-info h1 {
   font-size: 14px;
+  font-weight: bold;
   margin: 5px 0;
   cursor: pointer;
 }
 .react-function-browser-function-info h2 {
   font-size: 12px;
+  font-weight: bold;
   margin: 5px 0;
   color: #555;
 }

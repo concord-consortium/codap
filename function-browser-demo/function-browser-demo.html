@@ -41,7 +41,7 @@
     </script>
 
     <!-- this fakes part of the existing function registry -->
-    <script src="fake-function-registry.js"></script>
+    <script src="fake-function-info.js"></script>
 
     <script src="../apps/dg/react/dg-react.js"></script>
     <script src="../apps/dg/react/function-browser.js"></script>
@@ -58,7 +58,7 @@
           var component = DG.React.Components.FunctionBrowser({
                                                 anchor: testButton,
                                                 container: document.body,
-                                                functions: DG.functionRegistry.functions(),
+                                                categorizedFunctionInfo: window.categorizedFunctionInfo(),
                                                 onSelect: selectedFunction
                                               });
           DG.React.toggleRender(componentDiv, component);
