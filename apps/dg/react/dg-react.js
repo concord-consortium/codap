@@ -63,9 +63,37 @@ DG.React.HighOrderComponents = {
           clickedNode = clickedNode.parentNode;
         }
 
-        // the clicked node was outside the child container so unmount it and eat the mouse event
+        // the clicked node was outside the child container so unmount it
         if (!clickedNode) {
           this.unmount();
+        }
+      },
+
+      unmount: function () {
+        DG.React.toggleRender(ReactDOM.findDOMNode(this).parentNode);
+      },
+
+      render: function () {
+        return DG.React.HighOrderComponents._render(this, childComponentClass, {unmount: this.unmount});
+      }
+    });
+  },
+
+  UnmountOnEscapeKey: function (childComponentClass) {
+    return React.createClass({
+      componentDidMount: function () {
+        window.addEventListener('keydown', this.checkForEscape, true);
+      },
+
+      componentWillUnmount: function () {
+        window.removeEventListener('keydown', this.checkForEscape, true);
+      },
+
+      checkForEscape: function (e) {
+        if (e.keyCode === 27) {
+          this.unmount();
+          e.preventDefault();
+          e.stopPropagation();
         }
       },
 

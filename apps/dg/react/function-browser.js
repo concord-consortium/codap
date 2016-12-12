@@ -210,6 +210,6 @@ DG.React.ready(function () {
       }
       return div({className: 'react-function-browser', style: this.state.style}, contents);
     }
-  }, [DG.React.HighOrderComponents.UnmountOnOutsideClick]);
+  }, [DG.React.HighOrderComponents.UnmountOnOutsideClick, DG.React.HighOrderComponents.UnmountOnEscapeKey]);
 
 });
