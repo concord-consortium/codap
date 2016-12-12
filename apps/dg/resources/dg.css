@@ -817,6 +817,11 @@ body.dg .sc-view.doc-background {
     font-weight: lighter;
 }
 
+.graph-adornment-movable {
+    stroke: steelblue;
+    fill: steelblue;
+}
+
 .rescale-button {
     background-image: static_url('images/rescale.png');
     cursor: pointer;

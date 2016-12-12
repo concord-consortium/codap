@@ -28,6 +28,8 @@ DG.PlotUtilities = {
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
   kDefaultMovableLineColor: "steelblue",
+  kMovableLineHighlightColor: 'rgba(70, 30, 180, 0.2)',
+  kMovableValueCapSize: 6,  // pixels on a side
   kDefaultLSRLColor: "green",
   kLineHighlightColor: "rgba(255, 0, 0, 0.3)",
   kPlotCellFill: 'rgba(128, 128, 128, 0)', // transparent

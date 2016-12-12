@@ -32,6 +32,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
 {
   kLineSlideHCur: DG.Browser.customCursorStr(static_url('cursors/LineSlideH.cur'), 8, 8),
   kLineSlideVCur: DG.Browser.customCursorStr(static_url('cursors/LineSlide.cur'), 8, 8),
+  kLabelSpace: 50,  // pixels
 
   /**
     The movable value itself is a single line element
@@ -44,6 +45,11 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     @property { Raphael line element }
   */
   coverSeg: null,
+
+  /**
+   * A small square caps the line
+   */
+  cap: null,
 
   /**
     @property { Number }
@@ -64,9 +70,8 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   valueString: function() {
     var tValue = this.get('value'),
         tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
-        tNumFormat = DG.Format.number().fractionDigits( 0, tDigits),
-        tVar = this.getPath('valueAxisView.model.firstAttributeName');
-    return tVar + " = " + tNumFormat( tValue);
+        tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
+    return tNumFormat( tValue);
   }.property().cacheable(),
   valueStringDidChange: function() {
     this.notifyPropertyChange('valueString');
@@ -108,7 +113,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     }
 
     function overScope() {
-      var tAttributes = { stroke: DG.PlotUtilities.kLineHighlightColor };
+      var tAttributes = { stroke: DG.PlotUtilities.kMovableLineHighlightColor };
       this_.coverSeg.stop();
       this_.coverSeg.animate( tAttributes, DG.PlotUtilities.kHighlightShowTime);
     }
@@ -123,25 +128,35 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
 
     if( this.myElements && (this.myElements.length > 0))
       return; // already created
-    var tPaper = this.get('paper'),
+    var tCapSize = DG.PlotUtilities.kMovableValueCapSize,
+        tPaper = this.get('paper'),
         tCur = (this.getPath('valueAxisView.orientation') === 'horizontal') ?
                   this.kLineSlideHCur : this.kLineSlideVCur;
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
-              .attr({ stroke: DG.PlotUtilities.kDefaultMovableLineColor,
-                      'stroke-opacity': 0 });
-    this.coverSeg = this.lineSeg.clone()
-              .attr( { 'stroke-width': 5, stroke: DG.RenderingUtilities.kSeeThrough,
+              .attr({ 'stroke-opacity': 0 })
+        .addClass('graph-adornment-movable');
+    this.coverSeg = tPaper.line( 0, 0, 0, 0)
+              .attr( { 'stroke-width': 6, stroke: DG.RenderingUtilities.kSeeThrough,
                         cursor: tCur, title: "Drag the value" })
               .hover( overScope, outScope)
               .drag( continueTranslate, beginTranslate, endTranslate);
+    this.cap = tPaper.rect(0, 0, tCapSize, tCapSize)
+        .attr( { cursor: tCur, opacity: 0 })
+        .drag( continueTranslate, beginTranslate, endTranslate)
+        .addClass( 'graph-adornment-movable');
 
-    this.myElements = [ this.lineSeg, this.coverSeg ];
+    this.myElements = [ this.lineSeg, this.coverSeg, this.cap ];
     this.myElements.push( this.createBackgroundRect());
     this.myElements.push( this.createTextElement());
     this.lineSeg.animatable = true;
     this.textElement.animatable = true;
+    this.textElement.attr( {fill: DG.PlotUtilities.kDefaultMovableLineColor})
+        .hover( overScope, outScope)
+        .drag( continueTranslate, beginTranslate, endTranslate);
     this.lineSeg.animate({ 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     this.textElement.animate({ opacity: 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
+    this.cap.animatable = true;
+    this.cap.animate({ opacity: 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
     this.myElements.forEach( function( iElement) {
       tLayer.push( iElement);
     });
@@ -154,28 +169,38 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     if( this.myElements === null)
       this.createElements();
 
-    var tAxisView = this.get('valueAxisView'),
+    var tAxisView = this.get('valueAxisView');
+    if( !tAxisView) return;
+
+    var tCapOffset = DG.PlotUtilities.kMovableValueCapSize / 2,
         tValue = this.getPath('model.value'),
         tValueCoord = tAxisView && tAxisView.dataToCoordinate( tValue),
         tPaper = this.get('paper'),
-        tPt1, tPt2;
-    
-    if( !tAxisView) return;
-    
+        tPt1, tPt2, tTextAnchor, tTextXOffset = 0,
+        tTextYOffset = 0;
+
     if( this.getPath('model.isVisible')) {
       if( tAxisView.get('orientation') === 'horizontal') {
-        tPt1 = { x: tValueCoord, y: tPaper.height };
-        tPt2 = { x: tValueCoord, y: 0 };
+        tPt1 = { x: tValueCoord, y: tPaper.height};
+        tPt2 = { x: tValueCoord, y: this.kLabelSpace /2 };
+        tTextAnchor = 'middle';
+        tTextYOffset = -4 * tCapOffset;
       }
       else {
         tPt1 = { x: 0, y: tValueCoord };
-        tPt2 = { x: tPaper.width, y: tValueCoord };
+        tPt2 = { x: tPaper.width - this.kLabelSpace, y: tValueCoord };
+        tTextAnchor = 'start';
+        tTextXOffset = 2 * tCapOffset;
       }
+
+      this.textElement.attr( { text: this.get('valueString'),
+        x: tPt2.x + tTextXOffset, y: tPt2.y + tTextYOffset,
+        'text-anchor': tTextAnchor });
       
       DG.RenderingUtilities.updateLine( this.lineSeg, tPt1, tPt2);
       DG.RenderingUtilities.updateLine( this.coverSeg, tPt1, tPt2);
+      this.cap.attr( { x: tPt2.x - tCapOffset, y: tPt2.y - tCapOffset })
   
-      this.updateTextToModel( 1/3); // Offset 1/3 way down from top
     }
   }
 
