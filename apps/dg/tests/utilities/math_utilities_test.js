@@ -26,6 +26,49 @@ module("DG.Utilities", {
   }
 });
 
+function floatEquals( iResult, iExpected, iDescription, iTolerance) {
+  var diff = Math.abs( iResult - iExpected),
+      tolerance = iTolerance || 1e-10;
+  return ok( diff < tolerance, "%@:  Result: %@, Expected: %@".fmt( iDescription, iResult, iExpected));
+}
+
+test("Tests roundToSignificantDigits", function() {
+  floatEquals(DG.MathUtilities.roundToSignificantDigits(1.2345, 2).roundedValue, 1.2);
+  floatEquals(DG.MathUtilities.roundToSignificantDigits(1.23456, 5).roundedValue, 1.2346);
+});
+
+test("Tests clipToIntegerRange", function() {
+  equals(DG.MathUtilities.clipToIntegerRange(-1, 0, 2), 0);
+  equals(DG.MathUtilities.clipToIntegerRange(0, 0, 2), 0);
+  equals(DG.MathUtilities.clipToIntegerRange(1, 0, 2), 1);
+  equals(DG.MathUtilities.clipToIntegerRange(2, 0, 2), 1);
+  equals(DG.MathUtilities.clipToIntegerRange(3, 0, 2), 1);
+});
+
+test("Tests isInIntegerRange", function() {
+  equals(DG.MathUtilities.isInIntegerRange(-1, 0, 2), false);
+  equals(DG.MathUtilities.isInIntegerRange(0, 0, 2), true);
+  equals(DG.MathUtilities.isInIntegerRange(1, 0, 2), true);
+  equals(DG.MathUtilities.isInIntegerRange(2, 0, 2), false);
+  equals(DG.MathUtilities.isInIntegerRange(3, 0, 2), false);
+});
+
+test("Tests clipToRange", function() {
+  equals(DG.MathUtilities.clipToRange(-1, 0, 2), 0);
+  equals(DG.MathUtilities.clipToRange(0, 0, 2), 0);
+  equals(DG.MathUtilities.clipToRange(1, 0, 2), 1);
+  equals(DG.MathUtilities.clipToRange(2, 0, 2), 2);
+  equals(DG.MathUtilities.clipToRange(3, 0, 2), 2);
+});
+
+test("Tests isInRange", function() {
+  equals(DG.MathUtilities.isInRange(-1, 0, 2), false);
+  equals(DG.MathUtilities.isInRange(0, 0, 2), true);
+  equals(DG.MathUtilities.isInRange(1, 0, 2), true);
+  equals(DG.MathUtilities.isInRange(2, 0, 2), true);
+  equals(DG.MathUtilities.isInRange(3, 0, 2), false);
+});
+
 test("Tests leastSquaresLinearRegression", function() {
   var tResult;
 
