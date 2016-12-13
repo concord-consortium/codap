@@ -114,7 +114,7 @@ DG.MathUtilities = {
     */
   isInRange: function( iNumber, iMin, iMax ) {
     DG.assert( typeof iNumber === 'number');
-    isFinite( iNumber) ? ( iMin <= iNumber && iNumber <= iMax ) : false;
+    return isFinite( iNumber) ? ( iMin <= iNumber && iNumber <= iMax ) : false;
   },
 
   /**
