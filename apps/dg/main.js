@@ -33,6 +33,16 @@ DG.main = function main() {
 
   SC.$('body' ).addClass( 'dg');
 
+  // The ostensible purpose of the FastClick library is to reduce the 300ms
+  // delay that many browsers introduce between the handling of a mouse up
+  // or touch end event and the sending of the click event. It also serves
+  // to eliminate the ghost click that is sometimes sent by the browser
+  // after touch events have been handled by the application. Eliminating
+  // these ghost clicks improves the behavior of CODAP (e.g. the case table).
+  /* global Origami */
+  var attachFastClick = Origami.fastclick;
+  attachFastClick(document.body);
+
   // Fix to support touch events in non-SproutCore elements like jQuery UI widgets.
   // By default, SC.RootResponder swallows all touch events except for those
   // intended for specific browser tags (input, textarea, a, select). For non-SC
