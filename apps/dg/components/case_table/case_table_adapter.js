@@ -66,6 +66,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
           cellValue = Math.round( multiplier * cellValue) / multiplier;
         }
+        else if( DG.isColorSpecString(cellValue))
+          return colorFormatter(rowIndex, colIndex, cellValue, colInfo, rowItem);
         return cellValue.toString();
       },
 
@@ -82,6 +84,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
         return "<span class='dg-qualitative-backing' style='width:" + tFullWidth + "px'>" +
         "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
+      },
+
+      colorFormatter = function (row, cell, value, columnDef, dataContext) {
+        var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),  // jshint ignore:line
+            tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
+
+        return tSpan;
       };
 
   return {  // return from closure

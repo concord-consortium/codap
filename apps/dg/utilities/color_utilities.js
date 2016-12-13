@@ -81,9 +81,13 @@ DG.ColorUtilities = {
    * @param iColorString
    * @returns {boolean|*|null}
    */
-  isColorSpecString: function( iColorString) {
-    return (iColorString.indexOf('rgb') === 0 || iColorString.indexOf('#') === 0) &&
-            tinycolor( iColorString).isValid();
+  isColorSpecString: function( iValue) {
+    if (!this._isColorRegex) {
+      var tExp = '^(?:' + 'DG.Utilities.colorPattern'.loc() + ')$';
+      this._isColorRegex = new RegExp(tExp, 'i');
+    }
+    return (typeof iValue === 'string' &&
+              this._isColorRegex.test(iValue.toLowerCase().replace(/\s/gi,'')));
   },
 
   /** hsbColor class for colors with Hue/Saturation/Brightness color model for color manipulation.
@@ -862,3 +866,5 @@ DG.ColorUtilities = {
     yellowgreen: '9acd32'
   }
 };
+
+DG.isColorSpecString = DG.ColorUtilities.isColorSpecString;
