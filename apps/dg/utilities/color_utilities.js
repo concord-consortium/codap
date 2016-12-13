@@ -87,7 +87,7 @@ DG.ColorUtilities = {
       this._isColorRegex = new RegExp(tExp, 'i');
     }
     return (typeof iValue === 'string' &&
-              this._isColorRegex.test(iValue.toLowerCase().replace(/\s/gi,'')));
+              this._isColorRegex.test(iValue.toLowerCase().replace(/\s/g,'')));
   },
 
   /** hsbColor class for colors with Hue/Saturation/Brightness color model for color manipulation.

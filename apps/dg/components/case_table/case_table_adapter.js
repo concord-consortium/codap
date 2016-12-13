@@ -27,6 +27,7 @@
 
   @extends SC.Object
  */
+/* global tinycolor */
 DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
@@ -87,7 +88,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       },
 
       colorFormatter = function (row, cell, value, columnDef, dataContext) {
-        var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),  // jshint ignore:line
+        var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),
             tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
 
         return tSpan;
