@@ -101,18 +101,31 @@
 
       // Hide the menu on outside click.
       $(document.body).bind("mousedown", handleBodyMouseDown);
+      $(document.body).bind("touchstart", handleBodyMouseDown);
+      $(document.body).bind("keydown", handleBodyKeyDown);
     }
 
 
     function destroy() {
       _handler.unsubscribeAll();
       $(document.body).unbind("mousedown", handleBodyMouseDown);
+      $(document.body).unbind("touchstart", handleBodyMouseDown);
+      $(document.body).unbind("keydown", handleBodyKeyDown);
     }
 
 
     function handleBodyMouseDown(e) {
       if ($menu && $menu[0] != e.target && !$.contains($menu[0], e.target)) {
         hideMenu();
+      }
+    }
+
+
+    function handleBodyKeyDown(e) {
+      if ($menu && (e.keyCode === 27)) {
+        hideMenu();
+        e.preventDefault();
+        e.stopPropagation();
       }
     }
 
