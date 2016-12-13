@@ -512,7 +512,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     
     /*
      * Add a column header menu to each column.
-     * Wrapped in @if(debug) so that only developers see it for now.
      */
     if( DG.supports('caseTableHeaderMenus')) {
       this.headerMenu = new Slick.Plugins.HeaderMenu({
