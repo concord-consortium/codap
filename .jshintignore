@@ -1,3 +1,5 @@
+apps/dg/build/**
 apps/dg/formula/formulaParser.*
-apps/dg/tinkerplots/**
 apps/dg/libraries/**
+apps/dg/resources/**
+apps/dg/tinkerplots/**
