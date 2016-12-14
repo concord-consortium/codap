@@ -30,7 +30,7 @@ DG.DotPlotView = DG.PlotView.extend(
   displayProperties: ['primaryAxisView.model.lowerBound', 'primaryAxisView.model.upperBound',
                       'secondaryAxisView.model.numberOfCells', 'overlap'],
 
-  autoDestroyProperties: ['movableValueAdorn', 'plottedValueAdorn',
+  autoDestroyProperties: ['multipleMovableValuesAdorn', 'plottedValueAdorn',
                           'plottedMeanAdorn', 'plottedMedianAdorn', 'plottedStDevAdorn', 'plottedBoxPlotAdorn'],
 
   /**
@@ -78,8 +78,8 @@ DG.DotPlotView = DG.PlotView.extend(
     }
   },
 
-  /** @property {DG.MovableValueAdornment} */
-  movableValueAdorn: null,
+  /** @property {DG.MultipleMovableValuesAdornment} */
+  multipleMovableValuesAdorn: null,
 
   /** @property {DG.PlottedMeanAdornment} */
   plottedMeanAdorn: null,
@@ -175,7 +175,7 @@ DG.DotPlotView = DG.PlotView.extend(
    * @param iAnimate {Boolean}[optional] animate change to averages.
    */
   updateAverages: function( iAnimate ) {
-    function updateOneAvgAdorn( ioAdorn ) {
+    function updateOneAdorn( ioAdorn ) {
       if( ioAdorn ) {
         var adornModel = ioAdorn.get('model');
         if( adornModel) {
@@ -188,10 +188,11 @@ DG.DotPlotView = DG.PlotView.extend(
     if( !this.getPath('model.dataConfiguration'))
       return; // because we can get here during destroy
 
-    updateOneAvgAdorn( this.plottedMeanAdorn );
-    updateOneAvgAdorn( this.plottedMedianAdorn );
-    updateOneAvgAdorn( this.plottedStDevAdorn );
-    updateOneAvgAdorn( this.plottedBoxPlotAdorn );
+    updateOneAdorn( this.plottedMeanAdorn );
+    updateOneAdorn( this.plottedMedianAdorn );
+    updateOneAdorn( this.plottedStDevAdorn );
+    updateOneAdorn( this.plottedBoxPlotAdorn );
+    updateOneAdorn( this.multipleMovableValuesAdorn );
 
     if (this.plottedValueAdorn) {
       this.plottedValueAdorn.updateToModel();
@@ -409,17 +410,15 @@ DG.DotPlotView = DG.PlotView.extend(
 
     this.updateSelection();
 
-    if( !SC.none( this.movableValueAdorn) && this.getPath('movableValueAdorn.plotModel.isVisible'))
-      this.movableValueAdorn.updateToModel();
-
     updateAverageAdorn( this.plottedMeanAdorn );
     updateAverageAdorn( this.plottedMedianAdorn );
     updateAverageAdorn( this.plottedStDevAdorn );
     updateAverageAdorn( this.plottedBoxPlotAdorn );
-      
+
     if( !SC.none( this.plottedValueAdorn))
       this.plottedValueAdorn.updateToModel();
-
+    if( !SC.none( this.multipleMovableValuesAdorn))
+      this.multipleMovableValuesAdorn.updateToModel();
   },
 
   zeroBinArray: function() {
@@ -502,19 +501,18 @@ DG.DotPlotView = DG.PlotView.extend(
   */
   movableValueChanged: function() {
     var tPlotModel = this.get('model'),
-        tMovableValue = tPlotModel && tPlotModel.getAdornmentModel('movableValue');
-    if( tMovableValue) {
-      if( !this.movableValueAdorn) {
-        this.movableValueAdorn = DG.MovableValueAdornment.create({
-                                     parentView: this, model: tMovableValue, paperSource: this.get('paperSource'),
+        tMultipleMovableValues = tPlotModel && tPlotModel.getAdornmentModel('multipleMovableValues');
+    if( tMultipleMovableValues) {
+      if( !this.multipleMovableValuesAdorn) {
+        this.multipleMovableValuesAdorn = DG.MultipleMovableValuesAdornment.create({
+                                     parentView: this, model: tMultipleMovableValues,
+                                     paperSource: this.get('paperSource'),
                                      layerName: DG.LayerNames.kAdornments,
                                      valueAxisView: this.get('primaryAxisView') });
-        this.movableValueAdorn.createElements();
       }
-      if( tMovableValue.get('isVisible'))
-        this.movableValueAdorn.updateToModel();
+      this.multipleMovableValuesAdorn.updateToModel();
     }
-  }.observes('.model.movableValue'),
+  }.observes('.model.valuesDidChange', '.model.multipleMovableValues'),
 
   /**
    Presumably our model has created a plotted mean. We need to create our adornment.

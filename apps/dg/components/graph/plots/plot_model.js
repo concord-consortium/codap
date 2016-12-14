@@ -250,6 +250,12 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   plottedCount: null,
 
   /**
+   * May be overridden, e.g. by DotPlotModel
+   * @property {Boolean}
+   */
+  wantsPercentCheckbox: false,
+
+  /**
     @return { Boolean }
   */
   shouldPlottedCountBeChecked: function( iWhat) {
@@ -428,9 +434,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     @returns  {DG.AdornmentModel} Returns the specified adornment model (or undefined).
    */
   getAdornmentModel: function( iAdornmentKey) {
-    DG.assert( this._adornmentModels);
-    DG.assert( iAdornmentKey);
-    return iAdornmentKey && this._adornmentModels[ iAdornmentKey];
+    return iAdornmentKey && this._adornmentModels && this._adornmentModels[ iAdornmentKey];
   },
   
   /**
@@ -457,9 +461,11 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   
   /**
     Hides/shows the specified adornment.
+    Constructs the adornment model if it doesn't already exist
     If the visibility changes, calls notifyPropertyChange( iAdornmentKey).
     @param    {String}    iAdornmentKey -- e.g. 'plottedValue', 'plottedFunction'
     @param    {Boolean}   iVisibility -- true to show, false to hide
+    @return   {DG.PlotAdornmentModel}
    */
   setAdornmentVisibility: function( iAdornmentKey, iVisibility) {
     var model = this.getAdornmentModel( iAdornmentKey);
@@ -474,6 +480,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       model.set('isVisible', iVisibility);
       this.notifyPropertyChange( iAdornmentKey);
     }
+    return model;
   },
 
   /**
@@ -487,8 +494,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     DG.assert( !SC.empty( iAdornmentKey));
     var adornmentModel = this.getAdornmentModel( iAdornmentKey ),
         tIsVisible = adornmentModel && adornmentModel.get('isVisible');
-    this.setAdornmentVisibility( iAdornmentKey, !tIsVisible);
-    return adornmentModel;
+    return this.setAdornmentVisibility( iAdornmentKey, !tIsVisible);
   },
 
   /**
@@ -560,6 +566,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     var this_ = this,
         tXHasCells = this.get('xAxis').numberOfCells() > 1,
         tYHasCells = this.get('yAxis').numberOfCells() > 1,
+        tPlotWantsPercents = this.get('wantsPercentCheckbox'),
         tDescriptions = [
       {
         title: 'DG.Inspector.graphCount',
@@ -570,7 +577,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         }.observes('value')
       }
     ];
-    if( tXHasCells || tYHasCells) {
+    if( tPlotWantsPercents || tXHasCells || tYHasCells) {
       tDescriptions.push( {
         title: 'DG.Inspector.graphPercent',
         value: this_.shouldPlottedCountBeChecked('Percent'),

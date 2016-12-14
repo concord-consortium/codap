@@ -257,6 +257,12 @@ SC.stringsFor('English', {
   'DG.Redo.graph.hidePlottedIQR': "Redo hiding inter-quartile range",
   'DG.Undo.graph.hidePlottedIQR': "Undo hiding inter-quartile range",
   'DG.Redo.graph.showPlottedIQR': "Redo showing inter-quartile range",
+  'DG.Undo.graph.addMovableValue': "Undo adding movable value",
+  'DG.Redo.graph.addMovableValue': "Redo adding movable value",
+  'DG.Undo.graph.removeMovableValue': "Undo removing movable value",
+  'DG.Redo.graph.removeMovableValue': "Redo removing movable value",
+  'DG.Undo.graph.moveMovableValue': "Undo moving movable value",
+  'DG.Redo.graph.moveMovableValue': "Redo moving movable value",
   'DG.Undo.graph.changePointColor': "Undo changing data color",
   'DG.Redo.graph.changePointColor': "Redo changing data color",
   'DG.Undo.graph.changeStrokeColor': "Undo changing stroke color",
@@ -488,23 +494,7 @@ SC.stringsFor('English', {
   'DG.PlotModel.showCount': "Show Count",
   'DG.PlotModel.hideCount': "Hide Count",
 
-  // DG.DotPlotModel
-  'DG.DotPlotModel.showMovableValue': "Show Movable Value",
-  'DG.DotPlotModel.hideMovableValue': "Hide Movable Value",
-  'DG.DotPlotModel.showMean': "Show Mean",
-  'DG.DotPlotModel.hideMean': "Hide Mean",
-  'DG.DotPlotModel.showMedian': "Show Median",
-  'DG.DotPlotModel.hideMedian': "Hide Median",
-  'DG.DotPlotModel.showStDev': "Show Standard Deviation",
-  'DG.DotPlotModel.hideStDev': "Hide Standard Deviation",
-  'DG.DotPlotModel.showIQR': "Show Inter-Quartile Range",
-  'DG.DotPlotModel.hideIQR': "Hide Inter-Quartile Range",
-  'DG.DotPlotModel.hidePlottedValue': "Hide Plotted Value",
-  'DG.DotPlotModel.plotValue': "Plot Value",
-
   // DG.ScatterPlotModel
-  'DG.ScatterPlotModel.UnlockIntercept': "Unlock Intercept",
-  'DG.ScatterPlotModel.LockIntercept': "Lock Intercept at Zero",
   'DG.ScatterPlotModel.sumSquares': ",\nSum of squares = %@", // sumOfResidualsSquared
   'DG.ScatterPlotModel.rSquared': ",\nr^2 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
@@ -616,6 +606,8 @@ SC.stringsFor('English', {
   'DG.Inspector.graphSquares': "Squares of Residuals",  // "Squares of Residuals"
   'DG.Inspector.graphLSRL': "Least Squares Line",  // "Least Squares Line"
   'DG.Inspector.graphMovableValue': "Movable Value",  // "Movable Value"
+  'DG.Inspector.graphAdd': "Add",  // "Add"
+  'DG.Inspector.graphRemove': "Remove",  // "Remove"
   'DG.Inspector.graphPlottedMean': "Mean",  // "Mean"
   'DG.Inspector.graphPlottedMedian': "Median",  // "Median"
   'DG.Inspector.graphPlottedStDev': "Standard Deviation",  // "Standard Deviation"

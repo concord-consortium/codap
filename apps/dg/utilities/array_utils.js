@@ -21,6 +21,19 @@
 DG.ArrayUtils = {
 
   /**
+   * Modify the given array by removing the given element from it
+   * @param iArray {[]}
+   * @param iElement
+   * @return {Array}
+   */
+  remove: function( iArray, iElement) {
+    var tIndex = iArray.indexOf( iElement);
+    if( tIndex >= 0)
+      iArray.splice( tIndex, 1);
+    return iArray;
+  },
+
+  /**
     Returns the index of the first array entry for which the specified
     match function returns true. Returns -1 if no match is found.
     @param    {Array}     The array in which to search for a match

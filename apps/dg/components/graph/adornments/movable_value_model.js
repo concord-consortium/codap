@@ -94,8 +94,11 @@ DG.MovableValueModel = DG.PlotAdornmentModel.extend(
   
   restoreStorage: function( iStorage) {
     sc_super();
-    if( iStorage && iStorage.value)
+    if( iStorage && iStorage.value) {
       this.set('value', iStorage.value);
+      this._needsComputing = false;
+    }
+    return this;
   }
 
 });

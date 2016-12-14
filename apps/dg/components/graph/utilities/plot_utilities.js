@@ -69,6 +69,7 @@ DG.PlotUtilities = {
   kDataHoverTransform: 's1.5',  // scale 1.5 times on hover
   kDataCreateTransform: 's2',   // scale 2 times on create
   kBoxplotMaxWidth: 20,
+  kMovableRegionOpacity: 0.3,
 
   // Constants for maps
   kDefaultMapFillOpacity: '0.5',

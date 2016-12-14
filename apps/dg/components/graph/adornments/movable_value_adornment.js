@@ -51,6 +51,14 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
    */
   cap: null,
 
+  orientation: function() {
+    return this.getPath('valueAxisView.orientation');
+  }.property(),
+
+  screenCoord: function() {
+    return this.get('valueAxisView').dataToCoordinate( this.getPath('model.value'));
+  }.property(),
+
   /**
     @property { Number }
   */
@@ -83,7 +91,12 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
-  modelPropertiesToObserve: [ ['value', 'updateToModel'] ],
+  modelPropertiesToObserve: [ ['value', 'updateToModel'],
+                              ['removed', 'modelWasRemoved']],
+
+  modelWasRemoved: function() {
+    this.detachModel();
+  },
 
   /**
     Make the movable line. This only needs to be done once.
@@ -91,25 +104,42 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
   createElements: function() {
     var this_ = this,
         tLayer = this.get('layer' ),
-        tDragCoord;
+        tDragCoord,
+        tOriginalValue, tNewValue;
   
     //=============Event handling functions===============
     function beginTranslate( iWindowX, iWindowY) {
+      tOriginalValue = this_.getPath('model.value');
       var tDragPoint = DG.ViewUtilities.windowToViewCoordinates( 
                     { x: iWindowX, y: iWindowY }, this_.parentView);
-      tDragCoord = (this_.getPath('valueAxisView.orientation') === 'horizontal') ?
+      tDragCoord = (this_.get('orientation') === 'horizontal') ?
                         tDragPoint.x : tDragPoint.y;
     }
     
     function continueTranslate( idX, idY) {
       var tAxisView = this_.get('valueAxisView'),
           tDelta = (tAxisView.get('orientation') === 'horizontal') ? idX : idY,
-          tNewValue = tAxisView.coordinateToData( tDragCoord + tDelta);
-      this_.setPath('model.value', tNewValue);
+          tValue = tAxisView.coordinateToData( tDragCoord + tDelta);
+      this_.setPath('model.value', tValue);
     }
   
     function endTranslate( idX, idY) {
       DG.logUser("dragMovableValue: '%@'", this_.get('valueString'));
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graph.moveMovableValue",
+        undoString: 'DG.Undo.graph.moveMovableValue',
+        redoString: 'DG.Redo.graph.removeMovableValue',
+        log: "Moved movable value from %@ to %@".fmt( tOriginalValue, this_.get('value')),
+        execute: function() {
+          tNewValue = this_.getPath('model.value');
+        },
+        undo: function() {
+          this_.setPath('model.value', tOriginalValue);
+        },
+        redo: function() {
+          this_.setPath('model.value', tNewValue);
+        }
+      }));
     }
 
     function overScope() {
@@ -130,7 +160,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
       return; // already created
     var tCapSize = DG.PlotUtilities.kMovableValueCapSize,
         tPaper = this.get('paper'),
-        tCur = (this.getPath('valueAxisView.orientation') === 'horizontal') ?
+        tCur = (this.get('orientation') === 'horizontal') ?
                   this.kLineSlideHCur : this.kLineSlideVCur;
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
               .attr({ 'stroke-opacity': 0 })
@@ -140,7 +170,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
                         cursor: tCur, title: "Drag the value" })
               .hover( overScope, outScope)
               .drag( continueTranslate, beginTranslate, endTranslate);
-    this.cap = tPaper.rect(0, 0, tCapSize, tCapSize)
+    this.cap = tPaper.rect(-20, 0, tCapSize, tCapSize)
         .attr( { cursor: tCur, opacity: 0 })
         .drag( continueTranslate, beginTranslate, endTranslate)
         .addClass( 'graph-adornment-movable');
@@ -200,7 +230,6 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
       DG.RenderingUtilities.updateLine( this.lineSeg, tPt1, tPt2);
       DG.RenderingUtilities.updateLine( this.coverSeg, tPt1, tPt2);
       this.cap.attr( { x: tPt2.x - tCapOffset, y: tPt2.y - tCapOffset });
-  
     }
   }
 

@@ -854,6 +854,11 @@ body.dg .sc-view.doc-background {
     fill: steelblue;
 }
 
+.movable-shaded {
+    fill: steelblue;
+    stroke-opacity: 0;
+}
+
 .rescale-button {
     background-image: static_url('images/rescale.png');
     cursor: pointer;
