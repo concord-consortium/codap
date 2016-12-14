@@ -40,10 +40,12 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
         Q3Cover: null,
         upperWhiskerCover: null,
         outliers: null,
+        outlierCovers: null,
 
         init: function () {
           sc_super();
           this.outliers = [];
+          this.outlierCovers = [];
         },
 
         /**
@@ -58,6 +60,9 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
           this.outliers.forEach(function (iElement) {
             iDest.push(iElement);
           });
+          this.outlierCovers.forEach(function (iElement) {
+            iDest.push(iElement);
+          });
         },
 
         removeFromArrayAndLayer: function (iArray, iLayer) {
@@ -70,6 +75,11 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
             }
           });
           this.outliers.forEach(function (iElement) {
+            iLayer.prepareToMoveOrRemove(iElement);
+            iElement.remove();
+            iArray.splice(iArray.indexOf(iElement), 1);
+          });
+          this.outlierCovers.forEach(function (iElement) {
             iLayer.prepareToMoveOrRemove(iElement);
             iElement.remove();
             iArray.splice(iArray.indexOf(iElement), 1);
@@ -343,24 +353,49 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                   iSymbol.Q3Cover.attr('path', getCrossCover('Q3', 'Q3'));
 
                   // Since the number of outliers is variable, we have get the right number
-                  var tSym;
+                  var tSym, tSymCover;
                   while( iSymbol.outliers.length < tSpec.outliers.length) {
                     tSym = tPaper.path('M0,0')
                         .attr({stroke: this.symStroke, 'stroke-width': this.symStrokeWidth, 'stroke-opacity': 1});
+                    tSymCover = tPaper.path('M0,0')
+                        .attr({
+                          'stroke-width': this.hoverWidth, stroke: DG.RenderingUtilities.kTransparent,
+                          cursor: "pointer"
+                        })
+                        .hover(overScope, outScope)
+                        .mousedown(select);
                     tSym.animatable = true;
                     this.myElements.push( tSym);
                     tLayer.push( tSym);
                     iSymbol.outliers.push( tSym);
+                    this.myElements.push( tSymCover);
+                    tLayer.push( tSymCover);
+                    iSymbol.outlierCovers.push( tSymCover);
                   }
                   while( iSymbol.outliers.length > tSpec.outliers.length) {
                     tSym = iSymbol.outliers.pop();
                     tLayer.prepareToMoveOrRemove(tSym);
                     tSym.remove();
                     this.myElements.splice(this.myElements.indexOf(tSym), 1);
+                    tSymCover = iSymbol.outlierCovers.pop();
+                    tLayer.prepareToMoveOrRemove(tSymCover);
+                    tSymCover.remove();
+                    this.myElements.splice(this.myElements.indexOf(tSymCover), 1);
                   }
 
-                  iSymbol.outliers.forEach( function( iOutlier, iIndex) {
-                    iOutlier.attr({ path: outlierSymbol( iIndex)});
+                  iSymbol.outliers.forEach( function( iOutlier, iOutlierIndex) {
+                    var tNumLower = tValuesArray[iIndex].lowerOutliers.length,
+                        tWorldValue =  (iOutlierIndex < tNumLower) ?
+                                        tValuesArray[iIndex].lowerOutliers[ iOutlierIndex] :
+                                        tValuesArray[iIndex].upperOutliers[ tNumLower - iOutlierIndex],
+                        tCover = iSymbol.outlierCovers[ iOutlierIndex],
+                        tPath = outlierSymbol( iOutlierIndex);
+                    iOutlier.attr({ path: tPath });
+                    tCover.attr({ path: tPath });
+                    tCover.info = {
+                      tipString: '%@', tipValue: tWorldValue,
+                      range: {lower: tWorldValue, upper: tWorldValue, cases: tCases }
+                    };
                   });
 
                   iSymbol.boxSymbol.toFront();
