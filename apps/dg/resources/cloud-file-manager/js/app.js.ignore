@@ -14148,7 +14148,7 @@ GoogleDriveProvider = (function(superClass) {
               return _this.user = user;
             });
           }
-          return _this.authCallback(_this.authToken !== null);
+          return typeof _this.authCallback === "function" ? _this.authCallback(_this.authToken !== null) : void 0;
         });
       };
     })(this));
@@ -14679,7 +14679,7 @@ LaraProvider = (function(superClass) {
   LaraProvider.prototype.can = function(capability, metadata) {
     var hasReadOnlyAccess, ref, ref1, ref2, ref3, requiresWriteAccess;
     hasReadOnlyAccess = ((metadata != null ? (ref = metadata.providerData) != null ? (ref1 = ref.accessKeys) != null ? ref1.readOnly : void 0 : void 0 : void 0) != null) && ((metadata != null ? (ref2 = metadata.providerData) != null ? (ref3 = ref2.accessKeys) != null ? ref3.readWrite : void 0 : void 0 : void 0) == null);
-    requiresWriteAccess = ['save', 'remove', 'rename'].indexOf(capability) >= 0;
+    requiresWriteAccess = ['save', 'resave', 'remove', 'rename'].indexOf(capability) >= 0;
     return LaraProvider.__super__.can.call(this, capability, metadata) && !(requiresWriteAccess && hasReadOnlyAccess);
   };
 
@@ -17686,6 +17686,12 @@ CloudMetadata = (require('../providers/provider-interface')).CloudMetadata;
 
 module.exports = React.createClass({
   displayName: 'LocalFileListTab',
+  componentDidMount: function() {
+    this.refs.dropZone.addEventListener('drop', this.drop);
+  },
+  componentWillUnmount: function() {
+    this.refs.dropZone.removeEventListener('drop', this.drop);
+  },
   getInitialState: function() {
     return {
       hover: false
@@ -17734,11 +17740,12 @@ module.exports = React.createClass({
   drop: function(e) {
     var droppedFiles;
     e.preventDefault();
+    e.stopPropagation();
     droppedFiles = e.dataTransfer ? e.dataTransfer.files : e.target.files;
     if (droppedFiles.length > 1) {
-      return this.props.client.alert(tr("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED"));
+      this.props.client.alert(tr("~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED"));
     } else if (droppedFiles.length === 1) {
-      return this.openFile(droppedFiles[0], 'drop');
+      this.openFile(droppedFiles[0], 'drop');
     }
   },
   render: function() {
@@ -17747,10 +17754,10 @@ module.exports = React.createClass({
     return div({
       className: 'dialogTab localFileLoad'
     }, div({
+      ref: 'dropZone',
       className: dropClass,
       onDragEnter: this.dragEnter,
-      onDragLeave: this.dragLeave,
-      onDrop: this.drop
+      onDragLeave: this.dragLeave
     }, tr("~LOCAL_FILE_DIALOG.DROP_FILE_HERE"), input({
       type: 'file',
       onChange: this.changed
