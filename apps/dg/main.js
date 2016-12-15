@@ -605,8 +605,7 @@ DG.main = function main() {
 
           case "importedData":
             SC.run(function() {
-              // we don't need to call the following on via == "drop" because the CODAP drop handler will also respond to the drop
-              if (event.data.file && (event.data.via === "select")) {
+              if (event.data.file) {
                 DG.appController.importFile(event.data.file.object);
               }
               else if (event.data.url && (event.data.via === "select")) {
