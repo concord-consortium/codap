@@ -121,63 +121,24 @@ DG.main = function main() {
       openDataInteractive(startingDataInteractive);
     }
   }
-  function cfmUrl(filename) {
-    var url = null,
-        a;
-
-    if (DG.cfmBaseUrl) {
-      // safely parse the url and check to only allow codap.concord.org or a domain with no tld (like localhost or dev)
-      a = document.createElement("A");
-      a.href = DG.cfmBaseUrl;
-      if ((a.hostname === 'codap.concord.org') || (a.hostname.indexOf('.') === -1)) {
-        a.pathname = (a.pathname[a.pathname.length - 1] === '/' ? a.pathname : (a.pathname + '/')) + filename;
-        url = a.href;
-        DG.logWarn('Loading the ' + filename + ' CFM file from ' + url);
-      }
-      else {
-        DG.logError('The cfmBaseUrl domain (' + a.hostname + ') either needs to be codap.concord.org or not have a TLD (like localhost)');
-      }
-    }
-
-    if (!url) {
-      // static_url is run at build time so we have to directly reference the paths
-      if (filename === 'globals.js') {
-        url = static_url('cloud-file-manager/js/globals.js.ignore');
-      }
-      else if (filename === 'app.js') {
-        url = static_url('cloud-file-manager/js/app.js.ignore');
-      }
-    }
-
-    return url;
-  }
-  function cfmGlobalsLoaded() {
+  /**
+   * Returns a promise which is resolved when the CFM is loaded.
+   * The bundled libraries (e.g. React) and the CFM bundles are loaded via
+   * script tags created dynamically in the index.rhtml using a mechanism
+   * described in https://www.html5rocks.com/en/tutorials/speed/script-loading/
+   * which guarantees that the scripts will by loaded in order, so we need
+   * only check that the CFM is defined to determine that all scripts are loaded.
+   */
+  function cfmLoaded() {
     return new Promise(function(resolve, reject) {
-                $.ajax({
-                  url: cfmUrl('globals.js'),
-                  dataType: 'script',
-                  success: function() {
-                    resolve(true);
-                  },
-                  failure: function() {
-                    reject(false);
-                  }
-                });
-              });
-  }
-  function cfmAppLoaded() {
-    return new Promise(function(resolve, reject) {
-                $.ajax({
-                  url: cfmUrl('app.js'),
-                  dataType: 'script',
-                  success: function() {
-                    resolve(true);
-                  },
-                  failure: function() {
-                    reject(false);
-                  }
-                });
-              });
+      function checkCfm() {
+        if (typeof CloudFileManager !== "undefined")
+          resolve(true);
+        else
+          setTimeout(checkCfm, 10);
+      }
+      checkCfm();
+    });
   }
 
   function cfmInit(iCloudFileManager, iViewConfig) {
@@ -653,10 +614,9 @@ DG.main = function main() {
     translateQueryParameters();
   }
 
-  // load the CFM library
-  var cfmLoaded = cfmGlobalsLoaded().then(cfmAppLoaded);
-  // Configure the CFM once the library is loaded and the views are configured
-  Promise.all([cfmLoaded, DG.cfmViewConfig]).then(
+  // Load the CFM library and configure the CFM once the
+  // library is loaded and the views are configured.
+  Promise.all([cfmLoaded(), DG.cfmViewConfig]).then(
     function(iValues) {
       /* global CloudFileManager */
       var viewConfig = iValues[1];

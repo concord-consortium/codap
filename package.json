@@ -9,7 +9,7 @@
     "build:bundle-dev:comment": "echo Usage: `npm run build:bundle-dev` builds a development version of the `codap-lib-bundle.js`",
     "build:bundle-dev": "webpack",
     "build:bundle-prod:comment": "echo Usage: `npm run build:bundle-prod` builds a production version of the `codap-lib-bundle.js`",
-    "build:bundle-prod": "webpack -p",
+    "build:bundle-prod": "NODE_ENV=production webpack --progress",
     "build:cfm:comment": "echo Usage: `npm run build:cfm` builds CFM for CODAP. Assumes that CFM repository named 'cloud-file-manager' and CODAP repository named 'codap' are siblings.",
     "build:cfm": "cd ../cloud-file-manager && npm run build:codap && cd ../codap",
     "build:dev:comment": "echo Usage: `npm run build:dev` performs a local development build",
@@ -20,7 +20,7 @@
     "build:parser": "pegjs --export-var 'DG.formulaParser' 'apps/dg/formula/formulaGrammar.pegjs' 'apps/dg/formula/formulaParser.js'",
     "build:production:comment": "Usage: `npm run build:production` performs a local production build",
     "build:production": "npm run build:bundle-prod && npm run build:local",
-    "clean": "rm -rf tmp && rm -rf apps/dg/build",
+    "clean": "rm -rf tmp && rm -rf apps/dg/resources/build",
     "clean-and-build": "clear && npm run clean && npm run build:bundle-prod && npm run build:local",
     "clean-and-serve": "clear && npm run clean && npm run build:bundle-dev && npm run codap",
     "codap:comment": "echo Usage: `npm run codap` launches sc-server. Point browser at http://localhost:4020/dg or `npm run open:dev`.",
@@ -33,7 +33,7 @@
     "open:dev": "opener http://localhost:4020/dg",
     "open:staging": "opener http://codap.concord.org/releases/staging",
     "open:production": "opener http://codap.concord.org/releases/latest",
-    "prebuild:local": "npm run test",
+    "prebuild:production": "npm run lint",
     "predeploy:dev": "npm run test",
     "prepush": "npm run test",
     "pretest": "npm run lint",
@@ -63,7 +63,8 @@
     "opener": "^1.4.2",
     "pegjs": "=0.7.0",
     "phantomjs-prebuilt": "^2.1.13",
-    "webpack": "^1.14.0"
+    "webpack": "2.2.0-rc.2",
+    "webpack-shell-plugin": "^0.5.0"
   },
   "dependencies": {
     "react": "^15.4.1",

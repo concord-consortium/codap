@@ -96,6 +96,22 @@
       })();
     </script>
 
+    <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
+    <script>
+      (function() {
+        [
+          "<%= sc_static('build/codap-lib-bundle.js.ignore') %>",
+          "<%= sc_static('cloud-file-manager/js/globals.js.ignore') %>",
+          "<%= sc_static('cloud-file-manager/js/app.js.ignore') %>"
+        ].forEach(function(src) {
+          var script = document.createElement('script');
+          script.src = src;
+          script.async = false;
+          document.head.appendChild(script);
+        });
+      }());
+    </script>
+
     <%= @content_for_page_styles %>
     <script>
       SC.benchmarkPreloadEvents['headEnd'] = new Date().getTime();
