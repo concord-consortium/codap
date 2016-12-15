@@ -233,6 +233,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return columnWidth;
   },
 
+  isCellEditable: function(row, column) {
+    var dataView = this.get('gridDataView'),
+        dataItem = dataView.getItem(row),
+        colInfo = this.gridColumns[column],
+        attr = colInfo && colInfo.attribute,
+        attrIsEditable = attr && attr.get('editable');
+    return (dataItem && dataItem._isProtoCase) || attrIsEditable;
+  },
+
   /**
     Builds the array of column definitions required by SlickGrid from the data context.
     
@@ -254,11 +263,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     
     function updateDynamicColumnProperties( iAttribute, ioColumnInfo) {
-      // only allow 'editable' columns to have editable cells
-      if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
-        ioColumnInfo.editor = DG.CaseTableCellEditor;
-      else
-        delete ioColumnInfo.editor;
+      // cell-specific editability handled by isCellEditable() method
+      ioColumnInfo.editor = DG.CaseTableCellEditor;
     }
     
     // Build the columnInfo for a single attribute
@@ -533,12 +539,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             }).filter( function( iCase) {
               // We filter because, at least in FireFox, we can get to a row that is one beyond the end
               // which therefore has no case
-              return !SC.none( iCase);
+              return iCase && !iCase._isProtoCase;
             }),
             select: true,
             extend: false
           };
-      tContext.applyChange( tChange);
+      if (tChange.cases.length)
+        tContext.applyChange( tChange);
     },
   
   /**
@@ -718,22 +725,26 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
    */
   this.applyValue = function (item, state) {
     var columnId = Number( args.column.id ),
-        value = state,
-        context = args.column.context,
-        tChange = {
-          operation: 'updateCases',
-          cases: [ item ],
-          attributeIDs: [ columnId ],
-          values: [ [value] ]
-        };
-    if( DG.isDateString(value)) {
-      tChange.values = [[DG.createDate( value)]];
+        value = DG.DataUtilities.canonicalizeInputValue(state),
+        context = args.column.context;
+
+    if (item instanceof DG.Case) {
+      context.applyChange({
+                operation: 'updateCases',
+                cases: [ item ],
+                attributeIDs: [ columnId ],
+                values: [ [value] ]
+              });
+    
+      var collectionName = item.getPath('collection.name') || "",
+          caseIndex = args.grid.getData().getIdxById( item.id) + 1;
+      DG.logUser("editValue: { collection: %@, case: %@, attribute: '%@', value: '%@' }",
+                  collectionName, caseIndex, args.column.name, state);
     }
-    context.applyChange( tChange );
-    var collectionName = item.getPath('collection.name') || "",
-        caseIndex = args.grid.getData().getIdxById( item.id) + 1;
-    DG.logUser("editValue: { collection: %@, case: %@, attribute: '%@', value: '%@' }",
-                collectionName, caseIndex, args.column.name, value);
+    else {
+      // update proto-case value
+      item.setValue(args.column.id, value);
+    }
   };
 
   this.isValueChanged = function () {

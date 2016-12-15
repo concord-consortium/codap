@@ -20,7 +20,7 @@
 /**
  * @class CaseTableDataManager
  *
- * A specialized, on demand, implementation the SlickGrid DataView interface.
+ * A specialized, on demand, implementation of the SlickGrid DataView interface.
  * See https://github.com/mleibman/SlickGrid/wiki/DataView.
  * We implement getLength() and getItem(index) from the API.
  *
@@ -54,6 +54,12 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @type {[DG.Case]}
    */
   _rowCaseMap: null,
+
+  /**
+   * Map from collection ID to proto-case. Map is shared among all instances.
+   * @type {Object}
+   */
+  _protoCases: {},
 
   /**
    *
@@ -114,20 +120,73 @@ DG.CaseTableDataManager = SC.Object.extend({
    */
   getItemMetadata: function (row) {
     var myCase = this.getItem(row);
-    if (myCase.collection.get('id') !== this.collection.get('id')) {
-      return {
-        columns: {
-          0: {
-            colspan: "*"
-          }
-        },
-        formatter: function (row, cell, cellValue, colInfo, rowItem) {
-          var caseCount = this.subcaseCount(this._rowCaseMap[row]);
-          var setName = this.context.getCaseNameForCount(this.collection, 2);
-          return '%@ %@'.loc(caseCount, setName);
-        }.bind(this)
-      };
+    if (myCase && (myCase instanceof DG.Case)) {
+      if (myCase.collection.get('id') !== this.collection.get('id')) {
+        return {
+          columns: {
+            0: {
+              colspan: "*"
+            }
+          },
+          formatter: function (row, cell, cellValue, colInfo, rowItem) {
+            var caseCount = this.subcaseCount(this._rowCaseMap[row]);
+            var setName = this.context.getCaseNameForCount(this.collection, 2);
+            return '%@ %@'.loc(caseCount, setName);
+          }.bind(this)
+        };
+      }
     }
+    else {
+      // proto-cases are always editable
+      return { focusable: true };
+    }
+  },
+
+  /*
+   * To support creating new cases in the case table, we introduce the notion
+   * of a proto-case which mocks some of the methds of DG.Case and can contain
+   * a number of attribute/value pairs until the proto-case gets committed at
+   * which point its values are transferred to a real case. Because there can
+   * be multiple data sets, each collection can have its own proto-case.
+   */
+  getProtoCase: function(collection) {
+    var collectionID = collection && collection.get('id'),
+        protoCase = collectionID && this._protoCases[collectionID];
+    if (!collectionID) return null;
+    if (!protoCase) {
+      // Proto-case is an SC.Object rather than a DG.Case.
+      // Proto-case can be tested for explicitly via _isProtoCase property,
+      // or in the negative by `item instanceof DG.Case` being false.
+      protoCase = this._protoCases[collectionID] = SC.Object.create({
+        id: Math.pow(2, 32) - collection.get('id'),
+
+        collection: collection,
+
+        _isProtoCase: true,
+
+        children: [],
+
+        _values: null,
+
+        init: function() {
+          sc_super();
+          this._values = {};
+        },
+
+        getStrValue: function(columnID) {
+          return this._values[columnID];
+        },
+
+        getValue: function(columnID) {
+          return this._values[columnID];
+        },
+
+        setValue: function(columnID, value) {
+          this._values[columnID] = value;
+        }
+      });
+    }
+    return protoCase;
   },
 
   /**
@@ -167,6 +226,13 @@ DG.CaseTableDataManager = SC.Object.extend({
         }
       });
     }
+    // do we have a flat (non-hierarchical) data set?
+    function isFlatDataSet(collections) {
+      if (collections.length !== 1) return false;
+      var childCollections = collections[0].getPath('collection.children');
+      if (childCollections && childCollections.get('length')) return false;
+      return true;
+    }
     // ---- BEGIN ----
     if (this.get('suspended')) {
       this.set('refreshNeeded', true);
@@ -180,8 +246,12 @@ DG.CaseTableDataManager = SC.Object.extend({
     var collections = makeCollections(myCollection);
     visit(collections[0].casesController, 0);
     this._rowCaseMap = rowCaseIndex;
-    if (rowCaseIndex !== beforeCount) {
-      this.onRowCountChanged.notify({previous: beforeCount, current: rowCaseIndex.length}, null, this);
+    if (isFlatDataSet(collections)) {
+      // add proto-case to support data entry row
+      this._rowCaseMap.push(this.getProtoCase(collections[0]));
+    }
+    if (this._rowCaseMap.length !== beforeCount) {
+      this.onRowCountChanged.notify({previous: beforeCount, current: this._rowCaseMap.length}, null, this);
     }
     this.set('refreshNeeded', false);
     //this.onRowsChanged.notify({rows: {}}, null, self);
