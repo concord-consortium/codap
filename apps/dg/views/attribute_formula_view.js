@@ -93,10 +93,27 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         layout: { top: 112, left: 150, width: 170, height: 24 },
         localize: true,
         title: 'DG.AttrFormView.functionMenuTitle',
-        menu: SC.MenuPane.extend({
-          layout: { width: 180 },
-          items: null // filled in later
-        })
+        mouseDown: function() {
+          if (this._fbDiv && DG.React.Components.FunctionBrowser) {
+            var onSelectFunction = function(name, argList, info) {
+                  this.getPath('parentView.formula').replaceSelectionWithString("%@(%@)".fmt(name, argList));
+                }.bind(this),
+                fbComponent = DG.React.Components.FunctionBrowser({
+                                                    anchor: this.get('layer'),
+                                                    container: DG.mainPage.mainPane.get('layer'),
+                                                    categorizedFunctionInfo: DG.functionRegistry.get('categorizedFunctionInfo'),
+                                                    onSelect: onSelectFunction
+                                                  });
+            DG.React.toggleRender(this._fbDiv, fbComponent);
+          }
+        },
+        action: null,
+        didAppendToDocument: function() {
+          this._fbDiv = document.createElement("div");
+          // NOTE: component div should be inserted at the body level
+          // so that the absolute positioning works correctly.
+          document.body.appendChild(this._fbDiv);
+        }
       }),
       apply: SC.ButtonView.design({
         layout: { bottom:5, right: 5, height:24, width: 90 },
@@ -147,28 +164,6 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     sc_super();
     this.setPath('contentView.cancel.target', this);
     this.setPath('contentView.cancel.action', 'close');
-    
-    /*
-      Build function menu and submenus from the function names.
-     */
-    var items = [],
-        namesMap = DG.functionRegistry.get('namesMap');
-    DG.ObjectMap.forEach(namesMap,
-                          function(iCategory, iFnNames) {
-                            items.push({
-                              title: iCategory,
-                              subMenu: iFnNames.map(function(iName) {
-                                                      return iName + "()";
-                                                    })
-                            });
-                          });
-    // sort the categories
-    items.sort(function(iItem1, iItem2) {
-                  if (iItem1.title < iItem2.title) return -1;
-                  if (iItem2.title < iItem1.title) return 1;
-                  return 0;
-                });
-    this.setPath('contentView.functionPopup.menu.items', items);
   },
 
   keyDown: function(evt) {

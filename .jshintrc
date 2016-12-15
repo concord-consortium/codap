@@ -71,6 +71,7 @@
    * Ignore warnings without options
    */
 
+  "-W003": false,     // ignore used before defined warnings
   "-W099": false,     // ignore warnings about mixes spaces and tabs
 
   /*

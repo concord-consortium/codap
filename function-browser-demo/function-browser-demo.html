@@ -1,0 +1,79 @@
+<html>
+  <head>
+    <title>Function Browser Demo</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+
+      #formulaWrapper {
+        margin: 20px 10px;
+      }
+      #formula {
+        width: 500px;
+        height: 50px;
+      }
+      #buttons {
+        margin: 20px 10px;
+      }
+    </style>
+    <link href="../apps/dg/resources/function-browser.css" rel="stylesheet">
+  </head>
+  <body>
+    Function Browser Demo
+
+    <div id="formulaWrapper">
+      <textarea id="formula"></textarea>
+    </div>
+
+    <div id="buttons">
+      <button id="testButton">--- Insert Function ---</button>
+    </div>
+
+    <!-- these would all be already loaded by CODAP, faking it here -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.1/react-dom.js"></script>
+
+    <script>
+      /* global DG:true */
+      DG = {};
+    </script>
+
+    <!-- this fakes part of the existing function registry -->
+    <script src="fake-function-info.js"></script>
+
+    <script src="../apps/dg/react/dg-react.js"></script>
+    <script src="../apps/dg/react/function-browser.js"></script>
+
+    <script>
+      DG.React.ready(function () {
+        // this code would be called by the React view handler in the DG app
+        var testButton = document.getElementById("testButton"),
+            componentDiv = document.createElement("div"),
+            formulaArea = document.getElementById("formula");
+
+        document.body.appendChild(componentDiv); // NOTE: component div should be inserted at the body level so that the absolute positioning works correctly
+        testButton.onclick = function (e) {
+          var component = DG.React.Components.FunctionBrowser({
+                                                anchor: testButton,
+                                                container: document.body,
+                                                categorizedFunctionInfo: window.categorizedFunctionInfo(),
+                                                onSelect: selectedFunction
+                                              });
+          DG.React.toggleRender(componentDiv, component);
+        };
+
+        function selectedFunction(name, argList, info) {
+          var start;
+          formulaArea.value += name + "(";
+          start = formulaArea.value.length;
+          formulaArea.value += argList + ")";
+          formulaArea.selectionStart = start;
+          formulaArea.selectionEnd = start + argList.length;
+          formulaArea.focus();
+        }
+      });
+    </script>
+  </body>
+</html>

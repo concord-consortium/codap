@@ -1,0 +1,257 @@
+/*
+ * JSON file which contains information about CODAP functions in the form of localizable strings.
+ * Comments are allowed because they are stripped out before the file is parsed internally.
+ */
+{
+  /*
+   * Arithmetic Functions
+   */
+  "abs": {
+    "displayName": "abs",
+    "description": "Returns the absolute value of its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "a numeric value"
+      }
+    ],
+    "examples": [
+      "abs(-1) returns 1",
+      "abs(speed) returns 10 when speed is -10 or 10"
+    ]
+  },
+
+  "ceil": {
+    "displayName": "ceil",
+    "description": "Returns the smallest integer greater than or equal to its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "a numeric value"
+      }
+    ],
+    "examples": [
+      "ceil(1) returns 1",
+      "ceil(1.5) returns 2",
+      "ceil(-1.5) returns -1"
+    ]
+  },
+
+  "exp": {
+    "displayName": "exp",
+    "description": "Returns the result of computing the constant e to the power of its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "a numeric value"
+      }
+    ],
+    "examples": [
+    ]
+  },
+
+  "floor": {
+    "displayName": "floor",
+    "description": "Returns the largest integer less than or equal to its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "a numeric value"
+      }
+    ],
+    "examples": [
+      "floor(1) returns 1",
+      "floor(1.5) returns 1",
+      "floor(-1.5) returns -2"
+    ]
+  },
+
+  "frac": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "ln": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "log": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "pow": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "round": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "sqrt": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "trunc": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Date/Time Functions
+   */
+  "date": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Lookup Functions
+   */
+  "first": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Other Functions
+   */
+  "boolean": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  /*
+   * Statistical Functions
+   */
+  "count": {
+    "displayName": "count",
+    "description": "Returns the number of cases with non-empty/non-false values for its expression argument.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The values to be counted."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "An expression that determines the cases to be considered."
+      }
+    ],
+    "examples": [
+      "count() with no arguments is interpreted differently depending on the context. In an attribute formula it returns the number of child cases. In a plotted value, it is equivalent to count(xAxisAttribute).",
+      "count(height) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"].",
+      "count(height, age<18) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"] for the cases with a value for the age attribute that is less than 18."
+    ]
+  },
+
+  /*
+   * String Functions
+   */
+  "beginsWith": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "charAt": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "concat": {
+    "displayName": "concat",
+    "description": "Combines multiple strings into a single string.",
+    "args": [
+      {
+        "name": "str1",
+        "type": "string",
+        "description": "the first string"
+      },
+      {
+        "name": "str2",
+        "type": "string",
+        "description": "the next string"
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "additional strings"
+      }
+    ],
+    "examples": [
+    ]
+  },
+
+  "endsWith": {
+    "displayName": "",
+    "description": "",
+    "examples": [
+    ]
+  },
+
+  "join": {
+    "displayName": "join",
+    "description": "Combines multiple strings into a single string with a delimiter.",
+    "args": [
+      {
+        "name": "delimiter",
+        "type": "string",
+        "description": "the string used to separate the other strings"
+      },
+      {
+        "name": "str1",
+        "type": "string",
+        "description": "the first string"
+      },
+      {
+        "name": "str2",
+        "type": "string",
+        "description": "the next string"
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "additional strings"
+      }
+    ],
+    "examples": [
+    ]
+  }
+
+  /*
+   * Trigonometric Functions
+   */
+}

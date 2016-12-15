@@ -16,7 +16,7 @@
     "codap": "sproutcore server",
     "deploy:dev:comment": "echo Usage: `npm run deploy:dev -- {deployName}` builds and deploys CODAP to 'https://codap.concord.org/~user/deployName'",
     "deploy:dev": "./bin/deployDevCodap",
-    "lint": "eslint apps",
+    "lint": "eslint apps && jshint -e .js,.json apps --verbose",
     "lint:fix:comment": "echo Usage: `npm run lint:fix` runs ESLint configured to fix issues that can be fixed automatically, e.g. missing semicolons.",
     "lint:fix": "eslint --fix apps",
     "open:dev": "opener http://localhost:4020/dg",
@@ -48,6 +48,7 @@
   "homepage": "http://codap.concord.org/",
   "devDependencies": {
     "eslint": "^3.9.1",
+    "jshint": "^2.9.4",
     "opener": "^1.4.2",
     "pegjs": "=0.7.0",
     "phantomjs-prebuilt": "^2.1.13"

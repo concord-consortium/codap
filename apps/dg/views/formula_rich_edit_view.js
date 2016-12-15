@@ -44,7 +44,7 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
   }
 
   function endsWithParentheses(str) {
-    return /\(\)$/.test(str);
+    return /\([^\(\)]*\)$/.test(str);
   }
 
   function cmHintReplace(cm, data, completion) {
@@ -241,8 +241,13 @@ return {
 
     // if we're inserting a function reference, put the cursor between the parentheses
     if (endsWithParentheses(iNewString)) {
-      var cursor = this._cm.getCursor();
-      this._cm.setCursor(cursor.line, cursor.ch - 1);
+      var cursor = this._cm.getCursor(),
+          currentLine = this._cm.getLine(cursor.line),
+          start = cursor.ch - 1,
+          end = start;
+      while (start && (currentLine.charAt(start - 1) !== '(')) --start;
+      this._cm.setSelection({line: cursor.line, ch: start},
+                            {line: cursor.line, ch: end});
     }
   }
 };

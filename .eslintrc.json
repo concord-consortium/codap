@@ -40,10 +40,13 @@
     "radix": "error",
     "wrap-iife": "warn",
 
+    // strict mode
+    "strict": "off",
+
     // variables
     "no-shadow-restricted-names": "error",
     "no-unused-vars": ["warn", { "vars": "all", "args": "none" }],
-    "no-use-before-define": ["off", { "functions": false }],    // 169 used before defined
+    "no-use-before-define": "off",  // 169 used before defined
 
     // node.js/CommonJS
     "no-mixed-requires": "warn",
