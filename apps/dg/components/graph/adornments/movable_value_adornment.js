@@ -199,7 +199,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
       
       DG.RenderingUtilities.updateLine( this.lineSeg, tPt1, tPt2);
       DG.RenderingUtilities.updateLine( this.coverSeg, tPt1, tPt2);
-      this.cap.attr( { x: tPt2.x - tCapOffset, y: tPt2.y - tCapOffset })
+      this.cap.attr( { x: tPt2.x - tCapOffset, y: tPt2.y - tCapOffset });
   
     }
   }
