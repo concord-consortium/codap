@@ -219,6 +219,27 @@ DG.functionRegistry.registerFunctions((function() {
     },
 
     /**
+      Treats the given string as a list. The default delimiter is ','.
+      The returned string has the items in the list in sorted order.
+      If the delimiter is '', the characters of the given string are sorted.
+      Spaces between items are ignored except so far as they are part of the delimiter.
+      @param    {String}  iString - the string containing the list to be sorted
+      @param    {String}  iDelimiter - the character(s) that separates items in the list
+      @returns  {String}  the resulting sorted list
+     */
+    'sortItems': {
+      minArgs:1, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
+      evalFn: function(iString, iDelimiter) {
+        var tList = String(iString),
+            tResult;
+        iDelimiter = iDelimiter || '';
+        tResult = tList.split(iDelimiter).sort();
+
+        return tResult.join( iDelimiter);
+      }
+    },
+
+    /**
       Returns the string formed by splitting the specified string by the
       specified separator and then returning the element at the specified index.
       @param    {String}  iString - the string on which to perform the replacement
