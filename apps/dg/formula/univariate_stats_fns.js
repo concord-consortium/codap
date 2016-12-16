@@ -256,7 +256,9 @@ return {
     requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
+      var value = this.getValue( iContext, iEvalContext, iInstance);  // Use getValue to allow summing of strings
+      if( DG.isNumeric(value))
+        value = Number(value);
       if( value != null) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
