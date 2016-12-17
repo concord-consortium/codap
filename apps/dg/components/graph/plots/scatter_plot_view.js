@@ -494,6 +494,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.movableLineAdorn.updateVisibility();
     }
     this.updateSquaresVisibility();
+    this.displayDidChange();
   }.observes('*model.movableLine.isVisible'),
 
   /**
@@ -515,6 +516,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.lsrlAdorn.updateVisibility();
     }
     this.updateSquaresVisibility();
+    this.displayDidChange();
   }.observes('*model.lsrLine.isVisible'),
 
   /**
