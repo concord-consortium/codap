@@ -526,7 +526,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
         // We subtract the hidden cases so that they are not known about by the graph
         tNotHidden = DG.ArrayUtils.subtract( tCases, tHidden,
                       function( iCase) {
-                        return iCase.get('id');
+                        return iCase ? iCase.get('id') : null;
                       });
 
         // Only include cases that have values of x and y attributes (if such exist)
@@ -591,7 +591,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     tSelection = tSelection ? tSelection.toArray() : [];
     return DG.ArrayUtils.subtract( tSelection, this.get('hiddenCases'),
                                     function( iCase) {
-                                      return iCase.get('id');
+                                      return iCase ? iCase.get('id') : null;
                                     });
   }.property('xCollectionClient','yCollectionClient','y2CollectionClient', 'legendCollectionClient', 'hiddenCases'),
 
