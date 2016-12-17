@@ -387,7 +387,7 @@ DG.PlottedBoxPlotAdornment = DG.PlottedAverageAdornment.extend(
                     var tNumLower = tValuesArray[iIndex].lowerOutliers.length,
                         tWorldValue =  (iOutlierIndex < tNumLower) ?
                                         tValuesArray[iIndex].lowerOutliers[ iOutlierIndex] :
-                                        tValuesArray[iIndex].upperOutliers[ tNumLower - iOutlierIndex],
+                                        tValuesArray[iIndex].upperOutliers[ iOutlierIndex - tNumLower],
                         tCover = iSymbol.outlierCovers[ iOutlierIndex],
                         tPath = outlierSymbol( iOutlierIndex);
                     iOutlier.attr({ path: tPath });
