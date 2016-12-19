@@ -8,28 +8,27 @@
    */
   "abs": {
     "displayName": "abs",
-    "description": "Returns the absolute value of its numeric argument.",
+    "description": "Computes the absolute value of its argument. This is equivalent to using the absolute value bars.",
     "args": [
       {
         "name": "number",
         "type": "number",
-        "description": "a numeric value"
+        "description": "The number of which you want the absolute value."
       }
     ],
     "examples": [
-      "abs(-1) returns 1",
-      "abs(speed) returns 10 when speed is -10 or 10"
+      "abs(3 – 5) is 2",
+      "abs(3-7) = |3 – 7|=4"
     ]
   },
-
   "ceil": {
     "displayName": "ceil",
-    "description": "Returns the smallest integer greater than or equal to its numeric argument.",
+    "description": "Returns the closest integer greater than or equal to its argument.",
     "args": [
       {
         "name": "number",
         "type": "number",
-        "description": "a numeric value"
+        "description": "The number that should be rounded up."
       }
     ],
     "examples": [
@@ -38,7 +37,6 @@
       "ceil(-1.5) returns -1"
     ]
   },
-
   "exp": {
     "displayName": "exp",
     "description": "Returns the result of computing the constant e to the power of its numeric argument.",
@@ -46,13 +44,13 @@
       {
         "name": "number",
         "type": "number",
-        "description": "a numeric value"
+        "description": "The exponent applied to the base e."
       }
     ],
     "examples": [
+      "exp(2) is 7.39, the same as e squared"
     ]
   },
-
   "floor": {
     "displayName": "floor",
     "description": "Returns the largest integer less than or equal to its numeric argument.",
@@ -60,7 +58,7 @@
       {
         "name": "number",
         "type": "number",
-        "description": "a numeric value"
+        "description": "The number that should be rounded down."
       }
     ],
     "examples": [
@@ -69,56 +67,117 @@
       "floor(-1.5) returns -2"
     ]
   },
-
   "frac": {
-    "displayName": "",
-    "description": "",
+    "displayName": "frac",
+    "description": "Returns the fractional or noninteger part of a number x.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the fractional part."
+      }
+    ],
     "examples": [
+      "frac(1.5) returns 0.5",
+      "frac(-2.3) returns -0.3"
     ]
   },
-
   "ln": {
-    "displayName": "",
-    "description": "",
+    "displayName": "ln",
+    "description": "Returns the logarithm of a number to base e.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the natural logarithm."
+      }
+    ],
     "examples": [
+      "ln(100) is 4.61"
     ]
   },
-
   "log": {
-    "displayName": "",
-    "description": "",
+    "displayName": "log",
+    "description": "Returns the logarithm of a number to base 10.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the logarithm."
+      }
+    ],
     "examples": [
+      "log(100) is 2"
     ]
   },
-
   "pow": {
-    "displayName": "",
-    "description": "",
+    "displayName": "pow",
+    "description": "Returns the result of a number raised to a power.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The base number."
+      },
+      {
+        "name": "power",
+        "type": "number",
+        "description": "The power of the exponent."
+      }
+    ],
     "examples": [
+      "pow(2,5) is 2 to the 5, returns 32"
     ]
   },
-
   "round": {
-    "displayName": "",
-    "description": "",
+    "displayName": "round",
+    "description": "Returns the value of its argument rounded to the specified number of decimal places (default 0). This function has an optional, second argument that specifies how many decimals to round to.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want to round to the nearest integer."
+      },
+      {
+        "name": "digits",
+        "type": "number",
+        "description": "The number of digits to the right of the decimal point. The argument can be negative to round off digits left to the decimal point."
+      }
+    ],
     "examples": [
+      "round(3.14) is 3",
+      "round(π, 4) is 3.1416",
+      "round(1234, –2) is 1200"
     ]
   },
-
   "sqrt": {
-    "displayName": "",
-    "description": "",
+    "displayName": "sqrt",
+    "description": "Returns the square root of its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the square root."
+      }
+    ],
     "examples": [
+      "sqrt(100) returns 10"
     ]
   },
-
   "trunc": {
-    "displayName": "",
-    "description": "",
+    "displayName": "round",
+    "description": "Returns the nearest integer equal to or smaller in magnitude (closer to zero) than its argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number to truncate."
+      }
+    ],
     "examples": [
+      " trunc(5.5) returns 5"
     ]
   },
-
   /*
    * Date/Time Functions
    */
@@ -128,7 +187,6 @@
     "examples": [
     ]
   },
-
   /*
    * Lookup Functions
    */
@@ -138,7 +196,6 @@
     "examples": [
     ]
   },
-
   /*
    * Other Functions
    */
@@ -148,7 +205,6 @@
     "examples": [
     ]
   },
-
   /*
    * Statistical Functions
    */
@@ -173,7 +229,6 @@
       "count(height, age<18) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"] for the cases with a value for the age attribute that is less than 18."
     ]
   },
-
   /*
    * String Functions
    */
@@ -183,14 +238,12 @@
     "examples": [
     ]
   },
-
   "charAt": {
     "displayName": "",
     "description": "",
     "examples": [
     ]
   },
-
   "concat": {
     "displayName": "concat",
     "description": "Combines multiple strings into a single string.",
@@ -214,14 +267,12 @@
     "examples": [
     ]
   },
-
   "endsWith": {
     "displayName": "",
     "description": "",
     "examples": [
     ]
   },
-
   "join": {
     "displayName": "join",
     "description": "Combines multiple strings into a single string with a delimiter.",
