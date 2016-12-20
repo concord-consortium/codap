@@ -425,22 +425,23 @@
     "args": [
       {
         "name": "\"remoteDataSetName\"",
-        "type": "data set",
-        "description": "The data set where you want to look up the value."
+        "type": "string",
+        "description": "The collection where you want to look up the value."
       },
       {
         "name": "\"remoteAttributeName\"",
         "type": "attribute",
-        "description": "The attribute in the data set containing the return value."
+        "description": "The name of the attribute in the collection containing the return value."
       },
       {
         "name": "index",
         "type": "number",
-        "description": "The index point of the data set."
+        "description": "The index of a case in that collection."
       }
     ],
     "examples": [
-      "lookupByIndex(\"United_States\", \"Full_state_name\", index) looks up the attribute Full_state_name in the United_States data set at the index point. It then returns Full_state_name in your data set."
+      "lookupByIndex(\"United_States\", \"Full_state_name\", index) looks up the attribute Full_state_name in the United_States data set at the index point. It then returns Full_state_name in your data set",
+      "In a document that has a collection States, lookupValueByIndex(\"States\", \"Name\", 3) would give \"Arizona\" as the result"
     ]
   },
   "lookupByKey": {
@@ -449,27 +450,28 @@
     "args": [
       {
         "name": "\"remoteDataSetName\"",
-        "type": "data set",
-        "description": "The data set where you want to look up the value."
+        "type": "string",
+        "description": "The collection where you want to look up the value."
       },
       {
         "name": "\"remoteAttributeName\"",
-        "type": "attribute",
-        "description": "The attribute in the data set containing the return value."
+        "type": "string",
+        "description": "The name of an attribute whose value is to be looked up in that collection."
       },
       {
         "name": "\"keyAttributeName\"",
-        "type": "attribute",
-        "description": "The matching attribute in the returning data set."
+        "type": "string",
+        "description": "The name of an attribute to be used as a \"key\" into the collection."
       },
       {
         "name": "keyValue",
-        "type": "attribute",
-        "description": "The result attribute to return."
+        "type": "value",
+        "description": "The value to be matched with the key."
       }
     ],
     "examples": [
-      "lookupByKey(\"United_States\", \"State_abbreviations1\", \"State_abbreviations2\", Full_state_name) looks up the states in the data set \"United_States.\" The attribute \"State_abbreviations1\" from the first data set matches the attribute \"State_abbreviations2\" from the second data set. The function looks up the states \"CA,\" \"WA,\" \"OR\" and returns \"California,\" \"Washington,\" \"Oregon.\""
+      "lookupByKey(\"States\", \"Population\", \"State\", \"CA\") would return 39000000, the result of looking up the population for California in a collection of states",
+      "lookupByKey(\"United_States\", \"State_abbreviations1\", \"State_abbreviations2\", Full_state_name) looks up the states in the data set \"United_States.\" The attribute \"State_abbreviations1\" from the first data set matches the attribute \"State_abbreviations2\" from the second data set. The function looks up the states \"CA,\" \"WA,\" \"OR\" and returns \"California,\" \"Washington,\" \"Oregon\""
     ]
   },
   "next": {
@@ -526,11 +528,143 @@
    * Other Functions
    */
   "boolean": {
-    "displayName": "",
-    "description": "",
+    "displayName": "boolean",
+    "description": "Returns the condition true if the conditions in a test are true and false otherwise.",
+    "args": [
+      {
+        "name": "argument",
+        "type": "boolean",
+        "description": "The specified argument."
+      }
+      ],
     "examples": [
+      "boolean(age > 60) is true or false",
+      "age > 60 is true or false"
     ]
   },
+  "greatCircleDistance": {
+    "displayName": "greatCircleDistance",
+    "description": "Returns the shortest distance between two latitude and longitude points on the surface of the earth.",
+    "args": [
+      {
+        "name": "latitude1",
+        "type": "latitude",
+        "description": "The latitude of the first point."
+      },
+      {
+        "name": "longitude1",
+        "type": "longitude",
+        "description": "The longitude of the first point."
+      },
+      {
+        "name": "latitude2",
+        "type": "latitude",
+        "description": "The latitude of the second point."
+      },
+      {
+        "name": "longitude2",
+        "type": "longitude",
+        "description": "The longitude of the second point."
+      }
+    ],
+    "examples": [
+      "greatCircleDistance(latitude1, longitude1, latitude2, longitude2) returns 112.98"
+    ]
+  },
+  "if": {
+    "displayName": "if",
+    "description": "Creates an “if” block. If the expression in parentheses after if is true, the formula returns the upper value; if not, it returns the lower.",
+    "args": [
+      {
+        "name": "logical_test",
+        "type": "statement",
+        "description": "The logical test of the if statement"
+      },
+      {
+        "name": "value_if_true",
+        "type": "statement",
+        "description": "The value of the if statement if the result is true."
+      },
+      {
+        "name": "value_if_false",
+        "type": "statement",
+        "description": "The value of the if statement if the result is false."
+      }
+    ],
+    "examples": [
+      "if(Speed>40,\"Fast\",\"Slow\") says if the speed is greater than 40, return \"Fast\", otherwise return \"Slow\"",
+      "Speed>40?\"Fast\":\"Slow\" is the same statement as above"
+    ]
+  },
+  "isFinite": {
+    "displayName": "isFinite",
+    "description": "Checks whether a number is a finite number.",
+    "args": [
+      {
+        "name": "value",
+        "type": "value",
+        "description": "The value to be tested"
+      }
+    ],
+    "examples": [
+      "isFinite(5) returns true",
+      "isFinite(5 - 9) returns true",
+      "isFinite(\"123\") returns false",
+      "isFinite(\"Hi\") returns false"
+    ]
+  },
+  "number": {
+    "displayName": "number",
+    "description": "Converts the input value to a numeric value.",
+    "args": [
+      {
+        "name": "value",
+        "type": "value",
+        "description": "The text to be converted to a number."
+      }
+    ],
+    "examples": [
+      "number(\"45\") returns 45",
+      "number(2.00) returns 2"
+    ]
+  },
+  "random": {
+    "displayName": "random",
+    "description": "Returns a random number drawn from a uniform distribution.",
+    "args": [
+      {
+        "name": "min",
+        "type": "value",
+        "description": "The smallest number random() will return."
+      },
+      {
+        "name": "max",
+        "type": "value",
+        "description": "The largest number random() will return."
+      }
+    ],
+    "examples": [
+      "random() will return a random number between 0 and 1",
+      "random(100) will return a random number between 0 and 100",
+      "random(1, 100) will return a random number between 1 and 100"
+    ]
+  },
+  "string": {
+    "displayName": "string",
+    "description": "Converts the input value to a string.",
+    "args": [
+      {
+        "name": "value",
+        "type": "value",
+        "description": "The text to be converted to a string."
+      }
+    ],
+    "examples": [
+      "string(45) returns the string 45",
+      "string(\"H\"+\"i\") returns Hi"
+    ]
+  },
+
   /*
    * Statistical Functions
    */
