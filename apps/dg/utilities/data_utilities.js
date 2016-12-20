@@ -118,12 +118,31 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   if( typeof iValue !== 'string')
       return iValue;
 
-  // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
-  var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
-  if (ISO_8601_FULL.test(iValue)) return DG.createDate(iValue);
+  var value = iValue.trim();
+  return DG.DataUtilities.isDateString(value) ? DG.DataUtilities.createDate(value) : value;
+};
 
-  // Now, all we have left are plain strings. Trim them.
-  return iValue.trim();
+/**
+  Canonicalize/sanitize case values converted to strings internally.
+  Currently, we only check for the "undefined" string and canonical
+  (ISO 8601) date strings.
+  @param    iValue  The string value to be converted
+  @returns          The canonicalized value
+ */
+DG.DataUtilities.canonicalizeInternalValue = function(iValue) {
+  // canonicalize null, undefined, and "undefined"
+  if ((iValue == null) || (iValue === "undefined")) return "";
+  if( typeof iValue !== 'string')
+      return iValue;
+
+  var isIso8601DateString = function(iValue) {
+    // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
+    var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
+    return (typeof iValue === 'string' && ISO_8601_FULL.test(iValue));
+  }.bind(this);
+
+  var value = iValue.trim();
+  return isIso8601DateString(value) ? DG.DataUtilities.createDate(value) : value;
 };
 
 /**
