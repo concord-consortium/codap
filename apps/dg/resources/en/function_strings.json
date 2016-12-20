@@ -28,7 +28,7 @@
       {
         "name": "number",
         "type": "number",
-        "description": "The number that should be rounded up."
+        "description": "The value you want to round up."
       }
     ],
     "examples": [
@@ -58,7 +58,7 @@
       {
         "name": "number",
         "type": "number",
-        "description": "The number that should be rounded down."
+        "description": "The value you want to round."
       }
     ],
     "examples": [
@@ -69,7 +69,7 @@
   },
   "frac": {
     "displayName": "frac",
-    "description": "Returns the fractional or noninteger part of a number x.",
+    "description": "Returns the fractional or noninteger part of a number.",
     "args": [
       {
         "name": "number",
@@ -141,7 +141,7 @@
       {
         "name": "digits",
         "type": "number",
-        "description": "The number of digits to the right of the decimal point. The argument can be negative to round off digits left to the decimal point."
+        "description": "The number of digits to which you want to round the numeric argument. The argument can be negative to round off digits left to the decimal point."
       }
     ],
     "examples": [
@@ -264,7 +264,7 @@
       }
     ],
     "examples": [
-      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns the string Wednesday"
+      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns Wednesday"
     ]
   },
   "hours": {
@@ -274,11 +274,11 @@
       {
         "name": "date_time",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
-      "If date_time is 8:57 PM on Aug 31, 2005, hours(\"8-31-2005 8:57 PM\") returns 20"
+      "If the date is 8:57 PM on Aug 31, 2005, hours(\"8-31-2005 8:57 PM\") returns 20"
     ]
   },
   "minutes": {
@@ -288,7 +288,7 @@
       {
         "name": "date_time",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
@@ -300,13 +300,13 @@
     "description": "Returns the number of the month corresponding to the given date.",
     "args": [
       {
-        "name": "date_time",
+        "name": "date",
         "type": "string",
         "description": "The specified date. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
-      "If date_time is 3:30 PM on Aug 31, 2005, month(\"8-31-2005 3:30 PM\") returns 8"
+      "If the date is Aug 31, 2005, month(\"8-31-2005\") returns 8"
     ]
   },
   "monthName": {
@@ -314,18 +314,23 @@
     "description": "Returns the name of the month corresponding to the given date.",
     "args": [
       {
-        "name": "date_time",
+        "name": "date",
         "type": "string",
         "description": "The specified date. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
-      "If date_time is 3:30 PM on Aug 31, 2005, monthName(\"8-31-2005 8:57 PM\") returns the string August"
+      "If the date is Aug 31, 2005, monthName(\"8-31-2005\") returns August"
     ]
   },
   "now": {
     "displayName": "now",
     "description": "Returns the current date and time.",
+    "args": [
+      {
+        "description": "There are no parameters for this function."
+      }
+    ],
     "examples": [
       "If the current date and time is 3:30:51 PM on Aug 31, 2005, now() returns 8/31/2005 3:30:51 PM"
     ]
@@ -337,7 +342,7 @@
       {
         "name": "date_time",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
@@ -347,6 +352,11 @@
   "today": {
     "displayName": "today",
     "description": "Returns current date with no time.",
+    "args": [
+      {
+        "description": "There are no parameters for this function."
+      }
+    ],
     "examples": [
       "If today's date is December 20, 2016, today() returns 12/20/2016"
     ]
@@ -358,7 +368,7 @@
       {
         "name": "date_time",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. Note that this needs to be inputted as a string."
       }
     ],
     "examples": [
@@ -370,9 +380,146 @@
    * Lookup Functions
    */
   "first": {
-    "displayName": "",
-    "description": "",
+    "displayName": "first",
+    "description": "Returns the value of its argument evaluated for the first case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the first case."
+      }
+    ],
     "examples": [
+      "first(population) returns the first value of the attribute population",
+      "first(population,sex=\"female\") returns the first value for the attribute population for which the attribute sex is female"
+    ]
+  },
+  "last": {
+    "displayName": "last",
+    "description": "Returns the value of its argument evaluated for the last case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the last case."
+      }
+    ],
+    "examples": [
+      "last(amountInBank) returns the last value of the attribute amountInBank",
+      "last(amountInBank, year>2010) returns the last value for the attribute amountInBank for which the year is greater than 2010"
+    ]
+  },
+  "lookupByIndex": {
+    "displayName": "lookupByIndex",
+    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the data set name. Note that dataSetName and attributeName must be strings (or expressions that evaluate to strings), while index should evaluate to an integer.",
+    "args": [
+      {
+        "name": "\"remoteDataSetName\"",
+        "type": "data set",
+        "description": "The data set where you want to look up the value."
+      },
+      {
+        "name": "\"remoteAttributeName\"",
+        "type": "attribute",
+        "description": "The attribute in the data set containing the return value."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The index point of the data set."
+      }
+    ],
+    "examples": [
+      "lookupByIndex(\"United_States\", \"Full_state_name\", index) looks up the attribute Full_state_name in the United_States data set at the index point. It then returns Full_state_name in your data set."
+    ]
+  },
+  "lookupByKey": {
+    "displayName": "lookupByKey",
+    "description": "Returns the value of the specified returned attribute for the case with the specified keyValue as its value for the keyAttributeName attribute in the specified data set.",
+    "args": [
+      {
+        "name": "\"remoteDataSetName\"",
+        "type": "data set",
+        "description": "The data set where you want to look up the value."
+      },
+      {
+        "name": "\"remoteAttributeName\"",
+        "type": "attribute",
+        "description": "The attribute in the data set containing the return value."
+      },
+      {
+        "name": "\"keyAttributeName\"",
+        "type": "attribute",
+        "description": "The matching attribute in the returning data set."
+      },
+      {
+        "name": "keyValue",
+        "type": "attribute",
+        "description": "The result attribute to return."
+      }
+    ],
+    "examples": [
+      "lookupByKey(\"United_States\", \"State_abbreviations1\", \"State_abbreviations2\", Full_state_name) looks up the states in the data set \"United_States.\" The attribute \"State_abbreviations1\" from the first data set matches the attribute \"State_abbreviations2\" from the second data set. The function looks up the states \"CA,\" \"WA,\" \"OR\" and returns \"California,\" \"Washington,\" \"Oregon.\""
+    ]
+  },
+  "next": {
+    "displayName": "next",
+    "description": "Returns the value of that expression for the next case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the next case."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the next case."
+      }
+    ],
+    "examples": [
+      "next(number) is 10",
+      "next(number, City=\"Tucson\") returns the next value for the attribute number for which the attribute City is Tucson"
+    ]
+  },
+  "prev": {
+    "displayName": "prev",
+    "description": "Returns the value of that expression for the previous case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the previous case."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "Additional filter, numbers, or ranges for which you want the previous case."
+      }
+    ],
+    "examples": [
+      "prev(height) returns 9",
+      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female"
     ]
   },
   /*
