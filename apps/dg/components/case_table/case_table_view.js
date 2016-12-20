@@ -731,10 +731,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var _inHandler,
         wrapHandler = function( iHandler) {
           return function () {
+            var result;
             if (!_inHandler) {
               _inHandler = true;
-              iHandler.apply( this, arguments);
+              result = iHandler.apply( this, arguments);
               _inHandler = false;
+              return result;
             }
           }.bind( this);
         }.bind( this);
