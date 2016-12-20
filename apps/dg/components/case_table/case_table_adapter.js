@@ -672,6 +672,9 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
         e.preventDefault();
         e.stopImmediatePropagation();
       })
+      .bind('dblclick', function(e) {
+        this.setSelectionRange(0, $(this).val().length);
+      })
       .focus()
       .select();
   };
