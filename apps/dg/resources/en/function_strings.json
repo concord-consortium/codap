@@ -182,9 +182,188 @@
    * Date/Time Functions
    */
   "date": {
-    "displayName": "",
-    "description": "",
+    "displayName": "date",
+    "description": "Returns a new date created from its arguments. If any argument is omitted it is defaulted to 0 (or 1 for the day). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
+    "args": [
+      {
+        "name": "year",
+        "type": "number",
+        "description": "Represents the year of the date. This can be a 1-digit, 2-digit, 3-digit, or 4-digit number."
+      },
+      {
+        "name": "month",
+        "type": "number",
+        "description": "Represents the month of the year, from 1 to 12."
+      },
+      {
+        "name": "day",
+        "type": "number",
+        "description": "Represents the day of the month, from 1 to 31."
+      },
+      {
+        "name": "hour",
+        "type": "number",
+        "description": "Represents the hour of the day, from 1 to 23."
+      },
+      {
+        "name": "minute",
+        "type": "number",
+        "description": "Represents the minutes of the hour, from 1 to 59."
+      },
+      {
+        "name": "seconds",
+      "type": "number",
+      "description": "Represents the seconds of the minute, from 1 to 59."
+      }
+    ],
     "examples": [
+      "date(1969, 7, 16) returns 7/16/1969",
+      "date(1395154345) returns 3/18/2014 7:52:25 AM",
+      "date(2016, 12, 19, 13, 59, 15, 26) returns 12/19/2016 1:59:15 PM",
+      "date(16) returns 1/1/2016"
+    ]
+  },
+  "dayOfMonth": {
+    "displayName": "dayOfMonth",
+    "description": "Returns the day of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "dayOfMonth(\"9/1/2016\") returns 1",
+      "dayOfMonth(\"6-14-2008\") returns 14"
+
+    ]
+  },
+  "dayOfWeek": {
+    "displayName": "dayOfWeek",
+    "description": "Returns the numeric day of the week corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns 4 because August 31, 2005 is a Wednesday"
+    ]
+  },
+  "dayOfWeekName": {
+    "displayName": "dayOfWeekName",
+    "description": "Returns the word name of the day of the week corresponding to the given date. ",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns the string Wednesday"
+    ]
+  },
+  "hours": {
+    "displayName": "hours",
+    "description": "Returns the hour of the day corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If date_time is 8:57 PM on Aug 31, 2005, hours(\"8-31-2005 8:57 PM\") returns 20"
+    ]
+  },
+  "minutes": {
+    "displayName": "minutes",
+    "description": "Returns the minute of the hour corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If date_time is 8:57 PM on Aug 31, 2005, minutes(\"8-31-2005 8:57 PM\") returns 57"
+    ]
+  },
+  "month": {
+    "displayName": "month",
+    "description": "Returns the number of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If date_time is 3:30 PM on Aug 31, 2005, month(\"8-31-2005 3:30 PM\") returns 8"
+    ]
+  },
+  "monthName": {
+    "displayName": "month",
+    "description": "Returns the name of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If date_time is 3:30 PM on Aug 31, 2005, monthName(\"8-31-2005 8:57 PM\") returns the string August"
+    ]
+  },
+  "now": {
+    "displayName": "now",
+    "description": "Returns the current date and time.",
+    "examples": [
+      "If the current date and time is 3:30:51 PM on Aug 31, 2005, now() returns 8/31/2005 3:30:51 PM"
+    ]
+  },
+  "seconds": {
+    "displayName": "seconds",
+    "description": "Returns the seconds of the minute corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If the date is 3:30:51 PM on Aug 31, 2005, seconds(\"8-31-2005 3:30:51 PM\") returns 51"
+    ]
+  },
+  "today": {
+    "displayName": "today",
+    "description": "Returns current date with no time.",
+    "examples": [
+      "If today's date is December 20, 2016, today() returns 12/20/2016"
+    ]
+  },
+  "year": {
+    "displayName": "year",
+    "description": "Returns the year corresponding to the given date.",
+    "args": [
+      {
+        "name": "date_time",
+        "type": "string",
+        "description": "The specified date. Note that this needs to be inputted as a string."
+      }
+    ],
+    "examples": [
+      "If the date is 3:30 PM on Aug 31, 2005, year(\"8-31-2005 3:30 PM\") returns 2005",
+      "year(\"8/25/1492\") returns 1492"
     ]
   },
   /*
