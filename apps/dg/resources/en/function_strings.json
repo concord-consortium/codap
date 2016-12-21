@@ -763,12 +763,12 @@
   },
   "percentile": {
     "displayName": "percentile",
-    "description": "Takes two arguments, the first being the desired percentile and the second the attribute for which the percentile will be computed.",
+    "description": "Takes two arguments, the first being the attribute for which the percentile will be computed, and the second being the desired percentile.",
     "args": [
       {
         "name": "constant",
         "type": "value",
-        "description": "The percentile value in the range 0 to 100, inclusive."
+        "description": "The percentile value in the range 0 to 1, inclusive."
       },
       {
         "name": "expression",
@@ -777,8 +777,8 @@
       }
     ],
     "examples": [
-      "percentile(50,Speed) is another way to compute the median for the attribute Speed",
-      "percentile(95,Score) will return the Score corresponding to the 95th percentile"
+      "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
+      "percentile(Score, .95) will return the Score corresponding to the 95th percentile"
     ]
   },
   "stdDev": {
