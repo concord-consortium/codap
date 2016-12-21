@@ -193,29 +193,6 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
   }.observes('.contentView.operandPopup.menu.selectedItem'),
   
   /**
-    Observer function called when the user selects an item from the Functions popup.
-   */
-  userSelectedFunction: function() {
-    // Extract the text of the selected item
-    var insertionString = this.getPath('contentView.functionPopup.menu.selectedItem.title');
-    if( !SC.empty( insertionString)) {
-      var formulaView = this.getPath('contentView.formula');
-      if( formulaView) {
-        var selectionStart = formulaView.getPath('selection.start'),
-            insertionLength = insertionString.length,
-            newSelection = selectionStart + insertionLength - 1;
-        formulaView.becomeFirstResponder();
-        // Replace the current selection with the selected item text
-        formulaView.replaceSelectionWithString( insertionString);
-        // Put the insertion caret between the parentheses for a function
-        formulaView.setSelection( newSelection);
-      }
-    }
-    // Clear the selected item so the same item can be selected multiple times
-    this.setPath('contentView.functionPopup.menu.selectedItem', null);
-  }.observes('.contentView.functionPopup.menu.selectedItem'),
-  
-  /**
     Close the dialog.
    */
   close: function() {
