@@ -212,8 +212,8 @@
       },
       {
         "name": "seconds",
-      "type": "number",
-      "description": "Represents the seconds of the minute, from 1 to 59."
+        "type": "number",
+        "description": "Represents the seconds of the minute, from 1 to 59."
       }
     ],
     "examples": [
@@ -236,7 +236,6 @@
     "examples": [
       "dayOfMonth(\"9/1/2016\") returns 1",
       "dayOfMonth(\"6-14-2008\") returns 14"
-
     ]
   },
   "dayOfWeek": {
@@ -536,7 +535,7 @@
         "type": "boolean",
         "description": "The specified argument."
       }
-      ],
+    ],
     "examples": [
       "boolean(age > 60) is true or false",
       "age > 60 is true or false"
@@ -664,13 +663,12 @@
       "string(\"H\"+\"i\") returns Hi"
     ]
   },
-
   /*
    * Statistical Functions
    */
   "count": {
     "displayName": "count",
-    "description": "Returns the number of cases with non-empty/non-false values for its expression argument.",
+    "description": "Returns the number of cases in the collection.",
     "args": [
       {
         "name": "expression",
@@ -680,89 +678,246 @@
       {
         "name": "filter",
         "type": "boolean",
-        "description": "An expression that determines the cases to be considered."
+        "description": "Serves as a filter for the cases that will be counted."
       }
     ],
     "examples": [
-      "count() with no arguments is interpreted differently depending on the context. In an attribute formula it returns the number of child cases. In a plotted value, it is equivalent to count(xAxisAttribute).",
-      "count(height) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"].",
-      "count(height, age<18) returns 3 if the 'height' attribute contains [1, \"yes\", true, false, \"\"] for the cases with a value for the age attribute that is less than 18."
+      "count() returns the number of cases",
+      "count(Height) returns the number of cases for the attribute Height",
+      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18."
     ]
   },
-  /*
-   * String Functions
-   */
-  "beginsWith": {
-    "displayName": "",
-    "description": "",
-    "examples": [
-    ]
-  },
-  "charAt": {
-    "displayName": "",
-    "description": "",
-    "examples": [
-    ]
-  },
-  "concat": {
-    "displayName": "concat",
-    "description": "Combines multiple strings into a single string.",
+  "max": {
+    "displayName": "max",
+    "description": "Returns the largest value in a collection.",
     "args": [
       {
-        "name": "str1",
-        "type": "string",
-        "description": "the first string"
+        "name": "expression",
+        "type": "any",
+        "description": "The argument for which you want the maximum value."
       },
       {
-        "name": "str2",
-        "type": "string",
-        "description": "the next string"
-      },
-      {
-        "name": "...",
-        "type": "string",
-        "description": "additional strings"
+        "name": "filter",
+        "type": "boolean",
+        "description": "Serves as a filter for the cases that will be counted."
       }
     ],
     "examples": [
+      "max(Age) returns the maximum age",
+      "max(Age, Sex=\"Female\") returns maximum age among females"
     ]
   },
-  "endsWith": {
-    "displayName": "",
-    "description": "",
-    "examples": [
-    ]
-  },
-  "join": {
-    "displayName": "join",
-    "description": "Combines multiple strings into a single string with a delimiter.",
+  "mean": {
+    "displayName": "mean",
+    "description": "Returns the arithmetic mean (sum divided by count) of its argument evaluated for every case.",
     "args": [
       {
-        "name": "delimiter",
-        "type": "string",
-        "description": "the string used to separate the other strings"
+        "name": "mu",
+        "type": "any",
+        "description": "The argument for which you want to compute the mean."
       },
       {
-        "name": "str1",
-        "type": "string",
-        "description": "the first string"
-      },
-      {
-        "name": "str2",
-        "type": "string",
-        "description": "the next string"
-      },
-      {
-        "name": "...",
-        "type": "string",
-        "description": "additional strings"
+        "name": "filter",
+        "type": "boolean",
+        "description": "Serves as a filter for the cases that will be counted."
       }
     ],
     "examples": [
+      "mean(Height) computes the mean of the attribute Height",
+      "mean(Height, Sex = \"F\") computes the mean Height of females"
     ]
-  }
+  },
+  "median": {
+    "displayName": "median",
+    "description": "Returns the median. Half the values of the attribute will be above this and half will be below.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The argument for which you want to compute the median."
+      }
+    ],
+    "examples": [
+      "median(Height) computes the median of the attribute Height"
+    ]
+  },
+  "min": {
+    "displayName": "min",
+    "description": "Returns the smallest value in a collection.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The argument for which you want the minimum value."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "Serves as a filter for the cases that will be counted."
+      }
+    ],
+    "examples": [
+      "min(Age) returns the maximum Age",
+      "min(Age, Sex=\"Male\") returns minimum age among males"
+    ]
+  },
+  "percentile": {
+    "displayName": "percentile",
+    "description": "Takes two arguments, the first being the desired percentile and the second the attribute for which the percentile will be computed.",
+    "args": [
+      {
+        "name": "constant",
+        "type": "value",
+        "description": "The percentile value in the range 0 to 100, inclusive."
+      },
+      {
+        "name": "expression",
+        "type": "attribute",
+        "description": "The attribute of the percentile that will be calculated."
+      }
+    ],
+    "examples": [
+      "percentile(50,Speed) is another way to compute the median for the attribute Speed",
+      "percentile(95,Score) will return the Score corresponding to the 95th percentile"
+    ]
+  },
+  "stdDev": {
+    "displayName": "stdDev",
+    "description": "Computes the sample standard deviation.",
+    "args": [
+      {
+        "name": "value",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the standard deviation."
+      }
+    ],
+    "examples": [
+      "stdDev(Pressure) computes the sample standard deviation of the attribute Pressure"
+    ]
+  },
+  "stdErr": {
+    "displayName": "stdErr",
+    "description": "Returns the standard error.",
+    "args": [
+      {
+        "name": "value",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the standard error."
+      }
+    ],
+    "examples": [
+      "stdError(Score) computes the sample standard error of the attribute Score"
+    ]
+  },
+  "sum": {
+    "displayName": "sum",
+    "description": "Returns the sum of its argument evaluated for every case.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The attribute for which you want to find the sum."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "Additional filter, numbers, or ranges for which you want the first case."
+      }
+    ],
+    "examples": [
+      "sum(grade_point) computes the sum of the grade points",
+      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60"
+    ]
+  },
+  "variance": {
+    "displayName": "variance",
+    "description": "Computes the variance of an attribute, that is, the square of the standard deviation.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the variance."
+      }
+    ],
+    "examples": [
+      "variance(test_scores) computes the variance of the test scores",
+      "variance(Before-After) computes the variance of the difference of the two attributes Before and After"
+    ]
+  },
+/*
+ * String Functions
+ */
+"beginsWith": {
+"displayName": "",
+"description": "",
+"examples": [
+]
+},
+"charAt": {
+"displayName": "",
+"description": "",
+"examples": [
+]
+},
+"concat": {
+"displayName": "concat",
+"description": "Combines multiple strings into a single string.",
+"args": [
+{
+"name": "str1",
+"type": "string",
+"description": "the first string"
+},
+{
+"name": "str2",
+"type": "string",
+"description": "the next string"
+},
+{
+"name": "...",
+"type": "string",
+"description": "additional strings"
+}
+],
+"examples": [
+]
+},
+"endsWith": {
+"displayName": "",
+"description": "",
+"examples": [
+]
+},
+"join": {
+"displayName": "join",
+"description": "Combines multiple strings into a single string with a delimiter.",
+"args": [
+{
+"name": "delimiter",
+"type": "string",
+"description": "the string used to separate the other strings"
+},
+{
+"name": "str1",
+"type": "string",
+"description": "the first string"
+},
+{
+"name": "str2",
+"type": "string",
+"description": "the next string"
+},
+{
+"name": "...",
+"type": "string",
+"description": "additional strings"
+}
+],
+"examples": [
+]
+}
 
-  /*
-   * Trigonometric Functions
-   */
+/*
+ * Trigonometric Functions
+ */
 }
