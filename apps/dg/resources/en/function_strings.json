@@ -1185,8 +1185,111 @@
       "trim(\" Fall Semester \") removes the unwanted first and last characters in the string and returns \"Fall Semester\"",
       "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\""
     ]
-  }
+  },
   /*
  * Trigonometric Functions
  */
+  "acos": {
+    "displayName": "acos",
+    "description": "Returns the angle in radians that corresponds to the specified arccosine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arccosine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "acos(1) returns 0 radians"
+    ]
+  },
+  "asin": {
+    "displayName": "asin",
+    "description": "Returns the angle in radians that corresponds to the specified arcsine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arcsine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "asin(1) returns 1.57, pi/2 radians"
+    ]
+  },
+  "atan": {
+    "displayName": "atan",
+    "description": "Returns the angle in radians that corresponds to the specified arctangent value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arctangent of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "atan(1) returns 0.79, pi/4 radians"
+    ]
+  },
+  "atan2": {
+    "displayName": "atan2",
+    "description": "Returns the angle in radians between the x-axis and the specified coordinate point.",
+    "args": [
+      {
+        "name": "x",
+        "type": "number",
+        "description": "The x-value of the coordinate point."
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "description": "The y-value of the coordinate point."
+      }
+    ],
+    "examples": [
+      "atan2(1,1) returns 0.79, pi/4 radians"
+    ]
+  },
+  "cos": {
+    "displayName": "cos",
+    "description": "Returns the angle in radians that corresponds to the specified cosine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arctangent of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "cos(0.5) returns 0.88 radians"
+    ]
+  },
+  "sin": {
+    "displayName": "sin",
+    "description": "Returns the angle in radians that corresponds to the specified sine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The sine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "sin(pi/2) returns 1"
+    ]
+  },
+  "tan": {
+    "displayName": "tan",
+    "description": "Returns the angle in radians that corresponds to the specified tangent value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The tangent of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "tan(pi/4) returns 1"
+    ]
+  }
 }
