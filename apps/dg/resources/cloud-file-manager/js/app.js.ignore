@@ -14044,17 +14044,30 @@ GoogleDriveAuthorizationDialog = React.createFactory(React.createClass({
   displayName: 'GoogleDriveAuthorizationDialog',
   getInitialState: function() {
     return {
-      loadedGAPI: false
+      loadedGAPI: window._LoadedGAPIClients
     };
   },
   componentWillMount: function() {
     return this.props.provider._loadedGAPI((function(_this) {
       return function() {
-        return _this.setState({
-          loadedGAPI: true
-        });
+        if (_this._isMounted) {
+          return _this.setState({
+            loadedGAPI: true
+          });
+        }
       };
     })(this));
+  },
+  componentDidMount: function() {
+    this._isMounted = true;
+    if (this.state.loadedGAPI !== window._LoadedGAPIClients) {
+      return this.setState({
+        loadedGAPI: window._LoadedGAPIClients
+      });
+    }
+  },
+  componentWillUnmount: function() {
+    return this._isMounted = false;
   },
   authenticate: function() {
     return this.props.provider.authorize(GoogleDriveProvider.SHOW_POPUP);
@@ -14066,9 +14079,9 @@ GoogleDriveAuthorizationDialog = React.createFactory(React.createClass({
       className: 'google-drive-concord-logo'
     }, ''), div({
       className: 'google-drive-footer'
-    }, this.state.loadedGAPI ? button({
+    }, window._LoadedGAPIClients || this.state.loadedGAPI ? button({
       onClick: this.authenticate
-    }, 'Login to Google') : 'Trying to log into Google...'));
+    }, tr("~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL")) : tr("~GOOGLE_DRIVE.CONNECTING_MESSAGE")));
   }
 }));
 
@@ -14098,7 +14111,7 @@ GoogleDriveProvider = (function(superClass) {
     this.user = null;
     this.clientId = this.options.clientId;
     if (!this.clientId) {
-      throw new Error('Missing required clientId in googleDrive provider options');
+      throw new Error(tr("~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID"));
     }
     this.mimeType = this.options.mimeType || "text/plain";
     this.readableMimetypes = this.options.readableMimetypes;
@@ -14330,9 +14343,12 @@ GoogleDriveProvider = (function(superClass) {
     var script;
     if (!window._LoadingGAPI) {
       window._LoadingGAPI = true;
-      window._GAPIOnLoad = function() {
-        return this.window._LoadedGAPI = true;
-      };
+      window._GAPIOnLoad = (function(_this) {
+        return function() {
+          window._LoadedGAPI = true;
+          return _this._loadedGAPI(function() {});
+        };
+      })(this);
       script = document.createElement('script');
       script.src = 'https://apis.google.com/js/client.js?onload=_GAPIOnLoad';
       return document.head.appendChild(script);
@@ -16513,6 +16529,9 @@ module.exports = {
   "~ALERT_DIALOG.TITLE": "Alert",
   "~ALERT_DIALOG.CLOSE": "Close",
   "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
+  "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Login to Google",
+  "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Connecting to Google...",
+  "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Missing required clientId in googleDrive provider options",
   "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
   "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
   "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
@@ -16902,6 +16921,7 @@ var AuthorizeMixin;
 
 AuthorizeMixin = {
   getInitialState: function() {
+    this._isAuthorized = false;
     return {
       authorized: false
     };
@@ -16909,14 +16929,28 @@ AuthorizeMixin = {
   componentWillMount: function() {
     return this.props.provider.authorized((function(_this) {
       return function(authorized) {
-        return _this.setState({
-          authorized: authorized
-        });
+        _this._isAuthorized = authorized;
+        if (_this._isMounted) {
+          return _this.setState({
+            authorized: authorized
+          });
+        }
       };
     })(this));
   },
+  componentDidMount: function() {
+    this._isMounted = true;
+    if (this.state.authorized !== this._isAuthorized) {
+      return this.setState({
+        authorized: this._isAuthorized
+      });
+    }
+  },
+  componentWillUnmount: function() {
+    return this._isMounted = false;
+  },
   render: function() {
-    if (this.state.authorized) {
+    if (this._isAuthorized || this.state.authorized) {
       return this.renderWhenAuthorized();
     } else {
       return this.props.provider.renderAuthorizationDialog();
@@ -17344,6 +17378,7 @@ FileList = React.createFactory(React.createClass({
     };
   },
   componentDidMount: function() {
+    this._isMounted = true;
     return this.load(this.props.folder);
   },
   componentWillReceiveProps: function(nextProps) {
@@ -17351,15 +17386,20 @@ FileList = React.createFactory(React.createClass({
       return this.load(nextProps.folder);
     }
   },
+  componentWillUnmount: function() {
+    return this._isMounted = false;
+  },
   load: function(folder) {
     return this.props.provider.list(folder, (function(_this) {
       return function(err, list) {
         if (err) {
           return _this.props.client.alert(err);
         }
-        _this.setState({
-          loading: false
-        });
+        if (_this._isMounted) {
+          _this.setState({
+            loading: false
+          });
+        }
         return _this.props.listLoaded(list);
       };
     })(this));
@@ -17408,6 +17448,12 @@ FileDialogTab = React.createClass({
     initialState.filename = ((ref2 = initialState.metadata) != null ? ref2.name : void 0) || '';
     return initialState;
   },
+  componentDidMount: function() {
+    return this._isMounted = true;
+  },
+  componentWillUnmount: function() {
+    return this._isMounted = false;
+  },
   isOpen: function() {
     return this.props.dialog.action === 'openFile';
   },
@@ -17420,9 +17466,11 @@ FileDialogTab = React.createClass({
     });
   },
   listLoaded: function(list) {
-    return this.setState({
-      list: list
-    });
+    if (this._isMounted) {
+      return this.setState({
+        list: list
+      });
+    }
   },
   getSaveMetadata: function() {
     var saveMetadata;
@@ -17805,7 +17853,7 @@ module.exports = React.createClass({
   },
   componentDidMount: function() {
     if (!this.state.hasPropsContent) {
-      return this.props.client._event('getContent', {
+      this.props.client._event('getContent', {
         shared: this.props.client._sharedMetadata()
       }, (function(_this) {
         return function(content) {
@@ -17823,6 +17871,10 @@ module.exports = React.createClass({
         };
       })(this));
     }
+    return this.refs.download.addEventListener('click', this.confirm);
+  },
+  componentWillUnmount: function() {
+    return this.refs.download.removeEventListener('click', this.confirm);
   },
   filenameChanged: function() {
     var filename;
@@ -17869,6 +17921,7 @@ module.exports = React.createClass({
       });
       this.props.dialog.callback(metadata);
       this.props.close();
+      return this.state.supportsDownloadAttribute;
     } else {
       if (e != null) {
         e.preventDefault();
@@ -17892,8 +17945,19 @@ module.exports = React.createClass({
     return (this.state.downloadFilename.length === 0) || !this.state.gotContent;
   },
   render: function() {
-    var confirmDisabled;
+    var confirmDisabled, downloadAnchor, downloadButton;
     confirmDisabled = this.confirmDisabled();
+    downloadAnchor = a({
+      href: '#',
+      ref: 'download',
+      className: (confirmDisabled ? 'disabled' : ''),
+      download: this.state.downloadFilename,
+      onContextMenu: this.contextMenu
+    }, tr('~FILE_DIALOG.DOWNLOAD'));
+    downloadButton = button({
+      ref: 'download',
+      className: (confirmDisabled ? 'disabled' : '')
+    }, tr('~FILE_DIALOG.DOWNLOAD'));
     return div({
       className: 'dialogTab localFileSave'
     }, input({
@@ -17918,14 +17982,7 @@ module.exports = React.createClass({
       download: tr('~FILE_DIALOG.DOWNLOAD')
     })), div({
       className: 'buttons'
-    }, a({
-      href: '#',
-      ref: 'download',
-      className: (confirmDisabled ? 'disabled' : ''),
-      download: this.state.downloadFilename,
-      onClick: this.confirm,
-      onContextMenu: this.contextMenu
-    }, tr('~FILE_DIALOG.DOWNLOAD')), button({
+    }, this.state.supportsDownloadAttribute ? downloadAnchor : downloadButton, button({
       onClick: this.cancel
     }, tr("~FILE_DIALOG.CANCEL"))));
   }
