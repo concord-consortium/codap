@@ -73,6 +73,32 @@
     white-space: nowrap;
 }
 
+.slick-header-column.new-attr-column-header {
+    margin-top: -3px;
+    background-image: static_url('images/ic_add_black_24dp_1x.png');
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* reset hover styles set elsewhere */
+.slick-header-column.new-attr-column-header:hover {
+    margin-top: -3px;
+    /*background-color: #e6e6e6;*/
+    background-image: static_url('images/ic_add_black_24dp_1x.png');
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.new-attr-column {
+    border: none;
+    background-color: white;
+}
+
+.new-attr-column.selected {
+    border: none;
+    background-color: white;
+}
+
 .dg-qualitative-backing {
     display: inline-block;
     height: 7px;

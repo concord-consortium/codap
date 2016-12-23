@@ -656,6 +656,14 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
+        Handler for sendAction('newAttributeAction')
+       */
+      newAttributeAction: function(iSender, iContext) {
+        this.newAttribute(iContext);
+        return YES;
+      },
+
+      /**
        * Method to create a new attribute with formula.
        * NOTE: this method will also replace the formula of an existing attribute of the same name (case sensitive)
        * @param iProperties --properties to pass on to the applyNewAttribute() method.

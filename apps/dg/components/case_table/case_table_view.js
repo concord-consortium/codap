@@ -46,6 +46,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       kAutoScrollInterval = 200;  // jshint ignore: line
                                   // msec == 5 rows/sec
 
+  // returns the component controller associated with the specified view
+  function getController(view) {
+    var controller;
+    for ( ; view && !controller; view = view.get('parentView')) {
+      controller = view.get('controller');
+    }
+    return controller;
+  }
+
   return {  // return from closure
 
     childViews: 'titleView tableView _hiddenDragView'.w(),
@@ -539,10 +548,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       this.headerMenu.onCommand.subscribe(function(e, args) {
         SC.run(function () {
-          var controller;
-          for( var view = this; view && !controller; view = view.get('parentView')) {
-            controller = view.get('controller');
-          }
+          var controller = getController(this);
           // Dispatch the command to the controller
           if( controller)
             controller.doCommand( args);
@@ -972,8 +978,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Called when a table header cell is clicked.
     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
    */
-  handleHeaderClick: function( iEvent) {
+  handleHeaderClick: function(iEvent, iArgs) {
     DG.globalEditorLock.commitCurrentEdit();
+
+    // click in the new attribute column header brings up new attribute dialog
+    var newAttrColumnID = this.getPath('gridAdapter.newAttrColumnID');
+    if (iArgs.column.id === newAttrColumnID) {
+      var responder = this.getPath('pane.rootResponder');
+      if (responder) {
+        SC.run(function() {
+          responder.sendAction('newAttributeAction', getController(this), this, null,
+                                { collection: iArgs.column.collection });
+        }.bind(this));
+      }
+    }
   },
 
   /**
