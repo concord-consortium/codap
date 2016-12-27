@@ -456,6 +456,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         this.caseIDToGroupedIndexMap[caseID] = caseCounts[parentID]++;
         caseIDToIndexMap[caseID] = this.cases.length;
         this.cases.pushObject(iCase);
+        this.notifyPropertyChange('caseIDToIndexMap');
       } else {
         insertCaseInCollection(parentID, iCase);
       }
