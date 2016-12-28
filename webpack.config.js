@@ -47,7 +47,7 @@ var config = {
   entry: './webpack-entry.js',
   output: {
     path: bundlePath,
-    filename: 'codap-lib-bundle.js'
+    filename: srcBundleName
   },
   plugins: plugins,
   performance: {
