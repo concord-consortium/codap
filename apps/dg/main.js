@@ -189,6 +189,7 @@ DG.main = function main() {
           appOrMenuElemId: iViewConfig.navBarId,
           hideMenuBar: DG.get('hideCFMMenu'),
           ui: {
+            windowTitleSuffix: DG.USER_APPNAME,
             menu: [
               { name: 'DG.fileMenu.menuItem.newDocument'.loc(), action: 'newFileDialog' },
               { name: 'DG.fileMenu.menuItem.openDocument'.loc(), action: 'openFileDialog' },
