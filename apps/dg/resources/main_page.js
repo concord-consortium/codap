@@ -138,7 +138,6 @@ DG.mainPage = SC.Page.design((function() {
         canWrap: false,
         shouldResizeHeight: false,
         defaultFlowSpacing: { right: 10, top: kIconTopPadding },
-        childViews: 'logoutButton'.w(),
 
         init: function() {
           sc_super();

@@ -249,3 +249,8 @@ DG.FunctionRegistry = SC.Object.extend((function() // closure
   Singleton instance
  */
 DG.functionRegistry = DG.FunctionRegistry.create();
+
+$(function() {
+  // process the functions once the document is loaded
+  DG.functionRegistry.get('namesArray');
+});
