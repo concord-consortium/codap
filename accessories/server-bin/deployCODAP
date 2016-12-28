@@ -51,12 +51,19 @@ echo BUILD_NAME=$BUILD_NAME
 
 # Check if site exists in Release dir. If so, drop it and warn
 if [ -e ${RELEASE_DIR}/${BUILD_NAME} ] ; then
-  rm -r ${TMP_DIR}
   error_exit "Build ${BUILD_NAME} already exists. Not overwriting."
 fi
 
 # Move from tmp to release dir
 mv ${TMP_DIR}/${BUILD_NAME} ${RELEASE_DIR}
+
+# copy zip
+cp -i $ZIP_FILE ${RELEASE_DIR}/zips/${BUILD_NAME}.zip
+chgrp www-data ${RELEASE_DIR}/zips/${BUILD_NAME}.zip
+
+# make a 'staging' link
+rm -f ${RELEASE_DIR}/staging
+ln -s ${RELEASE_DIR}/${BUILD_NAME} ${RELEASE_DIR}/staging
 
 # remove tmp dir
 rm -r ${TMP_DIR}
