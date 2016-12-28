@@ -383,10 +383,10 @@ SC.stringsFor('English', {
   'DG.Formula.DateLongDayFriday': "Friday",
   'DG.Formula.DateLongDaySaturday': "Saturday",
 
-                                        /* "yyyy-mm-dd", "dd-mmm-yyyy", "dd-mmm-yy", "mm/dd/yy", "mm/dd/yyyy" */
-  'DG.Utilities.date.localDatePattern': '(?:(?:[12]\\d{3}\\-[01]?\\d{1}\\-[0-3]?\\d{1})|(?:[0-3]?\\d\-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\-\\d{2}(?:\\d{2})?)|(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?))',
-                                    /* "hh:mm", "hh:mm:ss+dddd", "hh:mm:ss.ddd" */
-  'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d((?:\\.\d{3})?|(?: ?\\+\\d{4})?)? ?(?:[ap]m)?))',
+                                        /* "dd-mmm-yyyy", "dd-mmm-yy", "mm/dd/yy", "mm/dd/yyyy" */
+  'DG.Utilities.date.localDatePattern': '(?:(?:[0-3]?\\d\-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\-\\d{2}(?:\\d{2})?)|(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?))',
+                                    /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
+  'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)',
                                     /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
   'DG.Utilities.date.iso8601Pattern': '(?:\\d{4}-[01]\\d-[0-3]\\d(?:T[0-3]\\d:[0-5]\\d:[0-5]\\d(?:(?:[-+]?[01]\\d:[0-5]\\d)|Z)?)?)',
                                   /* "rgb(nnn,nnn,nnn)" "rgba(nnn,nnn,nnn,0.n)" "#ffffff" */
