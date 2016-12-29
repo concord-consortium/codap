@@ -388,7 +388,7 @@ SC.stringsFor('English', {
                                     /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
   'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)',
                                     /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
-  'DG.Utilities.date.iso8601Pattern': '(?:\\d{4}-[01]\\d-[0-3]\\d(?:T[0-3]\\d:[0-5]\\d:[0-5]\\d(?:(?:[-+]?[01]\\d:[0-5]\\d)|Z)?)?)',
+  'DG.Utilities.date.iso8601Pattern': '(?:\\d{4}-[01]\\d-[0-3]\\d(?:[T ][0-2]\\d:[0-5]\\d:[0-5]\\d(?:(?:(?:[-+]?[01]\\d:[0-5]\\d)|Z)|(?: ?[-+][0-2]\\d{3}))?)?)',
                                   /* "rgb(nnn,nnn,nnn)" "rgba(nnn,nnn,nnn,0.n)" "#ffffff" */
   'DG.Utilities.colorPattern': '(?:rgb\\((?:\\d{1,3},){2}\\d{1,3}\\))|(?:rgba\\((?:\\d{1,3},){3}[\\d\\.]*\\))|(?:#[\\da-f]{6})',
 
