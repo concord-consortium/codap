@@ -495,12 +495,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           tReturnValues.version = diModel.get('version');
           tReturnValues.dimensions = diModel.get('dimensions');
           tReturnValues.preventBringToFront = diModel.get('preventBringToFront');
-          // For now (10/2016) this is a constant that serves for this API
-          // the function a special message served for the Game API, to convey the
-          // availability of undo. Its setting should not be a constant, being
-          // influenced by (a) Standalone mode and (b) embedded mode. This is
-          // TODO
-          tReturnValues.externalUndoAvailable = true;
+          tReturnValues.preventDataContextReorg = diModel.get('preventDataContextReorg');
+          // if embedded mode, set externalUndoAvailable, if standalone mode,
+          // set standaloneUndoModeAvailable.
+          tReturnValues.externalUndoAvailable = !DG.STANDALONE_MODE;
+          tReturnValues.standaloneUndoModeAvailable = !!DG.STANDALONE_MODE;
           if (componentStorage) {
             DG.log('Sending data interactive, %@, state: %@'.loc(
                 tReturnValues.title, JSON.stringify(componentStorage.savedGameState)));

@@ -176,6 +176,7 @@ DG = SC.Application.create((function () // closure
 
     NAMESPACE: 'DG',
     APPNAME: 'DG',
+    USER_APPNAME: 'CODAP',
 
     /*
      * Semantic version number

@@ -63,13 +63,21 @@ return {
       // Count:
       //  -- non-empty values except for boolean false and empty string
       //      (this way count(x>0) returns the expected result)
-      // We don't use the cache, since all we need is the result counts.
       if(!SC.empty(value) && (value !== false)) {
         if( iInstance.results[ iCacheID])
           ++iInstance.results[ iCacheID];
         else
           iInstance.results[ iCacheID] = 1;
       }
+      else if( !iInstance.results[ iCacheID]) {
+        // put a 0 entry in the cache for evaluated groups
+        iInstance.results[ iCacheID] = 0;
+      }
+    },
+
+    computeResults: function( iContext, iEvalContext, iInstance) {
+      // default to 0 rather than undefined (e.g. if there are no cases)
+      return sc_super() || 0;
     }
   }),
 
