@@ -66,6 +66,8 @@ DG.React.HighOrderComponents = {
         // the clicked node was outside the child container so unmount it
         if (!clickedNode) {
           this.unmount();
+          e.preventDefault();
+          e.stopPropagation();
         }
       },
 
