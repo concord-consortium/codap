@@ -252,18 +252,35 @@ return {
     Returns the aggregated sum of its evaluated argument values.
    */
   sum: DG.ParentCaseAggregate.create({
-  
+
     requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
-      var value = this.getValue( iContext, iEvalContext, iInstance);  // Use getValue to allow summing of strings
-      if( DG.isNumeric(value))
-        value = Number(value);
+      var value = this.getNumericValue( iContext, iEvalContext, iInstance);
       if( value != null) {
         if( iInstance.results[ iCacheID])
           iInstance.results[ iCacheID] += value;
         else
           iInstance.results[ iCacheID] = value;
+      }
+    }
+  }),
+
+  /**
+   concatA(expr)
+   Returns the aggregated concatenation of its evaluated argument values.
+   */
+  'concatA': DG.ParentCaseAggregate.create({
+
+    requiredArgs: { min: 1, max: 1 },
+
+    evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+      var value = this.getValue( iContext, iEvalContext, iInstance);
+      if( value != null) {
+        if( iInstance.results[ iCacheID])
+          iInstance.results[ iCacheID] += String( value);
+        else
+          iInstance.results[ iCacheID] = String( value);
       }
     }
   })
