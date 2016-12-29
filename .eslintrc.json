@@ -3,7 +3,8 @@
     "browser": true
   },
   "globals": { "DG": false, "Raphael": false, "$": false, "SC": false, "sc_require": false,
-                "sc_super": false, "static_url": false, "NO": false, "YES": false },
+                "sc_super": false, "static_url": false, "NO": false, "YES": false,
+                "module": false, "require": false },
   "extends": [ "eslint:recommended" ],
   "rules": {
     // possible errors
