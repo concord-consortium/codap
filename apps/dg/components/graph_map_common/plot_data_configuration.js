@@ -433,7 +433,14 @@ DG.PlotDataConfiguration = SC.Object.extend(
         tStats = tDescription && tDescription.get( 'attributeStats');
     DG.assert( tAttribute !== DG.Analysis.kNullAttribute );
     tDescription.invalidateCaches( this.get('cases'));  // So that notification order won't be important
-    if( tStats ) tStats.set('attributeType', tType);
+    if( tStats) {
+      /* Date type is treated as numeric. If the underlying type is date and we are to treat the
+       attribute as numeric, then we explicitly set it as date. */
+      var tStatsType = tStats.getPath('numericStats.attributeType');
+      if( tStatsType === DG.Analysis.EAttributeType.eDateTime && iTreatAsNumeric)
+        tType = tStatsType;
+      tStats.set('attributeType', tType);
+    }
   },
   
   /**
