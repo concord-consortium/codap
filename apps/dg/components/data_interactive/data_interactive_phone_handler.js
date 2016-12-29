@@ -843,12 +843,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {
             success: success
           };
+        },
+        delete: function (iResources) {
+          var context = iResources.dataContext;
+          var change = {
+            operation: 'deleteAttributes',
+            collection: iResources.collection,
+            attrs: [iResources.attribute],
+            requester: this.get('id')
+          };
+          var changeResult = context.applyChange(change);
+          var success = (changeResult && changeResult.success);
+          return {
+            success: success,
+          };
         }
-        //delete: function (iResources) {
-        //  return {
-        //    success: true,
-        //  }
-        //}
       },
 
       handleAttributeList: {
