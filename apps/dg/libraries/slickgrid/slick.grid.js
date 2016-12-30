@@ -2391,7 +2391,8 @@ if (typeof Slick === "undefined") {
       if ((activeCell != cell.cell || activeRow != cell.row) && canCellBeActive(cell.row, cell.cell)) {
         if (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit()) {
           scrollRowIntoView(cell.row, false);
-          setActiveCellInternal(getCellNode(cell.row, cell.cell), (cell.row === getDataLength()) || options.autoEdit);
+          setActiveCellInternal(getCellNode(cell.row, cell.cell),
+                                (cell.row === getDataLength()) || canAutoEditCell(cell.row, cell.cell));
         }
       }
     }
@@ -2728,9 +2729,10 @@ if (typeof Slick === "undefined") {
     function commitEditAndSetFocus() {
       // if the commit fails, it would do so due to a validation error
       // if so, do not steal the focus from the editor
+      var cell = getActiveCell();
       if (getEditorLock().commitCurrentEdit()) {
         setFocus();
-        if (options.autoEdit) {
+        if (canAutoEditCell(cell.row, cell.cell)) {
           navigateDown();
         }
       }
@@ -3117,11 +3119,11 @@ if (typeof Slick === "undefined") {
         var isAddNewRow = (pos.row == getDataLength());
         scrollRowIntoView(pos.row, !isAddNewRow);
         scrollCellIntoView(pos.row, pos.cell);
-        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || options.autoEdit);
+        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || canAutoEditCell(pos.row, pos.cell));
         activePosX = pos.posX;
         return true;
       } else {
-        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || options.autoEdit);
+        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || canAutoEditCell(activeRow, activeCell));
         return false;
       }
     }
@@ -3189,6 +3191,11 @@ if (typeof Slick === "undefined") {
       return columns[cell].selectable;
     }
 
+    // [CC] Added to enable autoEdit on a cell-by-cell basis
+    function canAutoEditCell(row, cell) {
+      return options.autoEdit || trigger(self.onBeforeAutoEditCell, {row: row, cell: cell});
+    }
+
     function gotoCell(row, cell, forceEdit) {
       if (!initialized) { return; }
       if (!canCellBeActive(row, cell)) {
@@ -3205,7 +3212,7 @@ if (typeof Slick === "undefined") {
       var newCell = getCellNode(row, cell);
 
       // if selecting the 'add new' row, start editing right away
-      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || options.autoEdit);
+      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || canAutoEditCell(row, cell));
 
       // if no editor was created, set the focus back on the grid
       if (!currentEditor) {
@@ -3372,6 +3379,7 @@ if (typeof Slick === "undefined") {
       "onColumnsReordered": new Slick.Event(),
       "onColumnsResized": new Slick.Event(),
       "onCellChange": new Slick.Event(),
+      "onBeforeAutoEditCell": new Slick.Event(),  // [CC]
       "onBeforeEditCell": new Slick.Event(),
       "onBeforeCellEditorDestroy": new Slick.Event(),
       "onBeforeDestroy": new Slick.Event(),

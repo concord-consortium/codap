@@ -34,10 +34,12 @@
 
     function wrapHandler(handler) {
       return function () {
+        var result;
         if (!_inHandler) {
           _inHandler = true;
-          handler.apply(this, arguments);
+          result = handler.apply(this, arguments);
           _inHandler = false;
+          return result;
         }
       };
     }

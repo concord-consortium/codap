@@ -35,9 +35,6 @@ DG.mainPage = SC.Page.design((function() {
       if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
         this.hideInspectorPicker( target);
       }
-      else if( action === 'doubleClick') {
-        console.log('doubleClick');
-      }
       return sc_super();
     },
 

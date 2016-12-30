@@ -71,11 +71,13 @@ DG.CaseTableRowSelectionModel = function (options) {
 
   function wrapHandler(handler) {
     return function () {
-      if (!_inHandler) {
-        _inHandler = true;
-        handler.apply(this, arguments);
-        _inHandler = false;
-      }
+        var result;
+        if (!_inHandler) {
+          _inHandler = true;
+          result = handler.apply(this, arguments);
+          _inHandler = false;
+          return result;
+        }
     };
   }
 

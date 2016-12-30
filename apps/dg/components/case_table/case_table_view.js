@@ -348,6 +348,64 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   _prevGridWidth: 0,
 
+  /**
+    @private
+    A timer for use in tracking proto-case editing.
+    @property   {Number}  timerID
+   */
+  _protoCaseTimer: null,
+
+  /**
+    To commit proto-case values as a new case when the user finishes entering values,
+    we set a timer whenever a proto-case cell is exited, and then clear it whenever
+    a proto-case cell is entered. When the user finishes entering values, the timer
+    expires and the case is created. This handles situations when the user exits the
+    case table entirely, for instance, which would be tricky to handle otherwise.
+   */
+  clearProtoCaseTimer: function() {
+    if (this._protoCaseTimer) {
+      clearTimeout(this._protoCaseTimer);
+      this._protoCaseTimer = null;
+    }
+  },
+
+  resetProtoCaseTimer: function() {
+    this.clearProtoCaseTimer();
+
+    this._protoCaseTimer = setTimeout(function() {
+      var rowCount = this._slickGrid.getDataLength(),
+          lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
+          hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
+      if (hasProtoCase) {
+        SC.run(function() {
+          this.commitProtoCase(lastRowItem);
+        }.bind(this));
+      }
+    }.bind(this), 300);
+  },
+
+  /**
+    Creates a new case with the specified proto-case values.
+   */
+  commitProtoCase: function(protoCase) {
+    var context = this.get('dataContext'),
+        collection = protoCase && protoCase.collection,
+        attrIDs = collection && collection.getAttributeIDs(),
+        values = [];
+    if (!collection) return;
+
+    attrIDs.forEach(function(attrID) {
+                      var value = protoCase._values[attrID];
+                      values.push(value != null ? value : "");
+                    });
+    context.applyChange({
+              operation: 'createCases',
+              attributeIDs: attrIDs,
+              values: [ values ]
+            });
+    protoCase._values = {};
+  },
+
     /**
      * Returns the visible limits of the grid in row,pixel coordinates.
      * See https://github.com/mleibman/SlickGrid/wiki/Slick.Grid#getViewport
@@ -560,6 +618,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     
     // Subscribe to SlickGrid events which call our event handlers directly.
     this.subscribe('onClick', this.handleClick);
+    this.subscribe('onKeyDown', this.handleKeyDown);
     this.subscribe('onScroll', this.handleScroll);
     this.subscribe('onHeaderClick', this.handleHeaderClick);
     this.subscribe('onHeaderDragInit', function( iEvent, iDragData) {
@@ -569,6 +628,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                       iEvent.stopImmediatePropagation();
                     });
     this.subscribe('onHeaderDragStart', this.handleHeaderDragStart);
+    this.subscribe('onBeforeAutoEditCell', this.handleBeforeAutoEditCell);
+    this.subscribe('onBeforeEditCell', this.handleBeforeEditCell);
     this.subscribe('onCanvasWidthChanged', function(e, args) {
                       SC.run( function() {
                         this.setIfChanged('gridWidth', this._slickGrid.getContentSize().width);
@@ -576,6 +637,27 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                     }.bind( this));
     this.subscribe('onColumnsResized', this.handleColumnsResized);
     this.subscribe('onColumnResizing', this.handleColumnResizing);
+
+    var sgEditController = this._slickGrid.getEditController(),
+        commitFunction = sgEditController.commitCurrentEdit,
+        cancelFunction = sgEditController.cancelCurrentEdit;
+    sgEditController.commitCurrentEdit = function() {
+      var activeCell = this._slickGrid.getActiveCell(),
+          dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
+      if (dataItem && dataItem._isProtoCase) {
+        this.resetProtoCaseTimer();
+      }
+      return commitFunction();
+    }.bind(this);
+    sgEditController.cancelCurrentEdit = function() {
+      var activeCell = this._slickGrid.getActiveCell(),
+          dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
+      if (dataItem && dataItem._isProtoCase) {
+        this.resetProtoCaseTimer();
+      }
+      return cancelFunction();
+    }.bind(this);
+
 
     // wire up model events to drive the grid
     dataView.onRowCountChanged.subscribe(function (e, args) {
@@ -737,10 +819,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var _inHandler,
         wrapHandler = function( iHandler) {
           return function () {
+            var result;
             if (!_inHandler) {
               _inHandler = true;
-              iHandler.apply( this, arguments);
+              result = iHandler.apply( this, arguments);
               _inHandler = false;
+              return result;
             }
           }.bind( this);
         }.bind( this);
@@ -922,6 +1006,31 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
     }
   },
+
+  handleBeforeAutoEditCell: function(iEvent, iArgs) {
+    // enable autoEdit for the proto-case row
+    var activeRowItem = this._slickGrid.getDataItem(iArgs.row);
+    return activeRowItem && activeRowItem._isProtoCase;
+  },
+
+  handleBeforeEditCell: function(iEvent, iArgs) {
+    var activeRowItem = this._slickGrid.getDataItem(iArgs.row),
+        rowCount = this._slickGrid.getDataLength(),
+        lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
+        hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
+
+    this.clearProtoCaseTimer();
+
+    if (!activeRowItem._isProtoCase && hasProtoCase) {
+      this.commitProtoCase(lastRowItem);
+    }
+
+    // if attribute not editable and not the proto-case row, then can't edit
+    if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell))
+      return false;
+
+    return true;
+  },
   
   /**
     Called when a drag is started in a column header cell.
@@ -1001,6 +1110,45 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   handleClick: function (iEvent) {
     var hierTableView = this.get('parentView');
     hierTableView.hideHeaderMenus();
+  },
+
+  /**
+   * Handle SlickGrid KeyDown events
+   * @param iEvent
+   */
+  handleKeyDown: function (iEvent) {
+    if ((iEvent.keyCode === 9) || (iEvent.keyCode === 13)) {
+      var editorLock = this._slickGrid.getEditorLock(),
+          editorIsActive = editorLock && editorLock.isActive(),
+          columns = this._slickGrid.getColumns(),
+          columnCount = columns && columns.length,
+          activeCell = this._slickGrid.getActiveCell(),
+          dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
+      if (editorIsActive && dataItem && dataItem._isProtoCase) {
+        this.clearProtoCaseTimer();
+        if (iEvent.shiftKey) {
+          if (activeCell.cell > 0)
+            this._slickGrid.navigatePrev();
+        }
+        else {
+          if (activeCell.cell < columnCount - 1) {
+            this._slickGrid.navigateNext();
+          }
+          else if (editorLock.commitCurrentEdit() && DG.ObjectMap.length(dataItem._values)) {
+            SC.run(function() {
+              this.commitProtoCase(dataItem);
+
+              // wait until everything has refreshed to navigate to the next row
+              this.invokeNext(function() {
+                this._slickGrid.navigateNext();
+              }.bind(this));
+            }.bind(this));
+          }
+        }
+
+        iEvent.stopImmediatePropagation();
+      }
+    }
   },
 
   /**
