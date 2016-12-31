@@ -8,7 +8,7 @@
    */
   "abs": {
     "displayName": "abs",
-    "description": "Computes the absolute value of its argument. This is equivalent to using the absolute value bars.",
+    "description": "Computes the absolute value of its argument.",
     "args": [
       {
         "name": "number",
@@ -17,8 +17,8 @@
       }
     ],
     "examples": [
-      "abs(3 – 5) is 2",
-      "abs(3-7) = |3 – 7|=4"
+      "abs(3–5) is 2",
+      "abs(3-7) is 4"
     ]
   },
   "ceil": {
@@ -58,7 +58,7 @@
       {
         "name": "number",
         "type": "number",
-        "description": "The value you want to round."
+        "description": "The value you want to round down."
       }
     ],
     "examples": [
@@ -126,7 +126,8 @@
       }
     ],
     "examples": [
-      "pow(2,5) is 2 to the 5, returns 32"
+      "pow(2,5) is 2 to the 5th, returns 32",
+      "pow(10,-3) is 1 / 1000, or .001"
     ]
   },
   "round": {
@@ -147,7 +148,7 @@
     "examples": [
       "round(3.14) is 3",
       "round(π, 4) is 3.1416",
-      "round(1234, –2) is 1200"
+      "round(1276, –2) is 1300"
     ]
   },
   "sqrt": {
@@ -161,7 +162,9 @@
       }
     ],
     "examples": [
-      "sqrt(100) returns 10"
+      "sqrt(100) returns 10",
+      "sqrt(2) is 1.41",
+      "sqrt(-2) returns NaN, meaning Not a Number"
     ]
   },
   "trunc": {
@@ -175,7 +178,8 @@
       }
     ],
     "examples": [
-      " trunc(5.5) returns 5"
+      "trunc(5.5) returns 5",
+      "trunc(-5.5) returns -5"
     ]
   },
   /*
@@ -183,7 +187,7 @@
    */
   "date": {
     "displayName": "date",
-    "description": "Returns a new date created from its arguments. If any argument is omitted it is defaulted to 0 (or 1 for the day). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
+    "description": "Returns a new date created from its arguments. If any argument is omitted it is defaulted to 0 (or 1 for the day or month). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
     "args": [
       {
         "name": "year",
@@ -201,19 +205,19 @@
         "description": "Represents the day of the month, from 1 to 31."
       },
       {
-        "name": "hour",
+        "name": "hr",
         "type": "number",
-        "description": "Represents the hour of the day, from 1 to 23."
+        "description": "Represents the hour of the day, from 0 to 23."
       },
       {
-        "name": "minute",
+        "name": "min",
         "type": "number",
-        "description": "Represents the minutes of the hour, from 1 to 59."
+        "description": "Represents the minutes of the hour, from 0 to 59."
       },
       {
-        "name": "seconds",
+        "name": "sec",
         "type": "number",
-        "description": "Represents the seconds of the minute, from 1 to 59."
+        "description": "Represents the seconds of the minute, from 0 to 59."
       }
     ],
     "examples": [
@@ -230,12 +234,12 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date. May be a string or a computed date."
       }
     ],
     "examples": [
-      "dayOfMonth(\"9/1/2016\") returns 1",
-      "dayOfMonth(\"6-14-2008\") returns 14"
+      "dayOfMonth(\"6-14-2008\") returns 14",
+      "dayOfMonth(date(2017,3,20)) returns 20"
     ]
   },
   "dayOfWeek": {
@@ -245,11 +249,12 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date. May be a string or a computed date."
       }
     ],
     "examples": [
-      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns 4 because August 31, 2005 is a Wednesday"
+      "dayOfWeek(\"8-31-2005\") returns 4 because August 31, 2005 is a Wednesday",
+      "dayOfWeek(date(2017,3,20)) returns 2, corresponding to a Monday"
     ]
   },
   "dayOfWeekName": {
@@ -259,25 +264,27 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date. May be a string or a computed date."
       }
     ],
     "examples": [
-      "If the date is Aug 31, 2005, dayOfWeek(\"8-31-2005\") returns Wednesday"
+      "dayOfWeekName(\"8-31-2005\") returns Wednesday",
+      "dayOfWeekName(date(2017,3,20)) returns Monday"
     ]
   },
   "hours": {
     "displayName": "hours",
-    "description": "Returns the hour of the day corresponding to the given date.",
+    "description": "Returns the hour (in 24-hour time) corresponding to the given date-time.",
     "args": [
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. May be a string or a computed date-time."
       }
     ],
     "examples": [
-      "If the date is 8:57 PM on Aug 31, 2005, hours(\"8-31-2005 8:57 PM\") returns 20"
+      "hours(\"8-31-2005 8:57 PM\") returns 20 (8 PM on a 24-hour clock)",
+      "hours(date(2017,3,20,7,1,59)) returns 7"
     ]
   },
   "minutes": {
@@ -287,11 +294,12 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. May be a string or a computed date-time."
       }
     ],
     "examples": [
-      "If dateTime is 8:57 PM on Aug 31, 2005, minutes(\"8-31-2005 8:57 PM\") returns 57"
+      "minutes(\"8-31-2005 8:57 PM\") returns 57",
+      "minutes(date(2017,3,20,7,1,59)) returns 1"
     ]
   },
   "month": {
@@ -301,11 +309,12 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date. May be a string or a computed date."
       }
     ],
     "examples": [
-      "If the date is Aug 31, 2005, month(\"8-31-2005\") returns 8"
+      "month(\"8-31-2005\") returns 8",
+      "month(date(2017,3,20,7,1,59)) returns 3"
     ]
   },
   "monthName": {
@@ -315,49 +324,45 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. Note that this needs to be inputted as a string."
+        "description": "The specified date. May be a string or a computed date."
       }
     ],
     "examples": [
-      "If the date is Aug 31, 2005, monthName(\"8-31-2005\") returns August"
+      "monthName(\"8-31-2005\") returns August",
+      "monthName(date(2017,3,20,7,1,59)) returns March"
     ]
   },
   "now": {
     "displayName": "now",
     "description": "Returns the current date and time.",
     "args": [
-      {
-        "description": "There are no parameters for this function."
-      }
     ],
     "examples": [
-      "If the current date and time is 3:30:51 PM on Aug 31, 2005, now() returns 8/31/2005 3:30:51 PM"
+      "At the moment this was written, now() returned 12/30/2016 9:58:15 AM"
     ]
   },
   "seconds": {
     "displayName": "seconds",
-    "description": "Returns the seconds of the minute corresponding to the given date.",
+    "description": "Returns the seconds of the minute corresponding to the given date-time.",
     "args": [
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. May be a string or a computed date-time."
       }
     ],
     "examples": [
-      "If the date is 3:30:51 PM on Aug 31, 2005, seconds(\"8-31-2005 3:30:51 PM\") returns 51"
+      "seconds(\"8-31-2005 3:30:51 PM\") returns 51",
+      "seconds(date(2017,3,20,7,1,59)) returns 59"
     ]
   },
   "today": {
     "displayName": "today",
     "description": "Returns current date with no time.",
     "args": [
-      {
-        "description": "There are no parameters for this function."
-      }
     ],
     "examples": [
-      "If today's date is December 20, 2016, today() returns 12/20/2016"
+      "On the day this was written, today() returned 12/30/2016"
     ]
   },
   "year": {
@@ -367,12 +372,13 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. Note that this needs to be inputted as a string."
+        "description": "The specified date and time. May be a string or a computed date."
       }
     ],
     "examples": [
-      "If the date is 3:30 PM on Aug 31, 2005, year(\"8-31-2005 3:30 PM\") returns 2005",
-      "year(\"8/25/1492\") returns 1492"
+      "year(\"8-31-2005 3:30 PM\") returns 2005",
+      "year(\"8/25/1492\") returns 1492",
+      "year(date(2017,3,20,7,1,59)) returns 2017"
     ]
   },
   /*
@@ -390,12 +396,13 @@
       {
         "name": "filter",
         "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the first case."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "first(population) returns the first value of the attribute population",
-      "first(population,sex=\"female\") returns the first value for the attribute population for which the attribute sex is female"
+      "first(age) returns the first value of the attribute age",
+      "first(age,sex=\"female\") returns the first value for the attribute age for which the attribute sex is female",
+      "first(age,height>68) returns the first value for the attribute age for which the the value of the attribute height is greater than 68"
     ]
   },
   "last": {
@@ -410,7 +417,7 @@
       {
         "name": "filter",
         "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the last case."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -420,47 +427,47 @@
   },
   "lookupByIndex": {
     "displayName": "lookupByIndex",
-    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the data set name. Note that dataSetName and attributeName must be strings (or expressions that evaluate to strings), while index should evaluate to an integer.",
+    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the other data set. Note that otherDataSet and attrName must be strings (or expressions that evaluate to strings), while index should evaluate to an integer.",
     "args": [
       {
-        "name": "\"remoteDataSetName\"",
+        "name": "\"otherDataSet\"",
         "type": "string",
-        "description": "The collection where you want to look up the value."
+        "description": "The data set in which you want to look up the value."
       },
       {
-        "name": "\"remoteAttributeName\"",
-        "type": "attribute",
-        "description": "The name of the attribute in the collection containing the return value."
+        "name": "\"attrName\"",
+        "type": "string",
+        "description": "The name of the attribute in the other data set with the desired value."
       },
       {
         "name": "index",
         "type": "number",
-        "description": "The index of a case in that collection."
+        "description": "The 1-based index of a case in the other data set whose value will be returned."
       }
     ],
     "examples": [
-      "lookupByIndex(\"United_States\", \"Full_state_name\", index) looks up the attribute Full_state_name in the United_States data set at the index point. It then returns Full_state_name in your data set",
-      "In a document that has a collection States, lookupValueByIndex(\"States\", \"Name\", 3) would give \"Arizona\" as the result"
+      "In a document that has an alphabetized collection of U.S. states, lookupValueByIndex(\"States\", \"Name\", 3) returns \"Arizona.\"",
+      "lookupByIndex(\"Students\", \"Grade\", caseIndex) returns, for each case, the Grade of the Student in the same row in the other data set as the case."
     ]
   },
   "lookupByKey": {
     "displayName": "lookupByKey",
-    "description": "Returns the value of the specified returned attribute for the case with the specified keyValue as its value for the keyAttributeName attribute in the specified data set.",
+    "description": "Looks up the case in an other data set for which the value of a \"key\" attribute matches a given key value from the originating data set. The value in that case for a \"returned\" attribute is returned. Note that otherDataSet, returnedAttrName, and keyAttrName should be strings, or evaluate to a string.",
     "args": [
       {
-        "name": "\"remoteDataSetName\"",
+        "name": "\"otherDataSet\"",
         "type": "string",
-        "description": "The collection where you want to look up the value."
+        "description": "The data set in which you want to look up the value."
       },
       {
-        "name": "\"remoteAttributeName\"",
+        "name": "\"returnedAttrName\"",
         "type": "string",
-        "description": "The name of an attribute whose value is to be looked up in that collection."
+        "description": "The name of the attribute in the other data set whose value is to be looked up."
       },
       {
-        "name": "\"keyAttributeName\"",
+        "name": "\"keyAttrName\"",
         "type": "string",
-        "description": "The name of an attribute to be used as a \"key\" into the collection."
+        "description": "The name of an attribute to be used as a \"key\" into the other data set."
       },
       {
         "name": "keyValue",
@@ -469,33 +476,28 @@
       }
     ],
     "examples": [
-      "lookupByKey(\"States\", \"Population\", \"State\", \"CA\") would return 39000000, the result of looking up the population for California in a collection of states",
-      "lookupByKey(\"United_States\", \"State_abbreviations1\", \"State_abbreviations2\", Full_state_name) looks up the states in the data set \"United_States.\" The attribute \"State_abbreviations1\" from the first data set matches the attribute \"State_abbreviations2\" from the second data set. The function looks up the states \"CA,\" \"WA,\" \"OR\" and returns \"California,\" \"Washington,\" \"Oregon\""
+      "lookupByKey(\"States\", \"Population\", \"State\", \"CA\") might return 39000000, the result of looking up the population for California in a collection of states",
+      "Suppose you have a data set named \"Cookies\" with attributes \"Kind\" and \"Price\". And you have a data set named \"Orders\" with an attribute named \"Cookie\". The formula lookupByKey(\"Cookies\", \"Price\", \"Kind\", Cookie) will return the price of cookies for each order."
     ]
   },
   "next": {
     "displayName": "next",
-    "description": "Returns the value of that expression for the next case.",
+    "description": "Returns the value of an expression for the next case in the data set.",
     "args": [
       {
-        "name": "attribute",
-        "type": "attribute",
-        "description": "The specified attribute."
+        "name": "expression",
+        "type": "expression",
+        "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
         "name": "filter",
         "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the next case."
-      },
-      {
-        "name": "filter",
-        "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the next case."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "next(number) is 10",
-      "next(number, City=\"Tucson\") returns the next value for the attribute number for which the attribute City is Tucson"
+      "next(velocity) returns the value of the attribute velocity for the next case.",
+      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case."
     ]
   },
   "prev": {
@@ -503,24 +505,19 @@
     "description": "Returns the value of that expression for the previous case.",
     "args": [
       {
-        "name": "attribute",
-        "type": "attribute",
-        "description": "The specified attribute."
+        "name": "expression",
+        "type": "expression",
+        "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
         "name": "filter",
         "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the previous case."
-      },
-      {
-        "name": "filter",
-        "type": "filter",
-        "description": "Additional filter, numbers, or ranges for which you want the previous case."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "prev(height) returns 9",
-      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female"
+      "prev(height/armspan) returns the ratio of height to armspan for the previous case in the data set.",
+      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female."
     ]
   },
   /*
@@ -528,71 +525,72 @@
    */
   "boolean": {
     "displayName": "boolean",
-    "description": "Returns the condition true if the conditions in a test are true and false otherwise.",
+    "description": "Returns false if the given expression evaluates to false or 0, true otherwise. Note that ",
     "args": [
       {
-        "name": "argument",
-        "type": "boolean",
-        "description": "The specified argument."
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression to be evaluated."
       }
     ],
     "examples": [
-      "boolean(age > 60) is true or false",
-      "age > 60 is true or false"
+      "boolean(age > 60) is true or false depending on the value of age.",
+      "boolean(age) returns true for all values except 0.",
+      "boolean(\"false\") returns true because a string value is neither false nor 0."
     ]
   },
   "greatCircleDistance": {
     "displayName": "greatCircleDistance",
-    "description": "Returns the shortest distance between two latitude and longitude points on the surface of the earth.",
+    "description": "Returns the shortest distance in kilometers between two points on the surface of the earth specified by latitude and longitude.",
     "args": [
       {
-        "name": "latitude1",
-        "type": "latitude",
-        "description": "The latitude of the first point."
+        "name": "lat1",
+        "type": "number",
+        "description": "The latitude in degrees of the first point."
       },
       {
-        "name": "longitude1",
-        "type": "longitude",
-        "description": "The longitude of the first point."
+        "name": "long1",
+        "type": "number",
+        "description": "The longitude in degrees of the first point."
       },
       {
-        "name": "latitude2",
-        "type": "latitude",
-        "description": "The latitude of the second point."
+        "name": "lat2",
+        "type": "number",
+        "description": "The latitude in degrees of the second point."
       },
       {
-        "name": "longitude2",
-        "type": "longitude",
-        "description": "The longitude of the second point."
+        "name": "long2",
+        "type": "number",
+        "description": "The longitude in degrees of the second point."
       }
     ],
     "examples": [
-      "greatCircleDistance(latitude1, longitude1, latitude2, longitude2) returns 112.98"
+      "greatCircleDistance(40.66, 74, 37.8, 122.4) returns 4128, the distance in kilometers between New York and San Francisco"
     ]
   },
   "if": {
     "displayName": "if",
-    "description": "Creates an “if” block. If the expression in parentheses after if is true, the formula returns the upper value; if not, it returns the lower.",
+    "description": "Returns one of two values depending on whether the result of evaluating a logical expression is true or false.",
     "args": [
       {
-        "name": "logical_test",
-        "type": "statement",
-        "description": "The logical test of the if statement"
+        "name": "expression",
+        "type": "expression",
+        "description": "Evaluated to determine which of the following two expressions is returned."
       },
       {
         "name": "value_if_true",
-        "type": "statement",
-        "description": "The value of the if statement if the result is true."
+        "type": "expression",
+        "description": "Returned if the expression evaluates as true."
       },
       {
         "name": "value_if_false",
-        "type": "statement",
-        "description": "The value of the if statement if the result is false."
+        "type": "expression",
+        "description": "Returned if the expression evaluates as false."
       }
     ],
     "examples": [
-      "if(Speed>40,\"Fast\",\"Slow\") says if the speed is greater than 40, return \"Fast\", otherwise return \"Slow\"",
-      "Speed>40?\"Fast\":\"Slow\" is the same statement as above"
+      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\".",
+      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies."
     ]
   },
   "isFinite": {
@@ -600,16 +598,16 @@
     "description": "Checks whether a number is a finite number.",
     "args": [
       {
-        "name": "value",
-        "type": "value",
-        "description": "The value to be tested"
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
       }
     ],
     "examples": [
       "isFinite(5) returns true",
       "isFinite(5 - 9) returns true",
       "isFinite(\"123\") returns false",
-      "isFinite(\"Hi\") returns false"
+      "isFinite(1/0) returns false"
     ]
   },
   "number": {
@@ -617,29 +615,29 @@
     "description": "Converts the input value to a numeric value.",
     "args": [
       {
-        "name": "value",
-        "type": "value",
+        "name": "expression",
+        "type": "expression",
         "description": "The text to be converted to a number."
       }
     ],
     "examples": [
       "number(\"45\") returns 45",
-      "number(2.00) returns 2"
+      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number."
     ]
   },
   "random": {
     "displayName": "random",
-    "description": "Returns a random number drawn from a uniform distribution.",
+    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution.",
     "args": [
-      {
-        "name": "min",
-        "type": "value",
-        "description": "The smallest number random() will return."
-      },
       {
         "name": "max",
         "type": "value",
-        "description": "The largest number random() will return."
+        "description": "The largest number to be returned."
+      },
+      {
+        "name": "min",
+        "type": "value",
+        "description": "The smallest number to be returned."
       }
     ],
     "examples": [
@@ -659,8 +657,7 @@
       }
     ],
     "examples": [
-      "string(45) returns the string 45",
-      "string(\"H\"+\"i\") returns Hi"
+      "string(45) returns the string \"45\""
     ]
   },
   /*
@@ -693,17 +690,17 @@
     "args": [
       {
         "name": "expression",
-        "type": "any",
-        "description": "The argument for which you want the maximum value."
+        "type": "expression",
+        "description": "The expression for which you want the maximum value."
       },
       {
         "name": "filter",
         "type": "boolean",
-        "description": "Serves as a filter for the cases that will be counted."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "max(Age) returns the maximum age",
+      "max(Age) returns the maximum age over all the cases",
       "max(Age, Sex=\"Female\") returns maximum age among females"
     ]
   },
@@ -712,14 +709,14 @@
     "description": "Returns the arithmetic mean (sum divided by count) of its argument evaluated for every case.",
     "args": [
       {
-        "name": "mu",
-        "type": "any",
-        "description": "The argument for which you want to compute the mean."
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose mean will be returned."
       },
       {
         "name": "filter",
         "type": "boolean",
-        "description": "Serves as a filter for the cases that will be counted."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
@@ -735,10 +732,16 @@
         "name": "expression",
         "type": "any",
         "description": "The argument for which you want to compute the median."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "median(Height) computes the median of the attribute Height"
+      "median(Height) computes the median of the attribute Height",
+      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land.\""
     ]
   },
   "min": {
@@ -748,16 +751,16 @@
       {
         "name": "expression",
         "type": "any",
-        "description": "The argument for which you want the minimum value."
+        "description": "The expression for which you want the minimum value."
       },
       {
         "name": "filter",
         "type": "boolean",
-        "description": "Serves as a filter for the cases that will be counted."
+        "description": "A true-false expression that limits the cases considered."
       }
     ],
     "examples": [
-      "min(Age) returns the maximum Age",
+      "min(Age) returns the minimum Age",
       "min(Age, Sex=\"Male\") returns minimum age among males"
     ]
   },
