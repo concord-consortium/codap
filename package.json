@@ -6,6 +6,7 @@
   "scripts": {
     "build:comment": "echo Usage: `npm run build` performs a local development build",
     "build": "npm run build:dev",
+    "build:bundle": "npm run build:bundle-dev",
     "build:bundle-dev:comment": "echo Usage: `npm run build:bundle-dev` builds a development version of the `codap-lib-bundle.js`",
     "build:bundle-dev": "webpack",
     "build:bundle-prod:comment": "echo Usage: `npm run build:bundle-prod` builds a production version of the `codap-lib-bundle.js`",
@@ -33,6 +34,7 @@
     "open:dev": "opener http://localhost:4020/dg",
     "open:staging": "opener http://codap.concord.org/releases/staging",
     "open:production": "opener http://codap.concord.org/releases/latest",
+    "prebuild:bundle": "npm run lint",
     "prebuild:production": "npm run lint",
     "predeploy:dev": "npm run test",
     "prepush": "npm run test",
