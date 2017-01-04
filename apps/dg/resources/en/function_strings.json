@@ -496,13 +496,13 @@
       }
     ],
     "examples": [
-      "next(velocity) returns the value of the attribute velocity for the next case.",
-      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case."
+      "next(Velocity) returns the value of the attribute Velocity for the next case",
+      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case"
     ]
   },
   "prev": {
     "displayName": "prev",
-    "description": "Returns the value of that expression for the previous case.",
+    "description": "Returns the value of that expression for the previous case. If there is no default parameter, then the first case evaluates as empty.",
     "args": [
       {
         "name": "expression",
@@ -516,8 +516,8 @@
       }
     ],
     "examples": [
-      "prev(height/armspan) returns the ratio of height to armspan for the previous case in the data set.",
-      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female."
+      "prev(Height/Armspan) returns the ratio of height to Armspan for the previous case in the data set",
+      "prev(Height, Sex=\"female\") returns the previous value for the attribute height for which the attribute Sex is female"
     ]
   },
   /*
@@ -534,9 +534,9 @@
       }
     ],
     "examples": [
-      "boolean(age > 60) is true or false depending on the value of age.",
-      "boolean(age) returns true for all values except 0.",
-      "boolean(\"false\") returns true because a string value is neither false nor 0."
+      "boolean(age > 60) is true or false depending on the value of age",
+      "boolean(age) returns true for all values except 0",
+      "boolean(\"false\") returns true because a string value is neither false nor 0"
     ]
   },
   "greatCircleDistance": {
@@ -589,8 +589,8 @@
       }
     ],
     "examples": [
-      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\".",
-      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies."
+      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\"",
+      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies"
     ]
   },
   "isFinite": {
@@ -622,7 +622,7 @@
     ],
     "examples": [
       "number(\"45\") returns 45",
-      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number."
+      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number"
     ]
   },
   "random": {
@@ -681,7 +681,7 @@
     "examples": [
       "count() returns the number of cases",
       "count(Height) returns the number of cases for the attribute Height",
-      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18."
+      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]
   },
   "max": {
@@ -741,7 +741,7 @@
     ],
     "examples": [
       "median(Height) computes the median of the attribute Height",
-      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land.\""
+      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land\""
     ]
   },
   "min": {
