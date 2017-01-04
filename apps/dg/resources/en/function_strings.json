@@ -490,6 +490,11 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
+        "name": "argument",
+        "type": "filter",
+        "description": "A default parameter if using a filter. If there is no default, the last case evaluates as empty."
+      },
+      {
         "name": "filter",
         "type": "filter",
         "description": "A true-false expression that limits the cases considered."
@@ -508,6 +513,11 @@
         "name": "expression",
         "type": "expression",
         "description": "Will be evaluated in the context of the next case, return the resulting value."
+      },
+      {
+        "name": "argument",
+        "type": "filter",
+        "description": "A default parameter if using a filter. If there is no default, the first case evaluates as empty."
       },
       {
         "name": "filter",
@@ -761,12 +771,12 @@
     ],
     "examples": [
       "min(Age) returns the minimum Age",
-      "min(Age, Sex=\"Male\") returns minimum age among males"
+      "min(Age, Sex=\"Male\") returns minimum Age among males"
     ]
   },
   "percentile": {
     "displayName": "percentile",
-    "description": "Takes two arguments, the first being the attribute for which the percentile will be computed, and the second being the desired percentile.",
+    "description": "Returns the nth percentile from a range of values.",
     "args": [
       {
         "name": "expression",
@@ -781,7 +791,7 @@
     ],
     "examples": [
       "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
-      "percentile(Score, .95) will return the Score corresponding to the 95th percentile"
+      "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile"
     ]
   },
   "stdDev": {
@@ -800,7 +810,7 @@
   },
   "stdErr": {
     "displayName": "stdErr",
-    "description": "Returns the standard error.",
+    "description": "Computes the standard error.",
     "args": [
       {
         "name": "value",
@@ -814,7 +824,7 @@
   },
   "sum": {
     "displayName": "sum",
-    "description": "Returns the sum of its argument evaluated for every case.",
+    "description": "Returns the sum of the arguments over all the cases.",
     "args": [
       {
         "name": "expression",
@@ -829,7 +839,8 @@
     ],
     "examples": [
       "sum(grade_point) computes the sum of the grade points",
-      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60"
+      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60",
+      "sum(Time)/count(Time) returns the sum of the Time attribute divided by the count of the Time attribute"
     ]
   },
   "variance": {
