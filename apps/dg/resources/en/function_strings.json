@@ -902,7 +902,7 @@
     "description": "Returns the character at the specified position. Note that if there is a space in the string, charAt returns 0 at that position.",
     "args": [
       {
-        "name": "searchString",
+        "name": "stringToLookIn",
         "type": "string",
         "description": "The item for which you want to find the character."
       },
@@ -1018,7 +1018,7 @@
       {
         "name": "delimiter",
         "type": "string",
-        "description": "The item used to separate the other strings."
+        "description": "The string used to separate the other strings."
       },
       {
         "name": "string1",
@@ -1044,7 +1044,7 @@
   },
   "repeatString": {
     "displayName": "repeatString",
-    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating the item the number of repititions specified.",
+    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating aString numRepetitions times",
     "args": [
       {
         "name": "aString",
@@ -1085,7 +1085,7 @@
       {
         "name": "substituteString",
         "type": "string",
-        "description": "The item that is to be substituted."
+        "description": "The string that is to be substituted."
       }
     ],
     "examples": [
