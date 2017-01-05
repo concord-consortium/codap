@@ -641,12 +641,12 @@
     "args": [
       {
         "name": "max",
-        "type": "value",
+        "type": "number",
         "description": "The largest number to be returned."
       },
       {
         "name": "min",
-        "type": "value",
+        "type": "number",
         "description": "The smallest number to be returned."
       }
     ],
@@ -674,6 +674,20 @@
   /*
    * Statistical Functions
    */
+  "concatA": {
+    "displayName": "concatA",
+    "description": "Returns the aggregated concatenation of its evaluated argument values.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The values to be concatenated."
+      }
+    ],
+    "examples": [
+      "concatA(1) returns 1, repeated for the number of cases in the case table"
+    ]
+  },
   "count": {
     "displayName": "count",
     "description": "Returns the number of cases in the collection.",
@@ -867,13 +881,13 @@
     "description": "Takes two arguments and returns true if the first begins with the second. Note that beginsWith is case sensitive.",
     "args": [
       {
-        "name": "searchValue",
-        "type": "item",
-        "description": "The item for which you want to find the string. This item can be a string, number, or attribute."
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The item for which you want to find the string."
       },
       {
-        "name": "returnValue",
-        "type": "item",
+        "name": "stringToFind",
+        "type": "string",
         "description": "The item to search for."
       }
     ],
@@ -888,9 +902,9 @@
     "description": "Returns the character at the specified position. Note that if there is a space in the string, charAt returns 0 at that position.",
     "args": [
       {
-        "name": "searchValue",
-        "type": "item",
-        "description": "The item for which you want to find the character. This can be a string, number, or attribute."
+        "name": "searchString",
+        "type": "string",
+        "description": "The item for which you want to find the character."
       },
       {
         "name": "index",
@@ -901,7 +915,7 @@
     "examples": [
       "charAt(\"water\", 3) returns t",
       "charAt(Name, 1) returns the first letter of each Name",
-      "charAt(123, random(4, 1)) returns a random number between 1 and 3."
+      "charAt(123, random(4, 1)) returns a random number between 1 and 3"
     ]
   },
   "concat": {
@@ -909,19 +923,19 @@
     "description": "Combines multiple expressions into a single string.",
     "args": [
       {
-        "name": "item1",
-        "type": "expression",
-        "description": "The first item to join. This item can be a string, number, or attribute."
+        "name": "string1",
+        "type": "string",
+        "description": "The first string to join."
       },
       {
-        "name": "item2",
-        "type": "expression",
-        "description": "The next item to join."
+        "name": "string2",
+        "type": "string",
+        "description": "The next string to join."
       },
       {
         "name": "...",
-        "type": "expression",
-        "description": "Additional items to join."
+        "type": "string",
+        "description": "Additional strings to join."
       }
     ],
     "examples": [
@@ -935,14 +949,14 @@
     "description": "Takes two arguments and returns true if the first ends with the second. Note that endsWith is case sensitive.",
     "args": [
       {
-        "name": "searchValue",
-        "type": "item",
-        "description": "The item for which you want to find the string. This item can be a string, number, or attribute."
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The value for which you want to find the string."
       },
       {
-        "name": "returnValue",
-        "type": "item",
-        "description": "The item to search for."
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
       }
     ],
     "examples": [
@@ -955,19 +969,19 @@
     "description": "Searches the first string argument (optionally starting at the specified position) for the specified target string.",
     "args": [
       {
-        "name": "searchValue",
-        "type": "item",
-        "description": "The item for which you want to find the string. This item can be a string, number, or attribute."
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The string to search in."
       },
       {
-        "name": "returnValue",
-        "type": "item",
-        "description": "The item to search for."
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
       },
       {
         "name": "index",
         "type": "number",
-        "description": "The 1-based string to search for."
+        "description": "The 1-based index to search for."
       }
     ],
     "examples": [
@@ -981,14 +995,14 @@
     "description": "Takes two arguments and returns true if the second argument is a substring of the first (also treated as a string).",
     "args": [
       {
-        "name": "searchValue",
-        "type": "item",
-        "description": "The item for which you want to find the string. This item can be a string, number, or attribute."
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The string you want to find."
       },
       {
-        "name": "returnValue",
-        "type": "item",
-        "description": "The item to search for."
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
       }
     ],
     "examples": [
@@ -1003,23 +1017,23 @@
     "args": [
       {
         "name": "delimiter",
-        "type": "item",
-        "description": "The item used to separate the other strings. This item can be a string, number, or attribute."
+        "type": "string",
+        "description": "The item used to separate the other strings."
       },
       {
-        "name": "item1",
-        "type": "item",
-        "description": "The first item."
+        "name": "string1",
+        "type": "string",
+        "description": "The first string."
       },
       {
-        "name": "item2",
-        "type": "item",
-        "description": "The next item."
+        "name": "string2",
+        "type": "string",
+        "description": "The next string."
       },
       {
         "name": "...",
-        "type": "item",
-        "description": "Additional item."
+        "type": "string",
+        "description": "Additional strings."
       }
     ],
     "examples": [
@@ -1030,22 +1044,22 @@
   },
   "repeatString": {
     "displayName": "repeatString",
-    "description": "Takes two arguments, the first an item and the second a nonnegative integer. Returns the result of concatenating the item the number of repititions specified.",
+    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating the item the number of repititions specified.",
     "args": [
       {
-        "name": "item",
-        "type": "item",
-        "description": "The item you want to repeat. This item can be a string, number, or attribute."
+        "name": "aString",
+        "type": "string",
+        "description": "The string you want to repeat."
       },
       {
         "name": "index",
         "type": "number",
-        "description": "The 1-based index number of times to repeat the item."
+        "description": "The 1-based index number of times to repeat the string."
       }
     ],
     "examples": [
       "repeatString(\"ha\", 4) returns \"hahahaha\"",
-      "If the character name is Jar, repeatString(Character_Name, 2) returns \"JarJar\"",
+      "If the character name is Jar, repeatString(characterName, 2) returns \"JarJar\"",
       "repeatString(9, 3) returns 999"
     ]
   },
@@ -1056,11 +1070,11 @@
       {
         "name": "aString",
         "type": "string",
-        "description": "The original string that contains characters you want to replace."
+        "description": "The original character you want to replace."
       },
       {
         "name": "start",
-        "type": "string",
+        "type": "number",
         "description": "The starting location for the substitution, starting at 1."
       },
       {
@@ -1071,11 +1085,12 @@
       {
         "name": "substituteString",
         "type": "string",
-        "description": "The string that is to be substituted."
+        "description": "The item that is to be substituted."
       }
     ],
     "examples": [
-      "replaceChars(\"computer\", 3, 4, \"nfus\") returns \"confuser\""
+      "replaceChars(\"computer\", 3, 4, \"nfus\") returns \"confuser\"",
+      "replaceChars(Year, 3, 4, 17) returns 2017 if Year is 2016"
     ]
   },
   "replaceString": {
@@ -1099,12 +1114,36 @@
       }
     ],
     "examples": [
-      "replaceString(\"12:30:45\", \":\", \" and \") returns \"12 and 30 and 45\""
+      "replaceString(\"12:30:45\", \":\", \" and \") returns \"12 and 30 and 45\"",
+      "replaceString(Color, \"red\", \"blue\") replaces all the red colors with blue"
+    ]
+  },
+  "sortItems": {
+    "displayName": "sortItems",
+    "description": "Sorts the items in the list.",
+    "args": [
+      {
+        "name": "list",
+        "type": "string",
+        "description": "The list of items you want to sort."
+      },
+      {
+        "name": "deliminators",
+        "type": "string",
+        "description": "Deliminators in the argument. The delimiter defaults to the list separator for the current region, usually a comma."
+      }
+    ],
+    "examples": [
+      "sortItems(\"2,16,3,4,3\") returns \"2,3,3,4,16\" when comma is the regional list separator",
+      "sortItems(\"{T;H;12;2;t;h}\", \"{;}\") returns \"{2;12;H;h;T;t}\"",
+      "sortItems(\"HTHHT\", \"\") returns \"HHHTT\", because all characters are items when there are no delimiters",
+      "sortItems(FirstName, caseIndex) returns an alphabetized list of first names"
+
     ]
   },
   "split": {
     "displayName": "split",
-    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index. Given an attribute \"d\" that contains strings of the form \"mm-dd-yyyy\", split(d,\"-\",1) returns the month, split(d,\"-\",2) returns the day, and split(d,\"-\",3) returns the year.",
+    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index.",
     "args": [
       {
         "name": "aString",
@@ -1119,12 +1158,13 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The index that specifies the placement of the splits, starting at 1."
+        "description": "The 1-based index that specifies the placement of the splits."
       }
     ],
     "examples": [
       "split(\"09/01/2016\", \"/\", 1) returns 9",
-      "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\""
+      "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\"",
+      "Given an attribute \"d\" that contains strings of the form \"mm\/dd\/yyyy\", split(d,\"\/\",1) returns the month, split(d,\"\/\",2) returns the day, and split(d,\"\/\",3) returns the year."
     ]
   },
   "stringLength": {
@@ -1139,7 +1179,8 @@
     ],
     "examples": [
       "stringLength(\"CODAP\") returns 5",
-      "stringLength(321) returns 3"
+      "stringLength(321) returns 3",
+      "stringLength(Month) returns the number of characters for each month name"
     ]
   },
   "subString": {
@@ -1163,7 +1204,8 @@
       }
     ],
     "examples": [
-      "substring(\"abcd\",2,3) returns bcd"
+      "substring(\"abcd\",2,3) returns bcd",
+      "substring(schoolID_studentID, 3) returns just the Student ID, 1234"
     ]
   },
   "toLower": {
@@ -1177,7 +1219,8 @@
       }
     ],
     "examples": [
-      "toLower(\"String\") returns string"
+      "toLower(\"String\") returns string",
+      "toLower(Name) returns the name \"john\""
     ]
   },
   "toUpper": {
@@ -1191,7 +1234,8 @@
       }
     ],
     "examples": [
-      "toUpper(\"String\") returns STRING"
+      "toUpper(\"String\") returns STRING",
+      "toUpper(Name) returns the name \"JOHN\""
     ]
   },
   "trim": {
@@ -1206,7 +1250,8 @@
     ],
     "examples": [
       "trim(\" Fall Semester \") removes the unwanted first and last characters in the string and returns \"Fall Semester\"",
-      "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\""
+      "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\"",
+      "trim(Greetings) removes the extra space between two sentences in the Greetings attribute"
     ]
   },
   /*
@@ -1223,7 +1268,8 @@
       }
     ],
     "examples": [
-      "acos(1) returns 0 radians"
+      "acos(1) returns 0 radians",
+      "acos(Degrees) returns the arccosine values for the Degrees attribute"
     ]
   },
   "asin": {
@@ -1237,7 +1283,8 @@
       }
     ],
     "examples": [
-      "asin(1) returns 1.57, pi/2 radians"
+      "asin(1) returns 1.57, pi/2 radians",
+      "asin(Degrees) returns the arcsine values for the Degrees attribute"
     ]
   },
   "atan": {
@@ -1251,7 +1298,8 @@
       }
     ],
     "examples": [
-      "atan(1) returns 0.79, pi/4 radians"
+      "atan(1) returns 0.79, pi/4 radians",
+      "asin(Degrees) returns the arctangent values for the Degrees attribute"
     ]
   },
   "atan2": {
@@ -1270,7 +1318,8 @@
       }
     ],
     "examples": [
-      "atan2(1,1) returns 0.79, pi/4 radians"
+      "atan2(1,1) returns 0.79, pi/4 radians",
+      "atan2(horizontal_axis, vertical_axis) returns the arctangent values for each horizontal axis and vertical axis attribute"
     ]
   },
   "cos": {
@@ -1280,11 +1329,12 @@
       {
         "name": "radians",
         "type": "number",
-        "description": "The arctangent of the angle you want, must be from -1 to 1."
+        "description": "The cosine of the angle you want, must be from -1 to 1."
       }
     ],
     "examples": [
-      "cos(0.5) returns 0.88 radians"
+      "cos(0.5) returns 0.88 radians",
+      "cos(Degrees) returns the cosine values for the Degrees attribute"
     ]
   },
   "sin": {
@@ -1298,7 +1348,8 @@
       }
     ],
     "examples": [
-      "sin(pi/2) returns 1"
+      "sin(pi/2) returns 1",
+      "sin(Degrees) returns the sine values for the Degrees attribute"
     ]
   },
   "tan": {
@@ -1312,7 +1363,8 @@
       }
     ],
     "examples": [
-      "tan(pi/4) returns 1"
+      "tan(pi/4) returns 1",
+      "tan(Degrees) returns the tangent values for the Degrees attribute"
     ]
   }
 }
