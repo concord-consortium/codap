@@ -253,8 +253,10 @@ DG.CaseTableDataManager = SC.Object.extend({
     if (this._rowCaseMap.length !== beforeCount) {
       this.onRowCountChanged.notify({previous: beforeCount, current: this._rowCaseMap.length}, null, this);
     }
+    else {
+      this.onRowsChanged.notify({rows: null}, null, this);
+    }
     this.set('refreshNeeded', false);
-    //this.onRowsChanged.notify({rows: {}}, null, self);
   },
 
   /**
