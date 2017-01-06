@@ -670,10 +670,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }.bind( this));
     
     dataView.onRowsChanged.subscribe(function (e, args) {
-      if( this._slickGrid) {
-        this._slickGrid.invalidateRows(args.rows);
-        this._slickGrid.render();
-      }
+      SC.run( function() {
+        if( this._slickGrid) {
+          this._slickGrid.invalidate();
+        }
+      }.bind( this));
     }.bind( this));
     
     $(gridLayer).show();
