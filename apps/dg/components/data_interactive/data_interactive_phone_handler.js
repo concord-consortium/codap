@@ -844,7 +844,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success
           };
         },
-        delete: function (iResources) {
+        'delete': function (iResources) {
           var context = iResources.dataContext;
           var change = {
             operation: 'deleteAttributes',

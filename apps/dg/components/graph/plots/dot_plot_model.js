@@ -111,7 +111,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
               tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
           tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
-        }.bind(this)
+        }.bind(this);
 
         var tInitialValue = this.getPath('multipleMovableValuesModel.isShowing' + iWhat),
             tUndo = tInitialValue ? ('DG.Undo.graph.hide' + iWhat) : ('DG.Undo.graph.show' + iWhat),

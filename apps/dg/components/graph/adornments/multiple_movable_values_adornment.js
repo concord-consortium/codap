@@ -83,6 +83,10 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         ['isShowingCount', 'updateToModel'], ['isShowingPercent', 'updateToModel']],
 
       createElements: function () {
+        function removeElement(iElement) {
+          tCountLayer.prepareToMoveOrRemove(iElement);
+          iElement.remove();
+        }
         var tMyElements = this.get('myElements'),
             tShadingElements = this.get('shadingElements'),
             tCountElements = this.get('countElements'),
@@ -108,10 +112,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
           tElement = tShadingElements.pop();
           DG.ArrayUtils.remove(tMyElements, tElement);
           tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-              function () {
-                tShadingLayer.prepareToMoveOrRemove(tElement);
-                tElement.remove();
-              });
+              removeElement);
         }
 
         while (tCountElements.length < tNumCounts) {
@@ -127,10 +128,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
           tElement = tCountElements.pop();
           DG.ArrayUtils.remove(tMyElements, tElement);
           tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
-              function () {
-                tCountLayer.prepareToMoveOrRemove(tElement);
-                tElement.remove();
-              });
+              removeElement);
         }
       },
 
