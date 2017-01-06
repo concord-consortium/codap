@@ -35,31 +35,11 @@ DG.Case = DG.BaseModel.extend((function() {
   /** @scope DG.Case.prototype */
 
   /**
-    Default formatting for Date objects.
-    Uses toLocaleDateString() for default date formatting.
-    Optionally uses toLocaleTimeString() for default time formatting.
-   */
-  function formatDate(x) {
-    if (!(x && DG.isDate(x))) return "";
-    // use a JS Date object for formatting, since our valueOf()
-    // change seems to affect string formatting
-    var date = new Date(Number(x) * 1000),
-        h = date.getHours(),
-        m = date.getMinutes(),
-        s = date.getSeconds(),
-        ms = date.getMilliseconds(),
-        hasTime = (h + m + s + ms) > 0,
-        dateStr = date.toLocaleDateString(),
-        timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
-    return dateStr + timeStr;
-  }
-
-  /**
     Utility function to convert dates to strings while leaving
     all other values alone.
    */
   function convertValue(x) {
-    return DG.isDate(x) ? formatDate(x) : x;
+    return DG.DataUtilities.isDate(x) ? DG.DataUtilities.formatDate(x) : x;
   }
 
   return {

@@ -174,7 +174,10 @@ DG.CaseTableDataManager = SC.Object.extend({
         },
 
         getStrValue: function(columnID) {
-          return this._values[columnID];
+          var value = this._values[columnID];
+          return DG.DataUtilities.isDate(value)
+                    ? DG.DataUtilities.formatDate(value)
+                    : value;
         },
 
         getValue: function(columnID) {

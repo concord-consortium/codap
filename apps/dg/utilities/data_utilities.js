@@ -106,6 +106,26 @@ DG.DataUtilities.isDateString = function(iValue) {
 DG.isDateString = DG.DataUtilities.isDateString;
 
 /**
+  Default formatting for Date objects.
+  Uses toLocaleDateString() for default date formatting.
+  Optionally uses toLocaleTimeString() for default time formatting.
+ */
+DG.DataUtilities.formatDate = function(x) {
+  if (!(x && DG.isDate(x))) return "";
+  // use a JS Date object for formatting, since our valueOf()
+  // change seems to affect string formatting
+  var date = new Date(Number(x) * 1000),
+      h = date.getHours(),
+      m = date.getMinutes(),
+      s = date.getSeconds(),
+      ms = date.getMilliseconds(),
+      hasTime = (h + m + s + ms) > 0,
+      dateStr = date.toLocaleDateString(),
+      timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
+  return dateStr + timeStr;
+};
+
+/**
   Canonicalize/sanitize case values sent to us from the game.
   Currently, we only check for the "undefined" string, but this is
   the appropriate place to perform any other validation as well.
@@ -118,12 +138,31 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
   if( typeof iValue !== 'string')
       return iValue;
 
-  // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
-  var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
-  if (ISO_8601_FULL.test(iValue)) return DG.createDate(iValue);
+  var value = iValue.trim();
+  return DG.DataUtilities.isDateString(value) ? DG.DataUtilities.createDate(value) : value;
+};
 
-  // Now, all we have left are plain strings. Trim them.
-  return iValue.trim();
+/**
+  Canonicalize/sanitize case values converted to strings internally.
+  Currently, we only check for the "undefined" string and canonical
+  (ISO 8601) date strings.
+  @param    iValue  The string value to be converted
+  @returns          The canonicalized value
+ */
+DG.DataUtilities.canonicalizeInternalValue = function(iValue) {
+  // canonicalize null, undefined, and "undefined"
+  if ((iValue == null) || (iValue === "undefined")) return "";
+  if( typeof iValue !== 'string')
+      return iValue;
+
+  var isIso8601DateString = function(iValue) {
+    // canonicalize dates (cf. http://stackoverflow.com/a/37563868)
+    var ISO_8601_FULL = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$/i;
+    return (typeof iValue === 'string' && ISO_8601_FULL.test(iValue));
+  }.bind(this);
+
+  var value = iValue.trim();
+  return isIso8601DateString(value) ? DG.DataUtilities.createDate(value) : value;
 };
 
 /**
