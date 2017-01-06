@@ -490,24 +490,9 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
-        "name": "filter",
+        "name": "argument",
         "type": "filter",
-        "description": "A true-false expression that limits the cases considered."
-      }
-    ],
-    "examples": [
-      "next(velocity) returns the value of the attribute velocity for the next case.",
-      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case."
-    ]
-  },
-  "prev": {
-    "displayName": "prev",
-    "description": "Returns the value of that expression for the previous case.",
-    "args": [
-      {
-        "name": "expression",
-        "type": "expression",
-        "description": "Will be evaluated in the context of the next case, return the resulting value."
+        "description": "A default parameter if using a filter. If there is no default, the last case evaluates as empty."
       },
       {
         "name": "filter",
@@ -516,8 +501,33 @@
       }
     ],
     "examples": [
-      "prev(height/armspan) returns the ratio of height to armspan for the previous case in the data set.",
-      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female."
+      "next(Velocity) returns the value of the attribute Velocity for the next case",
+      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case"
+    ]
+  },
+  "prev": {
+    "displayName": "prev",
+    "description": "Returns the value of that expression for the previous case. If there is no default parameter, then the first case evaluates as empty.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "Will be evaluated in the context of the next case, return the resulting value."
+      },
+      {
+        "name": "argument",
+        "type": "filter",
+        "description": "A default parameter if using a filter. If there is no default, the first case evaluates as empty."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "prev(Height/Armspan) returns the ratio of height to Armspan for the previous case in the data set",
+      "prev(Height, Sex=\"female\") returns the previous value for the attribute height for which the attribute Sex is female"
     ]
   },
   /*
@@ -534,9 +544,9 @@
       }
     ],
     "examples": [
-      "boolean(age > 60) is true or false depending on the value of age.",
-      "boolean(age) returns true for all values except 0.",
-      "boolean(\"false\") returns true because a string value is neither false nor 0."
+      "boolean(age > 60) is true or false depending on the value of age",
+      "boolean(age) returns true for all values except 0",
+      "boolean(\"false\") returns true because a string value is neither false nor 0"
     ]
   },
   "greatCircleDistance": {
@@ -589,8 +599,8 @@
       }
     ],
     "examples": [
-      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\".",
-      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies."
+      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\"",
+      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies"
     ]
   },
   "isFinite": {
@@ -622,28 +632,29 @@
     ],
     "examples": [
       "number(\"45\") returns 45",
-      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number."
+      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number"
     ]
   },
   "random": {
     "displayName": "random",
-    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution.",
+    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution. The order of the maximum and minimum value to be inputted does not matter.",
     "args": [
       {
         "name": "max",
-        "type": "value",
+        "type": "number",
         "description": "The largest number to be returned."
       },
       {
         "name": "min",
-        "type": "value",
+        "type": "number",
         "description": "The smallest number to be returned."
       }
     ],
     "examples": [
       "random() will return a random number between 0 and 1",
       "random(100) will return a random number between 0 and 100",
-      "random(1, 100) will return a random number between 1 and 100"
+      "random(1, 100) will return a random number between 1 and 100",
+      "random(100, 1) will return a random number between 1 and 100"
     ]
   },
   "string": {
@@ -663,6 +674,20 @@
   /*
    * Statistical Functions
    */
+  "concatA": {
+    "displayName": "concatA",
+    "description": "Returns the aggregated concatenation of its evaluated argument values.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The values to be concatenated."
+      }
+    ],
+    "examples": [
+      "concatA(1) returns 1, repeated for the number of cases in the case table"
+    ]
+  },
   "count": {
     "displayName": "count",
     "description": "Returns the number of cases in the collection.",
@@ -681,7 +706,7 @@
     "examples": [
       "count() returns the number of cases",
       "count(Height) returns the number of cases for the attribute Height",
-      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18."
+      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]
   },
   "max": {
@@ -741,7 +766,7 @@
     ],
     "examples": [
       "median(Height) computes the median of the attribute Height",
-      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land.\""
+      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land\""
     ]
   },
   "min": {
@@ -761,12 +786,12 @@
     ],
     "examples": [
       "min(Age) returns the minimum Age",
-      "min(Age, Sex=\"Male\") returns minimum age among males"
+      "min(Age, Sex=\"Male\") returns minimum Age among males"
     ]
   },
   "percentile": {
     "displayName": "percentile",
-    "description": "Takes two arguments, the first being the attribute for which the percentile will be computed, and the second being the desired percentile.",
+    "description": "Returns the nth percentile from a range of values.",
     "args": [
       {
         "name": "expression",
@@ -781,7 +806,7 @@
     ],
     "examples": [
       "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
-      "percentile(Score, .95) will return the Score corresponding to the 95th percentile"
+      "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile"
     ]
   },
   "stdDev": {
@@ -800,7 +825,7 @@
   },
   "stdErr": {
     "displayName": "stdErr",
-    "description": "Returns the standard error.",
+    "description": "Computes the standard error.",
     "args": [
       {
         "name": "value",
@@ -814,7 +839,7 @@
   },
   "sum": {
     "displayName": "sum",
-    "description": "Returns the sum of its argument evaluated for every case.",
+    "description": "Returns the sum of the arguments over all the cases.",
     "args": [
       {
         "name": "expression",
@@ -829,7 +854,8 @@
     ],
     "examples": [
       "sum(grade_point) computes the sum of the grade points",
-      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60"
+      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60",
+      "sum(Time)/count(Time) returns the sum of the Time attribute divided by the count of the Time attribute"
     ]
   },
   "variance": {
@@ -856,18 +882,19 @@
     "args": [
       {
         "name": "stringToLookIn",
-        "type": "attribute",
-        "description": "The attribute for which you want to find the string."
+        "type": "string",
+        "description": "The item for which you want to find the string."
       },
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "The string to search for."
+        "description": "The item to search for."
       }
     ],
     "examples": [
       "beginsWith(LastName, \"Mc\") will return true for \"McBride\" and false for \"Binker\"",
-      "beginsWith(City, \"Atlanta\") will return true for \"Atlanta\" and false for \"atlanta\""
+      "beginsWith(City, \"Atlanta\") will return true for \"Atlanta\" and false for \"atlanta\"",
+      "beginsWith(MovieTitle, 101) will return true for the movie title 101 Dalmatians and false for the movie title Aladdin"
     ]
   },
   "charAt": {
@@ -877,52 +904,54 @@
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "The string for which you want to find the character."
+        "description": "The item for which you want to find the character."
       },
       {
         "name": "index",
         "type": "number",
-        "description": "Index of the character to be returned, starting at 1."
+        "description": "The 1-based index of the character to be returned."
       }
     ],
     "examples": [
       "charAt(\"water\", 3) returns t",
-      "charAt(Name, 1) returns the first letter of each Name"
+      "charAt(Name, 1) returns the first letter of each Name",
+      "charAt(123, random(4, 1)) returns a random number between 1 and 3"
     ]
   },
   "concat": {
     "displayName": "concat",
-    "description": "Combines multiple strings into a single string.",
+    "description": "Combines multiple expressions into a single string.",
     "args": [
       {
         "name": "string1",
         "type": "string",
-        "description": "the first string"
+        "description": "The first string to join."
       },
       {
         "name": "string2",
         "type": "string",
-        "description": "the next string"
+        "description": "The next string to join."
       },
       {
         "name": "...",
         "type": "string",
-        "description": "additional strings to join"
+        "description": "Additional strings to join."
       }
     ],
     "examples": [
-      "concat(\"H\", \"i\") returns Hi",
+      "concat(\"H\", \"i\") returns the string Hi",
+      "concat(Month, \"\/\", Date, \"\/\", Year) joins three attributes, Month, Date, Year, and backslash characters between the attributes. The result is 5\/25\/1977.",
       "concat(FirstName, \" \", LastName) joins three strings, the string in the attribute FirstName, a space character, and the string in the attribute LastName. The result is Jane Smith. "
     ]
   },
   "endsWith": {
     "displayName": "endsWith",
-    "description": "Takes two arguments and returns true if the first ends with the second.",
+    "description": "Takes two arguments and returns true if the first ends with the second. Note that endsWith is case sensitive.",
     "args": [
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "The attribute for which you want to find the string."
+        "description": "The value for which you want to find the string."
       },
       {
         "name": "stringToFind",
@@ -931,7 +960,8 @@
       }
     ],
     "examples": [
-      "endsWith(LastName, \"er\") will return true for \"Binker\" and false for \"McBride\""
+      "endsWith(LastName, \"er\") will return true for \"Binker\" and false for \"McBride\"",
+      "endsWith(ZipCode, 04) will return true for the zip code 85704 and false for the zip code 85737"
     ]
   },
   "findString": {
@@ -951,12 +981,13 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The string to search for, starting at 1."
+        "description": "The 1-based index to search for."
       }
     ],
     "examples": [
       "findString(\"mathematics\", \"the\") returns 3",
-      "findString(\"mathematics\", \"the\", 3) returns 0"
+      "findString(\"mathematics\", \"the\", 3) returns 0",
+      "findString(40, 4) returns 1"
     ]
   },
   "includes": {
@@ -966,7 +997,7 @@
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "The string to search in."
+        "description": "The string you want to find."
       },
       {
         "name": "stringToFind",
@@ -1007,12 +1038,13 @@
     ],
     "examples": [
       "join(\"-\", \"a\", \"b\", \"c\") returns a-b-c",
+      "join(\/,9, 1, 1983) returns 9\/1\/1983",
       "join(\"-\", m, d, y) returns a date in format \"m-d-y\""
     ]
   },
   "repeatString": {
     "displayName": "repeatString",
-    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating aString numRepetitions times.",
+    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating aString numRepetitions times",
     "args": [
       {
         "name": "aString",
@@ -1020,13 +1052,15 @@
         "description": "The string you want to repeat."
       },
       {
-        "name": "numRepetitions",
+        "name": "index",
         "type": "number",
-        "description": "The number of times to repeat the string, starting at 0."
+        "description": "The 1-based index number of times to repeat the string."
       }
     ],
     "examples": [
-      "repeatString(\"ha\", 4) returns \"hahahaha\""
+      "repeatString(\"ha\", 4) returns \"hahahaha\"",
+      "If the character name is Jar, repeatString(characterName, 2) returns \"JarJar\"",
+      "repeatString(9, 3) returns 999"
     ]
   },
   "replaceChars": {
@@ -1036,11 +1070,11 @@
       {
         "name": "aString",
         "type": "string",
-        "description": "The original string that contains characters you want to replace."
+        "description": "The original character you want to replace."
       },
       {
         "name": "start",
-        "type": "string",
+        "type": "number",
         "description": "The starting location for the substitution, starting at 1."
       },
       {
@@ -1055,7 +1089,8 @@
       }
     ],
     "examples": [
-      "replaceChars(\"computer\", 3, 4, \"nfus\") returns \"confuser\""
+      "replaceChars(\"computer\", 3, 4, \"nfus\") returns \"confuser\"",
+      "replaceChars(Year, 3, 4, 17) returns 2017 if Year is 2016"
     ]
   },
   "replaceString": {
@@ -1079,12 +1114,36 @@
       }
     ],
     "examples": [
-      "replaceString(\"12:30:45\", \":\", \" and \") returns \"12 and 30 and 45\""
+      "replaceString(\"12:30:45\", \":\", \" and \") returns \"12 and 30 and 45\"",
+      "replaceString(Color, \"red\", \"blue\") replaces all the red colors with blue"
+    ]
+  },
+  "sortItems": {
+    "displayName": "sortItems",
+    "description": "Sorts the items in the list.",
+    "args": [
+      {
+        "name": "list",
+        "type": "string",
+        "description": "The list of items you want to sort."
+      },
+      {
+        "name": "deliminators",
+        "type": "string",
+        "description": "Deliminators in the argument. The delimiter defaults to the list separator for the current region, usually a comma."
+      }
+    ],
+    "examples": [
+      "sortItems(\"2,16,3,4,3\") returns \"2,3,3,4,16\" when comma is the regional list separator",
+      "sortItems(\"{T;H;12;2;t;h}\", \"{;}\") returns \"{2;12;H;h;T;t}\"",
+      "sortItems(\"HTHHT\", \"\") returns \"HHHTT\", because all characters are items when there are no delimiters",
+      "sortItems(FirstName, caseIndex) returns an alphabetized list of first names"
+
     ]
   },
   "split": {
     "displayName": "split",
-    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index. Given an attribute \"d\" that contains strings of the form \"mm-dd-yyyy\", split(d,\"-\",1) returns the month, split(d,\"-\",2) returns the day, and split(d,\"-\",3) returns the year.",
+    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index.",
     "args": [
       {
         "name": "aString",
@@ -1099,12 +1158,13 @@
       {
         "name": "index",
         "type": "number",
-        "description": "The index that specifies the placement of the splits, starting at 1."
+        "description": "The 1-based index that specifies the placement of the splits."
       }
     ],
     "examples": [
       "split(\"09/01/2016\", \"/\", 1) returns 9",
-      "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\""
+      "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\"",
+      "Given an attribute \"d\" that contains strings of the form \"mm\/dd\/yyyy\", split(d,\"\/\",1) returns the month, split(d,\"\/\",2) returns the day, and split(d,\"\/\",3) returns the year."
     ]
   },
   "stringLength": {
@@ -1119,7 +1179,8 @@
     ],
     "examples": [
       "stringLength(\"CODAP\") returns 5",
-      "stringLength(321) returns 3"
+      "stringLength(321) returns 3",
+      "stringLength(Month) returns the number of characters for each month name"
     ]
   },
   "subString": {
@@ -1143,7 +1204,8 @@
       }
     ],
     "examples": [
-      "substring(\"abcd\",2,3) returns bcd"
+      "substring(\"abcd\",2,3) returns bcd",
+      "substring(schoolID_studentID, 3) returns just the Student ID, 1234"
     ]
   },
   "toLower": {
@@ -1157,7 +1219,8 @@
       }
     ],
     "examples": [
-      "toLower(\"String\") returns string"
+      "toLower(\"String\") returns string",
+      "toLower(Name) returns the name \"john\""
     ]
   },
   "toUpper": {
@@ -1171,7 +1234,8 @@
       }
     ],
     "examples": [
-      "toUpper(\"String\") returns STRING"
+      "toUpper(\"String\") returns STRING",
+      "toUpper(Name) returns the name \"JOHN\""
     ]
   },
   "trim": {
@@ -1186,7 +1250,8 @@
     ],
     "examples": [
       "trim(\" Fall Semester \") removes the unwanted first and last characters in the string and returns \"Fall Semester\"",
-      "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\""
+      "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\"",
+      "trim(Greetings) removes the extra space between two sentences in the Greetings attribute"
     ]
   },
   /*
@@ -1203,7 +1268,8 @@
       }
     ],
     "examples": [
-      "acos(1) returns 0 radians"
+      "acos(1) returns 0 radians",
+      "acos(Degrees) returns the arccosine values for the Degrees attribute"
     ]
   },
   "asin": {
@@ -1217,7 +1283,8 @@
       }
     ],
     "examples": [
-      "asin(1) returns 1.57, pi/2 radians"
+      "asin(1) returns 1.57, pi/2 radians",
+      "asin(Degrees) returns the arcsine values for the Degrees attribute"
     ]
   },
   "atan": {
@@ -1231,7 +1298,8 @@
       }
     ],
     "examples": [
-      "atan(1) returns 0.79, pi/4 radians"
+      "atan(1) returns 0.79, pi/4 radians",
+      "asin(Degrees) returns the arctangent values for the Degrees attribute"
     ]
   },
   "atan2": {
@@ -1250,7 +1318,8 @@
       }
     ],
     "examples": [
-      "atan2(1,1) returns 0.79, pi/4 radians"
+      "atan2(1,1) returns 0.79, pi/4 radians",
+      "atan2(horizontal_axis, vertical_axis) returns the arctangent values for each horizontal axis and vertical axis attribute"
     ]
   },
   "cos": {
@@ -1260,11 +1329,12 @@
       {
         "name": "radians",
         "type": "number",
-        "description": "The arctangent of the angle you want, must be from -1 to 1."
+        "description": "The cosine of the angle you want, must be from -1 to 1."
       }
     ],
     "examples": [
-      "cos(0.5) returns 0.88 radians"
+      "cos(0.5) returns 0.88 radians",
+      "cos(Degrees) returns the cosine values for the Degrees attribute"
     ]
   },
   "sin": {
@@ -1278,7 +1348,8 @@
       }
     ],
     "examples": [
-      "sin(pi/2) returns 1"
+      "sin(pi/2) returns 1",
+      "sin(Degrees) returns the sine values for the Degrees attribute"
     ]
   },
   "tan": {
@@ -1292,7 +1363,8 @@
       }
     ],
     "examples": [
-      "tan(pi/4) returns 1"
+      "tan(pi/4) returns 1",
+      "tan(Degrees) returns the tangent values for the Degrees attribute"
     ]
   }
 }
