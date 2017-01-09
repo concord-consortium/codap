@@ -89,16 +89,28 @@ DG.AxisModel = SC.Object.extend(
     return (iIndex < tAttributes.length) ? tAttributes[ iIndex].get('description') : '';
   },
 
-  firstAttributeName: function() {
+  firstAttribute: function() {
     var tAttributes = this.getPath( 'attributeDescription.attributes' );
     if( SC.isArray( tAttributes ) && (tAttributes.length > 0) ) {
-      return tAttributes[ 0].get( 'name' );
+      return tAttributes[ 0];
     }
-    return '';
+  }.property(),
+
+  firstAttributeName: function() {
+    var tAttr = this.get('firstAttribute');
+    return tAttr ? tAttr.get( 'name' ) : '';
   }.property(),
   firstAttributeNameDidChange: function() {
     this.notifyPropertyChange('firstAttributeName');
   }.observes('*attributeDescription.attribute', '*attributeDescription.attributes'),
+
+  firstAttributeUnit: function() {
+    var tUnit = '',
+        tAttr = this.get('firstAttribute');
+    if( tAttr)
+      tUnit = tAttr.get( 'unit' );
+    return tUnit || '';
+  }.property(),
 
   /**
   One by default. Subclasses will likely override.

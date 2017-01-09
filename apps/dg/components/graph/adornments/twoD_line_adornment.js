@@ -60,30 +60,43 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 
     function equationForFiniteSlopeLine() {
 
-      var handleDateTime = function() {
-        var tLower = this_.getPath('xAxisView.model.lowerBound'),
-            tUpper = this_.getPath('xAxisView.model.upperBound'),
-            tRange = tUpper - tLower;
-        if( tRange < 120) {
-          // leave in seconds
-          tXVar = 'DG.ScatterPlotModel.secondsLabel'.loc();
-        }
-        else if( tRange < 60 * 60 * 2) { // 2 hours
-          tSlope *= 60; // per minute
-          tXVar = 'DG.ScatterPlotModel.minutesLabel'.loc();
-        }
-        else if( tRange < 3600 * 24 * 2) { // 2 days
-          tSlope *= 3600; // per hour
-          tXVar = 'DG.ScatterPlotModel.hoursLabel'.loc();
-        }
-        else {
-          tSlope *= 3600 * 24; // per day
-          tXVar = 'DG.ScatterPlotModel.daysLabel'.loc();
-        }
-        tSlopeString = tSlopeNumFormat(tSlope) + " ";
-        if( tSlopeString !== "0 ")  // Implies intercept is meaningless because 0 of x-axis is arbitrary
-          tInterceptString = tSign = "";
-      }.bind( this);
+      var handleDateTime = function () {
+            var tLower = this_.getPath('xAxisView.model.lowerBound'),
+                tUpper = this_.getPath('xAxisView.model.upperBound'),
+                tRange = tUpper - tLower;
+            if (tRange < 120) {
+              // leave in seconds
+              tXVar = 'DG.ScatterPlotModel.secondsLabel'.loc();
+            }
+            else if (tRange < 60 * 60 * 2) { // 2 hours
+              tSlope *= 60; // per minute
+              tXVar = 'DG.ScatterPlotModel.minutesLabel'.loc();
+            }
+            else if (tRange < 3600 * 24 * 2) { // 2 days
+              tSlope *= 3600; // per hour
+              tXVar = 'DG.ScatterPlotModel.hoursLabel'.loc();
+            }
+            else {
+              tSlope *= 3600 * 24; // per day
+              tXVar = 'DG.ScatterPlotModel.daysLabel'.loc();
+            }
+            tSlopeString = tSlopeNumFormat(tSlope) + " ";
+            if (tSlopeString !== "0 ")  // Implies intercept is meaningless because 0 of x-axis is arbitrary
+              tInterceptString = tSign = "";
+          },
+
+          getSlopeUnit = function () {
+            var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit'),
+                tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit'),
+                tSlash = (tXUnit === '') ? '' : '/';
+            return (tXUnit === '' && tYUnit === '') ? '' :
+                      '(' + tYUnit + tSlash + tXUnit + ')';
+          },
+
+          getInterceptUnit = function () {
+            var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit');
+            return (tYUnit === '') ? '' : '(' + tYUnit + ')';
+          };
 
       var kSlopeInterceptForm = 'DG.ScatterPlotModel.slopeIntercept',// y,slope,x,signInt,Int
           tIntercept = this_.getPath('model.intercept'),
@@ -92,14 +105,14 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
               tSlope, tIntercept,
               this_.get('xAxisView'), this_.get('yAxisView')),
           tIntNumFormat = DG.Format.number().fractionDigits(0, tDigits.interceptDigits),
-          tInterceptString = tIntNumFormat(tIntercept),
+          tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnit(),
           tSlopeNumFormat = DG.Format.number().fractionDigits(0, tDigits.slopeDigits),
-          tSlopeString = tSlopeNumFormat(tSlope) + " ",
+          tSlopeString = tSlopeNumFormat(tSlope) + getSlopeUnit() + " ",
           tSign = (tIntercept < 0) ? " " : " + ",
           tXIsDateTime = this_.getPath('xAxisView.isDateTime'),
           tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
           tXVar = this_.getPath('xAxisView.model.firstAttributeName');
-      if( tXIsDateTime) {
+      if (tXIsDateTime) {
         handleDateTime();
       }
       // When the intercept string is zero, don't display it (even if the numeric value is not zero).
@@ -113,7 +126,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
         tXVar = '';
         tSign = '';
       }
-      return kSlopeInterceptForm.loc( tYVar, tSlopeString, tXVar, tSign, tInterceptString);
+      return kSlopeInterceptForm.loc(tYVar, tSlopeString, tXVar, tSign, tInterceptString);
     }
 
     function equationForInfiniteSlopeLine() {
