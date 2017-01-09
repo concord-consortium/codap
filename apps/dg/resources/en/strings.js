@@ -566,8 +566,8 @@ SC.stringsFor('English', {
   'DG.MapView.gridControlHint': "Change size of grid rectangles",  // "Change size of grid rectangles"
 
   // Inspector
-  'DG.Inspector.values': "Values",  // "Values"
-  'DG.Inspector.styles': "Styles",  // "Styles"
+  'DG.Inspector.values': "Measure",  // "Measure"
+  'DG.Inspector.styles': "Format",  // "Format"
   'DG.Inspector.pointSize': "Point size:",  // "Point size:"
   'DG.Inspector.transparency': "Transparency:",  // "Transparency:"
   'DG.Inspector.color': "Color:",  // "Color:"
