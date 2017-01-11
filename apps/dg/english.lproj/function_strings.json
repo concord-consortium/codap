@@ -490,9 +490,9 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
-        "name": "argument",
-        "type": "filter",
-        "description": "A default parameter if using a filter. If there is no default, the last case evaluates as empty."
+        "name": "deliminator",
+        "type": "value",
+        "description": "An argument that allows you to specify the value that next should take if there is no next case."
       },
       {
         "name": "filter",
@@ -501,7 +501,8 @@
       }
     ],
     "examples": [
-      "next(Velocity) returns the value of the attribute Velocity for the next case",
+      "next(Velocity) returns the value of the attribute velocity for the next case",
+      "next(Height,0,Sex=\"f\") returns the Height of the next female, 0 if none",
       "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case"
     ]
   },
@@ -515,9 +516,9 @@
         "description": "Will be evaluated in the context of the next case, return the resulting value."
       },
       {
-        "name": "argument",
-        "type": "filter",
-        "description": "A default parameter if using a filter. If there is no default, the first case evaluates as empty."
+        "name": "deliminator",
+        "type": "value",
+        "description": "An argument that allows you to specify the value that prev should take if there is no previous case."
       },
       {
         "name": "filter",
@@ -526,8 +527,10 @@
       }
     ],
     "examples": [
-      "prev(Height/Armspan) returns the ratio of height to Armspan for the previous case in the data set",
-      "prev(Height, Sex=\"female\") returns the previous value for the attribute height for which the attribute Sex is female"
+      "prev(height/armspan) returns the ratio of height to armspan for the previous case in the data set",
+      "prev(Factor, 1) will return the previous value of Factor for all cases except the first, for which it returns 1",
+      "prev(numberInLine,0,Flavor=\"strawberry\") returns the closest previous value of numberInLine for which Flavor has the value \"strawberry\"",
+      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female"
     ]
   },
   /*
