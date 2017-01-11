@@ -94,7 +94,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
             tCountLayer = this.get('layer'),
             tNumValues = this.getPath('model.values').length,
             tNumRegions = (tNumValues === 1) ? 0 : Math.ceil(tNumValues / 2),
-            tNumCounts = this.get('isShowingCountElements') ? tNumValues + 1 : 0,
+            tNumCounts = this.get('isShowingCountElements') ? (tNumValues === 0 ? 0 : tNumValues + 1) : 0,
             tAnchor = this.getPath('valueAxisView.orientation') === 'horizontal' ?
                 'middle' : 'end',
             tElement;
