@@ -330,7 +330,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)));
         }
         if (resourceSelector.caseByID) {
-          result.caseByID = result.collection && result.collection.getCaseByID(resourceSelector.caseByID);
+          result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
         }
         if (resourceSelector.caseByIndex) {
           result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
@@ -952,8 +952,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCaseByIndexOrID: {
         get: function (iResources) {
-          var collection = iResources.collection;
+          function getCollectionClientFromCase(myCase, dataContext) {
+            var collection = myCase.get('collection');
+            var id = collection.get('id');
+            return dataContext.getCollectionByID(id);
+          }
+          var dataContext = iResources.dataContext;
           var myCase = iResources.caseByIndex || iResources.caseByID;
+          var collection = iResources.collection || getCollectionClientFromCase(myCase, dataContext);
           var values;
           if (myCase) {
             values = {
