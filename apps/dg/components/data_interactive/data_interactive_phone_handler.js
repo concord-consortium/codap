@@ -946,6 +946,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return  {
           id: iCase.id,
           parent: (iCase.parent && iCase.parent.id),
+          collection: {
+            name: iCollection.get('name'),
+            id: iCollection.get('id')
+          },
           values: values
         };
       },
