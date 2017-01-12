@@ -301,7 +301,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'logMessage',
               'dataContextList',
               'undoChangeNotice',
-              'undoableActionPerformed'].indexOf(resourceSelector.type) < 0) {
+              'undoableActionPerformed',
+              'component',
+              'componentList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
