@@ -19,6 +19,7 @@
 // ==========================================================================
 
 sc_require('formula/function_registry');
+sc_require('utilities/DataUtilities');
 
 /**
   Implements the basic builtin functions and registers them with the FunctionRegistry.
@@ -36,7 +37,7 @@ DG.functionRegistry.registerFunctions((function() {
     'beginsWith': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iTarget) {
-        var string = String(iString), target = String(iTarget);
+        var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget);
         if (!target) return true;
         if (!string) return false;
         return string.indexOf(target) === 0;
@@ -52,7 +53,7 @@ DG.functionRegistry.registerFunctions((function() {
     'charAt': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iPosition) {
-        var string = String(iString);
+        var string = DG.DataUtilities.toString(iString);
         if (iPosition < 0) iPosition += string.length + 1;
         return string.charAt(iPosition - 1);
       }
@@ -81,7 +82,7 @@ DG.functionRegistry.registerFunctions((function() {
     'endsWith': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iTarget) {
-        var string = String(iString), target = String(iTarget);
+        var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget);
         if (!target) return true;
         if (!string) return false;
         if (target.length > string.length) return false;
@@ -103,7 +104,7 @@ DG.functionRegistry.registerFunctions((function() {
     'findString': {
       minArgs:2, maxArgs:3, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iTarget, iPosition) {
-        var string = String(iString), target = String(iTarget),
+        var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget),
             position = iPosition || 0;
         if (!DG.isNumeric(position)) return 0;
         if (!target) return 1;
@@ -124,7 +125,7 @@ DG.functionRegistry.registerFunctions((function() {
     'includes': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iTarget) {
-        var string = String(iString), target = String(iTarget);
+        var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget);
         if (!target) return true;
         if (!string) return false;
         return string.indexOf(target) >= 0;
@@ -157,7 +158,7 @@ DG.functionRegistry.registerFunctions((function() {
     'repeatString': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iCount) {
-        var string = String(iString);
+        var string = DG.DataUtilities.toString(iString);
         if (!string || !iCount) return "";
         var i, result = "";
         for (i = 0; i < iCount; ++i) {
@@ -179,7 +180,7 @@ DG.functionRegistry.registerFunctions((function() {
     'replaceChars': {
       minArgs:4, maxArgs:4, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iPosition, iLength, iReplace) {
-        var string = String(iString);
+        var string = DG.DataUtilities.toString(iString);
         if (!string) return "";
         var position;
         if (!iPosition) {
@@ -211,7 +212,7 @@ DG.functionRegistry.registerFunctions((function() {
     'replaceString': {
       minArgs:3, maxArgs:3, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iTarget, iReplace) {
-        var string = String(iString), target = String(iTarget);
+        var string = DG.DataUtilities.toString(iString), target = DG.DataUtilities.toString(iTarget);
         if (!target) return string;
         var re = DG.StringUtilities.createEscapedRegExp(target, 'g');
         return string.replace(re, iReplace);
@@ -230,9 +231,9 @@ DG.functionRegistry.registerFunctions((function() {
     'sortItems': {
       minArgs:1, maxArgs:2, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iDelimiter) {
-        var tList = String(iString),
+        var tList = DG.DataUtilities.toString(iString),
             tResult;
-        iDelimiter = iDelimiter || '';
+        iDelimiter = iDelimiter || ',';
         tResult = tList.split(iDelimiter).sort();
 
         return tResult.join( iDelimiter);
@@ -250,7 +251,7 @@ DG.functionRegistry.registerFunctions((function() {
     'split': {
       minArgs:2, maxArgs:3, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iSeparator, iIndex) {
-        var string = String(iString),
+        var string = DG.DataUtilities.toString(iString),
             index = iIndex ? iIndex : 1,
             results = string.split(iSeparator);
         return ((index >= 1) && (index <= results.length))
@@ -270,7 +271,7 @@ DG.functionRegistry.registerFunctions((function() {
     'subString': {
       minArgs:2, maxArgs:3, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString, iPosition, iLength) {
-        var string = String(iString);
+        var string = DG.DataUtilities.toString(iString);
         if (!string) return '';
         if (!iPosition) iPosition = 1;
         var position = iPosition >= 1 ? iPosition - 1 : iPosition + string.length,
@@ -286,7 +287,7 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'stringLength': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryString',
-      evalFn: function(iString) { return String(iString).length; }
+      evalFn: function(iString) { return DG.DataUtilities.toString(iString).length; }
     },
 
     /**
@@ -296,7 +297,7 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'toLower': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryString',
-      evalFn: function(iString) { return String(iString).toLowerCase(); }
+      evalFn: function(iString) { return DG.DataUtilities.toString(iString).toLowerCase(); }
     },
 
     /**
@@ -306,7 +307,7 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'toUpper': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryString',
-      evalFn: function(iString) { return String(iString).toUpperCase(); }
+      evalFn: function(iString) { return DG.DataUtilities.toString(iString).toUpperCase(); }
     },
 
     /**
@@ -317,7 +318,7 @@ DG.functionRegistry.registerFunctions((function() {
     'trim': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryString',
       evalFn: function(iString) {
-        return String(iString)
+        return DG.DataUtilities.toString(iString)
                 .trim()
                 .replace(/[\s\uFEFF\xA0][\s\uFEFF\xA0]*/g, " ");
       }
