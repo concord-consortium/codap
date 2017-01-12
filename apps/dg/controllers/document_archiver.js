@@ -210,6 +210,7 @@ DG.DocumentArchiver = SC.Object.extend(
         console.log('stats: ' + JSON.stringify(stats));
         return stats;
       }
+
       function guaranteeUnique(name, nameArray) {
         var ix = 0;
         var newName = name;

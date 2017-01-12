@@ -602,7 +602,7 @@ DG.main = function main() {
           firstSheet = document.styleSheets[0];
 
       if ("insertRule" in firstSheet) {
-        firstSheet.insertRule(selector + "{" + rule + "}");
+        firstSheet.insertRule(selector + "{" + rule + "}", 0);
       }
       else if ("addRule" in firstSheet) {
         firstSheet.addRule(selector, rule);

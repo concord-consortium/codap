@@ -493,7 +493,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       return {success: success};
     },
   /**
-    Creates a case according to the arguments specified.
+    Creates one or more cases according to the arguments specified.
     @param  {Object}                iChange
             {String}                iChange.operation -- 'createCase'|'createCases'
             {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
@@ -503,10 +503,32 @@ DG.DataContext = SC.Object.extend((function() // closure
                                     The order of the values should match the order of the attributes
                                     in the collection specification (e.g. 'initGame').
     @returns  {Object}              An object is returned
-              {Boolean}             result.success -- true on success, false on failure
-              {Number}              result.caseID -- the case ID of the newly created case
+                  {Boolean}             result.success -- true on success, false on failure
+                  {Number}              result.caseID -- the case ID of the first newly created case
+                  {[Number]}            re
+
    */
   doCreateCases: function( iChange) {
+    function createOneCase ( iValues) {
+      var properties = {};
+      var newCase;
+      if (iChange.properties) {
+        DG.ObjectMap.copy(properties, iChange.properties);
+      }
+      if (Array.isArray(iValues)) {
+        newCase = collection.createCase(properties);
+        if( newCase) {
+          collection.setCaseValuesFromArray( newCase, iValues);
+        }
+      } else {
+        properties.values = iValues;
+        newCase = collection.createCase(properties);
+      }
+      if (newCase) {
+        result.success = true;
+        result.caseIDs.push( newCase.get('id'));
+      }
+    }
     /**
      * returns true if either the collection is a child collection or the parentKey
      * resolves to an existing parent.
@@ -524,31 +546,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       return rslt;
     }.bind(this);
 
-
     var collection,
         valuesArrays,
         parentIsValid = true,
-        result = { success: false, caseIDs: [] },
-        createOneCase = function( iValues) {
-          var properties = {};
-          var newCase;
-          if (iChange.properties) {
-            DG.ObjectMap.copy(properties, iChange.properties);
-          }
-          if (Array.isArray(iValues)) {
-            newCase = collection.createCase(properties);
-            if( newCase) {
-                collection.setCaseValuesFromArray( newCase, iValues);
-            }
-          } else {
-            properties.values = iValues;
-            newCase = collection.createCase(properties);
-          }
-          if (newCase) {
-            result.success = true;
-            result.caseIDs.push( newCase.get('id'));
-          }
-        }.bind( this);
+        result = { success: false, caseIDs: [] };
 
     if( !iChange.collection) {
       iChange.collection = this.get('childCollection');

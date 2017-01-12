@@ -609,13 +609,16 @@ DG.DocumentController = SC.Object.extend(
           tParams.layout = {};
         }
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
+        var tRestoredName = iComponent.getPath('componentStorage.name');
         tComponentView = DG.ComponentView.restoreComponent(tParams);
         iComponent.set('title', tRestoredTitle);
+        iComponent.set('name', tRestoredName || tRestoredTitle);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent(tParams);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
         tComponent.set('title', iParams.title);
+        tComponent.set('name', iParams.name || iParams.title);
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
             defaultFirstResponder.beginEditing();
@@ -1381,6 +1384,18 @@ DG.DocumentController = SC.Object.extend(
     getComponentByName: function (name) {
       var components = DG.ObjectMap.values(DG.currDocumentController().get('components'));
       return components.find(function(c) { return c.get('name') === name; });
+    },
+
+    /**
+     * Retrieve component by id.
+     *
+     */
+    getComponentByID: function (id) {
+      if (isNaN(id)) {
+        return;
+      }
+      var components = DG.ObjectMap.values(DG.currDocumentController().get('components'));
+      return components.find(function (c) { return Number(c.get('id')) === Number(id); });
     },
 
     /**

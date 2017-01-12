@@ -328,7 +328,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.component) {
-          result.component = DG.currDocumentController().getComponentByName(resourceSelector.component);
+          result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
+              DG.currDocumentController().getComponentByID(resourceSelector.component);
         }
         if (resourceSelector.global) {
           result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
@@ -1164,84 +1165,295 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         };
       },
 
-      handleComponent: {
-       create: function (iResource, iValues) {
-         var doc = DG.currDocumentController();
-         var type = iValues.type;
-         var typeClass;
-         var rtn;
-         switch (type) {
-           case 'graph':
-               typeClass = 'DG.GraphView';
-             break;
-           case 'caseTable':
-               typeClass = 'DG.TableView';
-             break;
-           case 'map':
-             typeClass = 'DG.MapView';
-             break;
-           case 'slider':
-             typeClass = 'DG.SliderView';
-             break;
-           case 'calculator':
-             typeClass = 'DG.Calculator';
-             break;
-           case 'text':
-             typeClass = 'DG.TextView';
-             break;
-           case 'webView':
-             typeClass = 'SC.WebView';
-             break;
-           case 'guide':
-             typeClass = 'DG.GuideView';
-             break;
-           default:
-         }
-         if (!SC.none(typeClass)) {
-           iValues.document = doc;
-           iValues.type = typeClass;
-           // the allowMoreThanOne=false restriction is historical. It prevented
-           // proliferation of components when a document was repeatedly opened
-           // we default to allowing any number. It is a DI's responsibility
-           // to avoid proliferation.
-           iValues.allowMoreThanOne = true;
-           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
-           //rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
-         } else {
-           DG.log('Unknown component type: ' + type);
-         }
-         return {
-           success: !SC.none(rtn)
-         };
-       },
+      handleComponent: (function () {
+        // map CODAP Component types to DI-API component types
+        var kTypeMap = {
+          'DG.Calculator': 'calculator',
+          'DG.CaseTableView': 'caseTable',
+          'DG.GameView': 'game',
+          'DG.GraphView': 'graph',
+          'DG.GuideView': 'guideView',
+          'DG.MapView': 'map',
+          'DG.SliderView': 'slider',
+          'DG.TextView': 'text',
+          'DG.WebView': 'webView'
+        };
 
-       update: function (iResources, iValues) {
-         var context = iResources.dataContext;
-         ['title', 'description'].forEach(function (prop) {
-             if (iValues[prop]) {
-               context.set(prop, iValues[prop]);
-             }
-         });
-         return {
-           success: true
-         };
-       },
+        // map DI-API component types to CODAP Component types
+        var kResourceMap = {
+          'calculator': 'DG.Calculator',
+          'caseTable': 'DG.CaseTableView',
+          'game': 'DG.GameView',
+          'graph': 'DG.GraphView',
+          'guideView': 'DG.GuideView',
+          'map': 'DG.MapView',
+          'slider': 'DG.SliderView',
+          'text': 'DG.TextView',
+          'webView': 'DG.WebView'
+        };
 
-       // remove, for now, or until we understand user needs
-       get: function (iResources) {
-         var component = iResources.component;
-         return {
-           success: true,
-           values: component.get('model').toArchive()
-         };
-       },
+        var directMapping = function (key, value) {
+          return {key: key, value: value};
+        };
 
-       'delete': function (iResource) {
-         var component = iResource.component;
-         component.destroy();
-         return {success: true};
-       }
-      },
+        // correspondence of DI-API properties to ComponentStorage properties.
+        //
+        // Direct means a one-to-one mapping.
+        var kComponentStorageProperties = {
+          calculator: {
+            name: directMapping,
+            title: directMapping
+          },
+          caseTable: {
+            name: directMapping,
+            title: directMapping,
+          },
+          game: {
+            currentGameName: function (key, value) {
+              return {key: 'name', value: value};
+            },
+            currentGameUrl: function (key, value) {
+              return {key: 'URL', value: value};
+            },
+            name: function (key, value) {
+              return {key: 'currentGameName', value: value};
+            },
+            title: directMapping,
+            URL: function (key, value) {
+              return {key: 'currentGameUrl', value: value};
+            }
+          },
+          graph: {
+            name: directMapping,
+            title: directMapping
+          },
+          guideView: {
+            name: directMapping,
+            title: directMapping,
+          },
+          map: {
+            name: directMapping,
+            title: directMapping,
+            // todo: need more information than key/value to resolve
+            // todo: can the component constructor resolve?
+            legendColl: 'tbd',
+            legendAttr: 'tbd',
+            legendAttributeName: 'tbd',
+            // todo: is this necessary? Will the map constructor be attentive to this?
+            dataContextName: function (key, value) {
+              return {key: 'context', value: DG.currDocumentController().getContextByName(value)};
+            },
+            context: function (key, value) {
+              return {key: 'dataContextName', value: value.get('name')};
+            }
+          },
+          slider: {
+            animationDirection: directMapping,
+            animationMode: directMapping,
+            // todo: does slider construct global or is it expected to exist before?
+            globalValueName: 'mapped',
+            lowerBound: directMapping,
+            name: directMapping,
+            title: directMapping,
+            upperBound: directMapping,
+            value: directMapping
+          },
+          text: {
+            name: directMapping,
+            text: directMapping,
+            title: directMapping
+          },
+          webView: {
+            name: directMapping,
+            title: directMapping,
+            URL: directMapping,
+          }
+        };
+
+        function remapProperties(from, to, componentType) {
+          var mapping = kComponentStorageProperties[componentType];
+          if (!mapping) {
+            return;
+          }
+          Object.keys(from).forEach(function (key) {
+            var mappingType = mapping[key];
+            var m;
+            if (typeof mappingType === 'function') {
+              m = mappingType(key, from[key]);
+              to[m.key] = m.value;
+            }
+          });
+        }
+
+        function mapGraphLinkPropertiesFromDI(iIn, iOut) {
+          // map 'context', 'xColl', 'xAttr', 'yColl', 'yAttr', 'y2Coll', 'y2Attr', 'legendColl', 'legendAttr'
+          // yAttr appears to be an array
+          var document = DG.currDocumentController();
+          var context = iIn.dataContext && document.getContextByName(iIn.dataContext);
+          if (context) {
+            DG.ArchiveUtils.addLink(iOut, 'context', context);
+            ['xColl', 'yColl', 'y2Coll', 'legendColl'].forEach(function (axisCollection) {
+              var collection = iIn[axisCollection]
+                  && context.getCollectionByName(iIn[axisCollection]);
+              if (collection) {
+                DG.ArchiveUtils.addLink(iOut, axisCollection, collection);
+              }
+            });
+            ['xAttr', 'yAttr', 'y2Attr', 'legendAttr'].forEach(function (axisAttr) {
+              var attrs =  iIn[axisAttr] && context.getAttributeByName(iIn[axisAttr]);
+              if (attrs) {
+                if (!Array.isArray(attrs)) { attrs = [attrs]}
+                attrs.forEach(function (attr) {
+                  DG.ArchiveUtils.addLink(iOut, axisAttr, attr);
+                });
+              }
+            });
+          }
+        }
+
+        return {
+          create: function (iResource, iValues) {
+            var doc = DG.currDocumentController();
+            var type = iValues.type;
+            var typeClass = type && kResourceMap[type];
+            var props = {
+              componentStorage: {}
+            };
+            var rtn, errorMessage;
+            if (!SC.none(typeClass)) {
+              props.document = doc;
+              props.type = typeClass;
+              // the allowMoreThanOne=false restriction is historical. It prevented
+              // proliferation of components when a document was repeatedly opened
+              // we default to allowing any number. It is a DI's responsibility
+              // to avoid proliferation.
+              props.allowMoreThanOne = true;
+
+              props.layout = {};
+              if (iValues.dimensions) {
+                props.layout = Object.assign(props.layout, iValues.dimensions);
+              }
+              if (iValues.position) {
+                if (typeof iValues.position === 'string') {
+                  props.position = iValues.position;
+                } else if (typeof iValues.position === 'object') {
+                  props.layout = Object.assign(props.layout, iValues.position);
+                }
+              }
+
+              remapProperties(iValues, props.componentStorage, type);
+
+              if (iValues.type === 'graph') {
+                mapGraphLinkPropertiesFromDI(iValues, props.componentStorage);
+              }
+              rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+              errorMessage = !rtn && 'Component creation failed';
+            } else {
+              errorMessage = 'Unknown component type: ' + type;
+            }
+            if (rtn) {
+              return {
+                success: true,
+                values: {
+                  id: rtn.getPath('model.id'),
+                  name: rtn.getPath('model.name'),
+                  title: rtn.get('title'),
+                  type: iValues.type
+                }
+              };
+            } else {
+              return {
+                success: false,
+                values: {
+                  error: errorMessage || 'Unknown error'
+                }
+              };
+            }
+          },
+
+          update: function (iResources, iValues) {
+            var context = iResources.dataContext;
+            ['title', 'description'].forEach(function (prop) {
+              if (iValues[prop]) {
+                context.set(prop, iValues[prop]);
+              }
+            });
+            return {
+              success: true
+            };
+          },
+
+          get: function (iResources) {
+            function remapArchiveComponent(archive) {
+              function extractDataContextName(componentStorage) {
+                var dataContextID = DG.ArchiveUtils.getLinkID(componentStorage, 'context');
+                var dataContext = DG.store.find(dataContextID);
+                return dataContext && dataContext.get('name');
+              }
+              var rtn = {};
+              // DG.log('Get Component: ' + JSON.stringify(archive));
+              var componentStorage = archive.componentStorage;
+              var layout = archive.layout;
+
+
+              rtn.type = kTypeMap[archive.type];
+              if (layout) {
+                if (layout.height || layout.width) {
+                  rtn.dimensions = {
+                    height: layout.height || 0,
+                    width: layout.width || 0
+                  };
+                }
+                if (layout.left || layout.top) {
+                  rtn.position = {
+                    left: layout.left || 0,
+                    top: layout.top || 0
+                  };
+                }
+              }
+              if (componentStorage) {
+                remapProperties(componentStorage, rtn, rtn.type);
+              }
+              switch (rtn.type) {
+                case 'caseTable':
+                  rtn.dataContextName = extractDataContextName(componentStorage);
+                  break;
+                case 'graph':
+                  break;
+                case 'map':
+                  break;
+                default:
+              }
+              return rtn;
+            }
+            var component = iResources.component;
+            var archive = component.toArchive();
+            var serialized = archive && remapArchiveComponent(archive);
+            if (serialized) {
+              return {
+                success: true,
+                values: serialized
+              };
+            } else {
+              return {
+                success: false,
+                values: {
+                  error: 'Could not serialize component.'
+                }
+              };
+            }
+          },
+
+          'delete': function (iResource) {
+            var component = iResource.component;
+            component.destroy();
+            return {success: true};
+          },
+          'toDIType': function (iCODAPType) {
+            return kTypeMap[iCODAPType];
+          }
+        };
+      })(),
 
       handleComponentList: {
         get: function (iResources) {
@@ -1252,9 +1464,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             result.push( {
               id: component.get('id'),
               name: component.get('name'),
-              title: component.get('title')
+              title: component.get('title'),
+              type: this.handleComponent.toDIType(component.get('type'))
             });
-          });
+          }.bind(this));
           return {
             success: true,
             values: result
