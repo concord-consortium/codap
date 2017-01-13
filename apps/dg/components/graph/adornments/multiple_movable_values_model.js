@@ -97,44 +97,47 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
    Also compute counts and percents for each region
   */
   recomputeValue: function( iAxis) {
-    var tEdges = [];
-    this.get('values').forEach( function( iValue) {
-      iValue.recomputeValueIfNeeded( iAxis);
-      tEdges.push( iValue.get('value'));
-    });
-    tEdges.sort( function(a, b) {
-      return b - a; // reverse sort
-    });
-    var tCountPercents = [];
-    for(var tIndex = 0; tIndex <= tEdges.length; tIndex++)
-      tCountPercents.push( { count: 0, percent: 0});
-    var tCases = this.getPath('plotModel.cases'),
-        tNumericVarID = this.getPath( 'plotModel.primaryVarID'),
-        tTotalCount = 0;
+    var tEdges = [],
+        tCountPercents = [],
+        tValues = this.get('values');
+    if( tValues.length > 0) {
+      tValues.forEach(function (iValue) {
+        iValue.recomputeValueIfNeeded(iAxis);
+        tEdges.push(iValue.get('value'));
+      });
+      tEdges.sort(function (a, b) {
+        return b - a; // reverse sort
+      });
+      for (var tIndex = 0; tIndex <= tEdges.length; tIndex++)
+        tCountPercents.push({count: 0, percent: 0});
+      var tCases = this.getPath('plotModel.cases'),
+          tNumericVarID = this.getPath('plotModel.primaryVarID'),
+          tTotalCount = 0;
 
-    tCases.forEach( function( iCase ) {
-      var tNumericValue = iCase.getNumValue( tNumericVarID);
-      if( isFinite( tNumericValue)) {
-        var tBinIndex = tEdges.findIndex( function( iValue) {
-          return tNumericValue > iValue;
-        });
-        if( tBinIndex === -1)
-          tBinIndex = 0;
-        else
-          tBinIndex = tEdges.length - tBinIndex;
-        var tCPObj = tCountPercents[ tBinIndex];
-        tCPObj.count++;
-        tTotalCount++;
-      }
-    });
-    tEdges.sort( function(a, b) {
-      return a - b; // ascending sort
-    });
-    tCountPercents.forEach( function( iCPObj, iIndex) {
-      iCPObj.percent = 100 * iCPObj.count / tTotalCount;
-      iCPObj.lower = ( iIndex === 0) ? iAxis.get('lowerBound') : tEdges[ iIndex - 1];
-      iCPObj.upper = ( iIndex === tEdges.length) ? iAxis.get('upperBound') : tEdges[iIndex];
-    });
+      tCases.forEach(function (iCase) {
+        var tNumericValue = iCase.getNumValue(tNumericVarID);
+        if (isFinite(tNumericValue)) {
+          var tBinIndex = tEdges.findIndex(function (iValue) {
+            return tNumericValue > iValue;
+          });
+          if (tBinIndex === -1)
+            tBinIndex = 0;
+          else
+            tBinIndex = tEdges.length - tBinIndex;
+          var tCPObj = tCountPercents[tBinIndex];
+          tCPObj.count++;
+          tTotalCount++;
+        }
+      });
+      tEdges.sort(function (a, b) {
+        return a - b; // ascending sort
+      });
+      tCountPercents.forEach(function (iCPObj, iIndex) {
+        iCPObj.percent = 100 * iCPObj.count / tTotalCount;
+        iCPObj.lower = ( iIndex === 0) ? iAxis.get('lowerBound') : tEdges[iIndex - 1];
+        iCPObj.upper = ( iIndex === tEdges.length) ? iAxis.get('upperBound') : tEdges[iIndex];
+      });
+    }
 
     this.set('countPercents', tCountPercents);
     this._needsComputing = false;
@@ -227,6 +230,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
     DG.assert( tIndex >= 0 );
     iValue.removeObserver('value', this, 'valueDidChange');
     tValues.splice( tIndex, 1);
+    this.recomputeValue(this.get('axisModel'));
     iValue.notifyPropertyChange('removed');
     this.notifyPropertyChange('values');
   },
