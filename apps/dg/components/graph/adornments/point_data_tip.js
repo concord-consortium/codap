@@ -69,6 +69,7 @@ DG.PointDataTip = DG.DataTip.extend(
               if (SC.none(tDigits))  // Can happen for maps when there is no axis view
                 tDigits = 2;
               tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
+              tNumFormat.group(''); // Don't separate with commas
               tValue = tNumFormat(tCase.getNumValue(tAttrID));
             }
             else {
