@@ -408,7 +408,7 @@ DG.ComponentView = SC.View.extend(
         }), // containerView
         borderRight: DG.DragBorderView.design(
             {
-              layout: {right: 0, width: kDragWidth},
+              layout: {top: kTitleBarHeight, right: 0, width: kDragWidth},
               dragCursor: kRightBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
@@ -470,7 +470,7 @@ DG.ComponentView = SC.View.extend(
             }),
         borderCorner: DG.DragBorderView.design(
             {
-              layout: {right: 0, width: 3 * kDragWidth, bottom: 0, height: 3 * kDragWidth},
+              layout: {right: 0, width: 2 * kDragWidth, bottom: 0, height: 2 * kDragWidth},
               dragCursor: kCornerBorderCursor,
               dragAdjust: function (evt, info) {
                 // Don't let user drag right edge off left of window
