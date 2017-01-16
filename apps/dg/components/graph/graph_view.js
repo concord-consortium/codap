@@ -469,7 +469,8 @@ DG.GraphView = SC.View.extend(
               tXAxisView.notifyPropertyChange('drawHeight');
 
             var tCurrYWidth = tYAxisView.get('layout').width;
-            tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth, top: tNumberToggleHeight + tFunctionViewHeight});
+            tYAxisView.adjust({bottom: tLegendHeight, width: tYWidth,
+              top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight});
             if (tCurrYWidth !== tYWidth)
               tYAxisView.notifyPropertyChange('drawWidth');
 
