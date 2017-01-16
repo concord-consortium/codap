@@ -177,6 +177,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 labelView: this_._hiddenDragView,
                 viewToAddTo: this_,
                 attributeDescription: this_.getPath('model.attributeDescription'),
+                attributeName: this_.getPath('model.attributeDescription.attributes')[iIndex].get('name'),
                 dataContext: this_.getPath('model.dataConfiguration.dataContext')
               }));
               this_._labelNodes.push(tNode);
