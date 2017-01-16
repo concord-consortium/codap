@@ -74,7 +74,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? 'vertical' : 'horizontal';
       }.property('primaryAxisPlace'),
 
-      multipleMovableValuesModel: function() {
+      multipleMovableValuesModel: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues');
         if (!tMultipleMovableValues) {
           tMultipleMovableValues = DG.MultipleMovableValuesModel.create({
@@ -88,10 +88,19 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.property(),
 
       /**
+       * @property {Boolean}
+       */
+      isShowingMovableValues: function () {
+        return this.getPath('multipleMovableValuesModel.values').length > 0;
+      }.property(),
+
+      /**
        * True because we can display percents with movable values
        * @property {Boolean}
        */
-      wantsPercentCheckbox: true,
+      wantsPercentCheckbox: function() {
+        return this.get('isShowingMovableValues');
+      }.property(),
 
       destroy: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues');
@@ -104,16 +113,22 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       /**
        We override our base class because we want to handle display of counts and percents
        in our multipleMovableValues adornment.
+       However, if we have no movable values, we defer to our base class.
        */
       togglePlottedCount: function (iWhat) {
 
-        var toggle = function () {
-          var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
-              tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
-          tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
-        }.bind(this);
+        if (!this.get('isShowingMovableValues')) {
+          sc_super();
+          return;
+        }
 
-        var tInitialValue = this.getPath('multipleMovableValuesModel.isShowing' + iWhat),
+        var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
+            toggle = function () {
+              var tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
+              tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
+            }.bind(this),
+
+            tInitialValue = tMultipleMovableValues.get('isShowing' + iWhat),
             tUndo = tInitialValue ? ('DG.Undo.graph.hide' + iWhat) : ('DG.Undo.graph.show' + iWhat),
             tRedo = tInitialValue ? ('DG.Redo.graph.hide' + iWhat) : ('DG.Redo.graph.show' + iWhat);
         DG.UndoHistory.execute(DG.Command.create({
@@ -134,8 +149,11 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        * Override base class to refer to multipleMovableValuesModel
        @return { Boolean }
        */
-      shouldPlottedCountBeChecked: function( iWhat) {
-        return this.multipleMovableValuesModel && this.getPath('multipleMovableValuesModel.isShowing' + iWhat);
+      shouldPlottedCountBeChecked: function (iWhat) {
+        if( this.get('isShowingMovableValues'))
+          return this.getPath('multipleMovableValuesModel.isShowing' + iWhat);
+        else
+          return sc_super();
       },
 
       /**
