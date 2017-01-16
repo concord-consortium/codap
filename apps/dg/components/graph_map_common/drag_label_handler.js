@@ -47,6 +47,11 @@ DG.DragLabelHandler = SC.Object.extend(
     attributeDescription: null,
 
     /**
+     * @property {String}
+     */
+    attributeName: null,
+
+    /**
      * @property{DG.DataContext}
      */
     dataContext: null,
@@ -60,7 +65,7 @@ DG.DragLabelHandler = SC.Object.extend(
      */
     handleStartDrag: function( iX, iY, iEvent) {
       var tDragView = this.labelView,
-          tAttributeName = this.labelNode.get('text');
+          tAttributeName = this.get('attributeName');
       SC.run(function () {
         // Make sure dragView is in front. Won't actually happen without this runloop.
         tDragView.set('value', tAttributeName);
@@ -76,7 +81,7 @@ DG.DragLabelHandler = SC.Object.extend(
       if( this.receivedStartDrag && !this.receivedDoDrag) {
         this.receivedDoDrag = true;
         var tDragView = this.labelView,
-            tAttributeName = this.labelNode.get('text'),
+            tAttributeName = this.get('attributeName'),
             tAttrDesc = this.attributeDescription,
             tAttribute = tAttrDesc.attributeNamed( tAttributeName),
             tCollectionClient = tAttrDesc.get('collectionClient'),
