@@ -151,7 +151,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
               tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
-              tLabels, tNumAttributes, tNode;
+              tLabels, tNumAttributes, tNode, tAttribute;
           if (SC.none(this._paper))
             return [];
 
@@ -172,14 +172,17 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 colorIndex: tBaseLabelIndex + iIndex,
                 numColors: tNumAttributes,
                 priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
-              tNode.setDragLabelHandler( DG.DragLabelHandler.create({
-                labelNode: tNode,
-                labelView: this_._hiddenDragView,
-                viewToAddTo: this_,
-                attributeDescription: this_.getPath('model.attributeDescription'),
-                attributeName: this_.getPath('model.attributeDescription.attributes')[iIndex].get('name'),
-                dataContext: this_.getPath('model.dataConfiguration.dataContext')
-              }));
+              tAttribute = this_.getPath('model.attributeDescription.attributes')[iIndex];
+              if( tAttribute) {
+                tNode.setDragLabelHandler(DG.DragLabelHandler.create({
+                  labelNode: tNode,
+                  labelView: this_._hiddenDragView,
+                  viewToAddTo: this_,
+                  attributeDescription: this_.getPath('model.attributeDescription'),
+                  attributeName: tAttribute.get('name'),
+                  dataContext: this_.getPath('model.dataConfiguration.dataContext')
+                }));
+              }
               this_._labelNodes.push(tNode);
               tChangeHappened = true;
             }
