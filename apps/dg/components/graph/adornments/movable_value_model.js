@@ -52,10 +52,12 @@ DG.MovableValueModel = DG.PlotAdornmentModel.extend(
     @return { Boolean }
   */
   isComputingNeeded: function( iAxis) {
+/*
     if( this._needsComputing)
       return true;
     this._needsComputing = (this.value < iAxis.get('lowerBound')) || 
                             (this.value > iAxis.get('upperBound'));
+*/
     return this._needsComputing;
   },
 

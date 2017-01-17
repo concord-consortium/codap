@@ -123,7 +123,7 @@ DG.Drag = SC.Drag.extend({
    *  Overridden to get a better destination for the slideBack than SC provides
    * */
   _slideGhostViewBack: function () {
-    if( !this.origin)
+    if( !this.origin || SC.none( this.origin.x) || SC.none( this.origin.y) )
         sc_super();
     else if (this.ghostView) {
       var slidebackLayout = { top: this.origin.y, left: this.origin.x };

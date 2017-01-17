@@ -66,8 +66,8 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         this.set('countElements', []);
       },
 
-      destroy: function() {
-        this.valueAdornments.forEach( function( iAdorn) {
+      destroy: function () {
+        this.valueAdornments.forEach(function (iAdorn) {
           iAdorn.destroy();
         });
         sc_super();
@@ -83,18 +83,18 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         ['isShowingCount', 'updateToModel'], ['isShowingPercent', 'updateToModel']],
 
       createElements: function () {
-        function removeElement(iElement) {
-          tCountLayer.prepareToMoveOrRemove(iElement);
-          iElement.remove();
-        }
-        var tMyElements = this.get('myElements'),
+        var removeElement = function () {
+              tCountLayer.prepareToMoveOrRemove(this);
+              this.remove();
+            },
+            tMyElements = this.get('myElements'),
             tShadingElements = this.get('shadingElements'),
             tCountElements = this.get('countElements'),
             tShadingLayer = this.get('shadingLayer'),
             tCountLayer = this.get('layer'),
             tNumValues = this.getPath('model.values').length,
             tNumRegions = (tNumValues === 1) ? 0 : Math.ceil(tNumValues / 2),
-            tNumCounts = this.get('isShowingCountElements') ? tNumValues + 1 : 0,
+            tNumCounts = this.get('isShowingCountElements') ? (tNumValues === 0 ? 0 : tNumValues + 1) : 0,
             tAnchor = this.getPath('valueAxisView.orientation') === 'horizontal' ?
                 'middle' : 'end',
             tElement;
@@ -205,16 +205,16 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
 
             adjustPercentsAndCounts = function () {
 
-              function formatValueString( iCPObj) {
+              function formatValueString(iCPObj) {
                 var tCPString = '';
-                if( tShowCount && !tShowPercent) {
+                if (tShowCount && !tShowPercent) {
                   tCPString = iCPObj.count.toString();
                 }
-                else if( tShowPercent && !tShowCount) {
-                  tCPString = '%@%'.fmt( Math.round(iCPObj.percent));
+                else if (tShowPercent && !tShowCount) {
+                  tCPString = '%@%'.fmt(Math.round(iCPObj.percent));
                 }
-                else if( tShowCount && tShowPercent) {
-                  tCPString = '%@ (%@%)'.fmt( iCPObj.count, Math.round(iCPObj.percent));
+                else if (tShowCount && tShowPercent) {
+                  tCPString = '%@ (%@%)'.fmt(iCPObj.count, Math.round(iCPObj.percent));
                 }
                 return tCPString;
               }
@@ -227,13 +227,13 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
                   tCountElements = this.get('countElements'),
                   tCountPercents = this.getPath('model.countPercents');
               tCountPercents.forEach(function (iObj, iIndex) {
-                var tLowerCoord = tAxisView.dataToCoordinate( iObj.lower),
-                    tUpperCoord = tAxisView.dataToCoordinate( iObj.upper),
+                var tLowerCoord = tAxisView.dataToCoordinate(iObj.lower),
+                    tUpperCoord = tAxisView.dataToCoordinate(iObj.upper),
                     tY = tOrientation === 'horizontal' ? tLabelSpace / 2 + 12 :
-                            (tLowerCoord + tUpperCoord) / 2,
+                        (tLowerCoord + tUpperCoord) / 2,
                     tX = tOrientation === 'horizontal' ? (tLowerCoord + tUpperCoord) / 2 : tPaper.width - 5;
-                tCountElements[ iIndex].attr( { x: tX, y: tY, text: formatValueString( iObj)});
-              }.bind( this));
+                tCountElements[iIndex].attr({x: tX, y: tY, text: formatValueString(iObj)});
+              }.bind(this));
 
             }.bind(this);
 
@@ -245,8 +245,8 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         });
 
         adjustShadedRegions();
-        if( this.get('isShowingCountElements'))
-            adjustPercentsAndCounts();
+        if (this.get('isShowingCountElements'))
+          adjustPercentsAndCounts();
       }
 
     });
