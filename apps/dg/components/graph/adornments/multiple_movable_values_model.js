@@ -177,7 +177,8 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
         return iV1.get('value') - iV2.get('value');
       });
       while( tIndex <= tValues.length) {
-        var tValue = (tIndex === tValues.length) ? tAxisUpper : tValues[ tIndex].get('value'),
+        var tValue = (tIndex === tValues.length) ? tAxisUpper :
+               Math.max(tAxisLower, Math.min( tAxisUpper, tValues[ tIndex].get('value'))),
             tPrevValue = (tIndex === 0) ? tAxisLower : tValues[ tIndex - 1].get('value');
         if( tValue - tPrevValue > tMaxGap) {
           tMaxGap = tValue - tPrevValue;
