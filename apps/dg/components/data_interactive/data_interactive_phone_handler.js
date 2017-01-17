@@ -301,7 +301,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'logMessage',
               'dataContextList',
               'undoChangeNotice',
-              'undoableActionPerformed'].indexOf(resourceSelector.type) < 0) {
+              'undoableActionPerformed',
+              'component',
+              'componentList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
@@ -330,7 +332,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)));
         }
         if (resourceSelector.caseByID) {
-          result.caseByID = result.collection && result.collection.getCaseByID(resourceSelector.caseByID);
+          result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
         }
         if (resourceSelector.caseByIndex) {
           result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
@@ -946,14 +948,24 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return  {
           id: iCase.id,
           parent: (iCase.parent && iCase.parent.id),
+          collection: {
+            name: iCollection.get('name'),
+            id: iCollection.get('id')
+          },
           values: values
         };
       },
 
       handleCaseByIndexOrID: {
         get: function (iResources) {
-          var collection = iResources.collection;
+          function getCollectionClientFromCase(myCase, dataContext) {
+            var collection = myCase.get('collection');
+            var id = collection.get('id');
+            return dataContext.getCollectionByID(id);
+          }
+          var dataContext = iResources.dataContext;
           var myCase = iResources.caseByIndex || iResources.caseByID;
+          var collection = iResources.collection || getCollectionClientFromCase(myCase, dataContext);
           var values;
           if (myCase) {
             values = {

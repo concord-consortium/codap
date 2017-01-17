@@ -233,21 +233,10 @@ DG.Case = DG.BaseModel.extend((function() {
     getStrValue: function( iAttrID, oOptInfo) {
       var value = this.getValue( iAttrID),
           valType = typeof value;
-      if (DG.isDate(value)) {
-        // treat dates as strings
-        value = convertValue(value);
-        valType = "string";
-      }
       if( oOptInfo) {
         oOptInfo.type = valType;
       }
-      switch( valType) {
-        case "number":
-        case "string":
-        case "boolean":
-          return String( value);
-      }
-      return "";
+      return DG.DataUtilities.toString(value);
     },
 
     /**

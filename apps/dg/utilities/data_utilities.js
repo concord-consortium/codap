@@ -211,3 +211,29 @@ DG.DataUtilities.isEqualIgnoreCase = function( iDataValue1, iDataValue2 ) {
     }
 
 };
+
+/**
+ * Converts the input value to a string value, if it is not already.
+ *
+ * Converts dates according to the default date format.
+ * Converts nulls and undefined to the empty string.
+ *
+ * @param {*} iValue The value to be converted.
+ * @returns {String}
+ */
+DG.DataUtilities.toString = function (iValue) {
+    var valType = typeof iValue;
+    if (DG.isDate(iValue)) {
+      // treat dates as strings
+      iValue = DG.DataUtilities.formatDate(iValue);
+      valType = "string";
+    }
+    switch( valType) {
+      case "string":
+        return iValue;
+      case "number":
+      case "boolean":
+        return String( iValue);
+    }
+    return "";
+}
