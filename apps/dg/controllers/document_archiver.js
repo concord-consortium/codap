@@ -35,7 +35,7 @@
  *
  * @extends SC.Object
  */
-/* globals CSV: true */
+/* globals Papa: true*/
 
 DG.DocumentArchiver = SC.Object.extend(
 /** @scope DG.DocumentArchiver.prototype */ {
@@ -250,9 +250,53 @@ DG.DocumentArchiver = SC.Object.extend(
         tAttrsArray = tDoc.contexts[0].collections[0].attrs,
         tCasesArray = tDoc.contexts[0].collections[0].cases;
 
-      CSV.RELAXED = true;
-      CSV.IGNORE_RECORD_LENGTH = true;
-      tValuesArray = CSV.parse(iText);
+      // a euro number is...
+      //                     + optional sign value
+      //                     |     + either grouped whole number using dots or spaces for grouping
+      //                     |     |                            + or ungrouped whole number
+      //                     |     |                            |       + followed optionally by a comma decimal separator
+      //                     |     |                            |       |   +git and either decimal digits or
+      //                     v     v                            v       v   v        v grouped decimal digits
+      var isEuroNumberRE = /^[-+]?(([0-9]{1,3}([. ][0-9]{3})*)|([0-9]*))(,(([0-9]*)|([0-9]{3}[. ])[0-9]{1,3}))?$/;
+
+      var result = Papa.parse(iText, {
+        dynamicTyping: false,
+        header: false,
+        skipEmptyLines: true
+      });
+
+      if (result.errors && result.errors.length > 0) {
+        DG.logWarn("CSV Parse errors (%@): %@".loc(iFileName, JSON.stringify(result.errors)));
+      }
+
+      // if we have a csv with semicolon separators we assume are using the EU
+      // number representation (comma as the decimal separator), so we convert
+      // anything that looks like an EU number to standard representation.
+      DG.log("CSV Parse Metadata: %@".loc(JSON.stringify(result.meta)));
+      var euroDelimiter = (result.meta && result.meta.delimiter === ';');
+      tValuesArray = result.data.map(function (row) {
+        return row.map(function (str) {
+          if (str === null || str === undefined) {
+            return str;
+          }
+          str = str.trim();
+          if (str.length === 0) {
+            return str;
+          }
+          // converts a euro number string to a US number string
+          var isEuroNumber = euroDelimiter && isEuroNumberRE.test(str);
+          if (isEuroNumber) {
+            return Number(str.replace(/[. ]/g, '').replace(/,/, '.'));
+          } else {
+            if (!isNaN(str)) {
+              return Number(str);
+            } else {
+              return str;
+            }
+          }
+        });
+      });
+
       tTableStats = getTableStats(tValuesArray);
 
       if (!tValuesArray || tValuesArray.length < 1) {
