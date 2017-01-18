@@ -74,11 +74,12 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
   },
 
   /**
-   * Note that our values are out of date, for lazy evaluation.
+   *  We do not set that our values need computing because these are only re-evaluated when
+   *  the axis attribute changes.
    */
   setComputingNeeded: function () {
     this._needsComputing = true;
-  }.observes('plotModel'),
+  }.observes('plotModel', 'isShowingCount', 'isShowingPercent'),
 
   /**
     True if any of my values needs computing
@@ -87,9 +88,6 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
   isComputingNeeded: function( iAxis) {
     if( this._needsComputing)
       return true;
-    return this.get('values').some( function( iValue) {
-      return iValue.get('isComputingNeeded');
-    });
   },
 
   /**
@@ -102,7 +100,6 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
         tValues = this.get('values');
     if( tValues.length > 0) {
       tValues.forEach(function (iValue) {
-        iValue.recomputeValueIfNeeded(iAxis);
         tEdges.push(iValue.get('value'));
       });
       tEdges.sort(function (a, b) {
@@ -152,7 +149,17 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
       this.recomputeValue( iAxis);
   },
 
+  /**
+   * Pass to my values
+   */
+  handleChangedAxisAttribute: function() {
+    this.get('values').forEach( function( iValue) {
+      iValue.handleChangedAxisAttribute( this.get('axisModel'));
+    }.bind( this));
+  },
+
   valueDidChange: function() {
+    this.setComputingNeeded();
     this.notifyPropertyChange('values');
   },
 
@@ -177,7 +184,8 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
         return iV1.get('value') - iV2.get('value');
       });
       while( tIndex <= tValues.length) {
-        var tValue = (tIndex === tValues.length) ? tAxisUpper : tValues[ tIndex].get('value'),
+        var tValue = (tIndex === tValues.length) ? tAxisUpper :
+               Math.max(tAxisLower, Math.min( tAxisUpper, tValues[ tIndex].get('value'))),
             tPrevValue = (tIndex === 0) ? tAxisLower : tValues[ tIndex - 1].get('value');
         if( tValue - tPrevValue > tMaxGap) {
           tMaxGap = tValue - tPrevValue;
@@ -200,6 +208,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
     }
     this.get('values').push( tValue);
     tValue.addObserver( 'value', this, 'valueDidChange');
+    this.setComputingNeeded();
     this.notifyPropertyChange('values');
     return tValue;
   },

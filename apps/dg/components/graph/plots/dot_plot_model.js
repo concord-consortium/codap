@@ -125,6 +125,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
             toggle = function () {
               var tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
+              tMultipleMovableValues.setComputingNeeded();
               tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
             }.bind(this),
 
@@ -157,17 +158,28 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
-       * Add another movable value
+       * Add another movable value.
+       * If it's the first one, we may have to deal with counts showing via the base class adornment.
        */
       addMovableValue: function () {
         var tAddedValue,
 
             doAddMovableValue = function () {
-              var tMultipleMovableValues = this.get('multipleMovableValuesModel');
-              if (tAddedValue)
+              var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
+                  tNumAlreadyShowing = tMultipleMovableValues.get('values').length,
+                  tPlottedCount = this.get('plottedCount'), // from base class
+                  tBaseClassCountIsShowing = (tNumAlreadyShowing === 0) && tPlottedCount &&
+                      tPlottedCount.get('isShowingCount');
+              if (tAddedValue) {
                 tMultipleMovableValues.addThisValue(tAddedValue);
+                tAddedValue = null;
+              }
               else
                 tAddedValue = tMultipleMovableValues.addValue();
+              if( tBaseClassCountIsShowing) {
+                tPlottedCount.set('isShowingCount', false);
+                tMultipleMovableValues.set('isShowingCount', true);
+              }
             }.bind(this),
 
             doUndoAddMovableValue = function () {
@@ -190,16 +202,36 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       removeMovableValue: function () {
         var tMultipleMovableValues = this.getAdornmentModel('multipleMovableValues'),
-            tRemovedValue,
+            tRemovedValue, tPlottedCount;
+
+        if( !tMultipleMovableValues)
+          return;
+
+        var tShowing = { count: tMultipleMovableValues.get('isShowingCount'),
+                          percent: tMultipleMovableValues.get('isShowingPercent')},
+            tNumShowing = tMultipleMovableValues.get('values').length,
 
             doRemoveMovableValue = function () {
-              if (tMultipleMovableValues)
+              if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
+                tPlottedCount = this.get('plottedCount');
+                tPlottedCount.set('isShowingCount', tShowing.count);
+                tPlottedCount.set('isShowingPercent', tShowing.percent);
+              }
+              if( tRemovedValue)
+                tMultipleMovableValues.removeThisValue( tRemovedValue);
+              else
                 tRemovedValue = tMultipleMovableValues.removeValue();
             }.bind(this),
 
             doUndoRemoveMovableValue = function () {
-              if (tMultipleMovableValues && tRemovedValue)
-                tMultipleMovableValues.addThisValue(tRemovedValue);
+              tMultipleMovableValues.addThisValue(tRemovedValue);
+              tRemovedValue = null;
+              if( tNumShowing === 1 && (tShowing.count || tShowing.percents) ) {
+                tMultipleMovableValues.set('isShowingCount', tShowing.count);
+                tMultipleMovableValues.set('isShowingPercent', tShowing.percent);
+                this.setPath('plottedCount.isShowingCount', false);
+                this.setPath('plottedCount.isShowingPercent', false);
+              }
             }.bind(this);
 
         DG.UndoHistory.execute(DG.Command.create({
@@ -298,12 +330,12 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var kAllowShrinkage = true, kAnimate = true, kDontLog = false;
         this.rescaleAxesFromData(kAllowShrinkage, kAnimate, kDontLog);
 
-        ['movableValue', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
+        ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
           var adornmentModel = this.getAdornmentModel(iAdornmentKey);
           if (adornmentModel) {
             if (adornmentModel.setComputingNeeded)
               adornmentModel.setComputingNeeded();  // invalidate if axis model/attribute change
-            if (iAdornmentKey === 'movableValue') {
+            if (iAdornmentKey === 'multipleMovableValues') {
               adornmentModel.recomputeValueIfNeeded(this.get('primaryAxisModel'));
             }
             else {
@@ -311,6 +343,13 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }
           }
         }.bind(this));
+      },
+
+      /**
+       * Pass to my multipleMovableValues. We do this only after axis bounds have changed
+       */
+      onRescaleIsComplete: function() {
+        this.get('multipleMovableValuesModel').handleChangedAxisAttribute();
       },
 
       /**

@@ -110,6 +110,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         }
         while (tShadingElements.length > tNumRegions) {
           tElement = tShadingElements.pop();
+          tShadingLayer.prepareToMoveOrRemove( tElement);
           DG.ArrayUtils.remove(tMyElements, tElement);
           tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
               removeElement);
@@ -126,6 +127,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         }
         while (tCountElements.length > tNumCounts) {
           tElement = tCountElements.pop();
+          tCountLayer.prepareToMoveOrRemove( tElement);
           DG.ArrayUtils.remove(tMyElements, tElement);
           tElement.animate({'opacity': 0}, DG.PlotUtilities.kDefaultAnimationTime, '<>',
               removeElement);

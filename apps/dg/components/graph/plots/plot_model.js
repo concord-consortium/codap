@@ -247,7 +247,15 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   /**
     @property { DG.PlottedCountModel }
   */
-  plottedCount: null,
+  _plottedCount: null,
+  plottedCount: function() {
+    if( !this._plottedCount) {
+      this._plottedCount = DG.PlottedCountModel.create({plotModel: this});
+      this.setAdornmentModel('plottedCount', this._plottedCount); // Add to list of adornments
+      this._plottedCount.recomputeValue(); // initialize
+    }
+    return this._plottedCount;
+  }.property(),
 
   /**
    * May be overridden, e.g. by DotPlotModel
@@ -259,8 +267,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     @return { Boolean }
   */
   shouldPlottedCountBeChecked: function( iWhat) {
-    var tPlottedCount = this.get('plottedCount');
-    return !SC.none( tPlottedCount) && tPlottedCount.get('isShowing' + iWhat);
+    return this.getPath('plottedCount.isShowing' + iWhat);
   },
 
   /**
@@ -296,13 +303,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     var this_ = this;
 
     function toggle() {
-      if( SC.none( this_.plottedCount)) {
-        this_.beginPropertyChanges();
-          this_.set('plottedCount', DG.PlottedCountModel.create({plotModel: this_}));
-          this_.setAdornmentModel('plottedCount', this_.get('plottedCount')); // Add to list of adornments
-          this_.plottedCount.recomputeValue(); // initialize
-        this_.endPropertyChanges();  // Default is to be visible
-      }
       var tCurrentValue = this_.getPath('plottedCount.isShowing' + iWhat);
       this_.setPath('plottedCount.isShowing' + iWhat, !tCurrentValue);
     }
@@ -320,7 +320,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       }.bind(this),
       undo: function() {
         toggle();
-      }.bind(this),
+      }.bind(this)
     }));
   },
 
@@ -884,7 +884,6 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         tPlottedCount = this.get('plottedCount');
 
     if( tPlottedCount) {  // copy plottedCount for all PlotModel types
-      DG.log("transferring Show Count to new plot of type %@", iNewPlotModel.constructor );
       tAdornmentModels.plottedCount = tPlottedCount;
       tPlottedCount.set('plotModel', iNewPlotModel);
     }
