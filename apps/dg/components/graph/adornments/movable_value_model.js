@@ -34,38 +34,12 @@ DG.MovableValueModel = DG.PlotAdornmentModel.extend(
   value: 1,
 
   /**
-    Private cache.
-    @property { Boolean }
-  */
-  _needsComputing: true,
-
-  init: function() {
-    sc_super();
-    var tPlotModel = this.get('plotModel');
-    if( tPlotModel) {
-      this.recomputeValue( tPlotModel.get('primaryAxisModel'));
-    }
-  },
-  
-  /**
     True if we need to compute a new value to force within plot bounds
     @return { Boolean }
   */
-  isComputingNeeded: function( iAxis) {
-/*
-    if( this._needsComputing)
-      return true;
-    this._needsComputing = (this.value < iAxis.get('lowerBound')) || 
-                            (this.value > iAxis.get('upperBound'));
-*/
-    return this._needsComputing;
-  },
-
-  /**
-    Force a recomputation at next opportunity.
-   */
-  setComputingNeeded: function() {
-    this._needsComputing = true;
+  handleChangedAxisAttribute: function( iAxis) {
+    if( (this.value < iAxis.get('lowerBound')) || (this.value > iAxis.get('upperBound')))
+        this.recomputeValue( iAxis);
   },
 
   /**
@@ -77,14 +51,6 @@ DG.MovableValueModel = DG.PlotAdornmentModel.extend(
   
     this.set('value', tLower + (tUpper - tLower) / 3);
     this._needsComputing = false;
-  },
-
-  /**
-    Use the bounds of the given axes to recompute slope and intercept.
-  */
-  recomputeValueIfNeeded: function( iAxis) {
-    if( this.isComputingNeeded( iAxis))
-      this.recomputeValue( iAxis);
   },
 
   createStorage: function() {

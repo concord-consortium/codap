@@ -125,6 +125,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var tMultipleMovableValues = this.get('multipleMovableValuesModel'),
             toggle = function () {
               var tCurrentValue = tMultipleMovableValues.get('isShowing' + iWhat);
+              tMultipleMovableValues.setComputingNeeded();
               tMultipleMovableValues.set('isShowing' + iWhat, !tCurrentValue);
             }.bind(this),
 
@@ -329,12 +330,12 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         var kAllowShrinkage = true, kAnimate = true, kDontLog = false;
         this.rescaleAxesFromData(kAllowShrinkage, kAnimate, kDontLog);
 
-        ['movableValue', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
+        ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
           var adornmentModel = this.getAdornmentModel(iAdornmentKey);
           if (adornmentModel) {
             if (adornmentModel.setComputingNeeded)
               adornmentModel.setComputingNeeded();  // invalidate if axis model/attribute change
-            if (iAdornmentKey === 'movableValue') {
+            if (iAdornmentKey === 'multipleMovableValues') {
               adornmentModel.recomputeValueIfNeeded(this.get('primaryAxisModel'));
             }
             else {
@@ -342,6 +343,13 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }
           }
         }.bind(this));
+      },
+
+      /**
+       * Pass to my multipleMovableValues. We do this only after axis bounds have changed
+       */
+      onRescaleIsComplete: function() {
+        this.get('multipleMovableValuesModel').handleChangedAxisAttribute();
       },
 
       /**
