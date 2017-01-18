@@ -25,6 +25,7 @@ sc_require('utilities/DataUtilities');
   Implements the basic builtin functions and registers them with the FunctionRegistry.
  */
 DG.functionRegistry.registerFunctions((function() {
+  var kDefaultSortItemsDelimiter = ',';
 
   return {
     /**
@@ -233,7 +234,9 @@ DG.functionRegistry.registerFunctions((function() {
       evalFn: function(iString, iDelimiter) {
         var tList = DG.DataUtilities.toString(iString),
             tResult;
-        iDelimiter = iDelimiter || ',';
+        if (iDelimiter === undefined || iDelimiter === null) {
+          iDelimiter = kDefaultSortItemsDelimiter;
+        }
         tResult = tList.split(iDelimiter).sort();
 
         return tResult.join( iDelimiter);
