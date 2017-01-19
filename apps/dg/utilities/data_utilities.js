@@ -236,4 +236,4 @@ DG.DataUtilities.toString = function (iValue) {
         return String( iValue);
     }
     return "";
-}
+};
