@@ -278,7 +278,7 @@ DG = SC.Application.create((function () // closure
     runKey: getUrlParameter('runKey') || '',
 
     /**
-     * componentMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     * componentMode can be passed as a Url parameter named componentMode with values 'yes' or 'no'.
      *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars.
      *  The default is 'no'.
      */
@@ -289,12 +289,19 @@ DG = SC.Application.create((function () // closure
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
 
     /**
-     * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     * embeddedMode can be passed as a Url parameter named embeddedMode with values 'yes' or 'no'.
      *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars or the background image and
      *  a iframePhone server will be setup to enable communication with the outside page.
      *  The default is 'no'.
      */
     embeddedMode: getUrlParameter('embeddedMode', 'no'),
+
+    /**
+     * exportFilesViaPostMessage can be passed as a Url parameter named exportFilesViaPostMessage with values 'yes' or 'no'.
+     * With the value 'yes' DG will send the exported data (such as when the camera tool is used) to the containing window instead
+     * of calling the export file function of the CFM.  The parameter is ignored if CODAP is not contained in an iframe.
+     */
+    exportFilesViaPostMessage: window.parent ? getUrlParameter('exportFilesViaPostMessage', 'no') : 'no',
 
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',

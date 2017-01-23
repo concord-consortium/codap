@@ -585,9 +585,22 @@ DG.main = function main() {
       });
 
       // Add CFM-specific global functions
-      DG.exportFile = function(data, extension, mimetype, callback) {
-        DG.cfmClient.saveSecondaryFileAsDialog(data, extension, mimetype, callback);
-      };
+      if (DG.exportFilesViaPostMessage !== "yes") {
+        DG.exportFile = function(data, extension, mimetype, callback) {
+          DG.cfmClient.saveSecondaryFileAsDialog(data, extension, mimetype, callback);
+        };
+      }
+    }
+  }
+
+  if (DG.exportFilesViaPostMessage === "yes") {
+    DG.exportFile = function(data, extension, mimetype, callback) {
+      window.parent.postMessage({
+        action: "exportFile",
+        extension: extension,
+        mimetype: mimetype,
+        data: data
+      }, "*");
     }
   }
 
