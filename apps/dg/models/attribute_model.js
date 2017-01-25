@@ -115,6 +115,13 @@ DG.Attribute = DG.BaseModel.extend(
     editable: false,
 
     /**
+     * True if the attribute is hidden from the user, false otherwise.
+     * By default attributes are visible.
+     * @property {Boolean}
+     */
+    hidden: false,
+
+    /**
      * True if the attribute is renameable, false otherwise.
      * @property {Boolean}
      */
@@ -387,6 +394,7 @@ DG.Attribute = DG.BaseModel.extend(
         colormap: this.colormap || undefined,
         blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
         editable: this.editable,
+        hidden: this.hidden,
         formula: this.hasFormula()? this.formula: undefined,
         guid: this.id,
         precision: this.precision,

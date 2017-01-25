@@ -45,6 +45,7 @@ test('test DG.Attribute', function() {
       editable: true
     }),
     tFormAttr = tCollectionModel.createAttribute({ name: 'yesFormula', formula: '42' }),
+    tAttrHidden = tCollectionModel.createAttribute({name: 'hidden', hidden: true}),
     tID,
     tAnother;
 
@@ -62,6 +63,7 @@ test('test DG.Attribute', function() {
   // features
   equals( tAttr.hasFormula(), false, 'Empty attribute has no formula.');
   equals( tFormAttr.hasFormula(), true, 'Formula attribute has a formula.');
+  equals( tAttrHidden.get('hidden'), true, 'Hidden attribute is hidden.');
 
   equals( tFormAttr.evalFormula(), 42, 'Simple formulae with no namespace evaluate correctly.');
   tFormAttr.set('formula', 'sqrt(49)');

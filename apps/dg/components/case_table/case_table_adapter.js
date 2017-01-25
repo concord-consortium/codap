@@ -342,7 +342,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             }
           };
       updateDynamicColumnProperties( iAttribute, columnInfo);
-      columnDefs.push( columnInfo);
+      if(! iAttribute.get('hidden')) {
+        columnDefs.push( columnInfo);
+      }
     }
 
     function updateNewAttributeColumnDefinition() {
