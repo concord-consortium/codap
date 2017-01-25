@@ -8,3 +8,5 @@ nbproject
 .pt
 # Packages
 node_modules/
+.ruby-gemset
+.ruby-version
