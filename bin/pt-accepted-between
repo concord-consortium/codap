@@ -16,10 +16,10 @@ API_SERVICE="projects/$PROJECT_ID/search"
 
 [ "$2" = "" ] && usage
 
-QS1="query=type:bug+includedone:true+state:accepted,delivered+accepted_since:$1+accepted_before:$2"
-QS2="query=type:feature+includedone:true+state:accepted,delivered+accepted_since:$1+accepted_before:$2"
-QS3="query=type:chore+includedone:true+state:accepted,delivered+accepted_since:$1+accepted_before:$2"
-QS4="query=type:release+includedone:true+state:accepted,delivered+accepted_since:$1+accepted_before:$2"
+QS1="query=type:bug+includedone:true+state:accepted,delivered+updated_since:$1+updated_before:$2"
+QS2="query=type:feature+includedone:true+state:accepted,delivered+updated_since:$1+updated_before:$2"
+QS3="query=type:chore+includedone:true+state:accepted,delivered+updated_since:$1+updated_before:$2"
+QS4="query=type:release+includedone:true+state:accepted,delivered+updated_since:$1+updated_before:$2"
 JQ_QUERY='[.stories.stories[]|{id:.id, name:.name, type:.story_type, labels:.labels, accepted:.accepted_at}]|sort_by(.id)|.[]|"\(.id) \(.name)"'
 #JQ_QUERY='[.stories.stories[]|{id:.id, name:.name, type:.story_type, accepted: .accepted_at}]|sort_by(.id)|.[]'
 
