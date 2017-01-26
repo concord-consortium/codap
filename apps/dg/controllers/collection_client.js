@@ -210,6 +210,15 @@ DG.CollectionClient = SC.Object.extend(
     return this.attrsController.getEach('name');
   },
 
+    /**
+     Returns an array with the names of the visible attributes in the collection.
+     Omits any attributes with 'hidden' property set to true
+     @returns    {[string]}   The array of attribute names
+     */
+    getVisibleAttributeNames: function() {
+      return this.attrsController.filterProperty('hidden', false).getEach('name');
+    },
+
   /**
     Returns the number of attributes in the collection.
     @returns    {Number}    The number of attributes in the collection

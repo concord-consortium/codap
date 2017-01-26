@@ -745,7 +745,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           tContexts.forEach( function( iContext) {
             iContext.forEachCollection( function( iCollClient) {
               var tName = iCollClient.get('name'),
-                  tAttrNames = iCollClient.getAttributeNames();
+                  tAttrNames = iCollClient.getVisibleAttributeNames();
               tMenuItems.push({ title: tName,
                 subMenu: tAttrNames.map( function( iAttrName) {
                   return { title: iAttrName, collection: iCollClient, context: iContext };
