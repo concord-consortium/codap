@@ -138,10 +138,9 @@ DG.GraphController = DG.DataDisplayController.extend(
         makePngImage: function () {
           var componentView = this.get('view');
           var graphView = componentView && componentView.get('contentView');
-          var svgElements = graphView.$('svg');
           var width = graphView.getPath('frame.width');
           var height = graphView.getPath('frame.height');
-          this.convertToImage(svgElements, 0, 0, width, height);
+          this.convertToImage(graphView.get('layer'), width, height);
         },
 
 
