@@ -136,6 +136,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             labelView: this._hiddenDragView,
             viewToAddTo: this,
             attributeDescription: this.getPath('model.attributeDescription'),
+            attributeName: this.getPath('model.attributeDescription.attribute.name'),
             dataContext: this.getPath('model.dataConfiguration.dataContext')
           }) );
 
