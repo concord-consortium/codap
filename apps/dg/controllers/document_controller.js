@@ -760,6 +760,22 @@ DG.DocumentController = SC.Object.extend(
         name: "graphComponent.create",
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
+        executeNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'create',
+            type: 'graph'
+          }
+        },
+        undoNotification: {
+          action: 'notify',
+          resource: 'component',
+          values: {
+            operation: 'delete',
+            type: 'graph'
+          }}
+          ,
         log: 'Create graph component',
         isUndoable: !isInitialization,
         _component: null,
@@ -785,6 +801,11 @@ DG.DocumentController = SC.Object.extend(
                                   isResizable: true}
                                 );
           this._component = tView.getPath('controller.model');
+
+          // add id's to notifications
+          this.executeNotification.values.id = this._component.get('id');
+          this.undoNotification.values.id = this._component.get('id');
+
 
           SC.Benchmark.end('addGraph');
           SC.Benchmark.log('addGraph');

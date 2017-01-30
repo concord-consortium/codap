@@ -55,6 +55,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       connected: false,
 
+      /**
+       * Initiates a message to the Data Interactive Plugin from codap with
+       * optional callback
+       *
+       * @param message {Object}
+       * @param callback {Function} (optional)
+       */
+      sendMessage: function (message, callback) {
+        this.rpcEndpoint.call(message, callback);
+      },
+
       handlerMap: null,
 
       contextCountDidChange: function () {
@@ -66,7 +77,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }.bind(this));
 
         // send notification to DI
-        this.rpcEndpoint.call({
+        this.sendMessage({
           action: 'notify',
           resource: 'documentChangeNotice',
           values: {
@@ -211,7 +222,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (!changes || changes.length === 0) {
           return;
         }
-        this.rpcEndpoint.call({
+        this.sendMessage({
           action: 'notify',
           resource: 'dataContextChangeNotice[' + dataContextName + ']',
           values: changes
@@ -227,7 +238,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * @param {function} callback
        */
       requestDataInteractiveState: function (callback) {
-        this.rpcEndpoint.call({
+        this.sendMessage({
           action: 'get',
           resource: 'interactiveState'
         }, callback);
@@ -1281,11 +1292,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 // then calling undo or redo here will likely fail because the game's undo stack would
                 // probably have been cleared.
                 var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
-                rpcEndpoint.call(message, handleUndoRedoCompleted);
+                sendMessage(message, handleUndoRedoCompleted);
               },
               redo: function () {
                 var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
-                rpcEndpoint.call(message, handleUndoRedoCompleted);
+                sendMessage(message, handleUndoRedoCompleted);
               }
             }));
             return true;
