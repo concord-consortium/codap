@@ -104,7 +104,7 @@ DG.LabelNode = SC.Object.extend(
       }.observes('text'),
 
       descriptionChanged: function() {
-        this._textElement.attr('title', this.description);
+        this._textElement.attr({title: this.description});
       }.observes('description'),
 
       locChanged: function() {

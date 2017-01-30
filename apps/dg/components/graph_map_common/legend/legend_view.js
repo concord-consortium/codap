@@ -122,7 +122,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       */
       labelNode: function() {
         var tChangeHappened = false,
-            tText;
+            tText, tDescription;
         if( SC.none( this._paper))
           return;
 
@@ -146,6 +146,12 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         // If the text has changed, we set it and notify
         if( tText !== this._labelNode.get('text')) {
           this._labelNode.set('text', tText );
+          tChangeHappened = true;
+        }
+        tDescription = this.getPath('model.attributeDescription.attribute.description') + '—' +
+            SC.String.loc( 'DG.LegendView.attributeTooltip');
+        if( tDescription !== this._labelNode.get('description')) {
+          this._labelNode.set('description', tDescription );
           tChangeHappened = true;
         }
         if( tChangeHappened)
