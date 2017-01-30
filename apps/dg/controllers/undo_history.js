@@ -31,7 +31,13 @@
  * @extends SC.Object
 */
 DG.UndoHistory = SC.Object.create((function() {
-/** @scope DG.UndoHistory.prototype */
+  var kStateNotifyMap = [
+      'nan',
+      /*EXECUTE*/ 'executeNotification',
+      /*UNDO*/    'undoNotification',
+      /*REDO*/    'redoNotification'
+  ]
+  /** @scope DG.UndoHistory.prototype */
   return {
 
     EXECUTE: 1,
@@ -105,6 +111,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this._clearRedo();
 
       this._logAction(command, this.EXECUTE);
+      this._notify(command, this.EXECUTE);
       this._dirtyDocument(command.changedObject);
     },
 
@@ -151,6 +158,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
 
       this._logAction(command, this.UNDO);
+      this._notify(command, this.UNDO);
       this._dirtyDocument(command.changedObject);
     },
 
@@ -197,6 +205,7 @@ DG.UndoHistory = SC.Object.create((function() {
       this.notifyPropertyChange('_redoStack');
 
       this._logAction(command, this.REDO);
+      this._notify(command, this.REDO);
       this._dirtyDocument(command.changedObject);
     },
 
@@ -317,6 +326,15 @@ DG.UndoHistory = SC.Object.create((function() {
         this._queuedLogMessage = logString;
       } else {
         DG.logUser(logString);
+      }
+    },
+
+    _notify: function (command, state) {
+      var propName = kStateNotifyMap[state] || ((state === this.REDO) && kStateNotifyMap);
+      var prop = command[propName];
+      var notification = prop && (typeof prop === 'function')? prop(state): prop;
+      if (notification) {
+        DG.notificationManager.sendNotification(notification);
       }
     }
 
