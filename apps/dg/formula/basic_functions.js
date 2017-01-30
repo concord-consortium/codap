@@ -29,6 +29,9 @@ DG.functionRegistry.registerFunctions((function() {
     return x < 0 ? Math.ceil(x) : Math.floor(x);
   }
 
+  var savedRandomGaussian = 0;  // The routine for generating random numbers drawn from a gaussian
+                                // distribution generates two such numbers. We save one for next call
+
   return {
     // JavaScript standard Math library functions
     'abs': {
@@ -174,6 +177,38 @@ DG.functionRegistry.registerFunctions((function() {
           return x1 * Math.random();
         // random(min,max)
         return x1 + (x2 - x1) * Math.random();
+      }
+    },
+
+    /**
+      Generator for random numbers drawn from a normal distribution.
+      randomNormal()        -- Generates a random number from a normal distribution with mean 0 and sd 1.
+      randomNormal(mean)    -- Generates a random number from a normal distribution with mean mean and sd 1.
+      randomNormal(mean,sd)  -- Generates a random number from a normal distribution with mean mean and sd sd.
+      @param    {Number}  x1 -- The mean value of the normal distribution.
+      @param    {Number}  x2 -- The value of the sd of the normal distribution
+      @returns  {Number}  The generated random number
+     */
+    'randomNormal': {
+      minArgs:0, maxArgs:2, isRandom: true, category: 'DG.Formula.FuncCategoryRandom',
+      evalFn: function(mu,sigma) {
+        var	fac, rsq, v1, v2;
+        mu = mu || 0;
+        sigma = SC.none(sigma) ? 1 : sigma;
+
+        if (savedRandomGaussian !== 0) {		// Is there one left?
+          v1 = savedRandomGaussian;
+          savedRandomGaussian = 0;
+          return sigma*v1 + mu;
+        }
+        do {
+          v1 = 2 * Math.random() - 1;
+          v2 = 2 * Math.random() - 1;
+          rsq = v1*v1 + v2*v2;
+        } while (rsq >= 1);
+        fac = Math.sqrt(-2.0*Math.log(rsq)/rsq);
+        savedRandomGaussian = fac*v2;					// Save the first N(0,1) as double
+        return sigma*fac*v1 + mu;	// and return the second.
       }
     },
 

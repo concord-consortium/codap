@@ -660,6 +660,27 @@
       "random(100, 1) will return a random number between 1 and 100"
     ]
   },
+  "randomNormal": {
+    "displayName": "randomNormal",
+    "description": "Returns a random number drawn from a normal distribution which, by default, has a mean of 0 and a standard deviation of 1. The first argument determines the mean of the population and the second determines its standard deviation, which, if missing, defaults to 1.",
+    "args": [
+      {
+        "name": "mean",
+        "type": "number",
+        "description": "The mean of the population from which the random numbers are drawn."
+      },
+      {
+        "name": "sd",
+        "type": "number",
+        "description": "The standard deviation of the population from which the random numbers are drawn."
+      }
+    ],
+    "examples": [
+      "randomNormal() will return a random number drawn from a normally distributed population with mean 0 and standard deviation 1",
+      "randomNormal(100) will return a random number drawn from a normally distributed population with mean 100 and standard deviation 1",
+      "random(-10, 5) will return a random number drawn from a normally distributed population with mean -10 and standard deviation 5"
+    ]
+  },
   "string": {
     "displayName": "string",
     "description": "Converts the input value to a string.",
