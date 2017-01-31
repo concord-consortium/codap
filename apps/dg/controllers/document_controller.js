@@ -279,7 +279,6 @@ DG.DocumentController = SC.Object.extend(
         this.set('ready', false);
         this.set('content', iDocument);
 
-        // DG.DataContext.clearContextMap();
         DG.Component.clearContentMap();
         this.componentControllersMap = {};
         this._caseTableComponents = {};
@@ -1262,7 +1261,6 @@ DG.DocumentController = SC.Object.extend(
       this.componentControllersMap = {};
 
       // remove dataContexts
-      // DG.DataContext.clearContextMap();
       this.contexts = [];
 
       // remove document

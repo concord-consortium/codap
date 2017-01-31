@@ -617,12 +617,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var documentController = DG.currDocumentController();
           if (context) {
             documentController.destroyDataContext(context.get('id'));
-          return {
-            success: true
-          };
+            return {
+              success: true
+            };
           } else {
             return {
-              success: false
+              success: false,
+              values: {
+                error: 'Could not find dataContext'
+              }
             };
           }
         }

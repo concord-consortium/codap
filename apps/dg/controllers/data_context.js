@@ -271,7 +271,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       var collection = this.getCollectionAtIndex( i);
       if( collection) this.willRemoveCollection( collection);
     }
-    // delete DG.DataContext._contextMap[this.model.id];
     this.model.destroy();
     sc_super();
   },
@@ -1444,12 +1443,9 @@ DG.DataContext = SC.Object.extend((function() // closure
   },
 
   doResetCollections: function (iChange) {
-      // DG.DataContext.clearContextMap();
-//      DG.store.destroyAllRecordsOfType( DG.GlobalValue);
       DG.store.destroyAllRecordsOfType( DG.Case);
       DG.store.destroyAllRecordsOfType( DG.Attribute);
       DG.store.destroyAllRecordsOfType( DG.CollectionRecord);
-//      DG.store.destroyAllRecordsOfType( DG.DataContextRecord);
   },
 
   /**
@@ -2284,56 +2280,6 @@ DG.DataContext.registry['DG.DataContext'] = function( iProperties) {
                                               return DG.DataContext.create( iProperties);
                                             };
 
-/** @private
-  Map from context ID ==> DG.DataContext (or derived class).
-  Note that the APIs for the contextMap take a documentID, which
-  is not currently used. This is a nod to a possible future in which
-  multiple documents are likely to be supported. For now, when only
-  one document can be open at a time, we simplify our lives by
-  ignoring the documentID and assuming that all entries in the map
-  are from the same (current) document.
-  @property {Object}  A map from contextID ==> context.
- TODO: Deprecate this data structure and remove references: We should be getting context
- TODO: information via the DocumentController.
- */
-// DG.DataContext._contextMap = {};
-
-/**
-  Clear the contents of the contextMap.
-  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
- TODO: Deprecate this method and remove references: We should be getting context
- TODO: information via the DocumentController.
- */
-// DG.DataContext.clearContextMap = function( iDocumentID) {
-  // DG.DataContext._contextMap = {};
-// };
-
-/**
-  Store the specified context in the contextMap.
-  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
-  @param  {DG.DataContext}  iContext -- The context to be stored in the map
- TODO: Deprecate this method and remove references: We should be getting context
- TODO: information via the DocumentController.
- */
-// DG.DataContext.storeContextInMap = function( iDocumentID, iContext) {
-  // if( iContext) {
-  //   var contextID = iContext.get('id');
-  //   if( !SC.none( contextID))
-  //     DG.DataContext._contextMap[ contextID] = iContext;
-  // }
-// };
-
-/**
-  Retrieve the specified context from the contextMap.
-  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
-  @param  {Number}  iContextID -- The ID of the context to be retrieved from the map
- TODO: Deprecate this method and remove references: We should be getting context
- TODO: information via the DocumentController.
- */
-// DG.DataContext.retrieveContextFromMap = function( iDocumentID, iContextID) {
-//   return iContextID && DG.currDocumentController().getContextByID(iContextID);
-// };
-
 /**
  Returns an array of keys to known data contexts.
  @param  {String}  iDocumentID -- Currently unused since DG is currently single-document
@@ -2399,8 +2345,6 @@ DG.DataContext.factory = function( iProperties) {
                           var type = iProperties && iProperties.type,
                               func = type && DG.DataContext.registry[type],
                               context = func ? func( iProperties) : DG.DataContext.create( iProperties);
-                          // if( context)
-                          //   DG.DataContext.storeContextInMap( context.getPath('model.document.id'), context);
                           return context;
                         };
 
