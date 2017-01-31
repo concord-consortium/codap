@@ -25,15 +25,18 @@ test("test DG.CollectionClient", function () {
     tIDs,tNames, cases = [];
   tCollectionModel.createAttribute({ name: 'first' });
   tCollectionModel.createAttribute({ name: 'second' });
+  tCollectionModel.createAttribute({ name: 'hidden', 'hidden':true });
   cases.push(tCollectionModel.createCase({values: {first: '1', second: 'a'}}));
   cases.push(tCollectionModel.createCase({values: {first: '2', second: 'b'}}));
   tClient = DG.CollectionClient.create({});
   ok(tClient, 'Can create CollectionClient');
   tClient.setTargetCollection(tCollectionModel);
   tIDs = tClient.getAttributeIDs();
-  equals(tIDs.length, 2, 'Can get attribute IDs');
+  equals(tIDs.length, 3, 'Can get attribute IDs');
   tNames = tClient.getAttributeNames();
-  equals(tNames.length, 2, 'Can get attribute names');
+  equals(tNames.length, 3, 'Can get attribute names');
+  // hidden attributes should be excluded from getVisibleAttributeNames() result:
+  equals(tClient.getVisibleAttributeNames().length, 2, 'Can get visible attribute names');
   ok(tNames[0] === 'first' && tNames[1] === 'second', 'Attribute names match.');
   tIDs = tClient.getCaseIDs();
   equals(tIDs.length, 2, 'Can get case IDs');
