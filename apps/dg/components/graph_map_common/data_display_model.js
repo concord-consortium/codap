@@ -382,23 +382,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           }.bind( this));
           break;
         case 'deleteCollection':
-          ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
-            var tDescKey = iKey + 'AttributeDescription',
-                tAxisKey = iKey + 'Axis',
-                tCollectionClient = this.getPath('dataConfiguration.'
-                    + tDescKey + '.collectionClient'),
-                tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
-            if (tCollectionClient && tAttrs) {
-              if (tCollectionClient === iChange.collection) {
-                tAttrs.forEach(function (iPlottedAttr, iIndex) {
-                  if (iKey === 'legend')
-                    this.removeLegendAttribute();
-                  else
-                    this.removeAttribute(tDescKey, tAxisKey, iIndex);
-                }.bind(this));
-              }
-            }
-          }.bind(this)); // jshint ignore:line
+          this.dataContextOrCollectionWasDeleted(iChange.collection); // jshint ignore:line
           // fallthrough deliberate
         case 'updateAttributes':
           this.handleUpdateAttributes( iChange);
@@ -407,7 +391,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           this.notifyPropertyChange('caseOrder');
           break;
         case 'deleteDataContext':
-          this.dataContextWasDeleted();
+          this.dataContextOrCollectionWasDeleted();
           break;
         default:
           // Nothing to do
@@ -419,15 +403,25 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
 
-    dataContextWasDeleted: function () {
+    dataContextOrCollectionWasDeleted: function ( iCollection) {
       DG.log('dataContextWasDeleted');
-      // var tComponentView = this.get('view'),
-      //     tContainerView = tComponentView && tComponentView.get('parentView');
-      // tController.willCloseComponent();
-      // tController.willSaveComponent();
-      // if (tContainerView) {
-      //   tContainerView.removeComponentView( tComponentView);
-      // }
+      ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
+        var tDescKey = iKey + 'AttributeDescription',
+            tAxisKey = iKey + 'Axis',
+            tCollectionClient = this.getPath('dataConfiguration.'
+                + tDescKey + '.collectionClient'),
+            tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+        if (tCollectionClient && tAttrs) {
+          if (!iCollection || tCollectionClient === iCollection) {
+            tAttrs.forEach(function (iPlottedAttr, iIndex) {
+              if (iKey === 'legend')
+                this.removeLegendAttribute();
+              else
+                this.removeAttribute(tDescKey, tAxisKey, iIndex);
+            }.bind(this));
+          }
+        }
+      }.bind(this));
     },
     /**
      * One or more of the attributes used on this graph has been changed; e.g. by having its name changed.
