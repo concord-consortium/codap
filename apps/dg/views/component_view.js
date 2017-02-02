@@ -83,6 +83,15 @@ DG.DragBorderView = SC.View.extend(
               name: (isResize ? 'component.resize' : 'component.move'),
               undoString: (isResize ? 'DG.Undo.componentResize' : 'DG.Undo.componentMove'),
               redoString: (isResize ? 'DG.Redo.componentResize' : 'DG.Redo.componentMove'),
+              executeNotification: {
+                action: 'notify',
+                resource: 'component',
+                values: {
+                  operation: isResize ? 'resize' : 'move',
+                  type: tViewToDrag.getPath('controller.model.type'),
+                  id: tViewToDrag.getPath('controller.model.id')
+                }
+              },
               log: '%@ component "%@"'.fmt((isResize ? 'Resized' : 'Moved'), tViewToDrag.get('title')),
               _componentId: tViewToDrag.getPath('controller.model.id'),
               _controller: function () {
