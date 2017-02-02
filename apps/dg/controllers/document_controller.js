@@ -279,7 +279,6 @@ DG.DocumentController = SC.Object.extend(
         this.set('ready', false);
         this.set('content', iDocument);
 
-        DG.DataContext.clearContextMap();
         DG.Component.clearContentMap();
         this.componentControllersMap = {};
         this._caseTableComponents = {};
@@ -373,6 +372,27 @@ DG.DocumentController = SC.Object.extend(
       this.get('contexts').pushObject(context);
       return context;
     },
+
+      /**
+       * Destroys the identified data context.
+       * @param dataContextID
+       * @return whether successful. That is whether there was a dataContext
+       *    with the id to be destroyed.
+       */
+      destroyDataContext: function (dataContextID) {
+        var dataContext = this.getContextByID(dataContextID);
+        var dataContextIndex = this.contexts.findIndex(function (dc) { return dc===dataContext; });
+        if (dataContext) {
+          if (dataContextIndex >= 0) {
+            dataContext.applyChange({operation: 'deleteDataContext'});
+            this.contexts.splice(dataContextIndex, 1);
+          } else {
+            DG.warn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
+          }
+        } else {
+          return false;
+        }
+      },
 
     /**
       Creates an appropriate DG.DataContext for each DG.DataContextRecord in the document.
@@ -786,7 +806,7 @@ DG.DocumentController = SC.Object.extend(
 
           if (SC.none(iComponent) && SC.none(this._component) && DG.ObjectMap.length(tContextIds) === 1) {
             tController.set('dataContext',
-              DG.DataContext.retrieveContextFromMap(null, tContextIds[0]));
+                docController.getContextByID(tContextIds[0]));
           }
           tView = docController.createComponentView(iComponent || this._component, {
                                   parentView: iParentView,
@@ -1241,7 +1261,6 @@ DG.DocumentController = SC.Object.extend(
       this.componentControllersMap = {};
 
       // remove dataContexts
-      DG.DataContext.clearContextMap();
       this.contexts = [];
 
       // remove document

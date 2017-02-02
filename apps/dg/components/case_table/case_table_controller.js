@@ -236,8 +236,10 @@ DG.CaseTableController = DG.ComponentController.extend(
         var caseTableModel = this.getPath('model.content');
         if (caseTableModel) {
           var contextID = this.getLinkID( iStorage, 'context'),
-              collapsedNodesCount = DG.ArchiveUtils.getLinkCount(iStorage, 'collapsedNodes'),
-              dataContext = contextID && DG.DataContext.retrieveContextFromMap( iDocumentID, contextID),
+              collapsedNodesCount = DG.ArchiveUtils.getLinkCount(iStorage,
+                  'collapsedNodes'),
+              dataContext = contextID
+                  && DG.currDocumentController().getContextByID(contextID),
               attributeWidths = {},
               ix = 0;
           if (iStorage.attributeWidths) {
@@ -253,7 +255,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           }
           if (collapsedNodesCount > 0) {
             while(ix < collapsedNodesCount) {
-              caseTableModel.collapseNode(DG.store.find('DG.Case', DG.ArchiveUtils.getLinkID(iStorage, 'collapsedNodes', ix)));
+              caseTableModel.collapseNode(DG.store.find('DG.Case',
+                  DG.ArchiveUtils.getLinkID(iStorage, 'collapsedNodes', ix)));
               ix += 1;
             }
           }
@@ -344,6 +347,9 @@ DG.CaseTableController = DG.ComponentController.extend(
             this.caseCountDidChange( iChange);
             this.dataContextDidChange();
             break;
+          case 'deleteDataContext':
+            this.dataContextWasDeleted();
+            break;
           default:
             DG.logWarn('Unhandled operation: ' + iChange.operation);
           }
@@ -430,6 +436,18 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
       },
 
+      /**
+       * Reacts to a notification that this component's data context was deleted.
+       * We need to remove ourself, too.
+       *
+       */
+      dataContextWasDeleted: function () {
+        var tComponentView = this.get('view'),
+            tContainerView = tComponentView.get('parentView');
+        this.willCloseComponent();
+        this.willSaveComponent();
+        tContainerView.removeComponentView( tComponentView);
+      },
       /**
         Called when the data context notifies that case values have changed.
         @param iChange {Object}  An object describing the nature of the change
@@ -655,6 +673,32 @@ DG.CaseTableController = DG.ComponentController.extend(
         tContext.applyChange( tChange);
       },
 
+      /**
+       * Delete the current data set. This operation is not currently undo-able,
+       * so we put up a confirmation dialog.
+       */
+      deleteDataSet: function () {
+        var tContext = this.get('dataContext');
+        function doDelete() {
+          DG.currDocumentController().destroyDataContext(tContext.get('id'));
+        }
+        DG.AlertPane.warn({
+          message: 'DG.TableController.deleteDataSet.confirmMessage'.loc(tContext.get('title')),
+          description: 'DG.TableController.deleteDataSet.confirmDescription'.loc(),
+          buttons: [
+            {
+              title: 'DG.TableController.deleteDataSet.okButtonTitle',
+              action: doDelete,
+              localize: YES
+            },
+            {
+              title: 'DG.TableController.deleteDataSet.cancelButtonTitle',
+              localize: YES
+            }
+          ],
+          localize: false
+        });
+      },
       /**
         Handler for sendAction('newAttributeAction')
        */
@@ -1114,6 +1158,12 @@ DG.CaseTableController = DG.ComponentController.extend(
                 target: this,
                 action: 'deleteAllCases',
                 isEnabled: tCaseCount > 0
+              },
+              {
+                title: 'DG.Inspector.deleteDataSet',
+                localize: true,
+                target: this,
+                action: 'deleteDataSet'
               }
             ],
             tMenu = DG.MenuPane.create({

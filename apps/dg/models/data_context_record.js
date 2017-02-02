@@ -118,7 +118,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
 
     destroy: function() {
       if (this.collections) {
-        DG.ObjectMap.forEach(this.collections, function( iCollection) {
+        DG.ObjectMap.forEach(this.collections, function( iCollectionID, iCollection) {
           DG.Collection.destroyCollection( iCollection);
         });
       }

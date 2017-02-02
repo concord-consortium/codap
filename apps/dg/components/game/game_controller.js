@@ -293,7 +293,7 @@ DG.GameController = DG.ComponentController.extend(
         // First, see if it was written out with the document.
         // (Writing out the link began in build 0175.)
         contextID = this.getLinkID(iComponentStorage, 'context');
-        dataContext = contextID && DG.DataContext.retrieveContextFromMap(iDocumentID, contextID);
+        dataContext = contextID && DG.currDocumentController().getContextByID(contextID);
         if (!dataContext) {
           // If it wasn't written out with the document, look for one
           // associated with a game of the correct name, or for the

@@ -382,29 +382,16 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           }.bind( this));
           break;
         case 'deleteCollection':
-          ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
-            var tDescKey = iKey + 'AttributeDescription',
-                tAxisKey = iKey + 'Axis',
-                tCollectionClient = this.getPath('dataConfiguration.'
-                    + tDescKey + '.collectionClient'),
-                tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
-            if (tCollectionClient && tAttrs) {
-              if (tCollectionClient === iChange.collection) {
-                tAttrs.forEach(function (iPlottedAttr, iIndex) {
-                  if (iKey === 'legend')
-                    this.removeLegendAttribute();
-                  else
-                    this.removeAttribute(tDescKey, tAxisKey, iIndex);
-                }.bind(this));
-              }
-            }
-          }.bind(this)); // jshint ignore:line
+          this.dataContextOrCollectionWasDeleted(iChange.collection); // jshint ignore:line
           // fallthrough deliberate
         case 'updateAttributes':
           this.handleUpdateAttributes( iChange);
           break;
         case 'createCollection':
           this.notifyPropertyChange('caseOrder');
+          break;
+        case 'deleteDataContext':
+          this.dataContextOrCollectionWasDeleted();
           break;
         default:
           // Nothing to do
@@ -416,6 +403,26 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     },
 
 
+    dataContextOrCollectionWasDeleted: function ( iCollection) {
+      DG.log('dataContextWasDeleted');
+      ['x', 'y', 'legend', 'y2', 'area'].forEach(function (iKey) {
+        var tDescKey = iKey + 'AttributeDescription',
+            tAxisKey = iKey + 'Axis',
+            tCollectionClient = this.getPath('dataConfiguration.'
+                + tDescKey + '.collectionClient'),
+            tAttrs = this.getPath('dataConfiguration.' + tDescKey + '.attributes');
+        if (tCollectionClient && tAttrs) {
+          if (!iCollection || tCollectionClient === iCollection) {
+            tAttrs.forEach(function (iPlottedAttr, iIndex) {
+              if (iKey === 'legend')
+                this.removeLegendAttribute();
+              else
+                this.removeAttribute(tDescKey, tAxisKey, iIndex);
+            }.bind(this));
+          }
+        }
+      }.bind(this));
+    },
     /**
      * One or more of the attributes used on this graph has been changed; e.g. by having its name changed.
      * We pass responsibility for dealing with the change to the appropriate sub-model.
