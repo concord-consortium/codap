@@ -62,6 +62,7 @@ DG.DragBorderView = SC.View.extend(
             height: layout.height,
             width: layout.width
           };
+          tView.get('controller').updateModelLayout();
           return YES; // so we get other events
         },
 
