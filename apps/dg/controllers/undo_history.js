@@ -36,7 +36,7 @@ DG.UndoHistory = SC.Object.create((function() {
       /*EXECUTE*/ 'executeNotification',
       /*UNDO*/    'undoNotification',
       /*REDO*/    'redoNotification'
-  ]
+  ];
   /** @scope DG.UndoHistory.prototype */
   return {
 

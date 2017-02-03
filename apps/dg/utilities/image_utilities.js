@@ -18,6 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+/* global Promise */
 DG.ImageUtilities = (function () {
   return {
 
@@ -175,4 +176,4 @@ DG.ImageUtilities = (function () {
       );
     }
   };
-})();
+}());

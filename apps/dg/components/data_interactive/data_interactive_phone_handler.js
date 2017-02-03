@@ -1300,11 +1300,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 // then calling undo or redo here will likely fail because the game's undo stack would
                 // probably have been cleared.
                 var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "undoAction"}};
-                sendMessage(message, handleUndoRedoCompleted);
+                this.sendMessage(message, handleUndoRedoCompleted);
               },
               redo: function () {
                 var message = {action: 'notify', resource: 'undoChangeNotice', values: {operation: "redoAction"}};
-                sendMessage(message, handleUndoRedoCompleted);
+                this.sendMessage(message, handleUndoRedoCompleted);
               }
             }));
             return true;

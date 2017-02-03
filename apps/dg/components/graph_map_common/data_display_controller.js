@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-/* global tinycolor, Promise */
+/* global tinycolor */
 
 sc_require('controllers/component_controller');
 
