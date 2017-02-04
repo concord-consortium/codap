@@ -51,6 +51,10 @@ DG.DragLabelHandler = SC.Object.extend(
      */
     attributeName: null,
 
+    attributeDidChange: function() {
+      this.set('attributeName', this.getPath('attributeDescription.attribute.name'));
+    }.observes('attributeDescription.attribute'),
+
     /**
      * @property{DG.DataContext}
      */
