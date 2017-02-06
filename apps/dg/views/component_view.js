@@ -43,6 +43,9 @@ DG.DragBorderView = SC.View.extend(
             return null;
         }.property('dragCursor').cacheable(),
         mouseDown: function (evt) {
+          if( evt.button === 2 || evt.ctrlKey) {
+            return NO;
+          }
           DG.globalEditorLock.commitCurrentEdit();
           var tView = this.viewToDrag();
           // Make sure the enclosing view will be movable
