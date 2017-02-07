@@ -95,6 +95,8 @@ DG.main = function main() {
     iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
       DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
     });
+
+    DG.embeddedModePhoneHandler = iHandler;
   }
   function validateDocument(content) {
     if (!content) return false;

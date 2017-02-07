@@ -30,11 +30,15 @@ DG.notificationManager = SC.Object.create(/** @scope DG.NotificationManager.prot
    */
   function findActiveChannels (document) {
     var gameControllers = document.get('dataInteractives');
-    return gameControllers.filter(function (gameController) {
+    var channels = gameControllers.filter(function (gameController) {
       return gameController.get('isUsingDataInteractiveChannel');
     }).map(function (gameController) {
       return gameController.get('activeChannel');
     });
+    if (DG.embeddedModePhoneHandler) {
+      channels.push(DG.embeddedModePhoneHandler);
+    }
+    return channels;
   }
 
   return {
