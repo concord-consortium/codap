@@ -1169,7 +1169,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         // map CODAP Component types to DI-API component types
         var kTypeMap = {
           'DG.Calculator': 'calculator',
-          'DG.CaseTableView': 'caseTable',
+          'DG.TableView': 'caseTable',
           'DG.GameView': 'game',
           'DG.GraphView': 'graph',
           'DG.GuideView': 'guideView',
@@ -1182,7 +1182,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         // map DI-API component types to CODAP Component types
         var kResourceMap = {
           'calculator': 'DG.Calculator',
-          'caseTable': 'DG.CaseTableView',
+          'caseTable': 'DG.TableView',
           'game': 'DG.GameView',
           'graph': 'DG.GraphView',
           'guideView': 'DG.GuideView',
@@ -1194,6 +1194,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         var directMapping = function (key, value) {
           return {key: key, value: value};
+        };
+
+        kComponentTypeDefaults = {
+          slider: {
+            dimensions: { width: 300, height: 98 }
+          },
+          caseTable: {
+            dimensions: {width: 500, height: 200}
+          }
         };
 
         // correspondence of DI-API properties to ComponentStorage properties.
@@ -1285,6 +1294,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           });
         }
 
+        function makeTableLinkPropertiesFromDI(iIn, iOut) {
+          var document = DG.currDocumentController();
+          var context = iIn.dataContext && document.getContextByName(iIn.dataContext);
+          if (context) {
+            DG.ArchiveUtils.addLink(iOut, 'context', context);
+          }
+        }
+
         function mapGraphLinkPropertiesFromDI(iIn, iOut) {
           // map 'context', 'xColl', 'xAttr', 'yColl', 'yAttr', 'y2Coll', 'y2Attr', 'legendColl', 'legendAttr'
           // yAttr appears to be an array
@@ -1316,10 +1333,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var doc = DG.currDocumentController();
             var type = iValues.type;
             var typeClass = type && kResourceMap[type];
+            // apply defaults
+            var tValues = Object.assign({}, kComponentTypeDefaults[type] || {}, iValues);
+            // We are going to construct props. Props is structured like a
+            // a component definition in a document
             var props = {
               componentStorage: {}
             };
             var rtn, errorMessage;
+
+            // If we have a valid type ...
             if (!SC.none(typeClass)) {
               props.document = doc;
               props.type = typeClass;
@@ -1329,22 +1352,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               // to avoid proliferation.
               props.allowMoreThanOne = true;
 
+              // construct the layout object
               props.layout = {};
-              if (iValues.dimensions) {
-                props.layout = Object.assign(props.layout, iValues.dimensions);
+              if (tValues.dimensions) {
+                props.layout = Object.assign(props.layout, tValues.dimensions);
               }
-              if (iValues.position) {
-                if (typeof iValues.position === 'string') {
-                  props.position = iValues.position;
-                } else if (typeof iValues.position === 'object') {
-                  props.layout = Object.assign(props.layout, iValues.position);
+              if (tValues.position) {
+                if (typeof tValues.position === 'string') {
+                  props.position = tValues.position;
+                } else if (typeof tValues.position === 'object') {
+                  props.layout = Object.assign(props.layout, tValues.position);
                 }
               }
 
-              remapProperties(iValues, props.componentStorage, type);
+              // copy those properties that can be handled by simple remap
+              remapProperties(tValues, props.componentStorage, type);
 
-              if (iValues.type === 'graph') {
-                mapGraphLinkPropertiesFromDI(iValues, props.componentStorage);
+              if (tValues.type === 'graph') {
+                mapGraphLinkPropertiesFromDI(tValues, props.componentStorage);
+              } else if (tValues.type === 'caseTable') {
+                makeTableLinkPropertiesFromDI(tValues, props.componentStorage);
               }
               rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
               errorMessage = !rtn && 'Component creation failed';
@@ -1358,7 +1385,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   id: rtn.getPath('model.id'),
                   name: rtn.getPath('model.name'),
                   title: rtn.get('title'),
-                  type: iValues.type
+                  type: type
                 }
               };
             } else {
@@ -1404,10 +1431,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                     width: layout.width || 0
                   };
                 }
-                if (layout.left || layout.top) {
+                if ((layout.left !== undefined && layout.left !== null) ||
+                    (layout.x !== undefined && (layout.x != null))) {
                   rtn.position = {
-                    left: layout.left || 0,
-                    top: layout.top || 0
+                    left: layout.left || layout.x || 0,
+                    top: layout.top || layout.y || 0
                   };
                 }
               }
@@ -1416,7 +1444,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
               switch (rtn.type) {
                 case 'caseTable':
-                  rtn.dataContextName = extractDataContextName(componentStorage);
+                  rtn.dataContext = extractDataContextName(componentStorage);
                   break;
                 case 'graph':
                   break;
@@ -1427,6 +1455,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               return rtn;
             }
             var component = iResources.component;
+            var document = DG.currDocumentController();
+            var componentController = document.componentControllersMap[component.get('id')];
+            componentController.willSaveComponent();
             var archive = component.toArchive();
             var serialized = archive && remapArchiveComponent(archive);
             if (serialized) {
