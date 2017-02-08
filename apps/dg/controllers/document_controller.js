@@ -1373,7 +1373,8 @@ DG.DocumentController = SC.Object.extend(
      * @returns {DG.DataContext}
      */
     getContextByID: function (id) {
-      return this.contexts.find(function(context) { return context.get('id') === id; });
+      var tID = Number(id);
+      return this.contexts.find(function(context) { return context.get('id') === tID; });
     },
 
     /**

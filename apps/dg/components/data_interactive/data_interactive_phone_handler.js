@@ -294,6 +294,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       resolveResources: function (resourceSelector, action) {
         function resolveContext(selector, myContext) {
+          var document = DG.currDocumentController();
           var context;
           if (SC.empty(selector)) {
             return;
@@ -301,7 +302,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (selector === '#default') {
             context = myContext;
           } else {
-            context = DG.currDocumentController().getContextByName(resourceSelector.dataContext);
+            context = document.getContextByName(resourceSelector.dataContext) ||
+                (!isNaN(resourceSelector.dataContext) &&
+                    document.getContextByID(resourceSelector.dataContext));
           }
           return context;
         }
@@ -329,19 +332,23 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.component) {
           result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
-              DG.currDocumentController().getComponentByID(resourceSelector.component);
+              (!isNaN(resourceSelector.component) &&
+                  DG.currDocumentController().getComponentByID(resourceSelector.component));
         }
         if (resourceSelector.global) {
           result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
         }
         if (resourceSelector.collection) {
           result.collection = result.dataContext &&
-              result.dataContext.getCollectionByName(resourceSelector.collection);
+              (result.dataContext.getCollectionByName(resourceSelector.collection) ||
+              (!isNaN(resourceSelector.collection) &&
+                  result.dataContext.getCollectionByID(resourceSelector.collection)));
         }
         if (resourceSelector.attribute) {
-          result.attribute = result.dataContext &&
+          result.attribute = (result.dataContext &&
               (result.dataContext.getAttributeByName(resourceSelector.attribute) ||
-              result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)));
+                  result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)))) ||
+              (!isNaN(resourceSelector.attribute) && result.collection && result.collection.getAttributeByID(resourceSelector.attribute));
         }
         if (resourceSelector.caseByID) {
           result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
@@ -1196,7 +1203,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {key: key, value: value};
         };
 
-        kComponentTypeDefaults = {
+        var kComponentTypeDefaults = {
           slider: {
             dimensions: { width: 300, height: 98 }
           },
@@ -1400,9 +1407,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
           update: function (iResources, iValues) {
             var context = iResources.dataContext;
-            ['title', 'description'].forEach(function (prop) {
+            var component = iResources.component;
+            ['title'].forEach(function (prop) {
               if (iValues[prop]) {
-                context.set(prop, iValues[prop]);
+                component.set(prop, iValues[prop]);
               }
             });
             return {
@@ -1447,6 +1455,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   rtn.dataContext = extractDataContextName(componentStorage);
                   break;
                 case 'graph':
+                  rtn.dataContext = extractDataContextName(componentStorage);
                   break;
                 case 'map':
                   break;
