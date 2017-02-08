@@ -259,12 +259,17 @@ DG.functionRegistry.registerFunctions((function() {
     'greatCircleDistance': {
       minArgs:4, maxArgs:4, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(lat1, long1, lat2, long2) {
-        var deltaLat = lat2 - lat1,
-          deltaLong = long2 - long1,
-          a = Math.pow(Math.sin((Math.PI / 180) * deltaLat/2), 2) + 
-            Math.cos(lat1 * Math.PI / 180) * Math.cos (lat2 * Math.PI / 180) * 
-              Math.pow(Math.sin((Math.PI / 180) * deltaLong/2), 2);
-        return 2*6371*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+        if( DG.isNumeric(lat1) && DG.isNumeric(lat2) && DG.isNumeric(long1) && DG.isNumeric(long2)) {
+          var deltaLat = lat2 - lat1,
+              deltaLong = long2 - long1,
+              a = Math.pow(Math.sin((Math.PI / 180) * deltaLat / 2), 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.pow(Math.sin((Math.PI / 180) * deltaLong / 2), 2);
+          return 2 * 6371 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+        else {
+          return '';
+        }
       }
     }
   };
