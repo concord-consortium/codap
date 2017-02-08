@@ -334,7 +334,7 @@ DG.UndoHistory = SC.Object.create((function() {
       var prop = command[propName];
       var notification = prop && (typeof prop === 'function')? prop(state): prop;
       if (notification) {
-        DG.notificationManager.sendNotification(notification);
+        DG.currDocumentController().notificationManager.sendNotification(notification);
       }
     }
 

@@ -68,39 +68,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handlerMap: null,
 
-      contextCountDidChange: function () {
-        DG.log('contextCountDidChange');
-        // re-add observers for all data contexts
-        DG.currDocumentController().contexts.forEach(function (context){
-          this.removeDataContextObserver(context);
-          this.addDataContextObserver(context);
-        }.bind(this));
-
-        // send notification to DI
-        this.sendMessage({
-          action: 'notify',
-          resource: 'documentChangeNotice',
-          values: {
-            operation: 'dataContextCountChanged'
-          }
-        }, function (response) {
-          DG.log('Sent documentChangeNotice to Data Interactive');
-          DG.log('Response: ' + JSON.stringify(response));
-        });
-
-      },
       /**
        Initialization method
        */
       init: function () {
-        sc_super();
-        var contexts = DG.currDocumentController().get('contexts');
-
-        contexts.forEach(function (context) {
-          this.addDataContextObserver(context);
-        }.bind(this));
-
-        DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
 
         this.handlerMap = {
           attribute: this.handleAttribute,
@@ -145,93 +116,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         sc_super();
       },
 
-      addDataContextObserver: function (iDataContext) {
-        iDataContext.addObserver('changeCount', this, this.contextDataDidChange);
-      },
-
-      removeDataContextObserver: function (iDataContext) {
-        iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
-      },
-
-      /**
-       * Called in response to data context change notices. We will filter out
-       * changes that this object originated and those that were marked
-       * unsuccessful. Then we will abstract the original change notice by
-       * extracting what may be needed at a bare minimum for the DI to determine
-       * their response to the notice.
-       *
-       * @param {@DG.DataContext} dataContext
-       */
-      contextDataDidChange: function (dataContext) {
-        if (!this.connected) {
-          return;
-        }
-        var dataContextName = dataContext.get('name');
-
-        var changes = dataContext.get('newChanges').filter(function (iChange) {
-          // filter out unsuccessful change attempts and those with
-          // a requester that matches this handler.
-          return ((iChange.result && iChange.result.success) &&
-              (!iChange.requester || (iChange.requester !== this.get('id'))));
-        }.bind(this)).map(function (change) {
-          // fix up change objects by copying through certain result properties
-          // and converting objects to their id.
-          var result = {};
-          DG.ObjectMap.forEach(change.result, function (k, v) {
-            switch (k) {
-              case 'success':
-              case 'caseIDs':
-              case 'caseID':
-              case 'attrIDs':
-                result[k] = v;
-                break;
-              case 'collection':
-                result[k] = v.get('id');
-                break;
-              default:
-                DG.log('unhandled result property: ' + k );
-            }
-          });
-
-          result.cases = [];
-          (change.cases || []).forEach(function (iCase) {
-            var values = {};
-
-            iCase.collection.attrs.forEach(function (attr) {
-              values[attr.name] = iCase.getValue(attr.id);
-            });
-
-            result.cases.push({
-              id: iCase.id,
-              parent : iCase.parent && iCase.parent.id,
-              context: {
-                id: iCase.collection.context.id,
-                name: iCase.collection.context.name
-              },
-              collection: {
-                id: iCase.collection.id,
-                name: iCase.collection.name,
-                parent: iCase.collection.parent ? {id: iCase.collection.parent.id, name: iCase.collection.parent.name} : null
-              },
-              values: values
-            });
-          });
-
-          return {operation: change.operation, result: result};
-        });
-        if (!changes || changes.length === 0) {
-          return;
-        }
-        this.sendMessage({
-          action: 'notify',
-          resource: 'dataContextChangeNotice[' + dataContextName + ']',
-          values: changes
-        }, function (response) {
-          DG.log('Sent dataContextChangeNotice to Data Interactive for context: '
-              + dataContextName + ': ' + JSON.stringify(changes));
-          DG.log('Response: ' + JSON.stringify(response));
-        });
-      },
 
       /**
        * CODAP's request of DI state (for saving)

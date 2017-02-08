@@ -283,6 +283,8 @@ DG.DocumentController = SC.Object.extend(
         this.componentControllersMap = {};
         this._caseTableComponents = {};
 
+        this.notificationManager = DG.NotificationManager.create({});
+
         // Create the individual DataContexts
         this.restoreDataContexts();
 
@@ -1271,6 +1273,9 @@ DG.DocumentController = SC.Object.extend(
 
       // remove dataContexts
       this.contexts = [];
+
+      this.notificationManager.destroy();
+      this.notificationManager = null;
 
       // remove document
       DG.Document.destroyDocument(DG.activeDocument);
