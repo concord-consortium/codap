@@ -104,14 +104,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * Break loops
        */
       destroy: function () {
-        var contexts = DG.currDocumentController().get('contexts');
         if (this.rpcEndpoint) {
           this.rpcEndpoint.disconnect();
         }
-        contexts.forEach(function (context) {
-          this.removeDataContextObserver(context);
-        }.bind(this));
-        DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
 
         sc_super();
       },

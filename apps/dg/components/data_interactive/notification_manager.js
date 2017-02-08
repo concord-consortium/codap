@@ -55,6 +55,14 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
 
       }, 200);
     },
+    destroy: function () {
+      var contexts = DG.currDocumentController().get('contexts');
+      contexts.forEach(function (context) {
+        this.removeDataContextObserver(context);
+      }.bind(this));
+      DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
+
+    },
 
     /**
      * Sends a notification to all active channels
@@ -76,12 +84,12 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
       }.bind(this));
 
       // send notification to DI
-      this.sendMessage({
+      this.sendNotification({
         action: 'notify',
         resource: 'documentChangeNotice',
         values: {
           operation: 'dataContextCountChanged'
-    }
+        }
       }, function (response) {
         DG.log('Sent documentChangeNotice to Data Interactive');
         DG.log('Response: ' + JSON.stringify(response));
