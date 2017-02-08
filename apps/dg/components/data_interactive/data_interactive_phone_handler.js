@@ -1241,7 +1241,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
           graph: {
             name: directMapping,
-            title: directMapping
+            title: directMapping,
+            dataContext: directMapping,
+            xAttribute: directMapping,
+            yAttribute: directMapping,
+            y2Attribute: directMapping,
+            legendAttribute: directMapping
           },
           guideView: {
             name: directMapping,
@@ -1252,9 +1257,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             title: directMapping,
             // todo: need more information than key/value to resolve
             // todo: can the component constructor resolve?
-            legendColl: 'tbd',
-            legendAttr: 'tbd',
-            legendAttributeName: 'tbd',
+            legendAttribute: directMapping,
             // todo: is this necessary? Will the map constructor be attentive to this?
             dataContextName: function (key, value) {
               return {key: 'context', value: DG.currDocumentController().getContextByName(value)};
@@ -1301,37 +1304,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           });
         }
 
-        function makeTableLinkPropertiesFromDI(iIn, iOut) {
+        function mapTableLinkPropertiesFromDI(iIn, iOut) {
           var document = DG.currDocumentController();
           var context = iIn.dataContext && document.getContextByName(iIn.dataContext);
           if (context) {
             DG.ArchiveUtils.addLink(iOut, 'context', context);
-          }
-        }
-
-        function mapGraphLinkPropertiesFromDI(iIn, iOut) {
-          // map 'context', 'xColl', 'xAttr', 'yColl', 'yAttr', 'y2Coll', 'y2Attr', 'legendColl', 'legendAttr'
-          // yAttr appears to be an array
-          var document = DG.currDocumentController();
-          var context = iIn.dataContext && document.getContextByName(iIn.dataContext);
-          if (context) {
-            DG.ArchiveUtils.addLink(iOut, 'context', context);
-            ['xColl', 'yColl', 'y2Coll', 'legendColl'].forEach(function (axisCollection) {
-              var collection = iIn[axisCollection]
-                  && context.getCollectionByName(iIn[axisCollection]);
-              if (collection) {
-                DG.ArchiveUtils.addLink(iOut, axisCollection, collection);
-              }
-            });
-            ['xAttr', 'yAttr', 'y2Attr', 'legendAttr'].forEach(function (axisAttr) {
-              var attrs =  iIn[axisAttr] && context.getAttributeByName(iIn[axisAttr]);
-              if (attrs) {
-                if (!Array.isArray(attrs)) { attrs = [attrs]}
-                attrs.forEach(function (attr) {
-                  DG.ArchiveUtils.addLink(iOut, axisAttr, attr);
-                });
-              }
-            });
           }
         }
 
@@ -1375,10 +1352,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               // copy those properties that can be handled by simple remap
               remapProperties(tValues, props.componentStorage, type);
 
-              if (tValues.type === 'graph') {
-                mapGraphLinkPropertiesFromDI(tValues, props.componentStorage);
-              } else if (tValues.type === 'caseTable') {
-                makeTableLinkPropertiesFromDI(tValues, props.componentStorage);
+              if (tValues.type === 'caseTable') {
+                mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
               }
               rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
               errorMessage = !rtn && 'Component creation failed';
@@ -1406,7 +1381,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           update: function (iResources, iValues) {
-            var context = iResources.dataContext;
             var component = iResources.component;
             ['title'].forEach(function (prop) {
               if (iValues[prop]) {

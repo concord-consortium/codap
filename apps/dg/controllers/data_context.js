@@ -505,7 +505,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     @returns  {Object}              An object is returned
                   {Boolean}             result.success -- true on success, false on failure
                   {Number}              result.caseID -- the case ID of the first newly created case
-                  {[Number]}            re
+                  {[Number]}            result.caseIDs -- an array ids of all cases created
 
    */
   doCreateCases: function( iChange) {
