@@ -48,7 +48,7 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
         var contexts = DG.currDocumentController().get('contexts');
 
         contexts.forEach(function (context) {
-          this.addDataContextObserver(context);
+          this.guaranteeDataContextObserver(context);
         }.bind(this));
 
         DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
@@ -79,8 +79,7 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
       DG.log('contextCountDidChange');
       // re-add observers for all data contexts
       DG.currDocumentController().contexts.forEach(function (context){
-        this.removeDataContextObserver(context);
-        this.addDataContextObserver(context);
+        this.guaranteeDataContextObserver(context);
       }.bind(this));
 
       // send notification to DI
@@ -96,8 +95,10 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
       });
     },
 
-    addDataContextObserver: function (iDataContext) {
-      iDataContext.addObserver('changeCount', this, this.contextDataDidChange);
+    guaranteeDataContextObserver: function (iDataContext) {
+      if (!iDataContext.hasObserverFor('changeCount', this, this.contextDataDidChange)) {
+        iDataContext.addObserver('changeCount', this, this.contextDataDidChange);
+      }
     },
 
     removeDataContextObserver: function (iDataContext) {
