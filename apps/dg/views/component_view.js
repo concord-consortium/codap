@@ -65,6 +65,16 @@ DG.DragBorderView = SC.View.extend(
             height: layout.height,
             width: layout.width
           };
+          var tViewToDrag = this.viewToDrag();
+          DG.currDocumentController().notificationManager.sendNotification({
+            action: 'notify',
+            resource: 'component',
+            values: {
+              operation: 'beginMoveOrResize',
+              type: tViewToDrag.getPath('controller.model.type'),
+              id: tViewToDrag.getPath('controller.model.id')
+            }
+          });
           tView.get('controller').updateModelLayout();
           return YES; // so we get other events
         },
