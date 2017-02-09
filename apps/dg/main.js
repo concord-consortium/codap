@@ -450,7 +450,7 @@ DG.main = function main() {
                           return;
                         }
 
-                        DG.appController.closeAndNewDocument();
+                        DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
                           .setDocument(DG.Document.createDocument(iDocContents));
