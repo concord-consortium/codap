@@ -725,7 +725,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tUseLayoutForPosition = true;
   }
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView);
+    tSuperView.positionNewComponent(tComponentView, iParams.position);
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();

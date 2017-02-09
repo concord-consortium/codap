@@ -454,7 +454,7 @@ DG.DocumentController = SC.Object.extend(
           break;
           case 'DG.GraphView':
           // ToDo: pass iArgs along to other 'add' methods in addition to addGraph
-          tView = this.addGraph( docView, iComponent, isInitialization, iArgs);
+          tView = this.addGraph( docView, iComponent, isInitialization);
           break;
         case 'DG.SliderView':
           tView = this.addSlider( docView, iComponent, isInitialization);
@@ -600,7 +600,7 @@ DG.DocumentController = SC.Object.extend(
       // Configure/create the view and connect it to the controller
       //
       var tComponentLayout = tComponent.get('layout');
-      if( tComponent && tComponentLayout)
+      if( tComponent && tComponentLayout && Object.keys(tComponentLayout).length > 0)
         tParams.layout = $.extend(true, {}, tComponentLayout);
 
       if( isRestoring) {
@@ -611,13 +611,13 @@ DG.DocumentController = SC.Object.extend(
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
         var tRestoredName = iComponent.getPath('componentStorage.name');
         tComponentView = DG.ComponentView.restoreComponent(tParams);
-        iComponent.set('title', tRestoredTitle);
+        iComponent.set('title', tRestoredTitle || tRestoredName);
         iComponent.set('name', tRestoredName || tRestoredTitle);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent(tParams);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
-        tComponent.set('title', iParams.title);
+        tComponent.set('title', iParams.title || iParams.name);
         tComponent.set('name', iParams.name || iParams.title);
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
@@ -776,8 +776,9 @@ DG.DocumentController = SC.Object.extend(
       }));
     },
 
-    addGraph: function( iParentView, iComponent, isInitialization, iArgs) {
-      var tView, docController = this;
+    addGraph: function( iParentView, iComponent, isInitialization) {
+      var tStorage = iComponent && iComponent.componentStorage,
+          tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
         name: "graphComponent.create",
@@ -807,20 +808,25 @@ DG.DocumentController = SC.Object.extend(
           var tContextIds = DG.DataContext.contextIDs(null),
               tController = DG.GraphController.create();
 
-          if (SC.none(iComponent) && SC.none(this._component) && DG.ObjectMap.length(tContextIds) === 1) {
+          if ((SC.none(iComponent) && SC.none(this._component) || !(tStorage && tStorage.dataContext)) &&
+              DG.ObjectMap.length(tContextIds) === 1) {
             tController.set('dataContext',
                 docController.getContextByID(tContextIds[0]));
+          }
+          else if( tStorage && tStorage.dataContext) {
+            tController.set('dataContext', tStorage.dataContext);
           }
           tView = docController.createComponentView(iComponent || this._component, {
                                   parentView: iParentView,
                                   controller: tController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
                                   contentProperties: { model: DG.GraphModel.create( {
-                                    xAttributeName: iArgs && iArgs.xAttributeName,
-                                    yAttributeName: iArgs && iArgs.yAttributeName
+                                    xAttributeName: tStorage && tStorage.xAttributeName,
+                                    yAttributeName: tStorage && tStorage.yAttributeName,
+                                    legendAttributeName: tStorage && tStorage.legendAttributeName
                                   }) },
-                                  defaultLayout: (iArgs && iArgs.size ? iArgs.size : { width: 300, height: 300 }),
-                                  position: (iArgs && iArgs.position ? iArgs.position : null),
+                                  defaultLayout: (iComponent && iComponent.size ? iComponent.size : { width: 300, height: 300 }),
+                                  position: (iComponent && iComponent.position ? iComponent.position : null),
                                   isResizable: true}
                                 );
           this._component = tView.getPath('controller.model');

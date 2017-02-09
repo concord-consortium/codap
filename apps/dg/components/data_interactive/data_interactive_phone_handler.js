@@ -1242,11 +1242,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           graph: {
             name: directMapping,
             title: directMapping,
-            dataContext: directMapping,
-            xAttribute: directMapping,
-            yAttribute: directMapping,
-            y2Attribute: directMapping,
-            legendAttribute: directMapping
+            dataContext: function (key, value) {
+              var v = (typeof value === 'string')?
+                  DG.currDocumentController().getContextByName(value):
+                  value.get('name');
+              return {
+                key: key,
+                value: v
+              };
+            },
+            xAttributeName: directMapping,
+            yAttributeName: directMapping,
+            y2AttributeName: directMapping,
+            legendAttributeName: directMapping
           },
           guideView: {
             name: directMapping,
@@ -1257,7 +1265,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             title: directMapping,
             // todo: need more information than key/value to resolve
             // todo: can the component constructor resolve?
-            legendAttribute: directMapping,
+            legendAttributeName: directMapping,
             // todo: is this necessary? Will the map constructor be attentive to this?
             dataContextName: function (key, value) {
               return {key: 'context', value: DG.currDocumentController().getContextByName(value)};
