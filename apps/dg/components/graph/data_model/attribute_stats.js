@@ -291,7 +291,7 @@ DG.AttributeStats = SC.Object.extend(
           // If it is numeric, it is not a date
           var tValue = Number(iCaseValue);
           tDataIsDateTime = tDataIsDateTime && (DG.isDate(iCaseValue) || DG.isDateString( iCaseValue));
-          if (!SC.empty(iCaseValue) && isFinite(tValue)) {
+          if (!SC.empty(iCaseValue) && (typeof iCaseValue !== 'boolean') && isFinite(tValue)) {
             tNumericCaseCount++;
             if (tValue < tMin) tMin = tValue;
             if (tValue > tMax) tMax = tValue;
