@@ -126,8 +126,14 @@ DG.Component = DG.BaseModel.extend(
       init: function() {
         sc_super();
         var tStorage = this.get('componentStorage');
-        if( tStorage && tStorage.title)
-          this.set('title', tStorage.title);
+        if (tStorage) {
+          if( tStorage.title) {
+            this.set('title', tStorage.title);
+          }
+          if( tStorage.name) {
+            this.set('name', tStorage.name);
+          }
+        }
       },
 
       destroy: function () {
@@ -140,8 +146,10 @@ DG.Component = DG.BaseModel.extend(
       toArchive: function () {
         var obj = {},
             tStorage = this.get('componentStorage');
-        if( tStorage)
+        if( tStorage) {
           tStorage.title = this.get('title');
+          tStorage.name = this.get('name');
+        }
         obj = {
           type: this.type,
           guid: this.id,

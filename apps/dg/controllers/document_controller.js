@@ -283,6 +283,8 @@ DG.DocumentController = SC.Object.extend(
         this.componentControllersMap = {};
         this._caseTableComponents = {};
 
+        this.notificationManager = DG.NotificationManager.create({});
+
         // Create the individual DataContexts
         this.restoreDataContexts();
 
@@ -441,12 +443,13 @@ DG.DocumentController = SC.Object.extend(
           tView = this.addGame( docView, iComponent, isInitialization);
           break;
         case 'DG.TableView':
+
           // If there is no component, we are creating new components.
           // We currently create case tables for each context, rather than creating
           // them on a context-by-context basis. This may change, for now this means
             // if we are asked to create *a* case table we will create all case
             // tables.
-          if (iComponent) {
+          if (iComponent && iComponent.componentStorage && iComponent.componentStorage._links_) {
             tView = this.addCaseTable(docView, iComponent);
           } else {
             this.openCaseTablesForEachContext( );
@@ -454,7 +457,7 @@ DG.DocumentController = SC.Object.extend(
           break;
           case 'DG.GraphView':
           // ToDo: pass iArgs along to other 'add' methods in addition to addGraph
-          tView = this.addGraph( docView, iComponent, isInitialization, iArgs);
+          tView = this.addGraph( docView, iComponent, isInitialization);
           break;
         case 'DG.SliderView':
           tView = this.addSlider( docView, iComponent, isInitialization);
@@ -600,7 +603,7 @@ DG.DocumentController = SC.Object.extend(
       // Configure/create the view and connect it to the controller
       //
       var tComponentLayout = tComponent.get('layout');
-      if( tComponent && tComponentLayout)
+      if( tComponent && tComponentLayout && Object.keys(tComponentLayout).length > 0)
         tParams.layout = $.extend(true, {}, tComponentLayout);
 
       if( isRestoring) {
@@ -609,13 +612,16 @@ DG.DocumentController = SC.Object.extend(
           tParams.layout = {};
         }
         var tRestoredTitle = iComponent.getPath('componentStorage.title');
+        var tRestoredName = iComponent.getPath('componentStorage.name');
         tComponentView = DG.ComponentView.restoreComponent(tParams);
-        iComponent.set('title', tRestoredTitle);
+        iComponent.set('title', tRestoredTitle || tRestoredName);
+        iComponent.set('name', tRestoredName || tRestoredTitle);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent(tParams);
         var defaultFirstResponder = tComponentView && tComponentView.getPath('contentView.defaultFirstResponder');
-        tComponent.set('title', iParams.title);
+        tComponent.set('title', iParams.title || iParams.name);
+        tComponent.set('name', iParams.name || iParams.title);
         if( defaultFirstResponder) {
           if( defaultFirstResponder.beginEditing) {
             defaultFirstResponder.beginEditing();
@@ -773,8 +779,9 @@ DG.DocumentController = SC.Object.extend(
       }));
     },
 
-    addGraph: function( iParentView, iComponent, isInitialization, iArgs) {
-      var tView, docController = this;
+    addGraph: function( iParentView, iComponent, isInitialization) {
+      var tStorage = iComponent && iComponent.componentStorage,
+          tView, docController = this;
 
       DG.UndoHistory.execute(DG.Command.create({
         name: "graphComponent.create",
@@ -804,20 +811,25 @@ DG.DocumentController = SC.Object.extend(
           var tContextIds = DG.DataContext.contextIDs(null),
               tController = DG.GraphController.create();
 
-          if (SC.none(iComponent) && SC.none(this._component) && DG.ObjectMap.length(tContextIds) === 1) {
+          if ((SC.none(iComponent) && SC.none(this._component) || !(tStorage && tStorage.dataContext)) &&
+              DG.ObjectMap.length(tContextIds) === 1) {
             tController.set('dataContext',
                 docController.getContextByID(tContextIds[0]));
+          }
+          else if( tStorage && tStorage.dataContext) {
+            tController.set('dataContext', tStorage.dataContext);
           }
           tView = docController.createComponentView(iComponent || this._component, {
                                   parentView: iParentView,
                                   controller: tController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
                                   contentProperties: { model: DG.GraphModel.create( {
-                                    xAttributeName: iArgs && iArgs.xAttributeName,
-                                    yAttributeName: iArgs && iArgs.yAttributeName
+                                    xAttributeName: tStorage && tStorage.xAttributeName,
+                                    yAttributeName: tStorage && tStorage.yAttributeName,
+                                    legendAttributeName: tStorage && tStorage.legendAttributeName
                                   }) },
-                                  defaultLayout: (iArgs && iArgs.size ? iArgs.size : { width: 300, height: 300 }),
-                                  position: (iArgs && iArgs.position ? iArgs.position : null),
+                                  defaultLayout: (iComponent && iComponent.size ? iComponent.size : { width: 300, height: 300 }),
+                                  position: (iComponent && iComponent.position ? iComponent.position : null),
                                   isResizable: true}
                                 );
           this._component = tView.getPath('controller.model');
@@ -1263,6 +1275,9 @@ DG.DocumentController = SC.Object.extend(
       // remove dataContexts
       this.contexts = [];
 
+      this.notificationManager.destroy();
+      this.notificationManager = null;
+
       // remove document
       DG.Document.destroyDocument(DG.activeDocument);
 
@@ -1370,7 +1385,8 @@ DG.DocumentController = SC.Object.extend(
      * @returns {DG.DataContext}
      */
     getContextByID: function (id) {
-      return this.contexts.find(function(context) { return context.get('id') === id; });
+      var tID = Number(id);
+      return this.contexts.find(function(context) { return context.get('id') === tID; });
     },
 
     /**
@@ -1381,6 +1397,18 @@ DG.DocumentController = SC.Object.extend(
     getComponentByName: function (name) {
       var components = DG.ObjectMap.values(DG.currDocumentController().get('components'));
       return components.find(function(c) { return c.get('name') === name; });
+    },
+
+    /**
+     * Retrieve component by id.
+     *
+     */
+    getComponentByID: function (id) {
+      if (isNaN(id)) {
+        return;
+      }
+      var components = DG.ObjectMap.values(DG.currDocumentController().get('components'));
+      return components.find(function (c) { return Number(c.get('id')) === Number(id); });
     },
 
     /**

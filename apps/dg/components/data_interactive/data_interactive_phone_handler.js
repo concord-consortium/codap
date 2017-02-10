@@ -68,39 +68,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handlerMap: null,
 
-      contextCountDidChange: function () {
-        DG.log('contextCountDidChange');
-        // re-add observers for all data contexts
-        DG.currDocumentController().contexts.forEach(function (context){
-          this.removeDataContextObserver(context);
-          this.addDataContextObserver(context);
-        }.bind(this));
-
-        // send notification to DI
-        this.sendMessage({
-          action: 'notify',
-          resource: 'documentChangeNotice',
-          values: {
-            operation: 'dataContextCountChanged'
-          }
-        }, function (response) {
-          DG.log('Sent documentChangeNotice to Data Interactive');
-          DG.log('Response: ' + JSON.stringify(response));
-        });
-
-      },
       /**
        Initialization method
        */
       init: function () {
-        sc_super();
-        var contexts = DG.currDocumentController().get('contexts');
-
-        contexts.forEach(function (context) {
-          this.addDataContextObserver(context);
-        }.bind(this));
-
-        DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
 
         this.handlerMap = {
           attribute: this.handleAttribute,
@@ -133,105 +104,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * Break loops
        */
       destroy: function () {
-        var contexts = DG.currDocumentController().get('contexts');
         if (this.rpcEndpoint) {
           this.rpcEndpoint.disconnect();
         }
-        contexts.forEach(function (context) {
-          this.removeDataContextObserver(context);
-        }.bind(this));
-        DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
 
         sc_super();
       },
 
-      addDataContextObserver: function (iDataContext) {
-        iDataContext.addObserver('changeCount', this, this.contextDataDidChange);
-      },
-
-      removeDataContextObserver: function (iDataContext) {
-        iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
-      },
-
-      /**
-       * Called in response to data context change notices. We will filter out
-       * changes that this object originated and those that were marked
-       * unsuccessful. Then we will abstract the original change notice by
-       * extracting what may be needed at a bare minimum for the DI to determine
-       * their response to the notice.
-       *
-       * @param {@DG.DataContext} dataContext
-       */
-      contextDataDidChange: function (dataContext) {
-        if (!this.connected) {
-          return;
-        }
-        var dataContextName = dataContext.get('name');
-
-        var changes = dataContext.get('newChanges').filter(function (iChange) {
-          // filter out unsuccessful change attempts and those with
-          // a requester that matches this handler.
-          return ((iChange.result && iChange.result.success) &&
-              (!iChange.requester || (iChange.requester !== this.get('id'))));
-        }.bind(this)).map(function (change) {
-          // fix up change objects by copying through certain result properties
-          // and converting objects to their id.
-          var result = {};
-          DG.ObjectMap.forEach(change.result, function (k, v) {
-            switch (k) {
-              case 'success':
-              case 'caseIDs':
-              case 'caseID':
-              case 'attrIDs':
-                result[k] = v;
-                break;
-              case 'collection':
-                result[k] = v.get('id');
-                break;
-              default:
-                DG.log('unhandled result property: ' + k );
-            }
-          });
-
-          result.cases = [];
-          (change.cases || []).forEach(function (iCase) {
-            var values = {};
-
-            iCase.collection.attrs.forEach(function (attr) {
-              values[attr.name] = iCase.getValue(attr.id);
-            });
-
-            result.cases.push({
-              id: iCase.id,
-              parent : iCase.parent && iCase.parent.id,
-              context: {
-                id: iCase.collection.context.id,
-                name: iCase.collection.context.name
-              },
-              collection: {
-                id: iCase.collection.id,
-                name: iCase.collection.name,
-                parent: iCase.collection.parent ? {id: iCase.collection.parent.id, name: iCase.collection.parent.name} : null
-              },
-              values: values
-            });
-          });
-
-          return {operation: change.operation, result: result};
-        });
-        if (!changes || changes.length === 0) {
-          return;
-        }
-        this.sendMessage({
-          action: 'notify',
-          resource: 'dataContextChangeNotice[' + dataContextName + ']',
-          values: changes
-        }, function (response) {
-          DG.log('Sent dataContextChangeNotice to Data Interactive for context: '
-              + dataContextName + ': ' + JSON.stringify(changes));
-          DG.log('Response: ' + JSON.stringify(response));
-        });
-      },
 
       /**
        * CODAP's request of DI state (for saving)
@@ -294,6 +173,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       resolveResources: function (resourceSelector, action) {
         function resolveContext(selector, myContext) {
+          var document = DG.currDocumentController();
           var context;
           if (SC.empty(selector)) {
             return;
@@ -301,7 +181,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (selector === '#default') {
             context = myContext;
           } else {
-            context = DG.currDocumentController().getContextByName(resourceSelector.dataContext);
+            context = document.getContextByName(resourceSelector.dataContext) ||
+                (!isNaN(resourceSelector.dataContext) &&
+                    document.getContextByID(resourceSelector.dataContext));
           }
           return context;
         }
@@ -328,19 +210,24 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.component) {
-          result.component = DG.currDocumentController().getComponentByName(resourceSelector.component);
+          result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
+              (!isNaN(resourceSelector.component) &&
+                  DG.currDocumentController().getComponentByID(resourceSelector.component));
         }
         if (resourceSelector.global) {
           result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
         }
         if (resourceSelector.collection) {
           result.collection = result.dataContext &&
-              result.dataContext.getCollectionByName(resourceSelector.collection);
+              (result.dataContext.getCollectionByName(resourceSelector.collection) ||
+              (!isNaN(resourceSelector.collection) &&
+                  result.dataContext.getCollectionByID(resourceSelector.collection)));
         }
         if (resourceSelector.attribute) {
-          result.attribute = result.dataContext &&
+          result.attribute = (result.dataContext &&
               (result.dataContext.getAttributeByName(resourceSelector.attribute) ||
-              result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)));
+                  result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)))) ||
+              (!isNaN(resourceSelector.attribute) && result.collection && result.collection.getAttributeByID(resourceSelector.attribute));
         }
         if (resourceSelector.caseByID) {
           result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
@@ -1164,84 +1051,310 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         };
       },
 
-      handleComponent: {
-       create: function (iResource, iValues) {
-         var doc = DG.currDocumentController();
-         var type = iValues.type;
-         var typeClass;
-         var rtn;
-         switch (type) {
-           case 'graph':
-               typeClass = 'DG.GraphView';
-             break;
-           case 'caseTable':
-               typeClass = 'DG.TableView';
-             break;
-           case 'map':
-             typeClass = 'DG.MapView';
-             break;
-           case 'slider':
-             typeClass = 'DG.SliderView';
-             break;
-           case 'calculator':
-             typeClass = 'DG.Calculator';
-             break;
-           case 'text':
-             typeClass = 'DG.TextView';
-             break;
-           case 'webView':
-             typeClass = 'SC.WebView';
-             break;
-           case 'guide':
-             typeClass = 'DG.GuideView';
-             break;
-           default:
-         }
-         if (!SC.none(typeClass)) {
-           iValues.document = doc;
-           iValues.type = typeClass;
-           // the allowMoreThanOne=false restriction is historical. It prevented
-           // proliferation of components when a document was repeatedly opened
-           // we default to allowing any number. It is a DI's responsibility
-           // to avoid proliferation.
-           iValues.allowMoreThanOne = true;
-           rtn = SC.RootResponder.responder.sendAction('createComponentAndView', null, this, null, iValues);
-           //rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(iValues));
-         } else {
-           DG.log('Unknown component type: ' + type);
-         }
-         return {
-           success: !SC.none(rtn)
-         };
-       },
+      handleComponent: (function () {
+        // map CODAP Component types to DI-API component types
+        var kTypeMap = {
+          'DG.Calculator': 'calculator',
+          'DG.TableView': 'caseTable',
+          'DG.GameView': 'game',
+          'DG.GraphView': 'graph',
+          'DG.GuideView': 'guideView',
+          'DG.MapView': 'map',
+          'DG.SliderView': 'slider',
+          'DG.TextView': 'text',
+          'DG.WebView': 'webView'
+        };
 
-       update: function (iResources, iValues) {
-         var context = iResources.dataContext;
-         ['title', 'description'].forEach(function (prop) {
-             if (iValues[prop]) {
-               context.set(prop, iValues[prop]);
-             }
-         });
-         return {
-           success: true
-         };
-       },
+        // map DI-API component types to CODAP Component types
+        var kResourceMap = {
+          'calculator': 'DG.Calculator',
+          'caseTable': 'DG.TableView',
+          'game': 'DG.GameView',
+          'graph': 'DG.GraphView',
+          'guideView': 'DG.GuideView',
+          'map': 'DG.MapView',
+          'slider': 'DG.SliderView',
+          'text': 'DG.TextView',
+          'webView': 'DG.WebView'
+        };
 
-       // remove, for now, or until we understand user needs
-       get: function (iResources) {
-         var component = iResources.component;
-         return {
-           success: true,
-           values: component.get('model').toArchive()
-         };
-       },
+        var directMapping = function (key, value) {
+          return {key: key, value: value};
+        };
 
-       'delete': function (iResource) {
-         var component = iResource.component;
-         component.destroy();
-         return {success: true};
-       }
-      },
+        var kComponentTypeDefaults = {
+          slider: {
+            dimensions: { width: 300, height: 98 }
+          },
+          caseTable: {
+            dimensions: {width: 500, height: 200}
+          }
+        };
+
+        // correspondence of DI-API properties to ComponentStorage properties.
+        //
+        // Direct means a one-to-one mapping.
+        var kComponentStorageProperties = {
+          calculator: {
+            name: directMapping,
+            title: directMapping
+          },
+          caseTable: {
+            name: directMapping,
+            title: directMapping,
+          },
+          game: {
+            currentGameName: function (key, value) {
+              return {key: 'name', value: value};
+            },
+            currentGameUrl: function (key, value) {
+              return {key: 'URL', value: value};
+            },
+            name: function (key, value) {
+              return {key: 'currentGameName', value: value};
+            },
+            title: directMapping,
+            URL: function (key, value) {
+              return {key: 'currentGameUrl', value: value};
+            }
+          },
+          graph: {
+            name: directMapping,
+            title: directMapping,
+            dataContext: function (key, value) {
+              var v = (typeof value === 'string')?
+                  DG.currDocumentController().getContextByName(value):
+                  value.get('name');
+              return {
+                key: key,
+                value: v
+              };
+            },
+            xAttributeName: directMapping,
+            yAttributeName: directMapping,
+            y2AttributeName: directMapping,
+            legendAttributeName: directMapping
+          },
+          guideView: {
+            name: directMapping,
+            title: directMapping,
+          },
+          map: {
+            name: directMapping,
+            title: directMapping,
+            // todo: need more information than key/value to resolve
+            // todo: can the component constructor resolve?
+            legendAttributeName: directMapping,
+            // todo: is this necessary? Will the map constructor be attentive to this?
+            dataContextName: function (key, value) {
+              return {key: 'context', value: DG.currDocumentController().getContextByName(value)};
+            },
+            context: function (key, value) {
+              return {key: 'dataContextName', value: value.get('name')};
+            }
+          },
+          slider: {
+            animationDirection: directMapping,
+            animationMode: directMapping,
+            // todo: does slider construct global or is it expected to exist before?
+            globalValueName: 'mapped',
+            lowerBound: directMapping,
+            name: directMapping,
+            title: directMapping,
+            upperBound: directMapping,
+            value: directMapping
+          },
+          text: {
+            name: directMapping,
+            text: directMapping,
+            title: directMapping
+          },
+          webView: {
+            name: directMapping,
+            title: directMapping,
+            URL: directMapping,
+          }
+        };
+
+        function remapProperties(from, to, componentType) {
+          var mapping = kComponentStorageProperties[componentType];
+          if (!mapping) {
+            return;
+          }
+          Object.keys(from).forEach(function (key) {
+            var mappingType = mapping[key];
+            var m;
+            if (typeof mappingType === 'function') {
+              m = mappingType(key, from[key]);
+              to[m.key] = m.value;
+            }
+          });
+        }
+
+        function mapTableLinkPropertiesFromDI(iIn, iOut) {
+          var document = DG.currDocumentController();
+          var context = iIn.dataContext && document.getContextByName(iIn.dataContext);
+          if (context) {
+            DG.ArchiveUtils.addLink(iOut, 'context', context);
+          }
+        }
+
+        return {
+          create: function (iResource, iValues) {
+            var doc = DG.currDocumentController();
+            var type = iValues.type;
+            var typeClass = type && kResourceMap[type];
+            // apply defaults
+            var tValues = Object.assign({}, kComponentTypeDefaults[type] || {}, iValues);
+            // We are going to construct props. Props is structured like a
+            // a component definition in a document
+            var props = {
+              componentStorage: {}
+            };
+            var rtn, errorMessage;
+
+            // If we have a valid type ...
+            if (!SC.none(typeClass)) {
+              props.document = doc;
+              props.type = typeClass;
+              // the allowMoreThanOne=false restriction is historical. It prevented
+              // proliferation of components when a document was repeatedly opened
+              // we default to allowing any number. It is a DI's responsibility
+              // to avoid proliferation.
+              props.allowMoreThanOne = true;
+
+              // construct the layout object
+              props.layout = {};
+              if (tValues.dimensions) {
+                props.layout = Object.assign(props.layout, tValues.dimensions);
+              }
+              if (tValues.position) {
+                if (typeof tValues.position === 'string') {
+                  props.position = tValues.position;
+                } else if (typeof tValues.position === 'object') {
+                  props.layout = Object.assign(props.layout, tValues.position);
+                }
+              }
+
+              // copy those properties that can be handled by simple remap
+              remapProperties(tValues, props.componentStorage, type);
+
+              if (tValues.type === 'caseTable') {
+                mapTableLinkPropertiesFromDI(tValues, props.componentStorage);
+              }
+              rtn = DG.currDocumentController().createComponentAndView(DG.Component.createComponent(props));
+              errorMessage = !rtn && 'Component creation failed';
+            } else {
+              errorMessage = 'Unknown component type: ' + type;
+            }
+            if (rtn) {
+              return {
+                success: true,
+                values: {
+                  id: rtn.getPath('model.id'),
+                  name: rtn.getPath('model.name'),
+                  title: rtn.get('title'),
+                  type: type
+                }
+              };
+            } else {
+              return {
+                success: false,
+                values: {
+                  error: errorMessage || 'Unknown error'
+                }
+              };
+            }
+          },
+
+          update: function (iResources, iValues) {
+            var component = iResources.component;
+            ['title'].forEach(function (prop) {
+              if (iValues[prop]) {
+                component.set(prop, iValues[prop]);
+              }
+            });
+            return {
+              success: true
+            };
+          },
+
+          get: function (iResources) {
+            function remapArchiveComponent(archive) {
+              function extractDataContextName(componentStorage) {
+                var dataContextID = DG.ArchiveUtils.getLinkID(componentStorage, 'context');
+                var dataContext = DG.store.find(dataContextID);
+                return dataContext && dataContext.get('name');
+              }
+              var rtn = {};
+              // DG.log('Get Component: ' + JSON.stringify(archive));
+              var componentStorage = archive.componentStorage;
+              var layout = archive.layout;
+
+
+              rtn.type = kTypeMap[archive.type];
+              if (layout) {
+                if (layout.height || layout.width) {
+                  rtn.dimensions = {
+                    height: layout.height || 0,
+                    width: layout.width || 0
+                  };
+                }
+                if ((layout.left !== undefined && layout.left !== null) ||
+                    (layout.x !== undefined && (layout.x != null))) {
+                  rtn.position = {
+                    left: layout.left || layout.x || 0,
+                    top: layout.top || layout.y || 0
+                  };
+                }
+              }
+              if (componentStorage) {
+                remapProperties(componentStorage, rtn, rtn.type);
+              }
+              switch (rtn.type) {
+                case 'caseTable':
+                  rtn.dataContext = extractDataContextName(componentStorage);
+                  break;
+                case 'graph':
+                  rtn.dataContext = extractDataContextName(componentStorage);
+                  break;
+                case 'map':
+                  break;
+                default:
+              }
+              return rtn;
+            }
+            var component = iResources.component;
+            var document = DG.currDocumentController();
+            var componentController = document.componentControllersMap[component.get('id')];
+            componentController.willSaveComponent();
+            var archive = component.toArchive();
+            var serialized = archive && remapArchiveComponent(archive);
+            if (serialized) {
+              return {
+                success: true,
+                values: serialized
+              };
+            } else {
+              return {
+                success: false,
+                values: {
+                  error: 'Could not serialize component.'
+                }
+              };
+            }
+          },
+
+          'delete': function (iResource) {
+            var component = iResource.component;
+            component.destroy();
+            return {success: true};
+          },
+          'toDIType': function (iCODAPType) {
+            return kTypeMap[iCODAPType];
+          }
+        };
+      })(),
 
       handleComponentList: {
         get: function (iResources) {
@@ -1252,9 +1365,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             result.push( {
               id: component.get('id'),
               name: component.get('name'),
-              title: component.get('title')
+              title: component.get('title'),
+              type: this.handleComponent.toDIType(component.get('type'))
             });
-          });
+          }.bind(this));
           return {
             success: true,
             values: result

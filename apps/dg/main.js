@@ -95,6 +95,8 @@ DG.main = function main() {
     iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
       DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
     });
+
+    DG.embeddedModePhoneHandler = iHandler;
   }
   function validateDocument(content) {
     if (!content) return false;
@@ -448,7 +450,7 @@ DG.main = function main() {
                           return;
                         }
 
-                        DG.appController.closeAndNewDocument();
+                        DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
                           .setDocument(DG.Document.createDocument(iDocContents));
@@ -602,7 +604,7 @@ DG.main = function main() {
           firstSheet = document.styleSheets[0];
 
       if ("insertRule" in firstSheet) {
-        firstSheet.insertRule(selector + "{" + rule + "}");
+        firstSheet.insertRule(selector + "{" + rule + "}", 0);
       }
       else if ("addRule" in firstSheet) {
         firstSheet.addRule(selector, rule);
