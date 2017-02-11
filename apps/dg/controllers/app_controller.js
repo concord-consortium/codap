@@ -52,6 +52,84 @@ DG.appController = SC.Object.create((function () // closure
 
     documentArchiver: DG.DocumentArchiver.create({}),
 
+    showCaseTableFor: function(iDataContext) {
+      function removeCaseTable(caseTableID) {
+        var controller = documentController.componentControllersMap[caseTableID];
+        var view = controller.get('view');
+        var containerView = view.parentView;
+        containerView.removeComponentView(view);
+      }
+      function selectCaseTable (caseTable) {
+        // find its view and make it selected
+        var contentView = DG.mainPage.mainPane.scrollView.contentView;
+        var componentView = contentView.get('componentViews').find(function (componentView) {
+          return (componentView.controller === caseTable);
+        });
+        if (componentView) {
+          componentView.invokeLater(function () { componentView.maximizeAndSelect(); });
+        }
+      }
+      // is there a data context? if so, is there a case table for it? If so,
+      // select it. If not create it. If there is no data context, create a
+      // new one.
+      var documentController = DG.currDocumentController();
+      var caseTables = documentController.findComponentsByType(DG.CaseTableController);
+      var id = iDataContext && iDataContext.get('id');
+      var foundCaseTable;
+      var dataContext = iDataContext;
+      var caseTable;
+      // If no data context, we create a new one.
+      if (SC.none(iDataContext)) {
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'dataContext.create',
+          undoString: 'DG.Undo.dataContext.create',
+          redoString: 'DG.Redo.dataContext.create',
+          log: 'createNewEmptyDataSet',
+          execute: function () {
+            dataContext = DG.appController.createDataContextFromCSV(
+                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'new'*/
+                'DG.AppController.createDataSet.name'.loc() /* 'new_dataset' */
+            );
+            caseTable = documentController.addCaseTable(
+                DG.mainPage.get('docView'), null, {position: 'top', dataContext: dataContext});
+          },
+          undo: function () {
+            documentController.destroyDataContext(dataContext.get('id'));
+          },
+          redo: function () {
+            this.execute();
+          }
+        }));
+      } else {
+        foundCaseTable = caseTables.find(function (caseTable) {
+          return (caseTable.get('dataContext') === iDataContext);
+        });
+        if (foundCaseTable) {
+          // find its view and make it selected
+          selectCaseTable(foundCaseTable);
+        } else {
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.open',
+            undoString: 'DG.Undo.caseTable.open',
+            redoString: 'DG.Redo.caseTable.open',
+            log: 'openCaseTable: {name: "%@"}'.fmt(iDataContext.get('name')),
+            execute: function () {
+              caseTable = documentController.addCaseTable(
+                  DG.mainPage.get('docView'), null,
+                  {position: 'top', dataContext: iDataContext});
+              selectCaseTable(caseTable.get('controller'));
+            },
+            undo: function () {
+              removeCaseTable(caseTable.getPath('model.id'));
+            },
+            redo: function () {
+              this.execute();
+            }
+          }));
+        }
+      }
+    },
+
     /**
      * Initialization function.
      */
@@ -88,6 +166,17 @@ DG.appController = SC.Object.create((function () // closure
             if (tPrevItem)
               tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
           }
+        });
+        this.caseTableMenuPane = DG.MenuPane.create({
+          showMenu: function (iAnchor) {
+            this.set('items', DG.appController.get('caseTableMenuItems'));
+            this.popup(iAnchor);
+          },
+          selectedItemDidChange: function () {
+            DG.appController.showCaseTableFor(this.get('selectedItem').dataContext);
+          }.observes('selectedItem'),
+          itemLayerIdKey: 'id',
+          layout: {width: 150}
         });
         this.optionMenuPane = DG.MenuPane.create({
           items: this.get('optionMenuItems'),
@@ -132,6 +221,27 @@ DG.appController = SC.Object.create((function () // closure
       $('title').text(nameString + 'CODAP');
     }.observes('DG._currDocumentController.documentName'),
 
+    caseTableMenuItems: function () {
+      var dataContexts = DG.currDocumentController().get('contexts');
+      var menuItems = dataContexts.map(function (dataContext) {
+        return {
+          localize: false,
+          title: dataContext.get('title'),
+          target: DG.appController,
+          dgAction: 'openOrSelectCaseTable',
+          icon: 'tile-icon-table',
+          dataContext: dataContext
+        }
+      });
+      menuItems.push({
+        localize: false, // todo: fix
+        title: '-- new --',
+        target: DG.mainPage,
+        dgAction: 'openCaseTableForNewContext',
+        icon: 'tile-icon-table'
+      })
+      return menuItems;
+    }.property(),
     optionMenuItems: function () {
       return [
         { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
@@ -177,17 +287,15 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
-     *
-     * @param iText String  either CSV or tab-delimited
-     * @param iName String  document name
-     * @returns {Boolean}
+     * Create a data context from a string formatted as a CSV file.
+     * @param iText {string}
+     * @param iName {string}
+     * @return {DG.DataContext}
      */
-    importText: function( iText, iName) {
-
+    createDataContextFromCSV: function (iText, iName) {
       // Create document-specific store.
       var newDocument, context, contextRecord,
-          documentController = DG.currDocumentController(),
-          caseTable;
+          documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
       newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
@@ -206,8 +314,21 @@ DG.appController = SC.Object.create((function () // closure
       context = documentController.createDataContextForModel(contextRecord);
       context.restoreFromStorage(contextRecord.contextStorage);
 
+      return context;
+    },
+
+    /**
+     * Create a data context from a CSV string and expose it as a case table.
+     * @param iText String  either CSV or tab-delimited
+     * @param iName String  document name
+     * @returns {Boolean}
+     */
+    importText: function( iText, iName) {
+      var documentController = DG.currDocumentController();
+      var context = this.createDataContextFromCSV(iText, iName);
+
       // add case table
-      caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+      var caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
 
       DG.dirtyCurrentDocument(caseTable);
 
