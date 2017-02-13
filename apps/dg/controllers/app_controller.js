@@ -74,7 +74,6 @@ DG.appController = SC.Object.create((function () // closure
       // new one.
       var documentController = DG.currDocumentController();
       var caseTables = documentController.findComponentsByType(DG.CaseTableController);
-      var id = iDataContext && iDataContext.get('id');
       var foundCaseTable;
       var dataContext = iDataContext;
       var caseTable;
@@ -231,7 +230,7 @@ DG.appController = SC.Object.create((function () // closure
           dgAction: 'openOrSelectCaseTable',
           icon: 'tile-icon-table',
           dataContext: dataContext
-        }
+        };
       });
       menuItems.push({
         localize: false, // todo: fix
@@ -239,7 +238,7 @@ DG.appController = SC.Object.create((function () // closure
         target: DG.mainPage,
         dgAction: 'openCaseTableForNewContext',
         icon: 'tile-icon-table'
-      })
+      });
       return menuItems;
     }.property(),
     optionMenuItems: function () {
