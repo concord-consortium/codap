@@ -733,6 +733,7 @@ DG.DocumentController = SC.Object.extend(
         componentClass: componentClassDef,
         contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
         defaultLayout: {width: 500, height: 200},
+        position: (iComponent && iComponent.position ? iComponent.position : null),
         isResizable: true
       };
       return this.createComponentView(component, props);
