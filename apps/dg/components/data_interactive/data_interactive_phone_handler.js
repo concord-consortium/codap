@@ -1354,7 +1354,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             return kTypeMap[iCODAPType];
           }
         };
-      })(),
+      }()),
 
       handleComponentList: {
         get: function (iResources) {
