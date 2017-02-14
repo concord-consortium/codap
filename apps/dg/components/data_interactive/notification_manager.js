@@ -117,68 +117,80 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     contextDataDidChange: function (dataContext) {
       var dataContextName = dataContext.get('name');
 
-      var changes = dataContext.get('newChanges').filter(function (iChange) {
-        // filter out unsuccessful change attempts and those with
-        // a requester that matches this handler.
-        return ((iChange.result && iChange.result.success) &&
-        (!iChange.requester || (iChange.requester !== this.get('id'))));
-      }.bind(this)).map(function (change) {
-        // fix up change objects by copying through certain result properties
-        // and converting objects to their id.
-        var result = {};
-        DG.ObjectMap.forEach(change.result, function (k, v) {
-          switch (k) {
-            case 'success':
-            case 'caseIDs':
-            case 'caseID':
-            case 'attrIDs':
-              result[k] = v;
-              break;
-            case 'collection':
-              result[k] = v.get('id');
-              break;
-            default:
-              DG.log('unhandled result property: ' + k );
+      var originalChanges = dataContext.get('newChanges');
+
+      var activeChannels = findActiveChannels(DG.currDocumentController());
+
+      activeChannels.forEach(function (channel) {
+        var changes = originalChanges.filter(function (iChange) {
+          // filter out unsuccessful change attempts and those with
+          // a requester that matches the channel handler.
+          return ((iChange.result && iChange.result.success) &&
+          (!iChange.requester || (iChange.requester !== channel.get('id'))));
+        }.bind(channel)).map(function (iChange) {
+          // fix up change objects by copying through certain result properties
+          // and converting objects to their id.
+          var result = {};
+          DG.ObjectMap.forEach(iChange.result, function (k, v) {
+            switch (k) {
+              case 'success':
+              case 'caseIDs':
+              case 'caseID':
+              case 'attrIDs':
+                result[k] = v;
+                break;
+              case 'collection':
+                result[k] = v.get('id');
+                break;
+              default:
+                DG.log('unhandled result property: ' + k );
+            }
+          });
+          if (iChange.cases) {
+            result.cases = [];
+            (iChange.cases).forEach(function (iCase) {
+              var values = {};
+
+              iCase.collection.attrs.forEach(function (attr) {
+                values[attr.name] = iCase.getValue(attr.id);
+              });
+
+              result.cases.push({
+                id: iCase.id,
+                parent : iCase.parent && iCase.parent.id,
+                context: {
+                  id: iCase.collection.context.id,
+                  name: iCase.collection.context.name
+                },
+                collection: {
+                  id: iCase.collection.id,
+                  name: iCase.collection.name,
+                  parent: iCase.collection.parent ? {
+                        id: iCase.collection.parent.id,
+                        name: iCase.collection.parent.name
+                      } : null
+                },
+                values: values
+              });
+            });
           }
+
+          return {operation: iChange.operation, result: result};
+        }); // end of map
+
+        if (!changes || changes.length === 0) {
+          return;
+        }
+
+        channel.sendMessage({
+          action: 'notify',
+          resource: 'dataContextChangeNotice[' + dataContextName + ']',
+          values: changes
+        }, function (response) {
+          DG.log('Sent dataContextChangeNotice to Data Interactive for dataContext: '
+              + dataContextName + ': ' + JSON.stringify(changes));
+          DG.log('Response: ' + JSON.stringify(response));
         });
-
-        result.cases = [];
-        (change.cases || []).forEach(function (iCase) {
-          var values = {};
-
-          iCase.collection.attrs.forEach(function (attr) {
-            values[attr.name] = iCase.getValue(attr.id);
-          });
-
-          result.cases.push({
-            id: iCase.id,
-            parent : iCase.parent && iCase.parent.id,
-            context: {
-              id: iCase.collection.context.id,
-              name: iCase.collection.context.name
-            },
-            collection: {
-              id: iCase.collection.id,
-              name: iCase.collection.name,
-              parent: iCase.collection.parent ? {id: iCase.collection.parent.id, name: iCase.collection.parent.name} : null
-            },
-            values: values
-          });
-        });
-
-        return {operation: change.operation, result: result};
-      });
-      if (!changes || changes.length === 0) {
-        return;
-      }
-      this.sendNotification({
-        action: 'notify',
-        resource: 'dataContextChangeNotice[' + dataContextName + ']',
-        values: changes
-      }, function (response) {
-        DG.log('Sent dataContextChangeNotice to Data Interactive for context: '
-            + dataContextName + ': ' + JSON.stringify(changes));
-        DG.log('Response: ' + JSON.stringify(response));
       });
     }
 
