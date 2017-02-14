@@ -350,6 +350,10 @@ DG.mainPage.openCaseTablesForEachContext = function () {
   DG.currDocumentController().openCaseTablesForEachContext();
 };
 
+DG.mainPage.openCaseTableForNewContext = function () {
+  DG.appController.importText('new', 'new_table');
+};
+
 DG.mainPage.addMap = function() {
   DG.currDocumentController().addMap( this.get('docView'));
 };

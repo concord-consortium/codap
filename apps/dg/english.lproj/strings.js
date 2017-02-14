@@ -106,6 +106,8 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.invalidDocument' : 'Invalid JSON Document: %@1',
   'DG.AppController.openDocument.error.general': 'Unable to open document',
   'DG.AppController.openDocument.error.invalid_format': 'CODAP can not read this type of document',
+  'DG.AppController.createDataSet.initialAttribute': 'new', /* new */
+  'DG.AppController.createDataSet.name': 'new_dataset', /* new_dataset */
 
   'DG.SingleTextDialog.okButton.title': "OK",
   'DG.SingleTextDialog.cancelButton.title': "Cancel",
@@ -321,6 +323,8 @@ SC.stringsFor('English', {
   'DG.Redo.slider.change': "Redo slider value change",
   'DG.Undo.graphComponent.create': "Undo adding a graph",
   'DG.Redo.graphComponent.create': "Redo adding a graph",
+  'DG.Undo.dataContext.create': 'Undo creating a data set',
+  'DG.Redo.dataContext.create': 'Redo creating a data set',
   'DG.Undo.data.deleteCases': "Undo deleting cases",
   'DG.Redo.data.deleteCases': "Redo deleting cases",
   'DG.Undo.component.close': "Undo closing component",

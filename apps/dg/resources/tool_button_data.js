@@ -22,8 +22,8 @@ DG.ToolButtonData = {
   tableButton: {
     title: 'DG.ToolButtonData.tableButton.title', // "Table"
     iconClass: 'moonicon-icon-table',
-    target: 'DG.mainPage',
-    action: 'openCaseTablesForEachContext',
+    target: 'DG.appController.caseTableMenuPane',
+    action: 'showMenu',
     toolTip: 'DG.ToolButtonData.tableButton.toolTip', // "Open/close the case table (ctrl-alt-t)"
     localize: true,
     isEnabledBinding: SC.Binding.oneWay('DG.currDocumentController.ready'),
