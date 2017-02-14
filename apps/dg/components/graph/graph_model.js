@@ -214,17 +214,24 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
 
       var configureAttributeDescription = function( iKey) {
-        var tAttributeName = this.get(iKey + 'AttributeName');
+        var tAttributeName = this.get(iKey + 'AttributeName'),
+            tAttribute,
+            tDefaults = DG.currDocumentController().collectionDefaults(),
+            tCollectionClient = tDefaults.collectionClient;
         if( tAttributeName) {
-          delete this[tAttributeName];
-          var tDefaults = DG.currDocumentController().collectionDefaults(),
-              tCollectionClient = tDefaults.collectionClient,
-              tAttribute = tCollectionClient.getAttributeByName(tAttributeName);
+          delete this[iKey + 'AttributeName'];  // Because that was how it was passed in
+          tAttribute = tDataContext ? tDataContext.getAttributeByName(tAttributeName) :
+              (tCollectionClient ? tCollectionClient.getAttributeByName(tAttributeName) : null);
           if( tAttribute)
             this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
                 { collection: tCollectionClient, attributes: [ tAttribute]});
         }
       }.bind(this);
+      var tDataContext = this.dataContext;
+      if( tDataContext) {
+        this.setPath('dataConfiguration.dataContext');
+        delete this.dataContext;  // It was passed in this way, but it's not one of our legitimate properties
+      }
 
       this._plots = [];
 
@@ -233,7 +240,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }
       ['x', 'y', 'y2'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
-        var tDescription = this.dataConfiguration.get(iKey + 'AttributeDescription');
+        var tDescription = this.getPath('dataConfiguration.' + (iKey + 'AttributeDescription'));
         this.set(iKey + 'Axis',
             getAxisClassFromType(tDescription.get('attributeType')).create({dataConfiguration: this.dataConfiguration}));
         this.setPath( iKey + 'Axis.attributeDescription', tDescription);
