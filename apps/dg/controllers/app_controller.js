@@ -204,8 +204,11 @@ DG.appController = SC.Object.create((function () // closure
       // TODO: This confirmation message can cause an unescapable loop if
       // TODO: saving fails. Need a way out in these circumstances.
       window.onbeforeunload = function (iEvent) {
-        if (DG.currDocumentController().get('hasUnsavedChanges'))
+        if (DG.currDocumentController().get('hasUnsavedChanges') &&
+            (DG.embeddedMode === 'no') &&
+            (DG.componentMode === 'no')) {
           return 'DG.AppController.beforeUnload.confirmationMessage'.loc();
+        }
       };
     },
 
