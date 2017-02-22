@@ -264,6 +264,13 @@ DG.ComponentView = SC.View.extend(
           if( !this.get('showTitleBar')) {
             this.getPath('containerView.titlebar').adjust('height', 0);
           }
+          // If we are in component mode we select the component after it is
+          // rendered.
+          if (DG.componentMode === 'yes') {
+            this.invokeLater(function () {
+              this.select();
+            }.bind(this));
+          }
         },
 
         contentView: SC.outlet('containerView.contentView'),
