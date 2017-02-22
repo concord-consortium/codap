@@ -123,6 +123,66 @@ DG.main = function main() {
       openDataInteractive(startingDataInteractive);
     }
   }
+
+  function cfmUrl(filename) {
+    var url = null,
+        a;
+
+    if (DG.cfmBaseUrl) {
+      // safely parse the url and check to only allow codap.concord.org or a domain with no tld (like localhost or dev)
+      a = document.createElement("A");
+      a.href = DG.cfmBaseUrl;
+      if ((a.hostname === 'codap.concord.org') || (a.hostname.indexOf('.') === -1)) {
+        a.pathname = (a.pathname[a.pathname.length - 1] === '/' ? a.pathname : (a.pathname + '/')) + filename;
+        url = a.href;
+        DG.logWarn('Loading the ' + filename + ' CFM file from ' + url);
+      }
+      else {
+        DG.logError('The cfmBaseUrl domain (' + a.hostname + ') either needs to be codap.concord.org or not have a TLD (like localhost)');
+      }
+    }
+
+    if (!url) {
+      // static_url is run at build time so we have to directly reference the paths
+      if (filename === 'globals.js') {
+        url = static_url('cloud-file-manager/js/globals.js.ignore');
+      }
+      else if (filename === 'app.js') {
+        url = static_url('cloud-file-manager/js/app.js.ignore');
+      }
+    }
+
+    return url;
+  }
+  function cfmGlobalsLoaded() {
+    return new Promise(function(resolve, reject) {
+                $.ajax({
+                  url: cfmUrl('globals.js'),
+                  dataType: 'script',
+                  success: function() {
+                    resolve(true);
+                  },
+                  failure: function() {
+                    reject(false);
+                  }
+                });
+              });
+  }
+  function cfmAppLoaded() {
+    return new Promise(function(resolve, reject) {
+                $.ajax({
+                  url: cfmUrl('app.js'),
+                  dataType: 'script',
+                  success: function() {
+                    resolve(true);
+                  },
+                  failure: function() {
+                    reject(false);
+                  }
+                });
+              });
+  }
+
   /**
    * Returns a promise which is resolved when the CFM is loaded.
    * The bundled libraries (e.g. React) and the CFM bundles are loaded via
@@ -132,6 +192,12 @@ DG.main = function main() {
    * only check that the CFM is defined to determine that all scripts are loaded.
    */
   function cfmLoaded() {
+    // if a cfmBaseUrl was specified, load the CFM libs dynamically via ajax
+    if (DG.cfmBaseUrl != null) {
+      return Promise.all([cfmGlobalsLoaded(), cfmAppLoaded()]);
+    }
+
+    // if no cfmBaseUrl was specified, the CFM should have been loaded in index.rhtml
     return new Promise(function(resolve, reject) {
       function checkCfm() {
         if (typeof CloudFileManager !== "undefined")
