@@ -445,7 +445,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
             },
             canBeDragged: function () {
-              return YES;
+              return DG.componentMode === 'no';
             }
           }),
           coverSheet: SC.View.design({
