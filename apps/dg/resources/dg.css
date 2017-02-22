@@ -558,6 +558,48 @@
     color: darkgray;
 }
 
+.undo-icon:before {
+    font-family: 'icomoon';
+    content: "\61";
+}
+
+.undo-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+}
+
+.undo-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.undo-icon:active {
+    color: black;
+}
+
+.redo-icon:before {
+    font-family: 'icomoon';
+    content: "\62";
+}
+
+.redo-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+}
+
+.redo-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.redo-icon:active {
+    color: black;
+}
+
 .play-icon:before {
     font-family: 'icomoon';
     content: "\4A";
