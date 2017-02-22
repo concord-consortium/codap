@@ -132,6 +132,7 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
     };
   }()) // function closure
 );
+
 /** @class
 
     DG.TitleBarMinimizeButton handles the minimize button in a component view's title bar.
@@ -161,4 +162,80 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
         }
     };
   }()) // function closure
+);
+
+/** @class
+
+    DG.TitleBarUndoRedoButton is a base class for TitleBarUndoButton and TitleBarRedoButton
+
+ @extends SC.View
+ */
+DG.TitleBarUndoRedoButton = SC.View.extend(DG.MouseAndTouchView,
+    /** @scope DG.MouseAndTouchView.prototype */
+    (function () {
+      return {
+        localize: true,
+        isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
+        isVisible: true,
+        toolTipDidChange: function() {
+          this.updateLayer();
+        }.observes('displayToolTip'),
+        render: function(context) {
+          sc_super();
+          var toolTip = this.get('displayToolTip');
+          if (toolTip)
+            context.setAttr('title', toolTip);
+        }
+      };
+    }()) // function closure
+);
+
+/** @class
+
+    DG.TitleBarUndoButton handles the undo button that appears in a component view's title bar
+    when DG.embeddedMode === 'yes'.
+
+ @extends SC.View
+ */
+DG.TitleBarUndoButton = DG.TitleBarUndoRedoButton.extend(
+    /** @scope DG.MouseAndTouchView.prototype */
+    (function () {
+      return {
+        toolTip: function() {
+          var cmd = this.get('nextUndoCommand');
+          return (cmd ? cmd.get('undoString') : 'DG.mainPage.mainPane.undoButton.toolTip');  // "Undo the last action"
+        }.property('nextUndoCommand'),
+        nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
+        classNames: 'undo-icon'.w(),
+        doIt: function() {
+          DG.UndoHistory.undo();
+        }
+      };
+    }()) // function closure
+);
+
+/** @class
+
+    DG.TitleBarRedoButton handles the redo button that appears in a component view's title bar
+    when DG.embeddedMode === 'yes'.
+
+ @extends SC.View
+ */
+DG.TitleBarRedoButton = DG.TitleBarUndoRedoButton.extend(
+    /** @scope DG.MouseAndTouchView.prototype */
+    (function () {
+      return {
+        toolTip: function() {
+          var cmd = this.get('nextRedoCommand');
+          return (cmd ? cmd.get('redoString') : 'DG.mainPage.mainPane.redoButton.toolTip');  // "Redo the last undone action"
+        }.property('nextRedoCommand'),
+        nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
+        isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
+        classNames: 'redo-icon'.w(),
+        doIt: function() {
+          DG.UndoHistory.redo();
+        }
+      };
+    }()) // function closure
 );

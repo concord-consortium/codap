@@ -43,7 +43,7 @@ DG.DragBorderView = SC.View.extend(
             return null;
         }.property('dragCursor').cacheable(),
         mouseDown: function (evt) {
-          if( evt.button === 2 || evt.ctrlKey) {
+          if (evt.button === 2 || evt.ctrlKey) {
             return NO;
           }
           DG.globalEditorLock.commitCurrentEdit();
@@ -125,16 +125,16 @@ DG.DragBorderView = SC.View.extend(
                   layout.height = 25;
                 }
                 tViewToDrag.animate(layout,
-                  {duration: 0.4, timing: 'ease-in-out'},
-                  function () {
-                    // bizarre bug leaves the last animated transition property still
-                    // with a delay even after the end of an animation, so we clear it by hand
-                    tViewToDrag._view_layer.style.transition = "";
-                    // set actual model layout once animation has completed
-                    this._oldLayout = this._controller().revertModelLayout(layout);
-                    this._oldLayout.height = layout.height;
-                    tContainer.updateFrame();
-                  }.bind(this));
+                    {duration: 0.4, timing: 'ease-in-out'},
+                    function () {
+                      // bizarre bug leaves the last animated transition property still
+                      // with a delay even after the end of an animation, so we clear it by hand
+                      tViewToDrag._view_layer.style.transition = "";
+                      // set actual model layout once animation has completed
+                      this._oldLayout = this._controller().revertModelLayout(layout);
+                      this._oldLayout.height = layout.height;
+                      tContainer.updateFrame();
+                    }.bind(this));
               },
               redo: function () {
                 var layout = SC.clone(this._oldLayout);
@@ -142,12 +142,12 @@ DG.DragBorderView = SC.View.extend(
                   layout.height = 25;
                 }
                 tViewToDrag.animate(layout,
-                  {duration: 0.4, timing: 'ease-in-out'},
-                  function () {
-                    tViewToDrag._view_layer.style.transition = "";
-                    this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
-                    tContainer.updateFrame();
-                  }.bind(this));
+                    {duration: 0.4, timing: 'ease-in-out'},
+                    function () {
+                      tViewToDrag._view_layer.style.transition = "";
+                      this._oldLayout = this._controller().revertModelLayout(this._oldLayout);
+                      tContainer.updateFrame();
+                    }.bind(this));
               }
             }));
           }
@@ -259,9 +259,9 @@ DG.ComponentView = SC.View.extend(
           return !SC.none(this.get('_modelSavedHeight'));
         }.property('_modelSavedHeight'),
 
-        init: function() {
+        init: function () {
           sc_super();
-          if( !this.get('showTitleBar')) {
+          if (!this.get('showTitleBar')) {
             this.getPath('containerView.titlebar').adjust('height', 0);
           }
           // If we are in component mode we select the component after it is
@@ -284,7 +284,8 @@ DG.ComponentView = SC.View.extend(
             isSelected: false,
             userEdit: false,
             classNameBindings: ['isSelected:titlebar-selected'],
-            childViews: 'statusView versionView minimize closeBox titleView'.w(),
+            childViews: ('statusView versionView ' +
+            (DG.componentMode === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['titleview'],
               classNameBindings: ['valueIsEmpty:titleview-empty'],
@@ -310,7 +311,7 @@ DG.ComponentView = SC.View.extend(
                 // SC 1.10 introduced a new inline editor model in which
                 // an 'exampleNode' is used to adjust inline editor style.
                 var exampleNode = this.get('exampleNode');
-                if(!exampleNode) {
+                if (!exampleNode) {
                   exampleNode = this.get('layer').cloneNode(false);
                   exampleNode.id = exampleNode.id + "-clone";
                   exampleNode.style.visibility = 'hidden';
@@ -319,14 +320,16 @@ DG.ComponentView = SC.View.extend(
                   tParent.get('layer').appendChild(exampleNode);
                   this.set('exampleNode', exampleNode);
                 }
-                exampleNode.style.left =   3 + 'px';
-                exampleNode.style.top =   12 + 'px';
+                exampleNode.style.left = 3 + 'px';
+                exampleNode.style.top = 12 + 'px';
 
-                iEditor.set({ exampleElement: exampleNode,
-                              exampleFrame: {
-                                x: tOrigin.x, y: tOrigin.y,
-                                width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
-                              }});
+                iEditor.set({
+                  exampleElement: exampleNode,
+                  exampleFrame: {
+                    x: tOrigin.x, y: tOrigin.y,
+                    width: tFrame.width - 2 * kXGap, height: tFrame.height - 2 * kYGap
+                  }
+                });
               },
               valueChanged: function () {
                 var tComponentView = DG.ComponentView.findComponentViewParent(this),
@@ -358,7 +361,7 @@ DG.ComponentView = SC.View.extend(
                       this_._value = prev;
                       this_.propertyDidChange('value');
                     },
-                    redo: function() {
+                    redo: function () {
                       tComponentView.setPath('model.title', value);
                       // we have to set this as well, as 'value' is not tightly bound
                       this_._value = value;
@@ -387,19 +390,37 @@ DG.ComponentView = SC.View.extend(
               layout: {right: 2 * kTitleBarHeight, top: 5},
               value: ''
             }),
-            minimize: DG.TitleBarMinimizeButton.design({
-              layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
-              classNames: ['dg-minimize-view'],
-              isVisible: SC.platform.touch
-            }),
-            closeBox: DG.TitleBarCloseButton.design({
-              layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
-              classNames: ['dg-close-view'],
-              isVisible: SC.platform.touch
-            }),
+            minimize: DG.componentMode === 'no' ?
+                DG.TitleBarMinimizeButton.design({
+                  layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
+                  classNames: ['dg-minimize-view'],
+                  isVisible: SC.platform.touch
+                }) :
+                null,
+            closeBox: DG.componentMode === 'no' ?
+                DG.TitleBarCloseButton.design({
+                  layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
+                  classNames: ['dg-close-view'],
+                  isVisible: SC.platform.touch
+                }) :
+                null,
+            undo: DG.componentMode === 'yes' ?
+                DG.TitleBarUndoButton.design({
+                  layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
+                  classNames: ['dg-undo'],
+                }) :
+                null,
+            redo: DG.componentMode === 'yes' ?
+                DG.TitleBarRedoButton.design({
+                  layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
+                  classNames: ['dg-redo'],
+                }) :
+                null,
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
               this.setPath('closeBox.isVisible', true);
+              this.setPath('undo.isVisible', true);
+              this.setPath('redo.isVisible', true);
               return YES;
             },
             mouseExited: function (evt) {
@@ -506,7 +527,7 @@ DG.ComponentView = SC.View.extend(
                 // Don't let user drag right edge off left of window
                 var tMinHeight = this.get('contentMinHeight') || kMinSize;
                 var tMaxHeight = this.get('contentMaxHeight') || kMaxSize;
-                var tMinWidth  = this.get('contentMinWidth') || kMinSize,
+                var tMinWidth = this.get('contentMinWidth') || kMinSize,
                     tLoc = Math.max(evt.pageX, tMinWidth),
                     tNewWidth = DG.ViewUtilities.roundToGrid(info.width + (tLoc - info.pageX)),
                     tNewHeight = DG.ViewUtilities.roundToGrid(info.height + (evt.pageY - info.pageY)),
@@ -536,10 +557,10 @@ DG.ComponentView = SC.View.extend(
 
         modelDimensionsChanged: function (iModel, iKey, iValue) {
           if (!SC.none(iValue)) {
-            if( iValue.width)
-                this.adjust('width', iValue.width);
-            if( iValue.height)
-                this.adjust('height', iValue.height);
+            if (iValue.width)
+              this.adjust('width', iValue.width);
+            if (iValue.height)
+              this.adjust('height', iValue.height);
           }
         }.observes('*model.dimensions'),
 
@@ -602,7 +623,7 @@ DG.ComponentView = SC.View.extend(
         /**
          * @param iZ {Number}
          */
-        assignZ: function( iZ) {
+        assignZ: function (iZ) {
           if (!this.getPath('controller.preventBringToFront')) {
             this.adjust('zIndex', iZ);
           }
@@ -619,10 +640,10 @@ DG.ComponentView = SC.View.extend(
           return true;
         },
         click: function (evt) {
-          return this.mouseDown( evt);
+          return this.mouseDown(evt);
         },
-        touchStart: function( evt) {
-          return this.mouseDown( evt);
+        touchStart: function (evt) {
+          return this.mouseDown(evt);
         },
 
         maximizeAndSelect: function () {
@@ -714,9 +735,9 @@ DG.ComponentView._createComponent = function (iParams) {
       });
   tComponentView.addContent(tComponentClass.create(iParams.contentProperties));
 
-  if(iParams.controller)
+  if (iParams.controller)
     tComponentView.set('controller', iParams.controller);
-  if( tIsStandaloneInteractive)
+  if (tIsStandaloneInteractive)
     tIsResizable = false;
   if (!SC.none(tIsResizable))
     tComponentView.set('isResizable', tIsResizable);
@@ -734,7 +755,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
       tSuperView = iParams.parentView,
       tUseLayoutForPosition = iParams.useLayout;
 
-  if(iParams.controller)
+  if (iParams.controller)
     tComponentView.set('controller', iParams.controller);
 
   //default to use the existing layout if present, even when requested otherwise.
@@ -763,7 +784,7 @@ DG.ComponentView.restoreComponent = function (iParams) {
  *   position {String} Default is 'top'. Also possible is 'bottom'
  */
 DG.ComponentView.addComponent = function (iParams) {
-  var tParams = $.extend({}, iParams, { layout: $.extend(true, {}, iParams.layout) }),
+  var tParams = $.extend({}, iParams, {layout: $.extend(true, {}, iParams.layout)}),
       tSuperView = tParams.parentView,
       tUseLayoutForPosition = tParams.useLayout || false;
   if (!SC.none(tParams.layout.width))
