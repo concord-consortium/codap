@@ -19,7 +19,6 @@
 // ==========================================================================
 
 sc_require('views/raphael_base');
-sc_require('libraries/leaflet-src');
 
 /** @class  DG.MapGridMarqueeView - Made visible over a map when we're in marquee mode to select grid rectangles.
 

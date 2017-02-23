@@ -19,7 +19,6 @@
 // ==========================================================================
 /* global L */
 sc_require('components/graph_map_common/plot_layer');
-sc_require('libraries/leaflet-src');
 
 
 /** @class DG.MapAreaLayer - A plot of dots placed according to numeric values

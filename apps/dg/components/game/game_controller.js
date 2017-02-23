@@ -18,7 +18,6 @@
 
 /* globals iframePhone */
 sc_require('controllers/component_controller');
-sc_require('libraries/iframe-phone');
 
 /** @class
  *

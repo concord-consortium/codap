@@ -55,6 +55,28 @@
    # these in your Buildfile with the 'bootstrap' config.
 -%>
 
+    <script src="<%= sc_static('build/codap-lib-bundle.js.ignore') %>" type="text/javascript"></script>
+    <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
+    <script>
+      (function() {
+        // load the CFM here if cfmBaseUrl is not specified
+        // otherwise, we delay-load CFM using cfmBaseUrl in main.js
+        var loadCfm = window.location.search.indexOf('cfmBaseUrl=') < 0;
+        [
+          loadCfm ? "<%= sc_static('cloud-file-manager/js/globals.js.ignore') %>" : null,
+          loadCfm ? "<%= sc_static('cloud-file-manager/js/app.js.ignore') %>" : null
+        ].forEach(function(src) {
+          if (src) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            document.head.appendChild(script);
+          }
+        });
+      }());
+    </script>
+
+
     <script>
       window.SC = window.SC || { MODULE_INFO: {}, LAZY_INSTANTIATION: {} };
       SC.buildMode = '<%=SC.build_mode%>';
@@ -94,27 +116,6 @@
           head.appendChild(css);
         }
       })();
-    </script>
-
-    <!-- https://www.html5rocks.com/en/tutorials/speed/script-loading/ -->
-    <script>
-      (function() {
-        // load the CFM here if cfmBaseUrl is not specified
-        // otherwise, we delay-load CFM using cfmBaseUrl in main.js
-        var loadCfm = window.location.search.indexOf('cfmBaseUrl=') < 0;
-        [
-          "<%= sc_static('build/codap-lib-bundle.js.ignore') %>",
-          loadCfm ? "<%= sc_static('cloud-file-manager/js/globals.js.ignore') %>" : null,
-          loadCfm ? "<%= sc_static('cloud-file-manager/js/app.js.ignore') %>" : null
-        ].forEach(function(src) {
-          if (src) {
-            var script = document.createElement('script');
-            script.src = src;
-            script.async = false;
-            document.head.appendChild(script);
-          }
-        });
-      }());
     </script>
 
     <%= @content_for_page_styles %>

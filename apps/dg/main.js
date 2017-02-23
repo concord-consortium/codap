@@ -18,7 +18,6 @@
 /*globals React, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
-sc_require('libraries/iframe-phone');
 
 // This is the function that will start your app running.  The default
 // implementation will load any fixtures you have created then instantiate
@@ -429,7 +428,7 @@ DG.main = function main() {
 
     if (DG.cfm) {
       DG.cfm.clientConnect(function (event) {
-        /* global nodeDeepEqual */
+        /* global deepEqual */
         var docController, docContent, docMetadata,
             cfmSharedMetadata;
 
@@ -566,7 +565,7 @@ DG.main = function main() {
                     this.causedChange = false;
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
-                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
+                      if(!deepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }
@@ -610,7 +609,7 @@ DG.main = function main() {
                     if(!DG.appController.get('_undoRedoShareInProgressCount')) {
                       docSharedMetadata = DG.currDocumentController().get('sharedMetadata');
                       this._orgSharedMetadata = $.extend(true, {}, docSharedMetadata);
-                      if(!nodeDeepEqual(docSharedMetadata, cfmSharedMetadata)) {
+                      if(!deepEqual(docSharedMetadata, cfmSharedMetadata)) {
                         DG.currDocumentController().set('sharedMetadata', cfmSharedMetadata);
                         this.causedChange = true;
                       }

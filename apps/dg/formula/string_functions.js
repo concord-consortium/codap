@@ -19,7 +19,7 @@
 // ==========================================================================
 
 sc_require('formula/function_registry');
-sc_require('utilities/DataUtilities');
+sc_require('utilities/data_utilities');
 
 /**
   Implements the basic builtin functions and registers them with the FunctionRegistry.
