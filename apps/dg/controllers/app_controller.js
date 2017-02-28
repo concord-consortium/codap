@@ -268,9 +268,10 @@ DG.appController = SC.Object.create((function () // closure
      * Imports text (e.g. from a CSV file) to the document from a URL.
      *
      * @param {string} iURL The url of a text (e.g. CSV) file
+     * @param {Boolean} iShowCaseTable
      * @return {Deferred|undefined}
      */
-    importTextFromUrl: function (iURL) {
+    importTextFromUrl: function (iURL, iShowCaseTable) {
       if (iURL) {
         $.ajax(iURL, {
           type: 'GET',
@@ -278,7 +279,7 @@ DG.appController = SC.Object.create((function () // closure
         }).then(function (data) {
             SC.run(function() {
                 var doc = (typeof data === 'string')? data: JSON.stringify(data);
-                return this.importText(doc, iURL);
+                return this.importText(doc, iURL, iShowCaseTable);
               }.bind(this)
             );
           }.bind(this), function (msg) {
@@ -323,16 +324,19 @@ DG.appController = SC.Object.create((function () // closure
      * Create a data context from a CSV string and expose it as a case table.
      * @param iText String  either CSV or tab-delimited
      * @param iName String  document name
+     * @param { Boolean } iShowCaseTable Defaults to true
      * @returns {Boolean}
      */
-    importText: function( iText, iName) {
-      var documentController = DG.currDocumentController();
+    importText: function( iText, iName, iShowCaseTable) {
       var context = this.createDataContextFromCSV(iText, iName);
 
-      // add case table
-      var caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
+      iShowCaseTable = SC.none( iShowCaseTable) || iShowCaseTable;
+      if( iShowCaseTable) {
+        var documentController = DG.currDocumentController(),
+            caseTable = documentController.addCaseTable(DG.mainPage.get('docView'), null, {dataContext: context});
 
-      DG.dirtyCurrentDocument(caseTable);
+        DG.dirtyCurrentDocument(caseTable);
+      }
 
       return true;
     },
