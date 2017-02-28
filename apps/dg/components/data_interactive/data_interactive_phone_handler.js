@@ -87,6 +87,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           component: this.handleComponent,
           componentList: this.handleComponentList,
           dataContext: this.handleDataContext,
+          dataContextFromURL: this.handleDataContextFromURL,
           dataContextList: this.handleDataContextList,
           //global: this.handleGlobal,
           //globalList: this.handleGlobalList,
@@ -200,7 +201,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
-            if (action !== 'create' || resourceSelector.type !== 'dataContext') {
+            if (action !== 'create' ||
+                (resourceSelector.type !== 'dataContext' && resourceSelector.type !== 'dataContextFromURL')) {
               resourceSelector.dataContext = '#default';
             }
             // set a flag in the result, so we can recognize this context as special.
@@ -515,6 +517,32 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
             };
           }
+        }
+      },
+
+      /**
+       * handles creation of a dataContext by reading in a URL.
+       *
+       * @param  iMessage {object}
+       *     {{
+       *      action: 'create'
+       *      resource: 'dataContextFromURL'
+       *      values: {URL: {string}}
+       *     }}
+       *
+       */
+      handleDataContextFromURL: {
+        create: function (iResources, iValues) {
+          var tURL;
+          var status = true;
+          if (iValues.URL) {
+            tURL = iValues.URL;
+            delete iValues.URL;
+            DG.appController.importTextFromUrl( tURL, false /* Don't show case table */);
+          }
+          return {
+            success: status
+          };
         }
       },
 

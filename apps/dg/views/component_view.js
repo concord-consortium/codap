@@ -274,7 +274,8 @@ DG.ComponentView = SC.View.extend(
         },
 
         contentView: SC.outlet('containerView.contentView'),
-        childViews: 'containerView borderRight borderBottom borderLeft borderTop borderCorner'.w(),
+        childViews: ('containerView' + (DG.componentMode === 'no' ?
+            ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
           layout: {left: 0, bottom: 0, right: 0},
           childViews: 'titlebar coverSheet'.w(),
@@ -444,7 +445,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
             },
             canBeDragged: function () {
-              return YES;
+              return DG.componentMode === 'no';
             }
           }),
           coverSheet: SC.View.design({

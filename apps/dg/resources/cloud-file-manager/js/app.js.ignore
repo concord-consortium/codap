@@ -12700,22 +12700,31 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype.saveSecondaryFileAsDialog = function(stringContent, extension, mimeType, callback) {
     var data;
-    data = {
-      content: stringContent,
-      extension: extension,
-      mimeType: mimeType
-    };
-    return this._ui.saveSecondaryFileAsDialog(data, (function(_this) {
-      return function(metadata) {
-        if (extension) {
-          metadata.filename = CloudMetadata.newExtension(metadata.filename, extension);
-        }
-        if (mimeType) {
-          metadata.mimeType = mimeType;
-        }
-        return _this.saveSecondaryFile(stringContent, metadata, callback);
+    if (window.location.search.indexOf("saveSecondaryFileViaPostMessage") !== -1) {
+      return window.parent.postMessage({
+        action: "saveSecondaryFile",
+        extension: extension,
+        mimeType: mimeType,
+        content: stringContent
+      }, "*");
+    } else {
+      data = {
+        content: stringContent,
+        extension: extension,
+        mimeType: mimeType
       };
-    })(this));
+      return this._ui.saveSecondaryFileAsDialog(data, (function(_this) {
+        return function(metadata) {
+          if (extension) {
+            metadata.filename = CloudMetadata.newExtension(metadata.filename, extension);
+          }
+          if (mimeType) {
+            metadata.mimeType = mimeType;
+          }
+          return _this.saveSecondaryFile(stringContent, metadata, callback);
+        };
+      })(this));
+    }
   };
 
   CloudFileManagerClient.prototype.saveSecondaryFile = function(stringContent, metadata, callback) {
