@@ -825,7 +825,7 @@ DG.DocumentController = SC.Object.extend(
                                   controller: tController,
                                   componentClass: { type: 'DG.GraphView', constructor: DG.GraphView},
                                   contentProperties: { model: DG.GraphModel.create( {
-                                    dataContext: tStorage && tStorage.dataContext,
+                                    dContext: tStorage && tStorage.dataContext,
                                     xAttributeName: tStorage && tStorage.xAttributeName,
                                     yAttributeName: tStorage && tStorage.yAttributeName,
                                     legendAttributeName: tStorage && tStorage.legendAttributeName
