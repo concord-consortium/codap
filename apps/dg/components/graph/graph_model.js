@@ -227,10 +227,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
                 { collection: tCollectionClient, attributes: [ tAttribute]});
         }
       }.bind(this);
-      var tDataContext = this.dContext;
+      var tDataContext = this.initialDataContext;
       if( tDataContext) {
-        this.setPath('dataConfiguration.dContext');
-        delete this.dContext;  // It was passed in this way, but it's not one of our legitimate properties
+        this.setPath('dataConfiguration.initialDataContext');
+        delete this.initialDataContext;  // It was passed in this way, but it's not one of our legitimate properties
       }
 
       this._plots = [];
