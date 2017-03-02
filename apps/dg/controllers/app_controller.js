@@ -112,6 +112,8 @@ DG.appController = SC.Object.create((function () // closure
             undoString: 'DG.Undo.caseTable.open',
             redoString: 'DG.Redo.caseTable.open',
             log: 'openCaseTable: {name: "%@"}'.fmt(iDataContext.get('name')),
+            executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'table'),
+            undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'table'),
             execute: function () {
               caseTable = documentController.addCaseTable(
                   DG.mainPage.get('docView'), null,

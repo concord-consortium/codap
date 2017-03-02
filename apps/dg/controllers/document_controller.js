@@ -788,22 +788,8 @@ DG.DocumentController = SC.Object.extend(
         name: "graphComponent.create",
         undoString: 'DG.Undo.graphComponent.create',
         redoString: 'DG.Redo.graphComponent.create',
-        executeNotification: {
-          action: 'notify',
-          resource: 'component',
-          values: {
-            operation: 'create',
-            type: 'graph'
-          }
-        },
-        undoNotification: {
-          action: 'notify',
-          resource: 'component',
-          values: {
-            operation: 'delete',
-            type: 'graph'
-          }}
-          ,
+        executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'graph'),
+        undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'graph'),
         log: 'Create graph component',
         isUndoable: !isInitialization,
         _component: null,
@@ -862,6 +848,8 @@ DG.DocumentController = SC.Object.extend(
         log: 'Create text component',
         isUndoable: !isInitialization,
         _component: null,
+        executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'text'),
+        undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'text'),
         execute: function() {
           tView = docController.createComponentView(iComponent || this._component, {
                                 parentView: iParentView,
@@ -894,6 +882,8 @@ DG.DocumentController = SC.Object.extend(
         log: 'Create map component',
         isUndoable: !isInitialization,
         _component: null,
+        executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'map'),
+        undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'map'),
         execute: function() {
           var tMapModel = DG.MapModel.create(),
               tMapController = DG.MapController.create();
@@ -931,6 +921,8 @@ DG.DocumentController = SC.Object.extend(
         isUndoable: !isInitialization,
         _global: null,
         _componentId: null,
+        executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'slider'),
+        undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'slider'),
         execute: function() {
           if (SC.none(this._global)) {
             this._global = docController.createGlobalValue();
@@ -1017,6 +1009,8 @@ DG.DocumentController = SC.Object.extend(
         log: 'Show webView: {title: "%@", url: "%@"}'.fmt(iTitle, iURL),
         isUndoable: !isInitialization,
         _component: null,
+        executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'webView'),
+        undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'webView'),
         execute: function() {
           tView = DG.currDocumentController().createComponentView(iComponent || this._component, {
             parentView: iParentView,

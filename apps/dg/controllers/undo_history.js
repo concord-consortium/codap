@@ -251,6 +251,17 @@ DG.UndoHistory = SC.Object.create((function() {
       });
     },
 
+    makeComponentNotification: function( iOperation, iType) {
+      return {
+        action: 'notify',
+        resource: 'component',
+        values: {
+          operation: iOperation,
+          type: iType
+        }
+      };
+    },
+
     /** @private
       Helper method to run a function in a certain context. All calls to documentWasChanged will be ignored during its execution.
       @param    {DG.Command}   cmd -- An instance of DG.Command, which is used as the context for the function execution.
