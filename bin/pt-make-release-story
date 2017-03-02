@@ -23,7 +23,8 @@ API_SERVICE="projects/$PROJECT_ID/stories"
 [ "$1" = "" ] && usage
 
 DT=`date "+%m/%d/%Y"`
-DATA='{"name":"'$1'","description":"Build","story_type":"release","current_state": "unstarted"}'
+NAME="$1 - $DT"
+DATA='{"name":"'$NAME'","description":"Build","story_type":"release","current_state": "unstarted"}'
 
 curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$DATA" ${API_URL}/${API_SERVICE} | jq '.' 
 
