@@ -1158,7 +1158,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var items = Array.isArray(iItems)?iItems:(iItems?[iItems]:[]);
     var attrs = this.getAttributes();
     var results;
-    var newCases;
+    var collections = [];
+    var collectionIDCaseMap = {};
     items.forEach(function (item) {
       var canonicalItem;
       if (item instanceof DG.DataItem) {
@@ -1169,21 +1170,36 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     });
     results = this.regenerateCollectionCases();
-    newCases = results.createdCases.map(function (iCase) { return iCase.id; });
 
-    if (newCases.length > 0) {
-      this.applyChange({
-        operation: 'createCases',
-        isComplete: true,
-        properties: {index: true},
-        result: {
-          caseIDs: newCases,
-          caseID: newCases[0]
-        }
-      });
+    results.createdCases.forEach(function (iCase) {
+      var collectionID = iCase.collection.get('id');
+      var collectionCases = collectionIDCaseMap[collectionID];
+      if (!collectionCases) {
+        collections.push(iCase.collection);
+        collectionCases = collectionIDCaseMap[collectionID] = [];
+      }
+      collectionCases.push(iCase.get('id'));
+    });
+
+    if (results && results.createdCases.length > 0) {
+      collections.forEach(function (collection) {
+        var cases = collectionIDCaseMap[collection.get('id')];
+        this.applyChange({
+          operation: 'createCases',
+          collection: this.getCollectionByID(collection.get('id')),
+          isComplete: true,
+          properties: {index: true},
+          result: {
+            caseIDs: cases,
+            caseID: cases[0]
+          }
+        });
+      }.bind(this));
     }
 
-    return newCases;
+    return results && results.createdCases.map(function(iCase){
+      return iCase.id;
+    });
   },
 
   _moveAttributeWithinCollection: function(attr, collectionClient, position) {
