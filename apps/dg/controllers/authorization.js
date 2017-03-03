@@ -46,7 +46,23 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
 */
 DG.authorizationController = SC.Controller.create( (function() {
 
-return {
+  /**
+   * Generates a one-time session key built from data and time and a random
+   * value. Will be used for logging, if no Lara Run Key.
+   */
+  var sessionKey = (function () {
+    var now = new Date();
+    var dateTimePart = now.getFullYear().toString().slice(-2) +
+        ("0"+(now.getMonth()+1)).slice(-2) + ("0" + now.getDate()).slice(-2) +
+        ("0" + now.getHours()).slice(-2) + ("0" + now.getMinutes()).slice(-2) +
+        ("0" + now.getSeconds()).slice(-2);
+    var randomPart = Math.random().toPrecision(5).slice(2);
+    return dateTimePart + '-' + randomPart;
+  })();
+
+  var sessionIndex = 0;
+
+  return {
 /** @scope DG.authorizationController.prototype */
 
   /**
@@ -61,8 +77,7 @@ return {
       return p;
     }
 
-    var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (!DG.documentServer && iMetaArgs && iMetaArgs.force),
+    var shouldLog = (window.location.hostname.toLowerCase() === DG.logFromServer),
         time = new Date(),
         eventValue,
         parameters = {},
@@ -76,7 +91,7 @@ return {
     }
 
     if (DG.get('logServerUrl')) {
-      this.currLogin.incrementProperty('logIndex');
+      sessionIndex++;
 
       eventValue = extract(iProperties, 'args');
 
@@ -106,7 +121,7 @@ return {
       body = {
         activity:    extract(iProperties, 'activity') || 'Unknown',
         application: extract(iProperties, 'application'),
-        session:     DG.get('runKey'),
+        session:     DG.get('runKey') || sessionKey,
         // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
         time:        time.getTime(),
         event:       event,
@@ -122,6 +137,7 @@ return {
           withCredentials: false
         }
       });
+      console.log('sent to log server: ' + SC.json.encode(body));
     }
   }
 

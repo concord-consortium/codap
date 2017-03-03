@@ -200,6 +200,11 @@ DG = SC.Application.create((function () // closure
 
     showWebSiteURL: 'https://concord.org/projects/codap',
 
+    /*
+     * Logging is enabled when server matches this DNS name.
+     */
+    logFromServer: 'codap.concord.org',
+
     defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
 
     defaultLogServerLoginURLSecure: 'https://cc-log-manager.herokuapp.com/api/logs',
