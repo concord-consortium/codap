@@ -91,6 +91,9 @@ DG.appController = SC.Object.create((function () // closure
             );
             caseTable = documentController.addCaseTable(
                 DG.mainPage.get('docView'), null, {position: 'top', dataContext: dataContext});
+            this.invokeLater(function () {
+              caseTable.setFocusToComponentTitle();
+            }, 1000);
           },
           undo: function () {
             documentController.destroyDataContext(dataContext.get('id'));
