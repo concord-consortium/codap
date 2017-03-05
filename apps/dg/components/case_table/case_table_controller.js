@@ -24,6 +24,8 @@ sc_require('controllers/component_controller');
 sc_require('components/case_table/attribute_editor_view');
 sc_require('library/pluralize');
 
+/*global pluralize:true*/
+
 /** @class
 
   DG.CaseTableController provides controller functionality for DG.TableViews.
