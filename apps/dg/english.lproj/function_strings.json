@@ -698,8 +698,8 @@
   /*
    * Statistical Functions
    */
-  "concatA": {
-    "displayName": "concatA",
+  "combine": {
+    "displayName": "combine",
     "description": "Returns the aggregated concatenation of its evaluated argument values.",
     "args": [
       {
@@ -709,12 +709,13 @@
       }
     ],
     "examples": [
-      "concatA(1) returns 1, repeated for the number of cases in the case table"
+      "combine(flip) might return \"HHT\" when there are three cases each with value \"H\" or \"T\"",
+      "combine(1) returns 1, repeated for the number of cases in the case table"
     ]
   },
   "count": {
     "displayName": "count",
-    "description": "Returns the number of cases in the collection.",
+    "description": "Returns the number of cases in the collection. When used with no arguments it returns the number of child cases.",
     "args": [
       {
         "name": "expression",
@@ -728,7 +729,7 @@
       }
     ],
     "examples": [
-      "count() returns the number of cases",
+      "count() returns the number of child cases",
       "count(Height) returns the number of cases for the attribute Height",
       "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
     ]

@@ -275,11 +275,12 @@ return {
   }),
 
   /**
-   concatA(expr)
+   combine(expr)
    Returns the aggregated concatenation of its evaluated argument values.
    */
-  'concatA': DG.ParentCaseAggregate.create({
+  'combine': DG.ParentCaseAggregate.create({
 
+    category: 'DG.Formula.FuncCategoryString',
     requiredArgs: { min: 1, max: 1 },
 
     evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
