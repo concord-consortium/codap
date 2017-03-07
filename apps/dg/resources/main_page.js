@@ -47,6 +47,7 @@ DG.mainPage = SC.Page.design((function() {
         if( iTarget && iTarget.iconClass && iTarget.iconClass === tInspectorPicker.buttonIconClass)
             tInspectorPicker.set('removedByClickInButton', true);
         tInspectorPicker.remove();
+        tInspectorPicker.destroy(); // We regenerate each time
         this.set('inspectorPicker', null);
       }
     },
