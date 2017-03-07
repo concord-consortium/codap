@@ -46,73 +46,88 @@ DG.logToServer = function( iLogMessage, iProperties, iMetaArgs) {
 */
 DG.authorizationController = SC.Controller.create( (function() {
 
-return {
-/** @scope DG.authorizationController.prototype */
-
   /**
-    Logs the specified message, along with any additional properties, to the server.
-
-    description and signature TODO
+   * Generates a one-time session key built from data and time and a random
+   * value. Will be used for logging, if no Lara Run Key.
    */
-  logToServer: function(event, iProperties, iMetaArgs) {
-    function extract(obj, prop) {
-      var p = obj[prop];
-      obj[prop] = undefined;
-      return p;
-    }
+  var sessionKey = (function () {
+    var now = new Date();
+    var dateTimePart = now.getFullYear().toString().slice(-2) +
+        ("0"+(now.getMonth()+1)).slice(-2) + ("0" + now.getDate()).slice(-2) +
+        ("0" + now.getHours()).slice(-2) + ("0" + now.getMinutes()).slice(-2) +
+        ("0" + now.getSeconds()).slice(-2);
+    var randomPart = Math.random().toPrecision(5).slice(2);
+    return dateTimePart + '-' + randomPart;
+  }());
 
-    var shouldLog = this.getPath('currLogin.isLoggingEnabled') ||
-                    (!DG.documentServer && iMetaArgs && iMetaArgs.force),
-        time = new Date(),
-        eventValue,
-        parameters = {},
-        body;
+  // var sessionIndex = 0;
 
-    if( !shouldLog) {
-      // The logging path below indirectly triggers SproutCore notifications.
-      // Calling SC.run() allows the same notifications to get triggered without the logging.
-      SC.run();
-      return;
-    }
+  return {
+  /** @scope DG.authorizationController.prototype */
 
-    if (DG.get('logServerUrl')) {
-      this.currLogin.incrementProperty('logIndex');
+    /**
+      Logs the specified message, along with any additional properties, to the server.
 
-      eventValue = extract(iProperties, 'args');
-
-      // test for simple string
-      if (/^[a-zA-Z]*$/.test(eventValue)) {
-        parameters = {value: eventValue};
+      description and signature TODO
+     */
+    logToServer: function(event, iProperties, iMetaArgs) {
+      function extract(obj, prop) {
+        var p = obj[prop];
+        obj[prop] = undefined;
+        return p;
       }
-      else {
-        try {
-          parameters = JSON.parse(eventValue);
-          // If the value of parameters is not an object, then wrap the value in
-          // an object. Otherwise the log manager will reject it.
-          if (typeof parameters !== 'object') {
-            parameters = {value: parameters};
-          }
-        } catch (e) {
-          // ignore exceptions
+
+      var shouldLog = (window.location.hostname.toLowerCase() === DG.logFromServer),
+          time = new Date(),
+          eventValue,
+          parameters = {},
+          body;
+
+      if( !shouldLog) {
+        // The logging path below indirectly triggers SproutCore notifications.
+        // Calling SC.run() allows the same notifications to get triggered without the logging.
+        SC.run();
+        return;
+      }
+
+      if (DG.get('logServerUrl')) {
+        // sessionIndex++;
+
+        eventValue = extract(iProperties, 'args');
+
+        // test for simple string
+        if (/^[a-zA-Z]*$/.test(eventValue)) {
+          parameters = {value: eventValue};
         }
-      }
+        else {
+          try {
+            parameters = JSON.parse(eventValue);
+            // If the value of parameters is not an object, then wrap the value in
+            // an object. Otherwise the log manager will reject it.
+            if (typeof parameters !== 'object') {
+              parameters = {value: parameters};
+            }
+          } catch (e) {
+            // ignore exceptions
+          }
+        }
 
-      // hack to deal with pgsql 'varying' type length limitation
+        // hack to deal with pgsql 'varying' type length limitation
 
-      if (eventValue && eventValue.length > 255) {
-        eventValue = eventValue.substr(0, 255);
-      }
+        if (eventValue && eventValue.length > 255) {
+          eventValue = eventValue.substr(0, 255);
+        }
 
-      body = {
-        activity:    extract(iProperties, 'activity') || 'Unknown',
-        application: extract(iProperties, 'application'),
-        session:     DG.get('runKey'),
-        // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
-        time:        time.getTime(),
-        event:       event,
-        event_value: eventValue,
-        parameters:  parameters
-      };
+        body = {
+          activity:    extract(iProperties, 'activity') || 'Unknown',
+          application: extract(iProperties, 'application'),
+          session:     DG.get('runKey') || sessionKey,
+          // avoids TZ ambiguity; getTime returns milliseconds since the epoch (1-1-1970 at 0:00 *UTC*)
+          time:        time.getTime(),
+          event:       event,
+          event_value: eventValue,
+          parameters:  parameters
+        };
 
       $.ajax(DG.get('logServerUrl'), {
         type: 'POST',
@@ -122,7 +137,7 @@ return {
           withCredentials: false
         }
       });
+      console.log('sent to log server: ' + SC.json.encode(body));
     }
   }
-
 }; })());

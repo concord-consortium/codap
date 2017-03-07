@@ -186,7 +186,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0376',
+    BUILD_NUM: '0377',
 
     IS_DG_BUILD: isDGBuild(),
 
@@ -199,6 +199,11 @@ DG = SC.Application.create((function () // closure
     showHelpURL: 'https://codap.concord.org/help',
 
     showWebSiteURL: 'https://concord.org/projects/codap',
+
+    /*
+     * Logging is enabled when server matches this DNS name.
+     */
+    logFromServer: 'codap.concord.org',
 
     defaultLogServerLoginURL: 'http://cc-log-manager.herokuapp.com/api/logs',
 

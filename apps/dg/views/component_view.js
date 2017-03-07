@@ -272,7 +272,12 @@ DG.ComponentView = SC.View.extend(
             }.bind(this));
           }
         },
-
+        setFocusToComponentTitle: function () {
+          var titleView = this.getPath('containerView.titlebar.titleView');
+          if (titleView) {
+            titleView.beginEditing();
+          }
+        },
         contentView: SC.outlet('containerView.contentView'),
         childViews: ('containerView' + (DG.componentMode === 'no' ?
             ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),

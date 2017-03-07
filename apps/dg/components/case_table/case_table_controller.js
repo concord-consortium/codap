@@ -22,6 +22,9 @@
 
 sc_require('controllers/component_controller');
 sc_require('components/case_table/attribute_editor_view');
+sc_require('library/pluralize');
+
+/*global pluralize:true*/
 
 /** @class
 
@@ -1249,9 +1252,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       _makeUniqueCollectionName: function (candidateName) {
-        function pluralize(name) {
-          return name + 's';
-        }
         var context = this.dataContext;
         var name = pluralize(candidateName);
         var ix = 0;
