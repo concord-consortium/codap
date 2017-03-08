@@ -1118,22 +1118,44 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * @param iEvent
    */
   handleKeyDown: function (iEvent) {
+    function findLastFocusableColumn(columns) {
+      var columnIndex = 0;
+      var lastFocusableCell = null;
+      while (columnIndex < columns.length) {
+        if (columns[columnIndex] && columns[columnIndex].focusable) {
+          lastFocusableCell = columnIndex;
+        }
+        columnIndex += 1;
+      }
+      return lastFocusableCell;
+    }
+
+    function findFirstFocusableColumn(columns) {
+      var columnIndex = 0;
+      while (columnIndex < columns.length) {
+        if (columns[columnIndex] && columns[columnIndex].focusable) {
+          return columnIndex;
+        }
+        columnIndex += 1;
+      }
+      return null;
+    }
     if ((iEvent.keyCode === 9) || (iEvent.keyCode === 13)) {
       var editorLock = this._slickGrid.getEditorLock(),
           editorIsActive = editorLock && editorLock.isActive(),
           columns = this._slickGrid.getColumns(),
-          columnCount = columns && columns.length,
+          // columnCount = columns && columns.length,
           activeCell = this._slickGrid.getActiveCell(),
           dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
       if (editorIsActive && dataItem && dataItem._isProtoCase) {
         this.clearProtoCaseTimer();
         if (iEvent.shiftKey) {
-          if (activeCell.cell > 0)
+          if (activeCell.cell > findFirstFocusableColumn(columns))
             this._slickGrid.navigatePrev();
         }
         else {
-          if (activeCell.cell < columnCount - 1) {
-            this._slickGrid.navigateNext();
+          if (activeCell.cell < findLastFocusableColumn(columns)) {
+              this._slickGrid.navigateNext();
           }
           else if (editorLock.commitCurrentEdit() && DG.ObjectMap.length(dataItem._values)) {
             SC.run(function() {

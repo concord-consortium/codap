@@ -238,12 +238,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
 
   isCellEditable: function(row, column) {
-    var //dataView = this.get('gridDataView'),
-        //dataItem = dataView.getItem(row),
-        colInfo = this.gridColumns[column],
+    var colInfo = this.gridColumns[column],
         attr = colInfo && colInfo.attribute,
-        attrIsEditable = attr && attr.get('editable') && !attr.get('hasFormula');
+        attrIsEditable = this.isAttrEditable(attr);
     return attrIsEditable;
+  },
+
+  isAttrEditable: function (attr) {
+    return attr && attr.get('editable') && !attr.get('hasFormula');
   },
 
   /**
@@ -286,11 +288,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Build a new column definition if we need to
       var collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
+          isEditable = this.isAttrEditable(iAttribute),
           isQual = iAttribute.get('type') === 'qualitative',
           columnInfo = {
             context: context,
             collection: collection,
             collectionID: collection.get('id').toString(),
+            focusable: isEditable,
             attribute: iAttribute,
             // Slick.Grid properties
             id: attrID,

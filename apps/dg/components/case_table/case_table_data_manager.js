@@ -120,25 +120,20 @@ DG.CaseTableDataManager = SC.Object.extend({
    */
   getItemMetadata: function (row) {
     var myCase = this.getItem(row);
-    if (myCase && (myCase instanceof DG.Case)) {
-      if (myCase.collection.get('id') !== this.collection.get('id')) {
-        return {
-          columns: {
-            0: {
-              colspan: "*"
-            }
-          },
-          formatter: function (row, cell, cellValue, colInfo, rowItem) {
-            var caseCount = this.subcaseCount(this._rowCaseMap[row]);
-            var setName = this.context.getCaseNameForCount(this.collection, 2);
-            return '%@ %@'.loc(caseCount, setName);
-          }.bind(this)
-        };
-      }
-    }
-    else {
-      // proto-cases are always editable
-      return { focusable: true };
+      // and if this case is collapsed...
+    if (myCase.collection.get('id') !== this.collection.get('id')) {
+      return {
+        columns: {
+          0: {
+            colspan: "*"
+          }
+        },
+        formatter: function (row, cell, cellValue, colInfo, rowItem) {
+          var caseCount = this.subcaseCount(this._rowCaseMap[row]);
+          var setName = this.context.getCaseNameForCount(this.collection, 2);
+          return '%@ %@'.loc(caseCount, setName);
+        }.bind(this)
+      };
     }
   },
 
