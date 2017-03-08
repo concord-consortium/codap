@@ -53,8 +53,14 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
 
           var drawScale = function () {
                 var tMinMax = tAttrDesc.get('minMax'),
-                    tMin = DG.Format.number().fractionDigits(0, 2)(tMinMax.min),
-                    tMax = DG.Format.number().fractionDigits(0, 2)(tMinMax.max),
+                    tMinFormatter = DG.Format.number().fractionDigits(0, 2),
+                    tMaxFormatter = DG.Format.number().fractionDigits(0, 2);
+                if( tMinMax.min < 2500)
+                  tMinFormatter.group('');
+                if( tMinMax.max < 2500)
+                  tMaxFormatter.group('');
+                var tMin = tMinFormatter(tMinMax.min),
+                    tMax = tMaxFormatter(tMinMax.max),
                     kMaxTicks = 4,
                     tTick;
 
