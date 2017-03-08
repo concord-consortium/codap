@@ -88,7 +88,19 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
     return splitEval ? this.getPath('plotModel.secondaryVarID') || -1 : -1;
   }.property('splitEval', 'plotModel'),
 
-  /**
+    /**
+     * Return true if the given case is currently among those being plotted.
+     *
+     * @param  {Object}              iEvalContext -- { _case_: , _id_: }
+     * @return {boolean}
+     */
+    filterCase: function (iEvalContext) {
+      var tResult = sc_super(),
+          tCases = this.getPath('plotModel.cases');
+      return tResult && tCases.indexOf( iEvalContext._case_) >= 0;
+    },
+
+    /**
     Compiles a variable reference into the JavaScript code for accessing
     the appropriate value. For the PlottedFunctionContext, this means
     binding to 'x' and any global values (e.g. sliders).
