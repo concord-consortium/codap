@@ -39,6 +39,7 @@ DG.depMgrLog = function() {};
  */
 DG.DEP_TYPE_ATTRIBUTE = 'attribute';
 DG.DEP_TYPE_GLOBAL = 'global';
+DG.DEP_TYPE_PLOT = 'plot';
 DG.DEP_TYPE_SPECIAL = 'special';
 DG.DEP_TYPE_UNDEFINED = 'undefined';
 
