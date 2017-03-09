@@ -88,7 +88,19 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
     return splitEval ? this.getPath('plotModel.secondaryVarID') || -1 : -1;
   }.property('splitEval', 'plotModel'),
 
-  /**
+    /**
+     * Return true if the given case is currently among those being plotted.
+     *
+     * @param  {Object}              iEvalContext -- { _case_: , _id_: }
+     * @return {boolean}
+     */
+    filterCase: function (iEvalContext) {
+      var tResult = sc_super(),
+          tCases = this.getPath('plotModel.cases');
+      return tResult && tCases.indexOf( iEvalContext._case_) >= 0;
+    },
+
+    /**
     Compiles a variable reference into the JavaScript code for accessing
     the appropriate value. For the PlottedFunctionContext, this means
     binding to 'x' and any global values (e.g. sliders).
@@ -120,6 +132,26 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
     return sc_super();
   },
   
+  /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  didCompile: function() {
+    sc_super();
+
+    // register the 'plot' dependency for invalidation
+    var plotModel = this.get('plotModel'),
+        // TODO: use a more robust ID
+        plotID = DG.Debug.scObjectID(plotModel);
+    this.registerDependency({ independentSpec: {
+                                type: DG.DEP_TYPE_PLOT,
+                                id: plotID,
+                                name: 'plot-' + plotID
+                              },
+                              aggFnIndices: this.ALL_FUNCTIONS
+                            });
+  },
+
   /**
     Direct evaluation of the expression without an intervening compilation.
     This is unlikely to be used for plotted funtions where the expression is

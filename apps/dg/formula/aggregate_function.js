@@ -138,7 +138,7 @@ DG.IteratingAggregate = DG.AggregateFunction.extend({
     @param  {Object}              iInstance -- The aggregate function instance from the context.
    */
   filterCase: function( iContext, iEvalContext, iInstance) {
-    return true;
+    return iContext.filterCase( iEvalContext);
   },
   
   /**
@@ -240,8 +240,9 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
     @param  {Object}              iInstance -- The aggregate function instance from the context.
    */
   filterCase: function( iContext, iEvalContext, iInstance) {
-    var filterFn = iInstance.filterFn;
-    return filterFn ? filterFn( iContext, iEvalContext) : true;
+    var tBaseResult = sc_super(),
+        filterFn = iInstance.filterFn;
+    return tBaseResult && (filterFn ? filterFn( iContext, iEvalContext) : true);
   },
   
   /**

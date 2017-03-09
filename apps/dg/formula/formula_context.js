@@ -95,6 +95,17 @@ DG.FormulaContext = SC.Object.extend( (function() {
     return [];
   },
 
+    /**
+     * Determine whether the given case should be included in any evaluation. Default is to return true.
+     * Subclasses such as DG.PlottedFunctionContext will evaluate based on the cases currently showing.
+     *
+     * @param  {Object}              iEvalContext -- { _case_: , _id_: }
+     * @return {boolean}
+     */
+  filterCase: function (iEvalContext) {
+    return true;
+  },
+
   /**
     Called when a dependency is identified during compilation.
     @param {object}   iDependency
@@ -161,6 +172,13 @@ DG.FormulaContext = SC.Object.extend( (function() {
     Derived classes may override as appropriate.
    */
   didCompile: function() {
+  },
+
+  /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  completeCompile: function() {
   },
 
   /**

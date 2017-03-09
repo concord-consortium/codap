@@ -79,6 +79,8 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     var tValue = this.get('value'),
         tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
         tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
+    if( tValue < 2500 )
+      tNumFormat.group('');
     return tNumFormat( tValue);
   }.property().cacheable(),
   valueStringDidChange: function() {

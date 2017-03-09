@@ -92,6 +92,16 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       return tValueString;
     }
 
+    function findLongestValueString() {
+      var tMaxString = '';
+      tValuesArray.forEach( function( iValue) {
+        var tTestString = formatValueString( iValue);
+        if( tTestString.length > tMaxString.length)
+          tMaxString = tTestString;
+      });
+      return tMaxString;
+    }
+
     var tModel = this.get('model'),
         tValuesArray = tModel.get('values'),
         tShowCount = tModel.get('isShowingCount'),
@@ -100,7 +110,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
         tNumElements = this.myElements.length;
 
     this.updateNumCells();
-    if( tNumValues !==( this.numCellsOnX * this.numCellsOnY )) {
+    if( tNumValues !==( this.numCellsOnX * this.numCellsOnY ) || tNumValues === 0) {
       // TODO: find the places where this happens and fix (Chainsaw: thickness vs. ?)
       // zero length array indicates that the model was not able to compute values and aborted; we should also,
       // until model is complete again.
@@ -114,9 +124,20 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
         tLayer = this.get('layer' ),
         tCellHeight = this.getPath('yAxisView.fullCellWidth'),
         tCellWidth = this.getPath('xAxisView.fullCellWidth'),
-        tTempElement = tPaper.text(-100, 0, 'test'),
-        tYOffset = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11).height,
+        tFontSize = 12,
+        tLongest = findLongestValueString(),
+        tTempElement = tPaper.text(-100, 0, tLongest)
+            .attr( {'font-size': tFontSize })
+            .addClass('graph-adornment-count'),
+        tExtent = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11),
+        tYOffset = tExtent.height,
+
         tValue, tAttrs, tTextElem, tIsNewElement, i;
+    while( tExtent.width > tCellWidth) {
+      tFontSize--;
+      tTempElement.attr( {'font-size': tFontSize });
+      tExtent = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11);
+    }
     tTempElement.remove();
 
     // for each count value (one per cell of plot), add/update a text element
@@ -131,12 +152,14 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       tAttrs = { // position in upper-right of cell, with margin
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
           y: this.marginY + tYOffset/3 + (tIndexY*tCellHeight ),
+          'font-size': tFontSize,
           text: formatValueString( tValue)
       };
 
       if (tIsNewElement) {   // create text element
         tTextElem = tPaper.text(tAttrs.x, tAttrs.y, tAttrs.text);
         tTextElem.attr({'text-anchor': 'end', fill: this.textColor});
+        tTextElem.addClass('graph-adornment-count');
         this.myElements.push(tTextElem);
         tLayer.push(tTextElem);
       } else {                // update text element

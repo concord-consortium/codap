@@ -33,6 +33,12 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
   return {
 
   /**
+    Constant used when registering dependencies to indicate that all functions are affected.
+    @type {String}
+   */
+  ALL_FUNCTIONS: '__ALL__',
+
+  /**
     Properties of the formula owner for use by the dependency manager.
     Generally passed in by the client on construction.
     @type {object}
@@ -210,7 +216,7 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     Called when the formula has been recompiled to clear any stale dependencies.
     Derived classes may override as appropriate.
    */
-  didCompile: function() {
+  completeCompile: function() {
     sc_super();
 
     // prune (remove) prior dependencies that are no longer extant
@@ -236,8 +242,15 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
     if (!dependency.dependentSpec)
       dependency.dependentSpec = this.get('ownerSpec');
     DG.assert(dependency.independentSpec);
-    if (!dependency.aggFnIndices)
+    if (!dependency.aggFnIndices) {
       dependency.aggFnIndices = this.getAggregateFunctionIndices();
+    }
+    else if (dependency.aggFnIndices === this.ALL_FUNCTIONS) {
+      dependency.aggFnIndices = [];
+      for (var i = 0; i < this.aggFnInstances.length; ++i) {
+        dependency.aggFnIndices.push(i);
+      }
+    }
     if (!dependency.dependentContext)
       dependency.dependentContext = this;
     this.get('dependencyMgr').registerDependency(dependency);

@@ -885,6 +885,11 @@ body.dg .sc-view.doc-background {
     background-color: #d3d3d3;
 }
 
+.graph-adornment-count tspan {
+    font-family: 'Montserrat-Regular', sans-serif;
+    font-weight: lighter;
+}
+
 .graph-adornment tspan {
     font-family: 'Montserrat-Regular', sans-serif;
     font-size: 12px;

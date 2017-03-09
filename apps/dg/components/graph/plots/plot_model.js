@@ -66,7 +66,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
 
   casesDidChange: function() {
     this.notifyPropertyChange('cases');
-  }.observes('*dataConfiguration.collectionClient'),
+  }.observes('*dataConfiguration.collectionClient', '*dataConfiguration.cases'),
 
   /**
     The plot model needs access to the cases controller that is stored in my dataConfiguration's
