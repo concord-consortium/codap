@@ -145,6 +145,7 @@ return {
       context.willCompile();
       var output = DG.Formula.compileToJavaScript( parsed, context);
       context.didCompile();
+      context.completeCompile();
       compiled = DG.FormulaContext.createContextFunction( output);
     }
     return compiled;

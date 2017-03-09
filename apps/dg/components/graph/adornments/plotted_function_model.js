@@ -121,6 +121,26 @@ DG.PlottedFunctionContext = DG.CollectionFormulaContext.extend((function() {
   },
   
   /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  didCompile: function() {
+    sc_super();
+
+    // register the 'plot' dependency for invalidation
+    var plotModel = this.get('plotModel'),
+        // TODO: use a more robust ID
+        plotID = DG.Debug.scObjectID(plotModel);
+    this.registerDependency({ independentSpec: {
+                                type: DG.DEP_TYPE_PLOT,
+                                id: plotID,
+                                name: 'plot-' + plotID
+                              },
+                              aggFnIndices: this.ALL_FUNCTIONS
+                            });
+  },
+
+  /**
     Direct evaluation of the expression without an intervening compilation.
     This is unlikely to be used for plotted funtions where the expression is
     generally evaluated enough times to make compilation to JavaScript

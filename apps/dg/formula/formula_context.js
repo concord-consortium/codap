@@ -164,6 +164,13 @@ DG.FormulaContext = SC.Object.extend( (function() {
   },
 
   /**
+    Called when the formula has been recompiled to clear any stale dependencies.
+    Derived classes may override as appropriate.
+   */
+  completeCompile: function() {
+  },
+
+  /**
     Called when dependents change to clear function caches.
     Derived classes may override as appropriate.
    */
