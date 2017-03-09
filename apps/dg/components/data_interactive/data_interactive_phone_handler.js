@@ -72,6 +72,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        Initialization method
        */
       init: function () {
+        sc_super();
 
         this.handlerMap = {
           attribute: this.handleAttribute,
@@ -202,13 +203,17 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
             if (action !== 'create' ||
-                (resourceSelector.type !== 'dataContext' && resourceSelector.type !== 'dataContextFromURL')) {
+                (resourceSelector.type !== 'dataContext' &&
+                resourceSelector.type !== 'dataContextFromURL')) {
               resourceSelector.dataContext = '#default';
             }
             // set a flag in the result, so we can recognize this context as special.
             result.isDefaultDataContext = true;
           }
-          result.dataContext = resolveContext(resourceSelector.dataContext, this.getPath('controller.context'));
+          result.dataContext = resolveContext(resourceSelector.dataContext,
+              this.getPath('controller.context'));
+          // If no data context abort early
+          if (!result.dataContext) { return result;}
         }
 
         if (resourceSelector.component) {
@@ -216,30 +221,45 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               (!isNaN(resourceSelector.component) &&
                   DG.currDocumentController().getComponentByID(resourceSelector.component));
         }
+
         if (resourceSelector.global) {
           result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
         }
+
         if (resourceSelector.collection) {
           result.collection = result.dataContext &&
               (result.dataContext.getCollectionByName(resourceSelector.collection) ||
               (!isNaN(resourceSelector.collection) &&
                   result.dataContext.getCollectionByID(resourceSelector.collection)));
         }
+
         if (resourceSelector.attribute) {
-          result.attribute = (result.dataContext &&
-              (result.dataContext.getAttributeByName(resourceSelector.attribute) ||
-                  result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute)))) ||
-              (!isNaN(resourceSelector.attribute) && result.collection && result.collection.getAttributeByID(resourceSelector.attribute));
+          result.attribute = (
+            (
+              result.dataContext && (
+                  result.dataContext.getAttributeByName(resourceSelector.attribute) ||
+                  result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute))
+              )
+            ) ||
+            (
+              !isNaN(resourceSelector.attribute) &&
+              result.collection && result.collection.getAttributeByID(resourceSelector.attribute)
+            )
+          );
         }
+
         if (resourceSelector.caseByID) {
           result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
         }
+
         if (resourceSelector.caseByIndex) {
           result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
         }
+
         if (resourceSelector.caseSearch) {
           result.caseSearch = result.collection && result.collection.searchCases(resourceSelector.caseSearch);
         }
+
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
           // Make sure we got values for every non-terminal selector.
           if (SC.none(result[key]) && key !== 'type') {
@@ -602,6 +622,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleCollection: {
         get: function (iResources) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
           var model = iResources.collection.get('collection');
           var values = model.toArchive(true/*excludeCases*/);
           return {
@@ -669,6 +692,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           return {success: success, values: collectionIdentifiers};
         },
         update: function (iResources, iValues) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+
           var context = iResources.dataContext;
           var change = {
             operation: 'updateCollection',
@@ -744,7 +771,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var attribute = iResources.attribute;
           var values;
-          DG.assert(!SC.none(attribute), 'Expected attribute not found');
+          if (!attribute) {
+            return {success: false, values: {error: 'Attribute not found'}};
+          }
           values = attribute.toArchive();
           return {
             success: true,
@@ -752,6 +781,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          if (!Array.isArray(iValues)) {
+            iValues = [iValues];
+          }
           var context = iResources.dataContext;
           var change = {
             operation: 'createAttributes',
@@ -767,6 +802,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          if (!iResources.attribute) {
+            return {success: false, values: {error: 'Attribute not found'}};
+          }
           iValues.name = iResources.attribute.name;
           var change = {
             operation: 'updateAttributes',
@@ -800,6 +841,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var collection = iResources.collection;
           var values = [];
+          if (!collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+
           collection.forEachAttribute(function (attr) {
             var value = {
               id: attr.get('id'),
@@ -833,6 +878,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             if (changeResult.caseIDs[0]) {
               caseIDs.push({id: changeResult.caseIDs[0]});
             }
+          }
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
           }
 
           var success = true;
@@ -914,6 +962,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         update: function (iResources, iValues) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          if (!(iResources.caseByID || iResources.caseByIndex)) {
+            return {success: false, values: {error: 'Case not found'}};
+          }
+
           var context = iResources.dataContext;
           var collection = iResources.collection;
           var theCase = iResources.caseByIndex || iResources.caseByID;
@@ -957,6 +1012,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCaseCount: {
         get: function (iResources) {
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+
           var count = iResources.collection.casesController.length();
           return {
             success: true,
@@ -982,7 +1041,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCaseSearch: {
         get: function (iResources) {
-          var success = iResources.caseSearch !== null,
+          if (!iResources.collection) {
+            return {success: false, values: {error: 'Collection not found'}};
+          }
+          var success = (iResources.caseSearch !== null),
               cases = [];
 
           if (success) {
@@ -1296,6 +1358,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           update: function (iResources, iValues) {
+            if (!iResources.component) {
+              return {success: false, values: {error: 'Component not found'}};
+            }
+
             var component = iResources.component;
             ['title'].forEach(function (prop) {
               if (iValues[prop]) {

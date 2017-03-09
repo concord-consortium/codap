@@ -988,6 +988,9 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     // Create/update the specified attribute
     function createAttribute( iAttrProps) {
+      if (!iAttrProps) {
+        return;
+      }
       var hadAttribute = collection.hasAttribute( iAttrProps.name),
           attrProps = DG.copy( iAttrProps),
           attribute;
