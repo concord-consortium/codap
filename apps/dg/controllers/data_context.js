@@ -685,6 +685,14 @@ DG.DataContext = SC.Object.extend((function() // closure
         // Use the appropriate utility function for the job
         tFunction = iChange.select ? selectCaseAndChildren : deselectCaseAndChildren;
     
+    if (iChange.select && !iChange.extend && tCases.length === 0) {
+      this.forEachCollection( function( iCollectionClient) {
+        var tController = iCollectionClient.get('casesController');
+        tController.selectObject(); // deselect all
+      });
+      this.incrementProperty( 'selectionChangeCount');
+      return { success: true };
+    } else {
     // Apply the appropriate function to the specified cases
     if( tCases && tFunction) {
       tCases.forEach( tFunction);
@@ -695,6 +703,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }
     
+    }
+
     // If we are only selecting cases in child collection(s), we should
     // deselect any parent level cases when we're not extending.
     // Note that the current behavior is to always deselect all cases in

@@ -1069,7 +1069,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         get: function (iResources) {
           var context = iResources.dataContext;
           var collection = iResources.collection;
-          var values = context.getSelectedCases().filter(function(iCase) {
+          var values = context && context.getSelectedCases().filter(function(iCase) {
             // if we specified a collection in the get, filter by it
             return (!collection || collection === iCase.collection);
           }).map(function (iCase) {
@@ -1081,6 +1081,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               caseID: iCase.get('id')
             };
           });
+          if (!values) {
+            return {success: false, values: {error: 'Unknown context.'}};
+          }
           return {
             success: true,
             values: values
@@ -1094,6 +1097,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          * @returns {{success: boolean}}
          */
         create: function (iResources, iValues) {
+          if (!iResources.dataContext) {
+            return {success: false, values: {error: 'Unknown context.'}};
+          }
           return this.doSelect(iResources, iValues, false);
         },
         /**
@@ -1104,6 +1110,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          * @returns {{success: boolean}}
          */
         update: function (iResources, iValues) {
+          if (!iResources.dataContext) {
+            return {success: false, values: {error: 'Unknown context.'}};
+          }
           return this.doSelect(iResources, iValues, true);
         },
       },
@@ -1136,9 +1145,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           extend: extend,
           requester: this.get('id')
         });
-        return {
-          success: result && result.success
-        };
+        return result;
       },
 
       handleComponent: (function () {
