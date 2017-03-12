@@ -205,7 +205,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       sc_super();
       
       function getAxisClassFromType( iType) {
-        if( iType === DG.Analysis.EAttributeType.eNumeric)
+        if( iType === DG.Analysis.EAttributeType.eNumeric || iType === DG.Analysis.EAttributeType.eDateTime)
           return DG.CellLinearAxisModel;
         else if( iType === DG.Analysis.EAttributeType.eCategorical)
           return DG.CellAxisModel;
