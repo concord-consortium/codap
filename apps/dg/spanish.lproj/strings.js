@@ -394,7 +394,20 @@ SC.stringsFor('es', {
                                     /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
   'DG.Utilities.date.timePattern': '(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)',
                                     /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
-  'DG.Utilities.date.iso8601Pattern': '(?:\\d{4}-[01]\\d-[0-3]\\d(?:[T ][0-2]\\d:[0-5]\\d:[0-5]\\d(?:(?:(?:[-+]?[01]\\d:[0-5]\\d)|Z)|(?: ?[-+][0-2]\\d{3}))?)?)',
+  // We are assembling the full iso pattern piecemeal below, in hopes of making it
+  // easier to read and understand...
+  'DG.Utilities.date.iso8601Pattern': [
+    '^', // beginning of string
+    '\\d{4}-[01]\\d-[0-3]\\d', // iso date part yyyy-mm-dd
+    '(?:', // optional clause BEGIN
+    '[T ]', // date/time separator
+    '(?:[0-2]\\d:[0-5]\\d:[0-5]\\d(?:\\.\\d{3,3})?)',  // iso time part hh:mm:ss or hh:mm:ss.ddd
+    '(?:', // optional clause BEGIN
+    'Z|(?:[-+]?[01]\\d:[0-5]\\d)|(?: ?[-+][0-2]\\d{3})', // iso timezone part 'Z', +hh:mm, -hh:mm, +hhmm, -hhmm
+    ')?', // optional clause END
+    ')?', // optional clause END
+    '$'
+  ].join(''),
                                   /* "rgb(nnn,nnn,nnn)" "rgba(nnn,nnn,nnn,0.n)" "#ffffff" */
   'DG.Utilities.colorPattern': '(?:rgb\\((?:\\d{1,3},){2}\\d{1,3}\\))|(?:rgba\\((?:\\d{1,3},){3}[\\d\\.]*\\))|(?:#[\\da-f]{6})',
 
