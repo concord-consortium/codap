@@ -533,6 +533,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   rescaleAxesFromData: function( iAllowScaleShrinkage, iAnimatePoints, iLogIt) {
   },
 
+  invalidateAggregateAdornments: function() {
+    // TODO: use more robust ID
+    var id = DG.Debug.scObjectID(this),
+        depMgr = this.getPath('dataConfiguration.dataContext.dependencyMgr');
+    if (depMgr)
+      depMgr.invalidateDependentsOf([{ type: DG.DEP_TYPE_PLOT, id: id, name: 'plot-' + id }]);
+  },
+
   /**
     Observer function triggered when the visible bounds of the axes are changed.
    */

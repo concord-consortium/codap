@@ -644,6 +644,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( !this._isBeingRestored) {
         this.invalidate();
         this.rescaleAxesFromData( false, /* no shrinkage allowed */ true /* animate */);
+        this.get('plots').forEach(function(plot) {
+          plot.invalidateAggregateAdornments();
+        });
       }
     },
 
