@@ -55,7 +55,6 @@
     // stylistic issues
     "eol-last": "off",  // 13 files missing final EOLs
     "func-name-matching": "error",
-    "linebreak-style": ["error", "unix"],
     "new-cap": ["warn", { "capIsNew": false }],
     "new-parens": "warn",
     "no-bitwise": "warn",
