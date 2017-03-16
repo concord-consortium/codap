@@ -30,10 +30,22 @@ DG.WebView = SC.View.extend(
       childViews: ['loadingView', 'webView'],
 
       /**
-       * The URL to load.
+       * The URL provided.
        * @type {String}
        */
       value: '',
+
+      /**
+       * The URL to load.
+       *
+       * We load protocol relative URLs to maximize the likelihood of success.
+       * See: https://www.paulirish.com/2010/the-protocol-relative-url/
+       *
+       * @type {String)
+       */
+      _url: function () {
+        return this.get('value').replace(/^https?:/, '');
+      }.property('value'),
 
       /**
        * Whether we are loading.
@@ -72,9 +84,9 @@ DG.WebView = SC.View.extend(
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
 
-        valueBinding: '*parentView.value',
-
-        controllerBinding: '*parentView.controller',
+        value: function () {
+          return this.getPath('parentView._url');
+        }.property(),
 
         /**
          * @override SC.WebView.iframeDidLoad
