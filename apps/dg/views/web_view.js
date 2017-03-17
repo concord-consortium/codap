@@ -88,6 +88,10 @@ DG.WebView = SC.View.extend(
           return this.getPath('parentView._url');
         }.property(),
 
+        urlDidChange: function () {
+          this.notifyPropertyChange('value');
+        }.observes('*parentView.value'),
+
         /**
          * @override SC.WebView.iframeDidLoad
          */
