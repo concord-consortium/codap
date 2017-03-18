@@ -53,7 +53,9 @@ DG.GameView = DG.WebView.extend(
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
 
-        valueBinding: '*parentView.value',
+        value: function () {
+          return this.getPath('parentView._url');
+        }.property(),
 
         controllerBinding: '*parentView.controller',
 
