@@ -127,8 +127,8 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
           };
         }
         tParents.push(tParent);
+        tValues[ tParentID].coordinates.push( { x: tXVal, y: tYVal, theCase: iCase } );
       }
-      tValues[ tParentID].coordinates.push( { x: tXVal, y: tYVal, theCase: iCase } );
     });
 
     if( this.get('sortOnXValues')) {
