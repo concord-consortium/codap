@@ -270,6 +270,24 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         return result;
       },
 
+      /**
+       * Certain properties of the values object may need to be modified; e.g. attribute
+       * names will need to conform to the conventions established by the API.
+       * @param iValues {Object}
+       */
+      validateValues: function( iValues) {
+        if( SC.none( iValues))
+          return;
+        if( iValues.type === 'graph') {
+          ['xAttributeName', 'yAttributeName', 'y2AttributeName', 'legendAttributeName'].forEach( function( iPropName) {
+            if( !SC.none( iValues[iPropName])) {
+              iValues[ iPropName] = DG.Attribute.legalizeAttributeName( iValues[ iPropName]);
+            }
+          });
+        }
+        return iValues;
+      },
+
       filterResultValues: function (resultValues) {
         var maxLevels = 10;
         function renameKeys (obj) {
@@ -316,13 +334,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
           var action = iCmd.action;
           var type = selectorMap && selectorMap.type;
+          var values = this.validateValues( iCmd.values);
 
           var handler = type && this.handlerMap[type];
 
           if (handler) {
             if (handler[action]) {
               SC.run(function () {
-                result = handler[action].call(this, resourceMap, iCmd.values) || {success: false};
+                result = handler[action].call(this, resourceMap, values) || {success: false};
                 if (result.values) {
                   this.filterResultValues(result.values);
                 }
