@@ -381,12 +381,15 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphInterceptLocked',
             classNames: 'graph-interceptLocked-check'.w(),
+            _finishedInit: false,
             valueDidChange: function () {
-              this_.toggleInterceptLocked();
+              if( this._finishedInit)
+                this_.toggleInterceptLocked();
             }.observes('value'),
             lineVisibilityChanged: function() {
-              this.value = this_.get('isInterceptLocked');
+              this.set('value', this_.get('isInterceptLocked'));
               this.set('isEnabled', this_.get('isMovableLineVisible') || this_.get('isLSRLVisible'));
+              this._finishedInit = true;
             },
             init: function() {
               sc_super();
