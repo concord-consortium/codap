@@ -389,13 +389,13 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             lineVisibilityChanged: function() {
               this.set('value', this_.get('isInterceptLocked'));
               this.set('isEnabled', this_.get('isMovableLineVisible') || this_.get('isLSRLVisible'));
-              this._finishedInit = true;
             },
             init: function() {
               sc_super();
               this.lineVisibilityChanged();
               this_.addObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
               this_.addObserver('isLSRLVisible', this, 'lineVisibilityChanged');
+              this._finishedInit = true;
             },
             destroy: function() {
               this_.removeObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
