@@ -180,6 +180,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
                 tPlottedCount.set('isShowingCount', false);
                 tMultipleMovableValues.set('isShowingCount', true);
               }
+              this.notifyPropertyChange('movableValueChange');
             }.bind(this),
 
             doUndoAddMovableValue = function () {
@@ -221,6 +222,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
                 tMultipleMovableValues.removeThisValue( tRemovedValue);
               else
                 tRemovedValue = tMultipleMovableValues.removeValue();
+              this.notifyPropertyChange('movableValueChange');
             }.bind(this),
 
             doUndoRemoveMovableValue = function () {
@@ -232,6 +234,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
                 this.setPath('plottedCount.isShowingCount', false);
                 this.setPath('plottedCount.isShowingPercent', false);
               }
+              this.notifyPropertyChange('movableValueChange');
             }.bind(this);
 
         DG.UndoHistory.execute(DG.Command.create({

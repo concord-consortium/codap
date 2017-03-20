@@ -590,9 +590,25 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         title: 'DG.Inspector.graphPercent',
         value: this_.shouldPlottedCountBeChecked('Percent'),
         classNames: 'graph-percent-check'.w(),
+        handlingMovableValueChange: false,
         valueDidChange: function () {
-          this_.togglePlottedCount('Percent');
-        }.observes('value')
+          if( !this.handlingMovableValueChange)
+            this_.togglePlottedCount('Percent');
+        }.observes('value'),
+        init: function() {
+          sc_super();
+          this_.addObserver('movableValueChange', this, 'handleMovableValueChange');
+        },
+        destroy: function() {
+          this_.removeObserver('movableValueChange', this, 'handleMovableValueChange');
+          sc_super();
+        },
+        handleMovableValueChange: function() {
+          this.handlingMovableValueChange = true;
+          this.set('value', this_.shouldPlottedCountBeChecked('Percent'));
+          this.set('isEnabled', this_.get('wantsPercentCheckbox'))
+          this.handlingMovableValueChange = false;
+        }
       });
     }
     return tDescriptions;
