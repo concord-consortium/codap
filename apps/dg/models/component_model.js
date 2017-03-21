@@ -52,9 +52,9 @@ DG.Component = DG.BaseModel.extend(
         return this._title;
       }.property(),
 
-      //defaultTitleChanged: function() {
-      //  this.notifyPropertyChange('title');
-      //}.observes('*content.defaultTitle'),
+      defaultTitleChanged: function () {
+        this.notifyPropertyChange('title');
+      }.observes('*content.defaultTitle'),
 
       //contentTitleChanged: function() {
       //  this.notifyPropertyChange('title');

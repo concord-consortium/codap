@@ -34,6 +34,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
   dataContextDidChange: function() {
     this.invalidateCaches();
+    this.notifyPropertyChange('defaultTitle');
   }.observes('dataContext'),
   
   /**
@@ -95,9 +96,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * @property {String}
    */
   defaultTitle: function() {
-    var tTitle = this.getPath('collectionClient.name');
-    tTitle = SC.empty( tTitle) ? 'DG.DataContext.noData'.loc() : tTitle;
-    return tTitle;
+    return this.getPath('collectionClient.name');
   }.property( 'dataContext'),
 
   /**
