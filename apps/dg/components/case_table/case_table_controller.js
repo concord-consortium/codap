@@ -582,6 +582,16 @@ DG.CaseTableController = DG.ComponentController.extend(
         });
       },
 
+      exportPrimaryCaseData: function () {
+        var tDataContext = this.get('dataContext'),
+            name, caseDataString;
+        if (tDataContext && (tDataContext.collections.length > 0)) {
+          name =  tDataContext.collections[0].get('name');
+          caseDataString = tDataContext.exportCaseData(name);
+          DG.exportFile(caseDataString, "csv", "text/plain");
+        }
+      },
+
       modelDidChange: function() {
       }.observes('model'),
 
@@ -1245,6 +1255,16 @@ DG.CaseTableController = DG.ComponentController.extend(
               target: this,
               action: 'showAttributesPopup',
               toolTip: 'DG.Inspector.attributes.toolTip',
+              localize: true
+            })
+        );
+        tButtons.push(DG.IconButton.create({
+              layout: {width: 32},
+              classNames: 'table-attributes'.w(),
+              iconClass: 'moonicon-icon-noteTool',
+              target: this,
+              action: 'exportPrimaryCaseData',
+              toolTip: 'DG.Inspector.exportPrimaryCaseData.toolTip',
               localize: true
             })
         );
