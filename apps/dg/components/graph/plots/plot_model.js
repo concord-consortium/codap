@@ -606,7 +606,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
         handleMovableValueChange: function() {
           this.handlingMovableValueChange = true;
           this.set('value', this_.shouldPlottedCountBeChecked('Percent'));
-          this.set('isEnabled', this_.get('wantsPercentCheckbox'))
+          this.set('isEnabled', this_.get('wantsPercentCheckbox'));
           this.handlingMovableValueChange = false;
         }
       });

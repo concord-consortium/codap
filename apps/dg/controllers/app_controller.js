@@ -323,7 +323,7 @@ DG.appController = SC.Object.create((function () // closure
           if (doc !== null) {
             SC.run(function() {
               return this.importText(doc, "Imported CSV");
-            }.bind(this))
+            }.bind(this));
           }
         }
       }
