@@ -1481,7 +1481,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var document = DG.currDocumentController();
 
           var result = [];
-          DG.ObjectMap.forEach(document.get('components'), function(id, component) {
+          DG.ObjectMap.forEach(document.get('componentControllersMap'), function(id, componentController) {
+            var component = componentController.get('model');
             result.push( {
               id: component.get('id'),
               name: component.get('name'),
