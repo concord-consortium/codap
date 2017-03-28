@@ -768,6 +768,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         case 'createCase':
         case 'createCases':
         case 'createCollection':
+        case 'deleteCollection':
         case 'resetCollections':
           this.dataDidChange( null, null, iChange);
           break;
