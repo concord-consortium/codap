@@ -295,6 +295,41 @@ DG.appController = SC.Object.create((function () // closure
     },
 
     /**
+     * Imports a csv to the document from a data uri.
+     *
+     * @param {string} iURL The url of a text (e.g. CSV) file as a data uri
+     * @return {Deferred|undefined}
+     */
+    importCSVFromDataUri: function (iURL) {
+      if (iURL) {
+        var urlParts = iURL.match(/^data:text\/csv;((base64),|(charset)=([^,]+),)?(.*)$/);
+        if (urlParts) {
+          var doc = urlParts[5];
+          if (urlParts[2] === "base64") {
+            try {
+              doc = atob(doc);
+            }
+            catch (e) {
+              doc = null;
+              DG.logWarn(e);
+            }
+          }
+          else {
+            // keep decoding until there are no encoded characters (to ensure against double encoding)
+            while (doc.match(/%[0-9a-f]{2}/i)) {
+              doc = decodeURIComponent(doc);
+            }
+          }
+          if (doc !== null) {
+            SC.run(function() {
+              return this.importText(doc, "Imported CSV");
+            }.bind(this));
+          }
+        }
+      }
+    },
+
+    /**
      * Create a data context from a string formatted as a CSV file.
      * @param iText {string}
      * @param iName {string}
@@ -378,6 +413,8 @@ DG.appController = SC.Object.create((function () // closure
       } else if (pathname.match(/.*\.csv$/)){
         // CFM should be importing this document
         this.importTextFromUrl(iURL);
+      } else if (iURL.match(/^data:text\/csv/)){
+        this.importCSVFromDataUri(iURL);
       } else {
         addInteractive();
       }

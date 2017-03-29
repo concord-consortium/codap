@@ -426,6 +426,11 @@ DG.DocumentController = SC.Object.extend(
      *                                              Should be specified when restoring from document.
      * @param iComponentType {String}            [Optional] -- The type of component to create.
      * @param iArgs          {Object}            [Optional] -- parameters defining this object.
+     *
+     * @return {DG.ComponentView||[DG.CaseTableView]} In most instances we return
+     * the view created. For backward compatibility, we can create one case table for
+     * each data context that does not already have a case table. In this instance
+     * we return an array of views.
      */
     createComponentAndView: function( iComponent, iComponentType, iArgs) {
       var docView = DG.mainPage.get('docView'),
@@ -452,7 +457,7 @@ DG.DocumentController = SC.Object.extend(
           if (iComponent && iComponent.componentStorage && iComponent.componentStorage._links_) {
             tView = this.addCaseTable(docView, iComponent);
           } else {
-            this.openCaseTablesForEachContext( );
+            tView = this.openCaseTablesForEachContext( );
           }
           break;
           case 'DG.GraphView':
@@ -716,40 +721,54 @@ DG.DocumentController = SC.Object.extend(
       function resolveContextLink(iComponent) {
         var id = DG.ArchiveUtils.getLinkID(iComponent.componentStorage, 'context');
         if (id) {
-          return iComponent.document.contexts[id];
+          return DG.currDocumentController().get('contexts').find(function (context) {
+            return context.get('id') === id;
+          });
         }
       }
+
+      function getCaseTableForContext (caseTables, context) {
+        if (!context) {
+          return null;
+        }
+        return caseTables.find(function (caseTable) {return caseTable.dataContext === context;});
+      }
+
       if (SC.none(iProperties)) {
         iProperties = {};
       }
       var context = iProperties.dataContext || resolveContextLink(iComponent);
-      var component = this.getCaseTableComponent(iComponent, context, iProperties);
-      var model = component.get('content') || DG.CaseTableModel.create({context: context});
-      var controller = DG.CaseTableController.create(iProperties);
-      var componentClassDef = { type: 'DG.TableView', constructor: DG.HierTableView};
-      var props = {
-        parentView: iParentView,
-        controller: controller,
-        componentClass: componentClassDef,
-        contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
-        defaultLayout: {width: 500, height: 200},
-        position: (iComponent && iComponent.position ? iComponent.position : null),
-        isResizable: true
-      };
-      return this.createComponentView(component, props);
+      var caseTable = getCaseTableForContext(this.findComponentsByType(DG.CaseTableController), context);
+      if (!caseTable) {
+        var component = this.getCaseTableComponent(iComponent, context, iProperties);
+        var model = component.get('content') || DG.CaseTableModel.create({context: context});
+        var controller = DG.CaseTableController.create(iProperties);
+        var componentClassDef = { type: 'DG.TableView', constructor: DG.HierTableView};
+        var props = {
+          parentView: iParentView,
+          controller: controller,
+          componentClass: componentClassDef,
+          contentProperties: {model: model, id: iProperties.id}, // Temporarily using context as model in order to get a title
+          defaultLayout: {width: 500, height: 200},
+          position: (iComponent && iComponent.position ? iComponent.position : null),
+          isResizable: true
+        };
+        caseTable = this.createComponentView(component, props);
+      }
+      return caseTable;
     },
 
+    /**
+     * Create a case table for each context if the components do not exist
+     * already.
+     *
+     * This method is supported for backwards compatibility.
+     *
+     * @return {[DG.CaseTableView]} one for each case table created.
+     */
     openCaseTablesForEachContext: function () {
-      var caseTables = this.findComponentsByType(DG.CaseTableController),
-          docController = this,
+      var docController = this,
           newViews = {};
-      function haveCaseTableForContext (context) {
-        var ix;
-        for (ix = 0; ix < caseTables.length; ix += 1) {
-          if (caseTables[ix].dataContext === context) { return true; }
-        }
-        return false;
-      }
       DG.UndoHistory.execute(DG.Command.create({
         name: 'caseTable.display',
         undoString: 'DG.Undo.caseTable.open',
@@ -758,11 +777,9 @@ DG.DocumentController = SC.Object.extend(
         execute: function() {
           var view;
           docController.contexts.forEach(function (context) {
-            if (!haveCaseTableForContext(context)) {
-              view = this.addCaseTable(DG.mainPage.get('docView'), null,
-                  {dataContext: context, id: newViews[context]});
-              newViews[context] = view.getPath('controller.model.id');
-            }
+            view = this.addCaseTable(DG.mainPage.get('docView'), null,
+                {dataContext: context, id: newViews[context]});
+            newViews[context] = view.getPath('controller.model.id');
           }.bind(docController));
           if (newViews.length === 0) {
             this.causedChange = false;
@@ -778,6 +795,7 @@ DG.DocumentController = SC.Object.extend(
           });
         }
       }));
+      return Object.values(newViews);
     },
 
     addGraph: function( iParentView, iComponent, isInitialization) {
