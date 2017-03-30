@@ -229,7 +229,7 @@ DG.SliderView = SC.View.extend(
         if( DG.isFinite( tCoord)) {
           var thumbView = this.get('thumbView');
           if( thumbView)
-            thumbView.adjust('left', tCoord + 0.5 - kWidth / 2);
+            thumbView.adjust({left: Math.round( tCoord + 0.5 - kWidth / 2)});
         }
       }.observes('thumbCoord'),
 
