@@ -45,6 +45,12 @@ DG.CaseTableDataManager = SC.Object.extend({
   model: null,
 
   /**
+   * Home for column info
+   * @type {DG.CaseTableAdapter}
+   */
+  adapter: null,
+
+  /**
    * @type {boolean}
    */
   suspended: false,
@@ -119,6 +125,20 @@ DG.CaseTableDataManager = SC.Object.extend({
    * @returns {object} See slickgrid documentation.
    */
   getItemMetadata: function (row) {
+    function computeProtoRowMetadata(columns) {
+      var metadata = {};
+      columns.forEach(function (column) {
+        var attr = column.attribute;
+        var focusable = attr? !attr.hasFormula() : column.focusable;
+        metadata[column.id] = {
+          id: column.id,
+          focusable: focusable
+        };
+      });
+      return {
+        columns: metadata
+      };
+    }
     var myCase = this.getItem(row);
     if (myCase && (myCase instanceof DG.Case)) {
       if (myCase.collection.get('id') !== this.collection.get('id')) {
@@ -137,8 +157,7 @@ DG.CaseTableDataManager = SC.Object.extend({
       }
     }
     else {
-      // proto-cases are always editable
-      return { focusable: true };
+      return computeProtoRowMetadata(this.adapter.gridColumns);
     }
   },
 

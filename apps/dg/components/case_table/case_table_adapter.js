@@ -182,6 +182,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     this.gridDataView = DG.CaseTableDataManager.create({
       context: this.dataContext,
       collection: this.collection,
+      adapter: this,
       model: this.model
     });
 
@@ -287,6 +288,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
           isQual = iAttribute.get('type') === 'qualitative',
+          hasFormula = iAttribute.hasFormula(),
           columnInfo = {
             context: context,
             collection: collection,
@@ -296,6 +298,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             id: attrID,
             name: getColumnHeaderString( iAttribute),
             field: attrName,
+            focusable: !hasFormula,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
@@ -374,7 +377,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       updateNewAttributeColumnDefinition();
     
     this.gridColumns = columnDefs;
-    
+
     return columnDefs;
   },
   
