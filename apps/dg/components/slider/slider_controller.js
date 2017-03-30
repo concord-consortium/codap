@@ -74,6 +74,23 @@ DG.SliderController = DG.ComponentController.extend(
        * Called as action of startButton
        */
       toggleAnimation: function () {
+
+        var beginAnimation = function() {
+          var tAxisModel = this.get('axisModel'),
+              tLower = tAxisModel && tAxisModel.get('lowerBound'),
+              tUpper = tAxisModel && tAxisModel.get('upperBound'),
+              tValue = tSliderModel.get('value'),
+              tDirection = tSliderModel.get('animationDirection');
+          if (tDirection === DG.SliderTypes.EAnimationDirection.eLowToHigh && tValue >= tUpper) {
+            tSliderModel.set('value', tLower);
+          }
+          else if (tDirection === DG.SliderTypes.EAnimationDirection.eHighToLow && tValue <= tLower) {
+            tSliderModel.set('value', tUpper);
+          }
+          tAnimator.animate();
+          DG.logUser("sliderBeginAnimation: %@", this.getPath('sliderModel.name'));
+        }.bind(this);
+
         var tAnimator = this.get('valueAnimator'),
             tSliderModel = this.get('sliderModel'),
             tDirection = tSliderModel.get('animationDirection');
@@ -94,8 +111,7 @@ DG.SliderController = DG.ComponentController.extend(
           DG.logUser("sliderEndAnimation: %@", this.getPath('sliderModel.name'));
         }
         else {
-          tAnimator.animate();
-          DG.logUser("sliderBeginAnimation: %@", this.getPath('sliderModel.name'));
+          beginAnimation();
         }
         DG.dirtyCurrentDocument();
       },
@@ -136,20 +152,24 @@ DG.SliderController = DG.ComponentController.extend(
             break;
           case DG.SliderTypes.EAnimationDirection.eLowToHigh:
             if (tTrial > tUpper) {
+              if (tMode === DG.SliderTypes.EAnimationMode.eOnceOnly) {
+                tSliderModel.set('value', tUpper);
+                tInc = 0;
+                this.stopAnimation();
+              }
+              else
+                tSliderModel.set('value', tLower);
+            }
+            break;
+          case DG.SliderTypes.EAnimationDirection.eHighToLow:
+            if (tTrial < tLower) {
               tSliderModel.set('value', tLower);
               if (tMode === DG.SliderTypes.EAnimationMode.eOnceOnly) {
                 tInc = 0;
                 this.stopAnimation();
               }
-            }
-            break;
-          case DG.SliderTypes.EAnimationDirection.eHighToLow:
-            if (tTrial < tLower) {
-              tSliderModel.set('value', tUpper);
-              if (tMode === DG.SliderTypes.EAnimationMode.eOnceOnly) {
-                tInc = 0;
-                this.stopAnimation();
-              }
+              else
+                tSliderModel.set('value', tUpper);
             }
             break;
         }
