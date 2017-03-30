@@ -53,6 +53,7 @@ DG.Component = DG.BaseModel.extend(
       }.property(),
 
       defaultTitleChanged: function () {
+        this._title = null;
         this.notifyPropertyChange('title');
       }.observes('*content.defaultTitle'),
 
