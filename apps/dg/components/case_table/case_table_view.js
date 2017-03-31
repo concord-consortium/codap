@@ -1040,7 +1040,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleHeaderDragStart: function( iEvent, iDragData) {
     var column = iDragData.column;
-    
+
+    // If we actually don't have an attribute associated with the column
+    // (e.g. the '+' column), bail
+    if (!column.attribute) {
+      return;
+    }
+
     // stopImmediatePropagation() doesn't exist (and apparently isn't necessary)
     // when handling touch events.
     if( iEvent.stopImmediatePropagation)
