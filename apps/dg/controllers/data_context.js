@@ -938,7 +938,6 @@ DG.DataContext = SC.Object.extend((function() // closure
       },
       undo: function() {
         var createdCases;
-        var collectionMap = {};
 
         // add cases back in collection order
         allCollections.forEach(function(iCollection){
@@ -947,26 +946,32 @@ DG.DataContext = SC.Object.extend((function() // closure
             var myCollection = iCase.collection;
             if (myCollection && myCollection === iCollection) {
               item.set('deleted', false);
-              myCollection.addCase(iCase);
-              DG.log('Adding case: ' + iCase.id);
-              if (!collectionMap[iCollection.id]) {
-                collectionMap[iCollection.id] = [];
-              }
-              collectionMap[iCollection.id].push(iCase);
+              // Note that we don't call addCase because the case in hand
+              // has been destroyed. We allow regenerateCollectionCases to
+              // actually bring about the addition of the case.
+              // myCollection.addCase(iCase);
             }
           });
         }.bind(this));
         createdCases = this._beforeStorage.context.regenerateCollectionCases().createdCases;
+        var tCollectionMap = {};
+        createdCases.forEach( function( iCase) {
+          var tCollID = iCase.getPath('collection.id');
+          if( !tCollectionMap[ tCollID]) {
+            tCollectionMap[ tCollID] = [];
+          }
+          tCollectionMap[ tCollID].push( iCase.get('id'));
+        });
         // emit change notifications for created cases.
-        DG.ObjectMap.forEach(collectionMap, function (collectionID, cases) {
+        DG.ObjectMap.forEach(tCollectionMap, function (collectionID, caseIDs) {
           var undoChange = {
             operation: 'createCases',
             isComplete: true,
             properties: {index: true},
             collection: this_.getCollectionByID(collectionID),
             result: {
-              caseIDs: cases.map(function(iCase) {return iCase.get('id');}),
-              caseID: cases[0] && cases[0].get('id')
+              caseIDs: caseIDs,
+              caseID: caseIDs[0]
             }
           };
           this_.applyChange( undoChange);

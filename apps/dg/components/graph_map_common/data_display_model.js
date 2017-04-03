@@ -422,6 +422,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           }
         }
       }.bind(this));
+      this.get('dataConfiguration').synchHiddenCases();
     },
     /**
      * One or more of the attributes used on this graph has been changed; e.g. by having its name changed.
