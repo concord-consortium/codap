@@ -70,6 +70,7 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
       this._interceptLocked = iLocked;
       if( iLocked)
         this.set('intercept', 0);
+      this.setComputingNeeded();
     }
     return this._interceptLocked;
   }.property(),
@@ -129,7 +130,10 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
    */
   recomputeSlopeAndInterceptIfNeeded: function( iXAxis, iYAxis) {
     if( this.isComputingNeeded( iXAxis, iYAxis))
+    {
       this.recomputeSlopeAndIntercept( iXAxis, iYAxis);
+      this._needsComputing = false;
+    }
   },
 
   /**
@@ -139,13 +143,15 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
     var tValues = [],
         tCases = this.getPath('plotModel.cases'),
         tXVarID = this.getPath('plotModel.xVarID'),
-        tYVarID = this.getPath('plotModel.yVarID');
+        tYVarID = this.getPath('plotModel.yVarID'),
+        tlegendVarID = this.getPath('plotModel.legendVarID');
     if( Array.isArray(tCases)) {
       tCases.forEach(function (iCase) {
         var tXValue = iCase.getNumValue(tXVarID),
-            tYValue = iCase.getNumValue(tYVarID);
+            tYValue = iCase.getNumValue(tYVarID),
+            tLegendValue = iCase.getValue( tlegendVarID);
         if (isFinite(tXValue) && isFinite(tYValue)) {
-          tValues.push({x: tXValue, y: tYValue});
+          tValues.push({x: tXValue, y: tYValue, legend: tLegendValue});
         }
       });
     }

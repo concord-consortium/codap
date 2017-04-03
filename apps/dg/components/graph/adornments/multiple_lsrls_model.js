@@ -1,0 +1,187 @@
+// ==========================================================================
+//                      DG.MultipleLSRLsModel
+//
+//  Author:   William Finzer
+//
+//  Copyright (c) 2017 by The Concord Consortium, Inc. All rights reserved.
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+// ==========================================================================
+
+sc_require('components/graph/adornments/plot_adornment_model');
+
+/** @class  The model for a set of LSRLAdornment.
+
+  @extends SC.Object
+*/
+DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
+/** @scope DG.MultipleLSRLsModel.prototype */ 
+{
+  /**
+    The current value
+    @property { [{DG.LSRLModel} ] }
+  */
+  lsrls: null,
+
+  /**
+   * @property { Boolean }
+   */
+  showSumSquares: false,
+
+  /**
+   * @property { Boolean }
+   */
+  isInterceptLocked: false,
+
+  numLegendCells: function() {
+    var tNumCells = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.attributeStats.numberOfCells');
+    return SC.none( tNumCells) ? 0 : tNumCells;
+  }.property(),
+
+  /**
+   Private cache.
+   @property { Boolean }
+   */
+  _needsComputing: true,
+
+  init: function() {
+    sc_super();
+    this.lsrls = [];
+    this.synchLSRLs();
+  },
+
+  destroy: function() {
+    this.beginPropertyChanges();
+    while( this.lsrls.length > 0) {
+      this.removeLSRL();
+    }
+    sc_super();
+  },
+
+  /**
+   * Keep my list of LSRLModels in synch
+   */
+  isVisibleChanged: function() {
+    var tIsVisible = this.get('isVisible');
+    this.synchLSRLs();
+    this.get('lsrls').forEach( function( iLSRLModel) {
+      iLSRLModel.set('isVisible', tIsVisible);
+    });
+  }.observes('isVisible'),
+
+  toggleInterceptLocked: function() {
+    this.toggleProperty('isInterceptLocked');
+  },
+
+  /**
+   * Keep my list of LSRLModels in synch
+   */
+  isInterceptLockedChanged: function() {
+    var tIsLocked = this.get('isInterceptLocked');
+    this.get('lsrls').forEach( function( iLSRLModel) {
+      iLSRLModel.set('isInterceptLocked', tIsLocked);
+    });
+  }.observes('isInterceptLocked'),
+
+  /**
+   *  We do not set that our values need computing because these are only re-evaluated when
+   *  the axis attribute changes.
+   */
+  setComputingNeeded: function () {
+    this._needsComputing = true;
+    this.get('lsrls').forEach( function( iLSRLModel) {
+      iLSRLModel.setComputingNeeded();
+    });
+  }.observes('plotModel'),
+
+  /**
+    True if any of my values needs computing
+    @return { Boolean }
+  */
+  isComputingNeeded: function( iAxis) {
+    if( this._needsComputing)
+      return true;
+  },
+
+  /**
+    Pass this down to my lsrls.
+  */
+  recomputeSlopeAndInterceptIfNeeded: function(iXAxis, iYAxis) {
+    if(this.isComputingNeeded()) {
+      this.synchLSRLs();
+      this.get('lsrls').forEach(function (iLSRL) {
+        iLSRL.recomputeSlopeAndInterceptIfNeeded(iXAxis, iYAxis);
+      });
+    }
+  },
+
+  synchLSRLs: function() {
+    var tNumCells = this.get('numLegendCells'),
+        tCategoryIndex = 0;
+    while( this.get('lsrls').length < tNumCells) {
+      this.addLSRLModel( tCategoryIndex++);
+    }
+  },
+
+  /**
+   *
+   * @optional iStorage {Object}
+   * @return {DG.LSRLModel}
+   */
+  addLSRLModel: function( iCategoryIndex, iStorage) {
+
+    var tLSRLModel = DG.LSRLModel.create( {
+                      plotModel: this.get('plotModel'),
+                      categoryIndex: iCategoryIndex,
+                      showSumSquares: this.get('showSumSquares')
+                    });
+    tLSRLModel.set('isInterceptLocked', this.get('isInterceptLocked'));
+    if( iStorage) {
+      tLSRLModel.restoreStorage( iStorage);
+    }
+    this.get('lsrls').push( tLSRLModel);
+    this.setComputingNeeded();
+    return tLSRLModel;
+  },
+
+  removeLSRL: function() {
+    var tLsrls = this.get('lsrls');
+    if( tLsrls && tLsrls.length > 0) {
+      tLsrls.pop().destroy();
+    }
+  },
+
+  createStorage: function() {
+    var storage = sc_super();
+    storage.showSumSquares = this.showSumSquares;
+    storage.isInterceptLocked = this.isInterceptLocked;
+    storage.lsrls = [];
+    this.get('lsrls').forEach( function( iLSRL) {
+      storage.lsrls.push( iLSRL.createStorage());
+    });
+    return storage;
+  },
+  
+  restoreStorage: function( iStorage) {
+    sc_super();
+    this.showSumSquares = iStorage.showSumSquares;
+    this.isInterceptLocked = iStorage.isInterceptLocked;
+    if( iStorage && iStorage.lsrls) {
+      iStorage.lsrls.forEach( function( iLSRLStorage, iIndex) {
+        this.addLSRLModel( iIndex, iLSRLStorage);
+      }.bind( this));
+    }
+  }
+
+});
+DG.PlotAdornmentModel.registry.multipleLSRLModels = DG.MultipleLSRLsModel;

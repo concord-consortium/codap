@@ -30,6 +30,11 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
       /**
        * @property {Number}
        */
+      categoryIndex: null,
+
+      /**
+       * @property {Number}
+       */
       rSquared: null,
 
       /**
@@ -38,8 +43,14 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
       recomputeSlopeAndIntercept: function () {
 
         var tInterceptIsLocked = this.get('isInterceptLocked'),
-            tValuePairs = this.getCoordinates(),
-            tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tValuePairs, tInterceptIsLocked);
+            tCoordinates = this.getCoordinates(),
+            tAttrStats = this.getPath( 'plotModel.dataConfiguration.legendAttributeDescription.attributeStats'),
+            tCategoryIndex = this.get('categoryIndex'),
+            tSlopeIntercept;
+        tCoordinates = tCoordinates.filter( function( iCoords) {
+          return tCategoryIndex === tAttrStats.cellNameToCellNumber( iCoords.legend);
+        });
+        tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||
             isNaN(tSlopeIntercept.intercept) && isNaN( this.get('intercept'))) {
           return; // not covered by setIfChanged
