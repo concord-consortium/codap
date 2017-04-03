@@ -195,6 +195,8 @@ DG.Attribute = DG.BaseModel.extend(
 
       if (this.collection) {
         this.collection.attrs.removeObject(this);
+        // remove from data set
+        this.collection.dataSet.deleteAttribute(this);
       }
 
       if( this._dgFormula)

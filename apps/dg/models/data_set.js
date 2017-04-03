@@ -123,6 +123,21 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
+     * Delete attribute from data set.
+     *
+     * Note we do not modify the underlying data set which is kept as a map from
+     * attribute id. The orphan attribute data does not get saved nor restored.
+     *
+     * @param attr {DG.Attribute}
+     */
+    deleteAttribute: function (attr) {
+      var ix = this.attrs.findIndex(function (a) {return a === attr;});
+      if (ix >= 0) {
+        this.attrs.splice(ix, 1);
+      }
+    },
+
+    /**
      * Adds a dataItem provided as an array of values, a map of attribute keys to values,
      * or as a DG.DataItem.
      *
