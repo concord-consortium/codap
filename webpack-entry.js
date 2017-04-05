@@ -8,3 +8,4 @@ L = require('leaflet');
 L.esri = require('esri-leaflet');
 deepEqual = require('deep-equal');
 Promise = require('es6-promise').Promise;
+pluralize = require('pluralize');
