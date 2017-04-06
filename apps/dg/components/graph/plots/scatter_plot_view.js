@@ -33,7 +33,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                       'yAxisView.pixelMin', 'yAxisView.pixelMax',
                       'model.areSquaresVisible', 'model.squares'],
   
-  autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn','lsrlAdorn'],
+  autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn','multipleLSRLsAdorn'],
 
 
   /** @property {DG.ConnectingLineAdornment} */
@@ -61,9 +61,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
   movableLineAdorn: null,
   
   /**
-  @property {DG.LSRLAdornment}
+  @property {DG.MultipleLSRLsAdornment}
   */
-  lsrlAdorn: null,
+  multipleLSRLsAdorn: null,
 
   /**
   @property {DG.PlottedFunctionAdornment}
@@ -167,12 +167,12 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
 
   updateAdornments: function() {
-    var tLsrlAdorn = this.get('lsrlAdorn'),
+    var tLsrlsAdorn = this.get('multipleLSRLsAdorn'),
         tMovableLineAdorn = this.get('movableLineAdorn'),
         tSquaresAreShowing = this.getPath('model.areSquaresVisible');
-    if (tLsrlAdorn) {
-      tLsrlAdorn.get('model').setComputingNeeded();
-      tLsrlAdorn.updateToModel();
+    if (tLsrlsAdorn) {
+      tLsrlsAdorn.get('model').setComputingNeeded();
+      tLsrlsAdorn.updateToModel();
     }
     if( tMovableLineAdorn && tSquaresAreShowing) {
       tMovableLineAdorn.get('model').slopeOrInterceptChanged();  // Forces recomputation of sum of squares of residuals
@@ -438,7 +438,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
         showSquaresForLine( this_.getPath('model.movableLine'), DG.PlotUtilities.kDefaultMovableLineColor);
       }
       if( this_.getPath('model.isLSRLVisible')) {
-        showSquaresForLine( this_.getPath('model.lsrLine'), DG.PlotUtilities.kDefaultLSRLColor);
+        showSquaresForLine( this_.getPath('model.multipleLSRLs'), DG.PlotUtilities.kDefaultLSRLColor);
       }
     }
     
@@ -457,8 +457,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
     if( !SC.none( this.movableLineAdorn))
       this.movableLineAdorn.updateToModel();
 
-    if( !SC.none( this.lsrlAdorn))
-      this.lsrlAdorn.updateToModel();
+    if( !SC.none( this.multipleLSRLsAdorn))
+      this.multipleLSRLsAdorn.updateToModel();
 
     if( !SC.none( this.functionAdorn))
       this.functionAdorn.updateToModel();
@@ -503,21 +503,20 @@ DG.ScatterPlotView = DG.PlotView.extend(
   lsrlChanged: function() {
     if( !this.readyToDraw())
       return;
-    var tLsrLine = this.getPath('model.lsrLine');
+    var tMultipleLSRLs = this.getPath('model.multipleLSRLs');
     // Rather than attempt to reconnect an existing adornment, we throw out the old and rebuild.
-    if( tLsrLine) {
-      if( !this.lsrlAdorn) {
-        var tAdorn = DG.LSRLAdornment.create( {
-                          parentView: this, model: tLsrLine, paperSource: this.get('paperSource'),
+    if( tMultipleLSRLs) {
+      if( !this.multipleLSRLsAdorn) {
+        var tAdorn = DG.MultipleLSRLsAdornment.create( {
+                          parentView: this, model: tMultipleLSRLs, paperSource: this.get('paperSource'),
                           layerName: DG.LayerNames.kAdornments } );
-        tAdorn.createElements();
-        this.lsrlAdorn = tAdorn;
+        this.set('multipleLSRLsAdorn', tAdorn);
       }
-      this.lsrlAdorn.updateVisibility();
+      this.multipleLSRLsAdorn.updateVisibility();
     }
     this.updateSquaresVisibility();
     this.displayDidChange();
-  }.observes('*model.lsrLine.isVisible'),
+  }.observes('*model.multipleLSRLs.isVisible'),
 
   /**
     Our model has created a connecting line. We need to create our adornment. We don't call adornmentDidChange
@@ -562,7 +561,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
    * If squares are visible, but neither line is visible, we have to hide the squares.
    */
   updateSquaresVisibility: function() {
-    if( this.getPath('model.areSquaresVisible') && !this.getPath('lsrlAdorn.model.isVisible') &&
+    if( this.getPath('model.areSquaresVisible') && !this.getPath('multipleLSRLsAdorn.model.isVisible') &&
       !this.getPath('movableLineAdorn.model.isVisible')) {
       this.setPath('model.areSquaresVisible', false);
     }
