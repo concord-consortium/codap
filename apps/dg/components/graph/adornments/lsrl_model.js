@@ -48,7 +48,7 @@ DG.LSRLModel = DG.TwoDLineModel.extend(
             tCategoryIndex = this.get('categoryIndex'),
             tSlopeIntercept;
         tCoordinates = tCoordinates.filter( function( iCoords) {
-          return tCategoryIndex === tAttrStats.cellNameToCellNumber( iCoords.legend);
+          return SC.none( iCoords.legend) || tCategoryIndex === tAttrStats.cellNameToCellNumber( iCoords.legend);
         });
         tSlopeIntercept = DG.MathUtilities.leastSquaresLinearRegression( tCoordinates, tInterceptIsLocked);
         if( isNaN(tSlopeIntercept.slope) && isNaN( this.get('slope')) ||

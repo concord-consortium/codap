@@ -45,7 +45,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
 
   numLegendCells: function() {
     var tNumCells = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.attributeStats.numberOfCells');
-    return SC.none( tNumCells) ? 0 : tNumCells;
+    return SC.none( tNumCells) ? 1 : Math.max(1, tNumCells);
   }.property(),
 
   /**
@@ -131,6 +131,9 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     while( this.get('lsrls').length < tNumCells) {
       this.addLSRLModel( tCategoryIndex++);
     }
+    while( this.get('lsrls').length > tNumCells) {
+      this.removeLSRL();
+    }
   },
 
   /**
@@ -165,10 +168,12 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     var storage = sc_super();
     storage.showSumSquares = this.showSumSquares;
     storage.isInterceptLocked = this.isInterceptLocked;
+/*
     storage.lsrls = [];
     this.get('lsrls').forEach( function( iLSRL) {
       storage.lsrls.push( iLSRL.createStorage());
     });
+*/
     return storage;
   },
   
@@ -176,11 +181,13 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     sc_super();
     this.showSumSquares = iStorage.showSumSquares;
     this.isInterceptLocked = iStorage.isInterceptLocked;
+/*
     if( iStorage && iStorage.lsrls) {
       iStorage.lsrls.forEach( function( iLSRLStorage, iIndex) {
         this.addLSRLModel( iIndex, iLSRLStorage);
       }.bind( this));
     }
+*/
   }
 
 });
