@@ -94,6 +94,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           //global: this.handleGlobal,
           //globalList: this.handleGlobalList,
           item: this.handleItems,
+          itemsByCaseID: this.handleItemsByCaseID,
+          itemSearch: this.handleItemSearch,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
           logMessageMonitor: this.handleLogMessageMonitor,
@@ -274,6 +276,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.caseSearch) {
           result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
+        }
+
+        if (resourceSelector.itemSearch) {
+          var dataSet = result.dataContext && result.dataContext.get('dataSet');
+          result.itemSearch = dataSet && dataSet.getItemsBySearch(resourceSelector.itemSearch);
         }
 
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
@@ -1201,21 +1208,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-      handleItems: {
-        create: function (iResources, iValues) {
-          var success = false;
-          var context = iResources.dataContext;
-          var caseIDs;
-          if (context) {
-            caseIDs = context.addItems(iValues);
-            if (caseIDs) {
-              success = true;
-            }
-          }
-          return {success: success, values: caseIDs};
-        }
-      },
-
       handleCaseSearch: {
         get: function (iResources) {
           if (!iResources.collection) {
@@ -1233,6 +1225,44 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success,
             values: cases
           };
+        }
+      },
+
+      handleItems: {
+        create: function (iResources, iValues) {
+          var success = false;
+          var context = iResources.dataContext;
+          var caseIDs;
+          if (context) {
+            caseIDs = context.addItems(iValues);
+            if (caseIDs) {
+              success = true;
+            }
+          }
+          return {success: success, values: caseIDs};
+        }
+      },
+
+      handleItemSearch: {
+        get: function (iResources) {
+          var success = (iResources.itemSearch !== null),
+              items = [];
+
+          if (success) {
+            items = iResources.itemSearch.map(function (iItem) {
+              return iItem.toArchive();
+            }.bind(this));
+          }
+          return {
+            success: success,
+            values: items
+          };
+        }
+      },
+
+      handleItemsByCaseID: {
+        get: function (iResources) {
+
         }
       },
 

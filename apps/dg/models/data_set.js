@@ -338,6 +338,76 @@ DG.DataSet = SC.Object.extend((function() // closure
       return this.dataItems.find(function(item) { return item.id === itemID; });
     },
 
+    parseSearchQuery: function (queryString) {
+      // for now this is a simple single expression of "left op right" where op is a comparison operator
+      // this could be expanded (along with the testCaseAgainstQuery method below) using the shunting yard algorithm
+      var matches = queryString.match(/([^=!<>]+)(==|!=|<=|<|>=|>)([^=!<>]+)/),
+          trim = function (s) { return s.replace(/^\s+|\s+$/, ''); },
+          parsedQuery = {
+            valid: !!matches,
+            left: matches && trim(matches[1]),
+            op: matches && matches[2],
+            right: matches && trim(matches[3])
+          },
+          attrs = this.attrs,
+          parseOperand = function (value) {
+            var numberValue = Number(value),
+                parsedValue = value === 'true' ? true :
+                    (value === 'false' ? false :
+                    (isNaN(numberValue) ? value : numberValue));
+            return {
+              value: parsedValue,
+              attr: attrs.find(function (attr) {return attr.name === value;}),
+              name: value
+            };
+          };
+
+      parsedQuery.left = parseOperand(parsedQuery.left);
+      parsedQuery.right = parseOperand(parsedQuery.right);
+
+      // valid queries must have at least one side with a defined attribute
+      parsedQuery.valid = !!(parsedQuery.valid && (parsedQuery.left.attr || parsedQuery.right.attr));
+
+      return parsedQuery;
+    },
+
+    testItemAgainstQuery: function (iItem, parsedQuery) {
+      var getValue = function (token) {
+            return token.attr ? iItem.getValue(token.attr.id) : token.value;
+          },
+          leftValue = getValue(parsedQuery.left),
+          rightValue = getValue(parsedQuery.right);
+
+      if (!parsedQuery.valid) {
+        return false;
+      }
+
+      switch (parsedQuery.op) {
+        case '==': return leftValue === rightValue;
+        case '!=': return leftValue !== rightValue;
+        case '<':  return leftValue <   rightValue;
+        case '<=': return leftValue <=  rightValue;
+        case '>=': return leftValue >=  rightValue;
+        case '>':  return leftValue >   rightValue;
+        default:   return false;
+      }
+    },
+
+    getItemsBySearch: function (queryString) {
+      var parsedQuery = this.parseSearchQuery(queryString);
+
+      // return null to signal an invalid query
+      if (!parsedQuery.valid) {
+        return null;
+      }
+
+      return this.dataItems.filter(function (iItem) {
+
+        return (!iItem.isDeleted) && this.testItemAgainstQuery(iItem, parsedQuery);
+      }.bind(this));
+
+    },
+
     /**
      * Retrieves the client index of the DataItem wth the specified ID.
      * @param {*} itemID

@@ -171,18 +171,22 @@ DG.DataContext = SC.Object.extend((function() // closure
       return tResult;
     }.property('collectionCount'),
 
-  /**
-   *  The collections for which this controller is responsible.
-   *  Clients expect the order of this array to be parent --> child.
-   *  This function is responsible for guaranteeing the order.
-   *  In particular, games using the old API often create their
-   *  collections in child --> parent order, and need to be reversed
-   *  in this function.
-   *
-   *  @property {[DG.Collection]}
-   */
-  collectionsDidChange: function() {
-    var srcCollections = this.getPath('model.collections'),
+    dataSet: function () {
+      return this.getPath('model.dataSet');
+    }.property(),
+
+    /**
+     *  The collections for which this controller is responsible.
+     *  Clients expect the order of this array to be parent --> child.
+     *  This function is responsible for guaranteeing the order.
+     *  In particular, games using the old API often create their
+     *  collections in child --> parent order, and need to be reversed
+     *  in this function.
+     *
+     *  @property {[DG.Collection]}
+     */
+    collectionsDidChange: function() {
+      var srcCollections = this.getPath('model.collections'),
         srcCollectionArray = DG.ObjectMap.values(srcCollections),
         i, c,
         collectionCount = srcCollectionArray.length;

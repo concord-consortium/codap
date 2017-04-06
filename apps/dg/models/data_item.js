@@ -61,6 +61,10 @@ DG.DataItem = SC.Object.extend({
     this.values[attributeID] = DG.DataUtilities.canonicalizeInputValue( value);
   },
 
+  getValue: function(attributeID) {
+    return this.values[attributeID];
+  },
+
   /**
    * Update values from an attribute key to value map.
    * @param {object} dataMap
@@ -71,6 +75,9 @@ DG.DataItem = SC.Object.extend({
   },
 
   toArchive: function () {
-    // Todo
+    return {
+      id: this.id,
+      values: Object.assign({}, this.values)
+    };
   }
 });
