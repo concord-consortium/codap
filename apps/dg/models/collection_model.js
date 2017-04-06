@@ -524,7 +524,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
                             // attributes of this collection
 
       if (SC.none(items)) {
-        items = this.dataSet.dataItems;
+        items = this.dataSet.dataItems.filter(function (item) { return !item.deleted; });
       }
 
 

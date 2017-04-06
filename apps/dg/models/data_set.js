@@ -266,7 +266,7 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     toArchive: function () {
       return {
-        dataItems: this.dataItems.map(function (item) {
+        dataItems: this.dataItems.filterProperty('deleted', false).map(function (item) {
           return {
             values: item.values,
             id: item.id,
