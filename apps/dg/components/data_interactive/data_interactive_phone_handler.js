@@ -94,7 +94,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           //global: this.handleGlobal,
           //globalList: this.handleGlobalList,
           item: this.handleItems,
-          itemsByCaseID: this.handleItemsByCaseID,
+          itemByCaseID: this.handleItemByCaseID,
           itemSearch: this.handleItemSearch,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
@@ -281,6 +281,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (resourceSelector.itemSearch) {
           var dataSet = result.dataContext && result.dataContext.get('dataSet');
           result.itemSearch = dataSet && dataSet.getItemsBySearch(resourceSelector.itemSearch);
+        }
+
+        if (resourceSelector.itemByCaseID) {
+          var myCase = result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
+          result.itemByCaseID = myCase && myCase.get('item');
         }
 
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
@@ -1260,9 +1265,18 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       },
 
-      handleItemsByCaseID: {
+      handleItemByCaseID: {
         get: function (iResources) {
+          var success = (iResources.itemByCaseID !== null),
+              items = [];
 
+          if (success) {
+            items = iResources.itemByCaseID.toArchive();
+          }
+          return {
+            success: success,
+            values: items
+          };
         }
       },
 

@@ -75,9 +75,16 @@ DG.DataItem = SC.Object.extend({
   },
 
   toArchive: function () {
+    var nameValueMap = {};
+    Object.keys(this.values).map(function (key) {
+      var attr = DG.Attribute.getAttributeByID(key);
+      if (attr) {
+        nameValueMap[attr.name] = this.values[key];
+      }
+    }.bind(this));
     return {
       id: this.id,
-      values: Object.assign({}, this.values)
+      values: nameValueMap
     };
   }
 });
