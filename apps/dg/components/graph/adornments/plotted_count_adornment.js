@@ -153,8 +153,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
           x: ((tIndexX+1)*tCellWidth) - this.marginX,
           y: this.marginY + tYOffset/3 + (tIndexY*tCellHeight ),
           'font-size': tFontSize,
-          text: formatValueString( tValue),
-          title: 'test tip'
+          text: formatValueString( tValue)
       };
 
       if (tIsNewElement) {   // create text element
