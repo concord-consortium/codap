@@ -118,6 +118,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   */
   recomputeSlopeAndInterceptIfNeeded: function(iXAxis, iYAxis) {
     if(this.isComputingNeeded()) {
+      this._needsComputing = false;
       this.synchLSRLs();
       this.get('lsrls').forEach(function (iLSRL) {
         iLSRL.recomputeSlopeAndInterceptIfNeeded(iXAxis, iYAxis);
@@ -127,11 +128,12 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
 
   synchLSRLs: function() {
     var tNumCells = this.get('numLegendCells'),
-        tCategoryIndex = 0;
-    while( this.get('lsrls').length < tNumCells) {
+        tLSRLs = this.get('lsrls'),
+        tCategoryIndex = tLSRLs.length;
+    while( tLSRLs.length < tNumCells) {
       this.addLSRLModel( tCategoryIndex++);
     }
-    while( this.get('lsrls').length > tNumCells) {
+    while( tLSRLs.length > tNumCells) {
       this.removeLSRL();
     }
   },
@@ -141,7 +143,7 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
    * @optional iStorage {Object}
    * @return {DG.LSRLModel}
    */
-  addLSRLModel: function( iCategoryIndex, iStorage) {
+  addLSRLModel: function( iCategoryIndex) {
 
     var tLSRLModel = DG.LSRLModel.create( {
                       plotModel: this.get('plotModel'),
@@ -149,9 +151,6 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
                       showSumSquares: this.get('showSumSquares')
                     });
     tLSRLModel.set('isInterceptLocked', this.get('isInterceptLocked'));
-    if( iStorage) {
-      tLSRLModel.restoreStorage( iStorage);
-    }
     this.get('lsrls').push( tLSRLModel);
     this.setComputingNeeded();
     return tLSRLModel;
@@ -168,12 +167,6 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     var storage = sc_super();
     storage.showSumSquares = this.showSumSquares;
     storage.isInterceptLocked = this.isInterceptLocked;
-/*
-    storage.lsrls = [];
-    this.get('lsrls').forEach( function( iLSRL) {
-      storage.lsrls.push( iLSRL.createStorage());
-    });
-*/
     return storage;
   },
   
@@ -181,13 +174,6 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     sc_super();
     this.showSumSquares = iStorage.showSumSquares;
     this.isInterceptLocked = iStorage.isInterceptLocked;
-/*
-    if( iStorage && iStorage.lsrls) {
-      iStorage.lsrls.forEach( function( iLSRLStorage, iIndex) {
-        this.addLSRLModel( iIndex, iLSRLStorage);
-      }.bind( this));
-    }
-*/
   }
 
 });

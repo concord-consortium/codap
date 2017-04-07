@@ -30,6 +30,27 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
 {
   defaultColor: DG.PlotUtilities.kDefaultLSRLColor,
 
+  lineColor: function() {
+
+    var getCellNamesArray = function() {
+      var tCellMap = tLegendAttrDescription.getPath('attributeStats.cellMap'),
+          tCellNamesArray = [];
+      DG.ObjectMap.forEach( tCellMap, function( iKey, iValue) {
+        tCellNamesArray.push( iKey);
+      });
+      return tCellNamesArray;
+    }.bind( this);
+
+    var tLegendAttrDescription = this.getPath('model.plotModel.dataConfiguration.legendAttributeDescription');
+    if( tLegendAttrDescription.isNull()) {
+      return sc_super();
+    }
+    var tNamesArray = getCellNamesArray(),
+        tColor = DG.ColorUtilities.calcCaseColor(tNamesArray[ this.getPath( 'model.categoryIndex')],
+                            tLegendAttrDescription).colorString;
+    return tColor;
+  }.property(),
+
   equationString: function() {
     var tResult = sc_super(),
         tFormat = DG.Format.number().fractionDigits( 0, 3),
@@ -82,6 +103,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
                                       y: (tIntercepts.pt1.y + tIntercepts.pt2.y) / 2 }),
         tPaperWidth = this.get('paper').width,
         tPaperHeight = this.get('paper').height,
+        tLineColor = this.get('lineColor'),
         tTextBox, tTextWidth, tAlign, tBackgrndX;
 
     DG.RenderingUtilities.updateLine( this.lineSeg,
@@ -109,7 +131,8 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     this.backgrndRect.attr({ x: tBackgrndX, y: tTextAnchor.y - tTextBox.height / 2,
       width: tTextWidth, height: tTextBox.height });
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
-                text: this.get('equationString') });
+                text: this.get('equationString'), fill: tLineColor });
+    this.lineSeg.attr({ stroke: tLineColor })
   }
 
 });

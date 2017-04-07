@@ -39,6 +39,10 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
 
   defaultColor: 'black',
 
+  lineColor: function() {
+    return this.get('defaultColor');
+  }.property(),
+
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
@@ -162,16 +166,16 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       return; // already created
     var tPaper = this.get('paper'),
         tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
-        tDefaultColor = this.get('defaultColor');
+        tLineColor = this.get('lineColor');
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
-        .attr({ stroke: tDefaultColor, 'stroke-opacity': 0 });
+        .attr({ stroke: tLineColor, 'stroke-opacity': 0 });
     this.lineSeg.animatable = true;
 
     this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({ fill: 'yellow', 'stroke-width': 0, 'fill-opacity': 0.8 });
+        .attr({ fill: 'yellow', 'stroke-width': 0, 'fill-opacity': 0.4 });
     // Put the text below the hit segments in z-order so user can still hit the line
     this.equation = tPaper.text( 0, 0, '')
-        .attr({ 'stroke-opacity': 0, fill: tDefaultColor })
+        .attr({ 'stroke-opacity': 0, fill: tLineColor })
         .addClass('graph-adornment');
     this.equation.animatable = true;
 

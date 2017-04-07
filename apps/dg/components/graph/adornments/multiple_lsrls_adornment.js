@@ -60,6 +60,7 @@ DG.MultipleLSRLsAdornment = DG.PlotAdornment.extend(
        And then deal with showing counts and percents
        */
       updateToModel: function () {
+        this.get('model').recomputeSlopeAndInterceptIfNeeded();
         var tAdornments = this.get('lsrlAdornments');
 
         var adjustNumberOfAdornments = function () {
