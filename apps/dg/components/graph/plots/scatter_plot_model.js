@@ -84,19 +84,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         sc_super();
         this.addObserver('movableLine.slope',this.lineDidChange);
         this.addObserver('movableLine.intercept',this.lineDidChange);
-/*
-        this.addObserver('multipleLSRLs.slope',this.lineDidChange);
-        this.addObserver('multipleLSRLs.intercept',this.lineDidChange);
-*/
       },
 
       destroy: function() {
         this.removeObserver('movableLine.slope',this.lineDidChange);
         this.removeObserver('movableLine.intercept',this.lineDidChange);
-/*
-        this.removeObserver('multipleLSRLs.slope',this.lineDidChange);
-        this.removeObserver('multipleLSRLs.intercept',this.lineDidChange);
-*/
         sc_super();
       },
 
@@ -166,7 +158,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       },
 
       /**
-       * Utility function to create an lsr line when needed
+       * Utility function to create the multipleLSRLs object when needed
        */
       createLSRLLines: function () {
         if (SC.none(this.multipleLSRLs)) {

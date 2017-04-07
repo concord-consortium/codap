@@ -137,19 +137,20 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
   },
 
   /**
-   * @return { [{x:{Number}, y: {Number}}] } with properties specific to a given subclass
+   * @return { [{x:{Number}, y: {Number} legend: {String|Number}}] } with properties specific to a given subclass
    */
   getCoordinates: function() {
     var tValues = [],
         tCases = this.getPath('plotModel.cases'),
         tXVarID = this.getPath('plotModel.xVarID'),
         tYVarID = this.getPath('plotModel.yVarID'),
-        tlegendVarID = this.getPath('plotModel.legendVarID');
+        tlegendVarID = this.getPath('plotModel.legendVarID'),
+        tLegendIsNumeric = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.isNumeric');
     if( Array.isArray(tCases)) {
       tCases.forEach(function (iCase) {
         var tXValue = iCase.getNumValue(tXVarID),
             tYValue = iCase.getNumValue(tYVarID),
-            tLegendValue = iCase.getValue( tlegendVarID);
+            tLegendValue = tLegendIsNumeric ? null : iCase.getValue( tlegendVarID);
         if (isFinite(tXValue) && isFinite(tYValue)) {
           tValues.push({x: tXValue, y: tYValue, legend: tLegendValue});
         }

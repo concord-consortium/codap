@@ -42,7 +42,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     }.bind( this);
 
     var tLegendAttrDescription = this.getPath('model.plotModel.dataConfiguration.legendAttributeDescription');
-    if( tLegendAttrDescription.isNull()) {
+    if( tLegendAttrDescription.isNull() || tLegendAttrDescription.get('isNumeric')) {
       return sc_super();
     }
     var tNamesArray = getCellNamesArray(),
@@ -52,12 +52,15 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
   }.property(),
 
   equationString: function() {
-    var tResult = sc_super(),
-        tFormat = DG.Format.number().fractionDigits( 0, 3),
-        tRSquared = this.getPath('model.rSquared'),
-        tRSquaredString = SC.none( tRSquared) ? '' : tFormat( tRSquared);
+    var tResult = sc_super();
+    if( !this.getPath('model.isInterceptLocked')) {
+      var tFormat = DG.Format.number().fractionDigits(0, 3),
+          tRSquared = this.getPath('model.rSquared'),
+          tRSquaredString = SC.none(tRSquared) ? '' : tFormat(tRSquared);
 
-    return tResult + 'DG.ScatterPlotModel.rSquared'.loc( tRSquaredString) + this.get('sumResidSquaredString');
+      tResult = tResult + 'DG.ScatterPlotModel.rSquared'.loc(tRSquaredString) + this.get('sumResidSquaredString');
+    }
+    return tResult;
   }.property(),
 
   updateToModel: function() {

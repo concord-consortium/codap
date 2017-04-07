@@ -44,7 +44,9 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
   isInterceptLocked: false,
 
   numLegendCells: function() {
-    var tNumCells = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.attributeStats.numberOfCells');
+    var tLegendDesc = this.getPath('plotModel.dataConfiguration.legendAttributeDescription'),
+        tNumCells = (SC.none( tLegendDesc) || tLegendDesc.get('isNumeric')) ? 1 :
+                        tLegendDesc.getPath('attributeStats.numberOfCells');
     return SC.none( tNumCells) ? 1 : Math.max(1, tNumCells);
   }.property(),
 
