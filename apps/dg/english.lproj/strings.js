@@ -518,8 +518,9 @@ SC.stringsFor('English', {
   // DG.ScatterPlotModel
   'DG.ScatterPlotModel.sumSquares': ",\nSum of squares = %@", // sumOfResidualsSquared
   'DG.ScatterPlotModel.rSquared': ",\nr^2 = %@", // r-squared
-  'DG.ScatterPlotModel.slopeIntercept': "%@ = %@* %@ %@ %@",// y,slope,x,signInt,Int
+  'DG.ScatterPlotModel.slopeIntercept': "%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
+  'DG.ScatterPlotModel.yearsLabel': "per year",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "per day",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "per hour",// per hour - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.minutesLabel': "per minute",// per minute - used in equation for line when x is a datetime axis

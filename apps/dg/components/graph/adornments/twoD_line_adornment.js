@@ -67,26 +67,35 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
       var handleDateTime = function () {
             var tLower = this_.getPath('xAxisView.model.lowerBound'),
                 tUpper = this_.getPath('xAxisView.model.upperBound'),
-                tRange = tUpper - tLower;
+                tRange = tUpper - tLower,
+                tSlopeMultiplier = 1;
             if (tRange < 120) {
               // leave in seconds
               tXVar = 'DG.ScatterPlotModel.secondsLabel'.loc();
             }
             else if (tRange < 60 * 60 * 2) { // 2 hours
-              tSlope *= 60; // per minute
+              tSlopeMultiplier = 60; // per minute
               tXVar = 'DG.ScatterPlotModel.minutesLabel'.loc();
+
             }
             else if (tRange < 3600 * 24 * 2) { // 2 days
-              tSlope *= 3600; // per hour
+              tSlopeMultiplier = 3600; // per hour
               tXVar = 'DG.ScatterPlotModel.hoursLabel'.loc();
             }
-            else {
-              tSlope *= 3600 * 24; // per day
+            else if( tRange < 3600 * 24 * 365) { // 365 days
+              tSlopeMultiplier = 3600 * 24; // per day
               tXVar = 'DG.ScatterPlotModel.daysLabel'.loc();
             }
-            tSlopeString = tSlopeNumFormat(tSlope) + " ";
-            if (tSlopeString !== "0 ")  // Implies intercept is meaningless because 0 of x-axis is arbitrary
+            else {
+              tSlopeMultiplier = 3600 * 24 * 365.25; // per year
+              tXVar = 'DG.ScatterPlotModel.yearsLabel'.loc();
+            }
+            tSlope *= tSlopeMultiplier;
+            tSlopeString = tSlope.toPrecision(3) + " ";
+            if (tSlopeString !== "0 ") {  // Implies intercept is meaningless because 0 of x-axis is arbitrary
               tInterceptString = tSign = "";
+              tSlopeString += this_.getPath('yAxisView.model.firstAttributeUnit') + ' ';
+            }
           },
 
           getSlopeUnit = function () {
