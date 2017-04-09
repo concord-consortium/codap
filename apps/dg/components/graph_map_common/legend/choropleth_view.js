@@ -48,7 +48,6 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
         doDraw: function doDraw() {
           var kStrokeWidth = 0.5,
               tAttrDesc = this.getPath('model.attributeDescription'),
-              tAttrColor = tAttrDesc && tAttrDesc.get('attribute') && DG.ColorUtilities.calcAttributeColor(tAttrDesc),
               tWidth = this._paper.width - 2;
 
           var drawScale = function () {
@@ -61,19 +60,7 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                   tMaxFormatter.group('');
                 var tMin = tMinFormatter(tMinMax.min),
                     tMax = tMaxFormatter(tMinMax.max),
-                    kMaxTicks = 4,
-                    tTick;
-
-                // re-create the tick marks every time
-                for (tTick = 0; tTick <= kMaxTicks; tTick++) {
-                  var tX = kStrokeWidth + tTick * (tWidth - 2 * kStrokeWidth) / 4,
-                      tBaseline = kRectHeight + 1;
-                  this._elementsToClear.push(
-                      this._paper.line(tX, tBaseline,
-                          tX, tBaseline + kTickLength)
-                          .attr({stroke: tAttrColor}));
-                }
-                var tTextY = kRectHeight + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
+                    tTextY = kRectHeight + kTickLength + DG.RenderingUtilities.kDefaultFontHeight / 2;
                 this._elementsToClear.push(this._paper.text(kStrokeWidth, tTextY, tMin)
                     .attr({'text-anchor': 'start'}));
                 this._elementsToClear.push(this._paper.text(tWidth - 2 * kStrokeWidth, tTextY, tMax)
@@ -85,8 +72,6 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                 var tQuintileN = 5,
                     tValues = this.getPath('model.dataConfiguration').numericValuesForPlace(DG.GraphTypes.EPlace.eLegend),
                     tQuintileValues = DG.MathUtilities.nQuantileValues(tValues, tQuintileN),
-                    tMinValue = tQuintileValues[0],
-                    tMaxValue = tQuintileValues[tQuintileN],
                     tMinMax = {min: 0, max: 1},
                     tColorMap = tAttrDesc.getPath('attribute.colormap'),
                     tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc),
@@ -94,8 +79,8 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                 tQuintileValues.forEach(function (iStartValue, iIndex) {
                   if ((typeof iStartValue === 'number') && iIndex < tQuintileN) {
                     var tStopValue = tQuintileValues[iIndex + 1],
-                        tLeft = tWidth * (iStartValue - tMinValue) / (tMaxValue - tMinValue),
-                        tRight = tLeft + tWidth * ( tStopValue - iStartValue) / (tMaxValue - tMinValue),
+                        tLeft = tWidth * iIndex / tQuintileN,
+                        tRight = tLeft + tWidth * (iIndex +1) / tQuintileN,
                         tColor = DG.ColorUtilities.calcGradientColor(tMinMax, tSpectrumEnds.low, tSpectrumEnds.high,
                             (iIndex + 1)/ tQuintileN),
                         tRect = this._paper.rect(tLeft, 0, 0, 0)
