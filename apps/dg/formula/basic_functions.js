@@ -153,7 +153,11 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'number': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryConversion',
-      evalFn: function(x) { return Number(x); }
+      evalFn: function(x) {
+        if( typeof x === 'string')
+          x = x.replace(/\u2212/g, '-');  // replace Unicode minus with hyphen
+        return Number(x);
+      }
     },
 
     /**
