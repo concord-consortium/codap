@@ -122,7 +122,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
     strokeTransparency: function( iKey, iValue) {
       if( iValue !== undefined)
         this._strokeTransparency = iValue;
-      return this._strokeTransparency ||
+      return !SC.none( this._strokeTransparency) ? this._strokeTransparency :
           ( this.hasLegendVar() ?
               DG.PlotUtilities.kDefaultStrokeOpacityWithLegend :
               DG.PlotUtilities.kDefaultStrokeOpacity);
