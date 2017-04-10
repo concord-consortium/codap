@@ -1263,6 +1263,41 @@ DG.DataContext = SC.Object.extend((function() // closure
     });
   },
 
+  /*
+   * Marks items in a dataset for deletion. Accepts an array of items or an
+   * individual item. Issues a deleteCases change notice listing the deleted
+   * cases. Returns the list of deleted cases.
+   * @param iItems {DG.Item|[DG.Item]}
+   * @return {[Number]} Array of case ids.
+   */
+  deleteItems: function (iItems) {
+    var dataSet = this.getPath('model.dataSet');
+    var regenResults, deletedCaseIDs;
+    if (!Array.isArray(iItems)) {
+      iItems = [iItems];
+    }
+    iItems.forEach(function (item) {
+      if (!SC.none(item.itemIndex)) {
+        dataSet.deleteDataItemByIndex(item.itemIndex);
+      } else {
+        DG.logWarn('Attempt to delete non-Item.');
+      }
+    });
+    regenResults = this.regenerateCollectionCases();
+    if (regenResults) {
+      deletedCaseIDs = regenResults.deletedCases.map(function (iCase) {return iCase.id;});
+      this.applyChange({
+        operation: 'deleteCases',
+        collection: regenResults.collection,
+        isComplete: true,
+        result: {
+          caseIDs: deletedCaseIDs
+        }
+      });
+      return { deletedCaseIDs: deletedCaseIDs};
+    }
+  },
+
   _moveAttributeWithinCollection: function(attr, collectionClient, position) {
     var dataContext = this;
     var name = attr.name;

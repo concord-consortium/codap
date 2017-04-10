@@ -194,7 +194,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           } else {
             context = document.getContextByName(resourceSelector.dataContext) ||
                 (!isNaN(resourceSelector.dataContext) &&
-                    document.getContextByID(resourceSelector.dataContext));
+                    document.getContextByID(resourceSelector.dataContext)) || null;
           }
           return context;
         }
@@ -224,8 +224,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           result.dataContext = resolveContext(resourceSelector.dataContext,
               this.getPath('controller.context'));
-          // If no data context abort early
-          if (!result.dataContext) { return result;}
         }
 
         dataContext = result.dataContext;
@@ -284,7 +282,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.itemByCaseID) {
-          var myCase = result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
+          var myCase = result.dataContext && result.dataContext.getCaseByID(resourceSelector.itemByCaseID);
           result.itemByCaseID = myCase && myCase.get('item');
         }
 
@@ -1262,6 +1260,20 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success,
             values: items
           };
+        },
+        'delete': function (iResources) {
+          var items = iResources.itemSearch;
+          var context = iResources.dataContext;
+          var success = (items !== null);
+          var deletedCases;
+          if (success) {
+            deletedCases = context.deleteItems(items);
+            if (deletedCases) {
+              return {success: true, values: deletedCases};
+            }
+          } else {
+            return {success: success};
+          }
         }
       },
 
@@ -1277,6 +1289,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success,
             values: items
           };
+        },
+
+        'delete': function (iResources) {
+          var item = iResources.itemByCaseID;
+          var context = iResources.dataContext;
+          var success = (item !== null);
+          var deletedCases;
+          if (success) {
+            deletedCases = context.deleteItems(item);
+            if (deletedCases) {
+              return {success: true, values: deletedCases};
+            }
+          } else {
+            return {success: success};
+          }
         }
       },
 
