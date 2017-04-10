@@ -648,7 +648,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
                                           DG.Analysis.kNullAttribute) ||
                       (this.get('numPlots') > 1),
       tLayerManager = this.get('layerManager' ),
-      tCases = this.getPath('model.cases');
+      tCases = this.getPath('model.cases'),
+      tUnselectedRadius = this._pointRadius,
+      tSelectedRadius = tUnselectedRadius + DG.PlotUtilities.kPointRadiusSelectionAddend;
 
     if(!tCases || !tSelection)
       return;
@@ -658,7 +660,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     }
 
     tCases.forEach( function( iCase, iIndex) {
-      var tIsSelected, tElement, tFrom, tTo, tClass;
+      var tIsSelected, tElement, tFrom, tTo, tClass, tRadius,
+          tTransform = '';
         // We sometimes get here with fewer plotted elements than cases,
         // perhaps when newly added cases don't have plottable values.
       if( (iIndex < tPlottedElements.length) && tPlottedElements[ iIndex]) {
@@ -667,13 +670,24 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
         tFrom = tIsSelected ? DG.LayerNames.kPoints : DG.LayerNames.kSelectedPoints;
         tTo = tIsSelected ? DG.LayerNames.kSelectedPoints : DG.LayerNames.kPoints;
         tClass = this_.getPlottedElementClass( tIsSelected, tIsColored );
+        tRadius = tIsSelected ? tSelectedRadius : tUnselectedRadius;
         if (!tElement.hasClass(tClass)) {
+          if( tIsSelected) {
+            tElement._selected = true;
+            tTransform = tElement.transform();
+            tElement.transform('');
+          }
+          else
+            delete tElement._selected;
           DG.PlotUtilities.kDotClasses.forEach(function (iClass) {
             tElement.removeClass(iClass);
           });
           tElement.addClass(this_.getPlottedElementClass(tIsSelected,
             tIsColored));
           tLayerManager.moveElementFromTo(tElement, tFrom, tTo);
+          tElement.attr( { r: tRadius });
+          if( tIsSelected)
+            tElement.transform( tTransform);
         }
       }
     });
@@ -896,6 +910,10 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       if( tRadius <= tMinSize ) break;
     }
     return Math.max( 1, tRadius * tMultiplier);
+  },
+
+  radiusForCircleElement: function( iElement) {
+    return this._pointRadius + (iElement._selected ? DG.PlotUtilities.kPointRadiusSelectionAddend : 0);
   },
 
   /**

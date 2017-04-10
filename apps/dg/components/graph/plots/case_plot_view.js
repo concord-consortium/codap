@@ -53,7 +53,7 @@ DG.CasePlotView = DG.PlotView.extend(
      * @param iCallback {Function} Will be called when animation finished
      * @returns {cx {Number},cy {Number}} final coordinates or null if not defined (hidden plot element)
      */
-    setCircleCoordinate: function setCircleCoordinate( iRC, iCase, iIndex, iAnimate, iCallback ) {
+    setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
       DG.assert( iRC && iRC.xAxisView );
       DG.assert( iCase );
       DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
@@ -70,7 +70,7 @@ DG.CasePlotView = DG.PlotView.extend(
       }
 
       var tCircle = this._plottedElements[ iIndex],
-          tRadius = this._pointRadius,
+          tRadius = this.radiusForCircleElement(tCircle),
           tWorldCoords = this.get( 'model' ).getWorldCoords( iIndex ),
           tCoordX = dataToCoordinateWithMargin( iRC.xAxisView, tWorldCoords.x, tRadius ),
           tCoordY = dataToCoordinateWithMargin( iRC.yAxisView, tWorldCoords.y, tRadius ),

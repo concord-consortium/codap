@@ -147,7 +147,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
      // show or hide if needed, then update
      this.showHidePlottedElement( tCircle, tIsMissingCase || tCircle.isHidden() || !iRC.pointsShouldBeVisible);
      if (!tIsMissingCase) {
-       var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
+       var tAttrs = {cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement( tCircle),
+         fill: iRC.calcCaseColorString( iCase ),
          stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
        this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
      }

@@ -201,7 +201,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
    * @param iAnimate {Boolean} (optional) want changes to be animated into place?
    * @returns {cx {Number},cy {Number}} final coordinates or null if not defined (hidden plot element)
    */
-  setCircleCoordinate: function setCircleCoordinate( iRC, iCase, iIndex, iAnimate, iCallback ) {
+  setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
     DG.assert( iRC && iRC.xAxisView );
     DG.assert( iCase );
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
@@ -212,7 +212,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
     // show or hide if needed, then update if shown.
     if( this.showHidePlottedElement( tCircle, tIsMissingCase)) {
-      var tAttrs = {cx: tCoordX, cy: tCoordY, r: this._pointRadius, fill: iRC.calcCaseColorString( iCase ),
+      var tAttrs = {cx: tCoordX, cy: tCoordY, r: this.radiusForCircleElement( tCircle),
+                    fill: iRC.calcCaseColorString( iCase ),
                     stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
       this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
       return { cx: tCoordX, cy: tCoordY, r: this._pointRadius };

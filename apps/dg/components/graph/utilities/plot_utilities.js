@@ -38,6 +38,7 @@ DG.PlotUtilities = {
   kPointRadiusLogBase: 2.0, // reduce point radius from max by log of (num. cases) base (LogBase).
   kPointRadiusMax: 10,
   kPointRadiusMin: 3,
+  kPointRadiusSelectionAddend: 1,
   kDefaultPointColor: '#e6805b',
   kDefaultStrokeColor: 'white',
   kDefaultStrokeColorWithLegend: 'lightgrey',
