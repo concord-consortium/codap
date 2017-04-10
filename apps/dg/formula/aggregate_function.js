@@ -264,6 +264,17 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
   },
   
   /**
+    Returns an object { x, y } with numeric values for each, primarily for the benefit
+    of bivariate aggregate functions.
+   */
+  getCoordValue: function( iContext, iEvalContext, iInstance) {
+    var xFn = iInstance.argFns[0],
+        yFn = iInstance.argFns[1];
+    return { x: xFn && DG.getNumeric(xFn( iContext, iEvalContext)),
+              y: yFn && DG.getNumeric(yFn( iContext, iEvalContext)) };
+  },
+
+  /**
     Evaluates the aggregate function and returns a computed result for the specified case.
     This implementation loops over all cases, calling the evalCase() method for each one,
     and then caching the result indexed by the parent case ID.
@@ -454,6 +465,40 @@ DG.SortDataFunction = DG.ParentCaseAggregate.extend({
                             iInstance.results[ iKey] = this.extractResult( iCachedValues, iEvalContext, iInstance);
                           }.bind( this));
     return this.queryCache( iContext, iEvalContext, iInstance);
+  }
+
+});
+
+/** @class DG.BivariateStatsFn
+
+  The DG.BivariateStatsFn "class" is the base "class" for bivariate aggregate function
+  implementation classes which must iterate through all of the cases to store the
+  valid coordinate pairs.
+
+  @extends SC.ParentCaseAggregate
+ */
+DG.BivariateStatsFn = DG.ParentCaseAggregate.extend({
+
+  requiredArgs: {min: 2, max: 2},
+
+  /**
+    Perform any per-case computation and/or caching.
+    For the BivariateStatsFn, this method simply caches its coordinate pairs for later computation.
+    @param  {DG.FormulaContext}   iContext
+    @param  {Object}              iEvalContext -- { _case_: , _id_: }
+    @param  {Object}              iInstance -- The aggregate function instance from the context.
+    @param  {Number|null}         iCacheID -- The cache ID to use for cache lookups for this case.
+   */
+  evalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+    var tCoordPair = this.getCoordValue(iContext, iEvalContext, iInstance);
+    if (tCoordPair.x != null && tCoordPair.y != null) {
+      var cache = iInstance.caches[iCacheID];
+      if (cache) {
+        cache.push( tCoordPair);
+      }
+      else
+        iInstance.caches[iCacheID] = [tCoordPair];
+    }
   }
 
 });

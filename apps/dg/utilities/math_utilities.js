@@ -208,59 +208,138 @@ DG.MathUtilities = {
 
   /**
    * Returns an object that has the slope and intercept
+   * @param iCoordPairs [{x: {Number}, y: {Number}}]
+   * @returns {{count: {Number}, xSum: {Number}, xSumOfSquares: {Number}, xSumSquaredDeviations: { Number},
+   *          ySum: {Number}, ySumOfSquares: {Number}, ySumSquaredDeviations: {Number}, sumOfProductDiffs: {Number} }
+   */
+  computeBivariateStats: function (iCoordPairs) {
+    var tResult = {
+          count: 0,
+          xSum: 0,
+          xSumOfSquares: 0,
+          xSumSquaredDeviations: 0,
+          ySum: 0,
+          ySumOfSquares: 0,
+          ySumSquaredDeviations: 0,
+          sumOfProductDiffs: 0
+        },
+        tSumDiffsX = 0,
+        tSumDiffsY = 0;
+    iCoordPairs.forEach(function (iPair) {
+      if (isFinite(iPair.x) && isFinite(iPair.y)) {
+        tResult.count += 1;
+        tResult.xSum += iPair.x;
+        tResult.xSumOfSquares += (iPair.x * iPair.x );
+        tResult.ySum += iPair.y;
+        tResult.ySumOfSquares += (iPair.y * iPair.y );
+      }
+    });
+    if (tResult.count > 0) {
+      tResult.xMean = tResult.xSum / tResult.count;
+      tResult.yMean = tResult.ySum / tResult.count;
+      iCoordPairs.forEach(function (iPair) {
+        var tDiffX, tDiffY;
+        if (isFinite(iPair.x) && isFinite(iPair.y)) {
+          tResult.sumOfProductDiffs += (iPair.x - tResult.xMean) * (iPair.y - tResult.yMean);
+          tDiffX = iPair.x - tResult.xMean;
+          tResult.xSumSquaredDeviations += tDiffX * tDiffX;
+          tSumDiffsX += tDiffX;
+          tDiffY = iPair.y - tResult.yMean;
+          tResult.ySumSquaredDeviations += tDiffY * tDiffY;
+          tSumDiffsY += tDiffY;
+        }
+      });
+      // Subtract a correction factor for roundoff error.
+      // See Numeric Recipes in C, section 14.1 for details.
+      tResult.xSumSquaredDeviations -= (tSumDiffsX * tSumDiffsX / tResult.count);
+      tResult.ySumSquaredDeviations -= (tSumDiffsY * tSumDiffsY / tResult.count);
+    }
+    return tResult;
+  },
+
+  /**
+   * Returns the correlation coefficient for the coordinates in the array
+   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @returns {Number}
+   */
+  correlation: function( iCoords) {
+    var tResult = NaN,
+        tBiStats = DG.MathUtilities.computeBivariateStats(iCoords);
+    if( tBiStats.count > 1) {
+      tResult = Math.sqrt(tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs /
+            (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations));
+      if( tBiStats.sumOfProductDiffs < 0)
+        tResult = -tResult;
+    }
+    return tResult;
+  },
+
+  /**
+   * Returns the square of the correlation coefficient for the coordinates in the array
+   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @returns {Number}
+   */
+  rSquared: function( iCoords) {
+    var tResult = NaN,
+        tBiStats = DG.MathUtilities.computeBivariateStats(iCoords);
+    if( tBiStats.count > 1) {
+      tResult = (tBiStats.sumOfProductDiffs * tBiStats.sumOfProductDiffs) /
+            (tBiStats.xSumSquaredDeviations * tBiStats.ySumSquaredDeviations);
+    }
+    return tResult;
+  },
+
+  /**
+   * Returns the slope of the lsrl fitting the coordinates
+   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iInterceptLocked {Boolean}
+   * @returns {Number}
+   */
+  linRegrSlope: function( iCoords, iInterceptLocked) {
+    var tResult = NaN,
+        tBiStats = DG.MathUtilities.computeBivariateStats(iCoords);
+    if( tBiStats.count > 1) {
+      if( iInterceptLocked) {
+        tResult = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /
+            (tBiStats.xSumSquaredDeviations + tBiStats.xMean * tBiStats.xSum);
+      }
+      else {
+        tResult = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
+      }
+    }
+    return tResult;
+  },
+
+  /**
+   * Returns the intercept of the lsrl fitting the coordinates
+   * @param iCoords [{x: {Number}, y: {Number}}]
+   * @param iInterceptLocked {Boolean}
+   * @returns {Number}
+   */
+  linRegrIntercept: function( iCoords, iInterceptLocked) {
+    var tResult = NaN,
+        tBiStats = DG.MathUtilities.computeBivariateStats(iCoords),
+        tSlope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
+    if( tBiStats.count > 1) {
+      if( iInterceptLocked) {
+        tResult = 0;
+      }
+      else {
+        tResult = tBiStats.yMean - tSlope * tBiStats.xMean;
+      }
+    }
+    return tResult;
+  },
+
+  /**
+   * Returns an object that has the slope and intercept
    * @param iValues [{x: {Number}, y: {Number}}]
    * @param iInterceptLocked {Boolean}
    * @returns {{slope: {Number}, intercept: {Number}, rSquared: {Number}, sumSquaresResiduals: { Number}}
    */
   leastSquaresLinearRegression: function( iValues, iInterceptLocked) {
-    var tSlopeIntercept = { slope: null, intercept: null, rSquared: null, sumSquaresResiduals: null };
-
-    function computeBivariateStats() {
-      var tResult = {
-            count: 0,
-            xSum: 0,
-            xSumOfSquares: 0,
-            xSumSquaredDeviations: 0,
-            ySum: 0,
-            ySumOfSquares: 0,
-            ySumSquaredDeviations: 0,
-            sumOfProductDiffs: 0
-          },
-          tSumDiffsX = 0,
-          tSumDiffsY = 0;
-      iValues.forEach(function (iPair) {
-        if (isFinite(iPair.x) && isFinite(iPair.y)) {
-          tResult.count += 1;
-          tResult.xSum += iPair.x;
-          tResult.xSumOfSquares += (iPair.x * iPair.x );
-          tResult.ySum += iPair.y;
-          tResult.ySumOfSquares += (iPair.y * iPair.y );
-        }
-      });
-      if( tResult.count > 0) {
-        tResult.xMean = tResult.xSum / tResult.count;
-        tResult.yMean = tResult.ySum / tResult.count;
-        iValues.forEach(function (iPair) {
-          var tDiffX, tDiffY;
-          if (isFinite(iPair.x) && isFinite(iPair.y)) {
-            tResult.sumOfProductDiffs += (iPair.x - tResult.xMean) * (iPair.y - tResult.yMean);
-            tDiffX = iPair.x - tResult.xMean;
-            tResult.xSumSquaredDeviations += tDiffX * tDiffX;
-            tSumDiffsX += tDiffX;
-            tDiffY = iPair.y - tResult.yMean;
-            tResult.ySumSquaredDeviations += tDiffY * tDiffY;
-            tSumDiffsY += tDiffY;
-          }
-        });
-        // Subtract a correction factor for roundoff error.
-        // See Numeric Recipes in C, section 14.1 for details.
-        tResult.xSumSquaredDeviations -= (tSumDiffsX * tSumDiffsX / tResult.count);
-        tResult.ySumSquaredDeviations -= (tSumDiffsY * tSumDiffsY / tResult.count);
-      }
-      return tResult;
-    }
-
-    var tBiStats = computeBivariateStats();
+    var tSlopeIntercept = { slope: null, intercept: null, rSquared: null, sumSquaresResiduals: null },
+        tBiStats = DG.MathUtilities.computeBivariateStats(iValues);
     if( tBiStats.count > 1) {
       if (iInterceptLocked) {
         tSlopeIntercept.slope = (tBiStats.sumOfProductDiffs + tBiStats.xMean * tBiStats.ySum) /

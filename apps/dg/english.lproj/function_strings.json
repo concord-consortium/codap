@@ -898,6 +898,113 @@
       "variance(Before-After) computes the variance of the difference of the two attributes Before and After"
     ]
   },
+  /**
+  * Bivariate statistical functions
+  */
+  "correlation": {
+    "displayName": "correlation",
+    "description": "Computes Pearson's correlation coefficient for two attributes. The result does not depend on order.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "correlation(fathers_height, sons_height) computes the correlation coefficient for the two attributes.",
+      "correlation(age, height, age<18) computes the correlation of age and height for those cases that have age less than 18."
+    ]
+  },
+
+  "rSquared": {
+    "displayName": "rSquared",
+    "description": "Computes square of the correlation coefficient for two attributes. The result does not depend on order.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "rSquared(fathers_height, sons_height) computes the square of the correlation coefficient for the two attributes.",
+      "rSquared(age, height, age<18) computes the rSquared value for age and height for those cases that have age less than 18."
+    ]
+  },
+
+  "linRegrSlope": {
+    "displayName": "linRegrSlope",
+    "description": "Computes the slope of the least squares regression line (lsrl) for two attributes.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "linRegrSlope(fathers_height, sons_height) computes the slope of the lsrl for the two attributes.",
+      "linRegrSlope(age, height, age<18) computes the slope of the lsrl for age and height for those cases that have age less than 18."
+    ]
+  },
+
+  "linRegrIntercept": {
+    "displayName": "linRegrIntercept",
+    "description": "Computes the y-intercept of the least squares regression line (lsrl) for two attributes.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "linRegrIntercept(fathers_height, sons_height) computes the y-intercept of the lsrl for the two attributes.",
+      "linRegrIntercept(age, height, age<18) computes the y-intercept of the lsrl for age and height for those cases that have age less than 18."
+    ]
+  },
+
   /*
  * String Functions
  */
