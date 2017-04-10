@@ -1291,6 +1291,29 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
 
+        'update': function (iResources, iValues) {
+          var item = iResources.itemByCaseID;
+          var itemID = item && item.id;
+          // var newValues = item.values;
+          var context = iResources.dataContext;
+          var success = (item !== null);
+          var createdCaseIDs, deletedCaseIDs, caseChanges;
+          if (success) {
+            caseChanges = context.updateItem(itemID, iValues);
+            if (caseChanges) {
+              createdCaseIDs = caseChanges.createdCases? caseChanges.createdCases.map(function (iCase) {return iCase.id; }): [];
+              deletedCaseIDs = caseChanges.deletedCases? caseChanges.deletedCases.map(function (iCase) {return iCase.id; }): [];
+              return {
+                success: true,
+                values: {
+                  createdCases: createdCaseIDs,
+                  deletedCases: deletedCaseIDs
+                }
+              };
+            }
+          }
+        },
+
         'delete': function (iResources) {
           var item = iResources.itemByCaseID;
           var context = iResources.dataContext;

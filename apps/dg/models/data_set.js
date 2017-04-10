@@ -193,6 +193,13 @@ DG.DataSet = SC.Object.extend((function() // closure
       return  dataItem;
     },
 
+    updateItem: function (iItemID, iValues) {
+      var iItemValues = DG.DataUtilities.canonicalizeAttributeValues(this.get('attrs'), iValues);
+      var iItem = this.getDataItemByID(iItemID);
+      iItem.updateData(iItemValues);
+      return iItem;
+    },
+
     /**
      * Sorts the items by the specified attribute using the specified compare function.
      * @return {number[]} the original client index map (for use with undo, for instance)

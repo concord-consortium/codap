@@ -1263,6 +1263,35 @@ DG.DataContext = SC.Object.extend((function() // closure
     });
   },
 
+  updateItem: function (iItemID, iValues) {
+    function findCaseForItem (item, collection) {
+      var tCase = collection.get('casesController').find(function (myCase) {
+        return myCase.item.id === iItemID;
+      });
+      return tCase;
+    }
+    var dataSet = this.getPath('model.dataSet');
+    var item = dataSet.updateItem(iItemID, iValues);
+    var regenResults = this.regenerateCollectionCases();
+    var myCase = findCaseForItem(item, this.getLastCollection());
+    if (myCase) {
+      this.applyChange({
+        operation: 'updateCases',
+        collection: regenResults.collection,
+        isComplete: true,
+        result: {
+          caseID: myCase.id
+        }
+      });
+
+      return {
+        'changedCases': [myCase.id],
+        'deletedCases': regenResults.deletedCases,
+        'createCases': regenResults.createdCases
+      };
+    }
+  },
+
   /*
    * Marks items in a dataset for deletion. Accepts an array of items or an
    * individual item. Issues a deleteCases change notice listing the deleted
