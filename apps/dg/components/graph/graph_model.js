@@ -238,12 +238,16 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( DG.IS_INQUIRY_SPACE_BUILD) {
         this.set('numberToggle', DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')}));
       }
-      ['x', 'y', 'y2'].forEach(function (iKey) {
+      ['x', 'y', 'y2', 'legend'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
-        var tDescription = this.getPath('dataConfiguration.' + (iKey + 'AttributeDescription'));
-        this.set(iKey + 'Axis',
-            getAxisClassFromType(tDescription.get('attributeType')).create({dataConfiguration: this.dataConfiguration}));
-        this.setPath( iKey + 'Axis.attributeDescription', tDescription);
+        if( iKey !== 'legend') {
+          var tDescription = this.getPath(
+              'dataConfiguration.' + (iKey + 'AttributeDescription'));
+          this.set(iKey + 'Axis',
+              getAxisClassFromType(tDescription.get('attributeType')).create(
+                  {dataConfiguration: this.dataConfiguration}));
+          this.setPath(iKey + 'Axis.attributeDescription', tDescription);
+        }
       }.bind(this));
 
       this.synchPlotWithAttributes();

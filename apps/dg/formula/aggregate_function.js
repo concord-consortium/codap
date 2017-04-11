@@ -264,17 +264,6 @@ DG.ParentCaseAggregate = DG.IteratingAggregate.extend({
   },
   
   /**
-    Returns an object { x, y } with numeric values for each, primarily for the benefit
-    of bivariate aggregate functions.
-   */
-  getCoordValue: function( iContext, iEvalContext, iInstance) {
-    var xFn = iInstance.argFns[0],
-        yFn = iInstance.argFns[1];
-    return { x: xFn && DG.getNumeric(xFn( iContext, iEvalContext)),
-              y: yFn && DG.getNumeric(yFn( iContext, iEvalContext)) };
-  },
-
-  /**
     Evaluates the aggregate function and returns a computed result for the specified case.
     This implementation loops over all cases, calling the evalCase() method for each one,
     and then caching the result indexed by the parent case ID.
@@ -482,6 +471,17 @@ DG.BivariateStatsFn = DG.ParentCaseAggregate.extend({
   requiredArgs: {min: 2, max: 2},
 
   /**
+   Returns an object { x, y } with numeric values for each, primarily for the benefit
+   of bivariate aggregate functions.
+   */
+  getCoordValue: function( iContext, iEvalContext, iInstance) {
+    var xFn = iInstance.argFns[0],
+        yFn = iInstance.argFns[1];
+    return { x: xFn && DG.getNumeric(xFn( iContext, iEvalContext)),
+      y: yFn && DG.getNumeric(yFn( iContext, iEvalContext)) };
+  },
+
+  /**
     Perform any per-case computation and/or caching.
     For the BivariateStatsFn, this method simply caches its coordinate pairs for later computation.
     @param  {DG.FormulaContext}   iContext
@@ -499,6 +499,40 @@ DG.BivariateStatsFn = DG.ParentCaseAggregate.extend({
       else
         iInstance.caches[iCacheID] = [tCoordPair];
     }
+  }
+
+});
+
+/** @class DG.BivariateSemiAggregateFn
+
+  The DG.BivariateSemiAggregateFn "class" is the base "class" for bivariate semi-aggregate function
+  implementation classes which must make two passes through the data, first to gather the
+  coordinate pairs and the second to compute something for each case based on quantities computed
+  from the coordinate pairs in the first pass.
+
+  @extends SC.BivariateStatsFn
+ */
+DG.BivariateSemiAggregateFn = DG.BivariateStatsFn.extend({
+
+  requiredArgs: {min: 2, max: 2},
+
+  preEvaluate: function(iContext, iEvalContext, iInstance) {
+    sc_super();
+
+    // Make the first pass through the cases to gather coordinate pairs
+    var collection = iContext && iContext.getCollectionToIterate(),
+        cases = collection && collection.get('cases'),
+        caseCount = cases && cases.get('length');
+
+    for( var i = 0; i < caseCount; ++i) {
+      var tCase = cases.objectAt( i),
+          tEvalContext = $.extend({}, iEvalContext,
+              { _case_: tCase, _id_: tCase && tCase.get('id') }),
+          cacheID = this.getGroupID(iContext, tEvalContext);
+      if (this.filterCase( iContext, tEvalContext, iInstance))
+        this.evalCase( iContext, tEvalContext, iInstance, cacheID);
+    }
+
   }
 
 });

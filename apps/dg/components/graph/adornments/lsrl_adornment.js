@@ -135,7 +135,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
       width: tTextWidth, height: tTextBox.height });
     this.equation.attr( { x: tTextAnchor.x, y: tTextAnchor.y, 'text-anchor': tAlign,
                 text: this.get('equationString'), fill: tLineColor });
-    this.lineSeg.attr({ stroke: tLineColor })
+    this.lineSeg.attr({ stroke: tLineColor });
   }
 
 });

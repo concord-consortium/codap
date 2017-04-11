@@ -72,6 +72,70 @@ DG.functionRegistry.registerAggregates((function () {
             });
         return this.queryCache(iContext, iEvalContext, iInstance);
       }
+    }),
+
+    linRegrResidual: DG.BivariateSemiAggregateFn.create({
+
+      preEvaluate: function (iContext, iEvalContext, iInstance) {
+        sc_super();
+
+        // Each cache now contains an array of coordinate pairs for its group.
+        // We want to replace this array with the slope and intercept the lsrl
+        DG.ObjectMap.forEach(iInstance.caches,
+            function (iKey, iCache) {
+              var tBiStats = DG.MathUtilities.computeBivariateStats( iCache),
+                  tSlope = tBiStats.sumOfProductDiffs / tBiStats.xSumSquaredDeviations;
+              iInstance.caches[iKey] = {
+                slope: tSlope,
+                intercept: tBiStats.yMean - tSlope * tBiStats.xMean
+              };
+            });
+      },
+
+      /**
+       Evaluates the aggregate function and returns a computed result for the specified case.
+       This implementation loops over all cases, calling the evalCase() method for each one,
+       and then caching the result indexed by the parent case ID.
+       Derived classes should override the evalCase() method to perform whatever per-case
+       computation and/or caching is required, and then the computeResults() method to
+       complete the computation and return the requested value.
+       @param  {DG.FormulaContext}   iContext
+       @param  {Object}              iEvalContext -- { _case_: , _id_: }
+       @param  {Object}              iInstance -- The aggregate function instance from the context.
+       @returns  {Number|String|...}
+       */
+      evaluate: function( iContext, iEvalContext, iInstance) {
+
+        var cachedResult = this.queryCache( iContext, iEvalContext, iInstance);
+        if( cachedResult !== undefined) return cachedResult;
+
+        this.preEvaluate(iContext, iEvalContext, iInstance);
+
+        var collection = iContext && iContext.getCollectionToIterate(),
+            cases = collection && collection.get('cases'),
+            caseCount = cases && cases.get('length');
+
+        for( var i = 0; i < caseCount; ++i) {
+          var tCase = cases.objectAt( i),
+              tEvalContext = $.extend({}, iEvalContext,
+                  { _case_: tCase, _id_: tCase && tCase.get('id') }),
+              cacheID = this.getGroupID(iContext, tEvalContext);
+          if (this.filterCase( iContext, tEvalContext, iInstance))
+            this.secondPassEvalCase( iContext, tEvalContext, iInstance, cacheID);
+        }
+
+        return this.computeResults( iContext, iEvalContext, iInstance);
+      },
+
+      secondPassEvalCase: function( iContext, iEvalContext, iInstance, iCacheID) {
+        var xFn = iInstance.argFns[0],
+            yFn = iInstance.argFns[1],
+            tSlope = iInstance.caches[ iCacheID].slope,
+            tIntercept = iInstance.caches[ iCacheID].intercept,
+            tCaseID = iEvalContext._id_;
+        iInstance.results[ tCaseID] = DG.getNumeric( yFn( iContext, iEvalContext)) -
+            (tSlope * DG.getNumeric( xFn( iContext, iEvalContext)) + tIntercept);
+      }
     })
 
 
