@@ -1562,7 +1562,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               DG.UndoHistory.redo();
               break;
           }
-          return {success: success};
+          return {success: success, values: { canUndo: DG.UndoHistory.get('canUndo'),
+                                              canRedo: DG.UndoHistory.get('canRedo') } };
         }
       }
       //get: function (iResources) {
