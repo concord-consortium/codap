@@ -66,6 +66,7 @@ DG.GraphController = DG.DataDisplayController.extend(
           storage.isTransparent = this.getPath('graphModel.isTransparent');
           storage.plotBackgroundColor = this.getPath('graphModel.plotBackgroundColor');
           storage.plotBackgroundOpacity = this.getPath('graphModel.plotBackgroundOpacity');
+          storage.enableNumberToggle = this.getPath('graphModel.enableNumberToggle');
 
           this.storeDimension(dataConfiguration, storage, 'x');
           this.storeDimension(dataConfiguration, storage, 'y');
@@ -180,7 +181,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             tConfig.invalidateCaches();
           }
         },
-        
+
       /**
        An axis view has received a drop of an attribute. Our job is the tell the graph
        model which attribute and collection client to change so that we move into the

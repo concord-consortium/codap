@@ -219,7 +219,7 @@ DG.GraphView = SC.View.extend(
 
         this.createMultiTarget();
 
-        if (DG.IS_INQUIRY_SPACE_BUILD) {
+        if (this.getPath('model.numberToggle')) {
           var tNumberToggleView = DG.NumberToggleView.create({model: this.getPath('model.numberToggle')});
           this.set('numberToggleView', tNumberToggleView);
           this.appendChild(tNumberToggleView);
