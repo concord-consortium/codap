@@ -203,7 +203,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      */
     init: function() {
       sc_super();
-      
+
       function getAxisClassFromType( iType) {
         if( iType === DG.Analysis.EAttributeType.eNumeric || iType === DG.Analysis.EAttributeType.eDateTime)
           return DG.CellLinearAxisModel;
@@ -235,8 +235,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this._plots = [];
 
-      if( DG.IS_INQUIRY_SPACE_BUILD) {
-        this.set('numberToggle', DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')}));
+      if( DG.IS_INQUIRY_SPACE_BUILD || this.get('enableNumberToggle')) {
+        this.set('enableNumberToggle', true);
+        this.syncNumberToggle(true);
       }
       ['x', 'y', 'y2', 'legend'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
@@ -266,6 +267,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.removeObserver('dataConfiguration.hiddenCases', this.hiddenCasesDidChange);
 
       sc_super();
+    },
+
+    syncNumberToggle: function(iEnable) {
+      if (iEnable === !!this.get('numberToggle')) return;
+      var numberToggle = iEnable
+                          ? DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')})
+                          : null;
+      this.set('numberToggle', numberToggle);
     },
 
     /**
@@ -699,6 +708,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set('plotBackgroundColor', iStorage.plotBackgroundColor);
       if( !SC.none( iStorage.plotBackgroundOpacity))
         this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
+      if( !SC.none( iStorage.enableNumberToggle)) {
+        this.set('enableNumberToggle', iStorage.enableNumberToggle);
+        this.syncNumberToggle(iStorage.enableNumberToggle);
+      }
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
@@ -810,7 +823,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.get('numberToggle' ).handleDataContextNotification( iNotifier);
       }
     },
-    
+
     /**
      @private
      */

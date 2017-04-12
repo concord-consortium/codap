@@ -103,7 +103,7 @@ DG.UndoHistory = SC.Object.create((function() {
         // Since we're not using set/get to access the stacks, notify changes manually.
         this.notifyPropertyChange('_undoStack');
       } else {
-        // We've hit an not-undoable command, so clear our undo stack
+        // We've hit a not-undoable command, so clear our undo stack
         this._clearUndo();
       }
       // Clear the redo stack every time we add a new command. We *don't* support applying changes
@@ -291,7 +291,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearUndo: function() {
       this._undoStack.length = 0;
       this.notifyPropertyChange('_undoStack');
-      DG.sendCommandToDI({action: 'notify', resource: 'undoChangeNotice', values: {operation: 'clearUndo'}});
+      this._sendUndoChangeToDI('clearUndo');
     },
 
     /** @private
@@ -300,7 +300,7 @@ DG.UndoHistory = SC.Object.create((function() {
     _clearRedo: function() {
       this._redoStack.length = 0;
       this.notifyPropertyChange('_redoStack');
-      DG.sendCommandToDI({action: 'notify', resource: 'undoChangeNotice', values: {operation: 'clearRedo'}});
+      this._sendUndoChangeToDI('clearRedo');
     },
 
     _dirtyDocument: function(changedObject) {
@@ -347,6 +347,13 @@ DG.UndoHistory = SC.Object.create((function() {
       if (notification) {
         DG.currDocumentController().notificationManager.sendNotification(notification);
       }
+    },
+
+    _sendUndoChangeToDI: function(operation) {
+      DG.sendCommandToDI({action: 'notify', resource: 'undoChangeNotice',
+                          values: { operation: operation,
+                                    canUndo: this.get('canUndo'),
+                                    canRedo: this.get('canRedo')} });
     }
 
   }; // return from function closure

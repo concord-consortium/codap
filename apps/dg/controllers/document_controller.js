@@ -675,7 +675,7 @@ DG.DocumentController = SC.Object.extend(
             },
             contentProperties: {
               controller: tController,
-              value: tGameUrl, 
+              value: tGameUrl,
               name: tGameName,
               model: DG.DataInteractiveModel.create()
             },
@@ -831,7 +831,8 @@ DG.DocumentController = SC.Object.extend(
                                     initialDataContext: tStorage && tStorage.dataContext,
                                     xAttributeName: tStorage && tStorage.xAttributeName,
                                     yAttributeName: tStorage && tStorage.yAttributeName,
-                                    legendAttributeName: tStorage && tStorage.legendAttributeName
+                                    legendAttributeName: tStorage && tStorage.legendAttributeName,
+                                    enableNumberToggle: tStorage && tStorage.enableNumberToggle
                                   }) },
                                   defaultLayout: (iComponent && iComponent.size ? iComponent.size : { width: 300, height: 300 }),
                                   position: (iComponent && iComponent.position ? iComponent.position : null),
