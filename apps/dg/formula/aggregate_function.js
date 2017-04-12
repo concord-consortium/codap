@@ -516,6 +516,20 @@ DG.BivariateSemiAggregateFn = DG.BivariateStatsFn.extend({
 
   requiredArgs: {min: 2, max: 2},
 
+  // For bivariate functions there must be two numeric values
+  filterCase: function(iContext, iEvalContext, iInstance) {
+
+    function getValue( iIndex) {
+      var tFn = iInstance.argFns[iIndex];
+      return tFn && DG.getNumeric(tFn( iContext, iEvalContext));
+    }
+
+    var tBaseResult = sc_super(),
+        tX = getValue(0),
+        tY = getValue(1);
+    return tBaseResult && DG.isNumeric(tX) && DG.isNumeric(tY);
+  },
+
   preEvaluate: function(iContext, iEvalContext, iInstance) {
     sc_super();
 
