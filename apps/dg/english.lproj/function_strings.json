@@ -960,12 +960,12 @@
       {
         "name": "xExpr",
         "type": "expression",
-        "description": "An expression that evaluates to a number for each case."
+        "description": "The predictor value. An expression that evaluates to a number for each case."
       },
       {
         "name": "yExpr",
         "type": "expression",
-        "description": "An expression that evaluates to a number for each case."
+        "description": "The response value. An expression that evaluates to a number for each case."
       },
       {
         "name": "filter",
@@ -986,12 +986,12 @@
       {
         "name": "xExpr",
         "type": "expression",
-        "description": "An expression that evaluates to a number for each case."
+        "description": "The predictor value. An expression that evaluates to a number for each case."
       },
       {
         "name": "yExpr",
         "type": "expression",
-        "description": "An expression that evaluates to a number for each case."
+        "description": "The response value. An expression that evaluates to a number for each case."
       },
       {
         "name": "filter",
@@ -1002,6 +1002,56 @@
     "examples": [
       "linRegrIntercept(fathers_height, sons_height) computes the y-intercept of the lsrl for the two attributes.",
       "linRegrIntercept(age, height, age<18) computes the y-intercept of the lsrl for age and height for those cases that have age less than 18."
+    ]
+  },
+
+  "linRegrResidual": {
+    "displayName": "linRegrResidual",
+    "description": "Returns the difference between the actual response and the predicted response from the least-squares regression line of the response values against the predictor values.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "The predictor value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "The response value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "linRegrResidual(horsepower, mpg) returns, for each value of horsepower, the difference between the actual value of mpg and the predicted value."
+    ]
+  },
+
+  "linRegrPredicted": {
+    "displayName": "linRegrPredicted",
+    "description": "Returns the response predicted by a least-squares regression line of the response values against the predictor values for each predictor value.",
+    "args": [
+      {
+        "name": "xExpr",
+        "type": "expression",
+        "description": "The predictor value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "yExpr",
+        "type": "expression",
+        "description": "The response value. An expression that evaluates to a number for each case."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "A Boolean expression. Only cases for which this evaluates as true are included in the computation."
+      }
+    ],
+    "examples": [
+      "linRegrPredicted(horsepower, mpg) returns, for each value of horsepower, the the predicted value of mpg."
     ]
   },
 
