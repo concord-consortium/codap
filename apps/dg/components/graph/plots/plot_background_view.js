@@ -161,7 +161,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
         function drawLine( iAxisView, iDrawingFunc) {
           var tZeroCoord = iAxisView.get('zeroPixel');
-          if( tZeroCoord)
+          if( tZeroCoord && !iAxisView.get('isDateTime'))
             iDrawingFunc( tZeroCoord, DG.PlotUtilities.kZeroLineColor, DG.PlotUtilities.kZeroLineWidth);
         }
 
