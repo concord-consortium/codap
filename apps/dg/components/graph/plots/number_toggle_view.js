@@ -22,9 +22,10 @@
 // ==========================================================================
 
 sc_require('views/raphael_base');
+sc_require('utilities/rendering_utilities');
 
 /** @class  DG.NumberToggleView - The base class view for a graph legend.
-  
+
   @extends DG.RaphaelBaseView
 */
 DG.NumberToggleView = DG.RaphaelBaseView.extend(
@@ -114,11 +115,17 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
       displayProperties: ['firstDisplayedIndex', 'lastDisplayedIndex'],
 
+      classNames: 'number-toggle'.w(),
+
       /**
         The model on which this view is based.
         @property { DG.NumberToggleModel }
       */
       model: null,
+
+      isVisibleBinding: SC.Binding.oneWay('*model.isEnabled'),
+
+      layout: { left: 0, top: 0, right: 0, height: DG.RenderingUtilities.kCaptionFontHeight },
 
       /**
        * Zero unless there are more indices than fit in the space in which case it is the index of the leftmost
@@ -191,14 +198,17 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
           }.bind( this ),
 
           createShowAllElement = function() {
-            var tClickHandling = false;
-            return this._paper.text( 0, 0, '')
-                      .attr( { font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
-                                fill: 'black',
-                                text: tModel.allCasesAreVisible() ? 'DG.NumberToggleView.hideAll'.loc() :
-                                    'DG.NumberToggleView.showAll'.loc(),
-                                title: tModel.allCasesAreVisible() ? 'DG.NumberToggleView.hideAllTooltip'.loc() :
-                                    'DG.NumberToggleView.showAllTooltip'.loc()} )
+            var tClickHandling = false,
+                showHideAllLabel = tModel.allCasesAreVisible()
+                                      ? 'DG.NumberToggleView.hideAll'.loc()
+                                      : 'DG.NumberToggleView.showAll'.loc(),
+                showHideAllTooltip = tModel.allCasesAreVisible()
+                                        ? 'DG.NumberToggleView.hideAllTooltip'.loc()
+                                        : 'DG.NumberToggleView.showAllTooltip'.loc(),
+                kLeftMargin = 6;
+            return this._paper.text(kLeftMargin, 0, showHideAllLabel)
+                      .attr({ font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
+                              fill: 'black', title: showHideAllTooltip })
                       // Use mousedown/mouseup here rather than click so that touch will work
                       .mousedown( function() {
                         tClickHandling = true;
@@ -225,11 +235,12 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
             }
 
             for( tIndex = 0; tIndex < tNumParents; tIndex++ ) {
-              var tFill = tModel.casesForIndexAreHidden( tIndex) ? 'lightGray' : 'black',
-                  tElement = this._paper.text( -100, tY, tIndex + 1)
+              var tLabel = tModel.getParentLabel(tIndex),
+                  tTooltip = tModel.getParentTooltip(tIndex),
+                  tFill = tModel.casesForIndexAreHidden( tIndex) ? 'lightGray' : 'black',
+                  tElement = this._paper.text( -100, tY, tLabel)
                     .attr({ font: 'caption', cursor: 'pointer', 'text-anchor': 'start',
-                            fill: tFill,
-                            title: SC.String.loc( 'DG.NumberToggleView.indexTooltip') })
+                            fill: tFill, title: tTooltip })
                     .mousedown( doMouseDown)
                     .mouseup( doMouseUp);
 
@@ -266,19 +277,22 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
           }.bind( this);
 
         // Start of doDraw
+        if (!this.get('isVisible')) return;
+
         var kSpace = 5,
+            kScaleWidgetWidth = 16,
             tModel = this.get('model' ),
             tNumParents = tModel.get('numberOfToggleIndices' ),
             tNameElement = createShowAllElement(),
             tNameBox = tNameElement.getBBox(),
             tY = tNameBox.height / 2,
             tFirstX = tNameBox.x + tNameBox.width + kSpace,
-            tNumberDisplayWidth = this._paper.width - tFirstX,
+            tNumberDisplayWidth = this._paper.width - tFirstX - (kScaleWidgetWidth + kSpace),
             tNeedRightArrow, tNeedLeftArrow,
             tRightArrow, tLeftArrow,
             tNumberElements = [],
             tTotalNumberWidth = 0,
-            tIndex, tCumWidth;
+            tIndex, tCumWidth, tEltWidth;
         this._elementsToClear.push( tNameElement);
         if( !DG.isFinite(tFirstX) || !DG.isFinite(tY))
           return; // Apparently not ready to draw yet
@@ -298,43 +312,87 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
           this.firstDisplayedIndex = 0;
           this.lastDisplayedIndex = tNumParents - 1;
         }
-        else if( this.lastDisplayedIndex === tNumParents - 1) {
-          tNeedRightArrow = false;
-          tNeedLeftArrow = true;
-          tCumWidth = kArrowWidth;
-          tIndex = tNumParents;
-          while( tCumWidth < tNumberDisplayWidth && tIndex > 0) {
-            tIndex--;
-            tCumWidth += tNumberElements[ tIndex].width + kSpace;
-          }
-          this.firstDisplayedIndex = tIndex + 1;
-        }
-        else {
-          tNeedRightArrow = true;
-          tCumWidth = kArrowWidth;
+        else  {
+          tNeedRightArrow = this.lastDisplayedIndex < tNumParents - 1;
+          tNeedLeftArrow = true;  // assume we'll need it initially
+          tCumWidth = kArrowWidth + (tNeedRightArrow ? kArrowWidth : 0);
+
+          // fit as many as possible on the left
           tIndex = this.lastDisplayedIndex + 1;
-          while( tCumWidth < tNumberDisplayWidth && tIndex > 0) {
-            tIndex--;
-            tCumWidth += tNumberElements[ tIndex].width + kSpace;
-          }
-          this.firstDisplayedIndex = tIndex;
-          if( this.firstDisplayedIndex === 0)
-            tNeedLeftArrow = false;
-          else {
-            tNeedLeftArrow = true;
-            // We have to go through the loop again to accommodate the left arrow
-            tCumWidth = 2 * kArrowWidth;
-            tIndex = this.lastDisplayedIndex + 1;
-            while( tCumWidth < tNumberDisplayWidth && tIndex > 0) {
+          while( tIndex > 0) {
+            tEltWidth = tNumberElements[tIndex-1].width + kSpace;
+            if ((tCumWidth + tEltWidth < tNumberDisplayWidth) || (tIndex === this.lastDisplayedIndex + 1)) {
               tIndex--;
-              tCumWidth += tNumberElements[ tIndex].width + kSpace;
+              tCumWidth += tEltWidth;
             }
-            this.firstDisplayedIndex = tIndex + 1;
+            else break;
+          }
+          // would the rest fit without the left arrow?
+          var i, tRemainingWidth = 0;
+          for (i = 0; i < tIndex; ++i) {
+            tRemainingWidth += tNumberElements[i].width + kSpace;
+          }
+          if (tCumWidth + tRemainingWidth - kArrowWidth < tNumberDisplayWidth) {
+            tIndex = 0;
+            tCumWidth += tRemainingWidth;
+          }
+
+          this.firstDisplayedIndex = tIndex;
+          if (this.firstDisplayedIndex === 0) {
+            tNeedLeftArrow = false;
+            tCumWidth -= kArrowWidth;
+          }
+
+          // see if we can fit more on the right
+          if (tNeedRightArrow) {
+            tIndex = this.lastDisplayedIndex + 1;
+            while( tIndex < tNumParents) {
+              tEltWidth = tNumberElements[tIndex].width + kSpace;
+              if (tCumWidth + tEltWidth < tNumberDisplayWidth) {
+                this.lastDisplayedIndex = tIndex++;
+                tCumWidth += tEltWidth;
+              }
+              else break;
+            }
+            // would the rest fit without the right arrow?
+            tRemainingWidth = 0;
+            for (i = this.lastDisplayedIndex + 1; i < tNumParents; ++i) {
+              tRemainingWidth += tNumberElements[i].width + kSpace;
+            }
+            if (tCumWidth + tRemainingWidth - kArrowWidth < tNumberDisplayWidth) {
+              this.lastDisplayedIndex = tNumParents - 1;
+              tNeedRightArrow = false;
+            }
+          }
+
+          // With certain label combinations it is possible to get stuck.
+          // For example, when showing two short labels that just fit and scrolling
+          // to the left would reveal a very long label that doesn't fit, the left
+          // moving loop won't include the long label (because it doesn't fit), but
+          // then the right moving loop will decide that there's room for the other
+          // short label, leaving the user in their original state. This code
+          // detects such situations by detecting when a scroll action results in
+          // the same state as before the scroll, and forcibly scrolls in the
+          // intended direction, even though the result may not fit.
+          if (this._prevScroll && this._prevScroll.scrollBy &&
+              (this.firstDisplayedIndex === this._prevScroll.first) &&
+              (this.lastDisplayedIndex === this._prevScroll.last)) {
+            if (this._prevScroll.scrollBy < 0) {
+              -- this.firstDisplayedIndex;
+              -- this.lastDisplayedIndex;
+            }
+            else {
+              ++ this.firstDisplayedIndex;
+              ++ this.lastDisplayedIndex;
+            }
+            tNeedLeftArrow = this.firstDisplayedIndex > 0;
+            tNeedRightArrow = this.lastDisplayedIndex < tNumParents - 1;
           }
         }
+
+        this._prevScroll = null;
 
         positionNumberElements();
-
       },  // end of doDraw
 
       /**
@@ -346,7 +404,9 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
       scrollLeft: function() {
         var tFirst = this.get('firstDisplayedIndex' ),
             tLast = this.get('lastDisplayedIndex' ),
-            tScrollBy = Math.min( tFirst, tLast - tFirst);
+            tRangeStep = (tLast - tFirst) || 1,
+            tScrollBy = Math.min( tFirst, tRangeStep);
+        this._prevScroll = { first: tFirst, last: tLast, scrollBy: -tScrollBy };
         this.decrementProperty( 'lastDisplayedIndex', tScrollBy);
       },
 
@@ -359,18 +419,18 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
       scrollRight: function() {
         var tFirst = this.get('firstDisplayedIndex' ),
             tLast = this.get('lastDisplayedIndex' ),
+            tRangeStep = (tLast - tFirst) || 1,
             tNumber = this.getPath('model.numberOfToggleIndices' ),
-            tScrollBy = Math.min( tNumber - tLast - 1, tLast - tFirst);
+            tScrollBy = Math.min( tNumber - tLast - 1, tRangeStep);
+        this._prevScroll = { first: tFirst, last: tLast, scrollBy: tScrollBy };
         this.incrementProperty( 'lastDisplayedIndex', tScrollBy);
       },
 
       /**
-       * We used to show only when there were parent cases. Now we always show.
        * @return {Boolean}
        */
       shouldShow: function() {
-//        return this.getPath('model.numberOfParents') > 1;
-        return true;
+        return this.getPath('model.isEnabled');
       },
 
       /**

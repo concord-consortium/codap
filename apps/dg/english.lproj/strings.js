@@ -285,6 +285,10 @@ SC.stringsFor('English', {
   'DG.Redo.hideSelectedCases': "Redo hiding selected cases",
   'DG.Undo.hideUnselectedCases': "Undo hiding unselected cases",
   'DG.Redo.hideUnselectedCases': "Redo hiding unselected cases",
+  'DG.Undo.enableNumberToggle': "Undo Show Parent Visibility Toggles",
+  'DG.Redo.enableNumberToggle': "Redo Show Parent Visibility Toggles",
+  'DG.Undo.disableNumberToggle': "Undo Hide Parent Visibility Toggles",
+  'DG.Redo.disableNumberToggle': "Redo Hide Parent Visibility Toggles",
   'DG.Undo.interactiveUndoableAction': "Undo an action in the interactive",
   'DG.Redo.interactiveUndoableAction': "Redo an action in the interactive",
   'DG.Undo.showAllCases': "Undo showing all cases",
@@ -530,11 +534,11 @@ SC.stringsFor('English', {
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"
 
   // DG.NumberToggleView
-  'DG.NumberToggleView.showAll': "Show All -",  // "Show All"
-  'DG.NumberToggleView.hideAll': "Hide All -",  // "Hide All"
-  'DG.NumberToggleView.showAllTooltip': "Click numbers to toggle visibility. Click label to show all.",  // "Click numbers to toggle visibility. Click label to show all."
-  'DG.NumberToggleView.hideAllTooltip': "Click numbers to toggle visibility. Click label to hide all.",  // "Click numbers to toggle visibility. Click label to hide all."
-  'DG.NumberToggleView.indexTooltip': "Click to toggle visibility.",  // "Click to toggle visibility."
+  'DG.NumberToggleView.showAll': "Show All \u2013",  // "Show All -"
+  'DG.NumberToggleView.hideAll': "Hide All \u2013",  // "Hide All -"
+  'DG.NumberToggleView.showAllTooltip': "Click to show all cases\nClick parent case labels to toggle visibility",
+  'DG.NumberToggleView.hideAllTooltip': "Click to hide all cases\nClick parent case labels to toggle visibility",
+  'DG.NumberToggleView.indexTooltip': "Click to toggle visibility",  // "Click to toggle visibility"
 
   // DG.PlottedAverageAdornment
   'DG.PlottedAverageAdornment.meanValueTitle': "mean=%@", // "mean=123.456"
@@ -561,6 +565,8 @@ SC.stringsFor('English', {
   'DG.DataDisplayMenu.hideUnselectedPlural': "Hide Unselected Cases",
   'DG.DataDisplayMenu.hideSelectedSing': "Hide Selected Case",
   'DG.DataDisplayMenu.hideUnselectedSing': "Hide Unselected Case",
+  'DG.DataDisplayMenu.enableNumberToggle': "Show Parent Visibility Toggles",
+  'DG.DataDisplayMenu.disableNumberToggle': "Hide Parent Visibility Toggles",
   'DG.DataDisplayMenu.showAll': "Show All Cases",
   'DG.DataDisplayMenu.snapshot': "Make Snapshot",
 

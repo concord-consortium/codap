@@ -23,7 +23,7 @@
   @extends SC.Object
 */
 DG.NumberToggleModel = SC.Object.extend(
-/** @scope DG.NumberToggleModel.prototype */ 
+/** @scope DG.NumberToggleModel.prototype */
 {
   /**
     Assigned by the graph model that owns me.
@@ -64,8 +64,33 @@ DG.NumberToggleModel = SC.Object.extend(
     this.notifyPropertyChange('parentCases');
   }.observes('*dataConfiguration.cases'),
 
+  getParentCollection: function() {
+    return this.get('numberOfParents') > 0
+              ? this.get('parentCases')[0].get('collection')
+              : null;
+  },
 
-      /**
+  getFirstParentAttribute: function() {
+    var collection = this.getParentCollection(),
+        attrs = collection && collection.get('attrs'),
+        attr = attrs && attrs[0];
+    return attr;
+  },
+
+  getParentLabel: function(iIndex) {
+    var cases = this.get('parentCases'),
+        tCase = cases && cases[iIndex],
+        attr = this.getFirstParentAttribute();
+    return tCase && attr
+              ? tCase.getStrValue(attr.get('id'))
+              : (iIndex + 1).toString();
+  },
+
+  getParentTooltip: function(iIndex) {
+    return SC.String.loc('DG.NumberToggleView.indexTooltip');
+  },
+
+  /**
    * @property {Number}
    */
   numberOfParents: function() {
@@ -125,10 +150,8 @@ DG.NumberToggleModel = SC.Object.extend(
    * @return{Boolean}
    */
   allCasesAreVisible: function() {
-    var dataConfiguration = this.get('dataConfiguration'),
-      allCases = dataConfiguration && dataConfiguration.get('allCases'),
-      allCasesLength = allCases? allCases.length(): 0;
-    return this.getPath('dataConfiguration.cases').length === allCasesLength;
+    var hiddenCases = this.getPath('dataConfiguration.hiddenCases');
+    return !hiddenCases || !hiddenCases.length;
   },
 
   /**
@@ -249,7 +272,11 @@ DG.NumberToggleModel = SC.Object.extend(
    * When the data context changes we notify
    */
   handleDataContextNotification: function( iNotifier) {
-    this.invokeOnceLater( this.propertyDidChange, 300, 'caseCount');
+    // 'caseCount' is used as a proxy to indicate that some change occurred
+    // GraphView.handleNumberToggleDidChange() observes 'caseCount'
+    // not clear why invokeOnceLater() is (or was) required
+    if (this.get('isEnabled'))
+      this.invokeOnceLater( this.propertyDidChange, 10, 'caseCount');
   }
 
 });

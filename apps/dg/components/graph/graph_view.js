@@ -220,7 +220,9 @@ DG.GraphView = SC.View.extend(
         this.createMultiTarget();
 
         if (this.getPath('model.numberToggle')) {
-          var tNumberToggleView = DG.NumberToggleView.create({model: this.getPath('model.numberToggle')});
+          var isNumberToggleEnabled = this.getPath('model.numberToggle.isEnabled'),
+              tNumberToggleView = DG.NumberToggleView.create({model: this.getPath('model.numberToggle'),
+                                                              isVisible: isNumberToggleEnabled });
           this.set('numberToggleView', tNumberToggleView);
           this.appendChild(tNumberToggleView);
 
@@ -228,7 +230,8 @@ DG.GraphView = SC.View.extend(
             classNames: ['rescale-button'],
             layout: {width: 16, height: 16, right: 2, top: 1},
             toolTip: 'DG.GraphView.rescale'.loc(),
-            action: rescalePlot
+            action: rescalePlot,
+            isVisible: isNumberToggleEnabled
           });
           this.set('rescaleButton', tRescaleButton);
           this.appendChild(tRescaleButton);
@@ -247,12 +250,9 @@ DG.GraphView = SC.View.extend(
         }.bind(this));
         this.appendChild(tY2AxisView); // So it will be on top and drag-hilite will show over plot
         tY2AxisView.set('isVisible', tY2Axis.constructor !== DG.AxisModel);
-
-        this.addObserver('model.numberToggle.caseCount', this.handleNumberToggleCaseCountChange);
       },
 
       destroy: function () {
-        this.removeObserver('model.numberToggle.caseCount', this.handleNumberToggleCaseCountChange);
         // Plotviews are not actually subviews so sc_super doesn't destroy them
         this.get('plotViews').forEach( function( iPlotView) {
           iPlotView.destroy();
@@ -457,8 +457,6 @@ DG.GraphView = SC.View.extend(
             if( tPlottedValueView)
               tPlottedValueView.adjust( 'top', tFunctionViewHeight);
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
-            if (tNumberToggleView)
-              tNumberToggleView.set('layout', {left: tYWidth, height: tNumberToggleHeight});
             this.makeSubviewFrontmost(tY2AxisView);
           }
           else {
@@ -491,13 +489,10 @@ DG.GraphView = SC.View.extend(
             if (tNumberToggleView)
               tNumberToggleView.adjust('height', tNumberToggleHeight);
           }
-          if (tNumberToggleView) {
-            tNumberToggleView.set('isVisible', tShowNumberToggle);
-          }
+          // NumberToggleView visibility is handled by binding
           if (tRescaleButton) {
-            tRescaleButton.set('isVisible', this.getPath('model.hasNumericAxis'));
+            tRescaleButton.set('isVisible', tShowNumberToggle && this.getPath('model.hasNumericAxis'));
           }
-
         }
         this._isRenderLayoutInProgress = false;
         this._drawPlotsInvocations++;
@@ -814,11 +809,11 @@ DG.GraphView = SC.View.extend(
           '*legendView.desiredExtent', '.legendView.labelNode', '*y2AxisView.desiredExtent'),
 
       /**
-       * When the layout needs of an axis change, we need to adjust the layout of the plot and the other axis.
+       * When the number toggle changes, we need to adjust the layout of the plot and axes.
        */
-      handleNumberToggleCaseCountChange: function () {
+      handleNumberToggleDidChange: function () {
         this.renderLayout(this.renderContext(this.get('tagName')));
-      },
+      }.observes('*model.numberToggle.isEnabled', '*model.numberToggle.caseCount'),
 
       mapPlotModelToPlotView: function (iPlotModel) {
         var tModelClass = iPlotModel && iPlotModel.constructor,

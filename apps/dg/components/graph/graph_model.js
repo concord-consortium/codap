@@ -235,10 +235,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this._plots = [];
 
-      if( DG.IS_INQUIRY_SPACE_BUILD || this.get('enableNumberToggle')) {
-        this.set('enableNumberToggle', true);
-        this.syncNumberToggle(true);
-      }
+      var showNumberToggle = DG.IS_INQUIRY_SPACE_BUILD || this.get('enableNumberToggle'),
+          numberToggle = DG.NumberToggleModel.create({ dataConfiguration: this.get('dataConfiguration'),
+                                                        isEnabled: showNumberToggle });
+      this.set('numberToggle', numberToggle);
+      this.set('enableNumberToggle', showNumberToggle);
+
       ['x', 'y', 'y2', 'legend'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
         if( iKey !== 'legend') {
@@ -269,12 +271,41 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       sc_super();
     },
 
-    syncNumberToggle: function(iEnable) {
-      if (iEnable === !!this.get('numberToggle')) return;// jshint ignore:line
-      var numberToggle = iEnable
-                          ? DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')})
-                          : null;
-      this.set('numberToggle', numberToggle);
+    enableNumberToggleDidChange: function() {
+      this.setPath('numberToggle.isEnabled', this.get('enableNumberToggle'));
+    }.observes('enableNumberToggle'),
+
+    /** Submenu items for hiding selected or unselected cases, or showing all cases */
+    createHideShowSelectionMenuItems: function() {
+
+      var menuItems = sc_super(),
+
+          isNumberToggleEnabled = this.get('enableNumberToggle'),
+          enableNumberToggleItemText = isNumberToggleEnabled
+                                        ? 'DG.DataDisplayMenu.disableNumberToggle'
+                                        : 'DG.DataDisplayMenu.enableNumberToggle',
+          self = this;
+
+      function toggleNumberToggle() {
+        var isEnabled = self.get('enableNumberToggle');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: isEnabled ? 'graph.display.disableNumberToggle' : 'graph.display.enableNumberToggle',
+          undoString: isEnabled ? 'DG.Undo.disableNumberToggle' : 'DG.Undo.enableNumberToggle',
+          redoString: isEnabled ? 'DG.Redo.disableNumberToggle' : 'DG.Redo.enableNumberToggle',
+          log: isEnabled ? "Disable Number Toggle" : "Enable Number Toggle",
+          execute: function() {
+            this._undoData = !!self.get('enableNumberToggle');
+            self.set('enableNumberToggle', !isEnabled);
+          },
+          undo: function() {
+            self.set('enableNumberToggle', this._undoData);
+          }
+        }));
+      }
+
+      menuItems.push({ title: enableNumberToggleItemText, isEnabled: true,
+                        target: this, action: toggleNumberToggle });
+      return menuItems;
     },
 
     /**
@@ -708,10 +739,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set('plotBackgroundColor', iStorage.plotBackgroundColor);
       if( !SC.none( iStorage.plotBackgroundOpacity))
         this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
-      if( !SC.none( iStorage.enableNumberToggle)) {
+      if( !SC.none( iStorage.enableNumberToggle))
         this.set('enableNumberToggle', iStorage.enableNumberToggle);
-        this.syncNumberToggle(iStorage.enableNumberToggle);
-      }
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
