@@ -270,7 +270,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     syncNumberToggle: function(iEnable) {
-      if (iEnable === !!this.get('numberToggle')) return;
+      if (iEnable === !!this.get('numberToggle')) return;// jshint ignore:line
       var numberToggle = iEnable
                           ? DG.NumberToggleModel.create( { dataConfiguration: this.get('dataConfiguration')})
                           : null;
