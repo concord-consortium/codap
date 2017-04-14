@@ -32,7 +32,7 @@ sc_require('models/data_item');
 DG.DataSet = SC.Object.extend((function() // closure
 /** @scope DG.DataSet.prototype */ {
 
-  var nextDataItemID = 1;
+  var nextDataItemID = 0;
 
   return {
     /**
@@ -342,7 +342,8 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @returns {DG.DataItem|undefined}
      */
     getDataItemByID: function (itemID) {
-      return this.dataItems.find(function(item) { return item.id === itemID; });
+      var id = Number(itemID);
+      return this.dataItems.find(function(item) { return item.id === id; });
     },
 
     parseSearchQuery: function (queryString) {

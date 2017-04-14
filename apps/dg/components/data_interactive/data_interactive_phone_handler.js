@@ -186,6 +186,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         function resolveContext(selector, myContext) {
           var document = DG.currDocumentController();
           var context;
+
           if (SC.empty(selector)) {
             return;
           }
@@ -203,6 +204,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         var dataContext;
         var collection;
         var attrName, attrKey;
+        var dataSet;
 
         if (['interactiveFrame',
               'logMessage',
@@ -276,8 +278,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
         }
 
+        if (resourceSelector.item) {
+          dataSet = result.dataContext && result.dataContext.get('dataSet');
+          result.item = dataSet && dataSet.getDataItemByID(resourceSelector.item);
+        }
+
         if (resourceSelector.itemSearch) {
-          var dataSet = result.dataContext && result.dataContext.get('dataSet');
+          dataSet = result.dataContext && result.dataContext.get('dataSet');
           result.itemSearch = dataSet && dataSet.getItemsBySearch(resourceSelector.itemSearch);
         }
 
@@ -1232,18 +1239,60 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       handleItems: {
+        get: function (iResources) {
+          var success = (iResources.item !== null),
+              item;
+
+          if (success) {
+            item = iResources.item.toArchive();
+          }
+          return {
+            success: success,
+            values: item
+          };
+        },
+
         create: function (iResources, iValues) {
-          var success = false;
           var context = iResources.dataContext;
-          var caseIDs;
+          var result;
           if (context) {
-            caseIDs = context.addItems(iValues);
-            if (caseIDs) {
-              success = true;
+            result = context.applyChange({
+              operation: 'createItems',
+              items: iValues,
+              requester: this.get('id')
+            });
+            return result;
+          }
+          return {success: false};
+        },
+        'update': function (iResources, iValues) {
+          var item = iResources.item;
+          var context = iResources.dataContext;
+          var createdCaseIDs, deletedCaseIDs, caseChanges;
+          if (item !== null) {
+            caseChanges = context.applyChange({
+              operation: 'updateItems',
+              items: {id: item.id, values: iValues},
+              requester: this.get('id')
+            });
+            if (caseChanges) {
+              createdCaseIDs = caseChanges.createdCases?
+                  caseChanges.createdCases.map(function (iCase) {return iCase.id; }):
+                  [];
+              deletedCaseIDs = caseChanges.deletedCases?
+                  caseChanges.deletedCases.map(function (iCase) {return iCase.id; }):
+                  [];
+              return {
+                success: true,
+                values: {
+                  createdCases: createdCaseIDs,
+                  deletedCases: deletedCaseIDs
+                }
+              };
             }
           }
-          return {success: success, values: caseIDs};
         }
+
       },
 
       handleItemSearch: {
@@ -1264,15 +1313,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         'delete': function (iResources) {
           var items = iResources.itemSearch;
           var context = iResources.dataContext;
-          var success = (items !== null);
-          var deletedCases;
-          if (success) {
-            deletedCases = context.deleteItems(items);
-            if (deletedCases) {
-              return {success: true, values: deletedCases};
+          var deletedItems;
+          if (context && (items !== null)) {
+            context.applyChange({
+              operation: 'deleteItems',
+              items: items,
+              requester: this.get('id')
+            });
+            deletedItems = context.deleteItems(items);
+            if (deletedItems) {
+              return {success: true, values: deletedItems && deletedItems.map(function (item) {return item.id;})};
             }
           } else {
-            return {success: success};
+            return {success: false};
           }
         }
       },
@@ -1293,13 +1346,16 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         'update': function (iResources, iValues) {
           var item = iResources.itemByCaseID;
-          var itemID = item && item.id;
+          // var itemID = item && item.id;
           // var newValues = item.values;
           var context = iResources.dataContext;
-          var success = (item !== null);
           var createdCaseIDs, deletedCaseIDs, caseChanges;
-          if (success) {
-            caseChanges = context.updateItem(itemID, iValues);
+          if (item !== null) {
+            caseChanges = context.applyChange({
+              operation: 'updateItems',
+              items: {id: item.id, values: iValues},
+              requester: this.get('id')
+            });
             if (caseChanges) {
               createdCaseIDs = caseChanges.createdCases? caseChanges.createdCases.map(function (iCase) {return iCase.id; }): [];
               deletedCaseIDs = caseChanges.deletedCases? caseChanges.deletedCases.map(function (iCase) {return iCase.id; }): [];
