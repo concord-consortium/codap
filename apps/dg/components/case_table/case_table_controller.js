@@ -1141,6 +1141,12 @@ DG.CaseTableController = DG.ComponentController.extend(
                 action: 'selectAll'
               },
               {
+                title: 'DG.Inspector.deleteDataSet',
+                localize: true,
+                target: this,
+                action: 'deleteDataSet'
+              },
+              {
                 title: 'DG.Inspector.selection.deleteSelectedCases',
                 localize: true,
                 target: this,
@@ -1160,12 +1166,6 @@ DG.CaseTableController = DG.ComponentController.extend(
                 target: this,
                 action: 'deleteAllCases',
                 isEnabled: tCaseCount > 0
-              },
-              {
-                title: 'DG.Inspector.deleteDataSet',
-                localize: true,
-                target: this,
-                action: 'deleteDataSet'
               }
             ],
             tMenu = DG.MenuPane.create({

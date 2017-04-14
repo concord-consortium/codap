@@ -455,7 +455,7 @@ SC.stringsFor('English', {
   'DG.TableController.deleteAttribute.confirmDescription': "This action cannot be undone.",
   'DG.TableController.deleteAttribute.okButtonTitle': "Delete Attribute",
   'DG.TableController.deleteAttribute.cancelButtonTitle': "Cancel",
-  'DG.TableController.deleteDataSet.confirmMessage': "Delete this data set: '%@'?",
+  'DG.TableController.deleteDataSet.confirmMessage': "Delete and destroy this data set: '%@'?",
   'DG.TableController.deleteDataSet.confirmDescription': "This action cannot be undone.",
   'DG.TableController.deleteDataSet.okButtonTitle': "Delete Data Set",
   'DG.TableController.deleteDataSet.cancelButtonTitle': "Cancel",
@@ -607,7 +607,7 @@ SC.stringsFor('English', {
   'DG.Inspector.selection.deleteSelectedCases': "Delete Selected Cases",  // "Delete Selected Cases"
   'DG.Inspector.selection.deleteUnselectedCases': "Delete Unselected Cases",    // "Delete Unselected Cases"
   'DG.Inspector.deleteAll': "Delete All Cases",           // "Delete All Cases"
-  'DG.Inspector.deleteDataSet': "Delete Data Set",        // "Delete Data Set"
+  'DG.Inspector.deleteDataSet': "Delete and Destroy Data Set",        // "Delete Data Set"
 
   // Display Inspector
   'DG.Inspector.displayValues.toolTip': "Change what is shown along with the points",  // "Change what is shown along with the points"
