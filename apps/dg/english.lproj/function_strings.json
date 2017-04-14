@@ -234,7 +234,7 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. May be a string or a computed date."
+        "description": "The specified date. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -249,7 +249,7 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. May be a string or a computed date."
+        "description": "The specified date. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -264,7 +264,7 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. May be a string or a computed date."
+        "description": "The specified date. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -279,7 +279,7 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. May be a string or a computed date-time."
+        "description": "The specified date and time. May be a string or a computed date-time. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -294,7 +294,7 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. May be a string or a computed date-time."
+        "description": "The specified date and time. May be a string or a computed date-time. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -309,7 +309,7 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. May be a string or a computed date."
+        "description": "The specified date. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -324,7 +324,7 @@
       {
         "name": "date",
         "type": "string",
-        "description": "The specified date. May be a string or a computed date."
+        "description": "The specified date. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -348,7 +348,7 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. May be a string or a computed date-time."
+        "description": "The specified date and time. May be a string or a computed date-time. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -372,7 +372,7 @@
       {
         "name": "dateTime",
         "type": "string",
-        "description": "The specified date and time. May be a string or a computed date."
+        "description": "The specified date and time. May be a string or a computed date. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -396,7 +396,7 @@
       {
         "name": "filter",
         "type": "filter",
-        "description": "A true-false expression that limits the cases considered."
+        "description": "A true-false expression that limits the cases considered. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -417,7 +417,7 @@
       {
         "name": "filter",
         "type": "filter",
-        "description": "A true-false expression that limits the cases considered."
+        "description": "A true-false expression that limits the cases considered. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -432,12 +432,12 @@
       {
         "name": "\"otherDataSet\"",
         "type": "string",
-        "description": "The data set in which you want to look up the value."
+        "description": "The data set in which you want to look up the value. Note that the string needs to be inside quotes."
       },
       {
         "name": "\"attrName\"",
         "type": "string",
-        "description": "The name of the attribute in the other data set with the desired value."
+        "description": "The name of the attribute in the other data set with the desired value. Note that the string needs to be inside quotes."
       },
       {
         "name": "index",
@@ -457,17 +457,17 @@
       {
         "name": "\"otherDataSet\"",
         "type": "string",
-        "description": "The data set in which you want to look up the value."
+        "description": "The data set in which you want to look up the value. Note that the string needs to be inside quotes."
       },
       {
         "name": "\"returnedAttrName\"",
         "type": "string",
-        "description": "The name of the attribute in the other data set whose value is to be looked up."
+        "description": "The name of the attribute in the other data set whose value is to be looked up. Note that the string needs to be inside quotes."
       },
       {
         "name": "\"keyAttrName\"",
         "type": "string",
-        "description": "The name of an attribute to be used as a \"key\" into the other data set."
+        "description": "The name of an attribute to be used as a \"key\" into the other data set. Note that the string needs to be inside quotes."
       },
       {
         "name": "keyValue",
@@ -497,7 +497,7 @@
       {
         "name": "filter",
         "type": "filter",
-        "description": "A true-false expression that limits the cases considered."
+        "description": "A true-false expression that limits the cases considered. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -1153,12 +1153,12 @@
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "The string to search in."
+        "description": "The string to search in. Note that the string needs to be inside quotes."
       },
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "The string to search for."
+        "description": "The string to search for. Note that the string needs to be inside quotes."
       },
       {
         "name": "index",
@@ -1179,12 +1179,12 @@
       {
         "name": "stringToLookIn",
         "type": "string",
-        "description": "The string you want to find."
+        "description": "The string you want to find. Note that the string needs to be inside quotes."
       },
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "The string to search for."
+        "description": "The string to search for. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -1195,27 +1195,27 @@
   },
   "join": {
     "displayName": "join",
-    "description": "Combines multiple strings into a single string with a delimiter.",
+    "description": "Combines multiple strings into a single string with a delimiter. Note that the string needs to be inside quotes.",
     "args": [
       {
         "name": "delimiter",
         "type": "string",
-        "description": "The string used to separate the other strings."
+        "description": "The string used to separate the other strings. Note that the string needs to be inside quotes."
       },
       {
         "name": "string1",
         "type": "string",
-        "description": "The first string."
+        "description": "The first string. Note that the string needs to be inside quotes."
       },
       {
         "name": "string2",
         "type": "string",
-        "description": "The next string."
+        "description": "The next string. Note that the string needs to be inside quotes."
       },
       {
         "name": "...",
         "type": "string",
-        "description": "Additional strings."
+        "description": "Additional strings. Note that the strings need to be inside quotes."
       }
     ],
     "examples": [
@@ -1252,7 +1252,7 @@
       {
         "name": "aString",
         "type": "string",
-        "description": "The original character you want to replace."
+        "description": "The original character you want to replace. Note that the string needs to be inside quotes."
       },
       {
         "name": "start",
@@ -1267,7 +1267,7 @@
       {
         "name": "substituteString",
         "type": "string",
-        "description": "The string that is to be substituted."
+        "description": "The string that is to be substituted. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -1287,12 +1287,12 @@
       {
         "name": "stringToFind",
         "type": "string",
-        "description": "The starting location for the substitution, starting at 1."
+        "description": "The starting location for the substitution, starting at 1. Note that the string needs to be inside quotes."
       },
       {
         "name": "substituteString",
         "type": "number",
-        "description": "The number of characters to be replaced."
+        "description": "The number of characters to be replaced. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
@@ -1330,12 +1330,12 @@
       {
         "name": "aString",
         "type": "string",
-        "description": "The original string that contains characters you want to split."
+        "description": "The original string that contains characters you want to split. Note that the string needs to be inside quotes."
       },
       {
         "name": "separator",
         "type": "string",
-        "description": "The starting location for the split."
+        "description": "The starting location for the split. Note that the string needs to be inside quotes."
       },
       {
         "name": "index",
@@ -1360,7 +1360,7 @@
       }
     ],
     "examples": [
-      "stringLength(\"CODAP\") returns 5",
+      "stringLength(\"CODAP\") returns 5. Note that the string CODAP needs to be inside quotes.",
       "stringLength(321) returns 3",
       "stringLength(Month) returns the number of characters for each month name"
     ]
@@ -1386,7 +1386,7 @@
       }
     ],
     "examples": [
-      "substring(\"abcd\",2,3) returns bcd",
+      "substring(\"abcd\",2,3) returns bcd. Note that the string abcd needs to be inside quotes.",
       "substring(schoolID_studentID, 3) returns just the Student ID, 1234"
     ]
   },
@@ -1401,7 +1401,7 @@
       }
     ],
     "examples": [
-      "toLower(\"String\") returns string",
+      "toLower(\"String\") returns string. Note that the string String needs to be inside quotes.",
       "toLower(Name) returns the name \"john\""
     ]
   },
@@ -1416,7 +1416,7 @@
       }
     ],
     "examples": [
-      "toUpper(\"String\") returns STRING",
+      "toUpper(\"String\") returns STRING. Note that the string String needs to be inside quotes.",
       "toUpper(Name) returns the name \"JOHN\""
     ]
   },
@@ -1427,7 +1427,7 @@
       {
         "name": "string",
         "type": "string",
-        "description": "The string from which you want spaces removed."
+        "description": "The string from which you want spaces removed. Note that the string needs to be inside quotes."
       }
     ],
     "examples": [
