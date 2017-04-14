@@ -695,4 +695,12 @@ DG.main = function main() {
 };
 
 /* exported main */
-window.main = function() { DG.main(); };
+window.main = function() {
+  DG.main();
+  // This Kludge causes the mainPage to get the window's height. Without, it will _sometimes_
+  // be the wrong height, apparently because of something to do with timing.
+  DG.mainPage.mainPane.adjust({height: window.innerHeight});
+  DG.mainPage.invokeLater( function() {
+    DG.mainPage.mainPane.adjust({bottom: 0, top: 0, height: null});
+  },20);
+};
