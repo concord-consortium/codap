@@ -280,14 +280,13 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
         if (!this.get('isVisible')) return;
 
         var kSpace = 5,
-            kScaleWidgetWidth = 16,
             tModel = this.get('model' ),
             tNumParents = tModel.get('numberOfToggleIndices' ),
             tNameElement = createShowAllElement(),
             tNameBox = tNameElement.getBBox(),
             tY = tNameBox.height / 2,
             tFirstX = tNameBox.x + tNameBox.width + kSpace,
-            tNumberDisplayWidth = this._paper.width - tFirstX - (kScaleWidgetWidth + kSpace),
+            tNumberDisplayWidth = this._paper.width - tFirstX - kSpace,
             tNeedRightArrow, tNeedLeftArrow,
             tRightArrow, tLeftArrow,
             tNumberElements = [],

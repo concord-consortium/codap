@@ -44,7 +44,6 @@ DG.GraphView = SC.View.extend(
       legendView: null,
       plotBackgroundView: null,
       numberToggleView: null,
-      rescaleButton: null,
 
       _functionEditorView: null,
       functionEditorView: function( iKey, iValue) {
@@ -174,10 +173,6 @@ DG.GraphView = SC.View.extend(
           return null;
         }
 
-        var rescalePlot = function () {
-          this.get('model').rescaleAxesFromData(true, true);
-        }.bind(this);
-
         var tXAxis = this.getPath('model.xAxis'),
             tXAxisAttributeType = this.getPath('model.dataConfiguration.xAttributeDescription.attribute.type'),
             tYAxis = this.getPath('model.yAxis'),
@@ -225,16 +220,6 @@ DG.GraphView = SC.View.extend(
                                                               isVisible: isNumberToggleEnabled });
           this.set('numberToggleView', tNumberToggleView);
           this.appendChild(tNumberToggleView);
-
-          var tRescaleButton = SC.ImageButtonView.create({
-            classNames: ['rescale-button'],
-            layout: {width: 16, height: 16, right: 2, top: 1},
-            toolTip: 'DG.GraphView.rescale'.loc(),
-            action: rescalePlot,
-            isVisible: isNumberToggleEnabled
-          });
-          this.set('rescaleButton', tRescaleButton);
-          this.appendChild(tRescaleButton);
         }
 
         tXAxisView.set('model', tXAxis);
@@ -422,7 +407,6 @@ DG.GraphView = SC.View.extend(
             tNumberToggleView = this.get('numberToggleView'),
             tFunctionView = this.get('functionEditorView'),
             tPlottedValueView = this.get('plottedValueEditorView'),
-            tRescaleButton = this.get('rescaleButton'),
             tShowNumberToggle = tNumberToggleView && tNumberToggleView.shouldShow(),
             tXHeight = !tXAxisView ? 0 : tXAxisView.get('desiredExtent'),
             tYWidth = !tYAxisView ? 0 : tYAxisView.get('desiredExtent'),
@@ -488,10 +472,7 @@ DG.GraphView = SC.View.extend(
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
               tNumberToggleView.adjust('height', tNumberToggleHeight);
-          }
-          // NumberToggleView visibility is handled by binding
-          if (tRescaleButton) {
-            tRescaleButton.set('isVisible', tShowNumberToggle && this.getPath('model.hasNumericAxis'));
+            // NumberToggleView visibility is handled by binding
           }
         }
         this._isRenderLayoutInProgress = false;
