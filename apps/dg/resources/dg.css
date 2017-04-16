@@ -667,6 +667,12 @@
     color: #555;
 }
 
+.slider-marker {
+    background-color:#888;
+    /*position:absolute;*/
+}
+
+
 [class^="tile-icon-"], [class*=" tile-icon-"] {
     font-family: 'icomoon';
     font-size: 15px;
