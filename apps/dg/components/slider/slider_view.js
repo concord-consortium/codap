@@ -147,7 +147,10 @@ DG.SliderView = SC.View.extend(
               toolTip: 'DG.SliderView.thumbView.toolTip', // "Start/stop animation"
               localize: true,
               touchPriority: true,
-              mouseDown: function() { return NO; }
+              mouseDown: function() { return NO; },
+              touchStart: function() {
+                return this.mouseDown();
+              }
             }));
         this.appendChild( this.thumbView );
 
@@ -207,13 +210,13 @@ DG.SliderView = SC.View.extend(
         this.set('leftMarker',
             SC.View.create({
               classNames: 'slider-marker'.w(),
-              layout: { left: 15, bottom: 19, width: 2, height: 8 }
+              layout: { left: 15, bottom: 12, width: 2, height: 15 }
             }));
         this.appendChild( this.leftMarker);
         this.set('rightMarker',
             SC.View.create({
               classNames: 'slider-marker'.w(),
-              layout: { right: 14, bottom: 19, width: 2, height: 8 }
+              layout: { right: 14, bottom: 12, width: 2, height: 15 }
             }));
         this.appendChild( this.rightMarker);
       },
