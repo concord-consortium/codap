@@ -26,9 +26,29 @@ DG.SliderTypes = {
     eHighToLow: 2
   },
 
+  directionToString: function( iDirection) {
+    switch( iDirection) {
+      case this.EAnimationDirection.eBackAndForth:
+        return 'DG.Slider.backAndForth'.loc();
+      case this.EAnimationDirection.eLowToHigh:
+        return 'DG.Slider.lowToHigh'.loc();
+      case this.EAnimationDirection.eHighToLow:
+        return 'DG.Slider.highToLow'.loc();
+    }
+  },
+
   EAnimationMode: {
     eNonStop: 0,
     eOnceOnly: 1
+  },
+
+  modeToString: function( iMode) {
+    switch( iMode) {
+      case this.EAnimationMode.eNonStop:
+        return 'DG.Slider.nonStop'.loc();
+      case this.EAnimationMode.eOnceOnly:
+        return 'DG.Slider.onceOnly'.loc();
+    }
   }
 
 };
@@ -67,8 +87,10 @@ DG.SliderModel = SC.Object.extend(
     value: null,
     valueBinding: '*content.value',
 
-    animationDirection: null,
-    animationMode: null,
+    animationDirection: DG.SliderTypes.EAnimationDirection.eLowToHigh,
+    animationMode: DG.SliderTypes.EAnimationMode.eOnceOnly,
+    restrictToMultiplesOf: null,
+    maxPerSecond: null,
 
     /**
      * DG.GraphAnimator
@@ -84,15 +106,25 @@ DG.SliderModel = SC.Object.extend(
       var axisModel = DG.CellLinearAxisModel.create();
       axisModel.setDataMinAndMax( 0, 10);
       this.set('axis', axisModel);
-
-      this.animationDirection = DG.SliderTypes.EAnimationDirection.eLowToHigh;
-      this.animationMode = DG.SliderTypes.EAnimationMode.eOnceOnly;
     },
 
     destroy: function() {
       //DG.globalsController.destroyGlobalValue( this.get('content'));
       sc_super();
     },
+
+    applyRestriction: function() {
+      var tOldValue = this.get( 'value'),
+          tRestriction = this.get('restrictToMultiplesOf'),
+          tMultiplier = (DG.isNumeric( tRestriction) && tRestriction !== 0) ?
+              Math.round( tOldValue / tRestriction) : null;
+      if( DG.isNumeric( tMultiplier))
+        this.setIfChanged('value', tRestriction * tMultiplier);
+    }.observes('restrictToMultiplesOf'),
+
+    valueChanged: function() {
+      this.applyRestriction();
+    }.observes('value'),
 
     /**
      * Make sure the axis bounds encompass the current value. If they don't, use animation in the rescaling.

@@ -154,7 +154,9 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.help.title': "Help",
   'DG.ToolButtonData.help.toolTip': "Help for CODAP, learn about CODAP project",
 
-  'DG.Slider.direction': "Animation Direction:",  // Direction
+  'DG.Slider.multiples': "Restrict to Multiples of:",  // Restrict to Multiples of
+  'DG.Slider.maxPerSecond': "Maximum Animation Frames/sec:",  // Maximum Animation Frames/sec:
+  'DG.Slider.direction': "Animation Direction:",  // Animation Direction
   'DG.Slider.backAndForth': "Back and Forth",   // Back and Forth
   'DG.Slider.lowToHigh': "Low to High",   // Low to High
   'DG.Slider.highToLow': "High to Low",   // High to Low
@@ -325,6 +327,14 @@ SC.stringsFor('English', {
   'DG.Redo.sliderComponent.create': "Redo adding a slider",
   'DG.Undo.slider.change': "Undo slider value change",
   'DG.Redo.slider.change': "Redo slider value change",
+  'DG.Undo.slider.changeMultiples': "Undo change to slider multiples restriction",
+  'DG.Redo.slider.changeMultiples': "Redo change to slider multiples restriction",
+  'DG.Undo.slider.changeSpeed': "Undo change to slider max frames/sec",
+  'DG.Redo.slider.changeSpeed': "Redo change to slider max frames/sec",
+  'DG.Undo.slider.changeDirection': "Undo change to slider animation direction",
+  'DG.Redo.slider.changeDirection': "Redo change to slider animation direction",
+  'DG.Undo.slider.changeRepetition': "Undo change to slider animation repetition",
+  'DG.Redo.slider.changeRepetition': "Redo change to slider animation repetition",
   'DG.Undo.graphComponent.create': "Undo adding a graph",
   'DG.Redo.graphComponent.create': "Redo adding a graph",
   'DG.Undo.dataContext.create': 'Undo creating a data set',

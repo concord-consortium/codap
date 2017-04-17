@@ -208,6 +208,11 @@
     color: white;
 }
 
+.inspector-input {
+    border-color: gray !important;
+    background-color: white !important;
+}
+
 .inspector-picker .sc-view{
     background-color: rgba(231, 231, 231, 0.70);
 }
