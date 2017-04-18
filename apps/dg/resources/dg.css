@@ -1139,3 +1139,16 @@ input.editor-text {
     width: auto;
     white-space: nowrap;
 }
+
+.dg-formula-column {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/*.slick-row.odd .dg-formula-column {*/
+/*background-color: #efefef;*/
+/*}*/
+
+/*.slick-row.even .dg-formula-column {*/
+/*background-color: #f4f4f4;*/
+/*}*/
+

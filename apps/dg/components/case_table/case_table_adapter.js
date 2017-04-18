@@ -299,6 +299,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             name: getColumnHeaderString( iAttribute),
             field: attrName,
             focusable: !hasFormula,
+            cssClass: hasFormula? 'dg-formula-column': undefined,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
@@ -401,6 +402,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);
       column.formatter = isQual ? qualBarFormatter : cellFormatter;
+      column.cssClass = iAttribute.get('hasFormula')? 'dg-formula-column': undefined;
       if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
         column.editor = DG.CaseTableCellEditor;
       else
