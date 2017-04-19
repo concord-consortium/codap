@@ -381,6 +381,28 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
+    importWebView: function(iDataURI, iName) {
+      function determineImageSize(imgSrc, callback) {
+        var newImg = new Image();
+
+        newImg.onload = function() {
+          var height = newImg.height;
+          var width = newImg.width;
+          newImg = undefined;
+          callback(width, height);
+        };
+
+        newImg.src = imgSrc; // this must be done AFTER setting onload
+      }
+      var documentController = DG.currDocumentController();
+      determineImageSize(iDataURI, function (iWidth, iHeight) {
+        SC.run(function () {
+          documentController.addWebView(  DG.mainPage.get('docView'), null,
+              iDataURI, iName, {width: Math.min(iWidth, 640),
+                height: Math.min(iHeight + 25, 480) });
+        });
+      });
+    },
     /**
      *
      * @param iURL - the URL of a data interactive, csv or json document based on
@@ -492,47 +514,81 @@ DG.appController = SC.Object.create((function () // closure
       DG.currDocumentController().setDocument(DG.currDocumentController().createDocument());
     },
 
+    mimeTypesAndExtensions: [
+      {
+        group: 'TEXT',
+        mime: 'text/csv',
+        extensions: ['csv']
+      },
+      {
+        group: 'TEXT',
+        mime: 'application/csv',
+        extensions: ['csv']
+      },
+      {
+        group: 'TEXT',
+        mime: 'text/plain',
+        extensions: ['txt']
+      },
+      {
+        group: 'TEXT',
+        mime: 'text/tab-separated-values',
+        extensions: ['tsv']
+      },
+      {
+        group: 'JSON',
+        mime: 'application/json',
+        extensions: ['json', 'codap']
+      },
+      {
+        group: 'JSON',
+        mime: 'application/x-javascript',
+        extensions: ['json', 'codap']
+      },
+      {
+        group: 'JSON',
+        mime: 'text/x-json',
+        extensions: ['json', 'codap']
+      },
+      {
+        group: 'BINARY',
+        mime: 'image/gif',
+        extensions: ['gif']
+      },
+      {
+        group: 'BINARY',
+        mime: 'image/jpeg',
+        extensions: ['jpeg','jpg']
+      },
+      {
+        group: 'BINARY',
+        mime: 'image/png',
+        extensions: ['png']
+      },
+      {
+        group: 'BINARY',
+        mime: 'image/svg+xml',
+        extensions: ['svg', 'svgz']
+      }/*,
+      {
+        group: 'BINARY',
+        mime: 'application/pdf',
+        xtensions: 'pdf'
+      },*/
+    ],
     /**
       Imports a dragged or selected file
       */
-    importFile: function ( tFile) {
-      var recognizedMimeMap = {
-        'text/csv': 'text/csv',
-        'application/csv': 'text/csv',
-        'text/plain': 'text/plain',
-        'text/tab-separated-values': 'text/plain',
-        'application/json': 'application/json',
-        'application/x-javascript': 'application/json',
-        'text/javascript': 'application/json',
-        'text/x-javascript': 'application/json',
-        'text/x-json': 'application/json'
-      },
-      /* jshint -W003 */
-      tType = recognizedMimeMap[tFile.type] || adjustTypeBasedOnSuffix(tFile);
+    importFile: function ( iFile) {
+      var typeDesc = this.mimeTypesAndExtensions.find(function (mimeDef) {
+        var foundMime = (mimeDef.mime === iFile.type);
+        var match = iFile.name.match(/\.([^.\/]+)$/);
+        var mySuffix = match && match[1].toLowerCase();
+        var foundSuffix = mySuffix && mimeDef.extensions.find(function (ext) { return mySuffix === ext; } );
+        return foundMime || foundSuffix;
+      });
 
-      function adjustTypeBasedOnSuffix( tFile) {
-        var tRegEx = /\.[^.\/]+$/,
-            tSuffix = tFile.name.match(tRegEx),
-            tNewType = tType;
-        if( !SC.empty(tSuffix))
-          tSuffix = tSuffix[0].toLowerCase();
-        switch( tSuffix) {
-          case '.csv':
-            tNewType = 'text/csv';
-            break;
-          case '.txt':
-            tNewType = 'text/plain';
-            break;
-          case '.json':
-          case '.codap':
-            /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
-            // fallthrough intentional
-          default:  // treat unknown files as .codap files and check contents
-            tNewType = 'application/json';
-            break;
-        }
-        return tNewType;
-      }
+      var handlingGroup = typeDesc? typeDesc.group: 'JSON';
 
       var tAlertDialog = {
         showAlert: function( iError) {
@@ -551,18 +607,8 @@ DG.appController = SC.Object.create((function () // closure
         }
       };
 
-      DG.log('Opening file "%@" of type %@'.loc(tFile && tFile.name, tType));
-      if( tType === 'application/json') {
-        DG.appController.importFileWithConfirmation(tFile, 'JSON', tAlertDialog);
-      }
-      else if( (tType === 'text/csv')
-          || (tType === 'text/plain')
-          || (tType === 'text/tab-separated-values')) {
-        DG.appController.importFileWithConfirmation(tFile, 'TEXT', tAlertDialog);
-      }
-      else {
-        tAlertDialog.showAlert(new Error('DG.AppController.dropFile.unknownFileType'.loc()));
-      }
+      DG.log('Opening file "%@" of type %@'.loc(iFile && iFile.name, typeDesc? typeDesc.mime: 'unknown'));
+      this.importFileWithConfirmation(iFile, handlingGroup, tAlertDialog);
     },
 
     /**
@@ -597,6 +643,9 @@ DG.appController = SC.Object.create((function () // closure
               else if (iType === 'TEXT') {
                 that.importText(this.result, iFile.name);
               }
+              else if (iType === 'BINARY') {
+                that.importWebView(this.result, iFile.name);
+              }
               if (iDialog)
                 iDialog.close();
             }
@@ -616,7 +665,11 @@ DG.appController = SC.Object.create((function () // closure
             reader.onabort = handleAbnormal;
             reader.onerror = handleAbnormal;
             reader.onload = handleRead;
-            reader.readAsText(iFile);
+            if (iType === 'BINARY') {
+              reader.readAsDataURL(iFile);
+            } else {
+              reader.readAsText(iFile);
+            }
           }
         });
       }.bind( this);
