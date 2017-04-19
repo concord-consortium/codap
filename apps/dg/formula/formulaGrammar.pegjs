@@ -30,16 +30,8 @@
   and 2) making the additional changes mentioned above, e.g. support for '^' operator
   for exponentiation.
   
-  To generate the parser itself, the online form of the PEG.js parser generator
-  was used:
-  
-    http://pegjs.majda.cz/online
-  
-  1. Paste the contents of this file into the grammar section.
-  2. Verify that it works with a couple simple test cases.
-  3. Specify the parser variable name: "DG.formulaParser"
-  4. Press the "Download parser" button
-  5. Copy/paste the resulting text into the formulaParser.js file.
+  To generate the parser itself, run "npm run build:parser". This will create
+  "formulaParser.js" from this file.
 
  */
 
@@ -475,9 +467,9 @@ EqualityExpression
     }
 
 EqualityOperator
-  = "="       { return "==="; }
-  / "!="      { return "!=="; }
-  / "\u2260"  { return "!=="; }  // Unicode NOT EQUAL TO
+  = "="       { return "=="; }
+  / "!="      { return "!="; }
+  / "\u2260"  { return "!="; }  // Unicode NOT EQUAL TO
 
 LogicalANDExpression
   = head:EqualityExpression
