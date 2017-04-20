@@ -1,5 +1,5 @@
 // ==========================================================================
-//  
+//
 //  Author:   jsandoe
 //
 //  Copyright (c) 2017 by The Concord Consortium, Inc. All rights reserved.
@@ -141,6 +141,12 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
                 break;
               case 'collection':
                 result[k] = v.get('id');
+                break;
+              case 'attrs':
+                // return archivable attribute descriptors rather DG.Attributes
+                result[k] = v && v.map(function(attr) {
+                  return DG.DataInteractiveUtils.getAttributeProperties(attr);
+                });
                 break;
               default:
                 DG.log('unhandled result property: ' + k );

@@ -472,45 +472,65 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleDataContext: {
         create: function (iResources, iValues) {
-          var context;
-          var collectionSpecs;
-          var status = true;
-          if (iValues.collections) {
-            collectionSpecs = iValues.collections;
-            delete iValues.collections;
-          }
-          context = DG.currDocumentController().createNewDataContext(iValues);
+          var context,
+              status = true,
+              createSpec = DG.copy(iValues),
+              resultValues = DG.clone(iValues);
+          // we don't want to create the collections yet
+          delete createSpec.collections;
+          context = DG.currDocumentController().createNewDataContext(createSpec);
           if (iResources.isDefaultDataContext) {
             this.setPath('controller.context', context);
           }
-          if (collectionSpecs) {
-            collectionSpecs.forEach(function (collectionSpec) {
-              var collectionClient;
-              var parentCollectionClient;
-              var hasParent = false;
-              var error = false;
-              if (collectionSpec.parent) {
-                parentCollectionClient = context.getCollectionByName(
-                    collectionSpec.parent);
-                hasParent = true;
+          // create the collections
+          if (resultValues.collections) {
+            resultValues.collections.forEach(function (collectionSpec) {
+              var collectionClient,
+                  parentCollectionClient,
+                  error = false;
+
+              // map requested names to valid names
+              if (collectionSpec.attrs) {
+                collectionSpec.attrs.forEach(function(attr) {
+                  // original name and new name will be returned to client
+                  attr.clientName = attr.name;
+                  attr.name = DG.Attribute.legalizeAttributeName(attr.name);
+                });
               }
-              if (hasParent) {
+
+              createSpec = DG.clone(collectionSpec);
+
+              if (createSpec.parent) {
+                parentCollectionClient = context.getCollectionByName(createSpec.parent);
+
                 if (parentCollectionClient) {
-                  collectionSpec.parent = parentCollectionClient.collection;
+                  createSpec.parent = parentCollectionClient.collection;
                 } else {
                   DG.log( 'Attempt to create collection "%@": Unknown parent: "%@"'
-                          .loc(collectionSpec.name, collectionSpec.parent));
+                          .loc(createSpec.name, createSpec.parent));
                   error = true;
                 }
               }
               if (!error) {
-                collectionClient = context.createCollection(collectionSpec);
+                collectionClient = context.createCollection(createSpec);
+
+                // return id for created collection
+                collectionSpec.id = collectionClient && collectionClient.get('id');
+
+                if (collectionClient && collectionSpec.attrs) {
+                  // return id for each created attribute
+                  collectionSpec.attrs.forEach(function(attrSpec) {
+                    var attr = collectionClient.getAttributeByName(attrSpec.name);
+                    attrSpec.id = attr && attr.get('id');
+                  });
+                }
               }
               status = status && !SC.none(collectionClient);
             });
           }
           return {
-            success: status
+            success: status,
+            values: resultValues
           };
         },
 
@@ -786,7 +806,20 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        *      }}
        *
        */
-      handleAttribute: {
+      handleAttribute: (function() {
+
+        function applyChangeAndProcessResult(context, change) {
+          var changeResult = context.applyChange(change),
+              resultAttrs = changeResult && changeResult.attrs,
+              returnAttrs = DG.DataInteractiveUtils.
+                              mapAttributeProperties(resultAttrs, change.attrPropsArray),
+              returnResult = { success: changeResult && changeResult.success };
+          if (returnAttrs)
+            returnResult.values = { attrs: returnAttrs };
+          return returnResult;
+        }
+
+      return {
         get: function (iResources) {
           var attribute = iResources.attribute;
           var values;
@@ -803,21 +836,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
-          if (!Array.isArray(iValues)) {
-            iValues = [iValues];
-          }
+          var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
+          attrSpecs.forEach(function(attrSpec) {
+            attrSpec.clientName = attrSpec.name;
+            attrSpec.name = DG.Attribute.legalizeAttributeName(attrSpec.name);
+          });
           var context = iResources.dataContext;
           var change = {
             operation: 'createAttributes',
             collection: iResources.collection,
-            attrPropsArray: iValues,
+            attrPropsArray: attrSpecs,
             requester: this.get('id')
           };
-          var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success);
-          return {
-            success: success
-          };
+          return applyChangeAndProcessResult(context, change);
         },
         update: function (iResources, iValues) {
           var context = iResources.dataContext;
@@ -827,18 +858,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!iResources.attribute) {
             return {success: false, values: {error: 'Attribute not found'}};
           }
-          iValues.name = iResources.attribute.name;
+          if (!iValues.id && iResources.attribute.id)
+            iValues.id = iResources.attribute.id;
+          if (!iValues.name && iResources.attribute.name)
+            iValues.name = iResources.attribute.name;
+          else if (iValues.name) {
+            iValues.clientName = iValues.name;
+            iValues.name = DG.Attribute.legalizeAttributeName(iValues.name);
+          }
           var change = {
             operation: 'updateAttributes',
             collection: iResources.collection,
             attrPropsArray: [iValues],
             requester: this.get('id')
           };
-          var changeResult = context.applyChange(change);
-          var success = (changeResult && changeResult.success);
-          return {
-            success: success
-          };
+          return applyChangeAndProcessResult(context, change);
         },
         'delete': function (iResources) {
           var context = iResources.dataContext;
@@ -854,7 +888,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: success,
           };
         }
-      },
+      }; }()),
 
       handleAttributeList: {
         get: function (iResources) {
