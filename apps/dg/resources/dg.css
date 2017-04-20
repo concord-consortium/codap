@@ -208,6 +208,10 @@
     color: white;
 }
 
+.inspector-picker .sc-view.inspector-input {
+    background-color: white;
+}
+
 .inspector-picker .sc-view{
     background-color: rgba(231, 231, 231, 0.70);
 }
@@ -666,6 +670,11 @@
 .thumb-icon:active {
     color: #555;
 }
+
+.slider-marker {
+    background-color:#888;
+}
+
 
 [class^="tile-icon-"], [class*=" tile-icon-"] {
     font-family: 'icomoon';

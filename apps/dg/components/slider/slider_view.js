@@ -25,7 +25,7 @@
 DG.SliderView = SC.View.extend(
   /** @scope DG.SliderView.prototype */
   (function() {
-    var kWidth = 30,
+    var kWidth = 32,
         kThumbHeight = 36,
         kAxisHeight = 20,
         kButtonHeight = 18,
@@ -66,6 +66,12 @@ DG.SliderView = SC.View.extend(
        @property { SC.LabelView }
        */
       valueView: null,
+
+      /**
+       * SC.View styled to be vertical tic mark at end of axis
+       */
+      leftMarker: null,
+      rightMarker: null,
 
       /**
        Set to true when user editing of valueView begins
@@ -125,7 +131,8 @@ DG.SliderView = SC.View.extend(
         DG.assert( !SC.none( this.get( 'model' ) ) );
 
         this.set( 'axisView', DG.CellLinearAxisView.create(
-          { layout: { bottom: 0, height: kAxisHeight }, orientation: 'horizontal', isDropTarget: false } ) );
+          { layout: { left: kWidth / 2, right: kWidth / 2, height: kAxisHeight, bottom: 0 },
+            orientation: 'horizontal', isDropTarget: false } ) );
         this.appendChild( this.axisView );
         this.setPath( 'axisView.model', this.getPath( 'model.axis' ) );
 
@@ -140,7 +147,10 @@ DG.SliderView = SC.View.extend(
               toolTip: 'DG.SliderView.thumbView.toolTip', // "Start/stop animation"
               localize: true,
               touchPriority: true,
-              mouseDown: function() { return NO; }
+              mouseDown: function() { return NO; },
+              touchStart: function() {
+                return this.mouseDown();
+              }
             }));
         this.appendChild( this.thumbView );
 
@@ -196,6 +206,19 @@ DG.SliderView = SC.View.extend(
             }
         }));
         this.appendChild( this.valueView );
+
+        this.set('leftMarker',
+            SC.View.create({
+              classNames: 'slider-marker'.w(),
+              layout: { left: 15, bottom: 12, width: 2, height: 15 }
+            }));
+        this.appendChild( this.leftMarker);
+        this.set('rightMarker',
+            SC.View.create({
+              classNames: 'slider-marker'.w(),
+              layout: { right: 14, bottom: 12, width: 2, height: 15 }
+            }));
+        this.appendChild( this.rightMarker);
       },
 
       _destroy: function () {
@@ -215,7 +238,7 @@ DG.SliderView = SC.View.extend(
         this._destroy();
         sc_super();
       },
-
+      
       viewDidResize: function() {
         sc_super();
         this.positionThumb();
@@ -229,7 +252,7 @@ DG.SliderView = SC.View.extend(
         if( DG.isFinite( tCoord)) {
           var thumbView = this.get('thumbView');
           if( thumbView)
-            thumbView.adjust({left: Math.round( tCoord + 0.5 - kWidth / 2)});
+            thumbView.adjust({left: Math.round( tCoord)});
         }
       }.observes('thumbCoord'),
 
@@ -268,13 +291,13 @@ DG.SliderView = SC.View.extend(
 
       mouseDragged: function( iEvent) {
         if( tDraggingThumb) {
-          var tPixelMax = this.getPath('axisView.pixelMax'),
-              tPixelMin = this.getPath('axisView.pixelMin'),
+          var tUpperBound = this.getPath('axisView.model.upperBound'),
+              tLowerBound = this.getPath('axisView.model.lowerBound'),
               tDelta = iEvent.pageX - tMouseDownInfo.pagePoint.x,
               tNewCoord = tMouseDownInfo.thumbCoord + tDelta,
               tNewValue;
-          tNewCoord = Math.min( Math.max( tNewCoord, tPixelMin), tPixelMax);
-          tNewValue = this.get('axisView').coordinateToData( tNewCoord);
+          tNewValue = Math.min( Math.max( this.get('axisView').coordinateToData( tNewCoord),
+              tLowerBound), tUpperBound);
           this.setPath('model.value', tNewValue);
         }
       },

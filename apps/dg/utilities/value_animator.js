@@ -44,13 +44,17 @@ DG.ValueAnimator = SC.Object.extend(
     */
     isAnimating: false,
 
+    maxPerSecond: null,
+
     /**
       We assume that my properties have been set to the aspects of the plot that are to
       be animated. If there is an animation already in progress, we end it.
     */
     animate: function() {
       var this_ = this,
-          kInterval = 50,	// milliseconds
+          tMaxPerSecond = this.get('maxPerSecond'),
+          tInterval = (DG.isNumeric(tMaxPerSecond) && tMaxPerSecond > 0) ?
+              (1000 / tMaxPerSecond) : 50,	// milliseconds
           tValueHolder = this.get('valueHolder')
           ;
 
@@ -68,8 +72,9 @@ DG.ValueAnimator = SC.Object.extend(
       this.set('isAnimating', true);
 
       if( SC.none( this.animationTimer))
-        this.animationTimer = SC.Timer.schedule( { action: animationLoop, interval: kInterval,
+        this.animationTimer = SC.Timer.schedule( { action: animationLoop,
                       repeats: YES, until: false });
+      this.animationTimer.set( 'interval', tInterval);
       this.animationTimer.set( 'isPaused', NO);
     },
 
