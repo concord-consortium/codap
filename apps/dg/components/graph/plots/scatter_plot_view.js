@@ -387,11 +387,11 @@ DG.ScatterPlotView = DG.PlotView.extend(
         var tSlope = iLine.get('slope'),
             tIntercept = iLine.get('intercept'),
             tCasesForLine = tCases,
-            tCategoryIndex = iLine.get('categoryIndex');
-        if( !SC.none( tCategoryIndex)) {
-          var tLegendAttrDesc = this_.getPath( 'model.dataConfiguration.legendAttributeDescription'),
-              tLegendAttrID = tLegendAttrDesc.getPath( 'attribute.id'),
-              tAttrStats = tLegendAttrDesc.get('attributeStats');
+            tCategoryIndex = iLine.get('categoryIndex'),
+            tLegendAttrDesc = this_.getPath( 'model.dataConfiguration.legendAttributeDescription'),
+            tLegendAttrID = tLegendAttrDesc.getPath( 'attribute.id');
+        if( !SC.none( tLegendAttrID) && !SC.none( tCategoryIndex)) {
+          var tAttrStats = tLegendAttrDesc.get('attributeStats');
           tCasesForLine = tCases.filter( function( iCase) {
             return tCategoryIndex === tAttrStats.cellNameToCellNumber( iCase.getValue( tLegendAttrID));
           });
