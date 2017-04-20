@@ -385,8 +385,18 @@ DG.ScatterPlotView = DG.PlotView.extend(
 
       function showSquaresForLine( iLine, iColor) {
         var tSlope = iLine.get('slope'),
-            tIntercept = iLine.get('intercept');
-        tCases.forEach( function( iCase) {
+            tIntercept = iLine.get('intercept'),
+            tCasesForLine = tCases,
+            tCategoryIndex = iLine.get('categoryIndex');
+        if( !SC.none( tCategoryIndex)) {
+          var tLegendAttrDesc = this_.getPath( 'model.dataConfiguration.legendAttributeDescription'),
+              tLegendAttrID = tLegendAttrDesc.getPath( 'attribute.id'),
+              tAttrStats = tLegendAttrDesc.get('attributeStats');
+          tCasesForLine = tCases.filter( function( iCase) {
+            return tCategoryIndex === tAttrStats.cellNameToCellNumber( iCase.getValue( tLegendAttrID));
+          });
+        }
+        tCasesForLine.forEach( function( iCase) {
           var tWorldX = iCase.getNumValue( tXVarID),
               tWorldY = iCase.getNumValue( tYVarID),
               tPtX = tXAxisView.dataToCoordinate( tWorldX),
@@ -439,7 +449,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
         showSquaresForLine( this_.getPath('model.movableLine'), DG.PlotUtilities.kDefaultMovableLineColor);
       }
       if( this_.getPath('model.isLSRLVisible')) {
-        showSquaresForLine( this_.getPath('model.multipleLSRLs'), DG.PlotUtilities.kDefaultLSRLColor);
+        this_.getPath('multipleLSRLsAdorn.lsrlAdornments').forEach( function( iLineAdorn) {
+          showSquaresForLine( iLineAdorn.get('model'), iLineAdorn.get('lineColor'));
+        });
       }
     }
     
@@ -562,8 +574,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
    * If squares are visible, but neither line is visible, we have to hide the squares.
    */
   updateSquaresVisibility: function() {
-    if( this.getPath('model.areSquaresVisible') && !this.getPath('multipleLSRLsAdorn.model.isVisible') &&
-      !this.getPath('movableLineAdorn.model.isVisible')) {
+    if( this.getPath('model.areSquaresVisible') && !this.getPath('model.multipleLSRLs.isVisible') &&
+      !this.getPath('model.movableLine.isVisible')) {
       this.setPath('model.areSquaresVisible', false);
     }
   },
