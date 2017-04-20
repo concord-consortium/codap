@@ -488,13 +488,16 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             this.createMovableLine();
           this.get('movableLine').restoreStorage(iStorage.movableLineStorage);
         }
+        this.areSquaresVisible = iStorage.areSquaresVisible;
+/*
+        if (iStorage.areSquaresVisible)
+          this.toggleShowSquares();
+*/
         if (iStorage.multipleLSRLsStorage) {
           if (SC.none(this.multipleLSRLs))
             this.createLSRLLines();
           this.get('multipleLSRLs').restoreStorage(iStorage.multipleLSRLsStorage);
         }
-        if (iStorage.areSquaresVisible)
-          this.toggleShowSquares();
 
         // Legacy document support
         if (iStorage.plottedFunctionStorage) {

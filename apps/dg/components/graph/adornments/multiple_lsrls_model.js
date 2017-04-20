@@ -176,6 +176,10 @@ DG.MultipleLSRLsModel = DG.PlotAdornmentModel.extend(
     sc_super();
     this.showSumSquares = iStorage.showSumSquares;
     this.isInterceptLocked = iStorage.isInterceptLocked;
+    this.get('lsrls').forEach( function( iLSRL) {
+      iLSRL.set('showSumSquares', this.showSumSquares);
+      iLSRL.set('isInterceptLocked', this.isInterceptLocked);
+    });
   }
 
 });
