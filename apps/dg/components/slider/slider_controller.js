@@ -104,7 +104,7 @@ DG.SliderController = DG.ComponentController.extend(
         if (SC.none(tAnimator)) {
           tAnimator = DG.ValueAnimator.create({
             valueHolder: tSliderModel,
-            incrementProvider: this,
+            incrementProvider: this
           });
           this.set('valueAnimator', tAnimator);
         }

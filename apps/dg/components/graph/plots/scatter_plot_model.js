@@ -489,10 +489,6 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           this.get('movableLine').restoreStorage(iStorage.movableLineStorage);
         }
         this.areSquaresVisible = iStorage.areSquaresVisible;
-/*
-        if (iStorage.areSquaresVisible)
-          this.toggleShowSquares();
-*/
         if (iStorage.multipleLSRLsStorage) {
           if (SC.none(this.multipleLSRLs))
             this.createLSRLLines();
