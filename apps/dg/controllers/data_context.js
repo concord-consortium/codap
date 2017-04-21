@@ -5,7 +5,7 @@
 //  multiple collections in a linear parent/child relationship. Currently,
 //  the data are limited to two levels (i.e. parent and child), but future
 //  extension to support arbitrary number of levels is an eventual goal.
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -40,7 +40,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    *  @property {String}
    */
   type: 'DG.DataContext',
-  
+
   /**
    *  The DG.DataContextRecord for which this is the controller.
    *  @property {DG.DataContextRecord}
@@ -79,7 +79,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     @property   {Number}
    */
   changeCount: 0,
-  
+
   /**
     The number of selection change requests that have been applied.
     Clients can use this like a seed value to determine when they're out of date
@@ -326,7 +326,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var count = this.changes.length;
     return count > 0 ? this.changes[ count - 1] : null;
   }.property(),
-  
+
   /**
     Returns an array of change objects which correspond to the changes that have
     occurred since the last change notification.
@@ -339,7 +339,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     DG.assert( this._prevChangeCount <= this._changeCount);
     return this.changes.slice( changesLength - newCount);
   }.property(),
-  
+
   /**
     Apply the specified change object to this data context.
     @param    {Object}    iChange -- An object specifying the change(s) to apply
@@ -361,7 +361,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                       }.bind( this));
     return iChange.result;
   },
-  
+
   /**
     Performs the specified change(s) to this data context.
     Called by the applyChange() method.
@@ -434,11 +434,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         DG.logWarn('DataContext.performChange: unknown operation: '
             + iChange.operation);
     }
-    if( shouldDirtyDoc)
+    if( shouldDirtyDoc && (iChange.dirtyDocument !== false))
       DG.dirtyCurrentDocument(this.get('model'), shouldRetainUndo);
     return result;
   },
-  
+
   /**
     Creates a collection according to the arguments specified.
     @param  {Object}                iChange
@@ -588,10 +588,10 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     return result;
   },
-  
+
   /**
     Selects/deselects the specified cases.
-    
+
     @param  {Object}                iChange
             {String}                iChange.operation -- 'selectCases'
             {DG.CollectionClient}   iChange.collection (optional) -- collection containing cases
@@ -610,7 +610,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       tCollectionSelectionMap = {},
         isSelectionChanged = false,
         this_ = this;
-    
+
     // First selection change for each collection should respect iChange.extend.
     // Subsequent changes for each collection should always extend, otherwise
     // they wipe out any selection done previously.
@@ -664,7 +664,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         tChildren.forEach( selectCaseAndChildren);
       }
     }
-    
+
     // utility function for recursively deselecting a case and its children
     function deselectCaseAndChildren( iCase) {
       var tChildren = iCase.get('children'),
@@ -679,12 +679,12 @@ DG.DataContext = SC.Object.extend((function() // closure
         tChildren.forEach( deselectCaseAndChildren);
       }
     }
-    
+
         // If cases aren't specified, assume select/deselect all
     var tCases = iChange.cases || tController,
         // Use the appropriate utility function for the job
         tFunction = iChange.select ? selectCaseAndChildren : deselectCaseAndChildren;
-    
+
     if (iChange.select && !iChange.extend && tCases.length === 0) {
       this.forEachCollection( function( iCollectionClient) {
         var tController = iCollectionClient.get('casesController');
@@ -702,7 +702,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         doDeselectByCollection();
       }
     }
-    
+
     }
 
     // If we are only selecting cases in child collection(s), we should
@@ -723,7 +723,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                               });
       this.incrementProperty( 'selectionChangeCount');
     }
-    
+
     return { success: true };
   },
 
@@ -991,7 +991,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     return { success: true };
   },
-  
+
   doCreateAttributes: function( iChange) {
     var collection = typeof iChange.collection === "string"
                         ? this.getCollectionByName( iChange.collection)
@@ -1026,7 +1026,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         result.attrIDs.push( attribute.get('id'));
       }
     }
-    
+
     // Create/update each specified attribute
     if( collection && iChange.attrPropsArray)
       iChange.attrPropsArray.forEach( createAttribute);
@@ -1054,7 +1054,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                         : iChange.collection,
         names = [],
         result = { success: false, attrs: [], attrIDs: [] };
-    
+
     // Function to update each individual attribute
     function updateAttribute( iAttrProps) {
       // Look up the attribute by ID if one is specified
@@ -1088,7 +1088,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         result.attrIDs.push( attribute.get('id'));
       }
     }
-    
+
     // Create/update each specified attribute
     if( collection && iChange.attrPropsArray)
       iChange.attrPropsArray.forEach( updateAttribute);
@@ -1447,7 +1447,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                         : iChange.collection,
         deletedNodes = [],
         result = { success: true, attrIDs: [] };
-    
+
     // Function to delete each individual attribute
     function deleteAttribute( iAttr) {
       // Look up the attribute by ID if one is specified
@@ -1460,7 +1460,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         result.attrIDs.push( iAttr.id);
       }
     }
-    
+
     // Create/update each specified attribute
     if( collection && iChange.attrs) {
       iChange.attrs.forEach( deleteAttribute);
@@ -1662,7 +1662,7 @@ DG.DataContext = SC.Object.extend((function() // closure
           dataContextRecord = collectionRecord && collectionRecord.get('context');
           dataContextID = dataContextRecord && dataContextRecord.get('id');
           dataContext = DG.currDocumentController().getContextByID(dataContextID);
-          collectionClient = dataContext && collectionID && 
+          collectionClient = dataContext && collectionID &&
                               dataContext.getCollectionByID(collectionID);
           if (externalDataContexts.indexOf(dataContext) < 0)
             externalDataContexts.push(dataContext);
@@ -1828,7 +1828,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     return rows.join(rowDelimiter);
   },
-  
+
   /**
    *  The number of collections controlled by this controller.
    *  @property {Number}
@@ -1836,7 +1836,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   collectionCount: function() {
     return this.getPath('collections.length') || 0;
   }.property(),
-  
+
   /**
    *  Returns the DG.CollectionClient for the child or leaf collection.
    *  @returns  {DG.CollectionClient | null}
@@ -1869,7 +1869,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                             collections.objectAt( iIndex)) || null;
     return collection && this._collectionClients[ collection.get('id')];
   },
-  
+
   /**
    *  Returns the DG.CollectionClient with the specified name.
    *  Searches its collections from child => parent => grandparent order.
@@ -1887,7 +1887,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return null;
   },
-  
+
   /**
    *  Returns the DG.CollectionClient with the specified ID.
    *  @param    {Number}  iCollectionID -- The ID of the DG.collection
@@ -1896,7 +1896,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   getCollectionByID: function( iCollectionID) {
     return this._collectionClients[ iCollectionID] || null;
   },
-  
+
   /**
     Returns the collection (DG.CollectionClient) which contains the specified case (DG.Case).
     @param    {DG.Case}               iCase -- The case whose collection is to be returned
@@ -1905,7 +1905,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   getCollectionForCase: function( iCase) {
     return this.getCollectionByID( iCase.getPath('collection.id'));
   },
-  
+
   /**
     Returns the collection (DG.CollectionClient) which contains
     the specified attribute (DG.Attribute).
@@ -1915,7 +1915,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   getCollectionForAttribute: function( iAttribute) {
     return this.getCollectionByID( iAttribute.getPath('collection.id'));
   },
-  
+
   /**
     Returns the parent collection, if any, for the specified collection.
     Returns null if the specified collection has no parent collection.
@@ -1959,7 +1959,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return null;
   },
-  
+
   /**
     Creates a collection with the specified initial properties.
     @param    {Object}              iProperties -- The initial properties for the newly-created object
@@ -1990,7 +1990,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   didCreateCollection: function( iNewCollection) {
     // derived classes may override
   },
-  
+
   /**
     Returns a collection matching the specified properties, creating it if necessary.
     @param    {Object}    iCollectionProperties -- Properties to match or to use as initial
@@ -2028,7 +2028,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return theCollectionClient;
   },
-  
+
   /**
     Utility function for adding observers for formula change notifications
     from individual collections.
@@ -2038,7 +2038,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     iCollection.addObserver('caseIndices', this, 'caseIndicesDidChange');
     iCollection.addObserver('attrFormulaChanges', this, 'attrFormulaDidChange');
   },
-  
+
   /**
     Utility function for removing observers for formula change notifications
     from individual collections.
@@ -2057,7 +2057,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var nodes = this.get('dependencyMgr').findNodesWithNames(['caseIndex']);
     this.invalidateDependentsAndNotify(nodes);
   },
-  
+
   /**
    * The observer/handler for attribute formula change notifications from collections.
    * Notifies clients with an 'updateCases' notification. Note that we don't currently
@@ -2081,7 +2081,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         attrNodes = [{ type: DG.DEP_TYPE_ATTRIBUTE, id: attrID, name: attr.get('name') }];
     this.invalidateDependentsAndNotify(attrNodes);
   },
-  
+
   /**
     Applies the specified function to each collection managed by this data context.
     @param    iFunction {Function}        The function to apply to each collection
@@ -2099,7 +2099,7 @@ DG.DataContext = SC.Object.extend((function() // closure
               });
     return this;
   },
-  
+
   /**
     Returns the string that best represents the noun form of the specified number of cases,
     e.g. "case"|"cases", "person"|"people", "deer"|"deer", "goose"|"geese", etc.
@@ -2116,7 +2116,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     tPluralName = tPluralName || 'DG.DataContext.pluralCaseName'.loc();
     return (iCount === 1) ? tSingName : tPluralName;
   },
-  
+
   /**
     Returns a case count string indicating the number of cases using the appropriate
     case name, e.g. "1 case"|"2 cases", "1 person"|"2 people", etc.
@@ -2128,7 +2128,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var caseName = this.getCaseNameForCount( iCollection, iCount);
     return 'DG.DataContext.caseCountString'.loc( iCount, caseName);
   },
-  
+
   /**
     Returns the string that represents a coherent set of cases, e.g. a set of Lunar Lander
     events is often called "a flight record", while in other games it might be "a round".
@@ -2139,7 +2139,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     return iCollection.getPath('collection.collection.parent.caseName') ||
         'DG.DataContext.setOfCasesLabel'.loc();
   },
-  
+
   /**
    *  Returns a specification for the DG.Attribute with the specified ID.
    *  Searches its collections from child => parent => grandparent order.
@@ -2165,7 +2165,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     return null;
   },
-  
+
   /**
    *  Returns a specification for the DG.Attribute with the specified name.
    *  Searches its collections from child => parent => grandparent order.
@@ -2219,7 +2219,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var attrRef = this.getAttrRefByName( iName);
     return attrRef ? attrRef.attribute : null;
   },
-  
+
   /**
     Sets the values of the specified case from the specified array of values.
     @param    iCase {DG.Case}   The case whose values are to be set
@@ -2232,7 +2232,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     if( collection)
       collection.setCaseValuesFromArray( iCase, iValues);
   },
-  
+
   /**
     Returns an object which specifies the default collections for this data context along
     with some of the default properties of that collection, e.g. default attributes to plot.
@@ -2253,7 +2253,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       plotYAttrIsNumeric: true
     };
   },
-  
+
   /**
     Called by the framework as part of the document writing process, to give
     DG.DataContext derived classes a chance to write out context-specific information.
@@ -2267,7 +2267,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       model.set('contextStorage', contextStorage);
     }
   },
-  
+
   /**
     Returns a link object of the form { type: 'DG.DataContextRecord', id: contextID }.
     @returns  {Object}  linkObject -- contains the type and id of the referenced record
@@ -2278,7 +2278,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var model = this.get('model');
     return model && model.toLink();
   },
-  
+
   /**
    *  Returns the object to be JSON-ified for storage.
    *  @returns  {Object}
@@ -2286,7 +2286,7 @@ DG.DataContext = SC.Object.extend((function() // closure
   createStorage: function() {
     return {};
   },
-  
+
   /**
    *  Copies the contents of iComponentStorage to the model.
    *  @param {Object} iContextStorage -- Properties restored from document.
@@ -2299,9 +2299,9 @@ DG.DataContext = SC.Object.extend((function() // closure
       }.bind(this));
     }
   }
-  
+
   }; // end return from closure
-  
+
 }())) ; // end closure
 
 /**
