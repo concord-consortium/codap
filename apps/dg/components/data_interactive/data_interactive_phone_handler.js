@@ -335,13 +335,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var action = iCmd.action;
           var type = selectorMap && selectorMap.type;
           var values = this.validateValues( iCmd.values);
+          var metadata = iCmd.meta;
 
           var handler = type && this.handlerMap[type];
 
           if (handler) {
             if (handler[action]) {
               SC.run(function () {
-                result = handler[action].call(this, resourceMap, values) || {success: false};
+                result = handler[action].call(this, resourceMap, values, metadata) || {success: false};
                 if (result.values) {
                   this.filterResultValues(result.values);
                 }
@@ -808,7 +809,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        */
       handleAttribute: (function() {
 
-        function applyChangeAndProcessResult(context, change) {
+        function applyChangeAndProcessResult(context, change, metadata) {
+          if (metadata && metadata.dirtyDocument === false)
+            change.dirtyDocument = false;
           var changeResult = context.applyChange(change),
               resultAttrs = changeResult && changeResult.attrs,
               returnAttrs = DG.DataInteractiveUtils.
@@ -832,7 +835,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             values: values
           };
         },
-        create: function (iResources, iValues) {
+        create: function (iResources, iValues, iMetadata) {
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
@@ -848,9 +851,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             attrPropsArray: attrSpecs,
             requester: this.get('id')
           };
-          return applyChangeAndProcessResult(context, change);
+          return applyChangeAndProcessResult(context, change, iMetadata);
         },
-        update: function (iResources, iValues) {
+        update: function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
@@ -872,7 +875,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             attrPropsArray: [iValues],
             requester: this.get('id')
           };
-          return applyChangeAndProcessResult(context, change);
+          return applyChangeAndProcessResult(context, change, iMetadata);
         },
         'delete': function (iResources) {
           var context = iResources.dataContext;
