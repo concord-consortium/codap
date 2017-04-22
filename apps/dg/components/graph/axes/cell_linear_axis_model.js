@@ -397,24 +397,7 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     @param {Number} iTrial - a suggested tick value
   */
   _goodTickValue: function( iTrial) {
-    // A zero trial means that the values we're going to plot either don't
-    // exist or are all zero. Return 1 as an arbitrary choice.
-    if( iTrial === 0)
-      return 1;
-  
-    // We move to base 10 so we can get rid of the power of ten.
-    var tLogTrial = Math.log( iTrial) / Math.LN10,
-        tFloor = Math.floor(tLogTrial),
-        tPower = Math.pow(10.0, tFloor),
-    
-    // Whatever is left is in the range 1 to 10. Choose desired number
-    tBase = Math.pow(10.0, tLogTrial - tFloor);
-    
-    if (tBase < 2) tBase = 1;
-    else if (tBase < 5) tBase = 2;
-    else tBase = 5;
-    
-    return Math.max( tPower * tBase, Number.MIN_VALUE);
+    return DG.MathUtilities.goodTickValue( iTrial);
   }
 
 });

@@ -67,10 +67,11 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
        *
        * @param iMinDate { Number } milliseconds
        * @param iMaxDate { Number } milliseconds
-       * @return {{outerLevel: EDateTimeLevel, innerLevel: EDateTimeLevel}}
+       * @return {{outerLevel: EDateTimeLevel, innerLevel: EDateTimeLevel, increment: {Number}}
        */
       function determineLevels(iMinDate, iMaxDate) {
         var tDateDiff = iMaxDate - iMinDate,
+            tIncrement = 1, // Will only be something else if inner level is year
             tOuterLevel, tInnerLevel;
 
         if (tDateDiff < 3 * kMinute) {
@@ -96,8 +97,10 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
         else {
           tOuterLevel = EDateTimeLevel.eYear;
           tInnerLevel = EDateTimeLevel.eYear;
+          tIncrement = Math.max( 1, DG.MathUtilities.goodTickValue( tDateDiff / (kYear * 5)));
         }
         return {
+          increment: tIncrement,
           outerLevel: tOuterLevel,
           innerLevel: tInnerLevel
         };
@@ -225,9 +228,10 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
        *
        * @param iLevel {EDateTimeLevel}
        * @param iDate {Date } (or value that can be converted to Date)
+       * @param iGap {Integer} Only used if iLevel is eYear
        * @return {{ labelString: {String}, labelDate: {Date}}}
        */
-      function findFirstDateAboveOrAtLevel(iLevel, iDate) {
+      function findFirstDateAboveOrAtLevel(iLevel, iDate, iGap) {
         var tResultDate = NaN,
             tLabelString = '';
         if (!DG.isDate(iDate))
@@ -241,6 +245,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
               tSecond = iDate.getSeconds();
           switch (iLevel) {
             case EDateTimeLevel.eYear:
+              tYear = Math.ceil( tYear / iGap) * iGap;
               tResultDate = new Date(tYear, 1, 1);
               if (tResultDate.valueOf() < iDate.valueOf())
                 tResultDate = new Date(++tYear, 1, 1);
@@ -389,9 +394,9 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           }
           else {
             if (tNumLevels === 2) {
-            this.drawOuterLabels(tLevels.outerLevel);
-          }
-          this.drawInnerLabels(tLevels.innerLevel);
+              this.drawOuterLabels(tLevels.outerLevel);
+            }
+            this.drawInnerLabels(tLevels.innerLevel, tLevels.increment);
           }
         },
 
@@ -477,7 +482,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           }
         },
 
-        drawInnerLabels: function (iLevel) {
+        drawInnerLabels: function (iLevel, iIncrement) {
 
           var findDrawValueModulus = function (iInnerLevel, iFirstDateLabel) {
                 var tInterval = 1,
@@ -499,7 +504,8 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
                     if (tFirstTime || !tOverlapped) {
                       tFirstTime = false;
                       tLastPixelUsed = tPixel + ((tOrientation === 'horizontal') ? tHalfWidth : -tHalfWidth);
-                      tCurrentDateLabel = getLabelForIncrementedDateAtLevel(iInnerLevel, tDate, tInterval);
+                      tCurrentDateLabel = getLabelForIncrementedDateAtLevel(iInnerLevel,
+                          tDate, tInterval * iIncrement);
                       tDate = tCurrentDateLabel.labelDate;
                       tLabel = tCurrentDateLabel.labelString;
                     }
@@ -553,7 +559,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
               tPixelMin = this.get('pixelMin'),
               tElementsToClear = this.get('elementsToClear'),
               tPaper = this.get('paper'),
-              tDateLabel = findFirstDateAboveOrAtLevel(iLevel, this.get('lowerBound') * 1000),
+              tDateLabel = findFirstDateAboveOrAtLevel(iLevel, this.get('lowerBound') * 1000, iIncrement),
               tDrawValueModulus = findDrawValueModulus(iLevel, tDateLabel),
               tCounter = 0;
 
@@ -563,7 +569,7 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           while (tDateLabel.labelDate < tUpperBounds) {
             drawTickAndLabel(tDateLabel, tCounter === 0);
             tCounter = (tCounter + 1) % tDrawValueModulus;
-            tDateLabel = getLabelForIncrementedDateAtLevel(iLevel, tDateLabel.labelDate, 1);
+            tDateLabel = getLabelForIncrementedDateAtLevel(iLevel, tDateLabel.labelDate, iIncrement);
           }
         },
 
@@ -576,12 +582,14 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
           var tLower = 1000 * this.get('lowerBound'), // milliseconds
               tUpper = 1000 * this.get('upperBound'),
               tLevels = determineLevels(tLower, tUpper),
-              tDateLabel = findFirstDateAboveOrAtLevel(tLevels.innerLevel, tLower),
+              tDateLabel = findFirstDateAboveOrAtLevel(tLevels.innerLevel, tLower,
+                              tLevels.increment),
               tValue;
           while (tDateLabel.labelDate < tUpper) {
             tValue = tDateLabel.labelDate.valueOf();
             iDoF( tValue, this.dataToCoordinate( tValue / 1000));
-            tDateLabel = getLabelForIncrementedDateAtLevel(tLevels.innerLevel, tDateLabel.labelDate, 1);
+            tDateLabel = getLabelForIncrementedDateAtLevel(tLevels.innerLevel, tDateLabel.labelDate,
+                tLevels.increment);
           }
         }
 
