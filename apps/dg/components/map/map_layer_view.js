@@ -137,7 +137,11 @@ DG.MapLayerView = SC.View.extend(
         if (this._map) {
           // May need to resize here
         } else {
-        this._map = L.map(this._layerID, {scrollWheelZoom: false})
+        this._map = L.map(this._layerID, {
+          scrollWheelZoom: false,
+          zoomSnap: 0,
+          attributionControl: false,
+          trackResize: false })
             .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
               .on('dragstart', onDisplayChangeEvent)
