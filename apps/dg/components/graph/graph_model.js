@@ -842,17 +842,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       this.get('plots' ).forEach( function( iPlot) {
         iPlot.handleDataContextNotification( iNotifier, iChange);
       });
-    },
-
-    /**
-      Responder for notifications from the DataContext.
-     */
-    handleDataContextNotification: function( iNotifier) {
-      sc_super(); // Bulk of work will be done in calls to handleOneDataContextChange
-
-      if( this.get('numberToggle')) {
-        // The numberToggle does not need to respond to individual notifications
-        this.get('numberToggle' ).handleDataContextNotification( iNotifier);
+      // Forward the notification to the number toggle, so it can respond as well.
+      var numberToggleModel = this.get('numberToggle');
+      if(numberToggleModel) {
+        numberToggleModel.handleDataContextNotification(iNotifier, iChange);
       }
     },
 

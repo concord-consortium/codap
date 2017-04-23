@@ -548,8 +548,11 @@ SC.stringsFor('English', {
   // DG.NumberToggleView
   'DG.NumberToggleView.showAll': "Show All \u2013",  // "Show All -"
   'DG.NumberToggleView.hideAll': "Hide All \u2013",  // "Hide All -"
+  'DG.NumberToggleView.lastLabel': "Last",
   'DG.NumberToggleView.showAllTooltip': "Click to show all cases\nClick parent case labels to toggle visibility",
   'DG.NumberToggleView.hideAllTooltip': "Click to hide all cases\nClick parent case labels to toggle visibility",
+  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only",
+  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode",
   'DG.NumberToggleView.indexTooltip': "Click to toggle visibility",  // "Click to toggle visibility"
 
   // DG.PlottedAverageAdornment
