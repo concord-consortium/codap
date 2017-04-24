@@ -42,6 +42,12 @@
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.woff') format('woff');}
 @font-face {font-family: 'icomoon';src: static_url('icon_fonts/icomoon.svg') format('svg');}
 
+#codap {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+}
+
 .dg-splash {
     background-color: white !important;
 }
