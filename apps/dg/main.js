@@ -55,7 +55,7 @@ DG.main = function main() {
     return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
   };
 
-  DG.getPath('mainPage.mainPane').append();
+  DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.appController.documentNameDidChange();
 
