@@ -236,6 +236,7 @@ DG.AttributeStats = SC.Object.extend(
           // If our first attribute has a type assigned, we return it
           switch (tAttributes[0].get('type')) {
             case 'nominal':
+            case 'categorical':
               this._attributeType = DG.Analysis.EAttributeType.eCategorical;
               break;
             case 'numeric':
