@@ -373,6 +373,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this.clearProtoCaseTimer();
 
     this._protoCaseTimer = setTimeout(function() {
+      // timer can outlive table
+      if (!this._slickGrid) return;
       var rowCount = this._slickGrid.getDataLength(),
           lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
           hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
