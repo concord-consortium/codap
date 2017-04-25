@@ -479,6 +479,7 @@ SC.stringsFor('English', {
   'DG.TableController.scoreAttrName': "score",
   'DG.TableController.setScoreDlg.applyTooltip': "Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint': "Type a formula for computing values of this attribute",
+  'DG.TableController.newAttributeTooltip': 'Add a new attribute to this table',
 
   'DG.TableController.attributeEditor.title': 'Attribute Properties',
   // DG.CaseTableDropTarget

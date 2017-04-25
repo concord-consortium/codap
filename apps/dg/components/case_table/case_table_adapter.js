@@ -364,6 +364,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           cssClass: 'new-attr-column',
           headerCssClass: 'new-attr-column-header',
           name: "",
+          toolTip: 'DG.TableController.newAttributeTooltip'.loc(),
           focusable: false
         });
       }
