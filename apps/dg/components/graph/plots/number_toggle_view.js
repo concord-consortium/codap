@@ -32,8 +32,9 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
   (function()
   {
-    var kFontFamily = 'Montserrat-Regular, sans-serif',
-        kFontSize = '11px',
+    var kLabelFontFamily = 'Montserrat-Regular, sans-serif',
+        kLabelFontSize = '11px',
+        kCheckFontSize = '18px',
         kArrowWidth = 33,
       ArrowButton = SC.Object.extend({
         paper: null,
@@ -224,7 +225,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                                         : 'DG.NumberToggleView.showAllTooltip'.loc(),
                 kLeftMargin = 6;
             return this._paper.text(kLeftMargin, 0, showHideAllLabel)
-                      .attr({ 'font-family': kFontFamily, 'font-size': kFontSize,
+                      .attr({ 'font-family': kLabelFontFamily, 'font-size': kLabelFontSize,
                               cursor: 'pointer', 'text-anchor': 'start',
                               fill: 'black', title: showHideAllTooltip })
                       // Use mousedown/mouseup here rather than click so that touch will work
@@ -238,18 +239,33 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                       } );
           }.bind( this ),
 
-          createLastElement = function() {
+          createLastElements = function() {
             var isLastMode = this.get('lastMode'),
-                lastLabel = 'DG.NumberToggleView.lastLabel'.loc(),
+                lastCheck = isLastMode
+                              ? 'DG.NumberToggleView.lastChecked'.loc()
+                              : 'DG.NumberToggleView.lastUnchecked'.loc(),
+                lastLabel= 'DG.NumberToggleView.lastLabel'.loc(),
                 lastTooltip = isLastMode
                                 ? 'DG.NumberToggleView.disableLastModeTooltip'.loc()
                                 : 'DG.NumberToggleView.enableLastModeTooltip'.loc(),
-                fillColor = isLastMode ? 'lightGray' : 'black',
                 tClickHandling = false,
-                elt = this._paper.text(-9999, 0, lastLabel)
-                        .attr({ 'font-family': kFontFamily, 'font-size': kFontSize,
-                                cursor: 'pointer', 'text-anchor': 'start',
-                                fill: fillColor, title: lastTooltip })
+                checkElt = this._paper.text(-9999, 0, lastCheck)
+                            .attr({ 'font-family': kLabelFontFamily, 'font-size': kCheckFontSize,
+                                    cursor: 'pointer', 'text-anchor': 'start',
+                                    fill: 'black', title: lastTooltip })
+                        // Use mousedown/mouseup here rather than click so that touch will work
+                        .mousedown(function() {
+                          tClickHandling = true;
+                        })
+                        .mouseup(function() {
+                          if (tClickHandling)
+                            toggleLastMode();
+                          tClickHandling = false;
+                        }),
+                lastElt = this._paper.text(-9999, 0, lastLabel)
+                            .attr({ 'font-family': kLabelFontFamily, 'font-size': kLabelFontSize,
+                                    cursor: 'pointer', 'text-anchor': 'start',
+                                    fill: 'black', title: lastTooltip })
                         // Use mousedown/mouseup here rather than click so that touch will work
                         .mousedown(function() {
                           tClickHandling = true;
@@ -259,11 +275,12 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                             toggleLastMode();
                           tClickHandling = false;
                         });
-            elt.width = elt.getBBox().width;
-            return elt;
+            checkElt.width = checkElt.getBBox().width;
+            lastElt.width = lastElt.getBBox().width;
+            return [checkElt, lastElt];
           }.bind(this),
 
-          createNumberElements = function(lastElement) {
+          createNumberElements = function(lastElements) {
             // Create the number elements and stash their widths
             var tIndex, tClickHandling = false;
 
@@ -289,7 +306,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                   tTooltip = tModel.getParentTooltip(tIndex),
                   tFill = tModel.casesForIndexAreHidden( tIndex) ? 'lightGray' : 'black';
               tElement = this._paper.text(-9999, tY, tLabel)
-                .attr({ 'font-family': kFontFamily, 'font-size': kFontSize,
+                .attr({ 'font-family': kLabelFontFamily, 'font-size': kLabelFontSize,
                         cursor: 'pointer', 'text-anchor': 'start', fill: tFill, title: tTooltip })
                 .mousedown( doMouseDown)
                 .mouseup( doMouseUp);
@@ -298,8 +315,9 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
               tElement.toggleIndex = tIndex;
               addElement(tElement);
             }
-            // Put "Last" element in array with number elements
-            addElement(lastElement);
+            // Put "Last" elements in array with number elements
+            if (lastElements)
+              lastElements.forEach(function(elt) { addElement(elt); });
           }.bind( this ),
 
           positionNumberElements = function() {
@@ -326,9 +344,16 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
             else
               this.get('rightArrow' ).hide();
 
-            if (tNumberElements[tLastIndex]) {
-              tNumberElements[tLastIndex].attr({ x: tX, y: tY });
-              tX += tNumberElements[tLastIndex].width + kSpace;
+            for (var i = tLastIndex; i < tNumberElements.length; ++i) {
+              if (tNumberElements[i]) {
+                // adjust placement of checkbox
+                var yOffset = i === tNumberElements.length - 2 ? -1 : 0;
+                // adjust spacing between checkbox and "Last"
+                if (i === tNumberElements.length - 1)
+                  tX -= 5;
+                tNumberElements[i].attr({ x: tX, y: tY + yOffset });
+                tX += tNumberElements[i].width + kSpace;
+              }
             }
           }.bind( this);
 
@@ -340,10 +365,13 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
             tNumParents = tModel.get('numberOfToggleIndices' ),
             tNameElement = createShowAllElement(),
             tNameBox = tNameElement.getBBox(),
-            tLastElement = createLastElement(),
+            tLastElements = createLastElements(),
             tY = 2 + tNameBox.height / 2,
             tFirstX = tNameBox.x + tNameBox.width + kSpace,
-            tFixedSpace = tFirstX + kSpace + tLastElement.width + kSpace,
+            tLastElementsWidth = tLastElements.reduce(function(sum, elt) {
+                                                        return sum + elt.width + kSpace;
+                                                      }, 0),
+            tFixedSpace = tFirstX + kSpace + tLastElementsWidth + kSpace,
             tNumberDisplayWidth = this._paper.width - tFixedSpace,
             tNeedRightArrow, tNeedLeftArrow,
             tRightArrow, tLeftArrow,
@@ -361,7 +389,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
         tNameElement.attr({ y: tY });
 
-        createNumberElements(tLastElement);
+        createNumberElements(tLastElements);
 
         // In this block we compute tNeedLeftArrow, tNeedRightArrow, firstDisplayedIndex, and lastDisplayedIndex
         if( tTotalNumberWidth <= tNumberDisplayWidth) {

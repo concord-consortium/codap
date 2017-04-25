@@ -546,9 +546,11 @@ SC.stringsFor('English', {
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"
 
   // DG.NumberToggleView
-  'DG.NumberToggleView.showAll': "Show All \u2013",  // "Show All -"
-  'DG.NumberToggleView.hideAll': "Hide All \u2013",  // "Hide All -"
-  'DG.NumberToggleView.lastLabel': "Last",
+  'DG.NumberToggleView.showAll': "Show All \u2013", // "Show All -"
+  'DG.NumberToggleView.hideAll': "Hide All \u2013", // "Hide All -"
+  'DG.NumberToggleView.lastUnchecked': "\u2013 \u2610",  // "- [ ]"
+  'DG.NumberToggleView.lastChecked': "\u2013 \u2612",    // "- [x]"
+  'DG.NumberToggleView.lastLabel': "Last",    // "Last"
   'DG.NumberToggleView.showAllTooltip': "Click to show all cases\nClick parent case labels to toggle visibility",
   'DG.NumberToggleView.hideAllTooltip': "Click to hide all cases\nClick parent case labels to toggle visibility",
   'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only",
