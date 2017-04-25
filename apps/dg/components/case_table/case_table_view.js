@@ -1,8 +1,8 @@
 // ==========================================================================
 //                        DG.CaseTableView
-// 
+//
 //  A wrapper view that holds a SlickGridView.
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -268,7 +268,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }),
 
   layout: { left: 0, right: 0, top: 0, bottom: 0 },
-  
+
   backgroundColor: "white",
 
   /**
@@ -303,13 +303,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @property   {DG.CaseTableAdapter}
    */
   gridAdapter: null,
-  
+
   /**
     The SlickGrid DataView object for filtering/accessing the row data.
     @property   {Slick.Data.DataView}
    */
   gridDataView: null,
-  
+
   /**
     Notification-only property. The value of this property is meaningless.
     It is used purely as a property name to notify when clients should
@@ -326,13 +326,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @private
    */
   _slickGrid: null,
-  
+
   /**
     The event handler for registering interest in SlickGrid events.
     @property   {Slick.EventHandler}
    */
   _gridEventHandler: null,
-  
+
   /**
     @private
     The current width of the table/grid. Used to compute the gridWidth()
@@ -373,6 +373,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this.clearProtoCaseTimer();
 
     this._protoCaseTimer = setTimeout(function() {
+      // timer can outlive table
+      if (!this._slickGrid) return;
       var rowCount = this._slickGrid.getDataLength(),
           lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
           hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
@@ -433,7 +435,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     return this._gridWidth;
   }.property(),
-  
+
   /**
     The delta from the previous width to the current width.
     Clients may use this to determine how much adjustment is required.
@@ -506,7 +508,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     @property   {Number}
    */
   rowCount: 0,
-  
+
   /**
     The current scroll position within the table. This property is updated as the table
     is scrolled. Clients may observe or bind to it to be notified when scroll pos changes.
@@ -515,7 +517,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                 {Number}  scrollPos.scrollLeft -- The horizontal scroll position
    */
   scrollPos: null,
-  
+
   /**
     Incremented whenever an expand/collapse occurs.
     Clients may observe this property to respond.
@@ -524,9 +526,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   expandCollapseCount: 0,
 
   scrollAnimator: null,
-  
+
   displayProperties: ['gridAdapter','gridDataView','_slickGrid'],
-  
+
   init: function () {
     sc_super();
     this.scrollAnimator = DG.ScrollAnimationUtility.create({});
@@ -576,7 +578,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       selectActiveRow: true,
       caseTableAdapter: this.gridAdapter
     }));
-    
+
     /*
      * Add a column header menu to each column.
      */
@@ -615,7 +617,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     } // DG.supports('caseTableHeaderMenus')
 
     this._gridEventHandler = new Slick.EventHandler();
-    
+
     // Subscribe to SlickGrid events which call our event handlers directly.
     this.subscribe('onClick', this.handleClick);
     this.subscribe('onKeyDown', this.handleKeyDown);
@@ -668,7 +670,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
       }.bind( this));
     }.bind( this));
-    
+
     dataView.onRowsChanged.subscribe(function (e, args) {
       SC.run( function() {
         if( this._slickGrid) {
@@ -676,7 +678,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
       }.bind( this));
     }.bind( this));
-    
+
     $(gridLayer).show();
 
     $(gridLayer).bind('wheel', function (ev) {
@@ -783,25 +785,25 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._slickGrid = null;
     this.gridDataView = null;
   },
-  
+
   /**
     Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
    */
   _destroy: function() {
     this.destroySlickGrid();
-    
+
     if( this.gridAdapter)
       this.gridAdapter.destroy();
     this.gridAdapter = null;
   },
-  
+
   /**
     Called when the component is about to be destroyed.
    */
   willDestroy: function() {
     this._destroy();
   },
-  
+
   /**
     Destroys the DG.CaseTableView instance.
    */
@@ -809,7 +811,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._destroy();
     sc_super();
   },
-  
+
   /**
     Utility function to assist with subscribing to (expressing interest in)
     SlickGrid events.
@@ -832,12 +834,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     this._gridEventHandler.subscribe( this._slickGrid[ iEventName], wrapHandler( iHandler));
   },
-  
+
   /**
    Returns the bounding rectangle of the specified row of the table.
    The rectangle returned is relative to the content of the table --
    the header row is not included, so the initial top coordinate is 0.
-   
+
    @param   {Number}  iRowIndex -- the index of the row whose bounds are being requested
    @returns {Object}  The bounding rectangle of the specified row
                       Object.left -- the left edge of the bounding rectangle
@@ -857,7 +859,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     return rowBounds;
   },
-  
+
   /**
     Respond to a change in DG.CaseTableAdapter by destroying the SlickGrid.
     A new one will be recreated on render() if there is a valid adapter.
@@ -869,7 +871,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.notifyPropertyChange('gridView');
     }
   }.observes('gridAdapter'),
-  
+
   /**
     Refreshes the Slick.DataView and re-renders the Slick.Grid.
    */
@@ -878,7 +880,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     if( gridAdapter) gridAdapter.refresh();
     if( this._slickGrid) this._slickGrid.invalidate();
   },
-  
+
   /**
     SproutCore render method.
    * @param {SC.RenderContext} iContext
@@ -886,7 +888,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   render: function( iContext, iFirstTime) {
     sc_super();
-  
+
     // SlickGrid requires that we pass it a reference to its container element,
     // which in this case is the <div> created by this view. But that <div>
     // element doesn't exist the first time through render() -- it's created
@@ -906,7 +908,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this._rowDataDidChange = false;
       this._renderRequired = false;
     }
-    
+
     // SlickGrid adds to the set of CSS classes. We need to capture these
     // and add them to the context or else the context will overwrite
     // the CSS classes and eliminate the ones added by SlickGrid.
@@ -941,7 +943,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   touchPosInView: function( iTouch) {
     return this.convertFrameFromView({ x: iTouch.pageX, y: iTouch.pageY }, null, true);
   },
-  
+
   /**
     Returns the touch position in table body content coordinates.
     @param    {Object}    iTouch The touch event
@@ -957,7 +959,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     return touchPos;
   },
-  
+
   /**
     Returns the cell in which the specified touch event occurred.
     @param    {Object}    iTouch The touch event
@@ -975,16 +977,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
     return cell;
   },
-  
+
   bodyCellFromTouch: function( iTouch) {
     var touchPos = this.touchPosInBodyContent( iTouch);
     return this._slickGrid.getCellFromPoint( touchPos.x, touchPos.y);
   },
-  
+
   _touchStartTouch: null,
   _touchStartCell: null,
   _touchDragCell: null,
-  
+
   captureTouch: function(touch) {
     return YES;
   },
@@ -1032,7 +1034,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     return true;
   },
-  
+
   /**
     Called when a drag is started in a column header cell.
     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
@@ -1089,7 +1091,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       });
     });
   },
-  
+
   /**
     Called when a table header cell is clicked.
     @param  {Slick.Event}   iEvent -- the event corresponding to the mouse click
@@ -1243,7 +1245,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this.get('gridAdapter').handleCellEdited( iEvent, iArgs );
   },
   */
-  
+
   /**
     Refreshes the column headers to accommodate new attributes.
     Call when the column header info is required for new attributes.
@@ -1253,7 +1255,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.setColumns( this.get('gridAdapter').updateColumnInfo());
     }
   },
-  
+
   /**
     Refreshes the column headers when attribute information has changed.
     @param  {Array of Objects}  iColumnsInfo -- Array of column entries
@@ -1265,7 +1267,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.adjustHeaderForOverflow();
     }
   },
-  
+
   /**
     Expands/collapses all of the row groups at once.
     @param    {Boolean}   iExpand -- Expands all row groups if truthy;
@@ -1363,7 +1365,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this._renderRequired = true;
     this.displayDidChange();
   },
-  
+
   /**
     Synchronizes the number of table rows with the number of cases.
     Tries to do so efficiently, but has to rebuild the table in some cases.
@@ -1543,19 +1545,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       return false;
     }
 
+    function lastItemIndex(dataView, viewport) {
+      return Math.max(0, Math.min(dataView.getLength() - 1, viewport.bottom));
+    }
+
     // Find row in this table of first child of top item in left viewport
     var leftTopCase = leftDataView.getItem(leftViewport.top);
     var rightTopRange = getRightRowRange(leftTopCase);
 
     // Find row in this table of the last child of bottom item in left viewport
-    var leftBottomCase = leftDataView.getItem(Math.min(leftDataView.getLength()-1,leftViewport.bottom));
+    var leftBottomCase = leftDataView.getItem(lastItemIndex(leftDataView, leftViewport));
     var rightBottomRange = getRightRowRange(leftBottomCase);
 
     // If viewport top is less than c0Row, then scroll c0Row to top.
-    if (rightTopRange.first > viewport.top) {
+    if (rightTopRange && (rightTopRange.first > viewport.top)) {
       this._slickGrid.scrollRowToTop(rightTopRange.first);
       didScroll = true;
-    } else if (rightBottomRange.last < Math.min(dataView.getLength() - 1, viewport.bottom)) {
+    } else if (rightBottomRange && (rightBottomRange.last < lastItemIndex(dataView, viewport))) {
       // if viewport bottom is greater than cnRow, then scroll cnRow to bottom.
       this._slickGrid.scrollRowToTop(rightBottomRange.last - viewportHeight);
       didScroll = true;
@@ -1623,5 +1629,5 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     return didScroll;
   }
   }; // end return from closure
-  
+
 }())); // end closure
