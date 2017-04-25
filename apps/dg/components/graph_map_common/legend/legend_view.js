@@ -129,7 +129,6 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         if( SC.none( this._labelNode)) {
           this._labelNode = DG.LabelNode.create({ paper: this._paper, rotation: 0,
             colorIndex: 0, numColors: 1,
-            description: SC.String.loc( 'DG.LegendView.attributeTooltip'),
             anchor: 'start'});
           this._labelNode.setDragLabelHandler( DG.DragLabelHandler.create({
             labelNode: this._labelNode,
@@ -149,7 +148,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           tChangeHappened = true;
         }
         tDescription = this.getPath('model.attributeDescription.attribute.description') + '—' +
-            SC.String.loc( 'DG.LegendView.attributeTooltip');
+                                    'DG.LegendView.attributeTooltip'.loc();
         if( tDescription !== this._labelNode.get('description')) {
           this._labelNode.set('description', tDescription );
           tChangeHappened = true;
@@ -227,11 +226,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
          */
         function renderLabel() {
           var tLabelNode = this_.get('labelNode'),
-              tLabelExtent = this_.get('labelExtent');
+              tLabelExtent = this_.get('labelExtent'),
+              tDescription = this_.getPath('model.attributeDescription.attribute.description') + '—' +
+                  'DG.LegendView.attributeTooltip'.loc();
           if( SC.none( tLabelNode))
             return;
+
           tLabelNode.get('_textElement').attr({ text: this_.getPath('model.label'),
-                            x: kHMargin, y: tLabelExtent.y / 2 });
+                            x: kHMargin, y: tLabelExtent.y / 2});
+          tLabelNode.get('_textElement').attr({ title: tDescription});
         }
 
         /**
