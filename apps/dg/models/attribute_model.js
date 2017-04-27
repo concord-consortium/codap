@@ -458,7 +458,7 @@ DG.Attribute.legalizeAttributeName = function (iName) {
   // TODO: We are eliminating all but Latin characters here. We should be more general and allow
   // non-Latin alphanumeric characters.
   tNewName = tNewName.trim(); // Get rid of trailing white space
-  tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
+  tNewName = tNewName.replace(/\W/g, '_');  // Replace non-word characters with underscore
   // if after all this we have an empty string replace with a default name.
   if (tNewName.length === 0) {
     tNewName = 'attr';
