@@ -24,7 +24,7 @@
   @extends SC.Object
 */
 DG.PlotDataConfiguration = SC.Object.extend(
-/** @scope DG.PlotDataConfiguration.prototype */ 
+/** @scope DG.PlotDataConfiguration.prototype */
 {
   /**
     The data context which is the source of the data for this graph.
@@ -36,7 +36,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this.invalidateCaches();
     this.notifyPropertyChange('defaultTitle');
   }.observes('dataContext'),
-  
+
   /**
     The outer array is indexed by DG.GraphTypes.EPlace
     @property { Array of {Array of {DG.AttributeDescription}}}
@@ -59,15 +59,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
     }
     return tResult;
   }.property('xCollectionClient','yCollectionClient', 'legendCollectionClient', 'dataContext'),
-  
+
   xCollectionClient: function() {
     return this.getPath('xAttributeDescription.collectionClient');
   }.property(),
-  
+
   yCollectionClient: function() {
     return this.getPath('yAttributeDescription.collectionClient');
   }.property(),
-  
+
   y2CollectionClient: function() {
     return this.getPath('y2AttributeDescription.collectionClient');
   }.property(),
@@ -79,11 +79,11 @@ DG.PlotDataConfiguration = SC.Object.extend(
   xCollectionDidChange: function() {
     this.notifyPropertyChange('xCollectionClient');
   }.observes('*xAttributeDescription.collectionClient'),
-  
+
   yCollectionDidChange: function() {
     this.notifyPropertyChange('yCollectionClient');
   }.observes('*yAttributeDescription.collectionClient'),
-  
+
   y2CollectionDidChange: function() {
     this.notifyPropertyChange('y2CollectionClient');
   }.observes('*y2AttributeDescription.collectionClient'),
@@ -160,7 +160,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
   firstAttributeDescriptionForRole: function( iRole) {
     return this.firstPlaceAndAttributeDescriptionForRole( iRole).attributeDescription;
   },
-  
+
   /**
     @param{DG.Analysis.EAnalysisRole}
     @return{DG.AttributePlacementDescription}
@@ -169,7 +169,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     var tResult = this.firstPlaceAndAttributeDescriptionForRole( iRole);
     return tResult.attributeDescription.get('attributeID');
   },
-  
+
   /**
     @param{DG.Analysis.EAnalysisRole}
     @return{DG.GraphTypes.EPlace}
@@ -177,11 +177,11 @@ DG.PlotDataConfiguration = SC.Object.extend(
   getPlaceForRole: function( iRole) {
     return this.firstPlaceAndAttributeDescriptionForRole( iRole).place;
   },
-  
+
   xAttributeID: function() {
     return this.getPath('xAttributeDescription.attributeID');
   }.property(),
-  
+
   yAttributeID: function() {
     return this.getPath('yAttributeDescription.attributeID');
   }.property(),
@@ -197,19 +197,19 @@ DG.PlotDataConfiguration = SC.Object.extend(
   xAttributeIDDidChange: function() {
     this.notifyPropertyChange('xAttributeID');
   }.observes('*xAttributeDescription.attributeID'),
-  
+
   yAttributeIDDidChange: function() {
     this.notifyPropertyChange('yAttributeID');
   }.observes('*yAttributeDescription.attributeID'),
-  
+
   y2AttributeIDDidChange: function() {
     this.notifyPropertyChange('y2AttributeID');
   }.observes('*y2AttributeDescription.attributeID'),
-  
+
   legendAttributeIDDidChange: function() {
     this.notifyPropertyChange('legendAttributeID');
   }.observes('*legendAttributeDescription.attributeID'),
-  
+
   /**
     @property {Boolean}
   */
@@ -234,15 +234,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
   xIsNumericDidChange: function() {
     this.notifyPropertyChange('xIsNumeric');
   }.observes('*xAttributeDescription.isNumeric'),
-  
+
   yIsNumericDidChange: function() {
     this.notifyPropertyChange('yIsNumeric');
   }.observes('*yAttributeDescription.isNumeric'),
-  
+
   y2IsNumericDidChange: function() {
     this.notifyPropertyChange('y2IsNumeric');
   }.observes('*y2AttributeDescription.isNumeric'),
-  
+
   /**
     @property {DG.Analysis.EAttributeType}
   */
@@ -267,15 +267,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
   xTypeDidChange: function() {
     this.notifyPropertyChange('xType');
   }.observes('*xAttributeDescription.attributeType'),
-  
+
   yTypeDidChange: function() {
     this.notifyPropertyChange('yType');
   }.observes('*yAttributeDescription.attributeType'),
-  
+
   y2TypeDidChange: function() {
     this.notifyPropertyChange('y2Type');
   }.observes('*y2AttributeDescription.attributeType'),
-  
+
   /**
    * This property is never actually assigned. It is used only as a notification bottleneck
    * @property { null }
@@ -299,10 +299,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
   hasAggregates: function() {
     var collectionIDs = {},
         foundID,
-    
+
         /**
           Utility function used to help identify the minimum set of collections that
-          have to be checked for aggregate functions. Since most graphs refer to 
+          have to be checked for aggregate functions. Since most graphs refer to
           attributes for a single collection, there's no point in redundantly checking
           for aggregates in the same collection due to multiple attribute references.
           Adds the specified collection to the collectionIDs local variable map.
@@ -314,12 +314,12 @@ DG.PlotDataConfiguration = SC.Object.extend(
           if( !SC.none( collectionID))
             collectionIDs[ collectionID] = collection;
         }.bind( this);
-    
+
     // Consider each of our possible collections in turn
     considerCollection('x');
     considerCollection('y');
     considerCollection('legend');
-    
+
     // Search through our set of collections, stopping on the first one that has aggregates.
     foundID = DG.ObjectMap.findKey( collectionIDs,
                                     function( iCollectionID, iCollection) {
@@ -381,7 +381,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
     sc_super();
   },
-  
+
   /**
     Sets the specified attribute for the specified attribute description,
     e.g. puts the specified attribute in the appropriate place for an axis.
@@ -441,7 +441,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
       tStats.set('attributeType', tType);
     }
   },
-  
+
   /**
    * Choose one collection to treat as the child collection.
    * If there is no parent/child relationship, just pick a collection.
@@ -618,11 +618,11 @@ DG.PlotDataConfiguration = SC.Object.extend(
         iArray.forEach( iDoF);
       });
   },
-  
+
   /**
     Return the first attribute description for which iTestF returns true.
     @param{Function} with signature (DG.AttributePlacementDescription) returning Boolean
-    @return {{attributeDescription: {DG.AttributePlacementDescription}, 
+    @return {{attributeDescription: {DG.AttributePlacementDescription},
               place: {DG.Analysis.EPlace} }}
   */
   firstAttributeDescriptionSuchThat: function( iTestF) {
@@ -641,10 +641,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
     }
     return { attributeDescription: null, place: DG.GraphTypes.EPlace.eUndefined };
   },
-  
+
   /**
     @param{DG.Analysis.EAnalysisRole}
-    @return{{attributeDescription: {DG.AttributePlacementDescription}, 
+    @return{{attributeDescription: {DG.AttributePlacementDescription},
               place: {DG.Analysis.EPlace} }}
   */
   firstPlaceAndAttributeDescriptionForRole: function( iRole) {
@@ -664,7 +664,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     this.get('legendAttributeDescription').invalidateCaches( iCases, iChange);
 
  },
-  
+
   /**
     Pass along to attribute descriptions
   */
@@ -740,10 +740,10 @@ DG.PlotDataConfiguration = SC.Object.extend(
       if( tCC)
         tArrays.push( tCC.casesController.arrangedObjects());
     }
-    
+
     return tArrays;
   }.property('xCollectionClient', 'yCollectionClient', 'legendCollectionClient'),
-  
+
   /**
     @param { DG.GraphTypes.EPlace }
     @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
@@ -784,15 +784,17 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * @param iArrayOfCases
    */
   hideCases: function( iArrayOfCases) {
+    if (!iArrayOfCases || !iArrayOfCases.length) return;
     this.set('hiddenCases', this.get('hiddenCases' ).concat( iArrayOfCases ).uniq());
   },
-  
+
   /**
    * The given array of cases will be subtracted from the current array of hidden cases.
    * By using 'set' we trigger notification for observers.
    * @param iArrayOfCases
    */
   showCases: function( iArrayOfCases) {
+    if (!iArrayOfCases || !iArrayOfCases.length) return;
     this.set('hiddenCases', DG.ArrayUtils.subtract( this.get('hiddenCases' ), iArrayOfCases,
                                                     function( iCase) {
                                                       return iCase.get('id');
@@ -813,8 +815,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
    * @param iArrayOfCaseIDs {Array} of {Number}
    */
   restoreHiddenCases: function( iArrayOfCaseIDs) {
-    if(SC.none( iArrayOfCaseIDs))
-      return;
+    if (!iArrayOfCaseIDs || !iArrayOfCaseIDs.length) return;
     this.set('hiddenCases', iArrayOfCaseIDs.map( function( iID) {
                                   return this.dataContext.getCaseByID( iID);
                                 }.bind(this)
