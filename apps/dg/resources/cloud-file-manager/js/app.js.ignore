@@ -5219,7 +5219,7 @@ function deflate(input, options) {
   deflator.push(input, true);
 
   // That will never happens, if you don't cheat with options :)
-  if (deflator.err) { throw deflator.msg; }
+  if (deflator.err) { throw deflator.msg || msg[deflator.err]; }
 
   return deflator.result;
 }
@@ -5644,7 +5644,7 @@ function inflate(input, options) {
   inflator.push(input, true);
 
   // That will never happens, if you don't cheat with options :)
-  if (inflator.err) { throw inflator.msg; }
+  if (inflator.err) { throw inflator.msg || msg[inflator.err]; }
 
   return inflator.result;
 }
@@ -5978,6 +5978,25 @@ exports.utf8border = function (buf, max) {
 // It doesn't worth to make additional optimizationa as in original.
 // Small size is preferable.
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
 function adler32(adler, buf, len, pos) {
   var s1 = (adler & 0xffff) |0,
       s2 = ((adler >>> 16) & 0xffff) |0,
@@ -6008,6 +6027,24 @@ module.exports = adler32;
 },{}],41:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 module.exports = {
 
@@ -6064,6 +6101,24 @@ module.exports = {
 // So write code to minimize size - no pregenerated tables
 // and array tools dependencies.
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 // Use ordinary array, since untyped makes no boost here
 function makeTable() {
@@ -6102,6 +6157,25 @@ module.exports = crc32;
 
 },{}],43:[function(require,module,exports){
 'use strict';
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils   = require('../utils/common');
 var trees   = require('./trees');
@@ -7960,6 +8034,24 @@ exports.deflateTune = deflateTune;
 },{"../utils/common":38,"./adler32":40,"./crc32":42,"./messages":48,"./trees":49}],44:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 function GZheader() {
   /* true if compressed data believed to be text */
@@ -8001,6 +8093,25 @@ module.exports = GZheader;
 
 },{}],45:[function(require,module,exports){
 'use strict';
+
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 // See state defs from inflate.js
 var BAD = 30;       /* got a data error -- remain here until reset */
@@ -8330,6 +8441,24 @@ module.exports = function inflate_fast(strm, start) {
 },{}],46:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils         = require('../utils/common');
 var adler32       = require('./adler32');
@@ -9870,6 +9999,24 @@ exports.inflateUndermine = inflateUndermine;
 },{"../utils/common":38,"./adler32":40,"./crc32":42,"./inffast":45,"./inftrees":47}],47:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = require('../utils/common');
 
@@ -10097,10 +10244,8 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
     return 1;
   }
 
-  var i = 0;
   /* process all codes and make table entries */
   for (;;) {
-    i++;
     /* create table entry */
     here_bits = len - drop;
     if (work[sym] < end) {
@@ -10199,6 +10344,25 @@ module.exports = function inflate_table(type, lens, lens_index, codes, table, ta
 },{"../utils/common":38}],48:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
+
 module.exports = {
   2:      'need dictionary',     /* Z_NEED_DICT       2  */
   1:      'stream end',          /* Z_STREAM_END      1  */
@@ -10214,6 +10378,24 @@ module.exports = {
 },{}],49:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 var utils = require('../utils/common');
 
@@ -11418,6 +11600,24 @@ exports._tr_align = _tr_align;
 },{"../utils/common":38}],50:[function(require,module,exports){
 'use strict';
 
+// (C) 1995-2013 Jean-loup Gailly and Mark Adler
+// (C) 2014-2017 Vitaly Puzrin and Andrey Tupitsin
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+// 2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+// 3. This notice may not be removed or altered from any source distribution.
 
 function ZStream() {
   /* next input byte */
@@ -11631,7 +11831,9 @@ module.exports={
 }
 
 },{}],52:[function(require,module,exports){
-module.exports={"version":"0.0.1"}
+module.exports={
+  "version": "0.0.1"
+}
 },{}],53:[function(require,module,exports){
 var AppView, CloudFileManager, CloudFileManagerClient, CloudFileManagerUIMenu, getHashParam;
 
@@ -11705,6 +11907,7 @@ module.exports = new CloudFileManager();
 
 },{"./client":54,"./ui":67,"./utils/get-hash-param":68,"./views/app-view":75}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, isString, tr,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
 
 tr = require('./utils/translate');
@@ -11751,6 +11954,7 @@ CloudFileManagerClientEvent = (function() {
 
 CloudFileManagerClient = (function() {
   function CloudFileManagerClient(options) {
+    this.shouldAutoSave = bind(this.shouldAutoSave, this);
     this.state = {
       availableProviders: []
     };
@@ -11833,7 +12037,8 @@ CloudFileManagerClient = (function() {
       appVersion: this.appOptions.appVersion || "",
       appBuildNum: this.appOptions.appBuildNum || ""
     });
-    return this.newFileOpensInNewTab = ((ref3 = this.appOptions.ui) != null ? ref3.hasOwnProperty('newFileOpensInNewTab') : void 0) ? this.appOptions.ui.newFileOpensInNewTab : true;
+    this.newFileOpensInNewTab = ((ref3 = this.appOptions.ui) != null ? ref3.hasOwnProperty('newFileOpensInNewTab') : void 0) ? this.appOptions.ui.newFileOpensInNewTab : true;
+    return this._startPostMessageListener();
   };
 
   CloudFileManagerClient.prototype.setProviderOptions = function(name, newOptions) {
@@ -12385,7 +12590,7 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.saveCopiedFile = function(stringContent, name, callback) {
-    var copyNumber, e, error, key, maxCopyNumber, prefix, ref, value;
+    var copyNumber, e, key, maxCopyNumber, prefix, ref, value;
     try {
       prefix = 'cfm-copy::';
       maxCopyNumber = 0;
@@ -12411,7 +12616,7 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.openCopiedFile = function(copyParams) {
-    var content, copied, e, error, key, metadata;
+    var content, copied, e, key, metadata;
     try {
       key = "cfm-copy::" + copyParams;
       copied = JSON.parse(window.localStorage.getItem(key));
@@ -12760,24 +12965,22 @@ CloudFileManagerClient = (function() {
     });
   };
 
+  CloudFileManagerClient.prototype.shouldAutoSave = function() {
+    var ref, ref1, ref2;
+    return this.state.dirty && !((ref = this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !this.isSaveInProgress() && ((ref1 = this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('resave', this.state.metadata) : void 0 : void 0);
+  };
+
   CloudFileManagerClient.prototype.autoSave = function(interval) {
-    var shouldAutoSave;
     if (this._autoSaveInterval) {
       clearInterval(this._autoSaveInterval);
     }
-    shouldAutoSave = (function(_this) {
-      return function() {
-        var ref, ref1, ref2;
-        return _this.state.dirty && !((ref = _this.state.metadata) != null ? ref.autoSaveDisabled : void 0) && !_this.isSaveInProgress() && ((ref1 = _this.state.metadata) != null ? (ref2 = ref1.provider) != null ? ref2.can('resave', _this.state.metadata) : void 0 : void 0);
-      };
-    })(this);
     if (interval > 1000) {
       interval = Math.round(interval / 1000);
     }
     if (interval > 0) {
       return this._autoSaveInterval = setInterval(((function(_this) {
         return function() {
-          if (shouldAutoSave()) {
+          if (_this.shouldAutoSave()) {
             return _this.save();
           }
         };
@@ -13015,6 +13218,43 @@ CloudFileManagerClient = (function() {
     } else {
       return "";
     }
+  };
+
+  CloudFileManagerClient.prototype._startPostMessageListener = function() {
+    return $(window).on('message', (function(_this) {
+      return function(e) {
+        var oe, ref, reply;
+        oe = e.originalEvent;
+        reply = function(type, params) {
+          var message;
+          if (params == null) {
+            params = {};
+          }
+          message = _.merge({}, params, {
+            type: type
+          });
+          return oe.source.postMessage(message, oe.origin);
+        };
+        switch ((ref = oe.data) != null ? ref.type : void 0) {
+          case 'cfm::getCommands':
+            return reply('cfm::commands', {
+              commands: ['cfm::autosave']
+            });
+          case 'cfm::autosave':
+            if (_this.shouldAutoSave()) {
+              return _this.save(function() {
+                return reply('cfm::autosaved', {
+                  saved: true
+                });
+              });
+            } else {
+              return reply('cfm::autosaved', {
+                saved: false
+              });
+            }
+        }
+      };
+    })(this));
   };
 
   return CloudFileManagerClient;
@@ -13416,7 +13656,7 @@ DocumentStoreProvider = (function(superClass) {
       if (this._loginWindow) {
         pollAction = (function(_this) {
           return function() {
-            var e, error;
+            var e;
             try {
               if (_this._loginWindow.location.host === window.location.host) {
                 clearInterval(poll);
@@ -13656,7 +13896,7 @@ DocumentStoreProvider = (function(superClass) {
         })(this)
       },
       error: function(jqXHR) {
-        var error, responseJson;
+        var responseJson;
         try {
           if (jqXHR.status === 403) {
             return;
@@ -14664,7 +14904,7 @@ LaraProvider = (function(superClass) {
   };
 
   LaraProvider.prototype.decodeParams = function(params) {
-    var decoded, e, error1;
+    var decoded, e;
     try {
       decoded = JSON.parse(base64.decode(params));
     } catch (error1) {
@@ -14688,7 +14928,7 @@ LaraProvider = (function(superClass) {
   };
 
   LaraProvider.prototype.extractRawDataFromRunState = function(runState) {
-    var e, error1, rawData;
+    var e, rawData;
     rawData = (runState != null ? runState.raw_data : void 0) || {};
     if (typeof rawData === "string") {
       try {
@@ -14778,7 +15018,7 @@ LaraProvider = (function(superClass) {
         return callback(null, data);
       },
       error: function(jqXHR) {
-        var error1, responseJson;
+        var responseJson;
         if (patchResults.shouldPatch) {
           return this.save(cloudContent, metadata, callback, true);
         } else {
@@ -15180,7 +15420,6 @@ LocalStorageProvider = (function(superClass) {
   LocalStorageProvider.Available = function() {
     var result, test;
     return result = (function() {
-      var error;
       try {
         test = 'LocalStorageProvider::auth';
         window.localStorage.setItem(test, test);
@@ -15193,7 +15432,7 @@ LocalStorageProvider = (function(superClass) {
   };
 
   LocalStorageProvider.prototype.save = function(content, metadata, callback) {
-    var e, error, fileKey;
+    var e, fileKey;
     try {
       fileKey = this._getKey(metadata.filename);
       window.localStorage.setItem(fileKey, (typeof content.getContentAsJSON === "function" ? content.getContentAsJSON() : void 0) || content);
@@ -15205,7 +15444,7 @@ LocalStorageProvider = (function(superClass) {
   };
 
   LocalStorageProvider.prototype.load = function(metadata, callback) {
-    var content, e, error;
+    var content, e;
     try {
       content = window.localStorage.getItem(this._getKey(metadata.filename));
       return callback(null, cloudContentFactory.createEnvelopedCloudContent(content));
@@ -15239,7 +15478,6 @@ LocalStorageProvider = (function(superClass) {
   };
 
   LocalStorageProvider.prototype.remove = function(metadata, callback) {
-    var error;
     try {
       window.localStorage.removeItem(this._getKey(metadata.filename));
       return typeof callback === "function" ? callback(null) : void 0;
@@ -15249,7 +15487,7 @@ LocalStorageProvider = (function(superClass) {
   };
 
   LocalStorageProvider.prototype.rename = function(metadata, newName, callback) {
-    var content, error;
+    var content;
     try {
       content = window.localStorage.getItem(this._getKey(metadata.filename));
       window.localStorage.setItem(this._getKey(CloudMetadata.withExtension(newName)), content);
@@ -15332,7 +15570,7 @@ PatchableContent = (function() {
   };
 
   PatchableContent.prototype._createDiff = function(obj1, obj2) {
-    var cleanedObj1, cleanedObj2, diff, error, opts;
+    var cleanedObj1, cleanedObj2, diff, opts;
     try {
       opts = {
         hash: typeof this.patchObjectHash === "function" ? this.patchObjectHash : void 0,
@@ -15481,7 +15719,7 @@ CloudContentFactory = (function() {
     if (isString(content)) {
       try {
         content = JSON.parse(content);
-      } catch (undefined) {}
+      } catch (error) {}
     }
     if (content.metadata) {
       return result;
@@ -15498,7 +15736,7 @@ CloudContentFactory = (function() {
     if (isString(content)) {
       try {
         content = JSON.parse(content);
-      } catch (undefined) {}
+      } catch (error) {}
     }
     if (content.content != null) {
       return content;
@@ -17217,6 +17455,23 @@ DropDown = React.createClass({
       subMenu: null
     };
   },
+  componentWillMount: function() {
+    if (window.addEventListener) {
+      window.addEventListener('mousedown', this.checkBlur, true);
+      return window.addEventListener('touchstart', this.checkBlur, true);
+    }
+  },
+  componentWillUnmount: function() {
+    if (window.removeEventListener) {
+      window.removeEventListener('mousedown', this.checkBlur, true);
+      return window.removeEventListener('touchstart', this.checkBlur, true);
+    }
+  },
+  checkBlur: function() {
+    if (this.state.showingMenu) {
+      return this.blur();
+    }
+  },
   blur: function() {
     var timeout;
     this.unblur();
@@ -18012,6 +18267,7 @@ module.exports = React.createClass({
   componentWillMount: function() {
     if (window.addEventListener) {
       window.addEventListener('mousedown', this.checkBlur, true);
+      window.addEventListener('touchstart', this.checkBlur, true);
     }
     return this.props.client._ui.listen((function(_this) {
       return function(event) {
@@ -18030,7 +18286,8 @@ module.exports = React.createClass({
   },
   componentWillUnmount: function() {
     if (window.removeEventListener) {
-      return window.removeEventListener('mousedown', this.checkBlur, true);
+      window.removeEventListener('mousedown', this.checkBlur, true);
+      return window.removeEventListener('touchstart', this.checkBlur, true);
     }
   },
   getFilename: function(props) {
@@ -18574,7 +18831,7 @@ module.exports = React.createClass({
     }
   },
   copy: function(e) {
-    var copied, error, error1, mark, range, selection, toCopy;
+    var copied, mark, range, selection, toCopy;
     e.preventDefault();
     copied = false;
     toCopy = this.state[this.state.tabSelected];
@@ -18592,7 +18849,7 @@ module.exports = React.createClass({
       try {
         window.clipboardData.setData('text', toCopy);
         return copied = true;
-      } catch (error1) {
+      } catch (error) {
         return copied = false;
       }
     } finally {
