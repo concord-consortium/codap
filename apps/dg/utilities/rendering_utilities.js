@@ -25,7 +25,7 @@ sc_require('libraries/raphael');
 DG.RenderingUtilities = {
 
   /* jshint -W064 */  // Missing 'new' prefix when invoking a constructor. (W064)
-  _blankCanvas: Raphael(0, 0, 500, 500),
+  _blankCanvas: Raphael(-500, 0, 500, 500),
   /* jshint +W064 */
   
   kTransparent: "rgba(255, 255, 255, 0)",
