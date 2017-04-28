@@ -22,6 +22,7 @@
  * endpoint.
  */
 DG.IFramePhoneEmulator = function (messageHandler, channelName, connectorName) {
+  var queue = [];
   var connection = null;
   return {
     call: function (message, callback) {
@@ -32,7 +33,7 @@ DG.IFramePhoneEmulator = function (messageHandler, channelName, connectorName) {
           }
         });
       } else {
-        DG.log('Attempt to send local message on unestablished connection from %@: %@'.loc(connectorName, message));
+        queue.push({message: message, callback: callback});
       }
     },
     connect: function (partner) {
@@ -40,6 +41,11 @@ DG.IFramePhoneEmulator = function (messageHandler, channelName, connectorName) {
         DG.log('Local Connection established between %@ and %@'.loc(connectorName, partner.getConnectorName()));
         connection = partner;
         partner.connect(this);
+        if (queue.length > 0) {
+          queue.forEach(function (item) {
+            this.call(item.message, item.callback);
+          }.bind(this));
+        }
       }
     },
     getConnectorName: function () {
