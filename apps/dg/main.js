@@ -18,6 +18,7 @@
 /*globals React, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
+sc_require('utilities/iframe-phone-emulator');
 
 // This is the function that will start your app running.  The default
 // implementation will load any fixtures you have created then instantiate
@@ -89,7 +90,15 @@ DG.main = function main() {
           });
         };
 
-    iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+    // if there is a real parent for this page try connecting using IFramePhone,
+    // otherwise we are embedded in the same context as our host, so we create
+    // an emulated connection
+    if (window.parent !== window) {
+      iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+    } else {
+      iHandler.rpcEndpoint = new DG.IFramePhoneEmulator(iframePhoneHandler, 'data-interactive', 'codap');
+      DG.localIFramePhoneEndpoint = iHandler.rpcEndpoint;
+    }
 
     iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
       DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
