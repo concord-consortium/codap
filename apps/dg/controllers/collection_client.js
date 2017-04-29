@@ -345,15 +345,12 @@ DG.CollectionClient = SC.Object.extend(
         if (!SC.none( iProperties.colormap)) {
           tAttribute.set('colormap', SC.clone( iProperties.colormap));
         }
-        // copy 'blockDisplayOfEmptyCategories' property
-        if (!SC.none( iProperties.blockDisplayOfEmptyCategories)) {
-          tAttribute.set('blockDisplayOfEmptyCategories', iProperties.blockDisplayOfEmptyCategories);
-        }
-        // copy 'editable' property
-        if (!SC.none( iProperties.editable)) {
-          tAttribute.set('editable', iProperties.editable);
-        }
-        // Eventually we should copy all properties here.
+
+        ['title', 'type', 'description', 'editable', 'hidden', 'precision', 'unit', 'blockDisplayOfEmptyCategories'].foreach(function (prop) {
+          if (!SC.none( iProperties[prop])) {
+            tAttribute.set(prop, iProperties[prop]);
+          }
+        });
       }
 
       // If the attribute doesn't exist, we must create it

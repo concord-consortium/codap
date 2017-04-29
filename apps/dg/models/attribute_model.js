@@ -433,6 +433,9 @@ DG.Attribute.createAttribute = function( iProperties) {
   if( iProperties.colormap) {
     newAttribute.colormap = SC.clone( iProperties.colormap);
   }
+  if ( iProperties.type && iProperties.type===DG.Attribute.TYPE_NOMINAL) {
+    iProperties.type = DG.Attribute.TYPE_CATEGORICAL;
+  }
 
   DG.store.commitRecords();
   DG.Attribute.idMap[ newAttribute.get('id')] = newAttribute;
@@ -453,7 +456,7 @@ DG.Attribute.legalizeAttributeName = function (iName) {
     tNewName = tName.replace(tReg, '');  // Get rid of parenthesized units
   }
   // TODO: We are eliminating all but Latin characters here. We should be more general and allow
-  // non-Latin alphameric characters.
+  // non-Latin alphanumeric characters.
   tNewName = tNewName.trim(); // Get rid of trailing white space
   tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
   // if after all this we have an empty string replace with a default name.
@@ -478,14 +481,15 @@ DG.Attribute.destroyAttribute = function( iAttribute) {
  * @type {string[]}
  */
 DG.Attribute.TYPE_UNSPECIFIED = 'none';
-DG.Attribute.TYPE_NOMINAL = 'nominal';
+DG.Attribute.TYPE_NOMINAL = 'nominal'; // no longer used
+DG.Attribute.TYPE_CATEGORICAL = 'categorical';
 DG.Attribute.TYPE_NUMERIC = 'numeric';
 DG.Attribute.TYPE_DATE = 'date';
 DG.Attribute.TYPE_QUALITATIVE = 'qualitative';
 
 DG.Attribute.attributeTypes = [
   DG.Attribute.TYPE_UNSPECIFIED,
-  DG.Attribute.TYPE_NOMINAL,
+  DG.Attribute.TYPE_CATEGORICAL,
   DG.Attribute.TYPE_NUMERIC,
   DG.Attribute.TYPE_DATE,
   DG.Attribute.TYPE_QUALITATIVE

@@ -486,6 +486,7 @@ SC.stringsFor('English', {
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': 'categorical',
+  'DG.CaseTable.attribute.type.categorical': 'categorical',
   'DG.CaseTable.attribute.type.numeric': 'numeric',
   'DG.CaseTable.attribute.type.date': 'date',
   'DG.CaseTable.attribute.type.qualitative': 'qualitative',

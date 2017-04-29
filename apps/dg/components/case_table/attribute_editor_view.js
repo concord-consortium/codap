@@ -198,6 +198,10 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
         if (attrRef) {
           DG.ObjectMap.forEach(attr, function(key, val) {
             var ctlName = key + 'Ctl';
+            // Convert attribute type nominal to categorical
+            if (key === 'type' && val === DG.Attribute.TYPE_NOMINAL) {
+              val = DG.Attribute.TYPE_CATEGORICAL;
+            }
             if (!SC.none(contentView.get(ctlName)) && !SC.none(val)) {
               contentView.setPath(ctlName + '.controlView.value', val);
             }

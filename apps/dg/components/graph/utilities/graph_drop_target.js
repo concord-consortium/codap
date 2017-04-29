@@ -21,7 +21,7 @@
 /** @class  Mixin to define behavior of graph subviews on drag
 
 */
-DG.GraphDropTarget = 
+DG.GraphDropTarget =
 {
   kDropFrameClass: 'graph-drop-frame',
   kDropHintClass: 'graph-drop-hint',
@@ -34,7 +34,7 @@ DG.GraphDropTarget =
 
   // SC.DropTarget protocol
   isDropTarget: true,
-  
+
   /**
    Graph controller observes this property to detect that a drag has taken place.
    @property{{collection:{DG.CollectionRecord}, attribute:{DG.Attribute}, text:{String},
@@ -48,7 +48,7 @@ DG.GraphDropTarget =
     else
       return SC.DRAG_NONE;
   },
-  
+
   dragEntered: function( iDragObject, iEvent) {
     this.borderFrame.addClass('graph-drop-frame-fill');
     this.showDropHint();
@@ -56,12 +56,12 @@ DG.GraphDropTarget =
     if( tCompView)
       tCompView.bringToFront();
   },
-  
+
   dragExited: function( iDragObject, iEvent) {
     this.borderFrame.removeClass('graph-drop-frame-fill');
     this.hideDropHint();
   },
-  
+
   acceptDragOperation: function() {
     return YES;
   },
@@ -71,12 +71,14 @@ DG.GraphDropTarget =
         tCurrAttr = this.get('plottedAttribute');
     return SC.none( tCurrAttr) || (tCurrAttr !== tDragAttr);
   },
-  
+
   // Draw an orange frame to show we're a drop target.
   dragStarted: function( iDrag) {
     var kWidth = 3,
         tPaper = this.get('paper' ),
         tFrame;
+
+    if (!tPaper) return;
 
     function isEmpty( iString) {
       return SC.empty( iString) || iString === 'undefined';
@@ -118,7 +120,7 @@ DG.GraphDropTarget =
     if( this.borderFrame)
       this.borderFrame.hide();
   },
-  
+
   /**
   @property{Raphael element}
   */
