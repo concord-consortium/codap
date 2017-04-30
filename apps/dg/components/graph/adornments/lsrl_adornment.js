@@ -70,7 +70,7 @@ DG.LSRLAdornment = DG.TwoDLineAdornment.extend(
     tModel.recomputeSlopeAndInterceptIfNeeded();
     var tSlope = tModel.get('slope'),
         tIntercept = tModel.get('intercept');
-    if( !isFinite( tSlope) || !isFinite( tIntercept)) {
+    if( SC.none( tSlope) || SC.none( tIntercept) || !isFinite( tSlope) || !isFinite( tIntercept)) {
       this.hideElements();
       return;
     }
