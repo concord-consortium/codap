@@ -696,7 +696,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
   hiddenCasesDidChange: function() {
     this._casesCache = null;
     this.invalidateAxisDescriptionCaches();
-    this.propertyDidChange('cases');
   }.observes('hiddenCases'),
 
   /**

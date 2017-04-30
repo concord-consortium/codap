@@ -315,9 +315,9 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         }));
       },
 
-      handleDataConfigurationChange: function () {
+      handleDataConfigurationChange: function (iKey) {
         sc_super();
-        this.rescaleAxesFromData(true, /* allow scale shrinkage */
+        this.rescaleAxesFromData(iKey !== 'hiddenCases', /* allow scale shrinkage */
             true /* do animation */);
 
         var adornmentModel = this.getAdornmentModel('connectingLine');

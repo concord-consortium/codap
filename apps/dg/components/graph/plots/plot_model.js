@@ -754,18 +754,20 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       this._observedDataConfiguration.removeObserver('cases', this, 'dataConfigurationDidChange');
       this._observedDataConfiguration.removeObserver('attributeAssignment', this, 'dataConfigurationDidChange');
       this._observedDataConfiguration.removeObserver('arrangedObjectArrays', this, 'sourceArraysDidChange');
+      this._observedDataConfiguration.removeObserver('hiddenCases', this, 'dataConfigurationDidChange');
       this._observedDataConfiguration = null;
     }
     
     var dataConfiguration = this.get('dataConfiguration');
     if( dataConfiguration) {
       this.invalidateCaches();
-      this.handleDataConfigurationChange();
+      this.handleDataConfigurationChange(iKey);
 
       if( iKey === 'dataConfiguration') {
         dataConfiguration.addObserver('cases', this, 'dataConfigurationDidChange');
         dataConfiguration.addObserver('attributeAssignment', this, 'dataConfigurationDidChange');
         dataConfiguration.addObserver('arrangedObjectArrays', this, 'sourceArraysDidChange');
+        dataConfiguration.addObserver('hiddenCases', this, 'dataConfigurationDidChange');
         this._observedDataConfiguration = dataConfiguration;
       }
     }
