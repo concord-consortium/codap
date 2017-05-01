@@ -8,13 +8,43 @@ PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
 ROOTDIR=`dirname ${DIRNAME}`
 APPNAME=dg
+OPTIONS="[--logfile=path --minify=yes|no --mode=production|debug --root={path_fragment} --very-verbose]"
 
 function usage() {
-    echo "usage: $PROGNAME buildnumber" 1>&2
+    echo "usage: $PROGNAME $OPTIONS buildnumber" 1>&2
     exit 1
 }
 
-if [ "$1" == "" ] ; then
+OPTS=
+BUILD_OPTS=
+ROOT_SUBSTITUTION=../../../../
+while true; do
+  case "$1" in
+    --very-verbose)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --logfile=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --mode=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --root=*)
+      ROOT_SUBSTITUTION=`echo $1 | sed 's/^--root=//'`;
+      shift;;
+    --minify=*)
+      OPT=`echo $1 | sed 's/^--minify=//'`
+      [ "$OPT" == "no" ] && BUILD_OPTS="${BUILD_OPTS} --dont-minify";
+      shift;;
+    --*)
+      usage;
+      shift;;
+    *)
+      break;;
+   esac
+done
+
+if [ "$#" != 1 ] ; then
     usage
 fi
 
@@ -27,14 +57,16 @@ INDEX_HTML=${WORK_DIR}/index.html
 
 REDIRECT_PATH=./static/dg/en/cert/index.html
 
-#BUILD_OPTS=--dont-minify
-BUILD_OPTS=${BUILD_OPTS:-}
+# BUILD_OPTS=${BUILD_OPTS} "--dont-minify"
+# BUILD_OPTS=${BUILD_OPTS} "--logfile=build.log"
+# BUILD_OPTS=${BUILD_OPTS} "--very-verbose"
+# BUILD_OPTS=${BUILD_OPTS} "--mode=debug"
 
 mkdir -p ${WORK_DIR}
 
 #
 # Build to a temp directory
-sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert -vv
+sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
 #
 # Generate top level index.html redirector
@@ -53,11 +85,14 @@ cat > ${INDEX_HTML} << END_DOC
 </html>
 END_DOC
 
+RS=${ROOT_SUBSTITUTION}
+PATH_FIX="s%\"/static/%\"${RS}/static/%g;s%\'/static/%\'${RS}/static/%g;s%DataGames/%${RS}/DataGames/%g"
+echo PATH_FIX="$PATH_FIX"
 #
 # Fix absolute references
 files=`find ${WORK_DIR} -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
 for t in ${files} ; do
-    sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g;s%DataGames/%../../../../DataGames/%g' ${t} > /tmp/${PROGNAME}_replace.$$ &&
+    sed "${PATH_FIX}" ${t} > /tmp/${PROGNAME}_replace.$$ &&
     mv /tmp/${PROGNAME}_replace.$$ ${t}
 done
 
