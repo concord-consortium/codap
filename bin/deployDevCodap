@@ -36,7 +36,7 @@ VERSION_STRING=$1
 
 #
 # Make the relocatable version
-makeCODAPZip $VERSION_STRING
+makeCODAPZip --minify=no $VERSION_STRING
 
 #
 # Transmit it

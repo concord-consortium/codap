@@ -15,6 +15,8 @@
     "build:cfm": "cd ../cloud-file-manager && npm run build:codap && cd ../codap",
     "build:dev:comment": "echo Usage: `npm run build:dev` performs a local development build",
     "build:dev": "npm run build:bundle-dev && npm run build:local",
+    "build:embedded:comment": "echo Usage: `npm run build:embedded` builds a CODAP embedded mode package named embeddedCODAP",
+    "build:embedded": "bin/makeCodapZip embeddedCODAP",
     "build:local:comment": "echo Usage: `npm run build:local` performs a local sproutcore build",
     "build:local": "sproutcore build -vv dg",
     "build:parser:comment": "echo Usage: `npm run build:parser` uses PEG.js to build the formula parser from the grammar",
