@@ -201,7 +201,7 @@ DG.main = function main() {
    */
   function cfmLoaded() {
     // if a cfmBaseUrl was specified, load the CFM libs dynamically via ajax
-    if (DG.cfmBaseUrl != null) {
+    if (DG.cfmBaseUrl) {
       return Promise.all([cfmGlobalsLoaded(), cfmAppLoaded()]);
     }
 
