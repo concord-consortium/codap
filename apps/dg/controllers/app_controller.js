@@ -858,8 +858,9 @@ DG.appController = SC.Object.create((function () // closure
      Open a new tab with the CODAP website.
      */
     showWebSite: function () {
-      var kWidth = 975, kHeight = 500;
-      this.openWebView( DG.get('showWebSiteURL'), 'DG.AppController.showWebSiteTitle'.loc(), kWidth, kHeight);
+      var kWebsiteURL = DG.get('showWebSiteURL');
+
+      window.open(kWebsiteURL, "CODAP Product Page"); //If tab with site is already open, no new tabs are generated, but tab with page does not come forward
     },
 
     /**
