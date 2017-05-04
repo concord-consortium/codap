@@ -198,7 +198,7 @@ DG = SC.Application.create((function () // closure
 
     showHelpURL: 'https://codap.concord.org/help',
 
-    showWebSiteURL: 'https://concord.org/projects/codap',
+    showWebSiteURL: 'https://codap.concord.org',
 
     /*
      * Logging is enabled when server matches this DNS name.
