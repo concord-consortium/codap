@@ -168,7 +168,7 @@ DG = SC.Application.create((function () // closure
 
   var useStandaloneMode = function () {
     var standaloneParam = getUrlParameter('standalone');
-    return !SC.empty(standaloneParam) && standaloneParam === 'true';
+    return !SC.empty(standaloneParam) && standaloneParam !== 'false';
   };
 
 
@@ -235,6 +235,13 @@ DG = SC.Application.create((function () // closure
     NO_DATA_TIP_PREF: noDataTipPref(),
 
     STANDALONE_MODE: useStandaloneMode(),
+    STANDALONE_PLUGIN: getUrlParameter('standalone'),
+    isStandaloneComponent: function (iComponentName, iComponentType) {
+      return (DG.STANDALONE_MODE
+          && (iComponentType === 'DG.GameView')
+          && (DG.STANDALONE_PLUGIN === 'true' || (iComponentName === DG.STANDALONE_PLUGIN))
+      );
+    },
 
     // This is your application store.  You will use this store to access all
     // of your model data.  You can also set a data source on this store to

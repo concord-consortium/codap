@@ -1484,9 +1484,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
             var component = iResources.component;
             var document = DG.currDocumentController();
-            var componentController = document.componentControllersMap[component.get('id')];
-            componentController.willSaveComponent();
-            var archive = component.toArchive();
+            var componentController = component && document && document.componentControllersMap[component.get('id')];
+            componentController && componentController.willSaveComponent();
+            var archive = component && component.toArchive();
             var serialized = archive && remapArchiveComponent(archive);
             if (serialized) {
               return {

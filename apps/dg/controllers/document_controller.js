@@ -611,15 +611,15 @@ DG.DocumentController = SC.Object.extend(
         tParams.layout = $.extend(true, {}, tComponentLayout);
 
       if( isRestoring) {
-        if(DG.STANDALONE_MODE && (iParams.componentClass.constructor === DG.GameView)) {
+        var tRestoredTitle = iComponent.getPath('componentStorage.title');
+        var tRestoredName = iComponent.getPath('componentStorage.name');
+        iComponent.set('title', tRestoredTitle || tRestoredName);
+        iComponent.set('name', tRestoredName || tRestoredTitle);
+        if (DG.isStandaloneComponent(iComponent.get('name') || iComponent.get('title'), iComponent.get('type'))) {
           tParams.useLayout = true;
           tParams.layout = {};
         }
-        var tRestoredTitle = iComponent.getPath('componentStorage.title');
-        var tRestoredName = iComponent.getPath('componentStorage.name');
         tComponentView = DG.ComponentView.restoreComponent(tParams);
-        iComponent.set('title', tRestoredTitle || tRestoredName);
-        iComponent.set('name', tRestoredName || tRestoredTitle);
       } else {
         DG.sounds.playCreate();
         tComponentView = DG.ComponentView.addComponent(tParams);
@@ -649,13 +649,24 @@ DG.DocumentController = SC.Object.extend(
     },
 
     addGame: function (iParentView, iComponent, isInitialization) {
+      function getNameFromURL(iUrl) {
+        if (!iUrl) {
+          return;
+        }
+        var match = /.*\/([^\/]*)\.[^\/.]*$/.exec(iUrl);
+        if (match) {
+          return match[1];
+        }
+      }
       var tGameParams = {
           width: 640, height: 480
         },
         tGameUrl = (iComponent && iComponent.getPath(
           'componentStorage.currentGameUrl')),
         tGameName = (iComponent && iComponent.getPath(
-            'componentStorage.currentGameName')) || 'Unknown Game',
+            'componentStorage.currentGameName')) ||
+            getNameFromURL(tGameUrl) ||
+            'Unknown Game',
         tView;
       DG.UndoHistory.execute(DG.Command.create({
         name: 'game.create',
@@ -676,8 +687,7 @@ DG.DocumentController = SC.Object.extend(
             contentProperties: {
               controller: tController,
               value: tGameUrl,
-              name: tGameName,
-              model: DG.DataInteractiveModel.create()
+              model: DG.DataInteractiveModel.create({title: tGameName})
             },
             defaultLayout: {
               width: tGameParams.width,

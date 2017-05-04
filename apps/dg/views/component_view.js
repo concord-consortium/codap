@@ -730,7 +730,8 @@ DG.ComponentView._createComponent = function (iParams) {
   var tComponentClass = iParams.componentClass.constructor;
   SC.Benchmark.start('createComponent: ' + tComponentClass);
 
-  var tIsStandaloneInteractive = DG.STANDALONE_MODE && (tComponentClass === DG.GameView),
+  var tName = iParams.name || iParams.title,
+      tIsStandaloneInteractive = DG.isStandaloneComponent(tName, tComponentClass === DG.GameView?'DG.GameView': ''),
       tMakeItVisible = (iParams.layout.isVisible === undefined) || iParams.layout.isVisible,
       tIsResizable = iParams.isResizable,
       tComponentView = DG.ComponentView.create({
