@@ -249,6 +249,9 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                                 ? 'DG.NumberToggleView.disableLastModeTooltip'.loc()
                                 : 'DG.NumberToggleView.enableLastModeTooltip'.loc(),
                 tClickHandling = false,
+                lastDashElt = this._paper.text(-9999, 0, 'DG.NumberToggleView.lastDash'.loc())
+                                .attr({ 'font-family': kLabelFontFamily, 'font-size': kLabelFontSize,
+                                        cursor: 'pointer', 'text-anchor': 'start', fill: 'black' }),
                 checkElt = this._paper.text(-9999, 0, lastCheck)
                             .attr({ 'font-family': kLabelFontFamily, 'font-size': kCheckFontSize,
                                     cursor: 'pointer', 'text-anchor': 'start',
@@ -275,9 +278,11 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
                             toggleLastMode();
                           tClickHandling = false;
                         });
-            checkElt.width = checkElt.getBBox().width;
-            lastElt.width = lastElt.getBBox().width;
-            return [checkElt, lastElt];
+            var lastElements = [lastDashElt, checkElt, lastElt];
+            lastElements.forEach(function(elt) {
+              elt.width = elt.getBBox().width;
+            });
+            return lastElements;
           }.bind(this),
 
           createNumberElements = function(lastElements) {
