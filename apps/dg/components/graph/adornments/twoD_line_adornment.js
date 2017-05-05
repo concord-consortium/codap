@@ -127,6 +127,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tXVar = this_.getPath('xAxisView.model.firstAttributeName');
       if (tXIsDateTime) {
         handleDateTime();
+        return 'DG.ScatterPlotModel.slopeOnly'.loc( tSlopeString, tXVar);
       }
       // When the intercept string is zero, don't display it (even if the numeric value is not zero).
       if (tInterceptString === "0")
