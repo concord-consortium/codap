@@ -346,7 +346,7 @@ DG.CollectionClient = SC.Object.extend(
           tAttribute.set('colormap', SC.clone( iProperties.colormap));
         }
 
-        ['title', 'type', 'description', 'editable', 'hidden', 'precision', 'unit', 'blockDisplayOfEmptyCategories'].foreach(function (prop) {
+        ['title', 'type', 'description', 'editable', 'hidden', 'precision', 'unit', 'blockDisplayOfEmptyCategories'].forEach(function (prop) {
           if (!SC.none( iProperties[prop])) {
             tAttribute.set(prop, iProperties[prop]);
           }
