@@ -744,6 +744,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set('plotBackgroundOpacity', iStorage.plotBackgroundOpacity);
       if( !SC.none( iStorage.enableNumberToggle))
         this.set('enableNumberToggle', iStorage.enableNumberToggle);
+      if( iStorage.enableNumberToggle && !SC.none( iStorage.numberToggleLastMode))
+        this.setPath('numberToggle.lastMode', iStorage.numberToggleLastMode);
 
       this.set('aboutToChangeConfiguration', true ); // signals dependents to prepare
 
