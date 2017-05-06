@@ -21,7 +21,7 @@ sc_require('models/base_model');
 /** @class
 
   A container for the cases and attributes that make up a collection.
-  
+
   @extends SC.Object
 */
 DG.Collection = DG.BaseModel.extend( (function() // closure
@@ -46,6 +46,12 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @type {DG.DataSet}
      */
     dataSet: null,
+
+    /**
+     * Whether attribute names should be canonicalized.
+     * @property {Boolean}
+     */
+    canonicalizeNamesBinding: SC.Binding.oneWay('*dataSet.canonicalizeNames'),
 
     /**
      * A relational link back to the parent collection (if any).

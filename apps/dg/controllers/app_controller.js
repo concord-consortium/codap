@@ -87,7 +87,8 @@ DG.appController = SC.Object.create((function () // closure
           execute: function () {
             dataContext = DG.appController.createDataContextFromCSV(
                 'DG.AppController.createDataSet.initialAttribute'.loc(), /*'new'*/
-                'DG.AppController.createDataSet.name'.loc() /* 'new_dataset' */
+                'DG.AppController.createDataSet.name'.loc(), /* 'new_dataset' */
+                DG.canonicalizeNamesDefault
             );
             caseTable = documentController.addCaseTable(
                 DG.mainPage.get('docView'), null, {position: 'top', dataContext: dataContext});
@@ -335,13 +336,13 @@ DG.appController = SC.Object.create((function () // closure
      * @param iName {string}
      * @return {DG.DataContext}
      */
-    createDataContextFromCSV: function (iText, iName) {
+    createDataContextFromCSV: function (iText, iName, iCanonicalizeNames) {
       // Create document-specific store.
       var newDocument, context, contextRecord,
           documentController = DG.currDocumentController();
 
       // Parse the document contents from the retrieved docText.
-      newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
+      newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName, iCanonicalizeNames);
 
       if (SC.none(newDocument)) {
         throw new Error('DG.AppController.validateDocument.parseError'.loc(iName));
@@ -368,7 +369,7 @@ DG.appController = SC.Object.create((function () // closure
      * @returns {Boolean}
      */
     importText: function( iText, iName, iShowCaseTable) {
-      var context = this.createDataContextFromCSV(iText, iName);
+      var context = this.createDataContextFromCSV(iText, iName, DG.canonicalizeNamesDefault);
 
       iShowCaseTable = SC.none( iShowCaseTable) || iShowCaseTable;
       if( iShowCaseTable) {

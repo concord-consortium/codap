@@ -61,6 +61,13 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     collectionOrder: null,
 
+    /**
+     * Setting that determines whether attribute names will be canonicalized.
+     *
+     * @type {Boolean}
+     */
+    canonicalizeNames: false,
+
     init: function () {
       this.dataItems = [];
       this.attrs = [];

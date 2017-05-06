@@ -362,6 +362,11 @@ DG = SC.Application.create((function () // closure
       return SC.clone(iObject, YES);
     },
 
+    canonicalizeNamesDefault: (function() {
+      var allowUnicodeNames = getUrlParameter('allowUnicodeNames');
+      return allowUnicodeNames !== 'true';
+    }()),
+
     // CFM functions, null until connected
     exportFile: null,
 

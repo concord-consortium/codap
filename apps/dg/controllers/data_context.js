@@ -119,6 +119,13 @@ DG.DataContext = SC.Object.extend((function() // closure
   //      this.get('flexibleGroupingChangeFlag'));
   //}.observes('*model.flexibleGroupingChangeFlag'),
 
+  canonicalizeNamesBinding: '*model.canonicalizeNames',
+
+  canonicalizeName: function(iName) {
+    var canonicalizeNames = this.get('canonicalizeNames');
+    return DG.Attribute.canonicalizeName(iName, canonicalizeNames);
+  },
+
   /**
    *  The id of our DG.DataContextRecord.
    *  Bound to the 'id' property of the model.
@@ -820,7 +827,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         iCase.beginCaseValueChanges();
         DG.ObjectMap.forEach(values, function(key, value) {
           var attr = this.getAttributeByName(key)
-              || this.getAttributeByName(DG.Attribute.legalizeAttributeName(key));
+              || this.getAttributeByName(this.canonicalizeName(key));
           if (attr) {
             iCase.setValue(attr.id, value);
           } else {
@@ -1074,7 +1081,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                                   oldName = attribute.get('name');
                                   if (names.indexOf(oldName) < 0)
                                     names.push(oldName);
-                                  iValue = collection.makeAttributeNameLegal(iValue);
+                                  iValue = collection.canonicalizeName(iValue);
                                   if (names.indexOf(iValue) < 0)
                                     names.push(iValue);
                                 }
@@ -1178,12 +1185,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     var results;
     var collections = [];
     var collectionIDCaseMap = {};
+    var canonicalize = this.get('canonicalizeNames');
     items.forEach(function (item) {
       var canonicalItem;
       if (item instanceof DG.DataItem) {
         canonicalItem = item;
       } else {
-        canonicalItem = DG.DataUtilities.canonicalizeAttributeValues(attrs, item);
+        canonicalItem = DG.DataUtilities.canonicalizeAttributeValues(attrs, item, canonicalize);
         dataSet.addDataItem(canonicalItem);
       }
     });

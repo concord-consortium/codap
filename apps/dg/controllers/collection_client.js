@@ -30,6 +30,12 @@ DG.CollectionClient = SC.Object.extend(
   collection: null, // DG.Collection
 
   /**
+   * Whether attribute names should be canonicalized.
+   * @property {Boolean}
+   */
+  canonicalizeNamesBinding: SC.Binding.oneWay('*collection.canonicalizeNames'),
+
+  /**
    * The id of the underlying DG.CollectionRecord.
    * @property {Number}
    */
@@ -305,8 +311,9 @@ DG.CollectionClient = SC.Object.extend(
   willDestroyAttribute: function( iAttribute) {
   },
 
-  makeAttributeNameLegal: function (iName) {
-    return DG.Attribute.legalizeAttributeName(iName);
+  canonicalizeName: function (iName) {
+    var canonicalize = this.get('canonicalizeNames');
+    return DG.Attribute.canonicalizeName(iName, canonicalize);
   },
 
   /**
@@ -322,7 +329,7 @@ DG.CollectionClient = SC.Object.extend(
     iProperties = iProperties || {};
 
     if (!SC.none(iProperties.name)) {
-      iProperties.name = this.makeAttributeNameLegal(iProperties.name);
+      iProperties.name = this.canonicalizeName(iProperties.name);
     }
 
     // if the property has an ID then it is an existing attribute, possibly from
