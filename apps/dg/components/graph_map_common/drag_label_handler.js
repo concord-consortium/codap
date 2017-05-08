@@ -24,8 +24,11 @@
  @extends SC.Object
  */
 DG.DragLabelHandler = SC.Object.extend(
+    (function () {
+    var kMinDrag = 5; // minimum distance in pixels to enable a drag
+
   /** @scope DG.DragLabelHandler.prototype */
-  {
+  return {
     /**
      * @property{LabelNode}
      */
@@ -64,7 +67,8 @@ DG.DragLabelHandler = SC.Object.extend(
     receivedDoDrag: false,
 
     /**
-     *
+     * @param iX {number} x coordinate of pointer
+     * @param iY {number} y coordinate of pointer
      * @param iEvent
      */
     handleStartDrag: function( iX, iY, iEvent) {
@@ -81,8 +85,21 @@ DG.DragLabelHandler = SC.Object.extend(
       this.receivedDoDrag = false;
     },
 
+    /**
+     * Handles a drag movement.
+     * @param idX {number} delta x from initial position
+     * @param idY delta y from initial position
+     * @param iX {number}
+     * @param iY {number}
+     * @param iEvent {Event}
+     */
     handleDoDrag: function( idX, idY, iX, iY, iEvent) {
-      if( this.receivedStartDrag && !this.receivedDoDrag) {
+      var dist;
+      if( this.receivedStartDrag && !this.receivedDoDrag ) {
+        dist = Math.sqrt( (idX * idX) + (idY * idY) );
+        if (dist < kMinDrag) {
+          return;
+        }
         this.receivedDoDrag = true;
         var tDragView = this.labelView,
             tAttributeName = this.get('attributeName'),
@@ -119,5 +136,6 @@ DG.DragLabelHandler = SC.Object.extend(
       this.receivedDoDrag = false;
       this.labelNode.reinstateTouchEnd();
     }
-  } );
+  };
+}()) );
 

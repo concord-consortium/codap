@@ -67,6 +67,8 @@ DG.GraphController = DG.DataDisplayController.extend(
           storage.plotBackgroundColor = this.getPath('graphModel.plotBackgroundColor');
           storage.plotBackgroundOpacity = this.getPath('graphModel.plotBackgroundOpacity');
           storage.enableNumberToggle = this.getPath('graphModel.enableNumberToggle');
+          if (storage.enableNumberToggle)
+            storage.numberToggleLastMode = this.getPath('graphModel.numberToggle.lastMode');
 
           this.storeDimension(dataConfiguration, storage, 'x');
           this.storeDimension(dataConfiguration, storage, 'y');

@@ -547,10 +547,16 @@ SC.stringsFor('English', {
   'DG.LegendView.attributeTooltip': "Click to change legend attribute",  // "Click to change legend attribute"
 
   // DG.NumberToggleView
-  'DG.NumberToggleView.showAll': "Show All \u2013",  // "Show All -"
-  'DG.NumberToggleView.hideAll': "Hide All \u2013",  // "Hide All -"
+  'DG.NumberToggleView.showAll': "Show All \u2013", // "Show All -"
+  'DG.NumberToggleView.hideAll': "Hide All \u2013", // "Hide All -"
+  'DG.NumberToggleView.lastDash': "\u2013",         // "-"
+  'DG.NumberToggleView.lastUnchecked': "\u2610",    // "[ ]"
+  'DG.NumberToggleView.lastChecked': "\u2612",      // "[x]"
+  'DG.NumberToggleView.lastLabel': "Last",    // "Last"
   'DG.NumberToggleView.showAllTooltip': "Click to show all cases\nClick parent case labels to toggle visibility",
   'DG.NumberToggleView.hideAllTooltip': "Click to hide all cases\nClick parent case labels to toggle visibility",
+  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only",
+  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode",
   'DG.NumberToggleView.indexTooltip': "Click to toggle visibility",  // "Click to toggle visibility"
 
   // DG.PlottedAverageAdornment
