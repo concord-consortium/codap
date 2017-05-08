@@ -18,6 +18,7 @@
 /*globals React, iframePhone */
 sc_require('controllers/app_controller');
 sc_require('controllers/authorization');
+sc_require('utilities/iframe-phone-emulator');
 
 // This is the function that will start your app running.  The default
 // implementation will load any fixtures you have created then instantiate
@@ -55,7 +56,7 @@ DG.main = function main() {
     return $(evt.target).closest('.dg-wants-touch').length || orgIgnoreTouchHandle(evt);
   };
 
-  DG.getPath('mainPage.mainPane').append();
+  DG.getPath('mainPage.mainPane').appendTo($('#codap'));
 
   DG.appController.documentNameDidChange();
 
@@ -89,7 +90,15 @@ DG.main = function main() {
           });
         };
 
-    iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+    // if there is a real parent for this page try connecting using IFramePhone,
+    // otherwise we are embedded in the same context as our host, so we create
+    // an emulated connection
+    if (window.parent !== window) {
+      iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
+    } else {
+      iHandler.rpcEndpoint = new DG.IFramePhoneEmulator(iframePhoneHandler, 'data-interactive', 'codap');
+      DG.localIFramePhoneEndpoint = iHandler.rpcEndpoint;
+    }
 
     iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
       DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
@@ -192,7 +201,7 @@ DG.main = function main() {
    */
   function cfmLoaded() {
     // if a cfmBaseUrl was specified, load the CFM libs dynamically via ajax
-    if (DG.cfmBaseUrl != null) {
+    if (DG.cfmBaseUrl) {
       return Promise.all([cfmGlobalsLoaded(), cfmAppLoaded()]);
     }
 

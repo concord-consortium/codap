@@ -6,15 +6,45 @@
 # Expects a build number as an argument.
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
-ROOTDIR=`dirname $DIRNAME`
+ROOTDIR=`dirname ${DIRNAME}`
 APPNAME=dg
+OPTIONS="[--logfile=path --minify=yes|no --mode=production|debug --root={path_fragment} --very-verbose]"
 
 function usage() {
-    echo "usage: $PROGNAME buildnumber" 1>&2
+    echo "usage: $PROGNAME $OPTIONS buildnumber" 1>&2
     exit 1
 }
 
-if [ "$1" == "" ] ; then
+OPTS=
+BUILD_OPTS=
+ROOT_SUBSTITUTION=../../../../
+while true; do
+  case "$1" in
+    --very-verbose)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --logfile=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --mode=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
+    --root=*)
+      ROOT_SUBSTITUTION=`echo $1 | sed 's/^--root=//'`;
+      shift;;
+    --minify=*)
+      OPT=`echo $1 | sed 's/^--minify=//'`
+      [ "$OPT" == "no" ] && BUILD_OPTS="${BUILD_OPTS} --dont-minify";
+      shift;;
+    --*)
+      usage;
+      shift;;
+    *)
+      break;;
+   esac
+done
+
+if [ "$#" != 1 ] ; then
     usage
 fi
 
@@ -22,24 +52,25 @@ fi
 BUILD_NUM=$1
 TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
 ZIP_FILE=codap_${BUILD_NUM}.zip
-WORK_DIR=/tmp/$PROGNAME.$$/$BUILD_NUM
-INDEX_HTML=$WORK_DIR/index.html
-TMP_INDEX_HTML=/tmp/$PROGNAME_index.html.$$
+WORK_DIR=/tmp/${PROGNAME}.$$/${BUILD_NUM}
+INDEX_HTML=${WORK_DIR}/index.html
 
 REDIRECT_PATH=./static/dg/en/cert/index.html
 
-#BUILD_OPTS=--dont-minify
-BUILD_OPTS=
+# BUILD_OPTS=${BUILD_OPTS} "--dont-minify"
+# BUILD_OPTS=${BUILD_OPTS} "--logfile=build.log"
+# BUILD_OPTS=${BUILD_OPTS} "--very-verbose"
+# BUILD_OPTS=${BUILD_OPTS} "--mode=debug"
 
-mkdir -p $WORK_DIR
+mkdir -p ${WORK_DIR}
 
 #
 # Build to a temp directory
-sproutcore build $BUILD_OPTS $APPNAME --buildroot $WORK_DIR --build=cert -vv
+sproutcore build ${BUILD_OPTS} ${APPNAME} --buildroot ${WORK_DIR} --build=cert
 
 #
 # Generate top level index.html redirector
-cat > $INDEX_HTML << END_DOC
+cat > ${INDEX_HTML} << END_DOC
 <!DOCTYPE html>
 <html>
 <head>
@@ -48,33 +79,36 @@ cat > $INDEX_HTML << END_DOC
 <body>
 <script type="text/javascript">
   var s = window.location.search + window.location.hash;
-  window.location.replace("$REDIRECT_PATH" + s);
+  window.location.replace("${REDIRECT_PATH}" + s);
 </script>
 </body>
 </html>
 END_DOC
 
+RS=${ROOT_SUBSTITUTION}
+PATH_FIX="s%\"/static/%\"${RS}/static/%g;s%\'/static/%\'${RS}/static/%g;s%DataGames/%${RS}/DataGames/%g"
+echo PATH_FIX="$PATH_FIX"
 #
 # Fix absolute references
-files=`find $WORK_DIR -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
-for t in $files ; do
-    sed 's%"/static/%"../../../../static/%g;s%'"'"'/static/%'"'"'../../../../static/%g;s%DataGames/%../../../../DataGames/%g' $t > /tmp/$PROGNAME_replace.$$ &&
-    mv /tmp/$PROGNAME_replace.$$ $t
+files=`find ${WORK_DIR} -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \)`
+for t in ${files} ; do
+    sed "${PATH_FIX}" ${t} > /tmp/${PROGNAME}_replace.$$ &&
+    mv /tmp/${PROGNAME}_replace.$$ ${t}
 done
 
 #
 # Add an empty config file.
-touch $WORK_DIR/codap-config.js
+touch ${WORK_DIR}/codap-config.js
 
 #
 # Zip up
-( cd `dirname $WORK_DIR`; zip -r $TMP_ZIP $BUILD_NUM )
+( cd `dirname ${WORK_DIR}`; zip -rq ${TMP_ZIP} ${BUILD_NUM} )
 
 #
 # Move
-mv $TMP_ZIP $ZIP_FILE
+mv ${TMP_ZIP} ${ZIP_FILE}
 
 #
 # Clean up
 #echo rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
-rm -rf $TMP_ZIP /tmp/$PROGNAME.$$
+rm -rf ${TMP_ZIP} /tmp/${PROGNAME}.$$
