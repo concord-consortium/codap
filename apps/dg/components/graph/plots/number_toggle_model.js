@@ -22,14 +22,45 @@
 
   @extends SC.Object
 */
-DG.NumberToggleModel = SC.Object.extend(
+DG.NumberToggleModel = SC.Object.extend( (function() {
 /** @scope DG.NumberToggleModel.prototype */
-{
+
+  function reduceCase(prevCases, newCase) {
+    prevCases.push(newCase);
+    return prevCases;
+  }
+
+  function hideShowCases(iConfig, iCases, iShow) {
+    var casesToHideShow = [];
+    iCases.reduce(reduceCase, casesToHideShow);
+
+    // recursively hide/show children
+    iCases.forEach(function(iCase) {
+      var tChildren = iCase.get('children');
+      if (tChildren && tChildren.length)
+        tChildren.reduce(reduceCase, casesToHideShow);
+    });
+
+    if (iShow)
+      iConfig.showCases(casesToHideShow);
+    else
+      iConfig.hideCases(casesToHideShow);
+  }
+
+return {
   /**
     Assigned by the graph model that owns me.
     @property { DG.GraphDataConfiguration }
   */
   dataConfiguration: null,
+
+  hiddenCasesBinding: '*dataConfiguration.hiddenCases',
+
+  /**
+   * Whether we are in show last parent case only mode
+   * @property {Boolean}
+   */
+  lastMode: false,
 
   _cachedCaseCount: null,
   _cachedParentCases: null,
@@ -39,10 +70,22 @@ DG.NumberToggleModel = SC.Object.extend(
    */
   parentCases: function() {
     var tParents = [],
-        tCases = this.getPath('dataConfiguration.allCases' );
+        tCases = this.getPath('dataConfiguration.allCases' ),
+        isHierarchical = false;
     if( !tCases)
       return [];
     tCases = tCases.flatten();
+
+    function getUltimateParent(iCase) {
+      var lastCase;
+      while(iCase) {
+        lastCase = iCase;
+        iCase = iCase.get('parent');
+        if (iCase) isHierarchical = true;
+      }
+      return lastCase;
+    }
+
     // This check for whether we can use the cached parents isn't completely foolproof because
     // cases could come and go leaving us with the same number between calls.
     if( tCases.length === this._cachedCaseCount) {
@@ -50,13 +93,14 @@ DG.NumberToggleModel = SC.Object.extend(
     }
     else {
       tCases.forEach( function( iCase) {
-        var tParent = iCase.get('parent');
+        var tParent = getUltimateParent(iCase);
         if( tParent && tParents.indexOf( tParent ) < 0 ) {
           tParents.push( tParent );
         }
       });
       this._cachedCaseCount = tCases.length;
       this._cachedParentCases = tParents;
+      this._isHierarchical = isHierarchical;
     }
     return tParents;
   }.property(),
@@ -114,7 +158,8 @@ DG.NumberToggleModel = SC.Object.extend(
    * @property{Integer}
    */
   indicesRepresentChildren: function() {
-    return this.get('numberOfParents') > 0;
+    this.get('parentCases');
+    return this._isHierarchical;
   }.property('numberOfParents'),
 
   /**
@@ -150,8 +195,29 @@ DG.NumberToggleModel = SC.Object.extend(
    * @return{Boolean}
    */
   allCasesAreVisible: function() {
-    var hiddenCases = this.getPath('dataConfiguration.hiddenCases');
+    var hiddenCases = this.get('hiddenCases');
     return !hiddenCases || !hiddenCases.length;
+  },
+
+  /*
+   * For tracking whether we are in the process of making visibility changes.
+   * Allows differential response to visibility changes caused by others.
+   */
+  _isChangingVisibility: 0,
+
+  beginVisibilityChanges: function() {
+    ++ this._isChangingVisibility;
+  },
+
+  endVisibilityChanges: function() {
+    // use invokeLater() so notifications have a chance to propagate
+    this.invokeLater(function() {
+      -- this._isChangingVisibility;
+    }.bind(this));
+  },
+
+  isChangingVisibility: function() {
+    return this._isChangingVisibility > 0;
   },
 
   /**
@@ -160,12 +226,29 @@ DG.NumberToggleModel = SC.Object.extend(
    */
   changeAllCaseVisibility: function() {
     var tConfig = this.get('dataConfiguration' );
+    this.beginVisibilityChanges();
     if( this.allCasesAreVisible()) {
-      tConfig.hideCases( tConfig.get('cases'));
+      hideShowCases(tConfig, tConfig.get('cases'), false);
     }
     else {
-      tConfig.showAllCases();
+      hideShowCases(tConfig, tConfig.get('hiddenCases'), true);
     }
+    this.endVisibilityChanges();
+  },
+
+  getCasesForIndex: function(iIndex) {
+    var tConfig = this.get('dataConfiguration'),
+        tResultCases;
+
+    if (this.get('indicesRepresentChildren')) {
+      tResultCases = this.childrenOfParent(iIndex);
+    }
+    else {
+      var tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+          tCase = (tCases.length > iIndex) ? tCases[iIndex] : null;
+      tResultCases = tCase ? [tCase] : null;
+    }
+    return tResultCases;
   },
 
   /**
@@ -183,12 +266,9 @@ DG.NumberToggleModel = SC.Object.extend(
       return tHidden.indexOf( iCase) < 0;
     }
 
-    if( tChildren.some( isVisible)) {
-      tConfig.hideCases( tChildren);
-    }
-    else {
-      tConfig.showCases( tChildren);
-    }
+    this.beginVisibilityChanges();
+    hideShowCases(tConfig, tChildren, !tChildren.some(isVisible));
+    this.endVisibilityChanges();
   },
 
   /**
@@ -204,25 +284,63 @@ DG.NumberToggleModel = SC.Object.extend(
           tCases = tConfig ? tConfig.get('allCases').flatten() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
           tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
-      if( tHidden.indexOf( tCase) < 0)
-        tConfig.hideCases([tCase]);
-      else
-        tConfig.showCases([tCase]);
+      this.beginVisibilityChanges();
+      hideShowCases(tConfig, [tCase], tHidden.indexOf(tCase) >= 0);
+      this.endVisibilityChanges();
     }
   },
 
   /**
-   * Show all children of parent corresponding to given index. Hide all other cases.
-   *
-   * @param iIndex {Number}
+   * Hide/show the children of the specified parent case
+   * @param {Number}  iIndex - parent case index
+   * @param {Boolean} iVisible - true to show; false to hide
    */
-//  toggleChildrenVisibility: function( iIndex) {
-//    var tChildren = this.childrenOfParent( iIndex ),
-//        tConfig = this.get('dataConfiguration' ),
-//        tVisibleCases = tConfig.get('cases');
-//    tConfig.hideCases( tVisibleCases);
-//    tConfig.showCases( tChildren);
-//  },
+  setVisibility: function(iIndex, iVisible) {
+    var tConfig = this.get('dataConfiguration'),
+        tCasesToHideShow = this.getCasesForIndex(iIndex);
+
+    if (tCasesToHideShow) {
+      this.beginVisibilityChanges();
+      hideShowCases(tConfig, tCasesToHideShow, iVisible);
+      this.endVisibilityChanges();
+    }
+  },
+
+  /**
+   * Observer function for 'lastMode' changes
+   * Enabling 'lastMode' hides all but the last parent case.
+   * Disabling 'lastMode' exits the mode but doesn't change case visibility.
+   */
+  lastModeDidChange: function() {
+    var lastMode = this.get('lastMode');
+    if (lastMode) {
+      this.showOnlyLastParentCase();
+    }
+  }.observes('lastMode'),
+
+  /**
+   * Show the last parent case and hide all the other parent cases.
+   */
+  showOnlyLastParentCase: function() {
+    var toggleIndex, toggleCount = this.get('numberOfToggleIndices'),
+        casesToHide = [], toggleCases;
+
+    this.beginVisibilityChanges();
+
+    // accumulate cases to hide so they can be hidden all at once
+    for (toggleIndex = 0; toggleIndex < toggleCount - 1; ++toggleIndex) {
+      toggleCases = this.getCasesForIndex(toggleIndex);
+      // append toggleCases to casesToHide without duplicating any arrays
+      toggleCases.reduce(reduceCase, casesToHide);
+    }
+    // hide all cases in one fell swoop
+    if (casesToHide && casesToHide.length)
+      hideShowCases(this.get('dataConfiguration'), casesToHide, false);
+    // show the last parent case
+    this.setVisibility(toggleIndex, true);
+
+    this.endVisibilityChanges();
+  },
 
   /**
    *
@@ -231,10 +349,10 @@ DG.NumberToggleModel = SC.Object.extend(
    */
   allChildrenAreHidden: function( iIndex) {
     var tChildren = this.childrenOfParent( iIndex ),
-        tHidden = this.getPath('dataConfiguration.hiddenCases' );
+        tHidden = this.get('hiddenCases');
 
     function isVisible( iCase) {
-      return tHidden.indexOf( iCase) < 0;
+      return !tHidden || (tHidden.indexOf( iCase) < 0);
     }
 
     return !tChildren.some( isVisible);
@@ -258,10 +376,8 @@ DG.NumberToggleModel = SC.Object.extend(
     }
   },
 
-      /**
-   *
+  /**
    * Note: returns true if no cases are hidden when there are no cases
-   * @param iIndex
    * @return {Boolean}
    */
   allCasesAreHidden: function() {
@@ -269,15 +385,36 @@ DG.NumberToggleModel = SC.Object.extend(
   },
 
   /**
+   * Respond to shown/hidden cases
+   */
+  hiddenCasesDidChange: function() {
+    // if user hides/shows cases via other means, exit lastMode
+    if (this.get('lastMode') && !this.isChangingVisibility())
+      this.set('lastMode', false);
+  }.observes('hiddenCases'),
+
+  /**
    * When the data context changes we notify
    */
-  handleDataContextNotification: function( iNotifier) {
-    // 'caseCount' is used as a proxy to indicate that some change occurred
-    // GraphView.handleNumberToggleDidChange() observes 'caseCount'
-    // not clear why invokeOnceLater() is (or was) required
-    if (this.get('isEnabled'))
-      this.invokeOnceLater( this.propertyDidChange, 10, 'caseCount');
+  handleDataContextNotification: function(iNotifier, iChange) {
+    if (this.get('isEnabled')) {
+      // if cases are created while in lastMode, ensure only last parent is visible
+      if (this.get('lastMode') && (iChange.operation.indexOf('createCase') === 0)) {
+        this.invokeOnce(function() { this.showOnlyLastParentCase(); }.bind(this));
+        return;
+      }
+
+      if (['createCollection', 'deleteCollection', 'moveAttribute'].indexOf(iChange.operation) >= 0) {
+        this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
+      }
+
+      // 'caseCount' is used as a proxy to indicate that some change occurred
+      // GraphView.handleNumberToggleDidChange() observes 'caseCount'
+      // not clear why invokeOnceLater() is (or was) required
+      this.invokeOnceLater( this.propertyDidChange, 1, 'caseCount');
+    }
   }
 
-});
+};
 
+})());
