@@ -222,9 +222,12 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           delete this[iKey + 'AttributeName'];  // Because that was how it was passed in
           tAttribute = tDataContext ? tDataContext.getAttributeByName(tAttributeName) :
               (tCollectionClient ? tCollectionClient.getAttributeByName(tAttributeName) : null);
-          if( tAttribute)
+          if( tAttribute) {
+            if (tDataContext && !tCollectionClient)
+              tCollectionClient = tDataContext.getCollectionForAttribute(tAttribute);
             this.get('dataConfiguration').setAttributeAndCollectionClient( iKey + 'AttributeDescription',
                 { collection: tCollectionClient, attributes: [ tAttribute]});
+          }
         }
       }.bind(this);
       var tDataContext = this.initialDataContext;
