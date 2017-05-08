@@ -103,18 +103,11 @@ DG.InspectorView = DG.DraggableView.extend(
         }.observes('targetComponent'),
 
         selectedComponentDidChange: function () {
-          // In component mode, the inspector should always be visible and
-          // attached to the first component (it is expected there is only one
-          // component in component mode.)
-          if (DG.componentMode === 'yes') {
-            this.setIfChanged('targetComponent', this.getPath('componentContainer.componentViews')[0]);
-          } else {
-            var tTarget = this.get('targetComponent');
-            if (tTarget) {
-              tTarget.removeObserver('layout', this, 'targetLayoutDidChange');
-            }
-            this.set('targetComponent', this.getPath('componentContainer.selectedChildView'));
+          var tTarget = this.get('targetComponent');
+          if (tTarget) {
+            tTarget.removeObserver('layout', this, 'targetLayoutDidChange');
           }
+          this.set('targetComponent', this.getPath('componentContainer.selectedChildView'));
         }.observes('*componentContainer.selectedChildView'),
 
         targetLayoutDidChange: function () {
