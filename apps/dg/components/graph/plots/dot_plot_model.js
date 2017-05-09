@@ -481,7 +481,8 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             SC.PopupButtonView.create({
               layout: {height: kRowHeight, width: kButtonWidth},
               title: 'DG.Inspector.graphMovableValue'.loc(),
-              menu: SC.MenuPane.extend({
+                classNames: 'dg-movable-value-button',
+                menu: SC.MenuPane.extend({
                 layout: {width: 100},
                 items: [
                   {
