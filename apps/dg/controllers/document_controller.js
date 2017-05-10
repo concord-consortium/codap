@@ -668,6 +668,11 @@ DG.DocumentController = SC.Object.extend(
             getNameFromURL(tGameUrl) ||
             'Unknown Game',
         tView;
+      if (!DG.STANDALONE_MODE && iComponent.get('type') ==='DG.GameView'
+          && iComponent.layout && !iComponent.layout.width) {
+        iComponent.layout.width = tGameParams.width;
+        iComponent.layout.height = tGameParams.height;
+      }
       DG.UndoHistory.execute(DG.Command.create({
         name: 'game.create',
         undoString: 'DG.Undo.game.add',
