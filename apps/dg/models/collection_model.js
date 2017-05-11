@@ -435,7 +435,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           });
         }
         DG.assert(!SC.none(priorIndex), 'parent\'s last child not in index map.');
-        _this.cases.splice(priorIndex+1, 0, iCase);
+        _this.cases.insertAt(priorIndex+1, iCase);
         _this.updateCaseIDToIndexMap();
       }
 
