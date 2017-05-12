@@ -1,8 +1,8 @@
 // ==========================================================================
 //                        DG.AttributeFormulaView
-// 
+//
 //  Implements a dialog with edit fields for attribute name and formula.
-//  
+//
 //  Authors:  William Finzer, Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -146,7 +146,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
               ? this.getPath('contentView.attrName.value')
               : this.setPath('contentView.attrName.value', iValue);
   }.property(),
-  
+
   /**
     Forwarding property for the dialog's formula value.
     @property   {String}
@@ -156,7 +156,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
               ? this.getPath('contentView.formula.formulaExpression')
               : this.setPath('contentView.formula.formulaExpression', iValue);
   }.property(),
-  
+
   /**
     Initialization function.
    */
@@ -173,7 +173,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     }
     return NO;
   },
-  
+
   /**
     Observer function called when the user selects an item from the Operands popup.
    */
@@ -181,7 +181,10 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     // Extract the text of the selected item
     var insertionString = this.getPath('contentView.operandPopup.menu.selectedItem.title');
     if( !SC.empty( insertionString)) {
-      var formulaView = this.getPath('contentView.formula');
+      var canonicalString = DG.Attribute.canonicalizeName(insertionString, true),
+          formulaView = this.getPath('contentView.formula');
+      if (insertionString !== canonicalString)
+        insertionString = '`' + insertionString + '`';
       // Replace the current selection with the selected item text
       if( formulaView) {
         formulaView.becomeFirstResponder();
@@ -191,7 +194,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
     // Clear the selected item so the same item can be selected multiple times
     this.setPath('contentView.operandPopup.menu.selectedItem', null);
   }.observes('.contentView.operandPopup.menu.selectedItem'),
-  
+
   /**
     Close the dialog.
    */
@@ -209,7 +212,7 @@ DG.CreateAttributeFormulaView = function( iProperties) {
       attrNameValue: 'attrName.value',
       attrNameHint: 'attrName.hint',
       attrNameIsEnabled: 'attrName.isEnabled',
-      
+
       formulaPrompt: 'formula.leftAccessoryView.value',
       formulaValue: 'formula.value',
       formulaExpression: 'formula.formulaExpression',
@@ -224,14 +227,14 @@ DG.CreateAttributeFormulaView = function( iProperties) {
       applyTarget: 'apply.target',
       applyAction: 'apply.action',
       applyTooltip: 'apply.toolTip',
-      
+
       cancelTitle: 'cancel.title',
       cancelTooltip: 'cancel.toolTip'
     },
     tContentView = tDialog.get('contentView'),
     tAttrNameView = tContentView.attrName,
     tFormulaView = tContentView.formula;
-  
+
   // Loop through client-specified properties, applying them to the
   // appropriate property via its path given in the kParamMap.
   DG.ObjectMap.forEach( iProperties,
@@ -245,6 +248,6 @@ DG.CreateAttributeFormulaView = function( iProperties) {
 
   var tInitialView = tAttrNameView.get('isEnabled') ? tAttrNameView : tFormulaView;
   tInitialView.becomeFirstResponder();
-  
+
   return tDialog;
 };

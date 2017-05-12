@@ -216,6 +216,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!result.dataContext) { return result;}
         }
 
+        var dataContext = result.dataContext;
+
         if (resourceSelector.component) {
           result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
               (!isNaN(resourceSelector.component) &&
@@ -227,37 +229,39 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.collection) {
-          result.collection = result.dataContext &&
-              (result.dataContext.getCollectionByName(resourceSelector.collection) ||
+          result.collection = dataContext &&
+              (dataContext.getCollectionByName(resourceSelector.collection) ||
               (!isNaN(resourceSelector.collection) &&
-                  result.dataContext.getCollectionByID(resourceSelector.collection)));
+                  dataContext.getCollectionByID(resourceSelector.collection)));
         }
+
+        var collection = result.collection;
 
         if (resourceSelector.attribute) {
           result.attribute = (
             (
-              result.dataContext && (
-                  result.dataContext.getAttributeByName(resourceSelector.attribute) ||
-                  result.dataContext.getAttributeByName(DG.Attribute.legalizeAttributeName(resourceSelector.attribute))
+              dataContext && (
+                  dataContext.getAttributeByName(resourceSelector.attribute) ||
+                  dataContext.getAttributeByName(dataContext.canonicalizeName(resourceSelector.attribute))
               )
             ) ||
             (
               !isNaN(resourceSelector.attribute) &&
-              result.collection && result.collection.getAttributeByID(resourceSelector.attribute)
+              collection && collection.getAttributeByID(resourceSelector.attribute)
             )
           );
         }
 
         if (resourceSelector.caseByID) {
-          result.caseByID = result.dataContext.getCaseByID(resourceSelector.caseByID);
+          result.caseByID = dataContext.getCaseByID(resourceSelector.caseByID);
         }
 
         if (resourceSelector.caseByIndex) {
-          result.caseByIndex = result.collection && result.collection.getCaseAt(Number(resourceSelector.caseByIndex));
+          result.caseByIndex = collection && collection.getCaseAt(Number(resourceSelector.caseByIndex));
         }
 
         if (resourceSelector.caseSearch) {
-          result.caseSearch = result.collection && result.collection.searchCases(resourceSelector.caseSearch);
+          result.caseSearch = collection && collection.searchCases(resourceSelector.caseSearch);
         }
 
         DG.ObjectMap.forEach(resourceSelector, function (key, value) {
@@ -275,13 +279,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
        * names will need to conform to the conventions established by the API.
        * @param iValues {Object}
        */
-      validateValues: function( iValues) {
+      validateValues: function(iDataContext, iValues) {
         if( SC.none( iValues))
           return;
         if( iValues.type === 'graph') {
           ['xAttributeName', 'yAttributeName', 'y2AttributeName', 'legendAttributeName'].forEach( function( iPropName) {
-            if( !SC.none( iValues[iPropName])) {
-              iValues[ iPropName] = DG.Attribute.legalizeAttributeName( iValues[ iPropName]);
+            if( !SC.none(iDataContext) && !SC.none( iValues[iPropName])) {
+              iValues[ iPropName] = iDataContext.canonicalizeName( iValues[ iPropName]);
             }
           });
         }
@@ -326,15 +330,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         try {
           // parse the resource name into constituent parts
-          var selectorMap = iCmd.resource && this.parseResourceSelector(
-                  iCmd.resource);
+          var selectorMap = iCmd.resource && this.parseResourceSelector(iCmd.resource);
 
           // resolve identified resources
           var resourceMap = this.resolveResources(selectorMap, iCmd.action);
 
           var action = iCmd.action;
           var type = selectorMap && selectorMap.type;
-          var values = this.validateValues( iCmd.values);
+          var values = this.validateValues(resourceMap.dataContext, iCmd.values);
           var metadata = iCmd.meta;
 
           var handler = type && this.handlerMap[type];
@@ -495,7 +498,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 collectionSpec.attrs.forEach(function(attr) {
                   // original name and new name will be returned to client
                   attr.clientName = attr.name;
-                  attr.name = DG.Attribute.legalizeAttributeName(attr.name);
+                  attr.name = context.canonicalizeName(attr.name);
                 });
               }
 
@@ -839,12 +842,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
+          var context = iResources.dataContext;
           var attrSpecs = SC.clone(Array.isArray(iValues) ? iValues : [iValues]);
           attrSpecs.forEach(function(attrSpec) {
             attrSpec.clientName = attrSpec.name;
-            attrSpec.name = DG.Attribute.legalizeAttributeName(attrSpec.name);
+            attrSpec.name = context.canonicalizeName(attrSpec.name);
           });
-          var context = iResources.dataContext;
           var change = {
             operation: 'createAttributes',
             collection: iResources.collection,
@@ -867,7 +870,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             iValues.name = iResources.attribute.name;
           else if (iValues.name) {
             iValues.clientName = iValues.name;
-            iValues.name = DG.Attribute.legalizeAttributeName(iValues.name);
+            iValues.name = context.canonicalizeName(iValues.name);
           }
           var change = {
             operation: 'updateAttributes',

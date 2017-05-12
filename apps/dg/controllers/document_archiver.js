@@ -310,8 +310,10 @@ DG.DocumentArchiver = SC.Object.extend(
       tDoc.contexts[0].collections[0].name = tChildName;
       tDoc.contexts[0].name = tContextName;
 
+      var canonicalName;
       for (ix = 0; ix < tTableStats.maxCols; ix += 1) {
-         tAttrNames.push(guaranteeUnique(DG.Attribute.legalizeAttributeName(tAttrNamesRow[ix]), tAttrNames));
+        canonicalName = DG.Attribute.canonicalizeName(tAttrNamesRow[ix]);
+        tAttrNames.push(guaranteeUnique(canonicalName, tAttrNames));
       }
 
       tAttrNames.forEach(function (iName) {

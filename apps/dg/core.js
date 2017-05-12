@@ -362,6 +362,11 @@ DG = SC.Application.create((function () // closure
       return SC.clone(iObject, YES);
     },
 
+    /**
+     * Determines whether attribute/slider names will be automatically canonicalized
+     */
+    canonicalizeNames: false,
+
     // CFM functions, null until connected
     exportFile: null,
 
