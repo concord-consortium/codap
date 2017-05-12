@@ -1,0 +1,1394 @@
+/*
+ * JSON file which contains information about CODAP functions in the form of localizable strings.
+ * Comments are allowed because they are stripped out before the file is parsed internally.
+ */
+{
+  /*
+   * Arithmetic Functions
+   */
+  "abs": {
+    "displayName": "abs",
+    "description": "Computes the absolute value of its argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number of which you want the absolute value."
+      }
+    ],
+    "examples": [
+      "abs(3–5) is 2",
+      "abs(3-7) is 4"
+    ]
+  },
+  "ceil": {
+    "displayName": "ceil",
+    "description": "Returns the closest integer greater than or equal to its argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The value you want to round up."
+      }
+    ],
+    "examples": [
+      "ceil(1) returns 1",
+      "ceil(1.5) returns 2",
+      "ceil(-1.5) returns -1"
+    ]
+  },
+  "exp": {
+    "displayName": "exp",
+    "description": "Returns the result of computing the constant e to the power of its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The exponent applied to the base e."
+      }
+    ],
+    "examples": [
+      "exp(2) is 7.39, the same as e squared"
+    ]
+  },
+  "floor": {
+    "displayName": "floor",
+    "description": "Returns the largest integer less than or equal to its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The value you want to round down."
+      }
+    ],
+    "examples": [
+      "floor(1) returns 1",
+      "floor(1.5) returns 1",
+      "floor(-1.5) returns -2"
+    ]
+  },
+  "frac": {
+    "displayName": "frac",
+    "description": "Returns the fractional or noninteger part of a number.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the fractional part."
+      }
+    ],
+    "examples": [
+      "frac(1.5) returns 0.5",
+      "frac(-2.3) returns -0.3"
+    ]
+  },
+  "ln": {
+    "displayName": "ln",
+    "description": "Returns the logarithm of a number to base e.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the natural logarithm."
+      }
+    ],
+    "examples": [
+      "ln(100) is 4.61"
+    ]
+  },
+  "log": {
+    "displayName": "log",
+    "description": "Returns the logarithm of a number to base 10.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the logarithm."
+      }
+    ],
+    "examples": [
+      "log(100) is 2"
+    ]
+  },
+  "pow": {
+    "displayName": "pow",
+    "description": "Returns the result of a number raised to a power.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The base number."
+      },
+      {
+        "name": "power",
+        "type": "number",
+        "description": "The power of the exponent."
+      }
+    ],
+    "examples": [
+      "pow(2,5) is 2 to the 5th, returns 32",
+      "pow(10,-3) is 1 / 1000, or .001"
+    ]
+  },
+  "round": {
+    "displayName": "round",
+    "description": "Returns the value of its argument rounded to the specified number of decimal places (default 0). This function has an optional, second argument that specifies how many decimals to round to.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want to round to the nearest integer."
+      },
+      {
+        "name": "digits",
+        "type": "number",
+        "description": "The number of digits to which you want to round the numeric argument. The argument can be negative to round off digits left to the decimal point."
+      }
+    ],
+    "examples": [
+      "round(3.14) is 3",
+      "round(π, 4) is 3.1416",
+      "round(1276, –2) is 1300"
+    ]
+  },
+  "sqrt": {
+    "displayName": "sqrt",
+    "description": "Returns the square root of its numeric argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number for which you want the square root."
+      }
+    ],
+    "examples": [
+      "sqrt(100) returns 10",
+      "sqrt(2) is 1.41",
+      "sqrt(-2) returns NaN, meaning Not a Number"
+    ]
+  },
+  "trunc": {
+    "displayName": "round",
+    "description": "Returns the nearest integer equal to or smaller in magnitude (closer to zero) than its argument.",
+    "args": [
+      {
+        "name": "number",
+        "type": "number",
+        "description": "The number to truncate."
+      }
+    ],
+    "examples": [
+      "trunc(5.5) returns 5",
+      "trunc(-5.5) returns -5"
+    ]
+  },
+  /*
+   * Date/Time Functions
+   */
+  "date": {
+    "displayName": "date",
+    "description": "Returns a new date created from its arguments. If any argument is omitted it is defaulted to 0 (or 1 for the day or month). If a single large argument is specified, it is assumed to be seconds since January 1, 1970 and is converted accordingly.",
+    "args": [
+      {
+        "name": "year",
+        "type": "number",
+        "description": "Represents the year of the date. This can be a 1-digit, 2-digit, 3-digit, or 4-digit number."
+      },
+      {
+        "name": "month",
+        "type": "number",
+        "description": "Represents the month of the year, from 1 to 12."
+      },
+      {
+        "name": "day",
+        "type": "number",
+        "description": "Represents the day of the month, from 1 to 31."
+      },
+      {
+        "name": "hr",
+        "type": "number",
+        "description": "Represents the hour of the day, from 0 to 23."
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "description": "Represents the minutes of the hour, from 0 to 59."
+      },
+      {
+        "name": "sec",
+        "type": "number",
+        "description": "Represents the seconds of the minute, from 0 to 59."
+      }
+    ],
+    "examples": [
+      "date(1969, 7, 16) returns 7/16/1969",
+      "date(1395154345) returns 3/18/2014 7:52:25 AM",
+      "date(2016, 12, 19, 13, 59, 15, 26) returns 12/19/2016 1:59:15 PM",
+      "date(16) returns 1/1/2016"
+    ]
+  },
+  "dayOfMonth": {
+    "displayName": "dayOfMonth",
+    "description": "Returns the day of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "dayOfMonth(\"6-14-2008\") returns 14",
+      "dayOfMonth(date(2017,3,20)) returns 20"
+    ]
+  },
+  "dayOfWeek": {
+    "displayName": "dayOfWeek",
+    "description": "Returns the numeric day of the week corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "dayOfWeek(\"8-31-2005\") returns 4 because August 31, 2005 is a Wednesday",
+      "dayOfWeek(date(2017,3,20)) returns 2, corresponding to a Monday"
+    ]
+  },
+  "dayOfWeekName": {
+    "displayName": "dayOfWeekName",
+    "description": "Returns the word name of the day of the week corresponding to the given date. ",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "dayOfWeekName(\"8-31-2005\") returns Wednesday",
+      "dayOfWeekName(date(2017,3,20)) returns Monday"
+    ]
+  },
+  "hours": {
+    "displayName": "hours",
+    "description": "Returns the hour (in 24-hour time) corresponding to the given date-time.",
+    "args": [
+      {
+        "name": "dateTime",
+        "type": "string",
+        "description": "The specified date and time. May be a string or a computed date-time."
+      }
+    ],
+    "examples": [
+      "hours(\"8-31-2005 8:57 PM\") returns 20 (8 PM on a 24-hour clock)",
+      "hours(date(2017,3,20,7,1,59)) returns 7"
+    ]
+  },
+  "minutes": {
+    "displayName": "minutes",
+    "description": "Returns the minute of the hour corresponding to the given date.",
+    "args": [
+      {
+        "name": "dateTime",
+        "type": "string",
+        "description": "The specified date and time. May be a string or a computed date-time."
+      }
+    ],
+    "examples": [
+      "minutes(\"8-31-2005 8:57 PM\") returns 57",
+      "minutes(date(2017,3,20,7,1,59)) returns 1"
+    ]
+  },
+  "month": {
+    "displayName": "month",
+    "description": "Returns the number of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "month(\"8-31-2005\") returns 8",
+      "month(date(2017,3,20,7,1,59)) returns 3"
+    ]
+  },
+  "monthName": {
+    "displayName": "month",
+    "description": "Returns the name of the month corresponding to the given date.",
+    "args": [
+      {
+        "name": "date",
+        "type": "string",
+        "description": "The specified date. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "monthName(\"8-31-2005\") returns August",
+      "monthName(date(2017,3,20,7,1,59)) returns March"
+    ]
+  },
+  "now": {
+    "displayName": "now",
+    "description": "Returns the current date and time.",
+    "args": [
+    ],
+    "examples": [
+      "At the moment this was written, now() returned 12/30/2016 9:58:15 AM"
+    ]
+  },
+  "seconds": {
+    "displayName": "seconds",
+    "description": "Returns the seconds of the minute corresponding to the given date-time.",
+    "args": [
+      {
+        "name": "dateTime",
+        "type": "string",
+        "description": "The specified date and time. May be a string or a computed date-time."
+      }
+    ],
+    "examples": [
+      "seconds(\"8-31-2005 3:30:51 PM\") returns 51",
+      "seconds(date(2017,3,20,7,1,59)) returns 59"
+    ]
+  },
+  "today": {
+    "displayName": "today",
+    "description": "Returns current date with no time.",
+    "args": [
+    ],
+    "examples": [
+      "On the day this was written, today() returned 12/30/2016"
+    ]
+  },
+  "year": {
+    "displayName": "year",
+    "description": "Returns the year corresponding to the given date.",
+    "args": [
+      {
+        "name": "dateTime",
+        "type": "string",
+        "description": "The specified date and time. May be a string or a computed date."
+      }
+    ],
+    "examples": [
+      "year(\"8-31-2005 3:30 PM\") returns 2005",
+      "year(\"8/25/1492\") returns 1492",
+      "year(date(2017,3,20,7,1,59)) returns 2017"
+    ]
+  },
+  /*
+   * Lookup Functions
+   */
+  "first": {
+    "displayName": "first",
+    "description": "Returns the value of its argument evaluated for the first case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "first(age) returns the first value of the attribute age",
+      "first(age,sex=\"female\") returns the first value for the attribute age for which the attribute sex is female",
+      "first(age,height>68) returns the first value for the attribute age for which the the value of the attribute height is greater than 68"
+    ]
+  },
+  "last": {
+    "displayName": "last",
+    "description": "Returns the value of its argument evaluated for the last case.",
+    "args": [
+      {
+        "name": "attribute",
+        "type": "attribute",
+        "description": "The specified attribute."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "last(amountInBank) returns the last value of the attribute amountInBank",
+      "last(amountInBank, year>2010) returns the last value for the attribute amountInBank for which the year is greater than 2010"
+    ]
+  },
+  "lookupByIndex": {
+    "displayName": "lookupByIndex",
+    "description": "Returns the value of the specified attribute for the case at the specified (1-based) index in the other data set. Note that otherDataSet and attrName must be strings (or expressions that evaluate to strings), while index should evaluate to an integer.",
+    "args": [
+      {
+        "name": "\"otherDataSet\"",
+        "type": "string",
+        "description": "The data set in which you want to look up the value."
+      },
+      {
+        "name": "\"attrName\"",
+        "type": "string",
+        "description": "The name of the attribute in the other data set with the desired value."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The 1-based index of a case in the other data set whose value will be returned."
+      }
+    ],
+    "examples": [
+      "In a document that has an alphabetized collection of U.S. states, lookupValueByIndex(\"States\", \"Name\", 3) returns \"Arizona.\"",
+      "lookupByIndex(\"Students\", \"Grade\", caseIndex) returns, for each case, the Grade of the Student in the same row in the other data set as the case."
+    ]
+  },
+  "lookupByKey": {
+    "displayName": "lookupByKey",
+    "description": "Looks up the case in an other data set for which the value of a \"key\" attribute matches a given key value from the originating data set. The value in that case for a \"returned\" attribute is returned. Note that otherDataSet, returnedAttrName, and keyAttrName should be strings, or evaluate to a string.",
+    "args": [
+      {
+        "name": "\"otherDataSet\"",
+        "type": "string",
+        "description": "The data set in which you want to look up the value."
+      },
+      {
+        "name": "\"returnedAttrName\"",
+        "type": "string",
+        "description": "The name of the attribute in the other data set whose value is to be looked up."
+      },
+      {
+        "name": "\"keyAttrName\"",
+        "type": "string",
+        "description": "The name of an attribute to be used as a \"key\" into the other data set."
+      },
+      {
+        "name": "keyValue",
+        "type": "value",
+        "description": "The value to be matched with the key."
+      }
+    ],
+    "examples": [
+      "lookupByKey(\"States\", \"Population\", \"State\", \"CA\") might return 39000000, the result of looking up the population for California in a collection of states",
+      "Suppose you have a data set named \"Cookies\" with attributes \"Kind\" and \"Price\". And you have a data set named \"Orders\" with an attribute named \"Cookie\". The formula lookupByKey(\"Cookies\", \"Price\", \"Kind\", Cookie) will return the price of cookies for each order."
+    ]
+  },
+  "next": {
+    "displayName": "next",
+    "description": "Returns the value of an expression for the next case in the data set.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "Will be evaluated in the context of the next case, return the resulting value."
+      },
+      {
+        "name": "deliminator",
+        "type": "value",
+        "description": "An argument that allows you to specify the value that next should take if there is no next case."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "next(Velocity) returns the value of the attribute velocity for the next case",
+      "next(Height,0,Sex=\"f\") returns the Height of the next female, 0 if none",
+      "next(personName, City=\"Tucson\") finds the next case for which the attribute City is Tucson and returns the value of personName for that case"
+    ]
+  },
+  "prev": {
+    "displayName": "prev",
+    "description": "Returns the value of that expression for the previous case. If there is no default parameter, then the first case evaluates as empty.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "Will be evaluated in the context of the next case, return the resulting value."
+      },
+      {
+        "name": "deliminator",
+        "type": "value",
+        "description": "An argument that allows you to specify the value that prev should take if there is no previous case."
+      },
+      {
+        "name": "filter",
+        "type": "filter",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "prev(height/armspan) returns the ratio of height to armspan for the previous case in the data set",
+      "prev(Factor, 1) will return the previous value of Factor for all cases except the first, for which it returns 1",
+      "prev(numberInLine,0,Flavor=\"strawberry\") returns the closest previous value of numberInLine for which Flavor has the value \"strawberry\"",
+      "prev(height, sex=\"female\") returns the previous value for the attribute height for which the attribute sex is female"
+    ]
+  },
+  /*
+   * Other Functions
+   */
+  "boolean": {
+    "displayName": "boolean",
+    "description": "Returns false if the given expression evaluates to false or 0, true otherwise. Note that ",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression to be evaluated."
+      }
+    ],
+    "examples": [
+      "boolean(age > 60) is true or false depending on the value of age",
+      "boolean(age) returns true for all values except 0",
+      "boolean(\"false\") returns true because a string value is neither false nor 0"
+    ]
+  },
+  "greatCircleDistance": {
+    "displayName": "greatCircleDistance",
+    "description": "Returns the shortest distance in kilometers between two points on the surface of the earth specified by latitude and longitude.",
+    "args": [
+      {
+        "name": "lat1",
+        "type": "number",
+        "description": "The latitude in degrees of the first point."
+      },
+      {
+        "name": "long1",
+        "type": "number",
+        "description": "The longitude in degrees of the first point."
+      },
+      {
+        "name": "lat2",
+        "type": "number",
+        "description": "The latitude in degrees of the second point."
+      },
+      {
+        "name": "long2",
+        "type": "number",
+        "description": "The longitude in degrees of the second point."
+      }
+    ],
+    "examples": [
+      "greatCircleDistance(40.66, 74, 37.8, 122.4) returns 4128, the distance in kilometers between New York and San Francisco"
+    ]
+  },
+  "if": {
+    "displayName": "if",
+    "description": "Returns one of two values depending on whether the result of evaluating a logical expression is true or false.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "Evaluated to determine which of the following two expressions is returned."
+      },
+      {
+        "name": "value_if_true",
+        "type": "expression",
+        "description": "Returned if the expression evaluates as true."
+      },
+      {
+        "name": "value_if_false",
+        "type": "expression",
+        "description": "Returned if the expression evaluates as false."
+      }
+    ],
+    "examples": [
+      "if(Speed>40,\"Fast\",\"Slow\") returns \"Fast\" if the value of Speed is greater than 40, otherwise returns \"Slow\"",
+      "if(ID<\"H\",\"Group1\",if(ID<\"S\",\"Group2\",\"Group3\")) returns Group1, Group2, or Group3 depending on where in the alphabet the value of ID lies"
+    ]
+  },
+  "isFinite": {
+    "displayName": "isFinite",
+    "description": "Checks whether a number is a finite number.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose value is tested"
+      }
+    ],
+    "examples": [
+      "isFinite(5) returns true",
+      "isFinite(5 - 9) returns true",
+      "isFinite(\"123\") returns false",
+      "isFinite(1/0) returns false"
+    ]
+  },
+  "number": {
+    "displayName": "number",
+    "description": "Converts the input value to a numeric value.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The text to be converted to a number."
+      }
+    ],
+    "examples": [
+      "number(\"45\") returns 45",
+      "number(\"hello\") returns NaN because \"hello\" cannot be converted to a number"
+    ]
+  },
+  "random": {
+    "displayName": "random",
+    "description": "Returns a random number, by default between 0 and 1, drawn from a uniform distribution. The order of the maximum and minimum value to be inputted does not matter.",
+    "args": [
+      {
+        "name": "max",
+        "type": "number",
+        "description": "The largest number to be returned."
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "description": "The smallest number to be returned."
+      }
+    ],
+    "examples": [
+      "random() will return a random number between 0 and 1",
+      "random(100) will return a random number between 0 and 100",
+      "random(1, 100) will return a random number between 1 and 100",
+      "random(100, 1) will return a random number between 1 and 100"
+    ]
+  },
+  "randomNormal": {
+    "displayName": "randomNormal",
+    "description": "Returns a random number drawn from a normal distribution which, by default, has a mean of 0 and a standard deviation of 1. The first argument determines the mean of the population and the second determines its standard deviation, which, if missing, defaults to 1.",
+    "args": [
+      {
+        "name": "mean",
+        "type": "number",
+        "description": "The mean of the population from which the random numbers are drawn."
+      },
+      {
+        "name": "sd",
+        "type": "number",
+        "description": "The standard deviation of the population from which the random numbers are drawn."
+      }
+    ],
+    "examples": [
+      "randomNormal() will return a random number drawn from a normally distributed population with mean 0 and standard deviation 1",
+      "randomNormal(100) will return a random number drawn from a normally distributed population with mean 100 and standard deviation 1",
+      "random(-10, 5) will return a random number drawn from a normally distributed population with mean -10 and standard deviation 5"
+    ]
+  },
+  "string": {
+    "displayName": "string",
+    "description": "Converts the input value to a string.",
+    "args": [
+      {
+        "name": "value",
+        "type": "value",
+        "description": "The text to be converted to a string."
+      }
+    ],
+    "examples": [
+      "string(45) returns the string \"45\""
+    ]
+  },
+  /*
+   * Statistical Functions
+   */
+  "concatA": {
+    "displayName": "concatA",
+    "description": "Returns the aggregated concatenation of its evaluated argument values.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The values to be concatenated."
+      }
+    ],
+    "examples": [
+      "concatA(1) returns 1, repeated for the number of cases in the case table"
+    ]
+  },
+  "count": {
+    "displayName": "count",
+    "description": "Returns the number of cases in the collection.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The values to be counted."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "Serves as a filter for the cases that will be counted."
+      }
+    ],
+    "examples": [
+      "count() returns the number of cases",
+      "count(Height) returns the number of cases for the attribute Height",
+      "count(Height, Age<18) returns the number of cases for the attribute Height with a value for the Age attribute that is less than 18"
+    ]
+  },
+  "max": {
+    "displayName": "max",
+    "description": "Returns the largest value in a collection.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression for which you want the maximum value."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "max(Age) returns the maximum age over all the cases",
+      "max(Age, Sex=\"Female\") returns maximum age among females"
+    ]
+  },
+  "mean": {
+    "displayName": "mean",
+    "description": "Returns the arithmetic mean (sum divided by count) of its argument evaluated for every case.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "expression",
+        "description": "The expression whose mean will be returned."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "mean(Height) computes the mean of the attribute Height",
+      "mean(Height, Sex = \"F\") computes the mean Height of females"
+    ]
+  },
+  "median": {
+    "displayName": "median",
+    "description": "Returns the median. Half the values of the attribute will be above this and half will be below.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The argument for which you want to compute the median."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "median(Height) computes the median of the attribute Height",
+      "median(Mass,Habitat=\"land\") computes the median of Mass for cases whose Habitat is \"land\""
+    ]
+  },
+  "min": {
+    "displayName": "min",
+    "description": "Returns the smallest value in a collection.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The expression for which you want the minimum value."
+      },
+      {
+        "name": "filter",
+        "type": "boolean",
+        "description": "A true-false expression that limits the cases considered."
+      }
+    ],
+    "examples": [
+      "min(Age) returns the minimum Age",
+      "min(Age, Sex=\"Male\") returns minimum Age among males"
+    ]
+  },
+  "percentile": {
+    "displayName": "percentile",
+    "description": "Returns the nth percentile from a range of values.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "attribute",
+        "description": "The attribute of the percentile that will be calculated."
+      },
+      {
+        "name": "constant",
+        "type": "value",
+        "description": "The percentile value in the range 0 to 1, inclusive."
+      }
+    ],
+    "examples": [
+      "percentile(Speed, .5) is another way to compute the median for the attribute Speed",
+      "percentile(Score, 0.95) will return the Score corresponding to the 95th percentile"
+    ]
+  },
+  "stdDev": {
+    "displayName": "stdDev",
+    "description": "Computes the sample standard deviation.",
+    "args": [
+      {
+        "name": "value",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the standard deviation."
+      }
+    ],
+    "examples": [
+      "stdDev(Pressure) computes the sample standard deviation of the attribute Pressure"
+    ]
+  },
+  "stdErr": {
+    "displayName": "stdErr",
+    "description": "Computes the standard error.",
+    "args": [
+      {
+        "name": "value",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the standard error."
+      }
+    ],
+    "examples": [
+      "stdError(Score) computes the sample standard error of the attribute Score"
+    ]
+  },
+  "sum": {
+    "displayName": "sum",
+    "description": "Returns the sum of the arguments over all the cases.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "any",
+        "description": "The attribute for which you want to find the sum."
+      },
+      {
+        "name": "filter",
+        "type": "expression",
+        "description": "Additional filter, numbers, or ranges for which you want the first case."
+      }
+    ],
+    "examples": [
+      "sum(grade_point) computes the sum of the grade points",
+      "sum(Mass, Height>60) returns the sum of the masses for heights taller than 60",
+      "sum(Time)/count(Time) returns the sum of the Time attribute divided by the count of the Time attribute"
+    ]
+  },
+  "variance": {
+    "displayName": "variance",
+    "description": "Computes the variance of an attribute, that is, the square of the standard deviation.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "attribute",
+        "description": "The attribute for which you want to find the variance."
+      }
+    ],
+    "examples": [
+      "variance(test_scores) computes the variance of the test scores",
+      "variance(Before-After) computes the variance of the difference of the two attributes Before and After"
+    ]
+  },
+  /*
+ * String Functions
+ */
+  "beginsWith": {
+    "displayName": "beginsWith",
+    "description": "Takes two arguments and returns true if the first begins with the second. Note that beginsWith is case sensitive.",
+    "args": [
+      {
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The item for which you want to find the string."
+      },
+      {
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The item to search for."
+      }
+    ],
+    "examples": [
+      "beginsWith(LastName, \"Mc\") will return true for \"McBride\" and false for \"Binker\"",
+      "beginsWith(City, \"Atlanta\") will return true for \"Atlanta\" and false for \"atlanta\"",
+      "beginsWith(MovieTitle, 101) will return true for the movie title 101 Dalmatians and false for the movie title Aladdin"
+    ]
+  },
+  "charAt": {
+    "displayName": "charAt",
+    "description": "Returns the character at the specified position. Note that if there is a space in the string, charAt returns 0 at that position.",
+    "args": [
+      {
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The item for which you want to find the character."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The 1-based index of the character to be returned."
+      }
+    ],
+    "examples": [
+      "charAt(\"water\", 3) returns t",
+      "charAt(Name, 1) returns the first letter of each Name",
+      "charAt(123, random(4, 1)) returns a random number between 1 and 3"
+    ]
+  },
+  "concat": {
+    "displayName": "concat",
+    "description": "Combines multiple expressions into a single string.",
+    "args": [
+      {
+        "name": "string1",
+        "type": "string",
+        "description": "The first string to join."
+      },
+      {
+        "name": "string2",
+        "type": "string",
+        "description": "The next string to join."
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "Additional strings to join."
+      }
+    ],
+    "examples": [
+      "concat(\"H\", \"i\") returns the string Hi",
+      "concat(Month, \"\/\", Date, \"\/\", Year) joins three attributes, Month, Date, Year, and backslash characters between the attributes. The result is 5\/25\/1977.",
+      "concat(FirstName, \" \", LastName) joins three strings, the string in the attribute FirstName, a space character, and the string in the attribute LastName. The result is Jane Smith. "
+    ]
+  },
+  "endsWith": {
+    "displayName": "endsWith",
+    "description": "Takes two arguments and returns true if the first ends with the second. Note that endsWith is case sensitive.",
+    "args": [
+      {
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The value for which you want to find the string."
+      },
+      {
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
+      }
+    ],
+    "examples": [
+      "endsWith(LastName, \"er\") will return true for \"Binker\" and false for \"McBride\"",
+      "endsWith(ZipCode, 04) will return true for the zip code 85704 and false for the zip code 85737"
+    ]
+  },
+  "findString": {
+    "displayName": "findString",
+    "description": "Searches the first string argument (optionally starting at the specified position) for the specified target string.",
+    "args": [
+      {
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The string to search in."
+      },
+      {
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The 1-based index to search for."
+      }
+    ],
+    "examples": [
+      "findString(\"mathematics\", \"the\") returns 3",
+      "findString(\"mathematics\", \"the\", 3) returns 0",
+      "findString(40, 4) returns 1"
+    ]
+  },
+  "includes": {
+    "displayName": "includes",
+    "description": "Takes two arguments and returns true if the second argument is a substring of the first (also treated as a string).",
+    "args": [
+      {
+        "name": "stringToLookIn",
+        "type": "string",
+        "description": "The string you want to find."
+      },
+      {
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The string to search for."
+      }
+    ],
+    "examples": [
+      "includes(\"the\", \"he\") returns true",
+      "includes(\"dancing\", \"joy\") returns false",
+      "includes(1234, 23) returns true"
+    ]
+  },
+  "join": {
+    "displayName": "join",
+    "description": "Combines multiple strings into a single string with a delimiter.",
+    "args": [
+      {
+        "name": "delimiter",
+        "type": "string",
+        "description": "The string used to separate the other strings."
+      },
+      {
+        "name": "string1",
+        "type": "string",
+        "description": "The first string."
+      },
+      {
+        "name": "string2",
+        "type": "string",
+        "description": "The next string."
+      },
+      {
+        "name": "...",
+        "type": "string",
+        "description": "Additional strings."
+      }
+    ],
+    "examples": [
+      "join(\"-\", \"a\", \"b\", \"c\") returns a-b-c",
+      "join(\/,9, 1, 1983) returns 9\/1\/1983",
+      "join(\"-\", m, d, y) returns a date in format \"m-d-y\""
+    ]
+  },
+  "repeatString": {
+    "displayName": "repeatString",
+    "description": "Takes two arguments, the first a string and the second a nonnegative integer. Returns the result of concatenating aString numRepetitions times",
+    "args": [
+      {
+        "name": "aString",
+        "type": "string",
+        "description": "The string you want to repeat."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The 1-based index number of times to repeat the string."
+      }
+    ],
+    "examples": [
+      "repeatString(\"ha\", 4) returns \"hahahaha\"",
+      "If the character name is Jar, repeatString(characterName, 2) returns \"JarJar\"",
+      "repeatString(9, 3) returns 999"
+    ]
+  },
+  "replaceChars": {
+    "displayName": "replaceChars",
+    "description": "Returns the string formed by replacing the specified characters with the specified replacement string.",
+    "args": [
+      {
+        "name": "aString",
+        "type": "string",
+        "description": "The original character you want to replace."
+      },
+      {
+        "name": "start",
+        "type": "number",
+        "description": "The starting location for the substitution, starting at 1."
+      },
+      {
+        "name": "numChars",
+        "type": "number",
+        "description": "The number of characters to be replaced."
+      },
+      {
+        "name": "substituteString",
+        "type": "string",
+        "description": "The string that is to be substituted."
+      }
+    ],
+    "examples": [
+      "replaceChars(\"computer\", 3, 4, \"nfus\") returns \"confuser\"",
+      "replaceChars(Year, 3, 4, 17) returns 2017 if Year is 2016"
+    ]
+  },
+  "replaceString": {
+    "displayName": "replaceString",
+    "description": "Takes three string arguments and substitutes the third for all occurrences of the second in the first.",
+    "args": [
+      {
+        "name": "aString",
+        "type": "string",
+        "description": "The original string that contains characters you want to replace."
+      },
+      {
+        "name": "stringToFind",
+        "type": "string",
+        "description": "The starting location for the substitution, starting at 1."
+      },
+      {
+        "name": "substituteString",
+        "type": "number",
+        "description": "The number of characters to be replaced."
+      }
+    ],
+    "examples": [
+      "replaceString(\"12:30:45\", \":\", \" and \") returns \"12 and 30 and 45\"",
+      "replaceString(Color, \"red\", \"blue\") replaces all the red colors with blue"
+    ]
+  },
+  "sortItems": {
+    "displayName": "sortItems",
+    "description": "Sorts the items in the list.",
+    "args": [
+      {
+        "name": "list",
+        "type": "string",
+        "description": "The list of items you want to sort."
+      },
+      {
+        "name": "deliminators",
+        "type": "string",
+        "description": "Deliminators in the argument. The delimiter defaults to the list separator for the current region, usually a comma."
+      }
+    ],
+    "examples": [
+      "sortItems(\"2,16,3,4,3\") returns \"2,3,3,4,16\" when comma is the regional list separator",
+      "sortItems(\"{T;H;12;2;t;h}\", \"{;}\") returns \"{2;12;H;h;T;t}\"",
+      "sortItems(\"HTHHT\", \"\") returns \"HHHTT\", because all characters are items when there are no delimiters",
+      "sortItems(FirstName, caseIndex) returns an alphabetized list of first names"
+
+    ]
+  },
+  "split": {
+    "displayName": "split",
+    "description": "Returns the string formed by splitting a string by the specified separator and then returning the element at the specified index.",
+    "args": [
+      {
+        "name": "aString",
+        "type": "string",
+        "description": "The original string that contains characters you want to split."
+      },
+      {
+        "name": "separator",
+        "type": "string",
+        "description": "The starting location for the split."
+      },
+      {
+        "name": "index",
+        "type": "number",
+        "description": "The 1-based index that specifies the placement of the splits."
+      }
+    ],
+    "examples": [
+      "split(\"09/01/2016\", \"/\", 1) returns 9",
+      "split(\"Hi, what's new?\", \"a\") returns \"Hi, wh\"",
+      "Given an attribute \"d\" that contains strings of the form \"mm\/dd\/yyyy\", split(d,\"\/\",1) returns the month, split(d,\"\/\",2) returns the day, and split(d,\"\/\",3) returns the year."
+    ]
+  },
+  "stringLength": {
+    "displayName": "stringLength",
+    "description": "Returns the number of characters in the string representation of the argument.",
+    "args": [
+      {
+        "name": "string",
+        "type": "string",
+        "description": "The string for which you want to know the number of characters."
+      }
+    ],
+    "examples": [
+      "stringLength(\"CODAP\") returns 5",
+      "stringLength(321) returns 3",
+      "stringLength(Month) returns the number of characters for each month name"
+    ]
+  },
+  "subString": {
+    "displayName": "subString",
+    "description": "Returns a substring of the specified string, determined by its position and length arguments.",
+    "args": [
+      {
+        "name": "string",
+        "type": "string",
+        "description": "The string for which you want the substring."
+      },
+      {
+        "name": "position",
+        "type": "number",
+        "description": "The starting position of the substring, begins at 1."
+      },
+      {
+        "name": "length",
+        "type": "number",
+        "description": "The length of the substring that you want."
+      }
+    ],
+    "examples": [
+      "substring(\"abcd\",2,3) returns bcd",
+      "substring(schoolID_studentID, 3) returns just the Student ID, 1234"
+    ]
+  },
+  "toLower": {
+    "displayName": "toLower",
+    "description": "Converts upper-case characters in its argument to lower-case.",
+    "args": [
+      {
+        "name": "string",
+        "type": "string",
+        "description": "The string that you want to appear in lower-case."
+      }
+    ],
+    "examples": [
+      "toLower(\"String\") returns string",
+      "toLower(Name) returns the name \"john\""
+    ]
+  },
+  "toUpper": {
+    "displayName": "toUpper",
+    "description": "Converts lower-case characters in its argument to upper-case.",
+    "args": [
+      {
+        "name": "string",
+        "type": "string",
+        "description": "The string that you want to appear in upper-case."
+      }
+    ],
+    "examples": [
+      "toUpper(\"String\") returns STRING",
+      "toUpper(Name) returns the name \"JOHN\""
+    ]
+  },
+  "trim": {
+    "displayName": "trim",
+    "description": "Removes leading, trailing, and redundant white space characters from its argument. (e.g. double spaces are converted to single spaces).",
+    "args": [
+      {
+        "name": "string",
+        "type": "string",
+        "description": "The string from which you want spaces removed."
+      }
+    ],
+    "examples": [
+      "trim(\" Fall Semester \") removes the unwanted first and last characters in the string and returns \"Fall Semester\"",
+      "trim(\"First sentence.  Second sentence\") removes the extra space between the two sentences and returns \"First sentence. Second sentence.\"",
+      "trim(Greetings) removes the extra space between two sentences in the Greetings attribute"
+    ]
+  },
+  /*
+ * Trigonometric Functions
+ */
+  "acos": {
+    "displayName": "acos",
+    "description": "Returns the angle in radians that corresponds to the specified arccosine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arccosine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "acos(1) returns 0 radians",
+      "acos(Degrees) returns the arccosine values for the Degrees attribute"
+    ]
+  },
+  "asin": {
+    "displayName": "asin",
+    "description": "Returns the angle in radians that corresponds to the specified arcsine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arcsine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "asin(1) returns 1.57, pi/2 radians",
+      "asin(Degrees) returns the arcsine values for the Degrees attribute"
+    ]
+  },
+  "atan": {
+    "displayName": "atan",
+    "description": "Returns the angle in radians that corresponds to the specified arctangent value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The arctangent of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "atan(1) returns 0.79, pi/4 radians",
+      "asin(Degrees) returns the arctangent values for the Degrees attribute"
+    ]
+  },
+  "atan2": {
+    "displayName": "atan2",
+    "description": "Returns the angle in radians between the x-axis and the specified coordinate point.",
+    "args": [
+      {
+        "name": "x",
+        "type": "number",
+        "description": "The x-value of the coordinate point."
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "description": "The y-value of the coordinate point."
+      }
+    ],
+    "examples": [
+      "atan2(1,1) returns 0.79, pi/4 radians",
+      "atan2(horizontal_axis, vertical_axis) returns the arctangent values for each horizontal axis and vertical axis attribute"
+    ]
+  },
+  "cos": {
+    "displayName": "cos",
+    "description": "Returns the angle in radians that corresponds to the specified cosine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The cosine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "cos(0.5) returns 0.88 radians",
+      "cos(Degrees) returns the cosine values for the Degrees attribute"
+    ]
+  },
+  "sin": {
+    "displayName": "sin",
+    "description": "Returns the angle in radians that corresponds to the specified sine value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The sine of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "sin(pi/2) returns 1",
+      "sin(Degrees) returns the sine values for the Degrees attribute"
+    ]
+  },
+  "tan": {
+    "displayName": "tan",
+    "description": "Returns the angle in radians that corresponds to the specified tangent value [–1, 1].",
+    "args": [
+      {
+        "name": "radians",
+        "type": "number",
+        "description": "The tangent of the angle you want, must be from -1 to 1."
+      }
+    ],
+    "examples": [
+      "tan(pi/4) returns 1",
+      "tan(Degrees) returns the tangent values for the Degrees attribute"
+    ]
+  }
+}
