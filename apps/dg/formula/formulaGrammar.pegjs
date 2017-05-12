@@ -5,6 +5,7 @@
     -- No assignment
     -- No regular expressions
     -- No bitwise operators (bitwise '~', '^', '&', '|')
+    -- Backticks around identifiers to support arbitrary identifier names
     -- '=' instead of '=='/'===' for equality comparison
     -- '!=' (not '!==') for inequality comparison
         (We also support single-character Unicode not-equals.)
@@ -21,15 +22,15 @@
            random(min,max) -- pseudo-random number in range [min,max)
         4. round(x,digits) -- rounds to the specified number of decimal places
         5. trunc(x) -- truncates to the integer portion
-  
+
   The grammar was developed by starting with the example JavaScript grammar at
-  
+
     https://github.com/dmajda/pegjs/blob/master/examples/javascript.pegjs
-  
+
   and then 1) eliminating the unneeded portions (statements, bitwise operators, etc.)
   and 2) making the additional changes mentioned above, e.g. support for '^' operator
   for exponentiation.
-  
+
   To generate the parser itself, run "npm run build:parser". This will create
   "formulaParser.js" from this file.
 
@@ -57,6 +58,7 @@ LineTerminatorSequence "end of line"
 
 Identifier "identifier"
   = !ReservedWord name:IdentifierName { return name; }
+  / BacktickIdentifier
 
 IdentifierName "identifier"
   = start:IdentifierStart parts:IdentifierPart* {
@@ -71,6 +73,16 @@ IdentifierPart
   = IdentifierStart
   / UnicodeDigit
   / UnicodeConnectorPunctuation
+
+BacktickIdentifier
+  = parts:('`' BacktickIdentifierCharacters '`') { return parts[1]; }
+
+BacktickIdentifierCharacters
+  = chars:BacktickIdentifierChar+ { return chars.join(""); }
+
+BacktickIdentifierChar
+  = !("`" / "\\" / LineTerminator) char_:SourceCharacter { return char_; }
+  / "\\" sequence:EscapeSequence { return sequence; }
 
 UnicodeLetter
   = Lu / Ll

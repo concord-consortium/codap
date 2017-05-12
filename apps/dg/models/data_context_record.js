@@ -85,6 +85,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
     dataSet: null,
 
     /**
+     * Whether attribute names should be canonicalized.
+     * @property {Boolean}
+     */
+    canonicalizeNamesBinding: '*dataSet.canonicalizeNames',
+
+    /**
      * The context is has had its original organization modified.
      * No new data should be added.
      * @property {boolean}
@@ -102,7 +108,12 @@ DG.DataContextRecord = DG.BaseModel.extend(
     init: function () {
       this.collections = {};
       this.dependencyMgr = DG.DependencyMgr.create({ dataContext: this });
-      this.dataSet = DG.DataSet.create({dataContextRecord: this});
+      // explicit client request supercedes application default
+      var canonicalizeNames = this.initCanonicalizeNames != null
+                                ? this.initCanonicalizeNames
+                                : DG.canonicalizeNamesDefault;
+      this.dataSet = DG.DataSet.create({dataContextRecord: this,
+                                        canonicalizeNames: canonicalizeNames});
       sc_super();
     },
 

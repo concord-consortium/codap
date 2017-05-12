@@ -173,12 +173,12 @@ DG.DataUtilities.canonicalizeInternalValue = function(iValue) {
   @param    iDataMap  A map from attribute names to values
   @returns          The canonicalized value map (attribute IDs to values)
  */
-DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap) {
+DG.DataUtilities.canonicalizeAttributeValues = function(iAttrs, iDataMap, iCanonicalizeNames) {
   var valuesMap = {};
   DG.ObjectMap.forEach(iDataMap, function (iKey, iValue) {
 
     var attr = iAttrs.findProperty('name', iKey) ||
-            iAttrs.findProperty('name', DG.Attribute.legalizeAttributeName(iKey)),
+            iAttrs.findProperty('name', DG.Attribute.canonicalizeName(iKey, iCanonicalizeNames)),
         value = DG.DataUtilities.canonicalizeInputValue(iValue);
     if(attr != null) {
       valuesMap[attr.id] = value;
