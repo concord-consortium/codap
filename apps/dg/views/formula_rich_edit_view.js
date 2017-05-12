@@ -1,8 +1,8 @@
 // ==========================================================================
 //                      DG.FormulaTextEditView
-// 
+//
 //  Provides a DG-specific text editor for entering a formula.
-//  
+//
 //  Authors:  William Finzer, Kirk Swenson
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
@@ -119,7 +119,7 @@ return {
   autoCorrect: false,
 
   autoCapitalize: false,
-  
+
   names: [],  // Will be filled with attribute and global variable names by client
 
   _disableNextSelectRoot: false,
@@ -208,8 +208,13 @@ return {
           isVariable = classes.indexOf('cm-variable') >= 0,
           isFunction = classes.indexOf('cm-function') >= 0,
           nodeText = $(node).text(),
+          nodeTextLength = nodeText ? nodeText.length : 0,
           completions = cm.options.hintOptions && cm.options.hintOptions.completionData,
           i, completionCount = completions && completions.length;
+      if (isVariable && (nodeTextLength > 2) &&
+          (nodeText[0] === '`') && (nodeText[nodeTextLength-1] === '`')) {
+        nodeText = nodeText.substring(1, nodeTextLength - 1);
+      }
       // linear search could be replaced with faster (e.g. binary) search
       // if performance becomes a problem.
       for (i = 0; i < completionCount; ++i) {
@@ -231,7 +236,7 @@ return {
       this._cm.setValue(iValue || "");
     }
   }.property('value'),
-  
+
   /**
     Replace the current selection with the specified string.
     @param    {String}    iNewString -- the string to insert

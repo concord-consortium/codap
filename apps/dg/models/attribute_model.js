@@ -445,7 +445,7 @@ DG.Attribute.createAttribute = function( iProperties) {
 /**
  * Convert a string to a "legal" attribute name.
  */
-DG.Attribute.legalizeAttributeName = function (iName) {
+DG.Attribute.canonicalizeName = function(iName, iCanonicalize) {
   var tName = String(SC.none(iName)? '': iName),
       tReg = /\((.*)\)/,  // Identifies first parenthesized substring
       tMatch = tReg.exec( tName),
@@ -458,7 +458,8 @@ DG.Attribute.legalizeAttributeName = function (iName) {
   // TODO: We are eliminating all but Latin characters here. We should be more general and allow
   // non-Latin alphanumeric characters.
   tNewName = tNewName.trim(); // Get rid of trailing white space
-  tNewName = tNewName.replace(/\W/g, '_');  // Replace white space with underscore
+  if (iCanonicalize || ((iCanonicalize == null) && DG.canonicalizeNames))
+    tNewName = tNewName.replace(/\W/g, '_');  // Replace non-word characters with underscore
   // if after all this we have an empty string replace with a default name.
   if (tNewName.length === 0) {
     tNewName = 'attr';

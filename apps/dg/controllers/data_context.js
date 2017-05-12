@@ -119,6 +119,10 @@ DG.DataContext = SC.Object.extend((function() // closure
   //      this.get('flexibleGroupingChangeFlag'));
   //}.observes('*model.flexibleGroupingChangeFlag'),
 
+  canonicalizeName: function(iName) {
+    return DG.Attribute.canonicalizeName(iName);
+  },
+
   /**
    *  The id of our DG.DataContextRecord.
    *  Bound to the 'id' property of the model.
@@ -820,7 +824,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         iCase.beginCaseValueChanges();
         DG.ObjectMap.forEach(values, function(key, value) {
           var attr = this.getAttributeByName(key)
-              || this.getAttributeByName(DG.Attribute.legalizeAttributeName(key));
+              || this.getAttributeByName(this.canonicalizeName(key));
           if (attr) {
             iCase.setValue(attr.id, value);
           } else {
@@ -1074,7 +1078,7 @@ DG.DataContext = SC.Object.extend((function() // closure
                                   oldName = attribute.get('name');
                                   if (names.indexOf(oldName) < 0)
                                     names.push(oldName);
-                                  iValue = collection.makeAttributeNameLegal(iValue);
+                                  iValue = collection.canonicalizeName(iValue);
                                   if (names.indexOf(iValue) < 0)
                                     names.push(iValue);
                                 }

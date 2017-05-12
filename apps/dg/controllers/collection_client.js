@@ -305,8 +305,8 @@ DG.CollectionClient = SC.Object.extend(
   willDestroyAttribute: function( iAttribute) {
   },
 
-  makeAttributeNameLegal: function (iName) {
-    return DG.Attribute.legalizeAttributeName(iName);
+  canonicalizeName: function (iName) {
+    return DG.Attribute.canonicalizeName(iName);
   },
 
   /**
@@ -322,7 +322,7 @@ DG.CollectionClient = SC.Object.extend(
     iProperties = iProperties || {};
 
     if (!SC.none(iProperties.name)) {
-      iProperties.name = this.makeAttributeNameLegal(iProperties.name);
+      iProperties.name = this.canonicalizeName(iProperties.name);
     }
 
     // if the property has an ID then it is an existing attribute, possibly from

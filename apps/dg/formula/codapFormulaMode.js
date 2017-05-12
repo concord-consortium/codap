@@ -16,7 +16,8 @@ CodeMirror.defineSimpleMode("codapFormula", {
     {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
     {regex: /[-+\/*=<>!^]+/, token: "operator"},
     {regex: DG.Formula.functionRegExp, token: "function"},
-    {regex: DG.Formula.identifierRegExp, token: "variable"}
+    {regex: DG.Formula.identifierRegExp, token: "variable"},
+    {regex: /(?:`(?:[^\\]|\\.)*?(?:`|$))/, token: "variable"}
   ],
   // The meta property contains global information about the mode. It
   // can contain properties like lineComment, which are supported by
