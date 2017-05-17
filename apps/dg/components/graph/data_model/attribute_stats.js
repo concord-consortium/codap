@@ -65,7 +65,7 @@ DG.AttributeStats = SC.Object.extend(
        * Only gets a value if 'attributeType' is set rather than computed.
        * @property {DG.Analysis.EAttributeType}
        */
-      _attributeType: DG.Analysis.EAttributeType.eNone,
+      _attributeType: null,
 
       /**
        * Initialize those members that require it.
@@ -242,7 +242,7 @@ DG.AttributeStats = SC.Object.extend(
             case 'numeric':
               this._attributeType = DG.Analysis.EAttributeType.eNumeric;
               break;
-            case 'datetime':
+            case 'date':
               this._attributeType = DG.Analysis.EAttributeType.eDateTime;
               break;
             default:

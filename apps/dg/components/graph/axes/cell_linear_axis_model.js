@@ -257,31 +257,63 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
     @protected
   */
   _computeBoundsAndTickGap: function( iDataMin, iDataMax) {
-    var kFactor = 2.5, tTickGap;
+    var kFactor = 2.5,
+        tType = this.getPath('attributeDescription.attributeType'),
+        tDefaultConstants = defaultsForType( tType),
+        tTickGap;
+
+    function defaultsForType( iType) {
+      DG.assert( iType === DG.Analysis.EAttributeType.eNumeric ||
+          iType === DG.Analysis.EAttributeType.eDateTime );
+      switch( iType) {
+        case DG.Analysis.EAttributeType.eNumeric:
+          return {
+            min: 0,
+            max: 10,
+            addend: 5
+          };
+        case DG.Analysis.EAttributeType.eDateTime:
+          return {
+            min: Date.now() / 1000 - 10 * 24 * 60 * 60,
+            max: Date.now() / 1000,
+            addend: 5 * 24 * 60 * 60
+          };
+      }
+    }
+
     // We can get in here with dataMax < iDataMin if there are no values.
     // should not rely on min/max being real or +/- inf.
     if ( !DG.isFinite( iDataMax) || !DG.isFinite( iDataMin) || (iDataMax < iDataMin)) {
       // If the attribute description has defaults, we use them. Otherwise arbitrarily set range from 0..10
       var tDefaultMin = this.getPath('attributeDescription.attribute.defaultMin' ),
           tDefaultMax = this.getPath('attributeDescription.attribute.defaultMax' );
-      iDataMin = SC.none( tDefaultMin) ? 0 : tDefaultMin;
-      iDataMax = SC.none( tDefaultMax) ? 10 : tDefaultMax;
+      iDataMin = SC.none( tDefaultMin) ? tDefaultConstants.min : tDefaultMin;
+      iDataMax = SC.none( tDefaultMax) ? tDefaultConstants.max : tDefaultMax;
     }
     else if( (iDataMin === iDataMax) && (iDataMin === 0)){
       iDataMin = -10;
       iDataMax = 10;
     }
     else if( (iDataMin === iDataMax) && (Math.floor(iDataMin) === iDataMin)) {
-      // Place the value in the middle of a scale that extends 10% of the value in each direction
-      iDataMax += 5;
-      iDataMin -= 5;
+      // Place the value in the middle of a scale that extends a fixed amount in each direction
+      iDataMax += tDefaultConstants.addend;
+      iDataMin -= tDefaultConstants.addend;
     }
     else if( iDataMin === iDataMax) {
-      // Place the value in the middle of a scale that extends 10% of the value in each direction
-      iDataMax = iDataMin + 0.1 * Math.abs( iDataMin);
-      iDataMin = iDataMin - 0.1 * Math.abs( iDataMin);
+      switch( tType) {
+        case DG.Analysis.EAttributeType.eNumeric:
+          // Place the value in the middle of a scale that extends 10% of the value in each direction
+          iDataMax = iDataMin + 0.1 * Math.abs( iDataMin);
+          iDataMin = iDataMin - 0.1 * Math.abs( iDataMin);
+          break;
+        case DG.Analysis.EAttributeType.eDateTime:
+          // Place the value in the middle of a scale that extends a fixed amount in each direction
+          iDataMax += tDefaultConstants.addend;
+          iDataMin -= tDefaultConstants.addend;
+          break;
+      }
     }
-    else { // Here we can snap to zero
+    else if( tType === DG.Analysis.EAttributeType.eNumeric) { // Here we can snap to zero
       if( (iDataMin > 0) && (iDataMax > 0) && (iDataMin <= iDataMax / kFactor))
         iDataMin = 0;
       else if( (iDataMin < 0) && (iDataMax < 0) && (iDataMax >= iDataMin / kFactor))
