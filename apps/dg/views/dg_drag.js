@@ -143,5 +143,40 @@ DG.Drag = SC.Drag.extend({
     else {
       this._endDrag();
     }
+  },
+
+  /**
+   * If we haven't yet computed the _cachedDropTargets, let my base class do so,
+   * then order the array so that the targets whose component views are on top
+   * are first in the array.
+   * @return {[SC.View]}
+   * @private
+   */
+  _dropTargets: function () {
+    if (this._cachedDropTargets)
+      return this._cachedDropTargets;
+    var tResult = sc_super();
+    tResult.forEach( function( iTarg) {
+      var tCompView = DG.ComponentView.findComponentViewParent( iTarg);
+      iTarg.parentZIndex = tCompView ? tCompView.get('layout').zIndex : null;
+    });
+    tResult.sort( function( iTarg1, iTarg2) {
+      var tIdx1 = iTarg1.parentZIndex,
+          tIdx2 = iTarg2.parentZIndex;
+      if( SC.none( tIdx1))
+        return 1;
+      else if( SC.none( tIdx2))
+        return -1;
+      if( tIdx1 < tIdx2)
+        return 1;
+      else if( tIdx2 < tIdx1)
+        return -1;
+      else
+        return 0;
+    });
+    tResult.forEach( function( iTarg) {
+      delete iTarg.parentZIndex;
+    });
+    return tResult;
   }
 });
