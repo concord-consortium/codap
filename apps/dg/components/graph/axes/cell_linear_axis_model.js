@@ -263,20 +263,20 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
         tTickGap;
 
     function defaultsForType( iType) {
-      DG.assert( iType === DG.Analysis.EAttributeType.eNumeric ||
-          iType === DG.Analysis.EAttributeType.eDateTime );
       switch( iType) {
-        case DG.Analysis.EAttributeType.eNumeric:
-          return {
-            min: 0,
-            max: 10,
-            addend: 5
-          };
         case DG.Analysis.EAttributeType.eDateTime:
           return {
             min: Date.now() / 1000 - 10 * 24 * 60 * 60,
             max: Date.now() / 1000,
             addend: 5 * 24 * 60 * 60
+          };
+        case DG.Analysis.EAttributeType.eNumeric:
+          /* falls through */
+        default:
+          return {
+            min: 0,
+            max: 10,
+            addend: 5
           };
       }
     }
