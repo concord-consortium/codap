@@ -591,6 +591,29 @@ DG.DateTimeAxisViewHelper = DG.AxisViewHelper.extend(
             tDateLabel = getLabelForIncrementedDateAtLevel(tLevels.innerLevel, tDateLabel.labelDate,
                 tLevels.increment);
           }
+        },
+
+        /**
+         * Caller wants to know the appropriate level at which to display a string representing
+         * a value on the axis.
+         * @return {string}
+         */
+        getValueDisplayResolution: function() {
+          var tDelta = (this.coordinateToData(1) - this.coordinateToData(0)) * 1000,
+              tResult;
+          if( tDelta < kMinute)
+            tResult = 'second';
+          else if( tDelta < kHour)
+            tResult = 'minute';
+          else if( tDelta < kDay)
+            tResult = 'hour';
+          else if( tDelta < kDay * 30)
+            tResult = 'day';
+          else if( tDelta < kYear)
+            tResult = 'month';
+          else
+            tResult = 'year';
+          return tResult;
         }
 
       };

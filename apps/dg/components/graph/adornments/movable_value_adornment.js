@@ -76,12 +76,43 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     @property { String read only }
   */
   valueString: function() {
-    var tValue = this.get('value'),
-        tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
-        tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
-    if( tValue < 2500 )
-      tNumFormat.group('');
-    return tNumFormat( tValue);
+
+    var dateTimeString = function() {
+          var tAxisViewHelper = this.getPath('valueAxisView.axisViewHelper'),
+              tResolution = tAxisViewHelper.getValueDisplayResolution(),
+              tDateValue = new Date( tValue * 1000),
+              tYear = tDateValue.getFullYear(),
+              tMonthName = DG.DataUtilities.monthName( tValue),
+              tDay = tDateValue.getDate(),
+              tHour = tDateValue.getHours()/*,
+              tMinute = tDateValue.getMinutes(),
+              tSecond = tDateValue.getSeconds()*/;
+          switch( tResolution) {
+            case 'year': return String(tYear);
+            case 'month': return 'DG.MovableMonthYear'.loc( tMonthName, tYear);
+            case 'day': return tDateValue.toLocaleDateString();
+            case 'hour': return 'DG.MovableMonthDayHour'.loc( tMonthName, tDay, tHour);
+            case 'second':
+            case 'minute': return tDateValue.toLocaleTimeString();
+          }
+
+          return DG.DataUtilities.formatDate( tValue);
+        }.bind( this),
+
+        numericString = function() {
+          var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
+              tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
+          if( tValue < 2500 )
+            tNumFormat.group('');
+          return tNumFormat( tValue);
+        }.bind( this);
+
+    var tValue = this.get('value');
+
+    if( this.getPath('valueAxisView.isDateTime'))
+      return dateTimeString();
+    else
+      return numericString();
   }.property().cacheable(),
   valueStringDidChange: function() {
     this.notifyPropertyChange('valueString');

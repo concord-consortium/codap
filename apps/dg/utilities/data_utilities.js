@@ -111,7 +111,7 @@ DG.isDateString = DG.DataUtilities.isDateString;
   Optionally uses toLocaleTimeString() for default time formatting.
  */
 DG.DataUtilities.formatDate = function(x) {
-  if (!(x && DG.isDate(x))) return "";
+  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
   // use a JS Date object for formatting, since our valueOf()
   // change seems to affect string formatting
   var date = new Date(Number(x) * 1000),
@@ -123,6 +123,36 @@ DG.DataUtilities.formatDate = function(x) {
       dateStr = date.toLocaleDateString(),
       timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
   return dateStr + timeStr;
+};
+
+/**
+  Default formatting for Date objects.
+  Uses toLocaleDateString() for default date formatting.
+  Optionally uses toLocaleTimeString() for default time formatting.
+ */
+DG.DataUtilities.monthName = function(x) {
+  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
+  var date;
+  if (DG.isDate(x))
+    date = x;
+  else
+    date = DG.createDate(x);
+  var monthNames = [
+        'DG.Formula.DateLongMonthJanuary',
+        'DG.Formula.DateLongMonthFebruary',
+        'DG.Formula.DateLongMonthMarch',
+        'DG.Formula.DateLongMonthApril',
+        'DG.Formula.DateLongMonthMay',
+        'DG.Formula.DateLongMonthJune',
+        'DG.Formula.DateLongMonthJuly',
+        'DG.Formula.DateLongMonthAugust',
+        'DG.Formula.DateLongMonthSeptember',
+        'DG.Formula.DateLongMonthOctober',
+        'DG.Formula.DateLongMonthNovember',
+        'DG.Formula.DateLongMonthDecember'
+      ],
+      monthName = monthNames[date.getMonth()];
+  return monthName && monthName.loc();
 };
 
 /**

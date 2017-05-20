@@ -604,6 +604,10 @@ SC.stringsFor('English', {
   // DG.DataTip
   'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@",
 
+  // DG.MovableValueAdornment
+  'DG.MovableMonthYear': "%@, %@", // <monthname>, <year>
+  'DG.MovableMonthDayHour': "%@ %@ %@:00", // <monthname> <day> <hour>:00
+
   // DG.MapView
   'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
   'DG.MapView.hideGrid': "Hide Grid",  // "Hide Grid"

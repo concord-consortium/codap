@@ -170,23 +170,7 @@ DG.functionRegistry.registerFunctions((function() {
     'monthName': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime',
       evalFn: function(x) {
-        var date = convertToDate(x),
-            monthNames = [
-              'DG.Formula.DateLongMonthJanuary',
-              'DG.Formula.DateLongMonthFebruary',
-              'DG.Formula.DateLongMonthMarch',
-              'DG.Formula.DateLongMonthApril',
-              'DG.Formula.DateLongMonthMay',
-              'DG.Formula.DateLongMonthJune',
-              'DG.Formula.DateLongMonthJuly',
-              'DG.Formula.DateLongMonthAugust',
-              'DG.Formula.DateLongMonthSeptember',
-              'DG.Formula.DateLongMonthOctober',
-              'DG.Formula.DateLongMonthNovember',
-              'DG.Formula.DateLongMonthDecember'
-            ],
-            monthName = monthNames[date.getMonth()];
-        return monthName && monthName.loc();
+        return DG.DataUtilities.monthName(x);
       }
     },
 
