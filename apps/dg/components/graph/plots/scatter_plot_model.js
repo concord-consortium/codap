@@ -59,9 +59,13 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       }.observes('*multipleLSRLs.isVisible'),
 
       /**
-       @property { Boolean, read only }
+       @property { Boolean }
        */
-      isInterceptLocked: function () {
+      isInterceptLocked: function ( iKey, iValue) {
+        if( !SC.none( iValue)) {
+          this.setPath('movableLine.isInterceptLocked', iValue);
+          this.setPath('multipleLSRLs.isInterceptLocked', iValue);
+        }
         return !SC.none(this.movableLine) && this.movableLine.get('isInterceptLocked') ||
             !SC.none(this.multipleLSRLs) && this.multipleLSRLs.get('isInterceptLocked');
       }.property(),
@@ -379,21 +383,26 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphInterceptLocked',
             classNames: 'graph-interceptLocked-check'.w(),
-            _finishedInit: false,
+            _changeInProgress: true,
             valueDidChange: function () {
-              if( this._finishedInit)
+              if( !this._changeInProgress)
                 this_.toggleInterceptLocked();
             }.observes('value'),
             lineVisibilityChanged: function() {
+              this._changeInProgress = true;
+              var tLineIsVisible = this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
+              if( !tLineIsVisible)
+                this_.set('isInterceptLocked', false);
               this.set('value', this_.get('isInterceptLocked'));
-              this.set('isEnabled', this_.get('isMovableLineVisible') || this_.get('isLSRLVisible'));
+              this.set('isEnabled', tLineIsVisible);
+              this._changeInProgress = false;
             },
             init: function() {
               sc_super();
               this.lineVisibilityChanged();
               this_.addObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
               this_.addObserver('isLSRLVisible', this, 'lineVisibilityChanged');
-              this._finishedInit = true;
+              this._changeInProgress = false;
             },
             destroy: function() {
               this_.removeObserver('isMovableLineVisible', this, 'lineVisibilityChanged');
