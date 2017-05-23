@@ -1182,6 +1182,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var results;
     var collections = [];
     var collectionIDCaseMap = {};
+    var change;
     items.forEach(function (item) {
       var canonicalItem;
       if (item instanceof DG.DataItem) {
@@ -1192,6 +1193,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     });
     results = this.regenerateCollectionCases();
+
 
     results.createdCases.forEach(function (iCase) {
       var collectionID = iCase.collection.get('id');
@@ -1206,7 +1208,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     if (results && results.createdCases.length > 0) {
       collections.forEach(function (collection) {
         var cases = collectionIDCaseMap[collection.get('id')];
-        this.applyChange({
+        change = {
           operation: 'createCases',
           collection: this.getCollectionByID(collection.get('id')),
           isComplete: true,
@@ -1215,9 +1217,12 @@ DG.DataContext = SC.Object.extend((function() // closure
             caseIDs: cases,
             caseID: cases[0]
           }
-        });
+        };
+        this.applyChange(change);
       }.bind(this));
     }
+
+    this.invalidateAttrsOfCollections(collections, change);
 
     return results && results.createdCases.map(function(iCase){
       return iCase.id;
