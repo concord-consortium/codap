@@ -330,6 +330,27 @@ DG = SC.Application.create((function () // closure
     }.property('urlParamGames, _startingDataInteractive'),
 
     /**
+     * enables 'di' URL param to override stored URL that matches
+     */
+    _dataInteractiveOverride: getUrlParameter('di-override'),
+
+    /**
+     * overrides the specified URL with one specified via 'di' URL parameter if
+     * and only if the 'di-override' string is found within the specified URL.
+     */
+    finalGameUrl: function(iGameUrl) {
+      if (!iGameUrl || !DG._startingDataInteractive || !DG._dataInteractiveOverride)
+        return iGameUrl;
+      var hashIndex = iGameUrl.indexOf('#'),
+          gameUrlNoHash = hashIndex >= 0 ? iGameUrl.substring(0, hashIndex) : iGameUrl,
+          gameUrlHash = hashIndex >= 0 ? iGameUrl.substring(hashIndex) : '',
+          matchIndex = gameUrlNoHash.indexOf(DG._dataInteractiveOverride);
+      return matchIndex >= 0
+              ? DG._startingDataInteractive + gameUrlHash
+              : iGameUrl;
+    },
+
+    /**
      * runKey can be passed as a Url parameter named runKey. It is a key which will be passed to the document server to enable
      * anonymous read-write access to documents. It can be any string.
      * ex: 'e342d47a-d3e5-48b8-9675-8622e40bb2c8'
