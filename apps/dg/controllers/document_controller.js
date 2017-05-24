@@ -661,8 +661,9 @@ DG.DocumentController = SC.Object.extend(
       var tGameParams = {
           width: 640, height: 480
         },
-        tGameUrl = (iComponent && iComponent.getPath(
-          'componentStorage.currentGameUrl')),
+        // 'di' URL param can override stored URL
+        storedGameUrl = iComponent && iComponent.getPath('componentStorage.currentGameUrl'),
+        tGameUrl = DG.finalGameUrl(storedGameUrl),
         tGameName = (iComponent && iComponent.getPath(
             'componentStorage.currentGameName')) ||
             getNameFromURL(tGameUrl) ||
