@@ -260,6 +260,36 @@ DG = SC.Application.create((function () // closure
       return getUrlParameter(iParam, iDefault);
     },
 
+    removeQueryParams: function(iParams) {
+      var queryParams = window.location.search,
+          paramsToRemove = Array.isArray(iParams) ? iParams : [iParams];
+      paramsToRemove.forEach(function(iParam) {
+        iParam = iParam.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regexS = "[\\?&]" + iParam + "=([^&]*)",
+            regex = new RegExp(regexS),
+            result = regex.exec(queryParams),
+            match = result && result[0],
+            matchIndex = result && result.index,
+            matchLength = match && match.length;
+        if ((matchIndex > 0) && (queryParams[matchIndex-1] === '&'))
+          match = '&' + match;
+        else if ((matchIndex + matchLength < queryParams.length) &&
+                  (queryParams[matchIndex + matchLength] === '&')) {
+          match = match + '&';
+        }
+        else if ((matchLength + 1 === queryParams.length))
+          match = '?' + match;
+
+        if (match)
+          queryParams = queryParams.replace(match, '');
+      });
+      if ((queryParams !== window.location.search) && window.history.replaceState) {
+        var newUrl = window.location.protocol + '//' + window.location.host +
+                      window.location.pathname + queryParams + window.location.hash;
+        window.history.replaceState(null, null, newUrl);
+      }
+    },
+
     /**
      * Modify the given string key (usually in strings.js), and return the associated variant of the
      * key if this is an SRRI build (also expected to be in in strings.js).
