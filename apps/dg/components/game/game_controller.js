@@ -282,7 +282,9 @@ DG.GameController = DG.ComponentController.extend(
        */
       restoreComponentStorage: function (iComponentStorage, iDocumentID) {
         var gameName = iComponentStorage.currentGameName,
-            gameUrl = iComponentStorage.currentGameUrl,
+            // 'di' URL param can override stored URL
+            storedGameUrl = iComponentStorage && iComponentStorage.currentGameUrl,
+            gameUrl = DG.finalGameUrl(storedGameUrl),
             contextID,
             dataContext;
 

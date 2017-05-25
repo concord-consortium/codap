@@ -553,6 +553,9 @@ DG.main = function main() {
               }
               // synchronize document dirty state after saving, since we may not be clean
               syncDocumentDirtyState();
+
+              // once the file has been saved, we no longer need the 'di'-related URL params
+              DG.removeQueryParams(['di', 'di-override']);
             });
             break;
 

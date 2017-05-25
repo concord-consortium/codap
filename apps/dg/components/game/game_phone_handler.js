@@ -394,8 +394,10 @@ DG.GamePhoneHandler = SC.Object.extend(
         //DG.log('InitGame: ' + JSON.stringify(iArgs));
         // The game-specified arguments form the core of the new DG.GameSpec.
         var tCurrentGameName = this.getPath('context.gameName'),
-            tCurrentGameUrl = this.getPath('context.gameUrl') ||
-                this.getPath('model.componentStorage.currentGameUrl'),
+            tContextGameUrl = this.getPath('context.gameUrl'),
+            tStoredGameUrl = this.getPath('model.componentStorage.currentGameUrl'),
+            // 'di' URL param can override stored URL
+            tCurrentGameUrl = tContextGameUrl || DG.finalGameUrl(tStoredGameUrl),
             tGameContext = this.get('context'),
             tGameCollections = [],
             tRestoredGameState,
