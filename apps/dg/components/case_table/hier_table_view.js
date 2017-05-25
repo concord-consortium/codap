@@ -89,6 +89,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       return this.getPath('contentView.frame.width');
     }.property(),
 
+    init: function() {
+      sc_super();
+      // Adjust the horizontal scrollbar so that the right scroll arrow can be hit.
+      this.set('horizontalScrollerLayout', { left: 0, right: 18, top: 0, bottom: 0 });
+    },
+
     /**
      * This method is called by Sproutcore whenever the view is appended to
      * the document. In the case of component contents like this, this happens
