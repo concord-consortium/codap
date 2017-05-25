@@ -28,10 +28,10 @@ module("DG.Utilities", {
 
 test("Tests data utilities", function() {
   function testValidDateString(dateString) {
-    ok(DG.DataUtilities.isDateString(dateString), 'Valid date: ' + dateString);
+    ok(DG.isDateString(dateString), 'Valid date: ' + dateString);
   }
   function testInvalidDateString(dateString) {
-    ok(!DG.DataUtilities.isDateString(dateString), 'Invalid date: ' + dateString);
+    ok(!DG.isDateString(dateString), 'Invalid date: ' + dateString);
   }
   // test date only
   testValidDateString('11/9/2016');

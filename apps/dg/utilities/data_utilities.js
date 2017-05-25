@@ -53,109 +53,6 @@ DG.DataUtilities.isMissingValue = function( iValue ) {
 };
 
 /**
-  Returns a DG date object constructed from its arguments.
-  Currently this is a JavaScript Date object, but could be
-  replaced with another (e.g. moment.js) object at some point.
- */
-DG.DataUtilities.createDate = function(/* iArgs */) {
-  var args = [Date].concat(Array.prototype.slice.call(arguments)),
-      date;
-
-  // convert from seconds to milliseconds
-  if ((args.length >= 2) && (Number(args[1]) >= 10000))
-    args[1] = Number(args[1]) * 1000;
-
-  // Call Date constructor with specified arguments
-  // cf. http://stackoverflow.com/a/8843181
-  /* jshint -W058 */
-  date = new (Function.bind.apply(Date, args))();
-
-  // replace default numeric conversion (milliseconds) with our own (seconds)
-  date.valueOf = function() { return Date.prototype.valueOf.apply(this) / 1000; };
-
-  return date;
-};
-DG.createDate = DG.DataUtilities.createDate;
-
-/**
-  Returns true if the specified value is a DG date object.
- */
-DG.DataUtilities.isDate = function(iValue) {
-  return iValue instanceof Date;
-};
-DG.isDate = DG.DataUtilities.isDate;
-
-DG._isDateRegex = null;
-
-/**
-  Returns true if the specified value is a string that can be converted to a valid date.
- Note that a string that can be coerced to a number is not a valid date string even though
- it could be converted to a date.
- */
-DG.DataUtilities.isDateString = function(iValue) {
-  if (!this._isDateRegex) {
-    // assemble the regular expression from localized strings
-    //
-    this._isDateRegex = new RegExp('^(?:(?:'
-        + 'DG.Utilities.date.localDatePattern'.loc() + '(?: '
-        + 'DG.Utilities.date.timePattern'.loc() + ')?)|'
-        + 'DG.Utilities.date.iso8601Pattern'.loc() + ')$', 'i');
-  }
-  return (typeof iValue === 'string' && this._isDateRegex.test(iValue.toLowerCase()));
-};
-DG.isDateString = DG.DataUtilities.isDateString;
-
-/**
-  Default formatting for Date objects.
-  Uses toLocaleDateString() for default date formatting.
-  Optionally uses toLocaleTimeString() for default time formatting.
- */
-DG.DataUtilities.formatDate = function(x) {
-  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
-  // use a JS Date object for formatting, since our valueOf()
-  // change seems to affect string formatting
-  var date = new Date(Number(x) * 1000),
-      h = date.getHours(),
-      m = date.getMinutes(),
-      s = date.getSeconds(),
-      ms = date.getMilliseconds(),
-      hasTime = (h + m + s + ms) > 0,
-      dateStr = date.toLocaleDateString(),
-      timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
-  return dateStr + timeStr;
-};
-
-/**
-  Default formatting for Date objects.
-  Uses toLocaleDateString() for default date formatting.
-  Optionally uses toLocaleTimeString() for default time formatting.
- */
-DG.DataUtilities.monthName = function(x) {
-  if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
-  var date;
-  if (DG.isDate(x))
-    date = x;
-  else
-    date = DG.createDate(x);
-  var monthNames = [
-        'DG.Formula.DateLongMonthJanuary',
-        'DG.Formula.DateLongMonthFebruary',
-        'DG.Formula.DateLongMonthMarch',
-        'DG.Formula.DateLongMonthApril',
-        'DG.Formula.DateLongMonthMay',
-        'DG.Formula.DateLongMonthJune',
-        'DG.Formula.DateLongMonthJuly',
-        'DG.Formula.DateLongMonthAugust',
-        'DG.Formula.DateLongMonthSeptember',
-        'DG.Formula.DateLongMonthOctober',
-        'DG.Formula.DateLongMonthNovember',
-        'DG.Formula.DateLongMonthDecember'
-      ],
-      monthName = monthNames[date.getMonth()];
-  return monthName && monthName.loc();
-};
-
-/**
   Canonicalize/sanitize case values sent to us from the game.
   Currently, we only check for the "undefined" string, but this is
   the appropriate place to perform any other validation as well.
@@ -169,7 +66,7 @@ DG.DataUtilities.canonicalizeInputValue = function( iValue) {
       return iValue;
 
   var value = iValue.trim();
-  return DG.DataUtilities.isDateString(value) ? DG.DataUtilities.createDate(value) : value;
+  return DG.isDateString(value) ? DG.createDate(value) : value;
 };
 
 /**
@@ -192,7 +89,7 @@ DG.DataUtilities.canonicalizeInternalValue = function(iValue) {
   }.bind(this);
 
   var value = iValue.trim();
-  return isIso8601DateString(value) ? DG.DataUtilities.createDate(value) : value;
+  return isIso8601DateString(value) ? DG.createDate(value) : value;
 };
 
 /**
@@ -255,7 +152,7 @@ DG.DataUtilities.toString = function (iValue) {
     var valType = typeof iValue;
     if (DG.isDate(iValue)) {
       // treat dates as strings
-      iValue = DG.DataUtilities.formatDate(iValue);
+      iValue = DG.formatDate(iValue);
       valType = "string";
     }
     switch( valType) {

@@ -170,7 +170,7 @@ DG.functionRegistry.registerFunctions((function() {
     'monthName': {
       minArgs:1, maxArgs:1, category: 'DG.Formula.FuncCategoryDateTime',
       evalFn: function(x) {
-        return DG.DataUtilities.monthName(x);
+        return DG.monthName(x);
       }
     },
 
