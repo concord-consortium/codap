@@ -129,6 +129,9 @@ DG.PlotView = DG.PlotLayer.extend(
       this.plottedCountAdorn.get('model').setComputingNeeded();
       this.plottedCountAdorn.updateToModel();
     }
+
+    if( this.plottedValueAdorn)
+      this.plottedValueAdorn.updateToModel();
   },
   
   rescaleOnParentCaseCompletion: function( iCases) {

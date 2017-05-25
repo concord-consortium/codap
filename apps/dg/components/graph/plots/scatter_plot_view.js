@@ -167,6 +167,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
   },
 
   updateAdornments: function() {
+    sc_super();
+
     var tLsrlsAdorn = this.get('multipleLSRLsAdorn'),
         tMovableLineAdorn = this.get('movableLineAdorn'),
         tSquaresAreShowing = this.getPath('model.areSquaresVisible');
