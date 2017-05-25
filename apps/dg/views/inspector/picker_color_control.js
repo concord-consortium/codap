@@ -49,8 +49,8 @@ DG.PickerColorControl = SC.View.extend(
             showInitial: true,
             showButtons: false,
             togglePaletteOnly: true,
-            togglePaletteMoreText: 'more',
-            togglePaletteLessText: 'less',
+            togglePaletteMoreText: 'DG.Inspector.colorPicker.more'.loc(),
+            togglePaletteLessText: 'DG.Inspector.colorPicker.less'.loc(),
             showPaletteOnly: true,
             showPalette: true,
             palette: [
