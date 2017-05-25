@@ -92,8 +92,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           }.bind(this);
 
           var tMapCollection, tMapCollectionClient;
-          DG.currDocumentController().get('contexts').some(function (iContext) {
-            return iContext.get('collections').some(function (iCollection) {
+          DG.currDocumentController().get('contexts').forEach(function (iContext) {
+            iContext.get('collections').forEach(function (iCollection) {
               var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
                   tFoundLat = kLatNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
@@ -121,10 +121,13 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                 tMapContext = iContext;
                 tMapCollection = iCollection;
                 tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
-                return true;
               }
-              else
-                return false;
+              if( SC.none( tAreaName)) {  // Try for an attribute that has a boundary type
+                ((iCollection && iCollection.get('attrs')) || []).forEach( function( iAttr) {
+                  if( iAttr.get('type') === 'boundary')
+                    tAreaName = iAttr.get('name');
+                });
+              }
             });
           });
           if (tMapCollection && tMapCollectionClient) {
@@ -311,7 +314,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             });
           }
           catch (er) {
-            // ignore exceptions
+            console.log(er);
           }
         });
 

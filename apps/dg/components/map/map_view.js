@@ -400,10 +400,23 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       fitBounds: function() {
         var tBounds;
         if( this.getPath('model.areaVarID')) {
-          tBounds = this.getPath('model.dataConfiguration').getAreaBounds();
+          var tAreaLayer = this.get('mapAreaLayer'),
+              tAreaBounds = tAreaLayer && tAreaLayer.getBounds();
+          if( !SC.none(tAreaBounds)) {
+            if (!tBounds)
+              tBounds = tAreaBounds;
+            else
+              tBounds.extend(tAreaBounds);
+          }
         }
         if (this.getPath('model.hasLatLongAttributes')) {
-          tBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
+          var tPointBounds = this.getPath('model.dataConfiguration').getLatLongBounds();
+          if( !SC.none( tPointBounds)) {
+            if (!tBounds)
+              tBounds = tPointBounds;
+            else
+              tBounds.extend(tPointBounds);
+          }
         }
         if ( tBounds && tBounds.isValid()) {
           this._fitBoundsInProgress = true;

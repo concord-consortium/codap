@@ -35,6 +35,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   mapSource: null,
 
   _areFeaturesAdded: false,
+  _featuresRemainingToFetch: 0,
   features: null,
 
   map: function() {
@@ -190,7 +191,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     // Points are 'colored' if there is a legend or if there is more than one plot
         tHasLegend = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
             DG.Analysis.kNullAttribute),
-        tCases = this.getPath('model.cases'),
+        tCases = this.getPath('model.dataConfiguration.allCases'),
         tRC = this.createRenderContext();
 
     if(!tCases)
@@ -231,18 +232,36 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   },
 
   addFeatures: function() {
-    if( this._areFeaturesAdded)
+    if( this._areFeaturesAdded || this._featuresRemainingToFetch > 0)
       return;
 
     var tRC = this.createRenderContext(),
         tModel = this.get('model'),
-        tCases = tModel.get( 'cases');//,
+        tCases = tModel.getPath( 'dataConfiguration.allCases');//,
         //tCaptionID = tModel.getPath('dataConfiguration.captionAttributeDescription.attributeID'),
         //tCaptionName = tModel.getPath('dataConfiguration.captionAttributeDescription.attribute.name');
     tCases.forEach( function( iCase, iIndex) {
-      var tFeature, tPopup;
+      var tPopup,
 
-      var
+          stashFeature = function( iJson) {
+            if( this._featuresRemainingToFetch > 0)
+              this._featuresRemainingToFetch--;
+            this.features[iIndex] = L.geoJson(iJson, {
+              style: function (feature) {
+                return {
+                  color: 'yellow',
+                  weight: 2,
+                  fillColor: DG.PlotUtilities.kMapAreaNoLegendColor,
+                  smoothFactor: 2
+                };
+              }
+            })
+                .on('click', handleClick) // unable to use 'mousedown' for unknown reason
+                .on('mouseover', handleMouseover)
+                .on('mouseout', handleMouseout)
+                .addTo(tRC.map);
+          }.bind( this),
+
           handleClick = function( iEvent) {
             SC.run(function() {
               this.get('model').selectCaseByIndex(iIndex, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
@@ -250,7 +269,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this),
 
           handleMouseover = function( iEvent) {
-            tFeature = this.features[ iIndex];
+            var tFeature = this.features[ iIndex];
             tPopup = L.popup({
                   closeButton: false,
                   autoPan: false,
@@ -275,19 +294,23 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
           }.bind( this);
 
       try {
-        tFeature = JSON.parse(iCase.getValue(tRC.areaVarID));
-        this.features[ iIndex] = L.geoJson(tFeature, {
-          style: function (feature) {
-            return {color: 'yellow',
-                    weight: 2,
-                    fillColor: DG.PlotUtilities.kMapAreaNoLegendColor,
-                    smoothFactor: 2};
-          }
-        })
-            .on('click', handleClick) // unable to use 'mousedown' for unknown reason
-            .on('mouseover', handleMouseover)
-            .on('mouseout', handleMouseout)
-            .addTo(tRC.map);
+        var tBoundaryValue = iCase.getValue(tRC.areaVarID);
+        if (tBoundaryValue.startsWith('http')) {
+          this._featuresRemainingToFetch++;
+          $.ajax({
+            url: tBoundaryValue,
+            context: this,
+            data: '',
+            success: stashFeature,
+            error: function( iJqXHR, iStatus, iError) {
+              console.log('Request for boundary failed. Status: ' + iStatus + ' Error: ' + iError);
+            },
+            dataType: 'json'
+          });
+        }
+        else {
+          stashFeature( JSON.parse(tBoundaryValue));
+        }
       }
       catch(er) {
         DG.logWarn("Invalid JSON for map area, reported from DG.MapAreaLayer.addFeatures()");
@@ -295,6 +318,26 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     }.bind( this));
     this._areFeaturesAdded = true;
     this.doDraw();
+  },
+
+  /**
+   * Return LatLngBounds of the geoJSON layer
+   * @return {L.LatLngBounds}
+   */
+  getBounds: function() {
+    var tMap = this.get('map'),
+        tBounds;
+    tMap.eachLayer( function( iLayer) {
+      if( iLayer.getBounds) {
+        var tLayerBounds = iLayer.getBounds();
+        if (!tBounds)
+          tBounds = tLayerBounds;
+        else
+          tBounds.extend(tLayerBounds);
+      }
+    });
+
+    return tBounds;
   }
 
 });

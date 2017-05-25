@@ -528,6 +528,7 @@ SC.stringsFor('English', {
   'DG.CaseTable.attribute.type.numeric': 'numeric',
   'DG.CaseTable.attribute.type.date': 'date',
   'DG.CaseTable.attribute.type.qualitative': 'qualitative',
+  'DG.CaseTable.attribute.type.boundary': 'boundary',
   'DG.CaseTable.attributeEditor.name': 'name', // name
   'DG.CaseTable.attributeEditor.description': 'description', // description
   'DG.CaseTable.attributeEditor.type': 'type', // type

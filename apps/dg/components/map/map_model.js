@@ -170,7 +170,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
       @param {Boolean} Should the current selection be extended?
     */
     selectCaseByIndex: function( iIndex, iExtend) {
-      var tCases = this.get('cases'),
+      var tCases = this.get('hasAreaAttribute') ? this.getPath('dataConfiguration.allCases.content') : this.get('cases'),
           tCase = tCases[ iIndex],
           tSelection = this.get('selection'),
           tChange = {
