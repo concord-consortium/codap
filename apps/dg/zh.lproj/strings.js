@@ -108,6 +108,7 @@ SC.stringsFor('English', {
   'DG.AppController.openDocument.error.invalid_format': 'CODAP 無法讀取此類文件',
   'DG.AppController.createDataSet.initialAttribute': '未命名', /* new */
   'DG.AppController.createDataSet.name': '未命名_資料', /* new_dataset */
+  'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "確認",
   'DG.SingleTextDialog.cancelButton.title': "取消",
@@ -154,6 +155,8 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.help.title': "幫助",
   'DG.ToolButtonData.help.toolTip': "CODAP幫助, 學習關於CODAP物件",
 
+  'DG.Slider.multiples': "Restrict to Multiples of:(zh)",  // Restrict to Multiples of
+  'DG.Slider.maxPerSecond': "Maximum Animation Frames/sec:(zh)",  // Maximum Animation Frames/sec:
   'DG.Slider.direction': "動畫方向:",  // Direction
   'DG.Slider.backAndForth': "倒退和前進",   // Back and Forth
   'DG.Slider.lowToHigh': "低到高",   // Low to High
@@ -325,6 +328,14 @@ SC.stringsFor('English', {
   'DG.Redo.sliderComponent.create': "重做增加滑桿",
   'DG.Undo.slider.change': "回復更改滑桿值",
   'DG.Redo.slider.change': "重做更改滑桿值",
+  'DG.Undo.slider.changeMultiples': "Undo change to slider multiples restriction",
+  'DG.Redo.slider.changeMultiples': "Redo change to slider multiples restriction",
+  'DG.Undo.slider.changeSpeed': "Undo change to slider max frames/sec",
+  'DG.Redo.slider.changeSpeed': "Redo change to slider max frames/sec",
+  'DG.Undo.slider.changeDirection': "Undo change to slider animation direction",
+  'DG.Redo.slider.changeDirection': "Redo change to slider animation direction",
+  'DG.Undo.slider.changeRepetition': "Undo change to slider animation repetition",
+  'DG.Redo.slider.changeRepetition': "Redo change to slider animation repetition",
   'DG.Undo.graphComponent.create': "回復增加圖表",
   'DG.Redo.graphComponent.create': "重做增加圖表",
   'DG.Undo.dataContext.create': '回復資料建立',
@@ -456,15 +467,23 @@ SC.stringsFor('English', {
   'DG.TableController.scoreAttrName': "分數",
   'DG.TableController.setScoreDlg.applyTooltip': "設定一個公式針對 '%@' 變項",
   'DG.TableController.setScoreDlg.formulaHint': "輸入一個公式來計算這個屬型",
+  'DG.TableController.newAttributeTooltip': 'Add a new attribute to this table', // Add a new attribute to this table
 
   'DG.TableController.attributeEditor.title': '變項特徵',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "移除變項以建立新的集合",
    'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
+  'DG.CaseTable.attribute.type.categorical': 'categorical',
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
+  'DG.CaseTable.attributeEditor.name': 'name', // name
+  'DG.CaseTable.attributeEditor.description': 'description', // description
+  'DG.CaseTable.attributeEditor.type': 'type', // type
+  'DG.CaseTable.attributeEditor.unit': 'unit', // unit
+  'DG.CaseTable.attributeEditor.precision': 'precision', // precision
+  'DG.CaseTable.attributeEditor.editable': 'editable', // editable
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',
@@ -511,6 +530,8 @@ SC.stringsFor('English', {
   'DG.ScatterPlotModel.rSquared': ",\nr平方 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@* %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
+  'DG.ScatterPlotModel.slopeOnly': "slope = %@ %@",// numeric slope
+  'DG.ScatterPlotModel.yearsLabel': "per year",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "每天",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "每小時",// per hour - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.minutesLabel': "每分鐘",// per minute - used in equation for line when x is a datetime axis
@@ -522,8 +543,14 @@ SC.stringsFor('English', {
   // DG.NumberToggleView
   'DG.NumberToggleView.showAll': "顯示全部 -",  // "顯示全部"
   'DG.NumberToggleView.hideAll': "隱藏全部 -",  // "隱藏全部"
+  'DG.NumberToggleView.lastDash': "\u2013",         // "-"
+  'DG.NumberToggleView.lastUnchecked': "\u2610",    // "[ ]"
+  'DG.NumberToggleView.lastChecked': "\u2612",      // "[x]"
+  'DG.NumberToggleView.lastLabel': "Last",    // "Last"
   'DG.NumberToggleView.showAllTooltip': "點擊數字可觸發可見性。 點擊標籤可顯示全部。",  // "點擊數字可觸發可見性。 點擊標籤可顯示全部。"
   'DG.NumberToggleView.hideAllTooltip': "點擊數字可觸發可見性。 點擊標籤可隱藏全部。",  // "點擊數字可觸發可見性。 點擊標籤可隱藏全部。"
+  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only",
+  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode",
   'DG.NumberToggleView.indexTooltip': "點擊可觸發可見性",  // "點擊可觸發可見性"
 
   // DG.PlottedAverageAdornment
@@ -551,6 +578,8 @@ SC.stringsFor('English', {
   'DG.DataDisplayMenu.hideUnselectedPlural': "隱藏未選擇的案例",
   'DG.DataDisplayMenu.hideSelectedSing': "隱藏所選的案例",
   'DG.DataDisplayMenu.hideUnselectedSing': "隱藏未選擇的案例",
+  'DG.DataDisplayMenu.enableNumberToggle': "Show Parent Visibility Toggles",
+  'DG.DataDisplayMenu.disableNumberToggle': "Hide Parent Visibility Toggles",
   'DG.DataDisplayMenu.showAll': "顯示所有案例",
   'DG.DataDisplayMenu.snapshot': "製作快照",
 

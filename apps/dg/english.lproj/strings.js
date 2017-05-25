@@ -108,6 +108,7 @@ SC.stringsFor('English', {
   'DG.AppController.openDocument.error.invalid_format': 'CODAP can not read this type of document',
   'DG.AppController.createDataSet.initialAttribute': 'new', /* new */
   'DG.AppController.createDataSet.name': 'new_dataset', /* new_dataset */
+  'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "OK",
   'DG.SingleTextDialog.cancelButton.title': "Cancel",
@@ -490,6 +491,12 @@ SC.stringsFor('English', {
   'DG.CaseTable.attribute.type.numeric': 'numeric',
   'DG.CaseTable.attribute.type.date': 'date',
   'DG.CaseTable.attribute.type.qualitative': 'qualitative',
+  'DG.CaseTable.attributeEditor.name': 'name', // name
+  'DG.CaseTable.attributeEditor.description': 'description', // description
+  'DG.CaseTable.attributeEditor.type': 'type', // type
+  'DG.CaseTable.attributeEditor.unit': 'unit', // unit
+  'DG.CaseTable.attributeEditor.precision': 'precision', // precision
+  'DG.CaseTable.attributeEditor.editable': 'editable', // editable
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',
@@ -600,6 +607,8 @@ SC.stringsFor('English', {
 
   // DG.AxisView
   'DG.AxisView.labelTooltip': "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
+  'DG.AxisView.vertical': 'vertical',
+  'DG.AxisView.horizontal': 'horizontal',
 
   // DG.DataTip
   'DG.DataTip.connectingLine': "%@: %@\nwith %@ %@",
@@ -643,6 +652,10 @@ SC.stringsFor('English', {
   'DG.Inspector.displayStyles.toolTip': "Change the appearance of the display",  // "Change the appearance of the display"
   'DG.Inspector.makeImage.toolTip': "Save the image as a PNG file",  // "Save the image as a PNG file"
   'DG.Inspector.displayShow': "Show …",  // "Show …"
+
+  // Color Picker
+  'DG.Inspector.colorPicker.more': 'more', // more
+  'DG.Inspector.colorPicker.less': 'less', // less
 
   // Graph Inspector
   'DG.Inspector.graphTransparency': "Transparent",  // "Transparent"
