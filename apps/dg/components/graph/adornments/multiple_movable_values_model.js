@@ -138,7 +138,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
 
     this.set('countPercents', tCountPercents);
     this._needsComputing = false;
-  },
+  }.observes('axisModel.lowerBound', 'axisModel.upperBound'),
 
   /**
     Use the bounds of the given axes to recompute slope and intercept.

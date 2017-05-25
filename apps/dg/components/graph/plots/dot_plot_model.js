@@ -326,12 +326,12 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         this.toggleAverage('plottedBoxPlot', 'togglePlottedBoxPlot');
       },
 
-      handleDataConfigurationChange: function () {
+      handleDataConfigurationChange: function ( iKey) {
         if (!DG.assert(!this.get('isDestroyed'), "DG.DotPlotModel.handleDataConfiguration() shouldn't be triggered after destroy()!"))
           return;
         sc_super();
-        var kAllowShrinkage = true, kAnimate = true, kDontLog = false;
-        this.rescaleAxesFromData(kAllowShrinkage, kAnimate, kDontLog);
+        var kAnimate = true, kDontLog = false;
+        this.rescaleAxesFromData( iKey !== 'hiddenCases', kAnimate, kDontLog);
 
         ['multipleMovableValues', 'plottedMean', 'plottedMedian', 'plottedStDev', 'plottedBoxPlot', 'plottedCount'].forEach(function (iAdornmentKey) {
           var adornmentModel = this.getAdornmentModel(iAdornmentKey);
