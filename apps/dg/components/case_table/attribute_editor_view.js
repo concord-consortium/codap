@@ -69,7 +69,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         nameCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight},
-          label: 'name',
+          label: 'DG.CaseTable.attributeEditor.name',
+          localize: true,
           controlView: SC.TextFieldView.extend({
             layout: {
               centerY: 0,
@@ -82,7 +83,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         descriptionCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight*4},
-          label: 'description',
+          label: 'DG.CaseTable.attributeEditor.description',
+          localize: true,
           controlView: SC.TextFieldView.extend({
             layout: {
               centerY: 0,
@@ -98,7 +100,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         typeCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight * 1.5},
-          label: 'type',
+          label: 'DG.CaseTable.attributeEditor.type',
+          localize: true,
           controlView: SC.SelectView.extend({
             layout: {
               width: kControlWidth,
@@ -118,7 +121,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         unitCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight},
-          label: 'unit',
+          label: 'DG.CaseTable.attributeEditor.unit',
+          localize: true,
           controlView: SC.TextFieldView.extend({
             layout: {
               width: kControlWidth,
@@ -132,7 +136,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         precisionCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight},
-          label: 'precision',
+          label: 'DG.CaseTable.attributeEditor.precision',
+          localize: true,
           controlView: SC.TextFieldView.extend({
             layout: {width: kControlWidth},
             backgroundColor: 'white',
@@ -144,7 +149,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
 
         editableCtl: DG.PickerControlView.design({
           layout: {height: kRowHeight},
-          label: 'editable',
+          label: 'DG.CaseTable.attributeEditor.editable',
+          localize: true,
           controlView: SC.RadioView.extend({
             layout: {width: kControlWidth},
             items: [
@@ -155,7 +161,8 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
             itemTitleKey: 'title',
             itemValueKey: 'value',
             itemIsEnabledKey: 'enabled',
-            layoutDirection: SC.LAYOUT_HORIZONTAL
+            layoutDirection: SC.LAYOUT_HORIZONTAL,
+            localize: true
           })
         }),
 
