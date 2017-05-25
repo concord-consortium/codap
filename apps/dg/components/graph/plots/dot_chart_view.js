@@ -74,14 +74,15 @@ DG.DotChartView = DG.PlotView.extend(
     return (this.getPath('model.orientation') === 'vertical') ? this.get('yAxisView') : this.get('xAxisView');
   }.property('orientation', 'yAxisView', 'xAxisView'),
 
-  dataDidChange: function() {
+  dataDidChange: function( iNotifier, iChangeKey, iOperation) {
     if( !this.getPath('model.dataConfiguration'))
         return; // Can happen during destroy
     // Override because we're going to do the work in updatePoints
-    this.get('model').invalidateCaches();
+    if( iOperation !== 'createCase' && iOperation !== 'createCases')
+      this.get('model').invalidateCaches();
     this.updatePoints();
     this._elementOrderIsValid = false;
-    this.selectionDidChange();
+    // this.selectionDidChange();
     this.installCleanup();  // Call explicitly since we're not calling sc_super
   },
 
@@ -100,11 +101,13 @@ DG.DotChartView = DG.PlotView.extend(
         tRC = this.createRenderContext(),
         tDataLength = tCases && tCases.length,
         tPlotElementLength = this._plottedElements.length,
-        tWantNewPointRadius =(this._pointRadius !== this.calcPointRadius()),
+        tCandidateRadius = this.calcPointRadius(),
+        tWantNewPointRadius =(this._pointRadius !== tCandidateRadius),
         tLayerManager = this.get('layerManager' ),
         tIndex, tCellIndices;
     // update the point radius before creating or updating plotted elements
-    if( tWantNewPointRadius ) this._pointRadius = this.calcPointRadius();
+    if( tWantNewPointRadius )
+      this._pointRadius = tCandidateRadius;
     // update adornments when cases added or removed
     // note: don't rely on tDataLength != tPlotElementLength test for this
     this.updateAdornments();
