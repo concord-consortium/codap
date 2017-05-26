@@ -34,6 +34,7 @@ DG.TextView = SC.View.extend(
         layout: { left: 2, right: 2, top: 2, bottom: 2 },
         isEditable: true,
         isTextArea: true,
+        maxLength: 32768,
         didCreateLayer: function() {
           sc_super();
           this._controller = this.getPath('parentView.parentView.parentView.controller');
