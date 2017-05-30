@@ -197,7 +197,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
             tChangeHappened = (iLabel !== tNode.get('text'));
             tNode.setIfChanged('text', iLabel);
             tNode.setIfChanged('description', this_.get('model').getLabelDescription(iIndex) +
-                '—' + 'DG.AxisView.labelTooltip'.loc(this_.orientation));
+                '—' + 'DG.AxisView.labelTooltip'.loc(('DG.AxisView.' + this_.orientation).loc()));
 
             tLabelCount++;
           });

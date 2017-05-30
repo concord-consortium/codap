@@ -241,8 +241,8 @@ DG.appController = SC.Object.create((function () // closure
         };
       });
       menuItems.push({
-        localize: false, // todo: fix
-        title: '-- new --',
+        localize: true,
+        title: 'DG.AppController.caseTableMenu.newDataSet',
         target: DG.mainPage,
         dgAction: 'openCaseTableForNewContext',
         icon: 'tile-icon-table'
