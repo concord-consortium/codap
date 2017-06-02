@@ -97,7 +97,9 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
     var curWord = start !== end && currentLine.slice(start, end),
         regex = curWord ? new RegExp('^' + DG.StringUtilities.escapeRegExp(curWord), 'i') : null,
         result = {
-          list: (!curWord ? [] : options.completionData.reduce(function(memo, item) {
+          list: (!curWord || !options.completionData
+                  ? []
+                  : options.completionData.reduce(function(memo, item) {
             if (item && item.label && item.label.match(regex))
               memo.push({ text: item.value, hint: cmHintReplace });
             return memo;

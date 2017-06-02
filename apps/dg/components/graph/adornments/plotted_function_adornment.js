@@ -25,13 +25,13 @@ sc_require('components/graph/adornments/plot_adornment');
   @extends DG.PlotAdornment
 */
 DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
-/** @scope DG.PlottedFunctionAdornment.prototype */ 
+/** @scope DG.PlottedFunctionAdornment.prototype */
 {
 
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
-    
+
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
   modelPropertiesToObserve: [ ['expression', 'updateToModel'], ['dependentChange', 'updateToModel'] ],
@@ -102,40 +102,15 @@ DG.PlottedFunctionAdornment = DG.PlotAdornment.extend(
 
 });
 
-DG.PlottedFunctionAdornment.createFormulaEditView = function( iPlottedFunction) {
-  return DG.FormulaTextEditView.create({
-            layout: { height: 20 },
-            desiredExtent: 20,
-            borderStyle: SC.BORDER_BEZEL,
-            isVisible: false,
-            hint: 'Type an expression e.g. x*x/30 - 50',
-            leftAccessoryView: SC.LabelView.create({
-                                layout: { left: 0, width:25, height:20, centerY: 0 },
-                                value: 'y =',
-                                backgroundColor: 'gray'
-                              }),
-            keyDown: function( evt) {
-              var tKey = evt.which;
-              if( tKey === SC.Event.KEY_RETURN) {
-                this.completeEditing();
-                return YES;
-              }
-              if( tKey === SC.Event.KEY_ESC) {
-                this.discardEditing();
-                return YES;
-              }
-              return sc_super();
-            },
-            commitEditing: function() {
-              var tResult = sc_super();
-              if( tResult) {
-                iPlottedFunction.set('expression',
-                                    this.get('formulaExpression'));
-                DG.logUser("plotFunction: '%@'", this.get('formulaExpression'));
-              }
-              this.parentView.displayDidChange();
-              return tResult;
-            }
-          });
+DG.PlottedFunctionAdornment.createFormulaEditView = function(iPlottedFunction) {
+  var formulaEditContext = DG.PlottedFormulaEditContext.getFormulaEditContext(iPlottedFunction);
+  return formulaEditContext.createFormulaView({
+                              attrNamePrompt: 'DG.PlottedFunction.namePrompt'.loc(),
+                              formulaPrompt: 'DG.PlottedFunction.formulaPrompt'.loc(),
+                              commandName: 'graph.editPlottedFunction',
+                              undoString: 'DG.Undo.graph.changePlotFunction',
+                              redoString: 'DG.Redo.graph.changePlotFunction',
+                              logMessage: 'Change plotted function: "%@1" to "%@2"'
+                            });
 };
 

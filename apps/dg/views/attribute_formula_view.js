@@ -205,8 +205,74 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
   }
 });
 
+DG.AttributeFormulaView.buildOperandsMenuAndCompletionData = function(iDataContext) {
+  var collectionRecords = iDataContext.get('collections'),
+      tGlobalNames = DG.globalsController.getGlobalValueNames(),
+      tCompletionData = [],
+      tOperandsMenu = [],
+      kAttributesCategory = { key: 'Attributes',
+                              name: 'DG.TableController.newAttrDialog.AttributesCategory'.loc() },
+      kSpecialCategory = { key: 'Special',
+                            name: 'DG.TableController.newAttrDialog.SpecialCategory'.loc() },
+      kGlobalsCategory = { key: 'Globals',
+                            name: 'DG.TableController.newAttrDialog.GlobalsCategory'.loc() },
+      kConstantsCategory = { key: 'Constants',
+                              name: 'DG.TableController.newAttrDialog.ConstantsCategory'.loc() },
+      kFunctionsCategory = { key: 'Functions',
+                              name: 'DG.TableController.newAttrDialog.FunctionsCategory'.loc() };
+
+  function appendNamesToCompletionData(iNames, iCategory) {
+    /* global removeDiacritics */
+    tCompletionData = tCompletionData.concat(
+                        iNames.map(function(iName) {
+                                    // Remove diacritics (accents, etc.) for matching
+                                    var label = removeDiacritics(iName),
+                                        parenPos = label.indexOf('(');
+                                    // Remove "()" from functions for matching
+                                    if (parenPos > 0)
+                                      label = label.substr(0, parenPos);
+                                    return {
+                                      label: label,   // for matching
+                                      value: iName,   // menu/replacing
+                                      category: iCategory
+                                    };
+                                  }));
+  }
+
+  function appendArrayOfNamesToMenu(iNamesArray, iCategory) {
+    if( !iNamesArray || !iNamesArray.length) return;
+    if( tOperandsMenu.length)
+      tOperandsMenu.push('--');
+    tOperandsMenu = tOperandsMenu.concat( iNamesArray.sort());
+
+    if (iCategory && iCategory.name)
+      appendNamesToCompletionData(iNamesArray, iCategory);
+  }
+
+  collectionRecords.forEach(function (collectionRecord) {
+    var collectionContext = iDataContext.getCollectionByName(collectionRecord.name);
+    appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames(), kAttributesCategory);
+  });
+  if (kSpecialCategory.name !== kConstantsCategory.name)
+    appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
+  appendArrayOfNamesToMenu(tGlobalNames, kGlobalsCategory);
+  if (kSpecialCategory.name === kConstantsCategory.name)
+    appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
+  appendArrayOfNamesToMenu([ "e", "π" ]);
+  tCompletionData.push({ label: "e", value: "e", category: kConstantsCategory });
+  tCompletionData.push({ label: "π", value: "π", category: kConstantsCategory,
+                          fontFamily: "Symbol,serif", fontSize: "130%" });
+  // match against "pi", but render "π"
+  tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
+                          fontFamily: "Symbol,serif", fontSize: "130%" });
+
+  appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'), kFunctionsCategory);
+
+  return { operandsMenu: tOperandsMenu, completionData: tCompletionData };
+};
+
 DG.CreateAttributeFormulaView = function( iProperties) {
-  var tDialog = DG.AttributeFormulaView.create( iProperties),
+  var tDialog = DG.AttributeFormulaView.create(iProperties || {}),
     kParamMap = {
       attrNamePrompt: 'attrName.leftAccessoryView.value',
       attrNameValue: 'attrName.value',
@@ -243,6 +309,11 @@ DG.CreateAttributeFormulaView = function( iProperties) {
                 if( !SC.empty( tParamPath))
                   tContentView.setPath( tParamPath, iValue);
               } );
+
+  // if no apply action is specified, simply close the dialog
+  if (!tContentView.getPath('apply.action')) {
+    tContentView.setPath('apply.action', tContentView.getPath('cancel.action'));
+  }
 
   tDialog.append();
 

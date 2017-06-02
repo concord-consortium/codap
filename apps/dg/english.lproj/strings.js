@@ -230,10 +230,14 @@ SC.stringsFor('English', {
   'DG.Redo.graph.showPlotFunction': "Redo showing plotted function",
   'DG.Undo.graph.hidePlotFunction': "Undo hiding plotted function",
   'DG.Redo.graph.hidePlotFunction': "Redo hiding plotted function",
+  'DG.Undo.graph.changePlotFunction': "Undo change plotted function",
+  'DG.Redo.graph.changePlotFunction': "Redo change plotted function",
   'DG.Undo.graph.showPlotValue': "Undo showing plotted value",
   'DG.Redo.graph.showPlotValue': "Redo showing plotted value",
   'DG.Undo.graph.hidePlotValue': "Undo hiding plotted value",
   'DG.Redo.graph.hidePlotValue': "Redo hiding plotted value",
+  'DG.Undo.graph.changePlotValue': "Undo change plotted value",
+  'DG.Redo.graph.changePlotValue': "Redo change plotted value",
   'DG.Undo.graph.showConnectingLine': "Undo showing connecting line",
   'DG.Redo.graph.showConnectingLine': "Redo showing connecting line",
   'DG.Undo.graph.hideConnectingLine': "Undo hiding connecting line",
@@ -616,6 +620,13 @@ SC.stringsFor('English', {
   // DG.MovableValueAdornment
   'DG.MovableMonthYear': "%@, %@", // <monthname>, <year>
   'DG.MovableMonthDayHour': "%@ %@ %@:00", // <monthname> <day> <hour>:00
+
+  // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
+  'DG.PlottedFormula.defaultNamePrompt': "Formula",
+  'DG.PlottedValue.namePrompt': "Plotted Value",
+  'DG.PlottedValue.formulaPrompt': "value =",
+  'DG.PlottedFunction.namePrompt': "Plotted Function",
+  'DG.PlottedFunction.formulaPrompt': "f() =",
 
   // DG.MapView
   'DG.MapView.showGrid': "Show Grid",  // "Show Grid"
