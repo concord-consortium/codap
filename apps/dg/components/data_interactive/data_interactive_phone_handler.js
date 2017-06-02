@@ -954,6 +954,43 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       },
 
       handleAllCases: {
+        get: function (iResources) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          if (!context || !collection) {
+            return {
+              success: false
+            };
+          }
+
+          var serializeCase = function (iCase) {
+            var caseValues = {};
+            collection.forEachAttribute(function (attr) {
+              caseValues[attr.name] = iCase.getValue(attr.id);
+            });
+            return {
+              'case': {
+                id: iCase.id,
+                parent: (iCase.parent && iCase.parent.id),
+                children: iCase.children.map(function (child) {return child.id;}),
+                values: caseValues
+              },
+              caseIndex: collection.getCaseIndexByID(iCase.get('id'))
+            };
+          }.bind(this);
+
+          return {
+            success: true,
+            values: {
+              collection: {
+                name: collection.get('name'),
+                id: collection.get('id')
+              },
+              cases: context.get('allCases').map(serializeCase)
+            }
+          };
+        },
+
         'delete': function (iResources) {
           var context = iResources.dataContext;
           var success = false;

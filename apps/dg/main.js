@@ -691,6 +691,10 @@ DG.main = function main() {
     startEmbeddedServer();
   }
   else {
+    // only start embedded server if embeddedMode is not on
+    if (DG.embeddedServer === 'yes') {
+      startEmbeddedServer();
+    }
     translateQueryParameters();
   }
 

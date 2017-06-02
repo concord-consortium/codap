@@ -406,6 +406,13 @@ DG = SC.Application.create((function () // closure
      */
     embeddedMode: getUrlParameter('embeddedMode', 'no'),
 
+    /**
+     * embeddedServer can be passed as a Url parameter named tools with values 'yes' or 'no'.
+     *  With the value 'yes' the embedded iframePhone server is setup to enable communication with the outside page.
+     *  The default is 'no' and this option is ignored if embeddedMode is 'yes'
+     */
+    embeddedServer: getUrlParameter('embeddedServer', 'no'),
+
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
       'graphButton',
