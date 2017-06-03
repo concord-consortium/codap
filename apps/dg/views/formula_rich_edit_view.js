@@ -21,6 +21,8 @@
 // ==========================================================================
 
 sc_require('views/text_field_view');
+sc_require('libraries/codemirror/codemirror');
+sc_require('libraries/codemirror/addons/display/placeholder');
 
 /** @class
 
@@ -97,7 +99,9 @@ DG.FormulaRichEditView = DG.TextFieldView.extend((function() {
     var curWord = start !== end && currentLine.slice(start, end),
         regex = curWord ? new RegExp('^' + DG.StringUtilities.escapeRegExp(curWord), 'i') : null,
         result = {
-          list: (!curWord ? [] : options.completionData.reduce(function(memo, item) {
+          list: (!curWord || !options.completionData
+                  ? []
+                  : options.completionData.reduce(function(memo, item) {
             if (item && item.label && item.label.match(regex))
               memo.push({ text: item.value, hint: cmHintReplace });
             return memo;
@@ -134,7 +138,13 @@ return {
   didAppendToDocument: function() {
 
     var textArea = this.$('textarea'),
-        textAreaNode = textArea[0];
+        textAreaNode = textArea[0],
+        placeholderText = this.get('hint');
+
+    // not sure why this isn't happening automatically
+    if (placeholderText) {
+      textArea.attr('placeholder', placeholderText);
+    }
 
     this._cm = CodeMirror.fromTextArea(textAreaNode, {
       lineWrapping: true,

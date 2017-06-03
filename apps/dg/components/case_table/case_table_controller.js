@@ -718,86 +718,25 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       newAttribute: function( iProperties, iDefaultAttrName, iDefaultAttrFormula ) {
         var tDataContext = this.get('dataContext'),
-            collectionRecords = tDataContext.get('collections'),
-            tGlobalNames = DG.globalsController.getGlobalValueNames(),
-            tCompletionData = [],
-            tOperandsMenu = [],
-                            // Eventually, we will want some form of unique name generator
-            defaultAttrName = iDefaultAttrName || '', // was DG.TableController.newAttrDlg.defaultAttrName'.loc(),  // "new_attr"
+            defaultAttrName = iDefaultAttrName || '',
             defaultAttrFormula = iDefaultAttrFormula || '',
-            kAttributesCategory = { key: 'Attributes',
-                                    name: 'DG.TableController.newAttrDialog.AttributesCategory'.loc() },
-            kSpecialCategory = { key: 'Special',
-                                  name: 'DG.TableController.newAttrDialog.SpecialCategory'.loc() },
-            kGlobalsCategory = { key: 'Globals',
-                                  name: 'DG.TableController.newAttrDialog.GlobalsCategory'.loc() },
-            kConstantsCategory = { key: 'Constants',
-                                    name: 'DG.TableController.newAttrDialog.ConstantsCategory'.loc() },
-            kFunctionsCategory = { key: 'Functions',
-                                    name: 'DG.TableController.newAttrDialog.FunctionsCategory'.loc() };
-
-        function appendNamesToCompletionData(iNames, iCategory) {
-          /* global removeDiacritics */
-          tCompletionData = tCompletionData.concat(
-                              iNames.map(function(iName) {
-                                          // Remove diacritics (accents, etc.) for matching
-                                          var label = removeDiacritics(iName),
-                                              parenPos = label.indexOf('(');
-                                          // Remove "()" from functions for matching
-                                          if (parenPos > 0)
-                                            label = label.substr(0, parenPos);
-                                          return {
-                                            label: label,   // for matching
-                                            value: iName,   // menu/replacing
-                                            category: iCategory
-                                          };
-                                        }));
-        }
-
-        function appendArrayOfNamesToMenu(iNamesArray, iCategory) {
-          if( !iNamesArray || !iNamesArray.length) return;
-          if( tOperandsMenu.length)
-            tOperandsMenu.push('--');
-          tOperandsMenu = tOperandsMenu.concat( iNamesArray.sort());
-
-          if (iCategory && iCategory.name)
-            appendNamesToCompletionData(iNamesArray, iCategory);
-        }
-
-        collectionRecords.forEach(function (collectionRecord) {
-          var collectionContext = tDataContext.getCollectionByName(collectionRecord.name);
-          appendArrayOfNamesToMenu(collectionContext.collection.getAttributeNames(), kAttributesCategory);
-        });
-        if (kSpecialCategory.name !== kConstantsCategory.name)
-          appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
-        appendArrayOfNamesToMenu(tGlobalNames, kGlobalsCategory);
-        if (kSpecialCategory.name === kConstantsCategory.name)
-          appendArrayOfNamesToMenu(['caseIndex'], kSpecialCategory);
-        appendArrayOfNamesToMenu([ "e", "π" ]);
-        tCompletionData.push({ label: "e", value: "e", category: kConstantsCategory });
-        tCompletionData.push({ label: "π", value: "π", category: kConstantsCategory,
-                                fontFamily: "Symbol,serif", fontSize: "130%" });
-        // match against "pi", but render "π"
-        tCompletionData.push({ label: "pi", value: "π", category: kConstantsCategory,
-                                fontFamily: "Symbol,serif", fontSize: "130%" });
-
-        appendNamesToCompletionData(DG.functionRegistry.get('namesWithParentheses'), kFunctionsCategory);
+            result = DG.AttributeFormulaView.buildOperandsMenuAndCompletionData(tDataContext);
 
           // Use SC.mixin() to combine iProperties with the rest of the default properties
           // that are passed to the new attribute dialog.
         this.newAttributeDialog = DG.CreateAttributeFormulaView(SC.mixin({
-                      applyTarget: this,
-                      applyAction: 'applyNewAttribute',
-                      applyTooltip: 'DG.TableController.newAttrDlg.applyTooltip', // "Define the new attribute using the name and (optional) formula"
-                      attrNameHint: 'DG.TableController.newAttrDlg.attrNameHint',
-                      attrNameValue: defaultAttrName,
-                      attrNameIsEnabled: SC.empty( iDefaultAttrName ), // disable attribute name changes if editing an existing attribute
-                      formulaValue: defaultAttrFormula,
-                      //formulaNames: tFormulaNames,  // no type-ahead
-                      formulaCompletions: tCompletionData,
-                      formulaOperands: tOperandsMenu,
-                      formulaHint: 'DG.TableController.newAttrDlg.formulaHint'  // "If desired, type a formula for computing values of this attribute"
-                    }, iProperties));
+              applyTarget: this,
+              applyAction: 'applyNewAttribute',
+              applyTooltip: 'DG.TableController.newAttrDlg.applyTooltip', // "Define the new attribute using the name and (optional) formula"
+              attrNameHint: 'DG.TableController.newAttrDlg.attrNameHint',
+              attrNameValue: defaultAttrName,
+              attrNameIsEnabled: SC.empty( iDefaultAttrName ), // disable attribute name changes if editing an existing attribute
+              formulaValue: defaultAttrFormula,
+              //formulaNames: tFormulaNames,  // no type-ahead
+              formulaCompletions: result.completionData,
+              formulaOperands: result.operandsMenu,
+              formulaHint: 'DG.TableController.newAttrDlg.formulaHint'  // "If desired, type a formula for computing values of this attribute"
+            }, iProperties));
       },
 
       applyNewAttribute: function() {

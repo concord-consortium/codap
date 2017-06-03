@@ -26,7 +26,7 @@ sc_require('components/graph/adornments/line_label_mixin');
   @extends DG.PlotAdornment
 */
 DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
-/** @scope DG.PlottedValueAdornment.prototype */ 
+/** @scope DG.PlottedValueAdornment.prototype */
 {
 
   /**
@@ -105,10 +105,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   */
   valueStrings: function() {
     var tValues = this.get('values');
-    
+
     if( tValues instanceof Error)
       return tValues.message;
-    
+
     var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
         tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
     return tValues.map(function(iValue) {
@@ -119,7 +119,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   /**
     Concatenated array of ['PropertyName','ObserverMethod'] pairs used for indicating
     which observers to add/remove from the model.
-    
+
     @property   {Array of [{String},{String}]}  Elements are ['PropertyName','ObserverMethod']
    */
   modelPropertiesToObserve: [ ['expression', 'updateToModel'], ['dependentChange', 'updateToModel'] ],
@@ -129,7 +129,7 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   }.property(),
 
   /**
-    
+
   */
   createElements: function() {
     if( this.myElements && (this.myElements.length > 0))
@@ -202,34 +202,15 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
   }
 });
 
-DG.PlottedValueAdornment.createFormulaEditView = function( iPlottedValue) {
-  return DG.FormulaTextEditView.create({
-            layout: { height: 20 },
-            borderStyle: SC.BORDER_BEZEL,
-            isVisible: false,
-            value: iPlottedValue.get('expression'),
-            leftAccessoryView: SC.LabelView.create({
-              layout: { left: 0, width:45, height:20, centerY: 0 },
-              value: 'value =',
-              backgroundColor: 'gray'
-            }),
-            desiredExtent: 20,
-            keyDown: function( evt) {
-              var tKey = evt.which;
-              if( tKey === SC.Event.KEY_RETURN) {
-                this.parentView.displayDidChange();
-                return this.commitEditing();
-              }
-              return sc_super();
-            },
-            commitEditing: function() {
-              var tResult = sc_super();
-              if( tResult) {
-                var expression = this.get('formulaExpression');
-                DG.logUser("plotValue: '%@'", expression);
-                iPlottedValue.set('expression', expression);
-              }
-              return tResult;
-            }
-        });
+DG.PlottedValueAdornment.createFormulaEditView = function(iPlottedValue) {
+  var formulaEditContext = DG.PlottedFormulaEditContext.getFormulaEditContext(iPlottedValue);
+  return formulaEditContext.createFormulaView({
+                              attrNamePrompt: 'DG.PlottedValue.namePrompt'.loc(),
+                              formulaPrompt: 'DG.PlottedValue.formulaPrompt'.loc(),
+                              formulaHint: 'DG.PlottedValue.formulaHint'.loc(),
+                              commandName: 'graph.editPlottedValue',
+                              undoString: 'DG.Undo.graph.changePlotValue',
+                              redoString: 'DG.Redo.graph.changePlotValue',
+                              logMessage: 'Change plotted value: "%@1" to "%@2"'
+                            });
 };
