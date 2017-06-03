@@ -116,17 +116,19 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                     } else
                       return false;
                   });
+              if( !tFoundArea) {  // Try for an attribute that has a boundary type
+                tFoundArea = ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
+                  if( iAttr.get('type') === 'boundary') {
+                    tAreaName = iAttr.get('name');
+                    return true;
+                  }
+                });
+              }
 
               if ((tFoundLat && tFoundLong) || tFoundArea) {
                 tMapContext = iContext;
                 tMapCollection = iCollection;
                 tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
-              }
-              if( SC.none( tAreaName)) {  // Try for an attribute that has a boundary type
-                ((iCollection && iCollection.get('attrs')) || []).forEach( function( iAttr) {
-                  if( iAttr.get('type') === 'boundary')
-                    tAreaName = iAttr.get('name');
-                });
               }
             });
           });

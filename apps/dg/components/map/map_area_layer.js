@@ -235,6 +235,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     if( this._areFeaturesAdded || this._featuresRemainingToFetch > 0)
       return;
 
+    this._featuresRemainingToFetch = 0;
     var tRC = this.createRenderContext(),
         tModel = this.get('model'),
         tCases = tModel.getPath( 'dataConfiguration.allCases');//,
@@ -243,7 +244,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     tCases.forEach( function( iCase, iIndex) {
       var tPopup,
 
-          stashFeature = function( iJson) {
+          stashFeature = function( iJson, iError) {
+            if( !iJson) {
+              DG.logWarn( iError);
+              return;
+            }
             if( this._featuresRemainingToFetch > 0)
               this._featuresRemainingToFetch--;
             this.features[iIndex] = L.geoJson(iJson, {
@@ -308,8 +313,14 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
             dataType: 'json'
           });
         }
-        else {
+        else if(tBoundaryValue.startsWith('{"type"')) // Assume it's the geojson itself
+        {
           stashFeature( JSON.parse(tBoundaryValue));
+        }
+        else {  // Assume it's a state boundary lookup
+          this._featuresRemainingToFetch++;
+          DG.GeojsonUtils.lookupBoundary('state', tBoundaryValue,
+              this._featuresRemainingToFetch === 1, stashFeature);
         }
       }
       catch(er) {
