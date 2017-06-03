@@ -106,8 +106,9 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.invalidDocument' : '無效的JSON文件: %@1',
   'DG.AppController.openDocument.error.general': '無法開啟文件',
   'DG.AppController.openDocument.error.invalid_format': 'CODAP 無法讀取此類文件',
-  'DG.AppController.createDataSet.initialAttribute': '未命名', /* new */
-  'DG.AppController.createDataSet.name': '未命名_資料', /* new_dataset */
+  'DG.AppController.createDataSet.initialAttribute': '未命名', /* RETRANSLATE: Attribute */
+  'DG.AppController.createDataSet.name': '未命名_資料', /* RETRANSLATE: New Dataset */
+  'DG.AppController.createDataSet.collectionName': 'Cases', /* TRANSLATE: Cases */
   'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "確認",
