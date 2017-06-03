@@ -233,7 +233,9 @@ DG.CaseTableRowSelectionModel = function (options) {
 
   function handleClick(e) { // jshint ignore:line
     var cell = _grid.getCellFromEvent(e);
-    if (!cell || !_grid.canCellBeActive(cell.row, cell.cell)) {
+    if (!cell) return false;
+    if (!_grid.canCellBeActive(cell.row, cell.cell) &&
+          !_caseTableAdapter.isCellRowSelectable(cell.row, cell.cell)) {
       return false;
     }
 
