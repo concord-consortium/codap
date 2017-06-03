@@ -21,6 +21,8 @@
 // ==========================================================================
 
 sc_require('views/text_field_view');
+sc_require('libraries/codemirror/codemirror');
+sc_require('libraries/codemirror/addons/display/placeholder');
 
 /** @class
 
@@ -136,7 +138,13 @@ return {
   didAppendToDocument: function() {
 
     var textArea = this.$('textarea'),
-        textAreaNode = textArea[0];
+        textAreaNode = textArea[0],
+        placeholderText = this.get('hint');
+
+    // not sure why this isn't happening automatically
+    if (placeholderText) {
+      textArea.attr('placeholder', placeholderText);
+    }
 
     this._cm = CodeMirror.fromTextArea(textAreaNode, {
       lineWrapping: true,

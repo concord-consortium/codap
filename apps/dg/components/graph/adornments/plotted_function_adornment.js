@@ -107,6 +107,7 @@ DG.PlottedFunctionAdornment.createFormulaEditView = function(iPlottedFunction) {
   return formulaEditContext.createFormulaView({
                               attrNamePrompt: 'DG.PlottedFunction.namePrompt'.loc(),
                               formulaPrompt: 'DG.PlottedFunction.formulaPrompt'.loc(),
+                              formulaHint: 'DG.PlottedFunction.formulaHint'.loc(),
                               commandName: 'graph.editPlottedFunction',
                               undoString: 'DG.Undo.graph.changePlotFunction',
                               redoString: 'DG.Redo.graph.changePlotFunction',

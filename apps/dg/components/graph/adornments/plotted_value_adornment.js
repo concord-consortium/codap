@@ -207,6 +207,7 @@ DG.PlottedValueAdornment.createFormulaEditView = function(iPlottedValue) {
   return formulaEditContext.createFormulaView({
                               attrNamePrompt: 'DG.PlottedValue.namePrompt'.loc(),
                               formulaPrompt: 'DG.PlottedValue.formulaPrompt'.loc(),
+                              formulaHint: 'DG.PlottedValue.formulaHint'.loc(),
                               commandName: 'graph.editPlottedValue',
                               undoString: 'DG.Undo.graph.changePlotValue',
                               redoString: 'DG.Redo.graph.changePlotValue',

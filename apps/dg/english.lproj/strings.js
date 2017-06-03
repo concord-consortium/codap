@@ -625,8 +625,10 @@ SC.stringsFor('English', {
   'DG.PlottedFormula.defaultNamePrompt': "Formula",
   'DG.PlottedValue.namePrompt': "Plotted Value",
   'DG.PlottedValue.formulaPrompt': "value =",
+  'DG.PlottedValue.formulaHint': "",
   'DG.PlottedFunction.namePrompt': "Plotted Function",
   'DG.PlottedFunction.formulaPrompt': "f() =",
+  'DG.PlottedFunction.formulaHint': "Type an expression e.g. x*x/30 - 50",
 
   // DG.MapView
   'DG.MapView.showGrid': "Show Grid",  // "Show Grid"

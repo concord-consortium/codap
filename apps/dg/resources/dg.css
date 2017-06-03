@@ -272,6 +272,10 @@
     z-index: 101;
 }
 
+.CodeMirror pre.CodeMirror-placeholder {
+    color: #888;
+}
+
 /* unmatched identifiers */
 .cm-variable {
     color: black;
