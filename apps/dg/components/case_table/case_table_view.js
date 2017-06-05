@@ -391,21 +391,55 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   commitProtoCase: function(protoCase) {
     var context = this.get('dataContext'),
+        contextName = context.get('name'),
         collection = protoCase && protoCase.collection,
-        attrIDs = collection && collection.getAttributeIDs(),
-        values = [];
-    if (!collection) return;
+        attrIDs = collection && collection.getAttributeIDs();
+    if (!collection || !attrIDs) return;
 
-    attrIDs.forEach(function(attrID) {
-                      var value = protoCase._values[attrID];
-                      values.push(value != null ? value : "");
-                    });
-    context.applyChange({
-              operation: 'createCases',
-              attributeIDs: attrIDs,
-              values: [ values ]
-            });
+    var values, createResult;
+    values = attrIDs.map(function(attrID) {
+                          var value = protoCase._values[attrID];
+                          return value != null ? value : "";
+                        });
     protoCase._values = {};
+
+    function doCreateCase() {
+      return context.applyChange({
+                      operation: 'createCases',
+                      attributeIDs: attrIDs,
+                      values: [ values ]
+                    });
+    }
+
+    function doDeleteCase(caseIDs) {
+      var cases = caseIDs.map(function(id) {
+        return DG.store.find('DG.Case', id);
+      });
+      return context.applyChange({
+                      operation: 'deleteCases',
+                      cases: cases
+                    });
+    }
+
+    var cmd = DG.Command.create({
+      name: "caseTable.createNewCase",
+      undoString: 'DG.Undo.caseTable.createNewCase',
+      redoString: 'DG.Redo.caseTable.createNewCase',
+      execute: function() {
+        createResult = doCreateCase();
+      },
+      undo: function() {
+        if (createResult && createResult.caseIDs)
+          doDeleteCase(createResult.caseIDs);
+      },
+      redo: function() {
+        context = DG.currDocumentController().getContextByName(contextName);
+        if (context)
+          createResult = doCreateCase();
+      }
+    });
+
+    DG.UndoHistory.execute(cmd);
   },
 
     /**

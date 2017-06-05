@@ -84,6 +84,7 @@ DG.appController = SC.Object.create((function () // closure
           undoString: 'DG.Undo.dataContext.create',
           redoString: 'DG.Redo.dataContext.create',
           log: 'createNewEmptyDataSet',
+          isUndoable: false,
           execute: function () {
             dataContext = DG.appController.createDataContextFromCSV(
                 'DG.AppController.createDataSet.initialAttribute'.loc(), /*'Attribute'*/

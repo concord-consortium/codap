@@ -770,27 +770,61 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
    * @param state {String} -- the edited string value
    */
   this.applyValue = function (item, state) {
-    var columnId = Number( args.column.id ),
-        value = DG.DataUtilities.canonicalizeInputValue(state),
-        context = args.column.context;
+    var attrID = Number( args.column.id ),
+        tCase = item,
+        isRealCaseEdit = tCase instanceof DG.Case, // not proto-case
+        originalValue = isRealCaseEdit
+                          ? tCase.getStrValue(attrID)
+                          : tCase.getValue(args.column.id),
+        newValue = DG.DataUtilities.canonicalizeInputValue(state),
+        context = args.column.context,
+        contextName = context.get('name'),
+        collection = tCase.get('collection'),
+        collectionName = collection && collection.get('name') || "",
+        attr = collection && collection.getAttributeByID(attrID),
+        attrName = attr && attr.get('name'),
+        caseIndex = args.grid.getData().getIdxById(tCase.id);
 
-    if (item instanceof DG.Case) {
-      context.applyChange({
-                operation: 'updateCases',
-                cases: [ item ],
-                attributeIDs: [ columnId ],
-                values: [ [value] ]
+    function applyEditChange(attrID, iValue, isUndoRedo) {
+      if (isRealCaseEdit) {
+        context.applyChange({
+                  operation: 'updateCases',
+                  cases: [ tCase ],
+                  attributeIDs: [ attrID ],
+                  values: [ [iValue] ]
+                });
+      }
+      else if (!isUndoRedo) {
+        // update proto-case value
+        tCase.setValue(args.column.id, newValue);
+      }
+    }
+
+    var cmd = DG.Command.create({
+                name: 'caseTable.editCellValue',
+                undoString: 'DG.Undo.caseTable.editCellValue',
+                redoString: 'DG.Redo.caseTable.editCellValue',
+                log: "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }"
+                      .fmt(collectionName, caseIndex + 1, attrID, originalValue, newValue),
+                causedChange: isRealCaseEdit,
+                execute: function() {
+                  applyEditChange(attrID, newValue);
+                },
+                undo: function() {
+                  applyEditChange(attrID, originalValue, true);
+                },
+                redo: function() {
+                  context = DG.currDocumentController().getContextByName(contextName);
+                  collection = context && context.getCollectionByName(collectionName);
+                  attr = collection && collection.getAttributeByName(attrName);
+                  attrID = attr.get('id');
+                  var cases = collection && collection.get('casesController');
+                  tCase = cases && cases.objectAt(caseIndex);
+                  if (tCase)
+                    applyEditChange(attrID, newValue, true);
+                }
               });
-
-      var collectionName = item.getPath('collection.name') || "",
-          caseIndex = args.grid.getData().getIdxById( item.id) + 1;
-      DG.logUser("editValue: { collection: %@, case: %@, attribute: '%@', value: '%@' }",
-                  collectionName, caseIndex, args.column.name, state);
-    }
-    else {
-      // update proto-case value
-      item.setValue(args.column.id, value);
-    }
+    DG.UndoHistory.execute(cmd);
   };
 
   this.isValueChanged = function () {
