@@ -347,7 +347,7 @@ DG.appController = SC.Object.create((function () // closure
       // guarantee uniqueness of data context name/title
       while (documentController.getContextByName(contextName) ||
               documentController.getContextByTitle(contextName)) {
-        contextName = baseContextName + " " + ++i;
+        contextName = baseContextName + " " + (++i);
       }
 
       // Parse the document contents from the retrieved docText.
