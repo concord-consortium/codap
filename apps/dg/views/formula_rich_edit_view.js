@@ -143,7 +143,7 @@ return {
 
     // not sure why this isn't happening automatically
     if (placeholderText) {
-      textArea.attr('placeholder', placeholderText);
+      textArea.attr('placeholder', placeholderText.loc());
     }
 
     this._cm = CodeMirror.fromTextArea(textAreaNode, {

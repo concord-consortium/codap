@@ -205,9 +205,9 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 DG.PlottedValueAdornment.createFormulaEditView = function(iPlottedValue) {
   var formulaEditContext = DG.PlottedFormulaEditContext.getFormulaEditContext(iPlottedValue);
   return formulaEditContext.createFormulaView({
-                              attrNamePrompt: 'DG.PlottedValue.namePrompt'.loc(),
-                              formulaPrompt: 'DG.PlottedValue.formulaPrompt'.loc(),
-                              formulaHint: 'DG.PlottedValue.formulaHint'.loc(),
+                              attrNamePrompt: 'DG.PlottedValue.namePrompt',
+                              formulaPrompt: 'DG.PlottedValue.formulaPrompt',
+                              formulaHint: 'DG.PlottedValue.formulaHint',
                               commandName: 'graph.editPlottedValue',
                               undoString: 'DG.Undo.graph.changePlotValue',
                               redoString: 'DG.Redo.graph.changePlotValue',
