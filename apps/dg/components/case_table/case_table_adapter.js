@@ -1,6 +1,6 @@
 // ==========================================================================
 //                        DG.CaseTableAdapter
-//  
+//
 //  Adapts the DG data to the form required for the SlickGrid table.
 //  Builds the necessary SlickGrid data structures from the DG data.
 //
@@ -37,7 +37,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
       kMaxStringLength = 256,
-      
+
       // The tooltip string for the column depends on whether it has a formula, description, etc.
       getToolTipString = function( iAttribute) {
         var name = iAttribute.get('name'),
@@ -97,11 +97,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       };
 
   return {  // return from closure
-  
+
   newAttrColumnID: kNewAttrColumnID,
 
   rowHeight: kDefaultRowHeight,
-  
+
   /**
     The data context for the collections viewed in the table.
     @property   {DG.DataContext}
@@ -142,37 +142,37 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   hasAggregates: function() {
     return this.getPath('collection.hasAggregates');
   }.property(),
-  
+
   /**
     Should group header rows be shown for all groups (true) or only for collapsed groups (false)?
     @property   {Boolean}
    */
   showExpandedGroupRows: false,
-  
+
   /**
     The SlickGrid DataView responsible for accessing/filtering the cases.
     @property   {Slick.Data.DataView}
    */
   gridDataView: null,
-  
+
   /**
     Array of row/case info objects.
     @property   {[Object]}
    */
   gridData: null,
-  
+
   /**
     Array of column info objects.
     @property   {Array of Object}
    */
   gridColumns: null,
-  
+
   /**
     Additional SlickGrid options.
     @property   {Object}
    */
   gridOptions: null,
-  
+
   /**
     Initialization method.
    */
@@ -189,7 +189,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     if( this.get('dataContext'))
       this.dataContextDidChange();
   },
-  
+
   /**
     Returns true if this adapter's collection has a parent collection,
     false if it is the most senior collection, i.e. has no parent.
@@ -202,7 +202,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         firstCollectionID = firstCollection && firstCollection.get('id');
     return collectionID !== firstCollectionID;
   },
-  
+
   /**
     The number of visible rows in the table, that is the number of rows adjusted
     for the effect of collapsed rows. This is _not_ the number of rows that can be
@@ -212,7 +212,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   visibleRowCount: function() {
     return this.gridDataView.getLength();
   }.property(),
-  
+
   /**
     Map row ID to row index, where row ID is generally the same as case ID.
     The return row index is the index of visible rows, rather than total rows.
@@ -247,9 +247,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return attrIsEditable;
   },
 
+  isCellRowSelectable: function(row, column) {
+    var tDataView = this.get('gridDataView'),
+        tCase = tDataView.getItem(row);
+    return tCase && !tCase._isProtoCase;
+  },
+
   /**
     Builds the array of column definitions required by SlickGrid from the data context.
-    
+
     @returns  {Array of Object} The properties of each object define the column
    */
   updateColumnInfo: function() {
@@ -258,7 +264,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         existColumnDefs = {},
         columnDefs = [];
     if( !collection) return columnDefs;
-    
+
     if( this.gridColumns) {
       // Build a map of the existing column definitions so we can reuse them.
       // This preserves any user settings like column widths, etc.
@@ -268,12 +274,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     existColumnDefs[ iColumn.id] = iColumn;
                                 });
     }
-    
+
     function updateDynamicColumnProperties( iAttribute, ioColumnInfo) {
       // cell-specific editability handled by isCellEditable() method
       ioColumnInfo.editor = DG.CaseTableCellEditor;
     }
-    
+
     // Build the columnInfo for a single attribute
     function processAttribute( iAttribute) {
       // Reuse the existing column definition, if we have one
@@ -369,7 +375,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         });
       }
     }
-    
+
     // Process the attributes in the collection
     collection.forEachAttribute( processAttribute.bind(this));
 
@@ -377,12 +383,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     var children = collection && collection.getPath('collection.children');
     if (!children || !children.get('length'))
       updateNewAttributeColumnDefinition();
-    
+
     this.gridColumns = columnDefs;
 
     return columnDefs;
   },
-  
+
   /**
     Updates the column information for the specified attribute.
     @param    {DG.Attribute}    iAttribute -- The attribute whose column should be updated
@@ -414,7 +420,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     return false;
   },
-  
+
   /**
     Returns the grid option in a form suitable for passing to the SlickGrid.
     The most important options (currently) are the default rowHeight and the
@@ -448,7 +454,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
            };
     return this.gridOptions;
   },
-  
+
   /**
     Rebuilds the adapter by rebuilding the column header info, the row data, and the options.
    */
@@ -463,7 +469,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   dataContextDidChange: function() {
     this.rebuild();
   }.observes('dataContext'),
-  
+
   /**
     Rebuilds the column descriptions when attribute formulas change.
    */
@@ -473,7 +479,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     this.markCasesChanged();
     this.gridDataView.refresh();
   }.observes('.collection.attrFormulaChanges'),
-  
+
   /**
     Refreshes the contents of the table.
    */
@@ -530,7 +536,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
     return selectedRows;
   },
-  
+
   /**
     Selects the cases in the range of rows specified.
     @param    {Number}    iMinRow -- The starting row index
@@ -584,7 +590,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       if (tChange.cases.length)
         tContext.applyChange( tChange);
     },
-  
+
   /**
     Invalidates the rows corresponding to the specified cases.
     @param  iCases {Array of DG.Case}  The set of cases to mark as changed.
@@ -655,7 +661,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
 
   }; // end return from closure
-  
+
 }())); // end closure
 
 
@@ -775,7 +781,7 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
                 attributeIDs: [ columnId ],
                 values: [ [value] ]
               });
-    
+
       var collectionName = item.getPath('collection.name') || "",
           caseIndex = args.grid.getData().getIdxById( item.id) + 1;
       DG.logUser("editValue: { collection: %@, case: %@, attribute: '%@', value: '%@' }",
