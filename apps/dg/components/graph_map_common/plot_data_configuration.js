@@ -796,7 +796,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
     if (!iArrayOfCases || !iArrayOfCases.length) return;
     this.set('hiddenCases', DG.ArrayUtils.subtract( this.get('hiddenCases' ), iArrayOfCases,
                                                     function( iCase) {
-                                                      return iCase.get('id');
+                                                      return iCase && iCase.get('id');
                                                     } )
     );
   },
