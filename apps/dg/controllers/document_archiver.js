@@ -174,7 +174,7 @@ DG.DocumentArchiver = SC.Object.extend(
      *   CSV text was extracted.
      * @returns {Object||undefined} A streamable CODAP document.
      */
-    convertCSVDataToCODAPDocument: function (iText, iFileName) {
+    convertCSVDataToCODAPDocument: function (iText, iContextName, iCollectionName, iFileName) {
       /**
        * Returns table stats object:
        *   numRows {number}
@@ -222,8 +222,6 @@ DG.DocumentArchiver = SC.Object.extend(
       }
 
       var tValuesArray,
-        tContextName = iFileName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
-        tChildName = tContextName || 'cases',
         tAttrNamesRow,// Column Header Names: should be second row
         tAttrNames = [], tTableStats, ix,
         tDoc = {
@@ -307,8 +305,10 @@ DG.DocumentArchiver = SC.Object.extend(
 
       tAttrNamesRow = tValuesArray.shift();
 
-      tDoc.contexts[0].collections[0].name = tChildName;
-      tDoc.contexts[0].name = tContextName;
+      var tDataContext = tDoc.contexts[0],
+          tCollection = tDataContext.collections[0];
+      tDataContext.name = tDataContext.title = iContextName;
+      tCollection.name = tCollection.title = iCollectionName;
 
       var canonicalName;
       for (ix = 0; ix < tTableStats.maxCols; ix += 1) {

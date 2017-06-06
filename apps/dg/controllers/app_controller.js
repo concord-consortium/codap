@@ -86,8 +86,8 @@ DG.appController = SC.Object.create((function () // closure
           log: 'createNewEmptyDataSet',
           execute: function () {
             dataContext = DG.appController.createDataContextFromCSV(
-                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'new'*/
-                'DG.AppController.createDataSet.name'.loc() /* 'new_dataset' */
+                'DG.AppController.createDataSet.initialAttribute'.loc(), /*'Attribute'*/
+                'DG.AppController.createDataSet.name'.loc() /* 'New Dataset' */
             );
             caseTable = documentController.addCaseTable(
                 DG.mainPage.get('docView'), null, {position: 'top', dataContext: dataContext});
@@ -338,10 +338,21 @@ DG.appController = SC.Object.create((function () // closure
     createDataContextFromCSV: function (iText, iName) {
       // Create document-specific store.
       var newDocument, context, contextRecord,
-          documentController = DG.currDocumentController();
+          documentController = DG.currDocumentController(),
+          baseContextName = iName.replace(/.*[\\\/]/g, '').replace(/\.[^.]*/, ''),
+          contextName = baseContextName,
+          collectionName = 'DG.AppController.createDataSet.collectionName'.loc(),
+          i = 1;
+
+      // guarantee uniqueness of data context name/title
+      while (documentController.getContextByName(contextName) ||
+              documentController.getContextByTitle(contextName)) {
+        contextName = baseContextName + " " + ++i;
+      }
 
       // Parse the document contents from the retrieved docText.
-      newDocument = this.documentArchiver.convertCSVDataToCODAPDocument( iText, iName);
+      newDocument = this.documentArchiver.
+                      convertCSVDataToCODAPDocument( iText, contextName, collectionName, iName);
 
       if (SC.none(newDocument)) {
         throw new Error('DG.AppController.validateDocument.parseError'.loc(iName));

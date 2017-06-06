@@ -106,8 +106,9 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.invalidDocument' : 'Invalid JSON Document: %@1',
   'DG.AppController.openDocument.error.general': 'Unable to open document',
   'DG.AppController.openDocument.error.invalid_format': 'CODAP can not read this type of document',
-  'DG.AppController.createDataSet.initialAttribute': 'new', /* new */
-  'DG.AppController.createDataSet.name': 'new_dataset', /* new_dataset */
+  'DG.AppController.createDataSet.initialAttribute': 'Attribute', /* Attribute */
+  'DG.AppController.createDataSet.name': 'New Dataset', /* New Dataset */
+  'DG.AppController.createDataSet.collectionName': 'Cases', /* Cases */
   'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "OK",
