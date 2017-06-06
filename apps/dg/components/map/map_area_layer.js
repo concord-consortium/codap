@@ -300,6 +300,9 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
       try {
         var tBoundaryValue = iCase.getValue(tRC.areaVarID);
+        if( typeof tBoundaryValue === 'object') {
+          stashFeature( tBoundaryValue);
+        }
         if (tBoundaryValue.startsWith('http')) {
           this._featuresRemainingToFetch++;
           $.ajax({
@@ -319,8 +322,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         }
         else {  // Assume it's a state boundary lookup
           this._featuresRemainingToFetch++;
-          DG.GeojsonUtils.lookupBoundary('state', tBoundaryValue,
-              this._featuresRemainingToFetch === 1, stashFeature);
+          DG.GeojsonUtils.lookupBoundary('state', tBoundaryValue, stashFeature);
         }
       }
       catch(er) {

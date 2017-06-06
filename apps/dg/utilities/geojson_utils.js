@@ -39,19 +39,25 @@ DG.GeojsonUtils = {
    * @param iIsFirstTime {Boolean} If true, this is the first of a sequence of calls to be made
    * @param iCallback {Function} Called when we successfully retrieve the boundary
    */
-  lookupBoundary: function (iBoundaryCollectionName, iKey, iIsFirstTime, iCallback) {
+  lookupBoundary: function (iBoundaryCollectionName, iKey, iCallback) {
 
     function returnError(iError) {
       iCallback(null, iError);
     }
 
     function returnDesiredBoundary() {
+      var tOnlyOneResultToReturn = tCache.requestQueue.length === 1;
       while (tCache.requestQueue.length > 0) {
         var tKeyCallbackPair = tCache.requestQueue.splice(0, 1)[0],
             tKey = tKeyCallbackPair[0],
-            tCallback = tKeyCallbackPair[1];
-        tCallback(tCache.boundaryIndex[tKey.toLowerCase()]);
+            tCallback = tKeyCallbackPair[1],
+            tResult = tCache.boundaryIndex[tKey.toLowerCase()];
+        if (tCallback)
+          tCallback(tResult);
+        else if (tOnlyOneResultToReturn)
+          return tResult;
       }
+
     }
 
     var tCache = this.boundariesCache[iBoundaryCollectionName];
@@ -61,7 +67,7 @@ DG.GeojsonUtils = {
     }
     var lookupStateBoundary = function () {
           tCache.requestQueue.push([iKey, iCallback]);  // Remember the correct callback for its closure
-          if (!tCache.boundaryIndex && iIsFirstTime) {
+          if (!tCache.boundaryIndex && tCache.requestQueue.length === 1) {
             $.ajax({
               url: tCache.url,
               context: this,
@@ -74,7 +80,7 @@ DG.GeojsonUtils = {
             });
           }
           else if (tCache.boundaryIndex) {
-            returnDesiredBoundary();
+            return returnDesiredBoundary();
           }
         }.bind(this),
 
@@ -101,7 +107,7 @@ DG.GeojsonUtils = {
           });
 
           tIndexCollection.cases.forEach(function (iKeyCase) {
-            tCache.boundaryIndex[iKeyCase.values.key] = JSON.parse( tBoundariesIDIndex[iKeyCase.parent]);
+            tCache.boundaryIndex[iKeyCase.values.key] = JSON.parse(tBoundariesIDIndex[iKeyCase.parent]);
           });
           /*
            var tKeyAttribute = tIndexCollection.getAttributeByName('key'),
@@ -115,19 +121,9 @@ DG.GeojsonUtils = {
            });
            */
           returnDesiredBoundary();
-        }.bind(this),
+        }.bind(this);
 
-        getCollectionFromContextByName = function (iContextRecord, iName) {
-          var tCollection;
-          DG.ObjectMap.forEach(iContextRecord.get('collections'), function (iKey, iCollection) {
-            if (iCollection.get('name') === iName) {
-              tCollection = iCollection;
-            }
-          });
-          return tCollection;
-        };
-
-    lookupStateBoundary();
+    return lookupStateBoundary();
   }
 
 };

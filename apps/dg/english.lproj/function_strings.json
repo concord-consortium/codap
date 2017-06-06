@@ -623,6 +623,26 @@
       "isFinite(1/0) returns false"
     ]
   },
+  "lookupBoundary": {
+    "displayName": "lookupBoundary",
+    "description": "Looks up a boundary, e.g. a country boundary, in an online collection. This boundary can be displayed on a map.",
+    "args": [
+      {
+        "name": "expression",
+        "type": "string",
+        "description": "The name of the the collection of boundaries. Possible values are \"countries,\" \"US_states,\" and \"US_counties.\""
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "description": "The name of the particular boundary to look up. Abbreviations and GeoIDs are supported as well as full names."
+      }
+    ],
+    "examples": [
+      "lookupBoundary(\"countries\", \"Canada\") returns the boundary of Canada",
+      "lookupBoundary(\"US_states\", \"GA\") returns the boundary of the state of Georgia"
+    ]
+  },
   "number": {
     "displayName": "number",
     "description": "Converts the input value to a numeric value.",
