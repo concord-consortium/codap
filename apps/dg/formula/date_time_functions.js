@@ -1,6 +1,6 @@
 // ==========================================================================
 //                    Date/Time Functions
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
@@ -29,7 +29,7 @@ DG.functionRegistry.registerFunctions((function() {
     Utility function for converting to a Date object.
    */
   function convertToDate(x) {
-    if (DG.isDate(x)) return x; 
+    if (DG.isDate(x)) return x;
     return DG.createDate(x); // strings are subject to browser inconsistencies
   }
 
@@ -37,7 +37,7 @@ DG.functionRegistry.registerFunctions((function() {
 
     /**
       Returns a new date created from its arguments. If a single large argument,
-      it is treated as 
+      it is treated as
       @param  {Number}  iYearOrEpochSecs - If multiple arguments, the first argument
                           is considered to be the year. If only a single argument,
                           it is considered to be the number of seconds since 1/1/1970.
@@ -53,7 +53,7 @@ DG.functionRegistry.registerFunctions((function() {
       minArgs:1, maxArgs:7, category: 'DG.Formula.FuncCategoryDateTime',
       evalFn: function(iYearOrEpochSecs, iMonth, iDay, iHour, iMinute, iSecond, iMillisec) {
         // convert epoch seconds
-        if (iYearOrEpochSecs >= 10000)
+        if ((arguments.length === 1) && DG.DateUtilities.defaultToEpochSecs(iYearOrEpochSecs))
           return DG.createDate(iYearOrEpochSecs);
         var now = new Date(),
             year = now.getFullYear(),
