@@ -441,6 +441,10 @@ SC.stringsFor('English', {
 
   'DG.Formula.SyntaxErrorMiddle': "Syntax error: '%@'",
   'DG.Formula.SyntaxErrorEnd': "Incomplete expression",
+  'DG.Formula.SyntaxErrorInvalidOperator': "invalid operator '%@'",
+  'DG.Formula.TypeError.name': "Error",
+  'DG.Formula.TypeError.message': "invalid type(s) for '%@'",
+  'DG.Formula.TypeError.description': "invalid type(s) for '%@'",
   'DG.Formula.VarReferenceError.name': "Error",
   'DG.Formula.VarReferenceError.message': "'%@' is unrecognized",
   'DG.Formula.VarReferenceError.description': "variable '%@' is unrecognized",

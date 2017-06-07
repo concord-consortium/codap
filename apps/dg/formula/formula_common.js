@@ -1,7 +1,7 @@
 // ==========================================================================
 //              DG.VarReferenceError, DG.FuncReferenceError
 //                DG.HierReferenceError,DG.FuncArgsError
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -25,7 +25,7 @@ DG.UNICODE = {
   MINUS_SIGN: '\u2212',
   MULTIPLICATION_SIGN: '\u00D7',
   DIVISION_SIGN: '\u00F7',
-  
+
   EQUALS_SIGN: '=',
   NOT_EQUAL_TO: '\u2260',
   LESS_THAN_OR_EQUAL_TO: '\u2264',
@@ -62,6 +62,20 @@ DG.UNICODE = {
 
 // Error class definition follows pattern from
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Error
+
+/** @class DG.TypeError
+
+  Error class for type errors.
+
+  @extends Error
+*/
+DG.TypeError = function(iOperator) {
+  this.name = 'DG.Formula.TypeError.name'.loc();
+  this.message = 'DG.Formula.TypeError.message'.loc(iOperator);
+  this.description = 'DG.Formula.TypeError.description'.loc(iOperator);
+};
+DG.TypeError.prototype = new Error();
+DG.TypeError.prototype.constructor = DG.TypeError;
 
 /** @class DG.VarReferenceError
 
