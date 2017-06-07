@@ -69,7 +69,7 @@ DG.UNICODE = {
   @extends Error
 */
 DG.VarReferenceError = function( iName) {
-  this.name = 'VarReferenceError';
+  this.name = 'DG.Formula.VarReferenceError.name'.loc();
   this.message = 'DG.Formula.VarReferenceError.message'.loc( iName);
   this.description = 'DG.Formula.VarReferenceError.description'.loc( iName);
   this.reference = iName;
@@ -84,7 +84,7 @@ DG.VarReferenceError.prototype.constructor = DG.VarReferenceError;
   @extends Error
 */
 DG.FuncReferenceError = function( iName) {
-  this.name = 'FuncReferenceError';
+  this.name = 'DG.Formula.FuncReferenceError.name'.loc();
   this.message = 'DG.Formula.FuncReferenceError.message'.loc( iName);
   this.description = 'DG.Formula.FuncReferenceError.description'.loc( iName);
   this.reference = iName;
@@ -102,7 +102,7 @@ DG.FuncArgsError = function( iName, iRequiredArgs) {
   var minArgs = iRequiredArgs && iRequiredArgs.min,
       maxArgs = iRequiredArgs && iRequiredArgs.max;
 
-  this.name = 'FuncArgsError';
+  this.name = 'DG.Formula.FuncArgsError.name'.loc();
   if( (minArgs === 1) && (minArgs === maxArgs)) {
     this.message = 'DG.Formula.FuncArgsErrorSingle.message'.loc( iName, minArgs);
     this.description = 'DG.Formula.FuncArgsErrorSingle.description'.loc( iName, minArgs);
