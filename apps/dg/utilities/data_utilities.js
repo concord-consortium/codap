@@ -157,7 +157,7 @@ DG.DataUtilities.toString = function (iValue) {
       valType = "string";
     }
     else if (iValue instanceof Error) {
-      value = iValue.name + ": " + iValue.message;
+      value = iValue.name + " " + iValue.message;
       valType = "string";
     }
     switch( valType) {
