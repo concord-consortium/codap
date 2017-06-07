@@ -66,7 +66,7 @@ if (typeof Slick === "undefined") {
    *    Slick.DataView is an example of an Object which provides this API. It is essentially
    *    a wrapper around an {Array} of data items which provides additional data manipulation
    *    features, such as filtering and sorting.
-   *      
+   *
    *  columns: Array of objects which specify details about the columns
    *      id:                 {String}    A unique ID for the column
    *      name:               {String}    The name of the column, displayed in column header cell
@@ -78,7 +78,7 @@ if (typeof Slick === "undefined") {
    *      formatter:          {Function}  formatter(rowIndex, colIndex, cellValue, colInfo, rowItem)
    *      editor:             {Function}  The constructor function for the class to use for editing
    *      validator:          {Function}  A function to be called when validating user-entered values
-   *      cannotTriggerInsert:{Boolean}   
+   *      cannotTriggerInsert:{Boolean}
    *      resizable:          {Boolean}   Whether this column can be resized
    *      selectable:         {Boolean}   Whether this column can be selected
    *      sortable:           {Boolean}   Whether the grid rows can be sorted by this column
@@ -103,7 +103,7 @@ if (typeof Slick === "undefined") {
    *                          {Boolean}   Should text selection be allowed in cells?
    *      forceFitColumns:    {Boolean}   Should column widths be automatically resized to fit?
    *      syncColumnCellResize:{Boolean}  Should the grid width be changed dynamically during a drag
-   *                                      to change column widths, or only once the mouse is released? 
+   *                                      to change column widths, or only once the mouse is released?
    *      dataItemColumnValueExtractor(item, columnDef):
    *                          {Function}  If present, will be called to retrieve a data value from the
    *                                      specified item for the corresponding column.
@@ -112,11 +112,11 @@ if (typeof Slick === "undefined") {
    *                                      to retrieve a formatter for the specified cell
    *      selectedCellCssClass:{Object?}  (?)Object used to specify CSS class for selected cells
    *      cellFlashingCssClass:{Object?}  (?)Object used to specify CSS class for flashing cells
-   *      enableAsyncPostRender:{Boolean} 
+   *      enableAsyncPostRender:{Boolean}
    *      asyncPostRenderDelay:{Number}   Delay passed to setTimeout in milliseconds
    *      editable:           {Boolean}   Is editing table cells supported?
    *      autoEdit:           {Boolean}   (?)Should editing be initiated automatically on click in cell?
-   *      editorFactory:      {Object}    If present, its getEditor(column) method will be called 
+   *      editorFactory:      {Object}    If present, its getEditor(column) method will be called
    *                                      to retrieve an editor for the specified cell,
    *                                      unless column.editor is specified, which will be used.
    *      editorLock:
@@ -483,7 +483,7 @@ if (typeof Slick === "undefined") {
 
       // see https://github.com/mleibman/SlickGrid/issues/477
       viewportHasHScroll = (canvasWidth > viewportW - scrollbarDimensions.width);
-      
+
       if (canvasWidth != oldCanvasWidth) {
         $canvas.width(canvasWidth);
         $headerRow.width(canvasWidth);
@@ -1528,12 +1528,26 @@ if (typeof Slick === "undefined") {
         }
       }
 
-      stringArray.push("<div class='" + cellCss + "'>");
+      // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
+      var value = "",
+          tooltip = "",
+          tooltipAttr = "";
+      if (d) {
+        value = getDataItemValueForColumn(d, m);
+        value = getFormatter(row, m)(row, cell, value, m, d);
+        value = value ? String(value).replace(/&/g, '&amp;')
+                                     .replace(/</g, '&lt;')
+                                     .replace(/>/g, '&gt;')
+                      : "";
+        tooltip = value && m.showCellTooltips ? value.replace(/"/g, '&quot;') : "";
+        tooltipAttr = tooltip ? " title=\"" + tooltip + "\"" : "";
+      }
+
+      stringArray.push("<div class='" + cellCss + "'" + tooltipAttr + ">");
 
       // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
       if (d) {
-        var value = getDataItemValueForColumn(d, m);
-        stringArray.push(getFormatter(row, m)(row, cell, value, m, d));
+        stringArray.push(value);
       }
 
       stringArray.push("</div>");
@@ -1662,7 +1676,7 @@ if (typeof Slick === "undefined") {
           contentHeight = canvasHeight + (hasHScroll ? scrollbarDimensions.height : 0);
       return { width: contentWidth, height: contentHeight };
     }
-    
+
     // Returns the size of the visible area, i.e. between the scroll bars
     function getVisibleSize() {
       var width = $viewport.width(),
@@ -2273,7 +2287,7 @@ if (typeof Slick === "undefined") {
     function handleHeaderDragEnd(e, dd) {
       trigger(self.onHeaderDragEnd, dd, e);
     }
-    
+
     function handleDragInit(e, dd) {
       var cell = getCellFromEvent(e);
       if (!cell || !cellExists(cell.row, cell.cell)) {
