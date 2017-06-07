@@ -1,6 +1,6 @@
 // ==========================================================================
 //                            DG.ArrayUtils
-// 
+//
 //  A collection of utilities for working with JavaScript Arrays.
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -92,7 +92,7 @@ DG.ArrayUtils = {
 
   /**
     Searches the specified array for the specified value using the comparison function.
-    
+
     @param {Array} iArray   The Array to be searched
     @param {Object} iValue  The value to search for
     @param {Function}       The comparison function to use
@@ -130,7 +130,9 @@ DG.ArrayUtils = {
   subtract: function( iMinuend, iSubtrahend, iGetIdF) {
     var tDifference = [],
         tHash = {};
-    if(!iSubtrahend || iSubtrahend.length === 0)
+    if(!iMinuend || !iMinuend.length)
+      return iMinuend;
+    if(!iSubtrahend || !iSubtrahend.length)
       return iMinuend;
 
     iMinuend.forEach( function( iElement) {

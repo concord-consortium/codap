@@ -84,6 +84,7 @@ DG.appController = SC.Object.create((function () // closure
           undoString: 'DG.Undo.dataContext.create',
           redoString: 'DG.Redo.dataContext.create',
           log: 'createNewEmptyDataSet',
+          isUndoable: false,
           execute: function () {
             dataContext = DG.appController.createDataContextFromCSV(
                 'DG.AppController.createDataSet.initialAttribute'.loc(), /*'Attribute'*/
@@ -347,7 +348,7 @@ DG.appController = SC.Object.create((function () // closure
       // guarantee uniqueness of data context name/title
       while (documentController.getContextByName(contextName) ||
               documentController.getContextByTitle(contextName)) {
-        contextName = baseContextName + " " + ++i;
+        contextName = baseContextName + " " + (++i);
       }
 
       // Parse the document contents from the retrieved docText.

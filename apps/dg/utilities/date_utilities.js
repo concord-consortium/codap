@@ -27,6 +27,16 @@ DG.DateUtilities = {
 };
 
 /**
+  Returns true if the specified value should be treated as epoch
+  seconds when provided as the only argument to the date() function,
+  false if the value should be treated as a year.
+  date(2000) should be treated as a year, but date(12345) should not.
+ */
+DG.DateUtilities.defaultToEpochSecs = function(iValue) {
+  return Math.abs(iValue) >= 5000;
+};
+
+/**
   Returns a DG date object constructed from its arguments.
   Currently this is a JavaScript Date object, but could be
   replaced with another (e.g. moment.js) object at some point.
@@ -36,7 +46,7 @@ DG.DateUtilities.createDate = function(/* iArgs */) {
       date;
 
   // convert from seconds to milliseconds
-  if ((args.length >= 2) && (Number(args[1]) >= 10000))
+  if ((args.length === 2) && DG.DateUtilities.defaultToEpochSecs(args[1]))
     args[1] = Number(args[1]) * 1000;
 
   // Call Date constructor with specified arguments
@@ -86,16 +96,16 @@ DG.isDateString = DG.DateUtilities.isDateString;
  */
 DG.DateUtilities.formatDate = function(x) {
   if (!(x && (DG.isDate(x) || DG.MathUtilities.isNumeric(x)))) return "";
-  // use a JS Date object for formatting, since our valueOf()
-  // change seems to affect string formatting
-  var date = new Date(Number(x) * 1000),
-      h = date.getHours(),
-      m = date.getMinutes(),
-      s = date.getSeconds(),
-      ms = date.getMilliseconds(),
+  // use moment.js for formatting to avoid browser bugs
+  /* global moment */
+  var mom = DG.isDate(x) ? moment(x) : moment(Number(x) * 1000),
+      h = mom.hours(),
+      m = mom.minutes(),
+      s = mom.seconds(),
+      ms = mom.milliseconds(),
       hasTime = (h + m + s + ms) > 0,
-      dateStr = date.toLocaleDateString(),
-      timeStr = hasTime ? " " + date.toLocaleTimeString() : "";
+      dateStr = mom.format('l'),
+      timeStr = hasTime ? " " + mom.format('LT') : "";
   return dateStr + timeStr;
 };
 DG.formatDate = DG.DateUtilities.formatDate;
