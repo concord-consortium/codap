@@ -387,7 +387,7 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
 
   function visitVariable( iNode) {
     // Pass variable references to the context
-    return iContext.compileVariable( iNode.name);
+    return iContext.compileVariable( iNode.name, iContext.getAggregateFunctionIndices());
   }
 
   function visitFunctionCall( iNode) {

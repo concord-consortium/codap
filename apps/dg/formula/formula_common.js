@@ -1,5 +1,6 @@
 // ==========================================================================
-//      DG.VarReferenceError, DG.FuncReferenceError, DG.FuncArgsError
+//              DG.VarReferenceError, DG.FuncReferenceError
+//                DG.HierReferenceError,DG.FuncArgsError
 //  
 //  Author:   Kirk Swenson
 //
@@ -76,6 +77,21 @@ DG.VarReferenceError = function( iName) {
 };
 DG.VarReferenceError.prototype = new Error();
 DG.VarReferenceError.prototype.constructor = DG.VarReferenceError;
+
+/** @class DG.HierReferenceError
+
+  Error class for hierarchical variable reference errors.
+
+  @extends Error
+*/
+DG.HierReferenceError = function( iName) {
+  this.name = 'DG.Formula.HierReferenceError.name'.loc();
+  this.message = 'DG.Formula.HierReferenceError.message'.loc( iName);
+  this.description = 'DG.Formula.HierReferenceError.description'.loc( iName);
+  this.reference = iName;
+};
+DG.HierReferenceError.prototype = new Error();
+DG.HierReferenceError.prototype.constructor = DG.HierReferenceError;
 
 /** @class DG.FuncReferenceError
 
