@@ -39,7 +39,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
                           'model.numericRange'],
 
-      classNames: ['legend-view'],
+      classNames: ['dg-legend-view'],
 
       /**
         The model on which this view is based.
@@ -202,7 +202,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         this.appendChild( this.choroplethView);
 
         this._hiddenDragView = SC.LabelView.create({
-          classNames: 'drag-label'.w(),
+          classNames: 'dg-drag-label'.w(),
           layout: {width: 100, height: 20, top: -50, left: 0},
           value: ''
         });

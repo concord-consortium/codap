@@ -46,7 +46,7 @@ DG.Calculator = SC.View.extend( (function() // closure
 
   return {  // return from closure
 
-    classNames: ['calculator'],
+    classNames: ['dg-calculator'],
     backgroundColor: '#333333',
 
     _justEvaled: NO,  // If the expressions has just been evaluated, pressing

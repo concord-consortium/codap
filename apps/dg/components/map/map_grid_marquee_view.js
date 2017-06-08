@@ -29,7 +29,7 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
 {
   autoDestroyProperties: [ '_backgroundForClick' ],
 
-  classNames: 'marquee-mode'.w(),
+  classNames: 'dg-marquee-mode'.w(),
 
   /**
    * @property {DG.MapGridModel}

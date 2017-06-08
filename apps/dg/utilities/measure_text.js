@@ -23,7 +23,7 @@
  * @param iStyle {object} font attributes if not default
  */
 DG.measureTextWidth = function (text, iStyle) {
-  var kSelector = 'text-measurer';
+  var kSelector = 'dg-text-measurer';
   var style = {'font': 'initial'};
   if (iStyle) {
     style = iStyle;

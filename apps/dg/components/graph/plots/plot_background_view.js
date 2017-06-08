@@ -36,8 +36,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                       'yAxisView.model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
                       'graphModel.plotBackgroundColor', 'graphModel.plotBackgroundOpacity'],
 
-  classNames: 'plot-view'.w(),
-  classNameBindings: ['graphModel.isTransparent:plot-view-transparent'],
+  classNames: 'dg-plot-view'.w(),
+  classNameBindings: ['graphModel.isTransparent:dg-plot-view-transparent'],
 
   /**
    * @property {DG.GraphModel}

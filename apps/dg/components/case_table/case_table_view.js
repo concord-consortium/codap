@@ -261,7 +261,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     childTable: null,
 
     _hiddenDragView: SC.LabelView.design({
-      classNames: 'drag-label'.w(),
+      classNames: 'dg-drag-label'.w(),
       layout: { width: 100, height: 20, top: -50, left: 0 },
       value: ''
 //    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)

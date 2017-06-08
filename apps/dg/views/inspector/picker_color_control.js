@@ -28,7 +28,7 @@
  */
 DG.PickerColorControl = SC.View.extend(
     /** @scope DG.PickerColorControl.prototype */ {
-      classNames: 'inspector-picker-color'.w(),
+      classNames: 'dg-inspector-picker-color'.w(),
       initialColor: null, // Should be set by caller
       colorKey: null, // Should be set by caller
       setColorFunc: null, // Should be set by caller

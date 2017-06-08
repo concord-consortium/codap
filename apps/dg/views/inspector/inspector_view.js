@@ -38,7 +38,7 @@ DG.InspectorView = DG.DraggableView.extend(
           kDefaultIconSize = 32,
           kPadding = (kCellHeight - kDefaultIconSize) / 2;
       return {
-        classNames: ['inspector-palette', 'inspector-view'],
+        classNames: ['dg-inspector-palette', 'dg-inspector-view'],
         transitionIn: SC.View,
         isResizable: false,
         isClosable: false,

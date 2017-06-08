@@ -38,7 +38,7 @@ DG.AttributeEditorView = SC.PalettePane.extend( (function() // closure
       attrRef: null,
       attrUpdater: null,
       buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
-      classNames: 'inspector-picker'.w(),
+      classNames: 'dg-inspector-picker'.w(),
       layout: {width: 250, height: 280, centerX: 0, centerY: 0},
       isModal: true,
       contentView: SC.View.extend(SC.FlowedLayout, {

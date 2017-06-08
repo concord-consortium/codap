@@ -69,7 +69,7 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
                 [{value: kDefaultLow, string: 'low'}, {value: kDefaultHigh, string: 'high'}].forEach(
                     function (iLabel) {
                       var tLabelElement = this._paper.text(0, 0, iLabel.string)
-                          .addClass('axis-tick-label');
+                          .addClass('dg-axis-tick-label');
                       this._elementsToClear.push(tLabelElement);
                       var tLabelExtent = DG.RenderingUtilities.getExtentForTextElement(
                           tLabelElement, DG.RenderingUtilities.kDefaultFontHeight),

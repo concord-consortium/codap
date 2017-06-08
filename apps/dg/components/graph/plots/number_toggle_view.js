@@ -118,7 +118,7 @@ DG.NumberToggleView = DG.RaphaelBaseView.extend(
 
       displayProperties: ['lastMode', 'firstDisplayedIndex', 'lastDisplayedIndex'],
 
-      classNames: 'number-toggle'.w(),
+      classNames: 'dg-number-toggle'.w(),
 
       /**
         The model on which this view is based.

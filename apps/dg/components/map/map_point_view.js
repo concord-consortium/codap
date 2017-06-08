@@ -33,9 +33,9 @@ DG.MapPointView = DG.RaphaelBaseView.extend(
                       'model.dataConfiguration.legendAttributeDescription.attributeStats.attributeType',
                       'model.gridModel.visible'],
 
-  classNames: ['map-layer'],
+  classNames: ['dg-map-layer'],
   // When we go into marquee-mode we add this class which makes us translucent and able receive mousedown events.
-  classNameBindings: ['isInMarqueeMode:marquee-mode'],
+  classNameBindings: ['isInMarqueeMode:dg-marquee-mode'],
 
   /**
    * @property {DG.MapModel}
