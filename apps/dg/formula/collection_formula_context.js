@@ -440,23 +440,26 @@ DG.CollectionFormulaContext = DG.GlobalFormulaContext.extend((function() {
   marshalArguments: function( iAggregateFn, iEvalContext, iInstance) {
     var i, argCount = iInstance.args.length,
         reqArgs = iAggregateFn.get('requiredArgs'),
-        aggFnArgCount = Math.min(argCount, reqArgs.max);
+        aggFnArgCount = Math.min(argCount, reqArgs.max),
+        argCountWithFilter = aggFnArgCount + 1;
     iInstance.argFns = [];
     for( i = 0; i < aggFnArgCount; ++i) {
       iInstance.argFns.push( DG.FormulaContext.createContextFunction( iInstance.args[i]));
     }
 
     // if an extra argument was specified, assume it's a filter argument
-    if (argCount === aggFnArgCount + 1)
-      iInstance.filterFn = DG.FormulaContext.createContextFunction( iInstance.args[argCount-1]);
+    if (argCount >= argCountWithFilter)
+      iInstance.filterFn = DG.FormulaContext.createContextFunction( iInstance.args[argCountWithFilter-1]);
   },
 
   validateArguments: function( iAggregateFn, iEvalContext, iInstance) {
     // Make sure we have a valid number of arguments
     var reqArgs = iAggregateFn.get('requiredArgs'),
-        argCount = iInstance.argFns.length;
-    if( (argCount < reqArgs.min) || (reqArgs.max < argCount))
-      throw new DG.FuncArgsError( iInstance.name, reqArgs);
+        maxArgsWithFilter = reqArgs.max + 1,
+        providedArgCount = iInstance.args.length,
+        marshaledArgCount = iInstance.argFns.length;
+    if( (marshaledArgCount < reqArgs.min) || (providedArgCount > maxArgsWithFilter))
+      throw new DG.FuncArgsError( iInstance.name, { min: reqArgs.min, max: maxArgsWithFilter });
   },
   
   /**
