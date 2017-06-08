@@ -803,6 +803,7 @@ body.dg .sc-view.dg-doc-background {
 .sc-view.dg-icon-button {
     cursor: pointer;
     text-align: center;
+    line-height: 1;
 }
 
 .sc-view.dg-toolshelf-button:hover {

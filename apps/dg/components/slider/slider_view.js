@@ -171,7 +171,7 @@ DG.SliderView = SC.View.extend(
         this.set('valueView',
           SC.LabelView.create(DG.MouseAndTouchView, {
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
-            classNames: 'slider-label'.w(),
+            classNames: 'dg-slider-label'.w(),
             isEditable: true,
             exampleNode: null,
             inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
