@@ -14,20 +14,20 @@
  *  limitations under the License.
  */
 
-$theme.sc-view.slider-label
+$theme.sc-view.dg-slider-label
 {
   font-size: larger;
   cursor: text;
 }
 
-$theme.sc-view.slider-thumb
+$theme.sc-view.dg-slider-thumb
 {
   /** IE Hack, if hotspot is specified, then IE ignores entire css rule, also rule has to relative to html doc **/
   cursor: static_url('cursors/TranslateX.cur'), auto;
   cursor: static_url('cursors/TranslateX.cur') 8 8, auto;
 }
 
-$theme.sc-view.slider-thumb:active
+$theme.sc-view.dg-slider-thumb:active
 {
   /** IE Hack, if hotspot is specified, then IE ignores entire css rule, also rule has to relative to html doc **/
   cursor: static_url('cursors/ClosedHandXY.cur'), auto;

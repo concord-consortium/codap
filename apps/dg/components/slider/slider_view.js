@@ -142,8 +142,8 @@ DG.SliderView = SC.View.extend(
             DG.IconButton.create( {
               layout: { bottom: kAxisHeight, width: kWidth, height: kThumbHeight },
               iconExtent: { width: kWidth, height: kThumbHeight },
-              iconClass: 'thumb-icon',
-              classNames: 'display-styles'.w(),
+              iconClass: 'dg-thumb-icon',
+              classNames: 'dg-display-styles'.w(),
               toolTip: 'DG.SliderView.thumbView.toolTip', // "Start/stop animation"
               localize: true,
               touchPriority: true,
@@ -159,7 +159,7 @@ DG.SliderView = SC.View.extend(
           DG.IconButton.create( {
             layout: {top: kGap + 2, left: 2, width: kButtonWidth + 2, height: kButtonHeight + 2},
             iconExtent: { width: kButtonWidth, height: kButtonHeight },
-            classNames: 'display-styles'.w(),
+            classNames: 'dg-display-styles'.w(),
             target: this,
             action: 'toggleAnimation',
             toolTip: 'DG.SliderView.startButton.toolTip', // "Start/stop animation"
@@ -171,7 +171,7 @@ DG.SliderView = SC.View.extend(
         this.set('valueView',
           SC.LabelView.create(DG.MouseAndTouchView, {
             layout: { left: kButtonWidth + kGap, top: 3, bottom: kAxisHeight + 16 },
-            classNames: 'slider-label'.w(),
+            classNames: 'dg-slider-label'.w(),
             isEditable: true,
             exampleNode: null,
             inlineEditorWillBeginEditing: function( iEditor, iValue, iEditable) {
@@ -209,13 +209,13 @@ DG.SliderView = SC.View.extend(
 
         this.set('leftMarker',
             SC.View.create({
-              classNames: 'slider-marker'.w(),
+              classNames: 'dg-slider-marker'.w(),
               layout: { left: 15, bottom: 12, width: 2, height: 15 }
             }));
         this.appendChild( this.leftMarker);
         this.set('rightMarker',
             SC.View.create({
-              classNames: 'slider-marker'.w(),
+              classNames: 'dg-slider-marker'.w(),
               layout: { right: 14, bottom: 12, width: 2, height: 15 }
             }));
         this.appendChild( this.rightMarker);
@@ -362,10 +362,10 @@ DG.SliderView = SC.View.extend(
       isAnimatingDidChange: function() {
         var startButton = this.get('startButton');
         if( !this.getPath('controller.isAnimating')) {
-          startButton.set('iconClass', 'play-icon');
+          startButton.set('iconClass', 'dg-play-icon');
         }
         else {
-          startButton.set('iconClass', 'pause-icon');
+          startButton.set('iconClass', 'dg-pause-icon');
         }
       }.observes('*controller.isAnimating'),
 

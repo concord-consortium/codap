@@ -157,19 +157,19 @@ DG.appController = SC.Object.create((function () // closure
               tPrevItemView = this.getPath('previousMenuItem.content.target');
             if (tItemView) {
               tItemView.get('parentView').bringToFront(tItemView);
-              tItemView.$().addClass('component-view-staging');
+              tItemView.$().addClass('dg-component-view-staging');
               tItemView.scrollToVisible();
             }
             if (tPrevItemView && tPrevItemView !== tItemView)
-              tPrevItemView.$().removeClass('component-view-staging');
+              tPrevItemView.$().removeClass('dg-component-view-staging');
           }.observes('currentMenuItem', 'previousMenuItem'),
           willRemoveFromDocument: function () {
             var tItem = this.get('currentMenuItem'),
               tPrevItem = this.get('previousMenuItem');
             if (tItem)
-              tItem.getPath('content.target').$().removeClass('component-view-staging');
+              tItem.getPath('content.target').$().removeClass('dg-component-view-staging');
             if (tPrevItem)
-              tPrevItem.getPath('content.target').$().removeClass('component-view-staging');
+              tPrevItem.getPath('content.target').$().removeClass('dg-component-view-staging');
           }
         });
         this.caseTableMenuPane = DG.MenuPane.create({

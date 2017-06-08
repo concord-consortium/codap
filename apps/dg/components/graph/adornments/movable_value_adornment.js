@@ -197,7 +197,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
                   this.kLineSlideHCur : this.kLineSlideVCur;
     this.lineSeg = tPaper.line( 0, 0, 0, 0)
               .attr({ 'stroke-opacity': 0 })
-        .addClass('graph-adornment-movable');
+        .addClass('dg-graph-adornment-movable');
     this.coverSeg = tPaper.line( 0, 0, 0, 0)
               .attr( { 'stroke-width': 6, stroke: DG.RenderingUtilities.kSeeThrough,
                         cursor: tCur, title: "Drag the value" })
@@ -206,7 +206,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     this.cap = tPaper.rect(-20, 0, tCapSize, tCapSize)
         .attr( { cursor: tCur, opacity: 0 })
         .drag( continueTranslate, beginTranslate, endTranslate)
-        .addClass( 'graph-adornment-movable');
+        .addClass( 'dg-graph-adornment-movable');
 
     this.myElements = [ this.lineSeg, this.coverSeg, this.cap ];
     this.myElements.push( this.createBackgroundRect());

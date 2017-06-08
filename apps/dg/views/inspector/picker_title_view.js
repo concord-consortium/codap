@@ -48,13 +48,13 @@ DG.PickerTitleView = SC.View.extend(
 
       iconView: SC.ImageView.extend(
           {
-            classNames: 'inspector-picker-icon'.w(),
+            classNames: 'dg-inspector-picker-icon'.w(),
             layout: {width: 18, height: 18}
           }
       ),
 
       titleView: SC.LabelView.extend({
-        classNames: 'inspector-picker-title'.w(),
+        classNames: 'dg-inspector-picker-title'.w(),
         layout: {left: 27},
         localize: true
       }),

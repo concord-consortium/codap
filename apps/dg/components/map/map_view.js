@@ -164,7 +164,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           buttonBehavior: SC.PUSH_BEHAVIOR,
           layout: { right: 10, top: 25, width: 32, height: 32 },
           toolTip: 'DG.MapView.marqueeHint'.loc(),
-          image: 'map-marquee',
+          image: 'dg-map-marquee',
           action: 'setMarqueeMode',
           isVisible: false
         });
@@ -204,8 +204,8 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
       marqueeModeChanged: function() {
         var tGridInMarqueeMode = this.getPath('mapGridLayer.isInMarqueeMode'),
             tImage = (this.getPath('mapPointView.isInMarqueeMode') || tGridInMarqueeMode) ?
-            'map-marquee-selected' :
-            'map-marquee';
+            'dg-map-marquee-selected' :
+            'dg-map-marquee';
         this.setPath('marqueeTool.image', tImage);
         this.setPath('mapGridMarqueeView.isVisible', tGridInMarqueeMode);
       }.observes('mapPointView.isInMarqueeMode', 'mapGridLayer.isInMarqueeMode'),

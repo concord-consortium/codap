@@ -79,7 +79,7 @@
     white-space: nowrap;
 }
 
-.slick-header-column.new-attr-column-header {
+.slick-header-column.dg-new-attr-column-header {
     margin-top: -3px;
     background-image: static_url('images/ic_add_black_24dp_1x.png');
     background-position: center;
@@ -87,7 +87,7 @@
 }
 
 /* reset hover styles set elsewhere */
-.slick-header-column.new-attr-column-header:hover {
+.slick-header-column.dg-new-attr-column-header:hover {
     margin-top: -3px;
     /*background-color: #e6e6e6;*/
     background-image: static_url('images/ic_add_black_24dp_1x.png');
@@ -95,12 +95,12 @@
     background-repeat: no-repeat;
 }
 
-.new-attr-column {
+.dg-new-attr-column {
     border: none;
     background-color: white;
 }
 
-.new-attr-column.selected {
+.dg-new-attr-column.selected {
     border: none;
     background-color: white;
 }
@@ -125,17 +125,17 @@
     height: 100%;
 }
 
-.calculator label {
+.dg-calculator label {
     cursor: pointer;
 }
 
-.icon-label {
+.dg-icon-label {
     color: black;
     font-size: 11px !important;
     cursor: pointer;
 }
 
-.icon-button-blip {
+.dg-icon-button-blip {
     background-image: static_url('images/arrow-moreIconOptions.svg');
 }
 
@@ -200,7 +200,7 @@
     cursor: move;
 }
 
-.inspector-view{
+.dg-inspector-view{
     background-color: #01879E;
     border-radius: 6px;
     z-index: 1000;
@@ -210,43 +210,43 @@
     background-color: rgba(255, 255, 255, 0.8);
 }
 
-.inspector-palette [class^="moonicon-"], .inspector-palette [class*=" moonicon-"] {
+.dg-inspector-palette [class^="moonicon-"], .dg-inspector-palette [class*=" moonicon-"] {
     color: white;
 }
 
-.inspector-picker .sc-view.inspector-input {
+.dg-inspector-picker .sc-view.inspector-input {
     background-color: white;
 }
 
-.inspector-picker .sc-view{
+.dg-inspector-picker .sc-view{
     background-color: rgba(231, 231, 231, 0.70);
 }
 
-.inspector-picker-title {
+.dg-inspector-picker-title {
     border-bottom: solid #C1C5C7 1px !important;
     padding-left: 3px;
     padding-top: 6px;
 }
 
-.inspector-picker .inspector-picker-icon {
+.dg-inspector-picker .dg-inspector-picker-icon {
     background-color: #01879E;
     padding: 4px 5px 5px 5px;
 }
 
-.inspector-picker-tag {
+.dg-inspector-picker-tag {
     padding-left: 6px;
     padding-top: 5px;
 }
 
-.inspector-picker-select {
+.dg-inspector-picker-select {
 
 }
 
-.inspector-picker-color {
+.dg-inspector-picker-color {
     background-color: #0066bb;
 }
 
-.inspector-radio {
+.dg-inspector-radio {
     padding-left: 24px;
 }
 
@@ -344,7 +344,7 @@
     background: #DDDDDD;
 }
 
-.drag-label {
+.dg-drag-label {
     font-family: Montserrat-Regular !important;
     font-size: 14px !important;
     color: black;
@@ -352,7 +352,7 @@
     text-align: center;
 }
 
-.data-dot {
+.dg-data-dot {
     /*stroke: white;*/
     /*stroke-opacity: 0.6 !important;*/
     /*fill: #e6805b;*/
@@ -360,18 +360,18 @@
     pointer-events: all;
 }
 
-.data-dot:hover {
+.dg-data-dot:hover {
     stroke: #a35b3a !important;
 }
 
-.data-dot-selected {
+.dg-data-dot-selected {
     fill: #1a7a93 !important;
     stroke-width: 1 !important;
     pointer-events: all;
 }
 
 /* data dot with variable fill color */
-.data-dot-colored {
+.dg-data-dot-colored {
     /*
     opacity: 0.85 !important;
     stroke: white !important;
@@ -379,36 +379,36 @@
     pointer-events: all;
 }
 
-.data-dot-colored-selected {
+.dg-data-dot-colored-selected {
     stroke: red !important;
     stroke-width: 2 !important;
     stroke-opacity: 1 !important;
     pointer-events: all;
 }
 
-.axis-view {
+.dg-axis-view {
     font-family: Montserrat-Regular;
     background-color: #F9F9F9;
 }
 
-.axis-tick-label {
+.dg-axis-tick-label {
     font-family: Montserrat-Regular !important;
 }
 
-.axis-cell-label-y {
+.dg-axis-cell-label-y {
     cursor: static_url('cursors/TranslateY.cur') 8 8, auto;
 }
 
-.axis-cell-label-x {
+.dg-axis-cell-label-x {
     cursor: static_url('cursors/TranslateX.cur') 8 8, auto;
 }
 
-.axis-dot {
+.dg-axis-dot {
     opacity: 0.85 !important;
     cursor: pointer;
 }
 
-.axis-label {
+.dg-axis-label {
     font-family: Montserrat-Regular !important;
     /*fill: blue;*/
     cursor: pointer;
@@ -416,7 +416,7 @@
     text-decoration: underline !important;
 }
 
-.axis-label-empty-graph {
+.dg-axis-label-empty-graph {
     font-family: Montserrat-Regular !important;
     cursor: pointer;
     font-size: 12px !important;
@@ -424,53 +424,53 @@
     text-decoration: underline !important;
 }
 
-.data-strip {
+.dg-data-strip {
     opacity: 0.85 !important;
     stroke-width: 0px !important;
     fill: #315B7D;
 }
 
-.data-strip:hover {
+.dg-data-strip:hover {
     fill: red !important;
 }
 
-.data-strip:active {
+.dg-data-strip:active {
     fill: red !important;
 }
 
-.data-strip-selected {
+.dg-data-strip-selected {
     fill: red !important;
 }
 
 /* data strip with variable fill color */
-.data-strip-colored {
+.dg-data-strip-colored {
     opacity: 0.85 !important;
     stroke-width: 0px !important;
 }
 
-.data-strip-colored-selected {
+.dg-data-strip-colored-selected {
     stroke: black !important;
     stroke-width: 2 !important;
 }
 
-.data-tip {
+.dg-data-tip {
     stroke-width: 1 !important;
     stroke: yellow !important;
     fill: #FBFBB0 !important;
 }
 
-.data-tip-shadow {
+.dg-data-tip-shadow {
     stroke-width: 2 !important;
     stroke: #7A7452 !important;
     opacity: 0.7 !important;
 }
 
-.data-tip-text {
+.dg-data-tip-text {
     text-align: left !important;
     font-size: 100% !important;
 }
 
-.legend-view {
+.dg-legend-view {
     background-color: #F9F9F9;
 }
 
@@ -493,11 +493,11 @@
     cursor: pointer;
 }
 
-.number-toggle {
+.dg-number-toggle {
     background-color: #F9F9F9;
 }
 
-.choro-rect {
+.dg-choro-rect {
     cursor: pointer;
 }
 
@@ -505,183 +505,183 @@
     border: 1px white solid;
 }
 
-.component-view {
+.dg-component-view {
     /*background-color: #f0f0f0;*/
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
     border-radius:6px;
 }
 
-.component-view-selected {
+.dg-component-view-selected {
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.25);
 }
 
-.component-view-staging {
+.dg-component-view-staging {
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.40);
 }
 
-.titlebar {
+.dg-titlebar {
     background-color: #72bfca;
     border-top-right-radius:6px;
     border-top-left-radius:6px;
     color: white;
 }
 
-.titlebar-selected {
+.dg-titlebar-selected {
     background-color: #177991;
 }
 
-.titlebar:hover {
+.dg-titlebar:hover {
     text-decoration: underline;
 }
 
-.min-icon:before {
+.dg-min-icon:before {
     font-family: 'icomoon';
     content: "\7a";
 }
 
-.min-icon {
+.dg-min-icon {
     font-size: 4px;
     color: lightgrey;
     text-align: center;
 }
 
-.min-icon:hover {
+.dg-min-icon:hover {
     top: 8px !important;
     font-size: 6px;
     color: white;
 }
 
-.min-icon:active {
+.dg-min-icon:active {
     color: darkgray;
 }
 
-.close-icon:before {
+.dg-close-icon:before {
     font-family: 'icomoon';
     content: "\79";
 }
 
-.close-icon {
+.dg-close-icon {
     font-size: 12px;
     color: lightgrey;
     text-align: center;
 }
 
-.close-icon:hover {
+.dg-close-icon:hover {
     top: 2px !important;
     font-size: 16px;
     color: white;
 }
 
-.close-icon:active {
+.dg-close-icon:active {
     color: darkgray;
 }
 
-.undo-icon:before {
+.dg-undo-icon:before {
     font-family: 'icomoon';
     content: "\61";
 }
 
-.undo-icon {
+.dg-undo-icon {
     top: 2px !important;
     font-size: 16px;
     color: white;
     text-align: center;
 }
 
-.undo-icon:hover {
+.dg-undo-icon:hover {
     top: 1px !important;
     font-size: 18px;
 }
 
-.undo-icon:active {
+.dg-undo-icon:active {
     color: black;
 }
 
-.redo-icon:before {
+.dg-redo-icon:before {
     font-family: 'icomoon';
     content: "\62";
 }
 
-.redo-icon {
+.dg-redo-icon {
     top: 2px !important;
     font-size: 16px;
     color: white;
     text-align: center;
 }
 
-.redo-icon:hover {
+.dg-redo-icon:hover {
     top: 1px !important;
     font-size: 18px;
 }
 
-.redo-icon:active {
+.dg-redo-icon:active {
     color: black;
 }
 
-.play-icon:before {
+.dg-play-icon:before {
     font-family: 'icomoon';
     content: "\4A";
 }
 
-.play-icon {
+.dg-play-icon {
     font-size: 14px;
     color: #2da343;
     text-align: center;
 }
 
-.play-icon:hover {
+.dg-play-icon:hover {
     top: 2px !important;
     font-size: 16px;
     color: green;
 }
 
-.play-icon:active {
+.dg-play-icon:active {
     color: darkgreen;
 }
 
-.pause-icon:before {
+.dg-pause-icon:before {
     font-family: 'icomoon';
     content: "\59";
 }
 
-.pause-icon {
+.dg-pause-icon {
     font-size: 14px;
     color: #b55414;
     text-align: center;
 }
 
-.pause-icon:hover {
+.dg-pause-icon:hover {
     top: 2px !important;
     font-size: 16px;
     color: darkred;
 }
 
-.pause-icon:active {
+.dg-pause-icon:active {
     color: red;
 }
 
-.thumb-icon:before {
+.dg-thumb-icon:before {
     font-family: 'icomoon';
     content: "\5a";
 }
 
-.thumb-icon {
+.dg-thumb-icon {
     font-size: 40px;
     color: #999;
     text-align: center;
 }
 
-.thumb-icon:hover {
+.dg-thumb-icon:hover {
     /*top: -2px !important;*/
     /*font-size: 48px;*/
     color: #555;
 }
 
-.thumb-icon:active {
+.dg-thumb-icon:active {
     color: #555;
 }
 
-.slider-marker {
+.dg-slider-marker {
     background-color:#888;
 }
 
@@ -729,7 +729,7 @@
 .tile-icon-guide:before {
     content: "\64";
 }
-.titleview {
+.dg-titleview {
     cursor: text;
     text-align: center;
     vertical-align: middle;
@@ -741,7 +741,7 @@
     position: relative;
 }
 
-.titlebar:hover .titleview-empty {
+.dg-titlebar:hover .dg-titleview-empty {
     border-bottom-color: white;
     border-bottom-width: 2px;
     width: 30px !important;
@@ -778,7 +778,7 @@
     width: 75px
 }
 
-body.dg .sc-view.doc-background {
+body.dg .sc-view.dg-doc-background {
     background: static_url('images/bg-grid-grey.png');
 }
 
@@ -795,25 +795,26 @@ body.dg .sc-view.doc-background {
     border-bottom: 1px solid #dcdbd8;
 }
 
-.icon-buttons {
+.dg-icon-buttons {
     background-color: white;
     box-shadow: 0 0 0 1px #888888;
 }
 
-.sc-view.icon-button {
+.sc-view.dg-icon-button {
     cursor: pointer;
     text-align: center;
+    line-height: 1;
 }
 
-.sc-view.toolshelf-button:hover {
+.sc-view.dg-toolshelf-button:hover {
     box-shadow: 1px 1px 1px 0 #888888;
 }
 
-.sc-view.toolshelf-button:active {
+.sc-view.dg-toolshelf-button:active {
     box-shadow: 1px 1px 0 1px #888888;
 }
 
-.sc-view.toolshelf-button:disabled {
+.sc-view.dg-toolshelf-button:disabled {
     box-shadow: none;
 }
 
@@ -842,64 +843,64 @@ body.dg .sc-view.doc-background {
     width: 16px;
 }
 
-.map-layer {
+.dg-map-layer {
     pointer-events: none;
 }
 
-.map-marquee {
+.dg-map-marquee {
     background-image:  static_url('images/map_marquee_icon.png');
     background-size: cover;
     cursor: pointer;
 }
 
-.map-marquee-selected {
+.dg-map-marquee-selected {
     background-image:  static_url('images/map_marquee_icon_selected.png');
     background-size: cover;
     cursor: pointer;
 }
 
-.marquee-mode {
+.dg-marquee-mode {
     cursor: crosshair;
     background-color: rgba(0, 0, 0, 0.01);
     pointer-events: all;
 }
 
-.plot-view {
+.dg-plot-view {
     /*background-color: white;*/
 }
 
-.plot-view-transparent {
+.dg-plot-view-transparent {
     background-color: transparent !important;
 }
 
-.graph-view {
+.dg-graph-view {
 }
 
-.graph-drop-frame {
+.dg-graph-drop-frame {
     stroke-width: 3;
     stroke: #ffd080;
     stroke-opacity: 0.6;
 }
 
-.graph-drop-frame-fill {
+.dg-graph-drop-frame-fill {
     fill: yellow;
     fill-opacity: 0.3;
 }
 
-.graph-drop-plus-fill {
+.dg-graph-drop-plus-fill {
     fill: yellow;
     fill-opacity: 0.9;
 }
 
-.graph-drop-multi-background {
+.dg-graph-drop-multi-background {
     background-color: yellow;
 }
 
-.graph-drop-hint {
+.dg-graph-drop-hint {
     font-size: 14px !important;
 }
 
-.graph-drop-box {
+.dg-graph-drop-box {
     fill: white;
     stroke-width: 0;
 }
@@ -908,23 +909,23 @@ body.dg .sc-view.doc-background {
     background-color: #d3d3d3;
 }
 
-.graph-adornment-count tspan {
+.dg-graph-adornment-count tspan {
     font-family: 'Montserrat-Regular', sans-serif;
     font-weight: lighter;
 }
 
-.graph-adornment tspan {
+.dg-graph-adornment tspan {
     font-family: 'Montserrat-Regular', sans-serif;
     font-size: 12px;
     font-weight: lighter;
 }
 
-.graph-adornment-movable {
+.dg-graph-adornment-movable {
     stroke: steelblue;
     fill: steelblue;
 }
 
-.movable-shaded {
+.dg-movable-shaded {
     fill: steelblue;
     stroke-opacity: 0;
 }
@@ -1004,7 +1005,7 @@ body.dg .sc-view.doc-background {
 }
 
 /* used by DG.CaseTableCellEditor */
-input.editor-text {
+input.dg-editor-text {
     width: 100%;
     height: 100%;
     border: 0;
@@ -1151,7 +1152,7 @@ input.editor-text {
     border-color: #888888 !important;
 }
 
-.text-measurer {
+.dg-text-measurer {
     position: absolute;
     visibility: hidden;
     height: auto;

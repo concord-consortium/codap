@@ -34,7 +34,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
   /** @scope DG.AxisMultiTarget.prototype */
   {
 
-    classNameBindings: ['dragIsInside:graph-drop-multi-background'],
+    classNameBindings: ['dragIsInside:dg-graph-drop-multi-background'],
 
     dragIsInside: false,
 
@@ -77,13 +77,13 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     }.property(),
 
     dragEntered:function ( iDragObject, iEvent ) {
-      this.plusArea.addClass( 'graph-drop-plus-fill' );
+      this.plusArea.addClass( 'dg-graph-drop-plus-fill' );
       this.set('dragIsInside', true);
       this.showDropHint();
     },
 
     dragExited:function ( iDragObject, iEvent ) {
-      this.plusArea.removeClass( 'graph-drop-plus-fill' );
+      this.plusArea.removeClass( 'dg-graph-drop-plus-fill' );
       this.set('dragIsInside', false);
       this.hideDropHint();
     },

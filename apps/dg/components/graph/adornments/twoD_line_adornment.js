@@ -186,7 +186,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
     // Put the text below the hit segments in z-order so user can still hit the line
     this.equation = tPaper.text( 0, 0, '')
         .attr({ 'stroke-opacity': 0, fill: tLineColor })
-        .addClass('graph-adornment');
+        .addClass('dg-graph-adornment');
     this.equation.animatable = true;
 
     // Tune up the line rendering a bit

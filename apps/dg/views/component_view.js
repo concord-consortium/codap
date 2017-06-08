@@ -222,8 +222,8 @@ DG.ComponentView = SC.View.extend(
           kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR})
           ;
       return {
-        classNames: ['component-view'],
-        classNameBindings: ['isSelected:component-view-selected'],
+        classNames: ['dg-component-view'],
+        classNameBindings: ['isSelected:dg-component-view-selected'],
         isResizable: YES,
         isClosable: YES,
         showTitleBar: YES,
@@ -286,15 +286,15 @@ DG.ComponentView = SC.View.extend(
           childViews: 'titlebar coverSheet'.w(),
           titlebar: DG.DragBorderView.design({
             layout: {height: kTitleBarHeight},
-            classNames: ['titlebar'],
+            classNames: ['dg-titlebar'],
             isSelected: false,
             userEdit: false,
-            classNameBindings: ['isSelected:titlebar-selected'],
+            classNameBindings: ['isSelected:dg-titlebar-selected'],
             childViews: ('statusView versionView ' +
             (DG.componentMode === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
-              classNames: ['titleview'],
-              classNameBindings: ['valueIsEmpty:titleview-empty'],
+              classNames: ['dg-titleview'],
+              classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
               isEditable: YES,
               exampleNode: null,
               _value: null,

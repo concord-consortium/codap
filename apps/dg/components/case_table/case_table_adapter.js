@@ -367,8 +367,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           // Slick.Grid properties
           id: kNewAttrColumnID,
           width: kNewAttrColumnWidth,
-          cssClass: 'new-attr-column',
-          headerCssClass: 'new-attr-column-header',
+          cssClass: 'dg-new-attr-column',
+          headerCssClass: 'dg-new-attr-column-header',
           name: "",
           toolTip: 'DG.TableController.newAttributeTooltip'.loc(),
           focusable: false
@@ -680,7 +680,7 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
 
     var kLeftArrowKeyCode = 37,
         kRightArrowKeyCode = 39;
-    $input = SC.$("<INPUT type=text class='editor-text' />")
+    $input = SC.$("<INPUT type=text class='dg-editor-text' />")
       .appendTo(args.container)
       .bind("keydown.nav", function (e) {
         if (e.keyCode === kLeftArrowKeyCode || e.keyCode === kRightArrowKeyCode) {
