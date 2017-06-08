@@ -534,7 +534,7 @@
     text-decoration: underline;
 }
 
-.min-icon:before {
+.dg-min-icon:before {
     font-family: 'icomoon';
     content: "\7a";
 }
