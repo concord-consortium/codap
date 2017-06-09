@@ -102,7 +102,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 label: 'DG.Inspector.color',
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'map-fill-color'.w(),
+                  classNames: 'dg-map-fill-color'.w(),
                   initialColor: tinycolor(this.getPath('mapModel.areaColor'))
                       .setAlpha(this.getPath('mapModel.areaTransparency')),
                   setColorFunc: setColor,
@@ -142,7 +142,7 @@ DG.MapController = DG.DataDisplayController.extend(
                     .setAlpha(this.getPath('dataDisplayModel.transparency'));
             tControlView.appendChild( DG.PickerColorControl.create({
                   layout: {width: 60},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tLowEndColor,
                   setColorFunc: setLowColor,
                   //closedFunc: setColorFinalized,
@@ -151,7 +151,7 @@ DG.MapController = DG.DataDisplayController.extend(
             );
             tControlView.appendChild( DG.PickerColorControl.create({
                   layout: {width: 60},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tHighEndColor,
                   setColorFunc: setHighColor,
                   //closedFunc: setColorFinalized,
@@ -198,7 +198,7 @@ DG.MapController = DG.DataDisplayController.extend(
                 label: iCategory,
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tInitialColor,
                   colorKey: iCategory,
                   setColorFunc: setCategoryColor,
