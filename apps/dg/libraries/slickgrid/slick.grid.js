@@ -1531,15 +1531,21 @@ if (typeof Slick === "undefined") {
       // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
       var value = "",
           tooltip = "",
+          tooltipValue = "",
           tooltipAttr = "";
       if (d) {
         value = getDataItemValueForColumn(d, m);
         value = getFormatter(row, m)(row, cell, value, m, d);
-        value = value ? String(value).replace(/&/g, '&amp;')
-                                     .replace(/</g, '&lt;')
-                                     .replace(/>/g, '&gt;')
-                      : "";
-        tooltip = value && m.showCellTooltips ? value.replace(/"/g, '&quot;') : "";
+
+        // don't show tooltips for DG-formatted HTML values
+        tooltipValue = /<span.*class='dg-.*'.*<\/span>/.test(value) ? "" : value;
+        // HTML-escape tooltips for other values
+        tooltip = tooltipValue && m.showCellTooltips
+                    ? value.replace(/&/g, '&amp;')
+                           .replace(/</g, '&lt;')
+                           .replace(/>/g, '&gt;')
+                           .replace(/"/g, '&quot;')
+                    : "";
         tooltipAttr = tooltip ? " title=\"" + tooltip + "\"" : "";
       }
 
