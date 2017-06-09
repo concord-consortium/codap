@@ -30,7 +30,7 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
 
   createFormulaView: function(iOptions) {
     var formulaContext = this,
-        formulaLabel = iOptions.formulaPrompt,
+        formulaLabel = iOptions.formulaPrompt.loc(),
         formulaView = DG.FormulaTextEditView.create({
                         layout: { height: 20 },
                         borderStyle: SC.BORDER_BEZEL,
