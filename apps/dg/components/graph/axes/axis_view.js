@@ -240,13 +240,13 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           var tClassName;
           switch( this.get('orientation')) {
             case 'horizontal':
-              tClassName = 'h-axis';
+              tClassName = 'dg-h-axis';
               break;
             case 'vertical':
-              tClassName = 'v-axis';
+              tClassName = 'dg-v-axis';
               break;
             case 'vertical2':
-              tClassName = 'v2-axis';
+              tClassName = 'dg-v2-axis';
               break;
           }
           this.get('classNames').push( tClassName);

@@ -431,7 +431,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                 label: 'DG.Inspector.backgroundColor',
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tInitialColor,
                   setColorFunc: setColor,
                   closedFunc: setColorFinalized,
