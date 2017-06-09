@@ -332,7 +332,7 @@ DG.DotChartModel = DG.PlotModel.extend(
           value: 'DG.Inspector.graphRow'.loc(),
           layoutDirection: SC.LAYOUT_VERTICAL,
           layout: { height: 65 },
-          classNames: 'inspector-radio'.w(),
+          classNames: 'dg-inspector-radio'.w(),
           valueDidChange: function () {
             this_.setPath('plottedCount.percentKind', mapValueToPercentKind( this.value));
           }.observes('value'),

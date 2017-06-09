@@ -43,10 +43,10 @@ DG.IconButton = SC.View.extend(
       showBlip: false,  // If true, will show indicator that click will bring up palette
       childViews: 'iconView labelView'.w(),
         iconView: DG.FontIconView.design({
-          classNames: 'icon-button'
+          classNames: 'dg-icon-button'
         }),
         labelView: SC.LabelView.design({
-          classNames: ['icon-label'],
+          classNames: ['dg-icon-label'],
           textAlign: SC.ALIGN_CENTER,
           valueBinding: '.parentView.title',
           localizeBinding: '.parentView.localize'
@@ -70,7 +70,7 @@ DG.IconButton = SC.View.extend(
           this.adjust('width', this.iconExtent.width + 3);
           this.adjust('height', this.iconExtent.height + 3);
           this.appendChild(DG.ImageView.create({
-            classNames: 'icon-button-blip'.w(),
+            classNames: 'dg-icon-button-blip'.w(),
             layout: { left: 0, bottom: 0, width: 3, height: 3 }
           }));
         }

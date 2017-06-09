@@ -107,7 +107,7 @@ DG.mainPage = SC.Page.design((function() {
       childViews: 'iconButtons rightButtons'.w(),
 
       iconButtons: SC.View.design(SC.FlowedLayout, {
-        classNames: 'icon-buttons'.w(),
+        classNames: 'dg-icon-buttons'.w(),
         layout: { width: 0, height: kToolbarHeight - 1 },
         align: SC.ALIGN_LEFT,
         canWrap: false,
@@ -122,7 +122,7 @@ DG.mainPage = SC.Page.design((function() {
               tButton.flowSpacing = { left: 10, top: kIconTopPadding, right: 5 };
             }
             tButton.classNames = tButton.classNames || '';
-            tButton.classNames = (tButton.classNames + ' toolshelf-button').w();
+            tButton.classNames = (tButton.classNames + ' dg-toolshelf-button').w();
             this[ iButtonName] = DG.IconButton.create( tButton);
             this[ iButtonName].set('layout', { width: kButtonWidth, height: 40 });
             this.appendChild( this[ iButtonName ]);
@@ -142,7 +142,7 @@ DG.mainPage = SC.Page.design((function() {
           // create right buttons, right-justified
           DG.rightButtons.forEach( function( iButtonName ) {
             var tButton = DG.RightButtonData[iButtonName];
-            tButton.classNames.push('toolshelf-button');
+            tButton.classNames.push('dg-toolshelf-button');
             this[ iButtonName] = DG.IconButton.create( tButton);
             this[ iButtonName].set('layout', { width: kButtonWidth/*, height: 40*/ });
             this.appendChild( this[ iButtonName ]);
@@ -168,7 +168,7 @@ DG.mainPage = SC.Page.design((function() {
       layout: { top: kInfobarHeight + kToolbarHeight },
       horizontalAlign: SC.ALIGN_LEFT,
       verticalAlign: SC.ALIGN_TOP,
-      classNames: 'doc-background'.w(),
+      classNames: 'dg-doc-background'.w(),
       alwaysBounceVertical: false,
       contentView: DG.ContainerView.design( {
       })

@@ -27,7 +27,7 @@ DG.GraphView = SC.View.extend(
     {
       displayProperties: ['model.dataConfiguration.attributeAssignment'],
 
-      classNames: 'graph-view'.w(),
+      classNames: 'dg-graph-view'.w(),
 
       /**
        The model on which this view is based.

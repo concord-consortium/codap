@@ -23,9 +23,9 @@
 */
 DG.GraphDropTarget =
 {
-  kDropFrameClass: 'graph-drop-frame',
-  kDropHintClass: 'graph-drop-hint',
-  kDropBoxClass: 'graph-drop-box',
+  kDropFrameClass: 'dg-graph-drop-frame',
+  kDropHintClass: 'dg-graph-drop-hint',
+  kDropBoxClass: 'dg-graph-drop-box',
 
   /**
    * Return the key to a localizable string to be displayed when the target has no current attribute
@@ -50,12 +50,12 @@ DG.GraphDropTarget =
   },
 
   dragEntered: function( iDragObject, iEvent) {
-    this.borderFrame.addClass('graph-drop-frame-fill');
+    this.borderFrame.addClass('dg-graph-drop-frame-fill');
     this.showDropHint();
   },
 
   dragExited: function( iDragObject, iEvent) {
-    this.borderFrame.removeClass('graph-drop-frame-fill');
+    this.borderFrame.removeClass('dg-graph-drop-frame-fill');
     this.hideDropHint();
   },
 

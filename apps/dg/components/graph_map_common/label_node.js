@@ -64,13 +64,13 @@ DG.LabelNode = SC.Object.extend(
       numColorsChanged: function() {
         var tTextColor = 'blue',
             tPointColor = 'lightblue';
-        this._textElement.addClass('axis-label');
-        this._textElement.removeClass('axis-label-empty-graph');
+        this._textElement.addClass('dg-axis-label');
+        this._textElement.removeClass('dg-axis-label-empty-graph');
         switch( this.numColors) {
           case 0:
             tTextColor = DG.PlotUtilities.kEmptyPromptColor;
-            this._textElement.removeClass('axis-label');
-            this._textElement.addClass('axis-label-empty-graph');
+            this._textElement.removeClass('dg-axis-label');
+            this._textElement.addClass('dg-axis-label-empty-graph');
             break;
           case 1:
             tTextColor = 'blue';
@@ -89,7 +89,7 @@ DG.LabelNode = SC.Object.extend(
 
         if((this.numColors > 1) && !this._circleElement) {
           this._circleElement = this.paper.circle(0, 0, this.kCircleRadius)
-              .addClass('axis-dot');
+              .addClass('dg-axis-dot');
         }
         else if((this.numColors <= 1) && this._circleElement) {
           this._circleElement.remove();

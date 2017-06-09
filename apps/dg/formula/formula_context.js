@@ -1,6 +1,6 @@
 // ==========================================================================
 //                          DG.FormulaContext
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -45,7 +45,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
   }
 
   return {
-  
+
   /**
     During compilation, a stack of function contexts indicating the functions
     being processed, e.g. in the expression mean(count(round(x))), when x is
@@ -143,7 +143,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
    */
   invalidateDependent: function(ioResult, iDependent, iDependency, iCases, iForceAggregate) {
   },
-  
+
   /**
     Returns true if the specified function name refers to an aggregate function.
     Derived classes may override as appropriate.
@@ -218,9 +218,9 @@ DG.FormulaContext = SC.Object.extend( (function() {
                                 id: iName,
                                 name: iName
                             }});
-    return '(function(){throw new DG.VarReferenceError(' + iName + ');})()';
+    return '(function(){throw new DG.VarReferenceError(\'' + iName + '\');})()';
   },
-  
+
   /**
     Direct evaluation of the variable without an intervening compilation.
     For the base FormulaContext, this means binding to global constants such as 'pi' and 'e'.
@@ -246,7 +246,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
     }
     throw new DG.VarReferenceError( iName);
   },
-  
+
   /**
     Returns true if this context's formula contains aggregate functions, false otherwise.
     @property {Boolean}
@@ -285,7 +285,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
                                 });
       }
     }.bind(this);
-    
+
     // Functions provided by built-in '_fns' property of context
     var _fn = this._fns && this._fns[iName];
     if (_fn) {
@@ -302,13 +302,13 @@ DG.FormulaContext = SC.Object.extend( (function() {
       return 'c.fns.' + iName + '(' + iArgs + ')';
     }
 
-    return '(function(){throw new DG.FuncReferenceError(' + iName + ');})()';
+    return '(function(){throw new DG.FuncReferenceError(\'' + iName + '\');})()';
   },
 
   /**
-    Evaluates a function reference directly without compilation. For the base 
-    FormulaContext, this means binding to global functions such as ln(), log(), 
-    round(), etc. as well as the standard JavaScript Math functions (sin(), cos(), 
+    Evaluates a function reference directly without compilation. For the base
+    FormulaContext, this means binding to global functions such as ln(), log(),
+    round(), etc. as well as the standard JavaScript Math functions (sin(), cos(),
     atan(), etc.).
     @param    {String}    iName -- The name of the function to be called.
     @param    {Array}     iArgs -- the arguments to the function
@@ -317,7 +317,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
                                       names that are not recognized.
    */
   evaluateFunction: function( iName, iArgs) {
-  
+
     // Functions provided by built-in '_fns' property of context
     var _fn = DG.functionRegistry.getFunction(iName);
     if (_fn) {
@@ -336,7 +336,7 @@ DG.FormulaContext = SC.Object.extend( (function() {
 
     throw new DG.FuncReferenceError( iName);
   }
-  
+
   }; // end of closure return statement
 
 }()));

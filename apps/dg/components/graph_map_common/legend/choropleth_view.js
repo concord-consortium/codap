@@ -91,7 +91,7 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                               title: '%@ – %@'.fmt( Math.round(iStartValue * 100) / 100,
                                   Math.round(tStopValue * 100) / 100)
                             })
-                            .addClass('choro-rect')
+                            .addClass('dg-choro-rect')
                             .click( function( iEvent) {
                               this.selectCasesBetween( iStartValue, tStopValue, iEvent.shiftKey);
                             }.bind( this));

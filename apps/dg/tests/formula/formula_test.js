@@ -38,13 +38,13 @@ test("Basic tests with default compile and evaluation contexts", function() {
       iFormula.evaluate( iEvalContext);
     }
     jsTime = +new Date() - start;
-    
+
     start = +new Date();
     for( i = 0; i < count; ++i) {
       iFormula.evaluateDirect( iEvalContext);
     }
     treeTime = +new Date() - start;
-    
+
     //@if(debug)
     start = +new Date();
     for( i = 0; i < count; ++i) {
@@ -52,10 +52,10 @@ test("Basic tests with default compile and evaluation contexts", function() {
     }
     rpnTime = +new Date() - start;
     //@endif
-    
+
     DG.log("Formula (cached):  %@, JS: %@, Tree: %@, RPN: %@",
-            iSource, jsTime/10, treeTime/10, rpnTime/10); 
-    
+            iSource, jsTime/10, treeTime/10, rpnTime/10);
+
     count /= 10;
     start = +new Date();
     for( i = 0; i < count; ++i) {
@@ -63,14 +63,14 @@ test("Basic tests with default compile and evaluation contexts", function() {
       iFormula.evaluate( iEvalContext);
     }
     jsTime = +new Date() - start;
-    
+
     start = +new Date();
     for( i = 0; i < count; ++i) {
       iFormula.invalidateContext();
       iFormula.evaluateDirect( iEvalContext);
     }
     treeTime = +new Date() - start;
-    
+
     //@if(debug)
     start = +new Date();
     for( i = 0; i < count; ++i) {
@@ -79,18 +79,18 @@ test("Basic tests with default compile and evaluation contexts", function() {
     }
     rpnTime = +new Date() - start;
     //@endif
-    
+
     DG.log("Formula (!cached): %@, JS: %@, Tree: %@, RPN: %@",
-            iSource, jsTime, treeTime, rpnTime); 
+            iSource, jsTime, treeTime, rpnTime);
   }
   */
-  
+
   // Returns true if the expression is volatile, i.e. repeated
   // evaluation doesn't give the same result.
   function isVolatile( iSource) {
     return iSource.indexOf('random') >= 0;
   }
-  
+
   // Returns true if the two values specified are essentially equivalent.
   // Uses a proportion test for real numbers so rounding errors aren't
   // interpreted as incorrect results.
@@ -107,7 +107,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
       // Identical values are clearly equivalent
       if( iValue1 === iValue2) return true;
       // Use proportional difference to compare real numbers
-      var diffProportion = Math.abs( iValue1 - iValue2) / 
+      var diffProportion = Math.abs( iValue1 - iValue2) /
                           Math.max( Math.abs( iValue1), Math.abs( iValue2));
       return diffProportion < 1e-10;
     }
@@ -119,7 +119,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
     var formula = DG.Formula.create({ source: iSource });
 
     if( iContext) formula.set('context', iContext);
-    
+
     //performanceTest( iSource, formula, iContext, iEvalContext);
 
     var compiledResult = formula.evaluate( iEvalContext),
@@ -130,15 +130,15 @@ test("Basic tests with default compile and evaluation contexts", function() {
     }
     return returnedResult;
   }
-  
+
   function floatEquals( iResult, iExpected, iDescription, iTolerance) {
     var diff = Math.abs( iResult - iExpected),
         tolerance = iTolerance || 1e-10;
     return ok( diff < tolerance, "%@:  Result: %@, Expected: %@".fmt( iDescription, iResult, iExpected));
   }
-  
+
   //console.profile("formula unit test profile");
-  
+
   equals( buildAndEval("1"), 1, "numeric literal");
   equals( buildAndEval("-1"), -1, "numeric literal with unary minus");
   equals( buildAndEval("'Hello'"), "Hello", "string literal -- single quotes");
@@ -181,6 +181,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("2^3^2"), 512, "three-term power expression");
 
   ok( buildAndEval("1=1"), "equality test");
+  ok( buildAndEval("'1'=1"), "equality test");
   ok( buildAndEval("!(1=2)"), "equality test");
   ok( buildAndEval("1!=2"), "not equal test");
   ok( buildAndEval("!(1!=1)"), "not equal test");
@@ -208,7 +209,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   floatEquals( buildAndEval("!((1=2)and(2=2)) ? atan2(pi,2) : cos(pi/2)"),
                 Math.atan2(Math.PI,2), "a more complicated formula");
   equals( buildAndEval("1-(1?2:3)"), -1, "conditional precedence test");
-  
+
   var formulaContext = DG.FormulaContext.create({
                             fns: {
                               zero: function() { return 0; },
@@ -227,7 +228,7 @@ test("Basic tests with default compile and evaluation contexts", function() {
   equals( buildAndEval("zero()", formulaContext), 0, "compile context function");
   equals( buildAndEval("add(1,2)", formulaContext), 3, "compile context function with arguments");
   equals( buildAndEval("a", formulaContext), 0, "compile context variable");
-  
+
   //console.profileEnd();
   //ok(false, "End-of-tests sentinel: All other tests processed to completion!");
 });

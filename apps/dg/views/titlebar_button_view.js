@@ -32,7 +32,7 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
     return {
-        classNames: 'close-icon'.w(),
+        classNames: 'dg-close-icon'.w(),
         isVisible: false, // to start with
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
@@ -143,7 +143,7 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
     return {
-        classNames: 'min-icon'.w(),
+        classNames: 'dg-min-icon'.w(),
         isVisible: false, // to start with
         doIt: function() {
           var tComponentView = this.parentView.viewToDrag();
@@ -207,7 +207,7 @@ DG.TitleBarUndoButton = DG.TitleBarUndoRedoButton.extend(
         }.property('nextUndoCommand'),
         nextUndoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextUndoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canUndo'),
-        classNames: 'undo-icon'.w(),
+        classNames: 'dg-undo-icon'.w(),
         doIt: function() {
           DG.UndoHistory.undo();
         }
@@ -232,7 +232,7 @@ DG.TitleBarRedoButton = DG.TitleBarUndoRedoButton.extend(
         }.property('nextRedoCommand'),
         nextRedoCommandBinding: SC.Binding.oneWay('DG.UndoHistory.nextRedoCommand'),
         isEnabledBinding: SC.Binding.oneWay('DG.UndoHistory.canRedo'),
-        classNames: 'redo-icon'.w(),
+        classNames: 'dg-redo-icon'.w(),
         doIt: function() {
           DG.UndoHistory.redo();
         }

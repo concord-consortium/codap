@@ -35,7 +35,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
           'otherYAttributeDescription.attribute',
           'otherAxisView.desiredExtent'],
-        classNames: 'axis-view'.w(),
+        classNames: 'dg-axis-view'.w(),
 
         /**
          The model on which this view is based.
@@ -251,7 +251,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
           }
           this.get('classNames').push( tClassName);
           this._hiddenDragView = SC.LabelView.create({
-            classNames: 'drag-label'.w(),
+            classNames: 'dg-drag-label'.w(),
             layout: {width: 100, height: 20, top: -50, left: 0},
             value: ''
           });

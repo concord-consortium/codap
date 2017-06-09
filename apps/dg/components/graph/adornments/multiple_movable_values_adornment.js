@@ -101,7 +101,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         while (tShadingElements.length < tNumRegions) {
           var tNewRegion = this.get('paper').rect(0, 0, 0, 0)
               .attr({'opacity': 0})
-              .addClass('movable-shaded');
+              .addClass('dg-movable-shaded');
           tShadingLayer.push(tNewRegion);
           tMyElements.push(tNewRegion);
           tShadingElements.push(tNewRegion);
@@ -119,7 +119,7 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
         while (tCountElements.length < tNumCounts) {
           var tNewText = this.get('paper').text(0, 0, '')
               .attr({'opacity': 0, 'text-anchor': tAnchor})
-              .addClass('graph-adornment');
+              .addClass('dg-graph-adornment');
           tCountLayer.push(tNewText);
           tMyElements.push(tNewText);
           tCountElements.push(tNewText);

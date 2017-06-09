@@ -228,7 +228,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'display-styles'.w(),
+            classNames: 'dg-display-styles'.w(),
             iconClass: 'moonicon-icon-styles',
             showBlip: true,
             target: this,
@@ -270,7 +270,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           this.valuesPane = DG.InspectorPickerPane.create(
               {
                 buttonIconClass: 'moonicon-icon-values',  // So we can identify closure through click on button icon
-                classNames: 'inspector-picker'.w(),
+                classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 200, height: 260},
                 contentView: SC.View.extend(SC.FlowedLayout,
                     {
@@ -326,7 +326,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           this.stylesPane = DG.InspectorPickerPane.create(
               {
                 buttonIconClass: 'moonicon-icon-styles',  // So we can identify closure through click on button icon
-                classNames: 'inspector-picker'.w(),
+                classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 250, height: 150},
                 contentView: SC.View.extend(SC.FlowedLayout,
                     {

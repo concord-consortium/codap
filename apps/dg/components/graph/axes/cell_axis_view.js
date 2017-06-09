@@ -163,7 +163,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tBaseline = this_.get('axisLineCoordinate'),
           tOrientation = this.get('orientation'),
           tRotation = (tOrientation === 'horizontal') ? 0 : -90, // default to parallel to axis
-          tCursorClass = (tOrientation === 'horizontal') ? 'axis-cell-label-x' : 'axis-cell-label-y',
+          tCursorClass = (tOrientation === 'horizontal') ? 'dg-axis-cell-label-x' : 'dg-axis-cell-label-y',
           tMaxHeight = DG.RenderingUtilities.kDefaultFontHeight,  // So there will be a default extent
           tCentering = this.get('centering'),
           tTickOffset = tCentering ? 0 : this.get('fullCellWidth') / 2,
@@ -216,7 +216,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
         var tTextElement;
         if( !tLabelSpecs[iCellNum]) {
           tTextElement = this_._paper.text(0, 0, iCellName)
-              .addClass('axis-tick-label')
+              .addClass('dg-axis-tick-label')
               .addClass(tCursorClass)
               .drag(doDrag, beginDrag, endDrag);
         }

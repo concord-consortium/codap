@@ -246,7 +246,7 @@ DG.SliderController = DG.ComponentController.extend(
             };
 
         DG.InspectorPickerPane.create({
-          classNames: 'inspector-picker'.w(),
+          classNames: 'dg-inspector-picker'.w(),
           layout: {width: 275, height: 100},
           contentView: SC.View.extend(SC.FlowedLayout,
               {
@@ -274,7 +274,7 @@ DG.SliderController = DG.ComponentController.extend(
                   label: SC.LabelView.create({
                     layout: {width: 132},
                     value: 'DG.Slider.multiples'.loc(),
-                    classNames: 'inspector-picker-tag'.w(),
+                    classNames: 'dg-inspector-picker-tag'.w(),
                   }),
                   input: SC.TextFieldView.create({
                     layout: {width: 80},
@@ -307,7 +307,7 @@ DG.SliderController = DG.ComponentController.extend(
                   label: SC.LabelView.create({
                     layout: {width: 190},
                     value: 'DG.Slider.maxPerSecond'.loc(),
-                    classNames: 'inspector-picker-tag'.w(),
+                    classNames: 'dg-inspector-picker-tag'.w(),
                   }),
                   input: SC.TextFieldView.create({
                     layout: {width: 60},
@@ -332,7 +332,7 @@ DG.SliderController = DG.ComponentController.extend(
                   layout: {height: 24},
                   label: 'DG.Slider.direction',
                   controlView: SC.SelectView.extend({
-                    classNames: 'inspector-picker-select slider-direction'.w(),
+                    classNames: 'dg-inspector-picker-select dg-slider-direction'.w(),
                     layout: {right: 10, width: 130},
                     localize: true,
                     value: this_.getPath('sliderModel.animationDirection'),
@@ -360,7 +360,7 @@ DG.SliderController = DG.ComponentController.extend(
                   layout: {height: 24},
                   label: 'DG.Slider.mode',
                   controlView: SC.SelectView.extend({
-                    classNames: 'inspector-picker-select slider-mode'.w(),
+                    classNames: 'dg-inspector-picker-select dg-slider-mode'.w(),
                     layout: {right: 10, width: 130},
                     localize: true,
                     value: this_.getPath('sliderModel.animationMode'),

@@ -39,7 +39,7 @@ DG.PickerControlView = SC.View.extend(
       childViews: 'labelView controlView'.w(),
 
       labelView: SC.LabelView.extend({
-        classNames: 'inspector-picker-tag'.w(),
+        classNames: 'dg-inspector-picker-tag'.w(),
         localize: true
       }),
 

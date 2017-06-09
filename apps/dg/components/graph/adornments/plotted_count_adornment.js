@@ -128,7 +128,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
         tLongest = findLongestValueString(),
         tTempElement = tPaper.text(-100, 0, tLongest)
             .attr( {'font-size': tFontSize })
-            .addClass('graph-adornment-count'),
+            .addClass('dg-graph-adornment-count'),
         tExtent = DG.RenderingUtilities.getExtentForTextElement( tTempElement, 11),
         tYOffset = tExtent.height,
 
@@ -159,7 +159,7 @@ DG.PlottedCountAdornment = DG.PlotAdornment.extend( DG.ValueAxisViewMixin,
       if (tIsNewElement) {   // create text element
         tTextElem = tPaper.text(tAttrs.x, tAttrs.y, tAttrs.text);
         tTextElem.attr({'text-anchor': 'end', fill: this.textColor});
-        tTextElem.addClass('graph-adornment-count');
+        tTextElem.addClass('dg-graph-adornment-count');
         this.myElements.push(tTextElem);
         tLayer.push(tTextElem);
       } else {                // update text element

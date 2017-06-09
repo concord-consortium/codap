@@ -23,6 +23,7 @@
 
 sc_require('components/case_table/scroll_animation_utility');
 sc_require('components/case_table/case_table_row_selection_model');
+sc_require('views/image_view');
 sc_require('views/mouse_and_touch_view');
 
 /** @class
@@ -57,7 +58,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
   return {  // return from closure
 
-    childViews: 'titleView tableView _hiddenDragView'.w(),
+    classNames: 'dg-case-table-view',
+
+    childViews: 'titleView tableView newAttrButtonView _hiddenDragView'.w(),
 
     dataContext: function () {
       return this.getPath('gridAdapter.dataContext');
@@ -256,16 +259,84 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     }),
 
+    newAttrButtonView: DG.ImageView.extend({
+      classNames: ['dg-floating-plus'],
+      layout: { top: -1, right: 0, width: 36, height: 36 },
+      // https://www.materialui.co/icon/add-circle
+      value: static_url('images/add_circle_grey_72x72.png'),
+      tooltip: 'DG.TableController.newAttributeTooltip'.loc(),
+      didAppendToDocument: function() {
+        sc_super();
+
+        var tooltip = this.get('tooltip');
+        if (tooltip)
+          this.$().attr('title', tooltip);
+      },
+      mouseDown: function(evt) {
+        var tableController = getController(this),
+            collection = this.getPath('parentView.gridAdapter.collection');
+        // only respond to left-button clicks; see SC.Event for constant
+        if (tableController && collection && (evt.which === 1))
+          tableController.newAttribute({ collection: collection });
+      }
+    }),
+
     parentTable: null,
 
     childTable: null,
 
     _hiddenDragView: SC.LabelView.design({
-      classNames: 'drag-label'.w(),
+      classNames: 'dg-drag-label'.w(),
       layout: { width: 100, height: 20, top: -50, left: 0 },
       value: ''
 //    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)
     }),
+
+  ancestorViewDidResize: function() {
+    this.invokeLater(function() {
+      var visibleFrameBounds = this.get('visibleFrameBounds');
+      if (visibleFrameBounds) {
+        var newAttrButtonView = this.get('newAttrButtonView'),
+            frameBounds = this.get('frameBounds'),
+            frameRight = frameBounds.x + frameBounds.width,
+            visibleFrameRight = visibleFrameBounds.x + visibleFrameBounds.width,
+            offset = frameRight - visibleFrameRight;
+        newAttrButtonView.adjust('right', offset);
+      }
+    }.bind(this));
+  },
+
+  frameBounds: function() {
+    var pv = this.get('parentView'),
+        frame = this.get('frame');
+    return pv ? pv.convertFrameToView(frame, null) : frame;
+  }.property(),
+
+  visibleFrameBounds: function() {
+    var view = this,
+        pv = this.get('parentView'),
+        frame = this.get('frame'),
+        visibleBounds = pv ? pv.convertFrameToView(frame, null) : frame,
+        bounds, right, bottom;
+    while (pv) {
+      view = pv;
+      pv = view.get('parentView');
+      frame = view.get('frame');
+      bounds = pv ? pv.convertFrameToView(frame, null) : frame;
+      right = Math.min(visibleBounds.x + visibleBounds.width,
+                        bounds.x + bounds.width);
+      bottom = Math.min(visibleBounds.y + visibleBounds.height,
+                        bounds.y + bounds.height);
+      visibleBounds.x = Math.max(visibleBounds.x, bounds.x);
+      visibleBounds.y = Math.max(visibleBounds.y, bounds.y);
+      visibleBounds.width = right - visibleBounds.x;
+      visibleBounds.height = bottom - visibleBounds.y;
+      if ((visibleBounds.width <= 0) || (visibleBounds.height <= 0)) {
+        return null;
+      }
+    }
+    return visibleBounds;
+  }.property(),
 
   layout: { left: 0, right: 0, top: 0, bottom: 0 },
 
@@ -923,13 +994,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   render: function( iContext, iFirstTime) {
     sc_super();
 
-    // SlickGrid requires that we pass it a reference to its container element,
-    // which in this case is the <div> created by this view. But that <div>
-    // element doesn't exist the first time through render() -- it's created
-    // as a result of the first time through -- so the first time we get here
-    // we simply call displayDidChange() to make sure we get a second call to
-    // render(), by which time the <div> has been created and we can pass it
-    // to SlickGrid.
     if( this._slickGrid) {
       var gridAdapter = this.get('gridAdapter');
       if( this._rowDataDidChange) {
@@ -942,18 +1006,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this._rowDataDidChange = false;
       this._renderRequired = false;
     }
-
-    // SlickGrid adds to the set of CSS classes. We need to capture these
-    // and add them to the context or else the context will overwrite
-    // the CSS classes and eliminate the ones added by SlickGrid.
-    // This is not a particularly elegant solution in that it clobbers
-    // the complete set of classes every time we render. It's not
-    // obvious how to do better, however, in that the view's 'classNames'
-    // are copied to the context before render() is called, but the
-    // SlickGrid isn't created until render(), so setting 'classNames'
-    // wouldn't have the desired effect until the next time we render().
-    //if( this._slickGrid)
-    //  iContext.setClass( this.$().attr("class"), YES);
   },
 
   didAppendToDocument: function() {
@@ -1132,18 +1184,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    */
   handleHeaderClick: function(iEvent, iArgs) {
     DG.globalEditorLock.commitCurrentEdit();
-
-    // click in the new attribute column header brings up new attribute dialog
-    var newAttrColumnID = this.getPath('gridAdapter.newAttrColumnID');
-    if (iArgs.column.id === newAttrColumnID) {
-      var responder = this.getPath('pane.rootResponder');
-      if (responder) {
-        SC.run(function() {
-          responder.sendAction('newAttributeAction', getController(this), this, null,
-                                { collection: iArgs.column.collection });
-        }.bind(this));
-      }
-    }
   },
 
   /**
@@ -1263,22 +1303,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         computeMiddleEllipsis($nameElement);
       });
     },
-  /**
-    Called when a table cell has been edited by the user.
-    @param  {Slick.Event}   iEvent
-    @param  {} iArgs -- information on the changed cell
-   */
-  /* NOTE: we don't use this event, because the standard
-     editor messes with our row 'item' data.  Instead
-     our table adapter uses a custom cell editor that
-     does the right applyChange() call. --CDM 2012-11-27
-  handleCellEdited: function( iEvent, iArgs ) {
-    var rowDataThatWasChanged = iArgs.item, // has Rank, id, parentID, theCase
-        cellIndex = iArgs.cell, // index into table columns
-        rowIndex = iArgs.row; // index into data rows
-    this.get('gridAdapter').handleCellEdited( iEvent, iArgs );
-  },
-  */
 
   /**
     Refreshes the column headers to accommodate new attributes.
