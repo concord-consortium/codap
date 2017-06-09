@@ -1,6 +1,7 @@
 // ==========================================================================
-//      DG.VarReferenceError, DG.FuncReferenceError, DG.FuncArgsError
-//  
+//              DG.VarReferenceError, DG.FuncReferenceError
+//                DG.HierReferenceError,DG.FuncArgsError
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -24,7 +25,7 @@ DG.UNICODE = {
   MINUS_SIGN: '\u2212',
   MULTIPLICATION_SIGN: '\u00D7',
   DIVISION_SIGN: '\u00F7',
-  
+
   EQUALS_SIGN: '=',
   NOT_EQUAL_TO: '\u2260',
   LESS_THAN_OR_EQUAL_TO: '\u2264',
@@ -62,6 +63,20 @@ DG.UNICODE = {
 // Error class definition follows pattern from
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Error
 
+/** @class DG.TypeError
+
+  Error class for type errors.
+
+  @extends Error
+*/
+DG.TypeError = function(iOperator) {
+  this.name = 'DG.Formula.TypeError.name'.loc();
+  this.message = 'DG.Formula.TypeError.message'.loc(iOperator);
+  this.description = 'DG.Formula.TypeError.description'.loc(iOperator);
+};
+DG.TypeError.prototype = new Error();
+DG.TypeError.prototype.constructor = DG.TypeError;
+
 /** @class DG.VarReferenceError
 
   Error class for variable reference errors.
@@ -69,13 +84,28 @@ DG.UNICODE = {
   @extends Error
 */
 DG.VarReferenceError = function( iName) {
-  this.name = 'VarReferenceError';
+  this.name = 'DG.Formula.VarReferenceError.name'.loc();
   this.message = 'DG.Formula.VarReferenceError.message'.loc( iName);
   this.description = 'DG.Formula.VarReferenceError.description'.loc( iName);
   this.reference = iName;
 };
 DG.VarReferenceError.prototype = new Error();
 DG.VarReferenceError.prototype.constructor = DG.VarReferenceError;
+
+/** @class DG.HierReferenceError
+
+  Error class for hierarchical variable reference errors.
+
+  @extends Error
+*/
+DG.HierReferenceError = function( iName) {
+  this.name = 'DG.Formula.HierReferenceError.name'.loc();
+  this.message = 'DG.Formula.HierReferenceError.message'.loc( iName);
+  this.description = 'DG.Formula.HierReferenceError.description'.loc( iName);
+  this.reference = iName;
+};
+DG.HierReferenceError.prototype = new Error();
+DG.HierReferenceError.prototype.constructor = DG.HierReferenceError;
 
 /** @class DG.FuncReferenceError
 
@@ -84,7 +114,7 @@ DG.VarReferenceError.prototype.constructor = DG.VarReferenceError;
   @extends Error
 */
 DG.FuncReferenceError = function( iName) {
-  this.name = 'FuncReferenceError';
+  this.name = 'DG.Formula.FuncReferenceError.name'.loc();
   this.message = 'DG.Formula.FuncReferenceError.message'.loc( iName);
   this.description = 'DG.Formula.FuncReferenceError.description'.loc( iName);
   this.reference = iName;
@@ -102,7 +132,7 @@ DG.FuncArgsError = function( iName, iRequiredArgs) {
   var minArgs = iRequiredArgs && iRequiredArgs.min,
       maxArgs = iRequiredArgs && iRequiredArgs.max;
 
-  this.name = 'FuncArgsError';
+  this.name = 'DG.Formula.FuncArgsError.name'.loc();
   if( (minArgs === 1) && (minArgs === maxArgs)) {
     this.message = 'DG.Formula.FuncArgsErrorSingle.message'.loc( iName, minArgs);
     this.description = 'DG.Formula.FuncArgsErrorSingle.description'.loc( iName, minArgs);

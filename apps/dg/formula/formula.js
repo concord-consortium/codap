@@ -297,6 +297,10 @@ DG.Formula.add = function(iOperand1, iOperand2) {
   if (isNumeric1 && isNumeric2)
     return isDate1 !== isDate2 ? DG.createDate((num1 + num2)) : num1 + num2;
 
+  // errors propagate
+  if (iOperand1 instanceof Error) return iOperand1;
+  if (iOperand2 instanceof Error) return iOperand2;
+
   // NaNs propagate
   if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
     return NaN;
@@ -318,12 +322,11 @@ DG.Formula.add = function(iOperand1, iOperand2) {
 };
 
 /**
-  Addition function which handles types by our rules rather than JavaScript's.
+  Subtraction function which handles types by our rules rather than JavaScript's.
   Numbers and values interpretable as numeric (e.g. booleans, some strings)
-  are added numerically. NaNs propagate. Null values propagate or concatenate
-  depending on context. Otherwise, concatenate as strings.
+  are subtracted numerically. Nulls and NaNs propagate.
  */
-DG.Formula.sub = function(iOperand1, iOperand2) {
+DG.Formula.subtract = function(iOperand1, iOperand2) {
   var empty1 = SC.empty(iOperand1),
       empty2 = SC.empty(iOperand2),
       isDate1 = DG.isDate(iOperand1),
@@ -333,13 +336,16 @@ DG.Formula.sub = function(iOperand1, iOperand2) {
       // booleans and strings (if possible) converted, not null values
       isNumeric1 = !empty1 && (num1 === num1),
       isNumeric2 = !empty2 && (num2 === num2);
-  // dates are divided by 1000 and added numerically
-  // values interpretable as numeric are added numerically
+  // values interpretable as numeric are subtracted numerically
   if (isNumeric1 && isNumeric2) {
     // date minus number results in date
     // all other combinations result in a number
     return (isDate1 && !isDate2) ? DG.createDate((num1 - num2)) : num1 - num2;
   }
+
+  // errors propagate
+  if (iOperand1 instanceof Error) return iOperand1;
+  if (iOperand2 instanceof Error) return iOperand2;
 
   // NaNs propagate
   if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
@@ -351,8 +357,57 @@ DG.Formula.sub = function(iOperand1, iOperand2) {
   // null values dominate numeric values
   if ((empty1 && isNumeric2) || (isNumeric1 && empty2))
     return '';
-  // no more special cases - let JavaScript do what it will
-  return iOperand1 - iOperand2;
+  // no more special cases - throw an exception
+  throw new DG.TypeError('\u2212');
+};
+
+/**
+  Binary operator function which handles types by our rules rather than JavaScript's.
+  Numbers and values interpretable as numeric (e.g. booleans, some strings)
+  are handled numerically. Errors, nulls and NaNs propagate.
+ */
+DG.Formula.binaryOperator = function(iOperator, iOperand1, iOperand2) {
+  var empty1 = SC.empty(iOperand1),
+      empty2 = SC.empty(iOperand2),
+      isDate1 = DG.isDate(iOperand1),
+      isDate2 = DG.isDate(iOperand2),
+      num1 = Number(iOperand1),
+      num2 = Number(iOperand2),
+      // booleans and strings (if possible) converted, not null values
+      isNumeric1 = !empty1 && (num1 === num1),
+      isNumeric2 = !empty2 && (num2 === num2);
+
+  // dates can't be handled by this operator
+  if (isDate1 || isDate2)
+    throw new DG.TypeError(iOperator);
+
+  // values interpretable as numeric are handled numerically
+  if (isNumeric1 && isNumeric2) {
+    switch(iOperator) {
+      case '*': return num1 * num2;
+      case '/': return num1 / num2;
+      case '%': return num1 % num2;
+      case '^': return Math.pow(num1, num2);
+      default: throw new SyntaxError('DG.Formula.SyntaxErrorInvalidOperator').loc(iOperator);
+    }
+  }
+
+  // errors propagate
+  if (iOperand1 instanceof Error) return iOperand1;
+  if (iOperand2 instanceof Error) return iOperand2;
+
+  // NaNs propagate
+  if ((iOperand1 !== iOperand1) || (iOperand2 !== iOperand2))
+    return NaN;
+
+  // null values propagate
+  if (empty1 && empty2) return '';
+  // null values dominate numeric values
+  if ((empty1 && isNumeric2) || (isNumeric1 && empty2))
+    return '';
+
+  // no more special cases - throw an exception
+  throw new DG.TypeError(iOperator);
 };
 
 /**
@@ -387,7 +442,7 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
 
   function visitVariable( iNode) {
     // Pass variable references to the context
-    return iContext.compileVariable( iNode.name);
+    return iContext.compileVariable( iNode.name, iContext.getAggregateFunctionIndices());
   }
 
   function visitFunctionCall( iNode) {
@@ -424,13 +479,13 @@ DG.Formula.compileToJavaScript = function( iParseTree, iContext) {
     if( iNode.operator === '+')
       return 'DG.Formula.add(' + leftTerm + ',' + rightTerm + ')';
 
-    // Convert x-y to DG.Formula.sub(x,y)
+    // Convert x-y to DG.Formula.subtract(x,y)
     if( iNode.operator === '-')
-      return 'DG.Formula.sub(' + leftTerm + ',' + rightTerm + ')';
+      return 'DG.Formula.subtract(' + leftTerm + ',' + rightTerm + ')';
 
-    // Convert x^y to Math.pow(x,y)
-    if( iNode.operator === '^')
-      return 'Math.pow(' + leftTerm + ',' + rightTerm + ')';
+    // Convert standard binary operators to calls to DG.Formula.binaryOperator()
+    if (['*', '/', '%', '^'].indexOf(iNode.operator) >= 0)
+      return 'DG.Formula.binaryOperator("' + iNode.operator + '",' + leftTerm + ',' + rightTerm + ')';
 
     // Standard binary operators
     return leftTerm + iNode.operator + rightTerm;
@@ -510,12 +565,12 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
         right = visit( iNode.right);
 
     switch( iNode.operator) {
-    case '^':   return Math.pow( left, right);
-    case '*':   return left * right;
-    case '/':   return left / right;
-    case '%':   return left % right;
+    case '^':   return DG.Formula.binaryOperator('^', left, right);
+    case '*':   return DG.Formula.binaryOperator('*', left, right);
+    case '/':   return DG.Formula.binaryOperator('/', left, right);
+    case '%':   return DG.Formula.binaryOperator('%', left, right);
     case '+':   return DG.Formula.add(left, right);
-    case '-':   return DG.Formula.sub(left, right);
+    case '-':   return DG.Formula.subtract(left, right);
     case '<':   return left < right;
     case '>':   return left > right;
     case '<=':  return left <= right;
@@ -526,8 +581,8 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     case '||':  return left || right;
     }
 
-    // Error: Unrecognized operator! Throw an exception?
-    return undefined;
+    // Error: Unrecognized operator! Throw an exception
+    throw new SyntaxError('DG.Formula.SyntaxErrorInvalidOperator'.loc(iNode.operator));
   }
 
   function visitConditionalExpression( iNode) {

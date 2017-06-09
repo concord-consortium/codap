@@ -306,6 +306,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
+            showCellTooltips: true,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
