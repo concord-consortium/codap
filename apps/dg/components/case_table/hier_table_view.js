@@ -656,7 +656,7 @@ DG.InertSplitDividerView = SC.View.extend(SC.SplitChild,
   edge of the subview.
 */
 SC.BaseTheme.inertSplitDividerRenderDelegate = SC.RenderDelegate.create({
-  className: 'split-divider',
+  className: 'dg-split-divider',
   dividerSize: 1,
 
   // We would like the divider size to be exactly one pixel,

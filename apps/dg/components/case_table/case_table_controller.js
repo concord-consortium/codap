@@ -1108,7 +1108,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               }
             ],
             tMenu = DG.MenuPane.create({
-              classNames: 'delete-popup'.w(),
+              classNames: 'dg-delete-popup'.w(),
               layout: {width: 200, height: 150},
               items: tItems
             });
