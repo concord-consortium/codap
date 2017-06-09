@@ -194,7 +194,7 @@ DG.SliderController = DG.ComponentController.extend(
         var tButtons = sc_super();
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
-              classNames: 'slider-values'.w(),
+              classNames: 'dg-slider-values'.w(),
               iconClass: 'moonicon-icon-values',
               showBlip: true,
               target: this,
@@ -279,7 +279,7 @@ DG.SliderController = DG.ComponentController.extend(
                   input: SC.TextFieldView.create({
                     layout: {width: 80},
                     type: 'number',
-                    classNames: 'inspector-input'.w(),
+                    classNames: 'dg-inspector-input'.w(),
                     applyImmediately: false,
                     value: this.getPath('sliderModel.restrictToMultiplesOf'),
                     valueChanged: function () {
@@ -312,7 +312,7 @@ DG.SliderController = DG.ComponentController.extend(
                   input: SC.TextFieldView.create({
                     layout: {width: 60},
                     type: 'number',
-                    classNames: 'inspector-input'.w(),
+                    classNames: 'dg-inspector-input'.w(),
                     applyImmediately: false,
                     value: this.getPath('sliderModel.maxPerSecond'),
                     valueChanged: function () {
