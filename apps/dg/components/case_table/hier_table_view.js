@@ -1,8 +1,8 @@
 // ==========================================================================
 //                        DG.HierTableView
-// 
+//
 //  A wrapper view for multiple DG.CaseTableViews.
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
@@ -54,7 +54,9 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     autohidesHorizontalScroller: YES, // default YES
     horizontalAlign: SC.ALIGN_LEFT, // default SC.ALIGN_CENTER
 
-      /**
+    classNames: 'dg-hier-table-view',
+
+    /**
      The data context for which the table is displaying data.
      @property   {DG.DataContext}
      */
@@ -139,6 +141,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        */
       parentViewDidResize: function (frame) {
         frame.width = this.get('frameSize') || frame.width;
+
+        var childTableViews = this.get('childTableViews');
+        childTableViews.forEach(function(tableView) {
+          tableView.ancestorViewDidResize();
+        });
+
         // sc_super generates a call that will pass 'arguments'
         return sc_super(); // jshint ignore:line
       },
@@ -413,7 +421,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     var childTableViews = this.get('childTableViews');
     childTableViews.forEach( function( iTableView) { iTableView.refresh(); });
   },
-  
+
   mouseDown: function(ev) {
     // if not in a current edit, background clicks should complete any edit
     if (ev.target.tagName !== 'INPUT') {
@@ -556,7 +564,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                                 iTableView.updateColumnInfo();
                             });
   },
-  
+
   /**
     Refreshes the row data for each subtable view.
    */
@@ -578,7 +586,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
                                 iTableView.updateRowCount( forceRedraw);
                             });
   },
-  
+
   /**
     Updates the set of selected rows for each subtable view.
    */
@@ -613,7 +621,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     });
   }
 }; // end return from closure
-  
+
 }()));
 
 /**
@@ -630,7 +638,7 @@ DG.InertSplitDividerView = SC.View.extend(SC.SplitChild,
 {
   /** @scope SC.InertSplitDividerView.prototype */
   classNames: ['sc-split-divider-view'],
-  
+
   // set to prevent SC.SplitView from automatically creating dividers
   // to sit between this divider and another view.
   isSplitDivider: YES,
@@ -638,9 +646,9 @@ DG.InertSplitDividerView = SC.View.extend(SC.SplitChild,
   // NOTE: 'sc-fixed-size' is only hard-coded because SC.SplitView requires
   // this file, and SC.FIXED_SIZE is defined inside SC.SplitView.
   autoResizeStyle: 'sc-fixed-size',
-  
+
   movesSibling: SC.MOVES_CHILD,
-  
+
   size: SC.propertyFromRenderDelegate('dividerSize', 1),
 
   renderDelegateName: 'inertSplitDividerRenderDelegate'

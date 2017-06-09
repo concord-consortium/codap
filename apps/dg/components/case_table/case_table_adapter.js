@@ -32,9 +32,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
       // Cell layout constants
-  var kNewAttrColumnID = '__NEW__',
-      kNewAttrColumnWidth = 30,
-      kDefaultColumnWidth = 60,
+  var kDefaultColumnWidth = 60,
       kDefaultRowHeight = 18,
       kMaxStringLength = 256,
 
@@ -97,8 +95,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       };
 
   return {  // return from closure
-
-  newAttrColumnID: kNewAttrColumnID,
 
   rowHeight: kDefaultRowHeight,
 
@@ -269,9 +265,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Build a map of the existing column definitions so we can reuse them.
       // This preserves any user settings like column widths, etc.
       this.gridColumns.forEach( function( iColumn) {
-                                  // don't reuse new column
-                                  if (iColumn.id !== kNewAttrColumnID)
-                                    existColumnDefs[ iColumn.id] = iColumn;
+                                  existColumnDefs[iColumn.id] = iColumn;
                                 });
     }
 
@@ -306,6 +300,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
+            showCellTooltips: true,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
@@ -357,32 +352,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       }
     }
 
-    function updateNewAttributeColumnDefinition() {
-      var existColumn = existColumnDefs[kNewAttrColumnID];
-      if (!existColumn) {
-        columnDefs.push({
-          context: context,
-          collection: collection,
-          collectionID: collection.get('id').toString(),
-          // Slick.Grid properties
-          id: kNewAttrColumnID,
-          width: kNewAttrColumnWidth,
-          cssClass: 'dg-new-attr-column',
-          headerCssClass: 'dg-new-attr-column-header',
-          name: "",
-          toolTip: 'DG.TableController.newAttributeTooltip'.loc(),
-          focusable: false
-        });
-      }
-    }
-
     // Process the attributes in the collection
     collection.forEachAttribute( processAttribute.bind(this));
-
-    // optionally add new attribute column -- only on child collection
-    var children = collection && collection.getPath('collection.children');
-    if (!children || !children.get('length'))
-      updateNewAttributeColumnDefinition();
 
     this.gridColumns = columnDefs;
 

@@ -149,15 +149,20 @@ DG.DataUtilities.isEqualIgnoreCase = function( iDataValue1, iDataValue2 ) {
  * @returns {String}
  */
 DG.DataUtilities.toString = function (iValue) {
-    var valType = typeof iValue;
+    var valType = typeof iValue,
+        value = iValue;
     if (DG.isDate(iValue)) {
       // treat dates as strings
-      iValue = DG.formatDate(iValue);
+      value = DG.formatDate(iValue);
+      valType = "string";
+    }
+    else if (iValue instanceof Error) {
+      value = iValue.name + " " + iValue.message;
       valType = "string";
     }
     switch( valType) {
       case "string":
-        return iValue;
+        return value;
       case "number":
       case "boolean":
         return String( iValue);
