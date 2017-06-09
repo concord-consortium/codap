@@ -130,7 +130,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32, left: 0, height: 25},
-            classNames: 'display-rescale'.w(),
+            classNames: 'dg-display-rescale'.w(),
             iconClass: 'moonicon-icon-scaleData',
             iconExtent: {width: 30, height: 25},
             target: this,
@@ -151,7 +151,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           var showHideShowPopup = function () {
             var tMenu = DG.MenuPane.create({
-                  classNames: 'display-hideshow-popup'.w(),
+                  classNames: 'dg-display-hideshow-popup'.w(),
                   layout: {width: 200, height: 150}
                 }),
                 tMenuItems = this.get('dataDisplayModel').createHideShowSelectionMenuItems();
@@ -161,7 +161,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           var tHideShowButton = DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'display-hideshow'.w(),
+            classNames: 'dg-display-hideshow'.w(),
             iconClass: 'moonicon-icon-hideShow',
             showBlip: true,
             target: this,
@@ -174,7 +174,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 /*
           var showDeletePopup = function () {
             var tMenu = DG.MenuPane.create({
-                  classNames: 'display-delete-popup'.w(),
+                  classNames: 'dg-display-delete-popup'.w(),
                   layout: {width: 200, height: 150}
                 }),
                 tModel = this.get('dataDisplayModel'),
@@ -205,7 +205,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'display-trash'.w(),
+            classNames: 'dg-display-trash'.w(),
             iconClass: 'moonicon-icon-trash',
             showBlip: true,
             target: this,
@@ -217,7 +217,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
-            classNames: 'display-values'.w(),
+            classNames: 'dg-display-values'.w(),
             iconClass: 'moonicon-icon-values',
             showBlip: true,
             target: this,
@@ -241,7 +241,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             tResult.push(DG.IconButton.create({
               layout: {width: 32},
               iconExtent: {width: 30, height: 25},
-              classNames: 'display-camera'.w(),
+              classNames: 'dg-display-camera'.w(),
               iconClass: 'moonicon-icon-tileScreenshot',
               target: this,
               action: 'makePngImage',
@@ -485,7 +485,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   label: 'DG.Inspector.pointSize',
                   controlView: SC.SliderView.create({
                     layout: {width: 120},
-                    classNames: 'graph-pointSize-slider'.w(),
+                    classNames: 'dg-graph-pointSize-slider'.w(),
                     controlSize: SC.SMALL_CONTROL_SIZE,
                     value: this.getPath('dataDisplayModel.pointSizeMultiplier'),
                     minimum: 0, maximum: 3, step: 0,
@@ -523,7 +523,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   label: 'DG.Inspector.color',
                   controlView: DG.PickerColorControl.create({
                     layout: {width: 120},
-                    classNames: 'graph-point-color'.w(),
+                    classNames: 'dg-graph-point-color'.w(),
                     initialColor: tInitialColor,
                     setColorFunc: setColor,
                     closedFunc: setColorFinalized,
@@ -555,7 +555,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                     .setAlpha(this.getPath('dataDisplayModel.transparency'));
             tControlView.appendChild( DG.PickerColorControl.create({
                   layout: {width: 60},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tLowEndColor,
                   setColorFunc: setLowColor,
                   closedFunc: setColorFinalized,
@@ -564,7 +564,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             );
             tControlView.appendChild( DG.PickerColorControl.create({
                   layout: {width: 60},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tHighEndColor,
                   setColorFunc: setHighColor,
                   closedFunc: setColorFinalized,
@@ -585,7 +585,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 label: 'DG.Inspector.stroke',
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'graph-stroke-color'.w(),
+                  classNames: 'dg-graph-stroke-color'.w(),
                   initialColor: tinycolor(this.getPath('dataDisplayModel.strokeColor'))
                       .setAlpha(this.getPath('dataDisplayModel.strokeTransparency')),
                   setColorFunc: setStroke,
@@ -622,7 +622,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                 label: iCategory,
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tInitialColor,
                   colorKey: iCategory,
                   setColorFunc: setCategoryColor,

@@ -305,7 +305,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           {
             title: 'DG.Inspector.mapGrid',
             value: this_.getPath('gridModel.visible'),
-            classNames: 'map-grid-check'.w(),
+            classNames: 'dg-map-grid-check'.w(),
             valueDidChange: function () {
               this_.toggleGrid();
             }.observes('value')
@@ -313,7 +313,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           {
             title: 'DG.Inspector.mapPoints',
             value: this_.get('pointsShouldBeVisible'),
-            classNames: 'map-points-check'.w(),
+            classNames: 'dg-map-points-check'.w(),
             valueDidChange: function () {
               this_.togglePoints();
             }.observes('value')
@@ -321,7 +321,7 @@ DG.MapModel = DG.DataDisplayModel.extend(
           {
             title: 'DG.Inspector.mapLines',
             value: this_.get('linesShouldBeVisible'),
-            classNames: 'map-lines-check'.w(),
+            classNames: 'dg-map-lines-check'.w(),
             valueDidChange: function () {
               this_.toggleLines();
             }.observes('value')

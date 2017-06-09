@@ -119,11 +119,11 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
 
         var tItems = [
           SC.Object.create( { label: 'Oceans',
-            value: 'Oceans'}),
+            value: 'Oceans', id: 'dg-map-oceans-background-button'}),
           SC.Object.create( { label: 'Topo',
-            value: 'Topographic'} ),
+            value: 'Topographic', id: 'dg-map-topographic-background-button'} ),
           SC.Object.create( { label: 'Streets',
-            value: 'Streets'} )
+            value: 'Streets', id: 'dg-map-streets-background-button'} )
         ];
 
         this.backgroundControl = SC.SegmentedView.create({
@@ -133,6 +133,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           value: [this.getPath('model.baseMapLayerName')],
           itemTitleKey: 'label',
           itemValueKey: 'value',
+          itemLayerIdKey: 'id',
           action: 'changeBaseMap',
           target: this
         });
@@ -142,6 +143,7 @@ DG.MapView = SC.View.extend( DG.GraphDropTarget,
           controlSize: SC.SMALL_CONTROL_SIZE,
           layout: { width: 40, height: 16, top: 33, right: 58 },
           toolTip: 'DG.MapView.gridControlHint'.loc(),
+          classNames:   ['dg-map-grid-slider'],
           minimum: 0.1,
           maximum: 2.0,
           step: 0,

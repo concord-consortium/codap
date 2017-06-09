@@ -443,7 +443,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             layout: {height: 25 },
             title: 'DG.Inspector.graphTransparency',
             value: this.getPath('graphModel.isTransparent'),
-            classNames: 'graph-transparent-check'.w(),
+            classNames: 'dg-graph-transparent-check'.w(),
             localize: true,
             valueDidChange: function () {
               var turningTransparent = !this.getPath('graphModel.isTransparent'),

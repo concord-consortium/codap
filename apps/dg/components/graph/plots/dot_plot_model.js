@@ -431,7 +431,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedMean',
             value: this_.isAdornmentVisible('plottedMean'),
-            classNames: 'graph-plottedMean-check'.w(),
+            classNames: 'dg-graph-plottedMean-check'.w(),
             valueDidChange: function () {
               this_.togglePlottedMean();
             }.observes('value')
@@ -439,7 +439,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedMedian',
             value: this_.isAdornmentVisible('plottedMedian'),
-            classNames: 'graph-plottedMedian-check'.w(),
+            classNames: 'dg-graph-plottedMedian-check'.w(),
             valueDidChange: function () {
               this_.togglePlottedMedian();
             }.observes('value')
@@ -447,7 +447,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedStDev',
             value: this_.isAdornmentVisible('plottedStDev'),
-            classNames: 'graph-plottedStDev-check'.w(),
+            classNames: 'dg-graph-plottedStDev-check'.w(),
             valueDidChange: function () {
               this_.togglePlottedStDev();
             }.observes('value')
@@ -455,7 +455,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedBoxPlot',
             value: this_.isAdornmentVisible('plottedBoxPlot'),
-            classNames: 'graph-plottedBoxPlot-check'.w(),
+            classNames: 'dg-graph-plottedBoxPlot-check'.w(),
             valueDidChange: function () {
               this_.togglePlottedBoxPlot();
             }.observes('value')
@@ -463,7 +463,7 @@ DG.DotPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedValue',
             value: this_.isAdornmentVisible('plottedValue'),
-            classNames: 'graph-plottedValue-check'.w(),
+            classNames: 'dg-graph-plottedValue-check'.w(),
             valueDidChange: function () {
               this_.togglePlotValue();
             }.observes('value')

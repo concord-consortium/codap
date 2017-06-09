@@ -359,7 +359,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphConnectingLine',
             value: this_.isAdornmentVisible('connectingLine'),
-            classNames: 'graph-connectingLine-check'.w(),
+            classNames: 'dg-graph-connectingLine-check'.w(),
             valueDidChange: function () {
               this_.toggleConnectingLine();
             }.observes('value')
@@ -367,7 +367,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphMovableLine',
             value: this_.get('isMovableLineVisible'),
-            classNames: 'graph-movableLine-check'.w(),
+            classNames: 'dg-graph-movableLine-check'.w(),
             valueDidChange: function () {
               this_.toggleMovableLine();
             }.observes('value')
@@ -375,14 +375,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphLSRL',
             value: this_.get('isLSRLVisible'),
-            classNames: 'graph-lsrl-check'.w(),
+            classNames: 'dg-graph-lsrl-check'.w(),
             valueDidChange: function () {
               this_.toggleLSRLLine();
             }.observes('value')
           },
           {
             title: 'DG.Inspector.graphInterceptLocked',
-            classNames: 'graph-interceptLocked-check'.w(),
+            classNames: 'dg-graph-interceptLocked-check'.w(),
             _changeInProgress: true,
             valueDidChange: function () {
               if( !this._changeInProgress)
@@ -413,7 +413,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedFunction',
             value: this_.isAdornmentVisible('plottedFunction'),
-            classNames: 'graph-plottedFunction-check'.w(),
+            classNames: 'dg-graph-plottedFunction-check'.w(),
             valueDidChange: function () {
               this_.togglePlotFunction();
             }.observes('value')
@@ -421,7 +421,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphPlottedValue',
             value: this_.isAdornmentVisible('plottedValue'),
-            classNames: 'graph-plottedValue-check'.w(),
+            classNames: 'dg-graph-plottedValue-check'.w(),
             valueDidChange: function () {
               this_.togglePlotValue();
             }.observes('value')
@@ -429,7 +429,7 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
           {
             title: 'DG.Inspector.graphSquares',
             value: this_.get('areSquaresVisible'),
-            classNames: 'graph-squares-check'.w(),
+            classNames: 'dg-graph-squares-check'.w(),
             lineVisibilityChanged: function() {
               var tLineIsVisible = this_.get('isMovableLineVisible') || this_.get('isLSRLVisible');
               this.set('isEnabled', tLineIsVisible);
