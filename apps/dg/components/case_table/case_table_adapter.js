@@ -69,7 +69,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         }
         else if( DG.isColorSpecString(cellValue))
           return colorFormatter(rowIndex, colIndex, cellValue, colInfo, rowItem);
-        return cellValue.toString();
+
+        // standard values are HTML-escaped
+        return cellValue.toString()
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
       },
 
       qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
