@@ -1,6 +1,6 @@
 // ==========================================================================
 //                          Basic Functions
-//  
+//
 //  Author:   Kirk Swenson
 //
 //  Copyright (c) 2016 by The Concord Consortium, Inc. All rights reserved.
@@ -116,7 +116,7 @@ DG.functionRegistry.registerFunctions((function() {
     'if': {
       minArgs: 2, maxArgs: 3, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(condition, trueValue, falseValue) {
-        return condition ? trueValue : falseValue || '';
+        return condition ? trueValue : falseValue;
       }
     },
 
