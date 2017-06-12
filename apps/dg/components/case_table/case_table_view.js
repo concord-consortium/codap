@@ -318,7 +318,8 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         frame = this.get('frame'),
         visibleBounds = pv ? pv.convertFrameToView(frame, null) : frame,
         bounds, right, bottom;
-    while (pv) {
+    // find boundary of the hierarchical table view
+    while (pv && !(pv instanceof DG.HierTableView)) {
       view = pv;
       pv = view.get('parentView');
       frame = view.get('frame');
