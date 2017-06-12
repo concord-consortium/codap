@@ -97,6 +97,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
 
         return tSpan;
+      },
+
+      tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
+        // don't show tooltips for DG-formatted HTML values
+        var tooltipValue = /<span.*class='dg-.*'.*<\/span>/.test(formattedValue) ? "" : formattedValue;
+        // HTML-escape tooltips for other values
+        return tooltipValue
+                ? formattedValue.replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                : "";
       };
 
   return {  // return from closure
@@ -305,9 +317,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
-            showCellTooltips: true,
             toolTip: getToolTipString( iAttribute),
             formatter: isQual ? qualBarFormatter : cellFormatter,
+            tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             hasDependentInteractive: function () {
               return this.context.get('hasGameInteractive');
