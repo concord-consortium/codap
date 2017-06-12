@@ -676,22 +676,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues) {
-          // returns a parent key for the appropriate parent, if any.
+          // returns a collection for the appropriate parent name, if any.
           function mapParent (context, parentName) {
             var parentKey;
             var collections;
             var collection;
 
-            if (!SC.none(parentName)) {
-              collection = context.getCollectionByName(parentName);
-              parentKey = collection? collection.get('id'): parentName;
-            } else {
+            if (SC.none(parentName)) {
               collections = context.get('collections');
               if (collections && collections.length > 0) {
                 parentKey = collections[collections.length - 1].get('id');
               }
+            } else if (typeof parentName === 'number') {
+              parentKey = parentName;
+            } else if (parentName === '_root_') {
+              parentKey = null;
+            } else {
+              collection = context.getCollectionByName(parentName);
+              parentKey = collection ? collection.get('id') : null;
             }
-            return parentKey;
+            return (!SC.none(parentKey))? context.getCollectionByID(parentKey).collection: null;
           }
 
           // returns a success indicator and ids.

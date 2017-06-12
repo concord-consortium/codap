@@ -727,12 +727,17 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
 }())) ;
 
 DG.Collection.createCollection = function( iProperties) {
+  if (!(iProperties && iProperties.context)) {
+    return;
+  }
+
+  var tContextRecord = iProperties.context;
+  var tParent = SC.none(iProperties.parent)? null :  DG.store.resolve(iProperties.parent);
+  var tRoot = DG.ObjectMap.values(tContextRecord.collections).find(function (collection) {
+    return SC.none(collection.parent);
+  });
   var tCollection;
   var childCollection = null;
-
-  if( SC.none( iProperties)) {
-    iProperties = {};
-  }
 
   if( SC.none( iProperties.type)) {
     iProperties.type = 'DG.Collection';
@@ -742,9 +747,7 @@ DG.Collection.createCollection = function( iProperties) {
     childCollection = iProperties.children[0];
   }
 
-  if (iProperties.parent) {
-    iProperties.parent = DG.store.resolve(iProperties.parent);
-  }
+  iProperties.parent = tParent;
 
   tCollection = DG.Collection.create(iProperties);
 
@@ -756,16 +759,18 @@ DG.Collection.createCollection = function( iProperties) {
     }
     tCollection.children[0] = childCollection;
     childCollection.set('parent', tCollection);
-
+  } else if (tParent) {
+    if (tParent.children[0]) {
+      tParent.children[0].set('parent', tCollection);
+      tCollection.children[0] = tParent.children[0];
+    }
+    tParent.children[0] = tCollection;
+  } else if (tRoot) {
+    tCollection.children[0] = tRoot;
+    tRoot.set('parent', tCollection);
   }
 
-  if (iProperties.parent) {
-    DG.store.resolve(iProperties.parent).children[0] = tCollection;
-  }
-
-  if (iProperties.context) {
-    iProperties.context.addCollection( tCollection);
-  }
+  tContextRecord.addCollection( tCollection);
 
   if (!SC.none(iProperties.areParentChildLinksConfigured)) {
     tCollection.set('areParentChildLinksConfigured',
