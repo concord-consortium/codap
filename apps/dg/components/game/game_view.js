@@ -53,8 +53,24 @@ DG.GameView = DG.WebView.extend(
       webView: SC.WebView.extend({
         classNames: ['dg-web-view-frame'],
 
+        // append language string to url as a query parameter
         value: function () {
-          return this.getPath('parentView._url');
+          function parseUrl( url ) {
+            var a = document.createElement('a');
+            a.href = url;
+            return a;
+          }
+          var url = this.getPath('parentView._url');
+          var parsedUrl = parseUrl(url);
+          var qp = parseUrl(url).search;
+          var lang = SC.Locale.currentLanguage;
+          if (!qp || qp.length === 0) {
+            qp = '?lang=' + lang;
+          } else {
+            qp += '&lang=' + lang;
+          }
+          parsedUrl.search = qp;
+          return parsedUrl.href;
         }.property(),
 
         controllerBinding: '*parentView.controller',
