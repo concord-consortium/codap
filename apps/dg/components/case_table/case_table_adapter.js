@@ -32,7 +32,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
       // Cell layout constants
-  var kDefaultColumnWidth = 60,
+  var kIndexColumnID = '__INDEX__',
+      kDefaultColumnWidth = 60,
+      kIndexColumnWidth = 40,
       kDefaultRowHeight = 18,
       kMaxStringLength = 256,
 
@@ -62,7 +64,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         if( SC.none( cellValue))
           cellValue = "";
         else if( DG.isNumeric(cellValue)) {
-          var attrPrecision = colInfo.attribute.get('precision'),
+          var attrPrecision = colInfo.attribute && colInfo.attribute.get('precision'),
               roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
               multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
           cellValue = Math.round( multiplier * cellValue) / multiplier;
@@ -291,6 +293,22 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       ioColumnInfo.editor = DG.CaseTableCellEditor;
     }
 
+    function addIndexColumn() {
+      var indexColumnName = 'DG.CaseTable.indexColumnName'.loc(),
+          columnInfo = {
+            context: context,
+            id: kIndexColumnID,
+            name: indexColumnName,
+            field: indexColumnName,
+            toolTip: 'DG.CaseTable.indexColumnTooltip'.loc(),
+            focusable: false,
+            cssClass: 'dg-index-column',
+            formatter: cellFormatter,
+            width: kIndexColumnWidth
+          };
+      columnDefs.push(columnInfo);
+    }
+
     // Build the columnInfo for a single attribute
     function processAttribute( iAttribute) {
       // Reuse the existing column definition, if we have one
@@ -369,6 +387,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       }
     }
 
+    addIndexColumn();
+
     // Process the attributes in the collection
     collection.forEachAttribute( processAttribute.bind(this));
 
@@ -416,6 +436,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @returns  {Object}  An object describing the SlickGrid options to be utilized.
    */
   buildGridOptions: function() {
+
+    var getCaseIndex = function(iRowItem) {
+      var idToIndexMap = this.getPath('collection.collection.caseIDToGroupedIndexMap');
+      return iRowItem && idToIndexMap
+              ? (idToIndexMap[iRowItem.get('id')] + 1).toString()
+              : "";
+    }.bind(this);
+
     this.gridOptions = {
               rowHeight: kDefaultRowHeight,
               headerRowHeight: kDefaultRowHeight*2,
@@ -433,7 +461,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     });
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                var value = iRowItem.getStrValue(iColumnInfo.id);
+                var value = iColumnInfo.id === kIndexColumnID
+                              ? getCaseIndex(iRowItem)
+                              : iRowItem.getStrValue(iColumnInfo.id);
                 return value &&
                     ((value.length < kMaxStringLength)?
                         value:
@@ -613,7 +643,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             operation: 'moveAttribute',
             attr: attr,
             toCollection: tCollection,
-            position: position
+            // subtract one for index column, which doesn't correspond to an attribute
+            position: position > 0 ? position - 1 : 0
           };
       tContext.applyChange(tChange);
     },
