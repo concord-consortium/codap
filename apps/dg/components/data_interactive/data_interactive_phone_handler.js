@@ -76,6 +76,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           attribute: this.handleAttribute,
+          attributeCollection: this.handleAttributeCollection,
           attributeList: this.handleAttributeList,
           'case': this.handleCase,
           allCases: this.handleAllCases,
@@ -191,6 +192,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         var result = { interactiveFrame: this.get('controller')};
+        var dataContext;
+        var collection;
+        var attrName, attrKey;
 
         if (['interactiveFrame',
               'logMessage',
@@ -216,7 +220,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!result.dataContext) { return result;}
         }
 
-        var dataContext = result.dataContext;
+        dataContext = result.dataContext;
 
         if (resourceSelector.component) {
           result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
@@ -235,19 +239,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   dataContext.getCollectionByID(resourceSelector.collection)));
         }
 
-        var collection = result.collection;
+        collection = result.collection;
 
-        if (resourceSelector.attribute) {
-          result.attribute = (
+        if (resourceSelector.attribute || resourceSelector.attributeCollection) {
+          attrKey = resourceSelector.attribute?'attribute':'attributeCollection';
+          attrName = resourceSelector[attrKey];
+          result[attrKey] = (
             (
               dataContext && (
-                  dataContext.getAttributeByName(resourceSelector.attribute) ||
-                  dataContext.getAttributeByName(dataContext.canonicalizeName(resourceSelector.attribute))
+                  dataContext.getAttributeByName(attrName) ||
+                  dataContext.getAttributeByName(dataContext.canonicalizeName(attrName))
               )
             ) ||
             (
-              !isNaN(resourceSelector.attribute) &&
-              collection && collection.getAttributeByID(resourceSelector.attribute)
+              !isNaN(attrName) &&
+              collection && collection.getAttributeByID(attrName)
             )
           );
         }
@@ -900,6 +906,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       }; }()),
 
+      handleAttributeCollection: {
+        /*
+         * Binds an attribute to a new collection in the data set. This
+         * is equivalent to the data context attributeMove action.
+         */
+        update: function (iResources, iValues, iMetadata) {
+          var context = iResources.dataContext;
+          var collection = iResources.collection;
+          var change = {
+            operation: 'moveAttribute',
+            requester: this.get('id'),
+            attr: iResources.attributeCollection,
+            toCollection: collection
+          };
+          if (iValues && !SC.none(iValues.position)) {
+            change.position = iValues.position;
+          }
+          return context.applyChange(change);
+        }
+      },
       handleAttributeList: {
         get: function (iResources) {
           var collection = iResources.collection;
