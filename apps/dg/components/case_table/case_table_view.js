@@ -292,7 +292,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 //    cursor: DG.Browser.customCursorStr(static_url('cursors/ClosedHandXY.cur'), 8, 8)
     }),
 
-  ancestorViewDidResize: function() {
+  ancestorViewDidResizeOrScroll: function() {
     this.invokeLater(function() {
       var visibleFrameBounds = this.get('visibleFrameBounds');
       if (visibleFrameBounds) {
@@ -300,7 +300,14 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             frameBounds = this.get('frameBounds'),
             frameRight = frameBounds.x + frameBounds.width,
             visibleFrameRight = visibleFrameBounds.x + visibleFrameBounds.width,
-            offset = frameRight - visibleFrameRight;
+            offset = frameRight - visibleFrameRight,
+            titleView = this.get('titleView'),
+            visibleViewBounds = this.convertFrameFromView(visibleFrameBounds, null);
+        titleView.adjust({
+          left: visibleViewBounds.x,
+          width: visibleViewBounds.width,
+          right: null
+        });
         newAttrButtonView.adjust('right', offset);
       }
     }.bind(this));
@@ -1020,6 +1027,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.initGridView();
       this.set('gridWidth', this._slickGrid.getContentSize().width);
     }
+
+    // initial layout
+    this.invokeLater(function() {
+      this.ancestorViewDidResizeOrScroll();
+    }.bind(this));
   },
 
   /**
