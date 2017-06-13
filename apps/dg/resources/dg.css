@@ -1180,6 +1180,15 @@ input.dg-editor-text {
     background-color: rgba(0,0,0,0.05);
 }
 
+.slick-row.even .slick-cell.dg-index-column {
+    background-color: #EEFEE3
+}
+
+.slick-row.odd .slick-cell.dg-index-column {
+    background-color: #D3E9C8
+}
+
+
 /*.slick-row.odd .dg-formula-column {*/
 /*background-color: #efefef;*/
 /*}*/

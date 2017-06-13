@@ -504,6 +504,8 @@ SC.stringsFor('English', {
   'DG.TableController.attributeEditor.title': 'Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "drop attribute to create new collection",
+  'DG.CaseTable.indexColumnName': 'index',
+  'DG.CaseTable.indexColumnTooltip': 'The row number (caseIndex) within the collection',
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': 'categorical',
   'DG.CaseTable.attribute.type.categorical': 'categorical',
