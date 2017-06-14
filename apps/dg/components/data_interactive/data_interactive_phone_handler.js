@@ -76,7 +76,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           attribute: this.handleAttribute,
-          attributeCollection: this.handleAttributeCollection,
+          attributeLocation: this.handleAttributeLocation,
           attributeList: this.handleAttributeList,
           'case': this.handleCase,
           allCases: this.handleAllCases,
@@ -241,8 +241,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         collection = result.collection;
 
-        if (resourceSelector.attribute || resourceSelector.attributeCollection) {
-          attrKey = resourceSelector.attribute?'attribute':'attributeCollection';
+        if (resourceSelector.attribute || resourceSelector.attributeLocation) {
+          attrKey = resourceSelector.attribute?'attribute':'attributeLocation';
           attrName = resourceSelector[attrKey];
           result[attrKey] = (
             (
@@ -906,20 +906,22 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       }; }()),
 
-      handleAttributeCollection: {
+      handleAttributeLocation: {
         /*
          * Binds an attribute to a new collection in the data set. This
          * is equivalent to the data context attributeMove action.
          */
         update: function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
-          var collection = iResources.collection;
           var change = {
             operation: 'moveAttribute',
             requester: this.get('id'),
-            attr: iResources.attributeCollection,
-            toCollection: collection
+            attr: iResources.attributeLocation,
           };
+          if (iValues && !SC.none(iValues.collection)) {
+            change.toCollection = context.getCollectionByName(iValues.collection) ||
+                    context.getCollectionByID(iValues.collection);
+          }
           if (iValues && !SC.none(iValues.position)) {
             change.position = iValues.position;
           }
