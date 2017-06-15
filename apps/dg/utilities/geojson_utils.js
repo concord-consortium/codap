@@ -33,6 +33,7 @@ DG.GeojsonUtils = {
     }
   },
 
+/*
   drawMiniBoundary: function( iJsonObject, iDivElement) {
     var paths = [],
         bBox = {
@@ -94,6 +95,7 @@ DG.GeojsonUtils = {
     });
 
   },
+*/
 
   /**
    *
