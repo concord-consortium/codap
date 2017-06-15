@@ -32,6 +32,69 @@ DG.GeojsonUtils = {
       // url: 'http://billmbp.local/~bfinzer/US_State_Boundaries.codap'
     }
   },
+
+  drawMiniBoundary: function( iJsonObject, iDivElement) {
+    var paths = [],
+        bBox = {
+          xMin: Number.MAX_VALUE,
+          yMin: Number.MAX_VALUE,
+          xMax: -Number.MAX_VALUE,
+          yMax: -Number.MAX_VALUE
+        },
+        tWidth = 200, //iDivElement.clientWidth - 4,
+        tHeight = 25, //iDivElement.clientHeight - 4,
+        tScale,
+        map = Raphael(iDivElement, tWidth, tHeight),
+        coordinates = iJsonObject.coordinates || iJsonObject.geometry.coordinates;
+
+    function recurseIntoArray(iArray) {
+      var tPathString = '',
+          tPath, tBox;
+      iArray.forEach(function (iElement, iIndex) {
+        if (iElement.length && iElement.length > 0) {
+          if (!isNaN(iElement[0])) {
+            var pt = {
+              x: iElement[0],
+              y: -iElement[1]
+            };
+            if (iIndex === 0) {
+              tPathString = 'M' + pt.x + ',' + pt.y + ' L';
+            }
+            else {
+              tPathString += pt.x + ' ' + pt.y + ' ';
+            }
+          }
+          else {
+            recurseIntoArray(iElement);
+          }
+        }
+      });
+      if (tPathString !== '') {
+        tPathString += 'Z';
+        tPath = map.path(tPathString).attr({'stroke-width': 0, fill: 'blue'});
+        paths.push(tPath);
+        tBox = tPath.getBBox();
+        bBox = {
+          xMin: Math.min(bBox.xMin, tBox.x),
+          yMin: Math.min(bBox.yMin, tBox.y),
+          xMax: Math.max(bBox.xMax, tBox.x2),
+          yMax: Math.max(bBox.yMax, tBox.y2)
+        };
+      }
+    }
+
+    recurseIntoArray(coordinates);
+
+    // Translate and scale
+    tScale = Math.min( tWidth / (bBox.xMax - bBox.xMin), tHeight / (bBox.yMax - bBox.yMin));
+    var tTransform = 't' + (-bBox.xMin + 2) + ',' + (-bBox.yMin + 2) +  's' +
+        tScale + ',' + tScale + ',' + bBox.xMin + ',' + bBox.yMin;
+    paths.forEach( function( iPath) {
+      iPath.transform( tTransform);
+    });
+
+  },
+
   /**
    *
    * @param iBoundaryCollectionName {String} One of 'state', 'county', 'puma', ...
@@ -51,7 +114,7 @@ DG.GeojsonUtils = {
         var tKeyCallbackPair = tCache.requestQueue.splice(0, 1)[0],
             tKey = tKeyCallbackPair[0],
             tCallback = tKeyCallbackPair[1],
-            tResult = tCache.boundaryIndex[tKey.toLowerCase()];
+            tResult = tCache.boundaryIndex[tKey.toLowerCase()].jsonBoundaryObject;
         if (tCallback)
           tCallback(tResult);
         else if (tOnlyOneResultToReturn)
@@ -107,19 +170,18 @@ DG.GeojsonUtils = {
           });
 
           tIndexCollection.cases.forEach(function (iKeyCase) {
-            tCache.boundaryIndex[iKeyCase.values.key] = JSON.parse(tBoundariesIDIndex[iKeyCase.parent]);
-          });
-          /*
-           var tKeyAttribute = tIndexCollection.getAttributeByName('key'),
-           tKeyAttributeID = tKeyAttribute.get('id'),
-           tBoundaryAttribute = tBoundariesCollection.getAttributeByName('boundary'),
-           tBoundaryAttributeID = tBoundaryAttribute.get('id'),
-           tKeysCases = tIndexCollection.get('cases');
-           tKeysCases.forEach(function (iCase) {
-           tCache.boundaryIndex[iCase.getStrValue(tKeyAttributeID)] =
-           JSON.parse(iCase.get('parent').getRawValue(tBoundaryAttributeID));
-           });
-           */
+            var tJSON = JSON.parse(tBoundariesIDIndex[iKeyCase.parent])/*,
+                tDivElement = document.createElement('div')*/;
+/*
+            tDivElement.clientWidth = 100;
+            tDivElement.clientHeight = 25;
+*/
+            //this.drawMiniBoundary( tJSON, tDivElement);
+            tCache.boundaryIndex[iKeyCase.values.key] = {
+              jsonBoundaryObject: tJSON/*,
+              miniBoundaryElement: tDivElement*/
+            };
+          }.bind( this));
           returnDesiredBoundary();
         }.bind(this);
 
