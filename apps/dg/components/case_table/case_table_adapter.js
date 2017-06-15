@@ -289,8 +289,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
 
     function updateDynamicColumnProperties( iAttribute, ioColumnInfo) {
+      var prevColumnInfo = existColumnDefs[ioColumnInfo.id];
       // cell-specific editability handled by isCellEditable() method
       ioColumnInfo.editor = DG.CaseTableCellEditor;
+      if (prevColumnInfo) {
+        ioColumnInfo.width = prevColumnInfo.width;
+      }
     }
 
     function addIndexColumn() {
@@ -311,16 +315,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
     // Build the columnInfo for a single attribute
     function processAttribute( iAttribute) {
-      // Reuse the existing column definition, if we have one
       var attrID = iAttribute.get('id').toString(),
-          existColumn = existColumnDefs[ attrID];
-      if( existColumn) {
-        updateDynamicColumnProperties( iAttribute, existColumn);
-        columnDefs.push( existColumn);
-        return;
-      }
-      // Build a new column definition if we need to
-      var collection = iAttribute.get('collection'),
+          collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
           isQual = iAttribute.get('type') === 'qualitative',
           hasFormula = iAttribute.hasFormula(),
@@ -438,10 +434,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   buildGridOptions: function() {
 
     var getCaseIndex = function(iRowItem) {
-      var idToIndexMap = this.getPath('collection.collection.caseIDToGroupedIndexMap');
-      return iRowItem && idToIndexMap
-              ? (idToIndexMap[iRowItem.get('id')] + 1).toString()
-              : "";
+      var id = iRowItem && iRowItem.get('id'),
+          idToIndexMap = this.getPath('collection.collection.caseIDToGroupedIndexMap'),
+          index = idToIndexMap && id && idToIndexMap[id];
+      return index != null ? (index + 1).toString() : "";
     }.bind(this);
 
     this.gridOptions = {
