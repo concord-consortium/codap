@@ -2421,7 +2421,7 @@ if (typeof Slick === "undefined") {
         if (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit()) {
           scrollRowIntoView(cell.row, false);
           setActiveCellInternal(getCellNode(cell.row, cell.cell),
-                                (cell.row === getDataLength()) || canAutoEditCell(cell.row, cell.cell));
+                                (cell.row === getDataLength()) || canAutoEditCell(cell.row, cell.cell, 'click'));
         }
       }
     }
@@ -2761,7 +2761,7 @@ if (typeof Slick === "undefined") {
       var cell = getActiveCell();
       if (getEditorLock().commitCurrentEdit()) {
         setFocus();
-        if (canAutoEditCell(cell.row, cell.cell)) {
+        if (canAutoEditCell(cell.row, cell.cell, 'commit')) {
           navigateDown();
         }
       }
@@ -3148,11 +3148,11 @@ if (typeof Slick === "undefined") {
         var isAddNewRow = (pos.row == getDataLength());
         scrollRowIntoView(pos.row, !isAddNewRow);
         scrollCellIntoView(pos.row, pos.cell);
-        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || canAutoEditCell(pos.row, pos.cell));
+        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || canAutoEditCell(pos.row, pos.cell, 'navigate'));
         activePosX = pos.posX;
         return true;
       } else {
-        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || canAutoEditCell(activeRow, activeCell));
+        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || canAutoEditCell(activeRow, activeCell, 'navigate'));
         return false;
       }
     }
@@ -3221,8 +3221,8 @@ if (typeof Slick === "undefined") {
     }
 
     // [CC] Added to enable autoEdit on a cell-by-cell basis
-    function canAutoEditCell(row, cell) {
-      return options.autoEdit || trigger(self.onBeforeAutoEditCell, {row: row, cell: cell});
+    function canAutoEditCell(row, cell, source) {
+      return options.autoEdit || trigger(self.onBeforeAutoEditCell, {row: row, cell: cell, source: source});
     }
 
     function gotoCell(row, cell, forceEdit) {
@@ -3241,7 +3241,7 @@ if (typeof Slick === "undefined") {
       var newCell = getCellNode(row, cell);
 
       // if selecting the 'add new' row, start editing right away
-      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || canAutoEditCell(row, cell));
+      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || canAutoEditCell(row, cell, 'goto'));
 
       // if no editor was created, set the focus back on the grid
       if (!currentEditor) {

@@ -1110,9 +1110,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   },
 
   handleBeforeAutoEditCell: function(iEvent, iArgs) {
-    // enable autoEdit for the proto-case row
+    // enable autoEdit for keyboard navigation and for the proto-case row
     var activeRowItem = this._slickGrid.getDataItem(iArgs.row);
-    return activeRowItem && activeRowItem._isProtoCase;
+    return (iArgs.source === 'navigate') || (activeRowItem && activeRowItem._isProtoCase);
   },
 
   handleBeforeEditCell: function(iEvent, iArgs) {
@@ -1235,23 +1235,46 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       }
       return null;
     }
-    if ((iEvent.keyCode === 9) || (iEvent.keyCode === 13)) {
-      var editorLock = this._slickGrid.getEditorLock(),
-          editorIsActive = editorLock && editorLock.isActive(),
-          columns = this._slickGrid.getColumns(),
-          activeCell = this._slickGrid.getActiveCell(),
-          dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row);
-      if (editorIsActive && dataItem && dataItem._isProtoCase) {
-        this.clearProtoCaseTimer();
-        if (iEvent.shiftKey) {
-          if (activeCell.cell > findFirstFocusableColumn(columns))
+
+    var editorLock = this._slickGrid.getEditorLock(),
+        editorIsActive = editorLock && editorLock.isActive(),
+        columns = this._slickGrid.getColumns(),
+        activeCell = this._slickGrid.getActiveCell(),
+        dataItem = activeCell && this._slickGrid.getDataItem(activeCell.row),
+
+        handlePrev = function() {
+          this.clearProtoCaseTimer();
+
+          if (!dataItem._isProtoCase || (activeCell.cell > findFirstFocusableColumn(columns))) {
             this._slickGrid.navigatePrev();
-        }
-        else {
-          if (activeCell.cell < findLastFocusableColumn(columns)) {
+          }
+          // navigating off the proto-case commits it
+          else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
+                    DG.ObjectMap.length(dataItem._values)) {
+            SC.run(function() {
+              this.commitProtoCase(dataItem);
+              // wait until everything has refreshed to navigate to the next row
+              this.invokeNext(function() {
+                this._slickGrid.navigatePrev();
+              }.bind(this));
+            }.bind(this));
+          }
+          else {
+            this._slickGrid.navigatePrev();
+          }
+
+          iEvent.stopImmediatePropagation();
+        }.bind(this),
+
+        handleNext = function() {
+          this.clearProtoCaseTimer();
+
+          if (!dataItem._isProtoCase || (activeCell.cell < findLastFocusableColumn(columns))) {
             this._slickGrid.navigateNext();
           }
-          else if (editorLock.commitCurrentEdit() && DG.ObjectMap.length(dataItem._values)) {
+          // navigating off the proto-case commits it
+          else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
+                    DG.ObjectMap.length(dataItem._values)) {
             SC.run(function() {
               this.commitProtoCase(dataItem);
               // wait until everything has refreshed to navigate to the next row
@@ -1260,9 +1283,80 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               }.bind(this));
             }.bind(this));
           }
-        }
+          else {
+            this._slickGrid.editActiveCell();
+          }
 
-        iEvent.stopImmediatePropagation();
+          iEvent.stopImmediatePropagation();
+        }.bind(this),
+
+        handleUp = function() {
+          if (!dataItem._isProtoCase) {
+            this._slickGrid.navigateUp();
+          }
+          // navigating off the proto-case commits it
+          else if (dataItem._isProtoCase && editorLock.commitCurrentEdit() &&
+                    DG.ObjectMap.length(dataItem._values)) {
+            SC.run(function() {
+              this.clearProtoCaseTimer();
+              this.commitProtoCase(dataItem);
+              // wait until everything has refreshed to navigate to the next row
+              this.invokeNext(function() {
+                this._slickGrid.navigateUp();
+              }.bind(this));
+            }.bind(this));
+          }
+          else {
+            this.clearProtoCaseTimer();
+            this._slickGrid.navigateUp();
+          }
+
+          iEvent.stopImmediatePropagation();
+        }.bind(this),
+
+        handleDown = function() {
+          if (!dataItem._isProtoCase) {
+            this._slickGrid.navigateDown();
+          }
+          // navigating off the proto-case commits it
+          else if (editorLock.commitCurrentEdit() && dataItem._isProtoCase &&
+                    DG.ObjectMap.length(dataItem._values)) {
+            SC.run(function() {
+              this.clearProtoCaseTimer();
+              this.commitProtoCase(dataItem);
+              // wait until everything has refreshed to navigate to the next row
+              this.invokeNext(function() {
+                this._slickGrid.navigateDown();
+              }.bind(this));
+            }.bind(this));
+          }
+          else {
+            this._slickGrid.editActiveCell();
+          }
+
+          iEvent.stopImmediatePropagation();
+        }.bind(this);
+
+    if (editorIsActive && dataItem) {
+      switch (iEvent.keyCode) {
+        case 9:
+          if (iEvent.shiftKey)
+            handlePrev();
+          else
+            handleNext();
+          break;
+        case 13:
+          if (iEvent.shiftKey)
+            handleUp();
+          else
+            handleDown();
+          break;
+        case 38:
+          handleUp();
+          break;
+        case 40:
+          handleDown();
+          break;
       }
     }
   },
