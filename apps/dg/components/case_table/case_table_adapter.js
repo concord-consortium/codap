@@ -94,6 +94,19 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
       },
 
+      boundaryFormatter = function (row, cell, value, columnDef, iCase) {
+        var tResult = 'a boundary',
+            tBoundaryValue = iCase.getValue( columnDef.attribute.id),
+            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue( tBoundaryValue),
+            tThumb = tBoundaryObject && tBoundaryObject.properties &&
+                      tBoundaryObject.properties.THUMB;
+        if (tThumb != null) {
+          tResult = "<span class='dg-boundary-thumb'>" +
+              "<img src=\'" + tThumb + "\' height='14'></span>";
+        }
+        return tResult;
+        },
+
       colorFormatter = function (row, cell, value, columnDef, dataContext) {
         var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),
             tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
@@ -318,7 +331,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var attrID = iAttribute.get('id').toString(),
           collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
-          isQual = iAttribute.get('type') === 'qualitative',
+          attrType = iAttribute.get('type'),
+          isQual = attrType === 'qualitative',
+          isBoundary = attrType === 'boundary',
           hasFormula = iAttribute.hasFormula(),
           columnInfo = {
             context: context,
@@ -332,7 +347,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
             toolTip: getToolTipString( iAttribute),
-            formatter: isQual ? qualBarFormatter : cellFormatter,
+            formatter: isQual ? qualBarFormatter :
+                (isBoundary ? boundaryFormatter : cellFormatter),
             tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             hasDependentInteractive: function () {

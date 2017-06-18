@@ -33,69 +33,28 @@ DG.GeojsonUtils = {
     }
   },
 
-/*
-  drawMiniBoundary: function( iJsonObject, iDivElement) {
-    var paths = [],
-        bBox = {
-          xMin: Number.MAX_VALUE,
-          yMin: Number.MAX_VALUE,
-          xMax: -Number.MAX_VALUE,
-          yMax: -Number.MAX_VALUE
-        },
-        tWidth = 200, //iDivElement.clientWidth - 4,
-        tHeight = 25, //iDivElement.clientHeight - 4,
-        tScale,
-        map = Raphael(iDivElement, tWidth, tHeight),
-        coordinates = iJsonObject.coordinates || iJsonObject.geometry.coordinates;
-
-    function recurseIntoArray(iArray) {
-      var tPathString = '',
-          tPath, tBox;
-      iArray.forEach(function (iElement, iIndex) {
-        if (iElement.length && iElement.length > 0) {
-          if (!isNaN(iElement[0])) {
-            var pt = {
-              x: iElement[0],
-              y: -iElement[1]
-            };
-            if (iIndex === 0) {
-              tPathString = 'M' + pt.x + ',' + pt.y + ' L';
-            }
-            else {
-              tPathString += pt.x + ' ' + pt.y + ' ';
-            }
-          }
-          else {
-            recurseIntoArray(iElement);
-          }
-        }
-      });
-      if (tPathString !== '') {
-        tPathString += 'Z';
-        tPath = map.path(tPathString).attr({'stroke-width': 0, fill: 'blue'});
-        paths.push(tPath);
-        tBox = tPath.getBBox();
-        bBox = {
-          xMin: Math.min(bBox.xMin, tBox.x),
-          yMin: Math.min(bBox.yMin, tBox.y),
-          xMax: Math.max(bBox.xMax, tBox.x2),
-          yMax: Math.max(bBox.yMax, tBox.y2)
-        };
-      }
+  /**
+   *
+   * @param iBoundaryValue { {String} | {Object}}
+   */
+  boundaryObjectFromBoundaryValue: function( iBoundaryValue) {
+    if( typeof iBoundaryValue === 'object') {
+      return iBoundaryValue;
     }
-
-    recurseIntoArray(coordinates);
-
-    // Translate and scale
-    tScale = Math.min( tWidth / (bBox.xMax - bBox.xMin), tHeight / (bBox.yMax - bBox.yMin));
-    var tTransform = 't' + (-bBox.xMin + 2) + ',' + (-bBox.yMin + 2) +  's' +
-        tScale + ',' + tScale + ',' + bBox.xMin + ',' + bBox.yMin;
-    paths.forEach( function( iPath) {
-      iPath.transform( tTransform);
-    });
-
+    else if((typeof iBoundaryValue === 'string') && iBoundaryValue.startsWith('{')) // Assume it's the geojson itself
+    {
+      var tObject;
+      try{
+        tObject = JSON.parse(iBoundaryValue);
+      }
+      catch (er) {
+        console.log( er);
+      }
+      return tObject;
+    }
+    else
+      return null;
   },
-*/
 
   /**
    *

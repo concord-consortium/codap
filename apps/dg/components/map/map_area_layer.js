@@ -319,7 +319,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
             dataType: 'json'
           });
         }
-        else if(tBoundaryValue.startsWith('{"type"')) // Assume it's the geojson itself
+        else if(tBoundaryValue.startsWith('{')) // Assume it's the geojson itself
         {
           stashFeature( JSON.parse(tBoundaryValue));
         }
