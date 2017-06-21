@@ -26,10 +26,10 @@ sc_require('components/graph_map_common/plot_layer');
   @extends DG.PlotLayer
 */
 DG.MapAreaLayer = DG.PlotLayer.extend(
-/** @scope DG.MapAreaLayer.prototype */ 
+/** @scope DG.MapAreaLayer.prototype */
 {
   displayProperties: [],
-  
+
   autoDestroyProperties: [],
 
   mapSource: null,
@@ -300,7 +300,10 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
       try {
         var tBoundaryValue = iCase.getValue(tRC.areaVarID);
+        if (!tBoundaryValue) return;
         if( typeof tBoundaryValue === 'object') {
+          if (tBoundaryValue.jsonBoundaryObject)
+            tBoundaryValue = tBoundaryValue.jsonBoundaryObject;
           stashFeature( tBoundaryValue);
         }
         if (tBoundaryValue.startsWith('http')) {
