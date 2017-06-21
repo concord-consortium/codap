@@ -1,6 +1,6 @@
 // ==========================================================================
 //                        GeoJSON Functions
-//  
+//
 //  Author:   William Finzer
 //
 //  Copyright (c) 2017 by The Concord Consortium, Inc. All rights reserved.
@@ -36,10 +36,12 @@ DG.functionRegistry.registerFunctions((function() {
      */
     'lookupBoundary': {
       minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryOther',
-      evalFn: function(iCollectionName, iBoundaryName) {
-        iCollectionName = DG.DataUtilities.toString(iCollectionName);
-        iBoundaryName = DG.DataUtilities.toString(iBoundaryName);
-        return DG.GeojsonUtils.lookupBoundary( iCollectionName, iBoundaryName);
+      evalFn: function(iBoundaryMap, iBoundaryName) {
+        if (iBoundaryMap instanceof Error) throw iBoundaryMap;
+        if (iBoundaryName instanceof Error) throw iBoundaryName;
+        if (!iBoundaryMap || !iBoundaryName) return '';
+        if (!(iBoundaryMap instanceof DG.BoundaryMap)) throw new DG.TypeError();
+        return iBoundaryMap.map[iBoundaryName.toString().toLowerCase()] || '';
       }
     }
 
