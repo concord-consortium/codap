@@ -87,12 +87,16 @@ DG.RemoteResource = DG.GlobalValue.extend({
       context: this,
       dataType: 'json',
       success: function(data, status, jqXHR) {
-        this._value = this._handleSuccess(data, status, jqXHR);
-        this.notifyPropertyChange('value');
+        SC.run(function() {
+          this._value = this._handleSuccess(data, status, jqXHR);
+          this.notifyPropertyChange('value');
+        }.bind(this));
       }.bind(this),
       error: function (jqXHR, status, error) {
-        this._value = this._handleError(jqXHR, status, error);
-        this.notifyPropertyChange('value');
+        SC.run(function() {
+          this._value = this._handleError(jqXHR, status, error);
+          this.notifyPropertyChange('value');
+        }.bind(this));
       }
     });
   },
