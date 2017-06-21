@@ -1,0 +1,73 @@
+.react-data-card{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  margin: 3px 0;
+  font-size: 12px;
+  background-color: white;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'Montserrat', sans-serif;
+  table-layout: fixed;
+  white-space: nowrap;
+}
+
+.react-data-card h2 {
+  font-style: italic;
+  margin-left: 5px;
+  text-decoration: underline;
+}
+
+.react-data-card table {
+  width: 100%;
+  margin-left: 10px;
+  margin-bottom: 5px;
+  padding: 0;
+}
+.react-data-card table tr {
+  width: 100%;
+  margin: 0;
+  padding: 3px;
+  /*min-width: 150px;*/
+}
+.react-data-card tr:nth-child(odd) {
+  background: #eeeeee;
+}
+.react-data-card td div {
+  float: right;
+  margin-right: 20px;
+  border: 0px;
+}
+.react-data-card td {
+  border: 0px;
+  padding: 0px;
+  padding-right: 10px;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+.react-data-card td span {
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.react-data-card td span i,
+.react-data-card-function-info h1 i {
+  color: #555;
+}
+.react-data-card td span:hover,
+.react-data-card td div:hover,
+.react-data-card-function-info h1:hover {
+  text-decoration: underline;
+  color: #72bfca;
+}
+.react-data-card-header {
+  color: white;
+  text-align: center;
+  background-color: #bbbbbb;
+}
+.react-data-card-header span {
+  /*margin-right: 5px;*/
+  /*font-weight: bold;*/
+}

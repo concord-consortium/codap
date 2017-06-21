@@ -18,8 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
-/** @class  DG.LabelNode - A small object that can hold onto information needed to drag an axis or legend
- * label and initiate the drag that SproutCore expects.
+/** @class  DG.LabelNode - Displays a label for an axis or legend. Expects to be hooked up with a
+ * DragLabelHandler.
 
  @extends SC.Object
  */

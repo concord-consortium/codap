@@ -79,6 +79,9 @@ DG.CaseTableController = DG.ComponentController.extend(
        */
       init: function() {
         sc_super();
+        this.get('specialTitleBarButtons').push(
+            DG.CaseCardToggleButton.create()
+        );
         this.caseTableAdapters = [];
         // Init is called when the case table controller may not be fully
         // constructed, so, delay to the next Run Loop.

@@ -563,6 +563,14 @@
     box-shadow: 0 1px 20px 0 rgba(0, 0, 0, 0.40);
 }
 
+.dg-opaque {
+    background-color: white;
+}
+
+.dg-scrollable {
+    overflow: scroll;
+}
+
 .dg-titlebar {
     background-color: #72bfca;
     border-top-right-radius:6px;
@@ -669,6 +677,50 @@
 }
 
 .dg-redo-icon:active {
+    color: black;
+}
+
+.dg-card-icon:before {
+    font-family: 'icomoon';
+    content: "\32";
+}
+
+.dg-card-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.dg-card-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.dg-card-icon:active {
+    color: black;
+}
+
+.dg-table-icon:before {
+    font-family: 'icomoon';
+    content: "\31";
+}
+
+.dg-table-icon {
+    top: 2px !important;
+    font-size: 16px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.dg-table-icon:hover {
+    top: 1px !important;
+    font-size: 18px;
+}
+
+.dg-table-icon:active {
     color: black;
 }
 

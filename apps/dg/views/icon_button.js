@@ -21,6 +21,7 @@
 // ==========================================================================
 
 sc_require('views/image_view');
+sc_require('views/tooltip_enabler');
 
 /** @class
 
@@ -28,7 +29,7 @@ sc_require('views/image_view');
 
   @extends SC.View
 */
-DG.IconButton = SC.View.extend(
+DG.IconButton = SC.View.extend( DG.TooltipEnabler,
 /** @scope DG.IconButton.prototype */
   (function() {
     var kTopOffset = 0,
