@@ -139,6 +139,8 @@ DG.ContainerView = SC.View.extend(
             case DG.WebView:
             case SC.WebView:
               return 'tile-icon-mediaTool';
+            default:
+              return 'tile-icon-dataTool';
           }
         }
 

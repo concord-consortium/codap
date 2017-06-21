@@ -21,6 +21,7 @@
 // ==========================================================================
 
 sc_require('views/mouse_and_touch_view');
+sc_require('views/tooltip_enabler');
 
 /** @class
 
@@ -70,6 +71,72 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
           } else {
             DG.closeComponent(tComponentId);
           }
+        },
+
+        closeComponent: function (iComponentID, iController) {
+          if (iController.toggleViewVisibility) {
+            iController.toggleViewVisibility();
+          }
+          else {
+            var tState;
+            // Give the controller a chance to do some housekeeping before we close it (defocus, commit edits, etc.).
+            // Also, do this outside of the undo command, so that it can register its own
+            // separate undo command if desired.
+            iController.willCloseComponent();
+
+            DG.UndoHistory.execute(DG.Command.create({
+              name: 'component.close',
+              undoString: 'DG.Undo.component.close',
+              redoString: 'DG.Redo.component.close',
+              _componentId: iComponentID,
+              _controller: function () {
+                return DG.currDocumentController().componentControllersMap[this._componentId];
+              },
+              _model: null,
+              execute: function () {
+                iController = this._controller();
+                var tComponentView = iController.get('view'),
+                    tContainerView = tComponentView.get('parentView');
+
+                this.log = 'closeComponent: %@'.fmt(tComponentView.get('title'));
+                this._model = iController.get('model');
+
+                // Some components (the graph in particular), won't restore correctly without calling willSaveComponent(),
+                // because sometimes not all of the info necessary to restore the view is actively held in the model.
+                // (In the graph's case, there is 'model' which relates to the view, and 'graphModel' which holds all of the
+                // configuration like axis ranges, legends, etc.)
+                iController.willSaveComponent();
+
+                if (iController.saveGameState) {
+                  // If we are a GameController, try to save state.
+                  // Since this is an asynchronous operation, we have to hold off closing the component
+                  // until it is complete (or it will fail).
+                  // Also, since closing the document will happen after this command executes, dirtying the
+                  // document will clear the undo history, so we must force it not to dirty.
+                  iController.saveGameState(function (result) {
+                    if (result && result.success) {
+                      tState = result.state;
+                    }
+                    SC.run(function () {
+                      if (tContainerView.removeComponentView)
+                        tContainerView.removeComponentView(tComponentView);
+                    });
+                  });
+                } else {
+                  if (tContainerView.removeComponentView)
+                    tContainerView.removeComponentView(tComponentView);
+                }
+              },
+              undo: function () {
+                DG.currDocumentController().createComponentAndView(this._model);
+
+                iController = this._controller();
+                if (iController.restoreGameState && tState) {
+                  iController.restoreGameState({gameState: tState});
+                }
+              }
+            }));
+          }
         }
     };
   }()) // function closure
@@ -114,22 +181,13 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
 
  @extends SC.View
  */
-DG.TitleBarUndoRedoButton = SC.View.extend(DG.MouseAndTouchView,
+DG.TitleBarUndoRedoButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
     /** @scope DG.MouseAndTouchView.prototype */
     (function () {
       return {
         localize: true,
         isVisibleBinding: SC.Binding.oneWay('DG.UndoHistory.enabled'),
-        isVisible: true,
-        toolTipDidChange: function() {
-          this.updateLayer();
-        }.observes('displayToolTip'),
-        render: function(context) {
-          sc_super();
-          var toolTip = this.get('displayToolTip');
-          if (toolTip)
-            context.setAttr('title', toolTip);
-        }
+        isVisible: true
       };
     }()) // function closure
 );
@@ -183,3 +241,70 @@ DG.TitleBarRedoButton = DG.TitleBarUndoRedoButton.extend(
       };
     }()) // function closure
 );
+
+/** @class
+
+    DG.CaseCardToggleButton, when clicked, switches the case table to a case card
+
+ @extends SC.View
+ */
+DG.CaseCardToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
+    /** @scope DG.MouseAndTouchView.prototype */
+    (function () {
+      return {
+        classNames: 'dg-card-icon'.w(),
+        toolTip: 'DG.DocumentController.toggleToCaseCard',
+        isVisible: true, // to start with
+        doIt: function() {
+          var tComponentView = this.parentView.viewToDrag();
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'toggle.toCaseCard',
+            undoString: 'DG.Undo.component.toggleTableToCard',
+            redoString: 'DG.Redo.component.toggleTableToCard',
+            log: 'Toggle case table to case card',
+            execute: function() {
+              DG.currDocumentController().toggleTableToCard(tComponentView);
+            },
+            undo: function() {
+              var tCardComponentView = tComponentView.get('cardView');
+              DG.currDocumentController().toggleCardToTable(tCardComponentView);
+            }
+          }));
+        }
+      };
+    }()) // function closure
+);
+
+/** @class
+
+    DG.CaseTableToggleButton, when clicked, switches the case table to a case card
+
+ @extends SC.View
+ */
+DG.CaseTableToggleButton = SC.View.extend(DG.MouseAndTouchView, DG.TooltipEnabler,
+    /** @scope DG.MouseAndTouchView.prototype */
+    (function () {
+      return {
+        classNames: 'dg-table-icon'.w(),
+        toolTip: 'DG.DocumentController.toggleToCaseTable',
+        isVisible: true, // to start with
+        doIt: function() {
+          var tComponentView = this.parentView.viewToDrag();
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'toggle.toCaseTable',
+            undoString: 'DG.Undo.component.toggleCardToTable',
+            redoString: 'DG.Redo.component.toggleCardToTable',
+            log: 'Toggle case card to case table',
+            execute: function() {
+              DG.currDocumentController().toggleCardToTable(tComponentView);
+            },
+            undo: function() {
+              var tTableComponentView = tComponentView.get('tableView');
+              DG.currDocumentController().toggleTableToCard(tTableComponentView);
+            }
+          }));
+        }
+      };
+    }()) // function closure
+);
+

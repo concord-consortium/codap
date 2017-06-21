@@ -95,6 +95,7 @@
 
     // DG.DocumentController
     "DG.DocumentController.calculatorTitle": "Calculator",
+    "DG.DocumentController.caseCardTitle": "Case Card",
     "DG.DocumentController.caseTableTitle": "Case Table",
     "DG.DocumentController.graphTitle": "Graph",
     "DG.DocumentController.sliderTitle": "Slider",
@@ -102,7 +103,9 @@
     "DG.DocumentController.mapTitle": "Map",
     "DG.DocumentController.enterURLPrompt": "Enter the URL of a web page to display",
     "DG.DocumentController.enterViewWebPageOKTip": "Displays the web page given by the URL",
- 
+    "DG.DocumentController.toggleToCaseCard": "Switch to case card view of the data",
+    "DG.DocumentController.toggleToCaseTable": "Switch to case table view of the data",
+
     // DG.Document
     "DG.Document.defaultDocumentName": "Untitled Document",
     "DG.Document.documentName.toolTip": "Click to edit document name",
@@ -356,6 +359,10 @@
     "DG.Redo.component.minimize": "Redo minimizing component",
     "DG.Undo.dataContext.moveAttribute": "Undo moving case table attribute",
     "DG.Redo.dataContext.moveAttribute": "Redo moving case table attribute",
+    "DG.Undo.component.toggleTableToCard": "Undo changing case table to case card",
+    "DG.Redo.component.toggleTableToCard": "Redo changing case table to case card",
+    "DG.Undo.component.toggleCardToTable": "Undo changing case card to case table",
+    "DG.Redo.component.toggleCardToTable": "Redo changing case card to case table",
 
     // DG.DataContext
     "DG.DataContext.singleCaseName": "case",
