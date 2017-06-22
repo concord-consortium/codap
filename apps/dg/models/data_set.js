@@ -146,7 +146,7 @@ DG.DataSet = SC.Object.extend((function() // closure
      * keys to values, or an array of values indexed in attribute order.
      * @return {DG.DataItem} the item.
      */
-    addDataItem: function (data, beforeIndex) {
+    addDataItem: function (data, beforeItemID) {
       var dataItem;
       var ix;
 
@@ -171,12 +171,23 @@ DG.DataSet = SC.Object.extend((function() // closure
                                     // We want the index of the last element
         dataItem.itemIndex = ix;
 
-        if (beforeIndex == null) {
-          dataItem._clientIndex = this._clientToItemIndexMap.push(ix);
+        if (beforeItemID == null) {
+          dataItem._clientIndex = this._clientToItemIndexMap.push(ix) - 1;
         }
         else {
-          this._clientToItemIndexMap.splice(beforeIndex, 0, ix);
-          dataItem._clientIndex = beforeIndex;
+          var beforeClientIndex = this.getDataItemClientIndexByID(beforeItemID);
+
+          // give the new item its client index
+          dataItem._clientIndex = beforeClientIndex;
+
+          // update client indices for existing items being pushed back
+          this._clientToItemIndexMap.forEach(function(itemIndex) {
+                                                var item = this.dataItems[itemIndex];
+                                                if (item._clientIndex >= beforeClientIndex)
+                                                  ++ item._clientIndex;
+                                              }.bind(this));
+          // splice in the new client index
+          this._clientToItemIndexMap.splice(beforeClientIndex, 0, ix);
         }
       }
       return  dataItem;
@@ -187,13 +198,22 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @param {integer} itemIndex
      * @return {DG.DataItem} the deleted item.
      */
-    deleteDataItemByIndex: function (itemIndex) {
-      var index = this._clientToItemIndexMap[itemIndex],
-          item = this.getDataItem(index);
+    deleteDataItem: function (item) {
       if (item) {
         item.deleted = true;
       }
       return item;
+    },
+
+    /**
+     * Marks an item for deletion.
+     * @param {integer} itemIndex
+     * @return {DG.DataItem} the deleted item.
+     */
+    deleteDataItemByIndex: function (itemIndex) {
+      var index = this._clientToItemIndexMap[itemIndex],
+          item = this.getDataItem(index);
+      return item ? this.deleteDataItem(item) : null;
     },
 
     /**
@@ -206,7 +226,7 @@ DG.DataSet = SC.Object.extend((function() // closure
       var index = this._clientToItemIndexMap[itemIndex],
           item;
       if (index >= 0 && index < this.dataItems.length) {
-        item = this.dataItems[itemIndex];
+        item = this.dataItems[index];
         item.deleted = false;
       }
       return item;
@@ -276,6 +296,18 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     getDataItemByID: function (itemID) {
       return this.dataItems.find(function(item) { return item.id === itemID; });
+    },
+
+    /**
+     * Retrieves the client index of the DataItem wth the specified ID.
+     * @param {*} itemID
+     * @returns {number}
+     */
+    getDataItemClientIndexByID: function (itemID) {
+      return this._clientToItemIndexMap.findIndex(function(itemIndex) {
+                                                    var item = this.dataItems[itemIndex];
+                                                    return item && (item.id === itemID);
+                                                  }.bind(this));
     },
 
     compareItemsByClientIndex: function(item1, item2) {

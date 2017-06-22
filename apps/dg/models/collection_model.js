@@ -499,7 +499,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       var item = iCase.item;
       DG.Case.destroyCase(iCase);
       if (!retainItem) {
-        this.dataSet.deleteDataItemByIndex(item.itemIndex);
+        this.dataSet.deleteDataItem(item);
       }
     },
 

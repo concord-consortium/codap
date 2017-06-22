@@ -936,9 +936,36 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var dataContext = this.get('dataContext'),
         dataView = this.getPath('gridAdapter.gridDataView'),
         tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
-        itemIndex = tCase && tCase.getPath('item.itemIndex');
+        itemID = tCase && tCase.getPath('item.id'),
+        newCaseIDs;
 
-    dataContext.addItems({}, itemIndex);
+    // insert the new case
+    DG.UndoHistory.execute(
+      DG.Command.create({
+        // not undoable yet
+        isUndoable: false,
+        execute: function() {
+          newCaseIDs = dataContext.addItems({}, itemID);
+        },
+        undo: function() {
+          // need a dataContext method that deletes cases without affecting the undo history
+          //dataContext.applyChange({ operation: 'deleteCases' });
+        },
+        redo: function() {
+          // 'undelete' the newly created data item
+        }
+      })
+    );
+
+    // synchronize selection after case insertion
+    if (newCaseIDs) {
+      var newCases = newCaseIDs.map(function(caseID) {
+                                      return dataContext.getCaseByID(caseID);
+                                    });
+      this.invokeLater(function() {
+        dataContext.applyChange({ operation: 'selectCases', cases: newCases, select: true });
+      });
+    }
   },
 
   /**
@@ -1493,10 +1520,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         isActiveProtoCase = hasProtoCase && activeCell && (activeCell.row === rowCount - 1);
 
       // if non-proto-case rows are selected, commit the proto-case
-      if (selectedRowCount && isActiveProtoCase) {
+      if (selectedRowCount) {
         if (editorIsActive)
           editorLock.commitCurrentEdit();
-        if (DG.ObjectMap.length(lastRowItem._values)) {
+        if (isActiveProtoCase && DG.ObjectMap.length(lastRowItem._values)) {
           this.invokeLater(function() {
             SC.run(function() {
               this.commitProtoCase(lastRowItem);
