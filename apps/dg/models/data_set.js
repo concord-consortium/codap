@@ -146,7 +146,7 @@ DG.DataSet = SC.Object.extend((function() // closure
      * keys to values, or an array of values indexed in attribute order.
      * @return {DG.DataItem} the item.
      */
-    addDataItem: function (data) {
+    addDataItem: function (data, beforeIndex) {
       var dataItem;
       var ix;
 
@@ -170,7 +170,14 @@ DG.DataSet = SC.Object.extend((function() // closure
         ix = this.dataItems.push(dataItem) - 1; // push returns new array length.
                                     // We want the index of the last element
         dataItem.itemIndex = ix;
-        dataItem._clientIndex = this._clientToItemIndexMap.push(ix);
+
+        if (beforeIndex == null) {
+          dataItem._clientIndex = this._clientToItemIndexMap.push(ix);
+        }
+        else {
+          this._clientToItemIndexMap.splice(beforeIndex, 0, ix);
+          dataItem._clientIndex = beforeIndex;
+        }
       }
       return  dataItem;
     },

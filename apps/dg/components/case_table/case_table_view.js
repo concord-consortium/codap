@@ -871,6 +871,38 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       childView.alignChildTables(iViewportPosition, iCaseID);
     },
 
+    showCaseIndexPopup: function(iEvent, iCell) {
+      var tDataContext = this.get('dataContext'),
+          tSelection = tDataContext && tDataContext.getSelectedCases(),
+          tSelectionCount = tSelection && tSelection.get('length'),
+          tDeleteIsEnabled = tSelectionCount > 0,
+          tDeleteSingle = tSelectionCount === 1,
+          tItems = [
+            {
+              title: 'DG.CaseTable.indexMenu.insertCase',
+              localize: true,
+              target: this,
+              action: 'insertCase'
+            },
+            {
+              title: tDeleteSingle
+                        ? 'DG.CaseTable.indexMenu.deleteCase'
+                        : 'DG.CaseTable.indexMenu.deleteCases',
+              localize: true,
+              target: getController(this),
+              action: 'deleteSelectedCases',
+              isEnabled: tDeleteIsEnabled
+            }
+          ],
+          tMenu = DG.MenuPane.create({
+            classNames: 'dg-case-index-popup',
+            layout: {width: 200, height: 150},
+            items: tItems
+          });
+      this._caseIndexMenuCell = SC.copy(iCell);
+      tMenu.popup(iEvent.target);
+    },
+
     /**
      * Collapses a node in the case tree and resets all case tables below.
      * @param iCaseID {number}
@@ -898,6 +930,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         childTable._refreshDataView(true);
       }
     },
+
+  insertCase: function() {
+    var dataContext = this.get('dataContext'),
+        dataView = this.getPath('gridAdapter.gridDataView'),
+        tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
+        itemIndex = tCase && tCase.getPath('item.itemIndex');
+
+    dataContext.addItems({}, itemIndex);
+  },
+
   /**
     Destroys the SlickGrid object and its DataView.
     Used to respond to a change of game, where we recreate the SlickGrid from scratch.
@@ -1213,9 +1255,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * Clear menu, if present
    * @param iEvent
    */
-  handleClick: function (iEvent) {
-    var hierTableView = this.get('parentView');
-    hierTableView.hideHeaderMenus();
+  handleClick: function (iEvent, iCell) {
+    SC.run(function() {
+      var hierTableView = this.get('parentView');
+      hierTableView.hideHeaderMenus();
+
+      var dataItem = this._slickGrid.getDataItem(iCell.row),
+          isProtoCase = dataItem && dataItem._isProtoCase;
+      if ((iCell.cell === 0) && !isProtoCase) {
+        this.showCaseIndexPopup(iEvent, iCell);
+      }
+    }.bind(this));
   },
 
   /**

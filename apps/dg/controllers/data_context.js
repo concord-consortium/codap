@@ -1175,7 +1175,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    *
    * @param iItems {[Object] || [DG.DataItem] || Object || DG.DataItem}
    */
-  addItems: function (iItems) {
+  addItems: function (iItems, iBeforeIndex) {
     var dataSet = this.getPath('model.dataSet');
     var items = Array.isArray(iItems)?iItems:(iItems?[iItems]:[]);
     var attrs = this.getAttributes();
@@ -1183,17 +1183,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = [];
     var collectionIDCaseMap = {};
     var change;
-    items.forEach(function (item) {
-      var canonicalItem;
-      if (item instanceof DG.DataItem) {
-        canonicalItem = item;
-      } else {
-        canonicalItem = DG.DataUtilities.canonicalizeAttributeValues(attrs, item);
-        dataSet.addDataItem(canonicalItem);
-      }
+    items.forEach(function (item, index) {
+      var canonicalItem = item instanceof DG.DataItem
+                            ? item
+                            : DG.DataUtilities.canonicalizeAttributeValues(attrs, item),
+          beforeIndex = iBeforeIndex != null ? iBeforeIndex + index : null;
+      dataSet.addDataItem(canonicalItem, beforeIndex);
     });
     results = this.regenerateCollectionCases();
-
 
     results.createdCases.forEach(function (iCase) {
       var collectionID = iCase.collection.get('id');
