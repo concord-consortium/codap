@@ -65,6 +65,7 @@ DG.DataSet = SC.Object.extend((function() // closure
       this.dataItems = [];
       this.attrs = [];
       this.collectionOrder = [];
+      this._clientToItemIndexMap = [];
     },
 
     /**
@@ -169,6 +170,7 @@ DG.DataSet = SC.Object.extend((function() // closure
         ix = this.dataItems.push(dataItem) - 1; // push returns new array length.
                                     // We want the index of the last element
         dataItem.itemIndex = ix;
+        dataItem._clientIndex = this._clientToItemIndexMap.push(ix);
       }
       return  dataItem;
     },
@@ -179,7 +181,8 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {DG.DataItem} the deleted item.
      */
     deleteDataItemByIndex: function (itemIndex) {
-      var item = this.getDataItem(itemIndex);
+      var index = this._clientToItemIndexMap[itemIndex],
+          item = this.getDataItem(index);
       if (item) {
         item.deleted = true;
       }
@@ -193,8 +196,9 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {[*]|undefined} the restored DataItem.
      */
     undeleteDataItem: function (itemIndex) {
-      var item;
-      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
+      var index = this._clientToItemIndexMap[itemIndex],
+          item;
+      if (index >= 0 && index < this.dataItems.length) {
         item = this.dataItems[itemIndex];
         item.deleted = false;
       }
@@ -222,9 +226,10 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {string|number} a legal attribute value
      */
     value: function(itemIndex, attributeID, value) {
-      var item, ret;
-      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
-        item = this.dataItems[itemIndex];
+      var index = this._clientToItemIndexMap[itemIndex],
+          item, ret;
+      if (index >= 0 && index < this.dataItems.length) {
+        item = this.dataItems[index];
         if (item && !item.deleted) {
           if (value) {
             item[attributeID] = value;
@@ -235,6 +240,11 @@ DG.DataSet = SC.Object.extend((function() // closure
       return ret;
     },
 
+    getDataItems: function() {
+      return this._clientToItemIndexMap
+              .map(function(index) { return this.dataItems[index]; }.bind(this));
+    },
+
     /**
      * Retrieves an existing DataItem.
      *
@@ -242,9 +252,10 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @return {DG.DataItem|undefined}
      */
     getDataItem: function (itemIndex) {
-      var item;
-      if (itemIndex >= 0 && itemIndex < this.dataItems.length) {
-        item = this.dataItems[itemIndex];
+      var index = this._clientToItemIndexMap[itemIndex],
+          item;
+      if (index >= 0 && index < this.dataItems.length) {
+        item = this.dataItems[index];
         if (!item.deleted) {
           return item;
         }
@@ -258,6 +269,10 @@ DG.DataSet = SC.Object.extend((function() // closure
      */
     getDataItemByID: function (itemID) {
       return this.dataItems.find(function(item) { return item.id === itemID; });
+    },
+
+    compareItemsByClientIndex: function(item1, item2) {
+      return item1._clientIndex - item2._clientIndex;
     },
 
     /**

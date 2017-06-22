@@ -30,10 +30,16 @@ DG.DataItem = SC.Object.extend({
   id: null,
 
   /**
-   * Id of this item.
+   * Internal index of this item in the DataSet
    * @type {number}
    */
   itemIndex: null,
+
+  /**
+   * Index of this item in the DataSet as seen by clients
+   * @type {number}
+   */
+  _clientIndex: null,
 
   /**
    * @type boolean

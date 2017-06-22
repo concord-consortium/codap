@@ -21,7 +21,7 @@ sc_require('models/base_model');
 /** @class
 
   A container for the cases and attributes that make up a collection.
-  
+
   @extends SC.Object
 */
 DG.Collection = DG.BaseModel.extend( (function() // closure
@@ -46,6 +46,26 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
      * @type {DG.DataSet}
      */
     dataSet: null,
+
+    /**
+     * Utility function for use in sorting DataItems into user/case order.
+     * @type {function}
+     */
+    _caseCompareFunc: null,
+
+    /**
+     * Utility function for retrieving/caching the _caseCompareFunc.
+     */
+    getCaseCompareFunc: function() {
+      if (this._caseCompareFunc) return this._caseCompareFunc;
+      var itemCompareFunc = this.getPath('dataSet.compareItemsByClientIndex');
+      if (itemCompareFunc) {
+        this._caseCompareFunc = function(case1, case2) {
+                                  return itemCompareFunc(case1.item, case2.item);
+                                };
+      }
+      return this._caseCompareFunc;
+    },
 
     /**
      * A relational link back to the parent collection (if any).
@@ -524,7 +544,8 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
                             // attributes of this collection
 
       if (SC.none(items)) {
-        items = this.dataSet.dataItems.filter(function (item) { return !item.deleted; });
+        items = this.dataSet.getDataItems()
+                  .filter(function (item) { return !item.deleted; });
       }
 
 
@@ -570,15 +591,14 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     reorderCases: function (level, levelCounts, iCases, parent) {
-      var childCollection = this.children[0];
+      var childCollection = this.children[0],
+          caseCompareFunc = this.getCaseCompareFunc();
       if (SC.none(levelCounts[level])) {
         levelCounts[level] = 0;
       }
       if (SC.none(iCases)) {
         // Sort top level collection
-        this.cases.sort(function(a, b) {
-          return a.item.itemIndex - b.item.itemIndex;
-        });
+        this.cases.sort(caseCompareFunc);
         if (!SC.none(childCollection)) {
           this.cases.forEach(function (iCase) {
             var children = iCase.children;
@@ -587,9 +607,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
         }
       } else {
         // sort children
-        iCases.sort(function(a, b) {
-          return a.item.itemIndex - b.item.itemIndex;
-        });
+        iCases.sort(caseCompareFunc);
         iCases.forEach(function (iCase) {
           this.cases[levelCounts[level]++] = iCase;
           if (iCase.children && iCase.children.length>0) {
