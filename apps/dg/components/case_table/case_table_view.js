@@ -469,24 +469,34 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Creates a new case with the specified proto-case values.
    */
   commitProtoCase: function(protoCase) {
-    var context = this.get('dataContext'),
-        contextName = context.get('name'),
-        collection = protoCase && protoCase.collection,
-        attrIDs = collection && collection.getAttributeIDs();
+    var collection = protoCase && protoCase.collection,
+        attrIDs = collection && collection.getAttributeIDs(),
+        values;
     if (!collection || !attrIDs) return;
 
-    var values, createResult;
     values = attrIDs.map(function(attrID) {
                           var value = protoCase._values[attrID];
                           return value != null ? value : "";
                         });
     protoCase._values = {};
 
+    this.createCaseUndoable({ collection: collection, attrIDs: attrIDs, values: values });
+  },
+
+  /**
+    Creates a new case with the specified values.
+   */
+  createCaseUndoable: function(props) {
+    var context = this.get('dataContext'),
+        contextName = context.get('name');
+    if (!props.collection || !props.attrIDs) return;
+
+    var createResult;
     function doCreateCase() {
       return context.applyChange({
                       operation: 'createCases',
-                      attributeIDs: attrIDs,
-                      values: [ values ]
+                      attributeIDs: props.attrIDs,
+                      values: [ props.values ]
                     });
     }
 
