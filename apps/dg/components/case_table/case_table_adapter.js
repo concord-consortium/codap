@@ -605,6 +605,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         tContext.applyChange( tChange);
     },
 
+  deselectAllCases: function() {
+    var selectedRows = this.getSelectedRows();
+    if (selectedRows && selectedRows.length)
+      this.get('dataContext').applyChange({ operation: 'selectCases', select: false });
+  },
+
   /**
     Invalidates the rows corresponding to the specified cases.
     @param  iCases {Array of DG.Case}  The set of cases to mark as changed.
