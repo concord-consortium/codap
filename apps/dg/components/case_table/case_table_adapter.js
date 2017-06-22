@@ -98,8 +98,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var tResult = 'a boundary',
             tBoundaryValue = iCase.getValue( columnDef.attribute.id),
             tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue( tBoundaryValue),
-            tThumb = tBoundaryObject && tBoundaryObject.properties &&
-                      tBoundaryObject.properties.THUMB;
+            tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
+                      tBoundaryObject.jsonBoundaryObject.properties &&
+                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
         if (tThumb != null) {
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";

@@ -301,12 +301,15 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       try {
         var tBoundaryValue = iCase.getValue(tRC.areaVarID);
         if (!tBoundaryValue) return;
-        if( typeof tBoundaryValue === 'object') {
+        if( tBoundaryValue instanceof Error) {
+          stashFeature( null, tBoundaryValue.message)
+        }
+        else if( typeof tBoundaryValue === 'object') {
           if (tBoundaryValue.jsonBoundaryObject)
             tBoundaryValue = tBoundaryValue.jsonBoundaryObject;
           stashFeature( tBoundaryValue);
         }
-        if (tBoundaryValue.startsWith('http')) {
+        else if (tBoundaryValue.startsWith('http')) {
           this._featuresRemainingToFetch++;
           $.ajax({
             url: tBoundaryValue,
@@ -322,10 +325,6 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         else if(tBoundaryValue.startsWith('{')) // Assume it's the geojson itself
         {
           stashFeature( JSON.parse(tBoundaryValue));
-        }
-        else {  // Assume it's a state boundary lookup
-          this._featuresRemainingToFetch++;
-          DG.GeojsonUtils.lookupBoundary('state', tBoundaryValue, stashFeature);
         }
       }
       catch(er) {
