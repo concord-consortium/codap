@@ -469,24 +469,34 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Creates a new case with the specified proto-case values.
    */
   commitProtoCase: function(protoCase) {
-    var context = this.get('dataContext'),
-        contextName = context.get('name'),
-        collection = protoCase && protoCase.collection,
-        attrIDs = collection && collection.getAttributeIDs();
+    var collection = protoCase && protoCase.collection,
+        attrIDs = collection && collection.getAttributeIDs(),
+        values;
     if (!collection || !attrIDs) return;
 
-    var values, createResult;
     values = attrIDs.map(function(attrID) {
                           var value = protoCase._values[attrID];
                           return value != null ? value : "";
                         });
     protoCase._values = {};
 
+    this.createCaseUndoable({ collection: collection, attrIDs: attrIDs, values: values });
+  },
+
+  /**
+    Creates a new case with the specified values.
+   */
+  createCaseUndoable: function(props) {
+    var context = this.get('dataContext'),
+        contextName = context.get('name');
+    if (!props.collection || !props.attrIDs) return;
+
+    var createResult;
     function doCreateCase() {
       return context.applyChange({
                       operation: 'createCases',
-                      attributeIDs: attrIDs,
-                      values: [ values ]
+                      attributeIDs: props.attrIDs,
+                      values: [ props.values ]
                     });
     }
 
@@ -752,6 +762,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                     }.bind( this));
     this.subscribe('onColumnsResized', this.handleColumnsResized);
     this.subscribe('onColumnResizing', this.handleColumnResizing);
+    this.subscribe('onSelectedRowsChanged', this.handleSelectedRowsChanged);
 
     var sgEditController = this._slickGrid.getEditController(),
         commitFunction = sgEditController.commitCurrentEdit,
@@ -861,6 +872,38 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       childView.alignChildTables(iViewportPosition, iCaseID);
     },
 
+    showCaseIndexPopup: function(iEvent, iCell) {
+      var tDataContext = this.get('dataContext'),
+          tSelection = tDataContext && tDataContext.getSelectedCases(),
+          tSelectionCount = tSelection && tSelection.get('length'),
+          tDeleteIsEnabled = tSelectionCount > 0,
+          tDeleteSingle = tSelectionCount === 1,
+          tItems = [
+            {
+              title: 'DG.CaseTable.indexMenu.insertCase',
+              localize: true,
+              target: this,
+              action: 'insertCase'
+            },
+            {
+              title: tDeleteSingle
+                        ? 'DG.CaseTable.indexMenu.deleteCase'
+                        : 'DG.CaseTable.indexMenu.deleteCases',
+              localize: true,
+              target: getController(this),
+              action: 'deleteSelectedCases',
+              isEnabled: tDeleteIsEnabled
+            }
+          ],
+          tMenu = DG.MenuPane.create({
+            classNames: 'dg-case-index-popup',
+            layout: {width: 200, height: 150},
+            items: tItems
+          });
+      this._caseIndexMenuCell = SC.copy(iCell);
+      tMenu.popup(iEvent.target);
+    },
+
     /**
      * Collapses a node in the case tree and resets all case tables below.
      * @param iCaseID {number}
@@ -888,6 +931,43 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         childTable._refreshDataView(true);
       }
     },
+
+  insertCase: function() {
+    var dataContext = this.get('dataContext'),
+        dataView = this.getPath('gridAdapter.gridDataView'),
+        tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
+        itemID = tCase && tCase.getPath('item.id'),
+        newCaseIDs;
+
+    // insert the new case
+    DG.UndoHistory.execute(
+      DG.Command.create({
+        // not undoable yet
+        isUndoable: false,
+        execute: function() {
+          newCaseIDs = dataContext.addItems({}, itemID);
+        },
+        undo: function() {
+          // need a dataContext method that deletes cases without affecting the undo history
+          //dataContext.applyChange({ operation: 'deleteCases' });
+        },
+        redo: function() {
+          // 'undelete' the newly created data item
+        }
+      })
+    );
+
+    // synchronize selection after case insertion
+    if (newCaseIDs) {
+      var newCases = newCaseIDs.map(function(caseID) {
+                                      return dataContext.getCaseByID(caseID);
+                                    });
+      this.invokeLater(function() {
+        dataContext.applyChange({ operation: 'selectCases', cases: newCases, select: true });
+      });
+    }
+  },
+
   /**
     Destroys the SlickGrid object and its DataView.
     Used to respond to a change of game, where we recreate the SlickGrid from scratch.
@@ -1123,9 +1203,13 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     this.clearProtoCaseTimer();
 
-    if (!activeRowItem._isProtoCase && hasProtoCase) {
+    // editing another case commits the proto-case
+    if (!activeRowItem._isProtoCase && hasProtoCase)
       this.commitProtoCase(lastRowItem);
-    }
+
+    // editing the proto-case deselects other rows
+    if (activeRowItem._isProtoCase)
+      this.get('gridAdapter').deselectAllCases();
 
     // if attribute not editable and not the proto-case row, then can't edit
     if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell))
@@ -1203,9 +1287,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
    * Clear menu, if present
    * @param iEvent
    */
-  handleClick: function (iEvent) {
-    var hierTableView = this.get('parentView');
-    hierTableView.hideHeaderMenus();
+  handleClick: function (iEvent, iCell) {
+    SC.run(function() {
+      var hierTableView = this.get('parentView');
+      hierTableView.hideHeaderMenus();
+
+      var dataItem = this._slickGrid.getDataItem(iCell.row),
+          isProtoCase = dataItem && dataItem._isProtoCase;
+      if ((iCell.cell === 0) && !isProtoCase) {
+        this.showCaseIndexPopup(iEvent, iCell);
+      }
+    }.bind(this));
   },
 
   /**
@@ -1377,39 +1469,69 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     }
   },
 
-    handleColumnResizing: function (iEvent, iArgs) {
-      this.adjustHeaderForOverflow();
-    },
+  handleColumnResizing: function (iEvent, iArgs) {
+    this.adjustHeaderForOverflow();
+  },
 
-    adjustHeaderForOverflow: function () {
-      function makeLinePair($el) {
-        var text = $el.text();
-        var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
-        var $line2 = $('<span>').addClass('two-line-header-line-2').text(text);
-        $el.empty().append($line1).append($line2);
+  adjustHeaderForOverflow: function () {
+    function makeLinePair($el) {
+      var text = $el.text();
+      var $line1 = $('<span>').addClass('two-line-header-line-1').text(text);
+      var $line2 = $('<span>').addClass('two-line-header-line-2').text(text);
+      $el.empty().append($line1).append($line2);
+    }
+    function computeMiddleEllipsis($el) {
+      var width = $el.width();
+      var v1 = $('.two-line-header-line-1', $el);
+      var text = v1.text();
+      var textWidth = DG.measureTextWidth(text, {font: v1.css('font')});
+      //DG.log('text, el-w,text-w,truncating: ' + [text, width,textWidth, (textWidth > 2*width)].join());
+      if (textWidth > 2 * width) {
+        $el.addClass('two-line-header-truncating');
+      } else {
+        $el.removeClass('two-line-header-truncating');
       }
-      function computeMiddleEllipsis($el) {
-        var width = $el.width();
-        var v1 = $('.two-line-header-line-1', $el);
-        var text = v1.text();
-        var textWidth = DG.measureTextWidth(text, {font: v1.css('font')});
-        //DG.log('text, el-w,text-w,truncating: ' + [text, width,textWidth, (textWidth > 2*width)].join());
-        if (textWidth > 2 * width) {
-          $el.addClass('two-line-header-truncating');
-        } else {
-          $el.removeClass('two-line-header-truncating');
+    }
+
+    $(this.get('layer')).find('.slick-header-column').each(function (ix, cell) {
+      var $nameElement = $(cell).find('.slick-column-name');
+      var $line1 = $nameElement.find('.two-line-header-line-1');
+      if (!$line1.length) {
+        makeLinePair($nameElement);
+      }
+      computeMiddleEllipsis($nameElement);
+    });
+  },
+
+  /**
+   * Called when column widths changed
+   * @param iEvent
+   * @param {{grid: SlickGrid}}iArgs
+   */
+  handleSelectedRowsChanged: function(iEvent, iArgs) {
+    var selectedRows = iArgs.rows,
+        selectedRowCount = selectedRows && selectedRows.length,
+        editorLock = this._slickGrid.getEditorLock(),
+        editorIsActive = editorLock && editorLock.isActive(),
+        rowCount = this._slickGrid.getDataLength(),
+        lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
+        hasProtoCase = lastRowItem && lastRowItem._isProtoCase,
+        activeCell = this._slickGrid.getActiveCell(),
+        isActiveProtoCase = hasProtoCase && activeCell && (activeCell.row === rowCount - 1);
+
+      // if non-proto-case rows are selected, commit the proto-case
+      if (selectedRowCount) {
+        if (editorIsActive)
+          editorLock.commitCurrentEdit();
+        if (isActiveProtoCase && DG.ObjectMap.length(lastRowItem._values)) {
+          this.invokeLater(function() {
+            SC.run(function() {
+              this.commitProtoCase(lastRowItem);
+            }.bind(this));
+          });
         }
       }
-
-      $(this.get('layer')).find('.slick-header-column').each(function (ix, cell) {
-        var $nameElement = $(cell).find('.slick-column-name');
-        var $line1 = $nameElement.find('.two-line-header-line-1');
-        if (!$line1.length) {
-          makeLinePair($nameElement);
-        }
-        computeMiddleEllipsis($nameElement);
-      });
-    },
+  },
 
   /**
     Refreshes the column headers to accommodate new attributes.
