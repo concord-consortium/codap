@@ -93,7 +93,9 @@ DG.Document = DG.BaseModel.extend(
           appBuildNum: DG.BUILD_NUM
         };
       DG.ObjectMap.forEach(this.globalValues, function (globalKey) {
-        obj.globalValues.push(this.globalValues[globalKey].toArchive());
+        var globalValue = this.globalValues[globalKey];
+        if (globalValue.get('archivable'))
+          obj.globalValues.push(globalValue.toArchive());
       }.bind(this));
       DG.ObjectMap.forEach(this.components, function (componentKey) {
         obj.components.push(this.components[componentKey].toArchive());

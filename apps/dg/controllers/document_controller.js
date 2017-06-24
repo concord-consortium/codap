@@ -284,6 +284,10 @@ DG.DocumentController = SC.Object.extend(
 
         this.notificationManager = DG.NotificationManager.create({});
 
+        this.invokeLater(function() {
+          DG.RemoteBoundaries.registerDefaultBoundaries();
+        });
+
         // Create the individual DataContexts
         this.restoreDataContexts();
 
