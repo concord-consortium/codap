@@ -60,6 +60,27 @@ DG.UNICODE = {
   INFINITY: '\u221E'
 };
 
+DG.SimpleMap = function(object) {
+  this.map = object || {};
+};
+DG.SimpleMap.prototype.toString = function() {
+  var str = '',
+      kStrLengthThreshold = 16;
+  for (var key in this.map) { // jshint ignore:line
+    var ellipsize = str.length >= kStrLengthThreshold,
+        keyToAdd = ellipsize ? '...' : key;
+    str += (str ? ', ' : '') + keyToAdd;
+    if (ellipsize) break;
+  }
+  return '{' + str + '}';
+};
+
+DG.BoundaryMap = function(object) {
+  DG.SimpleMap.call(this, object);
+};
+DG.BoundaryMap.prototype = new DG.SimpleMap();
+DG.BoundaryMap.prototype.constructor = DG.BoundaryMap;
+
 // Error class definition follows pattern from
 // https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Error
 

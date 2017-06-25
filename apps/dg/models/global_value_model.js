@@ -63,6 +63,8 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
     }
   },
 
+  archivable: true,
+
   toArchive: function () {
     return {
       name: this.name,

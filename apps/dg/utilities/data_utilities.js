@@ -160,12 +160,17 @@ DG.DataUtilities.toString = function (iValue) {
       value = iValue.name + " " + iValue.message;
       valType = "string";
     }
+    else if (iValue instanceof DG.SimpleMap) {
+      // map has its own toString() function
+      valType = "map";
+    }
     switch( valType) {
       case "string":
         return value;
       case "number":
       case "boolean":
-        return String( iValue);
+      case "map":
+        return String(iValue);
     }
     return "";
 };
