@@ -36,6 +36,7 @@ DG.GeojsonUtils = {
   /**
    *
    * @param iBoundaryValue { {String} | {Object}}
+   * @return {{Object} | null}
    */
   boundaryObjectFromBoundaryValue: function( iBoundaryValue) {
     if( typeof iBoundaryValue === 'object') {

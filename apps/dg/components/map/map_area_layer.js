@@ -302,7 +302,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         var tBoundaryValue = iCase.getValue(tRC.areaVarID);
         if (!tBoundaryValue) return;
         if( tBoundaryValue instanceof Error) {
-          stashFeature( null, tBoundaryValue.message)
+          stashFeature( null, tBoundaryValue.message);
         }
         else if( typeof tBoundaryValue === 'object') {
           if (tBoundaryValue.jsonBoundaryObject)
@@ -332,7 +332,6 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       }
     }.bind( this));
     this._areFeaturesAdded = true;
-    this.doDraw();
   },
 
   /**
