@@ -121,6 +121,8 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                   if( iAttr.get('type') === 'boundary') {
                     tAreaName = iAttr.get('name');
                     return true;
+                  } else {
+                    return false;
                   }
                 });
               }
