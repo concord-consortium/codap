@@ -99,22 +99,22 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tLatName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   }),
                   tFoundLong = kLongNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tLongName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   }),
                   tFoundArea = kAreaNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tAreaName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   });
               if( !tFoundArea) {  // Try for an attribute that has a boundary type
                 tFoundArea = ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
@@ -124,6 +124,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                   } else {
                     return false;
                   }
+                  return false;
                 });
               }
 
