@@ -300,10 +300,6 @@ DG.DocumentController = SC.Object.extend(
         this.set('changeCount', 0);
         this.updateSavedChangeCount();
         this.set('ready', true);
-
-        this.invokeLater(function() {
-          DG.RemoteBoundaries.registerDefaultBoundaries();
-        });
       } catch (e) {
         DG.logError(e);
       }
