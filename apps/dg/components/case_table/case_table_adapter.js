@@ -96,17 +96,17 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       boundaryFormatter = function (row, cell, value, columnDef, iCase) {
         var tResult = 'a boundary',
-            tBoundaryValue = iCase.getValue( columnDef.attribute.id),
-            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue( tBoundaryValue),
+            tBoundaryValue = iCase.getValue(columnDef.attribute.id),
+            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tBoundaryValue),
             tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
-                      tBoundaryObject.jsonBoundaryObject.properties &&
-                      tBoundaryObject.jsonBoundaryObject.properties.THUMB;
+                tBoundaryObject.jsonBoundaryObject.properties &&
+                tBoundaryObject.jsonBoundaryObject.properties.THUMB;
         if (tThumb != null) {
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
         }
         return tResult;
-        },
+      },
 
       colorFormatter = function (row, cell, value, columnDef, dataContext) {
         var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),
