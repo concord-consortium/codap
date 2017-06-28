@@ -96,11 +96,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           item: this.handleItems,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
+          logMessageMonitor: this.handleLogMessageMonitor,
           selectionList: this.handleSelectionList,
           undoChangeNotice: this.handleUndoChangeNotice
         };
-
-
       },
 
       /**
@@ -110,6 +109,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (this.rpcEndpoint) {
           this.rpcEndpoint.disconnect();
         }
+
+        // filter out this instance from the log monitor list
+        var self = this;
+        var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+        dataInteractiveLogMonitor.set("logMonitors", dataInteractiveLogMonitor.get("logMonitors").filter(function (logMonitor) {
+          return logMonitor.iPhoneHandler !== self;
+        }));
 
         sc_super();
       },
@@ -1610,9 +1616,100 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.logUser(iValues);
+          this.handleLogMessageMonitor._checkLogMessage.apply(this, [iResources, iValues]);
           return {
             success: true
           };
+        }
+      },
+
+      handleLogMessageMonitor: {
+        register: function (iResource, iValues) {
+          if (!iValues.topic && !iValues.topicPrefix && !iValues.formatStr && !iValues.message) {
+            return {
+              success: false,
+              values: {
+                error: 'At least one of the following values must be passed: topic, topicPrefix, formatStr or message.'
+              }
+            };
+          }
+
+          var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+          var logMonitor = SC.Object.create({
+            iPhoneHandler: this,
+            values: {
+              id: dataInteractiveLogMonitor.get("nextLogMonitorId"),
+              clientId: iValues.clientId, // optional client supplied id that it can use to denote monitor
+              topic: iValues.topic,
+              topicPrefix: iValues.topicPrefix,
+              formatStr: iValues.formatStr,
+              message: iValues.message
+            }
+          });
+          dataInteractiveLogMonitor.get("logMonitors").pushObject(logMonitor);
+          dataInteractiveLogMonitor.set("nextLogMonitorId", dataInteractiveLogMonitor.get("nextLogMonitorId") + 1);
+
+          return {
+            success: true,
+            logMonitor: logMonitor.values
+          };
+        },
+
+        unregister: function (iResource, iValues) {
+          if (!iValues.id && !iValues.clientId) {
+            return {
+              success: false,
+              values: {
+                error: 'Missing monitor id or clientId in values'
+              }
+            };
+          }
+          var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+          dataInteractiveLogMonitor.set("logMonitors", dataInteractiveLogMonitor.get("logMonitors").filter(function (logMonitor) {
+            if (iValues.id && (iValues.id !== logMonitor.id)) {
+              return true;
+            }
+            if (iValues.clientId && (iValues.clientId !== logMonitor.clientId)) {
+              return true;
+            }
+            return false;
+          }));
+
+          return {
+            success: true
+          };
+        },
+
+        _checkLogMessage: function (iResource, iValues) {
+          // shortcut if no listeners are registered
+          var logMonitors = DG.currDocumentController().dataInteractiveLogMonitor.get("logMonitors");
+          if (logMonitors.length === 0) {
+            return;
+          }
+
+          var values = {};
+          Object.keys(iValues).forEach(function (key) {
+            values[key] = iValues[key];
+          });
+          values.message = SC.String.fmt(iValues.formatStr, iValues.replaceArgs);
+
+          logMonitors.forEach(function (logMonitor) {
+            var logMonitorValues = logMonitor.values;
+            logMonitorValues = SC.merge({
+              topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
+              topicPrefixMatches: logMonitorValues.topicPrefix && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
+              formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
+              messageMatches: logMonitorValues.message && (logMonitorValues.message === values.message)
+            }, logMonitorValues);
+            if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches || logMonitorValues.formatStrMatches || logMonitorValues.messageMatches) {
+              values.logMonitor = logMonitorValues;
+              logMonitor.iPhoneHandler.sendMessage({
+                action: "notify",
+                resource: "logMessageNotice",
+                values: values
+              });
+            }
+          }.bind(this));
         }
       },
 

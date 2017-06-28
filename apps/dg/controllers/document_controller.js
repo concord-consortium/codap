@@ -228,11 +228,24 @@ DG.DocumentController = SC.Object.extend(
     _changedObjects: null,
     _skipPatchNextTime: [],
 
+    /**
+       Object containing data interactive log monitor properties used in DG.DataInteractivePhoneHandler
+       @property {Object} dataInteractiveLogMonitor
+                 {Array}  logMonitors -- array of active log monitors set in DG.DataInteractivePhoneHandler
+                 {Number} nextLogMonitorId -- incrementing id of log monitor instances
+     */
+    dataInteractiveLogMonitor: null,
+
     init: function() {
       sc_super();
 
       this._singletonViews = {};
       this.contexts = [];
+
+      this.dataInteractiveLogMonitor = SC.Object.create({
+        logMonitors: [],
+        nextLogMonitorId: 1
+      });
 
       // If we were created with a 'content' property pointing to our document,
       // then use it; otherwise, create a new document.
