@@ -936,8 +936,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var dataContext = this.get('dataContext'),
         dataView = this.getPath('gridAdapter.gridDataView'),
         tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
+        collectionID = tCase.getPath('collection.id'),
         itemID = tCase && tCase.getPath('item.id'),
+        newItem = {},
+        parentCase,
         newCaseIDs;
+
+    // new case is child of same parent case(s)
+    while ((parentCase = tCase.get('parent'))) {
+      $.extend(newItem, parentCase.copyValues());
+      tCase = parentCase;
+    }
 
     // insert the new case
     DG.UndoHistory.execute(
@@ -945,7 +954,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         // not undoable yet
         isUndoable: false,
         execute: function() {
-          newCaseIDs = dataContext.addItems({}, itemID);
+          newCaseIDs = dataContext.addItems(newItem, itemID);
         },
         undo: function() {
           // need a dataContext method that deletes cases without affecting the undo history
@@ -959,12 +968,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     // synchronize selection after case insertion
     if (newCaseIDs) {
-      var newCases = newCaseIDs.map(function(caseID) {
-                                      return dataContext.getCaseByID(caseID);
-                                    });
-      this.invokeLater(function() {
-        dataContext.applyChange({ operation: 'selectCases', cases: newCases, select: true });
-      });
+      var newSiblingCase;
+      // auto-select the new case that is a sibling of the one clicked
+      newCaseIDs.forEach(function(caseID) {
+                          var newCase = dataContext.getCaseByID(caseID),
+                              newCaseCollectionID = newCase && newCase.getPath('collection.id');
+                          if (newCaseCollectionID === collectionID)
+                            newSiblingCase = newCase;
+                        });
+      if (newSiblingCase) {
+        this.invokeLater(function() {
+          dataContext.applyChange({ operation: 'selectCases', cases: [newSiblingCase], select: true });
+        });
+      }
     }
   },
 

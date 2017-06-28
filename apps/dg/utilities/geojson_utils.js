@@ -22,18 +22,6 @@
 DG.GeojsonUtils = {
 
   /**
-   * Object
-   */
-  boundariesCache: {
-    state: {
-      requestQueue: [],
-      boundaryIndex: null,
-      url: 'http://codap.concord.org/~bfinzer/boundaries/US_State_Boundaries.codap'
-      // url: 'http://billmbp.local/~bfinzer/US_State_Boundaries.codap'
-    }
-  },
-
-  /**
    *
    * @param iBoundaryValue { {String} | {Object}}
    * @return {{Object} | null}
@@ -55,99 +43,6 @@ DG.GeojsonUtils = {
     }
     else
       return null;
-  },
-
-  /**
-   *
-   * @param iBoundaryCollectionName {String} One of 'state', 'county', 'puma', ...
-   * @param iKey {String} The "name" of the boundary to be retrieved
-   * @param iIsFirstTime {Boolean} If true, this is the first of a sequence of calls to be made
-   * @param iCallback {Function} Called when we successfully retrieve the boundary
-   */
-  lookupBoundary: function (iBoundaryCollectionName, iKey, iCallback) {
-
-    function returnError(iError) {
-      iCallback(null, iError);
-    }
-
-    function returnDesiredBoundary() {
-      var tOnlyOneResultToReturn = tCache.requestQueue.length === 1;
-      while (tCache.requestQueue.length > 0) {
-        var tKeyCallbackPair = tCache.requestQueue.splice(0, 1)[0],
-            tKey = tKeyCallbackPair[0],
-            tCallback = tKeyCallbackPair[1],
-            tResult = tCache.boundaryIndex[tKey.toLowerCase()].jsonBoundaryObject;
-        if (tCallback)
-          tCallback(tResult);
-        else if (tOnlyOneResultToReturn)
-          return tResult;
-      }
-
-    }
-
-    var tCache = this.boundariesCache[iBoundaryCollectionName];
-    if (!tCache) {
-      returnError('Invalid boundary specification');
-      return;
-    }
-    var lookupStateBoundary = function () {
-          tCache.requestQueue.push([iKey, iCallback]);  // Remember the correct callback for its closure
-          if (!tCache.boundaryIndex && tCache.requestQueue.length === 1) {
-            $.ajax({
-              url: tCache.url,
-              context: this,
-              data: '',
-              success: processBoundaries,
-              error: function (iJqXHR, iStatus, iError) {
-                returnError('Request for US_State_Boundaries.codap failed. Status: ' + iStatus + ' Error: ' + iError);
-              },
-              dataType: 'json'
-            });
-          }
-          else if (tCache.boundaryIndex) {
-            return returnDesiredBoundary();
-          }
-        }.bind(this),
-
-        processBoundaries = function (iJSON) {
-          var tBoundariesObject,
-              tBoundariesCollection,
-              tBoundariesIDIndex = {},
-              tIndexCollection;
-          tCache.boundaryIndex = {};
-
-          tBoundariesObject = iJSON.contexts[0];
-          tBoundariesObject.collections.forEach(function (iCollection) {
-            switch (iCollection.name) {
-              case 'boundaries':
-                tBoundariesCollection = iCollection;
-                break;
-              case 'index':
-                tIndexCollection = iCollection;
-                break;
-            }
-          });
-          tBoundariesCollection.cases.forEach(function (iCase) {
-            tBoundariesIDIndex[iCase.guid] = iCase.values.boundary;
-          });
-
-          tIndexCollection.cases.forEach(function (iKeyCase) {
-            var tJSON = JSON.parse(tBoundariesIDIndex[iKeyCase.parent])/*,
-                tDivElement = document.createElement('div')*/;
-/*
-            tDivElement.clientWidth = 100;
-            tDivElement.clientHeight = 25;
-*/
-            //this.drawMiniBoundary( tJSON, tDivElement);
-            tCache.boundaryIndex[iKeyCase.values.key] = {
-              jsonBoundaryObject: tJSON/*,
-              miniBoundaryElement: tDivElement*/
-            };
-          }.bind( this));
-          returnDesiredBoundary();
-        }.bind(this);
-
-    return lookupStateBoundary();
   }
 
 };

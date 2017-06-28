@@ -277,6 +277,19 @@ DG.Case = DG.BaseModel.extend((function() {
     },
 
     /**
+     Returns a copy of the case's values.
+     */
+    copyValues: function() {
+      var valuesMap = this.get('_valuesMap'),
+          attrs = this.collection.attrs,
+          values = {};
+      attrs.forEach(function (attr) {
+        values[attr.name] = valuesMap[attr.id];
+      });
+      return values;
+    },
+
+    /**
      Override to handle 'values' specially.
      During runtime, the _valuesMap, which maps from attrID to value,
      is the definitive contents of the case. In this method, we copy the
