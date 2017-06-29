@@ -1,0 +1,20 @@
+{
+  "author": "Concord Consortium",
+  "dependencies": {
+    "btoa": "^1.1.2",
+    "librsvg": "^0.7.0",
+    "mercator-projection": "0.0.2"
+  },
+  "description": "Adds thumbnail images to the GeoJSON in a CODAP boundary file",
+  "license": "MIT",
+  "name": "generateBoundaryThumbnails",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concord-consortium/codap.git"
+  },
+  "scripts": {
+    "generate": "node app.js",
+    "lint": "eslint *.js"
+  },
+  "version": "0.0.1"
+}

@@ -124,7 +124,6 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                   } else {
                     return false;
                   }
-                  return false;
                 });
               }
 
