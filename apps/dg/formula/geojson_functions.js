@@ -35,7 +35,7 @@ DG.functionRegistry.registerFunctions((function() {
       @returns  {Object}  the object that can be passed to the map to display a boundary
      */
     'lookupBoundary': {
-      minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryOther',
+      minArgs:2, maxArgs:2, category: 'DG.Formula.FuncCategoryLookup',
       evalFn: function(iBoundaryMap, iBoundaryName) {
         if (iBoundaryMap instanceof Error) throw iBoundaryMap;
         if (iBoundaryName instanceof Error) throw iBoundaryName;

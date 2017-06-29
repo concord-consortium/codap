@@ -480,6 +480,26 @@
       "Suppose you have a data set named \"Cookies\" with attributes \"Kind\" and \"Price\". And you have a data set named \"Orders\" with an attribute named \"Cookie\". The formula lookupByKey(\"Cookies\", \"Price\", \"Kind\", Cookie) will return the price of cookies for each order."
     ]
   },
+  "lookupBoundary": {
+    "displayName": "lookupBoundary",
+    "description": "Looks up a boundary, e.g. a country boundary, in an online collection. This boundary can be displayed on a map.",
+    "args": [
+      {
+        "name": "boundary_set",
+        "type": "constant",
+        "description": "Which set of boundaries to look in. Possible values are US_state_boundaries and country_boundaries."
+      },
+      {
+        "name": "boundary_key",
+        "type": "string",
+        "description": "The name of the particular boundary to look up. Abbreviations are supported as well as full names, and case is ignored."
+      }
+    ],
+    "examples": [
+      "lookupBoundary(country_boundaries, \"Canada\") returns the boundary of Canada",
+      "lookupBoundary(US_state_boundaries, \"GA\") returns the boundary of the state of Georgia"
+    ]
+  },
   "next": {
     "displayName": "next",
     "description": "Returns the value of an expression for the next case in the data set.",
@@ -621,26 +641,6 @@
       "isFinite(5 - 9) returns true",
       "isFinite(\"123\") returns false",
       "isFinite(1/0) returns false"
-    ]
-  },
-  "lookupBoundary": {
-    "displayName": "lookupBoundary",
-    "description": "Looks up a boundary, e.g. a country boundary, in an online collection. This boundary can be displayed on a map.",
-    "args": [
-      {
-        "name": "expression",
-        "type": "string",
-        "description": "The name of the the collection of boundaries. Possible values are \"countries,\" \"US_states,\" and \"US_counties.\""
-      },
-      {
-        "name": "expression",
-        "type": "string",
-        "description": "The name of the particular boundary to look up. Abbreviations and GeoIDs are supported as well as full names."
-      }
-    ],
-    "examples": [
-      "lookupBoundary(\"countries\", \"Canada\") returns the boundary of Canada",
-      "lookupBoundary(\"US_states\", \"GA\") returns the boundary of the state of Georgia"
     ]
   },
   "number": {
