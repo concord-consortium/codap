@@ -18,7 +18,7 @@
 //  limitations under the License.
 // ==========================================================================
 
-sc_require('formula/remote_resource');
+sc_require('models/remote_resource');
 sc_require('controllers/document_controller');
 
 
@@ -95,7 +95,7 @@ DG.RemoteBoundaries = DG.RemoteResource.extend({
         boundaryData = JSON.parse(tBoundariesIDIndex[iKeyCase.parent]);
       }
       catch(e) {
-        boundaryData = new DG.SyntaxError('JSON boundary');
+        boundaryData = new DG.FailedBoundaries('JSON boundary');
       }
 
       mapValues.map[boundaryKey] = { jsonBoundaryObject: boundaryData };
@@ -124,25 +124,34 @@ DG.RemoteBoundaries.addBoundaries = function(boundaries) {
 DG.RemoteBoundaries.registerDefaultBoundaries = function() {
   if (!DG.currDocumentController().get('ready')) return;
 
-  // create internal array of boundaries
-  if (!DG.remoteBoundaries || !DG.enableBoundariesCache) {
-    var boundarySpecs = [
-          {
-            name: 'US_states',
-            format: 'codap',
-            url: 'http://codap.concord.org/~bfinzer/boundaries/US_State_Boundaries.codap'
+  function addBoundaries() {
+    if( DG.remoteBoundaries) {
+      DG.remoteBoundaries.forEach(function(remoteBoundary) {
+        DG.RemoteBoundaries.addBoundaries(remoteBoundary);
+      });
           }
-        ];
-
-    DG.remoteBoundaries = [];
-    boundarySpecs.forEach(function(spec) {
-      DG.remoteBoundaries.push(DG.RemoteBoundaries.create(spec));
-    });
   }
 
-  // add boundaries to globalsController and document
-  DG.remoteBoundaries.forEach(function(remoteBoundary) {
-    DG.RemoteBoundaries.addBoundaries(remoteBoundary);
-  });
+  // first time - create internal array of boundaries
+  if (!DG.remoteBoundaries) {
+    $.ajax({
+      url: 'http://codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
+      context: this,
+      dataType: 'json',
+      success: function (boundarySpecs, status, jqXHR) {
+        DG.remoteBoundaries = [];
+        boundarySpecs.forEach(function (spec) {
+          DG.remoteBoundaries.push(DG.RemoteBoundaries.create(spec));
+        });
+        addBoundaries();
+      }.bind(this),
+      error: function (jqXHR, status, error) {
+        console.log('Unable to read boundary specs: ' + error);
+      }
+    });
+  }
+  else
+    addBoundaries();
+
 };
 

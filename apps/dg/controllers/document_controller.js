@@ -20,6 +20,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('models/remote_boundaries');
+
 /* globals Promise */
 
 /** @class
