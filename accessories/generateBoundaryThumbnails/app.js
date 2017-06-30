@@ -41,6 +41,15 @@ function usage () {
  */
 
 (function () {
+  var kGeometryTypes = {
+    Point:true,
+    MultiPoint:true,
+    LineString:true,
+    MultiLineString:true,
+    Polygon:true,
+    MultiPolygon:true,
+    GeometryCollection:true
+  };
 
   /**
    * Attempts to read the CODAP file, parse it, and verify that it has the expected
@@ -63,11 +72,11 @@ function usage () {
       obj = JSON.parse(objString);
     } catch (ex) {console.error(ex);}
     var hasCODAPFields = obj &&
-      obj.appName === 'DG' &&
-      obj.appVersion &&
-      obj.appBuildNum &&
-      obj.contexts &&
-      obj.components
+        obj.appName === 'DG' &&
+        obj.appVersion &&
+        obj.appBuildNum &&
+        obj.contexts &&
+        obj.components
     ;
     var context = hasCODAPFields && obj.contexts[0];
     var collection = context && context.collections.find(function(c) { return c.name === 'boundaries';});
@@ -80,69 +89,136 @@ function usage () {
   }
 
   function renderGeoJSONToSVG(geojson) {
-    var paths = [],
-        bBox = {
-          xMin: Number.MAX_VALUE,
-          yMin: Number.MAX_VALUE,
-          xMax: -Number.MAX_VALUE,
-          yMax: -Number.MAX_VALUE
-        };
+    var bBox = {
+      xMin: Number.MAX_VALUE,
+      yMin: Number.MAX_VALUE,
+      xMax: -Number.MAX_VALUE,
+      yMax: -Number.MAX_VALUE
+    };
 
-    function recurseIntoArray(iArray) {
-      var tPathString = '',
-          tPath, tBox = {
-            xMin:Number.MAX_VALUE,
-            yMin:Number.MAX_VALUE,
-            xMax:-Number.MAX_VALUE,
-            yMax:-Number.MAX_VALUE
-          };
+    function adjustBBox(pt) {
+      bBox.xMin = Math.min(pt.x, bBox.xMin);
+      bBox.yMin = Math.min(pt.y, bBox.yMin);
+      bBox.xMax = Math.max(pt.x, bBox.xMax);
+      bBox.yMax = Math.max(pt.y, bBox.yMax);
+    }
 
-      iArray.forEach(function (iElement, iIndex) {
-        if (iElement.length && iElement.length > 0) {
-          if (!isNaN(iElement[0])) {
-            // var pt = {
-            //   x: iElement[0],
-            //   y: -iElement[1]
-            // };
-            var pt = merc.fromLatLngToPoint({lat: iElement[1], lng: iElement[0]});
-            tBox.xMin = Math.min(pt.x, tBox.xMin);
-            tBox.yMin = Math.min(pt.y, tBox.yMin);
-            tBox.xMax = Math.max(pt.x, tBox.xMax);
-            tBox.yMax = Math.max(pt.y, tBox.yMax);
-            if (iIndex === 0) {
-              tPathString = 'M' + pt.x + ',' + pt.y + ' L';
-            }
-            else {
-              tPathString += pt.x + ' ' + pt.y + ' ';
-            }
-          }
-          else {
-            recurseIntoArray(iElement);
-          }
+    function latLongToXY(coord) {
+      return merc.fromLatLngToPoint({lat: coord[1], lng: coord[0]});
+    }
+
+    function renderPoint(coord) {
+      if (coord) {
+        return '<circle r="3" cx="' + coord[0] + '" cy="' + coord[1] + '" />';
+      }
+    }
+    function renderLine(coords) {
+      var pathDef = coords.map(function (pt, ix){
+        if (ix === 0) {
+          return 'M'+ pt.x + ',' + pt.y + ' L';
+        } else {
+          return pt.x + ' ' + pt.y + ' ';
         }
-      });
-      if (tPathString !== '') {
-        tPathString += 'Z';
-        tPath = '<path stroke-width="0" fill="blue" d="' + tPathString + '"/>';
-        paths.push(tPath);
-        bBox = {
-          xMin: Math.min(bBox.xMin, tBox.xMin),
-          yMin: Math.min(bBox.yMin, tBox.yMin),
-          xMax: Math.max(bBox.xMax, tBox.xMax),
-          yMax: Math.max(bBox.yMax, tBox.yMax)
-        };
-      }
+      }).join();
+      return '<path stroke-width="1" stroke="blue" d="' + pathDef + '" />';
     }
-
-    if (Array.isArray(geojson)) {
-      for (var i = 0; i < geojson.length; i++) {
-        recurseIntoArray(geojson[i].geometry.coordinates);
-      }
-    } else {
-      recurseIntoArray(geojson.geometry.coordinates);
+    function renderPolygon(coords) {
+      var pathDef = coords.map(function (linearRing) {
+        return linearRing.map(function (pt, ix){
+          if (ix === 0) {
+            return 'M'+ pt.x + ',' + pt.y + ' L';
+          } else {
+            return pt.x + ' ' + pt.y + ' ';
+          }
+        }).join();
+      }).join();
+      var svg = '<path stroke-width="0" fill="blue" d="' + pathDef + '"/>';
+      return svg;
     }
-
-
+    var renderers = {
+      Point: function (geojson) {
+        var coord = latLongToXY(geojson.coordinates);
+        adjustBBox(coord);
+        return renderPoint(coord);
+      },
+      MultiPoint: function (geojson) {
+        var coords = geojson.coordinates;
+        var dots = coords.map(function (coord) {
+          var xyCoord = latLongToXY(coord);
+          adjustBBox(coord);
+          return renderPoint(xyCoord);
+        });
+        return dots.join();
+      },
+      LineString: function (geojson) {
+        var coords = geojson.coordinates;
+        var xys = coords.map(function(coord) {
+          var xy = latLongToXY(coord);
+          adjustBBox(xy);
+          return xy;
+        });
+        var svg = renderLine(xys);
+        return svg;
+      },
+      MultiLineString: function (geojson) {
+        var lines = geojson.coordinates;
+        var svg = lines.map(function (line) {
+          return renderers.LineString({coordinates: line });
+        }).join();
+      },
+      Polygon: function (geojson) {
+        var coords = geojson.coordinates;
+        var xys = coords.map(function(lineString) {
+          return lineString.map(function(coord) {
+            var xy = latLongToXY(coord);
+            adjustBBox(xy);
+            return xy;
+          });
+        });
+        var svg = renderPolygon(xys);
+        return svg;
+      },
+      MultiPolygon: function(geojson) {
+        var polygons = geojson.coordinates;
+        var svg = polygons.map(function (polygon) {
+          return renderers.Polygon({coordinates: polygon });
+        }).join();
+        return svg;
+      },
+      GeometryCollection: function (geojson) {
+        var geometries = geojson.geometries;
+        geometries.map(function(geometry) {
+          var fn = renderers[geometry.type];
+          if (!fn) {
+            console.log("Unknown type: " + geometry.type);
+          }
+          return fn(geometry);
+        }).join();
+      },
+      Feature: function (geojson) {
+        var geometry = geojson.geometry;
+        var fn = renderers[geometry.type];
+        if (!fn) {
+          console.log("Unknown type: " + geometry.type);
+        }
+        return fn(geometry);
+      },
+      FeatureCollection: function (geojson) {
+        var features = geojson.features;
+        var svg = features.map(function (feature) {
+          return renderers.Feature(feature);
+        }).join();
+      }
+    };
+    if (!geojson) {
+      return;
+    }
+    var fn = renderers[geojson.type];
+    if (!fn) {
+      console.log("Unknown type: " + geojson.type);
+      return;
+    }
+    var svg = fn(geojson);
     var imgW = bBox.xMax-bBox.xMin;
     var imgH = bBox.yMax-bBox.yMin;
     var delta = (imgW - imgH) / 2;
@@ -160,7 +236,8 @@ function usage () {
     }
     return '<?xml version="1.0" encoding="UTF-8" ?>' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" ' +
-        'viewBox="' + [x, y, w, h].join(' ') + '">' + paths.join('') + "</svg>";
+        'viewBox="' + [x, y, w, h].join(' ') + '">' + svg + "</svg>";
+
   }
 
   function convertSVGtoPNG(svgText) {
@@ -190,6 +267,18 @@ function usage () {
         if (typeof boundary === 'string' && boundary.startsWith('{')) {
           boundary = JSON.parse(boundary);
           isParsed = false;
+        }
+        if (!boundary) {
+          return;
+        }
+        // GeoJSON does not require any particular top-level type, but we need
+        // to add a property so, we wrap 'naked' geoJSON in a Feature type.
+        if (kGeometryTypes[boundary.type]) {
+          boundary = {
+            type: 'Feature',
+            properties: {},
+            geometry: boundary
+          };
         }
         var svg = renderGeoJSONToSVG(boundary);
         var png = svg && convertSVGtoPNG(svg);
