@@ -106,14 +106,14 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.invalidDocument' : '無效的JSON文件: %@1',
   'DG.AppController.openDocument.error.general': '無法開啟文件',
   'DG.AppController.openDocument.error.invalid_format': 'CODAP 無法讀取此類文件',
-  'DG.AppController.createDataSet.initialAttribute': '未命名', /* RETRANSLATE: Attribute */
-  'DG.AppController.createDataSet.name': '未命名_資料', /* RETRANSLATE: New Dataset */
-  'DG.AppController.createDataSet.collectionName': 'Cases', /* TRANSLATE: Cases */
-  'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
+  'DG.AppController.createDataSet.initialAttribute': '變項', /* RETRANSLATE: Attribute --retranslated */
+  'DG.AppController.createDataSet.name': '新數據集', /* RETRANSLATE: New Dataset --retranslated */
+  'DG.AppController.createDataSet.collectionName': '數據', /* TRANSLATE: Cases --retranslated */
+  'DG.AppController.caseTableMenu.newDataSet': '-- 新 --', /* -- new -- --retranslated */
 
   'DG.SingleTextDialog.okButton.title': "確認",
   'DG.SingleTextDialog.cancelButton.title': "取消",
-  'DG.SingleTextDialog.cancelButton.toolTip': "Dismiss the dialog without making any changes",  // TRANSLATE: "Dismiss the dialog without making any changes"
+  'DG.SingleTextDialog.cancelButton.toolTip': "關閉對話框而不進行任何更改",  // TRANSLATE: "Dismiss the dialog without making any changes --retranslated"
 
   // DG.DocumentController
   'DG.DocumentController.calculatorTitle': "計算機",
@@ -231,14 +231,14 @@ SC.stringsFor('English', {
   'DG.Redo.graph.showPlotFunction': "重做顯示繪製功能",
   'DG.Undo.graph.hidePlotFunction': "回復隱藏繪製功能",
   'DG.Redo.graph.hidePlotFunction': "重做隱藏繪製功能",
-  'DG.Undo.graph.changePlotFunction': "Undo change plotted function", // TRANSLATE: "Undo change plotted function"
-  'DG.Redo.graph.changePlotFunction': "Redo change plotted function", // TRANSLATE: "Redo change plotted function"
+  'DG.Undo.graph.changePlotFunction': "回復改變繪製功能", // TRANSLATE: "Undo change plotted function"
+  'DG.Redo.graph.changePlotFunction': "重做改變繪製功能", // TRANSLATE: "Redo change plotted function"
   'DG.Undo.graph.showPlotValue': "回復顯示繪製的值",
   'DG.Redo.graph.showPlotValue': "重做顯示繪製的值",
   'DG.Undo.graph.hidePlotValue': "回復隱藏繪製的值",
   'DG.Redo.graph.hidePlotValue': "重做顯示繪製的值",
-  'DG.Undo.graph.changePlotValue': "Undo change plotted value", // TRANSLATE: "Undo change plotted value"
-  'DG.Redo.graph.changePlotValue': "Redo change plotted value", // TRANSLATE: "Redo change plotted value"
+  'DG.Undo.graph.changePlotValue': "回復改變繪製的值", // TRANSLATE: "Undo change plotted value"
+  'DG.Redo.graph.changePlotValue': "重做改變 繪製的值", // TRANSLATE: "Redo change plotted value"
   'DG.Undo.graph.showConnectingLine': "回復顯示連接線",
   'DG.Redo.graph.showConnectingLine': "重做顯示連接線",
   'DG.Undo.graph.hideConnectingLine': "回復隱藏連接線",
