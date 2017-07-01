@@ -76,6 +76,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         this.handlerMap = {
           attribute: this.handleAttribute,
+          attributeLocation: this.handleAttributeLocation,
           attributeList: this.handleAttributeList,
           'case': this.handleCase,
           allCases: this.handleAllCases,
@@ -95,11 +96,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           item: this.handleItems,
           interactiveFrame: this.handleInteractiveFrame,
           logMessage: this.handleLogMessage,
+          logMessageMonitor: this.handleLogMessageMonitor,
           selectionList: this.handleSelectionList,
           undoChangeNotice: this.handleUndoChangeNotice
         };
-
-
       },
 
       /**
@@ -109,6 +109,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (this.rpcEndpoint) {
           this.rpcEndpoint.disconnect();
         }
+
+        // filter out this instance from the log monitor list
+        var self = this;
+        var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+        dataInteractiveLogMonitor.set("logMonitors", dataInteractiveLogMonitor.get("logMonitors").filter(function (logMonitor) {
+          return logMonitor.iPhoneHandler !== self;
+        }));
 
         sc_super();
       },
@@ -191,6 +198,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         var result = { interactiveFrame: this.get('controller')};
+        var dataContext;
+        var collection;
+        var attrName, attrKey;
 
         if (['interactiveFrame',
               'logMessage',
@@ -216,7 +226,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (!result.dataContext) { return result;}
         }
 
-        var dataContext = result.dataContext;
+        dataContext = result.dataContext;
 
         if (resourceSelector.component) {
           result.component = DG.currDocumentController().getComponentByName(resourceSelector.component) ||
@@ -235,19 +245,21 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   dataContext.getCollectionByID(resourceSelector.collection)));
         }
 
-        var collection = result.collection;
+        collection = result.collection;
 
-        if (resourceSelector.attribute) {
-          result.attribute = (
+        if (resourceSelector.attribute || resourceSelector.attributeLocation) {
+          attrKey = resourceSelector.attribute?'attribute':'attributeLocation';
+          attrName = resourceSelector[attrKey];
+          result[attrKey] = (
             (
               dataContext && (
-                  dataContext.getAttributeByName(resourceSelector.attribute) ||
-                  dataContext.getAttributeByName(dataContext.canonicalizeName(resourceSelector.attribute))
+                  dataContext.getAttributeByName(attrName) ||
+                  dataContext.getAttributeByName(dataContext.canonicalizeName(attrName))
               )
             ) ||
             (
-              !isNaN(resourceSelector.attribute) &&
-              collection && collection.getAttributeByID(resourceSelector.attribute)
+              !isNaN(attrName) &&
+              collection && collection.getAttributeByID(attrName)
             )
           );
         }
@@ -676,22 +688,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues) {
-          // returns a parent key for the appropriate parent, if any.
+          // returns a collection for the appropriate parent name, if any.
           function mapParent (context, parentName) {
             var parentKey;
             var collections;
             var collection;
 
-            if (!SC.none(parentName)) {
-              collection = context.getCollectionByName(parentName);
-              parentKey = collection? collection.get('id'): parentName;
-            } else {
+            if (SC.none(parentName)) {
               collections = context.get('collections');
               if (collections && collections.length > 0) {
                 parentKey = collections[collections.length - 1].get('id');
               }
+            } else if (typeof parentName === 'number') {
+              parentKey = parentName;
+            } else if (parentName === '_root_') {
+              parentKey = null;
+            } else {
+              collection = context.getCollectionByName(parentName);
+              parentKey = collection ? collection.get('id') : null;
             }
-            return parentKey;
+            return (!SC.none(parentKey))? context.getCollectionByID(parentKey).collection: null;
           }
 
           // returns a success indicator and ids.
@@ -896,6 +912,28 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
       }; }()),
 
+      handleAttributeLocation: {
+        /*
+         * Binds an attribute to a new collection in the data set. This
+         * is equivalent to the data context attributeMove action.
+         */
+        update: function (iResources, iValues, iMetadata) {
+          var context = iResources.dataContext;
+          var change = {
+            operation: 'moveAttribute',
+            requester: this.get('id'),
+            attr: iResources.attributeLocation,
+          };
+          if (iValues && !SC.none(iValues.collection)) {
+            change.toCollection = context.getCollectionByName(iValues.collection) ||
+                    context.getCollectionByID(iValues.collection);
+          }
+          if (iValues && !SC.none(iValues.position)) {
+            change.position = iValues.position;
+          }
+          return context.applyChange(change);
+        }
+      },
       handleAttributeList: {
         get: function (iResources) {
           var collection = iResources.collection;
@@ -1578,9 +1616,100 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.logUser(iValues);
+          this.handleLogMessageMonitor._checkLogMessage.apply(this, [iResources, iValues]);
           return {
             success: true
           };
+        }
+      },
+
+      handleLogMessageMonitor: {
+        register: function (iResource, iValues) {
+          if (!iValues.topic && !iValues.topicPrefix && !iValues.formatStr && !iValues.message) {
+            return {
+              success: false,
+              values: {
+                error: 'At least one of the following values must be passed: topic, topicPrefix, formatStr or message.'
+              }
+            };
+          }
+
+          var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+          var logMonitor = SC.Object.create({
+            iPhoneHandler: this,
+            values: {
+              id: dataInteractiveLogMonitor.get("nextLogMonitorId"),
+              clientId: iValues.clientId, // optional client supplied id that it can use to denote monitor
+              topic: iValues.topic,
+              topicPrefix: iValues.topicPrefix,
+              formatStr: iValues.formatStr,
+              message: iValues.message
+            }
+          });
+          dataInteractiveLogMonitor.get("logMonitors").pushObject(logMonitor);
+          dataInteractiveLogMonitor.set("nextLogMonitorId", dataInteractiveLogMonitor.get("nextLogMonitorId") + 1);
+
+          return {
+            success: true,
+            logMonitor: logMonitor.values
+          };
+        },
+
+        unregister: function (iResource, iValues) {
+          if (!iValues.id && !iValues.clientId) {
+            return {
+              success: false,
+              values: {
+                error: 'Missing monitor id or clientId in values'
+              }
+            };
+          }
+          var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
+          dataInteractiveLogMonitor.set("logMonitors", dataInteractiveLogMonitor.get("logMonitors").filter(function (logMonitor) {
+            if (iValues.id && (iValues.id !== logMonitor.id)) {
+              return true;
+            }
+            if (iValues.clientId && (iValues.clientId !== logMonitor.clientId)) {
+              return true;
+            }
+            return false;
+          }));
+
+          return {
+            success: true
+          };
+        },
+
+        _checkLogMessage: function (iResource, iValues) {
+          // shortcut if no listeners are registered
+          var logMonitors = DG.currDocumentController().dataInteractiveLogMonitor.get("logMonitors");
+          if (logMonitors.length === 0) {
+            return;
+          }
+
+          var values = {};
+          Object.keys(iValues).forEach(function (key) {
+            values[key] = iValues[key];
+          });
+          values.message = SC.String.fmt(iValues.formatStr, iValues.replaceArgs);
+
+          logMonitors.forEach(function (logMonitor) {
+            var logMonitorValues = logMonitor.values;
+            logMonitorValues = SC.merge({
+              topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
+              topicPrefixMatches: logMonitorValues.topicPrefix && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
+              formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
+              messageMatches: logMonitorValues.message && (logMonitorValues.message === values.message)
+            }, logMonitorValues);
+            if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches || logMonitorValues.formatStrMatches || logMonitorValues.messageMatches) {
+              values.logMonitor = logMonitorValues;
+              logMonitor.iPhoneHandler.sendMessage({
+                action: "notify",
+                resource: "logMessageNotice",
+                values: values
+              });
+            }
+          }.bind(this));
         }
       },
 

@@ -114,6 +114,10 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       });
     },
 
+    viewDidScrollHorizontally: function() {
+      this.get('contentView').parentViewDidResizeOrScroll();
+    }.observes('horizontalScrollOffset'),
+
     /**
      * The content view is where "the action" is in this class. It contains a
      * SplitView that, in turn contains a hierarchical arrangement of case tables.
@@ -142,13 +146,17 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       parentViewDidResize: function (frame) {
         frame.width = this.get('frameSize') || frame.width;
 
-        var childTableViews = this.get('childTableViews');
-        childTableViews.forEach(function(tableView) {
-          tableView.ancestorViewDidResize();
-        });
+        this.parentViewDidResizeOrScroll();
 
         // sc_super generates a call that will pass 'arguments'
         return sc_super(); // jshint ignore:line
+      },
+
+      parentViewDidResizeOrScroll: function() {
+        var childTableViews = this.get('childTableViews');
+        childTableViews.forEach(function(tableView) {
+          tableView.ancestorViewDidResizeOrScroll();
+        });
       },
 
       frameSize: function () {

@@ -1444,6 +1444,22 @@ if (typeof Slick === "undefined") {
           options.defaultFormatter;
     }
 
+    // [CC] patterned after getFormatter()
+    function getTooltipFormatter(row, column) {
+      var rowMetadata = data.getItemMetadata && data.getItemMetadata(row);
+
+      // look up by id, then index
+      var columnOverrides = rowMetadata &&
+          rowMetadata.columns &&
+          (rowMetadata.columns[column.id] || rowMetadata.columns[getColumnIndex(column.id)]);
+
+      return (columnOverrides && columnOverrides.tooltipFormatter) ||
+          (rowMetadata && rowMetadata.tooltipFormatter) ||
+          column.tooltipFormatter ||
+          (options.tooltipFormatterFactory && options.tooltipFormatterFactory.getTooltipFormatter(column)) ||
+          options.defaultTooltipFormatter;
+    }
+
     function getEditor(row, cell) {
       var column = columns[cell];
       var rowMetadata = data.getItemMetadata && data.getItemMetadata(row);
@@ -1528,26 +1544,25 @@ if (typeof Slick === "undefined") {
         }
       }
 
-      // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
-      var value = "",
-          tooltip = "",
+      var cellValue = "",
+          formattedValue = "",
+          tooltipFormatter,
+          tooltipValue = "",
           tooltipAttr = "";
+      // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
       if (d) {
-        value = getDataItemValueForColumn(d, m);
-        value = getFormatter(row, m)(row, cell, value, m, d);
-        value = value ? String(value).replace(/&/g, '&amp;')
-                                     .replace(/</g, '&lt;')
-                                     .replace(/>/g, '&gt;')
-                      : "";
-        tooltip = value && m.showCellTooltips ? value.replace(/"/g, '&quot;') : "";
-        tooltipAttr = tooltip ? " title=\"" + tooltip + "\"" : "";
+        cellValue = getDataItemValueForColumn(d, m);
+        formattedValue = getFormatter(row, m)(row, cell, cellValue, m, d);
+        tooltipFormatter = getTooltipFormatter(row, m);
+        tooltipValue = tooltipFormatter ? tooltipFormatter(row, cell, cellValue, formattedValue, m, d) : "";
+        tooltipAttr = tooltipValue ? " title=\"" + tooltipValue + "\"" : "";
       }
 
       stringArray.push("<div class='" + cellCss + "'" + tooltipAttr + ">");
 
       // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
       if (d) {
-        stringArray.push(value);
+        stringArray.push(formattedValue);
       }
 
       stringArray.push("</div>");
@@ -2406,7 +2421,7 @@ if (typeof Slick === "undefined") {
         if (!getEditorLock().isActive() || getEditorLock().commitCurrentEdit()) {
           scrollRowIntoView(cell.row, false);
           setActiveCellInternal(getCellNode(cell.row, cell.cell),
-                                (cell.row === getDataLength()) || canAutoEditCell(cell.row, cell.cell));
+                                (cell.row === getDataLength()) || canAutoEditCell(cell.row, cell.cell, 'click'));
         }
       }
     }
@@ -2746,7 +2761,7 @@ if (typeof Slick === "undefined") {
       var cell = getActiveCell();
       if (getEditorLock().commitCurrentEdit()) {
         setFocus();
-        if (canAutoEditCell(cell.row, cell.cell)) {
+        if (canAutoEditCell(cell.row, cell.cell, 'commit')) {
           navigateDown();
         }
       }
@@ -3133,11 +3148,11 @@ if (typeof Slick === "undefined") {
         var isAddNewRow = (pos.row == getDataLength());
         scrollRowIntoView(pos.row, !isAddNewRow);
         scrollCellIntoView(pos.row, pos.cell);
-        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || canAutoEditCell(pos.row, pos.cell));
+        setActiveCellInternal(getCellNode(pos.row, pos.cell), isAddNewRow || canAutoEditCell(pos.row, pos.cell, 'navigate'));
         activePosX = pos.posX;
         return true;
       } else {
-        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || canAutoEditCell(activeRow, activeCell));
+        setActiveCellInternal(getCellNode(activeRow, activeCell), (activeRow == getDataLength()) || canAutoEditCell(activeRow, activeCell, 'navigate'));
         return false;
       }
     }
@@ -3206,8 +3221,8 @@ if (typeof Slick === "undefined") {
     }
 
     // [CC] Added to enable autoEdit on a cell-by-cell basis
-    function canAutoEditCell(row, cell) {
-      return options.autoEdit || trigger(self.onBeforeAutoEditCell, {row: row, cell: cell});
+    function canAutoEditCell(row, cell, source) {
+      return options.autoEdit || trigger(self.onBeforeAutoEditCell, {row: row, cell: cell, source: source});
     }
 
     function gotoCell(row, cell, forceEdit) {
@@ -3226,7 +3241,7 @@ if (typeof Slick === "undefined") {
       var newCell = getCellNode(row, cell);
 
       // if selecting the 'add new' row, start editing right away
-      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || canAutoEditCell(row, cell));
+      setActiveCellInternal(newCell, forceEdit || (row === getDataLength()) || canAutoEditCell(row, cell, 'goto'));
 
       // if no editor was created, set the focus back on the grid
       if (!currentEditor) {

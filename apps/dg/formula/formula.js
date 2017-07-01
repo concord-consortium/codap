@@ -575,7 +575,9 @@ DG.Formula.evaluateParseTree = function( iParseTree, iContext, iEvalContext) {
     case '>':   return left > right;
     case '<=':  return left <= right;
     case '>=':  return left >= right;
+    case '==':
     case '===': return left === right;
+    case '!=':
     case '!==': return left !== right;
     case '&&':  return left && right;
     case '||':  return left || right;
@@ -736,7 +738,9 @@ DG.Formula.evaluatePostfix = function( iPostfix, iContext) {
     case '>':   result = left > right;  break;
     case '<=':  result = left <= right; break;
     case '>=':  result = left >= right; break;
+    case '==':
     case '===': result = left === right; break;
+    case '!=':
     case '!==': result = left !== right; break;
     case '&&':  result = left && right; break;
     case '||':  result = left || right; break;

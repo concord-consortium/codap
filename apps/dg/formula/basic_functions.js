@@ -116,7 +116,9 @@ DG.functionRegistry.registerFunctions((function() {
     'if': {
       minArgs: 2, maxArgs: 3, category: 'DG.Formula.FuncCategoryOther',
       evalFn: function(condition, trueValue, falseValue) {
-        return condition ? trueValue : falseValue;
+        return condition
+                ? (trueValue != null ? trueValue : '')
+                : (falseValue != null ? falseValue : '');
       }
     },
 

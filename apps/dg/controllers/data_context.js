@@ -1170,12 +1170,12 @@ DG.DataContext = SC.Object.extend((function() // closure
    * Adds items to a data set and updates collections to regenerate cases.
    * Accepts an array of items or a single item. The item can be specified as
    * a DG.DataItem or as an object mapping attribute names to values. Adds
-   * an "createCases" item to the change list and returns a list of new cases.
+   * an "createCases" item to the change list and returns a list of new case IDs.
    * The new cases may be cases of any collection in the data set.
    *
    * @param iItems {[Object] || [DG.DataItem] || Object || DG.DataItem}
    */
-  addItems: function (iItems) {
+  addItems: function (iItems, iBeforeItemID) {
     var dataSet = this.getPath('model.dataSet');
     var items = Array.isArray(iItems)?iItems:(iItems?[iItems]:[]);
     var attrs = this.getAttributes();
@@ -1183,17 +1183,13 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = [];
     var collectionIDCaseMap = {};
     var change;
-    items.forEach(function (item) {
-      var canonicalItem;
-      if (item instanceof DG.DataItem) {
-        canonicalItem = item;
-      } else {
-        canonicalItem = DG.DataUtilities.canonicalizeAttributeValues(attrs, item);
-        dataSet.addDataItem(canonicalItem);
-      }
+    items.forEach(function (item, index) {
+      var canonicalItem = item instanceof DG.DataItem
+                            ? item
+                            : DG.DataUtilities.canonicalizeAttributeValues(attrs, item);
+      dataSet.addDataItem(canonicalItem, iBeforeItemID);
     });
     results = this.regenerateCollectionCases();
-
 
     results.createdCases.forEach(function (iCase) {
       var collectionID = iCase.collection.get('id');

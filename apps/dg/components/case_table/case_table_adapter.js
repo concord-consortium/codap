@@ -32,7 +32,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 /** @scope DG.CaseTableAdapter.prototype */ {
 
       // Cell layout constants
-  var kDefaultColumnWidth = 60,
+  var kIndexColumnID = '__INDEX__',
+      kDefaultColumnWidth = 60,
+      kIndexColumnWidth = 40,
       kDefaultRowHeight = 18,
       kMaxStringLength = 256,
 
@@ -62,14 +64,19 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         if( SC.none( cellValue))
           cellValue = "";
         else if( DG.isNumeric(cellValue)) {
-          var attrPrecision = colInfo.attribute.get('precision'),
+          var attrPrecision = colInfo.attribute && colInfo.attribute.get('precision'),
               roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
               multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
           cellValue = Math.round( multiplier * cellValue) / multiplier;
         }
         else if( DG.isColorSpecString(cellValue))
           return colorFormatter(rowIndex, colIndex, cellValue, colInfo, rowItem);
-        return cellValue.toString();
+
+        // standard values are HTML-escaped
+        return cellValue.toString()
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
       },
 
       qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
@@ -87,11 +94,37 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
       },
 
+      boundaryFormatter = function (row, cell, value, columnDef, iCase) {
+        var tResult = 'a boundary',
+            tBoundaryValue = iCase.getValue(columnDef.attribute.id),
+            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tBoundaryValue),
+            tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
+                tBoundaryObject.jsonBoundaryObject.properties &&
+                tBoundaryObject.jsonBoundaryObject.properties.THUMB;
+        if (tThumb != null) {
+          tResult = "<span class='dg-boundary-thumb'>" +
+              "<img src=\'" + tThumb + "\' height='14'></span>";
+        }
+        return tResult;
+      },
+
       colorFormatter = function (row, cell, value, columnDef, dataContext) {
         var tColor = tinycolor( value.toLowerCase().replace(/\s/gi,'')),
             tSpan = "<span class='dg-color-table-cell' style= 'background:" + tColor.toString('rgb') + "'></span>";
 
         return tSpan;
+      },
+
+      tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
+        // don't show tooltips for DG-formatted HTML values
+        var tooltipValue = /<span.*class='dg-.*'.*<\/span>/.test(formattedValue) ? "" : formattedValue;
+        // HTML-escape tooltips for other values
+        return tooltipValue
+                ? formattedValue.replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                : "";
       };
 
   return {  // return from closure
@@ -270,24 +303,38 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
 
     function updateDynamicColumnProperties( iAttribute, ioColumnInfo) {
+      var prevColumnInfo = existColumnDefs[ioColumnInfo.id];
       // cell-specific editability handled by isCellEditable() method
       ioColumnInfo.editor = DG.CaseTableCellEditor;
+      if (prevColumnInfo) {
+        ioColumnInfo.width = prevColumnInfo.width;
+      }
+    }
+
+    function addIndexColumn() {
+      var indexColumnName = 'DG.CaseTable.indexColumnName'.loc(),
+          columnInfo = {
+            context: context,
+            id: kIndexColumnID,
+            name: indexColumnName,
+            field: indexColumnName,
+            toolTip: 'DG.CaseTable.indexColumnTooltip'.loc(),
+            focusable: false,
+            cssClass: 'dg-index-column',
+            formatter: cellFormatter,
+            width: kIndexColumnWidth
+          };
+      columnDefs.push(columnInfo);
     }
 
     // Build the columnInfo for a single attribute
     function processAttribute( iAttribute) {
-      // Reuse the existing column definition, if we have one
       var attrID = iAttribute.get('id').toString(),
-          existColumn = existColumnDefs[ attrID];
-      if( existColumn) {
-        updateDynamicColumnProperties( iAttribute, existColumn);
-        columnDefs.push( existColumn);
-        return;
-      }
-      // Build a new column definition if we need to
-      var collection = iAttribute.get('collection'),
+          collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
-          isQual = iAttribute.get('type') === 'qualitative',
+          attrType = iAttribute.get('type'),
+          isQual = attrType === 'qualitative',
+          isBoundary = attrType === 'boundary',
           hasFormula = iAttribute.hasFormula(),
           columnInfo = {
             context: context,
@@ -300,9 +347,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             field: attrName,
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
-            showCellTooltips: true,
             toolTip: getToolTipString( iAttribute),
-            formatter: isQual ? qualBarFormatter : cellFormatter,
+            formatter: isQual ? qualBarFormatter :
+                (isBoundary ? boundaryFormatter : cellFormatter),
+            tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             hasDependentInteractive: function () {
               return this.context.get('hasGameInteractive');
@@ -352,6 +400,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       }
     }
 
+    addIndexColumn();
+
     // Process the attributes in the collection
     collection.forEachAttribute( processAttribute.bind(this));
 
@@ -399,6 +449,14 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     @returns  {Object}  An object describing the SlickGrid options to be utilized.
    */
   buildGridOptions: function() {
+
+    var getCaseIndex = function(iRowItem) {
+      var id = iRowItem && iRowItem.get('id'),
+          idToIndexMap = this.getPath('collection.collection.caseIDToGroupedIndexMap'),
+          index = idToIndexMap && id && idToIndexMap[id];
+      return index != null ? (index + 1).toString() : "";
+    }.bind(this);
+
     this.gridOptions = {
               rowHeight: kDefaultRowHeight,
               headerRowHeight: kDefaultRowHeight*2,
@@ -416,7 +474,9 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                     });
                                   },
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
-                var value = iRowItem.getStrValue(iColumnInfo.id);
+                var value = iColumnInfo.id === kIndexColumnID
+                              ? getCaseIndex(iRowItem)
+                              : iRowItem.getStrValue(iColumnInfo.id);
                 return value &&
                     ((value.length < kMaxStringLength)?
                         value:
@@ -562,6 +622,12 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         tContext.applyChange( tChange);
     },
 
+  deselectAllCases: function() {
+    var selectedRows = this.getSelectedRows();
+    if (selectedRows && selectedRows.length)
+      this.get('dataContext').applyChange({ operation: 'selectCases', select: false });
+  },
+
   /**
     Invalidates the rows corresponding to the specified cases.
     @param  iCases {Array of DG.Case}  The set of cases to mark as changed.
@@ -596,7 +662,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             operation: 'moveAttribute',
             attr: attr,
             toCollection: tCollection,
-            position: position
+            // subtract one for index column, which doesn't correspond to an attribute
+            position: position > 0 ? position - 1 : 0
           };
       tContext.applyChange(tChange);
     },

@@ -92,39 +92,46 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           }.bind(this);
 
           var tMapCollection, tMapCollectionClient;
-          DG.currDocumentController().get('contexts').some(function (iContext) {
-            return iContext.get('collections').some(function (iCollection) {
+          DG.currDocumentController().get('contexts').forEach(function (iContext) {
+            iContext.get('collections').forEach(function (iCollection) {
               var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
                   tFoundLat = kLatNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tLatName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   }),
                   tFoundLong = kLongNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tLongName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   }),
                   tFoundArea = kAreaNames.some(function (iName) {
                     if (tAttrNames.indexOf(iName) >= 0) {
                       tAreaName = iName;
                       return true;
-                    } else
-                      return false;
+                    }
+                    return false;
                   });
+              if( !tFoundArea) {  // Try for an attribute that has a boundary type
+                tFoundArea = ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
+                  if( iAttr.get('type') === 'boundary') {
+                    tAreaName = iAttr.get('name');
+                    return true;
+                  } else {
+                    return false;
+                  }
+                });
+              }
 
               if ((tFoundLat && tFoundLong) || tFoundArea) {
                 tMapContext = iContext;
                 tMapCollection = iCollection;
                 tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
-                return true;
               }
-              else
-                return false;
             });
           });
           if (tMapCollection && tMapCollectionClient) {
@@ -311,7 +318,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             });
           }
           catch (er) {
-            // ignore exceptions
+            console.log(er);
           }
         });
 

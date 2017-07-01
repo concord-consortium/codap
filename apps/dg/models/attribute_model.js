@@ -487,11 +487,13 @@ DG.Attribute.TYPE_CATEGORICAL = 'categorical';
 DG.Attribute.TYPE_NUMERIC = 'numeric';
 DG.Attribute.TYPE_DATE = 'date';
 DG.Attribute.TYPE_QUALITATIVE = 'qualitative';
+DG.Attribute.TYPE_BOUNDARY = 'boundary';
 
 DG.Attribute.attributeTypes = [
   DG.Attribute.TYPE_UNSPECIFIED,
   DG.Attribute.TYPE_CATEGORICAL,
   DG.Attribute.TYPE_NUMERIC,
   DG.Attribute.TYPE_DATE,
-  DG.Attribute.TYPE_QUALITATIVE
+  DG.Attribute.TYPE_QUALITATIVE,
+  DG.Attribute.TYPE_BOUNDARY
 ];

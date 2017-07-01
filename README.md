@@ -44,3 +44,12 @@ How to write a simple CODAP Data Interactive using a Game API helper class.
 You can also check out the [CODAP Forum](https://groups.google.com/a/concord.org/forum/#!forum/codap) for questions and discussions on the use of CODAP.
 
 For help, send email to <codap-help@concord.org>
+
+## Translations
+
+The Chinese translation was contributed by Dr. Silvia Wen-Yu Lee’s research team 
+at National Changhua University of Education.
+
+繁體中文部分由國立彰化師範大學李文瑜博士研究團隊翻譯完成
+
+Many thanks.
