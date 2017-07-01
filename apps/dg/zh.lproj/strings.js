@@ -55,10 +55,10 @@ SC.stringsFor('English', {
   "DG 不支援其他瀏覽器",
   'DG.mainPage.titleBar.saved': '文件已儲存!',
 
-  // IS_BUILD variants of strings for InquirySpace
+  // IS_BUILD variants of strings for InquirySpace TRANSLATE
   'DG.mainPage.mainPane.versionString.IS_BUILD': "版本号 %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
-  // DG.IS_SRRI_BUILD variants of strings for SRRI build
+  // DG.IS_SRRI_BUILD variants of strings for SRRI build TRANSLATE
   'DG.mainPage.mainPane.versionString.SRRI_BUILD': "版本号 %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
   // DG.AppController
@@ -498,16 +498,16 @@ SC.stringsFor('English', {
   'DG.CaseTable.indexMenu.deleteCases': "刪除案例", //Translate "Delete Cases"
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
-  'DG.CaseTable.attribute.type.categorical': 'categorical',//categorical
+  'DG.CaseTable.attribute.type.categorical': 'categorical',//categorical Translate
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
-  'DG.CaseTable.attributeEditor.name': '變項名字', // name
-  'DG.CaseTable.attributeEditor.description': '描述', // description
-  'DG.CaseTable.attributeEditor.type': 'type', // type
-  'DG.CaseTable.attributeEditor.unit': '測量單位', // unit
-  'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision
-  'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable
+  'DG.CaseTable.attributeEditor.name': '變項名字', // name Translate
+  'DG.CaseTable.attributeEditor.description': '描述', // description Translate
+  'DG.CaseTable.attributeEditor.type': 'type', // type Translate
+  'DG.CaseTable.attributeEditor.unit': '測量單位', // unit Translate
+  'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision Translate
+  'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable Translate
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '都表格',// All tables translated
@@ -554,7 +554,7 @@ SC.stringsFor('English', {
   'DG.ScatterPlotModel.rSquared': ",\nr平方 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@* %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
-  'DG.ScatterPlotModel.slopeOnly': "線的斜率 = %@ %@",// numeric slope
+  'DG.ScatterPlotModel.slopeOnly': "線的斜率 = %@ %@",// numeric slope Translate
   'DG.ScatterPlotModel.yearsLabel': "每年",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "每天",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "每小時",// per hour - used in equation for line when x is a datetime axis
