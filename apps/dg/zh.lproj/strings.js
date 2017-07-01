@@ -490,12 +490,12 @@ SC.stringsFor('English', {
   'DG.TableController.attributeEditor.title': '變項特徵',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "移除變項以建立新的集合",
-  'DG.CaseTable.indexColumnName': '指數',
-  'DG.CaseTable.indexColumnTooltip': '集合的行號（指數)',
-  'DG.CaseTable.indexMenu.insertCase': "插案例",
-  'DG.CaseTable.indexMenu.insertCases': "插案例...",
-  'DG.CaseTable.indexMenu.deleteCase': "刪除案例",
-  'DG.CaseTable.indexMenu.deleteCases': "刪除案例",
+  'DG.CaseTable.indexColumnName': '指數', //Translate 'index'
+  'DG.CaseTable.indexColumnTooltip': '集合的行號（指數)', //Translate 'The row number (caseIndex) within the collection'
+  'DG.CaseTable.indexMenu.insertCase': "插案例", //Translate "Insert Case"
+  'DG.CaseTable.indexMenu.insertCases': "插案例...", //Translate "Insert Cases..."
+  'DG.CaseTable.indexMenu.deleteCase': "刪除案例", //Translate "Delete Case
+  'DG.CaseTable.indexMenu.deleteCases': "刪除案例", //Translate "Delete Cases"
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
   'DG.CaseTable.attribute.type.categorical': 'categorical',//categorical
