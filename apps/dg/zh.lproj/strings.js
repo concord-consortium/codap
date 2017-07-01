@@ -56,10 +56,10 @@ SC.stringsFor('English', {
   'DG.mainPage.titleBar.saved': '文件已儲存!',
 
   // IS_BUILD variants of strings for InquirySpace
-  'DG.mainPage.mainPane.versionString.IS_BUILD': "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  'DG.mainPage.mainPane.versionString.IS_BUILD': "版本号 %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
   // DG.IS_SRRI_BUILD variants of strings for SRRI build
-  'DG.mainPage.mainPane.versionString.SRRI_BUILD': "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  'DG.mainPage.mainPane.versionString.SRRI_BUILD': "版本号 %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
   // DG.AppController
   'DG.AppController.resetData.title' : "清除資料...",
@@ -356,13 +356,13 @@ SC.stringsFor('English', {
 
 
   // DG.DataContext
-  'DG.DataContext.singleCaseName': "case",
-  'DG.DataContext.pluralCaseName': "cases",
+  'DG.DataContext.singleCaseName': "案例",
+  'DG.DataContext.pluralCaseName': "案例",
   'DG.DataContext.caseCountString': "%@1 %@2",  // %@1: count, %@2: case name string
-  'DG.DataContext.setOfCasesLabel': "a collection",
+  'DG.DataContext.setOfCasesLabel': "集合",
   'DG.DataContext.collapsedRowString': "%@1 of %@2",
   'DG.DataContext.noData': "沒資料",   // "No Data"
-  'DG.DataContext.baseName': 'Data_Set_%@1',
+  'DG.DataContext.baseName': '資料組_%@1',
 
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "這個公式變項 \"%@\" 是無法編輯的",
@@ -548,8 +548,8 @@ SC.stringsFor('English', {
   'DG.ScatterPlotModel.rSquared': ",\nr平方 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@* %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
-  'DG.ScatterPlotModel.slopeOnly': "slope = %@ %@",// numeric slope
-  'DG.ScatterPlotModel.yearsLabel': "per year",// per year - used in equation for line when x is a datetime axis
+  'DG.ScatterPlotModel.slopeOnly': "線的斜率 = %@ %@",// numeric slope
+  'DG.ScatterPlotModel.yearsLabel': "每年",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "每天",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "每小時",// per hour - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.minutesLabel': "每分鐘",// per minute - used in equation for line when x is a datetime axis
@@ -564,7 +564,7 @@ SC.stringsFor('English', {
   'DG.NumberToggleView.lastDash': "\u2013",         // "-"
   'DG.NumberToggleView.lastUnchecked': "\u2610",    // "[ ]"
   'DG.NumberToggleView.lastChecked': "\u2612",      // "[x]"
-  'DG.NumberToggleView.lastLabel': "Last",    // TRANSLATE: "Last"
+  'DG.NumberToggleView.lastLabel': "最後",    // TRANSLATE: "Last"
   'DG.NumberToggleView.showAllTooltip': "點擊數字可觸發可見性。 點擊標籤可顯示全部。",  // "點擊數字可觸發可見性。 點擊標籤可顯示全部。"
   'DG.NumberToggleView.hideAllTooltip': "點擊數字可觸發可見性。 點擊標籤可隱藏全部。",  // "點擊數字可觸發可見性。 點擊標籤可隱藏全部。"
   'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only", // TRANSLATE: "Click to show last parent case only"
@@ -596,8 +596,8 @@ SC.stringsFor('English', {
   'DG.DataDisplayMenu.hideUnselectedPlural': "隱藏未選擇的案例",
   'DG.DataDisplayMenu.hideSelectedSing': "隱藏所選的案例",
   'DG.DataDisplayMenu.hideUnselectedSing': "隱藏未選擇的案例",
-  'DG.DataDisplayMenu.enableNumberToggle': "顯示 Parent 可見性切換",  // TRANSLATE: "Show Parent Visibility Toggles"
-  'DG.DataDisplayMenu.disableNumberToggle': "隱藏 Parent 可見性切換", // TRANSLATE: "Hide Parent Visibility Toggles"
+  'DG.DataDisplayMenu.enableNumberToggle': "顯示資料編號層",  // TRANSLATE: "Show Parent Visibility Toggles"
+  'DG.DataDisplayMenu.disableNumberToggle': "隱藏資料編號層", // TRANSLATE: "Hide Parent Visibility Toggles"
   'DG.DataDisplayMenu.showAll': "顯示所有案例",
   'DG.DataDisplayMenu.snapshot': "製作快照",
 
