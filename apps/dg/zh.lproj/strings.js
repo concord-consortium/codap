@@ -205,6 +205,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': '重做全部展開/縮小',
   'DG.Undo.caseTable.expandCollapseOneCase': '回復展開或縮小群組',
   'DG.Redo.caseTable.expandCollapseOneCase': '重做展開或縮小群組',
+  'DG.Undo.caseTable.resizeColumns': 'Undo auto-resize all columns',
+  'DG.Redo.caseTable.resizeColumns': 'Redo auto-resize all columns',
   'DG.Undo.document.share': "回復分享文件",
   'DG.Redo.document.share': "重做分享文件",
   'DG.Undo.document.unshare': "回復停止分享文件",
@@ -703,6 +705,7 @@ SC.stringsFor('English', {
 
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "建立新變項。匯出案例資料。",  // "建立新變項。匯出案例資料。"
+  'DG.Inspector.resize.toolTip': "Resize all columns to fit data", // "Resize all columns to fit data"
   'DG.Inspector.newAttribute': "在 %@...的新變項",  // "在 %@...的新變項"
   'DG.Inspector.randomizeAllAttributes': "全部重新整理", // "隨機化變項"
   'DG.Inspector.exportCaseData': "匯出案例資料...", // "匯出案例資料..."
