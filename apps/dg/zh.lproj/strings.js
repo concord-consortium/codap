@@ -502,6 +502,7 @@ SC.stringsFor('English', {
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
+  'DG.CaseTable.attribute.type.boundary':'國界', //boundary Translate
   'DG.CaseTable.attributeEditor.name': '變項名字', // name Translate
   'DG.CaseTable.attributeEditor.description': '描述', // description Translate
   'DG.CaseTable.attributeEditor.type': 'type', // type Translate

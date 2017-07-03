@@ -473,6 +473,7 @@ SC.stringsFor('es', {
   'DG.CaseTable.attribute.type.numeric': '(es)numeric',
   'DG.CaseTable.attribute.type.date': '(es)date',
   'DG.CaseTable.attribute.type.qualitative': '(es)qualitative',
+  'DG.CaseTable.attribute.type.boundary':'(es)boundary', //boundary Translate
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '(es)All tables',
