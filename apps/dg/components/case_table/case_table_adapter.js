@@ -411,6 +411,22 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
 
   /**
+    Returns the column info for the specified attribute.
+    @param    {string}    iAttrName -- The name of the attribute whose column should be returned
+    @returns  {object}    The column info for the specified attribute
+   */
+  getAttributeColumn: function(iAttrName) {
+    var dataContext = this.get('dataContext'),
+        attr = dataContext && dataContext.getAttributeByName(iAttrName),
+        columnIndex = this.gridColumns.findIndex(
+                                        function(iColumn) {
+                                          return attr && (attr.get('id').toString() === iColumn.id);
+                                        }),
+        columnInfo = columnIndex >= 0 ? this.gridColumns[columnIndex] : null;
+    return columnInfo ? { columnIndex: columnIndex, columnInfo: columnInfo } : null;
+  },
+
+  /**
     Updates the column information for the specified attribute.
     @param    {DG.Attribute}    iAttribute -- The attribute whose column should be updated
     @returns  {Boolean}         True if the attribute exists and was updated, false otherwise

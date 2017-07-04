@@ -46,6 +46,12 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   line-height: 1.2em;
 }
 
+.slick-column-name .dg-attr-name-edit-input {
+  height: 1.6em;
+  border: none;
+  font-weight: normal;
+}
+
 .slick-column-name .two-line-header-line-1, .slick-column-name .two-line-header-line-2 {
   display: block;
   text-align: left;

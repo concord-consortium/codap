@@ -710,13 +710,74 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
+       * Creates a new attribute and begins to edit the attribute name in place.
+       */
+      newAttribute: function(properties) {
+        var dataContext = this.get('dataContext'),
+            collection = properties.collection,
+            collectionID = collection && collection.get('id'),
+            hierTableView = this.getPath('view.contentView'),
+            caseTableView = hierTableView && hierTableView.getChildTableViewForCollection(collectionID),
+            attrName = dataContext.getNewAttributeName(),
+            attrRef;
+
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "caseTable.createAttribute",
+          undoString: 'DG.Undo.caseTable.createAttribute',
+          redoString: 'DG.Redo.caseTable.createAttribute',
+          _componentId: this.getPath('model.id'),
+          _controller: function() {
+            return DG.currDocumentController().componentControllersMap[this._componentId];
+          },
+          execute: function(isRedo) {
+            dataContext = this._controller().get('dataContext');
+            attrRef = dataContext.getAttrRefByName(attrName);
+            var change = {
+                        operation: 'createAttributes',
+                        collection: collection,
+                        attrPropsArray: [{ name: attrName }]
+                      },
+                result = dataContext && dataContext.applyChange(change);
+            if(!isRedo && result.success) {
+              this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
+                          'attributeCreate', attrName, collection.get('name'));
+              if (properties.autoEditName && caseTableView) {
+                this.invokeLater(function() {
+                  caseTableView.beginEditAttributeName(attrName);
+                });
+              }
+            } else {
+              this.set('causedChange', false);
+            }
+          },
+          undo: function() {
+            dataContext = this._controller().get('dataContext');
+            attrRef = dataContext.getAttrRefByName(attrName);
+            var attr = attrRef.attribute,
+                change = {
+                  operation: 'deleteAttributes',
+                  collection: collection,
+                  attrs: [{ id: attr.get('id'), attribute: attr }]
+                },
+                result = dataContext && dataContext.applyChange( change);
+            if(!result.success) {
+              this.set('causedChange', false);
+            }
+          },
+          redo: function() {
+            this.execute(true);
+          }
+        }));
+      },
+
+      /**
        * Method to create a new attribute with formula.
        * NOTE: this method will also replace the formula of an existing attribute of the same name (case sensitive)
        * @param iProperties --properties to pass on to the applyNewAttribute() method.
        * @param iDefaultAttrName {string} --(optional) default attribute name for the new attribute dialog
        * @param iDefaultAttrFormula {string} --(optional) default attribute formula string for the new attribute dialog
        */
-      newAttribute: function( iProperties, iDefaultAttrName, iDefaultAttrFormula ) {
+      editAttributeProperties: function( iProperties, iDefaultAttrName, iDefaultAttrFormula ) {
         var tDataContext = this.get('dataContext'),
             defaultAttrName = iDefaultAttrName || '',
             defaultAttrFormula = iDefaultAttrFormula || '',
@@ -772,7 +833,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 this.log = "%@: { name: '%@', collection: '%@', formula: '%@' }".fmt(
                             action, tAttributeName, tCollection.get('name'), tFormula);
               } else {
-                  this.set('causedChange', false);
+                this.set('causedChange', false);
               }
             },
             undo: function() {
@@ -1062,7 +1123,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         DG.assert( tRef && tAttrName, "editAttributeFormula() is missing the attribute reference or attribute name" );
         // for now we use the newAttribute() method which will replace one attribute formula with another
         // if the new attribute has the same name as the old.
-        this.newAttribute({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
+        this.editAttributeProperties({ collection: tRef.collection }, tAttrName, tAttrFormula || '' );
       },
 
       showDeletePopup: function() {
@@ -1124,7 +1185,8 @@ DG.CaseTableController = DG.ComponentController.extend(
           tItems.push({
             title: tNewAttrMenuItemStringKey.loc( collection.name),
             target: this,
-            args: [{collection: tDataContext.getCollectionByName(collection.name)}],
+            args: [{collection: tDataContext.getCollectionByName(collection.name),
+                    autoEditName: true }],
             dgAction: 'newAttribute'
           });
         }.bind(this));

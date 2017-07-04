@@ -2215,6 +2215,25 @@ DG.DataContext = SC.Object.extend((function() // closure
     return attrs;
   },
 
+  getNewAttributeName: function() {
+    var attrName = 'DG.CaseTable.defaultAttrName'.loc();
+    return this.getUniqueAttributeName(attrName);
+  },
+
+  getUniqueAttributeName: function(baseName, allowNames) {
+    var attrNames = this.getAttributes().map(function(attr) {
+                                              return attr.get('name');
+                                            }),
+        newName = this.canonicalizeName(baseName),
+        suffix = 1;
+    while ((attrNames.indexOf(newName) >= 0) &&
+          // eslint-disable-next-line no-unmodified-loop-condition
+          (!allowNames || (allowNames.indexOf(newName) < 0))) {
+      newName = baseName + ++suffix;
+    }
+    return newName;
+  },
+
   /**
    *  Returns the DG.Attribute with the specified name.
    *  Searches its collections from child => parent => grandparent order.
