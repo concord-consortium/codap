@@ -487,17 +487,20 @@
       {
         "name": "boundary_set",
         "type": "constant",
-        "description": "Which set of boundaries to look in. Possible values are US_state_boundaries and country_boundaries."
+        "description": "Which set of boundaries to look in. Possible values are country_boundaries, US_state_boundaries, US_county_boundaries, US_congressional_boundaries, and US_puma_boundaries."
       },
       {
         "name": "boundary_key",
         "type": "string",
-        "description": "The name of the particular boundary to look up. Abbreviations are supported as well as full names, and case is ignored."
+        "description": "The key to the particular boundary to look up. (Case is ignored.) For countries use names in English or 2 or 3 letter country codes. For US states use full state name or USPS abbreviation. For US counties use a geo id as in 'usssccc'. (For example us01017 is Chambers county in Alabama where 01 is the state code and 017 is the county code.) Counties keys may also be the county name followed by comma and state name or abbreviation. (For example 'Chambers, Alabama' or 'chambers, al'.) US congressional districts are specified by 'usssdd'. (For example us0801 is Colorado's 1st district where 08 is the ID for Colorado and 01 signifies the first district.) Districts may also be specified as state name followed by district number as in 'Colorado 08' or the state abbreviation followed by district number as in CO01. Finally, CODAP will recognize the LASD (Legal/Statistical Area Description Code) of the district as a key. PUMA (Public Use Microdata Areas) are geographic areas defined by the census bureau specified by an ID such as G0100200 for the PUMA that contains Huntsville Alabama."
       }
     ],
     "examples": [
       "lookupBoundary(country_boundaries, \"Canada\") returns the boundary of Canada",
-      "lookupBoundary(US_state_boundaries, \"GA\") returns the boundary of the state of Georgia"
+      "lookupBoundary(US_state_boundaries, \"GA\") returns the boundary of the state of Georgia",
+      "lookupBoundary(US_county_boundaries, \"Amador, CA\") returns the boundary of Amador county in California",
+      "lookupBoundary(US_congressional_boundaries, \"Kansas 03\") returns the boundary of Kansas' 3rd district",
+      "lookupBoundary(US_puma_boundaries, \"G2300100\") returns the boundary of the southernmost PUMA in Maine"
     ]
   },
   "next": {
