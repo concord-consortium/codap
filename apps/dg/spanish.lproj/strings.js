@@ -461,12 +461,19 @@ SC.stringsFor('es', {
   'DG.TableController.attributeEditor.title': '(es)Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "(es)drop attribute to create new collection",
+  'DG.CaseTable.indexColumnName': '(es)index',
+  'DG.CaseTable.indexColumnTooltip': '(es)The row number (caseIndex) within the collection',
+  'DG.CaseTable.indexMenu.insertCase': "(es)Insert Case",
+  'DG.CaseTable.indexMenu.insertCases': "(es)Insert Cases...",
+  'DG.CaseTable.indexMenu.deleteCase': "(es)Delete Case",
+  'DG.CaseTable.indexMenu.deleteCases': "(es)Delete Cases",
   'DG.CaseTable.attribute.type.none': '(es)',
   'DG.CaseTable.attribute.type.nominal': '(es)categorical',
   'DG.CaseTable.attribute.type.categorical': '(es)categorical',
   'DG.CaseTable.attribute.type.numeric': '(es)numeric',
   'DG.CaseTable.attribute.type.date': '(es)date',
   'DG.CaseTable.attribute.type.qualitative': '(es)qualitative',
+  'DG.CaseTable.attribute.type.boundary':'(es)boundary', //boundary Translate
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '(es)All tables',

@@ -55,11 +55,11 @@ SC.stringsFor('English', {
   "DG 不支援其他瀏覽器",
   'DG.mainPage.titleBar.saved': '文件已儲存!',
 
-  // IS_BUILD variants of strings for InquirySpace
-  'DG.mainPage.mainPane.versionString.IS_BUILD': "Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  // IS_BUILD variants of strings for InquirySpace TRANSLATE
+  'DG.mainPage.mainPane.versionString.IS_BUILD': "版本号 %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
-  // DG.IS_SRRI_BUILD variants of strings for SRRI build
-  'DG.mainPage.mainPane.versionString.SRRI_BUILD': "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
+  // DG.IS_SRRI_BUILD variants of strings for SRRI build TRANSLATE
+  'DG.mainPage.mainPane.versionString.SRRI_BUILD': "版本号 %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
 
   // DG.AppController
   'DG.AppController.resetData.title' : "清除資料...",
@@ -106,14 +106,14 @@ SC.stringsFor('English', {
   'DG.AppController.validateDocument.invalidDocument' : '無效的JSON文件: %@1',
   'DG.AppController.openDocument.error.general': '無法開啟文件',
   'DG.AppController.openDocument.error.invalid_format': 'CODAP 無法讀取此類文件',
-  'DG.AppController.createDataSet.initialAttribute': '未命名', /* RETRANSLATE: Attribute */
-  'DG.AppController.createDataSet.name': '未命名_資料', /* RETRANSLATE: New Dataset */
-  'DG.AppController.createDataSet.collectionName': 'Cases', /* TRANSLATE: Cases */
-  'DG.AppController.caseTableMenu.newDataSet': '-- new --', /* -- new -- */
+  'DG.AppController.createDataSet.initialAttribute': '變項', /* RETRANSLATE: Attribute --retranslated */
+  'DG.AppController.createDataSet.name': '新資料組', /* RETRANSLATE: New Dataset --retranslated */
+  'DG.AppController.createDataSet.collectionName': '數據', /* TRANSLATE: Cases --retranslated to "data" */
+  'DG.AppController.caseTableMenu.newDataSet': '-- 新 --', /* -- new -- --retranslated */
 
   'DG.SingleTextDialog.okButton.title': "確認",
   'DG.SingleTextDialog.cancelButton.title': "取消",
-  'DG.SingleTextDialog.cancelButton.toolTip': "Dismiss the dialog without making any changes",  // TRANSLATE: "Dismiss the dialog without making any changes"
+  'DG.SingleTextDialog.cancelButton.toolTip': "關閉對話框而不進行任何更改",  // TRANSLATE: "Dismiss the dialog without making any changes --retranslated"
 
   // DG.DocumentController
   'DG.DocumentController.calculatorTitle': "計算機",
@@ -231,14 +231,14 @@ SC.stringsFor('English', {
   'DG.Redo.graph.showPlotFunction': "重做顯示繪製功能",
   'DG.Undo.graph.hidePlotFunction': "回復隱藏繪製功能",
   'DG.Redo.graph.hidePlotFunction': "重做隱藏繪製功能",
-  'DG.Undo.graph.changePlotFunction': "Undo change plotted function", // TRANSLATE: "Undo change plotted function"
-  'DG.Redo.graph.changePlotFunction': "Redo change plotted function", // TRANSLATE: "Redo change plotted function"
+  'DG.Undo.graph.changePlotFunction': "回復更改繪製功能", // TRANSLATE: "Undo change plotted function"
+  'DG.Redo.graph.changePlotFunction': "重做更改繪製功能", // TRANSLATE: "Redo change plotted function"
   'DG.Undo.graph.showPlotValue': "回復顯示繪製的值",
   'DG.Redo.graph.showPlotValue': "重做顯示繪製的值",
   'DG.Undo.graph.hidePlotValue': "回復隱藏繪製的值",
   'DG.Redo.graph.hidePlotValue': "重做顯示繪製的值",
-  'DG.Undo.graph.changePlotValue': "Undo change plotted value", // TRANSLATE: "Undo change plotted value"
-  'DG.Redo.graph.changePlotValue': "Redo change plotted value", // TRANSLATE: "Redo change plotted value"
+  'DG.Undo.graph.changePlotValue': "回復更改繪製的值", // TRANSLATE: "Undo change plotted value"
+  'DG.Redo.graph.changePlotValue': "重做更改繪製的值", // TRANSLATE: "Redo change plotted value"
   'DG.Undo.graph.showConnectingLine': "回復顯示連接線",
   'DG.Redo.graph.showConnectingLine': "重做顯示連接線",
   'DG.Undo.graph.hideConnectingLine': "回復隱藏連接線",
@@ -333,14 +333,14 @@ SC.stringsFor('English', {
   'DG.Redo.sliderComponent.create': "重做增加滑桿",
   'DG.Undo.slider.change': "回復更改滑桿值",
   'DG.Redo.slider.change': "重做更改滑桿值",
-  'DG.Undo.slider.changeMultiples': "Undo change to slider multiples restriction",  // TRANSLATE: "Undo change to slider multiples restriction"
-  'DG.Redo.slider.changeMultiples': "Redo change to slider multiples restriction",  // TRANSLATE: "Redo change to slider multiples restriction"
-  'DG.Undo.slider.changeSpeed': "Undo change to slider max frames/sec", // TRANSLATE: "Undo change to slider max frames/sec"
-  'DG.Redo.slider.changeSpeed': "Redo change to slider max frames/sec", // TRANSLATE: "Redo change to slider max frames/sec"
-  'DG.Undo.slider.changeDirection': "Undo change to slider animation direction",  // TRANSLATE: "Undo change to slider animation direction"
-  'DG.Redo.slider.changeDirection': "Redo change to slider animation direction",  // TRANSLATE: "Redo change to slider animation direction"
-  'DG.Undo.slider.changeRepetition': "Undo change to slider animation repetition",  // TRANSLATE: "Undo change to slider animation repetition"
-  'DG.Redo.slider.changeRepetition': "Redo change to slider animation repetition",  // TRANSLATE: "Redo change to slider animation repetition"
+  'DG.Undo.slider.changeMultiples': "回復更改滑桿 multiples restriction",  // TRANSLATE: "Undo change to slider multiples restriction"
+  'DG.Redo.slider.changeMultiples': "重做更改滑桿 multiples restriction",  // TRANSLATE: "Redo change to slider multiples restriction"
+  'DG.Undo.slider.changeSpeed': "回復更改滑桿 max frames/sec", // TRANSLATE: "Undo change to slider max frames/sec"
+  'DG.Redo.slider.changeSpeed': "重做更改滑桿 max frames/sec", // TRANSLATE: "Redo change to slider max frames/sec"
+  'DG.Undo.slider.changeDirection': "回復更改滑桿動畫方向",  // TRANSLATE: "Undo change to slider animation direction"
+  'DG.Redo.slider.changeDirection': "重做更改滑桿動畫方向",  // TRANSLATE: "Redo change to slider animation direction"
+  'DG.Undo.slider.changeRepetition': "回復更改滑桿動畫重複",  // TRANSLATE: "Undo change to slider animation repetition"
+  'DG.Redo.slider.changeRepetition': "重做更改滑桿動畫重複",  // TRANSLATE: "Redo change to slider animation repetition"
   'DG.Undo.graphComponent.create': "回復增加圖表",
   'DG.Redo.graphComponent.create': "重做增加圖表",
   'DG.Undo.dataContext.create': '回復資料建立',
@@ -356,13 +356,13 @@ SC.stringsFor('English', {
 
 
   // DG.DataContext
-  'DG.DataContext.singleCaseName': "case",
-  'DG.DataContext.pluralCaseName': "cases",
+  'DG.DataContext.singleCaseName': "案例",
+  'DG.DataContext.pluralCaseName': "案例",
   'DG.DataContext.caseCountString': "%@1 %@2",  // %@1: count, %@2: case name string
-  'DG.DataContext.setOfCasesLabel': "a collection",
+  'DG.DataContext.setOfCasesLabel': "集合",
   'DG.DataContext.collapsedRowString': "%@1 of %@2",
-  'DG.DataContext.noData': "No Data",   // "No Data"
-  'DG.DataContext.baseName': 'Data_Set_%@1',
+  'DG.DataContext.noData': "沒資料",   // "No Data"
+  'DG.DataContext.baseName': '資料組_%@1',
 
   // DG.CollectionClient
   'DG.CollectionClient.cantEditFormulaErrorMsg': "這個公式變項 \"%@\" 是無法編輯的",
@@ -485,26 +485,33 @@ SC.stringsFor('English', {
   'DG.TableController.scoreAttrName': "分數",
   'DG.TableController.setScoreDlg.applyTooltip': "設定一個公式針對 '%@' 變項",
   'DG.TableController.setScoreDlg.formulaHint': "輸入一個公式來計算這個屬型",
-  'DG.TableController.newAttributeTooltip': 'Add a new attribute to this table', // TRANSLATE: "Add a new attribute to this table"
+  'DG.TableController.newAttributeTooltip': '在此表中添加一個新變項', // TRANSLATE: "Add a new attribute to this table"
 
   'DG.TableController.attributeEditor.title': '變項特徵',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "移除變項以建立新的集合",
+  'DG.CaseTable.indexColumnName': '指數', //Translate 'index'
+  'DG.CaseTable.indexColumnTooltip': '集合的行號（指數)', //Translate 'The row number (caseIndex) within the collection'
+  'DG.CaseTable.indexMenu.insertCase': "插案例", //Translate "Insert Case"
+  'DG.CaseTable.indexMenu.insertCases': "插案例...", //Translate "Insert Cases..."
+  'DG.CaseTable.indexMenu.deleteCase': "刪除案例", //Translate "Delete Case
+  'DG.CaseTable.indexMenu.deleteCases': "刪除案例", //Translate "Delete Cases"
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
-  'DG.CaseTable.attribute.type.categorical': 'categorical',
+  'DG.CaseTable.attribute.type.categorical': 'categorical',//categorical Translate
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
-  'DG.CaseTable.attributeEditor.name': 'name', // name
-  'DG.CaseTable.attributeEditor.description': 'description', // description
-  'DG.CaseTable.attributeEditor.type': 'type', // type
-  'DG.CaseTable.attributeEditor.unit': 'unit', // unit
-  'DG.CaseTable.attributeEditor.precision': 'precision', // precision
-  'DG.CaseTable.attributeEditor.editable': 'editable', // editable
+  'DG.CaseTable.attribute.type.boundary':'國界', //boundary Translate
+  'DG.CaseTable.attributeEditor.name': '變項名字', // name Translate
+  'DG.CaseTable.attributeEditor.description': '描述', // description Translate
+  'DG.CaseTable.attributeEditor.type': 'type', // type Translate
+  'DG.CaseTable.attributeEditor.unit': '測量單位', // unit Translate
+  'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision Translate
+  'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable Translate
 
   // DG.CaseTableController
-  'DG.CaseTableController.allTables': 'All tables',
+  'DG.CaseTableController.allTables': '都表格',// All tables translated
 
   // DG.AttributeFormulaView
   'DG.AttrFormView.attrNamePrompt': "變項名字:",
@@ -548,8 +555,8 @@ SC.stringsFor('English', {
   'DG.ScatterPlotModel.rSquared': ",\nr平方 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "%@ = %@* %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "%@ = %@",// x,constant
-  'DG.ScatterPlotModel.slopeOnly': "slope = %@ %@",// numeric slope
-  'DG.ScatterPlotModel.yearsLabel': "per year",// per year - used in equation for line when x is a datetime axis
+  'DG.ScatterPlotModel.slopeOnly': "線的斜率 = %@ %@",// numeric slope Translate
+  'DG.ScatterPlotModel.yearsLabel': "每年",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "每天",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "每小時",// per hour - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.minutesLabel': "每分鐘",// per minute - used in equation for line when x is a datetime axis
@@ -564,7 +571,7 @@ SC.stringsFor('English', {
   'DG.NumberToggleView.lastDash': "\u2013",         // "-"
   'DG.NumberToggleView.lastUnchecked': "\u2610",    // "[ ]"
   'DG.NumberToggleView.lastChecked': "\u2612",      // "[x]"
-  'DG.NumberToggleView.lastLabel': "Last",    // TRANSLATE: "Last"
+  'DG.NumberToggleView.lastLabel': "最後",    // TRANSLATE: "Last"
   'DG.NumberToggleView.showAllTooltip': "點擊數字可觸發可見性。 點擊標籤可顯示全部。",  // "點擊數字可觸發可見性。 點擊標籤可顯示全部。"
   'DG.NumberToggleView.hideAllTooltip': "點擊數字可觸發可見性。 點擊標籤可隱藏全部。",  // "點擊數字可觸發可見性。 點擊標籤可隱藏全部。"
   'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only", // TRANSLATE: "Click to show last parent case only"
@@ -596,8 +603,8 @@ SC.stringsFor('English', {
   'DG.DataDisplayMenu.hideUnselectedPlural': "隱藏未選擇的案例",
   'DG.DataDisplayMenu.hideSelectedSing': "隱藏所選的案例",
   'DG.DataDisplayMenu.hideUnselectedSing': "隱藏未選擇的案例",
-  'DG.DataDisplayMenu.enableNumberToggle': "Show Parent Visibility Toggles",  // TRANSLATE: "Show Parent Visibility Toggles"
-  'DG.DataDisplayMenu.disableNumberToggle': "Hide Parent Visibility Toggles", // TRANSLATE: "Hide Parent Visibility Toggles"
+  'DG.DataDisplayMenu.enableNumberToggle': "顯示資料編號層",  // TRANSLATE: "Show Parent Visibility Toggles"
+  'DG.DataDisplayMenu.disableNumberToggle': "隱藏資料編號層", // TRANSLATE: "Hide Parent Visibility Toggles"
   'DG.DataDisplayMenu.showAll': "顯示所有案例",
   'DG.DataDisplayMenu.snapshot': "製作快照",
 
@@ -612,8 +619,8 @@ SC.stringsFor('English', {
 
   // DG.AxisView
   'DG.AxisView.labelTooltip': "—點擊以改變%@ 軸變項",  // %@ is either horizontal or vertical
-  'DG.AxisView.vertical': 'vertical', // TRANSLATE: "vertical"
-  'DG.AxisView.horizontal': 'horizontal', // TRANSLATE: "horizontal"
+  'DG.AxisView.vertical': '圖垂直軸', // TRANSLATE: "vertical"
+  'DG.AxisView.horizontal': '圖水平軸', // TRANSLATE: "horizontal"
 
   // DG.DataTip
   'DG.DataTip.connectingLine': "%@: %@\n加上 %@ %@",
@@ -623,7 +630,7 @@ SC.stringsFor('English', {
   'DG.MovableMonthDayHour': "%@ %@ %@:00", // <monthname> <day> <hour>:00
 
   // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
-  'DG.PlottedFormula.defaultNamePrompt': "Formula", // TRANSLATE: "Formula"
+  'DG.PlottedFormula.defaultNamePrompt': "公式", // TRANSLATE: "Formula"
   'DG.PlottedValue.namePrompt': "Plotted Value",  // TRANSLATE: "Plotted Value"
   'DG.PlottedValue.formulaPrompt': "value =", // TRANSLATE: "value ="
   'DG.PlottedValue.formulaHint': "",
@@ -668,8 +675,8 @@ SC.stringsFor('English', {
   'DG.Inspector.displayShow': "顯示 …",  // "顯示 …"
 
   // Color Picker
-  'DG.Inspector.colorPicker.more': 'more', // TRANSLATE: "more"
-  'DG.Inspector.colorPicker.less': 'less', // TRANSLATE: "less"
+  'DG.Inspector.colorPicker.more': '更多', // TRANSLATE: "more"
+  'DG.Inspector.colorPicker.less': '更少', // TRANSLATE: "less"
 
   // Graph Inspector
   'DG.Inspector.graphTransparency': "透明",  // "透明"
