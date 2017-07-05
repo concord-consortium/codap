@@ -399,6 +399,12 @@ DG = SC.Application.create((function () // closure
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
 
     /**
+     * This URL specifies the location of a JSON file that describes the boundaries (country, state,
+     * county, congressional district, PUMA) that CODAP supports.
+     */
+    boundarySpecsUrl: 'http://codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
+
+    /**
      * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
      *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars or the background image and
      *  a iframePhone server will be setup to enable communication with the outside page.

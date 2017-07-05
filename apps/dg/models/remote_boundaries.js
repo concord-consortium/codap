@@ -135,7 +135,7 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
   // first time - create internal array of boundaries
   if (!DG.remoteBoundaries) {
     $.ajax({
-      url: 'http://codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
+      url: DG.boundarySpecsUrl,
       context: this,
       dataType: 'json',
       success: function (boundarySpecs, status, jqXHR) {
