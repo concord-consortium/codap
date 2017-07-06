@@ -50,11 +50,11 @@ DG.ArrayUtils = {
   },
 
   /**
-    Returns the index of the first array entry for which the specified
-    match function returns true. Returns -1 if no match is found.
+    Returns the first element of the array for which the specified
+    match function returns true. Returns null if no match is found.
     @param    {Array}     The array in which to search for a match
     @param    {Function}  iMatchFunc: function( iArrayElement) { ... }
-    @returns              index of first match or -1 if no match found
+    @returns              first matching element or null if no match found
    */
   firstMatch: function( iArray, iMatchFunc) {
     var i, len = iArray.length;
