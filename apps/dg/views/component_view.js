@@ -322,7 +322,7 @@ DG.ComponentView = SC.View.extend(
                   exampleNode.id = exampleNode.id + "-clone";
                   exampleNode.style.visibility = 'hidden';
                   exampleNode.style.textAlign = 'center';
-                  exampleNode.className = exampleNode.className.replace('titleview', '');
+                  exampleNode.className = exampleNode.className.replace('dg-titleview', '');
                   tParent.get('layer').appendChild(exampleNode);
                   this.set('exampleNode', exampleNode);
                 }
@@ -457,7 +457,7 @@ DG.ComponentView = SC.View.extend(
             backgroundColor: DG.RenderingUtilities.kSeeThrough,
             isVisible: false
           }),
-          classNames: ['component-border'],
+          classNames: ['dg-component-border'],
           setContentView: function (iContentView) {
             this.set('contentView', iContentView);
           }

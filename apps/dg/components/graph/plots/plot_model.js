@@ -579,7 +579,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       {
         title: 'DG.Inspector.graphCount',
         value: this_.shouldPlottedCountBeChecked('Count'),
-        classNames: 'graph-count-check'.w(),
+        classNames: 'dg-graph-count-check'.w(),
         valueDidChange: function () {
           this_.togglePlottedCount('Count');
         }.observes('value')
@@ -589,7 +589,7 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       tDescriptions.push( {
         title: 'DG.Inspector.graphPercent',
         value: this_.shouldPlottedCountBeChecked('Percent'),
-        classNames: 'graph-percent-check'.w(),
+        classNames: 'dg-graph-percent-check'.w(),
         handlingMovableValueChange: false,
         valueDidChange: function () {
           if( !this.handlingMovableValueChange)

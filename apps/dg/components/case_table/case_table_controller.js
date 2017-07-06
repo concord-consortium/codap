@@ -1108,7 +1108,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               }
             ],
             tMenu = DG.MenuPane.create({
-              classNames: 'delete-popup'.w(),
+              classNames: 'dg-delete-popup'.w(),
               layout: {width: 200, height: 150},
               items: tItems
             });
@@ -1152,7 +1152,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         });
 
         DG.MenuPane.create({
-          classNames: 'attributes-popup'.w(),
+          classNames: 'dg-attributes-popup'.w(),
           layout: {width: 200, height: 150},
           items: tItems
         }).popup(this.get('inspectorButtons')[1]);
@@ -1166,7 +1166,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         var tButtons = sc_super();
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
-              classNames: 'table-trash'.w(),
+              classNames: 'dg-table-trash'.w(),
               iconClass: 'moonicon-icon-trash',
               showBlip: true,
               target: this,
@@ -1177,7 +1177,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         );
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
-              classNames: 'table-attributes'.w(),
+              classNames: 'dg-table-attributes'.w(),
               iconClass: 'moonicon-icon-values',
               showBlip: true,
               target: this,

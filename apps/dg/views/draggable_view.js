@@ -33,7 +33,7 @@ DG.DraggableView = SC.View.extend(
 
       return {
         /** @scope DG.DraggableView.prototype */
-        classNames: 'draggable'.w(),
+        classNames: 'dg-draggable'.w(),
 
         mouseDown: function (iEvent) {
           DG.globalEditorLock.commitCurrentEdit();

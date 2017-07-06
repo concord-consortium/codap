@@ -1116,8 +1116,10 @@ input.dg-editor-text {
     border-right-width: thick;
 }
 
-.dg.ace.split-divider {
+.dg.ace.dg-split-divider {
     z-index: 0;
+    background: transparent;
+    border: 0;
 }
 @keyframes pulse {
     from {
