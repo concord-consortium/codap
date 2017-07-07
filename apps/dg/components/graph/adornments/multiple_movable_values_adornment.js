@@ -208,15 +208,18 @@ DG.MultipleMovableValuesAdornment = DG.PlotAdornment.extend(
             adjustPercentsAndCounts = function () {
 
               function formatValueString(iCPObj) {
-                var tCPString = '';
+                var tCPString = '',
+                    tPString = (tShowPercent && !SC.empty(iCPObj.percent)) ?
+                        (tShowCount ? '(%@%)' : '%@%').fmt(Math.round(iCPObj.percent)) :
+                        '';
                 if (tShowCount && !tShowPercent) {
                   tCPString = iCPObj.count.toString();
                 }
                 else if (tShowPercent && !tShowCount) {
-                  tCPString = '%@%'.fmt(Math.round(iCPObj.percent));
+                  tCPString = tPString;
                 }
                 else if (tShowCount && tShowPercent) {
-                  tCPString = '%@ (%@%)'.fmt(iCPObj.count, Math.round(iCPObj.percent));
+                  tCPString = '%@ %@'.fmt(iCPObj.count, tPString);
                 }
                 return tCPString;
               }

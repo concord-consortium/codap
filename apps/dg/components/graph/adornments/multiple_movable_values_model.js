@@ -130,7 +130,7 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
         return a - b; // ascending sort
       });
       tCountPercents.forEach(function (iCPObj, iIndex) {
-        iCPObj.percent = 100 * iCPObj.count / tTotalCount;
+        iCPObj.percent = tTotalCount === 0 ? '' : 100 * iCPObj.count / tTotalCount;
         iCPObj.lower = ( iIndex === 0) ? iAxis.get('lowerBound') : tEdges[iIndex - 1];
         iCPObj.upper = ( iIndex === tEdges.length) ? iAxis.get('upperBound') : tEdges[iIndex];
       });
@@ -257,8 +257,8 @@ DG.MultipleMovableValuesModel = DG.PlotAdornmentModel.extend(
   
   restoreStorage: function( iStorage) {
     sc_super();
-    this.isShowingCount = iStorage.isShowingCount;
-    this.isShowingPercent = iStorage.isShowingPercent;
+    this.set( 'isShowingCount', iStorage.isShowingCount);
+    this.set('isShowingPercent', iStorage.isShowingPercent);
     if( iStorage && iStorage.values) {
       iStorage.values.forEach( function( iValueStorage) {
         this.addValue( iValueStorage);
