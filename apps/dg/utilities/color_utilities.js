@@ -370,34 +370,9 @@ DG.ColorUtilities = {
    * @returns {DG.ColorUtilities.Color}
    */
   calcCategoryColor: function (iAttributeStats, iAttributeColor, iCaseValue) {
-    var /*tCaseColor,
-        tHue = iAttributeColor.h,
-        tSaturation = iAttributeColor.s,
-        tBrightness = iAttributeColor.b,
-        tOldHue = tHue,*/
-        tCategoryIndex = iAttributeStats.cellNameToCellNumber(iCaseValue)/*,
-        tNumCategories = iAttributeStats.numberOfCells()*/;
-
- /*   // if we have a valid category
-    if (tCategoryIndex >= 0 && tCategoryIndex < tNumCategories) {
-      // categories vary by hue
-      if (tNumCategories > 1) {
-        tHue = tCategoryIndex * DG.ColorUtilities.kCatHueSpread / tNumCategories;
-        tHue += tOldHue;      // shift colors so first category is desired hue;
-        tHue -= Math.floor(tHue); // get modulo to shift to [0-1] range
-      }
-      tSaturation = DG.ColorUtilities.kCatSaturation;
-      tBrightness = DG.ColorUtilities.kCatBrightness;
-      tCaseColor = DG.ColorUtilities.hsb_to_PlatformColor(tHue, tSaturation, tBrightness);
-    }
-    else {
-      tCaseColor = DG.ColorUtilities.kMissingValueCaseColor;
-    }
-
-    return tCaseColor;
- */
-    return { colorString: DG.ColorUtilities.kKellyColors[ tCategoryIndex % DG.ColorUtilities.kKellyColors.length]
-    };
+    var tCategoryIndex = iAttributeStats.cellNameToCellNumber(iCaseValue),
+        tNumColors = DG.ColorUtilities.kKellyColors.length;
+    return { colorString: DG.ColorUtilities.kKellyColors[ tCategoryIndex % tNumColors] };
   },
 
   /**
