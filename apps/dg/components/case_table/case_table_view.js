@@ -276,8 +276,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var tableController = getController(this),
             collection = this.getPath('parentView.gridAdapter.collection');
         // only respond to left-button clicks; see SC.Event for constant
-        if (tableController && collection && (evt.which === 1))
-          tableController.newAttribute({ collection: collection });
+        if (tableController && collection && (evt.which === 1)) {
+          SC.RootResponder.responder
+            .sendAction('newAttributeAction', tableController, this, this.get('pane'),
+                        { collection: collection, autoEditName: true });
+        }
       }
     }),
 
@@ -1289,6 +1292,76 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }  // For use by clients like the text box
       });
     });
+  },
+
+  /**
+    Makes the attribute name editable in the appropriate column header.
+    Since SlickGrid doesn't support editable column headers natively, we use
+    jQuery to install an <input> element and manage it completely outside SlickGrid.
+    @param  {string}  attrName -- the name of the attribute to be edited
+   */
+  beginEditAttributeName: function(attrName) {
+    var gridAdapter = this.get('gridAdapter'),
+        column = gridAdapter && gridAdapter.getAttributeColumn(attrName),
+        columnIndex = column && column.columnIndex,
+        headerColumns = this.$('.slick-header-column'),
+        $el = column && $(headerColumns[columnIndex]),
+        $nameEl = $el && $el.find('.slick-column-name'),
+        $plusEl = this.$('.dg-floating-plus');
+
+    var finishNameEdit = function() {
+          $plusEl.removeClass('disabled');
+        },
+
+        completeNameEdit = function(elt) {
+          var $input = $(elt),
+              dataContext = this.get('dataContext'),
+              newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
+          if (newName !== attrName) {
+            var controller = getController(this),
+                attrRef = dataContext && dataContext.getAttrRefByName(attrName);
+            if (attrRef && newName)
+              controller.updateAttribute(attrRef, { name: newName });
+          }
+          else {
+            this.updateColumnInfo();
+          }
+          finishNameEdit();
+        }.bind(this),
+
+        cancelNameEdit = function(elt) {
+          this.updateColumnInfo();
+          finishNameEdit();
+        }.bind(this);
+
+    if ($nameEl) {
+      $nameEl.empty().append($('<input>').addClass('dg-attr-name-edit-input').val(attrName));
+      var $input = $nameEl.find('input');
+      $input.attr({ type: 'text', autocapitalize: 'none', autocomplete: 'off',
+                     autocorrect: 'off', inputmode: 'latin-name', spellcheck: false })
+            .on('mousedown', function(evt) { evt.stopImmediatePropagation(); })
+            .on('mouseup', function(evt) { evt.stopImmediatePropagation(); })
+            .on('dragstart', function() { return false; })
+            .on('click', function(evt) {
+                          evt.preventDefault();
+                          evt.stopImmediatePropagation();
+                        })
+            .on('change', function() { completeNameEdit(this); })
+            .on('blur', function() { completeNameEdit(this); })
+            .on('keydown', function(evt) {
+                            switch(evt.keyCode) {
+                              case 13:
+                                completeNameEdit(this);
+                                break;
+                              case 27:
+                                cancelNameEdit(this);
+                                break;
+                            }
+                          })
+            .focus()
+            .select();
+      $plusEl.addClass('disabled');
+    }
   },
 
   /**

@@ -43,7 +43,7 @@ DG.WebViewController = DG.ComponentController.extend(
         var tButtons = sc_super();
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
-              classNames: 'web-view-url'.w(),
+              classNames: 'dg-web-view-url'.w(),
               iconClass: 'moonicon-icon-mediaTool',
               showBlip: false,
               target: this,

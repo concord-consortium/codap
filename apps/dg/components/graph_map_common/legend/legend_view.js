@@ -194,7 +194,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         sc_super();
 
         this.choroplethView = DG.ChoroplethView.create( {
-          classNames: 'choropleth'.w(),
+          classNames: 'dg-choropleth'.w(),
           layout: { left: kHMargin, right: kHMargin, top: kVMargin, bottom: kVMargin },
           isVisible: false,
           model: this.get('model')

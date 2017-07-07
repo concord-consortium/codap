@@ -431,7 +431,7 @@ DG.GraphController = DG.DataDisplayController.extend(
                 label: 'DG.Inspector.backgroundColor',
                 controlView: DG.PickerColorControl.create({
                   layout: {width: 120},
-                  classNames: 'graph-point-color'.w(),
+                  classNames: 'dg-graph-point-color'.w(),
                   initialColor: tInitialColor,
                   setColorFunc: setColor,
                   closedFunc: setColorFinalized,
@@ -443,7 +443,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             layout: {height: 25 },
             title: 'DG.Inspector.graphTransparency',
             value: this.getPath('graphModel.isTransparent'),
-            classNames: 'graph-transparent-check'.w(),
+            classNames: 'dg-graph-transparent-check'.w(),
             localize: true,
             valueDidChange: function () {
               var turningTransparent = !this.getPath('graphModel.isTransparent'),

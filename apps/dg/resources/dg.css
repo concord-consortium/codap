@@ -275,6 +275,11 @@
     opacity: 0.5;
 }
 
+/* hidden in selected components when explicitly disabled */
+.dg-component-view-selected .dg-floating-plus.disabled {
+    visibility: hidden;
+}
+
 /* hidden in unselected components */
 .dg-floating-plus {
     visibility: hidden;
@@ -1116,8 +1121,10 @@ input.dg-editor-text {
     border-right-width: thick;
 }
 
-.dg.ace.split-divider {
+.dg.ace.dg-split-divider {
     z-index: 0;
+    background: transparent;
+    border: 0;
 }
 @keyframes pulse {
     from {

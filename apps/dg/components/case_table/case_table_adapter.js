@@ -411,6 +411,22 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
   },
 
   /**
+    Returns the column info for the specified attribute.
+    @param    {string}    iAttrName -- The name of the attribute whose column should be returned
+    @returns  {object}    The column info for the specified attribute
+   */
+  getAttributeColumn: function(iAttrName) {
+    var dataContext = this.get('dataContext'),
+        attr = dataContext && dataContext.getAttributeByName(iAttrName),
+        columnIndex = this.gridColumns.findIndex(
+                                        function(iColumn) {
+                                          return attr && (attr.get('id').toString() === iColumn.id);
+                                        }),
+        columnInfo = columnIndex >= 0 ? this.gridColumns[columnIndex] : null;
+    return columnInfo ? { columnIndex: columnIndex, columnInfo: columnInfo } : null;
+  },
+
+  /**
     Updates the column information for the specified attribute.
     @param    {DG.Attribute}    iAttribute -- The attribute whose column should be updated
     @returns  {Boolean}         True if the attribute exists and was updated, false otherwise
@@ -729,32 +745,11 @@ DG.CaseTableCellEditor = function CaseTableCellEditor(args) {
         // Attempt to complete the edit whenever we lose focus
         DG.globalEditorLock.commitCurrentEdit();
       })
+      .bind('mousedown', function(e) { e.stopImmediatePropagation(); })
+      .bind('mouseup', function(e) { e.stopImmediatePropagation(); })
       .bind('click', function (e) {
-        // for unknown reasons, click in the input box does not
-        // position the input caret, so we do it ourselves...
-        function positionCaret($el, text, xPosition) {
-          var $div = $('<div>').text(text);
-          var length = text.length;
-          var pos;
-          $div.css({
-            position: 'absolute',
-            left: '-100px',
-            top: '-100px',
-            fontWeight: $el.css('font-weight'),
-            fontFamily: $el.css('font-family'),
-            fontSize: $el.css('font-size')
-          });
-          $('body').append($div);
-          pos = Math.round(xPosition*length/$div.width());
-          $div.remove();
-          $el[0].setSelectionRange(pos, pos);
-        }
-        positionCaret($(this), $(this).val(), e.offsetX);
         e.preventDefault();
         e.stopImmediatePropagation();
-      })
-      .bind('dblclick', function(e) {
-        this.setSelectionRange(0, $(this).val().length);
       })
       .focus()
       .select();

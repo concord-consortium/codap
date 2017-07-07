@@ -394,6 +394,13 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       contentView.removeChild(view);
     },
 
+    getChildTableViewForCollection: function(collectionID) {
+      var childTableViews = this.get('childTableViews');
+      return DG.ArrayUtils.firstMatch(childTableViews, function(tableView) {
+                              return tableView.getPath('gridAdapter.collection.id') === collectionID;
+                            });
+    },
+
     /**
       An array of child table view object, one for each subtable.
       @property   {[DG.CaseTableView]}
@@ -672,7 +679,7 @@ DG.InertSplitDividerView = SC.View.extend(SC.SplitChild,
   edge of the subview.
 */
 SC.BaseTheme.inertSplitDividerRenderDelegate = SC.RenderDelegate.create({
-  className: 'split-divider',
+  className: 'dg-split-divider',
   dividerSize: 1,
 
   // We would like the divider size to be exactly one pixel,
