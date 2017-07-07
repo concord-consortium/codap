@@ -59,28 +59,70 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return tName + (!SC.empty( tUnit) ? ' (' + tUnit + ')' : '');
       },
 
-      // Simple formatter currently rounds to precision rather than actually formatting.
-      cellFormatter = function( rowIndex, colIndex, cellValue, colInfo, rowItem) {
-        if( SC.none( cellValue))
-          cellValue = "";
-        else if( DG.isNumeric(cellValue)) {
-          var attrPrecision = colInfo.attribute && colInfo.attribute.get('precision'),
-              roundDigits = !SC.none(attrPrecision) ? attrPrecision : 2,
-              multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
-          cellValue = Math.round( multiplier * cellValue) / multiplier;
-        }
-        else if( DG.isColorSpecString(cellValue))
-          return colorFormatter(rowIndex, colIndex, cellValue, colInfo, rowItem);
+      /**
+       * Formats table cells.
+       *
+       * Implements slickgrid cellformatter api.
+       *
+       * @param rowIndex {number}
+       * @param colIndex {number}
+       * @param cellValue {DG.Case}
+       * @param colInfo {Object} Slickgrid colInfo object.
+       * @param rowItem
+       * @return {DOMElement|string} formatted cell contents
+       */
+      cellFormatter = function (rowIndex, colIndex, cellValue, colInfo, rowItem) {
+        var result;
+        try {
+          var attr = colInfo.attribute;
+          var type = attr && attr.get('type');
+          var precision = attr && attr.get('precision');
 
-        // standard values are HTML-escaped
-        return cellValue.toString()
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
+          if (SC.none(cellValue)) {
+            result = "";
+          } else if (type === 'qualitative') {
+            result = qualBarFormatter(cellValue);
+          } else if (type === 'boundary') {
+            result = boundaryFormatter(rowIndex, colIndex, cellValue, colInfo,
+                rowItem);
+          } else if (DG.isNumeric(cellValue)) {
+            result = numberFormatter(cellValue, type, precision);
+          } else if (DG.isColorSpecString(cellValue)) {
+            result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
+                rowItem);
+          } else if (DG.isDate(cellValue)) {
+            DG.formatDate(cellValue);
+          } else if (typeof cellValue === 'string') {
+            result = stringFormatter(cellValue);
+          } else {
+            DG.log('caseTableAdapter.cellFormatter: unhandled value type ' +
+                'for %@: %@'.loc(colInfo.name, cellValue.toString()));
+            result = '';
+          }
+
+        } catch (ex) {
+          DG.logWarn('Error in cell formatter: ' + ex);
+          result = 'error';
+        }
+        return result;
       },
 
-      qualBarFormatter = function (row, cell, value, columnDef, dataContext) {
-        if (value == null || value === "") {
+      numberFormatter = function (cellValue, type, precision) {
+        var roundDigits = !SC.none(precision)? precision : 2,
+            multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
+        return '' + (Math.round( multiplier * cellValue) / multiplier);
+      },
+
+      stringFormatter = function (cellValue) {
+        cellValue = cellValue.toString().substring(0, kMaxStringLength);
+        // standard values are HTML-escaped
+        return cellValue.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+      },
+
+      qualBarFormatter = function (value) {
+        if (value === null || value === undefined || value === "") {
           return "";
         }
 
@@ -101,7 +143,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
                 tBoundaryObject.jsonBoundaryObject.properties &&
                 tBoundaryObject.jsonBoundaryObject.properties.THUMB;
-        if (tThumb != null) {
+        if (tThumb !== null && tThumb !== undefined) {
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
         }
@@ -332,9 +374,6 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var attrID = iAttribute.get('id').toString(),
           collection = iAttribute.get('collection'),
           attrName = iAttribute.get('name'),
-          attrType = iAttribute.get('type'),
-          isQual = attrType === 'qualitative',
-          isBoundary = attrType === 'boundary',
           hasFormula = iAttribute.hasFormula(),
           columnInfo = {
             context: context,
@@ -348,8 +387,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             focusable: !hasFormula,
             cssClass: hasFormula? 'dg-formula-column': undefined,
             toolTip: getToolTipString( iAttribute),
-            formatter: isQual ? qualBarFormatter :
-                (isBoundary ? boundaryFormatter : cellFormatter),
+            formatter: cellFormatter,
             tooltipFormatter: tooltipFormatter,
             width: this.getPreferredColumnWidth(iAttribute.get('id')),
             hasDependentInteractive: function () {
@@ -438,14 +476,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                           function( iColumn) {
                                             return iAttribute.get('id').toString() === iColumn.id;
                                           });
-    var isQual = iAttribute.get('type') === 'qualitative';
 
     if( column) {
 
       column.name = getColumnHeaderString( iAttribute);
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);
-      column.formatter = isQual ? qualBarFormatter : cellFormatter;
+      column.formatter = cellFormatter;
       column.cssClass = iAttribute.get('hasFormula')? 'dg-formula-column': undefined;
       if( iAttribute.get('editable') && !iAttribute.get('hasFormula'))
         column.editor = DG.CaseTableCellEditor;
@@ -470,7 +507,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var id = iRowItem && iRowItem.get('id'),
           idToIndexMap = this.getPath('collection.collection.caseIDToGroupedIndexMap'),
           index = idToIndexMap && id && idToIndexMap[id];
-      return index != null ? (index + 1).toString() : "";
+      return (index !== null && index !== undefined) ? (index + 1).toString() : "";
     }.bind(this);
 
     this.gridOptions = {
@@ -492,11 +529,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
               dataItemColumnValueExtractor: function (iRowItem, iColumnInfo) {
                 var value = iColumnInfo.id === kIndexColumnID
                               ? getCaseIndex(iRowItem)
-                              : iRowItem.getStrValue(iColumnInfo.id);
-                return value &&
-                    ((value.length < kMaxStringLength)?
-                        value:
-                        value.substring(0, kMaxStringLength));
+                              : iRowItem.getValue(iColumnInfo.id);
+                return value;
               }
            };
     return this.gridOptions;
