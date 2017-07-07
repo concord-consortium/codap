@@ -83,18 +83,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           } else if (type === 'qualitative') {
             result = qualBarFormatter(cellValue);
           } else if (type === 'boundary') {
-            result = boundaryFormatter(rowIndex, colIndex, cellValue, colInfo,
-                rowItem);
+            result = boundaryFormatter(cellValue);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
             result = colorFormatter(rowIndex, colIndex, cellValue, colInfo,
                 rowItem);
           } else if (DG.isDate(cellValue)) {
-            DG.formatDate(cellValue);
-          } else if (typeof cellValue === 'string') {
+            result = DG.formatDate(cellValue);
+          } else if (typeof cellValue === 'string' || (cellValue instanceof Error)) {
             result = stringFormatter(cellValue);
-          } else {
+          }
+          else {
             DG.log('caseTableAdapter.cellFormatter: unhandled value type ' +
                 'for %@: %@'.loc(colInfo.name, cellValue.toString()));
             result = '';
@@ -136,16 +136,21 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
       },
 
-      boundaryFormatter = function (row, cell, value, columnDef, iCase) {
+      boundaryFormatter = function ( value) {
         var tResult = 'a boundary',
-            tBoundaryValue = iCase.getValue(columnDef.attribute.id),
-            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(tBoundaryValue),
+            tBoundaryObject = DG.GeojsonUtils.boundaryObjectFromBoundaryValue(value),
             tThumb = tBoundaryObject && tBoundaryObject.jsonBoundaryObject &&
                 tBoundaryObject.jsonBoundaryObject.properties &&
                 tBoundaryObject.jsonBoundaryObject.properties.THUMB;
         if (tThumb !== null && tThumb !== undefined) {
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
+        }
+        else if( typeof value === 'string' || (value instanceof Error)) {
+          tResult = stringFormatter(value);
+        }
+        else {
+          tResult = value;
         }
         return tResult;
       },
