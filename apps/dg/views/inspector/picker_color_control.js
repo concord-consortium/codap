@@ -54,10 +54,14 @@ DG.PickerColorControl = SC.View.extend(
             showPaletteOnly: true,
             showPalette: true,
             palette: [
+                // See http://alumni.media.mit.edu/~wad/color/palette.html
               ['black', 'darkgray', 'lightgray', 'white'],
-              ['rgb(200,50,50);', 'rgb(255,150,50);', 'yellow', 'rgb(100,150,100);'],
-              ['rgb(50,150,150);', 'rgb(50,100,150);', 'rgb(50,150,200);', 'rgb(100,100,150);'],
-              ['rgb(100,100,150);', 'rgb(200,100,150);', 'rgb(100,150,150);', 'rgb(200,100,150);']
+                // red, orange, yellow, green
+              ['rgb(173,35,35);', 'rgb(255,150,50);', 'rgb(255,238,51);', 'rgb(29,105,20);'],
+                // blue, brown, purple, cyan
+              ['rgb(42,75,215);', 'rgb(129,74,25);', 'rgb(129,38,192);', 'rgb(41,208,208);'],
+                // tan, pink, lt blue, lt green
+              ['rgb(233,222,187);', 'rgb(255,205,243);', 'rgb(157,175,255);', 'rgb(129,197,122);']
             ],
             move: function (iColor) {
               if( this.setColorFunc)
