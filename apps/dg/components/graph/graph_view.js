@@ -787,7 +787,7 @@ DG.GraphView = SC.View.extend(
       handleAxisOrLegendLayoutChange: function () {
         this.renderLayout(this.renderContext(this.get('tagName')));
       }.observes('*xAxisView.desiredExtent', '*yAxisView.desiredExtent',
-          '*legendView.desiredExtent', '.legendView.labelNode', '*y2AxisView.desiredExtent'),
+          '.legendView.desiredExtent', '.legendView.labelNode', '*y2AxisView.desiredExtent'),
 
       /**
        * When the number toggle changes, we need to adjust the layout of the plot and axes.
