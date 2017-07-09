@@ -77,9 +77,13 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           var attr = colInfo.attribute;
           var type = attr && attr.get('type');
           var precision = attr && attr.get('precision');
+          if( cellValue && cellValue.jsonBoundaryObject)
+            type = 'boundary';
 
           if (SC.none(cellValue)) {
             result = "";
+          } else if (cellValue instanceof Error) {
+            result = errorFormatter(cellValue);
           } else if (type === 'qualitative') {
             result = qualBarFormatter(cellValue);
           } else if (type === 'boundary') {
@@ -91,7 +95,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                 rowItem);
           } else if (DG.isDate(cellValue)) {
             result = DG.formatDate(cellValue);
-          } else if (typeof cellValue === 'string' || (cellValue instanceof Error)) {
+          } else if (typeof cellValue === 'string') {
             result = stringFormatter(cellValue);
           }
           else {
@@ -111,6 +115,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         var roundDigits = !SC.none(precision)? precision : 2,
             multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
         return '' + (Math.round( multiplier * cellValue) / multiplier);
+      },
+
+      errorFormatter = function (error) {
+        return stringFormatter(error);
       },
 
       stringFormatter = function (cellValue) {
@@ -146,10 +154,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
         }
-        else if( typeof value === 'string' || (value instanceof Error)) {
-          tResult = stringFormatter(value);
+        else if( tBoundaryObject.jsonBoundaryObject instanceof  Error) {
+          tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);
         }
-        else {
+        else if( !SC.empty(value)) {
           tResult = value;
         }
         return tResult;
@@ -166,7 +174,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         // don't show tooltips for DG-formatted HTML values
         var tooltipValue = /<span.*class='dg-.*'.*<\/span>/.test(formattedValue) ? "" : formattedValue;
         // HTML-escape tooltips for other values
-        return tooltipValue
+        return tooltipValue && formattedValue.replace
                 ? formattedValue.replace(/&/g, '&amp;')
                                 .replace(/</g, '&lt;')
                                 .replace(/>/g, '&gt;')
