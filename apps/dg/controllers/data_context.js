@@ -2229,7 +2229,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     while ((attrNames.indexOf(newName) >= 0) &&
           // eslint-disable-next-line no-unmodified-loop-condition
           (!allowNames || (allowNames.indexOf(newName) < 0))) {
-      newName = baseName + ++suffix;
+      newName = baseName + (++suffix);
     }
     return newName;
   },
