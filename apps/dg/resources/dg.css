@@ -255,6 +255,19 @@
     padding-left: 24px;
 }
 
+.dg-insert-cases-dialog .sc-view.inspector-input {
+    background-color: white;
+}
+
+.dg-insert-cases-dialog .sc-view{
+    background-color: rgba(231, 231, 231, 0.70);
+}
+
+.dg-insert-cases-dialog .dg-inspector-picker-icon {
+    background-color: #01879E;
+    padding: 4px 5px 5px 5px;
+}
+
 .ace.menu .sc-menu-item.focus span, .ace.menu .sc-menu-item a:hover span {
     color: #79B2BC;
     text-decoration: underline;

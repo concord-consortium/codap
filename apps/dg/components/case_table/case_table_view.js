@@ -889,6 +889,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               action: 'insertCase'
             },
             {
+              title: 'DG.CaseTable.indexMenu.insertCases',
+              localize: true,
+              target: this,
+              action: 'insertCases'
+            },
+            {
               title: tDeleteSingle
                         ? 'DG.CaseTable.indexMenu.deleteCase'
                         : 'DG.CaseTable.indexMenu.deleteCases',
@@ -936,12 +942,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
   insertCase: function() {
+    this.doInsertCases(1);
+  },
+
+  doInsertCases: function(caseCount) {
     var dataContext = this.get('dataContext'),
         dataView = this.getPath('gridAdapter.gridDataView'),
         tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
         collectionID = tCase.getPath('collection.id'),
         itemID = tCase && tCase.getPath('item.id'),
         newItem = {},
+        newItems = [newItem],
         parentCase,
         newCaseIDs;
 
@@ -951,13 +962,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       tCase = parentCase;
     }
 
+    for( var i = 1; i < caseCount; ++i) {
+      newItems.push(DG.clone(newItem));
+    }
+
     // insert the new case
     DG.UndoHistory.execute(
       DG.Command.create({
         // not undoable yet
         isUndoable: false,
         execute: function() {
-          newCaseIDs = dataContext.addItems(newItem, itemID);
+          newCaseIDs = dataContext.addItems(newItems, itemID);
         },
         undo: function() {
           // need a dataContext method that deletes cases without affecting the undo history
@@ -971,20 +986,25 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
     // synchronize selection after case insertion
     if (newCaseIDs) {
-      var newSiblingCase;
+      var newSiblingCases = [];
       // auto-select the new case that is a sibling of the one clicked
       newCaseIDs.forEach(function(caseID) {
                           var newCase = dataContext.getCaseByID(caseID),
                               newCaseCollectionID = newCase && newCase.getPath('collection.id');
                           if (newCaseCollectionID === collectionID)
-                            newSiblingCase = newCase;
+                            newSiblingCases.push(newCase);
                         });
-      if (newSiblingCase) {
+      if (newSiblingCases.length) {
         this.invokeLater(function() {
-          dataContext.applyChange({ operation: 'selectCases', cases: [newSiblingCase], select: true });
+          dataContext.applyChange({ operation: 'selectCases', cases: newSiblingCases, select: true });
         });
       }
     }
+  },
+
+  insertCases: function() {
+    var insertCasesPane = DG.InsertCasesDialog.create({ caseTableView: this });
+    insertCasesPane.append();
   },
 
   /**
@@ -1383,7 +1403,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       var dataItem = this._slickGrid.getDataItem(iCell.row),
           isProtoCase = dataItem && dataItem._isProtoCase;
-      if ((iCell.cell === 0) && !isProtoCase) {
+      if (iCell.cell === 0) {
+        if (isProtoCase)
+          this.get('gridAdapter').deselectAllCases();
         this.showCaseIndexPopup(iEvent, iCell);
       }
     }.bind(this));

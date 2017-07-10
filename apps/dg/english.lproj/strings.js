@@ -536,6 +536,10 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.unit': 'unit', // unit
   'DG.CaseTable.attributeEditor.precision': 'precision', // precision
   'DG.CaseTable.attributeEditor.editable': 'editable', // editable
+  'DG.CaseTable.insertCasesDialog.title': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': 'Insert the specified number of cases',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',
