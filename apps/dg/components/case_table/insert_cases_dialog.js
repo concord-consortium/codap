@@ -47,7 +47,7 @@ DG.InsertCasesDialog = SC.PalettePane.extend( (function() // closure
         canWrap: false,
         align: SC.ALIGN_TOP,
         layout: {right: 5},
-        childViews: [ 'title', 'countCtl', 'applyOrCancelCtl' ],
+        childViews: [ 'title', 'countCtl', 'beforeAfterCtl', 'applyOrCancelCtl' ],
 
         title: DG.PickerTitleView.extend({
           layout: {height: kTitleHeight},
@@ -70,6 +70,37 @@ DG.InsertCasesDialog = SC.PalettePane.extend( (function() // closure
             didAppendToDocument: function() {
               this.becomeFirstResponder();
             }
+          })
+        }),
+
+        beforeAfterCtl: DG.PickerControlView.design({
+          layout: {height: kRowHeight},
+          label: 'DG.CaseTable.insertCasesDialog.beforeAfter.prompt',
+          localize: true,
+          controlView: SC.RadioView.design({
+            layout: {
+              centerY: 0,
+              width: 140,
+              height: kControlHeight
+            },
+            items: [
+              {
+                title: 'DG.CaseTable.insertCasesDialog.beforeAfter.before'.loc(),
+                value: 'before',
+                enabled: YES
+              },
+              {
+                title: 'DG.CaseTable.insertCasesDialog.beforeAfter.after'.loc(),
+                value: 'after',
+                enabled: YES
+              }
+            ],
+            value: 'before',
+            itemTitleKey: 'title',
+            itemValueKey: 'value',
+            itemIsEnabledKey: 'enabled',
+            isEnabled: YES,
+            layoutDirection: SC.LAYOUT_HORIZONTAL
           })
         }),
 
@@ -107,10 +138,11 @@ DG.InsertCasesDialog = SC.PalettePane.extend( (function() // closure
 
       insertCases: function () {
         var caseTableView = this.get('caseTableView'),
-            caseCount = Number(this.getPath('contentView.countCtl.controlView.value'));
+            caseCount = Number(this.getPath('contentView.countCtl.controlView.value')),
+            beforeAfter = this.getPath('contentView.beforeAfterCtl.controlView.value');
         if (!caseTableView || !caseCount || !(caseCount > 0)) return; // jshint ignore: line
 
-        caseTableView.doInsertCases(caseCount);
+        caseTableView.doInsertCases(caseCount, beforeAfter === 'after');
         this.close();
       },
       close: function () {

@@ -945,21 +945,24 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     this.doInsertCases(1);
   },
 
-  doInsertCases: function(caseCount) {
+  doInsertCases: function(caseCount, insertAfter) {
     var dataContext = this.get('dataContext'),
         dataView = this.getPath('gridAdapter.gridDataView'),
-        tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
-        collectionID = tCase.getPath('collection.id'),
-        itemID = tCase && tCase.getPath('item.id'),
+        clickCaseIndex = this._caseIndexMenuCell.row,
+        clickCase = dataView && dataView.getItem(clickCaseIndex),
+        beforeCaseIndex = insertAfter ? clickCaseIndex + 1 : clickCaseIndex,
+        beforeCase = dataView && dataView.getItem(beforeCaseIndex),
+        collectionID = clickCase.getPath('collection.id'),
+        beforeItemID = beforeCase && beforeCase.getPath('item.id'),
         newItem = {},
         newItems = [newItem],
         parentCase,
         newCaseIDs;
 
     // new case is child of same parent case(s)
-    while ((parentCase = tCase.get('parent'))) {
+    while ((parentCase = clickCase.get('parent'))) {
       $.extend(newItem, parentCase.copyValues());
-      tCase = parentCase;
+      clickCase = parentCase;
     }
 
     for( var i = 1; i < caseCount; ++i) {
@@ -972,7 +975,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         // not undoable yet
         isUndoable: false,
         execute: function() {
-          newCaseIDs = dataContext.addItems(newItems, itemID);
+          newCaseIDs = dataContext.addItems(newItems, beforeItemID);
         },
         undo: function() {
           // need a dataContext method that deletes cases without affecting the undo history

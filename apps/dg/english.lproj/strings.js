@@ -538,6 +538,9 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.editable': 'editable', // editable
   'DG.CaseTable.insertCasesDialog.title': 'Insert Cases',
   'DG.CaseTable.insertCasesDialog.numCasesPrompt': '# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': 'location:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': 'before',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': 'after',
   'DG.CaseTable.insertCasesDialog.applyBtnTitle': 'Insert Cases',
   'DG.CaseTable.insertCasesDialog.applyBtnTooltip': 'Insert the specified number of cases',
 
