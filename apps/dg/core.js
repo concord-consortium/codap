@@ -402,7 +402,7 @@ DG = SC.Application.create((function () // closure
      * This URL specifies the location of a JSON file that describes the boundaries (country, state,
      * county, congressional district, PUMA) that CODAP supports.
      */
-    boundarySpecsUrl: 'http://codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
+    boundarySpecsUrl: '//codap.concord.org/codap-data/boundaries/default_boundary_specs.json',
 
     /**
      * embeddedMode can be passed as a Url parameter named tools with values 'yes' or 'no'.
