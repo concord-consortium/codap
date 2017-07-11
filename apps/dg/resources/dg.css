@@ -1200,6 +1200,9 @@ input.dg-editor-text {
     background-color: #D3E9C8
 }
 
+html.dg-embedded-mode .sc-main, html.dg-embedded-mode .dg-doc-background {
+    background: transparent!important;
+}
 
 /*.slick-row.odd .dg-formula-column {*/
 /*background-color: #efefef;*/

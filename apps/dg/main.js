@@ -675,18 +675,7 @@ DG.main = function main() {
   }
 
   if (DG.embeddedMode === 'yes') {
-    // make the application transparent
-    ['html, body', '.sc-main', 'body.dg .sc-view.dg-doc-background'].forEach(function (selector) {
-      var rule = 'background: transparent !important;',
-          firstSheet = document.styleSheets[0];
-
-      if ("insertRule" in firstSheet) {
-        firstSheet.insertRule(selector + "{" + rule + "}", 0);
-      }
-      else if ("addRule" in firstSheet) {
-        firstSheet.addRule(selector, rule);
-      }
-    });
+    $('html').addClass('dg-embedded-mode');
 
     startEmbeddedServer();
   }
