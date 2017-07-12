@@ -259,9 +259,9 @@ DG.DataSet = SC.Object.extend((function() // closure
         item = this.dataItems[index];
         if (item && !item.deleted) {
           if (value) {
-            item[attributeID] = value;
+            item.values[attributeID] = value;
           }
-          ret = item[attributeID];
+          ret = item.values[attributeID];
         }
       }
       return ret;
