@@ -1227,8 +1227,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       this.commitProtoCase(lastRowItem);
 
     // editing the proto-case deselects other rows
-    if (activeRowItem._isProtoCase)
+    if (activeRowItem._isProtoCase) {
       this.get('gridAdapter').deselectAllCases();
+      return true;
+    }
 
     // if attribute not editable and not the proto-case row, then can't edit
     if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell))
