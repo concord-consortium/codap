@@ -154,7 +154,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
         }
-        else if( tBoundaryObject.jsonBoundaryObject instanceof  Error) {
+        else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof  Error)) {
           tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);
         }
         else if( !SC.empty(value)) {
