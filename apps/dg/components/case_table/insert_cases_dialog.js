@@ -95,7 +95,7 @@ DG.InsertCasesDialog = SC.PalettePane.extend( (function() // closure
                 enabled: YES
               }
             ],
-            value: 'before',
+            value: 'after',
             itemTitleKey: 'title',
             itemValueKey: 'value',
             itemIsEnabledKey: 'enabled',
@@ -152,6 +152,8 @@ DG.InsertCasesDialog = SC.PalettePane.extend( (function() // closure
       },
       init: function () {
         sc_super();
+        var initialCaseCount = this.get('initialCaseCount') || 1;
+        this.setPath('contentView.countCtl.controlView.value', initialCaseCount);
         this.setPath('contentView.applyOrCancelCtl.cancel.target', this);
         this.setPath('contentView.applyOrCancelCtl.apply.target', this);
       }

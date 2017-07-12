@@ -972,17 +972,19 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     // insert the new case
     DG.UndoHistory.execute(
       DG.Command.create({
-        // not undoable yet
-        isUndoable: false,
+        name: "caseTable.insertCases",
+        undoString: 'DG.Undo.caseTable.insertCases',
+        redoString: 'DG.Redo.caseTable.insertCases',
+        log: "insert %@ cases in table".fmt(caseCount),
         execute: function() {
           newCaseIDs = dataContext.addItems(newItems, beforeItemID);
         },
         undo: function() {
-          // need a dataContext method that deletes cases without affecting the undo history
-          //dataContext.applyChange({ operation: 'deleteCases' });
+          var cases = newCaseIDs.map(function(caseID) { return DG.store.find('DG.Case', caseID); });
+          dataContext.deleteCasesAndChildren({ operation: 'deleteCases', cases: cases });
         },
         redo: function() {
-          // 'undelete' the newly created data item
+          this.execute();
         }
       })
     );
@@ -1006,7 +1008,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
   },
 
   insertCases: function() {
-    var insertCasesPane = DG.InsertCasesDialog.create({ caseTableView: this });
+    var dataContext = this.get('dataContext'),
+        selectedCases = dataContext && dataContext.getSelectedCases(),
+        selectedCount = selectedCases && selectedCases.get('length'),
+        insertCasesPane = DG.InsertCasesDialog.create({
+                                                caseTableView: this,
+                                                initialCaseCount: selectedCount });
     insertCasesPane.append();
   },
 

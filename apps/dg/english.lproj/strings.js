@@ -205,6 +205,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
   'DG.Undo.caseTable.createNewCase': 'Undo create new case',
   'DG.Redo.caseTable.createNewCase': 'Redo create new case',
+  'DG.Undo.caseTable.insertCases': 'Undo insert cases',
+  'DG.Redo.caseTable.insertCases': 'Redo insert cases',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': 'Undo toggle expand/collapse all',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
   'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
