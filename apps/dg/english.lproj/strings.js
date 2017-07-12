@@ -484,7 +484,7 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
   'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
-  'DG.TableController.headerMenuItems.sortAscending': "Sort Ascending (0\u21929, A\u2192Z)",
+  'DG.TableController.headerMenuItems.sortAscending': "Sort Ascending (A\u2192Z, 0\u21929)",
   'DG.TableController.headerMenuItems.sortDescending': "Sort Descending (9\u21920, Z\u2192A)",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",

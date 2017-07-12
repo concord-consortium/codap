@@ -175,22 +175,22 @@ DG.DataUtilities.toString = function (iValue) {
     return "";
 };
 
-var kTypeNumber = 1,
-    kTypeBoolean = 2,
-    kTypeString = 3,
-    kTypeNaN = 4,
-    kTypeError = 5,
-    kTypeSimpleMap = 6, // e.g. boundaries
-    kTypeUnknown = 7,
-    kTypeEmpty = 8;
+var kTypeError = 1,
+    kTypeNaN = 2,
+    kTypeNull = 3,
+    kTypeString = 4,
+    kTypeBoolean = 5,
+    kTypeNumber = 6,
+    kTypeSimpleMap = 7, // e.g. boundaries
+    kTypeUnknown = 8;
 
 /**
   Returns the type code corresponding to the specified value.
  */
 DG.DataUtilities.typeCode = function(value) {
-  if ((value == null) || (value === '')) return kTypeEmpty;
-  if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
+  if (value == null) return kTypeNull;
   if (value instanceof Error) return kTypeError;
+  if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
   switch (typeof value) {
     case 'number': return isNaN(value) ? kTypeNaN : kTypeNumber;
     case 'boolean': return kTypeBoolean;
@@ -212,10 +212,16 @@ DG.DataUtilities.compareAscending = function(value1, value2) {
     if (!isNaN(num1))
       type1 = kTypeNumber;
   }
+  else if (type1 === kTypeBoolean) {
+    type1 = kTypeString;
+  }
   if (type2 === kTypeString) {
     num2 = Number(value2);
     if (!isNaN(num2))
       type2 = kTypeNumber;
+  }
+  else if (type2 === kTypeBoolean) {
+    type2 = kTypeString;
   }
   if (type1 !== type2) return type1 - type2;
 
@@ -226,7 +232,6 @@ DG.DataUtilities.compareAscending = function(value1, value2) {
 
   switch(type1) {
     case kTypeNumber: return num1 - num2;
-    case kTypeBoolean: return value1 - value2;
     case kTypeString:
     case kTypeError: return strCompareAscending(String(value1), String(value2));
     default: return 0;  // other types are not ordered
@@ -251,7 +256,7 @@ DG.DataUtilities.compareDescending = function(value1, value2) {
     if (!isNaN(num2))
       type2 = kTypeNumber;
   }
-  if (type1 !== type2) return type1 - type2;
+  if (type1 !== type2) return type2 - type1;
 
   function strCompareDescending(str1, str2) {
     // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
@@ -260,7 +265,6 @@ DG.DataUtilities.compareDescending = function(value1, value2) {
 
   switch(type1) {
     case kTypeNumber: return num2 - num1;
-    case kTypeBoolean: return value2 - value1;
     case kTypeString:
     case kTypeError: return strCompareDescending(String(value1), String(value2));
     default: return 0;  // other types are not ordered

@@ -995,6 +995,8 @@ DG.CaseTableController = DG.ComponentController.extend(
       sortAttribute: function(attrID, isDescending) {
         var dataContext = this.getPath('dataContext'),
             dataSet = dataContext && dataContext.getPath('model.dataSet'),
+            childCollection = dataContext && dataContext.get('childCollection'),
+            childCollectionID = childCollection && childCollection.get('id'),
             compareFunc = isDescending
                             ? DG.DataUtilities.compareDescending
                             : DG.DataUtilities.compareAscending,
@@ -1005,7 +1007,11 @@ DG.CaseTableController = DG.ComponentController.extend(
             oldClientMap, newClientMap;
 
         function accessFunc(itemID, attrID) {
-          var tCase = DG.Case.findCase(collectionID, itemID);
+          var tCase = DG.Case.findCase(childCollectionID, itemID);
+
+          while (tCase && (tCase.getPath('collection.id') !== collectionID))
+            tCase = tCase.get('parent');
+
           return tCase && tCase.getRawValue(attrID);
         }
 
@@ -1020,6 +1026,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             name: 'caseTable.sortCases',
             undoString: 'DG.Undo.caseTable.sortCases',
             redoString: 'DG.Redo.caseTable.sortCases',
+            log: "sort cases by attribute: %@ (\"%@\")".fmt(attrID, attribute && attribute.get('name')),
             execute: function() {
               oldClientMap = dataSet.sortItems(attrID, accessFunc, compareFunc);
               newClientMap = dataSet.getClientIndexMapCopy();

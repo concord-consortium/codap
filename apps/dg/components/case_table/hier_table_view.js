@@ -217,6 +217,22 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
       },
 
       /**
+        Refreshes each of the individual table views.
+       */
+      refreshTables: function() {
+        var childTableViews = this.get('childTableViews');
+        childTableViews.forEach( function(tableView) { tableView.refresh(); });
+      },
+
+      /**
+        Refreshes each of the individual table views.
+       */
+      refreshDividers: function() {
+        var dividers = this.get('dividerViews');
+        dividers.forEach(function (dividerView) { dividerView.displayDidChange(); });
+      },
+
+      /**
        Observer function called when the overall gridWidth of the parent table changes.
        Note that this is a content width notification, rather than a view size notification.
        @param    {DG.CaseTableView}    iNotifier -- the table view whose width changed
@@ -332,9 +348,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
        */
       tableDidExpandCollapse: function() {
         SC.run( function() {
-          this.get('dividerViews').forEach(function (view) {
-            view.displayDidChange();
-          });
+          this.refreshDividers();
         }.bind( this));
       },
 
@@ -433,8 +447,14 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     Refreshes each of the individual table views.
    */
   refresh: function() {
-    var childTableViews = this.get('childTableViews');
-    childTableViews.forEach( function( iTableView) { iTableView.refresh(); });
+    this.get('contentView').refreshTables();
+  },
+
+  /**
+    Refreshes each of the individual table views.
+   */
+  refreshDividers: function() {
+    this.get('contentView').refreshDividers();
   },
 
   mouseDown: function(ev) {
@@ -479,9 +499,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
    */
   _klugeAdjust: false,
   gridViewDidChange: function( iNotifier) {
-    this.get('dividerViews').forEach(function (view) {
-      view.displayDidChange();
-    });
+    this.refreshDividers();
 
     // adjusting the width fixes initial redraw problems in Safari
     if( !this._klugeAdjust) {
@@ -584,10 +602,8 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     Refreshes the row data for each subtable view.
    */
   updateRowData: function() {
-    var childTableViews = this.get('childTableViews') || [];
-    childTableViews.forEach( function( iTableView) {
-                                iTableView.updateRowData();
-                            });
+    this.refresh();
+    this.refreshDividers();
   },
 
   /**
