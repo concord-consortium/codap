@@ -1530,7 +1530,9 @@ DG.DocumentController = SC.Object.extend(
           iContext.willSaveContext();
         });
         return Promise.resolve(this.get('content').toArchive(fullData));
-      }.bind(this));
+      }.bind(this)).catch(function (reason) {
+        console.warn(reason);
+      });
 
       return returnPromise;
     }
