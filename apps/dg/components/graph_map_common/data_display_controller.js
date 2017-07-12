@@ -72,9 +72,11 @@ DG.DataDisplayController = DG.ComponentController.extend(
           this.storeDimension(dataConfiguration, storage, 'legend');
 
           if (hiddenCases) {
-            storage._links_.hiddenCases = hiddenCases.map(function (iCase) {
-              return iCase.toLink();
-            });
+            storage._links_.hiddenCases = hiddenCases
+                .filter(function(iCase) {return !!iCase;})
+                .map(function (iCase) {
+                  return iCase.toLink();
+                });
           }
           storage.pointColor = this.getPath('dataDisplayModel.pointColor');
           storage.strokeColor = this.getPath('dataDisplayModel.strokeColor');
