@@ -88,6 +88,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = qualBarFormatter(cellValue);
           } else if (type === 'boundary') {
             result = boundaryFormatter(cellValue);
+          } else if (typeof cellValue === 'boolean') {
+            result = String(cellValue);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
