@@ -284,6 +284,12 @@ DG.CaseTableController = DG.ComponentController.extend(
         case 'cmdRandomizeAttribute':
           this.randomizeAttribute( columnID);
           break;
+        case 'cmdSortAscending':
+          this.sortAttribute( columnID);
+          break;
+        case 'cmdSortDescending':
+          this.sortAttribute( columnID, true);
+          break;
         case 'cmdDeleteAttribute':
           this.deleteAttribute( columnID);
           break;
@@ -984,6 +990,51 @@ DG.CaseTableController = DG.ComponentController.extend(
       showEditAttributePane: function (iAttrRef, menuItem) {
         var attributePane = DG.AttributeEditorView.create({attrRef: iAttrRef, attrUpdater: this});
         attributePane.append();
+      },
+
+      sortAttribute: function(attrID, isDescending) {
+        var dataContext = this.getPath('dataContext'),
+            dataSet = dataContext && dataContext.getPath('model.dataSet'),
+            compareFunc = isDescending
+                            ? DG.DataUtilities.compareDescending
+                            : DG.DataUtilities.compareAscending,
+            attribute = DG.Attribute.getAttributeByID(attrID),
+            collection = attribute && attribute.get('collection'),
+            collectionID = collection && collection.get('id'),
+            hierTableView = this.getPath('view.contentView'),
+            oldClientMap, newClientMap;
+
+        function accessFunc(itemID, attrID) {
+          var tCase = DG.Case.findCase(collectionID, itemID);
+          return tCase && tCase.getRawValue(attrID);
+        }
+
+        function refreshTable() {
+          dataContext.regenerateCollectionCases();
+          if (hierTableView)
+            hierTableView.updateRowData();
+        }
+
+        if (dataSet) {
+          DG.UndoHistory.execute(DG.Command.create({
+            name: 'caseTable.sortCases',
+            undoString: 'DG.Undo.caseTable.sortCases',
+            redoString: 'DG.Redo.caseTable.sortCases',
+            execute: function() {
+              oldClientMap = dataSet.sortItems(attrID, accessFunc, compareFunc);
+              newClientMap = dataSet.getClientIndexMapCopy();
+              refreshTable();
+            },
+            undo: function() {
+              dataSet.setClientIndexMap(oldClientMap);
+              refreshTable();
+            },
+            redo: function() {
+              dataSet.setClientIndexMap(newClientMap);
+              refreshTable();
+            }
+          }));
+        }
       },
 
       /**

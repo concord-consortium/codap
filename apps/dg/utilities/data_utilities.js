@@ -174,3 +174,95 @@ DG.DataUtilities.toString = function (iValue) {
     }
     return "";
 };
+
+var kTypeNumber = 1,
+    kTypeBoolean = 2,
+    kTypeString = 3,
+    kTypeNaN = 4,
+    kTypeError = 5,
+    kTypeSimpleMap = 6, // e.g. boundaries
+    kTypeUnknown = 7,
+    kTypeEmpty = 8;
+
+/**
+  Returns the type code corresponding to the specified value.
+ */
+DG.DataUtilities.typeCode = function(value) {
+  if ((value == null) || (value === '')) return kTypeEmpty;
+  if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
+  if (value instanceof Error) return kTypeError;
+  switch (typeof value) {
+    case 'number': return isNaN(value) ? kTypeNaN : kTypeNumber;
+    case 'boolean': return kTypeBoolean;
+    case 'string': return kTypeString;
+    default: return kTypeUnknown;
+  }
+};
+
+/**
+  Comparison function for ascending sorts.
+ */
+DG.DataUtilities.compareAscending = function(value1, value2) {
+  var type1 = DG.DataUtilities.typeCode(value1),
+      type2 = DG.DataUtilities.typeCode(value2),
+      num1 = type1 === kTypeNumber ? value1 : NaN,
+      num2 = type2 === kTypeNumber ? value2 : NaN;
+  if (type1 === kTypeString) {
+    num1 = Number(value1);
+    if (!isNaN(num1))
+      type1 = kTypeNumber;
+  }
+  if (type2 === kTypeString) {
+    num2 = Number(value2);
+    if (!isNaN(num2))
+      type2 = kTypeNumber;
+  }
+  if (type1 !== type2) return type1 - type2;
+
+  function strCompareAscending(str1, str2) {
+    // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
+    return str1.localeCompare(str2, undefined, { sensitivity: 'base' });
+  }
+
+  switch(type1) {
+    case kTypeNumber: return num1 - num2;
+    case kTypeBoolean: return value1 - value2;
+    case kTypeString:
+    case kTypeError: return strCompareAscending(String(value1), String(value2));
+    default: return 0;  // other types are not ordered
+  }
+};
+
+/**
+  Comparison function for descending sorts.
+ */
+DG.DataUtilities.compareDescending = function(value1, value2) {
+  var type1 = DG.DataUtilities.typeCode(value1),
+      type2 = DG.DataUtilities.typeCode(value2),
+      num1 = type1 === kTypeNumber ? value1 : NaN,
+      num2 = type2 === kTypeNumber ? value2 : NaN;
+  if (type1 === kTypeString) {
+    num1 = Number(value1);
+    if (!isNaN(num1))
+      type1 = kTypeNumber;
+  }
+  if (type2 === kTypeString) {
+    num2 = Number(value2);
+    if (!isNaN(num2))
+      type2 = kTypeNumber;
+  }
+  if (type1 !== type2) return type1 - type2;
+
+  function strCompareDescending(str1, str2) {
+    // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
+    return -str1.localeCompare(str2, undefined, { sensitivity: 'base' });
+  }
+
+  switch(type1) {
+    case kTypeNumber: return num2 - num1;
+    case kTypeBoolean: return value2 - value1;
+    case kTypeString:
+    case kTypeError: return strCompareDescending(String(value1), String(value2));
+    default: return 0;  // other types are not ordered
+  }
+};
