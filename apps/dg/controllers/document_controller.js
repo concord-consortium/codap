@@ -1530,7 +1530,7 @@ DG.DocumentController = SC.Object.extend(
           iContext.willSaveContext();
         });
         return Promise.resolve(this.get('content').toArchive(fullData));
-      }.bind(this)).catch(function (reason) {
+      }.bind(this)).catch(function (reason) { // eslint-disable-line
         console.warn(reason);
       });
 
