@@ -88,6 +88,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = qualBarFormatter(cellValue);
           } else if (type === 'boundary') {
             result = boundaryFormatter(cellValue);
+          } else if (typeof cellValue === 'boolean') {
+            result = String(cellValue);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
@@ -154,7 +156,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
           tResult = "<span class='dg-boundary-thumb'>" +
               "<img src=\'" + tThumb + "\' height='14'></span>";
         }
-        else if( tBoundaryObject.jsonBoundaryObject instanceof  Error) {
+        else if( tBoundaryObject && (tBoundaryObject.jsonBoundaryObject instanceof  Error)) {
           tResult = errorFormatter(tBoundaryObject.jsonBoundaryObject);
         }
         else if( !SC.empty(value)) {
@@ -431,6 +433,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                               { type: DG.DEP_TYPE_SPECIAL,
                                                                 id: 'random' });
                       ioMenuItem.disabled = !dependency;
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
+                    command: 'cmdSortAscending',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
+                    command: 'cmdSortDescending',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),

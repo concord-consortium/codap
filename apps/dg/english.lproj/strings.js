@@ -197,6 +197,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.editAttributeFormula': "Redo editing case table attribute formula",
   'DG.Undo.caseTable.editCellValue': "Undo editing case table cell value",
   'DG.Redo.caseTable.editCellValue': "Redo editing case table cell value",
+  'DG.Undo.caseTable.sortCases': "Undo sorting cases",
+  'DG.Redo.caseTable.sortCases': "Redo sorting cases",
   'DG.Undo.caseTable.deleteAttribute': "Undo deleting case table attribute",
   'DG.Redo.caseTable.deleteAttribute': "Redo deleting case table attribute",
   'DG.Undo.caseTable.createCollection': "Undo create new collection",
@@ -205,6 +207,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
   'DG.Undo.caseTable.createNewCase': 'Undo create new case',
   'DG.Redo.caseTable.createNewCase': 'Redo create new case',
+  'DG.Undo.caseTable.insertCases': 'Undo insert cases',
+  'DG.Redo.caseTable.insertCases': 'Redo insert cases',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': 'Undo toggle expand/collapse all',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
   'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
@@ -482,6 +486,8 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "Edit Attribute Properties...",
   'DG.TableController.headerMenuItems.editFormula': "Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "Rerandomize",
+  'DG.TableController.headerMenuItems.sortAscending': "Sort Ascending (A\u2192Z, 0\u21929)",
+  'DG.TableController.headerMenuItems.sortDescending': "Sort Descending (9\u21920, Z\u2192A)",
   'DG.TableController.headerMenuItems.deleteAttribute': "Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "Enter a name for the new attribute",
@@ -536,6 +542,13 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.unit': 'unit', // unit
   'DG.CaseTable.attributeEditor.precision': 'precision', // precision
   'DG.CaseTable.attributeEditor.editable': 'editable', // editable
+  'DG.CaseTable.insertCasesDialog.title': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': 'location:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': 'before',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': 'after',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': 'Insert the specified number of cases',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',
