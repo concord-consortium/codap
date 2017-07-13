@@ -21,6 +21,7 @@ var Rsvg = require('librsvg').Rsvg;
 var btoa = btoa || require('btoa');
 var fs = require('fs');
 var merc = require('mercator-projection');
+// var st = require('geojson-bounds');
 var console = require('console');
 /*global process:true, Buffer:true */
 var progName = process.argv[1];
@@ -89,6 +90,7 @@ function usage () {
   }
 
   function renderGeoJSONToSVG(geojson) {
+    var refLng = null;
     var bBox = {
       xMin: Number.MAX_VALUE,
       yMin: Number.MAX_VALUE,
@@ -104,7 +106,7 @@ function usage () {
     }
 
     function latLongToXY(coord) {
-      return merc.fromLatLngToPoint({lat: coord[1], lng: coord[0]});
+      return merc.fromLatLngToPoint(adjustForAntimeridian({lat: coord[1], lng: coord[0]}));
     }
 
     function renderPoint(coord) {
@@ -135,6 +137,17 @@ function usage () {
       var svg = '<path stroke-width="0" fill="blue" d="' + pathDef + '"/>';
       return svg;
     }
+    function adjustForAntimeridian(coord) {
+      if (!coord) {
+        return;
+      }
+      if (refLng === null) {
+        refLng = coord.lng;
+      } else if (Math.abs(coord.lng - refLng)>180) {
+        coord.lng += (refLng>=0?360:-360);
+      }
+      return coord;
+    }
     var renderers = {
       Point: function (geojson) {
         var coord = latLongToXY(geojson.coordinates);
@@ -148,7 +161,7 @@ function usage () {
           adjustBBox(coord);
           return renderPoint(xyCoord);
         });
-        return dots.join();
+        return dots.join('');
       },
       LineString: function (geojson) {
         var coords = geojson.coordinates;
@@ -164,7 +177,8 @@ function usage () {
         var lines = geojson.coordinates;
         var svg = lines.map(function (line) {
           return renderers.LineString({coordinates: line });
-        }).join();
+        }).join('');
+        return svg;
       },
       Polygon: function (geojson) {
         var coords = geojson.coordinates;
@@ -182,7 +196,7 @@ function usage () {
         var polygons = geojson.coordinates;
         var svg = polygons.map(function (polygon) {
           return renderers.Polygon({coordinates: polygon });
-        }).join();
+        }).join('');
         return svg;
       },
       GeometryCollection: function (geojson) {
@@ -193,7 +207,7 @@ function usage () {
             console.log("Unknown type: " + geometry.type);
           }
           return fn(geometry);
-        }).join();
+        }).join('');
       },
       Feature: function (geojson) {
         var geometry = geojson.geometry;
@@ -208,6 +222,7 @@ function usage () {
         var svg = features.map(function (feature) {
           return renderers.Feature(feature);
         }).join();
+        return svg.join('');
       }
     };
     if (!geojson) {
