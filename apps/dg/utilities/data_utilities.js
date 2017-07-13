@@ -181,59 +181,63 @@ var kTypeError = 1,
     kTypeString = 4,
     kTypeBoolean = 5,
     kTypeNumber = 6,
-    kTypeSimpleMap = 7, // e.g. boundaries
-    kTypeUnknown = 8;
+    kTypeDate = 7,
+    kTypeSimpleMap = 8, // e.g. boundaries
+    kTypeUnknown = 9;
 
 /**
   Returns the type code corresponding to the specified value.
  */
-DG.DataUtilities.typeCode = function(value) {
-  if (value == null) return kTypeNull;
-  if (value instanceof Error) return kTypeError;
-  if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
-  switch (typeof value) {
-    case 'number': return isNaN(value) ? kTypeNaN : kTypeNumber;
-    case 'boolean': return kTypeBoolean;
-    case 'string': return kTypeString;
-    default: return kTypeUnknown;
+DG.DataUtilities.sortableValue = function(value) {
+  function typeCode(value) {
+    if (value == null) return kTypeNull;
+    if (value instanceof Error) return kTypeError;
+    if (value instanceof Date) return kTypeDate;
+    if (value instanceof DG.SimpleMap) return kTypeSimpleMap;
+    switch (typeof value) {
+      case 'number': return isNaN(value) ? kTypeNaN : kTypeNumber;
+      case 'boolean': return kTypeBoolean;
+      case 'string': return kTypeString;
+      default: return kTypeUnknown;
+    }
   }
+
+  var type = typeCode(value),
+      num = type === kTypeNumber ? value : NaN;
+  // strings convertible to numbers are treated numerically
+  if (type === kTypeString) {
+    num = Number(value);
+    if (!isNaN(num))
+      return { type: kTypeNumber, value: num };
+  }
+  // booleans are treated as strings
+  else if (type === kTypeBoolean)
+    return { type: kTypeString, value: value };
+  // dates are treated numerically
+  else if (type === kTypeDate)
+    return { type: kTypeNumber, value: Number(value) };
+  // other values are treated according to their type
+  return { type: type, value: value };
 };
 
 /**
   Comparison function for ascending sorts.
  */
 DG.DataUtilities.compareAscending = function(value1, value2) {
-  var type1 = DG.DataUtilities.typeCode(value1),
-      type2 = DG.DataUtilities.typeCode(value2),
-      num1 = type1 === kTypeNumber ? value1 : NaN,
-      num2 = type2 === kTypeNumber ? value2 : NaN;
-  if (type1 === kTypeString) {
-    num1 = Number(value1);
-    if (!isNaN(num1))
-      type1 = kTypeNumber;
-  }
-  else if (type1 === kTypeBoolean) {
-    type1 = kTypeString;
-  }
-  if (type2 === kTypeString) {
-    num2 = Number(value2);
-    if (!isNaN(num2))
-      type2 = kTypeNumber;
-  }
-  else if (type2 === kTypeBoolean) {
-    type2 = kTypeString;
-  }
-  if (type1 !== type2) return type1 - type2;
+  var v1 = DG.DataUtilities.sortableValue(value1),
+      v2 = DG.DataUtilities.sortableValue(value2);
+
+  if (v1.type !== v2.type) return v1.type - v2.type;
 
   function strCompareAscending(str1, str2) {
     // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
     return str1.localeCompare(str2, undefined, { sensitivity: 'base' });
   }
 
-  switch(type1) {
-    case kTypeNumber: return num1 - num2;
+  switch(v1.type) {
+    case kTypeNumber: return v1.value - v2.value;
     case kTypeString:
-    case kTypeError: return strCompareAscending(String(value1), String(value2));
+    case kTypeError: return strCompareAscending(String(v1.value), String(v2.value));
     default: return 0;  // other types are not ordered
   }
 };
@@ -242,31 +246,20 @@ DG.DataUtilities.compareAscending = function(value1, value2) {
   Comparison function for descending sorts.
  */
 DG.DataUtilities.compareDescending = function(value1, value2) {
-  var type1 = DG.DataUtilities.typeCode(value1),
-      type2 = DG.DataUtilities.typeCode(value2),
-      num1 = type1 === kTypeNumber ? value1 : NaN,
-      num2 = type2 === kTypeNumber ? value2 : NaN;
-  if (type1 === kTypeString) {
-    num1 = Number(value1);
-    if (!isNaN(num1))
-      type1 = kTypeNumber;
-  }
-  if (type2 === kTypeString) {
-    num2 = Number(value2);
-    if (!isNaN(num2))
-      type2 = kTypeNumber;
-  }
-  if (type1 !== type2) return type2 - type1;
+  var v1 = DG.DataUtilities.sortableValue(value1),
+      v2 = DG.DataUtilities.sortableValue(value2);
+
+  if (v1.type !== v2.type) return v2.type - v1.type;
 
   function strCompareDescending(str1, str2) {
     // cf. https://stackoverflow.com/a/25775469 for performance issues with localeCompare
     return -str1.localeCompare(str2, undefined, { sensitivity: 'base' });
   }
 
-  switch(type1) {
-    case kTypeNumber: return num2 - num1;
+  switch(v1.type) {
+    case kTypeNumber: return v2.value - v1.value;
     case kTypeString:
-    case kTypeError: return strCompareDescending(String(value1), String(value2));
+    case kTypeError: return strCompareDescending(String(v1.value), String(v2.value));
     default: return 0;  // other types are not ordered
   }
 };
