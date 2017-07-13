@@ -1344,24 +1344,28 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         },
 
         completeNameEdit = function(elt) {
-          var $input = $(elt),
-              dataContext = this.get('dataContext'),
-              newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
-          if (newName !== attrName) {
-            var controller = getController(this),
-                attrRef = dataContext && dataContext.getAttrRefByName(attrName);
-            if (attrRef && newName)
-              controller.updateAttribute(attrRef, { name: newName });
-          }
-          else {
-            this.updateColumnInfo();
-          }
-          finishNameEdit();
+          SC.run(function() {
+            var $input = $(elt),
+                dataContext = this.get('dataContext'),
+                newName = dataContext.getUniqueAttributeName($input.val(), [attrName]);
+            if (newName !== attrName) {
+              var controller = getController(this),
+                  attrRef = dataContext && dataContext.getAttrRefByName(attrName);
+              if (attrRef && newName)
+                controller.updateAttribute(attrRef, { name: newName });
+            }
+            else {
+              this.updateColumnInfo();
+            }
+            finishNameEdit();
+          }.bind(this));
         }.bind(this),
 
         cancelNameEdit = function(elt) {
-          this.updateColumnInfo();
-          finishNameEdit();
+          SC.run(function() {
+            this.updateColumnInfo();
+            finishNameEdit();
+          }.bind(this));
         }.bind(this);
 
     if ($nameEl) {
