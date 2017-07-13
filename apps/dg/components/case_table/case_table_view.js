@@ -889,6 +889,12 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               action: 'insertCase'
             },
             {
+              title: 'DG.CaseTable.indexMenu.insertCases',
+              localize: true,
+              target: this,
+              action: 'insertCases'
+            },
+            {
               title: tDeleteSingle
                         ? 'DG.CaseTable.indexMenu.deleteCase'
                         : 'DG.CaseTable.indexMenu.deleteCases',
@@ -936,55 +942,79 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     },
 
   insertCase: function() {
+    this.doInsertCases(1);
+  },
+
+  doInsertCases: function(caseCount, insertAfter) {
     var dataContext = this.get('dataContext'),
         dataView = this.getPath('gridAdapter.gridDataView'),
-        tCase = dataView && dataView.getItem(this._caseIndexMenuCell.row),
-        collectionID = tCase.getPath('collection.id'),
-        itemID = tCase && tCase.getPath('item.id'),
+        clickCaseIndex = this._caseIndexMenuCell.row,
+        clickCase = dataView && dataView.getItem(clickCaseIndex),
+        beforeCaseIndex = insertAfter ? clickCaseIndex + 1 : clickCaseIndex,
+        beforeCase = dataView && dataView.getItem(beforeCaseIndex),
+        collectionID = clickCase.getPath('collection.id'),
+        beforeItemID = beforeCase && beforeCase.getPath('item.id'),
         newItem = {},
+        newItems = [newItem],
         parentCase,
         newCaseIDs;
 
     // new case is child of same parent case(s)
-    while ((parentCase = tCase.get('parent'))) {
+    while ((parentCase = clickCase.get('parent'))) {
       $.extend(newItem, parentCase.copyValues());
-      tCase = parentCase;
+      clickCase = parentCase;
+    }
+
+    for( var i = 1; i < caseCount; ++i) {
+      newItems.push(DG.clone(newItem));
     }
 
     // insert the new case
     DG.UndoHistory.execute(
       DG.Command.create({
-        // not undoable yet
-        isUndoable: false,
+        name: "caseTable.insertCases",
+        undoString: 'DG.Undo.caseTable.insertCases',
+        redoString: 'DG.Redo.caseTable.insertCases',
+        log: "insert %@ cases in table".fmt(caseCount),
         execute: function() {
-          newCaseIDs = dataContext.addItems(newItem, itemID);
+          newCaseIDs = dataContext.addItems(newItems, beforeItemID);
         },
         undo: function() {
-          // need a dataContext method that deletes cases without affecting the undo history
-          //dataContext.applyChange({ operation: 'deleteCases' });
+          var cases = newCaseIDs.map(function(caseID) { return DG.store.find('DG.Case', caseID); });
+          dataContext.deleteCasesAndChildren({ operation: 'deleteCases', cases: cases });
         },
         redo: function() {
-          // 'undelete' the newly created data item
+          this.execute();
         }
       })
     );
 
     // synchronize selection after case insertion
     if (newCaseIDs) {
-      var newSiblingCase;
+      var newSiblingCases = [];
       // auto-select the new case that is a sibling of the one clicked
       newCaseIDs.forEach(function(caseID) {
                           var newCase = dataContext.getCaseByID(caseID),
                               newCaseCollectionID = newCase && newCase.getPath('collection.id');
                           if (newCaseCollectionID === collectionID)
-                            newSiblingCase = newCase;
+                            newSiblingCases.push(newCase);
                         });
-      if (newSiblingCase) {
+      if (newSiblingCases.length) {
         this.invokeLater(function() {
-          dataContext.applyChange({ operation: 'selectCases', cases: [newSiblingCase], select: true });
+          dataContext.applyChange({ operation: 'selectCases', cases: newSiblingCases, select: true });
         });
       }
     }
+  },
+
+  insertCases: function() {
+    var dataContext = this.get('dataContext'),
+        selectedCases = dataContext && dataContext.getSelectedCases(),
+        selectedCount = selectedCases && selectedCases.get('length'),
+        insertCasesPane = DG.InsertCasesDialog.create({
+                                                caseTableView: this,
+                                                initialCaseCount: selectedCount });
+    insertCasesPane.append();
   },
 
   /**
@@ -1383,7 +1413,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       var dataItem = this._slickGrid.getDataItem(iCell.row),
           isProtoCase = dataItem && dataItem._isProtoCase;
-      if ((iCell.cell === 0) && !isProtoCase) {
+      if (iCell.cell === 0) {
+        if (isProtoCase)
+          this.get('gridAdapter').deselectAllCases();
         this.showCaseIndexPopup(iEvent, iCell);
       }
     }.bind(this));

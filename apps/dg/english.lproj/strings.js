@@ -205,6 +205,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.collectionNameChange': 'Redo rename collection',
   'DG.Undo.caseTable.createNewCase': 'Undo create new case',
   'DG.Redo.caseTable.createNewCase': 'Redo create new case',
+  'DG.Undo.caseTable.insertCases': 'Undo insert cases',
+  'DG.Redo.caseTable.insertCases': 'Redo insert cases',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': 'Undo toggle expand/collapse all',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
   'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
@@ -536,6 +538,13 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.unit': 'unit', // unit
   'DG.CaseTable.attributeEditor.precision': 'precision', // precision
   'DG.CaseTable.attributeEditor.editable': 'editable', // editable
+  'DG.CaseTable.insertCasesDialog.title': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': 'location:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': 'before',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': 'after',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': 'Insert Cases',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': 'Insert the specified number of cases',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': 'All tables',

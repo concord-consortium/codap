@@ -859,10 +859,8 @@ DG.DataContext = SC.Object.extend((function() // closure
             {Array of DG.Case}      iChange.cases -- DG.Case objects to be deleted
             {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
    */
-  doDeleteCases: function( iChange) {
-    var deletedCases = [],
-        this_ = this,
-        allCollections = this.collections;
+  deleteCasesAndChildren: function(iChange) {
+    var deletedCases = [];
 
     iChange.ids = [];
     iChange.collectionIDs = {};
@@ -876,17 +874,17 @@ DG.DataContext = SC.Object.extend((function() // closure
         // children and delete all)
         return;
 
-      var tCollection = this.getCollectionForCase( iCase);
+      var tCollection = this.getCollectionForCase(iCase);
       var tParent = iCase.parent;
 
       // We store the set of deleted cases for later undoing.
-      deletedCases.push( iCase );
-      iChange.ids.push( iCase.get('id'));
+      deletedCases.push(iCase);
+      iChange.ids.push(iCase.get('id'));
 
       // keep track of the affected collections
-      iChange.collectionIDs[ tCollection.get('id')] = tCollection;
+      iChange.collectionIDs[tCollection.get('id')] = tCollection;
 
-      tCollection.deleteCase( iCase);
+      tCollection.deleteCase(iCase);
       if (tParent) {
         if (tParent.children.length === 0) {
           doDelete(tParent);
@@ -900,12 +898,12 @@ DG.DataContext = SC.Object.extend((function() // closure
     // find the leaf node cases and call doDelete on each of them.
     // The doDelete function will propagate up the parental hierarchy
     // as far as appropriate.
-    var deleteCaseAndChildren = function( iCase) {
+    var deleteCaseAndChildren = function(iCase) {
       //var tCollection = this.getCollectionForCase( iCase);
       var tChildren= iCase.get('children'), ix;
       // we remove children in reverse order because removal from this list
       // is immediate and would otherwise corrupt the list.
-      if( tChildren && tChildren.length) {
+      if (tChildren && tChildren.length) {
         for (ix = tChildren.length - 1; ix >= 0; ix--) {
           deleteCaseAndChildren(tChildren[ix]);
         }
@@ -913,6 +911,37 @@ DG.DataContext = SC.Object.extend((function() // closure
         doDelete(iCase);
       }
     }.bind( this);
+
+    if (iChange.cases) {
+      iChange.cases.forEach(deleteCaseAndChildren);
+
+      // Call didDeleteCases() for each affected collection
+      DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
+        if (iCollection)
+          iCollection.didDeleteCases();
+      });
+
+      iChange.isComplete = true;
+      this.applyChange(iChange);
+
+      // invalidate dependents; aggregate functions may need to recalculate
+      this.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
+    }
+
+    return deletedCases;
+  },
+
+  /**
+    Deletes the specified cases along with any child cases.
+    @param  {Object}                iChange
+            {String}                iChange.operation -- 'deleteCases'
+            {Array of DG.Case}      iChange.cases -- DG.Case objects to be deleted
+            {Array of Number}       iChange.ids -- on output, the IDs of the deleted cases
+   */
+  doDeleteCases: function( iChange) {
+    var deletedCases = [],
+        this_ = this,
+        allCollections = this.collections;
 
     DG.UndoHistory.execute(DG.Command.create({
       name: "data.deleteCases",
@@ -922,23 +951,13 @@ DG.DataContext = SC.Object.extend((function() // closure
         context: this
       },
       execute: function() {
-        deletedCases = [];
         // Delete each case
-        iChange.cases.forEach( deleteCaseAndChildren);
-
-        // Call didDeleteCases() for each affected collection
-        DG.ObjectMap.forEach( iChange.collectionIDs, function( iCollectionID, iCollection) {
-          if( iCollection)
-            iCollection.didDeleteCases();
-        });
+        deletedCases = this_.deleteCasesAndChildren(iChange);
 
         // Store the set of deleted cases, along with their values
         this._beforeStorage.deletedCases = deletedCases;
         this.log = "Deleted %@ case%@"
                       .fmt(deletedCases.length, deletedCases.length === 1 ? "" : "s");
-
-        // invalidate dependents; aggregate functions may need to recalculate
-        this_.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
       },
       undo: function() {
         var createdCases;
