@@ -1520,17 +1520,17 @@ DG.DocumentController = SC.Object.extend(
       }
 
       returnPromise = Promise.all(promises).then(function () {
-        // Prepare the component-specific storage for saving
-        DG.ObjectMap.forEach( this.componentControllersMap,
-            function( iComponentID, iController) {
-              iController.willSaveComponent();
-            });
+          // Prepare the component-specific storage for saving
+          DG.ObjectMap.forEach( this.componentControllersMap,
+              function( iComponentID, iController) {
+                iController.willSaveComponent();
+              });
 
         this.contexts.forEach(function (iContext) {
           iContext.willSaveContext();
         });
         return Promise.resolve(this.get('content').toArchive(fullData));
-      }.bind(this)).catch(function (reason) { // eslint-disable-line
+      }.bind(this)).then(undefined, function (reason) { // should be 'catch', but eslint and yui-compressor complain
         console.warn(reason);
       });
 
