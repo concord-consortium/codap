@@ -88,6 +88,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = qualBarFormatter(cellValue);
           } else if (type === 'boundary') {
             result = boundaryFormatter(cellValue);
+          } else if (typeof cellValue === 'boolean') {
+            result = String(cellValue);
           } else if (DG.isNumeric(cellValue)) {
             result = numberFormatter(cellValue, type, precision);
           } else if (DG.isColorSpecString(cellValue)) {
@@ -431,6 +433,18 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                                               { type: DG.DEP_TYPE_SPECIAL,
                                                                 id: 'random' });
                       ioMenuItem.disabled = !dependency;
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
+                    command: 'cmdSortAscending',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
+                    }
+                  },
+                  { title: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
+                    command: 'cmdSortDescending',
+                    updater: function( iColumn, iMenu, ioMenuItem) {
+                      ioMenuItem.disabled = false;
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),

@@ -194,6 +194,46 @@ DG.DataSet = SC.Object.extend((function() // closure
     },
 
     /**
+     * Sorts the items by the specified attribute using the specified compare function.
+     * @return {number[]} the original client index map (for use with undo, for instance)
+     */
+    sortItems: function(attributeID, accessFunc, valueCompareFunc) {
+      var compareFunc = function(itemIndex1, itemIndex2) {
+                          var item1 = this.dataItems[itemIndex1],
+                              item2 = this.dataItems[itemIndex2],
+                              value1 = accessFunc(item1.id, attributeID),
+                              value2 = accessFunc(item2.id, attributeID),
+                              result = valueCompareFunc(value1, value2);
+                          return result || (item1._clientIndex - item2._clientIndex);
+                        }.bind(this);
+      // copy the array, sort the copy
+      var clientIndexMap = this._clientToItemIndexMap.slice().sort(compareFunc);
+      // install the new map
+      return this.setClientIndexMap(clientIndexMap);
+    },
+
+    /**
+     * Returns a copy of the current client index map.
+     * @return {number[]} the original client index map (for use with undo, for instance)
+     */
+    getClientIndexMapCopy: function() {
+      return this._clientToItemIndexMap.slice();
+    },
+
+    /**
+     * Installs the specified client index map.
+     * @return {number[]} the original client index map (for use with undo, for instance)
+     */
+    setClientIndexMap: function(clientIndexMap) {
+      var originalMap = this._clientToItemIndexMap;
+      clientIndexMap.forEach(function(itemIndex, clientIndex) {
+                              this.dataItems[itemIndex]._clientIndex = clientIndex;
+                            }.bind(this));
+      this._clientToItemIndexMap = clientIndexMap;
+      return originalMap;
+    },
+
+    /**
      * Marks an item for deletion.
      * @param {integer} itemIndex
      * @return {DG.DataItem} the deleted item.
@@ -259,9 +299,9 @@ DG.DataSet = SC.Object.extend((function() // closure
         item = this.dataItems[index];
         if (item && !item.deleted) {
           if (value) {
-            item[attributeID] = value;
+            item.values[attributeID] = value;
           }
-          ret = item[attributeID];
+          ret = item.values[attributeID];
         }
       }
       return ret;

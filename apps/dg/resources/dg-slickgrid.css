@@ -36,6 +36,9 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
   height: 30px;
   float: none;
   vertical-align: top;
+  color: #555555;
+  text-decoration: none;
+  background: #e6e6e6;
 }
 
 .slick-column-name {

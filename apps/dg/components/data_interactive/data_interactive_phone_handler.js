@@ -1265,11 +1265,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         if (collection) {
           cases = iValues.map(function (caseID) {
             return collection.getCaseByID(caseID);
-          });
+          }).filter(function (iCase) {return !!iCase; });
         } else {
           cases = iValues.map(function (caseID) {
             return context.getCaseByID(caseID);
-          });
+          }).filter(function (iCase) {return !!iCase; });
         }
         var result = context.applyChange({
           operation: 'selectCases',
