@@ -47,7 +47,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             kLatNames = ['latitude', 'lat', 'Latitude', 'Lat', 'LAT', 'LATITUDE', 'LATITUD', 'latitud'],
             kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng', 'LONG', 'LON',
               'LONGITUDE', 'LONGITUD', 'longitud'],
-            kAreaNames = ['boundary', 'area', 'polygon', 'Boundary', 'Area', 'Polygon'];
+            kAreaNames = ['boundary', 'boundaries', 'polygon', 'Boundary', 'Boundaries', 'Polygon'];
 
         sc_super();
 
