@@ -49,9 +49,6 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     return this._values;
   }.property(),
 
-  // Maps will set this to false
-  sortOnXValues: true,
-
   /**
    * True if we need to compute new values to match new cells.
    * Note that this does not detect data changes where means need recomputing anyway.
@@ -130,15 +127,6 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         tValues[ tParentID].coordinates.push( { x: tXVal, y: tYVal, theCase: iCase } );
       }
     });
-
-    if( this.get('sortOnXValues')) {
-      DG.ObjectMap.forEach(tValues, function (iKey, iLine) {
-        // sort on x value (then y if x equal) for proper connection order
-        iLine.coordinates.sort(function (a, b) {
-          return (a.x > b.x) ? 1 : ((b.x > a.x) ? -1 : ((a.y > b.y) ? 1 : ((b.y > a.y) ? -1 : 0)));
-        });
-      });
-    }
 
     this.set('parents', tParents);
     this._needsComputing = false;

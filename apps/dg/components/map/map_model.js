@@ -115,7 +115,6 @@ DG.MapModel = DG.DataDisplayModel.extend(
       this.set('gridModel', DG.MapGridModel.create({ dataConfiguration: this.get('dataConfiguration')}));
       this.set('connectingLineModel', DG.ConnectingLineModel.create( {
         plotModel: this.get('dataConfiguration'),
-        sortOnXValues: false,
         isVisible: false
       }));
     },
