@@ -86,6 +86,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             result = errorFormatter(cellValue);
           } else if (type === 'qualitative') {
             result = qualBarFormatter(cellValue);
+          } else if (cellValue instanceof DG.SimpleMap) {
+            result = stringFormatter(cellValue.toString());
           } else if (type === 'boundary') {
             result = boundaryFormatter(cellValue);
           } else if (typeof cellValue === 'boolean') {

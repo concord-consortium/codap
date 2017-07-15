@@ -129,7 +129,7 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
       DG.remoteBoundaries.forEach(function(remoteBoundary) {
         DG.RemoteBoundaries.addBoundaries(remoteBoundary);
       });
-          }
+    }
   }
 
   // first time - create internal array of boundaries
@@ -141,7 +141,9 @@ DG.RemoteBoundaries.registerDefaultBoundaries = function() {
       success: function (boundarySpecs, status, jqXHR) {
         DG.remoteBoundaries = [];
         boundarySpecs.forEach(function (spec) {
-          DG.remoteBoundaries.push(DG.RemoteBoundaries.create(spec));
+          // eliminate unattached global warning
+          var boundarySpec = $.extend({ allowDetached: true }, spec);
+          DG.remoteBoundaries.push(DG.RemoteBoundaries.create(boundarySpec));
         });
         addBoundaries();
       }.bind(this),
