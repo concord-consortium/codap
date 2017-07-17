@@ -54,7 +54,7 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
   },
 
   verify: function () {
-    if (SC.empty(this.document)) {
+    if (SC.empty(this.document) && !this.get('allowDetached')) {
       DG.logWarn('Unattached global value: ' + this.id);
     }
     if (typeof this.document === 'number') {
