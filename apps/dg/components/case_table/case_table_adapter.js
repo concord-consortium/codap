@@ -34,8 +34,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       // Cell layout constants
   var kIndexColumnID = '__INDEX__',
       kDefaultColumnWidth = 60,
+      kDefaultQualWidth = 60,
       kIndexColumnWidth = 40,
       kDefaultRowHeight = 18,
+      kDefaultColorWidth = 20,
       kMaxStringLength = 256,
 
       // The tooltip string for the column depends on whether it has a formula, description, etc.
@@ -326,6 +328,91 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     return columnWidth;
   },
 
+  getColumnFromAttribute: function (attr) {
+    return this.gridColumns.find(function (columnInfo) {
+      return columnInfo.attribute && (attr.id === columnInfo.attribute.id);
+    });
+  },
+
+  getColumnWidthStats: function (attr) {
+    var columnInfo = this.getColumnFromAttribute(attr);
+    var kSelector = 'dg-text-measurer';
+    var $el = $('.' + kSelector);
+
+    function measureText(text) {
+      return $el.html(text).width();
+    }
+
+    var cellStyle = {
+      display: 'block',
+      'font-family': 'Montserrat-Regular, sans-serif',
+      'font-size': '10.66667px',
+      'text-align': 'left',
+      'font-weight': 'normal',
+      'font-style':'normal'
+    };
+    var headerStyle = {
+      display: 'block',
+      'font-family': 'Montserrat-Regular, sans-serif',
+      'font-size': '10.666667px',
+      'text-align': 'left',
+      'font-weight': 'bold',
+      'font-style':'normal'
+    };
+    var minWidth = Number.MAX_VALUE;
+    var maxWidth = 0;
+    var sum = 0;
+    var ct = 0;
+
+    $el = $('<div>').addClass(kSelector);
+    $el.appendTo(document.body);
+    $el.css(headerStyle);
+
+    var headerWidth = measureText(getColumnHeaderString(attr));
+
+    $el.css(cellStyle);
+
+    this.collection.casesController.slice(0,500).forEach( function (myCase) {
+      var attrValue = myCase.getValue(attr.id);
+      var valueString;
+      var width;
+      if (DG.isColorSpecString(attrValue)) {
+        width = kDefaultColorWidth;
+      } else if (attr.type === 'qualitative'){
+        width = kDefaultQualWidth;
+      } else {
+        valueString = cellFormatter(0, 0, attrValue, columnInfo, myCase);
+        width = measureText(valueString);
+      }
+      maxWidth = Math.max(maxWidth, width);
+      minWidth = Math.min(minWidth, width);
+      ct ++;
+      sum += width;
+    });
+
+    return {
+      headerWidth: headerWidth,
+      minWidth: minWidth,
+      maxWidth: maxWidth,
+      meanWidth: sum/ct,
+      count: ct
+    };
+  },
+
+  autoResizeColumn: function (attr) {
+    var stats = this.getColumnWidthStats(attr);
+    var width = Math.max(Math.ceil(3 +stats.headerWidth/2), stats.maxWidth) + 11;
+    // DG.log('Resizing stats: ' + JSON.stringify(stats));
+    // DG.log('Resizing column %@ from %@ to %@'.loc(attr.name, this.model.getPreferredAttributeWidth(attr.id), width));
+    this.model.setPreferredAttributeWidth(attr.id, width);
+  },
+
+  autoResizeAllColumns: function () {
+    this.collection.forEachAttribute(function (attr) {
+      this.autoResizeColumn(attr);
+    }.bind(this));
+  },
+
   isCellEditable: function(row, column) {
     var //dataView = this.get('gridDataView'),
         //dataItem = dataView.getItem(row),
@@ -367,6 +454,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       ioColumnInfo.editor = DG.CaseTableCellEditor;
       if (prevColumnInfo) {
         ioColumnInfo.width = prevColumnInfo.width;
+        ioColumnInfo.minWidth = prevColumnInfo.width;
       }
     }
 
@@ -381,7 +469,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             focusable: false,
             cssClass: 'dg-index-column',
             formatter: cellFormatter,
-            width: kIndexColumnWidth
+            width: kIndexColumnWidth,
           };
       columnDefs.push(columnInfo);
     }
@@ -505,9 +593,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                                           function( iColumn) {
                                             return iAttribute.get('id').toString() === iColumn.id;
                                           });
-
     if( column) {
-
       column.name = getColumnHeaderString( iAttribute);
       column.field = iAttribute.get('name');
       column.toolTip = getToolTipString( iAttribute);

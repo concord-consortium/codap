@@ -499,7 +499,8 @@ DG.CaseTableController = DG.ComponentController.extend(
         var hierTableView = this.getPath('view.contentView'),
             adapters = this.get('caseTableAdapters'),
             updatedAdapters = [],
-            attributes = iChange && iChange.result && iChange.result.attrs;
+            attributes = (iChange && iChange.result && iChange.result.attrs) ||
+                this.dataContext.getAttributes();
 
         function processAdapter( iAdapter) {
           if( attributes) {
@@ -1278,12 +1279,51 @@ DG.CaseTableController = DG.ComponentController.extend(
         }).popup(this.get('inspectorButtons')[1]);
       },
 
+      resizeColumns: function () {
+        var dataContext = this.dataContext;
+        var caseTableModel = this.getPath('model.content');
+        var adapters = this.get('caseTableAdapters');
+        var columnWidths = dataContext.getAttributes().map(function (attr) {
+          var id =  attr && attr.id;
+          return {id: id, width: caseTableModel.getPreferredAttributeWidth(id)};
+        }.bind(this));
+        DG.UndoHistory.execute(DG.Command.create({
+          name: 'caseTable.resizeColumns',
+          undoString: 'DG.Undo.caseTable.resizeColumns',
+          redoString: 'DG.Redo.caseTable.resizeColumns',
+          log: "resizeColumns: { dataContext: % }".fmt(dataContext),
+          execute: function () {
+            adapters.forEach( function (adapter) {
+              adapter.autoResizeAllColumns();
+            });
+            this.dataContextDidChange();
+          }.bind(this),
+          undo: function () {
+            columnWidths.forEach(function (oldWidth) {
+              if (oldWidth) {
+                caseTableModel.setPreferredAttributeWidth(oldWidth.id, oldWidth.width);
+              }
+            }.bind(this));
+            this.dataContextDidChange();
+          }.bind(this)
+        }));
+      },
       /**
        *
        * @returns {Array}
        */
       createInspectorButtons: function() {
         var tButtons = sc_super();
+        tButtons.push(DG.IconButton.create({
+          layout: {width: 32, left: 0, height: 25},
+          classNames: 'display-rescale'.w(),
+          iconClass: 'moonicon-icon-scaleData',
+          iconExtent: {width: 30, height: 25},
+          target: this,
+          action: 'resizeColumns',
+          toolTip: 'DG.Inspector.resize.toolTip',  // "Rescale graph axes to encompass data"
+          localize: true
+        }));
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
               classNames: 'dg-table-trash'.w(),

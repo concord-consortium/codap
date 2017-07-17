@@ -213,6 +213,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': 'Redo toggle expand/collapse all',
   'DG.Undo.caseTable.expandCollapseOneCase': 'Undo expand or collapse of a group',
   'DG.Redo.caseTable.expandCollapseOneCase': 'Redo expand or collapse of a group',
+  'DG.Undo.caseTable.resizeColumns': 'Undo auto-resize all columns',
+  'DG.Redo.caseTable.resizeColumns': 'Redo auto-resize all columns',
   'DG.Undo.document.share': "Undo sharing the document",
   'DG.Redo.document.share': "Redo sharing the document",
   'DG.Undo.document.unshare': "Undo stop sharing the document",
@@ -743,6 +745,7 @@ SC.stringsFor('English', {
 
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "Make new attributes. Export case data.",  // "Make new attributes. Export case data."
+  'DG.Inspector.resize.toolTip': "Resize all columns to fit data", // "Resize all columns to fit data"
   'DG.Inspector.newAttribute': "New Attribute in %@...",  // "New Attribute in %@..."
   'DG.Inspector.randomizeAllAttributes': "Rerandomize All", // "Randomize Attributes"
   'DG.Inspector.exportCaseData': "Export Case Data...", // "Export Case Data..."
