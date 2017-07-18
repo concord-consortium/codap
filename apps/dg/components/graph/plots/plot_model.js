@@ -247,16 +247,19 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   /**
     @property { DG.PlottedCountModel }
   */
-  _plottedCount: null,
+  _plottedCountModel: null,
   plottedCount: function(key, value) {
-    if (value) {
-      this._plottedCount = value;
-    } else if (!this._plottedCount) {
-      this._plottedCount = DG.PlottedCountModel.create({plotModel: this});
-      this.setAdornmentModel('plottedCount', this._plottedCount); // Add to list of adornments
-      this._plottedCount.recomputeValue(); // initialize
+    // if we are called with a new value, or have no Plotted Count Model
+    if (value || !this._plottedCountModel) {
+      if (value) {
+        this._plottedCountModel = value;
+      } else {
+        this._plottedCountModel = DG.PlottedCountModel.create({plotModel: this});
+      }
+      this.setAdornmentModel('plottedCount', this._plottedCountModel); // Add to list of adornments
+      this._plottedCountModel.recomputeValue(); // initialize
     }
-    return this._plottedCount;
+    return this._plottedCountModel;
   }.property(),
 
   /**
