@@ -1217,11 +1217,26 @@ html.dg-embedded-mode .sc-main, html.dg-embedded-mode .dg-doc-background {
     background: transparent!important;
 }
 
-/*.slick-row.odd .dg-formula-column {*/
-/*background-color: #efefef;*/
-/*}*/
+/*
+   Fix for embedded mode. Header menu is placed at end of document so not within
+   codap cascade.
+ */
+html.dg-embedded-mode .slick-header-menu  .slick-header-menuitem{
+    font-family: 'Montserrat-Regular', sans-serif ;
+    font-size: 12px;
+    color: #000;
+}
 
-/*.slick-row.even .dg-formula-column {*/
-/*background-color: #f4f4f4;*/
-/*}*/
+html.dg-embedded-mode .sc-pane.sc-view.dg {
+    color: #000;
+    font-size: 12px;
+    font-family: MuseoSans-500;
+}
+
+html.dg-embedded-mode .dg-data-tip-text {
+  color: #000;
+  font-size: 10px!important;
+  font-family: MuseoSans-500;
+}
+
 
