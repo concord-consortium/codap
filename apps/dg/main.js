@@ -670,18 +670,18 @@ DG.main = function main() {
     }
   }
 
-  if(( DG.componentMode !== 'yes') && ( DG.embeddedMode !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
+  if(( DG.get('componentMode') !== 'yes') && ( DG.get('embeddedMode') !== 'yes')) { // Usual DG game situation is that we're not in component or transparent mode
     DG.splash.showSplash();
   }
 
-  if (DG.embeddedMode === 'yes') {
+  if (DG.get('embeddedMode') === 'yes') {
     $('html').addClass('dg-embedded-mode');
 
     startEmbeddedServer();
   }
   else {
     // only start embedded server if embeddedMode is not on
-    if (DG.embeddedServer === 'yes') {
+    if (DG.get('embeddedServer') === 'yes') {
       startEmbeddedServer();
     }
     translateQueryParameters();

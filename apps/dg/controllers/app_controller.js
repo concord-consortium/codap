@@ -211,8 +211,8 @@ DG.appController = SC.Object.create((function () // closure
       // TODO: saving fails. Need a way out in these circumstances.
       window.onbeforeunload = function (iEvent) {
         if (DG.currDocumentController().get('hasUnsavedChanges') &&
-            (DG.embeddedMode === 'no') &&
-            (DG.componentMode === 'no')) {
+            (DG.get('embeddedMode') === 'no') &&
+            (DG.get('componentMode') === 'no')) {
           return 'DG.AppController.beforeUnload.confirmationMessage'.loc();
         }
       };

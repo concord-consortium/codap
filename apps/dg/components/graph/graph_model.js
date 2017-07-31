@@ -238,7 +238,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this._plots = [];
 
-      var showNumberToggle = DG.IS_INQUIRY_SPACE_BUILD || this.get('enableNumberToggle'),
+      var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = DG.NumberToggleModel.create({ dataConfiguration: this.get('dataConfiguration'),
                                                         isEnabled: showNumberToggle });
       this.set('numberToggle', numberToggle);

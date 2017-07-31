@@ -69,7 +69,7 @@ DG.mainPage = SC.Page.design((function() {
       layout: { height: kInfobarHeight },
       childViews: 'leftSide'.w(),
       anchorLocation: SC.ANCHOR_TOP,
-      isVisible: (DG.componentMode !== 'yes') && (DG.embeddedMode !== 'yes'),
+      isVisible: (DG.get('componentMode') !== 'yes') && (DG.get('embeddedMode') !== 'yes'),
 
       // CFM wrapper view
       leftSide: SC.View.design({
@@ -187,7 +187,7 @@ DG.mainPage = SC.Page.design((function() {
      */
     init: function() {
       sc_super();
-      if(( DG.componentMode === 'yes') || ( DG.embeddedMode === 'yes')) {
+      if(( DG.get('componentMode') === 'yes') || ( DG.get('embeddedMode') === 'yes')) {
         var tScrollView = this.get('scrollView');
         this.setPath('topView.isVisible', false);
         tScrollView.adjust('top', 0);

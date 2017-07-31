@@ -14,9 +14,6 @@ config :all, :required => [:sproutcore, 'sproutcore/ace'], :theme => 'sproutcore
 config :dg,
        :title => 'CODAP',
        :css_theme => 'ace.dg',
-       :javascript_libs => [# these urls will be inserted as the src of <script> tags in the <head> element
-         '../../../../codap-config.js'
-       ],
        :layout => 'dg:lib/index.rhtml'
 
 # Production build (e.g. sc-build, make deploy) configuration

@@ -219,7 +219,7 @@ DG = SC.Application.create((function () // closure
   };
 
 
-  return { // return from closure
+  return Object.assign({ // return from closure
 
     NAMESPACE: 'DG',
     APPNAME: 'DG',
@@ -235,11 +235,11 @@ DG = SC.Application.create((function () // closure
      */
     BUILD_NUM: '0395',
 
-    IS_DG_BUILD: isDGBuild(),
+    IS_DG_BUILD: isDGBuild.property(),
 
-    IS_INQUIRY_SPACE_BUILD: isInquirySpaceBuild(),
+    IS_INQUIRY_SPACE_BUILD: isInquirySpaceBuild.property(),
 
-    IS_SRRI_BUILD: isSrriBuild(),
+    IS_SRRI_BUILD: isSrriBuild.property(),
 
     exampleListURL: 'https://codap-resources.concord.org/examples/index.json',
 
@@ -298,10 +298,10 @@ DG = SC.Application.create((function () // closure
      */
     getVariantString: function (iKey) {
       var key = iKey;
-      if (DG.IS_INQUIRY_SPACE_BUILD) {
+      if (DG.get('IS_INQUIRY_SPACE_BUILD')) {
         key += '.IS_BUILD';
       }
-      else if (DG.IS_SRRI_BUILD) {
+      else if (DG.get('IS_SRRI_BUILD')) {
         key += '.SRRI_BUILD';
       }
       return key;
@@ -392,9 +392,13 @@ DG = SC.Application.create((function () // closure
      *  With the value 'yes' DG will not display the tool shelf, nor will it display scroll bars.
      *  The default is 'no'.
      */
-    componentMode: getUrlParameter('componentMode', 'no'),
+    componentMode: function () {
+      return getUrlParameter('componentMode', 'no');
+    }.property(),
 
-    hideCFMMenu: !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara'),
+    hideCFMMenu: function () {
+      return !!getUrlParameter('launchFromLara') || !!getUrlParameter('lara');
+    }.property(),
 
     cfmBaseUrl: getUrlParameter('cfmBaseUrl'),
 
@@ -410,14 +414,18 @@ DG = SC.Application.create((function () // closure
      *  a iframePhone server will be setup to enable communication with the outside page.
      *  The default is 'no'.
      */
-    embeddedMode: getUrlParameter('embeddedMode', 'no'),
+    embeddedMode: function () {
+      return getUrlParameter('embeddedMode', 'no');
+    }.property(),
 
     /**
      * embeddedServer can be passed as a Url parameter named tools with values 'yes' or 'no'.
      *  With the value 'yes' the embedded iframePhone server is setup to enable communication with the outside page.
      *  The default is 'no' and this option is ignored if embeddedMode is 'yes'
      */
-    embeddedServer: getUrlParameter('embeddedServer', 'no'),
+    embeddedServer: function () {
+      return getUrlParameter('embeddedServer', 'no');
+    },
 
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
@@ -483,6 +491,6 @@ DG = SC.Application.create((function () // closure
 
     enableUndoHistory: true //getUrlParameter('undo') === 'true'
 
-  }; // end return from closure
+  }, window.DG); // end return from closure
 
 }()));

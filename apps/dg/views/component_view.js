@@ -279,7 +279,7 @@ DG.ComponentView = SC.View.extend(
           }
         },
         contentView: SC.outlet('containerView.contentView'),
-        childViews: ('containerView' + (DG.componentMode === 'no' ?
+        childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
             ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
           layout: {left: 0, bottom: 0, right: 0},
@@ -291,7 +291,7 @@ DG.ComponentView = SC.View.extend(
             userEdit: false,
             classNameBindings: ['isSelected:dg-titlebar-selected'],
             childViews: ('statusView versionView ' +
-            (DG.componentMode === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
+            (DG.get('componentMode') === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
@@ -396,27 +396,27 @@ DG.ComponentView = SC.View.extend(
               layout: {right: 2 * kTitleBarHeight, top: 5},
               value: ''
             }),
-            minimize: DG.componentMode === 'no' ?
+            minimize: DG.get('componentMode') === 'no' ?
                 DG.TitleBarMinimizeButton.design({
                   layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-minimize-view'],
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            closeBox: DG.componentMode === 'no' ?
+            closeBox: DG.get('componentMode') === 'no' ?
                 DG.TitleBarCloseButton.design({
                   layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-close-view'],
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            undo: DG.componentMode === 'yes' ?
+            undo: DG.get('componentMode') === 'yes' ?
                 DG.TitleBarUndoButton.design({
                   layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
-            redo: DG.componentMode === 'yes' ?
+            redo: DG.get('componentMode') === 'yes' ?
                 DG.TitleBarRedoButton.design({
                   layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
