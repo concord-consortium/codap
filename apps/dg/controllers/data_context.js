@@ -1317,10 +1317,11 @@ DG.DataContext = SC.Object.extend((function() // closure
       log: 'move attribute {attribute: "%@", position: %@}'
           .loc(iAttr.name, position),
       execute: function () {
-        iAttr = fromCollection.removeAttribute(iAttr);
+        var collection = iAttr.collection;
+        iAttr = collection.removeAttribute(iAttr);
 
-        if (fromCollection.get('attrs').length === 0) {
-          dataContext.destroyCollection(fromCollection);
+        if (collection.get('attrs').length === 0) {
+          dataContext.destroyCollection(collection);
           dataContext.applyChange( {
             operation: 'deleteCollection',
             collection: fromCollection,
@@ -1331,11 +1332,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         // add attribute to new collection
         toCollection.addAttribute(iAttr, position);
 
-        casesAffected = dataContext.regenerateCollectionCases([fromCollection, toCollection]);
+        casesAffected = dataContext.regenerateCollectionCases([collection, toCollection]);
         dataContext.invalidateAttrsOfCollections(casesAffected.collections);
       },
       undo: function () {
-        var toCollection = toCollectionClient.get('collection');
+        var toCollection = iAttr.collection;
         var fromCollectionProperties;
         var newCollection;
         iAttr = toCollection.removeAttribute(iAttr);

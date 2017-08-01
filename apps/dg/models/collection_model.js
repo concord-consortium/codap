@@ -533,6 +533,7 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
           } else {
             tCase.parent = null;
           }
+          tCase.children = [];
         }
         return tCase;
       }
