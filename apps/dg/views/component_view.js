@@ -266,7 +266,7 @@ DG.ComponentView = SC.View.extend(
           }
           // If we are in component mode we select the component after it is
           // rendered.
-          if (DG.componentMode === 'yes') {
+          if (DG.get('componentMode') === 'yes') {
             this.invokeLater(function () {
               this.select();
             }.bind(this));
@@ -450,7 +450,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
             },
             canBeDragged: function () {
-              return DG.componentMode === 'no';
+              return DG.get('componentMode') === 'no';
             }
           }),
           coverSheet: SC.View.design({
