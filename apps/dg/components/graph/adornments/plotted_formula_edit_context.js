@@ -49,7 +49,9 @@ DG.PlottedFormulaEditContext = SC.Object.extend({
                       });
     this.set('formulaView', formulaView);
     this.set('clientOptions', iOptions ? DG.copy(iOptions) : {});
-    this.openFormulaEditorDialog();
+    if( SC.empty( this.getPath('plottedFormula.expression'))) {
+      this.openFormulaEditorDialog();
+    }
     return formulaView;
   },
 
