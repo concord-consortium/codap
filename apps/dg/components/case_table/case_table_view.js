@@ -171,55 +171,67 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       dragInsertPoint: null,
 
       dragUpdated: function( iDragObject, iEvent) {
+
+        function findDragInsertionPoint(slickGrid, locX) {
+          var columnDefs = slickGrid.getColumns();
+          var obj;
+          var x = 0;
+          var colMiddle;
+          var colWidth;
+          // Find the column with the closest boundary to locX. That is,
+          // find the first column index whose midpoint is greater than locX.
+          // If we don't find it, then the last column must be it.
+          var columnIndex = columnDefs.findIndex(function (def, ix, defs) {
+            // skip row index
+            if (ix === 0) {
+              return false;
+            }
+            colWidth = def.width || 0;
+            colMiddle = x + (colWidth / 2);
+            if (locX < colMiddle) {
+              return true;
+            }
+            x += colWidth;
+            return false;
+          });
+
+          if (columnIndex >= 0) {
+            obj = {
+              columnIndex: columnIndex,
+              nearerBound: 'left'
+            };
+          } else {
+            obj = {
+              columnIndex: columnDefs.length - 1,
+              nearerBound: 'right'
+            };
+          }
+          return obj;
+        }
         var slickGrid = this.parentView._slickGrid;
         var gridPosition =  slickGrid.getGridPosition();
+        // compute cursor location relative to grid
         var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
-        var originLoc = {x: iDragObject.origin.x - gridPosition.left, y:1};
+        // find new insertion point
+        var newDragInsertionPoint = findDragInsertionPoint(slickGrid, loc.x);
 
-        var cell = slickGrid.getCellFromPoint(loc.x, loc.y);
-        var originCell = slickGrid.getCellFromPoint(originLoc.x, originLoc.y);
-        var columnIndex = cell.cell;
-        var cellBox = slickGrid.getCellNodeBox(0, cell.cell);
-        // It is possible to get a dragUpdated notification before a dragExited.
-        // So we exit.
-        if (!cellBox) {
+        newDragInsertionPoint.headerNode = (newDragInsertionPoint.columnIndex >=0 )
+            && this.$('.slick-header-column',
+                slickGrid.getHeaderRow())[newDragInsertionPoint.columnIndex];
+
+        // if unchanged, we are done
+        if (this.dragInsertPoint &&
+            (this.dragInsertPoint.columnIndex === newDragInsertionPoint.columnIndex)
+              && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
           return;
         }
-        var nearerBound = (loc.x - cellBox.left >= cellBox.right - loc.x) ? 'right': 'left';
-        if (nearerBound === 'left' && columnIndex > 0) {
-          columnIndex -= 1;
-          nearerBound = 'right';
+        if (this.dragInsertPoint) {
+          this.$(this.dragInsertPoint.headerNode)
+              .removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
         }
-        var headerNode = (columnIndex >=0 ) && this.$('.slick-header-column',
-                slickGrid.getHeaderRow())[columnIndex];
-        if (this.dragInsertPoint)  {
-          if (this.dragInsertPoint.columnIndex !== columnIndex
-              || this.dragInsertPoint.nearerBound !== nearerBound) {
-            this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
-                + this.dragInsertPoint.nearerBound);
-          } else {
-            return;
-          }
-        }
-        if (iDragObject.source !== this
-            || nearerBound === 'left'
-            || columnIndex > originCell.cell
-            || columnIndex < originCell.cell - 1) {
-          this.dragInsertPoint = {
-            headerNode: headerNode,
-            columnIndex: columnIndex,
-            nearerBound: nearerBound
-          };
-          this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
-              + this.dragInsertPoint.nearerBound);
-          //DG.log('dragUpdated: ' + JSON.stringify({
-          //      columnIndex: columnIndex,
-          //      location: iDragObject.location,
-          //      gridPosition: gridPosition,
-          //      loc: loc,
-          //      cellBox: cellBox,
-          //      nearerBound: nearerBound}));
-        }
+        this.dragInsertPoint = newDragInsertionPoint;
+        this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
+            + this.dragInsertPoint.nearerBound);
       },
 
       dragExited: function( iDragObject, iEvent) {
