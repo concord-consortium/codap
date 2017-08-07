@@ -37,6 +37,7 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
   layout: { width: 400, height: 180, centerX: 0, centerY: 0 },
 
   contentView: SC.View.extend({
+    classNames: 'dg-formula-dialog',
     childViews: 'attrName equalsLabel formula operandPopup functionPopup apply cancel'.w(),
       attrName: SC.TextFieldView.design({
         layout: { top: 5, left: 5, right: 25, height:24 },
@@ -64,7 +65,8 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
                     value: 'DG.AttrFormView.formulaPrompt', // "Formula:",
                     backgroundColor: 'lightgray',
                     localize: true
-                  })
+                  }),
+        classNames: 'dg-formula-dialog-input-field'
       }),
       operandPopup: SC.PopupButtonView.extend({
         layout: { top: 112, left: 5, width: 140, height: 24 },
@@ -123,7 +125,9 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         action: null,
         toolTip: '',
         localize: true,
-        isDefault: true
+        isDefault: true,
+        classNames: 'dg-formula-dialog-apply'
+
       }),
       cancel: SC.ButtonView.design({
         layout: { bottom:5, right: 115, height:24, width: 90 },
@@ -133,7 +137,9 @@ DG.AttributeFormulaView = SC.PalettePane.extend(
         action: null,
         toolTip: 'DG.AttrFormView.cancelBtnTooltip',  // "Dismiss the dialog without making any changes"
         localize: true,
-        isCancel: true
+        isCancel: true,
+        classNames: 'dg-formula-dialog-cancel'
+
       })
   }),
 
