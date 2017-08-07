@@ -449,13 +449,8 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     }
 
     function updateDynamicColumnProperties( iAttribute, ioColumnInfo) {
-      var prevColumnInfo = existColumnDefs[ioColumnInfo.id];
       // cell-specific editability handled by isCellEditable() method
       ioColumnInfo.editor = DG.CaseTableCellEditor;
-      if (prevColumnInfo) {
-        ioColumnInfo.width = prevColumnInfo.width;
-        ioColumnInfo.minWidth = prevColumnInfo.width;
-      }
     }
 
     function addIndexColumn() {

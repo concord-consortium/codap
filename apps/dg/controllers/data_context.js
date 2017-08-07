@@ -1839,7 +1839,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     // create a tab and newline delimited string of attribute names and case values.
 
     // add a row of attribute names
-    rows.push(attribNames.join(columnDelimiter));
+    rows.push(attribNames.map(function(name) { return escape(name); }).join(columnDelimiter));
 
     // add each row of case values
     collection.forEachCase( function( iCase, iIndex ) {
