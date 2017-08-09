@@ -1249,7 +1249,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var name = attr.name;
     var attributeNames = collectionClient.getAttributeNames();
     var ix = attributeNames.indexOf(name);
-    var newPosition = (ix >= position)? position: position - 1;
+    var newPosition = Math.min(Math.max(0,position),attributeNames.get('length')-1);
     var changeFlag = this.get('flexibleGroupingChangeFlag');
     if (ix !== -1) {
       DG.UndoHistory.execute(DG.Command.create({
@@ -1307,6 +1307,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var originalPosition = fromCollection.get('attrs').findIndex(function (attr) {
       return attr === iAttr;
     });
+    var attrCount = toCollectionClient.getAttributeCount();
+    var newPosition = Math.min(Math.max(position, 0), attrCount);
     DG.assert(originalPosition !== -1, 'Moving attribute is found in original collection');
     var casesAffected;
     // remove attribute from old collection
@@ -1330,7 +1332,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
 
         // add attribute to new collection
-        toCollection.addAttribute(iAttr, position);
+        toCollection.addAttribute(iAttr, newPosition);
 
         casesAffected = dataContext.regenerateCollectionCases([collection, toCollection]);
         dataContext.invalidateAttrsOfCollections(casesAffected.collections);
