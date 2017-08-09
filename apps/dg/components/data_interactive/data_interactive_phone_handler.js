@@ -933,6 +933,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (iValues && !SC.none(iValues.collection)) {
             change.toCollection = context.getCollectionByName(iValues.collection) ||
                     context.getCollectionByID(iValues.collection);
+            if (!change.toCollection) {
+              return {
+                success: false,
+                values: {error: 'Target collection not found'}
+              };
+            }
           }
           if (iValues && !SC.none(iValues.position)) {
             change.position = iValues.position;
