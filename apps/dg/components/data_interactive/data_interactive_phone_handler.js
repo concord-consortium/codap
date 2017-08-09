@@ -919,6 +919,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          */
         update: function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
+          if (!context) {
+            return {
+                success: false,
+                values: {error: 'context not found'}
+              };
+          }
           var change = {
             operation: 'moveAttribute',
             requester: this.get('id'),
