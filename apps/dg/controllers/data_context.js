@@ -1233,6 +1233,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       collectionCases.push(iCase.get('id'));
     });
 
+    DG.dirtyCurrentDocument(this.get('model'), false);
+
     if (results && results.createdCases.length > 0) {
       collections.forEach(function (collection) {
         var cases = collectionIDCaseMap[collection.get('id')];
