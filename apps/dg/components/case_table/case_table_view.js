@@ -147,6 +147,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       isDropTarget: true,
 
+      classNameBindings: [
+        'isDragInProgress:dg-table-drop-target-show'
+      ],
+
       computeDragOperations: function( iDrag) {
         if( this.isValidAttribute( iDrag))
           return SC.DRAG_LINK;
@@ -243,8 +247,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         this.set('isDragEntered', false);
       },
 
-      acceptDragOperation: function() {
-        return YES;
+      acceptDragOperation: function(drag, op) {
+        $('.sc-ghost-view').hide();
+        var $dragTarget = $(document.elementFromPoint(drag.location.x, drag.location.y));//$(drag.event.target);
+        var isOverHeader = $dragTarget.parents('.slick-header').length > 0;
+        $('.sc-ghost-view').show();
+        if (!isOverHeader && this.dragInsertPoint) {
+          this.$(this.dragInsertPoint.headerNode).removeClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
+        }
+        return isOverHeader;
       },
 
       performDragOperation:function ( iDragObject, iDragOp ) {
