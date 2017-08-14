@@ -1036,7 +1036,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 name: collection.get('name'),
                 id: collection.get('id')
               },
-              cases: context.get('allCases').map(serializeCase)
+              cases: collection.get('casesController').map(serializeCase)
             }
           };
         },
