@@ -32,6 +32,19 @@
 */
 DG.DataContext = SC.Object.extend((function() // closure
 /** @scope DG.DataContext.prototype */ {
+  /**
+   * Returns an integer constrained within the specified limits including the max.
+   * If undefined, returns the max value.
+   * @param {number|undefined} num
+   * @param {number} min // assumed an integer
+   * @param {number} max // assumed an integer
+   * @return {number}
+   */
+  function constrainInt(num, min, max) {
+    var n = isNaN(num)?Number.MAX_SAFE_INTEGER:Math.round(num);
+    // clipToIntegerRange is exclusive of the max value
+    return DG.MathUtilities.clipToIntegerRange(n, min, max+1);
+  }
 
   return {  // return from closure
 
@@ -1220,6 +1233,8 @@ DG.DataContext = SC.Object.extend((function() // closure
       collectionCases.push(iCase.get('id'));
     });
 
+    DG.dirtyCurrentDocument(this.get('model'), false);
+
     if (results && results.createdCases.length > 0) {
       collections.forEach(function (collection) {
         var cases = collectionIDCaseMap[collection.get('id')];
@@ -1249,7 +1264,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var name = attr.name;
     var attributeNames = collectionClient.getAttributeNames();
     var ix = attributeNames.indexOf(name);
-    var newPosition = (ix >= position)? position: position - 1;
+    var newPosition = constrainInt(position, 0, attributeNames.get('length')-1);
     var changeFlag = this.get('flexibleGroupingChangeFlag');
     if (ix !== -1) {
       DG.UndoHistory.execute(DG.Command.create({
@@ -1307,6 +1322,8 @@ DG.DataContext = SC.Object.extend((function() // closure
     var originalPosition = fromCollection.get('attrs').findIndex(function (attr) {
       return attr === iAttr;
     });
+    var attrCount = toCollectionClient.getAttributeCount();
+    var newPosition = constrainInt(position, 0, attrCount);
     DG.assert(originalPosition !== -1, 'Moving attribute is found in original collection');
     var casesAffected;
     // remove attribute from old collection
@@ -1330,7 +1347,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         }
 
         // add attribute to new collection
-        toCollection.addAttribute(iAttr, position);
+        toCollection.addAttribute(iAttr, newPosition);
 
         casesAffected = dataContext.regenerateCollectionCases([collection, toCollection]);
         dataContext.invalidateAttrsOfCollections(casesAffected.collections);

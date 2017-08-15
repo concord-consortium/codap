@@ -199,7 +199,7 @@ DG.functionRegistry.registerAggregates({
                                   : (iContext && iContext.getPath('collection.cases')),
             thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),  // 1-based index
             nextCase = getNextFilteredCase(siblings, thisCaseIndex),    // 0-based index
-            tmpEvalContext = { _caseMap_: {} };
+            tmpEvalContext = { _caseMap_: {}, _case_: nextCase, _id_: nextCase && nextCase.get('id') };
 
         // The appropriate next case depends on the attribute argument.
         // We stash a map of potential next cases into the evaluation context
@@ -265,7 +265,7 @@ DG.functionRegistry.registerAggregates({
                                   : (iContext && iContext.getPath('collection.cases')),
             thisCaseIndex = iContext.getCaseIndex( iEvalContext._id_),    // 1-based index
             prevCase = getPrevFilteredCase(siblings, thisCaseIndex - 2),  // 0-based index
-            tmpEvalContext = { _caseMap_: {} };
+            tmpEvalContext = { _caseMap_: {}, _case_: prevCase, _id_: prevCase && prevCase.get('id')  };
 
         // The appropriate prev case depends on the attribute argument.
         // We stash a map of potential prev cases into the evaluation context

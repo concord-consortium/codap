@@ -249,12 +249,12 @@ DG.CaseTableDataManager = SC.Object.extend({
       });
     }
     // do we have a flat (non-hierarchical) data set?
-    function isFlatDataSet(collections) {
-      if (collections.length !== 1) return false;
-      var childCollections = collections[0].getPath('collection.children');
-      if (childCollections && childCollections.get('length')) return false;
-      return true;
-    }
+    // function isFlatDataSet(collections) {
+    //   if (collections.length !== 1) return false;
+    //   var childCollections = collections[0].getPath('collection.children');
+    //   if (childCollections && childCollections.get('length')) return false;
+    //   return true;
+    // }
     // ---- BEGIN ----
     if (this.get('suspended')) {
       this.set('refreshNeeded', true);
@@ -268,10 +268,10 @@ DG.CaseTableDataManager = SC.Object.extend({
     var collections = makeCollections(myCollection);
     visit(collections[0].casesController, 0);
     this._rowCaseMap = rowCaseIndex;
-    if (isFlatDataSet(collections)) {
+    // if (isFlatDataSet(collections) || (this._rowCaseMap.length === 0)) {
       // add proto-case to support data entry row
-      this._rowCaseMap.push(this.getProtoCase(collections[0]));
-    }
+      this._rowCaseMap.push(this.getProtoCase(myCollection));
+    // }
     if (this._rowCaseMap.length !== beforeCount) {
       this.onRowCountChanged.notify({previous: beforeCount, current: this._rowCaseMap.length}, null, this);
     }

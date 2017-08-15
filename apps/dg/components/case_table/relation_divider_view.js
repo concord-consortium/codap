@@ -445,7 +445,7 @@ DG.RelationDividerView = SC.View.extend( (function() {
           iRelation = {};
           iRelation.top = this_._paper.path(topPathStr).attr(
               {stroke: RDV_RELATION_STROKE_COLOR});
-          iRelation.bottom = this_._paper.path(topPathStr).attr(
+          iRelation.bottom = this_._paper.path(bottomPathStr).attr(
               {stroke: RDV_RELATION_STROKE_COLOR});
           if (!isBottomRequired) {
             iRelation.bottom.hide();
@@ -500,7 +500,10 @@ DG.RelationDividerView = SC.View.extend( (function() {
         var leftViewport = leftTable.get('gridViewport');
         var viewportCount = leftViewport.bottom - leftViewport.top;
         var leftDataView = leftAdapter.get('gridDataView');
-        var lastRow = leftDataView? leftDataView.getLength() - 1: -1;
+        // determine if this is the last data row. There will always be a proto-row,
+        // so we take the length and subtract one for the proto-row and one because of
+        // zero-indexing
+        var lastRow = leftDataView? leftDataView.getLength() - 2: -1;
         var ix;
         var rowIx;
         var parentID;

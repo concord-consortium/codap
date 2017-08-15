@@ -919,6 +919,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
          */
         update: function (iResources, iValues, iMetadata) {
           var context = iResources.dataContext;
+          if (!context) {
+            return {
+                success: false,
+                values: {error: 'context not found'}
+              };
+          }
           var change = {
             operation: 'moveAttribute',
             requester: this.get('id'),
@@ -927,6 +933,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           if (iValues && !SC.none(iValues.collection)) {
             change.toCollection = context.getCollectionByName(iValues.collection) ||
                     context.getCollectionByID(iValues.collection);
+            if (!change.toCollection) {
+              return {
+                success: false,
+                values: {error: 'Target collection not found'}
+              };
+            }
           }
           if (iValues && !SC.none(iValues.position)) {
             change.position = iValues.position;
@@ -1024,7 +1036,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 name: collection.get('name'),
                 id: collection.get('id')
               },
-              cases: context.get('allCases').map(serializeCase)
+              cases: collection.get('casesController').map(serializeCase)
             }
           };
         },
@@ -1615,7 +1627,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleLogMessage: {
         notify: function (iResources, iValues) {
-          DG.logUser(iValues);
+          DG.logUser(iValues.formatStr, iValues.replaceArgs);
           this.handleLogMessageMonitor._checkLogMessage.apply(this, [iResources, iValues]);
           return {
             success: true

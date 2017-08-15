@@ -484,8 +484,20 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Creates a new case with the specified proto-case values.
    */
   commitProtoCase: function(protoCase) {
+    function getParentCase (context, collection) {
+      var parentCollectionID = collection.getParentCollectionID(),
+          parentCollection = SC.none(parentCollectionID)?
+              null:
+              context.getCollectionByID(parentCollectionID),
+          parentCaseCount = parentCollection && parentCollection.getCaseCount();
+      if (!SC.none(parentCaseCount)) {
+        return parentCollection.getCaseAt(parentCaseCount-1);
+      }
+    }
+
     var collection = protoCase && protoCase.collection,
         attrIDs = collection && collection.getAttributeIDs(),
+        parentCase = getParentCase(this.get('dataContext'), collection),
         values;
     if (!collection || !attrIDs) return;
 
@@ -495,7 +507,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
                         });
     protoCase._values = {};
 
-    this.createCaseUndoable({ collection: collection, attrIDs: attrIDs, values: values });
+    this.createCaseUndoable({ collection: collection, attrIDs: attrIDs, values: values, parent: parentCase });
   },
 
   /**
@@ -509,10 +521,23 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var createResult;
     function doCreateCase() {
       return context.applyChange({
-                      operation: 'createCases',
-                      attributeIDs: props.attrIDs,
-                      values: [ props.values ]
-                    });
+        operation: 'createCases',
+        attributeIDs: props.attrIDs,
+        collection: props.collection,
+        properties: { parent: props.parent },
+        values: [ props.values ]
+      });
+    }
+    function doCreateItem() {
+      var attrIDs = props.collection.getAttributeIDs();
+      var valueArray = props.values;
+      var values = {};
+      valueArray.forEach(function (value, ix) {
+        var attrID = attrIDs[ix];
+        var attr = context.getAttrRefByID(attrID).attribute;
+        values[attr.name] = value;
+      });
+      return context.addItems(values);
     }
 
     function doDeleteCase(caseIDs) {
@@ -529,8 +554,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       name: "caseTable.createNewCase",
       undoString: 'DG.Undo.caseTable.createNewCase',
       redoString: 'DG.Redo.caseTable.createNewCase',
+      log: "create new case",
       execute: function() {
-        createResult = doCreateCase();
+        var caseIDs;
+        if (props.parent) {
+          createResult = doCreateCase();
+        } else {
+          caseIDs = doCreateItem();
+          createResult = {
+              caseIDs: caseIDs
+            };
+        }
       },
       undo: function() {
         if (createResult && createResult.caseIDs)
@@ -1260,25 +1294,26 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     var activeRowItem = this._slickGrid.getDataItem(iArgs.row),
         rowCount = this._slickGrid.getDataLength(),
         lastRowItem = this._slickGrid.getDataItem(rowCount - 1),
-        hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values);
+        hasProtoCase = lastRowItem && lastRowItem._isProtoCase && DG.ObjectMap.length(lastRowItem._values),
+        retval = true;
 
     this.clearProtoCaseTimer();
 
-    // editing another case commits the proto-case
-    if (!activeRowItem._isProtoCase && hasProtoCase)
-      this.commitProtoCase(lastRowItem);
+    SC.run(function () {
+      // editing another case commits the proto-case
+      if (!activeRowItem._isProtoCase && hasProtoCase)
+        this.commitProtoCase(lastRowItem);
 
-    // editing the proto-case deselects other rows
-    if (activeRowItem._isProtoCase) {
-      this.get('gridAdapter').deselectAllCases();
-      return true;
-    }
-
-    // if attribute not editable and not the proto-case row, then can't edit
-    if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell))
-      return false;
-
-    return true;
+      // editing the proto-case deselects other rows
+      if (activeRowItem._isProtoCase) {
+        this.get('gridAdapter').deselectAllCases();
+      }
+      // if attribute not editable and not the proto-case row, then can't edit
+      else if (!this.get('gridAdapter').isCellEditable(iArgs.row, iArgs.cell)) {
+        retval = false;
+      }
+    }.bind(this));
+    return retval;
   },
 
   /**
