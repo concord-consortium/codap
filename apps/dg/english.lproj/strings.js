@@ -30,13 +30,13 @@ SC.stringsFor('English', {
   'DG.fileMenu.menuItem.closeDocument': "Close",
   'DG.fileMenu.menuItem.importFile': "Import...",
   'DG.fileMenu.menuItem.revertTo': "Revert...",
-    'DG.fileMenu.menuItem.revertToOpened': "Recently opened state",
-    'DG.fileMenu.menuItem.revertToShared': "Shared view",
+  'DG.fileMenu.menuItem.revertToOpened': "Recently opened state",
+  'DG.fileMenu.menuItem.revertToShared': "Shared view",
   'DG.fileMenu.menuItem.saveDocument': "Save...",
   'DG.fileMenu.menuItem.copyDocument': "Create a copy",
   'DG.fileMenu.menuItem.share': "Share...",
-    'DG.fileMenu.menuItem.shareGetLink': "Get link to shared view",
-    'DG.fileMenu.menuItem.shareUpdate': "Update shared view",
+  'DG.fileMenu.menuItem.shareGetLink': "Get link to shared view",
+  'DG.fileMenu.menuItem.shareUpdate': "Update shared view",
   'DG.fileMenu.menuItem.renameDocument': "Rename",
 
   // main.js

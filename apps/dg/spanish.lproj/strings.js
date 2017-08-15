@@ -106,6 +106,10 @@ SC.stringsFor('es', {
   'DG.AppController.validateDocument.invalidDocument' : '(es)Invalid JSON Document: %@1',
   'DG.AppController.openDocument.error.general': '(es)Unable to open document',
   'DG.AppController.openDocument.error.invalid_format': '(es)CODAP can not read this type of document',
+  'DG.AppController.createDataSet.initialAttribute': '(es)Attribute', /* Attribute */
+  'DG.AppController.createDataSet.name': '(es)New Dataset', /* New Dataset */
+  'DG.AppController.createDataSet.collectionName': '(es)Cases', /* Cases */
+  'DG.AppController.caseTableMenu.newDataSet': '(es)-- new --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "(es)OK",
   'DG.SingleTextDialog.cancelButton.title': "(es)Cancel",
@@ -152,6 +156,8 @@ SC.stringsFor('es', {
   'DG.ToolButtonData.help.title': "(es)Help",
   'DG.ToolButtonData.help.toolTip': "(es)Help for CODAP, learn about CODAP project",
 
+  'DG.Slider.multiples': "(es)Restrict to Multiples of:",  // Restrict to Multiples of
+  'DG.Slider.maxPerSecond': "(es)Maximum Animation Frames/sec:",  // Maximum Animation Frames/sec:
   'DG.Slider.direction': "(es)Animation Direction:", // Direction
   'DG.Slider.backAndForth': "(es)Back and Forth", // Back and Forth
   'DG.Slider.lowToHigh': "(es)Low to High", // Low to High
@@ -189,12 +195,20 @@ SC.stringsFor('es', {
   'DG.Redo.caseTable.createAttribute': "(es)Redo creating case table attribute",
   'DG.Undo.caseTable.editAttributeFormula': "(es)Undo editing case table attribute formula",
   'DG.Redo.caseTable.editAttributeFormula': "(es)Redo editing case table attribute formula",
+  'DG.Undo.caseTable.editCellValue': "(es)Undo editing case table cell value",
+  'DG.Redo.caseTable.editCellValue': "(es)Redo editing case table cell value",
+  'DG.Undo.caseTable.sortCases': "(es)Undo sorting cases",
+  'DG.Redo.caseTable.sortCases': "(es)Redo sorting cases",
   'DG.Undo.caseTable.deleteAttribute': "(es)Undo deleting case table attribute",
   'DG.Redo.caseTable.deleteAttribute': "(es)Redo deleting case table attribute",
   'DG.Undo.caseTable.createCollection': "(es)Undo create new collection",
   'DG.Redo.caseTable.createCollection': "(es)Redo create new collection",
   'DG.Undo.caseTable.collectionNameChange': '(es)Undo rename collection',
   'DG.Redo.caseTable.collectionNameChange': '(es)Redo rename collection',
+  'DG.Undo.caseTable.createNewCase': '(es)Undo create new case',
+  'DG.Redo.caseTable.createNewCase': '(es)Redo create new case',
+  'DG.Undo.caseTable.insertCases': '(es)Undo insert cases',
+  'DG.Redo.caseTable.insertCases': '(es)Redo insert cases',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': '(es)Undo toggle expand/collapse all',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': '(es)Redo toggle expand/collapse all',
   'DG.Undo.caseTable.expandCollapseOneCase': '(es)Undo expand or collapse of a group',
@@ -227,10 +241,14 @@ SC.stringsFor('es', {
   'DG.Redo.graph.showPlotFunction': "(es)Redo showing plotted function",
   'DG.Undo.graph.hidePlotFunction': "(es)Undo hiding plotted function",
   'DG.Redo.graph.hidePlotFunction': "(es)Redo hiding plotted function",
+  'DG.Undo.graph.changePlotFunction': "(es)Undo change plotted function",
+  'DG.Redo.graph.changePlotFunction': "(es)Redo change plotted function",
   'DG.Undo.graph.showPlotValue': "(es)Undo showing plotted value",
   'DG.Redo.graph.showPlotValue': "(es)Redo showing plotted value",
   'DG.Undo.graph.hidePlotValue': "(es)Undo hiding plotted value",
   'DG.Redo.graph.hidePlotValue': "(es)Redo hiding plotted value",
+  'DG.Undo.graph.changePlotValue': "(es)Undo change plotted value",
+  'DG.Redo.graph.changePlotValue': "(es)Redo change plotted value",
   'DG.Undo.graph.showConnectingLine': "(es)Undo showing connecting line",
   'DG.Redo.graph.showConnectingLine': "(es)Redo showing connecting line",
   'DG.Undo.graph.hideConnectingLine': "(es)Undo hiding connecting line",
@@ -285,6 +303,10 @@ SC.stringsFor('es', {
   'DG.Redo.hideSelectedCases': "(es)Redo hiding selected cases",
   'DG.Undo.hideUnselectedCases': "(es)Undo hiding unselected cases",
   'DG.Redo.hideUnselectedCases': "(es)Redo hiding unselected cases",
+  'DG.Undo.enableNumberToggle': "(es)Undo Show Parent Visibility Toggles",
+  'DG.Redo.enableNumberToggle': "(es)Redo Show Parent Visibility Toggles",
+  'DG.Undo.disableNumberToggle': "(es)Undo Hide Parent Visibility Toggles",
+  'DG.Redo.disableNumberToggle': "(es)Redo Hide Parent Visibility Toggles",
   'DG.Undo.interactiveUndoableAction': "(es)Undo an action in the interactive",
   'DG.Redo.interactiveUndoableAction': "(es)Redo an action in the interactive",
   'DG.Undo.showAllCases': "(es)Undo showing all cases",
@@ -321,8 +343,18 @@ SC.stringsFor('es', {
   'DG.Redo.sliderComponent.create': "(es)Redo adding a slider",
   'DG.Undo.slider.change': "(es)Undo slider value change",
   'DG.Redo.slider.change': "(es)Redo slider value change",
+  'DG.Undo.slider.changeMultiples': "(es)Undo change to slider multiples restriction",
+  'DG.Redo.slider.changeMultiples': "(es)Redo change to slider multiples restriction",
+  'DG.Undo.slider.changeSpeed': "(es)Undo change to slider max frames/sec",
+  'DG.Redo.slider.changeSpeed': "(es)Redo change to slider max frames/sec",
+  'DG.Undo.slider.changeDirection': "(es)Undo change to slider animation direction",
+  'DG.Redo.slider.changeDirection': "(es)Redo change to slider animation direction",
+  'DG.Undo.slider.changeRepetition': "(es)Undo change to slider animation repetition",
+  'DG.Redo.slider.changeRepetition': "(es)Redo change to slider animation repetition",
   'DG.Undo.graphComponent.create': "(es)Undo adding a graph",
   'DG.Redo.graphComponent.create': "(es)Redo adding a graph",
+  'DG.Undo.dataContext.create': '(es)Undo creating a data set',
+  'DG.Redo.dataContext.create': '(es)Redo creating a data set',
   'DG.Undo.data.deleteCases': "(es)Undo deleting cases",
   'DG.Redo.data.deleteCases': "(es)Redo deleting cases",
   'DG.Undo.component.close': "(es)Undo closing component",
@@ -343,7 +375,7 @@ SC.stringsFor('es', {
   'DG.DataContext.baseName': '(es)Data_Set_%@1',
 
   // DG.CollectionClient
-  'DG.CollectionClient.cantEditFormulaErrorMsg': "The formula for attribute \"%@\" is not editable.",
+  'DG.CollectionClient.cantEditFormulaErrorMsg': "(es)The formula for attribute \"%@\" is not editable.",
   'DG.CollectionClient.cantEditFormulaErrorDesc': "(es)Create a new attribute to be able to specify a formula.",
 
   // DG.Formula
@@ -413,18 +445,40 @@ SC.stringsFor('es', {
                                   /* "rgb(nnn,nnn,nnn)" "rgba(nnn,nnn,nnn,0.n)" "#ffffff" */
   'DG.Utilities.colorPattern': '(?:rgb\\((?:\\d{1,3},){2}\\d{1,3}\\))|(?:rgba\\((?:\\d{1,3},){3}[\\d\\.]*\\))|(?:#[\\da-f]{6})',
 
-  'DG.Formula.SyntaxErrorMiddle': "(es)Syntax error: '%@'",
+  'DG.Formula.SyntaxErrorMiddle': "(es)Syntax error: '(es)%@'",
   'DG.Formula.SyntaxErrorEnd': "(es)Incomplete expression",
+  'DG.Formula.SyntaxErrorInvalidOperator': "(es)invalid operator '%@'",
+  'DG.Formula.TypeError.name': "(es)\u274c",
+  'DG.Formula.TypeError.message': "(es)invalid type(s) for '%@'",
+  'DG.Formula.TypeError.description': "(es)invalid type(s) for '%@'",
+  'DG.Formula.VarReferenceError.name': "(es)\u274c",
   'DG.Formula.VarReferenceError.message': "(es)'%@': unknown variable",
   'DG.Formula.VarReferenceError.description': "(es)Variable '%@' is unrecognized",
+  'DG.Formula.HierReferenceError.name': "(es)\u274c",
+  'DG.Formula.HierReferenceError.message': "(es)invalid reference to child attribute '%@'",
+  'DG.Formula.HierReferenceError.description': "(es)'%@' is a child attribute that can only be referenced in an aggregate function",
+  'DG.Formula.FuncReferenceError.name': "(es)\u274c",
   'DG.Formula.FuncReferenceError.message': "(es)'%@': unknown function",
   'DG.Formula.FuncReferenceError.description': "(es)Function '%@' is unrecognized",
+  'DG.Formula.FuncArgsError.name': "(es)\u274c",
   'DG.Formula.FuncArgsErrorSingle.message': "(es)'%@' expects 1 argument",
   'DG.Formula.FuncArgsErrorSingle.description': "(es)The '%@' function expects 1 argument",
   'DG.Formula.FuncArgsErrorPlural.message': "(es)'%@' expects %@ arguments",
   'DG.Formula.FuncArgsErrorPlural.description': "(es)The '%@' function expects %@ arguments",
   'DG.Formula.FuncArgsErrorRange.message': "(es)'%@' expects %@-%@ arguments",
   'DG.Formula.FuncArgsErrorRange.description': "(es)The '%@' function expects %@-%@ arguments",
+  'DG.Formula.PendingRequest.name': "(es)\u231b",
+  'DG.Formula.PendingRequest.message': "(es)request pending...",
+  'DG.Formula.PendingRequest.description': "(es)request pending...",
+  'DG.Formula.FailedRequest.name': "(es)\u274c",
+  'DG.Formula.FailedRequest.message': "(es)request failed (%@)",
+  'DG.Formula.FailedRequest.description': "(es)request failed (%@)",
+  'DG.Formula.PendingBoundaries.name': "(es)\u231b",
+  'DG.Formula.PendingBoundaries.message': "(es)boundaries pending...",
+  'DG.Formula.PendingBoundaries.description': "(es)boundaries pending...",
+  'DG.Formula.FailedBoundaries.name': "(es)\u274c",
+  'DG.Formula.FailedBoundaries.message': "(es)boundaries failed (%@)",
+  'DG.Formula.FailedBoundaries.description': "(es)boundaries failed (%@)",
   'DG.Formula.LookupDataSetError.message': "(es)'%@': unrecognized data set",
   'DG.Formula.LookupDataSetError.description': "(es)Data set '%@' is unrecognized",
   'DG.Formula.LookupAttrError.message': "(es)'%@' not found in data set '%@'",
@@ -434,6 +488,8 @@ SC.stringsFor('es', {
   'DG.TableController.headerMenuItems.editAttribute': "(es)Edit Attribute Properties...",
   'DG.TableController.headerMenuItems.editFormula': "(es)Edit Formula...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "(es)Rerandomize",
+  'DG.TableController.headerMenuItems.sortAscending': "(es)Sort Ascending (A\u2192Z, 0\u21929)",
+  'DG.TableController.headerMenuItems.sortDescending': "(es)Sort Descending (9\u21920, Z\u2192A)",
   'DG.TableController.headerMenuItems.deleteAttribute': "(es)Delete Attribute",
   'DG.TableController.newAttrDlg.defaultAttrName': "(es)new_attr",
   'DG.TableController.newAttrDlg.attrNameHint': "(es)Enter a name for the new attribute",
@@ -453,16 +509,22 @@ SC.stringsFor('es', {
   'DG.TableController.deleteAttribute.confirmDescription': "(es)This action cannot be undone.",
   'DG.TableController.deleteAttribute.okButtonTitle': "(es)Delete Attribute",
   'DG.TableController.deleteAttribute.cancelButtonTitle': "(es)Cancel",
+  'DG.TableController.deleteDataSet.confirmMessage': "(es)Delete and destroy this data set: '(es)%@'?",
+  'DG.TableController.deleteDataSet.confirmDescription': "(es)This action cannot be undone.",
+  'DG.TableController.deleteDataSet.okButtonTitle': "(es)Delete Data Set",
+  'DG.TableController.deleteDataSet.cancelButtonTitle': "(es)Cancel",
   'DG.TableController.attrEditor.precisionHint': "(es)Number of digits after decimal point",
   'DG.TableController.attrEditor.unitHint': "(es)Unit of measure, if applicable",
   'DG.TableController.attrEditor.descriptionHint': "(es)Describe the attribute",
   'DG.TableController.scoreAttrName': "(es)score",
   'DG.TableController.setScoreDlg.applyTooltip': "(es)Set the formula for the '%@' attribute",
   'DG.TableController.setScoreDlg.formulaHint': "(es)Type a formula for computing values of this attribute",
+  'DG.TableController.newAttributeTooltip': '(es)Add a new attribute to this table',
 
   'DG.TableController.attributeEditor.title': '(es)Attribute Properties',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "(es)drop attribute to create new collection",
+  'DG.CaseTable.defaultAttrName': '(es)newAttr',
   'DG.CaseTable.indexColumnName': '(es)index',
   'DG.CaseTable.indexColumnTooltip': '(es)The row number (caseIndex) within the collection',
   'DG.CaseTable.indexMenu.insertCase': "(es)Insert Case",
@@ -476,6 +538,19 @@ SC.stringsFor('es', {
   'DG.CaseTable.attribute.type.date': '(es)date',
   'DG.CaseTable.attribute.type.qualitative': '(es)qualitative',
   'DG.CaseTable.attribute.type.boundary':'(es)boundary', //boundary Translate
+  'DG.CaseTable.attributeEditor.name': '(es)name', // name
+  'DG.CaseTable.attributeEditor.description': '(es)description', // description
+  'DG.CaseTable.attributeEditor.type': '(es)type', // type
+  'DG.CaseTable.attributeEditor.unit': '(es)unit', // unit
+  'DG.CaseTable.attributeEditor.precision': '(es)precision', // precision
+  'DG.CaseTable.attributeEditor.editable': '(es)editable', // editable
+  'DG.CaseTable.insertCasesDialog.title': '(es)Insert Cases',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '(es)# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': '(es)location:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': '(es)before',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': '(es)after',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': '(es)Insert Cases',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': '(es)Insert the specified number of cases',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '(es)All tables',
@@ -522,6 +597,8 @@ SC.stringsFor('es', {
   'DG.ScatterPlotModel.rSquared': "(es),\nr^2 = %@", // r-squared
   'DG.ScatterPlotModel.slopeIntercept': "(es)%@ = %@ %@ %@ %@",// y,slope,x,signInt,Int
   'DG.ScatterPlotModel.infiniteSlope': "(es)%@ = %@",// x,constant
+  'DG.ScatterPlotModel.slopeOnly': "(es)slope = %@ %@",// numeric slope
+  'DG.ScatterPlotModel.yearsLabel': "(es)per year",// per year - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.daysLabel': "(es)per day",// per day - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.hoursLabel': "(es)per hour",// per hour - used in equation for line when x is a datetime axis
   'DG.ScatterPlotModel.minutesLabel': "(es)per minute",// per minute - used in equation for line when x is a datetime axis
@@ -533,8 +610,14 @@ SC.stringsFor('es', {
   // DG.NumberToggleView
   'DG.NumberToggleView.showAll': "(es)Show All -", // "Show All"
   'DG.NumberToggleView.hideAll': "(es)Hide All -", // "Hide All"
+  'DG.NumberToggleView.lastDash': "(es)\u2013",         // "-"
+  'DG.NumberToggleView.lastUnchecked': "(es)\u2610",    // "[ ]"
+  'DG.NumberToggleView.lastChecked': "(es)\u2612",      // "[x]"
+  'DG.NumberToggleView.lastLabel': "(es)Last",    // "Last"
   'DG.NumberToggleView.showAllTooltip': "(es)Click numbers to toggle visibility. Click label to show all.", // "Click numbers to toggle visibility. Click label to show all."
   'DG.NumberToggleView.hideAllTooltip': "(es)Click numbers to toggle visibility. Click label to hide all.", // "Click numbers to toggle visibility. Click label to hide all."
+  'DG.NumberToggleView.enableLastModeTooltip': "(es)Click to show last parent case only",
+  'DG.NumberToggleView.disableLastModeTooltip': "(es)Click to exit last parent case mode",
   'DG.NumberToggleView.indexTooltip': "(es)Click to toggle visibility.", // "Click to toggle visibility."
 
   // DG.PlottedAverageAdornment
@@ -562,6 +645,8 @@ SC.stringsFor('es', {
   'DG.DataDisplayMenu.hideUnselectedPlural': "(es)Hide Unselected Cases",
   'DG.DataDisplayMenu.hideSelectedSing': "(es)Hide Selected Case",
   'DG.DataDisplayMenu.hideUnselectedSing': "(es)Hide Unselected Case",
+  'DG.DataDisplayMenu.enableNumberToggle': "(es)Show Parent Visibility Toggles",
+  'DG.DataDisplayMenu.disableNumberToggle': "(es)Hide Parent Visibility Toggles",
   'DG.DataDisplayMenu.showAll': "(es)Show All Cases",
   'DG.DataDisplayMenu.snapshot': "(es)Make Snapshot",
 
@@ -576,9 +661,24 @@ SC.stringsFor('es', {
 
   // DG.AxisView
   'DG.AxisView.labelTooltip': "(es)—Click to change %@ axis attribute", // %@ is either horizontal or vertical
+  'DG.AxisView.vertical': '(es)vertical',
+  'DG.AxisView.horizontal': '(es)horizontal',
 
   // DG.DataTip
   'DG.DataTip.connectingLine': "(es)%@: %@\nwith %@ %@",
+
+  // DG.MovableValueAdornment
+  'DG.MovableMonthYear': "(es)%@, %@", // <monthname>, <year>
+  'DG.MovableMonthDayHour': "(es)%@ %@ %@:00", // <monthname> <day> <hour>:00
+
+  // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
+  'DG.PlottedFormula.defaultNamePrompt': "(es)Formula",
+  'DG.PlottedValue.namePrompt': "(es)Plotted Value",
+  'DG.PlottedValue.formulaPrompt': "(es)value =",
+  'DG.PlottedValue.formulaHint': "(es)",
+  'DG.PlottedFunction.namePrompt': "(es)Plotted Function",
+  'DG.PlottedFunction.formulaPrompt': "(es)f() =",
+  'DG.PlottedFunction.formulaHint': "(es)Type an expression e.g. x*x/30 - 50",
 
   // DG.MapView
   'DG.MapView.showGrid': "(es)Show Grid", // "Show Grid"
@@ -608,12 +708,17 @@ SC.stringsFor('es', {
   'DG.Inspector.selection.deleteSelectedCases': "(es)Delete Selected Cases", // "Delete Selected Cases"
   'DG.Inspector.selection.deleteUnselectedCases': "(es)Delete Unselected Cases",    // "Delete Unselected Cases"
   'DG.Inspector.deleteAll': "(es)Delete All Cases",           // "Delete All Cases"
+  'DG.Inspector.deleteDataSet': "(es)Delete and Destroy Data Set",        // "Delete Data Set"
 
   // Display Inspector
   'DG.Inspector.displayValues.toolTip': "(es)Change what is shown along with the points", // "Change what is shown along with the points"
   'DG.Inspector.displayStyles.toolTip': "(es)Change the appearance of the display", // "Change the appearance of the display"
   'DG.Inspector.makeImage.toolTip': "(es)Save the image as a PNG file", // "Save the image as a PNG file"
   'DG.Inspector.displayShow': "(es)Show …", // "Show …"
+
+  // Color Picker
+  'DG.Inspector.colorPicker.more': '(es)more', // more
+  'DG.Inspector.colorPicker.less': '(es)less', // less
 
   // Graph Inspector
   'DG.Inspector.graphTransparency': "(es)Transparent", // "Transparent"

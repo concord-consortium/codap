@@ -156,8 +156,8 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.help.title': "幫助",
   'DG.ToolButtonData.help.toolTip': "CODAP幫助, 學習關於CODAP物件",
 
-  'DG.Slider.multiples': "Restrict to Multiples of:(zh)",  // TRANSLATE: "Restrict to Multiples of:"
-  'DG.Slider.maxPerSecond': "Maximum Animation Frames/sec:(zh)",  // TRANSLATE: "Maximum Animation Frames/sec:"
+  'DG.Slider.multiples': "(zh)Restrict to Multiples of:(zh)",  // TRANSLATE: "Restrict to Multiples of:"
+  'DG.Slider.maxPerSecond': "(zh)Maximum Animation Frames/sec:(zh)",  // TRANSLATE: "Maximum Animation Frames/sec:"
   'DG.Slider.direction': "動畫方向:",  // Direction
   'DG.Slider.backAndForth': "倒退和前進",   // Back and Forth
   'DG.Slider.lowToHigh': "低到高",   // Low to High
@@ -195,18 +195,26 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.createAttribute': "重做建立表格變項",
   'DG.Undo.caseTable.editAttributeFormula': "回復編輯表格變項公式",
   'DG.Redo.caseTable.editAttributeFormula': "重做編輯表格變項公式",
+  'DG.Undo.caseTable.editCellValue': "(zh)Undo editing case table cell value",
+  'DG.Redo.caseTable.editCellValue': "(zh)Redo editing case table cell value",
+  'DG.Undo.caseTable.sortCases': "(zh)Undo sorting cases",
+  'DG.Redo.caseTable.sortCases': "(zh)Redo sorting cases",
   'DG.Undo.caseTable.deleteAttribute': "回復刪除表格變項",
   'DG.Redo.caseTable.deleteAttribute': "重做刪除表格變項",
   'DG.Undo.caseTable.createCollection': "回復建立新集合",
   'DG.Redo.caseTable.createCollection': "重做建立新集合",
   'DG.Undo.caseTable.collectionNameChange': '回復命名集合',
   'DG.Redo.caseTable.collectionNameChange': '重做命名集合',
+  'DG.Undo.caseTable.createNewCase': '(zh)Undo create new case',
+  'DG.Redo.caseTable.createNewCase': '(zh)Redo create new case',
+  'DG.Undo.caseTable.insertCases': '(zh)Undo insert cases',
+  'DG.Redo.caseTable.insertCases': '(zh)Redo insert cases',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': '回復全部展開/縮小',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': '重做全部展開/縮小',
   'DG.Undo.caseTable.expandCollapseOneCase': '回復展開或縮小群組',
   'DG.Redo.caseTable.expandCollapseOneCase': '重做展開或縮小群組',
-  'DG.Undo.caseTable.resizeColumns': 'Undo auto-resize all columns',
-  'DG.Redo.caseTable.resizeColumns': 'Redo auto-resize all columns',
+  'DG.Undo.caseTable.resizeColumns': '(zh)Undo auto-resize all columns',
+  'DG.Redo.caseTable.resizeColumns': '(zh)Redo auto-resize all columns',
   'DG.Undo.document.share': "回復分享文件",
   'DG.Redo.document.share': "重做分享文件",
   'DG.Undo.document.unshare': "回復停止分享文件",
@@ -439,16 +447,38 @@ SC.stringsFor('English', {
 
   'DG.Formula.SyntaxErrorMiddle': "語法錯誤: '%@'",
   'DG.Formula.SyntaxErrorEnd': "表達不完整",
+  'DG.Formula.SyntaxErrorInvalidOperator': "(zh)invalid operator '%@'",
+  'DG.Formula.TypeError.name': "(zh)\u274c",
+  'DG.Formula.TypeError.message': "(zh)invalid type(s) for '%@'",
+  'DG.Formula.TypeError.description': "(zh)invalid type(s) for '%@'",
+  'DG.Formula.VarReferenceError.name': "(zh)\u274c",
   'DG.Formula.VarReferenceError.message': "'%@': 未知變數",
   'DG.Formula.VarReferenceError.description': "變數 '%@' 無法辨認",
+  'DG.Formula.HierReferenceError.name': "(zh)\u274c",
+  'DG.Formula.HierReferenceError.message': "(zh)invalid reference to child attribute '%@'",
+  'DG.Formula.HierReferenceError.description': "(zh)'%@' is a child attribute that can only be referenced in an aggregate function",
+  'DG.Formula.FuncReferenceError.name': "(zh)\u274c",
   'DG.Formula.FuncReferenceError.message': "'%@': 未知函數",
   'DG.Formula.FuncReferenceError.description': "函數 '%@' 無法辨識",
+  'DG.Formula.FuncArgsError.name': "(zh)\u274c",
   'DG.Formula.FuncArgsErrorSingle.message': "'%@' 需要一個參數",
   'DG.Formula.FuncArgsErrorSingle.description': "此函數 '%@'需要一個參數",
   'DG.Formula.FuncArgsErrorPlural.message': "'%@' 需要 %@ 參數",
   'DG.Formula.FuncArgsErrorPlural.description': "此函數 '%@' 需要 %@ 參數",
   'DG.Formula.FuncArgsErrorRange.message': "'%@' 需要 %@-%@ 參數",
   'DG.Formula.FuncArgsErrorRange.description': "此函數 '%@' 需要 %@-%@ 參數",
+  'DG.Formula.PendingRequest.name': "(zh)\u231b",
+  'DG.Formula.PendingRequest.message': "(zh)request pending...",
+  'DG.Formula.PendingRequest.description': "(zh)request pending...",
+  'DG.Formula.FailedRequest.name': "(zh)\u274c",
+  'DG.Formula.FailedRequest.message': "(zh)request failed (%@)",
+  'DG.Formula.FailedRequest.description': "(zh)request failed (%@)",
+  'DG.Formula.PendingBoundaries.name': "(zh)\u231b",
+  'DG.Formula.PendingBoundaries.message': "(zh)boundaries pending...",
+  'DG.Formula.PendingBoundaries.description': "(zh)boundaries pending...",
+  'DG.Formula.FailedBoundaries.name': "(zh)\u274c",
+  'DG.Formula.FailedBoundaries.message': "(zh)boundaries failed (%@)",
+  'DG.Formula.FailedBoundaries.description': "(zh)boundaries failed (%@)",
   'DG.Formula.LookupDataSetError.message': "'%@': 無法辨認的資料組",
   'DG.Formula.LookupDataSetError.description': "資料組 '%@' 無法辨識",
   'DG.Formula.LookupAttrError.message': "'%@' 在資料組中找不到 '%@'",
@@ -458,6 +488,8 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "編輯變項特性...",
   'DG.TableController.headerMenuItems.editFormula': "編輯公式...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "重新格式化",
+  'DG.TableController.headerMenuItems.sortAscending': "(zh)Sort Ascending (A\u2192Z, 0\u21929)",
+  'DG.TableController.headerMenuItems.sortDescending': "(zh)Sort Descending (9\u21920, Z\u2192A)",
   'DG.TableController.headerMenuItems.deleteAttribute': "刪除變項",
   'DG.TableController.newAttrDlg.defaultAttrName': "新變項",
   'DG.TableController.newAttrDlg.attrNameHint': "為新變項輸入一個名字",
@@ -492,6 +524,7 @@ SC.stringsFor('English', {
   'DG.TableController.attributeEditor.title': '變項特徵',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "移除變項以建立新的集合",
+  'DG.CaseTable.defaultAttrName': '(zh)newAttr',
   'DG.CaseTable.indexColumnName': '指數', //Translate 'index'
   'DG.CaseTable.indexColumnTooltip': '集合的行號（指數)', //Translate 'The row number (caseIndex) within the collection'
   'DG.CaseTable.indexMenu.insertCase': "插案例", //Translate "Insert Case"
@@ -511,6 +544,13 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.unit': '測量單位', // unit Translate
   'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision Translate
   'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable Translate
+  'DG.CaseTable.insertCasesDialog.title': '(zh)Insert Cases',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '(zh)# cases to insert:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': '(zh)location:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': '(zh)before',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': '(zh)after',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': '(zh)Insert Cases',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': '(zh)Insert the specified number of cases',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '都表格',// All tables translated
@@ -615,7 +655,7 @@ SC.stringsFor('English', {
   'DG.GraphView.addAttribute': "增加 %@",  // %@ is attribute name
   'DG.GraphView.addToEmptyPlace': "用 %@ 建立軸",  // %@ is attribute name
   'DG.GraphView.addToEmptyX': "用 %@ 建立X軸",  // %@ is attribute name
-  'DG.GraphView.dropInPlot': "Color points by values of %@",  // TRANSLATE: "Color points by values of %@" -- %@ is attribute name
+  'DG.GraphView.dropInPlot': "(zh)Color points by values of %@",  // TRANSLATE: "Color points by values of %@" -- %@ is attribute name
   'DG.GraphView.zoomTip': "雙點擊以放大\nShift加雙點擊以縮小",  // %@ is attribute name
   'DG.GraphView.rescale': "將資料重新縮放",  // Rescale to data
 
@@ -633,12 +673,12 @@ SC.stringsFor('English', {
 
   // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
   'DG.PlottedFormula.defaultNamePrompt': "公式", // TRANSLATE: "Formula"
-  'DG.PlottedValue.namePrompt': "Plotted Value",  // TRANSLATE: "Plotted Value"
-  'DG.PlottedValue.formulaPrompt': "value =", // TRANSLATE: "value ="
+  'DG.PlottedValue.namePrompt': "(zh)Plotted Value",  // TRANSLATE: "Plotted Value"
+  'DG.PlottedValue.formulaPrompt': "(zh)value =", // TRANSLATE: "value ="
   'DG.PlottedValue.formulaHint': "",
-  'DG.PlottedFunction.namePrompt': "Plotted Function",  // TRANSLATE: "Plotted Function"
-  'DG.PlottedFunction.formulaPrompt': "f() =",  // TRANSLATE? "f() ="
-  'DG.PlottedFunction.formulaHint': "Type an expression e.g. x*x/30 - 50",  // TRANSLATE: "Type an expression e.g. x*x/30 - 50"
+  'DG.PlottedFunction.namePrompt': "(zh)Plotted Function",  // TRANSLATE: "Plotted Function"
+  'DG.PlottedFunction.formulaPrompt': "(zh)f() =",  // TRANSLATE? "f() ="
+  'DG.PlottedFunction.formulaHint': "(zh)Type an expression e.g. x*x/30 - 50",  // TRANSLATE: "Type an expression e.g. x*x/30 - 50"
 
   // DG.MapView
   'DG.MapView.showGrid': "顯示表格",  // "顯示表格"
@@ -705,7 +745,7 @@ SC.stringsFor('English', {
 
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "建立新變項。匯出案例資料。",  // "建立新變項。匯出案例資料。"
-  'DG.Inspector.resize.toolTip': "Resize all columns to fit data", // "Resize all columns to fit data"
+  'DG.Inspector.resize.toolTip': "(zh)Resize all columns to fit data", // "Resize all columns to fit data"
   'DG.Inspector.newAttribute': "在 %@...的新變項",  // "在 %@...的新變項"
   'DG.Inspector.randomizeAllAttributes': "全部重新整理", // "隨機化變項"
   'DG.Inspector.exportCaseData': "匯出案例資料...", // "匯出案例資料..."
