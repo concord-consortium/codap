@@ -195,6 +195,10 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.createAttribute': "重做建立表格變項",
   'DG.Undo.caseTable.editAttributeFormula': "回復編輯表格變項公式",
   'DG.Redo.caseTable.editAttributeFormula': "重做編輯表格變項公式",
+  'DG.Undo.caseTable.editCellValue': "回復編輯數據表單元格值",
+  'DG.Redo.caseTable.editCellValue': "重做編輯數據表單元格值",
+  'DG.Undo.caseTable.sortCases': "回復排序",
+  'DG.Redo.caseTable.sortCases': "重做排序",
   'DG.Undo.caseTable.deleteAttribute': "回復刪除表格變項",
   'DG.Redo.caseTable.deleteAttribute': "重做刪除表格變項",
   'DG.Undo.caseTable.createCollection': "回復建立新集合",
@@ -205,8 +209,8 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': '重做全部展開/縮小',
   'DG.Undo.caseTable.expandCollapseOneCase': '回復展開或縮小群組',
   'DG.Redo.caseTable.expandCollapseOneCase': '重做展開或縮小群組',
-  'DG.Undo.caseTable.resizeColumns': 'Undo auto-resize all columns',
-  'DG.Redo.caseTable.resizeColumns': 'Redo auto-resize all columns',
+  'DG.Undo.caseTable.resizeColumns': '回復自動調整列寬',
+  'DG.Redo.caseTable.resizeColumns': '重做自動調整列寬',
   'DG.Undo.document.share': "回復分享文件",
   'DG.Redo.document.share': "重做分享文件",
   'DG.Undo.document.unshare': "回復停止分享文件",
@@ -335,8 +339,8 @@ SC.stringsFor('English', {
   'DG.Redo.sliderComponent.create': "重做增加滑桿",
   'DG.Undo.slider.change': "回復更改滑桿值",
   'DG.Redo.slider.change': "重做更改滑桿值",
-  'DG.Undo.slider.changeMultiples': "回復更改滑桿 multiples restriction",  // TRANSLATE: "Undo change to slider multiples restriction"
-  'DG.Redo.slider.changeMultiples': "重做更改滑桿 multiples restriction",  // TRANSLATE: "Redo change to slider multiples restriction"
+  'DG.Undo.slider.changeMultiples': "回復更改滑桿 multiples restriction(zh)",  // TRANSLATE: "Undo change to slider multiples restriction"
+  'DG.Redo.slider.changeMultiples': "重做更改滑桿 multiples restriction(zh)",  // TRANSLATE: "Redo change to slider multiples restriction"
   'DG.Undo.slider.changeSpeed': "回復更改滑桿 max frames/sec", // TRANSLATE: "Undo change to slider max frames/sec"
   'DG.Redo.slider.changeSpeed': "重做更改滑桿 max frames/sec", // TRANSLATE: "Redo change to slider max frames/sec"
   'DG.Undo.slider.changeDirection': "回復更改滑桿動畫方向",  // TRANSLATE: "Undo change to slider animation direction"
@@ -458,6 +462,8 @@ SC.stringsFor('English', {
   'DG.TableController.headerMenuItems.editAttribute': "編輯變項特性...",
   'DG.TableController.headerMenuItems.editFormula': "編輯公式...",
   'DG.TableController.headerMenuItems.randomizeAttribute': "重新格式化",
+  'DG.TableController.headerMenuItems.sortAscending': "按升序排序 (A\u2192Z, 0\u21929)",
+  'DG.TableController.headerMenuItems.sortDescending': "按降序排列 (9\u21920, Z\u2192A)",
   'DG.TableController.headerMenuItems.deleteAttribute': "刪除變項",
   'DG.TableController.newAttrDlg.defaultAttrName': "新變項",
   'DG.TableController.newAttrDlg.attrNameHint': "為新變項輸入一個名字",
@@ -492,15 +498,16 @@ SC.stringsFor('English', {
   'DG.TableController.attributeEditor.title': '變項特徵',
   // DG.CaseTableDropTarget
   'DG.CaseTableDropTarget.dropMessage': "移除變項以建立新的集合",
+  'DG.CaseTable.defaultAttrName': "新變項",
   'DG.CaseTable.indexColumnName': '指數', //Translate 'index'
   'DG.CaseTable.indexColumnTooltip': '集合的行號（指數)', //Translate 'The row number (caseIndex) within the collection'
-  'DG.CaseTable.indexMenu.insertCase': "插案例", //Translate "Insert Case"
-  'DG.CaseTable.indexMenu.insertCases': "插案例...", //Translate "Insert Cases..."
-  'DG.CaseTable.indexMenu.deleteCase': "刪除案例", //Translate "Delete Case
-  'DG.CaseTable.indexMenu.deleteCases': "刪除案例", //Translate "Delete Cases"
+  'DG.CaseTable.indexMenu.insertCase': "插一個案例", //Translate "Insert Case"
+  'DG.CaseTable.indexMenu.insertCases': "插多案例...", //Translate "Insert Cases..."
+  'DG.CaseTable.indexMenu.deleteCase': "刪除一個案例", //Translate "Delete Case
+  'DG.CaseTable.indexMenu.deleteCases': "刪除多案例", //Translate "Delete Cases"
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
-  'DG.CaseTable.attribute.type.categorical': 'categorical',//categorical Translate
+  'DG.CaseTable.attribute.type.categorical': 'categorical(zh)',//categorical Translate
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
@@ -511,6 +518,13 @@ SC.stringsFor('English', {
   'DG.CaseTable.attributeEditor.unit': '測量單位', // unit Translate
   'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision Translate
   'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable Translate
+  'DG.CaseTable.insertCasesDialog.title': '插案例',
+  'DG.CaseTable.insertCasesDialog.numCasesPrompt': '插多少個案例:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.prompt': '位置:',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.before': '之前',
+  'DG.CaseTable.insertCasesDialog.beforeAfter.after': '之後',
+  'DG.CaseTable.insertCasesDialog.applyBtnTitle': '插多案例',
+  'DG.CaseTable.insertCasesDialog.applyBtnTooltip': '插入指定數量的案例',
 
   // DG.CaseTableController
   'DG.CaseTableController.allTables': '都表格',// All tables translated
@@ -576,8 +590,8 @@ SC.stringsFor('English', {
   'DG.NumberToggleView.lastLabel': "最後",    // TRANSLATE: "Last"
   'DG.NumberToggleView.showAllTooltip': "點擊數字可觸發可見性。 點擊標籤可顯示全部。",  // "點擊數字可觸發可見性。 點擊標籤可顯示全部。"
   'DG.NumberToggleView.hideAllTooltip': "點擊數字可觸發可見性。 點擊標籤可隱藏全部。",  // "點擊數字可觸發可見性。 點擊標籤可隱藏全部。"
-  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only", // TRANSLATE: "Click to show last parent case only"
-  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode",  // TRANSLATE: "Click to exit last parent case mode"
+  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only(zh)", // TRANSLATE: "Click to show last parent case only"
+  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode(zh)",  // TRANSLATE: "Click to exit last parent case mode"
   'DG.NumberToggleView.indexTooltip': "點擊可觸發可見性",  // "點擊可觸發可見性"
 
   // DG.PlottedAverageAdornment
@@ -615,7 +629,7 @@ SC.stringsFor('English', {
   'DG.GraphView.addAttribute': "增加 %@",  // %@ is attribute name
   'DG.GraphView.addToEmptyPlace': "用 %@ 建立軸",  // %@ is attribute name
   'DG.GraphView.addToEmptyX': "用 %@ 建立X軸",  // %@ is attribute name
-  'DG.GraphView.dropInPlot': "Color points by values of %@",  // TRANSLATE: "Color points by values of %@" -- %@ is attribute name
+  'DG.GraphView.dropInPlot': "Color points by values of %@(zh)",  // TRANSLATE: "Color points by values of %@" -- %@ is attribute name
   'DG.GraphView.zoomTip': "雙點擊以放大\nShift加雙點擊以縮小",  // %@ is attribute name
   'DG.GraphView.rescale': "將資料重新縮放",  // Rescale to data
 
@@ -633,12 +647,12 @@ SC.stringsFor('English', {
 
   // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
   'DG.PlottedFormula.defaultNamePrompt': "公式", // TRANSLATE: "Formula"
-  'DG.PlottedValue.namePrompt': "Plotted Value",  // TRANSLATE: "Plotted Value"
-  'DG.PlottedValue.formulaPrompt': "value =", // TRANSLATE: "value ="
+  'DG.PlottedValue.namePrompt': "Plotted Value(zh)",  // TRANSLATE: "Plotted Value"
+  'DG.PlottedValue.formulaPrompt': "value =(zh)", // TRANSLATE: "value ="
   'DG.PlottedValue.formulaHint': "",
-  'DG.PlottedFunction.namePrompt': "Plotted Function",  // TRANSLATE: "Plotted Function"
-  'DG.PlottedFunction.formulaPrompt': "f() =",  // TRANSLATE? "f() ="
-  'DG.PlottedFunction.formulaHint': "Type an expression e.g. x*x/30 - 50",  // TRANSLATE: "Type an expression e.g. x*x/30 - 50"
+  'DG.PlottedFunction.namePrompt': "Plotted Function(zh)",  // TRANSLATE: "Plotted Function"
+  'DG.PlottedFunction.formulaPrompt': "f() =(zh)",  // TRANSLATE? "f() ="
+  'DG.PlottedFunction.formulaHint': "Type an expression e.g. x*x/30 - 50(zh)",  // TRANSLATE: "Type an expression e.g. x*x/30 - 50"
 
   // DG.MapView
   'DG.MapView.showGrid': "顯示表格",  // "顯示表格"
@@ -705,7 +719,7 @@ SC.stringsFor('English', {
 
   // Table Inspector
   'DG.Inspector.attributes.toolTip': "建立新變項。匯出案例資料。",  // "建立新變項。匯出案例資料。"
-  'DG.Inspector.resize.toolTip': "Resize all columns to fit data", // "Resize all columns to fit data"
+  'DG.Inspector.resize.toolTip': "Resize all columns to fit data(zh)", // "Resize all columns to fit data"
   'DG.Inspector.newAttribute': "在 %@...的新變項",  // "在 %@...的新變項"
   'DG.Inspector.randomizeAllAttributes': "全部重新整理", // "隨機化變項"
   'DG.Inspector.exportCaseData': "匯出案例資料...", // "匯出案例資料..."
