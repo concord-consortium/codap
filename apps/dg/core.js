@@ -425,7 +425,7 @@ DG = SC.Application.create((function () // closure
      */
     embeddedServer: function () {
       return getUrlParameter('embeddedServer', 'no');
-    },
+    }.property(),
 
     toolButtons: [ // These appear on the left side of the tool shelf
       'tableButton',
