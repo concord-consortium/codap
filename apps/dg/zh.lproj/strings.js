@@ -156,8 +156,8 @@ SC.stringsFor('English', {
   'DG.ToolButtonData.help.title': "幫助",
   'DG.ToolButtonData.help.toolTip': "CODAP幫助, 學習關於CODAP物件",
 
-  'DG.Slider.multiples': "(zh)Restrict to Multiples of:(zh)",  // TRANSLATE: "Restrict to Multiples of:"
-  'DG.Slider.maxPerSecond': "(zh)Maximum Animation Frames/sec:(zh)",  // TRANSLATE: "Maximum Animation Frames/sec:"
+  'DG.Slider.multiples': "(zh)Restrict to Multiples of:",  // TRANSLATE: "Restrict to Multiples of:"
+  'DG.Slider.maxPerSecond': "(zh)Maximum Animation Frames/sec:",  // TRANSLATE: "Maximum Animation Frames/sec:"
   'DG.Slider.direction': "動畫方向:",  // Direction
   'DG.Slider.backAndForth': "倒退和前進",   // Back and Forth
   'DG.Slider.lowToHigh': "低到高",   // Low to High
@@ -205,10 +205,10 @@ SC.stringsFor('English', {
   'DG.Redo.caseTable.createCollection': "重做建立新集合",
   'DG.Undo.caseTable.collectionNameChange': '回復命名集合',
   'DG.Redo.caseTable.collectionNameChange': '重做命名集合',
-  'DG.Undo.caseTable.createNewCase': '(zh)Undo create new case',
-  'DG.Redo.caseTable.createNewCase': '(zh)Redo create new case',
-  'DG.Undo.caseTable.insertCases': '(zh)Undo insert cases',
-  'DG.Redo.caseTable.insertCases': '(zh)Redo insert cases',
+  'DG.Undo.caseTable.createNewCase': '回復增加新案例',
+  'DG.Redo.caseTable.createNewCase': '重做增加新案例',
+  'DG.Undo.caseTable.insertCases': '回復插案例',
+  'DG.Redo.caseTable.insertCases': '重做插案例',
   'DG.Undo.caseTable.groupToggleExpandCollapseAll': '回復全部展開/縮小',
   'DG.Redo.caseTable.groupToggleExpandCollapseAll': '重做全部展開/縮小',
   'DG.Undo.caseTable.expandCollapseOneCase': '回復展開或縮小群組',
@@ -299,18 +299,18 @@ SC.stringsFor('English', {
   'DG.Redo.guide.show': "重做顯示說明",
   'DG.Undo.guide.navigate': "回復更改說明頁",
   'DG.Redo.guide.navigate': "重做更改說明頁",
-  'DG.Undo.hideSelectedCases': "回復隱藏選取的資料",
-  'DG.Redo.hideSelectedCases': "重做隱藏選取的資料",
-  'DG.Undo.hideUnselectedCases': "回復隱藏未選取的資料",
-  'DG.Redo.hideUnselectedCases': "重做隱藏未選取的資料",
+  'DG.Undo.hideSelectedCases': "回復隱藏選取的案例",
+  'DG.Redo.hideSelectedCases': "重做隱藏選取的案例",
+  'DG.Undo.hideUnselectedCases': "回復隱藏未選取的案例",
+  'DG.Redo.hideUnselectedCases': "重做隱藏未選取的案例",
   'DG.Undo.enableNumberToggle': "回復顯示資料編號層",
   'DG.Redo.enableNumberToggle': "重做顯示資料編號層",
   'DG.Undo.disableNumberToggle': "回復隱藏資料編號層",
   'DG.Redo.disableNumberToggle': "重做隱藏資料編號層",
   'DG.Undo.interactiveUndoableAction': "回復互動中的動作",
   'DG.Redo.interactiveUndoableAction': "重做互動中的動作",
-  'DG.Undo.showAllCases': "回復顯示所有資料",
-  'DG.Redo.showAllCases': "重做顯示所有資料",
+  'DG.Undo.showAllCases': "回復顯示所有案例",
+  'DG.Redo.showAllCases': "重做顯示所有案例",
   'DG.Undo.map.create': "回復增加地圖",
   'DG.Redo.map.create': "重做增加地圖",
   'DG.Undo.map.fitBounds': "回復調整地圖大小",
@@ -533,7 +533,7 @@ SC.stringsFor('English', {
   'DG.CaseTable.indexMenu.deleteCases': "刪除多案例", //Translate "Delete Cases"
   'DG.CaseTable.attribute.type.none': '',
   'DG.CaseTable.attribute.type.nominal': '名義',
-  'DG.CaseTable.attribute.type.categorical': 'categorical(zh)',//categorical Translate
+  'DG.CaseTable.attribute.type.categorical': '(zh)categorical',//categorical Translate
   'DG.CaseTable.attribute.type.numeric': '數值',
   'DG.CaseTable.attribute.type.date': '日期',
   'DG.CaseTable.attribute.type.qualitative': '性質',
@@ -616,8 +616,8 @@ SC.stringsFor('English', {
   'DG.NumberToggleView.lastLabel': "最後",    // TRANSLATE: "Last"
   'DG.NumberToggleView.showAllTooltip': "點擊數字可觸發可見性。 點擊標籤可顯示全部。",  // "點擊數字可觸發可見性。 點擊標籤可顯示全部。"
   'DG.NumberToggleView.hideAllTooltip': "點擊數字可觸發可見性。 點擊標籤可隱藏全部。",  // "點擊數字可觸發可見性。 點擊標籤可隱藏全部。"
-  'DG.NumberToggleView.enableLastModeTooltip': "Click to show last parent case only(zh)", // TRANSLATE: "Click to show last parent case only"
-  'DG.NumberToggleView.disableLastModeTooltip': "Click to exit last parent case mode(zh)",  // TRANSLATE: "Click to exit last parent case mode"
+  'DG.NumberToggleView.enableLastModeTooltip': "(zh)Click to show last parent case only", // TRANSLATE: "Click to show last parent case only"
+  'DG.NumberToggleView.disableLastModeTooltip': "(zh)Click to exit last parent case mode",  // TRANSLATE: "Click to exit last parent case mode"
   'DG.NumberToggleView.indexTooltip': "點擊可觸發可見性",  // "點擊可觸發可見性"
 
   // DG.PlottedAverageAdornment
