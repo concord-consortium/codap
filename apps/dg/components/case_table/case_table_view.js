@@ -186,17 +186,15 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           // find the first column index whose midpoint is greater than locX.
           // If we don't find it, then the last column must be it.
           var columnIndex = columnDefs.findIndex(function (def, ix, defs) {
-            // skip row index
-            if (ix === 0) {
-              return false;
-            }
+            var result = false;
             colWidth = def.width || 0;
             colMiddle = x + (colWidth / 2);
-            if (locX < colMiddle) {
-              return true;
+            // skip row index
+            if (ix > 0 && locX < colMiddle) {
+              result = true;
             }
             x += colWidth;
-            return false;
+            return result;
           });
 
           if (columnIndex >= 0) {
@@ -214,28 +212,41 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
         var slickGrid = this.parentView._slickGrid;
         var gridPosition =  slickGrid.getGridPosition();
+        var headerRowHeight = slickGrid.getOptions().headerRowHeight;
         // compute cursor location relative to grid
+        // DG.log('location, location: ' + JSON.stringify({
+        //   dragObject: iDragObject.location.x,
+        //   evtClientX: iEvent.clientX,
+        //   evtPageX: iEvent.pageX,
+        //   gridPositionX: gridPosition.left,
+        //   headerRowHeight: headerRowHeight
+        // }));
         var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
         // find new insertion point
-        var newDragInsertionPoint = findDragInsertionPoint(slickGrid, loc.x);
+        var inHeader = loc.y < headerRowHeight;
+        var newDragInsertionPoint = inHeader && findDragInsertionPoint(slickGrid, loc.x);
 
-        newDragInsertionPoint.headerNode = (newDragInsertionPoint.columnIndex >=0 )
-            && this.$('.slick-header-column',
-                slickGrid.getHeaderRow())[newDragInsertionPoint.columnIndex];
+        if (newDragInsertionPoint) {
+          newDragInsertionPoint.headerNode = (newDragInsertionPoint.columnIndex >=0 )
+              && this.$('.slick-header-column',
+                  slickGrid.getHeaderRow())[newDragInsertionPoint.columnIndex];
 
-        // if unchanged, we are done
-        if (this.dragInsertPoint &&
-            (this.dragInsertPoint.columnIndex === newDragInsertionPoint.columnIndex)
-              && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
-          return;
+          // if unchanged, we are done
+          if (this.dragInsertPoint &&
+              (this.dragInsertPoint.columnIndex === newDragInsertionPoint.columnIndex)
+                && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
+            return;
+          }
         }
         if (this.dragInsertPoint) {
           this.$(this.dragInsertPoint.headerNode)
               .removeClass('drag-insert-' + this.dragInsertPoint.nearerBound);
         }
         this.dragInsertPoint = newDragInsertionPoint;
-        this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
-            + this.dragInsertPoint.nearerBound);
+        if (newDragInsertionPoint) {
+          this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
+              + this.dragInsertPoint.nearerBound);
+        }
       },
 
       dragExited: function( iDragObject, iEvent) {
