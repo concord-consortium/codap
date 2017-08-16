@@ -214,13 +214,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var gridPosition =  slickGrid.getGridPosition();
         var headerRowHeight = slickGrid.getOptions().headerRowHeight;
         // compute cursor location relative to grid
-        // DG.log('location, location: ' + JSON.stringify({
-        //   dragObject: iDragObject.location.x,
-        //   evtClientX: iEvent.clientX,
-        //   evtPageX: iEvent.pageX,
-        //   gridPositionX: gridPosition.left,
-        //   headerRowHeight: headerRowHeight
-        // }));
         var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
         // find new insertion point
         var inHeader = loc.y < headerRowHeight;
