@@ -99,6 +99,10 @@ DG.ScatterPlotView = DG.PlotView.extend(
         tLayerManager.removeElement( iElement);
       });
     }
+    var tFunctionEditView = this.get('functionEditView');
+    if( tFunctionEditView) {
+      this.get('parentView').removeChild( tFunctionEditView);
+    }
 
     sc_super();
   },
