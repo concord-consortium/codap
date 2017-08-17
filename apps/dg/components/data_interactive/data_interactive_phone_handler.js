@@ -971,7 +971,31 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleCase: {
         create: function (iResources, iValues) {
+
+          function convertDate( iValue) {
+            if (iValue instanceof Date) {
+              iValue.valueOf = function () {
+                return Date.prototype.valueOf.apply(this) / 1000;
+              };
+            }
+          }
+
+          function fixDates(iCase) {
+            if( Array.isArray( iCase.values)) {
+              iCase.values.forEach(function (iValue) {
+                convertDate( iValue);
+              });
+            }
+            else if ( typeof iCase.values === 'object') {
+              DG.ObjectMap.forEach( iCase.values, function( iKey, iValue) {
+                convertDate( iValue);
+              });
+            }
+          }
+
           function createOneCase(iCase) {
+            fixDates(iCase);  // Dates sometimes come in as objects, in which case we need to convert them
+                              // to a CODAP date whose value is seconds, not milliseconds
             var request = {
               operation: 'createCases',
               collection: collection,
