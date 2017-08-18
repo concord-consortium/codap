@@ -673,10 +673,10 @@ SC.stringsFor('English', {
 
   // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
   'DG.PlottedFormula.defaultNamePrompt': "公式", // TRANSLATE: "Formula"
-  'DG.PlottedValue.namePrompt': "(zh)Plotted Value",  // TRANSLATE: "Plotted Value"
-  'DG.PlottedValue.formulaPrompt': "(zh)value =", // TRANSLATE: "value ="
+  'DG.PlottedValue.namePrompt': "定點值",  // TRANSLATE: "Plotted Value"
+  'DG.PlottedValue.formulaPrompt': "值 =", // TRANSLATE: "value ="
   'DG.PlottedValue.formulaHint': "",
-  'DG.PlottedFunction.namePrompt': "(zh)Plotted Function",  // TRANSLATE: "Plotted Function"
+  'DG.PlottedFunction.namePrompt': "繪圖功能",  // TRANSLATE: "Plotted Function"
   'DG.PlottedFunction.formulaPrompt': "(zh)f() =",  // TRANSLATE? "f() ="
   'DG.PlottedFunction.formulaHint': "(zh)Type an expression e.g. x*x/30 - 50",  // TRANSLATE: "Type an expression e.g. x*x/30 - 50"
 
