@@ -99,35 +99,35 @@ SC.stringsFor('es', {
   'DG.AppController.showReleaseNotesTitle' : 'Notas de la versión de CODAP',
   'DG.AppController.dropFile.error' : '(es)Error: %@1', // Error: <error text>
   'DG.AppController.dropFile.unknownFileType' : 'No se puede importar el tipo de archivo',
-  'DG.AppController.validateDocument.missingRequiredProperty' : '(es)Required property not found: %@1',
-  'DG.AppController.validateDocument.unexpectedProperty' : '(es)Unexpected top-level property: %@1',
-  'DG.AppController.validateDocument.unresolvedID' : '(es)Unresolved id: %@1',
-  'DG.AppController.validateDocument.parseError' : '(es)Parse error in document: %@1',
-  'DG.AppController.validateDocument.invalidDocument' : '(es)Invalid JSON Document: %@1',
-  'DG.AppController.openDocument.error.general': '(es)Unable to open document',
-  'DG.AppController.openDocument.error.invalid_format': '(es)CODAP can not read this type of document',
-  'DG.AppController.createDataSet.initialAttribute': '(es)Attribute', /* Attribute */
-  'DG.AppController.createDataSet.name': '(es)New Dataset', /* New Dataset */
-  'DG.AppController.createDataSet.collectionName': '(es)Cases', /* Cases */
-  'DG.AppController.caseTableMenu.newDataSet': '(es)-- new --', /* -- new -- */
+  'DG.AppController.validateDocument.missingRequiredProperty' : 'No se encontró propiedad requerida: %@1',
+  'DG.AppController.validateDocument.unexpectedProperty' : 'Propiedad inesperada de nivel superior: %@1',
+  'DG.AppController.validateDocument.unresolvedID' : 'ID no resuelto: %@1',
+  'DG.AppController.validateDocument.parseError' : 'Error de análisis en el documento: %@1',
+  'DG.AppController.validateDocument.invalidDocument' : 'Documento JSON no válido: %@1',
+  'DG.AppController.openDocument.error.general': 'No se puede abrir el documento',
+  'DG.AppController.openDocument.error.invalid_format': 'CODAP no puede abrir este tipo de documento',
+  'DG.AppController.createDataSet.initialAttribute': 'Variables', /* Attribute */
+  'DG.AppController.createDataSet.name': 'Los Nuevos Datos', /* New Dataset */
+  'DG.AppController.createDataSet.collectionName': 'Datos', /* Cases */
+  'DG.AppController.caseTableMenu.newDataSet': '-- nuevo --', /* -- new -- */
 
   'DG.SingleTextDialog.okButton.title': "(es)OK",
-  'DG.SingleTextDialog.cancelButton.title': "(es)Cancel",
-  'DG.SingleTextDialog.cancelButton.toolTip': "(es)Dismiss the dialog without making any changes",
+  'DG.SingleTextDialog.cancelButton.title': "(es)Cancelar",
+  'DG.SingleTextDialog.cancelButton.toolTip': "Descartar el cuadro de diálogo sin realizar ningún cambio",
 
   // DG.DocumentController
-  'DG.DocumentController.calculatorTitle': "(es)Calculator",
-  'DG.DocumentController.caseTableTitle': "(es)Case Table",
-  'DG.DocumentController.graphTitle': "(es)Graph",
-  'DG.DocumentController.sliderTitle': "(es)Slider",
-  'DG.DocumentController.textTitle': "(es)Text",
-  'DG.DocumentController.mapTitle': "(es)Map",
-  'DG.DocumentController.enterURLPrompt': "(es)Enter the URL of a web page to display",
-  'DG.DocumentController.enterViewWebPageOKTip': "(es)Displays the web page given by the URL",
+  'DG.DocumentController.calculatorTitle': "Calculadora",
+  'DG.DocumentController.caseTableTitle': "Mesa de Datos",
+  'DG.DocumentController.graphTitle': "Grafico",
+  'DG.DocumentController.sliderTitle': "Deslizador",
+  'DG.DocumentController.textTitle': "Texto",
+  'DG.DocumentController.mapTitle': "Mapa",
+  'DG.DocumentController.enterURLPrompt': "Escriba la URL de una página web para mostrar",
+  'DG.DocumentController.enterViewWebPageOKTip': "Muestra la página web dada por la URL",
 
   // DG.Document
   'DG.Document.defaultDocumentName': "Documento sin título",
-  'DG.Document.documentName.toolTip': "(es)Click to edit document name", // "Click to edit document name"
+  'DG.Document.documentName.toolTip': "Haga clic para cambiar el nombre del documento", // "Click to edit document name"
 
   // DG.SliderView
   'DG.SliderView.thumbView.toolTip': "(es)Drag to change the slider's value",
@@ -135,36 +135,36 @@ SC.stringsFor('es', {
 
   // DG.ToolButtonData
   'DG.ToolButtonData.tableButton.title': "Listas",
-  'DG.ToolButtonData.tableButton.toolTip': "(es)Open a case table for each data set(ctrl-alt-t)",
+  'DG.ToolButtonData.tableButton.toolTip': "(es)Abrir una mesa de datos para cada conjunto de datos(ctrl-alt-t)",
   'DG.ToolButtonData.graphButton.title': "Graphico",
-  'DG.ToolButtonData.graphButton.toolTip': "(es)Make a graph (ctrl-alt-g)",
+  'DG.ToolButtonData.graphButton.toolTip': "(es)Abrir un grafico (ctrl-alt-g)",
   'DG.ToolButtonData.sliderButton.title': "Seslizador",
-  'DG.ToolButtonData.sliderButton.toolTip': "(es)Make a slider (ctrl-alt-s)",
-  'DG.ToolButtonData.calcButton.title': "(es)Calc",
-  'DG.ToolButtonData.calcButton.toolTip': "(es)Open/close the calculator (ctrl-alt-c)",
+  'DG.ToolButtonData.sliderButton.toolTip': "(es)Hacer un deslizador (ctrl-alt-s)",
+  'DG.ToolButtonData.calcButton.title': "Calc",
+  'DG.ToolButtonData.calcButton.toolTip': "Abrir/Cerrar la calculadora (ctrl-alt-c)",
   'DG.ToolButtonData.textButton.title': "Texto",
-  'DG.ToolButtonData.textButton.toolTip': "(es)Make a text object (ctrl-alt-shift-t)",
-  'DG.ToolButtonData.mapButton.title': "(es)Map",
-  'DG.ToolButtonData.mapButton.toolTip': "(es)Make a map",
-  'DG.ToolButtonData.optionMenu.title': "(es)Options",
-  'DG.ToolButtonData.optionMenu.toolTip': "(es)Display a website, configure guide...",
-  'DG.ToolButtonData.tileListMenu.title': "(es)Tiles",
-  'DG.ToolButtonData.tileListMenu.toolTip': "(es)Show the list of tiles in the document",
-  'DG.ToolButtonData.guideMenu.title': "(es)Guide",
-  'DG.ToolButtonData.guideMenu.toolTip': "(es)Show the guide for this activity and navigate within it",
-  'DG.ToolButtonData.guideMenu.showGuide': "(es)Show Guide",
-  'DG.ToolButtonData.help.title': "(es)Help",
-  'DG.ToolButtonData.help.toolTip': "(es)Help for CODAP, learn about CODAP project",
+  'DG.ToolButtonData.textButton.toolTip': "Abrir un componente de texto (ctrl-alt-shift-t)",
+  'DG.ToolButtonData.mapButton.title': "Mapa",
+  'DG.ToolButtonData.mapButton.toolTip': "Abrir una mapa",
+  'DG.ToolButtonData.optionMenu.title': "Opciones",
+  'DG.ToolButtonData.optionMenu.toolTip': "Mostrar página web, Configurar la guía...",
+  'DG.ToolButtonData.tileListMenu.title': "Inventario",
+  'DG.ToolButtonData.tileListMenu.toolTip': "Mostrar la lista de inventario en el documento",
+  'DG.ToolButtonData.guideMenu.title': "Guía",
+  'DG.ToolButtonData.guideMenu.toolTip': "Muestra la guía para esta actividad y navega dentro de ella",
+  'DG.ToolButtonData.guideMenu.showGuide': "Mostrar Guía",
+  'DG.ToolButtonData.help.title': "Ayuda",
+  'DG.ToolButtonData.help.toolTip': "Ayuda para CODAP, aprende sobre el proyecto CODAP",
 
   'DG.Slider.multiples': "(es)Restrict to Multiples of:",  // Restrict to Multiples of
   'DG.Slider.maxPerSecond': "(es)Maximum Animation Frames/sec:",  // Maximum Animation Frames/sec:
-  'DG.Slider.direction': "(es)Animation Direction:", // Direction
-  'DG.Slider.backAndForth': "(es)Back and Forth", // Back and Forth
-  'DG.Slider.lowToHigh': "(es)Low to High", // Low to High
-  'DG.Slider.highToLow': "(es)High to Low", // High to Low
-  'DG.Slider.mode': "(es)Animation Repetition:", // Animation Repetition:
-  'DG.Slider.nonStop': "(es)Non-Stop", // Non-Stop
-  'DG.Slider.onceOnly': "(es)Once Only", // Once Only
+  'DG.Slider.direction': "Dirección de Animación:", // Direction
+  'DG.Slider.backAndForth': "Hacia atrás y adelante", // Back and Forth
+  'DG.Slider.lowToHigh': "De menor a mayor", // Low to High
+  'DG.Slider.highToLow': "De mayor a menor ", // High to Low
+  'DG.Slider.mode': "Repitación la animación:", // Animation Repetition:
+  'DG.Slider.nonStop': "Continuo", // Non-Stop
+  'DG.Slider.onceOnly': "Solo Una Vez", // Once Only
 
   // Undo / Redo
   'DG.Undo.exceptionOccurred': "(es)An error occurred while trying to undo.",
@@ -389,39 +389,39 @@ SC.stringsFor('es', {
   'DG.Formula.FuncCategoryString': "(es)String Functions",
   'DG.Formula.FuncCategoryTrigonometric': "(es)Trigonometric Functions",
 
-  'DG.Formula.DateLongMonthJanuary': "(es)January",
-  'DG.Formula.DateLongMonthFebruary': "(es)February",
-  'DG.Formula.DateLongMonthMarch': "(es)March",
-  'DG.Formula.DateLongMonthApril': "(es)April",
-  'DG.Formula.DateLongMonthMay': "(es)May",
-  'DG.Formula.DateLongMonthJune': "(es)June",
-  'DG.Formula.DateLongMonthJuly': "(es)July",
-  'DG.Formula.DateLongMonthAugust': "(es)August",
-  'DG.Formula.DateLongMonthSeptember': "(es)September",
-  'DG.Formula.DateLongMonthOctober': "(es)October",
-  'DG.Formula.DateLongMonthNovember': "(es)November",
-  'DG.Formula.DateLongMonthDecember': "(es)December",
+  'DG.Formula.DateLongMonthJanuary': "enero",
+  'DG.Formula.DateLongMonthFebruary': "febrero",
+  'DG.Formula.DateLongMonthMarch': "marzo",
+  'DG.Formula.DateLongMonthApril': "abril",
+  'DG.Formula.DateLongMonthMay': "mayo",
+  'DG.Formula.DateLongMonthJune': "junio",
+  'DG.Formula.DateLongMonthJuly': "julio",
+  'DG.Formula.DateLongMonthAugust': "agosto",
+  'DG.Formula.DateLongMonthSeptember': "septiembre",
+  'DG.Formula.DateLongMonthOctober': "octubre",
+  'DG.Formula.DateLongMonthNovember': "noviembre",
+  'DG.Formula.DateLongMonthDecember': "diciembre",
 
-  'DG.Formula.DateShortMonthJanuary': "(es)Jan",
-  'DG.Formula.DateShortMonthFebruary': "(es)Feb",
-  'DG.Formula.DateShortMonthMarch': "(es)Mar",
-  'DG.Formula.DateShortMonthApril': "(es)Apr",
-  'DG.Formula.DateShortMonthMay': "(es)May",
-  'DG.Formula.DateShortMonthJune': "(es)Jun",
-  'DG.Formula.DateShortMonthJuly': "(es)Jul",
-  'DG.Formula.DateShortMonthAugust': "(es)Aug",
-  'DG.Formula.DateShortMonthSeptember': "(es)Sep",
-  'DG.Formula.DateShortMonthOctober': "(es)Oct",
-  'DG.Formula.DateShortMonthNovember': "(es)Nov",
-  'DG.Formula.DateShortMonthDecember': "(es)Dec",
+  'DG.Formula.DateShortMonthJanuary': "en",
+  'DG.Formula.DateShortMonthFebruary': "feb",
+  'DG.Formula.DateShortMonthMarch': "mzo",
+  'DG.Formula.DateShortMonthApril': "abr",
+  'DG.Formula.DateShortMonthMay': "may",
+  'DG.Formula.DateShortMonthJune': "jun",
+  'DG.Formula.DateShortMonthJuly': "jul",
+  'DG.Formula.DateShortMonthAugust': "ago",
+  'DG.Formula.DateShortMonthSeptember': "sep",
+  'DG.Formula.DateShortMonthOctober': "oct",
+  'DG.Formula.DateShortMonthNovember': "nov",
+  'DG.Formula.DateShortMonthDecember': "dic",
 
-  'DG.Formula.DateLongDaySunday': "(es)Sunday",
-  'DG.Formula.DateLongDayMonday': "(es)Monday",
-  'DG.Formula.DateLongDayTuesday': "(es)Tuesday",
-  'DG.Formula.DateLongDayWednesday': "(es)Wednesday",
-  'DG.Formula.DateLongDayThursday': "(es)Thursday",
-  'DG.Formula.DateLongDayFriday': "(es)Friday",
-  'DG.Formula.DateLongDaySaturday': "(es)Saturday",
+  'DG.Formula.DateLongDaySunday': "domingo",
+  'DG.Formula.DateLongDayMonday': "lunes",
+  'DG.Formula.DateLongDayTuesday': "martes",
+  'DG.Formula.DateLongDayWednesday': "miércoles",
+  'DG.Formula.DateLongDayThursday': "jueves",
+  'DG.Formula.DateLongDayFriday': "viernes",
+  'DG.Formula.DateLongDaySaturday': "sabado",
 
                                         /* "dd-mmm-yyyy", "dd-mmm-yy", "mm/dd/yy", "mm/dd/yyyy" */
   'DG.Utilities.date.localDatePattern': '(?:(?:[0-3]?\\d\-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\-\\d{2}(?:\\d{2})?)|(?:[01]?\\d\/[0-3]?\\d\/\\d{2}(?:\\d{2})?))',
