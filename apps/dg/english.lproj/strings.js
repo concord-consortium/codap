@@ -435,7 +435,7 @@ SC.stringsFor('English', {
     '\\d{4}-[01]\\d-[0-3]\\d', // iso date part yyyy-mm-dd
     '(?:', // optional clause BEGIN
       '[T ]', // date/time separator
-      '(?:[0-2]\\d:[0-5]\\d:[0-5]\\d(?:\\.\\d{3,3})?)',  // iso time part hh:mm:ss or hh:mm:ss.ddd
+      '(?:[0-2]\\d:[0-5]\\d:[0-5]\\d(?:\\.\\d{3,6})?)',  // iso time part hh:mm:ss or hh:mm:ss.ddd
       '(?:', // optional clause BEGIN
         'Z|(?:[-+]?[01]\\d:[0-5]\\d)|(?: ?[-+][0-2]\\d{3})', // iso timezone part 'Z', +hh:mm, -hh:mm, +hhmm, -hhmm
       ')?', // optional clause END

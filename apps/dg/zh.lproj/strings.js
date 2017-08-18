@@ -540,7 +540,7 @@ SC.stringsFor('English', {
   'DG.CaseTable.attribute.type.boundary':'國界', //boundary Translate
   'DG.CaseTable.attributeEditor.name': '變項名字', // name Translate
   'DG.CaseTable.attributeEditor.description': '描述', // description Translate
-  'DG.CaseTable.attributeEditor.type': 'type', // type Translate
+  'DG.CaseTable.attributeEditor.type': '(zh)type', // type Translate
   'DG.CaseTable.attributeEditor.unit': '測量單位', // unit Translate
   'DG.CaseTable.attributeEditor.precision': '小數點後的位數', // precision Translate
   'DG.CaseTable.attributeEditor.editable': '能編輯的', // editable Translate

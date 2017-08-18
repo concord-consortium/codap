@@ -1113,9 +1113,17 @@ input.dg-editor-text {
     padding: 0.5em;
     transform: rotate(180deg);
 }
+.dg-table-drop-target .sc-label-view:lang(zh) {
+    transform: rotate(0deg);
+}
 
-.dg-table-drop-target-show .sc-label-view {
+.dg-table-drop-target.dg-table-drop-target-show .sc-label-view {
     border: medium #ffe4b3 solid;
+}
+
+.dg-table-drop-target-show .slick-header {
+    border-top: medium #ffe4b3 solid;
+    border-bottom: medium #ffe4b3 solid;
 }
 
 .dg-table-drop-target-highlight  .sc-label-view {
