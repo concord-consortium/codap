@@ -5,16 +5,19 @@
 # Expects one argument, the CODAP instance packaged as a zip file, and having
 # its top level directory named according to its build name.
 # The target directory is the release directory for the codap web site.
-# This script deletes any old directory it finds matching the new executable's
-# build name.
+# This script checks for any old directory it finds matching the new executable's
+# build name and will exit with a warning.
 #
 # The script expects to be run with root privileges.
 #
-# The script changes ownership so the directory will be accessible to apache.
+# The script changes ownership of files so the directory will be accessible
+# to apache.
+#
 PROGNAME=`basename $0`
 
 RELEASE_DIR=/var/www/html/releases
 TMP_DIR=/tmp/${PROGNAME}.$$
+CONFIG_FILE=/var/www/config/releases/codap-config.js
 
 ZIP_FILE=$1
 
@@ -24,7 +27,7 @@ function usage() {
 }
 
 function error_exit() {
-    echo "${PROGNAME}: error: $1" 1>&2
+    echo "error: $1" 1>&2
     echo exiting... 1>&2
     exit 2
 }
@@ -34,8 +37,7 @@ if [[ $EUID -ne 0 ]]; then
    error_exit "This script must be run as root"
 fi
 
-
-if [ "$ZIP_FILE" = "" ] ; then
+if [ ! -f "$ZIP_FILE" ] ; then
   usage
 fi
 
@@ -67,3 +69,8 @@ ln -s ${RELEASE_DIR}/${BUILD_NAME} ${RELEASE_DIR}/staging
 
 # remove tmp dir
 rm -r ${TMP_DIR}
+
+# copy config file, if it exists
+if [ -f ${CONFIG_FILE} ] ; then
+  cp ${CONFIG_FILE} ${RELEASE_DIR}/${BUILD_NAME}
+fi

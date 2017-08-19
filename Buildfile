@@ -19,7 +19,7 @@ config :dg,
 # Production build (e.g. sc-build, make deploy) configuration
 mode :production do
   config :dg,
-         :google_analytics_id => "UA-6899787-45"
+         :enable_google_analytics => true
 end
 
 # Debug build (e.g. sc-server) configuration
