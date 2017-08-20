@@ -1,4 +1,4 @@
-SC.stringsFor("Chinese", {
+{
   "DG.fileMenu.menuItem.newDocument": "新增",
   "DG.fileMenu.menuItem.openDocument": "開啟...",
   "DG.fileMenu.menuItem.closeDocument": "關閉",
@@ -648,4 +648,4 @@ SC.stringsFor("Chinese", {
   "DG.GameController.confirmCloseDescription": "如果你關閉這個，你可能無法添加更多數據",
 
   "DG.WebView.defaultTitle": "網頁"
-});
+}

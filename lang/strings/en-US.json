@@ -1,4 +1,4 @@
-SC.stringsFor("English", {
+{
   "DG.fileMenu.menuItem.newDocument": "New",
   "DG.fileMenu.menuItem.openDocument": "Open...",
   "DG.fileMenu.menuItem.closeDocument": "Close",
@@ -684,4 +684,4 @@ SC.stringsFor("English", {
   "DG.GameController.confirmCloseDescription": "If you close this, you may not be able to add more data.",
 
   "DG.WebView.defaultTitle": "Web Page"
-});
+}
