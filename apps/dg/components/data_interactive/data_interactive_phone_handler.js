@@ -735,6 +735,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var success = true;
           var collectionIdentifiers = [];
 
+          if (!context) {
+            return {success: false, values: {error: "no context"}};
+          }
+
           if (!Array.isArray(iValues)) {
             iValues = [iValues];
           }
@@ -855,6 +859,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues, iMetadata) {
+          if (!iResources.dataContext) {
+            return {success: false, values: {error: "no context"}};
+          }
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
