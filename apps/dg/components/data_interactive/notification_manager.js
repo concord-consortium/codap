@@ -35,8 +35,13 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     }).map(function (gameController) {
       return gameController.get('activeChannel');
     });
-    if (DG.embeddedModePhoneHandler) {
-      channels.push(DG.embeddedModePhoneHandler);
+    // If we have embeddedMode handlers return any active ones.
+    if (DG.embeddedModePhoneHandlers) {
+      DG.embeddedModePhoneHandlers.forEach(function (handler) {
+        if (handler.get('isPhoneInUse')) {
+          channels.push(handler);
+        }
+      });
     }
     return channels;
   }
