@@ -48,6 +48,13 @@ DG.PointDataTip = DG.DataTip.extend(
             tCase = tCases ? tCases[this.get('caseIndex')] : null;
 
         function getNameValuePair(iKey) {
+          var digitsForLegend = function() {
+            return DG.PlotUtilities.findFractionDigitsForRange(tAttrDesc.getPath('attributeStats.minMax'));
+            },
+          digitsForAxis = function() {
+            return DG.PlotUtilities.findFractionDigitsForAxis(this_.getPath('plotLayer.' + iKey + 'AxisView'));
+            };
+
           var tAttrDesc = tPlot.getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
               tAttributes = tAttrDesc.get('attributes'),
               tPlotIndex = this_.getPath('plotLayer.plotIndex');
@@ -56,25 +63,11 @@ DG.PointDataTip = DG.DataTip.extend(
           tPlotIndex = (tPlotIndex < tAttributes.length) ? tPlotIndex : 0;
           var tAttr = tAttributes[tPlotIndex],
               tAttrID = (typeof(tAttr) === 'object') ? tAttr.get('id') : null,
-              tName, tValue, tDigits, tNumFormat;
+              tDigitsFunc = (iKey === 'legend') ? digitsForLegend : digitsForAxis,
+                  tName, tValue;
           if (!SC.none(tAttrID)) {
             tName = tAttr.get('name');
-            tValue = tCase && tCase.getValue(tAttrID);
-            if (SC.none(tValue)) return null;
-
-            if (tAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eNumeric) {
-              tDigits = (iKey === 'legend') ?
-                  DG.PlotUtilities.findFractionDigitsForRange(tAttrDesc.getPath('attributeStats.minMax')) :
-                  DG.PlotUtilities.findFractionDigitsForAxis(this_.getPath('plotLayer.' + iKey + 'AxisView'));
-              if (SC.none(tDigits))  // Can happen for maps when there is no axis view
-                tDigits = 2;
-              tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
-              tNumFormat.group(''); // Don't separate with commas
-              tValue = tNumFormat(tCase.getNumValue(tAttrID));
-            }
-            else {
-              tValue = tCase.getStrValue(tAttrID);
-            }
+            tValue = DG.PlotUtilities.getFormattedCaseValue( tCase, tAttrDesc, tDigitsFunc);
             return tName + ': ' + tValue;
           }
           return null;

@@ -101,6 +101,16 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
   },
 
   calcTooltip: function( iCase) {
+
+    function formatValue( iCase, iAttrDesc) {
+
+      function getDigits() {
+        return DG.PlotUtilities.findFractionDigitsForRange(iAttrDesc.getPath('attributeStats.minMax'));
+      }
+
+      return DG.PlotUtilities.getFormattedCaseValue( iCase, iAttrDesc, getDigits);
+    }
+
     var tCaptionDesc = this.getPath('model.dataConfiguration.captionAttributeDescription'),
         tCaptionVarID = tCaptionDesc.get('attributeID'),
         tCaptionName = tCaptionDesc.getPath('attribute.name'),
@@ -109,7 +119,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
         tLegendName = tLegendDesc.getPath('attribute.name'),
         tTip = tCaptionName + ': ' + iCase.getValue( tCaptionVarID);
     if( tLegendVarID && (tLegendVarID !== tCaptionVarID)) {
-      tTip += '<br>' + tLegendName + ': ' + iCase.getValue( tLegendVarID);
+      tTip += '<br>' + tLegendName + ': ' + formatValue(iCase, tLegendDesc);
     }
     return tTip;
   },

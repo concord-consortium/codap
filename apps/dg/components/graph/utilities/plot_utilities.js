@@ -336,6 +336,26 @@ DG.PlotUtilities = {
     return { slopeDigits: oSlopeDigits, interceptDigits: oInterceptDigits };
   },
 
+  getFormattedCaseValue: function( iCase, iAttrDesc, iGetDigitsFunc) {
+    var tAttrID = iAttrDesc.getPath('attribute.id'),
+        tValue = iCase && iCase.getValue(tAttrID),
+        tDigits, tNumFormat;
+    if (SC.empty(tValue)) return '';
+
+    if (iAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eNumeric) {
+      tDigits = iGetDigitsFunc();
+      if (SC.none(tDigits))  // Can happen for maps when there is no axis view
+        tDigits = 2;
+      tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
+      tNumFormat.group(''); // Don't separate with commas
+      tValue = tNumFormat(iCase.getNumValue(tAttrID));
+    }
+    else {
+      tValue = iCase.getStrValue(tAttrID);
+    }
+    return tValue;
+  },
+
   doCreateCircleAnimation: function( iCircle) {
     //iCircle.attr( { 'fill-opacity': 0, 'stroke-opacity': 0 });
     //iCircle.animate({ 'fill-opacity': this.kDefaultPointOpacity, 'stroke-opacity': 1 },
