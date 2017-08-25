@@ -221,7 +221,39 @@ DG.Debug = SC.Object.create( (function() {
     },
 
     logUser: function( iMessage, iOptFormatArgs) {
+      var values = {
+        formatStr: iMessage,
+        replaceArgs: iOptFormatArgs
+      };
+      DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, arguments);
+    },
+
+    /**
+     * This is a special purpose logger to support log messages coming from
+     * the DI API. These may have an additional "topic" argument which we
+     * need to handle specially. We need to convey them forward to the NotificationManager.
+     * @param iTopic {string}
+     * @param iMessage {string}
+     * @param iOptFormatArgs [{string}]
+     */
+    logUserWithTopic: function( iTopic, iMessage, iOptFormatArgs) {
+      var values = {
+        topic: iTopic,
+        formatStr: iMessage,
+        replaceArgs: iOptFormatArgs
+      };
+
+      // the underlying api expects format replacement strings to be as var args
+      // so we compose an array of static arguments and then concat iOptFormatArgs.
+      var args = [DG.LOGGER_LEVEL_USER, YES, iMessage];
+      if (iOptFormatArgs) {
+        args = args.concat(iOptFormatArgs);
+      }
+
+      DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
+
+      DG.Debug._handleLogMessage.apply(DG.Debug, args);
     },
 
     logUserRaw: function( iRawArgs) {

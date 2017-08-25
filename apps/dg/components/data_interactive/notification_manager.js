@@ -35,8 +35,13 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
     }).map(function (gameController) {
       return gameController.get('activeChannel');
     });
-    if (DG.embeddedModePhoneHandler) {
-      channels.push(DG.embeddedModePhoneHandler);
+    // If we have embeddedMode handlers return any active ones.
+    if (DG.embeddedModePhoneHandlers) {
+      DG.embeddedModePhoneHandlers.forEach(function (handler) {
+        if (handler.get('isPhoneInUse')) {
+          channels.push(handler);
+        }
+      });
     }
     return channels;
   }
@@ -198,7 +203,42 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           DG.log('Response: ' + JSON.stringify(response));
         });
       });
-    }
+    },
 
+    notifyLogMessageSubscribers: function (iValues) {
+      // shortcut if no listeners are registered
+      var logMonitors = DG.currDocumentController().dataInteractiveLogMonitor.get("logMonitors");
+      if (logMonitors.length === 0) {
+        return;
+      }
+
+      var values = {};
+      Object.keys(iValues).forEach(function (key) {
+        values[key] = iValues[key];
+      });
+      values.message = SC.String.fmt(iValues.formatStr, iValues.replaceArgs);
+
+      logMonitors.forEach(function (logMonitor) {
+        var logMonitorValues = logMonitor.values;
+        logMonitorValues = SC.merge({
+          topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
+          topicPrefixMatches: logMonitorValues.topicPrefix && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
+          formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
+          messageMatches: logMonitorValues.message &&
+            ((logMonitorValues.message === values.message)||
+                (logMonitorValues.message === "*"))
+        }, logMonitorValues);
+        if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches || logMonitorValues.formatStrMatches || logMonitorValues.messageMatches) {
+          values.logMonitor = logMonitorValues;
+          logMonitor.iPhoneHandler.sendMessage({
+            action: "notify",
+            resource: "logMessageNotice",
+            values: values
+          });
+        }
+      }.bind(this));
+    }
   };
+
+
 })());

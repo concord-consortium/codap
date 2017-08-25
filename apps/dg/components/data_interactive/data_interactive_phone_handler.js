@@ -735,6 +735,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var success = true;
           var collectionIdentifiers = [];
 
+          if (!context) {
+            return {success: false, values: {error: "no context"}};
+          }
+
           if (!Array.isArray(iValues)) {
             iValues = [iValues];
           }
@@ -855,6 +859,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
         create: function (iResources, iValues, iMetadata) {
+          if (!iResources.dataContext) {
+            return {success: false, values: {error: "no context"}};
+          }
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
           }
@@ -1651,8 +1658,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleLogMessage: {
         notify: function (iResources, iValues) {
-          DG.logUser(iValues.formatStr, iValues.replaceArgs);
-          this.handleLogMessageMonitor._checkLogMessage.apply(this, [iResources, iValues]);
+          DG.Debug.logUserWithTopic(iValues.topic, iValues.formatStr, iValues.replaceArgs);
           return {
             success: true
           };
@@ -1702,10 +1708,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           var dataInteractiveLogMonitor = DG.currDocumentController().dataInteractiveLogMonitor;
           dataInteractiveLogMonitor.set("logMonitors", dataInteractiveLogMonitor.get("logMonitors").filter(function (logMonitor) {
-            if (iValues.id && (iValues.id !== logMonitor.id)) {
+            var logMonitorValues = logMonitor.values;
+            if (iValues.id && (iValues.id !== logMonitorValues.id)) {
               return true;
             }
-            if (iValues.clientId && (iValues.clientId !== logMonitor.clientId)) {
+            if (iValues.clientId && (iValues.clientId !== logMonitorValues.clientId)) {
               return true;
             }
             return false;
@@ -1716,37 +1723,6 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           };
         },
 
-        _checkLogMessage: function (iResource, iValues) {
-          // shortcut if no listeners are registered
-          var logMonitors = DG.currDocumentController().dataInteractiveLogMonitor.get("logMonitors");
-          if (logMonitors.length === 0) {
-            return;
-          }
-
-          var values = {};
-          Object.keys(iValues).forEach(function (key) {
-            values[key] = iValues[key];
-          });
-          values.message = SC.String.fmt(iValues.formatStr, iValues.replaceArgs);
-
-          logMonitors.forEach(function (logMonitor) {
-            var logMonitorValues = logMonitor.values;
-            logMonitorValues = SC.merge({
-              topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
-              topicPrefixMatches: logMonitorValues.topicPrefix && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
-              formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
-              messageMatches: logMonitorValues.message && (logMonitorValues.message === values.message)
-            }, logMonitorValues);
-            if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches || logMonitorValues.formatStrMatches || logMonitorValues.messageMatches) {
-              values.logMonitor = logMonitorValues;
-              logMonitor.iPhoneHandler.sendMessage({
-                action: "notify",
-                resource: "logMessageNotice",
-                values: values
-              });
-            }
-          }.bind(this));
-        }
       },
 
       handleUndoChangeNotice: {

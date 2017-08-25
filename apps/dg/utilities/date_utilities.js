@@ -104,9 +104,17 @@ DG.DateUtilities.formatDate = function(x) {
       s = mom.seconds(),
       ms = mom.milliseconds(),
       hasTime = (h + m + s + ms) > 0,
-      dateStr = mom.format('l'),
-      timeStr = hasTime ? " " + mom.format('LT') : "";
-  return dateStr + timeStr;
+      hasSeconds = (s + ms) > 0,
+      hasMilliseconds = ms > 0,
+      formatString = 'l';
+  if( hasTime) {
+    if( hasSeconds) {
+      formatString += ' h:mm:ss' + (hasMilliseconds ? '.SSS A' : ' A');
+    }
+    else
+      formatString += ' LT';
+  }
+  return mom.format( formatString);
 };
 DG.formatDate = DG.DateUtilities.formatDate;
 

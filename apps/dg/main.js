@@ -79,32 +79,60 @@ DG.main = function main() {
     }
   }
   function startEmbeddedServer() {
-    var controller = DG.ComponentController.extend({}).create(),
-        iHandler = DG.DataInteractivePhoneHandler.create({
-          controller: controller
-        }),
-        iframePhoneHandler = function (command, callback) {
-          iHandler.set('isPhoneInUse', true);
-          iHandler.doCommand(command, function (ret) {
-            DG.doCommandResponseHandler(ret, callback);
-          });
-        };
-
-    // if there is a real parent for this page try connecting using IFramePhone,
-    // otherwise we are embedded in the same context as our host, so we create
-    // an emulated connection
-    if (window.parent !== window) {
-      iHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(iframePhoneHandler, "data-interactive", window.parent);
-    } else {
-      iHandler.rpcEndpoint = new DG.IFramePhoneEmulator(iframePhoneHandler, 'data-interactive', 'codap');
-      DG.localIFramePhoneEndpoint = iHandler.rpcEndpoint;
+    function createParentConnection() {
+      var tController = DG.ComponentController.extend({}).create(),
+          tDataInteractiveHandler = DG.DataInteractivePhoneHandler.create({
+            controller: tController
+          }),
+          iframePhoneHandler = function (command, callback) {
+            tDataInteractiveHandler.set('isPhoneInUse', true);
+            tDataInteractiveHandler.doCommand(command, function (ret) {
+              DG.doCommandResponseHandler(ret, callback);
+            });
+          };
+      tDataInteractiveHandler.rpcEndpoint = new iframePhone.IframePhoneRpcEndpoint(
+          iframePhoneHandler, "data-interactive", window.parent);
+      tDataInteractiveHandler.rpcEndpoint.call({message: "codap-present"},
+          function (reply) {
+            DG.log('Got codap-present reply on embedded server data-interactive channel: ' +
+                JSON.stringify(reply));
+          }
+        );
+      return tDataInteractiveHandler;
     }
 
-    iHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
-      DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
-    });
+    function createSharedConnection() {
+      var tController = DG.ComponentController.extend({}).create(),
+          tDataInteractiveHandler = DG.DataInteractivePhoneHandler.create({
+            controller: tController
+          }),
+          iframePhoneHandler = function (command, callback) {
+            tDataInteractiveHandler.set('isPhoneInUse', true);
+            tDataInteractiveHandler.doCommand(command, function (ret) {
+              DG.doCommandResponseHandler(ret, callback);
+            });
+          };
 
-    DG.embeddedModePhoneHandler = iHandler;
+      tDataInteractiveHandler.rpcEndpoint = new DG.IFramePhoneEmulator(iframePhoneHandler, 'data-interactive', 'codap');
+      DG.localIFramePhoneEndpoint = tDataInteractiveHandler.rpcEndpoint;
+
+      tDataInteractiveHandler.rpcEndpoint.call({message: "codap-present"}, function (reply) {
+        DG.log('Got codap-present reply on embedded server data-interactive channel: ' + JSON.stringify(reply));
+      });
+      return tDataInteractiveHandler;
+    }
+
+
+    DG.embeddedModePhoneHandlers = [];
+
+    // if there is a real parent for this page try connecting using IFramePhone,
+    if (window.parent !== window) {
+      DG.embeddedModePhoneHandlers.push(createParentConnection());
+    }
+
+    // otherwise we are embedded in the same context as our host, so we create
+    // an emulated connection
+    DG.embeddedModePhoneHandlers.push(createSharedConnection());
   }
   function validateDocument(content) {
     if (!content) return false;
@@ -114,7 +142,7 @@ DG.main = function main() {
     // We log when these files are encountered, however, in hopes that they eventually get fixed.
     if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
       DG.log("File '%@' bypassed validation with empty metadata." +
-              " This file should be resaved with valid metadata.", content.name);
+              " This file should be re-saved with valid metadata.", content.name);
       return true;
     }
 
