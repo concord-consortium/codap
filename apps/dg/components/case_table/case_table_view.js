@@ -891,7 +891,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (gridAdapter) {
         gridAdapter.gridDataView.refresh();
       } else {
-        DG.warn('CaseTableView._resetDataView: no data view' );
+        DG.logWarn('CaseTableView._resetDataView: no data view' );
       }
       if (childTable && recurse) {
         childTable._refreshDataView(recurse);

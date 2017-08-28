@@ -340,39 +340,39 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleOneCommand: function (iCmd) {
         var result = {success: false};
 
-        try {
           // parse the resource name into constituent parts
-          var selectorMap = iCmd.resource && this.parseResourceSelector(iCmd.resource);
+        var selectorMap = iCmd.resource && this.parseResourceSelector(iCmd.resource);
 
-          // resolve identified resources
-          var resourceMap = this.resolveResources(selectorMap, iCmd.action);
+        // resolve identified resources
+        var resourceMap = this.resolveResources(selectorMap, iCmd.action);
 
-          var action = iCmd.action;
-          var type = selectorMap && selectorMap.type;
-          var values = this.validateValues(resourceMap.dataContext, iCmd.values);
-          var metadata = iCmd.meta;
+        var action = iCmd.action;
+        var type = selectorMap && selectorMap.type;
+        var values = this.validateValues(resourceMap.dataContext, iCmd.values);
+        var metadata = iCmd.meta;
 
-          var handler = type && this.handlerMap[type];
+        var handler = type && this.handlerMap[type];
 
-          if (handler) {
-            if (handler[action]) {
-              SC.run(function () {
+        if (handler) {
+          if (handler[action]) {
+            SC.run(function () {
+              try {
                 result = handler[action].call(this, resourceMap, values, metadata) || {success: false};
                 if (result.values) {
                   this.filterResultValues(result.values);
                 }
-              }.bind(this));
-            } else {
-              result.values={error: 'Unsupported action: %@/%@'.loc(action,type)};
-
-            }
+              } catch (ex) {
+                DG.logWarn(ex);
+                result.values={error: ex.toString()};
+              }
+            }.bind(this));
           } else {
-            DG.logWarn("Unknown message type: " + type);
-            result.values={error: "Unknown message type: " + type};
+            result.values={error: 'Unsupported action: %@/%@'.loc(action,type)};
+
           }
-        } catch (ex) {
-          DG.logWarn(ex);
-          result.values={error: ex.toString()};
+        } else {
+          DG.logWarn("Unknown message type: " + type);
+          result.values={error: "Unknown message type: " + type};
         }
         return result;
       },

@@ -407,7 +407,7 @@ DG.DocumentController = SC.Object.extend(
             dataContext.applyChange({operation: 'deleteDataContext'});
             this.contexts.splice(dataContextIndex, 1);
           } else {
-            DG.warn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
+            DG.logWarn('Attempt to destroy data context %@. Not known to document'.loc(dataContextID));
           }
         } else {
           return false;
