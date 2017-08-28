@@ -50,10 +50,12 @@ SC.stringsFor('English', {
   'DG.mainPage.mainPane.redoButton.title': "下一步",
   'DG.mainPage.mainPane.redoButton.toolTip': "重做最後的動作",
   'DG.mainPage.mainPane.versionString': "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
-  'DG.mainPage.mainPane.messageView.value': "DG不支援您的瀏覽器 " +
-  "DG 支援的瀏覽器有 Internet Explorer 9+, Firefox 3.6+, Chrome 10+, Safari 4+. " +
-  "DG 不支援其他瀏覽器",
+  'DG.mainPage.mainPane.messageView.value': "CODAP不支援您的瀏覽器 " +
+  "CODAP 支援的瀏覽器有 Internet Explorer 9+, Firefox 3.6+, Chrome 10+, Safari 4+. " +
+  "CODAP 不支援其他瀏覽器",
   'DG.mainPage.titleBar.saved': '文件已儲存!',
+  'DG.mainPage.exceptionMessage': '(zh)An error has occurred that may affect how this program ' +
+  'behaves. You may wish to reload this page after you save your work. (%@)',
 
   // IS_BUILD variants of strings for InquirySpace TRANSLATE
   'DG.mainPage.mainPane.versionString.IS_BUILD': "版本号 %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.

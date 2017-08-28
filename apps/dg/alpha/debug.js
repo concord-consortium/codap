@@ -167,8 +167,11 @@ DG.Debug = SC.Object.create( (function() {
       SC.Logger._handleMessage = this._prevHandleLogMessage;
 
       // Install our exception-handling intervention
-      this._prevExceptionHandler = SC.ExceptionHandler.handleException;
-      SC.ExceptionHandler.handleException = this._prevExceptionHandler;
+      // this._prevExceptionHandler = SC.ExceptionHandler.handleException;
+      SC.ExceptionHandler.handleException = this._handleException;
+
+      SC.ExceptionHandler.enabled = YES;
+
     },
 
     /**
@@ -437,18 +440,21 @@ DG.Debug = SC.Object.create( (function() {
       before calling the SproutCore exception handler.
     */
     _handleException: function( iException) {
-      var shouldCallSystemHandler = !SC.none( this._prevExceptionHandler);
+      var shouldCallSystemHandler = !SC.none( DG.Debug._prevExceptionHandler);
 
-      DG.Debug.logErrorRaw( "Exception: " + iException.message);
+      DG.Debug.logError( "Exception: " + iException);
 
       //@if(debug)
         /* eslint no-eval: "off" */
         /* jslint evil:true */
         eval('debugger');
       //@endif
+      window.alert('DG.mainPage.exceptionMessage'.loc(iException.message));  /* eslint no-alert: "off" */
 
       if( shouldCallSystemHandler)
-        this._prevExceptionHandler.call( SC.ExceptionHandler, iException);
+        DG.Debug._prevExceptionHandler.call( this, iException);
+
+      return true;
     }
 
   }; // return from function closure
