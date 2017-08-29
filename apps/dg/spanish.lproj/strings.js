@@ -50,10 +50,12 @@ SC.stringsFor('es', {
   'DG.mainPage.mainPane.redoButton.title': "Rehacer",
   'DG.mainPage.mainPane.redoButton.toolTip': "Rehacer la última acción",
   'DG.mainPage.mainPane.versionString': "Versión %@ (%@)", // DG.VERSION, DG.BUILD_NUM
-  'DG.mainPage.mainPane.messageView.value': "Desfortunadamente, DG no se apoya en su navegador." +
-  "DG se apoya en Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
-  "DG no se apoya activamente en otros versiones o navegadores ahora.",
+  'DG.mainPage.mainPane.messageView.value': "Desfortunadamente, CODAP no se apoya en su navegador." +
+  "CODAP se apoya en Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+. " +
+  "CODAP no se apoya activamente en otros versiones o navegadores ahora.",
   'DG.mainPage.titleBar.saved': '¡Documento Guardado!',
+  'DG.mainPage.exceptionMessage': '(es)An error has occurred that may affect how this program ' +
+  'behaves. You may wish to reload this page after you save your work. (%@)',
 
   // IS_BUILD variants of strings for InquirySpace
   'DG.mainPage.mainPane.versionString.IS_BUILD': "(es)Version %@ (%@ IS)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.

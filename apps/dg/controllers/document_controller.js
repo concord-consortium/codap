@@ -496,7 +496,7 @@ DG.DocumentController = SC.Object.extend(
           break;
         case 'SC.WebView':
         case 'DG.WebView':
-          tView = this.addWebView( docView, iComponent, null, null, null, isInitialization);
+          tView = this.addWebView( docView, iComponent, null, null, iComponent.layout, isInitialization);
           break;
         case 'DG.GuideView':
           tView = this.addGuideView( docView, iComponent, isInitialization);
