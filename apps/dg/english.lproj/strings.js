@@ -51,7 +51,7 @@ SC.stringsFor('English', {
   'DG.mainPage.mainPane.redoButton.toolTip': "Redo the last undone action",
   'DG.mainPage.mainPane.versionString': "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
   'DG.mainPage.mainPane.messageView.value': "Unfortunately, CODAP is not currently supported on your browser. " +
-  "CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 40+, and Safari 10+. " +
+  "CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. " +
   "CODAP is not actively supported on other browsers at this time.",
   'DG.mainPage.titleBar.saved': 'Document Saved!',
   'DG.mainPage.exceptionMessage': 'An error has occurred that may affect how this program ' +
