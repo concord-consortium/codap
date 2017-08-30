@@ -251,7 +251,7 @@ DG.Debug = SC.Object.create( (function() {
       // so we compose an array of static arguments and then concat iOptFormatArgs.
       var args = [DG.LOGGER_LEVEL_USER, YES, iMessage];
       if (iOptFormatArgs) {
-        args = args.concat(iOptFormatArgs);
+        args.push(iOptFormatArgs);
       }
 
       DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
