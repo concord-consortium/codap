@@ -222,7 +222,7 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
         var logMonitorValues = logMonitor.values;
         logMonitorValues = SC.merge({
           topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
-          topicPrefixMatches: logMonitorValues.topicPrefix && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
+          topicPrefixMatches: logMonitorValues.topicPrefix && iValues.topic && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
           formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
           messageMatches: logMonitorValues.message &&
             ((logMonitorValues.message === values.message)||
