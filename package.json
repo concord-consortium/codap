@@ -37,6 +37,10 @@
     "open:dev": "opener http://localhost:4020/dg",
     "open:staging": "opener http://codap.concord.org/releases/staging",
     "open:production": "opener http://codap.concord.org/releases/latest",
+    "poeditor:pull:comment": "echo Usage: `npm run poeditor:pull -- -a <your_poeditor_api_key>`",
+    "poeditor:pull": "./bin/poeditor-pull-project.sh and bin/process-strings.sh",
+    "poeditor:push:comment": "echo Usage: `npm run poeditor:push -- -a <your_poeditor_api_key>`",
+    "poeditor:push": "./bin/poeditor-push-project.sh",
     "prebuild:bundle": "npm run lint",
     "prebuild:production": "npm run lint",
     "predeploy:dev": "npm run test",
@@ -68,6 +72,7 @@
     "opener": "^1.4.2",
     "pegjs": "=0.7.0",
     "phantomjs-prebuilt": "^2.1.13",
+    "strip-json-comments-cli": "^1.0.1",
     "webpack": "2.2.0-rc.2",
     "webpack-shell-plugin": "^0.5.0"
   },
