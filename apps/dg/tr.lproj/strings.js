@@ -1,4 +1,4 @@
-SC.stringsFor("Turkish", {
+SC.stringsFor("tr", {
     "DG.fileMenu.menuItem.newDocument": "Yeni",
     "DG.fileMenu.menuItem.openDocument": "Aç...",
     "DG.fileMenu.menuItem.closeDocument": "Kapat",

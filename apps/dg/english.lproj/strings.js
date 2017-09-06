@@ -1,4 +1,4 @@
-SC.stringsFor("English", {
+SC.stringsFor("en", {
     // CFM/File menu
     "DG.fileMenu.menuItem.newDocument": "New",
     "DG.fileMenu.menuItem.openDocument": "Open...",

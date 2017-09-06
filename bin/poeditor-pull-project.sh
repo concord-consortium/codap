@@ -33,10 +33,10 @@ do
     LANG_CODE=$(echo $LANGUAGE | cut -d '-' -f 1)
     LANG_NAME="${LANG_NAMES[$i]}"
     # convert to JavaScript and copy into appropriate location
-    sed "s/^{/SC.stringsFor(\"$LANG_NAME\", {/; s/^}$/});/" \
+    sed "s/^{/SC.stringsFor(\"$LANG_CODE\", {/; s/^}$/});/" \
         <"$OUTPUT_DIR/$LANGUAGE.json" >"apps/dg/$LANG_CODE.lproj/strings.js"
 done
 
 # special case for copying English strings
-sed "s/^{/SC.stringsFor(\"English\", {/; s/^}$/});/" \
+sed "s/^{/SC.stringsFor(\"en\", {/; s/^}$/});/" \
     <"$OUTPUT_DIR/en-US.json" >"apps/dg/english.lproj/strings.js"

@@ -1,4 +1,4 @@
-SC.stringsFor("Hebrew", {
+SC.stringsFor("he", {
     "DG.fileMenu.menuItem.newDocument": "חדש",
     "DG.fileMenu.menuItem.openDocument": "פתח...",
     "DG.fileMenu.menuItem.closeDocument": "סגור",
