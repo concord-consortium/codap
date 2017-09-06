@@ -42,7 +42,7 @@ DG.Browser = {
     // 'overflow' changes.
     // See http://dgbugs.kcptech.com/show_bug.cgi?id=111 and comments below for
     // more details.
-    if( (SC.browser.name === SC.BROWSER.firefox) && (SC.browser.compare( SC.browser.version, '13') < 0)) {
+    if( (SC.browser.name === SC.BROWSER.firefox) && (SC.browser.compare( SC.browser.version, '46') < 0)) {
       // The menu pane base class picker.js plays with
       // the SC.$(document.body) css overflow attribute,
       // toggling between 'hidden' and 'visible' in its private
@@ -131,20 +131,21 @@ DG.Browser = {
       return true;
       
     switch( SC.browser.name) {
-    case SC.BROWSER.ie:
-      return isSupportedVersion('9.0', SC.browser.version);
+    case SC.BROWSER.ie: //Win Edge is still recognized as ie in Sproutcore
+        //return isSupportedVersion('11',SC.browser.version) ;
+        return false; //Not supporting IE11 as of 8/30/2017
     case SC.BROWSER.firefox:
       // Version number corresponds to Gecko version number for Firefox 3.6.
       // See http://en.wikipedia.org/wiki/Firefox_history for details.
-      return isSupportedVersion('3.6', SC.browser.version) ||
-              isSupportedVersion('1.9.2', SC.browser.engineVersion);
+      return isSupportedVersion('46', SC.browser.version) ||
+              isSupportedVersion('46', SC.browser.engineVersion); //after Gecko 2.0, Firefox and Gecko version number are the same.
     case SC.BROWSER.chrome:
-      return isSupportedVersion('10', SC.browser.version);
+      return isSupportedVersion('50', SC.browser.version);
     case SC.BROWSER.safari:
       // Version number corresponds to WebKit version number for Safari 4.
       // See http://en.wikipedia.org/wiki/Safari_version_history for details.
-      return isSupportedVersion('4.0', SC.browser.version) ||
-              isSupportedVersion('530.17', SC.browser.engineVersion);
+      return isSupportedVersion('10', SC.browser.version) ||
+              isSupportedVersion('603.1.30', SC.browser.engineVersion);
     }
     // Give other (largely untested) browsers the benefit of the doubt
     return true;
