@@ -20,7 +20,7 @@ SC.stringsFor("Turkish", {
     "DG.mainPage.mainPane.redoButton.title": "Yinele",
     "DG.mainPage.mainPane.redoButton.toolTip": "Son geri alınanı yinele",
     "DG.mainPage.mainPane.versionString": "Versiyon %@ (%@)",
-    "DG.mainPage.mainPane.messageView.value": "Üzgünüz, CODAP tarayıcınız tarafından desteklenmiyor. CODAP sadece Internet Explorer 9+, Firefox 3.6+, Chrome 10+, ve Safari 4+ tarafından desteklenmektedir. Şu anda diğer tarayıcılar tarafından desteklenmemektedir.\n",
+    "DG.mainPage.mainPane.messageView.value": "Üzgünüz, CODAP tarayıcınız tarafından desteklenmiyor. CODAP sadece Firefox 46+, Chrome 50+, Windows Edge 14+, ve Safari 10+ tarafından desteklenmektedir. Şu anda diğer tarayıcılar tarafından desteklenmemektedir.",
     "DG.mainPage.titleBar.saved": "Dosya Kaydedildi!",
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Versiyon %@ (%@ IS)",
     "DG.mainPage.mainPane.versionString.SRRI_BUILD": "Versiyon %@ (%@.srri10)",
@@ -631,5 +631,6 @@ SC.stringsFor("Turkish", {
     "DG.Component.closeComponent.okButtonTitle": "Evet, kapat",
     "DG.Component.closeComponent.cancelButtonTitle": "İptal et",
     "DG.GameController.confirmCloseDescription": "Bunu kapatırsanız, daha fazla veri ekleyemeyebilirsiniz.",
-    "DG.WebView.defaultTitle": "İnternet Sayfası"
+    "DG.WebView.defaultTitle": "İnternet Sayfası",
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
 });

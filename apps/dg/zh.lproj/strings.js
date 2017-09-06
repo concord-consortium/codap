@@ -20,7 +20,7 @@ SC.stringsFor("Chinese", {
     "DG.mainPage.mainPane.redoButton.title": "下一步",
     "DG.mainPage.mainPane.redoButton.toolTip": "重做最後的動作",
     "DG.mainPage.mainPane.versionString": "Version %@ (%@)",
-    "DG.mainPage.mainPane.messageView.value": "CODAP 不支援您的瀏覽器 CODAP 支援的瀏覽器有 Internet Explorer 9+, Firefox 3.6+, Chrome 10+, Safari 4+. CODAP 不支援其他瀏覽器",
+    "DG.mainPage.mainPane.messageView.value": "CODAP 不支援您的瀏覽器 CODAP 支援的瀏覽器有 Firefox 46+, Chrome 50+, Windows Edge 14+, Safari 10+. CODAP 不支援其他瀏覽器",
     "DG.mainPage.titleBar.saved": "文件已儲存!",
     "DG.mainPage.mainPane.versionString.IS_BUILD": "版本号 %@ (%@ IS)",
     "DG.mainPage.mainPane.versionString.SRRI_BUILD": "版本号 %@ (%@.srri10)",
@@ -631,5 +631,6 @@ SC.stringsFor("Chinese", {
     "DG.Component.closeComponent.okButtonTitle": "是的，關閉它",
     "DG.Component.closeComponent.cancelButtonTitle": "取消",
     "DG.GameController.confirmCloseDescription": "如果你關閉這個，你可能無法添加更多數據",
-    "DG.WebView.defaultTitle": "網頁"
+    "DG.WebView.defaultTitle": "網頁",
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
 });

@@ -20,7 +20,7 @@
     "DG.mainPage.mainPane.redoButton.title": "בצע שוב",
     "DG.mainPage.mainPane.redoButton.toolTip": "בצע שוב פעולה שבוטלה",
     "DG.mainPage.mainPane.versionString": "גרסא %@",
-    "DG.mainPage.mainPane.messageView.value": "לצערינו, CODAP אינו יכול לתמוך בדפדפן שלך כרגע. CODAP נתמך בדפדפנים מסוג:  Internet Explorer 9+, Firefox 3.6+, Chrome 10+, and Safari 4+.\nCOPDAP אינו תומך באופן פעיל בדפדפנים אחרים כרגע.",
+    "DG.mainPage.mainPane.messageView.value": "לצערינו, CODAP אינו יכול לתמוך בדפדפן שלך כרגע. CODAP נתמך בדפדפנים מסוג:  Windows Edge 14+, Firefox 46+, Chrome 50+, and Safari 10+.\nCOPDAP אינו תומך באופן פעיל בדפדפנים אחרים כרגע.",
     "DG.mainPage.titleBar.saved": "מסמך נשמר!",
     "DG.mainPage.mainPane.versionString.IS_BUILD": "גרסא %@",
     "DG.mainPage.mainPane.versionString.SRRI_BUILD": "גרסא %@",
@@ -631,5 +631,6 @@
     "DG.Component.closeComponent.okButtonTitle": "כן, סגור ",
     "DG.Component.closeComponent.cancelButtonTitle": "בטל",
     "DG.GameController.confirmCloseDescription": "אם אתם סוגרים את זה, לא תוכלו להוסיף נתונים חדשים",
-    "DG.WebView.defaultTitle": "עמוד אינטרנט"
+    "DG.WebView.defaultTitle": "עמוד אינטרנט",
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
 }
