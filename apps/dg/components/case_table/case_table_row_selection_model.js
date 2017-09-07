@@ -43,8 +43,8 @@ DG.CaseTableRowSelectionModel = function (options) {
     _options = $.extend(true, {}, _defaults, options);
     _caseTableAdapter = _options.caseTableAdapter;
     _grid = grid;
-    _handler.subscribe(_grid.onActiveCellChanged,
-        wrapHandler(handleActiveCellChange));
+    // _handler.subscribe(_grid.onActiveCellChanged,
+    //     wrapHandler(handleActiveCellChange));
     _handler.subscribe(_grid.onKeyDown,
         wrapHandler(handleKeyDown));
     _handler.subscribe(_grid.onClick,
@@ -128,15 +128,15 @@ DG.CaseTableRowSelectionModel = function (options) {
     return _ranges;
   }
 
-  function handleActiveCellChange(e, data) {
-    var selectedRows = getSelectedRows();
-
-    if (_options.selectActiveRow
-        && data.row != null
-        && (selectedRows.indexOf(data.row) < 0)) {
-      notifyContextOfSelectionChange([data.row]);
-    }
-  }
+  // function handleActiveCellChange(e, data) {
+  //   var selectedRows = getSelectedRows();
+  //
+  //   if (_options.selectActiveRow
+  //       && data.row != null
+  //       && (selectedRows.indexOf(data.row) < 0)) {
+  //     // notifyContextOfSelectionChange([data.row]);
+  //   }
+  // }
 
   function handleKeyDown(e) {
     var activeRow = _grid.getActiveCell();
