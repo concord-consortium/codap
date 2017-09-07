@@ -2,7 +2,6 @@
 PROJECT_ID=125447
 OUTPUT_DIR=lang/strings
 LANGUAGES=("he" "tr" "zh-TW")
-LANG_NAMES=("Hebrew" "Turkish" "Chinese")
 LANG_COUNT=${#LANGUAGES[@]}
 
 # argument processing from https://stackoverflow.com/a/14203146
@@ -30,8 +29,9 @@ do
     # echo "PULLARGS=$PULLARGS"
     ./bin/poeditor-pull.sh $PULLARGS
 
+    # extract language code (the part before the hyphen)
     LANG_CODE=$(echo $LANGUAGE | cut -d '-' -f 1)
-    LANG_NAME="${LANG_NAMES[$i]}"
+
     # convert to JavaScript and copy into appropriate location
     sed "s/^{/SC.stringsFor(\"$LANG_CODE\", {/; s/^}$/});/" \
         <"$OUTPUT_DIR/$LANGUAGE.json" >"apps/dg/$LANG_CODE.lproj/strings.js"
