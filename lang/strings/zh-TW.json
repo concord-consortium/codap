@@ -1,4 +1,4 @@
-SC.stringsFor("zh", {
+{
     "DG.fileMenu.menuItem.newDocument": "新增",
     "DG.fileMenu.menuItem.openDocument": "開啟...",
     "DG.fileMenu.menuItem.closeDocument": "關閉",
@@ -633,4 +633,4 @@ SC.stringsFor("zh", {
     "DG.GameController.confirmCloseDescription": "如果你關閉這個，你可能無法添加更多數據",
     "DG.WebView.defaultTitle": "網頁",
     "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
-});
+}
