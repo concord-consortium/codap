@@ -136,19 +136,29 @@ DG.NumericPlotModelMixin =
         // we store clones of the data, because if/when we animate, the two arrays we need are emptied
         this._undoData = { bounds: tOldBoundsArray.slice(), places: iPlaces.slice() };
 
-        // Only animate if the bounds have changed
-        if( iAnimatePoints && boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
-          DG.sounds.playMixup();
-          this_.set('isAnimating', true);    // Signals view that axes are in new state and points
-                                            // can be animated to new coordinates
-          // We'll go through both iPlaces and tOldBoundsArray in reverse order
-          while( (iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
-            setOldBounds( axisForPlace( iPlaces.pop()), tOldBoundsArray.pop());
-          }
+        if( boundsChanged( tAxisInfoArray, tOldBoundsArray)) {
+          if (iAnimatePoints) {
+            DG.sounds.playMixup();
+            this_.set('isAnimating', true);    // Signals view that axes are in new state and points
+            // can be animated to new coordinates
+            // We'll go through both iPlaces and tOldBoundsArray in reverse order
+            while ((iPlaces.length > 0) && (tOldBoundsArray.length > 0)) {
+              setOldBounds(axisForPlace(iPlaces.pop()), tOldBoundsArray.pop());
+            }
 
-          if( SC.none( this_.plotAnimator))
-            this_.plotAnimator = DG.GraphAnimator.create( { plot: this_ });
-          this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate( this_, this_.onRescaleIsComplete);
+            if (SC.none(this_.plotAnimator))
+              this_.plotAnimator = DG.GraphAnimator.create({plot: this_});
+            this_.plotAnimator.set('axisInfoArray', tAxisInfoArray).animate(this_, this_.onRescaleIsComplete);
+          }
+          else {
+            // Make sure there is no pending animation
+            if( this_.plotAnimator)
+              this_.plotAnimator.reset();
+            // Without animation, set the axes to the correct bounds
+            tAxisInfoArray.forEach( function( iInfo) {
+              iInfo.axis.setDataMinAndMax( iInfo.newBounds.lower, iInfo.newBounds.upper);
+            });
+          }
         }
       },
       undo: function() {

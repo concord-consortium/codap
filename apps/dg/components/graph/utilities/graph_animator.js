@@ -145,6 +145,16 @@ DG.GraphAnimator = SC.Object.extend(
   },
 
   /**
+   * Called when we want to cancel any pending animations
+   */
+  reset: function() {
+    this.animationTimer.set( 'isPaused', YES);
+    if( !SC.none( this.plot))
+      this.setPath('plot.isAnimating', false);
+    this.isAnimating = false;
+  },
+
+  /**
     We assume that my properties have been set to the aspects of the plot that are to
     be animated. If there is an animation already in progress, we end it.
   */
