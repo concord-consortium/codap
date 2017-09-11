@@ -309,6 +309,10 @@ DG.CaseTableView = SC.View.extend( (function() // closure
             .sendAction('newAttributeAction', tableController, this, this.get('pane'),
                         { collection: collection, autoEditName: true });
         }
+      },
+      touchStart: function( evt) {
+        evt.which = 1;  // Simulate left-button
+        this.mouseDown( evt);
       }
     }),
 
@@ -1440,8 +1444,16 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       var $input = $nameEl.find('input');
       $input.attr({ type: 'text', autocapitalize: 'none', autocomplete: 'off',
                      autocorrect: 'off', inputmode: 'latin-name', spellcheck: false })
-            .on('mousedown', function(evt) { evt.stopImmediatePropagation(); })
+            .on('mousedown', function(evt) {
+              evt.stopImmediatePropagation();
+            })
             .on('mouseup', function(evt) { evt.stopImmediatePropagation(); })
+            .on('touchstart', function(evt) {
+              evt.stopImmediatePropagation();
+            })
+            .on('touchend', function(evt) {
+              evt.stopImmediatePropagation();
+            })
             .on('dragstart', function() { return false; })
             .on('click', function(evt) {
                           evt.preventDefault();
