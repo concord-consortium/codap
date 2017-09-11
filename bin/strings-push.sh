@@ -46,4 +46,5 @@ CURLARGS="-X POST -F api_token=$API_TOKEN -F id=$PROJECT_ID
     sed 's/"[ ]*:[ ]*""/": "[u200b]"/g' | \
     $CURL $CURLARGS $POEDITOR_UPLOAD_URL
 
-echo "\n"
+echo ""
+echo ""
