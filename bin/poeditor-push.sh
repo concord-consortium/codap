@@ -30,6 +30,9 @@ esac
 shift # past argument or value
 done
 
+[[ -z "$API_TOKEN" ]] && { echo "No API_TOKEN available!" ; exit 1; }
+[[ -z "$PROJECT_ID" ]] && { echo "No PROJECT_ID provided!" ; exit 1; }
+
 CURLARGS="-X POST -F api_token=$API_TOKEN -F id=$PROJECT_ID
 -F updating=$UPDATING -F file=@-;filename=$INPUT_FILE -F language=$LANGUAGE
 -F overwrite=$OVERWRITE -F sync_terms=$SYNC_TERMS -F FUZZY_TRIGGER=$FUZZY_TRIGGER"

@@ -30,6 +30,10 @@ esac
 shift # past argument or value
 done
 
+[[ -z "$API_TOKEN" ]] && { echo "No API_TOKEN available!" ; exit 1; }
+[[ -z "$PROJECT_ID" ]] && { echo "No PROJECT_ID provided!" ; exit 1; }
+[[ -z "$LANGUAGE" ]] && { echo "No LANGUAGE provided!" ; exit 1; }
+
 CURLARGS="-X POST -d id=$PROJECT_ID -d language=$LANGUAGE -d type=key_value_json -d api_token=$API_TOKEN"
 # echo "CURLARGS='$CURLARGS'"
 
