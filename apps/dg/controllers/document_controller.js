@@ -374,6 +374,11 @@ DG.DocumentController = SC.Object.extend(
       return changes.indexOf(obj) !== -1;
     },
 
+    getComponentControllerForModel: function(iComponentModel) {
+      var id = iComponentModel && iComponentModel.get('id');
+      return id && this.componentControllersMap[id];
+    },
+
     /**
       Creates an appropriate DG.DataContext for the specified DG.DataContextRecord object.
       If no model is specified, creates the DG.DataContextRecord as well.
