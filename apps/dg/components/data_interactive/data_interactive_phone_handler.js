@@ -1625,8 +1625,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           'delete': function (iResource) {
-            var component = iResource.component;
-            component.destroy();
+            var component = iResource.component,
+                componentID = component && component.get('id');
+            if (componentID)
+              DG.closeComponent(componentID);
             return {success: true};
           },
           'toDIType': function (iCODAPType) {
