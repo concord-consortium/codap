@@ -293,12 +293,12 @@ DG.main = function main() {
           mimeType: 'application/json',
           readableMimeTypes: ['application/x-codap-document'],
           extension: 'codap',
-          readableExtensions: ["json", ""],
+          readableExtensions: ["json", "", "codap"],
           enableLaraSharing: true,
           providers: [
             {
               "name": "readOnly",
-              "displayName": "Example Documents",
+              "displayName": "DG.fileMenu.provider.examples.displayName".loc(),
               "urlDisplayName": "examples",
               "src": DG.exampleListURL,
               alphabetize: true
