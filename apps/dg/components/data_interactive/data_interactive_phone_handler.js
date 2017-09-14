@@ -1681,7 +1681,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleLogMessage: {
         notify: function (iResources, iValues) {
-          DG.Debug.logUserWithTopic(iValues.topic, iValues.formatStr, iValues.replaceArgs);
+          DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));
           return {
             success: true
           };

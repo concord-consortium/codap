@@ -226,7 +226,7 @@ DG.Debug = SC.Object.create( (function() {
     logUser: function( iMessage, iOptFormatArgs) {
       var values = {
         formatStr: iMessage,
-        replaceArgs: iOptFormatArgs
+        replaceArgs: [].slice.call(arguments, 1)
       };
       DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
       DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, arguments);
@@ -244,19 +244,14 @@ DG.Debug = SC.Object.create( (function() {
       var values = {
         topic: iTopic,
         formatStr: iMessage,
-        replaceArgs: iOptFormatArgs
+        replaceArgs: [].slice.call(arguments, 2)
       };
-
-      // the underlying api expects format replacement strings to be as var args
-      // so we compose an array of static arguments and then concat iOptFormatArgs.
-      var args = [DG.LOGGER_LEVEL_USER, YES, iMessage];
-      if (iOptFormatArgs) {
-        args.push(iOptFormatArgs);
-      }
 
       DG.currDocumentController().notificationManager.notifyLogMessageSubscribers(values);
 
-      DG.Debug._handleLogMessage.apply(DG.Debug, args);
+      var args = [].slice.call(arguments, 1);
+
+      DG.Debug._handleLogMessage(DG.LOGGER_LEVEL_USER, YES, iMessage, args);
     },
 
     logUserRaw: function( iRawArgs) {
