@@ -464,6 +464,12 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     }
   },
 
+    touchStart: function( ev) {
+      this.mouseDown(ev);
+      sc_super();
+      return NO;
+    },
+
     /**
      * @return {boolean}
      */
