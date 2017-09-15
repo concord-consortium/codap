@@ -52,4 +52,6 @@ at National Changhua University of Education.
 
 繁體中文部分由國立彰化師範大學李文瑜博士研究團隊翻譯完成
 
+Translation hosting services graciously provided by [POEditor](https://poeditor.com).
+
 Many thanks.

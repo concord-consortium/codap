@@ -28,7 +28,7 @@ do
     echo "Requesting strings for '$LANGUAGE'..."
     PULLARGS="-p $PROJECT_ID -l $LANGUAGE -o $OUTPUT_DIR -a $API_TOKEN"
     # echo "PULLARGS=$PULLARGS"
-    ./bin/poeditor-pull.sh $PULLARGS
+    ./bin/strings-pull.sh $PULLARGS
 
     # extract language code (the part before the hyphen)
     LANG_CODE=$(echo $LANGUAGE | cut -d '-' -f 1)
@@ -36,6 +36,9 @@ do
     # convert to JavaScript and copy into appropriate location
     sed "s/^{/SC.stringsFor(\"$LANG_CODE\", {/; s/^}$/});/" \
         <"$OUTPUT_DIR/$LANGUAGE.json" >"apps/dg/$LANG_CODE.lproj/strings.js"
+    # we don't need the intermediate file any more
+    rm "$OUTPUT_DIR/$LANGUAGE.json"
+    echo ""
 done
 
 # special case for copying English strings

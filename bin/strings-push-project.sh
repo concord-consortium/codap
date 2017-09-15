@@ -18,4 +18,4 @@ done
 
 PUSHARGS="-p $PROJECT_ID -i $INPUT_FILE -a $API_TOKEN"
 # echo "PUSHARGS=$PUSHARGS"
-./bin/poeditor-push.sh $PUSHARGS
+./bin/strings-push.sh $PUSHARGS

@@ -1447,7 +1447,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           webView: {
             name: directMapping,
             title: directMapping,
-            URL: directMapping,
+            URL: function (key, value) {
+              return { key: 'URL', value: value,
+                        set: function(model, value) {
+                          var controller = DG.currDocumentController()
+                                              .getComponentControllerForModel(model);
+                          if (controller) controller.set('theURL', value);
+                        }
+                      };
+            },
           }
         };
 
@@ -1543,14 +1551,27 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           update: function (iResources, iValues) {
-            if (!iResources.component) {
+            if (!iResources.component || iResources.component.get('isDestroyed')) {
               return {success: false, values: {error: 'Component not found'}};
             }
 
-            var component = iResources.component;
-            ['title'].forEach(function (prop) {
-              if (iValues[prop]) {
-                component.set(prop, iValues[prop]);
+            var component = iResources.component,
+                componentType = component && component.get('type'),
+                codapType = componentType && kTypeMap[componentType],
+                componentProps = componentType && kComponentStorageProperties[codapType];
+
+            Object.keys(componentProps || []).forEach(function(prop) {
+              var mapping = componentProps[prop],
+                  newValue = iValues[prop];
+              // if it's a simple property, we can set it directly
+              if ((mapping === directMapping) && (newValue !== undefined)) {
+                component.set(prop, newValue);
+              }
+              else {
+                var indirectMapping = mapping && mapping();
+                // if there's a setter function, call it
+                if (indirectMapping && indirectMapping.set)
+                  indirectMapping.set(component, newValue);
               }
             });
             return {
@@ -1604,8 +1625,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               return rtn;
             }
             var component = iResources.component;
-            var document = DG.currDocumentController();
-            var componentController = component && document && document.componentControllersMap[component.get('id')];
+            var componentController = DG.currDocumentController()
+                                          .getComponentControllerForModel(component);
             componentController && componentController.willSaveComponent();
             var archive = component && component.toArchive();
             var serialized = archive && remapArchiveComponent(archive);
@@ -1625,8 +1646,10 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           },
 
           'delete': function (iResource) {
-            var component = iResource.component;
-            component.destroy();
+            var component = iResource.component,
+                componentID = component && component.get('id');
+            if (componentID)
+              DG.closeComponent(componentID);
             return {success: true};
           },
           'toDIType': function (iCODAPType) {
@@ -1658,7 +1681,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleLogMessage: {
         notify: function (iResources, iValues) {
-          DG.Debug.logUserWithTopic(iValues.topic, iValues.formatStr, iValues.replaceArgs);
+          DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));
           return {
             success: true
           };

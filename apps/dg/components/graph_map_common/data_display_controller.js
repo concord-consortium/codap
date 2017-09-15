@@ -791,6 +791,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
               var tAttrRefs,
                   tDataDisplayModel = controller.get('dataDisplayModel'),
                   tDataContext = tNewItem && tNewItem.context;
+
+              controller.handlePossibleForeignDataContext && controller.handlePossibleForeignDataContext(tDataContext);
+
               if (!tNewItem) {
                 this.set('causedChange', false);
                 return;

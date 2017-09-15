@@ -172,8 +172,8 @@ DG.GraphController = DG.DataDisplayController.extend(
          * graph model. (I.e. until such time as we are able to handle multiple contexts on one graph.)
          * @param iDragData
          */
-        handlePossibleForeignDataContext: function (iDragData) {
-          var tDragContext = iDragData.context;
+        handlePossibleForeignDataContext: function (iDataContext) {
+          var tDragContext = iDataContext;
 
           if (!SC.none(tDragContext) && (tDragContext !== this.get('dataContext'))) {
             this.get('graphModel').reset();
@@ -221,7 +221,7 @@ DG.GraphController = DG.DataDisplayController.extend(
             var controller = this._controller();
             this._beforeStorage = controller.createComponentStorage();
 
-            controller.handlePossibleForeignDataContext( iDragData);
+            controller.handlePossibleForeignDataContext( iDragData.context);
 
             var tDataContext = controller.get('dataContext'),
                 tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
@@ -278,7 +278,7 @@ DG.GraphController = DG.DataDisplayController.extend(
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
-              controller.handlePossibleForeignDataContext( iDragData);
+              controller.handlePossibleForeignDataContext( iDragData.context);
 
               var tDataContext = controller.get('dataContext'),
                 tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
@@ -330,7 +330,7 @@ DG.GraphController = DG.DataDisplayController.extend(
               var controller = this._controller();
               this._beforeStorage = controller.createComponentStorage();
 
-              controller.handlePossibleForeignDataContext( iDragData);
+              controller.handlePossibleForeignDataContext( iDragData.context);
 
               var tDataContext = controller.get('dataContext'),
                 tCollectionClient = getCollectionClientFromDragData(tDataContext, iDragData);
