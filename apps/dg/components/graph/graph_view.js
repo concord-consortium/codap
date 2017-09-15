@@ -438,8 +438,10 @@ DG.GraphView = SC.View.extend(
               top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
               bottom: tXHeight + tLegendHeight
             });
+            if( tFunctionView)
+              tFunctionView.adjust( 'top', tNumberToggleHeight);
             if( tPlottedValueView)
-              tPlottedValueView.adjust( 'top', tFunctionViewHeight);
+              tPlottedValueView.adjust( 'top', tNumberToggleHeight + tFunctionViewHeight);
             tLegendView.set('layout', {bottom: 0, height: tLegendHeight});
             this.makeSubviewFrontmost(tY2AxisView);
           }
@@ -467,8 +469,10 @@ DG.GraphView = SC.View.extend(
               top: tNumberToggleHeight + tFunctionViewHeight + tPlottedValueViewHeight,
               bottom: tXHeight + tLegendHeight
             });
+            if( tFunctionView)
+              tFunctionView.adjust( 'top', tNumberToggleHeight);
             if( tPlottedValueView)
-              tPlottedValueView.adjust( 'top', tFunctionViewHeight);
+              tPlottedValueView.adjust( 'top', tNumberToggleHeight + tFunctionViewHeight);
             tLegendView.adjust('height', tLegendHeight);
             if (tNumberToggleView)
               tNumberToggleView.adjust('height', tNumberToggleHeight);
