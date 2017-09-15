@@ -223,6 +223,14 @@ DG.Debug = SC.Object.create( (function() {
       DG.Debug._handleLogMessage(SC.LOGGER_LEVEL_INFO, NO, null, arguments);
     },
 
+    /**
+     * Log user actions. Has the priority of an Info level log message but may
+     * also be logged to the log server and other places.
+     * @param iMessage {string} A string, potentially with format strings as in
+     * SC.String.fmt.
+     * @param iOptFormatArgs {string} ... A variable number of substitution
+     * parameters according to the format fields in IMessage.
+     */
     logUser: function( iMessage, iOptFormatArgs) {
       var values = {
         formatStr: iMessage,
@@ -237,8 +245,10 @@ DG.Debug = SC.Object.create( (function() {
      * the DI API. These may have an additional "topic" argument which we
      * need to handle specially. We need to convey them forward to the NotificationManager.
      * @param iTopic {string}
-     * @param iMessage {string}
-     * @param iOptFormatArgs [{string}]
+     * @param iMessage {string} A string, potentially with format strings as in
+     * SC.String.fmt.
+     * @param iOptFormatArgs {string} ... A variable number of substitution
+     * parameters according to the format fields in IMessage.
      */
     logUserWithTopic: function( iTopic, iMessage, iOptFormatArgs) {
       var values = {
