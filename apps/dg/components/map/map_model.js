@@ -165,23 +165,21 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     /**
-      @param {Number} The index of the case to be selected.
+      @param {CaseModel} The the case to be selected.
       @param {Boolean} Should the current selection be extended?
     */
-    selectCaseByIndex: function( iIndex, iExtend) {
-      var tCases = this.get('hasAreaAttribute') ? this.getPath('dataConfiguration.allCases.content') : this.get('cases'),
-          tCase = tCases[ iIndex],
-          tSelection = this.get('selection'),
+    selectCase: function( iCase, iExtend) {
+      var tSelection = this.get('selection'),
           tChange = {
             operation: 'selectCases',
             collection: this.get('collectionClient'),
-            cases: [ tCase ],
+            cases: [ iCase ],
             select: true,
             extend: iExtend
           };
 
       if( tSelection.get('length') !== 0) {
-        if( tSelection.contains( tCase)) {  // Case is already selected
+        if( tSelection.contains( iCase)) {  // Case is already selected
           if( iExtend) {
             tChange.select = false;
           }
@@ -194,10 +192,17 @@ DG.MapModel = DG.DataDisplayModel.extend(
       }
 
       this.get('dataContext').applyChange( tChange);
-      if( tChange.select)
-        DG.logUser("caseSelected: %@", iIndex);
-      else
-        DG.logUser("caseDeselected: %@", iIndex);
+    },
+
+    /**
+      @param {Number} The index of the case to be selected.
+      @param {Boolean} Should the current selection be extended?
+    */
+    selectCaseByIndex: function( iIndex, iExtend) {
+      var tCases = this.get('hasAreaAttribute') ? this.getPath('dataConfiguration.allCases.content') :
+          this.get('cases');
+      this.selectCase( tCases[ iIndex], iExtend);
+
     },
 
     /**

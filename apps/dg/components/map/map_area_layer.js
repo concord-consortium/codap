@@ -207,9 +207,11 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
     if(!tCases)
       return;
 
-    tCases.forEach( function( iCase, iIndex) {
-      var tFeature = this.features[ iIndex];
-      if( !tFeature)
+    tCases.forEach( function( iCase) {
+      var tFeature = this.features.find( function (iFeature) {
+              return iFeature.options.case === iCase;
+            });
+      if (!tFeature)
         return;
       if( tSelection.containsObject( iCase)) {
         tFeature.setStyle( {
@@ -269,7 +271,8 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
                   fillColor: DG.PlotUtilities.kMapAreaNoLegendColor,
                   smoothFactor: 2
                 };
-              }
+              },
+              case: iCase // Stashes reference in features[iIndex].options.case
             })
                 .on('click', handleClick) // unable to use 'mousedown' for unknown reason
                 .on('mouseover', handleMouseover)
@@ -279,7 +282,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
           handleClick = function( iEvent) {
             SC.run(function() {
-              this.get('model').selectCaseByIndex(iIndex, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
+              this.get('model').selectCase(iCase, iEvent.originalEvent.shiftKey || iEvent.originalEvent.metaKey);
             }.bind(this));
           }.bind( this),
 
