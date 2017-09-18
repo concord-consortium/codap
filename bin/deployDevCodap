@@ -7,8 +7,10 @@
 # web at http://codap.concord.org/~[username]/[version name].
 # As a side effect, a zip file containing the static site is created.
 #
+# If --includeLocs is set, include all localizations
+#
 function usage() {
-  echo usage: $PROGNAME version-string 1>&2
+  echo usage: $PROGNAME {--includeLocs} version-string 1>&2
   exit 1
 }
 
@@ -24,9 +26,15 @@ export PATH
 TEMPDIR=/tmp/$PROGNAME.$$
 SERVER=codap-server.concord.org
 SERVER_DIR=public_html
+LOCS="--languages=en"
 
 # modify env variables if there is an rc file
 [ -e $RC_FILE ] && . $RC_FILE
+
+if [ "$1" = "--includeLocs" ] ; then
+  LOCS=
+  shift
+fi
 
 #
 # Make sure we have the expected argument
@@ -36,7 +44,7 @@ VERSION_STRING=$1
 
 #
 # Make the relocatable version
-makeCODAPZip --minify=no $VERSION_STRING
+makeCODAPZip --minify=no $LOCS $VERSION_STRING
 
 #
 # Transmit it
