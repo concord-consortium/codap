@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# Runs a formal build of CODAP
+#
+# Program Dependencies(in addition to standard unix and CODAP dependencies):
+#   git, node, npm, openssh.
+# Requires user account with root permissions on the server.
+# Configured in $HOME/.codap-build.rc
+PROGNAME=`basename $0`
+
+#
+# Set up configuration
+. ${HOME}/.codap-build.rc
+
+function error() {
+  echo error: $* 1>&2
+  exit 1
+}
+
+function checkAnswer() {
+  [ "$ANSWER" != "y" ] && exit 2
+}
+
+#
+# define constants, if not already done
+CODAP_HOME=${CODAP_HOME:-${HOME}/codap}
+# expected codap build branch
+EXP_CODAP_BRANCH=${EXP_CODAP_BRANCH:-master}
+
+#echo HOME: $CODAP_HOME
+#set -e
+
+cd $CODAP_HOME
+# add $CODAP_HOME/bin to path
+PATH=./bin:$PATH
+CODAP_BRANCH=`git rev-parse --abbrev-ref HEAD`
+#echo BRANCH: $CODAP_BRANCH
+SERVER_DIR_EMBEDDED_MODE=/var/www/html/releases/zips
+
+read -p 'prep. Are translations and CFM up to date? ' ANSWER
+checkAnswer
+
+echo '1. verify clean codeline'
+echo '    * up-to-date with github: “git pull”'
+git pull
+echo '    * remove tmp directory'
+rm -rf tmp
+echo '    * nothing checked out, and in master: “git st”'
+[ "$CODAP_BRANCH" != "$EXP_CODAP_BRANCH" ] && error 'branch is not master'
+[`git status -s | wc -l` != 0 ] && error 'CODAP codeline is not clean'
+echo '     * lint error free and tests work: “npm run test”'
+npm run test
+
+read -p 'Ready? ' ANSWER
+checkAnswer
+
+# test step sometimes times out, leaving a log behind
+# this could confuse the checks in updateBuildNumber
+[ -e npm-debug.log ] && mv -f npm-debug.log /tmp
+
+echo '2. update build number: '
+updateBuildNumber
+BUILD_NUM=`getBuildNumber apps/dg/core.js`
+BUILD_STR=build_$BUILD_NUM
+echo BUILD_NUM=$BUILD_NUM
+echo BUILD_STR=$BUILD_STR
+
+read -p 'Have Build Number? ' ANSWER
+checkAnswer
+
+echo '3. make pt release marker: '
+npm run pt:make-release-story $BUILD_STR
+
+read -p 'Have Release Story? ' ANSWER
+checkAnswer
+
+echo '4. make the third party bundle: '
+npm run build:bundle-prod
+
+read -p 'Have Bundle? ' ANSWER
+checkAnswer
+
+echo '5. make release: '
+makeCodapZip $BUILD_STR
+
+read -p 'Have Release? ' ANSWER
+checkAnswer
+
+echo '6. copy release to codap-server: '
+scp codap_build_${BUILD_NUM}.zip codap-server.concord.org:
+
+echo '7. on codap-server deploy to release directory: '
+ssh codap-server.concord.org "sudo deployCODAP codap_build_${BUILD_NUM}.zip"
+
+read -p 'Have copied and deployed? ' ANSWER
+checkAnswer
+
+echo '8. Build embedded mode directory image'
+npm run build:embedded
+mv codap_embeddedCODAP.zip codap_embeddedCODAP_${BUILD_NUM}.zip
+
+read -p 'Have embedded mode image? ' ANSWER
+checkAnswer
+
+echo '9. copy embeddedMode image to codap-server: '
+scp codap_embeddedCODAP_${BUILD_NUM}.zip codap-server.concord.org:
+
+read -p 'Have copied embedded mode image? ' ANSWER
+checkAnswer
+
+echo '10. on codap-server deploy embeddedMode image to release directory: '
+ssh codap-server.concord.org "sudo cp codap_embeddedCODAP_${BUILD_NUM}.zip $SERVER_DIR_EMBEDDED_MODE"
+
+read -p 'Have deployed embedded mode image? ' ANSWER
+checkAnswer
+
+set -v
+# 11. notify qa (manual step)
+# 12. in pt, group release stories at top of current (including stories marked delivered and stories believed to be deliverable) (manual: difficult to script)
+# 13. in pt, make sure all release stories are marked qa-test or qa-confirm (partially scripted)
+# 14. in pt, make sure all delivered feature stories are accepted by the right acceptor. (manual: difficult to script)
+# 15. qa: perform smoke test (manual and scripted)
+# 16. qa: verify bug fixes and features (manual)
+# 17. qa: move ‘latest’ symlink (unknown: scriptable)
+# 18. write release notes (partly scripted)
+set +v
+# 
