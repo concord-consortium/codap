@@ -188,7 +188,14 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 return;
             SC.run(function() {
               if( tCategoryInCurrentCell !== tCellBeingDragged) {
-                tModel.swapCategoriesByIndex( tCellBeingDragged, tCategoryInCurrentCell);
+                var tSign = Math.sign( tCategoryInCurrentCell - tCellBeingDragged),
+                    tCellToSwap = tCellBeingDragged + tSign;
+                // Insist on pairwise swaps until we get one beyond tCategoryInCurrentCell
+                while( tCellToSwap !== tCategoryInCurrentCell +tSign) {
+                  tModel.swapCategoriesByIndex(tCellBeingDragged, tCellToSwap);
+                  tCellToSwap += tSign;
+                  tCellBeingDragged += tSign;
+                }
                 tCellBeingDragged = tCategoryInCurrentCell;
               }
               this_.set('dragInfo', {
