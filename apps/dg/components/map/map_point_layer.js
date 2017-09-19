@@ -152,9 +152,10 @@ DG.MapPointLayer = DG.PlotLayer.extend(
          stroke: iRC.strokeColor, 'fill-opacity': iRC.transparency, 'stroke-opacity': iRC.strokeTransparency};
        this.updatePlottedElement( tCircle, tAttrs, iAnimate, iCallback);
      }
+     tCircle.case = iCase;  // Because sorting the cases messes up any correspondence between index and case
   },
   
-  createCircle: function( iDatum, iIndex, iAnimate) {
+  createCircle: function( iCase, iIndex, iAnimate) {
     var this_ = this;
 
 /*
@@ -227,8 +228,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
             })
         .mousedown( function( iEvent) {
               SC.run(function() {
-                this_.get('model').selectCaseByIndex( iIndex, iEvent.shiftKey || iEvent.metaKey);
-              });
+                this_.get('model').selectCase( this.case, iEvent.shiftKey || iEvent.metaKey);
+              }.bind( this));
             })
 //        .drag(function (dx, dy) { // continue
 //                SC.run( function() {
@@ -271,7 +272,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
 //              this_.hideDataTip();
 //            })
         ;
-    tCircle.index = iIndex;
+    tCircle.case = iCase;
     tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
 //    if( iAnimate)
 //      DG.PlotUtilities.doCreateCircleAnimation( tCircle);
