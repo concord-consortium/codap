@@ -195,17 +195,6 @@ DG.MapModel = DG.DataDisplayModel.extend(
     },
 
     /**
-      @param {Number} The index of the case to be selected.
-      @param {Boolean} Should the current selection be extended?
-    */
-    selectCaseByIndex: function( iIndex, iExtend) {
-      var tCases = this.get('hasAreaAttribute') ? this.getPath('dataConfiguration.allCases.content') :
-          this.get('cases');
-      this.selectCase( tCases[ iIndex], iExtend);
-
-    },
-
-    /**
      * Override superclass
      * @returns {boolean}
      */
