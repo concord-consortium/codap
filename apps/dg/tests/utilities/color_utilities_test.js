@@ -33,6 +33,7 @@ module("DG.ColorUtilities", {
    }
 });
 
+/*
 test("DG.ColorUtilities.colorMapToArray", function() {
   var tMap = { cat1: 'red', cat2: 'yellow', cat3: 'green'},
       //tArray = [['cat1', 'red'], ['cat2', 'yellow'], ['cat3', 'green']],
@@ -49,3 +50,4 @@ test("DG.ColorUtilities.colorArrayToColorMap", function() {
   same(DG.ColorUtilities.colorArrayToColorMap( tArray), tMap, "convert array to map");
 });
 
+*/

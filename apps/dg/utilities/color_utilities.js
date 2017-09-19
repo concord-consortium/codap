@@ -677,35 +677,6 @@ DG.ColorUtilities = {
   },
 
   /**
-   * Use this to convert a colormap to a form with which key-value pairs can easily be reordered.
-   *
-   * @param iColorMap {Object} with categories as keys and colors as values
-   * @returns {Array of [String, String]}
-   */
-  colorMapToArray: function( iColorMap) {
-    var tResult = [];
-    DG.ObjectMap.forEach( iColorMap, function( iKey, iValue) {
-      tResult.push([iKey, iValue]);
-    });
-    return tResult;
-  },
-
-  /**
-   * The given array has likely been used to reorder category/color pairs. Use this to bring back
-   * a colorMap that will respect this order.
-   *
-   * @param iColorArray {Array of [String, String]}
-   * @returns {Object} with categories as keys and colors as values
-   */
-  colorArrayToColorMap: function( iColorArray) {
-    var tResult = {};
-    iColorArray.forEach( function( iPair) {
-      tResult[ iPair[0]] = iPair[1];
-    });
-    return tResult;
-  },
-
-  /**
    * SVG color names (compatible with rafael/css/w3c/svg),
    * from http://www.phpied.com/rgb-color-parser-in-javascript/
    * see also http://www.w3.org/TR/css3-color/#svg-color

@@ -612,8 +612,8 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   hasHorizontalScroller: false,
                   contentView: tContentView
                 }),
-                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
-            DG.ObjectMap.forEach(tCategoryMap, function (iCategory) {
+                tAttribute = tLegendAttrDesc.get('attribute');
+            tAttribute.forEachCategory(function (iCategory) {
               var tInitialColor = tColorMap[iCategory] ?
                   tColorMap[iCategory] :
                   DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;

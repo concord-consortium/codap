@@ -191,8 +191,12 @@ DG.AttributeStats = SC.Object.extend(
           }.bind(this));
           if (shouldProcessNumeric)
             this.numericStats.endPropertyChanges();
-          if (shouldProcessCategorical)
+          if (shouldProcessCategorical) {
+            tAttributes.forEach( function( iAttribute) {
+              iAttribute.updateColormap();
+            });
             this.categoricalStats.endPropertyChanges();
+          }
           return;
         }
 
@@ -372,6 +376,8 @@ DG.AttributeStats = SC.Object.extend(
        @property{Number} The number of categorical cells
        */
       numberOfCells: function () {
+        if( this.get('attributeType') === DG.Analysis.EAttributeType.eNumeric)
+          return 1;
         if (!this._categoricalCacheIsValid)
           this._computeCategoricalStats();
         return this.getPath('categoricalStats.numberOfCells');
@@ -456,13 +462,9 @@ DG.AttributeStats = SC.Object.extend(
 
         if (SC.isArray(tCases)) {
           tAttributes.forEach(function (iAttribute) {
-            // If the attribute has a colormap, use it to predetermine the order of the categories
-            var tColorMap = iAttribute.get('colormap');
-            if (tColorMap) {
-              DG.ObjectMap.forEach(tColorMap, function (iKey) {
-                tCellMap[iKey] = [];
-              });
-            }
+            iAttribute.forEachCategory( function( iCategory, iColor, iIndex) {
+                tCellMap[iCategory] = [];
+            });
 
             var tVarID = iAttribute.get('id');
             tCases.forEach(function (iCase) {
