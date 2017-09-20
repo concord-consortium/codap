@@ -1690,11 +1690,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
       handleLogMessageMonitor: {
         register: function (iResource, iValues) {
-          if (!iValues.topic && !iValues.topicPrefix && !iValues.formatStr && !iValues.message) {
+          if (!iValues.topic && !iValues.topicPrefix && !iValues.formatStr && !iValues.formatPrefix && !iValues.message) {
             return {
               success: false,
               values: {
-                error: 'At least one of the following values must be passed: topic, topicPrefix, formatStr or message.'
+                error: 'At least one of the following values must be passed: topic, topicPrefix, formatStr, formatPrefix or message.'
               }
             };
           }
@@ -1708,6 +1708,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               topic: iValues.topic,
               topicPrefix: iValues.topicPrefix,
               formatStr: iValues.formatStr,
+              formatPrefix: iValues.formatPrefix,
               message: iValues.message
             }
           });
