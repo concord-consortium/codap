@@ -103,12 +103,12 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
                 tXUnit = this_.getPath('xAxisView.model.firstAttributeUnit'),
                 tSlash = (tXUnit === '') ? '' : '/';
             return (tXUnit === '' && tYUnit === '') ? '' :
-                      '(' + tYUnit + tSlash + tXUnit + ')';
+                      ' ' + tYUnit + tSlash + tXUnit + ')';
           },
 
           getInterceptUnit = function () {
             var tYUnit = this_.getPath('yAxisView.model.firstAttributeUnit');
-            return (tYUnit === '') ? '' : '(' + tYUnit + ')';
+            return (tYUnit === '') ? '' : ' ' + tYUnit;
           };
 
       var kSlopeInterceptForm = 'DG.ScatterPlotModel.slopeIntercept',// y,slope,x,signInt,Int
@@ -120,7 +120,8 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tIntNumFormat = DG.Format.number().fractionDigits(0, tDigits.interceptDigits),
           tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnit(),
           tSlopeNumFormat = DG.Format.number().fractionDigits(0, tDigits.slopeDigits),
-          tSlopeString = tSlopeNumFormat(tSlope) + getSlopeUnit() + " ",
+          tSlopeUnit = getSlopeUnit(),
+          tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeNumFormat(tSlope) + tSlopeUnit + " ",
           tSign = (tIntercept < 0) ? " " : " + ",
           tXIsDateTime = this_.getPath('xAxisView.isDateTime'),
           tYVar = this_.getPath('yAxisView.model.firstAttributeName'),
