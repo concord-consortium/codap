@@ -224,11 +224,13 @@ DG.NotificationManager = SC.Object.extend(/** @scope DG.NotificationManager.prot
           topicMatches: logMonitorValues.topic && (logMonitorValues.topic === iValues.topic),
           topicPrefixMatches: logMonitorValues.topicPrefix && iValues.topic && (logMonitorValues.topicPrefix === iValues.topic.substr(0, logMonitorValues.topicPrefix.length)),
           formatStrMatches: logMonitorValues.formatStr && (logMonitorValues.formatStr === iValues.formatStr),
+          formatPrefixMatches: logMonitorValues.formatPrefix && iValues.formatStr && (logMonitorValues.formatPrefix === iValues.formatStr.substr(0, logMonitorValues.formatPrefix.length)),
           messageMatches: logMonitorValues.message &&
             ((logMonitorValues.message === values.message)||
                 (logMonitorValues.message === "*"))
         }, logMonitorValues);
-        if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches || logMonitorValues.formatStrMatches || logMonitorValues.messageMatches) {
+        if (logMonitorValues.topicMatches || logMonitorValues.topicPrefixMatches ||
+            logMonitorValues.formatStrMatches || logMonitorValues.formatPrefixMatches || logMonitorValues.messageMatches) {
           values.logMonitor = logMonitorValues;
           logMonitor.iPhoneHandler.sendMessage({
             action: "notify",
