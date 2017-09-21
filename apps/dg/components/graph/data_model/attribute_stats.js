@@ -193,7 +193,7 @@ DG.AttributeStats = SC.Object.extend(
             this.numericStats.endPropertyChanges();
           if (shouldProcessCategorical) {
             tAttributes.forEach( function( iAttribute) {
-              iAttribute.updateColormap();
+              iAttribute.updateCategoryMap();
             });
             this.categoricalStats.endPropertyChanges();
           }

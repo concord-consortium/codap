@@ -341,9 +341,9 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.addObserver('xAxis', this, 'xAxisDidChange');
     this.addObserver('yAxis', this, 'yAxisDidChange');
 
-    this.addObserver('dataConfiguration.xAttributeDescription.attribute.colormap',
+    this.addObserver('dataConfiguration.xAttributeDescription.attribute.categoryMap',
         this, 'colorMapDidChange');
-    this.addObserver('dataConfiguration.yAttributeDescription.attribute.colormap',
+    this.addObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
         this, 'colorMapDidChange');
   },
   
@@ -354,9 +354,9 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     // Detach the axes
     this.removeObserver('xAxis', this, 'xAxisDidChange');
     this.removeObserver('yAxis', this, 'yAxisDidChange');
-    this.removeObserver('dataConfiguration.xAttributeDescription.attribute.colormap',
+    this.removeObserver('dataConfiguration.xAttributeDescription.attribute.categoryMap',
         this, 'colorMapDidChange');
-    this.removeObserver('dataConfiguration.yAttributeDescription.attribute.colormap',
+    this.removeObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
         this, 'colorMapDidChange');
     // Detach the data Configuration
     this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');

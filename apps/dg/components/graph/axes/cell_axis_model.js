@@ -86,31 +86,31 @@ DG.CellAxisModel = DG.AxisModel.extend(
   },
 
   /**
-   * The attribute's colormap is a hash such that we are taking advantage of the order of the properties.
+   * The attribute's categoryMap is a hash such that we are taking advantage of the order of the properties.
    * In order to swap two categories we convert to array, swap, and then convert back to hash.
    * @param iIndex1 {Number}
    * @param iIndex2 {Number}
    */
   swapCategoriesByIndex: function( iIndex1, iIndex2) {
-    var tColorMap = this.getPath('attributeDescription.attribute.colormap'),
-        tOrder = tColorMap.__order || [],
+    var tCategoryMap = this.getPath('attributeDescription.attribute.categoryMap'),
+        tOrder = tCategoryMap.__order || [],
         tAttribute = this.getPath('attributeDescription.attribute');
-    if( DG.ObjectMap.length( tColorMap) === 0) {
+    if( DG.ObjectMap.length( tCategoryMap) === 0) {
       var tAttrStats = this.getPath('attributeDescription.attributeStats'),
           tAttrColor = DG.ColorUtilities.calcAttributeColor( this.get('attributeDescription'));
       tOrder = [];
       this.forEachCellDo( function( iIndex, iName) {
         var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
-        tColorMap[iName] = tColor.colorString || tColor;
+        tCategoryMap[iName] = tColor.colorString || tColor;
         tOrder.push( iName);
       });
-      tColorMap.__order = tOrder;
+      tCategoryMap.__order = tOrder;
     }
     var tSaved = tOrder[ iIndex1];
     tOrder[iIndex1] = tOrder[iIndex2];
     tOrder[iIndex2] = tSaved;
-    this.setPath('attributeDescription.attribute.colormap', tColorMap);
-    tAttribute.notifyPropertyChange('colormap');
+    this.setPath('attributeDescription.attribute.categoryMap', tCategoryMap);
+    tAttribute.notifyPropertyChange('categoryMap');
     this.get('attributeDescription').invalidateCaches();
   }
   

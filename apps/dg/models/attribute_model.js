@@ -27,7 +27,7 @@ sc_require('models/base_model');
  * attribute's corresponding data value would be computed.
  * An attribute may be editable or not. Some properties of attributes affect
  * how the corresponding values are displayed. For example, 'precision' affects
- * the formatting of numeric attributes, and 'colormap' affects the color's used
+ * the formatting of numeric attributes, and 'categoryMap' affects the color's used
  * when the attribute is displayed in a graph legend.
  *
  * @extends SC.BaseModel
@@ -59,7 +59,6 @@ DG.Attribute = DG.BaseModel.extend(
       formula: '',
 
       /**
-       * todo: change the name of this property to 'categoryMap'
        * The map of attribute and category color values, for the attribute.
        * For special color keys and values, see:
        *   DG.ColorUtilities.getAttributeColorFromColorMap(),
@@ -69,14 +68,14 @@ DG.Attribute = DG.BaseModel.extend(
        * @property {Object}
        */
       _categoryMap: null,
-      colormap: function( iKey, iValue) {
+      categoryMap: function(iKey, iValue) {
         if( !SC.none( iValue)) {
           this._categoryMap = iValue;
         }
         if(SC.none( this._categoryMap) || !SC.isArray( this._categoryMap.__order) ||
               this._categoryMap.__order.length === 0) {
           this._categoryMap = { __order: [] };
-          this.updateColormap();
+          this.updateCategoryMap();
           // Default order is alphabetical
           this._categoryMap.__order.sort();
         }
@@ -219,15 +218,17 @@ DG.Attribute = DG.BaseModel.extend(
       },
 
       /**
-       * Iterate through the categories in the order maintained in the colormap
+       * Iterate through the categories in the order maintained in the categoryMap
        *
        * @param iFunc has signature String, Color, Integer
        */
       forEachCategory: function( iFunc) {
-        var tCategories = this.get('colormap');
+        var tCategories = this.get('categoryMap');
         DG.assert(!SC.none( tCategories) && SC.isArray( tCategories.__order));
         tCategories.__order.forEach( function( iCategory, iIndex) {
-          iFunc( iCategory, tCategories[iCategory], iIndex);
+          var tColor = tCategories[iCategory];
+          tColor = tColor.colorString || tColor;
+          iFunc( iCategory, tColor, iIndex);
         });
       },
 
@@ -409,7 +410,7 @@ DG.Attribute = DG.BaseModel.extend(
       /**
        * Gets called when attribute is used categorically in a graph and something has changed.
        */
-      updateColormap: function() {
+      updateCategoryMap: function() {
         var tCollection = this.get('collection');
         if( tCollection) {
           var tAttrID = this.get('id'),
@@ -444,7 +445,7 @@ DG.Attribute = DG.BaseModel.extend(
           defaultMin: this.defaultMin,
           defaultMax: this.defaultMax,
           description: this.get('description'),
-          _categoryMap: this._categoryMap ? this.get('colormap') : undefined,
+          _categoryMap: this._categoryMap ? this.get('categoryMap') : undefined,
           blockDisplayOfEmptyCategories: this.blockDisplayOfEmptyCategories || undefined,
           editable: this.editable,
           hidden: this.hidden,
@@ -479,12 +480,20 @@ DG.Attribute.createAttribute = function (iProperties) {
   var collection = DG.store.resolve(iProperties.collection),
       newAttribute, tNewColormap;
 
-  // As part of the transition from colormap to _categoryMap, we have to convert the old property
-  // that comes in from previously saved documents and plugins
+  // As part of the transition from colormap to _colormap and colormap to categoryMap,
+  // we have to convert the old property that comes in from previously saved documents and plugins
   if( iProperties.colormap) {
-    if(DG.ObjectMap.length(iProperties.colormap) > 0)
-      iProperties._categoryMap = iProperties.colormap;
+    iProperties.categoryMap = iProperties.colormap;
     delete iProperties.colormap;
+  }
+  if( iProperties._colormap) {
+    iProperties._categoryMap = iProperties._colormap;
+    delete iProperties._colormap;
+  }
+  if( iProperties.categoryMap) {
+    if(DG.ObjectMap.length(iProperties.categoryMap) > 0)
+      iProperties._categoryMap = iProperties.categoryMap;
+    delete iProperties.categoryMap;
   }
 
   iProperties.collection = collection;
@@ -501,7 +510,7 @@ DG.Attribute.createAttribute = function (iProperties) {
           tNewColormap.__order.push(iKey);
       });
     }
-    newAttribute.set('colormap', tNewColormap);
+    newAttribute.set('categoryMap', tNewColormap);
   }
   if (iProperties.type && iProperties.type === DG.Attribute.TYPE_NOMINAL) {
     iProperties.type = DG.Attribute.TYPE_CATEGORICAL;

@@ -73,7 +73,7 @@ DG.MapController = DG.DataDisplayController.extend(
        */
       styleControls: function () {
         var tLegendAttrDesc = this.getPath('mapModel.dataConfiguration.legendAttributeDescription'),
-            tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+            tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap'),
             tAttrColor = !tLegendAttrDesc.get('isNull') ? DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc) : null;
 
         if (this.getPath('mapModel.hasLatLongAttributes')) {
@@ -113,11 +113,11 @@ DG.MapController = DG.DataDisplayController.extend(
           }
           else if( tLegendAttrDesc.get('isNumeric')){
              var setLowColor = function( iColor) {
-                  tColorMap['low-attribute-color'] = iColor.toHexString();
+                  tCategoryMap['low-attribute-color'] = iColor.toHexString();
                   setLegendColor( iColor);
                 },
                 setHighColor = function( iColor) {
-                  tColorMap['high-attribute-color'] = iColor.toHexString();
+                  tCategoryMap['high-attribute-color'] = iColor.toHexString();
                   setLegendColor( iColor);
                 },
                 setLegendColor = function (iColor) {
@@ -135,7 +135,7 @@ DG.MapController = DG.DataDisplayController.extend(
                       align: SC.ALIGN_TOP
                     }
                 ),
-                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttrColor),
+                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tCategoryMap, tAttrColor),
                 tLowEndColor = tinycolor(tSpectrumEnds.low.colorString)
                     .setAlpha(this.getPath('dataDisplayModel.transparency')),
                 tHighEndColor = tinycolor(tSpectrumEnds.high.colorString)
@@ -168,7 +168,7 @@ DG.MapController = DG.DataDisplayController.extend(
           }
           else if( tLegendAttrDesc.get('isCategorical')) {
             var setCategoryColor = function (iColor, iColorKey) {
-                  tColorMap[iColorKey] = iColor.toHexString();
+                  tCategoryMap[iColorKey] = iColor.toHexString();
                   this.setPath('mapModel.transparency', iColor.getAlpha());
                   this.get('mapModel').propertyDidChange('areaColor');
                 }.bind(this),
@@ -189,8 +189,8 @@ DG.MapController = DG.DataDisplayController.extend(
                 }),
                 tLegendAttribute = tLegendAttrDesc.get('attribute');
             tLegendAttribute.forEachCategory(function (iCategory) {
-              var tInitialColor = tColorMap[iCategory] ?
-                  tColorMap[iCategory] :
+              var tInitialColor = tCategoryMap[iCategory] ?
+                  tCategoryMap[iCategory] :
                   DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
               tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).setAlpha(this.getPath('mapModel.transparency'));
               tContentView.appendChild(DG.PickerControlView.create({

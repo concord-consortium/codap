@@ -164,8 +164,8 @@ DG.ColorUtilities = {
     // get the stored attribute color
     var tCollectionClient = iColorAttributeDescription.get('collectionClient'),
         tAttribute = iColorAttributeDescription.get('attribute'),
-        tColorMap = tAttribute && tAttribute.get('colormap'),
-        tColor = DG.ColorUtilities.getAttributeColorFromColorMap(tColorMap);
+        tCategoryMap = tAttribute && tAttribute.get('categoryMap'),
+        tColor = DG.ColorUtilities.getAttributeColorFromColorMap(tCategoryMap);
 
     // else compute the color from the attribute's position in the collection
     if (!tColor) {
@@ -203,11 +203,11 @@ DG.ColorUtilities = {
       // we have an attribute and non-missing case value, now get stored or computed color
       var tIsNumeric = iColorAttributeDescription.get('isNumeric'),
           tAttributeType = iColorAttributeDescription.get('attributeType'),
-          tColorMap = tAttribute.get('colormap');
+          tCategoryMap = tAttribute.get('categoryMap');
       switch (tAttributeType) {
         case DG.Analysis.EAttributeType.eCategorical:
           // get color from attribute's color map, or set to null
-          newColor = DG.ColorUtilities.getCategoryColorFromColorMap(tColorMap, iCaseValue);
+          newColor = DG.ColorUtilities.getCategoryColorFromColorMap(tCategoryMap, iCaseValue);
           break;
         case DG.Analysis.EAttributeType.eColor:
           var tCaseColor = tinycolor(iCaseValue);
@@ -219,7 +219,7 @@ DG.ColorUtilities = {
             var tFoundIndex = -1,
                 tNumQuantiles = iQuantileValues.length - 1,
                 tMinMax = {min: 0, max: 1},
-                tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap(tColorMap, tAttributeColor);
+                tSpectrumEnds = this.getAttributeColorSpectrumEndsFromColorMap(tCategoryMap, tAttributeColor);
             iQuantileValues.forEach(function (iQV, iIndex) {
               if (iIndex <= tNumQuantiles) {
                 if (iQV <= iCaseValue && iCaseValue <= iQuantileValues[iIndex + 1])
