@@ -30,6 +30,9 @@ while true; do
     --mode=*)
       BUILD_OPTS="${BUILD_OPTS} $1";
       shift;;
+    --languages=*)
+      BUILD_OPTS="${BUILD_OPTS} $1";
+      shift;;
     --root=*)
       ROOT_SUBSTITUTION=`echo $1 | sed 's/^--root=//'`;
       shift;;
