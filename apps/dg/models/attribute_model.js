@@ -415,15 +415,24 @@ DG.Attribute = DG.BaseModel.extend(
         if( tCollection) {
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases'),
-              tColorIndex = this._categoryMap.__order.length % DG.ColorUtilities.kKellyColors.length;
+              tColorIndex = this._categoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
+              tCatRecord = {};
           tCases.forEach( function( iCase) {
             var tValue = iCase.getValue( tAttrID);
+            tCatRecord[ tValue] = true;
             if( SC.none( this._categoryMap[ tValue])) {
               if( !SC.empty(tValue)) {
                 this._categoryMap[tValue] = DG.ColorUtilities.kKellyColors[tColorIndex];
                 tColorIndex = (tColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
                 this._categoryMap.__order.push(tValue);
               }
+            }
+          }.bind( this));
+          // Delete unrecorded categories
+          this._categoryMap.__order.forEach( function( iCat, iIndex) {
+            if( !tCatRecord[ iCat]) {
+              delete this._categoryMap[ iCat];
+              this._categoryMap.__order.splice( iIndex, 1);
             }
           }.bind( this));
         }

@@ -462,6 +462,8 @@ DG.AttributeStats = SC.Object.extend(
 
         if (SC.isArray(tCases)) {
           tAttributes.forEach(function (iAttribute) {
+            // Todo: This call to updateCategoryMap is Kludgy. Think about responding to notification instead.
+            iAttribute.updateCategoryMap();
             iAttribute.forEachCategory( function( iCategory, iColor, iIndex) {
                 tCellMap[iCategory] = [];
             });
