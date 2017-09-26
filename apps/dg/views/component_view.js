@@ -391,9 +391,9 @@ DG.ComponentView = SC.View.extend(
               value: ''
             }),
             versionView: SC.LabelView.design({
-              textAlign: SC.ALIGN_RIGHT,
+              textAlign: SC.ALIGN_LEFT,
               classNames: ['dg-version-view'],
-              layout: {right: 2 * kTitleBarHeight, top: 5},
+              layout: {left: 5, top: 5},
               value: ''
             }),
             minimize: DG.get('componentMode') === 'no' ?
