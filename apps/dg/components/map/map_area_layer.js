@@ -209,7 +209,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
     tCases.forEach( function( iCase) {
       var tFeature = this.features.find( function (iFeature) {
-              return iFeature.options.case === iCase;
+              return iFeature.options['case'] === iCase;
             });
       if (!tFeature)
         return;
@@ -272,7 +272,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
                   smoothFactor: 2
                 };
               },
-              case: iCase // Stashes reference in features[iIndex].options.case
+              'case': iCase // Stashes reference in features[iIndex].options.case
             })
                 .on('click', handleClick) // unable to use 'mousedown' for unknown reason
                 .on('mouseover', handleMouseover)
