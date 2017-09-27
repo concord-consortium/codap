@@ -39,12 +39,14 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
 
       return {
 
+/*
         modelDidChange: function () {
           var tModel = this.get('model');
           if (tModel) {
-            tModel.setLowerAndUpperBounds(kActualDefaultLow, kActualDefaultHigh);
+            // tModel.setLowerAndUpperBounds(kActualDefaultLow, kActualDefaultHigh);
           }
         }.observes('model'),
+*/
 
         /**
          Called each time we have to regenerate or modify the visualization
@@ -59,9 +61,9 @@ DG.QualCellLinearAxisView = DG.CellLinearAxisView.extend(
           var ensureLowAndHighAreVisible = function () {
                 var tCurrLow = this.getPath('model.lowerBound'),
                     tCurrHigh = this.getPath('model.upperBound');
-                if (tCurrLow > kActualDefaultLow)
+                if (!SC.none( tCurrLow) && tCurrLow > kActualDefaultLow)
                   this.setPath('model.lowerBound', kActualDefaultLow);
-                if (tCurrHigh < kActualDefaultHigh)
+                if (!SC.none( tCurrHigh) && tCurrHigh < kActualDefaultHigh)
                   this.setPath('model.upperBound', kActualDefaultHigh);
               }.bind(this),
 

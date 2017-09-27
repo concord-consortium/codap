@@ -125,6 +125,13 @@ DG.GraphAnimator = SC.Object.extend(
                   upper: iAxisInfo.axis.get('upperBound') };
     }
 
+    var noAxisHasAnimatableScale = function() {
+      var tSomeCanAnimate = this.axisInfoArray.some( function( iAxisInfo) {
+        return iAxisInfo.axis.get('scaleCanAnimate');
+      });
+      return !tSomeCanAnimate;
+    }.bind( this);
+
     if( this.isAnimating) {
       this.endAnimation();
     }
@@ -133,6 +140,11 @@ DG.GraphAnimator = SC.Object.extend(
     this.savedAxisInfoArray = this.axisInfoArray; // so new caller won't wipe it out.
 
     this.axisInfoArray.forEach( setupAxis);
+
+    if( noAxisHasAnimatableScale()) {
+      this.endAnimation();
+      return; // We're only animating axes so no animation to do
+    }
 
     this.startTime = (new Date()).valueOf();
 
@@ -159,7 +171,8 @@ DG.GraphAnimator = SC.Object.extend(
     be animated. If there is an animation already in progress, we end it.
   */
   endAnimation: function( iTarget, iCompletionFunc) {
-    this.animationTimer.set( 'isPaused', YES);
+    if( this.animationTimer)
+      this.animationTimer.set( 'isPaused', YES);
     if( !SC.none( this.plot))
       this.setPath('plot.isAnimating', false);
     this.savedAxisInfoArray.forEach( function( iInfo) {

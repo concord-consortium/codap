@@ -84,6 +84,11 @@ DG.CellLinearAxisModel = DG.CellAxisModel.extend(
   isNumeric: true,
 
   /**
+   * @property {Boolean}
+   */
+  scaleCanAnimate: true,
+
+  /**
     The actual lower bounds from which the apparent lower bounds is computed.
       @private
     @property { Number }
