@@ -137,13 +137,13 @@ DG.LegendModel = SC.Object.extend(
   },
 
   /**
-   * If the newly assigned attribute is categorical, make sure it has a colormap so that
+   * If the newly assigned attribute is categorical, make sure it has a categoryMap so that
    * colors won't change willy nilly.
    */
   attributeDidChange: function() {
     var tAttrDesc = this.get('attributeDescription'),
         tAttribute = tAttrDesc.get('attribute'),
-        tColormap = tAttribute && (tAttribute !== DG.Analysis.kNullAttribute) && tAttribute.get('colormap');
+        tColormap = tAttribute && (tAttribute !== DG.Analysis.kNullAttribute) && tAttribute.get('categoryMap');
     if( !tAttribute || (tAttribute === DG.Analysis.kNullAttribute) || tAttrDesc.get('isNumeric'))
       return; // Nothing assigned or the attribute is numeric
     tColormap = tColormap || {};
@@ -154,7 +154,7 @@ DG.LegendModel = SC.Object.extend(
             DG.ColorUtilities.kMissingValueCaseColor);
       }
     });
-    tAttribute.set('colormap', tColormap);
+    tAttribute.set('categoryMap', tColormap);
   }.observes('attributeDescription.attribute'),
 
   handleOneDataContextChange: function( iNotifier, iChange) {

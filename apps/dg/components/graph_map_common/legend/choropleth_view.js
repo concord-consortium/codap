@@ -73,9 +73,9 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
                     tValues = this.getPath('model.dataConfiguration').numericValuesForPlace(DG.GraphTypes.EPlace.eLegend),
                     tQuintileValues = DG.MathUtilities.nQuantileValues(tValues, tQuintileN),
                     tMinMax = {min: 0, max: 1},
-                    tColorMap = tAttrDesc.getPath('attribute.colormap'),
+                    tCategoryMap = tAttrDesc.getPath('attribute.categoryMap'),
                     tAttrColor = DG.ColorUtilities.calcAttributeColor( tAttrDesc),
-                    tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap(tColorMap, tAttrColor);
+                    tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap(tCategoryMap, tAttrColor);
                 tQuintileValues.forEach(function (iStartValue, iIndex) {
                   if ((typeof iStartValue === 'number') && iIndex < tQuintileN) {
                     var tStopValue = tQuintileValues[iIndex + 1],

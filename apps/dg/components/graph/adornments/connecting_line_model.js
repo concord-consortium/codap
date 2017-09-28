@@ -94,7 +94,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
       return; // too early to recompute, caller must try again later.
     }
 
-    var getColorMap = function() {
+    var getCategoryMap = function() {
       var tMap = null,
           tLegendIsCategorical = tLegendDesc && tLegendDesc.get('isCategorical'),
           tFirstCase = tCases[0];
@@ -102,14 +102,14 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
         var tCaseParentCollectionID = tFirstCase.getPath('parent.collection.id'),
             tLegendCollID = tLegendDesc.getPath( 'collectionClient.id');
         if( tCaseParentCollectionID === tLegendCollID)
-            tMap = tLegendDesc.getPath('attribute.colormap');
+            tMap = tLegendDesc.getPath('attribute.categoryMap');
       }
       return tMap;
     }.bind( this);
 
     // create an array of points to connect for each parent collection
     var tValues = {},
-        tColorMap = getColorMap();
+        tCategoryMap = getCategoryMap();
     tCases.forEach( function( iCase, iIndex ) {
       var tXVal = iCase.getNumValue( tXVarID),
           tYVal = iCase.getNumValue( tYVarID ),
@@ -118,7 +118,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
       if (isFinite(tXVal) && isFinite(tYVal)) { // if both values exist (else skip missing points)
         if (!tValues[tParentID]) {
           tValues[tParentID] = {
-            color: (tColorMap ? (tColorMap[iCase.getValue(tLegendDesc.getPath('attribute.id'))]) :
+            color: (tCategoryMap ? (tCategoryMap[iCase.getValue(tLegendDesc.getPath('attribute.id'))]) :
                 null),
             coordinates: []
           };

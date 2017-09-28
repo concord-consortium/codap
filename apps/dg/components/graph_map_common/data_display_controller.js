@@ -361,7 +361,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
         styleControls: function () {
           var this_ = this,
               tLegendAttrDesc = this.getPath('dataDisplayModel.dataConfiguration.legendAttributeDescription'),
-              tColorMap = tLegendAttrDesc.getPath('attribute.colormap'),
+              tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap'),
               currentOpenSession = null,
               setCategoryColor = function (iColor, iColorKey) {
                 currentOpenSession = currentOpenSession || Math.random();
@@ -373,15 +373,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   execute: function() {
                     this.reduceKey = this.name + iColorKey + currentOpenSession;
                     this._beforeStorage = {
-                      color: tColorMap[iColorKey],
+                      color: tCategoryMap[iColorKey],
                       alpha: this_.getPath('dataDisplayModel.transparency')
                     };
-                    tColorMap[iColorKey] = iColor.toHexString();
+                    tCategoryMap[iColorKey] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.transparency', iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
                   undo: function () {
-                    tColorMap[iColorKey] = this._beforeStorage.color;
+                    tCategoryMap[iColorKey] = this._beforeStorage.color;
                     this_.setPath('dataDisplayModel.transparency', this._beforeStorage.alpha);
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
@@ -432,15 +432,15 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   execute: function() {
                     this.reduceKey = this.name + currentOpenSession;
                     this._beforeStorage = {
-                      color: tColorMap[end + '-attribute-color'],
+                      color: tCategoryMap[end + '-attribute-color'],
                       alpha: this_.getPath('dataDisplayModel.' + alphaAttr)
                     };
-                    tColorMap[end + '-attribute-color'] = iColor.toHexString();
+                    tCategoryMap[end + '-attribute-color'] = iColor.toHexString();
                     this_.setPath('dataDisplayModel.' + alphaAttr, iColor.getAlpha());
                     this_.get('dataDisplayModel').propertyDidChange('pointColor');
                   },
                   undo: function () {
-                    tColorMap['attribute-color'] = this._beforeStorage.color;
+                    tCategoryMap['attribute-color'] = this._beforeStorage.color;
                     this_.setPath('dataDisplayModel.' + alphaAttr, this._beforeStorage.alpha);
                   },
                   reduce: function (previous) {
@@ -535,10 +535,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
             );
           }
           else if( tLegendAttrDesc.get('isNumeric')) {
-            if(tColorMap && SC.none( tColorMap['attribute-color'])) {
-              tColorMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc).colorString;
+            if(tCategoryMap && SC.none( tCategoryMap['attribute-color'])) {
+              tCategoryMap['attribute-color'] = DG.ColorUtilities.calcAttributeColor( tLegendAttrDesc).colorString;
             }
-            var tAttrColor = tColorMap && tColorMap['attribute-color'],
+            var tAttrColor = tCategoryMap && tCategoryMap['attribute-color'],
                 tControlView = SC.View.create(SC.FlowedLayout,
                     {
                       layoutDirection: SC.LAYOUT_HORIZONTAL,
@@ -550,7 +550,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       align: SC.ALIGN_TOP
                     }
                 ),
-                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tColorMap, tAttrColor),
+                tSpectrumEnds = DG.ColorUtilities.getAttributeColorSpectrumEndsFromColorMap( tCategoryMap, tAttrColor),
                 tLowEndColor = tinycolor(tSpectrumEnds.low.colorString)
                     .setAlpha(this.getPath('dataDisplayModel.transparency')),
                 tHighEndColor = tinycolor(tSpectrumEnds.high.colorString)
@@ -612,10 +612,10 @@ DG.DataDisplayController = DG.ComponentController.extend(
                   hasHorizontalScroller: false,
                   contentView: tContentView
                 }),
-                tCategoryMap = tLegendAttrDesc.getPath('attributeStats.cellMap');
-            DG.ObjectMap.forEach(tCategoryMap, function (iCategory) {
-              var tInitialColor = tColorMap[iCategory] ?
-                  tColorMap[iCategory] :
+                tAttribute = tLegendAttrDesc.get('attribute');
+            tAttribute.forEachCategory(function (iCategory) {
+              var tInitialColor = tCategoryMap[iCategory] ?
+                  tCategoryMap[iCategory] :
                   DG.ColorUtilities.calcCaseColor(iCategory, tLegendAttrDesc).colorString;
               tInitialColor = tinycolor(tInitialColor.colorString || tInitialColor).
                                 setAlpha(this.getPath('dataDisplayModel.transparency'));

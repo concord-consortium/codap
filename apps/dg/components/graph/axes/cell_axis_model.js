@@ -73,41 +73,44 @@ DG.CellAxisModel = DG.AxisModel.extend(
   */
   forEachCellDo: function( iCellFunc) {
     var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap'),
-        tCellNames = DG.ObjectMap.keys( tCellMap),
-        tIndex = 0;
-    if( tCellNames.length === 0)
+        tAttribute = this.getPath('attributeDescription.attribute');
+    if( DG.ObjectMap.length(tCellMap) === 0)
       iCellFunc( 0, '', 0, 0);  // There is always at least one cell
     else
-      tCellNames.forEach( function( iName) {
+      tAttribute.forEachCategory( function( iName, iColor, iIndex) {
         var tValues = tCellMap[ iName],
             tNumUses = tValues.length,
             tNumSelected = 0;
-        iCellFunc( tIndex++, iName, tNumUses, tNumSelected);
+        iCellFunc( iIndex, iName, tNumUses, tNumSelected);
       });
   },
 
   /**
-   * The attribute's colormap is a hash such that we are taking advantage of the order of the properties.
+   * The attribute's categoryMap is a hash such that we are taking advantage of the order of the properties.
    * In order to swap two categories we convert to array, swap, and then convert back to hash.
    * @param iIndex1 {Number}
    * @param iIndex2 {Number}
    */
   swapCategoriesByIndex: function( iIndex1, iIndex2) {
-    var tColorMap = this.getPath('attributeDescription.attribute.colormap');
-    if( DG.ObjectMap.length( tColorMap) === 0) {
+    var tCategoryMap = this.getPath('attributeDescription.attribute.categoryMap'),
+        tOrder = tCategoryMap.__order || [],
+        tAttribute = this.getPath('attributeDescription.attribute');
+    if( DG.ObjectMap.length( tCategoryMap) === 0) {
       var tAttrStats = this.getPath('attributeDescription.attributeStats'),
           tAttrColor = DG.ColorUtilities.calcAttributeColor( this.get('attributeDescription'));
+      tOrder = [];
       this.forEachCellDo( function( iIndex, iName) {
         var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
-        tColorMap[iName] = tColor.colorString || tColor;
+        tCategoryMap[iName] = tColor.colorString || tColor;
+        tOrder.push( iName);
       });
+      tCategoryMap.__order = tOrder;
     }
-    var tCategoryArray = DG.ColorUtilities.colorMapToArray( tColorMap),
-        tSaved = tCategoryArray[ iIndex1];
-    tCategoryArray[iIndex1] = tCategoryArray[iIndex2];
-    tCategoryArray[iIndex2] = tSaved;
-    tColorMap = DG.ColorUtilities.colorArrayToColorMap( tCategoryArray);
-    this.setPath('attributeDescription.attribute.colormap', tColorMap);
+    var tSaved = tOrder[ iIndex1];
+    tOrder[iIndex1] = tOrder[iIndex2];
+    tOrder[iIndex2] = tSaved;
+    this.setPath('attributeDescription.attribute.categoryMap', tCategoryMap);
+    tAttribute.notifyPropertyChange('categoryMap');
     this.get('attributeDescription').invalidateCaches();
   }
   
