@@ -306,8 +306,13 @@ DG.main = function main() {
             {
               "name": "lara",
               "patch": true,
-              "patchObjectHash": function(obj) {
+              patchObjectHash: function(obj) {
                 return obj.guid || JSON.stringify(obj);
+              },
+              logLaraData: function(obj) {
+                var collaboratorUrls = JSON.stringify(obj.collaboratorUrls || []);
+                DG.logUser("laraData: { operation: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@ }",
+                            obj.operation, obj.runStateUrl, obj.documentID, obj.documentUrl, collaboratorUrls);
               }
             },
             {
