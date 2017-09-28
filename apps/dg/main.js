@@ -311,7 +311,7 @@ DG.main = function main() {
               },
               logLaraData: function(obj) {
                 var collaboratorUrls = JSON.stringify(obj.collaboratorUrls || []);
-                DG.logUser("laraData: operation: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@",
+                DG.logUser("laraData: { operation: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@ }",
                             obj.operation, obj.runStateUrl, obj.documentID, obj.documentUrl, collaboratorUrls);
               }
             },
