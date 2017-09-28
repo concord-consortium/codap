@@ -259,15 +259,10 @@ return {
    */
   toggleChildrenVisibility: function( iIndex) {
     var tChildren = this.childrenOfParent( iIndex ),
-        tConfig = this.get('dataConfiguration'),
-        tHidden = tConfig ? tConfig.get('hiddenCases' ) : [];
-
-    function isVisible( iCase) {
-      return tHidden.indexOf( iCase) < 0;
-    }
+        tConfig = this.get('dataConfiguration');
 
     this.beginVisibilityChanges();
-    hideShowCases(tConfig, tChildren, !tChildren.some(isVisible));
+    hideShowCases(tConfig, tChildren, this.allChildrenAreHidden(iIndex));
     this.endVisibilityChanges();
   },
 
@@ -349,13 +344,25 @@ return {
    */
   allChildrenAreHidden: function( iIndex) {
     var tChildren = this.childrenOfParent( iIndex ),
-        tHidden = this.get('hiddenCases');
+        tPlotted = this.getPath('dataConfiguration.cases'),
+        tHidden = this.get('hiddenCases'),
+        tPlottedMap = {},
+        tHiddenMap = {};
 
-    function isVisible( iCase) {
-      return !tHidden || (tHidden.indexOf( iCase) < 0);
-    }
+    // Note: Ideally, these maps should be cached, as they're currently being created for
+    // each parent case independently, but figuring out the right time to invalidate the
+    // caches is non-trivial, and so is left as a potential future optimization.
 
-    return !tChildren.some( isVisible);
+    // id map of all plotted cases (does not include cases not plotted due to missing values)
+    (tPlotted || []).forEach(function(iCase) { tPlottedMap[iCase.get('id')] = true; });
+    // id map of all hidden cases
+    (tHidden || []).forEach(function(iCase) { tHiddenMap[iCase.get('id')] = true; });
+
+    return !tChildren.some(function(iCase) {
+                            var caseID = iCase.get('id');
+                            // to be visible cases must be plotted and not hidden
+                            return tPlottedMap[caseID] && !tHiddenMap[caseID];
+                          });
   },
 
   /**
