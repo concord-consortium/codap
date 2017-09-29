@@ -1290,6 +1290,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 }
               };
             }
+          } else {
+            return { success: false, values: {error: "item not found"}};
           }
         }
 
@@ -1367,6 +1369,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 }
               };
             }
+          } else {
+            return { success: false, values: {error: "item not found"}};
           }
         },
 

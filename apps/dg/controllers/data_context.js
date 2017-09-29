@@ -633,41 +633,8 @@ DG.DataContext = SC.Object.extend((function() // closure
   doCreateItems: function (iChange) {
 
     var cases = this.addItems(iChange.items);
-    var collections = [];
-    var collectionIDCaseMap = {};
-    var success = true;
 
-    // We need to create a case change notice for each collection we have
-    // touched
-    cases.forEach(function (iCase) {
-      var collectionID = iCase.collection.get('id');
-      var collectionCases = collectionIDCaseMap[collectionID];
-      if (!collectionCases) {
-        collections.push(iCase.collection);
-        collectionCases = collectionIDCaseMap[collectionID] = [];
-      }
-      collectionCases.push(iCase.get('id'));
-    });
-
-    if (cases && cases.length > 0) {
-      collections.forEach(function (collection) {
-        var cases = collectionIDCaseMap[collection.get('id')];
-        this.applyChange({
-          operation: 'createCases',
-          collection: this.getCollectionByID(collection.get('id')),
-          requester: iChange.requester,
-          isComplete: true,
-          properties: {index: true},
-          result: {
-            caseIDs: cases,
-            caseID: cases[0]
-          }
-        });
-      }.bind(this));
-    }
-
-
-    return {success: success, caseIDs: cases.map(function (iCase) { return iCase.id;})};
+    return {success: true, caseIDs: cases.map(function (iCase) { return iCase.id;})};
   },
   /**
      Updates values in one or more items
@@ -686,13 +653,18 @@ DG.DataContext = SC.Object.extend((function() // closure
     }
     var item = this.updateItem(iChange.items.id, iChange.items.values);
     var regenResults = this.regenerateCollectionCases();
+    var deletedCases = regenResults && regenResults.deletedCases;
+    var createdCases = regenResults && regenResults.createdCases;
+    var deletedCaseIDs;
+    var collectionIDCaseMap;
+    var collections = [];
 
     var myCase = findCaseForItem(item, this.getLastCollection());
     var result = {
       success: true,
       changedCases: [myCase.id],
-      deletedCases: regenResults.deletedCases,
-      createCases: regenResults.createdCases
+      deletedCases: deletedCases,
+      createCases: createdCases
     };
     if (myCase) {
       this.applyChange({
@@ -702,10 +674,49 @@ DG.DataContext = SC.Object.extend((function() // closure
         requester: iChange.requester,
         result: result
       });
-
       return result;
     }
+    if (deletedCases && deletedCases.length) {
+      deletedCaseIDs = regenResults.deletedCases.map(function (iCase) {
+        return iCase.id;
+      });
+      this.applyChange({
+        operation: 'deleteCases',
+        isComplete: true,
+        requester: iChange.requester,
+        result: {
+          caseIDs: deletedCaseIDs
+        }
+      });
+    }
+    if (createdCases && createdCases.length) {
+      createdCases.forEach(function (iCase) {
+        var collectionID = iCase.collection.get('id');
+        var collectionCases = collectionIDCaseMap[collectionID];
+        if (!collectionCases) {
+          collections.push(iCase.collection);
+          collectionCases = collectionIDCaseMap[collectionID] = [];
+        }
+        collectionCases.push(iCase.get('id'));
+      });
 
+      DG.dirtyCurrentDocument(this.get('model'), false);
+
+      collections.forEach(function (collection) {
+        var cases = collectionIDCaseMap[collection.get('id')];
+        var change = {
+          operation: 'createCases',
+          collection: this.getCollectionByID(collection.get('id')),
+          isComplete: true,
+          properties: {index: true},
+          result: {
+            caseIDs: cases,
+            caseID: cases[0]
+          }
+        };
+        this.applyChange(change);
+      }.bind(this));
+    }
   },
   /**
      Deletes items in this context.

@@ -74,6 +74,11 @@ DG.DataItem = SC.Object.extend({
     $.extend(this.values, dataMap);
   },
 
+  /**
+   * Creates a serializable object for transmission. Used by Plugin API.
+   * At this point, items are not directly written to documents.
+   * @return {{id: *, values: {}}}
+   */
   toArchive: function () {
     var nameValueMap = {};
     Object.keys(this.values).map(function (key) {
