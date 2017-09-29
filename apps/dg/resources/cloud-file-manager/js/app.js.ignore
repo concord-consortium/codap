@@ -34,22 +34,22 @@ function placeHoldersCount (b64) {
 
 function byteLength (b64) {
   // base64 is 4/3 + up to two characters of the original data
-  return (b64.length * 3 / 4) - placeHoldersCount(b64)
+  return b64.length * 3 / 4 - placeHoldersCount(b64)
 }
 
 function toByteArray (b64) {
-  var i, l, tmp, placeHolders, arr
+  var i, j, l, tmp, placeHolders, arr
   var len = b64.length
   placeHolders = placeHoldersCount(b64)
 
-  arr = new Arr((len * 3 / 4) - placeHolders)
+  arr = new Arr(len * 3 / 4 - placeHolders)
 
   // if there are placeholders, only get up to the last complete 4 chars
   l = placeHolders > 0 ? len - 4 : len
 
   var L = 0
 
-  for (i = 0; i < l; i += 4) {
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
     tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
     arr[L++] = (tmp >> 16) & 0xFF
     arr[L++] = (tmp >> 8) & 0xFF
@@ -14914,6 +14914,16 @@ LaraProvider = (function(superClass) {
     }
   };
 
+  LaraProvider.prototype.logLaraData = function(laraData) {
+    var ref;
+    if ((ref = this.collaboratorUrls) != null ? ref.length : void 0) {
+      laraData.collaboratorUrls = this.collaboratorUrls;
+    }
+    if (this.options.logLaraData) {
+      return this.options.logLaraData(laraData);
+    }
+  };
+
   LaraProvider.prototype.filterTabComponent = function(capability, defaultComponent) {
     return null;
   };
@@ -14955,17 +14965,24 @@ LaraProvider = (function(superClass) {
         accessKey: accessKey
       },
       context: this,
-      success: function(data) {
-        var content, ref6;
-        content = cloudContentFactory.createEnvelopedCloudContent(data);
-        metadata.rename(metadata.name || data.docName || data.name || ((ref6 = data.content) != null ? ref6.name : void 0));
-        if (metadata.name) {
-          content.addMetadata({
-            docName: metadata.filename
+      success: (function(_this) {
+        return function(data) {
+          var content, ref6, ref7;
+          _this.logLaraData({
+            operation: 'open',
+            documentID: (ref6 = metadata.providerData) != null ? ref6.recordid : void 0,
+            documentUrl: url
           });
-        }
-        return callback(null, content);
-      },
+          content = cloudContentFactory.createEnvelopedCloudContent(data);
+          metadata.rename(metadata.name || data.docName || data.name || ((ref7 = data.content) != null ? ref7.name : void 0));
+          if (metadata.name) {
+            content.addMetadata({
+              docName: metadata.filename
+            });
+          }
+          return callback(null, content);
+        };
+      })(this),
       error: function(jqXHR) {
         var ref6;
         return callback("Unable to load " + (metadata.name || ((ref6 = metadata.providerData) != null ? ref6.recordid : void 0) || 'file'));
@@ -15139,6 +15156,11 @@ LaraProvider = (function(superClass) {
               url: url,
               dataType: 'json'
             }).done(function(createResponse, status, jqXHR) {
+              _this.logLaraData({
+                operation: 'clone',
+                documentID: docStore.recordid,
+                documentUrl: url
+              });
               processCreateResponse(createResponse);
               return callback(null);
             }).fail(function(jqXHR, status, error) {
@@ -15266,9 +15288,16 @@ LaraProvider = (function(superClass) {
         xhrFields: {
           withCredentials: true
         }
-      }).done(function(data, status, jqXHR) {
-        return processInitialRunState(openSavedParams.url, openSavedParams.source, openSavedParams.readOnlyKey, data);
-      }).fail(function(jqXHR, status, error) {
+      }).done((function(_this) {
+        return function(data, status, jqXHR) {
+          _this.logLaraData({
+            operation: 'open',
+            runStateUrl: openSavedParams.url,
+            documentID: openSavedParams.source
+          });
+          return processInitialRunState(openSavedParams.url, openSavedParams.source, openSavedParams.readOnlyKey, data);
+        };
+      })(this)).fail(function(jqXHR, status, error) {
         return callback("Could not open the specified document because an error occurred [getState]");
       });
       return;
@@ -16814,110 +16843,110 @@ module.exports={
 
 },{}],73:[function(require,module,exports){
 module.exports={
-    "~MENUBAR.UNTITLED_DOCUMENT": "Untitled Document",
-    "~MENU.NEW": "New",
-    "~MENU.OPEN": "Open ...",
-    "~MENU.CLOSE": "Close",
-    "~MENU.IMPORT_DATA": "Import data...",
-    "~MENU.SAVE": "Save",
-    "~MENU.SAVE_AS": "Save As ...",
-    "~MENU.EXPORT_AS": "Export File As ...",
-    "~MENU.CREATE_COPY": "Create a copy",
-    "~MENU.SHARE": "Share...",
-    "~MENU.SHARE_GET_LINK": "Get link to shared view",
-    "~MENU.SHARE_UPDATE": "Update shared view",
-    "~MENU.DOWNLOAD": "Download",
-    "~MENU.RENAME": "Rename",
-    "~MENU.REVERT_TO": "Revert to...",
-    "~MENU.REVERT_TO_LAST_OPENED": "Recently opened state",
-    "~MENU.REVERT_TO_SHARED_VIEW": "Shared view",
-    "~DIALOG.SAVE": "Save",
-    "~DIALOG.SAVE_AS": "Save As ...",
-    "~DIALOG.EXPORT_AS": "Export File As ...",
-    "~DIALOG.CREATE_COPY": "Create A Copy ...",
-    "~DIALOG.OPEN": "Open",
-    "~DIALOG.DOWNLOAD": "Download",
-    "~DIALOG.RENAME": "Rename",
-    "~DIALOG.SHARED": "Share",
-    "~DIALOG.IMPORT_DATA": "Import Data",
-    "~PROVIDER.LOCAL_STORAGE": "Local Storage",
-    "~PROVIDER.READ_ONLY": "Read Only",
-    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
-    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
-    "~PROVIDER.LOCAL_FILE": "Local File",
-    "~FILE_STATUS.SAVING": "Saving...",
-    "~FILE_STATUS.SAVED": "All changes saved",
-    "~FILE_STATUS.SAVED_TO_PROVIDER": "All changes saved to %{providerName}",
-    "~FILE_STATUS.UNSAVED": "Unsaved",
-    "~FILE_DIALOG.FILENAME": "Filename",
-    "~FILE_DIALOG.OPEN": "Open",
-    "~FILE_DIALOG.SAVE": "Save",
-    "~FILE_DIALOG.CANCEL": "Cancel",
-    "~FILE_DIALOG.REMOVE": "Delete",
-    "~FILE_DIALOG.REMOVE_CONFIRM": "Are you sure you want to delete %{filename}?",
-    "~FILE_DIALOG.REMOVED_TITLE": "Deleted File",
-    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} was deleted",
-    "~FILE_DIALOG.LOADING": "Loading...",
-    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error loading folder contents ***",
-    "~FILE_DIALOG.DOWNLOAD": "Download",
-    "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTE: On Safari file may be \"Unknown\" and should be manually renamed with a .codap extension.",
-    "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
-    "~DOWNLOAD_DIALOG.CANCEL": "Cancel",
-    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
-    "~RENAME_DIALOG.RENAME": "Rename",
-    "~RENAME_DIALOG.CANCEL": "Cancel",
-    "~SHARE_DIALOG.COPY": "Copy",
-    "~SHARE_DIALOG.VIEW": "View",
-    "~SHARE_DIALOG.CLOSE": "Close",
-    "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
-    "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
-    "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
-    "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
-    "~SHARE_UPDATE.TITLE": "Shared View Updated",
-    "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
-    "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
-    "~CONFIRM.NEW_FILE": "You have unsaved changes. Are you sure you want to create a new document?",
-    "~CONFIRM.AUTHORIZE_OPEN": "Authorization is required to open the document. Would you like to proceed with authorization?",
-    "~CONFIRM.AUTHORIZE_SAVE": "Authorization is required to save the document. Would you like to proceed with authorization?",
-    "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
-    "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
-    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
-    "~CONFIRM_DIALOG.TITLE": "Are you sure?",
-    "~CONFIRM_DIALOG.YES": "Yes",
-    "~CONFIRM_DIALOG.NO": "No",
-    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Drop file here or click here to select a file.",
-    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Sorry, you can choose only one file to open.",
-    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Sorry, you can't drop more than one file.",
-    "~IMPORT.LOCAL_FILE": "Local File",
+    "~MENUBAR.UNTITLED_DOCUMENT": "מסמך לא שמור",
+    "~MENU.NEW": "חדש",
+    "~MENU.OPEN": "פתח",
+    "~MENU.CLOSE": "סגור",
+    "~MENU.IMPORT_DATA": "יבא נתונים",
+    "~MENU.SAVE": "שמור",
+    "~MENU.SAVE_AS": "שמור בשם",
+    "~MENU.EXPORT_AS": "יצא קובץ",
+    "~MENU.CREATE_COPY": "צור עותק",
+    "~MENU.SHARE": "שתף",
+    "~MENU.SHARE_GET_LINK": "קבל קישור לצפיה שיתופית",
+    "~MENU.SHARE_UPDATE": "עדכן צפיה שיתופית",
+    "~MENU.DOWNLOAD": "הורד",
+    "~MENU.RENAME": "שנה שם",
+    "~MENU.REVERT_TO": "החזר ל",
+    "~MENU.REVERT_TO_LAST_OPENED": "מצב פתוח לאחרונה",
+    "~MENU.REVERT_TO_SHARED_VIEW": "צפיה שיתופית",
+    "~DIALOG.SAVE": "שמור",
+    "~DIALOG.SAVE_AS": "שמור בשם",
+    "~DIALOG.EXPORT_AS": "יצא קובץ כ",
+    "~DIALOG.CREATE_COPY": "צור עותק...",
+    "~DIALOG.OPEN": "פתח",
+    "~DIALOG.DOWNLOAD": "הורד",
+    "~DIALOG.RENAME": "שנה שם",
+    "~DIALOG.SHARED": "שתף",
+    "~DIALOG.IMPORT_DATA": "יבא נתונים",
+    "~PROVIDER.LOCAL_STORAGE": "אחסון מקומי",
+    "~PROVIDER.READ_ONLY": "קריאה בלבד",
+    "~PROVIDER.GOOGLE_DRIVE": "שרת GOOGLE",
+    "~PROVIDER.DOCUMENT_STORE": "ענן CONCORD",
+    "~PROVIDER.LOCAL_FILE": "קובץ מקומי",
+    "~FILE_STATUS.SAVING": "שומר...",
+    "~FILE_STATUS.SAVED": "כל השינויים נשמרו",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "כל השינויים נשמרו ל%",
+    "~FILE_STATUS.UNSAVED": "לא שמור",
+    "~FILE_DIALOG.FILENAME": "שם קובץ",
+    "~FILE_DIALOG.OPEN": "פתח",
+    "~FILE_DIALOG.SAVE": "שמור",
+    "~FILE_DIALOG.CANCEL": "בטל",
+    "~FILE_DIALOG.REMOVE": "מחק",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "האם אתם בטוחים שברצונכם למחוק את %",
+    "~FILE_DIALOG.REMOVED_TITLE": "קובץ מחוק",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "% נמחק",
+    "~FILE_DIALOG.LOADING": "טוען...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** טעות בעת טעינת תוכן הקובץ ***",
+    "~FILE_DIALOG.DOWNLOAD": "הורד",
+    "~FILE_DIALOG.DOWNLOAD_NOTE": "שים לב: הקובץ נשמר כ'לא ידוע' וצריך לשנות את השם ידנית עם תוספת .CODAP",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "הורד",
+    "~DOWNLOAD_DIALOG.CANCEL": "בטל",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "צרף נתוני שיתוף בקובץ שהורד",
+    "~RENAME_DIALOG.RENAME": "שנה שם",
+    "~RENAME_DIALOG.CANCEL": "בטל",
+    "~SHARE_DIALOG.COPY": "העתק",
+    "~SHARE_DIALOG.VIEW": "צפה",
+    "~SHARE_DIALOG.CLOSE": "סגור",
+    "~SHARE_DIALOG.COPY_SUCCESS": "המידע הועתק ללוח",
+    "~SHARE_DIALOG.COPY_ERROR": "סליחה, המידע לא ניתן להעתקה ללוח",
+    "~SHARE_DIALOG.COPY_TITLE": "העתק תוצאה",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "העותק השיתופי של מסמך זה ישמר עד שנה ללא שימוש",
+    "~SHARE_UPDATE.TITLE": "צפיה שיתופית עודכנה",
+    "~SHARE_UPDATE.MESSAGE": "הצפיה השיתופית עודכנה בהצלחה",
+    "~CONFIRM.OPEN_FILE": "ישנם שינויים לא שמורים. האם אתם בטוחים שברצונכם לפתוח מסמך חדש?",
+    "~CONFIRM.NEW_FILE": "ישנם שינויים לא שמורים. האם אתם בטוחים שברצונכם ליצור מסמך חדש?",
+    "~CONFIRM.AUTHORIZE_OPEN": "נדרש אישור לפתיחת המסמך. להמשיך עם אישור?",
+    "~CONFIRM.AUTHORIZE_SAVE": "נדרש אישור לשמירת המסמך. להמשיך עם אישור?",
+    "~CONFIRM.CLOSE_FILE": "ישנם שינויים לא שמורים. לסגור את המסמך?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "בטוח שברצונכם להחזיר את המסמך למצב הפתוח האחרון?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "בטוח שברצונכם להחזיר את המסמך למצב השיתופי האחרון?",
+    "~CONFIRM_DIALOG.TITLE": "בטוח?",
+    "~CONFIRM_DIALOG.YES": "כן",
+    "~CONFIRM_DIALOG.NO": "לא",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "שחרר קובץ כאן או הקלק לבחירת קובץ",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "סליחה, ניתן לבחור רק קובץ אחד לפתיחה.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "סליחה, לא ניתן לשחרר יותר מקובץ אחד.",
+    "~IMPORT.LOCAL_FILE": "קובץ מקומי",
     "~IMPORT.URL": "URL",
-    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Sorry, you can choose only one url to open.",
-    "~IMPORT_URL.PLEASE_ENTER_URL": "Please enter a url to import.",
-    "~URL_TAB.DROP_URL_HERE": "Drop URL here or enter URL below",
-    "~URL_TAB.IMPORT": "Import",
-    "~CLIENT_ERROR.TITLE": "Error",
-    "~ALERT_DIALOG.TITLE": "Alert",
-    "~ALERT_DIALOG.CLOSE": "Close",
-    "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
-    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Login to Google",
-    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Connecting to Google...",
-    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Missing required clientId in googleDrive provider options",
-    "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
-    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
-    "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
-    "~DOCSTORE.SAVE_403_ERROR": "You don't have permission to save '%{filename}'.<br><br>You may need to log in again.",
-    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Unable to create %{filename}.  File already exists.",
-    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Unable to save %{filename}: [%{message}]",
-    "~DOCSTORE.SAVE_ERROR": "Unable to save %{filename}",
-    "~DOCSTORE.REMOVE_403_ERROR": "You don't have permission to remove %{filename}.<br><br>You may need to log in again.",
-    "~DOCSTORE.REMOVE_ERROR": "Unable to remove %{filename}",
-    "~DOCSTORE.RENAME_403_ERROR": "You don't have permission to rename %{filename}.<br><br>You may need to log in again.",
-    "~DOCSTORE.RENAME_ERROR": "Unable to rename %{filename}",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alert",
-    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
-    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "I'll do it later",
-    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
-    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "סליחה, ניתן לפתוח רק קישור אחד",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "הקלידו URL ליבוא",
+    "~URL_TAB.DROP_URL_HERE": "שחרר URL פה או הקלד URL מתחת",
+    "~URL_TAB.IMPORT": "יבא",
+    "~CLIENT_ERROR.TITLE": "טעות",
+    "~ALERT_DIALOG.TITLE": "אזהרה",
+    "~ALERT_DIALOG.CLOSE": "סגור",
+    "~ALERT.NO_PROVIDER": "לא ניתן לפתוח את המסמך מפני שהשרת אינו זמין",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "הכנס לGOOGLE",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "מתחבר לGOOGLE",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "חסרים פרטי לקוח בGOOGLE",
+    "~DOCSTORE.LOAD_403_ERROR": "אין אישור לפתוח את %. אם אתם משתמשים במסמך שיתופי של מישהו אחר ייתכן שהקובץ לא נשמר.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "לא ניתן להעלות את המסמך השיתופי המבוקש. אולי הקובץ לא שותף?",
+    "~DOCSTORE.LOAD_404_ERROR": "לא ניתן להעלות את %",
+    "~DOCSTORE.SAVE_403_ERROR": "אין אישור לשמירת '%'. ייתכן שתצטרכו להכנס שוב.",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "לא ניתן ליצור את %. הקובץ כבר קיים.",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "לא ניתן לשמור את %",
+    "~DOCSTORE.SAVE_ERROR": "לא ניתן לשמור את %",
+    "~DOCSTORE.REMOVE_403_ERROR": "אין אישור להסרת %. יש צורך להכנס שוב.",
+    "~DOCSTORE.REMOVE_ERROR": "לא ניתן להסיר את %",
+    "~DOCSTORE.RENAME_403_ERROR": "אין אישור לשינוי שם %. יש צורך להכנס שוב.",
+    "~DOCSTORE.RENAME_ERROR": "לא ניתן לשנות את שם %",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "אזהרת ענן CONCORD",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "אזהרת ענן CONCORD",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "שמור במקום אחר",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "יותר מאוחר",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "ענן CONCORD נסגר!",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "שמור מסמך במיקום אחר."
 }
 
 },{}],74:[function(require,module,exports){
