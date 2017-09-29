@@ -282,6 +282,11 @@ DG = SC.Application.create((function () // closure
 
     showWebSiteURL: 'https://codap.concord.org',
 
+    pluginURL: function () {
+      return getUrlParameter('pluginURL') ||
+          'https://codap.concord.org/plugins/releases/latest';
+    }.property(),
+
     /*
      * Logging is enabled when server matches this DNS name.
      */
@@ -468,7 +473,8 @@ DG = SC.Application.create((function () // closure
       'mapButton',
       'sliderButton',
       'calcButton',
-      'textButton'
+      'textButton',
+      'pluginButton'
     ],
 
     rightButtons: [ // These appear on the right side of the tool shelf

@@ -14,7 +14,6 @@ SC.stringsFor("en", {
     "DG.fileMenu.menuItem.shareUpdate": "Update shared view",
     "DG.fileMenu.menuItem.renameDocument": "Rename",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
-
     // main.js
     "DG.main.userEntryView.title": "What would you like to do?",
     "DG.main.userEntryView.openDocument": "Open Document or Browse Examples",
@@ -130,6 +129,8 @@ SC.stringsFor("en", {
     "DG.ToolButtonData.guideMenu.showGuide": "Show Guide",
     "DG.ToolButtonData.help.title": "Help",
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
+    "DG.ToolButtonData.pluginMenu.title": "Utilities",
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a utility component",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",

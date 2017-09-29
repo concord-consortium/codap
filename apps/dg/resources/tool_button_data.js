@@ -80,6 +80,16 @@ DG.ToolButtonData = {
     toolTip: 'DG.ToolButtonData.textButton.toolTip',  // "Make a text object (ctrl-alt-shift-t)"
     localize: true,
     classNames: ['dg-text-button']
+  },
+
+  pluginButton: {
+    title: 'DG.ToolButtonData.pluginMenu.title',  // "Utilities"
+    iconClass: 'moonicon-icon-tileList',
+    target: 'DG.appController.pluginMenuPane',
+    action: 'popup',
+    toolTip: 'DG.ToolButtonData.pluginMenu.toolTip',  // "Select a utility component"
+    localize: true,
+    classNames: ['dg-plugin-button']
   }
 
 };

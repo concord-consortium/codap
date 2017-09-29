@@ -50,6 +50,8 @@ DG.appController = SC.Object.create((function () // closure
      */
     helpMenuPane: null,
 
+    pluginMenuPane: null,
+
     documentArchiver: DG.DocumentArchiver.create({}),
 
     showCaseTableFor: function(iDataContext) {
@@ -183,6 +185,14 @@ DG.appController = SC.Object.create((function () // closure
           itemLayerIdKey: 'id',
           layout: {width: 150}
         });
+        this.pluginMenuPane = DG.MenuPane.create({
+          selectedItemDidChange: function () {
+            DG.appController.openPlugin(this.get('selectedItem').url);
+          }.observes('selectedItem'),
+          items: this.get('pluginMenuItems'),
+          itemLayerIdKey: 'id',
+          layout: {width: 150}
+        });
         this.optionMenuPane = DG.MenuPane.create({
           items: this.get('optionMenuItems'),
           itemLayerIdKey: 'id',
@@ -249,6 +259,17 @@ DG.appController = SC.Object.create((function () // closure
         icon: 'tile-icon-table'
       });
       return menuItems;
+    }.property(),
+    pluginMenuItems: function () {
+      return [{
+        localize: true,
+        title: 'Sampler',
+        url: DG.get('pluginURL') + '/TP-Sampler',
+        target: this,
+        dgAction: 'openPlugin',
+        icon: 'tile-icon-mediaTool',
+        id: 'dg-pluginMenuItem-sampler'
+      }];
     }.property(),
     optionMenuItems: function () {
       return [
@@ -888,6 +909,10 @@ DG.appController = SC.Object.create((function () // closure
       else {
         window.open(tHelpURL);
       }
+    },
+
+    openPlugin: function (iURL) {
+      this.importURL(iURL);
     }
 
   }; // end return from closure
