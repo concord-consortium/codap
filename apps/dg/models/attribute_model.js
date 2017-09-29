@@ -73,8 +73,7 @@ DG.Attribute = DG.BaseModel.extend(
           this._categoryMap = iValue;
         }
         if(SC.none( this._categoryMap) || !SC.isArray( this._categoryMap.__order) ||
-              this._categoryMap.__order.length === 0) {
-          this._categoryMap = { __order: [] };
+              this._categoryMap.__order.length === 0 ){
           this.updateCategoryMap();
           // Default order is alphabetical
           this._categoryMap.__order.sort();
@@ -415,26 +414,28 @@ DG.Attribute = DG.BaseModel.extend(
         if( tCollection) {
           var tAttrID = this.get('id'),
               tCases = tCollection.get('cases'),
-              tColorIndex = this._categoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
+              tCategoryMap = this._categoryMap || { __order: []},
+              tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tCatRecord = {};
           tCases.forEach( function( iCase) {
             var tValue = iCase.getValue( tAttrID);
             tCatRecord[ tValue] = true;
-            if( SC.none( this._categoryMap[ tValue])) {
+            if( SC.none( tCategoryMap[ tValue])) {
               if( !SC.empty(tValue)) {
-                this._categoryMap[tValue] = DG.ColorUtilities.kKellyColors[tColorIndex];
+                tCategoryMap[tValue] = DG.ColorUtilities.kKellyColors[tColorIndex];
                 tColorIndex = (tColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;
-                this._categoryMap.__order.push(tValue);
+                tCategoryMap.__order.push(tValue);
               }
             }
           }.bind( this));
           // Delete unrecorded categories
-          this._categoryMap.__order.forEach( function( iCat, iIndex) {
+          tCategoryMap.__order.forEach( function( iCat, iIndex) {
             if( !tCatRecord[ iCat]) {
-              delete this._categoryMap[ iCat];
-              this._categoryMap.__order.splice( iIndex, 1);
+              delete tCategoryMap[ iCat];
+              tCategoryMap.__order.splice( iIndex, 1);
             }
           }.bind( this));
+          this.set('categoryMap', tCategoryMap);
         }
       },
 
