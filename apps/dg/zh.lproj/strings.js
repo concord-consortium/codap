@@ -632,5 +632,8 @@ SC.stringsFor("zh", {
     "DG.Component.closeComponent.cancelButtonTitle": "取消",
     "DG.GameController.confirmCloseDescription": "如果你關閉這個，你可能無法添加更多數據",
     "DG.WebView.defaultTitle": "網頁",
-    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
+    "DG.fileMenu.provider.examples.displayName": "Example Documents",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component"
 });

@@ -14,6 +14,7 @@ SC.stringsFor("en", {
     "DG.fileMenu.menuItem.shareUpdate": "Update shared view",
     "DG.fileMenu.menuItem.renameDocument": "Rename",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
+
     // main.js
     "DG.main.userEntryView.title": "What would you like to do?",
     "DG.main.userEntryView.openDocument": "Open Document or Browse Examples",

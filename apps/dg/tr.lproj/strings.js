@@ -632,5 +632,8 @@ SC.stringsFor("tr", {
     "DG.Component.closeComponent.cancelButtonTitle": "İptal et",
     "DG.GameController.confirmCloseDescription": "Bunu kapatırsanız, daha fazla veri ekleyemeyebilirsiniz.",
     "DG.WebView.defaultTitle": "İnternet Sayfası",
-    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)"
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
+    "DG.fileMenu.provider.examples.displayName": "Example Documents",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component"
 });
