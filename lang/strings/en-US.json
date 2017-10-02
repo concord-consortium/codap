@@ -130,6 +130,8 @@
     "DG.ToolButtonData.guideMenu.showGuide": "Show Guide",
     "DG.ToolButtonData.help.title": "Help",
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
 
     // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
