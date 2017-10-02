@@ -286,7 +286,7 @@ DG = SC.Application.create((function () // closure
      */
     pluginURL: function () {
       return getUrlParameter('pluginURL') ||
-          'https://codap.concord.org/plugins/releases/latest';
+          '//codap.concord.org/plugins/releases/latest';
     }.property(),
 
     /**
