@@ -253,7 +253,6 @@ DG = SC.Application.create((function () // closure
     return !SC.empty(standaloneParam) && standaloneParam !== 'false';
   };
 
-
   return Object.assign({ // return from closure
 
     NAMESPACE: 'DG',
@@ -282,10 +281,41 @@ DG = SC.Application.create((function () // closure
 
     showWebSiteURL: 'https://codap.concord.org',
 
+    /**
+     * URL for a plugin data store.
+     */
     pluginURL: function () {
       return getUrlParameter('pluginURL') ||
           'https://codap.concord.org/plugins/releases/latest';
     }.property(),
+
+    /**
+     * URL for metadata describing the contents of the plugin data store.
+     * This is a JSON document consisting of an array of plugin descriptions
+     * like the following:
+     *      * [
+     *  {
+     *    "title": "Sampler",
+     *    "description": "Has a mixer, a spinner, and a collector for sampling simulation. Modeled on TinkerPlots Sampler and created for the <a target=\"_blank\" href=\"http://hirise.fi.ncsu.edu/projects/esteem/\">ESTEEM</a> project at NCSU.",
+     *    "width": 450,
+     *    "height": 200,
+     *    "path": "/TP-Sampler/index.html",
+     *    "visible": true,
+     *    "categories": [
+     *      "Partners",
+     *      "Utilities"
+     *    ]
+     *  }
+     * ]
+     */
+    pluginMetadataURL: function () {
+      return this.get('pluginURL') + '/published-plugins.json';
+    }.property(),
+
+    /**
+     * plugin metadata: information about published plugins.
+    */
+    pluginMetadata: null,
 
     /*
      * Logging is enabled when server matches this DNS name.

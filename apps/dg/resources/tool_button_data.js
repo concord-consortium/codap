@@ -86,7 +86,7 @@ DG.ToolButtonData = {
     title: 'DG.ToolButtonData.pluginMenu.title',  // "Utilities"
     iconClass: 'moonicon-icon-tileList',
     target: 'DG.appController.pluginMenuPane',
-    action: 'popup',
+    action: 'showMenu',
     toolTip: 'DG.ToolButtonData.pluginMenu.toolTip',  // "Select a utility component"
     localize: true,
     classNames: ['dg-plugin-button']

@@ -50,8 +50,6 @@ DG.appController = SC.Object.create((function () // closure
      */
     helpMenuPane: null,
 
-    pluginMenuPane: null,
-
     documentArchiver: DG.DocumentArchiver.create({}),
 
     showCaseTableFor: function(iDataContext) {
@@ -186,10 +184,29 @@ DG.appController = SC.Object.create((function () // closure
           layout: {width: 150}
         });
         this.pluginMenuPane = DG.MenuPane.create({
+          init: function () {
+            sc_super();
+            var pluginMetadataURL = DG.get('pluginMetadataURL');
+            if (!pluginMetadataURL) {
+              DG.logWarn('Plugin metadata URL absent.');
+            }
+            // Retrieve plugin metadata for later reference
+            $.ajax(pluginMetadataURL, {
+              success: function (data) {
+                DG.set('pluginMetadata', data);
+                this.set('items', DG.appController.get('pluginMenuItems'));
+              }.bind(this),
+              error: function () {
+                DG.logError('Plugin Metadata Get failed: ' + pluginMetadataURL);
+              }
+            });
+          },
+          showMenu: function (iAnchor) {
+            this.popup(iAnchor);
+          },
           selectedItemDidChange: function () {
             DG.appController.openPlugin(this.get('selectedItem').url);
           }.observes('selectedItem'),
-          items: this.get('pluginMenuItems'),
           itemLayerIdKey: 'id',
           layout: {width: 150}
         });
@@ -261,16 +278,24 @@ DG.appController = SC.Object.create((function () // closure
       return menuItems;
     }.property(),
     pluginMenuItems: function () {
-      return [{
-        localize: true,
-        title: 'Sampler',
-        url: DG.get('pluginURL') + '/TP-Sampler',
-        target: this,
-        dgAction: 'openPlugin',
-        icon: 'tile-icon-mediaTool',
-        id: 'dg-pluginMenuItem-sampler'
-      }];
+      // DG.log('Making plugin menu items');
+      var baseURL = DG.get('pluginURL');
+      var pluginMetadata = DG.get('pluginMetadata');
+      var items = pluginMetadata? pluginMetadata.map(function (pluginData) {
+        return {
+          localize: true,
+          title: pluginData.title,
+          url: baseURL + pluginData.path,
+          target: this,
+          toolTip: pluginData.description,
+          dgAction: 'openPlugin',
+          icon: 'tile-icon-mediaTool',
+          id: 'dg-pluginMenuItem-' + pluginData.title
+        };
+      }): [];
+      return items;
     }.property(),
+
     optionMenuItems: function () {
       return [
         { localize: true, title: 'DG.AppController.optionMenuItems.viewWebPage', // "View Web Page..."
