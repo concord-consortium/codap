@@ -187,10 +187,12 @@ DG.PlotView = DG.PlotLayer.extend(
       this.updateAdornments();
     }
 
-    if( this.getPath('model.isAnimating')) {
+    // The following seemed necessary at one point, but has since caused problems.
+    // We leave it commented in because we may discover situations in which it _is_ necessary.
+    // if( this.getPath('model.isAnimating')) {
       // In some situations we get both animation and transferred points coordinates. The first is sufficient
-      this.set('transferredPointCoordinates', null);
-    }
+      // this.set('transferredPointCoordinates', null);
+    // }
 
   },
 

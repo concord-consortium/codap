@@ -68,6 +68,7 @@ DG.NumericPlotModelMixin =
         tOldBoundsArray.push({}); // Must have an object here or things get out of sync
         return;
       }
+      iAxis.set('scaleCanAnimate', tAttribute.get('type') !== 'qualitative');
 
       // For the purpose of getting new bounds, if we're working with the y-axis of a plot that
       // is plotting on y2, we have to change iPlace so we get the right min and max.
