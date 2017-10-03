@@ -267,7 +267,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0401',
+    BUILD_NUM: '0405',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -286,7 +286,7 @@ DG = SC.Application.create((function () // closure
      */
     pluginURL: function () {
       return getUrlParameter('pluginURL') ||
-          'https://codap.concord.org/plugins/releases/latest';
+          '//codap.concord.org/plugins/releases/latest';
     }.property(),
 
     /**

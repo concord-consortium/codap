@@ -3,9 +3,11 @@
 # Runs a formal build of CODAP
 #
 # Program Dependencies(in addition to standard unix and CODAP dependencies):
-#   git, node, npm, openssh.
+#   git, node, npm, openssh, jq.
 # Requires user account with root permissions on the server.
-# Configured in $HOME/.codap-build.rc
+# Configured in $HOME/.codap-build.rc: CODAP_HOME, CODAP_SERVER.
+# Requires access to Pivotal Tracker. PROJECT_ID, TOKEN, and USER_NAME should
+# be defined in $HOME/.ptrc
 PROGNAME=`basename $0`
 
 #
@@ -87,10 +89,10 @@ read -p 'Have Release? ' ANSWER
 checkAnswer
 
 echo '6. copy release to codap-server: '
-scp codap_build_${BUILD_NUM}.zip codap-server.concord.org:
+scp codap_build_${BUILD_NUM}.zip ${CODAP_SERVER}:
 
 echo '7. on codap-server deploy to release directory: '
-ssh codap-server.concord.org "sudo deployCODAP codap_build_${BUILD_NUM}.zip"
+ssh $CODAP_SERVER "sudo deployCODAP codap_build_${BUILD_NUM}.zip"
 
 read -p 'Have copied and deployed? ' ANSWER
 checkAnswer
@@ -103,13 +105,13 @@ read -p 'Have embedded mode image? ' ANSWER
 checkAnswer
 
 echo '9. copy embeddedMode image to codap-server: '
-scp codap_embeddedCODAP_${BUILD_NUM}.zip codap-server.concord.org:
+scp codap_embeddedCODAP_${BUILD_NUM}.zip ${CODAP_SERVER}:
 
 read -p 'Have copied embedded mode image? ' ANSWER
 checkAnswer
 
 echo '10. on codap-server deploy embeddedMode image to release directory: '
-ssh codap-server.concord.org "sudo cp codap_embeddedCODAP_${BUILD_NUM}.zip $SERVER_DIR_EMBEDDED_MODE"
+ssh ${CODAP_SERVER} "sudo cp codap_embeddedCODAP_${BUILD_NUM}.zip $SERVER_DIR_EMBEDDED_MODE"
 
 read -p 'Have deployed embedded mode image? ' ANSWER
 checkAnswer
