@@ -79,7 +79,7 @@ DG.CellAxisModel = DG.AxisModel.extend(
     else
       tAttribute.forEachCategory( function( iName, iColor, iIndex) {
         var tValues = tCellMap[ iName],
-            tNumUses = tValues.length,
+            tNumUses = tValues? tValues.length: 0,
             tNumSelected = 0;
         iCellFunc( iIndex, iName, tNumUses, tNumSelected);
       });
