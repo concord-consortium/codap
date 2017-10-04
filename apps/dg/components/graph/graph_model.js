@@ -238,12 +238,6 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this._plots = [];
 
-      var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
-          numberToggle = DG.NumberToggleModel.create({ dataConfiguration: this.get('dataConfiguration'),
-                                                        isEnabled: showNumberToggle });
-      this.set('numberToggle', numberToggle);
-      this.set('enableNumberToggle', showNumberToggle);
-
       ['x', 'y', 'y2', 'legend'].forEach(function (iKey) {
         configureAttributeDescription(iKey);
         if( iKey !== 'legend') {
@@ -257,6 +251,20 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }.bind(this));
 
       this.synchPlotWithAttributes();
+
+      // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
+      var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
+          numberToggle = this.get('numberToggle'),
+          dataConfiguration = this.get('dataConfiguration');
+      if (!numberToggle) {
+        numberToggle = DG.NumberToggleModel.create({ dataConfiguration: dataConfiguration,
+                                                      isEnabled: showNumberToggle });
+        this.set('numberToggle', numberToggle);
+      }
+      else {
+        numberToggle.set('dataConfiguration', dataConfiguration);
+      }
+      this.set('enableNumberToggle', showNumberToggle);
 
       // We might already have some data, so let's adapt to it. But it would seem that we can't
       // possibly have data, so it's a mystery why we have to call rescaleAxesFromData
