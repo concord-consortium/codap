@@ -151,8 +151,8 @@ DG.AttributeStats = SC.Object.extend(
               if (!SC.empty(tValue)) {
                 var tCellMap = this.getPath('categoricalStats.cellMap');
                 if (SC.none(tCellMap[tValue]))
-                  tCellMap[tValue] = [];
-                tCellMap[tValue].push(iCase);
+                  tCellMap[tValue] = { cases: [], cellNumber: null };
+                tCellMap[tValue].cases.push(iCase);
                 this.categoricalStats.incrementProperty('count');
                 this.setPath('categoricalStats.cellMap', tCellMap); // Replace with notifyPropertyChange?
               }
@@ -452,8 +452,8 @@ DG.AttributeStats = SC.Object.extend(
           if (!SC.none(iCaseValue) && !SC.empty(tValue)) {
             // consider a DG.CategoricalStats.addCaseValue() method
             if (SC.none(tCellMap[tValue]))
-              tCellMap[tValue] = [];
-            tCellMap[tValue].push(iCase);
+              tCellMap[tValue] = { cases: [], cellNumber: null };
+            tCellMap[tValue].cases.push(iCase);
             tCaseCount++;
           }
         }
@@ -465,16 +465,19 @@ DG.AttributeStats = SC.Object.extend(
             // Todo: This call to updateCategoryMap is Kludgy. Think about responding to notification instead.
             iAttribute.updateCategoryMap();
             iAttribute.forEachCategory( function( iCategory, iColor, iIndex) {
-                tCellMap[iCategory] = [];
+                tCellMap[iCategory] = { cases: [], cellNumber: null };
             });
 
             var tVarID = iAttribute.get('id');
             tCases.forEach(function (iCase) {
               addCaseValueToStats(iCase, iCase.getValue(tVarID));
             });
+            iAttribute.forEachCategory( function(iName, iColor, iIndex) {
+              tCellMap[ iName].cellNumber = iIndex;
+            });
             if (iAttribute.get('blockDisplayOfEmptyCategories')) {
               DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
-                if (iValue.length === 0)
+                if (iValue.cases.length === 0)
                   delete tCellMap[iKey];
               });
             }

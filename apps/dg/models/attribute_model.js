@@ -435,6 +435,17 @@ DG.Attribute = DG.BaseModel.extend(
               tCategoryMap.__order.splice( iIndex, 1);
             }
           }.bind( this));
+          if( !this._categoryMap) {
+            tCategoryMap.__order.sort( function( item1, item2) {
+              if( typeof item1 === 'number' && typeof item2 === 'number')
+                return item1 - item2;
+              else if( item1 < item2)
+                return -1;
+              else if( item1 > item2)
+                return 1;
+              else return 0;
+            });  // Default is alphabetical
+          }
           this.set('categoryMap', tCategoryMap);
         }
       },

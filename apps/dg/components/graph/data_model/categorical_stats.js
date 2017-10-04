@@ -67,7 +67,7 @@ DG.CategoricalStats = SC.Object.extend(
     @return{Number} corresponding to given name
   */
   cellNameToCellNumber: function( iCellName) {
-    return SC.empty( iCellName) ? null : DG.ObjectMap.keys( this.cellMap).indexOf( iCellName.toString());
+    return SC.empty( iCellName) ? null : this.cellMap[ iCellName.toString()].cellNumber;
   },
   
   /**
