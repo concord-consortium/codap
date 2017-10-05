@@ -124,10 +124,9 @@ return {
   getParentLabel: function(iIndex) {
     var cases = this.get('parentCases'),
         tCase = cases && cases[iIndex],
-        attr = this.getFirstParentAttribute();
-    return tCase && attr
-              ? tCase.getStrValue(attr.get('id'))
-              : (iIndex + 1).toString();
+        attr = this.getFirstParentAttribute(),
+        caseAttrValue = tCase && attr && tCase.getStrValue(attr.get('id'));
+    return !SC.empty(caseAttrValue) ? caseAttrValue : (iIndex + 1).toString();
   },
 
   getParentTooltip: function(iIndex) {
@@ -244,7 +243,8 @@ return {
       tResultCases = this.childrenOfParent(iIndex);
     }
     else {
-      var tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+      var tAllCases = tConfig ? tConfig.get('allCases') : [],
+          tCases = tAllCases ? tAllCases.flatten() : [],
           tCase = (tCases.length > iIndex) ? tCases[iIndex] : null;
       tResultCases = tCase ? [tCase] : null;
     }
