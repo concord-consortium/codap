@@ -173,50 +173,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tHideShowButton);
 
-/*
-          var showDeletePopup = function () {
-            var tMenu = DG.MenuPane.create({
-                  classNames: 'dg-display-delete-popup'.w(),
-                  layout: {width: 200, height: 150}
-                }),
-                tModel = this.get('dataDisplayModel'),
-                tSelection = tModel.get('selection'),
-                tCases = tModel.get('cases'),
-                tDeleteSelectedIsEnabled = tSelection && tSelection.get('length') !== 0,
-                tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
-                tMenuItems = [
-                  {title: 'DG.Inspector.selection.selectAll',
-                    localize: true,
-                    target: tModel, action: 'selectAll', isEnabled: true},
-                  {
-                    title: 'DG.Inspector.selection.deleteSelectedCases',
-                    localize: true,
-                    target: tModel, action: 'deleteSelectedCases',
-                    isEnabled: tDeleteSelectedIsEnabled
-                  },
-                  {
-                    title: 'DG.Inspector.selection.deleteUnselectedCases',
-                    localize: true,
-                    target: tModel, action: 'deleteUnselectedCases',
-                    isEnabled: tDeleteUnselectedIsEnabled
-                  }
-                ];
-            tMenu.set('items', tMenuItems);
-            tMenu.popup(this.get('inspectorButtons')[2]);
-          }.bind(this);
-
-          tResult.push(DG.IconButton.create({
-            layout: {width: 32},
-            classNames: 'dg-display-trash'.w(),
-            iconClass: 'moonicon-icon-trash',
-            showBlip: true,
-            target: this,
-            action: showDeletePopup,
-            toolTip: 'DG.Inspector.delete.toolTip',
-            localize: true
-          }));
-*/
-
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-display-values'.w(),
@@ -227,6 +183,35 @@ DG.DataDisplayController = DG.ComponentController.extend(
             toolTip: 'DG.Inspector.displayValues.toolTip',
             localize: true
           }));
+
+          var showConfigurationPane = function () {
+            var tMenu = DG.MenuPane.create({
+                  classNames: 'dg-display-configuration-popup'.w(),
+                  layout: {width: 200, height: 150}
+                })/*,
+                tMenuItems = this.get('dataDisplayModel').createHideShowSelectionMenuItems()*/;
+            // tMenu.set('items', tMenuItems);
+            tMenu.popup(tConfigurationButton);
+          }.bind(this);
+
+          var tConfigurationButton = DG.IconButton.create({
+            layout: {width: 32},
+            classNames: 'dg-display-configuration'.w(),
+            iconClass: 'moonicon-icon-options',
+            showBlip: true,
+            target: this,
+            action: showConfigurationPane,
+            toolTip: 'DG.Inspector.displayConfiguration.toolTip',
+            localize: true,
+            init: function () {
+              sc_super();
+              this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
+            },
+            plotDidChange: function () {
+              this.set('isVisible', this_.getPath('dataDisplayModel.canSupportConfigurations'));
+            }
+          });
+          tResult.push(tConfigurationButton);
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},

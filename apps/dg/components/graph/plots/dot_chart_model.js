@@ -66,7 +66,15 @@ DG.DotChartModel = DG.PlotModel.extend(
       return (this.get('primaryAxisPlace') === DG.GraphTypes.EPlace.eX) ? 'vertical' : 'horizontal';
     }.property(),
 
-    /**
+  /**
+   * A dot chart can be configured as a bar chart
+   * @property {Boolean}
+   */
+  canSupportConfigurations: function() {
+    return true;
+  }.property(),
+
+  /**
     @property{SC.Array of SC.Array of SC.Array of {theCase, caseIndex}}
   */
   cachedCells: null,

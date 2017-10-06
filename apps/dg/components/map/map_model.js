@@ -227,6 +227,14 @@ DG.MapModel = DG.DataDisplayModel.extend(
     }.property('hasNumericAxis', 'plot'),
 
     /**
+     * Not yet. Compare with dot chart <==> bart chart
+     * @property {Boolean}
+     */
+    canSupportConfigurations: function() {
+      return false;
+    }.property(),
+
+    /**
      * Returns true if the specified change could affect the current map
      * @param     {object}  - iChange
      * @returns   {boolean} - true if the change could affect the plot; false otherwise

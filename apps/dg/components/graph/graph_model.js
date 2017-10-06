@@ -496,6 +496,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return tPlot && tPlot.mixUp;
     }.property('plot'),
 
+    /**
+     * Pass down to plot
+     * @property {Boolean}
+     */
+    canSupportConfigurations: function() {
+      return this.getPath('plot.canSupportConfigurations');
+    }.property('plot'),
+
     rescaleAxesFromData: function( iShrink, iAnimate) {
       var tPlot = this.get('plot');
       if( tPlot)

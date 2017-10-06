@@ -680,6 +680,7 @@ SC.stringsFor("en", {
     // Display Inspector
     "DG.Inspector.displayValues.toolTip": "Change what is shown along with the points",
     "DG.Inspector.displayStyles.toolTip": "Change the appearance of the display",
+    "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
     "DG.Inspector.makeImage.toolTip": "Save the image as a PNG file",
     "DG.Inspector.displayShow": "Show …",
 

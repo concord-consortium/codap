@@ -68,9 +68,11 @@ DG.InspectorView = DG.DraggableView.extend(
                 var tChildren = this.get('childViews'),
                     tCurrTop = kPadding;
                 tChildren.forEach(function (iChild, iIndex) {
-                  iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
-                  iChild.set('isVisible', true);
-                  tCurrTop += iChild.iconExtent.height + 2 * kPadding;
+                  if( iChild.get('isVisible')) {
+                    iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
+                    // iChild.set('isVisible', true);
+                    tCurrTop += iChild.iconExtent.height + 2 * kPadding;
+                  }
                 });
                 this.animate('height', Math.max(kCellHeight, tCurrTop - kPadding), kAnimationTime,
                               finishUp);
@@ -85,14 +87,18 @@ DG.InspectorView = DG.DraggableView.extend(
             tTarget.addObserver('layout', this, 'targetLayoutDidChange');
           }
           this.targetLayoutDidChange();
+          this.get('childViews').forEach( function( iChild) {
+            iChild.removeObserver( 'isVisible', this, adjustLayout);
+          });
           removeChildren();
           var tWidth,
               tButtons = this.getPath('targetComponent.inspectorButtons');
           if (tButtons && tButtons.length > 0) {
             tButtons.forEach(function (iButton) {
-              if (!iButton.get('layout').top)
-                iButton.set('isVisible', false);
+              // if (!iButton.get('layout').top)
+              //   iButton.set('isVisible', false);
               this.appendChild(iButton);
+              iButton.addObserver( 'isVisible', this, adjustLayout);
             }.bind(this));
             tWidth = kExpandedWidth;
           }
