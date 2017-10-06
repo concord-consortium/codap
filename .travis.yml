@@ -1,0 +1,15 @@
+language: node_js
+node_js: node
+before_install:
+- rvm use 2.2.7
+install:
+- travis_retry gem install s3_website -v 2.12.3
+- travis_retry gem install sproutcore -v 1.11
+- travis_retry pip install awscli --upgrade --user
+- travis_retry yarn
+before_script: npm run build:bundle-prod
+script: ./bin/s3_deploy.sh
+cache:
+  bundler: true
+  directories:
+    - node_modules
