@@ -627,6 +627,10 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     return tDescriptions;
   }.property(),
 
+  configurationDescriptions: function() {
+    return [];
+  }.property(),
+
   lastValueControls: function() {
     return [];
   }.property(),

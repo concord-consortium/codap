@@ -75,6 +75,11 @@ DG.DotChartModel = DG.PlotModel.extend(
   }.property(),
 
   /**
+   * @property {Boolean}
+   */
+  displayAsBarChart: false,
+
+  /**
     @property{SC.Array of SC.Array of SC.Array of {theCase, caseIndex}}
   */
   cachedCells: null,
@@ -373,6 +378,68 @@ DG.DotChartModel = DG.PlotModel.extend(
     }
     return tControls;
   }.property('plot'),
+
+  /**
+   If we need to make a count model, do so. In any event toggle its visibility.
+   */
+  toggleDisplayAsBarChart: function() {
+
+    var toggle = function() {
+      this.toggleProperty('displayAsBarChart');
+    }.bind( this);
+
+    var tInitialValue = this.get('displayAsBarChart'),
+        tUndo = tInitialValue ? ('DG.Undo.graph.showAsDotChart') : ('DG.Undo.graph.showAsBarChart'),
+        tRedo = tInitialValue ? ('DG.Redo.graph.showAsDotChart') : ('DG.Redo.graph.showAsBarChart');
+    DG.UndoHistory.execute(DG.Command.create({
+      name: "graph.toggleBarChart",
+      undoString: tUndo,
+      redoString: tRedo,
+      log: ("toggleShowAs" + ": %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
+      execute: function() {
+        toggle();
+      }.bind(this),
+      undo: function() {
+        toggle();
+      }.bind(this)
+    }));
+  },
+
+  configurationDescriptions: function() {
+    var this_ = this,
+        tDescriptions = sc_super();
+    tDescriptions.push(
+          {
+            title: 'DG.Inspector.graphBarChart',
+            value: this_.get('displayAsBarChart'),
+            classNames: 'dg-graph-barchart-check'.w(),
+            valueDidChange: function () {
+              this_.toggleDisplayAsBarChart();
+            }.observes('value')
+          }
+    );
+    return tDescriptions;
+  }.property(),
+
+  /**
+   * @return {Object} the saved data.
+   */
+  createStorage: function() {
+    var tStorage = sc_super();
+
+    tStorage.displayAsBarChart = this.displayAsBarChart;
+
+    return tStorage;
+  },
+
+  /**
+   * @param iStorage
+   */
+  restoreStorage: function( iStorage) {
+    sc_super();
+    this.displayAsBarChart = iStorage.displayAsBarChart;
+  },
+
 
   /**
     @property{Boolean}

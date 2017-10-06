@@ -788,6 +788,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return this.getPath('plot.checkboxDescriptions');
     }.property('plot'),
 
+    configurationDescriptions: function() {
+      return this.getPath('plot.configurationDescriptions');
+    }.property('plot'),
+
     lastValueControls: function() {
       return this.getPath('plot.lastValueControls');
     }.property('plot'),

@@ -255,6 +255,10 @@ SC.stringsFor("en", {
     "DG.Redo.graph.hidePlottedIQR": "Redo hiding inter-quartile range",
     "DG.Undo.graph.hidePlottedIQR": "Undo hiding inter-quartile range",
     "DG.Redo.graph.showPlottedIQR": "Redo showing inter-quartile range",
+    "DG.Undo.graph.showAsBarChart": "Undo fusing into bar chart",
+    "DG.Redo.graph.showAsBarChart": "Redo fusing into bar chart",
+    "DG.Undo.graph.showAsDotChart": "Undo dispersing bar chart into dot chart",
+    "DG.Redo.graph.showAsDotChart": "Redo dispersing bar chart into dot chart",
     "DG.Undo.graph.addMovableValue": "Undo adding movable value",
     "DG.Redo.graph.addMovableValue": "Redo adding movable value",
     "DG.Undo.graph.removeMovableValue": "Undo removing movable value",
@@ -657,6 +661,7 @@ SC.stringsFor("en", {
 
     // Inspector
     "DG.Inspector.values": "Measure",
+    "DG.Inspector.configuration": "Configuration",
     "DG.Inspector.styles": "Format",
     "DG.Inspector.pointSize": "Point size:",
     "DG.Inspector.transparency": "Transparency:",
@@ -710,6 +715,7 @@ SC.stringsFor("en", {
     "DG.Inspector.graphPlottedIQR": "Interquartile Range",
     "DG.Inspector.graphPlottedBoxPlot": "Box Plot",
     "DG.Inspector.graphPlottedValue": "Plotted Value",
+    "DG.Inspector.graphBarChart": "Fuse Dots into Bar Chart",
 
     // Table Inspector
     "DG.Inspector.attributes.toolTip": "Make new attributes. Export case data.",
