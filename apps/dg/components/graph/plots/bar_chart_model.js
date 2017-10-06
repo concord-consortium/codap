@@ -1,9 +1,9 @@
 // ==========================================================================
-//                          DG.DotChartModel
+//                          DG.BarChartModel
 //
 //  Author:   William Finzer
 //
-//  Copyright (c) 2014 by The Concord Consortium, Inc. All rights reserved.
+//  Copyright (c) 2017 by The Concord Consortium, Inc. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@
 
 sc_require('components/graph/plots/chart_model');
 
-/** @class  DG.DotChartModel - The model for a plot with categorical axes
+/** @class  DG.BarChartModel - The model for a plot with categorical axes
 
   @extends DG.ChartModel
 */
-DG.DotChartModel = DG.ChartModel.extend(
-/** @scope DG.DotChartModel.prototype */ 
+DG.BarChartModel = DG.ChartModel.extend(
+/** @scope DG.BarChartModel.prototype */ 
 {
   /**
    * Override
    * @property {Boolean}
    */
-  displayAsBarChart: false
+  displayAsBarChart: true,
 
 });
 

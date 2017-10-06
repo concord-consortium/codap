@@ -238,6 +238,14 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
   getTransparency: null,
 
   /**
+   * Some plots can. Override as desired
+   * @property {Boolean}
+   */
+  canSupportConfigurations: function() {
+    return false;
+  }.property(),
+
+  /**
     Key-value pairs for adornment models,
     e.g. _adornmentModels['plottedValue'] = plottedValueModel.
     @property   {Object}
@@ -617,6 +625,10 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
       });
     }
     return tDescriptions;
+  }.property(),
+
+  configurationDescriptions: function() {
+    return [];
   }.property(),
 
   lastValueControls: function() {

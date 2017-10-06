@@ -73,8 +73,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       if( !SC.none( iPlot)) {
         this._plots.forEach( function( iPlot) {
           iPlot.removeObserver('connectingLine', this, this.connectingLineChanged);
+          this.removePlotObserver( iPlot);
           iPlot.destroy();
-        });
+        }.bind( this));
         this._plots = [ iPlot];
         // TODO: Figure out a more elegant way to observe this property
         iPlot.addObserver('connectingLine', this, this.connectingLineChanged);
@@ -140,6 +141,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         'Attempt to remove non-existent plot');
       var tPlot = this._plots[ iPlotIndex];
       this._plots.splice( iPlotIndex, 1);
+      this.removePlotObserver( tPlot);
       tPlot.destroy();
       var tActualYIndex = 0;
       this._plots.forEach( function( iPlot, iIndex) {
@@ -541,6 +543,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return tPlot && tPlot.mixUp;
     }.property('plot'),
 
+    /**
+     * Pass down to plot
+     * @property {Boolean}
+     */
+    canSupportConfigurations: function() {
+      return this.getPath('plot.canSupportConfigurations');
+    }.property('plot'),
+
     rescaleAxesFromData: function( iShrink, iAnimate) {
       var tPlot = this.get('plot');
       if( tPlot)
@@ -572,6 +582,69 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     },
 
     /**
+     * Dot charts and bar charts have a property, displayAsBarChart, which, when toggled, amounts to request
+     * to swap one for the other.
+     * @param iPlot {DG.PlotModel}
+     */
+    addPlotObserver: function( iPlot) {
+      switch( iPlot.constructor) {
+        case DG.DotChartModel:
+        case DG.BarChartModel:
+          iPlot.addObserver('displayAsBarChart', this, this.swapChartType);
+          break;
+      }
+    },
+
+    /**
+     * Called before we destroy a plot.
+     * @param iPlot {DG.PlotModel}
+     */
+    removePlotObserver: function( iPlot) {
+      switch( iPlot.constructor) {
+        case DG.DotChartModel:
+        case DG.BarChartModel:
+          iPlot.removeObserver('displayAsBarChart', this, this.swapChartType);
+          break;
+      }
+    },
+
+    /**
+     * We swap out the given plot model for its alternate. A BarChart gets a count axis and, if we're making a
+     * dot chart, we must remove the count axis.
+     * @param iChartPlot {DG.DotChartModel | DG.BarChartModel }
+     * @param iKey {String} Should be 'displayAsBarChart'
+     * @param iValue {Boolean}
+     */
+    swapChartType: function( iChartPlot, iKey, iValue) {
+      var tConfig = this.get('dataConfiguration'),
+          tNewPlotClass = iChartPlot.constructor === DG.DotChartModel ?
+              DG.BarChartModel : DG.DotChartModel,
+          tNewPlot, tAdornmentModels;
+      tNewPlotClass.configureRoles( tConfig );
+      tNewPlot = tNewPlotClass.create( this.getModelPointStyleAccessors());
+      this.addPlotObserver( tNewPlot);
+
+      tAdornmentModels = iChartPlot.copyAdornmentModels( tNewPlot );
+
+      tNewPlot.beginPropertyChanges();
+      tNewPlot.setIfChanged( 'dataConfiguration', tConfig );
+      tNewPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
+      tNewPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
+      for( var tProperty in tAdornmentModels ) {
+        if( tAdornmentModels.hasOwnProperty( tProperty )) {
+          var tModel = tAdornmentModels[tProperty];
+          tNewPlot.setIfChanged( tProperty, tModel);
+        }
+      }
+      tNewPlot.endPropertyChanges();
+
+      this.setIfChanged('plot', tNewPlot);
+
+      this.removePlotObserver( iChartPlot);
+      iChartPlot.destroy();
+    },
+
+        /**
      Figure out the appropriate plot for the current attribute configuration. If it is not
      the current plot, switch.
      We have need of three local variables that point to a plot.
@@ -613,6 +686,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       tNewPlotClass.configureRoles( tConfig );
       if( SC.none( tCurrentPlot ) || (tNewPlotClass !== tCurrentPlot.constructor) ) {
         tNewPlot = tOperativePlot = tNewPlotClass.create( this.getModelPointStyleAccessors());
+        this.addPlotObserver( tNewPlot);
       }
       else
         tOperativePlot = tCurrentPlot;
@@ -636,8 +710,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this.setIfChanged('plot', tOperativePlot);
 
-      if( !SC.none(tNewPlot) && !SC.none(tCurrentPlot))
+      if( !SC.none(tNewPlot) && !SC.none(tCurrentPlot)) {
+        this.removePlotObserver( tCurrentPlot);
         tCurrentPlot.destroy();
+      }
     },
 
     /**
@@ -767,6 +843,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           tPlot.setIfChanged( 'yAttributeIndex', tActualYAttrIndex);
           tPlot.restoreStorage(iModelDesc.plotModelStorage);
           tPlot.endPropertyChanges();
+          this.addPlotObserver( tPlot);
           if( iIndex === 0)
             this.set('plot', tPlot);
           else
@@ -778,7 +855,9 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       // Start the plots from scratch
       while( this._plots.length > 0) {
-        this._plots.pop().destroy();
+        var tPlot = this._plots.pop();
+        this.removePlotObserver( tPlot);
+        tPlot.destroy();
       }
 
       if( !SC.none( iStorage.isTransparent))
@@ -823,6 +902,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
     checkboxDescriptions: function() {
       return this.getPath('plot.checkboxDescriptions');
+    }.property('plot'),
+
+    configurationDescriptions: function() {
+      return this.getPath('plot.configurationDescriptions');
     }.property('plot'),
 
     lastValueControls: function() {

@@ -186,50 +186,6 @@ DG.DataDisplayController = DG.ComponentController.extend(
           });
           tResult.push(tHideShowButton);
 
-/*
-          var showDeletePopup = function () {
-            var tMenu = DG.MenuPane.create({
-                  classNames: 'dg-display-delete-popup'.w(),
-                  layout: {width: 200, height: 150}
-                }),
-                tModel = this.get('dataDisplayModel'),
-                tSelection = tModel.get('selection'),
-                tCases = tModel.get('cases'),
-                tDeleteSelectedIsEnabled = tSelection && tSelection.get('length') !== 0,
-                tDeleteUnselectedIsEnabled = !tSelection || tSelection.get('length') < tCases.length,
-                tMenuItems = [
-                  {title: 'DG.Inspector.selection.selectAll',
-                    localize: true,
-                    target: tModel, action: 'selectAll', isEnabled: true},
-                  {
-                    title: 'DG.Inspector.selection.deleteSelectedCases',
-                    localize: true,
-                    target: tModel, action: 'deleteSelectedCases',
-                    isEnabled: tDeleteSelectedIsEnabled
-                  },
-                  {
-                    title: 'DG.Inspector.selection.deleteUnselectedCases',
-                    localize: true,
-                    target: tModel, action: 'deleteUnselectedCases',
-                    isEnabled: tDeleteUnselectedIsEnabled
-                  }
-                ];
-            tMenu.set('items', tMenuItems);
-            tMenu.popup(this.get('inspectorButtons')[2]);
-          }.bind(this);
-
-          tResult.push(DG.IconButton.create({
-            layout: {width: 32},
-            classNames: 'dg-display-trash'.w(),
-            iconClass: 'moonicon-icon-trash',
-            showBlip: true,
-            target: this,
-            action: showDeletePopup,
-            toolTip: 'DG.Inspector.delete.toolTip',
-            localize: true
-          }));
-*/
-
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
             classNames: 'dg-display-values'.w(),
@@ -240,6 +196,25 @@ DG.DataDisplayController = DG.ComponentController.extend(
             toolTip: 'DG.Inspector.displayValues.toolTip',
             localize: true
           }));
+
+          var tConfigurationButton = DG.IconButton.create({
+            layout: {width: 32},
+            classNames: 'dg-display-configuration'.w(),
+            iconClass: 'moonicon-icon-segmented-bar-chart-icon',
+            showBlip: true,
+            target: this,
+            action: 'showConfigurationPane',
+            toolTip: 'DG.Inspector.displayConfiguration.toolTip',
+            localize: true,
+            init: function () {
+              sc_super();
+              this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
+            },
+            plotDidChange: function () {
+              this.set('isVisible', this_.getPath('dataDisplayModel.canSupportConfigurations'));
+            }
+          });
+          tResult.push(tConfigurationButton);
 
           tResult.push(DG.IconButton.create({
             layout: {width: 32},
@@ -339,13 +314,65 @@ DG.DataDisplayController = DG.ComponentController.extend(
         },
 
         /**
+         * The content of the values pane depends on what plot is showing; e.g. a scatterplot will have a checkbox
+         * for showing a movable line, while a univariate dot plot will have one for showing a movable value.
+         */
+        showConfigurationPane: function () {
+          var this_ = this,
+              kTitleHeight = 26,
+              kMargin = 20,
+              kLeading = 5,
+              kRowHeight = 20;
+          if( this.getPath('configurationPane.removedByClickInButton')) {
+            this.setPath('configurationPane.removedByClickInButton', false);
+            return;
+          }
+          this.configurationPane = DG.InspectorPickerPane.create(
+              {
+                buttonIconClass: 'moonicon-icon-segmented-bar-chart',  // So we can identify closure through click on button icon
+                classNames: 'dg-inspector-picker'.w(),
+                layout: {width: 200, height: 260},
+                contentView: SC.View.extend(SC.FlowedLayout,
+                    {
+                      layoutDirection: SC.LAYOUT_VERTICAL,
+                      isResizable: false,
+                      isClosable: false,
+                      defaultFlowSpacing: {left: kMargin, bottom: kLeading},
+                      canWrap: false,
+                      align: SC.ALIGN_TOP,
+                      layout: {right: 22},
+                      childViews: 'title'.w(),
+                      title: DG.PickerTitleView.extend({
+                        layout: {height: kTitleHeight},
+                        flowSpacing: {left: 0, bottom: kLeading},
+                        title: 'DG.Inspector.configuration',
+                        localize: true,
+                        iconURL: static_url('images/icon-segmented-bar-chart.svg')
+                      }),
+                      init: function () {
+                        sc_super();
+                        this_.getPath('dataDisplayModel.configurationDescriptions').forEach(function (iDesc) {
+                          iDesc.layout = {height: kRowHeight};
+                          iDesc.localize = true;
+                          this.appendChild(SC.CheckboxView.create(iDesc));
+                        }.bind(this));
+                      }
+                    })
+              });
+          this.configurationPane.popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
+        },
+
+        /**
          * The styles pane provides control over point size, color, and transparency.
          */
         showStylesPane: function () {
           var this_ = this,
               kTitleHeight = 26,
               kMargin = 20,
-              kLeading = 5;
+              kLeading = 5,
+              tStylesButton = this.get('inspectorButtons').find( function( iButton) {
+                return iButton.get('classNames').indexOf( 'dg-display-styles') >= 0;
+              });
           if( this.getPath('stylesPane.removedByClickInButton')) {
             this.setPath('stylesPane.removedByClickInButton', false);
             return;
@@ -381,7 +408,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       }
                     })
               });
-          this.stylesPane.popup(this.get('inspectorButtons')[3], SC.PICKER_POINTER);
+          this.stylesPane.popup(tStylesButton, SC.PICKER_POINTER);
         },
 
         styleControls: function () {

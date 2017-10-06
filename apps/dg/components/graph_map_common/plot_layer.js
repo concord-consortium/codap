@@ -639,24 +639,29 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       return;
 
     var this_ = this,
-      tPlottedElements = this._plottedElements,
-      // Use long path for selection because we can call this before bindings have happened
-      // There must be a better way?
-      tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
-      // Points are 'colored' if there is a legend or if there is more than one plot
-      tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
-                                          DG.Analysis.kNullAttribute) ||
-                      (this.get('numPlots') > 1),
-      tLayerManager = this.get('layerManager' ),
-      tCases = this.getPath('model.cases'),
-      tUnselectedRadius = this._pointRadius,
-      tSelectedRadius = tUnselectedRadius + DG.PlotUtilities.kPointRadiusSelectionAddend;
+        tPlottedElements = this._plottedElements,
+        // Use long path for selection because we can call this before bindings have happened
+        // There must be a better way?
+        tSelection = this.getPath('model.dataConfiguration.collectionClient.casesController.selection'),
+        // Points are 'colored' if there is a legend or if there is more than one plot
+        tIsColored = (this.getPath('model.dataConfiguration.legendAttributeDescription.attribute') !==
+            DG.Analysis.kNullAttribute) ||
+            (this.get('numPlots') > 1),
+        tLayerManager = this.get('layerManager'),
+        tCases = this.getPath('model.cases'),
+        tUnselectedRadius = this._pointRadius,
+        tIsRect = tPlottedElements.length > 0 && tPlottedElements[0][0].constructor === SVGRectElement,
+        tSelectedRadius = tUnselectedRadius + DG.PlotUtilities.kPointRadiusSelectionAddend;
 
     if(!tCases || !tSelection)
       return;
 
     if( this._mustMoveElementsToNewCoordinates){
       this.resetCoordinates( tCases, this.createRenderContext());
+    }
+
+    if( tIsRect) {
+      tSelectedRadius = tUnselectedRadius = 0.1;
     }
 
     tCases.forEach( function( iCase, iIndex) {
