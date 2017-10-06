@@ -24,6 +24,7 @@
     "build:parser": "pegjs --export-var 'DG.formulaParser' 'apps/dg/formula/formulaGrammar.pegjs' 'apps/dg/formula/formulaParser.js'",
     "build:production:comment": "Usage: `npm run build:production` performs a local production build",
     "build:production": "npm run build:bundle-prod && npm run build:local",
+    "build:travis": "npm run build:bundle-prod && bin/makeCodapZip --languages=en travis",
     "clean": "rm -rf tmp && rm -rf apps/dg/resources/build",
     "clean-and-build": "clear && npm run clean && npm run build:bundle-prod && npm run build:local",
     "clean-and-serve": "clear && npm run clean && npm run build:bundle-dev && npm run codap",

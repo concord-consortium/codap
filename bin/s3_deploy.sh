@@ -1,5 +1,5 @@
 #!/bin/sh
-SRC_DIR='dist'
+SRC_DIR='dist/travis'
 DISTRIBUTION_ID='E6OL76123FRO6'
 
 # this will deploy the current public folder to a subfolder in the s3 bucket
@@ -9,10 +9,6 @@ if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
 	exit 0
 fi
 
-mkdir dist
-echo "<html><body>CODAP '$TRAVIS_BRANCH' placeholder</body></html>" > dist/index.html
-# ./bin/makeCodapZip
-
 if [ "$TRAVIS_BRANCH" = 'master' ]; then
   mv $SRC_DIR _site
   INVAL_PATH="/index.html"
@@ -20,10 +16,8 @@ else
   # the 2> is to prevent error messages when no match is found
   CURRENT_TAG=`git describe --tags --exact-match $TRAVIS_COMMIT 2> /dev/null`
   if [ "$TRAVIS_BRANCH" = "$CURRENT_TAG" ]; then
-    # this is a tag build
-    mkdir -p _site/version
-    DEPLOY_DIR=version/$TRAVIS_BRANCH
-    INVAL_PATH="/version/$TRAVIS_BRANCH/index.html"
+    echo "skipping deploy to S3: this is a release tag"
+    exit 0
   else
     # this is a branch build
     mkdir -p _site/branch

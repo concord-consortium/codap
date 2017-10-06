@@ -56,7 +56,7 @@ fi
 BUILD_NUM=$1
 TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
 ZIP_FILE=codap_${BUILD_NUM}.zip
-WORK_DIR=/tmp/${PROGNAME}.$$/${BUILD_NUM}
+WORK_DIR=${ROOTDIR}/dist/$BUILD_NUM
 INDEX_HTML=${WORK_DIR}/index.html
 
 REDIRECT_PATH=./static/dg/en/cert/index.html
@@ -66,6 +66,7 @@ REDIRECT_PATH=./static/dg/en/cert/index.html
 # BUILD_OPTS=${BUILD_OPTS} "--very-verbose"
 # BUILD_OPTS=${BUILD_OPTS} "--mode=debug"
 
+rm -rf ${WORK_DIR}
 mkdir -p ${WORK_DIR}
 
 #
