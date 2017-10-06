@@ -84,7 +84,7 @@ DG.ToolButtonData = {
 
   pluginButton: {
     title: 'DG.ToolButtonData.pluginMenu.title',  // "Utilities"
-    iconClass: 'moonicon-icon-tileList',
+    iconClass: 'moonicon-icon-plug',
     target: 'DG.appController.pluginMenuPane',
     action: 'showMenu',
     toolTip: 'DG.ToolButtonData.pluginMenu.toolTip',  // "Select a utility component"
