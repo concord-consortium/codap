@@ -555,6 +555,21 @@ DG.PlotDataConfiguration = SC.Object.extend(
           if( tValid)
             tResult.push( iCase);
         });
+
+        // If there is a categorical legend attribute then we sort the cases so that cases
+        // belonging to a given category are together. The order of categories is determined by
+        // the attribute's categoryMap
+        var tLegendAttrDesc = tAttributesByPlace[ DG.GraphTypes.EPlace.eLegend][0];
+        if( tLegendAttrDesc &&
+            tLegendAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eCategorical) {
+          var tLegendID = tLegendAttrDesc.getPath('attribute.id'),
+              tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
+          tResult.sort( function( iCase1, iCase2) {
+            var tValue1 = iCase1.getStrValue( tLegendID),
+                tValue2 = iCase2.getStrValue( tLegendID);
+            return tCategoryMap.__order.indexOf( tValue1) - tCategoryMap.__order.indexOf( tValue2);
+          });
+        }
       }
       this._casesCache = tResult;
     }

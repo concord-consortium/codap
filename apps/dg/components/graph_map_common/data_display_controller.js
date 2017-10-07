@@ -303,7 +303,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
           }
           this.configurationPane = DG.InspectorPickerPane.create(
               {
-                buttonIconClass: 'moonicon-icon-options',  // So we can identify closure through click on button icon
+                buttonIconClass: 'moonicon-icon-segmented-bar-chart',  // So we can identify closure through click on button icon
                 classNames: 'dg-inspector-picker'.w(),
                 layout: {width: 200, height: 260},
                 contentView: SC.View.extend(SC.FlowedLayout,
@@ -315,18 +315,13 @@ DG.DataDisplayController = DG.ComponentController.extend(
                       canWrap: false,
                       align: SC.ALIGN_TOP,
                       layout: {right: 22},
-                      childViews: 'title showLabel'.w(),
+                      childViews: 'title'.w(),
                       title: DG.PickerTitleView.extend({
                         layout: {height: kTitleHeight},
                         flowSpacing: {left: 0, bottom: kLeading},
                         title: 'DG.Inspector.configuration',
                         localize: true,
-                        iconURL: static_url('images/icon-options.svg')
-                      }),
-                      showLabel: SC.LabelView.extend({
-                        layout: {height: kRowHeight},
-                        value: 'DG.Inspector.displayShow',
-                        localize: true
+                        iconURL: static_url('images/icon-segmented-bar-chart.svg')
                       }),
                       init: function () {
                         sc_super();
