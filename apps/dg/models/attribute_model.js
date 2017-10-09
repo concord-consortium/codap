@@ -226,7 +226,7 @@ DG.Attribute = DG.BaseModel.extend(
         DG.assert(!SC.none( tCategories) && SC.isArray( tCategories.__order));
         tCategories.__order.forEach( function( iCategory, iIndex) {
           var tColor = tCategories[iCategory];
-          tColor = tColor.colorString || tColor;
+          tColor = tColor && tColor.colorString;
           iFunc( iCategory, tColor, iIndex);
         });
       },
