@@ -124,7 +124,17 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     sc_super();
   },
 
-   /**
+  /**
+   * Override base class because we don't want to set this flag if we don't have
+   * both lat and long attributes.
+   */
+  caseOrderDidChange: function() {
+    if( !SC.none( this.getPath('model.dataConfiguration.latAttributeID') &&
+            !SC.none( this.getPath('model.dataConfiguration.longVarID'))))
+      this._mustMoveElementsToNewCoordinates = true;
+  },
+
+  /**
    * Set the coordinates and other attributes of the case circle (a Raphael element in this._plottedElements).
    * @param iRC {} case-invariant Render Context
    * @param iCase {DG.Case} the case data
