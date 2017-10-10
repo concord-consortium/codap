@@ -193,8 +193,10 @@ DG.appController = SC.Object.create((function () // closure
             // Retrieve plugin metadata for later reference
             $.ajax(pluginMetadataURL, {
               success: function (data) {
-                DG.set('pluginMetadata', data);
-                this.set('items', DG.appController.get('pluginMenuItems'));
+                SC.run(function() {
+                  DG.set('pluginMetadata', data);
+                  this.set('items', DG.appController.get('pluginMenuItems'));
+                }.bind(this));
               }.bind(this),
               error: function () {
                 DG.logError('Plugin Metadata Get failed: ' + pluginMetadataURL);
