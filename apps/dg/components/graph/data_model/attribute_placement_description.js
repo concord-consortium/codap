@@ -266,7 +266,7 @@ DG.AttributePlacementDescription = SC.Object.extend(
 
   casesForCategory: function( iCellName) {
     var tCellMap = this.getPath('attributeStats.cellMap');
-    return tCellMap ? tCellMap[ iCellName] : [];
+    return tCellMap ? tCellMap[ iCellName].cases : [];
   }
 
 });
