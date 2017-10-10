@@ -356,7 +356,10 @@ return {
     // id map of all plotted cases (does not include cases not plotted due to missing values)
     (tPlotted || []).forEach(function(iCase) { tPlottedMap[iCase.get('id')] = true; });
     // id map of all hidden cases
-    (tHidden || []).forEach(function(iCase) { tHiddenMap[iCase.get('id')] = true; });
+    (tHidden || []).forEach(function(iCase) {
+      if(iCase)
+        tHiddenMap[iCase.get('id')] = true;
+    });
 
     return !tChildren.some(function(iCase) {
                             var caseID = iCase.get('id');
