@@ -1512,6 +1512,7 @@ DG.DataContext = SC.Object.extend((function() // closure
       log: 'move attribute {attribute: "%@", position: %@}'
           .loc(iAttr.name, position),
       execute: function () {
+        iAttr.beginPropertyChanges();
         var collection = iAttr.collection;
         iAttr = collection.removeAttribute(iAttr);
 
@@ -1529,6 +1530,7 @@ DG.DataContext = SC.Object.extend((function() // closure
 
         casesAffected = dataContext.regenerateCollectionCases([collection, toCollection]);
         dataContext.invalidateAttrsOfCollections(casesAffected.collections);
+        iAttr.endPropertyChanges();
       },
       undo: function () {
         var toCollection = iAttr.collection;
