@@ -193,8 +193,10 @@ DG.appController = SC.Object.create((function () // closure
             // Retrieve plugin metadata for later reference
             $.ajax(pluginMetadataURL, {
               success: function (data) {
+                SC.run(function () {
                 DG.set('pluginMetadata', data);
                 this.set('items', DG.appController.get('pluginMenuItems'));
+                }.bind(this));
               }.bind(this),
               error: function () {
                 DG.logError('Plugin Metadata Get failed: ' + pluginMetadataURL);
@@ -205,7 +207,11 @@ DG.appController = SC.Object.create((function () // closure
             this.popup(iAnchor);
           },
           selectedItemDidChange: function () {
-            DG.appController.openPlugin(this.get('selectedItem').url);
+            var selectedItem = this.get('selectedItem');
+            if (selectedItem) {
+              DG.appController.openPlugin(selectedItem.url);
+              this.set('selectedItem', null);
+            }
           }.observes('selectedItem'),
           itemLayerIdKey: 'id',
           layout: {width: 150}

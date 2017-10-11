@@ -417,7 +417,7 @@ DG.Attribute = DG.BaseModel.extend(
               tCategoryMap = this._categoryMap || { __order: []},
               tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tCatRecord = {};
-          tCases.forEach( function( iCase) {
+          tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getValue( tAttrID);
             tCatRecord[ tValue] = true;
             if( SC.none( tCategoryMap[ tValue])) {
