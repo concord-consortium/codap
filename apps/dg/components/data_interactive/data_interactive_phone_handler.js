@@ -208,6 +208,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (['interactiveFrame',
               'logMessage',
+              'logMessageMonitor',
               'dataContextList',
               'undoChangeNotice',
               'undoableActionPerformed',
