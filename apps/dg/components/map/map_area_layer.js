@@ -209,7 +209,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
 
     tCases.forEach( function( iCase) {
       var tFeature = this.features.find( function (iFeature) {
-              return iFeature.options['case'] === iCase;
+              return iFeature && iFeature.options['case'] === iCase;
             });
       if (!tFeature)
         return;
