@@ -122,6 +122,13 @@ SC.Logger.logOutputLevel = SC.LOGGER_LEVEL_DEBUG;
 DG.Debug = SC.Object.create( (function() {
 /** @scope DG.GlobalsController.prototype */
 
+  // interval within which CODAP will suppress duplicate alerts
+  var kAssertInterval = 1000;
+  // the last Assert Message displayed
+  var lastAssertMessage = null;
+  // the time of the last assert message
+  var lastAssertTime = 0;
+
   return {
 
     /**
@@ -299,7 +306,8 @@ DG.Debug = SC.Object.create( (function() {
     assert: function( iCondition, iMessage, iDescription) {
       if( !iCondition) {
 
-        var showAlert = true,
+        var showAlert = ((lastAssertMessage !== iMessage) &&
+                ((Date.now() - lastAssertTime) > kAssertInterval)),
             stopInDebugger = true;
 
         // Log assertion failures automatically
@@ -315,7 +323,7 @@ DG.Debug = SC.Object.create( (function() {
         }
 
         // Show the assertion failure alert
-        if( showAlert) {
+        if( showAlert ) {
           SC.AlertPane.error({
             message: iMessage || "",
             description: iDescription || "",
@@ -327,6 +335,8 @@ DG.Debug = SC.Object.create( (function() {
               { title: "Ignore" }
             ]
           });
+          lastAssertMessage = iMessage;
+          lastAssertTime = Date.now();
         }
       }
       // Give clients a chance to handle the failure, e.g.
