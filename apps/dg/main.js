@@ -135,7 +135,14 @@ DG.main = function main() {
     DG.embeddedModePhoneHandlers.push(createSharedConnection());
   }
   function validateDocument(content) {
-    if (!content) return false;
+    if (!content) return null;
+
+    // October, 2017: There have been as-yet-unexplained occurrences of documents
+    // with duplicate cases. Rather than failing outright, we eliminate the
+    // duplicate cases, logging their existence so that (1) users can continue to
+    // use the previously corrupt documents and (2) the logs can be used to try
+    // to narrow down the circumstances under which the corruption occurs.
+    content = removeDuplicateCaseIDs(content);
 
     // Legacy documents created manually using scripts can have empty metadata fields.
     // We grandfather these documents in by requiring that the metadata fields exist and are empty.
@@ -143,10 +150,10 @@ DG.main = function main() {
     if ((content.appName === "") && (content.appVersion === "") && (content.appBuildNum === "")) {
       DG.log("File '%@' bypassed validation with empty metadata." +
               " This file should be re-saved with valid metadata.", content.name);
-      return true;
+      return content;
     }
 
-    return ((content.appName === DG.APPNAME) && !!content.appVersion && !!content.appBuildNum);
+    return (content.appName === DG.APPNAME) && !!content.appVersion && !!content.appBuildNum ? content : null;
   }
   function translateQueryParameters() {
     var startingDataInteractive = DG.get('startingDataInteractive');
@@ -158,6 +165,40 @@ DG.main = function main() {
       DG.set('showUserEntryView', false);
       openDataInteractive(startingDataInteractive);
     }
+  }
+
+  function removeDuplicateCaseIDs(content) {
+    var cases = {},
+        duplicates = {};
+    
+    if (content.contexts) {
+      content.contexts.forEach(function(context) {
+        if (context.collections) {
+          context.collections.forEach(function(collection) {
+            if (collection.cases) {
+              collection.cases.forEach(function(iCase) {
+                var id = iCase.guid;
+                if (!cases[id]) {
+                  cases[id] = iCase;
+                }
+                else {
+                  duplicates[id] = iCase;
+                }
+              });
+            }
+            DG.ObjectMap.forEach(duplicates, function(id, aCase) {
+              var found = collection.cases.indexOf(aCase);
+              if (found >= 0) {
+                collection.cases.splice(found, 1);
+                DG.logUser("validateDocument: removed case with duplicate ID: '%@'", id);
+              }
+            });
+            duplicates = {};
+          });
+        }
+      });
+    }
+    return content;
   }
 
   function cfmUrl(filename) {
@@ -514,16 +555,23 @@ DG.main = function main() {
             DG.currDocumentController().captureCurrentDocumentState(true)
               .then(function(iContents) {
                 var cfmSharedMetadata = event.data && event.data.shared || {},
-                    docMetadata = iContents.metadata || {};
-                // For now, _permissions must be stored at top-level for Document Store
-                syncProperty(iContents, cfmSharedMetadata, '_permissions');
-                // replace 'shared' metadata property with object passed from CFM
-                docMetadata.shared = $.extend(true, {}, cfmSharedMetadata);
-                // record changeCount as a form of savedVersionID
-                docMetadata.changeCount = DG.currDocumentController().get('changeCount');
-                // combine shared metadata with content to pass back to caller
-                iContents.metadata = docMetadata;
-                event.callback(iContents);
+                    docMetadata = iContents.metadata || {},
+                    // validate before saving as well as when opening
+                    contents = validateDocument(iContents);
+                if (contents) {
+                  // For now, _permissions must be stored at top-level for Document Store
+                  syncProperty(contents, cfmSharedMetadata, '_permissions');
+                  // replace 'shared' metadata property with object passed from CFM
+                  docMetadata.shared = $.extend(true, {}, cfmSharedMetadata);
+                  // record changeCount as a form of savedVersionID
+                  docMetadata.changeCount = DG.currDocumentController().get('changeCount');
+                  // combine shared metadata with content to pass back to caller
+                  contents.metadata = docMetadata;
+                }
+                else {
+                  DG.logUser("getContent: attempted to return invalid document!");
+                }
+                event.callback(contents);
               });
             break;
 
@@ -552,7 +600,8 @@ DG.main = function main() {
                                                   : {};
 
                         // check if this is a valid CODAP document
-                        if (!validateDocument(iDocContents)) {
+                        var docContents = validateDocument(iDocContents);
+                        if (!docContents) {
                           event.callback('DG.AppController.openDocument.error.invalid_format'.loc());
                           return;
                         }
@@ -560,7 +609,7 @@ DG.main = function main() {
                         DG.appController.closeDocument();
                         DG.store = DG.ModelStore.create();
                         DG.currDocumentController()
-                          .setDocument(DG.Document.createDocument(iDocContents));
+                          .setDocument(DG.Document.createDocument(docContents));
                         DG.set('showUserEntryView', false);
                         // acknowledge successful open; return shared metadata
                         event.callback(null, cfmSharedMetadata);
