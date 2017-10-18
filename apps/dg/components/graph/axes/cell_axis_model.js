@@ -73,15 +73,18 @@ DG.CellAxisModel = DG.AxisModel.extend(
   */
   forEachCellDo: function( iCellFunc) {
     var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap'),
-        tAttribute = this.getPath('attributeDescription.attribute');
+        tAttribute = this.getPath('attributeDescription.attribute'),
+        tCellIndex = 0;
     if( DG.ObjectMap.length(tCellMap) === 0)
       iCellFunc( 0, '', 0, 0);  // There is always at least one cell
     else
       tAttribute.forEachCategory( function( iName, iColor, iIndex) {
         var tValues = tCellMap[ iName],
-            tNumUses = tValues? tValues.length: 0,
+            tNumUses = tValues? tValues.cases.length: 0,
             tNumSelected = 0;
-        iCellFunc( iIndex, iName, tNumUses, tNumSelected);
+        if( tNumUses > 0) {
+          iCellFunc(tCellIndex++, iName, tNumUses, tNumSelected);
+        }
       });
   },
 

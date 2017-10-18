@@ -246,7 +246,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
               tNumRows = Math.ceil( tNumCells / tNumColumns),
               tRowHeight = tHeight / (tNumRows + 1), // adding one to include label
               tSize = Math.max( 0, tRowHeight - 2 * kVMargin),
-              tRectangles = {}
+              tCellIndex,
+              tRectangles = {},
+              tCellNames = this_.getPath('model.cellNames')
             ;
 
           // Function passed to Raphael mouseDown event handler, which guarantees
@@ -265,26 +267,28 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             }.bind(this));
           }
 
-          tAttrDesc.get('attribute').forEachCategory( function( iCategoryName, iColor, iIndex) {
-            var tRow = Math.floor( iIndex / tNumColumns),
-                tCol = iIndex % tNumColumns,
+          for( tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {
+            var tName = tCellNames[ tCellIndex],
+                tColor = DG.ColorUtilities.calcCaseColor( tName, tAttrDesc).colorString,
+                tRow = Math.floor( tCellIndex / tNumColumns),
+                tCol = tCellIndex % tNumColumns,
                 tX = kHMargin + tCol * tWidth / tNumColumns,
                 tY = kVMargin + (tRow + 1) * tRowHeight,
                 tRectElement = this_._paper.rect( tX, tY, tSize, tSize)
-                    .attr({ fill: iColor })
+                                                          .attr({ fill: tColor })
                     .addClass( DG.PlotUtilities.kLegendKey)
                     .mousedown( selectCasesInRectCell);
-            tRectElement.cellName = iCategoryName;
+            tRectElement.cellName = tName;
             this_._elementsToClear.push( tRectElement);
             this_._elementsToClear.push( this_._paper.text( tX + tRowHeight,
                 tY + DG.RenderingUtilities.kDefaultFontHeight / 3,
-                iCategoryName)
+                                                            tName)
                 .attr({ 'text-anchor': 'start' })
                 .addClass( DG.PlotUtilities.kLegendKeyName)
                 .mousedown( selectCasesInTextCell)
             );
-            tRectangles[iCategoryName] = tRectElement;
-          });
+            tRectangles[tName] = tRectElement;
+          }
           this_.set('rectangles', tRectangles);
           this_.selectionDidChange();
         }

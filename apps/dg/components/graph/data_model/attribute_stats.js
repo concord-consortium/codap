@@ -472,8 +472,12 @@ DG.AttributeStats = SC.Object.extend(
             tCases.forEach(function (iCase) {
               addCaseValueToStats(iCase, iCase.getValue(tVarID));
             });
+            var tCellNumber = 0,
+                tBlockIfEmpty = iAttribute.get('blockDisplayOfEmptyCategories');
             iAttribute.forEachCategory( function(iName, iColor, iIndex) {
-              tCellMap[ iName].cellNumber = iIndex;
+              if( !tBlockIfEmpty || tCellMap[ iName].cases.length > 0) {
+                tCellMap[iName].cellNumber = tCellNumber++;
+              }
             });
             if (iAttribute.get('blockDisplayOfEmptyCategories')) {
               DG.ObjectMap.forEach(tCellMap, function (iKey, iValue) {
