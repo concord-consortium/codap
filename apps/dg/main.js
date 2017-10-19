@@ -385,6 +385,9 @@ DG.main = function main() {
             //"localStorage"
           ]
         };
+    if (DG.cfmConfigurationOverride) {
+      options = Object.assign(options, DG.cfmConfigurationOverride);
+    }
     iCloudFileManager.init(options);
   }
 

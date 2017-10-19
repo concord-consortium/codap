@@ -489,6 +489,13 @@ DG = SC.Application.create((function () // closure
     }.property(),
 
     /**
+     * If set, amends the options object sent to the CFM at initialization.
+     * See the main.js:cfmInit().
+     * @param {Object}
+     */
+    cfmConfigurationOverride: null,
+
+    /**
      * embeddedServer can be passed as a Url parameter named tools with values 'yes' or 'no'.
      *  With the value 'yes' the embedded iframePhone server is setup to enable communication with the outside page.
      *  The default is 'no' and this option is ignored if embeddedMode is 'yes'
