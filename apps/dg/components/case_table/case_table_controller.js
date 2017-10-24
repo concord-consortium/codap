@@ -654,18 +654,51 @@ DG.CaseTableController = DG.ComponentController.extend(
        Passes the request on to the data context to do the heavy lifting.
        */
       deleteUnselectedCases: function(){
+        /**
+         * Adds iValue to iArray if iKey is not already seen
+         * @return {boolean} whether entry was added
+         */
+        function addIfNew(iKey, iValue, iSeenHash, iArray) {
+          if (iSeenHash[iKey]) {
+            return false;
+          }
+          iSeenHash[iKey] = true;
+          iArray.push(iValue);
+          return true;
+        }
         var tContext = this.get('dataContext'),
             tSelectedCases = tContext.getSelectedCases(),
+            tHash = {},
+            tSelectedCasesAndParents = [],
             tAllCases = tContext.get('allCases'),
-            tUnselected = DG.ArrayUtils.subtract( tAllCases, tSelectedCases,
+            tUnselected;
+
+        // we extend the list of selected cases to include their parents (ie partially selected cases)
+        tSelectedCases.forEach(function (iCase) {
+          var parentCase = iCase.get('parent');
+          if (addIfNew(iCase.get('id'), iCase, tHash, tSelectedCasesAndParents)) {
+            while (parentCase && addIfNew(parentCase.get('id'), parentCase, tHash, tSelectedCasesAndParents)) {
+              parentCase = parentCase.get('parent');
+            }
+          }
+        });
+
+        // we compute unselected
+        tUnselected = DG.ArrayUtils.subtract( tAllCases, tSelectedCasesAndParents,
             function( iCase) {
               return iCase.get('id');
             });
-        var tChange = {
+        // unselect cases
+        // tContext.applyChange({
+        //   operation: 'selectCases',
+        //   select: true,
+        //   cases: []
+        // });
+        // delete selected
+        tContext.applyChange( {
           operation: 'deleteCases',
           cases: tUnselected
-        };
-        tContext.applyChange( tChange);
+        });
       },
 
       /**
