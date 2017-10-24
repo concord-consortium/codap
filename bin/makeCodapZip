@@ -17,7 +17,7 @@ function usage() {
 
 OPTS=
 BUILD_OPTS=
-DEFAULT_ROOT_SUBSTITUTION=../../../../
+DEFAULT_ROOT_SUBSTITUTION=../../../..
 ROOT_SUBSTITUTION=$DEFAULT_ROOT_SUBSTITUTION
 while true; do
   case "$1" in
@@ -56,7 +56,7 @@ fi
 BUILD_NUM=$1
 TMP_ZIP=/tmp/codap_${BUILD_NUM}.zip.$$
 ZIP_FILE=codap_${BUILD_NUM}.zip
-WORK_DIR=/tmp/${PROGNAME}.$$/${BUILD_NUM}
+WORK_DIR=${ROOTDIR}/dist/$BUILD_NUM
 INDEX_HTML=${WORK_DIR}/index.html
 
 REDIRECT_PATH=./static/dg/en/cert/index.html
@@ -66,6 +66,7 @@ REDIRECT_PATH=./static/dg/en/cert/index.html
 # BUILD_OPTS=${BUILD_OPTS} "--very-verbose"
 # BUILD_OPTS=${BUILD_OPTS} "--mode=debug"
 
+rm -rf ${WORK_DIR}
 mkdir -p ${WORK_DIR}
 
 #
@@ -91,25 +92,25 @@ END_DOC
 
 RS=${ROOT_SUBSTITUTION}
 DRS=${DEFAULT_ROOT_SUBSTITUTION}
-PATH_FIX="s%\"/static/%\"${RS}/static/%g;s%\'/static/%\'${RS}/static/%g;s%DataGames/%${RS}/DataGames/%g"
+PATH_FIX="s%\"/static/%\"${RS}/static/%g;s%'/static/%'${RS}/static/%g"
 echo PATH_FIX="$PATH_FIX"
-RELPATH_FIX="s%\"/static/%\"${DRS}/static/%g;s%\'/static/%\'${DRS}/static/%g;s%DataGames/%${DRS}/DataGames/%g"
+RELPATH_FIX="s%\"/static/%\"${DRS}/static/%g;s%'/static/%'${DRS}/static/%g"
 echo RELPATH_FIX="$RELPATH_FIX"
 #
 # Fix absolute references in HTML and Javascript pages. These references
 # are changeable through a command line parameter.
 files=`find ${WORK_DIR} -type f \( -name "*.html" -o -name "*.js" \)`
 for t in ${files} ; do
-    sed "${PATH_FIX}" ${t} > /tmp/${PROGNAME}_replace.$$ &&
-    mv /tmp/${PROGNAME}_replace.$$ ${t}
+    sed "${PATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
+    mv /tmp/${PROGNAME}_replace.$$ "${t}"
 done
 # Fix absolute references in CSS. These references are not changeable through
 # command line parameter. The references are relative to the css file, not the
 # html which may have included them.
 files=`find ${WORK_DIR} -type f \( -name "*.css" \)`
 for t in ${files} ; do
-    sed "${RELPATH_FIX}" ${t} > /tmp/${PROGNAME}_replace.$$ &&
-    mv /tmp/${PROGNAME}_replace.$$ ${t}
+    sed "${RELPATH_FIX}" "${t}" > /tmp/${PROGNAME}_replace.$$ &&
+    mv /tmp/${PROGNAME}_replace.$$ "${t}"
 done
 
 #

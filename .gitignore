@@ -5,8 +5,9 @@ nbproject
 .idea
 *.iml
 .deployDevCodaprc
+dist
 .pt
-# Packages
-node_modules/
 .ruby-gemset
 .ruby-version
+# Packages
+node_modules/
