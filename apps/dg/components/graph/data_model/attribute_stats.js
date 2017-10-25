@@ -151,7 +151,7 @@ DG.AttributeStats = SC.Object.extend(
               if (!SC.empty(tValue)) {
                 var tCellMap = this.getPath('categoricalStats.cellMap');
                 if (SC.none(tCellMap[tValue]))
-                  tCellMap[tValue] = { cases: [], cellNumber: null };
+                  tCellMap[tValue] = { cases: [], cellNumber: Object.getOwnPropertyNames( tCellMap).length };
                 tCellMap[tValue].cases.push(iCase);
                 this.categoricalStats.incrementProperty('count');
                 this.setPath('categoricalStats.cellMap', tCellMap); // Replace with notifyPropertyChange?

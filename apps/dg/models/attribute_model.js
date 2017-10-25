@@ -420,7 +420,7 @@ DG.Attribute = DG.BaseModel.extend(
           tCases && tCases.forEach( function( iCase) {
             var tValue = iCase.getValue( tAttrID);
             tCatRecord[ tValue] = true;
-            if( SC.none( tCategoryMap[ tValue])) {
+            if( SC.none( tCategoryMap[ String( tValue)])) {
               if( !SC.empty(tValue)) {
                 tCategoryMap[tValue] = DG.ColorUtilities.kKellyColors[tColorIndex];
                 tColorIndex = (tColorIndex + 1) % DG.ColorUtilities.kKellyColors.length;

@@ -674,8 +674,9 @@ DG.PlotDataConfiguration = SC.Object.extend(
         ((iChange.operation === 'createCase') || (iChange.operation === 'createCases'))) {
 
       // If the change is from a collection other than one we care about, bail
-      var tChangedCollectionID = iChange.collection && iChange.collection.get('id');
-      if( tChangedCollectionID && (this.get( 'plottedCollectionIDs').indexOf( tChangedCollectionID) < 0))
+      var tChangedCollectionID = iChange.collection && iChange.collection.get('id'),
+          tPlottedCollectionID = this.getPath('collectionClient.id');
+      if( tChangedCollectionID !== tPlottedCollectionID)
         return;
 
       var caseIDs = iChange.result.caseIDs || [ iChange.result.caseID ];
