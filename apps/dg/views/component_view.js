@@ -255,6 +255,11 @@ DG.ComponentView = SC.View.extend(
 
         _modelSavedHeightBinding: SC.Binding.from('*model.savedHeight').oneWay(),
 
+        modelDidChange: function() {
+          // Title bar needs to know about my model to decide whether to show closebox or not
+          this.setPath('containerView.titlebar.model', this.get('model'));
+        }.observes('model'),
+
         isMinimized: function () {
           return !SC.none(this.get('_modelSavedHeight'));
         }.property('_modelSavedHeight'),
@@ -264,6 +269,7 @@ DG.ComponentView = SC.View.extend(
           if (!this.get('showTitleBar')) {
             this.getPath('containerView.titlebar').adjust('height', 0);
           }
+
           // If we are in component mode we select the component after it is
           // rendered.
           if (DG.get('componentMode') === 'yes') {
@@ -290,6 +296,7 @@ DG.ComponentView = SC.View.extend(
             isSelected: false,
             userEdit: false,
             classNameBindings: ['isSelected:dg-titlebar-selected'],
+            model: null,  // DG.ComponentModel. Needed to determine if closebox should show
             childViews: ('statusView versionView ' +
             (DG.get('componentMode') === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
@@ -424,7 +431,7 @@ DG.ComponentView = SC.View.extend(
                 null,
             mouseEntered: function (evt) {
               this.setPath('minimize.isVisible', true);
-              this.setPath('closeBox.isVisible', true);
+              this.setPath('closeBox.isVisible', !this.getPath('model.cannotClose'));
               this.setPath('undo.isVisible', true);
               this.setPath('redo.isVisible', true);
               return YES;

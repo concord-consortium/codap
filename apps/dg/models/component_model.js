@@ -81,6 +81,12 @@ DG.Component = DG.BaseModel.extend(
         return this.getPath('content.version');
       }.property(),
 
+      /**
+       * If true, the close button will not show in the component title bar.
+       * @property {Boolean}
+       */
+      cannotClose: false,
+
       contentVersionChanged: function() {
         this.notifyPropertyChange('version');
       }.observes('*content.version'),
@@ -134,6 +140,7 @@ DG.Component = DG.BaseModel.extend(
           if( tStorage.name) {
             this.set('name', tStorage.name);
           }
+          this.set('cannotClose', tStorage.cannotClose);
         }
       },
 
@@ -150,6 +157,7 @@ DG.Component = DG.BaseModel.extend(
         if( tStorage) {
           tStorage.title = this.get('title');
           tStorage.name = this.get('name');
+          tStorage.cannotClose = this.get('cannotClose');
         }
         obj = {
           type: this.type,
