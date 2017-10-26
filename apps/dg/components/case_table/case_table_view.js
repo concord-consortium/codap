@@ -2005,6 +2005,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         DG.log('No case: scrollToAlignWithLeft: %@', leftTable.get('collectionName'));
         return;
       }
+
+      if (iCase._isProtoCase) {
+        return dataView.getLength() - 1;
+      }
+
       var children = iCase.get('children');
       var c0 = children && children[0];
       var cn = children && children[children.length-1];
@@ -2078,6 +2083,9 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       if (!iCase) {
         DG.log('No case: scrollToAlignWithRight: %@', rightTable.get('collectionName'));
         return;
+      }
+      if (iCase._isProtoCase) {
+        return dataView.getLength() - 1;
       }
       var caseInLeftRow = iCase;
       if (!model.isCollapsedNode(iCase)) {
