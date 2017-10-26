@@ -336,7 +336,7 @@ DG.Case._addCaseToItemMap = function(iCase) {
   var collectionID = iCase.getPath('collection.id'),
       itemID = iCase.getPath('item.id'),
       itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
-  if (itemID && collectionID) {
+  if (!SC.none(itemID) && collectionID) {
     if (!itemCaseMap)
       DG.Case._itemCaseMaps[collectionID] = itemCaseMap = {};
     itemCaseMap[itemID] = iCase;
@@ -362,7 +362,7 @@ DG.Case._removeCaseFromItemMap = function(iCase) {
  */
 DG.Case.findCase = function(iCollectionID, iItemID) {
   var itemCaseMap = iCollectionID && DG.Case._itemCaseMaps[iCollectionID];
-  return itemCaseMap && iItemID && itemCaseMap[iItemID];
+  return itemCaseMap && !SC.none(iItemID) && itemCaseMap[String(iItemID)];
 };
 
 /**

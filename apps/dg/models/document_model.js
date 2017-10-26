@@ -179,4 +179,5 @@ DG.Document.destroyDocument = function( iDocument) {
   }
   DG.activeDocument = null;
   DG.store = null;
+  DG.Case._itemCaseMaps = {};
 };
