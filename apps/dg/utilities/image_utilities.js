@@ -29,9 +29,10 @@ DG.ImageUtilities = (function () {
      *   image. HTML DOM element will not be visible.
      * @param width {number}
      * @param height {number}
+     * @param asDataURL {boolean} true - image returned as data URI, otherwise as blob
      * @return {Promise} The promise of an image.
      */
-    captureSVGElementsToImage: function (rootEl, width, height) {
+    captureSVGElementsToImage: function (rootEl, width, height, asDataURL) {
 
       function getCSSText() {
         var text = [], ix, jx;
@@ -168,7 +169,7 @@ DG.ImageUtilities = (function () {
       // when all promises have been fulfilled we make a blob, then invoke the
       // save image dialog.
       return Promise.all(promises).then(function () {
-          return makeCanvasBlob(canvas);
+          return asDataURL ? canvas.toDataURL("image/png") : makeCanvasBlob(canvas);
         },
         function (error) {
           DG.logError(error);
