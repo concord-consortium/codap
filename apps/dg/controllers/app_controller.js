@@ -507,6 +507,33 @@ DG.appController = SC.Object.create((function () // closure
       return true;
     },
 
+    importDrawToolWithDataURL: function(iDataURL, iTitle) {
+      var kWidth = 600, kHeight = 400,
+          kComponentType = 'DG.GameView',
+          layout = { width : kWidth, height: kHeight },
+          drawToolUrl = DG.get('drawToolPluginURL'),
+          title = "DG.DataDisplayMenu.imageOfTitle".loc(iTitle),
+          tDoc = DG.currDocumentController(),
+          tComponent = DG.Component.createComponent({
+            type: kComponentType,
+            document: tDoc.get('content'),
+            layout: layout,
+            componentStorage: {
+              currentGameName: title,
+              currentGameUrl: drawToolUrl,
+              allowInitGameOverride: true
+            }
+          }),
+          tComponentArgs = { initiatedViaCommand: true },
+          tView = tDoc.createComponentAndView(tComponent, kComponentType, tComponentArgs),
+          tSuperView = tView && tView.get('parentView'),
+          tController = tView && tView.get('controller');
+      if (tSuperView && tSuperView.positionNewComponent)
+        tSuperView.positionNewComponent(tView, 'top', true);
+      if (tController && tController.sendCommand)
+        tController.sendCommand({ action: 'update', resource: 'backgroundImage', values: { image: iDataURL }});
+    },
+
     /**
      Close the current document and all its components.
      */
