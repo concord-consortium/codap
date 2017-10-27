@@ -9,8 +9,11 @@ install:
 - travis_retry pip install awscli --upgrade --user
 - travis_retry yarn
 before_script: npm run build:travis
-script: ./bin/s3_deploy.sh
+script: "./bin/s3_deploy.sh"
 cache:
   bundler: true
   directories:
-    - node_modules
+  - node_modules
+notifications:
+  slack:
+    secure: ZRC3DvCAynz+Zp5sLYdaozBPRCCO08i8gaQKzEjBwllJSO+5lRfLzjPYlyMJYtmTLq+ILM0CRhoGfCE3o7F/bdtJiEhNxWTsO17JqSlnvttCee0P7zeNIOJUP7mVFjX52yH3yPrCA8WTz97ocdtb9yue4P4bRs4umeEuRFzW0kM=
