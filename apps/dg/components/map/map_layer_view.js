@@ -141,7 +141,10 @@ DG.MapLayerView = SC.View.extend(
           scrollWheelZoom: false,
           zoomSnap: 0,
           attributionControl: false,
-          trackResize: false })
+          trackResize: false,
+          worldCopyJump: true // map tracks when you pan to another "copy" of the world and seamlessly jumps to the
+          // original one so that all overlays like markers and vector layers are still visible
+        })
             .setView(this.getPath('model.center'), this.getPath('model.zoom'));
           this._map.on('layeradd', onLayerAdd)
               .on('dragstart', onDisplayChangeEvent)
