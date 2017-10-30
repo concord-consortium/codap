@@ -161,6 +161,15 @@ DG.MapGridModel = SC.Object.extend((function () // closure
             tSouth = tBounds.getSouth(),
             tNorth = tBounds.getNorth();
 
+        if( tWest === tEast) {
+          tWest -= 5; // arbitrary offset
+          tEast += 5;
+        }
+        if( tNorth === tSouth) {
+          tNorth += 5; // arbitrary offset
+          tSouth -= 5;
+        }
+
         _gridWidth = Math.min((tEast - tWest) / kGridCellCount, (tNorth - tSouth) / kGridCellCount);
         _gridHeight = _gridWidth;
 
