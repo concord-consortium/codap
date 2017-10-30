@@ -1,10 +1,8 @@
 sudo: false
 language: node_js
 node_js: node
-before_install:
-- rvm use 2.2.7
 install:
-- travis_retry gem install s3_website -v 2.12.3
+- travis_retry gem install s3_website
 - travis_retry gem install sproutcore -v 1.11
 - travis_retry pip install awscli --upgrade --user
 - travis_retry yarn
@@ -16,4 +14,5 @@ cache:
   - node_modules
 notifications:
   slack:
+    on_pull_requests: false
     secure: ZRC3DvCAynz+Zp5sLYdaozBPRCCO08i8gaQKzEjBwllJSO+5lRfLzjPYlyMJYtmTLq+ILM0CRhoGfCE3o7F/bdtJiEhNxWTsO17JqSlnvttCee0P7zeNIOJUP7mVFjX52yH3yPrCA8WTz97ocdtb9yue4P4bRs4umeEuRFzW0kM=

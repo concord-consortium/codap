@@ -20,6 +20,7 @@
 //  limitations under the License.
 // ==========================================================================
 
+sc_require('models/document_model');
 sc_require('models/remote_boundaries');
 
 /* globals Promise */

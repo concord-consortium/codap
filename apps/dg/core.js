@@ -317,6 +317,10 @@ DG = SC.Application.create((function () // closure
     */
     pluginMetadata: null,
 
+    drawToolPluginURL: function() {
+      return this.get('pluginURL') + '/DrawTool';
+    }.property(),
+
     /*
      * Logging is enabled when server matches this DNS name.
      */

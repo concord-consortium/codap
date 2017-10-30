@@ -102,6 +102,9 @@ DG.GameController = DG.ComponentController.extend(
 
       init: function () {
         sc_super();
+
+        this._cmdQueue = [];
+
         this.gamePhoneHandler = DG.GamePhoneHandler.create({
           controller: this
         });
@@ -172,6 +175,7 @@ DG.GameController = DG.ComponentController.extend(
       }.property('activeChannel'),
 
       connectionDidChange: function () {
+        this.sendQueuedCommands();
         this.notifyPropertyChange('activeChannel');
       },
 
@@ -208,6 +212,25 @@ DG.GameController = DG.ComponentController.extend(
             this.extractOrigin(iUrl), function () {DG.log('connected');});
         setupHandler(this.get('gamePhoneHandler'), 'codap-game');
         setupHandler(this.get('dataInteractivePhoneHandler'), 'data-interactive');
+      },
+
+      queueCommand: function(iCmd, iResponseHandler) {
+        this._cmdQueue.push({ cmd: iCmd, responseHandler: iResponseHandler });
+      },
+
+      sendQueuedCommands: function() {
+        var channel = this.get('activeChannel');
+        if (channel) {
+          while (this._cmdQueue.length) {
+            var entry = this._cmdQueue.shift();
+            channel.rpcEndpoint.call(entry.cmd, entry.responseHandler);
+          }
+        }
+      },
+
+      sendCommand: function(iCmd, iResponseHandler) {
+        this.queueCommand(iCmd, iResponseHandler);
+        this.sendQueuedCommands();
       },
 
       /**
