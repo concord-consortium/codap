@@ -138,7 +138,7 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     var this_ = this,
         tLayer = this.get('layer' ),
         tDragCoord,
-        tOriginalValue, tNewValue;
+        tOriginalValue;
   
     //=============Event handling functions===============
     function beginTranslate( iWindowX, iWindowY) {
@@ -157,20 +157,22 @@ DG.MovableValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin, DG.ValueA
     }
   
     function endTranslate( idX, idY) {
+      var tOriginal = tOriginalValue,
+          tNew;
       DG.logUser("dragMovableValue: '%@'", this_.get('valueString'));
       DG.UndoHistory.execute(DG.Command.create({
         name: "graph.moveMovableValue",
         undoString: 'DG.Undo.graph.moveMovableValue',
         redoString: 'DG.Redo.graph.removeMovableValue',
-        log: "Moved movable value from %@ to %@".fmt( tOriginalValue, this_.get('value')),
+        log: "Moved movable value from %@ to %@".fmt( tOriginal, this_.get('value')),
         execute: function() {
-          tNewValue = this_.getPath('model.value');
+          tNew = this_.getPath('model.value');
         },
         undo: function() {
-          this_.setPath('model.value', tOriginalValue);
+          this_.setPath('model.value', tOriginal);
         },
         redo: function() {
-          this_.setPath('model.value', tNewValue);
+          this_.setPath('model.value', tNew);
         }
       }));
     }
