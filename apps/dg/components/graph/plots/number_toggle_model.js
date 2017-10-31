@@ -186,8 +186,18 @@ return {
    */
   childrenOfParent: function( iIndex) {
     var tParents = this.get('parentCases' ),
-        tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null;
-    return tParent ? tParent.get('children' ).flatten() : [];
+        tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
+        tChildren = tParent ? tParent.get('children') : [];
+    for (var i = 0; i < tChildren.get('length'); ++i) {
+      var child = tChildren.objectAt(i),
+          descendants = child.get('children');
+      if (descendants && descendants.get('length')) {
+        descendants.forEach(function(iCase) {
+          tChildren.push(iCase);
+        });
+      }
+    }
+    return tChildren;
   },
 
   /**
