@@ -413,6 +413,28 @@ return {
       this.set('lastMode', false);
   }.observes('hiddenCases'),
 
+  isAffectedByChange: function(iChange) {
+
+    function isCollectionChange(iChange) {
+      var operations = ['createCollection', 'deleteCollection', 'moveAttribute'];
+      return operations.indexOf(iChange.operation) >= 0;
+    }
+
+    var isToggleAttributeChange = function(iChange) {
+      if (iChange.operation === 'updateCases') {
+        var toggleAttr = this.getFirstParentAttribute(),
+            toggleAttrID = toggleAttr && toggleAttr.get('id');
+        if (iChange.attributeIDs) {
+          if (iChange.attributeIDs.indexOf(toggleAttrID) >= 0)
+            return true;
+        }
+      }
+      return false;
+    }.bind(this);
+
+    return isCollectionChange(iChange) || isToggleAttributeChange(iChange);
+  },
+
   /**
    * When the data context changes we notify
    */
@@ -424,7 +446,7 @@ return {
         return;
       }
 
-      if (['createCollection', 'deleteCollection', 'moveAttribute'].indexOf(iChange.operation) >= 0) {
+      if (this.isAffectedByChange(iChange)) {
         this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
       }
 
