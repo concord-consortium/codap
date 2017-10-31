@@ -146,6 +146,17 @@ DG.GraphController = DG.DataDisplayController.extend(
           this.convertToImage(graphView.get('layer'), width, height);
         },
 
+        copyAsImage: function () {
+          var componentView = this.get('view'),
+              title = (componentView && componentView.get('title')) ||
+                        "DG.DocumentController.graphTitle".loc(),
+              graphView = componentView && componentView.get('contentView'),
+              layer = graphView && graphView.get('layer'),
+              width = graphView && graphView.getPath('frame.width'),
+              height = graphView && graphView.getPath('frame.height');
+          if (graphView)
+            this.openDrawToolWithImage(layer, width, height, title);
+        },
 
         rescaleAxes: function () {
           this.graphModel.rescaleAxes();

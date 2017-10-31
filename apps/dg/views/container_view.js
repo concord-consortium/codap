@@ -278,8 +278,9 @@ DG.ContainerView = SC.View.extend(
         We find a non-overlapping position for the view and place it there.
         @param{DG.ComponentView} - the view to be positioned
         @param {String} Default is 'top'
+        @param {boolean} iPositionGameViews - true to set GameView positions as well as sizes
       */
-      positionNewComponent: function( iView, iPosition) {
+      positionNewComponent: function( iView, iPosition, iPositionGameViews) {
         var this_ = this,
             tViewRect = iView.get( 'frame'),
             tDocRect = this.parentView.get('clippingFrame'),
@@ -299,7 +300,19 @@ DG.ContainerView = SC.View.extend(
             tOptions = { duration: 0.5, timing: 'ease-in-out'},
             tIsGameView = iView.get('contentView').constructor === DG.GameView;
         if( tIsGameView) {
-          iView.adjust( tFinalRect);
+          // As of 2016-10-26, tFinalRect was being passed to iView.adjust() directly for GameViews,
+          // apparently with the intent that the game view would be moved to the rectangle specified.
+          // The adjust() function takes a layout object with { left, right }, rather than a rectangle
+          // with { x, y }, however, so since then the size of GameViews has been set but not their location.
+          // Rather than changing that behavior at this point, we introduce the iPositionGameViews
+          // parameter which allows clients aware of the issue to specify that they do want the
+          // location of GameViews to be set as well.
+          var newLayout = { width: tFinalRect.width, height: tFinalRect.height };
+          if (iPositionGameViews) {
+            newLayout.left = tFinalRect.x;
+            newLayout.top = tFinalRect.y;
+          }
+          iView.adjust(newLayout);
         }
         else {
           tReservedRects.push(tFinalRect);

@@ -124,7 +124,20 @@ DG.DataDisplayController = DG.ComponentController.extend(
           sc_super();
         },
 
-        createInspectorButtons: function () {
+      /** Submenu items for copying/exporting component images */
+      createImageExportMenuItems: function() {
+
+        return [
+          // Note that these 'built' string keys will have to be specially handled by any
+          // minifier we use
+          { title: ('DG.DataDisplayMenu.copyAsImage'), isEnabled: true,
+            target: this, action: 'copyAsImage' },
+          { title: ('DG.DataDisplayMenu.exportImage'), isEnabled: true,
+            target: this, action: 'makePngImage' }
+        ];
+      },
+      
+      createInspectorButtons: function () {
           var tResult = sc_super(),
               this_ = this;
           if( !this.get('dataDisplayModel').wantsInspector())
@@ -239,17 +252,30 @@ DG.DataDisplayController = DG.ComponentController.extend(
             localize: true
           }));
 
+          var tImageExportButton;
+
+          var showImageExportPopup = function () {
+            var tMenu = DG.MenuPane.create({
+                  classNames: 'dg-display-show-image-popup'.w(),
+                  layout: {width: 200, height: 150}
+                }),
+                tMenuItems = this.createImageExportMenuItems();
+            tMenu.set('items', tMenuItems);
+            tMenu.popup(tImageExportButton);
+          }.bind(this);
+
           if (this.makePngImage) {  // Not implemented for map yet
-            tResult.push(DG.IconButton.create({
+            tImageExportButton = DG.IconButton.create({
               layout: {width: 32},
               iconExtent: {width: 30, height: 25},
               classNames: 'dg-display-camera'.w(),
               iconClass: 'moonicon-icon-tileScreenshot',
               target: this,
-              action: 'makePngImage',
+              action: showImageExportPopup,
               toolTip: 'DG.Inspector.makeImage.toolTip',
               localize: true
-            }));
+            });
+            tResult.push(tImageExportButton);
           }
 
           return tResult;
@@ -894,11 +920,19 @@ DG.DataDisplayController = DG.ComponentController.extend(
             reader.readAsDataURL(pngObject);
           }
 
-          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height).then(function (blob) {
-            saveImage(blob);
-          });
-        }
+          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height)
+            .then(function (blob) {
+              saveImage(blob);
+            });
+        },
 
+        openDrawToolWithImage: function (rootEl, width, height, title) {
+
+          DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, true)
+            .then(function (dataURL) {
+              DG.appController.importDrawToolWithDataURL(dataURL, title);
+            });
+        }
 
       };
 

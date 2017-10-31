@@ -444,11 +444,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           DG.assert(diModel, 'DataInteractiveModel  exists' );
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
           if (iValues) {
-            diModel.set('title', iValues.title);
-            this.setPath('view.title', title);
+            if (iValues.title != null) {
+              diModel.set('title', iValues.title);
+              this.setPath('view.title', title);
+            }
 
-            diModel.set('version', iValues.version);
-            diModel.set('dimensions', iValues.dimensions);
+            if (iValues.version != null)
+              diModel.set('version', iValues.version);
+            if (iValues.dimensions)
+              diModel.set('dimensions', iValues.dimensions);
             if (!SC.none(iValues.preventBringToFront)) {
               // Todo 7/2016: we should be managing this value in the model only,
               // and deriving the value in the controller.

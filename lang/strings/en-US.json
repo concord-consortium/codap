@@ -616,6 +616,9 @@
     "DG.DataDisplayMenu.disableNumberToggle": "Hide Parent Visibility Toggles",
     "DG.DataDisplayMenu.showAll": "Show All Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
+    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
+    "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
 
     // DG.GraphView
     "DG.GraphView.replaceAttribute": "Replace %@ with %@",
