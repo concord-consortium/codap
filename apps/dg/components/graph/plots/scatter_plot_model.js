@@ -29,6 +29,21 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
     /** @scope DG.ScatterPlotModel.prototype */
     {
       /**
+       @property { DG.MovablePointModel }
+       */
+      movablePoint: null,
+
+      /**
+       @property { Boolean, read only }
+       */
+      isMovablePointVisible: function () {
+        return !SC.none(this.movablePoint) && this.movablePoint.get('isVisible');
+      }.property(),
+      isMovablePointVisibleDidChange: function() {
+        this.notifyPropertyChange('isMovablePointVisible');
+      }.observes('*movablePoint.isVisible'),
+
+      /**
        @property { DG.MovableLineModel }
        */
       movableLine: null,
@@ -108,6 +123,20 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       /**
        * Utility function to create a movable line when needed
        */
+      createMovablePoint: function () {
+        if (SC.none(this.movablePoint)) {
+          this.beginPropertyChanges();
+          this.set('movablePoint', DG.MovablePointModel.create( {
+            plotModel: this
+          }));
+          this.movablePoint.recomputeCoordinates(this.get('xAxis'), this.get('yAxis'));
+          this.endPropertyChanges();
+        }
+      },
+
+      /**
+       * Utility function to create a movable line when needed
+       */
       createMovableLine: function () {
         if (SC.none(this.movableLine)) {
           this.beginPropertyChanges();
@@ -129,6 +158,37 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
         if( tMultipleLSRLs)
             tMultipleLSRLs.set('showSumSquares', tSquaresVisible);
       }.observes('areSquaresVisible'),
+
+      /**
+       If we need to make a movable line, do so. In any event toggle its visibility.
+       */
+      toggleMovablePoint: function () {
+        var this_ = this;
+
+        function toggle() {
+          if (SC.none(this_.movablePoint)) {
+            this_.createMovablePoint(); // Default is to be visible
+          }
+          else {
+            this_.movablePoint.recomputePositionIfNeeded(this_.get('xAxis'), this_.get('yAxis'));
+            this_.movablePoint.set('isVisible', !this_.movablePoint.get('isVisible'));
+          }
+        }
+
+        var willShow = !this.movablePoint || !this.movablePoint.get('isVisible');
+        DG.UndoHistory.execute(DG.Command.create({
+          name: "graph.toggleMovablePoint",
+          undoString: (willShow ? 'DG.Undo.graph.showMovablePoint' : 'DG.Undo.graph.hideMovablePoint'),
+          redoString: (willShow ? 'DG.Redo.graph.showMovablePoint' : 'DG.Redo.graph.hideMovablePoint'),
+          log: "toggleMovablePoint: %@".fmt(willShow ? "show" : "hide"),
+          execute: function () {
+            toggle();
+          },
+          undo: function () {
+            toggle();
+          }
+        }));
+      },
 
       /**
        If we need to make a movable line, do so. In any event toggle its visibility.
@@ -365,6 +425,14 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
             }.observes('value')
           },
           {
+            title: 'DG.Inspector.graphMovablePoint',
+            value: this_.get('isMovablePointVisible'),
+            classNames: 'dg-graph-movablePoint-check'.w(),
+            valueDidChange: function () {
+              this_.toggleMovablePoint();
+            }.observes('value')
+          },
+          {
             title: 'DG.Inspector.graphMovableLine',
             value: this_.get('isMovableLineVisible'),
             classNames: 'dg-graph-movableLine-check'.w(),
@@ -458,8 +526,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
        */
       createStorage: function () {
         var tStorage = sc_super(),
+            tMovablePoint = this.get('movablePoint'),
             tMovableLine = this.get('movableLine'),
             tLSRL = this.get('multipleLSRLs');
+        if (!SC.none(tMovablePoint))
+          tStorage.movablePointStorage = tMovablePoint.createStorage();
         if (!SC.none(tMovableLine))
           tStorage.movableLineStorage = tMovableLine.createStorage();
         if (!SC.none(tLSRL) && tLSRL.get('isVisible'))
@@ -492,6 +563,11 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
 
         sc_super();
 
+        if (iStorage.movablePointStorage) {
+          if (SC.none(this.movablePoint))
+            this.createMovablePoint();
+          this.get('movablePoint').restoreStorage(iStorage.movablePointStorage);
+        }
         if (iStorage.movableLineStorage) {
           if (SC.none(this.movableLine))
             this.createMovableLine();

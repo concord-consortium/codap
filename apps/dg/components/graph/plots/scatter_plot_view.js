@@ -33,7 +33,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                       'yAxisView.pixelMin', 'yAxisView.pixelMax',
                       'model.areSquaresVisible', 'model.squares'],
   
-  autoDestroyProperties: ['movableLineAdorn','functionAdorn','connectingLineAdorn','multipleLSRLsAdorn'],
+  autoDestroyProperties: ['movablePointAdorn','movableLineAdorn','functionAdorn','connectingLineAdorn','multipleLSRLsAdorn'],
 
 
   /** @property {DG.ConnectingLineAdornment} */
@@ -56,10 +56,15 @@ DG.ScatterPlotView = DG.PlotView.extend(
   }.property('yAxisView'),
 
   /**
+  @property {DG.MovablePointAdornment}
+  */
+  movablePointAdorn: null,
+  
+  /**
   @property {DG.MovableLineAdornment}
   */
   movableLineAdorn: null,
-  
+
   /**
   @property {DG.MultipleLSRLsAdornment}
   */
@@ -473,6 +478,9 @@ DG.ScatterPlotView = DG.PlotView.extend(
       this.connectingLineAdorn.updateToModel();
     }
     
+    if( !SC.none( this.movablePointAdorn))
+      this.movablePointAdorn.updateToModel();
+
     if( !SC.none( this.movableLineAdorn))
       this.movableLineAdorn.updateToModel();
 
@@ -495,6 +503,26 @@ DG.ScatterPlotView = DG.PlotView.extend(
     }
   },
   
+  /**
+    Presumably our model has created a movable point. We need to create our adornment.
+  */
+  movablePointChanged: function() {
+    if( !this.readyToDraw())
+      return;
+    var tMovablePoint = this.getPath('model.movablePoint');
+    if( tMovablePoint) {
+      if( !this.movablePointAdorn) {
+        var tAdorn = DG.MovablePointAdornment.create( {
+                          parentView: this, model: tMovablePoint, paperSource: this.get('paperSource'),
+                          layerName: DG.LayerNames.kAdornments } );
+        tAdorn.createElements();
+        this.movablePointAdorn = tAdorn;
+      }
+      this.movablePointAdorn.updateVisibility();
+    }
+    this.displayDidChange();
+  }.observes('*model.movablePoint.isVisible'),
+
   /**
     Presumably our model has created a movable line. We need to create our adornment.
   */
@@ -618,6 +646,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
   */
   didCreateLayer: function() {
     sc_super();
+    this.movablePointChanged();
     this.movableLineChanged();
     this.lsrlChanged();
     this.plottedFunctionChanged();

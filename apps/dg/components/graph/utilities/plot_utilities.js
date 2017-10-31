@@ -27,6 +27,8 @@ DG.PlotUtilities = {
   kRuleWidth: 1,
   kZeroLineColor: '#555',
   kZeroLineWidth: 1,
+  kDefaultMovablePointColor: "yellow",
+  kDefaultMovablePointRadius: 8,
   kDefaultMovableLineColor: "steelblue",
   kMovableLineHighlightColor: 'rgba(70, 30, 180, 0.2)',
   kMovableValueCapSize: 6,  // pixels on a side
@@ -334,6 +336,20 @@ DG.PlotUtilities = {
       oInterceptDigits = Math.max( 0, oInterceptDigits - Math.floor( Math.log( Math.abs( iIntercept)) / Math.LN10) - 1);
 
     return { slopeDigits: oSlopeDigits, interceptDigits: oInterceptDigits };
+  },
+
+  getFormattedNumericValue: function( iValue, iGetDigitsFunc) {
+    var tDigits, tNumFormat,
+        tResult = '';
+    if (!SC.empty(iValue)) {
+      tDigits = iGetDigitsFunc();
+      if (SC.none(tDigits))  // Can happen for maps when there is no axis view
+        tDigits = 2;
+      tNumFormat = DG.Format.number().fractionDigits(0, tDigits);
+      tNumFormat.group(''); // Don't separate with commas
+      tResult = tNumFormat(iValue);
+    }
+    return tResult;
   },
 
   getFormattedCaseValue: function( iCase, iAttrDesc, iGetDigitsFunc) {
