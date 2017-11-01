@@ -186,8 +186,19 @@ return {
    */
   childrenOfParent: function( iIndex) {
     var tParents = this.get('parentCases' ),
-        tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null;
-    return tParent ? tParent.get('children' ).flatten() : [];
+        tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
+        tChildren = tParent ? tParent.get('children') : [];
+    // use for-loop since tChildren is modified recursively
+    for (var i = 0; i < tChildren.get('length'); ++i) {
+      var child = tChildren.objectAt(i),
+          descendants = child.get('children');
+      if (descendants && descendants.get('length')) {
+        descendants.forEach(function(iCase) {
+          tChildren.push(iCase);
+        });
+      }
+    }
+    return tChildren;
   },
 
   /**
@@ -403,6 +414,28 @@ return {
       this.set('lastMode', false);
   }.observes('hiddenCases'),
 
+  isAffectedByChange: function(iChange) {
+
+    function isCollectionChange(iChange) {
+      var operations = ['createCollection', 'deleteCollection', 'moveAttribute'];
+      return operations.indexOf(iChange.operation) >= 0;
+    }
+
+    var isToggleAttributeChange = function(iChange) {
+      if (iChange.operation === 'updateCases') {
+        var toggleAttr = this.getFirstParentAttribute(),
+            toggleAttrID = toggleAttr && toggleAttr.get('id');
+        if (iChange.attributeIDs) {
+          if (iChange.attributeIDs.indexOf(toggleAttrID) >= 0)
+            return true;
+        }
+      }
+      return false;
+    }.bind(this);
+
+    return isCollectionChange(iChange) || isToggleAttributeChange(iChange);
+  },
+
   /**
    * When the data context changes we notify
    */
@@ -414,7 +447,7 @@ return {
         return;
       }
 
-      if (['createCollection', 'deleteCollection', 'moveAttribute'].indexOf(iChange.operation) >= 0) {
+      if (this.isAffectedByChange(iChange)) {
         this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
       }
 

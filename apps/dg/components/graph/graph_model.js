@@ -808,6 +808,13 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return SC.none( parent);
     },
 
+    isPlotAffectedByChange: function(iChange) {
+      var plotModel = this.get('plot'),
+          toggleModel = this.get('enableNumberToggle') && this.get('numberToggle');
+      return (plotModel && plotModel.isAffectedByChange(iChange)) ||
+              (toggleModel && toggleModel.isAffectedByChange(iChange));
+    },
+
     handleOneDataContextChange: function( iNotifier, iChange) {
       sc_super();
 
@@ -815,7 +822,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           operation = iChange && iChange.operation;
 
       // No response necessary if the change doesn't affect us.
-      if( plotModel && !plotModel.isAffectedByChange( iChange))
+      if( plotModel && !this.isPlotAffectedByChange( iChange))
         return;
 
       // The GraphModel response is operation-specific.
