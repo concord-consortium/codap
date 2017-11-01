@@ -188,6 +188,7 @@ return {
     var tParents = this.get('parentCases' ),
         tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
         tChildren = tParent ? tParent.get('children') : [];
+    // use for-loop since tChildren is modified recursively
     for (var i = 0; i < tChildren.get('length'); ++i) {
       var child = tChildren.objectAt(i),
           descendants = child.get('children');
