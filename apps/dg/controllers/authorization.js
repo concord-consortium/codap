@@ -133,15 +133,16 @@ DG.authorizationController = SC.Controller.create( (function() {
         if (run_remote_endpoint)
           body.run_remote_endpoint = run_remote_endpoint;
 
+        var jsonBody = SC.json.encode(body);
         $.ajax(DG.get('logServerUrl'), {
           type: 'POST',
           contentType: 'application/json',
-          data: SC.json.encode(body),
+          data: jsonBody,
           xhrFields: {
             withCredentials: false
           }
         });
-        console.log('sent to log server: ' + SC.json.encode(body));
+        console.log('sent to log server: ' + jsonBody);
       }
     }
   };
