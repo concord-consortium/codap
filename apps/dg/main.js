@@ -352,8 +352,8 @@ DG.main = function main() {
               },
               logLaraData: function(obj) {
                 var collaboratorUrls = JSON.stringify(obj.collaboratorUrls || []);
-                DG.logUser("laraData: { operation: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@ }",
-                            obj.operation, obj.runStateUrl, obj.documentID, obj.documentUrl, collaboratorUrls);
+                DG.logUser("laraData: { operation: '%@', remoteEndpoint: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@ }",
+                            obj.operation, obj.remoteEndpoint, obj.runStateUrl, obj.documentID, obj.documentUrl, collaboratorUrls);
               }
             },
             {
