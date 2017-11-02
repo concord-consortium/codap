@@ -91,8 +91,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           dataContext: this.handleDataContext,
           dataContextFromURL: this.handleDataContextFromURL,
           dataContextList: this.handleDataContextList,
-          //global: this.handleGlobal,
-          //globalList: this.handleGlobalList,
+          global: this.handleGlobal,
+          globalList: this.handleGlobalList,
           item: this.handleItems,
           itemByCaseID: this.handleItemByCaseID,
           itemSearch: this.handleItemSearch,
@@ -213,7 +213,9 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               'undoChangeNotice',
               'undoableActionPerformed',
               'component',
-              'componentList'].indexOf(resourceSelector.type) < 0) {
+              'componentList',
+              'global',
+              'globalList'].indexOf(resourceSelector.type) < 0) {
           // if no data context provided, and we are not creating one, the
           // default data context is implied
           if (SC.none(resourceSelector.dataContext) ) {
@@ -238,7 +240,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         }
 
         if (resourceSelector.global) {
-          result.global = DG.currDocumentController().getGlobalByName(resourceSelector.global);
+          result.global = DG.globalsController.getGlobalValueByName(resourceSelector.global);
         }
 
         if (resourceSelector.collection) {
@@ -1974,6 +1976,56 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           }
           return {success: success, values: { canUndo: DG.UndoHistory.get('canUndo'),
                                               canRedo: DG.UndoHistory.get('canRedo') } };
+        }
+      },
+      handleGlobal: {
+        get: function (iResources) {
+          var global = iResources.global;
+          if (global) {
+            return {
+              success: true,
+              values: {
+                name: global.name,
+                value: global.value,
+                id: global.id
+              }
+            };
+          } else {
+            return {success: false, values: {error: 'Not found'}};
+          }
+        },
+        update: function (iResources, iValues) {
+          var global = iResources.global;
+          var newValue = iValues.value;
+
+          if (global && !SC.none(newValue)) {
+            global.set('value', newValue);
+            return {success: true};
+          } else {
+            return {success: false, values: {error: 'missing global or value'}};
+          }
+        },
+        create: function (iResources, iValues) {
+          var g = DG.globalsController.createGlobalValue(iValues);
+          var result = SC.none(g)
+                ?{error: 'error creating global value'}
+                :{name: g.name, value: g.value, id: g.id};
+          return {success: !SC.none(g), values: result};
+        }
+      },
+      handleGlobalList: {
+        get: function (iResources) {
+          var names = DG.globalsController.getGlobalValueNames();
+          var result = names.map(function (name) {
+            var global = DG.globalsController.getGlobalValueByName(name);
+            return {
+              name: global.name,
+              value: global.value,
+              id: global.id
+
+            };
+          });
+          return {success: true, values: result};
         }
       }
       //get: function (iResources) {

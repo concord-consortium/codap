@@ -46,6 +46,10 @@ DG.GlobalValue = DG.BaseModel.extend(/** @scope DG.GlobalValue.prototype */ {
    */
   document: null,
 
+  init: function() {
+    sc_super();
+  },
+
   destroy: function () {
     if (this.document) {
       delete this.document.globalValues[this.id];
