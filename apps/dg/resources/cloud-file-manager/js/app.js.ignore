@@ -11905,8 +11905,8 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":67,"./utils/get-hash-param":68,"./views/app-view":79}],54:[function(require,module,exports){
-var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, isString, tr,
+},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":80}],54:[function(require,module,exports){
+var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
 
@@ -11915,6 +11915,8 @@ tr = require('./utils/translate');
 isString = require('./utils/is-string');
 
 base64Array = require('base64-js');
+
+getQueryParam = require('./utils/get-query-param');
 
 CloudFileManagerUI = (require('./ui')).CloudFileManagerUI;
 
@@ -11932,7 +11934,11 @@ DocumentStoreShareProvider = require('./providers/document-store-share-provider'
 
 LocalFileProvider = require('./providers/local-file-provider');
 
+PostMessageProvider = require('./providers/post-message-provider');
+
 URLProvider = require('./providers/url-provider');
+
+ProviderInterface = (require('./providers/provider-interface')).ProviderInterface;
 
 cloudContentFactory = (require('./providers/provider-interface')).cloudContentFactory;
 
@@ -11966,16 +11972,16 @@ CloudFileManagerClient = (function() {
   }
 
   CloudFileManagerClient.prototype.setAppOptions = function(appOptions1) {
-    var Provider, allProviders, availableProviders, base, base1, base2, base3, i, j, len, len1, provider, providerName, providerOptions, readableMimetypes, ref, ref1, ref2, ref3;
+    var Provider, allProviders, availableProviders, base, base1, base2, base3, i, j, len, len1, provider, providerList, providerName, providerOptions, providerSpec, readableMimetypes, ref, ref1, requestedProviders, shareProvider;
     this.appOptions = appOptions1 != null ? appOptions1 : {};
     if ((base = this.appOptions).wrapFileContent == null) {
       base.wrapFileContent = true;
     }
     CloudContent.wrapFileContent = this.appOptions.wrapFileContent;
     allProviders = {};
-    ref = [ReadOnlyProvider, LocalStorageProvider, GoogleDriveProvider, LaraProvider, DocumentStoreProvider, LocalFileProvider];
-    for (i = 0, len = ref.length; i < len; i++) {
-      Provider = ref[i];
+    providerList = [LocalStorageProvider, ReadOnlyProvider, GoogleDriveProvider, LaraProvider, DocumentStoreProvider, LocalFileProvider, PostMessageProvider];
+    for (i = 0, len = providerList.length; i < len; i++) {
+      Provider = providerList[i];
       if (Provider.Available()) {
         allProviders[Provider.Name] = Provider;
       }
@@ -11994,11 +12000,15 @@ CloudFileManagerClient = (function() {
     }
     readableMimetypes = this.appOptions.readableMimeTypes || [];
     readableMimetypes.push(this.appOptions.mimeType);
+    requestedProviders = this.appOptions.providers.slice();
+    if (getQueryParam("saveSecondaryFileViaPostMessage")) {
+      requestedProviders.push('postMessage');
+    }
     availableProviders = [];
-    ref1 = this.appOptions.providers;
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      provider = ref1[j];
-      ref2 = isString(provider) ? [provider, {}] : [provider.name, provider], providerName = ref2[0], providerOptions = ref2[1];
+    shareProvider = null;
+    for (j = 0, len1 = requestedProviders.length; j < len1; j++) {
+      providerSpec = requestedProviders[j];
+      ref = isString(providerSpec) ? [providerSpec, {}] : [providerSpec.name, providerSpec], providerName = ref[0], providerOptions = ref[1];
       if (providerOptions.mimeType == null) {
         providerOptions.mimeType = this.appOptions.mimeType;
       }
@@ -12006,10 +12016,16 @@ CloudFileManagerClient = (function() {
       if (!providerName) {
         this.alert("Invalid provider spec - must either be string or object with name property");
       } else {
+        if (providerSpec.createProvider) {
+          allProviders[providerName] = providerSpec.createProvider(ProviderInterface);
+        }
         if (allProviders[providerName]) {
           Provider = allProviders[providerName];
           provider = new Provider(providerOptions, this);
           this.providers[providerName] = provider;
+          if (providerName === DocumentStoreProvider.Name) {
+            shareProvider = new DocumentStoreShareProvider(this, provider);
+          }
           if (provider.urlDisplayName) {
             this.providers[provider.urlDisplayName] = provider;
           }
@@ -12021,7 +12037,7 @@ CloudFileManagerClient = (function() {
     }
     this._setState({
       availableProviders: availableProviders,
-      shareProvider: new DocumentStoreShareProvider(this, this.providers[DocumentStoreProvider.Name])
+      shareProvider: shareProvider
     });
     (base1 = this.appOptions).ui || (base1.ui = {});
     (base2 = this.appOptions.ui).windowTitleSuffix || (base2.windowTitleSuffix = document.title);
@@ -12037,7 +12053,7 @@ CloudFileManagerClient = (function() {
       appVersion: this.appOptions.appVersion || "",
       appBuildNum: this.appOptions.appBuildNum || ""
     });
-    this.newFileOpensInNewTab = ((ref3 = this.appOptions.ui) != null ? ref3.hasOwnProperty('newFileOpensInNewTab') : void 0) ? this.appOptions.ui.newFileOpensInNewTab : true;
+    this.newFileOpensInNewTab = ((ref1 = this.appOptions.ui) != null ? ref1.hasOwnProperty('newFileOpensInNewTab') : void 0) ? this.appOptions.ui.newFileOpensInNewTab : true;
     return this._startPostMessageListener();
   };
 
@@ -12104,6 +12120,23 @@ CloudFileManagerClient = (function() {
   CloudFileManagerClient.prototype.listen = function(listener) {
     if (listener) {
       return this._listeners.push(listener);
+    }
+  };
+
+  CloudFileManagerClient.prototype.log = function(event, eventData) {
+    if (this.appOptions.log) {
+      return this.appOptions.log(event, eventData);
+    }
+  };
+
+  CloudFileManagerClient.prototype.autoProvider = function(capability) {
+    var i, len, provider, ref;
+    ref = this.state.availableProviders;
+    for (i = 0, len = ref.length; i < len; i++) {
+      provider = ref[i];
+      if (provider.canAuto(capability)) {
+        return provider;
+      }
     }
   };
 
@@ -12467,7 +12500,7 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    provider = (ref = this.state.metadata) != null ? ref.provider : void 0;
+    provider = ((ref = this.state.metadata) != null ? ref.provider : void 0) || this.autoProvider('save');
     if (provider != null) {
       return provider.authorized((function(_this) {
         return function(isAuthorized) {
@@ -12904,14 +12937,14 @@ CloudFileManagerClient = (function() {
   };
 
   CloudFileManagerClient.prototype.saveSecondaryFileAsDialog = function(stringContent, extension, mimeType, callback) {
-    var data;
-    if (window.location.search.indexOf("saveSecondaryFileViaPostMessage") !== -1) {
-      return window.parent.postMessage({
-        action: "saveSecondaryFile",
+    var data, metadata, provider;
+    if ((provider = this.autoProvider('export'))) {
+      metadata = {
+        provider: provider,
         extension: extension,
-        mimeType: mimeType,
-        content: stringContent
-      }, "*");
+        mimeType: mimeType
+      };
+      return this.saveSecondaryFile(stringContent, metadata, callback);
     } else {
       data = {
         content: stringContent,
@@ -12937,19 +12970,13 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
-    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('save', metadata) : void 0 : void 0) {
-      this._setState({
-        saving: metadata
-      });
-      return metadata.provider.save(stringContent, metadata, (function(_this) {
+    if (metadata != null ? (ref = metadata.provider) != null ? ref.can('export', metadata) : void 0 : void 0) {
+      return metadata.provider.saveAsExport(stringContent, metadata, (function(_this) {
         return function(err, statusCode) {
           if (err) {
             return _this.alert(err);
           }
-          _this._setState({
-            saving: null
-          });
-          return typeof callback === "function" ? callback(currentContent, metadata) : void 0;
+          return typeof callback === "function" ? callback(stringContent, metadata) : void 0;
         };
       })(this));
     }
@@ -13267,7 +13294,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/provider-interface":64,"./providers/readonly-provider":65,"./providers/url-provider":66,"./ui":67,"./utils/is-string":71,"./utils/translate":76,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":77,"base64-js":1}],55:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -13839,7 +13866,7 @@ DocumentStoreProvider = (function(superClass) {
   };
 
   DocumentStoreProvider.prototype.save = function(cloudContent, metadata, callback) {
-    var content, params, patchResults;
+    var content, logData, method, params, patchResults, url;
     content = cloudContent.getContent();
     patchResults = this.savedContent.createPatch(content, this.options.patch && metadata.overwritable);
     if (patchResults.shouldPatch && !patchResults.diffLength) {
@@ -13856,10 +13883,22 @@ DocumentStoreProvider = (function(superClass) {
     if (this.urlParams.runKey) {
       params.runKey = this.urlParams.runKey;
     }
+    method = 'POST';
+    url = patchResults.shouldPatch ? this.docStoreUrl.patchDocument(params) : this.docStoreUrl.saveDocument(params);
+    logData = {
+      operation: 'save',
+      provider: 'DocumentStoreProvider',
+      shouldPatch: patchResults.shouldPatch,
+      method: method,
+      url: url,
+      params: JSON.stringify(params),
+      content: patchResults.sendContent.substr(0, 512)
+    };
+    this.client.log('save', logData);
     return $.ajax({
       dataType: 'json',
-      type: 'POST',
-      url: patchResults.shouldPatch ? this.docStoreUrl.patchDocument(params) : this.docStoreUrl.saveDocument(params),
+      type: method,
+      url: url,
       data: pako.deflate(patchResults.sendContent),
       contentType: patchResults.mimeType,
       processData: false,
@@ -14045,7 +14084,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":68,"../utils/get-query-param":69,"../utils/is-string":71,"../utils/translate":76,"./document-store-url":58,"./patchable-content":63,"./provider-interface":64,"jiff":20,"pako":35}],57:[function(require,module,exports){
+},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":77,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -14168,7 +14207,7 @@ DocumentStoreShareProvider = (function() {
 module.exports = DocumentStoreShareProvider;
 
 
-},{"./document-store-url":58,"./provider-interface":64,"pako":35}],58:[function(require,module,exports){
+},{"./document-store-url":58,"./provider-interface":65,"pako":35}],58:[function(require,module,exports){
 var DocumentStoreUrl, defaultDocStoreUrl;
 
 defaultDocStoreUrl = "//document-store.concord.org";
@@ -14176,6 +14215,7 @@ defaultDocStoreUrl = "//document-store.concord.org";
 DocumentStoreUrl = (function() {
   function DocumentStoreUrl(docStoreUrl) {
     this.docStoreUrl = docStoreUrl || defaultDocStoreUrl;
+    this.docStoreUrl = this.docStoreUrl.replace(/\/+$/, '');
   }
 
   DocumentStoreUrl.prototype.addParams = function(url, params) {
@@ -14836,7 +14876,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":71,"../utils/translate":76,"./provider-interface":64,"diff":12}],60:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":77,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -14920,8 +14960,9 @@ LaraProvider = (function(superClass) {
       laraData.collaboratorUrls = this.collaboratorUrls;
     }
     if (this.options.logLaraData) {
-      return this.options.logLaraData(laraData);
+      this.options.logLaraData(laraData);
     }
+    return this.client.log('logLaraData', laraData);
   };
 
   LaraProvider.prototype.filterTabComponent = function(capability, defaultComponent) {
@@ -14991,7 +15032,7 @@ LaraProvider = (function(superClass) {
   };
 
   LaraProvider.prototype.save = function(cloudContent, metadata, callback, disablePatch) {
-    var canPatch, content, method, params, patchResults, ref, ref1, ref2, url;
+    var canPatch, content, logData, method, params, patchResults, ref, ref1, ref2, url;
     content = cloudContent.getContent();
     canPatch = this.options.patch && metadata.overwritable && !disablePatch;
     patchResults = this.savedContent.createPatch(content, canPatch);
@@ -15007,6 +15048,18 @@ LaraProvider = (function(superClass) {
       params.accessKey = 'RW::' + metadata.providerData.accessKeys.readWrite;
     }
     ref2 = patchResults.shouldPatch ? this.docStoreUrl.v2PatchDocument(metadata.providerData.recordid, params) : this.docStoreUrl.v2SaveDocument(metadata.providerData.recordid, params), method = ref2.method, url = ref2.url;
+    logData = {
+      operation: 'save',
+      provider: 'LaraProvider',
+      shouldPatch: patchResults.shouldPatch,
+      method: method,
+      url: url.substr(0, url.indexOf('accessKey') + 16) + '...',
+      params: JSON.stringify({
+        recordname: params.recordname
+      }),
+      content: patchResults.sendContent.substr(0, 512)
+    };
+    this.client.log('save', logData);
     return $.ajax({
       dataType: 'json',
       type: method,
@@ -15156,11 +15209,16 @@ LaraProvider = (function(superClass) {
               url: url,
               dataType: 'json'
             }).done(function(createResponse, status, jqXHR) {
-              _this.logLaraData({
+              var laraData;
+              laraData = {
                 operation: 'clone',
                 documentID: docStore.recordid,
                 documentUrl: url
-              });
+              };
+              if ((existingRunState != null ? existingRunState.run_remote_endpoint : void 0) != null) {
+                laraData.run_remote_endpoint = existingRunState.run_remote_endpoint;
+              }
+              _this.logLaraData(laraData);
               processCreateResponse(createResponse);
               return callback(null);
             }).fail(function(jqXHR, status, error) {
@@ -15290,11 +15348,16 @@ LaraProvider = (function(superClass) {
         }
       }).done((function(_this) {
         return function(data, status, jqXHR) {
-          _this.logLaraData({
+          var laraData;
+          laraData = {
             operation: 'open',
             runStateUrl: openSavedParams.url,
             documentID: openSavedParams.source
-          });
+          };
+          if ((data != null ? data.run_remote_endpoint : void 0) != null) {
+            laraData.run_remote_endpoint = data.run_remote_endpoint;
+          }
+          _this.logLaraData(laraData);
           return processInitialRunState(openSavedParams.url, openSavedParams.source, openSavedParams.readOnlyKey, data);
         };
       })(this)).fail(function(jqXHR, status, error) {
@@ -15321,7 +15384,7 @@ LaraProvider = (function(superClass) {
 module.exports = LaraProvider;
 
 
-},{"../utils/get-query-param":69,"./document-store-url":58,"./patchable-content":63,"./provider-interface":64,"js-base64":34,"pako":35}],61:[function(require,module,exports){
+},{"../utils/get-query-param":70,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"js-base64":34,"pako":35}],61:[function(require,module,exports){
 var LocalFileListTab, LocalFileProvider, LocalFileSaveTab, ProviderInterface, button, cloudContentFactory, div, input, ref, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15398,7 +15461,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":76,"../views/local-file-tab-list-view":87,"../views/local-file-tab-save-view":88,"./provider-interface":64}],62:[function(require,module,exports){
+},{"../utils/translate":77,"../views/local-file-tab-list-view":88,"../views/local-file-tab-save-view":89,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15554,7 +15617,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":76,"./provider-interface":64}],63:[function(require,module,exports){
+},{"../utils/translate":77,"./provider-interface":65}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -15613,6 +15676,58 @@ module.exports = PatchableContent;
 
 
 },{"jiff":20}],64:[function(require,module,exports){
+var PostMessageProvider, ProviderInterface, getQueryParam,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+ProviderInterface = (require('./provider-interface')).ProviderInterface;
+
+getQueryParam = require('../utils/get-query-param');
+
+PostMessageProvider = (function(superClass) {
+  extend(PostMessageProvider, superClass);
+
+  PostMessageProvider.Name = 'postMessage';
+
+  function PostMessageProvider(options, client) {
+    this.options = options != null ? options : {};
+    this.client = client;
+    PostMessageProvider.__super__.constructor.call(this, {
+      capabilities: {
+        save: false,
+        resave: false,
+        "export": getQueryParam("saveSecondaryFileViaPostMessage") ? 'auto' : false,
+        load: false,
+        list: false,
+        remove: false,
+        rename: false,
+        close: false
+      }
+    });
+  }
+
+  PostMessageProvider.prototype.canOpenSaved = function() {
+    return false;
+  };
+
+  PostMessageProvider.prototype.saveAsExport = function(content, metadata, callback) {
+    window.parent.postMessage({
+      action: "saveSecondaryFile",
+      extension: metadata.extension,
+      mimeType: metadata.mimeType,
+      content: content
+    }, "*");
+    return typeof callback === "function" ? callback(null) : void 0;
+  };
+
+  return PostMessageProvider;
+
+})(ProviderInterface);
+
+module.exports = PostMessageProvider;
+
+
+},{"../utils/get-query-param":70,"./provider-interface":65}],65:[function(require,module,exports){
 var CloudContent, CloudContentFactory, CloudFile, CloudMetadata, ProviderInterface, div, isString,
   hasProp = {}.hasOwnProperty;
 
@@ -15885,7 +16000,11 @@ ProviderInterface = (function() {
   };
 
   ProviderInterface.prototype.can = function(capability) {
-    return this.capabilities[capability];
+    return !!this.capabilities[capability];
+  };
+
+  ProviderInterface.prototype.canAuto = function(capability) {
+    return this.capabilities[capability] === 'auto';
   };
 
   ProviderInterface.prototype.isAuthorizationRequired = function() {
@@ -15950,6 +16069,14 @@ ProviderInterface = (function() {
     return this._notImplemented('save');
   };
 
+  ProviderInterface.prototype.saveAsExport = function(content, metadata, callback) {
+    if (this.can('save', metadata)) {
+      return this.save(content, metadata, callback);
+    } else {
+      return this._notImplemented('saveAsExport');
+    }
+  };
+
   ProviderInterface.prototype.load = function(callback) {
     return this._notImplemented('load');
   };
@@ -16005,7 +16132,7 @@ module.exports = {
 };
 
 
-},{"../utils/is-string":71}],65:[function(require,module,exports){
+},{"../utils/is-string":72}],66:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, ReadOnlyProvider, cloudContentFactory, isArray, isString, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16315,7 +16442,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":70,"../utils/is-string":71,"../utils/translate":76,"./provider-interface":64}],66:[function(require,module,exports){
+},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":77,"./provider-interface":65}],67:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16377,7 +16504,7 @@ URLProvider = (function(superClass) {
 module.exports = URLProvider;
 
 
-},{"./provider-interface":64}],67:[function(require,module,exports){
+},{"./provider-interface":65}],68:[function(require,module,exports){
 var CloudFileManagerUI, CloudFileManagerUIEvent, CloudFileManagerUIMenu, isString, tr;
 
 tr = require('./utils/translate');
@@ -16661,7 +16788,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":71,"./utils/translate":76}],68:[function(require,module,exports){
+},{"./utils/is-string":72,"./utils/translate":77}],69:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -16683,7 +16810,7 @@ module.exports = function(param) {
 };
 
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 module.exports = function(param) {
   var regex, regexS, results;
   param = param.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -16698,19 +16825,19 @@ module.exports = function(param) {
 };
 
 
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 module.exports = function(value) {
   return Array.isArray(value || {}.toString.call(value === '[object Array]'));
 };
 
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 module.exports = function(param) {
   return Object.prototype.toString.call(param) === '[object String]';
 };
 
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 module.exports={
   "~MENUBAR.UNTITLED_DOCUMENT": "Untitled Document",
 
@@ -16841,7 +16968,7 @@ module.exports={
 }
 
 
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "מסמך לא שמור",
     "~MENU.NEW": "חדש",
@@ -16949,7 +17076,7 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "שמור מסמך במיקום אחר."
 }
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "İsimsiz Dosya",
     "~MENU.NEW": "Yeni",
@@ -17057,7 +17184,7 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Lütfen dosyanızı farklı bir yere kaydedin."
 }
 
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
@@ -17165,7 +17292,7 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
 }
 
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 var defaultLang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
@@ -17228,7 +17355,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/en-US":72,"./lang/he":73,"./lang/tr":74,"./lang/zh-TW":75,"./url-params":77}],77:[function(require,module,exports){
+},{"./lang/en-US":73,"./lang/he":74,"./lang/tr":75,"./lang/zh-TW":76,"./url-params":78}],78:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -17246,7 +17373,7 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -17285,7 +17412,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76,"./modal-dialog-view":90}],79:[function(require,module,exports){
+},{"../utils/translate":77,"./modal-dialog-view":91}],80:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -17575,7 +17702,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":71,"../utils/translate":76,"./alert-dialog-view":78,"./blocking-modal-view":81,"./confirm-dialog-view":82,"./download-dialog-view":83,"./import-tabbed-dialog-view":86,"./menu-bar-view":89,"./provider-tabbed-dialog-view":93,"./rename-dialog-view":94,"./share-dialog-view":96}],80:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":77,"./alert-dialog-view":79,"./blocking-modal-view":82,"./confirm-dialog-view":83,"./download-dialog-view":84,"./import-tabbed-dialog-view":87,"./menu-bar-view":90,"./provider-tabbed-dialog-view":94,"./rename-dialog-view":95,"./share-dialog-view":97}],81:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -17620,7 +17747,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],81:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -17656,7 +17783,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":92}],82:[function(require,module,exports){
+},{"./modal-view":93}],83:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -17704,7 +17831,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76,"./modal-dialog-view":90}],83:[function(require,module,exports){
+},{"../utils/translate":77,"./modal-dialog-view":91}],84:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -17805,7 +17932,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":64,"../utils/translate":76,"./modal-dialog-view":90}],84:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":77,"./modal-dialog-view":91}],85:[function(require,module,exports){
 var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
@@ -18004,7 +18131,7 @@ DropDown = React.createClass({
 module.exports = DropDown;
 
 
-},{}],85:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -18317,7 +18444,7 @@ FileDialogTab = React.createClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":64,"../utils/translate":76,"./authorize-mixin":80}],86:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":77,"./authorize-mixin":81}],87:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -18399,7 +18526,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76,"./local-file-tab-list-view":87,"./modal-tabbed-dialog-view":91,"./tabbed-panel-view":97,"./url-tab-view":98}],87:[function(require,module,exports){
+},{"../utils/translate":77,"./local-file-tab-list-view":88,"./modal-tabbed-dialog-view":92,"./tabbed-panel-view":98,"./url-tab-view":99}],88:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -18494,7 +18621,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":64,"../utils/translate":76}],88:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":77}],89:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
@@ -18665,7 +18792,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":64,"../utils/translate":76}],89:[function(require,module,exports){
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":77}],90:[function(require,module,exports){
 var Dropdown, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -18840,7 +18967,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76,"./dropdown-view":84}],90:[function(require,module,exports){
+},{"../utils/translate":77,"./dropdown-view":85}],91:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -18873,7 +19000,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":92}],91:[function(require,module,exports){
+},{"./modal-view":93}],92:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -18894,7 +19021,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":90,"./tabbed-panel-view":97}],92:[function(require,module,exports){
+},{"./modal-dialog-view":91,"./tabbed-panel-view":98}],93:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -18973,7 +19100,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],93:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19045,7 +19172,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":64,"../utils/translate":76,"./file-dialog-tab-view":85,"./modal-tabbed-dialog-view":91,"./select-provider-dialog-tab-view":95,"./tabbed-panel-view":97}],94:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":77,"./file-dialog-tab-view":86,"./modal-tabbed-dialog-view":92,"./select-provider-dialog-tab-view":96,"./tabbed-panel-view":98}],95:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -19114,7 +19241,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76,"./modal-dialog-view":90}],95:[function(require,module,exports){
+},{"../utils/translate":77,"./modal-dialog-view":91}],96:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -19129,7 +19256,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],96:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -19439,7 +19566,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":69,"../utils/translate":76,"./modal-dialog-view":90,"svg-social-icons/lib/icons.json":51}],97:[function(require,module,exports){
+},{"../utils/get-query-param":70,"../utils/translate":77,"./modal-dialog-view":91,"svg-social-icons/lib/icons.json":51}],98:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -19551,7 +19678,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -19632,6 +19759,6 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":76}]},{},[52,53])(53)
+},{"../utils/translate":77}]},{},[52,53])(53)
 });
 //# sourceURL=cfm/app.js.ignore
