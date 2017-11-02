@@ -635,5 +635,15 @@ SC.stringsFor("zh", {
     "DG.mainPage.exceptionMessage": "出現可能影響程式的錯誤。儲存目前的檔案後重新整理此頁。 (Error: %@)",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
-    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component"
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.Undo.graph.showMovablePoint": "Undo showing movable point",
+    "DG.Redo.graph.showMovablePoint": "Redo showing movable point",
+    "DG.Undo.graph.hideMovablePoint": "Undo hiding movable point",
+    "DG.Redo.graph.hideMovablePoint": "Redo hiding movable point",
+    "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
+    "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
+    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
+    "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
+    "DG.Inspector.graphMovablePoint": "Movable Point"
 });

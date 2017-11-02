@@ -635,5 +635,15 @@ SC.stringsFor("he", {
     "DG.mainPage.exceptionMessage": "חלה שגיאה שיכולה להשפיע על התוכנה. רצוי לטעון מחדש דף זה לאחר שמירת העבודה",
     "DG.fileMenu.provider.examples.displayName": "Example Documents",
     "DG.ToolButtonData.pluginMenu.title": "Plugins",
-    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component"
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.Undo.graph.showMovablePoint": "Undo showing movable point",
+    "DG.Redo.graph.showMovablePoint": "Redo showing movable point",
+    "DG.Undo.graph.hideMovablePoint": "Undo hiding movable point",
+    "DG.Redo.graph.hideMovablePoint": "Redo hiding movable point",
+    "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
+    "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
+    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
+    "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
+    "DG.Inspector.graphMovablePoint": "Movable Point"
 });
