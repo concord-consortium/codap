@@ -336,6 +336,10 @@ DG.main = function main() {
           extension: 'codap',
           readableExtensions: ["json", "", "codap"],
           enableLaraSharing: true,
+          log: function(event, eventData) {
+            var params = eventData ? JSON.stringify(eventData) : "";
+            DG.logUser("%@: %@", event, params);
+          },
           providers: [
             {
               "name": "readOnly",
