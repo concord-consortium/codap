@@ -351,9 +351,10 @@ DG.main = function main() {
                 return obj.guid || JSON.stringify(obj);
               },
               logLaraData: function(obj) {
-                var collaboratorUrls = JSON.stringify(obj.collaboratorUrls || []);
-                DG.logUser("laraData: { operation: '%@', runStateUrl: '%@', docID: '%@', docUrl: '%@', collaboratorUrls: %@ }",
-                            obj.operation, obj.runStateUrl, obj.documentID, obj.documentUrl, collaboratorUrls);
+                if (obj.run_remote_endpoint) {
+                  DG.set('run_remote_endpoint', obj.run_remote_endpoint);
+                }
+                DG.logUser("laraData: %@".fmt(JSON.stringify(obj)));
               }
             },
             {

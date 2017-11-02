@@ -128,16 +128,22 @@ DG.authorizationController = SC.Controller.create( (function() {
           event_value: eventValue,
           parameters:  parameters
         };
+        
+        var run_remote_endpoint = DG.get('run_remote_endpoint');
+        if (run_remote_endpoint)
+          body.run_remote_endpoint = run_remote_endpoint;
 
-      $.ajax(DG.get('logServerUrl'), {
-        type: 'POST',
-        contentType: 'application/json',
-        data: SC.json.encode(body),
-        xhrFields: {
-          withCredentials: false
-        }
-      });
-      console.log('sent to log server: ' + SC.json.encode(body));
+        var jsonBody = SC.json.encode(body);
+        $.ajax(DG.get('logServerUrl'), {
+          type: 'POST',
+          contentType: 'application/json',
+          data: jsonBody,
+          xhrFields: {
+            withCredentials: false
+          }
+        });
+        console.log('sent to log server: ' + jsonBody);
+      }
     }
-  }
-}; })());
+  };
+})());
