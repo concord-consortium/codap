@@ -591,6 +591,8 @@ DG.ScatterPlotModel = DG.PlotModel.extend(DG.NumericPlotModelMixin,
       onRescaleIsComplete: function () {
         if (!SC.none(this.movableLine))
           this.movableLine.recomputeSlopeAndInterceptIfNeeded(this.get('xAxis'), this.get('yAxis'));
+        if (!SC.none(this.movablePoint))
+          this.movablePoint.recomputePositionIfNeeded(this.get('xAxis'), this.get('yAxis'));
       },
 
       /**

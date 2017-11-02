@@ -68,19 +68,6 @@ DG.MovablePointAdornment = DG.PlotAdornment.extend(
       dragging: false,
 
       /**
-       The returned string should have a reasonable number of significant digits for the
-       circumstances.
-       @property { String read only }
-       */
-      coordinatesString: function () {
-        return '{ x: nnn, y: nnn }';
-      }.property().cacheable(),
-      coordinatesDidChange: function () {
-        this.notifyPropertyChange('coordinatesString');
-      }.observes('model.coordinates'),
-
-
-      /**
        Make the pieces of the movable line. This only needs to be done once.
        */
       createElements: function () {

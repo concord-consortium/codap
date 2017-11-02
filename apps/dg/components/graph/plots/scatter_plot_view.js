@@ -520,7 +520,6 @@ DG.ScatterPlotView = DG.PlotView.extend(
       }
       this.movablePointAdorn.updateVisibility();
     }
-    this.displayDidChange();
   }.observes('*model.movablePoint.isVisible'),
 
   /**

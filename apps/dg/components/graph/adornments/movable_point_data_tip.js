@@ -48,10 +48,12 @@ DG.MovablePointDataTip = DG.DataTip.extend(
                   tAttrDesc = tGraphModel.getPath('dataConfiguration.' + iKey + 'AttributeDescription'),
                   tAttr = tAttrDesc.get('attribute'),
                   tAttrID = tAttr ? tAttr.get('id') : null,
+                  tIsDate = tAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eDateTime,
                   tName, tValue;
               if (!SC.none(tAttrID)) {
                 tName = tAttr.get('name');
-                tValue = DG.PlotUtilities.getFormattedNumericValue(tCoordinates[iKey], digitsForAxis);
+                tValue = tIsDate ? DG.DateUtilities.formatDate( tCoordinates[iKey]) :
+                    DG.PlotUtilities.getFormattedNumericValue(tCoordinates[iKey], digitsForAxis);
                 return tName + ': ' + tValue;
               }
               return null;
@@ -81,13 +83,6 @@ DG.MovablePointDataTip = DG.DataTip.extend(
 
         sc_super();
       }
-
-//  hide: function() {
-//    var tLayer = this.get('layer');
-//    if( tLayer)
-//      tLayer.clear();
-//  },
-//
 
     });
 
