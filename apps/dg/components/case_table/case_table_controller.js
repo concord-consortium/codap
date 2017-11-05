@@ -1050,7 +1050,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
 
         function refreshTable() {
-          dataContext.regenerateCollectionCases();
+          dataContext.regenerateCollectionCases(null, 'moveCases');
           if (hierTableView)
             hierTableView.updateRowData();
         }

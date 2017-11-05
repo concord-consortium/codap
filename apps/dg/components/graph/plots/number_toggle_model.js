@@ -434,7 +434,7 @@ return {
   isAffectedByChange: function(iChange) {
 
     function isCollectionChange(iChange) {
-      var operations = ['createCollection', 'deleteCollection', 'moveAttribute'];
+      var operations = ['createCollection', 'deleteCollection', 'moveAttribute', 'moveCases'];
       return operations.indexOf(iChange.operation) >= 0;
     }
 
