@@ -187,7 +187,8 @@ return {
   childrenOfParent: function( iIndex) {
     var tParents = this.get('parentCases' ),
         tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
-        tChildren = tParent ? tParent.get('children') : [];
+                    // flatten() used to make copy of children
+        tChildren = tParent ? tParent.get('children').flatten() : [];
     // use for-loop since tChildren is modified recursively
     for (var i = 0; i < tChildren.get('length'); ++i) {
       var child = tChildren.objectAt(i),
