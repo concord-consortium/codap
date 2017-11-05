@@ -65,6 +65,22 @@ return {
   _cachedCaseCount: null,
   _cachedParentCases: null,
 
+  invalidate: function(iClearCaches) {
+    if (iClearCaches)
+      this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
+
+    // 'caseCount' is used as a proxy to indicate that some change occurred
+    // GraphView.handleNumberToggleDidChange() observes 'caseCount'
+    // not clear why invokeOnceLater() is (or was) required
+    this.invokeOnceLater( this.propertyDidChange, 1, 'caseCount');
+  },
+
+  isEnabledDidChange: function() {
+    // sync up with any changes that occurred while disabled
+    if (this.get('isEnabled'))
+      this.invalidate(true);
+  }.observes('isEnabled'),
+
   /**
    * @property{SC.Array of DG.Case}
    */
@@ -448,14 +464,7 @@ return {
         return;
       }
 
-      if (this.isAffectedByChange(iChange)) {
-        this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
-      }
-
-      // 'caseCount' is used as a proxy to indicate that some change occurred
-      // GraphView.handleNumberToggleDidChange() observes 'caseCount'
-      // not clear why invokeOnceLater() is (or was) required
-      this.invokeOnceLater( this.propertyDidChange, 1, 'caseCount');
+      this.invalidate(this.isAffectedByChange(iChange));
     }
   }
 
