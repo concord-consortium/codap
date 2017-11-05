@@ -15,20 +15,25 @@
   list-style-type: none;
   cursor: pointer;
 }
+/* function item row (function text & info icon) */
 .react-function-browser ul li {
   width: 100%;
   margin: 0;
   padding: 3px;
   list-style-type: none;
-  min-width: 150px;
+  max-width: 300px;
+  display: flex;
 }
+/* function item info icon */
 .react-function-browser li div {
-  float: right;
-  margin-right: 20px;
+  width: 20px;
+  flex: 0 0;
 }
+/* function browser function text */
 .react-function-browser li span {
   display: inline-block;
   margin-right: 10px;
+  width: 245px;
 }
 .react-function-browser li span i,
 .react-function-browser-function-info h1 i {
