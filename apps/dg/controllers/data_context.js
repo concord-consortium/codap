@@ -1286,7 +1286,7 @@ DG.DataContext = SC.Object.extend((function() // closure
      * or destruction.
      * @return {[DG.Case]}
      */
-  regenerateCollectionCases: function (affectedCollections) {
+  regenerateCollectionCases: function (affectedCollections, notifyOperation) {
     var topCollection = this.getCollectionAtIndex(0),
         collections = {},   // map from id to collection
         createdCases,       // array of created cases
@@ -1337,8 +1337,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     this.forEachCollection(function (collection) {
       collection.get('collection').updateCaseIDToIndexMap();
     });
-    return { collections: DG.ObjectMap.values(collections),
-            createdCases: createdCases, deletedCases: deletedCases };
+    var change = { collections: DG.ObjectMap.values(collections),
+                  createdCases: createdCases, deletedCases: deletedCases };
+    if (notifyOperation) {
+      change.operation = notifyOperation;
+      change.isComplete = true;
+      this.applyChange(change);
+    }
+    return change;
   },
 
   /**
