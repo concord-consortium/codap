@@ -65,6 +65,22 @@ return {
   _cachedCaseCount: null,
   _cachedParentCases: null,
 
+  invalidate: function(iClearCaches) {
+    if (iClearCaches)
+      this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
+
+    // 'caseCount' is used as a proxy to indicate that some change occurred
+    // GraphView.handleNumberToggleDidChange() observes 'caseCount'
+    // not clear why invokeOnceLater() is (or was) required
+    this.invokeOnceLater( this.propertyDidChange, 1, 'caseCount');
+  },
+
+  isEnabledDidChange: function() {
+    // sync up with any changes that occurred while disabled
+    if (this.get('isEnabled'))
+      this.invalidate(true);
+  }.observes('isEnabled'),
+
   /**
    * @property{SC.Array of DG.Case}
    */
@@ -187,7 +203,8 @@ return {
   childrenOfParent: function( iIndex) {
     var tParents = this.get('parentCases' ),
         tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
-        tChildren = tParent ? tParent.get('children') : [];
+                    // flatten() used to make copy of children
+        tChildren = tParent ? tParent.get('children').flatten() : [];
     // use for-loop since tChildren is modified recursively
     for (var i = 0; i < tChildren.get('length'); ++i) {
       var child = tChildren.objectAt(i),
@@ -417,7 +434,7 @@ return {
   isAffectedByChange: function(iChange) {
 
     function isCollectionChange(iChange) {
-      var operations = ['createCollection', 'deleteCollection', 'moveAttribute'];
+      var operations = ['createCollection', 'deleteCollection', 'moveAttribute', 'moveCases'];
       return operations.indexOf(iChange.operation) >= 0;
     }
 
@@ -447,14 +464,7 @@ return {
         return;
       }
 
-      if (this.isAffectedByChange(iChange)) {
-        this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
-      }
-
-      // 'caseCount' is used as a proxy to indicate that some change occurred
-      // GraphView.handleNumberToggleDidChange() observes 'caseCount'
-      // not clear why invokeOnceLater() is (or was) required
-      this.invokeOnceLater( this.propertyDidChange, 1, 'caseCount');
+      this.invalidate(this.isAffectedByChange(iChange));
     }
   }
 
