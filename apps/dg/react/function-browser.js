@@ -143,11 +143,11 @@ DG.React.ready(function () {
                 hasInfo = !!fn.definition.description || !!fn.definition.examples;
 
             return li({key: fn.name},
-              hasInfo ? div({onClick: infoClicked, dangerouslySetInnerHTML: {__html:kInfoIconChar}}) : null,
               span({onClick: fnClicked, title: fn.definition.description},
                 fn.name,
                 italic({}, '(' + fn.argList + ')')
-              )
+              ),
+              hasInfo ? div({onClick: infoClicked, dangerouslySetInnerHTML: {__html:kInfoIconChar}}) : null
             );
           });
 
