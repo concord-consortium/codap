@@ -1450,8 +1450,14 @@ DG.DataContext = SC.Object.extend((function() // closure
     var name = attr.name;
     var attributeNames = collectionClient.getAttributeNames();
     var ix = attributeNames.indexOf(name);
-    var newPosition = constrainInt(position, 0, attributeNames.get('length')-1);
+    var newPosition = constrainInt(position, 0, attributeNames.get('length'));
     var changeFlag = this.get('flexibleGroupingChangeFlag');
+    var beforeAttributeNames = attributeNames.slice();
+    var adjustedNew = (ix>=newPosition)? newPosition: newPosition-1;
+    attributeNames.removeAt(ix);
+    attributeNames.insertAt(adjustedNew, name);
+    var afterAttributeNames = attributeNames.slice();
+
     if (ix !== -1) {
       DG.UndoHistory.execute(DG.Command.create({
         name: 'dataContext.moveAttribute',
@@ -1460,15 +1466,13 @@ DG.DataContext = SC.Object.extend((function() // closure
         log: 'move attribute {attribute: "%@", position: %@}'
             .loc(attr.name, position),
         execute: function () {
-          attributeNames.removeAt(ix);
-          attributeNames.insertAt(newPosition, name);
-          collectionClient.reorderAttributes(attributeNames);
+          DG.log('Moving Attribute from: ' + ix + ' to: ' + adjustedNew + ' (' + newPosition + ')');
+          collectionClient.reorderAttributes(afterAttributeNames);
           dataContext.set('flexibleGroupingChangeFlag', true);
         },
         undo: function () {
-          attributeNames.removeAt(newPosition);
-          attributeNames.insertAt(ix, name);
-          collectionClient.reorderAttributes(attributeNames);
+          DG.log('Undo move of Attribute from: ' + ix + ' to: ' + adjustedNew + ' (' + newPosition + ')');
+          collectionClient.reorderAttributes(beforeAttributeNames);
           dataContext.set('flexibleGroupingChangeFlag', changeFlag);
 
           // notify about this change, but mark as complete, so
@@ -1483,7 +1487,9 @@ DG.DataContext = SC.Object.extend((function() // closure
           dataContext.applyChange(tChange);
         },
         redo: function () {
-          this.execute();
+          DG.log('Redo move of Attribute from: ' + ix + ' to: ' + adjustedNew + ' (' + newPosition + ')');
+          collectionClient.reorderAttributes(afterAttributeNames);
+          dataContext.set('flexibleGroupingChangeFlag', true);
           // notify
           var tChange = {
             isComplete: true,
