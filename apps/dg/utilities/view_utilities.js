@@ -63,7 +63,9 @@ DG.ViewUtilities = {
 */
       iView = iView.parentView;
     } while( !SC.none( iView));
-    return iWindowPt;
+    // When embedded, CODAP need not be at the window origin
+    var codapOffset = $('#codap').offset();
+    return { x: iWindowPt.x - codapOffset.left, y: iWindowPt.y - codapOffset.top };
   },
 
   /**
@@ -85,7 +87,9 @@ DG.ViewUtilities = {
 */
       iView = iView.parentView;
     } while( !SC.none( iView));
-    return iViewPt;
+    // When embedded, CODAP need not be at the window origin
+    var codapOffset = $('#codap').offset();
+    return { x: iViewPt.x + codapOffset.left, y: iViewPt.y + codapOffset.top };
   },
 
   /**
