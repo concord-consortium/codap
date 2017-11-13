@@ -252,6 +252,15 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       this.synchPlotWithAttributes();
 
+      // Set Y2 Attribute if present
+      var tY2AttributeDescription = this.getPath('dataConfiguration.y2AttributeDescription');
+      if (tY2AttributeDescription && tY2AttributeDescription.get('attributes')[0] && tDataContext) {
+        this.changeAttributeForY2Axis(tDataContext, {
+          collection: tY2AttributeDescription.get('collectionClient'),
+          attributes: tY2AttributeDescription.get('attributes')
+        });
+      }
+
       // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),
           numberToggle = this.get('numberToggle'),
