@@ -984,8 +984,13 @@ DG.DocumentController = SC.Object.extend(
         executeNotification: DG.UndoHistory.makeComponentNotification( 'create', 'slider'),
         undoNotification: DG.UndoHistory.makeComponentNotification( 'delete', 'slider'),
         execute: function() {
+          var globalProperties = {};
           if (SC.none(this._global)) {
-            this._global = docController.createGlobalValue();
+            if (iComponent.componentStorage) {
+              globalProperties.name = iComponent.componentStorage.globalValueName;
+              globalProperties.value = iComponent.componentStorage.value;
+            }
+            this._global = docController.createGlobalValue(globalProperties);
           } else {
             DG.globalsController.registerGlobalValue(this._global);
           }

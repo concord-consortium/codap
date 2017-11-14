@@ -105,7 +105,7 @@ DG.globalsController = SC.Controller.create( (function() {
       }
       if( SC.empty( iProperties.name))
         iProperties.name = this.getUniqueName( iPrefix);
-      if( !iProperties.value)
+      if( SC.none(iProperties.value))
         iProperties.value = 0.5;
       var tGlobal = DG.GlobalValue.createGlobalValue( iProperties);
       this.registerGlobalValue( tGlobal);

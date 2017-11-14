@@ -1602,7 +1602,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             animationDirection: directMapping,
             animationMode: directMapping,
             // todo: does slider construct global or is it expected to exist before?
-            globalValueName: 'mapped',
+            globalValueName: directMapping,
             lowerBound: directMapping,
             name: directMapping,
             title: directMapping,
