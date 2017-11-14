@@ -1098,6 +1098,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
     Destroys the SlickGrid object, its DataView object, and the CaseTableAdapter.
    */
   _destroy: function() {
+    this.scrollAnimator.destroy();
     this.destroySlickGrid();
 
     if( this.gridAdapter)
@@ -2020,7 +2021,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         };
         rtn.last = rtn.first;
       }
-      else {
+      else if (c0 && cn) {
         rtn = {
           first: dataView.getRowById(c0.id),
           last: dataView.getRowById(cn.id)
