@@ -283,7 +283,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.item) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
-          result.item = dataSet && dataSet.getDataItemByID(resourceSelector.item);
+          result.item = dataSet && dataSet.getDataItemByID(Number(resourceSelector.item));
         }
 
         if (resourceSelector.itemSearch) {
