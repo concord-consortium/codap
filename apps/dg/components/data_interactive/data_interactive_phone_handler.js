@@ -1392,13 +1392,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         'delete': function (iResources) {
           var item = iResources.itemByCaseID;
+          var items = [item];
           var context = iResources.dataContext;
           var success = (item !== null);
-          var deletedCases;
+          var deletedItems;
           if (success) {
-            deletedCases = context.deleteItems(item);
-            if (deletedCases) {
-              return {success: true, values: deletedCases};
+            context.applyChange({
+              operation: 'deleteItems',
+              items: items,
+              requester: this.get('id')
+            });
+            deletedItems = context.deleteItems(items);
+            if (deletedItems) {
+              return {success: true, values: deletedItems && deletedItems.map(function (item) {return item.id;})};
             }
           } else {
             return {success: success};
