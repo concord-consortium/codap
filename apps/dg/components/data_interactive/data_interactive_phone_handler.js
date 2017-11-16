@@ -499,6 +499,14 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: tReturnValues
           };
+        },
+
+        notify: function (iResources, iValues) {
+          if (iValues.dirty) {
+            DG.dirtyCurrentDocument(this.controller, true);
+            return {success: true};
+          }
+          return {success: true};
         }
       },
 
@@ -1858,6 +1866,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));
+          DG.dirtyCurrentDocument(this.controller, true);
           return {
             success: true
           };
