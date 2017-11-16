@@ -502,11 +502,48 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
         },
 
         notify: function (iResources, iValues) {
+          function parseDataURL(dataUri) {
+            var typeToExtensionMap = {'image/png': 'png', 'image/gif': 'gif'};
+            var dataUriRE = /^data:([^,]*),(.*$)/;
+            var matches = dataUriRE.exec(dataUri);
+            var mediaType, content, mimeType, extension;
+            if (matches) {
+              mediaType = matches[1];
+              content = matches[2];
+              mimeType = Object.keys(typeToExtensionMap).find(function (key) {
+                return mediaType.startsWith(key);
+              });
+              if (mimeType) {
+                extension = typeToExtensionMap[mimeType];
+              }
+            }
+            return {
+              mediaType: mediaType,
+              content: content,
+              mimeType: mimeType,
+              extension: extension
+            };
+          }
+          var result = {success: true};
+          var imageData;
           if (iValues.dirty) {
             DG.dirtyCurrentDocument(this.controller, true);
-            return {success: true};
           }
-          return {success: true};
+          if (iValues.image) {
+            imageData = parseDataURL(iValues.image);
+            if (imageData) {
+              DG.exportFile(imageData.content, imageData.extension, imageData.mimeType);
+            }
+            else {
+              result = {
+                success: false,
+                values: {
+                  error: "Failed to parse image data uri: " + iValues.image.slice(0, 20)
+                }
+              };
+            }
+          }
+          return result;
         }
       },
 
