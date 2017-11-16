@@ -31,6 +31,9 @@ DG.mainPage = SC.Page.design((function() {
   // Add childViews to this pane for views to display immediately on page load.
   mainPane: SC.MainPane.design({
 
+    isTextSelectable: YES, // Makes text selectable in the background page in
+                           // shared embedded mode
+
     sendEvent: function(action, evt, target) {
       if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
         this.hideInspectorPicker( target);
