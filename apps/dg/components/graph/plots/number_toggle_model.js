@@ -90,7 +90,7 @@ return {
         isHierarchical = false;
     if( !tCases)
       return [];
-    tCases = tCases.flatten();
+    tCases = tCases.slice();
 
     function getUltimateParent(iCase) {
       var lastCase;
@@ -124,17 +124,11 @@ return {
     this.notifyPropertyChange('parentCases');
   }.observes('*dataConfiguration.cases'),
 
-  getParentCollection: function() {
-    return this.get('numberOfParents') > 0
-              ? this.get('parentCases')[0].get('collection')
-              : null;
-  },
-
   getFirstParentAttribute: function() {
-    var collection = this.getParentCollection(),
-        attrs = collection && collection.get('attrs'),
-        attr = attrs && attrs[0];
-    return attr;
+    var dataContext = this.getPath('dataConfiguration.dataContext'),
+        collectionClient = dataContext.getCollectionAtIndex(0),
+        attrs = collectionClient && collectionClient.getPath('collection.attrs');
+    return attrs && attrs[0];
   },
 
   getParentLabel: function(iIndex) {
@@ -155,18 +149,6 @@ return {
   numberOfParents: function() {
     return this.get('parentCases' ).length;
   }.property('parentCases'),
-
-  /**
-   * We assume that there is only one parent collection and that it doesn't matter which case we use to get the name.
-   * @property {String}
-   */
-  nameOfParentCollection: function() {
-    var tName = '';
-    if( this.get('numberOfParents') > 0) {
-      tName = this.get('parentCases')[ 0].getPath('collection.name');
-    }
-    return tName;
-  }.property(),
 
   /**
    * True if cases have parents
@@ -203,8 +185,7 @@ return {
   childrenOfParent: function( iIndex) {
     var tParents = this.get('parentCases' ),
         tParent = (iIndex < tParents.length) ? tParents[ iIndex] : null,
-                    // flatten() used to make copy of children
-        tChildren = tParent ? tParent.get('children').flatten() : [];
+        tChildren = tParent ? tParent.get('children').slice() : [];
     // use for-loop since tChildren is modified recursively
     for (var i = 0; i < tChildren.get('length'); ++i) {
       var child = tChildren.objectAt(i),
@@ -272,7 +253,7 @@ return {
     }
     else {
       var tAllCases = tConfig ? tConfig.get('allCases') : [],
-          tCases = tAllCases ? tAllCases.flatten() : [],
+          tCases = tAllCases ? tAllCases.slice() : [],
           tCase = (tCases.length > iIndex) ? tCases[iIndex] : null;
       tResultCases = tCase ? [tCase] : null;
     }
@@ -304,7 +285,7 @@ return {
     }
     else {
       var tConfig = this.get('dataConfiguration'),
-          tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+          tCases = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
           tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
       this.beginVisibilityChanges();
@@ -407,7 +388,7 @@ return {
     }
     else {
       var tConfig = this.get('dataConfiguration'),
-          tCases = tConfig ? tConfig.get('allCases').flatten() : [],
+          tCases = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
           tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
       return( tHidden.indexOf( tCase) >= 0);
