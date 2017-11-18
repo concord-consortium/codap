@@ -19261,7 +19261,7 @@ var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, 
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
 
-SHOW_LONGEVITY_WARNING = false;
+SHOW_LONGEVITY_WARNING = true;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
 
