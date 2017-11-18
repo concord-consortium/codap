@@ -65,9 +65,8 @@ return {
   _cachedCaseCount: null,
   _cachedParentCases: null,
 
-  invalidate: function(iClearCaches) {
-    if (iClearCaches)
-      this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
+  invalidate: function() {
+    this._cachedCaseCount = this._cachedParentCases = this._isHierarchical = null;
 
     // 'caseCount' is used as a proxy to indicate that some change occurred
     // GraphView.handleNumberToggleDidChange() observes 'caseCount'
@@ -78,7 +77,7 @@ return {
   isEnabledDidChange: function() {
     // sync up with any changes that occurred while disabled
     if (this.get('isEnabled'))
-      this.invalidate(true);
+      this.invalidate();
   }.observes('isEnabled'),
 
   /**
@@ -414,8 +413,10 @@ return {
 
   isAffectedByChange: function(iChange) {
 
-    function isCollectionChange(iChange) {
-      var operations = ['createCollection', 'deleteCollection', 'moveAttribute', 'moveCases'];
+    function isRelevantChange(iChange) {
+      var operations = ['createCollection', 'deleteCollection', 'moveCases', 'moveAttribute',
+                          'createCases', 'createCase', 'deleteCases', 'createAttributes',
+                          'updateAttributes', 'deleteAttributes'];
       return operations.indexOf(iChange.operation) >= 0;
     }
 
@@ -431,7 +432,7 @@ return {
       return false;
     }.bind(this);
 
-    return isCollectionChange(iChange) || isToggleAttributeChange(iChange);
+    return isRelevantChange(iChange) || isToggleAttributeChange(iChange);
   },
 
   /**
@@ -444,8 +445,8 @@ return {
         this.invokeOnce(function() { this.showOnlyLastParentCase(); }.bind(this));
         return;
       }
-
-      this.invalidate(this.isAffectedByChange(iChange));
+      if( this.isAffectedByChange(iChange))
+        this.invalidate();
     }
   }
 
