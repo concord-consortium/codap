@@ -40,6 +40,10 @@ DG.functionRegistry.registerAggregates({
   
     requiredArgs: { min: 1, max: 2 },
 
+    isCaseIndexDependent: function() {
+      return true;
+    },
+
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
           filterFn = iInstance.argFns[1];
@@ -104,6 +108,10 @@ DG.functionRegistry.registerAggregates({
     category: 'DG.Formula.FuncCategoryLookup',
   
     requiredArgs: { min: 1, max: 2 },
+
+    isCaseIndexDependent: function() {
+      return true;
+    },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
@@ -172,6 +180,10 @@ DG.functionRegistry.registerAggregates({
   
     requiredArgs: { min: 1, max: 3 },
 
+    isCaseIndexDependent: function() {
+      return true;
+    },
+
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
           defaultFn = iInstance.argFns[1],
@@ -237,6 +249,10 @@ DG.functionRegistry.registerAggregates({
     category: 'DG.Formula.FuncCategoryLookup',
   
     requiredArgs: { min: 1, max: 3 },
+
+    isCaseIndexDependent: function() {
+      return true;
+    },
 
     evaluate: function( iContext, iEvalContext, iInstance) {
       var valueFn = iInstance.argFns[0],
