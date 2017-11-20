@@ -10,21 +10,43 @@
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
 
-. ~/.ptrc
-
 function usage(){
-  echo usage: $PROGNAME build_label 2>&1
+  echo usage: $PROGNAME build_label 1>&2
   exit 1
 }
 
+function error() {
+  echo $PROGNAME $1 1>&2
+  exit 2
+}
+
+# source user's credentials from .ptrc
+[ -f ~/.ptrc ] || error "Could not find .ptrc in home directory." 
+. ~/.ptrc
+
+[ "$PROJECT_ID" = "" ] && error "PROJECT_ID should be defined in .ptrc"
+[ "$TOKEN" = "" ] && error "TOKEN should be defined in .ptrc"
+#[ "$USER_NAME" = "" ] && error "USER_NAME should be defined in .ptrc"
+
+# set up environment variables
 API_URL="https://www.pivotaltracker.com/services/v5"
 API_SERVICE="projects/$PROJECT_ID/stories"
+FORMATTER="cat"
+UPLOADER="curl"
 
+# verify needed programs are present
+which -s $UPLOADER || error "The program curl not found. Is required."
+which -s jq && FORMATTER="jq ."
+
+# verify that build_label is provided on command line
 [ "$1" = "" ] && usage
 
+# compose date
 DT=`date "+%m/%d/%Y"`
+# compose release title
 NAME="$1 - $DT"
 DATA='{"name":"'$NAME'","description":"Build","story_type":"release","current_state": "unstarted"}'
 
-curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$DATA" ${API_URL}/${API_SERVICE} | jq '.' 
+# send request
+curl -X POST -H "X-TrackerToken: $TOKEN" -H "Content-Type: application/json" -d "$DATA" ${API_URL}/${API_SERVICE} | $FORMATTER
 
