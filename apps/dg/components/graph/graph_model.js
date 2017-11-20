@@ -230,7 +230,17 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           }
         }
       }.bind(this);
+      function getExtraYAttributes (model) {
+        var yAttrName =  model.get('yAttributeName');
+        if (Array.isArray(yAttrName)) {
+          model.set('yAttributeName', yAttrName[0]);
+          return yAttrName.slice(1);
+        } else {
+          return [];
+        }
+      }
       var tDataContext = this.initialDataContext;
+      var extraYAttributes = getExtraYAttributes(this);
       if( tDataContext) {
         this.setPath('dataConfiguration.initialDataContext');
         delete this.initialDataContext;  // It was passed in this way, but it's not one of our legitimate properties
@@ -251,6 +261,33 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }.bind(this));
 
       this.synchPlotWithAttributes();
+
+      // Set additional Y Attributes, if present
+      extraYAttributes.forEach(function (iAttrName) {
+        if (!tDataContext) {
+          DG.log('Cannot place y attribute: no Data Context: ' + iAttrName);
+          return;
+        }
+        var attr = tDataContext.getAttributeByName(iAttrName);
+        if (!attr) {
+          DG.log('Cannot place y attribute: not found: ' + iAttrName);
+          return;
+        }
+        var attrRef = {
+          collection: tDataContext.getCollectionForAttribute(attr),
+          attributes: [attr]
+        };
+        this.addAttributeToAxis(tDataContext, attrRef);
+      }.bind(this));
+
+      // Set Y2 Attribute if present
+      var tY2AttributeDescription = this.getPath('dataConfiguration.y2AttributeDescription');
+      if (tY2AttributeDescription && tY2AttributeDescription.get('attributes').length && tDataContext) {
+        this.changeAttributeForY2Axis(tDataContext, {
+          collection: tY2AttributeDescription.get('collectionClient'),
+          attributes: tY2AttributeDescription.get('attributes')
+        });
+      }
 
       // GraphModel calls init() on itself (cf. reset()) so we need to handle init() and re-init()
       var showNumberToggle = DG.get('IS_INQUIRY_SPACE_BUILD') || this.get('enableNumberToggle'),

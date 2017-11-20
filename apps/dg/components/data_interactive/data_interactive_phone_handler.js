@@ -283,7 +283,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         if (resourceSelector.item) {
           dataSet = result.dataContext && result.dataContext.get('dataSet');
-          result.item = dataSet && dataSet.getDataItemByID(resourceSelector.item);
+          result.item = dataSet && dataSet.getDataItemByID(Number(resourceSelector.item));
         }
 
         if (resourceSelector.itemSearch) {
@@ -499,6 +499,51 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             success: true,
             values: tReturnValues
           };
+        },
+
+        notify: function (iResources, iValues) {
+          function parseDataURL(dataUri) {
+            var typeToExtensionMap = {'image/png': 'png', 'image/gif': 'gif'};
+            var dataUriRE = /^data:([^,]*),(.*$)/;
+            var matches = dataUriRE.exec(dataUri);
+            var mediaType, content, mimeType, extension;
+            if (matches) {
+              mediaType = matches[1];
+              content = matches[2];
+              mimeType = Object.keys(typeToExtensionMap).find(function (key) {
+                return mediaType.startsWith(key);
+              });
+              if (mimeType) {
+                extension = typeToExtensionMap[mimeType];
+              }
+            }
+            return {
+              mediaType: mediaType,
+              content: content,
+              mimeType: mimeType,
+              extension: extension
+            };
+          }
+          var result = {success: true};
+          var imageData;
+          if (iValues.dirty) {
+            DG.dirtyCurrentDocument(this.controller, true);
+          }
+          if (iValues.image) {
+            imageData = parseDataURL(iValues.image);
+            if (imageData) {
+              DG.exportFile(imageData.content, imageData.extension, imageData.mimeType);
+            }
+            else {
+              result = {
+                success: false,
+                values: {
+                  error: "Failed to parse image data uri: " + iValues.image.slice(0, 20)
+                }
+              };
+            }
+          }
+          return result;
         }
       },
 
@@ -1392,13 +1437,19 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
         'delete': function (iResources) {
           var item = iResources.itemByCaseID;
+          var items = [item];
           var context = iResources.dataContext;
           var success = (item !== null);
-          var deletedCases;
+          var deletedItems;
           if (success) {
-            deletedCases = context.deleteItems(item);
-            if (deletedCases) {
-              return {success: true, values: deletedCases};
+            context.applyChange({
+              operation: 'deleteItems',
+              items: items,
+              requester: this.get('id')
+            });
+            deletedItems = context.deleteItems(items);
+            if (deletedItems) {
+              return {success: true, values: deletedItems && deletedItems.map(function (item) {return item.id;})};
             }
           } else {
             return {success: success};
@@ -1602,7 +1653,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             animationDirection: directMapping,
             animationMode: directMapping,
             // todo: does slider construct global or is it expected to exist before?
-            globalValueName: 'mapped',
+            globalValueName: directMapping,
             lowerBound: directMapping,
             name: directMapping,
             title: directMapping,
@@ -1852,6 +1903,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleLogMessage: {
         notify: function (iResources, iValues) {
           DG.Debug.logUserWithTopic.apply(DG.Debug, [iValues.topic, iValues.formatStr].concat(iValues.replaceArgs));
+          DG.dirtyCurrentDocument(this.controller, true);
           return {
             success: true
           };

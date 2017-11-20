@@ -125,8 +125,10 @@ DG.ScrollAnimationUtility = SC.Object.extend(
     be animated. If there is an animation already in progress, we end it.
   */
   endAnimation: function( iTarget, iCompletionFunc) {
-    this.animationTimer.set( 'isPaused', YES);
-    this.endTime = (new Date()).valueOf();
+    if (this.animationTimer) {
+      this.animationTimer.set( 'isPaused', YES);
+      this.endTime = (new Date()).valueOf();
+    }
     this.isAnimating = false;
   }
 
