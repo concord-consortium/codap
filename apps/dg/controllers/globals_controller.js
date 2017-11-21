@@ -71,7 +71,7 @@ DG.globalsController = SC.Controller.create( (function() {
       @returns  {DG.GlobalValue}  The matching global value or null if not found
      */
     getGlobalValueByName: function( iName) {
-      return DG.activeDocument.getGlobalValueByName(iName);
+      return this._globalsMap[iName];
     },
   
     /**
