@@ -62,10 +62,11 @@ DG.PointDataTip = DG.DataTip.extend(
           // This only works because we only allow multiple attributes on the y-place.
           tPlotIndex = (tPlotIndex < tAttributes.length) ? tPlotIndex : 0;
           var tAttr = tAttributes[tPlotIndex],
+              tType = (typeof(tAttr) === 'object') ? tAttr.get('type') : null,
               tAttrID = (typeof(tAttr) === 'object') ? tAttr.get('id') : null,
               tDigitsFunc = (iKey === 'legend') ? digitsForLegend : digitsForAxis,
                   tName, tValue;
-          if (!SC.none(tAttrID)) {
+          if (!SC.none(tAttrID) && tType !== 'qualitative') {
             tName = tAttr.get('name');
             tValue = DG.PlotUtilities.getFormattedCaseValue( tCase, tAttrDesc, tDigitsFunc);
             return tName + ': ' + tValue;
