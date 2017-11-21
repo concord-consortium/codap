@@ -2070,13 +2070,13 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var names = DG.globalsController.getGlobalValueNames();
           var result = names.map(function (name) {
             var global = DG.globalsController.getGlobalValueByName(name);
-            return {
-              name: global.name,
-              value: global.value,
-              id: global.id
-
-            };
-          });
+            if (global) {
+              return {
+                name: global.name, value: global.value, id: global.id
+              };
+            }
+            return null;
+          }).filter(function(el) { return el; });
           return {success: true, values: result};
         }
       }
