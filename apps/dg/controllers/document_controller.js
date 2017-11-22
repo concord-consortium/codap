@@ -1490,25 +1490,14 @@ DG.DocumentController = SC.Object.extend(
           returnPromise;
       if (gameControllers) {
         gameControllers.forEach(function (gameController) {
-          var model = gameController.get('model');
-          var modelStorage = model.get('componentStorage');
-          if (!modelStorage) model.set('componentStorage', {});
-          var gameStore = gameController.get('isUsingDataInteractiveChannel') ?
-            model.get('componentStorage') : gameController.get('context');
-
-
           // create an array of promises, one for each data interactive.
           // issue the request in the promise.
           promises.push(new Promise(function (resolve, reject) {
             try {
-              if (gameStore && gameController.saveGameState) {
+              if (gameController.saveGameState) {
                 gameController.saveGameState(function (result) {
-                  if (result && result.success) {
-                    gameStore.savedGameState = result.values || result.state;
-                  } else {
-                    DG.logWarn("No channel to Data Interactive: " +
-                        gameStore.currentGameName ||
-                          (gameStore.get && (gameStore.get('gameName') || gameStore.get('name'))));
+                  if (!(result && result.success)) {
+                    DG.log('Unable to retrieve plugin state');
                     result = {success: false};
                   }
                   resolve(result);

@@ -1034,8 +1034,9 @@ DG.GamePhoneHandler = SC.Object.extend(
       },
 
       restoreGameState: function (state) {
-        if (this.get('context')) {
-          this.get('context').restoreFromStorage(state);
+        var context = this.getPath('controller.context');
+        if (context) {
+          context.restoreFromStorage(state);
         }
       },
 

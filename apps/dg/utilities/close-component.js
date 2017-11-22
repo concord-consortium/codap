@@ -39,7 +39,7 @@ DG.closeComponent = function (iComponentID) {
           // document will clear the undo history, so we must force it not to dirty.
           tController.saveGameState(function(result) {
             if (result && result.success) {
-              tState = result.state;
+              tState = result.state || result.values;
             }
             SC.run(function () {
               tContainerView.removeComponentView( tComponentView);
