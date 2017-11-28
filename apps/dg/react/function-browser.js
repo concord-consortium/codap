@@ -124,8 +124,8 @@ DG.React.ready(function () {
               self.setState({category: category});
             };
             return li({key: category.name, onClick: clicked},
-              div({dangerouslySetInnerHTML: {__html:kRightAngleBracketChar}}),
-              span({}, category.name)
+              span({}, category.name),
+              div({dangerouslySetInnerHTML: {__html:kRightAngleBracketChar}})
             );
           });
       return ul({}, list);
