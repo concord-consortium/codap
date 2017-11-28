@@ -1802,8 +1802,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
 
           get: function (iResources) {
             function remapArchiveComponent(archive) {
-              function extractDataContextName(componentStorage) {
-                var dataContextID = DG.ArchiveUtils.getLinkID(componentStorage, 'context');
+              function extractObjectName(componentStorage, iKey) {
+                var dataContextID = DG.ArchiveUtils.getLinkID(componentStorage, iKey);
                 var dataContext = DG.store.find(dataContextID);
                 return dataContext && dataContext.get('name');
               }
@@ -1834,12 +1834,15 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
               }
               switch (rtn.type) {
                 case 'caseTable':
-                  rtn.dataContext = extractDataContextName(componentStorage);
+                  rtn.dataContext = extractObjectName(componentStorage, 'context');
                   break;
                 case 'graph':
-                  rtn.dataContext = extractDataContextName(componentStorage);
-                  break;
+                  rtn.xAttributeName = extractObjectName( componentStorage, 'xAttr');
+                  rtn.yAttributeName = extractObjectName( componentStorage, 'yAttr');
+                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');
                 case 'map':
+                  rtn.dataContext = extractObjectName(componentStorage, 'context');
+                  rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
                   break;
                 default:
               }
