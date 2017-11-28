@@ -36,10 +36,6 @@ sc_require('controllers/component_controller');
 DG.GameController = DG.ComponentController.extend(
 /** @scope DG.GameController.prototype */ {
 
-      shouldConfirmClose: function () {
-        return !SC.none(this.activeChannel);
-      }.property('activeChannel'),
-
       confirmCloseDescription: 'DG.GameController.confirmCloseDescription',
 
       shouldDestroyOnComponentDestroy: true,
@@ -259,14 +255,29 @@ DG.GameController = DG.ComponentController.extend(
        * {success: bool, state: state}
        */
       saveGameState: function (callback) {
-        var dataInteractiveHandler = this.get('dataInteractivePhoneHandler');
-        var gamePhoneHandler = this.get('gamePhoneHandler');
-        if (dataInteractiveHandler && dataInteractiveHandler.get('connected')) {
-          dataInteractiveHandler.requestDataInteractiveState(callback);
-        } else if (gamePhoneHandler && gamePhoneHandler.get('gameIsReady')) {
-          gamePhoneHandler.saveGameState(callback);
+        var model, modelStorage, handler;
+        // State can be stored in one of two places. Older, game API plugins
+        // store state in their associated data context. There was a one-one
+        // correspondence between a plugin and a data context assumed by
+        // the Game API. Modern plugins have state stored in the model.
+        if (this.get('isUsingDataInteractiveChannel')) {
+          model = this.get('model');
+          modelStorage = model && model.get('componentStorage');
+          if (!modelStorage && model) {
+            model.set('componentStorage', {});
+          }
+          handler = this.get('dataInteractivePhoneHandler');
+          handler.requestDataInteractiveState(function(result) {
+            modelStorage.savedGameState = result.values;
+            callback(result);
+          });
         } else {
-          callback({success: false, state: null});
+          modelStorage = this.get('context');
+          handler = this.get('gamePhoneHandler');
+          handler.saveGameState(function (result) {
+            modelStorage.savedGameState = result.state;
+            callback(result);
+          });
         }
       },
 
@@ -349,6 +360,9 @@ DG.GameController = DG.ComponentController.extend(
           dataContext.set('formulas', iComponentStorage.currentGameFormulas);
 
         this.set('gameIsReady', true);
+      },
+      restoreGameState: function (iState) {
+        this.gamePhoneHandler.restoreGameState(iState);
       }
     }) ;
 
