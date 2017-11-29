@@ -131,12 +131,12 @@ DG.DotChartModel = DG.PlotModel.extend(
 
     if( (iChange.operation === 'createCase') || (iChange.operation === 'createCases')) {
       var tCaseIDs = iChange.result.caseIDs || [ iChange.result.caseID ],
-          tIndex = this.getPath('dataConfiguration.cases.length') - 1,
+          tIndexOfCaseInArray = this.getPath('dataConfiguration.cases.length') - tCaseIDs.length,
           tCC = this.get('computationContext' );
       tCaseIDs.forEach( function( iCaseID) {
                           var tCase = DG.store.find( DG.Case, iCaseID);
                           if( tCase)
-                            this.doForOneCase( tCase, tIndex++, tCC, addToCache);
+                            this.doForOneCase( tCase, tIndexOfCaseInArray++, tCC, addToCache);
                         }.bind( this));
     }
     else
