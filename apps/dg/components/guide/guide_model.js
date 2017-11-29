@@ -46,6 +46,17 @@ DG.GuideModel = SC.Object.extend(
      */
     currentItemTitle: '',
 
+    currentItem: function () {
+      var currentTitle = this.get('currentItemTitle');
+      var items = this.get('items');
+      if (!items) {
+        return;
+      }
+      return items.find(function (item) {
+        return item.itemTitle === currentTitle;
+      });
+    }.property('items'),
+
     init: function() {
       sc_super();
       this.reset();
@@ -78,7 +89,14 @@ DG.GuideModel = SC.Object.extend(
         if( iStorage.items)
           this.set('items', iStorage.items);
       this.endPropertyChanges();
-    }
+    },
+
+    itemsDidChange: function () {
+      var currentItem = this.get('currentItem');
+      if (currentItem) {
+        this.setIfChanged('currentURL', currentItem.url);
+      }
+    }.observes('items')
 
   } );
 
