@@ -133,7 +133,8 @@ DG.ImageUtilities = (function () {
       //
       // ######## convertImage begin ########
       //
-      var svgs = $(rootEl).find('svg');
+      // find all svg elements that are not children of hidden divs
+      var svgs = $(rootEl).find('div:not(.sc-hidden)>svg');
       var canvas = makeCanvasEl(width, height);
       var promises = [];
 
