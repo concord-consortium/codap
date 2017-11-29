@@ -155,9 +155,9 @@ DG.Component = DG.BaseModel.extend(
         var obj = {},
             tStorage = this.get('componentStorage');
         if( tStorage) {
-          tStorage.title = this.get('title');
-          tStorage.name = this.get('name');
-          tStorage.cannotClose = this.get('cannotClose');
+          tStorage.title = tStorage.title || this.get('title');
+          tStorage.name = tStorage.name || this.get('name');
+          tStorage.cannotClose = tStorage.cannotClose || this.get('cannotClose');
         }
         obj = {
           type: this.type,
