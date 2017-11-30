@@ -1839,8 +1839,8 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                 case 'graph':
                   rtn.xAttributeName = extractObjectName( componentStorage, 'xAttr');
                   rtn.yAttributeName = extractObjectName( componentStorage, 'yAttr');
-                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');
-                case 'map':
+                  rtn.y2AttributeName = extractObjectName( componentStorage, 'y2Attr');//jshint -W086
+                case 'map': // eslint-disable-line no-fallthrough
                   rtn.dataContext = extractObjectName(componentStorage, 'context');
                   rtn.legendAttributeName = extractObjectName( componentStorage, 'legendAttr');
                   break;
