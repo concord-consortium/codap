@@ -308,7 +308,8 @@ DG.GraphView = SC.View.extend(
         this.drawPlots();
         if (tLegendView)
           tLegendView.displayDidChange();
-      }.observes('.xAxisView.categoriesDragged', '.yAxisView.categoriesDragged'),
+        // Note: Asterisks below are necessary in case axis view gets swapped out
+      }.observes('*xAxisView.categoriesDragged', '*yAxisView.categoriesDragged'),
 
       prepareToSelectPoints: function () {
         this.get('plotViews').forEach(function (iPlotView) {
