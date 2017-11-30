@@ -93,27 +93,25 @@ DG.GuideController = DG.ComponentController.extend(
     guideNavigation: function() {
       var this_ = this,
           tUrl = this_.getPath('guideMenuPane.selectedItem.url' ),
-          tItemTitle = this_.getPath('guideMenuPane.selectedItem.title' );
+          tItemTitle = this_.getPath('guideMenuPane.selectedItem.title' ),
+          tItemIndex = this_.getPath('guideMenuPane.selectedItem.index' );
 
       DG.UndoHistory.execute(DG.Command.create({
         name: 'guide.navigate',
         undoString: 'DG.Undo.guide.navigate',
         redoString: 'DG.Redo.guide.navigate',
         _previous: {
-          url: this_.getPath('guideModel.currentURL'),
-          title: this_.getPath('guideModel.currentItemTitle'),
+          index: this_.getPath('guideModel.currentItemIndex'),
           wasVisible: this_.getPath('view.isVisible')
         },
         execute: function() {
           // Guides are singletons that are never destroyed, so it's ok to reference the view directly
-          this_.setPath('guideModel.currentURL', tUrl);
-          this_.setPath('guideModel.currentItemTitle', tItemTitle);
+          this_.setPath('guideModel.currentItemIndex', tItemIndex);
           this_.showGuide();
           this.log = "Guide icon navigation: { Title: %@, itemTitle: %@, url: %@ }".fmt(this_.getPath('guideModel.title'), tItemTitle, tUrl);
         },
         undo: function() {
-          this_.setPath('guideModel.currentURL', this._previous.url);
-          this_.setPath('guideModel.currentItemTitle', this._previous.title);
+          this_.setPath('guideModel.currentItemIndex', this._previous.index);
           this_.setPath('view.isVisible', this._previous.wasVisible);
         }
       }));
@@ -127,9 +125,9 @@ DG.GuideController = DG.ComponentController.extend(
       var tItems = this.getPath('guideModel.items' ),
           tMenuItems = [],
           kAction = 'guideNavigation';
-      tItems.forEach( function( iItem) {
+      tItems.forEach( function( iItem, ix) {
                 tMenuItems.push({ title: iItem.itemTitle, url: iItem.url,
-                                  target: this, action: kAction });
+                                  index: ix, target: this, action: kAction });
               }.bind( this));
       return tMenuItems;
     }.property(),

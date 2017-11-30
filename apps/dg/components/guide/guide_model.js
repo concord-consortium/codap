@@ -39,23 +39,32 @@ DG.GuideModel = SC.Object.extend(
     /**
      * @property {String}
      */
-    currentURL: '',
+    currentURL: function () {
+      var item = this.get('currentItem');
+      return !SC.none(item) && item.url;
+    }.property('currentItem', 'currentItemIndex'),
 
     /**
      * @property {String}
      */
-    currentItemTitle: '',
+    currentItemTitle: function () {
+      var item = this.get('currentItem');
+      return !SC.none(item) && item.url;
+    }.property('currentItem', 'currentItemIndex'),
+
+    currentItemIndex: null,
 
     currentItem: function () {
-      var currentTitle = this.get('currentItemTitle');
-      var items = this.get('items');
-      if (!items) {
-        return;
+      var ix = this.get('currentItemIndex');
+      if (ix && this.items && (ix >= this.items.length)) {
+        ix = this.items.length && this.items.length - 1;
+        this.set('currentItemIndex', ix);
+        this.notifyPropertyChange('currentURL');
       }
-      return items.find(function (item) {
-        return item.itemTitle === currentTitle;
-      });
-    }.property('items'),
+      if (!SC.none(ix) && this.items) {
+        return this.items[ix];
+      }
+    }.property('items', 'currentItemIndex'),
 
     init: function() {
       sc_super();
@@ -65,37 +74,40 @@ DG.GuideModel = SC.Object.extend(
     reset: function() {
       this.beginPropertyChanges();
         this.set('title', '');
-        this.set('currentURL', '');
-        this.set('currentItemTitle', '');
         this.set('items', []);
       this.endPropertyChanges();
     },
 
     createComponentStorage: function() {
       return { title: this.title, items: this.items,
-        currentURL: this.currentURL, currentItemTitle: this.currentItemTitle };
+        currentItemIndex: this.currentItemIndex };
     },
 
     restoreComponentStorage: function( iStorage) {
     // For a while we had an invokeLater wrapping the following because it improved
     // Chromes ability to load iframes. But we think fixed that in a better way
       this.beginPropertyChanges();
-        if( iStorage.currentURL)
-          this.set('currentURL', iStorage.currentURL);
+        if (iStorage.currentItemIndex) {
+          this.set('currentItemIndex', iStorage.currentItemIndex);
+        }
         if( iStorage.title)
           this.set('title', iStorage.title);
-        if( iStorage.title)
-          this.set('currentItemTitle', iStorage.currentItemTitle);
         if( iStorage.items)
           this.set('items', iStorage.items);
       this.endPropertyChanges();
     },
 
     itemsDidChange: function () {
-      var currentItem = this.get('currentItem');
-      if (currentItem) {
-        this.setIfChanged('currentURL', currentItem.url);
+      if (!this.items) {
+        return;
       }
+      var currentItemIndex = this.get('currentItemIndex');
+      if (SC.none(currentItemIndex)) {
+        if (this.items.length > 0) {
+          this.set('currentItemIndex', 0);
+        }
+      }
+      this.notifyPropertyChange('currentURL');
     }.observes('items')
 
   } );
