@@ -1155,7 +1155,8 @@ DG.DocumentController = SC.Object.extend(
               changedObject: tGuideModel,
               _oldValues: {
                 title: tGuideModel.get('title'),
-                items: tGuideModel.get('items')
+                items: tGuideModel.get('items'),
+                currentItemIndex: tGuideModel.get('currentItemIndex')
               },
               _newValues: {
                 title: tDialog.get('title'),
@@ -1183,6 +1184,7 @@ DG.DocumentController = SC.Object.extend(
                 tGuideModel.beginPropertyChanges();
                 tGuideModel.set('title', this._oldValues.title);
                 tGuideModel.set('items', this._oldValues.items);
+                tGuideModel.set('currentItemIndex', this._oldValues.currentItemIndex);
                 tGuideModel.endPropertyChanges();
                 if(SC.empty(this._oldValues.title) && this._oldValues.items.length === 0) {
                   // We're undoing the original making of the guide view just by hiding it
