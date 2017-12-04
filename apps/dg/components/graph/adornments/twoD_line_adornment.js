@@ -117,9 +117,9 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tDigits = DG.PlotUtilities.findNeededFractionDigits(
               tSlope, tIntercept,
               this_.get('xAxisView'), this_.get('yAxisView')),
-          tIntNumFormat = DG.Format.number().fractionDigits(0, tDigits.interceptDigits),
+          tIntNumFormat = DG.Format.number().group('').fractionDigits(0, tDigits.interceptDigits),
           tInterceptString = tIntNumFormat(tIntercept) + getInterceptUnit(),
-          tSlopeNumFormat = DG.Format.number().fractionDigits(0, tDigits.slopeDigits),
+          tSlopeNumFormat = DG.Format.number().group('').fractionDigits(0, tDigits.slopeDigits),
           tSlopeUnit = getSlopeUnit(),
           tSlopeString = (SC.empty(tSlopeUnit) ? "" : "(") + tSlopeNumFormat(tSlope) + tSlopeUnit + " ",
           tSign = (tIntercept < 0) ? " " : " + ",
@@ -149,7 +149,7 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
           tXIntercept = this_.getPath( 'model.xIntercept'),
           tXVar = this_.getPath('xAxisView.model.firstAttributeName');
       return 'DG.ScatterPlotModel.infiniteSlope'.loc( tXVar,
-          DG.Format.number().fractionDigits( 0, tDigits)( tXIntercept));
+          DG.Format.number().group('').fractionDigits( 0, tDigits)( tXIntercept));
     }
 
     if( this.getPath( 'model.isVertical'))
@@ -173,29 +173,62 @@ DG.TwoDLineAdornment = DG.PlotAdornment.extend(
   }.property(),
 
   createElements: function() {
-    if( this.myElements && (this.myElements.length > 0))
+    var this_ = this,
+        kBackgroundOpacity = 0.6;
+    if (this.myElements && (this.myElements.length > 0))
       return; // already created
     var tPaper = this.get('paper'),
         tLayer = this.getPath('paperSource.layerManager')[DG.LayerNames.kDataTip],
-        tLineColor = this.get('lineColor');
-    this.lineSeg = tPaper.line( 0, 0, 0, 0)
-        .attr({ stroke: tLineColor, 'stroke-opacity': 0 });
+        tLineColor = this.get('lineColor'),
+        tEquationColor = DG.color(DG.ColorUtilities.colorNameToHexColor(tLineColor)).darker(2).color;
+    this.lineSeg = tPaper.line(0, 0, 0, 0)
+        .attr({stroke: tLineColor, 'stroke-opacity': 0});
     this.lineSeg.animatable = true;
 
+    function highlightEquation( iEquation, iBackgroundRect) {
+      tLayer.bringToFront( iBackgroundRect);
+      tLayer.bringToFront( iEquation);
+      iBackgroundRect.attr('fill-opacity', 1);
+    }
+
     this.backgrndRect = this.get('paper').rect(0, 0, 0, 0)
-        .attr({ fill: 'yellow', 'stroke-width': 0, 'fill-opacity': 0.4 });
+        .attr({fill: 'yellow', 'stroke-width': 0, 'fill-opacity': kBackgroundOpacity})
+        .hover(function () {
+              highlightEquation( this_.equation, this);
+            },
+            function () {
+              this.attr('fill-opacity', kBackgroundOpacity);
+            })
+        .touchstart(function () {
+          highlightEquation( this_.equation, this);
+        })
+        .touchend(function () {
+          this.attr('fill-opacity', kBackgroundOpacity);
+        });
     // Put the text below the hit segments in z-order so user can still hit the line
-    this.equation = tPaper.text( 0, 0, '')
-        .attr({ 'stroke-opacity': 0, fill: tLineColor })
-        .addClass('dg-graph-adornment');
+    this.equation = tPaper.text(0, 0, '')
+        .attr({'stroke-opacity': 0, fill: tEquationColor })
+        .addClass('dg-graph-adornment')
+        .hover(function () {
+              highlightEquation(this, this_.backgrndRect);
+            },
+            function () {
+              this_.backgrndRect.attr('fill-opacity', kBackgroundOpacity);
+            })
+        .touchstart(function () {
+          highlightEquation(this, this_.backgrndRect);
+        })
+        .touchend(function () {
+          this_.backgrndRect.attr('fill-opacity', kBackgroundOpacity);
+        });
     this.equation.animatable = true;
 
     // Tune up the line rendering a bit
     this.lineSeg.node.setAttribute('shape-rendering', 'geometric-precision');
 
-    this.myElements = [ this.lineSeg, this.backgrndRect, this.equation ];
-    this.myElements.forEach( function( iElement) {
-      tLayer.push( iElement);
+    this.myElements = [this.lineSeg, this.backgrndRect, this.equation];
+    this.myElements.forEach(function (iElement) {
+      tLayer.push(iElement);
     });
   }
 

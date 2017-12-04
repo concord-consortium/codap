@@ -112,6 +112,10 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
     var tDigits = DG.PlotUtilities.findFractionDigitsForAxis( this.get('valueAxisView')),
         tNumFormat = DG.Format.number().fractionDigits( 0, tDigits);
     return tValues.map(function(iValue) {
+      if( iValue < 2500)
+        tNumFormat.group('');
+      else
+        tNumFormat.group( ',');
       return DG.isFinite(iValue) ? tNumFormat(iValue) : (iValue != null ? iValue.toString() : null);
     });
   }.property('values'),

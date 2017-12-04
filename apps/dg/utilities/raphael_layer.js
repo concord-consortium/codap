@@ -156,6 +156,18 @@ DG.RaphaelLayer = SC.Object.extend(
     },
 
     /**
+     *
+     * @param iElement { Raphael Element }
+     */
+    bringToFront: function( iElement) {
+      if( this.contains( iElement)) {
+        this.prepareToMoveOrRemove( iElement); {
+          this.push( iElement);
+        }
+      }
+    },
+
+    /**
      * A layer is valid if
      *  - it is empty, or there is both a first and last element, neither of which is "removed"
      *  - and if not empty you can navigate from first to last elements
