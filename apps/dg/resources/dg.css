@@ -1202,11 +1202,13 @@ input.dg-editor-text {
 }
 
 .dg-text-measurer {
-    position: absolute;
+    position: fixed;
     visibility: hidden;
     height: auto;
     width: auto;
     white-space: nowrap;
+    top: -1000px;
+    left: -1000px;
 }
 
 .dg-formula-column {
