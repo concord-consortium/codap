@@ -268,7 +268,10 @@ DG.GameController = DG.ComponentController.extend(
           }
           handler = this.get('dataInteractivePhoneHandler');
           handler.requestDataInteractiveState(function(result) {
-            modelStorage.savedGameState = result.values;
+            // Documented property for plugin state is result.values
+            // Some plugins use result.status for historical reasons.
+            // We continue to support, for now.
+            modelStorage.savedGameState = result.values || result.state;
             callback(result);
           });
         } else {
