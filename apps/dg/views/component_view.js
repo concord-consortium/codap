@@ -572,7 +572,10 @@ DG.ComponentView = SC.View.extend(
           if (!SC.none(iValue)) {
             if (iValue.width)
               this.adjust('width', iValue.width);
-            if (iValue.height)
+            // Plugins change dimensions of component model after component view has
+            // set its dimensions from the saved layout. But this defeats the minimization
+            // so we protect against it.
+            if (iValue.height && !this.get('isMinimized'))
               this.adjust('height', iValue.height);
           }
         }.observes('*model.dimensions'),
