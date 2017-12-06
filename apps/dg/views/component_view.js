@@ -577,6 +577,15 @@ DG.ComponentView = SC.View.extend(
           }
         }.observes('*model.dimensions'),
 
+        modelPositionChanged: function (iModel, iKey, iValue) {
+          if (!SC.none(iValue)) {
+            if (iValue.top)
+              this.adjust('top', iValue.top);
+            if (iValue.left)
+              this.adjust('left', iValue.left);
+          }
+        }.observes('*model.position'),
+
         version: null,
         versionBinding: '.containerView.titlebar.versionView.value',
 

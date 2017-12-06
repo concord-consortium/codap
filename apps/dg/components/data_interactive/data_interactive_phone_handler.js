@@ -1617,9 +1617,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             name: directMapping,
             title: directMapping,
             dataContext: function (key, value) {
-              var v = (typeof value === 'string')?
-                  DG.currDocumentController().getContextByName(value):
-                  value.get('name');
+              var v;
+              if (value) {
+                v = (typeof value === 'string') ? DG.currDocumentController().getContextByName(
+                    value) : value.get('name');
+              }
               return {
                 key: key,
                 value: v
@@ -1690,7 +1692,11 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var m;
             if (typeof mappingType === 'function') {
               m = mappingType(key, from[key]);
-              to[m.key] = m.value;
+              if (to.set) {
+                to.set(m.key, m.value);
+              } else {
+                to[m.key] = m.value;
+              }
             }
           });
         }
@@ -1779,22 +1785,23 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             var component = iResources.component,
                 componentType = component && component.get('type'),
                 codapType = componentType && kTypeMap[componentType],
-                componentProps = componentType && kComponentStorageProperties[codapType];
+                position, dimensions;
 
-            Object.keys(componentProps || []).forEach(function(prop) {
-              var mapping = componentProps[prop],
-                  newValue = iValues[prop];
-              // if it's a simple property, we can set it directly
-              if ((mapping === directMapping) && (newValue !== undefined)) {
-                component.set(prop, newValue);
-              }
-              else {
-                var indirectMapping = mapping && mapping();
-                // if there's a setter function, call it
-                if (indirectMapping && indirectMapping.set)
-                  indirectMapping.set(component, newValue);
-              }
-            });
+            if (!component) {
+              return {success: false, values: {error: 'Cannot find component'}};
+            }
+
+            if (iValues.position )  {
+              position = iValues.position;
+              component.set('position', position);
+              delete iValues.position;
+            }
+            if (iValues.dimensions) {
+              dimensions = iValues.dimensions;
+              component.setPath('content.dimensions', dimensions);
+              delete iValues.dimensions;
+            }
+            remapProperties(iValues, component, codapType);
             return {
               success: true
             };
@@ -1822,7 +1829,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
                   };
                 }
                 if ((layout.left !== undefined && layout.left !== null) ||
-                    (layout.x !== undefined && (layout.x != null))) {
+                    (layout.x !== undefined && (layout.x !== null))) {
                   rtn.position = {
                     left: layout.left || layout.x || 0,
                     top: layout.top || layout.y || 0
