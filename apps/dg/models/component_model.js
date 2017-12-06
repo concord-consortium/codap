@@ -69,6 +69,25 @@ DG.Component = DG.BaseModel.extend(
         return this.getPath('content.dimensions');
       }.property(),
 
+      /**
+       * This property is transient. The Plugin api uses it to convey position
+       * to the view, which, in turn updates the layout. We persist the layout.
+       * Of layout properties, only left and top can be set.
+       *
+       * @param value {{left: number, top: number}}
+       */
+      _position: null,
+      position: function (key, value) {
+        if (value && typeof value === 'object') {
+          if (SC.none(this._position)) {
+            this._position = {};
+          }
+          this._position.left = value.left;
+          this._position.top = value.top;
+        }
+        return this._position;
+      }.property(),
+
       contentDimensionsChanged: function() {
         this.notifyPropertyChange('dimensions');
       }.observes('*content.dimensions'),
