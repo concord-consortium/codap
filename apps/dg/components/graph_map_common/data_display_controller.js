@@ -930,7 +930,9 @@ DG.DataDisplayController = DG.ComponentController.extend(
 
           DG.ImageUtilities.captureSVGElementsToImage(rootEl, width, height, true)
             .then(function (dataURL) {
-              DG.appController.importDrawToolWithDataURL(dataURL, title);
+              SC.run(function () {
+                DG.appController.importDrawToolWithDataURL(dataURL, title);
+              });
             });
         }
 
