@@ -716,32 +716,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Delete the current data set. This operation is not currently undo-able,
-       * so we put up a confirmation dialog.
-       */
-      deleteDataSet: function () {
-        var tContext = this.get('dataContext');
-        function doDelete() {
-          DG.currDocumentController().destroyDataContext(tContext.get('id'));
-        }
-        DG.AlertPane.warn({
-          message: 'DG.TableController.deleteDataSet.confirmMessage'.loc(tContext.get('title')),
-          description: 'DG.TableController.deleteDataSet.confirmDescription'.loc(),
-          buttons: [
-            {
-              title: 'DG.TableController.deleteDataSet.okButtonTitle',
-              action: doDelete,
-              localize: YES
-            },
-            {
-              title: 'DG.TableController.deleteDataSet.cancelButtonTitle',
-              localize: YES
-            }
-          ],
-          localize: false
-        });
-      },
-      /**
         Handler for sendAction('newAttributeAction')
        */
       newAttributeAction: function(iSender, iContext) {
@@ -1231,12 +1205,6 @@ DG.CaseTableController = DG.ComponentController.extend(
                 localize: true,
                 target: this,
                 action: 'selectAll'
-              },
-              {
-                title: 'DG.Inspector.deleteDataSet',
-                localize: true,
-                target: this,
-                action: 'deleteDataSet'
               },
               {
                 title: 'DG.Inspector.selection.deleteSelectedCases',

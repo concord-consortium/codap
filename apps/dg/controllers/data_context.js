@@ -2550,7 +2550,7 @@ DG.DataContext = SC.Object.extend((function() // closure
     var collections = this.get('collections');
     if( !SC.none( collections)) {
       collections.forEach(function( collection) {
-                            this.addCollection( collection);
+        this.addCollection( collection);
       }.bind(this));
     }
   }

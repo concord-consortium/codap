@@ -1249,4 +1249,24 @@ html.dg-embedded-mode .dg-data-tip-text {
   font-family: MuseoSans-500;
 }
 
+/*.sc-view img.dg-trash-icon {*/
+    /*position: absolute;*/
+    /*right: 10px;*/
+    /*top: 2px;*/
+    /*width: 16px;*/
+    /*left: unset;*/
+/*}*/
+
+.dg-right-icon {
+    right: 2px;
+    position: absolute;
+}
+
+.dg-trash-icon:before {
+    font-family: 'icomoon';
+    font-size: 12px;
+    content: "\e629";
+    color: black;
+}
+
 

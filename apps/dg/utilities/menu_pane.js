@@ -70,7 +70,19 @@ DG.MenuPane = SC.MenuPane.extend(
   popup: function() {
     this.adjust('width', this.getDesiredMenuWidth());
     sc_super();
-  }
+  },
+
+  /**
+   The name of the property that contains the right icon for each item.
+
+   @type String
+   @default "icon"
+   @commonTask Menu Item Properties
+   */
+  itemRightIconKey: 'rightIcon',
+  itemRightTargetKey: 'rightTarget',
+  itemRightActionKey: 'rightAction',
+  menuItemKeys: ['rightIcon','rightTarget','itemRightAction','itemTitleKey', 'itemValueKey', 'itemToolTipKey', 'itemIsEnabledKey', 'itemIconKey', 'itemSeparatorKey', 'itemActionKey', 'itemCheckboxKey', 'itemShortCutKey', 'itemHeightKey', 'itemSubMenuKey', 'itemKeyEquivalentKey', 'itemTargetKey', 'itemLayerIdKey']
 
 });
 
