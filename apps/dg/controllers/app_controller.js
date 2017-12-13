@@ -270,7 +270,7 @@ DG.appController = SC.Object.create((function () // closure
             DG.currDocumentController().destroyDataContext(this.get('dataContext').get('id'));
           },
           message: 'DG.TableController.deleteDataSet.confirmMessage'.loc(
-              this.get('title')),
+              this.get('dataContext').get('title')),
           description: 'DG.TableController.deleteDataSet.confirmDescription'.loc(),
           buttons: [{
             title: 'DG.TableController.deleteDataSet.okButtonTitle',
@@ -290,18 +290,21 @@ DG.appController = SC.Object.create((function () // closure
         return {
           localize: false,
           title: dataContext.get('title'),
+          toolTip: 'DG.AppController.caseTableMenu.openCaseTableToolTip',
           target: DG.appController,
           dgAction: 'openOrSelectCaseTable',
           icon: 'tile-icon-table',
           dataContext: dataContext,
           rightIcon: 'dg-trash-icon',
           rightTarget: this.dataSetDeleteAgent.create({dataContext: dataContext}),
-          rightAction: 'deleteWithAlert'
+          rightAction: 'deleteWithAlert',
+          rightToolTip: 'DG.AppController.caseTableMenu.deleteDataSetToolTip'
         };
       }.bind(this));
       menuItems.push({
         localize: true,
         title: 'DG.AppController.caseTableMenu.newDataSet',
+        toolTip: 'DG.AppController.caseTableMenu.newDataSetToolTip',
         target: DG.mainPage,
         dgAction: 'openCaseTableForNewContext',
         icon: 'tile-icon-table'

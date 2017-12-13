@@ -74,6 +74,9 @@ DG.MenuItem = SC.MenuItemView.extend(
     // get a class name and url to include if relevant
     var url = null;
     var className = null;
+    var toolTip = this.getContentProperty('itemRightToolTipKey');
+    if (toolTip) { toolTip = toolTip.loc();}
+    DG.log('toolTip: ' + toolTip);
     var classArray = ['dg-right-icon'];
         // classArray = ['dg-right-icon', 'dg-trash-icon'];
     // context.begin('div')
@@ -85,6 +88,7 @@ DG.MenuItem = SC.MenuItemView.extend(
       context.begin('img')
           .addClass(classArray)
           .setAttr('src', url)
+          .setAttr('title', toolTip)
           .end();
     } else {
       className = icon;
@@ -92,6 +96,7 @@ DG.MenuItem = SC.MenuItemView.extend(
       url = SC.BLANK_IMAGE_URL;
       context.begin('div')
           .addClass(classArray)
+          .setAttr('title', toolTip)
           .end();
     }
 

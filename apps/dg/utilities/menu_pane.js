@@ -91,6 +91,7 @@ DG.MenuPane = SC.MenuPane.extend(
   itemRightIconKey: 'rightIcon',
   itemRightTargetKey: 'rightTarget',
   itemRightActionKey: 'rightAction',
+  itemRightToolTipKey: 'rightToolTip',
   menuItemKeys: ['rightIcon','rightTarget','itemRightAction','itemTitleKey', 'itemValueKey', 'itemToolTipKey', 'itemIsEnabledKey', 'itemIconKey', 'itemSeparatorKey', 'itemActionKey', 'itemCheckboxKey', 'itemShortCutKey', 'itemHeightKey', 'itemSubMenuKey', 'itemKeyEquivalentKey', 'itemTargetKey', 'itemLayerIdKey']
 
 });
