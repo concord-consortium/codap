@@ -490,6 +490,7 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           // set standaloneUndoModeAvailable.
           tReturnValues.externalUndoAvailable = !DG.STANDALONE_MODE;
           tReturnValues.standaloneUndoModeAvailable = !!DG.STANDALONE_MODE;
+          tReturnValues.run_remote_endpoint = DG.run_remote_endpoint || 'unknown';
           if (componentStorage) {
             DG.log('Sending data interactive, %@, state: %@'.loc(
                 tReturnValues.title, JSON.stringify(componentStorage.savedGameState)));

@@ -262,21 +262,49 @@ DG.appController = SC.Object.create((function () // closure
       $('title').text(nameString + 'CODAP');
     }.observes('DG._currDocumentController.documentName'),
 
+    dataSetDeleteAgent: SC.Object.extend({
+      deleteWithAlert: function (menu) {
+        DG.AlertPane.warn({
+          dataContext: this.dataContext,
+          doDelete: function () {
+            DG.currDocumentController().destroyDataContext(this.get('dataContext').get('id'));
+          },
+          message: 'DG.TableController.deleteDataSet.confirmMessage'.loc(
+              this.get('dataContext').get('title')),
+          description: 'DG.TableController.deleteDataSet.confirmDescription'.loc(),
+          buttons: [{
+            title: 'DG.TableController.deleteDataSet.okButtonTitle',
+            action: 'doDelete',
+            localize: YES
+          }, {
+            title: 'DG.TableController.deleteDataSet.cancelButtonTitle',
+            localize: YES
+          }],
+          localize: false
+        });
+      }
+    }),
     caseTableMenuItems: function () {
       var dataContexts = DG.currDocumentController().get('contexts');
       var menuItems = dataContexts.map(function (dataContext) {
         return {
           localize: false,
           title: dataContext.get('title'),
+          toolTip: 'DG.AppController.caseTableMenu.openCaseTableToolTip',
           target: DG.appController,
           dgAction: 'openOrSelectCaseTable',
           icon: 'tile-icon-table',
-          dataContext: dataContext
+          dataContext: dataContext,
+          rightIcon: 'dg-trash-icon',
+          rightTarget: this.dataSetDeleteAgent.create({dataContext: dataContext}),
+          rightAction: 'deleteWithAlert',
+          rightToolTip: 'DG.AppController.caseTableMenu.deleteDataSetToolTip'
         };
-      });
+      }.bind(this));
       menuItems.push({
         localize: true,
         title: 'DG.AppController.caseTableMenu.newDataSet',
+        toolTip: 'DG.AppController.caseTableMenu.newDataSetToolTip',
         target: DG.mainPage,
         dgAction: 'openCaseTableForNewContext',
         icon: 'tile-icon-table'

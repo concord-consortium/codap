@@ -84,7 +84,10 @@ SC.stringsFor("en", {
     "DG.AppController.createDataSet.initialAttribute": "Attribute",
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
+    "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSet": "-- new --",
+    "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
 
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Cancel",
@@ -622,7 +625,7 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.disableNumberToggle": "Hide Parent Visibility Toggles",
     "DG.DataDisplayMenu.showAll": "Show All Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
-    "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
+    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
 

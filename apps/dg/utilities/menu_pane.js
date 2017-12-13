@@ -47,8 +47,17 @@ DG.MenuPane = SC.MenuPane.extend(
         kAvgCharWidth = 5,  // Use 5 pixels/character for estimation
         kWidthMargins = 60;
     this.get('items').forEach( function( iItem) {
-      if( iItem && iItem.title && (typeof iItem.title === 'string'))
-        tMaxCharCount = Math.max( tMaxCharCount, iItem.title.loc().length);
+      if (!iItem) {
+        return;
+      }
+      var charCount;
+      if( iItem.title && (typeof iItem.title === 'string')) {
+        charCount =  iItem.title.loc().length;
+      }
+      if (iItem.rightIcon) {
+        charCount += 2;
+      }
+      tMaxCharCount = Math.max( tMaxCharCount, charCount);
     });
     // Note: Currently we use a heuristic. Eventually we will probably need
     // to measure the text more precisely.
@@ -70,7 +79,20 @@ DG.MenuPane = SC.MenuPane.extend(
   popup: function() {
     this.adjust('width', this.getDesiredMenuWidth());
     sc_super();
-  }
+  },
+
+  /**
+   The name of the property that contains the right icon for each item.
+
+   @type String
+   @default "icon"
+   @commonTask Menu Item Properties
+   */
+  itemRightIconKey: 'rightIcon',
+  itemRightTargetKey: 'rightTarget',
+  itemRightActionKey: 'rightAction',
+  itemRightToolTipKey: 'rightToolTip',
+  menuItemKeys: ['rightIcon','rightTarget','itemRightAction','itemTitleKey', 'itemValueKey', 'itemToolTipKey', 'itemIsEnabledKey', 'itemIconKey', 'itemSeparatorKey', 'itemActionKey', 'itemCheckboxKey', 'itemShortCutKey', 'itemHeightKey', 'itemSubMenuKey', 'itemKeyEquivalentKey', 'itemTargetKey', 'itemLayerIdKey']
 
 });
 

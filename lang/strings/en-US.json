@@ -84,7 +84,10 @@
     "DG.AppController.createDataSet.initialAttribute": "Attribute",
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
+    "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSet": "-- new --",
+    "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
 
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Cancel",

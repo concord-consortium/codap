@@ -645,5 +645,8 @@ SC.stringsFor("zh", {
     "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
-    "DG.Inspector.graphMovablePoint": "Movable Point"
+    "DG.Inspector.graphMovablePoint": "Movable Point",
+    "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
+    "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set"
 });
