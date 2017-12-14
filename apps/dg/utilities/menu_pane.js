@@ -50,7 +50,7 @@ DG.MenuPane = SC.MenuPane.extend(
       if (!iItem) {
         return;
       }
-      var charCount;
+      var charCount = 0;
       if( iItem.title && (typeof iItem.title === 'string')) {
         charCount =  iItem.title.loc().length;
       }
