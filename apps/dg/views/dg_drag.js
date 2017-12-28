@@ -107,7 +107,7 @@ DG.Drag = SC.Drag.extend({
         tResult = null;
     tTargets.forEach( function( iTarget) {
       if( (iTarget.constructor === DG.AxisMultiTarget) || (iTarget.get('orientation') === 'vertical2')) {
-        var tFrame = iTarget.parentView.convertFrameToView( iTarget.get('frame'), null);
+        var tFrame = iTarget.convertFrameToView( iTarget.get('frame'), null);
         if( SC.pointInRect( tLoc, tFrame)) {
           tResult = iTarget;
         }
