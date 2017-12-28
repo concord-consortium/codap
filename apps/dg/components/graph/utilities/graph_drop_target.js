@@ -42,6 +42,21 @@ DG.GraphDropTarget =
    */
   dragData:null,
 
+  /**
+   * Override SC.View for CODAP drop targets.
+   * [CODAP fix] When the CODAP div is not at (0, 0) and when the page is scrolled,
+   * the default Sproutcore mechanism for computing position does not give the desired
+   * frame origin. This comes up when CODAP is used in embedded mode as in the ZiSci project.
+   * Our fix is to use the jQuery 'offset' method to determine the offset regardless of positioning
+   * and scrolling of CODAP div.
+   *
+   * Note that we are forgoing computation of possible scaling, which Sproutcore does do.
+   */
+  convertFrameToView: function (frame, targetView) {
+    var tOffset = $(this.containerLayer()).offset();
+    return { x: tOffset.left, y: tOffset.top, width: frame.width, height: frame.height };
+  },
+
   computeDragOperations: function( iDrag) {
     if( this.isValidAttribute( iDrag))
       return SC.DRAG_LINK;
