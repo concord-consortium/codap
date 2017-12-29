@@ -52,8 +52,9 @@ DG.Drag = SC.Drag.extend({
       var dv = this._getDragView();
       var pv = dv.get('parentView');
 
-      // convert to global coordinates
-      var origin = pv ? pv.convertFrameToView(dv.get('frame'), null) : dv.get('frame');
+      // convert to global coordinates. Origin is used to slide the ghost view back.
+      var tOffset = $(pv.containerLayer()).offset(),
+          origin = { x: tOffset.left, y: tOffset.top };
 
       if (this.get('ghost')) {
         // Hide the dragView
@@ -126,7 +127,10 @@ DG.Drag = SC.Drag.extend({
     if( !this.origin || SC.none( this.origin.x) || SC.none( this.origin.y) )
         sc_super();
     else if (this.ghostView) {
-      var slidebackLayout = { top: this.origin.y, left: this.origin.x };
+      var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+          scrollTop = window.pageYOffset || document.documentElement.scrollTop,
+          slidebackLayout = { top: this.origin.y + scrollTop,
+            left: this.origin.x + scrollLeft };
 
       // Animate the ghost view back to its original position; destroy after.
       this.ghostView.animate(slidebackLayout, 0.5, this, function () {
