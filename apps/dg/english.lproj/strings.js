@@ -625,7 +625,7 @@ SC.stringsFor("en", {
     "DG.DataDisplayMenu.disableNumberToggle": "Hide Parent Visibility Toggles",
     "DG.DataDisplayMenu.showAll": "Show All Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
-    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
+    "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
 
