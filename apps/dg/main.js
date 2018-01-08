@@ -362,11 +362,6 @@ DG.main = function main() {
               }
             },
             {
-              "name": "googleDrive",
-              "mimeType": "application/json",
-              "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
-            },
-            {
               "name": "documentStore",
               "displayName": "Concord Cloud",
               "deprecationPhase": (function() { // IIFE to keep code localized
@@ -390,6 +385,14 @@ DG.main = function main() {
             //"localStorage"
           ]
         };
+    // only enable Google Drive if origin is ssl
+    if (new URL(document.origin).protocol === 'https:') {
+      options.providers.splice(1, 0, {
+        "name": "googleDrive",
+        "mimeType": "application/json",
+        "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
+      });
+    }
     if (DG.cfmConfigurationOverride) {
       options = Object.assign(options, DG.cfmConfigurationOverride);
     }
