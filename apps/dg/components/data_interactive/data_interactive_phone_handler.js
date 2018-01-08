@@ -1079,24 +1079,26 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
             }
           }
 
-          function createOneCase(iCase) {
-            fixDates(iCase);  // Dates sometimes come in as objects, in which case we need to convert them
-                              // to a CODAP date whose value is seconds, not milliseconds
-            var request = {
-              operation: 'createCases',
-              collection: collection,
-              properties: {
-                parent: iCase.parent
-              },
-              values: [iCase.values],
-              requester: requester
-            },
-            changeResult = context.applyChange(request);
-            success = (changeResult && changeResult.success) && success;
-            request.cases = success ? [collection.getCaseByID(changeResult.caseID)] : [];
-            if (changeResult.caseIDs[0]) {
-              caseIDs.push({id: changeResult.caseIDs[0]});
+          function createOrAppendRequest(iCase) {
+            fixDates(iCase);
+            var parent = iCase.parent;
+            var values = iCase.values;
+            var req = requests.find(function (request) {
+              return request.properties.parent === parent;
+            });
+            if (!req) {
+              req = {
+                operation: 'createCases',
+                collection: collection,
+                properties: {
+                  parent: parent
+                },
+                values: [],
+                requester: requester
+              };
+              requests.push(req);
             }
+            req.values.push(values);
           }
           if (!iResources.collection) {
             return {success: false, values: {error: 'Collection not found'}};
@@ -1108,7 +1110,23 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
           var cases = Array.isArray(iValues)?iValues: [iValues];
           var caseIDs = [];
           var requester = this.get('id');
-          cases.forEach(createOneCase);
+          var requests = [];
+
+          // We wish to minimize the number of change requests submitted,
+          // but create case change requests are not structured like cases.
+          // we must reformat the Plugin API create/case to some number of
+          // change requests, one for each parent referred to in the create/case
+          // object.
+          cases.forEach(createOrAppendRequest);
+          requests.forEach(function (req) {
+            var changeResult = context.applyChange(req);
+            var success = success && (changeResult && changeResult.success);
+            if (changeResult.success) {
+              changeResult.caseIDs.forEach(function (id) {
+                caseIDs.push({id: id});
+              });
+            }
+          });
           return {success: success, values: caseIDs};
         }
       },
