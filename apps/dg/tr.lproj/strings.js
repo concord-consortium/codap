@@ -642,7 +642,7 @@ SC.stringsFor("tr", {
     "DG.Redo.graph.hideMovablePoint": "Redo hiding movable point",
     "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
     "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
-    "DG.DataDisplayMenu.copyAsImage": "Copy as Image",
+    "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
     "DG.DataDisplayMenu.exportImage": "Export Image...",
     "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
     "DG.Inspector.graphMovablePoint": "Movable Point",
