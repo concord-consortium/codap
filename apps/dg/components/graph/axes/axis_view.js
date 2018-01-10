@@ -151,7 +151,7 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
               tOtherYCount = SC.isArray(tOtherYAttributes) ? tOtherYAttributes.length : 0,
               tBaseLabelIndex = (this.get('orientation') === 'vertical2') ? tOtherYCount : 0,
               tNoAttributesOnEitherAxis = this.noAttributesOnEitherAxis(),
-              tLabels, tNumAttributes, tNode, tAttribute;
+              tLabels, tNumAttributes, tNode, tAttributes, tAttribute;
           if (SC.none(this._paper))
             return [];
 
@@ -172,7 +172,8 @@ DG.AxisView = DG.RaphaelBaseView.extend(DG.GraphDropTarget,
                 colorIndex: tBaseLabelIndex + iIndex,
                 numColors: tNumAttributes,
                 priorNode: (tLabelCount > 0) ? tLabels[ tLabelCount - 1] : null });
-              tAttribute = this_.getPath('model.attributeDescription.attributes')[iIndex];
+              tAttributes = this_.getPath('model.attributeDescription.attributes');
+              tAttribute = (SC.isArray(tAttributes)) ? tAttributes[iIndex] : null;
               if( tAttribute) {
                 tNode.setDragLabelHandler(DG.DragLabelHandler.create({
                   labelNode: tNode,

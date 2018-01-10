@@ -567,6 +567,12 @@ SC.stringsFor("en", {
     "DG.CellLinearAxisView.lowerPanelTooltip": "Drag to change axis lower bound",
     "DG.CellLinearAxisView.upperPanelTooltip": "Drag to change axis upper bound",
 
+    // DG.CountAxisView
+    "DG.CountAxisView.countLabel": "Count",
+    "DG.CountAxisView.countLabelDescription": "Number of cases in the bar along this axis",
+    "DG.CountAxisView.percentLabel": "Percent",
+    "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
+
     // DG.PlotModel
     "DG.PlotModel.mixup": "Mix Up the Plot",
     "DG.PlotModel.showCount": "Show Count",

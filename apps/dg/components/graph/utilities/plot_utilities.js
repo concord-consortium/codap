@@ -483,6 +483,22 @@ DG.PlotUtilities = {
     }
 
     node.style.visibility = vis;
+  },
+
+  mapAxisViewClassToAxisModelClass: function( iViewClass) {
+    var tModelClass = DG.AxisModel;
+    switch( iViewClass) {
+      case DG.CellAxisView:
+        tModelClass = DG.CellAxisModel;
+        break;
+      case DG.CellLinearAxisView:
+      case DG.QualCellLinearAxisView:
+        tModelClass = DG.CellLinearAxisModel;
+        break;
+      case DG.CountAxisView:
+        tModelClass = DG.CountAxisModel;
+    }
+    return tModelClass;
   }
 
 };

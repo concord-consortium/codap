@@ -134,14 +134,45 @@ DG.GraphView = SC.View.extend(
        */
 
       setPlotViewProperties: function (iPlotView, iPlotModel, iYAxisKey, iCurrentPoints) {
+
+        var installAxisView = function( iAxisViewDescription) {
+          var tNewViewClass = iAxisViewDescription.axisClass,
+              tPrefix = iAxisViewDescription.axisKey;
+          if (!SC.none(tNewViewClass)) {
+            var tOldView = this.get(tPrefix + 'AxisView'),
+                tNewModelClass = DG.PlotUtilities.mapAxisViewClassToAxisModelClass( tNewViewClass),
+                tNewModel = tNewModelClass.create(),
+                tNewView = tNewViewClass.create({
+                  orientation: tOldView.get('orientation'),
+                  model: tNewModel
+                }),
+                tOtherView;
+            this.removeChild(tOldView);
+            this.appendChild(tNewView);
+            this.set(tPrefix + 'AxisView', tNewView);
+            this.setPath('plotBackgroundView.' + tPrefix + 'AxisView', tNewView);
+            this.setPath('plotView.' + tPrefix + 'AxisView', tNewView);
+            this.setPath('controller.' + tPrefix + 'AxisView', tNewView);
+            tOtherView = this.get(((tPrefix === 'x') ? 'y' : 'x') + 'AxisView');
+            tNewView.set('otherAxisView', tOtherView);
+            tOldView.destroy();
+          }
+        }.bind( this);
+
+        var tAxisViewDescription; // { x|y: AxisView }
         iYAxisKey = iYAxisKey || 'yAxisView';
         iPlotView.beginPropertyChanges();
         iPlotView.setIfChanged('paperSource', this.get('plotBackgroundView'));
         iPlotView.setIfChanged('model', iPlotModel);
+        iPlotView.setIfChanged('parentView', this);
         iPlotView.setIfChanged('xAxisView', this.get('xAxisView'));
         iPlotView.setIfChanged('yAxisView', this.get(iYAxisKey));
-        iPlotView.setIfChanged('parentView', this);
-        iPlotView.setupAxes();  // special requirements set up here
+        // special requirements set up here, with possible return of description of an axis to be added
+        tAxisViewDescription = iPlotView.configureAxes();
+        if( !SC.none( tAxisViewDescription)) {
+          installAxisView( tAxisViewDescription);
+        }
+        iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
           iPlotView.set('transferredPointCoordinates', iCurrentPoints);
         iPlotView.endPropertyChanges();
@@ -622,11 +653,11 @@ DG.GraphView = SC.View.extend(
           this.setPlotViewProperties(tCurrentView, tPlot, 'yAxisView', tCurrentPoints);
         }
         else {
+          this.set('plotView', tNewView); // Destroys tCurrentView
           this.setPlotViewProperties(tNewView, tPlot, 'yAxisView', tCurrentPoints);
           // If we don't call doDraw immediately, we don't get the between-plot animation.
           if (tNewView.readyToDraw())
             tNewView.doDraw();
-          this.set('plotView', tNewView); // Destroys tCurrentView
           if (tInitLayout) {
             this.renderLayout(this.renderContext(this.get('tagName')), tInitLayout);
           }

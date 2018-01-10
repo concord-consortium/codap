@@ -47,6 +47,7 @@ DG.ChartView = DG.PlotView.extend(
         if (tPrimary) {
           tPrimary.set('centering', true);
         }
+        return null;
       },
 
       /**
@@ -89,7 +90,17 @@ DG.ChartView = DG.PlotView.extend(
         tRC.isVerticalOrientation = this.getPath('model.orientation') === 'vertical';
 
         return tRC;
-      }
+      },
 
+      /**
+       Note: There's a lot of redundancy here with plotLayer::dataDidChange. But it's difficult to
+       refactor further because of the need to deal with positioning points via
+       privSetCircleCoords.
+       */
+      updatePoints: function () {
+        // update adornments when cases added or removed
+        // note: don't rely on tDataLength != tPlotElementLength test for this
+        this.updateAdornments();
+      }
     });
 

@@ -106,10 +106,16 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
-   * Called after axes have been assigned. Default is to do nothing. Subclasses may override to set certain
-   * axis view properties for their purpose.
+   * Subclasses may override to set certain axis view properties for their purpose.
    */
   setupAxes: function() {
+
+  },
+
+  /**
+   * Gives plot a chance to create its own axis. Default is to do nothing.
+   */
+  configureAxes: function() {
 
   },
 

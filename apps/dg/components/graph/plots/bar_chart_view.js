@@ -60,6 +60,129 @@ DG.BarChartView = DG.ChartView.extend(
       },
 
       /**
+       * Make sure the count axis has the correct upper bounds
+       */
+      setupAxes: function() {
+        sc_super();
+        var tCountAxisView = this.get('secondaryAxisView');
+        if( tCountAxisView) {
+          tCountAxisView.get('model').setLowerAndUpperBounds( 0, 100);
+        }
+      },
+
+      /**
+       * Return the class of the count axis with the x or y to put it on.
+       */
+      configureAxes: function () {
+        var tRet = sc_super(),
+            tCountKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
+        tRet = tRet || {};
+        tRet.axisKey = tCountKey;
+        tRet.axisClass = DG.CountAxisView;
+        return tRet;
+      },
+
+      /**
+       * @param iCase
+       * @param iIndex
+       * @param iAnimate
+       */
+      createRect: function (iCase, iIndex, iAnimate) {
+        // Can't create rects if we don't have paper for them
+        if (!this.get('paper')) return;
+
+        var this_ = this,
+            tInitialTransform = null,
+            kOpaque = 1,
+            tRect = this.get('paper').rect(-1000, -1000, 0, 0)
+            // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
+            // reason, when we do it in creation, they end up zero rather than offscreen.
+                .attr({
+                  cursor: "pointer",
+                  fill: DG.PlotUtilities.kDefaultPointColor,
+                  stroke: DG.PlotUtilities.kDefaultPointColor
+                })
+                // .addClass(DG.PlotUtilities.kColoredDotClassName)
+                .hover(function (event) {
+                      // Note that Firefox can come through here repeatedly so we have to check for existence
+                      if (SC.none(tInitialTransform)) {
+                        tInitialTransform = '';
+                        this.animate({
+                          opacity: kOpaque,
+                          transform: DG.PlotUtilities.kDataHoverTransform
+                        }, DG.PlotUtilities.kDataTipShowTime);
+                        this_.showDataTip(this, iIndex);
+                      }
+                    },
+                    function (event) { // out
+                      this.stop();
+                      this.animate({
+                        opacity: DG.PlotUtilities.kDefaultPointOpacity,
+                        transform: tInitialTransform
+                      }, DG.PlotUtilities.kHighlightHideTime);
+                      tInitialTransform = null;
+                      this_.hideDataTip();
+                    })
+                .mousedown(function (iEvent) {
+                  SC.run(function () {
+                    this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
+                  });
+                });
+        tRect.index = iIndex;
+        tRect.node.setAttribute('shape-rendering', 'geometric-precision');
+/*
+        if (iAnimate)
+          DG.PlotUtilities.doCreateCircleAnimation(tRect);
+*/
+        return tRect;
+      },
+
+      /**
+       "Points" is a misnomer since we're really updating the rectangles that make up the bar.
+       */
+      updatePoints: function () {
+        // It's possible to get here before didCreateLayer() creates the get('paper').
+        if (!this.get('paper'))
+          return;
+        sc_super();
+        this.computeCellParams();
+        var tModel = this.get('model'),
+            tCases = this.getPath('model.cases'),
+            tRC = this.createRenderContext(),
+            tDataLength = tCases && tCases.length,
+            tPlotElementLength = this._plottedElements.length,
+            tLayerManager = this.get('layerManager'),
+            tIndex, tCellIndices;
+
+        // for any new cases
+        if (tDataLength > tPlotElementLength) {
+          // add plot elements for added cases
+          for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
+            this._plottedElements.push( this.createRect(tCases[tIndex], tIndex, this.animationIsAllowable()));
+            tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
+            this.privSetRectCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+          }
+        }
+        // Get rid of plot elements for removed cases and update all coordinates
+        if (tDataLength < tPlotElementLength) {
+          for (tIndex = tDataLength; tIndex < tPlotElementLength; tIndex++) {
+            // It can happen during closing of a document that the elements no longer exist, so we have to test
+            if (!SC.none(this._plottedElements[tIndex])) {
+              this._plottedElements[tIndex].stop();
+              tLayerManager.removeElement(this._plottedElements[tIndex]);
+              DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex]);
+            }
+          }
+          this._plottedElements.length = tDataLength;
+          // update all coordinates because we don't know which cases were deleted
+          tCases.forEach(function (iCase, iIndex) {
+            tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
+          });
+        }
+        this._isRenderingValid = false;
+      },
+
+      /**
        Only recreate elements if necessary. Otherwise, just set svg element coordinates.
        */
       drawData: function drawData() {
@@ -180,32 +303,11 @@ DG.BarChartView = DG.ChartView.extend(
        even by using the full length of a cell rect, then we compute an overlap.
        */
       computeCellParams: function () {
-        var tCellWidth = this.getPath('primaryAxisView.cellWidth'),
-            tCellHeight = this.getPath('secondaryAxisView.fullCellWidth') - 5,
+        var tCellHeight = this.getPath('secondaryAxisView.fullCellWidth') - 5,
             tMaxInCell = this.getPath('model.maxInCell'),
-            tPointSize = 2 * this._pointRadius,
-            tAllowedPointsPerColumn = Math.max(1, Math.floor(tCellHeight / tPointSize)),
-            tAllowedPointsPerRow = Math.max(1, Math.floor(tCellWidth / tPointSize)),
-            tNumPointsInRow = Math.max(1,
-                Math.min(tAllowedPointsPerRow,
-                    Math.ceil(tMaxInCell / tAllowedPointsPerColumn))),
-            tActualPointsPerColumn = Math.ceil(tMaxInCell / tNumPointsInRow),
-            tOverlap = Math.max(0, ((tActualPointsPerColumn + 1) * tPointSize - tCellHeight) /
-                tActualPointsPerColumn),
             tBarSliceHeight = tCellHeight / tMaxInCell;
-        tOverlap = Math.min(tOverlap, tPointSize); // Otherwise points can stack downward
-
-        // Note: Bill points out that 1 is a better default here, but using 1 doesn't fix the bug
-        // I'm working on. This may have to do with making sure a notification goes out when
-        // 'numPointsInRow' later changes to 1 when the chart becomes valid.
-        if (!isFinite(tNumPointsInRow))
-          tNumPointsInRow = 0;
-        if (!isFinite(tOverlap))
-          tOverlap = 0;
 
         this.beginPropertyChanges();
-        this.setIfChanged('numPointsInRow', tNumPointsInRow);
-        this.setIfChanged('overlap', tOverlap);
         this.setIfChanged('barSliceHeight', tBarSliceHeight);
         this.endPropertyChanges();
       },
@@ -257,7 +359,7 @@ DG.BarChartView = DG.ChartView.extend(
         tRect.animate(tAttrs, DG.PlotUtilities.kDefaultAnimationTime);
         // this.updatePlottedElement( tRect, tAttrs, iAnimate, iCallback);
         // }
-      },
+      }/*,
 
       displayAsBarChartDidChange: function () {
         var tPaper = this.get('paper'),
@@ -284,10 +386,10 @@ DG.BarChartView = DG.ChartView.extend(
             tPlottedElements[iIndex] = tRect;
             tLayer.push(tRect);
             this.privSetRectCoords(tRenderContext, tCases[iIndex], iIndex,
-                tModel.lookupCellForCaseIndex(iIndex), true /*animate*/, null /* no callback */);
+                tModel.lookupCellForCaseIndex(iIndex), true /!*animate*!/, null /!* no callback *!/);
           }.bind(this));
         }
       }.observes('model.displayAsBarChart')
-
+*/
     });
 

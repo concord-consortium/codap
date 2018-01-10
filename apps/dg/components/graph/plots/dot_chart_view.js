@@ -54,6 +54,7 @@ DG.DotChartView = DG.ChartView.extend(
         // It's possible to get here before didCreateLayer() creates the get('paper').
         if (!this.get('paper'))
           return;
+        sc_super();
         var this_ = this,
             tModel = this.get('model'),
             tCases = this.getPath('model.cases'),
@@ -67,9 +68,6 @@ DG.DotChartView = DG.ChartView.extend(
         // update the point radius before creating or updating plotted elements
         if (tWantNewPointRadius)
           this._pointRadius = tCandidateRadius;
-        // update adornments when cases added or removed
-        // note: don't rely on tDataLength != tPlotElementLength test for this
-        this.updateAdornments();
 
         // for any new cases
         if (tDataLength > tPlotElementLength) {
@@ -130,6 +128,18 @@ DG.DotChartView = DG.ChartView.extend(
           this_.privSetCircleCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
         });
         sc_super();
+      },
+
+      /**
+       * Return the class of the count axis with the x or y to put it on.
+       */
+      configureAxes: function () {
+        var tRet = sc_super(),
+            tCountKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
+        tRet = tRet || {};
+        tRet.axisKey = tCountKey;
+        tRet.axisClass = DG.AxisView; // Dot chart has no numeric scale on the count axis
+        return tRet;
       },
 
       /**
@@ -198,68 +208,54 @@ DG.DotChartView = DG.ChartView.extend(
       },
 
       /**
-       * If we're a bar chart, we actually create rectangle
        * @param iCase
        * @param iIndex
        * @param iAnimate
        */
       createCircle: function (iCase, iIndex, iAnimate) {
-        var this_ = this,
-            tInitialTransform = null,
-            kOpaque = 1;
-
-        var makeCircle = function () {
-              var tCircle = this.get('paper').circle(0, 0, this._pointRadius)
-              // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
-              // reason, when we do it in creation, they end up zero rather than offscreen.
-                  .attr({
-                    cursor: "pointer", cx: -1000, cy: -1000
-                  })
-                  .addClass(DG.PlotUtilities.kColoredDotClassName)
-                  .hover(function (event) {
-                        // Note that Firefox can come through here repeatedly so we have to check for existence
-                        if (SC.none(tInitialTransform)) {
-                          tInitialTransform = '';
-                          this.animate({
-                            opacity: kOpaque,
-                            transform: DG.PlotUtilities.kDataHoverTransform
-                          }, DG.PlotUtilities.kDataTipShowTime);
-                          this_.showDataTip(this, iIndex);
-                        }
-                      },
-                      function (event) { // out
-                        this.stop();
-                        this.animate({
-                          opacity: DG.PlotUtilities.kDefaultPointOpacity,
-                          transform: tInitialTransform
-                        }, DG.PlotUtilities.kHighlightHideTime);
-                        tInitialTransform = null;
-                        this_.hideDataTip();
-                      })
-                  .mousedown(function (iEvent) {
-                    SC.run(function () {
-                      this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
-                    });
-                  });
-              tCircle.index = iIndex;
-              tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
-              if (iAnimate)
-                DG.PlotUtilities.doCreateCircleAnimation(tCircle);
-              return tCircle;
-            }.bind(this),
-
-            makeRect = function () {
-              return this.get('paper').rect(-1000, -1000, 0, 0);
-            }.bind(this);
-
         // Can't create circles if we don't have paper for them
         if (!this.get('paper')) return;
 
-        if (this.getPath('model.displayAsBarChart'))
-          return makeRect();
-        else
-          return makeCircle();
-
+        var this_ = this,
+            tInitialTransform = null,
+            kOpaque = 1,
+            tCircle = this.get('paper').circle(0, 0, this._pointRadius)
+        // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
+        // reason, when we do it in creation, they end up zero rather than offscreen.
+            .attr({
+              cursor: "pointer", cx: -1000, cy: -1000
+            })
+            .addClass(DG.PlotUtilities.kColoredDotClassName)
+            .hover(function (event) {
+                  // Note that Firefox can come through here repeatedly so we have to check for existence
+                  if (SC.none(tInitialTransform)) {
+                    tInitialTransform = '';
+                    this.animate({
+                      opacity: kOpaque,
+                      transform: DG.PlotUtilities.kDataHoverTransform
+                    }, DG.PlotUtilities.kDataTipShowTime);
+                    this_.showDataTip(this, iIndex);
+                  }
+                },
+                function (event) { // out
+                  this.stop();
+                  this.animate({
+                    opacity: DG.PlotUtilities.kDefaultPointOpacity,
+                    transform: tInitialTransform
+                  }, DG.PlotUtilities.kHighlightHideTime);
+                  tInitialTransform = null;
+                  this_.hideDataTip();
+                })
+            .mousedown(function (iEvent) {
+              SC.run(function () {
+                this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
+              });
+            });
+        tCircle.index = iIndex;
+        tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
+        if (iAnimate)
+          DG.PlotUtilities.doCreateCircleAnimation(tCircle);
+        return tCircle;
       },
 
       /**
@@ -437,35 +433,7 @@ DG.DotChartView = DG.ChartView.extend(
         this.setIfChanged('overlap', tOverlap);
         this.setIfChanged('barSliceHeight', tBarSliceHeight);
         this.endPropertyChanges();
-      },
-
-      displayAsBarChartDidChange: function () {
-        var tR = this._pointRadius,
-            tPlottedElements = this._plottedElements,
-            tLayerManager = this.get('layerManager'),
-            tLayer = tLayerManager[DG.LayerNames.kPoints],
-            tRenderContext = this.createRenderContext(),
-            tModel = this.get('model'),
-            tCases = tModel.get('cases');
-        tPlottedElements.forEach(function (iElement, iIndex) {
-          var tCircle = this.createCircle(tCases[iIndex], iIndex, false),
-              tRect = iElement,
-              tCircleAttrs;
-          tPlottedElements[iIndex] = tCircle;
-          this.privSetCircleCoords(tRenderContext, tCases[iIndex], iIndex,
-              tModel.lookupCellForCaseIndex(iIndex), false /* animate */, null /* no callback*/);
-          tCircle.hide();
-          tCircleAttrs = tCircle.attr();
-          tRect.animate({
-            x: tCircleAttrs.cx - tR, y: tCircleAttrs.cy - tR, width: 2 * tR, height: 2 * tR,
-            r: tR
-          }, DG.PlotUtilities.kDefaultAnimationTime, function () {
-            tLayerManager.removeElement(tRect);
-            tLayer.push(tCircle);
-            tCircle.show();
-          });
-        }.bind(this));
-      }.observes('model.displayAsBarChart')
+      }
 
     });
 
