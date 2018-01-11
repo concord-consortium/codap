@@ -218,7 +218,7 @@ DG.MapGridModel = SC.Object.extend((function () // closure
 
       this.beginPropertyChanges();
         this.set('rectArray', new RectArray());
-        if(tCases.length > 0) {
+        if(tCases.length > 0 && this.get('dataConfiguration').getLatLongBounds().isValid()) {
           setupRectangles();
           computeCounts();
           this.get('rectArray').deleteZeroRects();
