@@ -64,7 +64,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * These are point coordinates that were gathered up from the plot before a configuration change
     @property { Array of {cx:{Number}, cy:{Number}} }
   */
-  transferredPointCoordinates: null,
+  transferredElementCoordinates: null,
 
   /**
    * Set to false if you have your own way of animating to a new state
@@ -197,7 +197,7 @@ DG.PlotView = DG.PlotLayer.extend(
     // We leave it commented in because we may discover situations in which it _is_ necessary.
     // if( this.getPath('model.isAnimating')) {
       // In some situations we get both animation and transferred points coordinates. The first is sufficient
-      // this.set('transferredPointCoordinates', null);
+      // this.set('transferredElementCoordinates', null);
     // }
 
   },
@@ -207,7 +207,7 @@ DG.PlotView = DG.PlotLayer.extend(
     to take its place.
     @return {Array of {cx:{Number}, cy:{Number}}}
   */
-  getPointPositionsInParentFrame: function() {
+  getElementPositionsInParentFrame: function() {
     var tFrame = this.get('frame');
     return this._plottedElements.map( function( iElement) {
         var radius =( iElement.isHidden() ? 0 : iElement.attr('r')); // use r:0 as proxy for hidden plot element
@@ -222,13 +222,13 @@ DG.PlotView = DG.PlotLayer.extend(
       (b) many-to-one animation for moving from child case(s) to corresponding parent case
       (c) one-to-one animation for moving within a collection (this is default).
   */
-  animateFromTransferredPoints: function() {
+  animateFromTransferredElements: function() {
     var this_ = this,
         tElements = this._plottedElements,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tFrame = this.get('frame'),
-        tOldPointAttrs = this.get('transferredPointCoordinates'),
+        tOldPointAttrs = this.get('transferredElementCoordinates'),
         tNewPointAttrs = [], // used if many-to-one animation
         tNewToOldCaseMap = [],
         tOldToNewCaseMap = [];
@@ -266,7 +266,7 @@ DG.PlotView = DG.PlotLayer.extend(
         var tPt = getCaseCurrentLocation( iIndex ),
             tAnimate = false,
             tCallBack;
-        this_.callCreateCircle( iCase, iIndex, false);
+        this_.callCreateElement( iCase, iIndex, false);
         if( !SC.none( tPt)) {
           tElements[ iIndex].attr( tPt);
           tAnimate = true;
@@ -301,7 +301,7 @@ DG.PlotView = DG.PlotLayer.extend(
       });
     }
     this._mustCreatePlottedElements = false;
-    this.set('transferredPointCoordinates', null);
+    this.set('transferredElementCoordinates', null);
   },
 
   /**
@@ -314,7 +314,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * @param iOldToNewCaseMap {[]} empty Array, or array of index values, one for each (old) transferred point coordinate.
    */
   _getTransferredPointsToCasesMap: function( iNewToOldCaseMap, iOldToNewCaseMap ) {
-    var tTransferredPoints = this.get('transferredPointCoordinates'),
+    var tTransferredPoints = this.get('transferredElementCoordinates'),
         tCases = this.getPath('model.cases'),
         tCollectionClient = this.getPath('model.collectionClient'),
         tChildCollectionClient = this.getPath('model.dataContext.childCollection'),
@@ -401,7 +401,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * See also handleConfigurationChange.
    */
   prepareForConfigurationChange: function() {
-    this.set( 'cachedPointCoordinates', this.getPointPositionsInParentFrame());
+    this.set( 'cachedPointCoordinates', this.getElementPositionsInParentFrame());
   },
 
   /**
@@ -411,7 +411,7 @@ DG.PlotView = DG.PlotLayer.extend(
    */
   handleConfigurationChange: function() {
     if( this.get('allowTransferAnimation')) {  // the configuration has changed
-      this.set('transferredPointCoordinates', this.get('cachedPointCoordinates'));
+      this.set('transferredElementCoordinates', this.get('cachedPointCoordinates'));
     }
   },
 

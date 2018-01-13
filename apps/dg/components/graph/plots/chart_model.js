@@ -381,28 +381,10 @@ DG.ChartModel = DG.PlotModel.extend(
 
   /**
    If we need to make a count model, do so. In any event toggle its visibility.
+   Note that the command is executed at the GraphModel level.
    */
   toggleDisplayAsBarChart: function() {
-
-    var toggle = function() {
-      this.toggleProperty('displayAsBarChart');
-    }.bind( this);
-
-    var tInitialValue = this.get('displayAsBarChart'),
-        tUndo = tInitialValue ? ('DG.Undo.graph.showAsDotChart') : ('DG.Undo.graph.showAsBarChart'),
-        tRedo = tInitialValue ? ('DG.Redo.graph.showAsDotChart') : ('DG.Redo.graph.showAsBarChart');
-    DG.UndoHistory.execute(DG.Command.create({
-      name: "graph.toggleBarChart",
-      undoString: tUndo,
-      redoString: tRedo,
-      log: ("toggleShowAs" + ": %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
-      execute: function() {
-        toggle();
-      }.bind(this),
-      undo: function() {
-        toggle();
-      }.bind(this)
-    }));
+    this.toggleProperty('displayAsBarChart');
   },
 
   configurationDescriptions: function() {

@@ -616,32 +616,54 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      * @param iValue {Boolean}
      */
     swapChartType: function( iChartPlot, iKey, iValue) {
-      var tConfig = this.get('dataConfiguration'),
-          tNewPlotClass = iChartPlot.constructor === DG.DotChartModel ?
-              DG.BarChartModel : DG.DotChartModel,
-          tNewPlot, tAdornmentModels;
-      tNewPlotClass.configureRoles( tConfig );
-      tNewPlot = tNewPlotClass.create( this.getModelPointStyleAccessors());
-      this.addPlotObserver( tNewPlot);
+      var doSwap = function ()
+      {
+        var tOldPlot = this.get('plot'),
+            tConfig = this.get('dataConfiguration'),
+            tNewPlotClass = tOldPlot.constructor === DG.DotChartModel ?
+                DG.BarChartModel : DG.DotChartModel,
+            tNewPlot, tAdornmentModels;
+        this.set('aboutToChangeConfiguration', true); // signal to prepare
+        tNewPlotClass.configureRoles(tConfig);
+        tNewPlot = tNewPlotClass.create(this.getModelPointStyleAccessors());
+        this.addPlotObserver(tNewPlot);
 
-      tAdornmentModels = iChartPlot.copyAdornmentModels( tNewPlot );
+        tAdornmentModels = tOldPlot.copyAdornmentModels(tNewPlot);
 
-      tNewPlot.beginPropertyChanges();
-      tNewPlot.setIfChanged( 'dataConfiguration', tConfig );
-      tNewPlot.setIfChanged( 'xAxis', this.get( 'xAxis' ) );
-      tNewPlot.setIfChanged( 'yAxis', this.get( 'yAxis' ) );
-      for( var tProperty in tAdornmentModels ) {
-        if( tAdornmentModels.hasOwnProperty( tProperty )) {
-          var tModel = tAdornmentModels[tProperty];
-          tNewPlot.setIfChanged( tProperty, tModel);
+        tNewPlot.beginPropertyChanges();
+        tNewPlot.setIfChanged('dataConfiguration', tConfig);
+        tNewPlot.setIfChanged('xAxis', this.get('xAxis'));
+        tNewPlot.setIfChanged('yAxis', this.get('yAxis'));
+        for (var tProperty in tAdornmentModels) {
+          if (tAdornmentModels.hasOwnProperty(tProperty)) {
+            var tModel = tAdornmentModels[tProperty];
+            tNewPlot.setIfChanged(tProperty, tModel);
+          }
         }
-      }
-      tNewPlot.endPropertyChanges();
+        tNewPlot.endPropertyChanges();
 
-      this.setIfChanged('plot', tNewPlot);
+        this.setIfChanged('plot', tNewPlot);
 
-      this.removePlotObserver( iChartPlot);
-      iChartPlot.destroy();
+        this.removePlotObserver(tOldPlot);
+        tOldPlot.destroy();
+        this.set('aboutToChangeConfiguration', false);  // all done
+      }.bind( this);
+
+      var tInitialValue = iChartPlot.get('displayAsBarChart'),
+          tUndo = tInitialValue ? ('DG.Undo.graph.showAsDotChart') : ('DG.Undo.graph.showAsBarChart'),
+          tRedo = tInitialValue ? ('DG.Redo.graph.showAsDotChart') : ('DG.Redo.graph.showAsBarChart');
+      DG.UndoHistory.execute(DG.Command.create({
+        name: "graph.toggleBarChart",
+        undoString: tUndo,
+        redoString: tRedo,
+        log: ("toggleShowAs" + ": %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
+        execute: function() {
+          doSwap();
+        }.bind(this),
+        undo: function() {
+          doSwap();
+        }.bind(this)
+      }));
     },
 
         /**

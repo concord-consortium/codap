@@ -355,14 +355,14 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
       this.drawData();
   },
 
-  callCreateCircle: function( iCase, iIndex, iAnimate) {
-    var tCircle = this.createCircle( iCase, iIndex, iAnimate);
-    if( tCircle) {
-      this._plottedElements.push( tCircle );
-      this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tCircle);
+  callCreateElement: function(iCase, iIndex, iAnimate) {
+    var tElement = this.createElement( iCase, iIndex, iAnimate);
+    if( tElement) {
+      this._plottedElements.push( tElement );
+      this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tElement);
       this._elementOrderIsValid = false; // So updateSelection will work
     }
-    return tCircle;
+    return tElement;
   },
 
   /**
@@ -414,7 +414,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if (tDataLength > tPlotElementLength) {
       // create plot elements for added cases
       for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.callCreateCircle(tCases[tIndex], tIndex, this.animationIsAllowable());
+        this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
         this.setCircleCoordinate(tRC, tCases[tIndex], tIndex);
       }
     }
@@ -491,16 +491,16 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   },
   
   /**
-   * Properties having to do with determining whether createCircle animation should be turned on
+   * Properties having to do with determining whether createElement animation should be turned on
    */
 
   /**
-   * The last time we called createCircle. If sufficient time has elapsed, we can turn on animation
+   * The last time we called createElement. If sufficient time has elapsed, we can turn on animation
    */
   _timeLastCreate: null,
 
   /**
-   * Controls whether we allow createCircle to do an animation. Turned off when animations are overlapping.
+   * Controls whether we allow createElement to do an animation. Turned off when animations are overlapping.
    * Turned back on when sufficient time has elapsed.
    */
   _createAnimationOn: true,
@@ -581,7 +581,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     this.prepareToResetCoordinates();
     iCases.forEach( function( iCase, iIndex) {
       if( iIndex >= tPlotElementLength )
-        this.callCreateCircle( iCase, iIndex, true);
+        this.callCreateElement( iCase, iIndex, true);
       this.setCircleCoordinate( iRC, iCase, iIndex);
     }.bind(this));
     this._mustMoveElementsToNewCoordinates = false;
@@ -1038,9 +1038,9 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     }
 
     // create circle animation
-    var tCircle = this.get('paper').circle( -100, -100, this._pointRadius ) // match createCircle()
+    var tCircle = this.get('paper').circle( -100, -100, this._pointRadius ) // match createElement()
             .toBack() // behind existing elements
-            .addClass( DG.PlotUtilities.kColoredDotClassName) // match createCircle
+            .addClass( DG.PlotUtilities.kColoredDotClassName) // match createElement
             .attr( iOldAttrs) // starting position to match updatePlottedElement()
             .animate( iNewAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>', completeVanishAnimation );
 

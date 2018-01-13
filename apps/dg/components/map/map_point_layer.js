@@ -117,7 +117,7 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     tChanges = tChanges || [];
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
+        this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn);
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
     });
 
@@ -164,8 +164,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
      }
      tCircle['case'] = iCase;  // Because sorting the cases messes up any correspondence between index and case
   },
-  
-  createCircle: function( iCase, iIndex, iAnimate) {
+
+  createElement: function( iCase, iIndex, iAnimate) {
     var this_ = this;
 
 /*

@@ -174,7 +174,7 @@ DG.GraphView = SC.View.extend(
         }
         iPlotView.setupAxes();
         if (!SC.none(iCurrentPoints))
-          iPlotView.set('transferredPointCoordinates', iCurrentPoints);
+          iPlotView.set('transferredElementCoordinates', iCurrentPoints);
         iPlotView.endPropertyChanges();
 
         iPlotView.addObserver('plotDisplayDidChange', this, function () {

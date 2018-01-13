@@ -83,7 +83,7 @@ DG.DotChartView = DG.ChartView.extend(
           }
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this.callCreateCircle(tCases[tIndex], tIndex, this.animationIsAllowable());
+            this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
             this.privSetCircleCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
           }
@@ -123,7 +123,7 @@ DG.DotChartView = DG.ChartView.extend(
           // a plot element that no longer exists.
           //DG.assert( this_._plottedElements[ iIndex], "dataRangeDidChange: missing plotted element!");
           if (!this_._plottedElements[iIndex])
-            this_.callCreateCircle(tCases[iIndex], iIndex, this_._createAnimationOn);
+            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
           this_.privSetCircleCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
         });
@@ -212,7 +212,7 @@ DG.DotChartView = DG.ChartView.extend(
        * @param iIndex
        * @param iAnimate
        */
-      createCircle: function (iCase, iIndex, iAnimate) {
+      createElement: function (iCase, iIndex, iAnimate) {
         // Can't create circles if we don't have paper for them
         if (!this.get('paper')) return;
 
@@ -267,8 +267,8 @@ DG.DotChartView = DG.ChartView.extend(
         if (this.getPath('model.isAnimating'))
           return; // Points are animating to new position
 
-        if (!SC.none(this.get('transferredPointCoordinates'))) {
-          this.animateFromTransferredPoints();
+        if (!SC.none(this.get('transferredElementCoordinates'))) {
+          this.animateFromTransferredElements();
           return;
         }
 
@@ -286,7 +286,7 @@ DG.DotChartView = DG.ChartView.extend(
         this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
         if (this._mustCreatePlottedElements) {
           this.removePlottedElements();
-          tCases.forEach(this.callCreateCircle, this);
+          tCases.forEach(this.callCreateElement, this);
           this._mustCreatePlottedElements = false;
         }
 
@@ -302,7 +302,7 @@ DG.DotChartView = DG.ChartView.extend(
         tCases.forEach(function (iCase, iIndex) {
           var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
           if (iIndex >= tPlotElementLength)
-            this_.callCreateCircle(iCase, iIndex);
+            this_.callCreateElement(iCase, iIndex);
           if (this_.getPath('model.displayAsBarChart'))
             this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
           else
@@ -327,13 +327,13 @@ DG.DotChartView = DG.ChartView.extend(
       /**
        We override the base class implementation
        */
-      animateFromTransferredPoints: function () {
+      animateFromTransferredElements: function () {
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
             tRC = this.createRenderContext(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
-            tOldPointAttrs = this.get('transferredPointCoordinates'),
+            tOldPointAttrs = this.get('transferredElementCoordinates'),
             tNewPointAttrs = [], // used if many-to-one animation (parent to child collection)
             tNewToOldCaseMap = [],
             tOldToNewCaseMap = [];
@@ -372,7 +372,7 @@ DG.DotChartView = DG.ChartView.extend(
         tCases.forEach(function (iCase, iIndex) {
           var tPt = getCaseCurrentLocation(iIndex),
               tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          this_.callCreateCircle(iCase, iIndex, false);
+          this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tPt)) {
             this_._plottedElements[iIndex].attr(tPt);
           }
@@ -392,7 +392,7 @@ DG.DotChartView = DG.ChartView.extend(
           });
         }
         this._mustCreatePlottedElements = false;  // because we just created them
-        this.set('transferredPointCoordinates', null);
+        this.set('transferredElementCoordinates', null);
 
         tModel.set('isAnimating', true);
         SC.Timer.schedule({action: turnOffAnimation, interval: DG.PlotUtilities.kDefaultAnimationTime});

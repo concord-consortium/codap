@@ -143,7 +143,7 @@ DG.DotPlotView = DG.PlotView.extend(
     this.prepareToResetCoordinates();
     tCases.forEach( function( iCase, iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn);
+        this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn);
       this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
     });
 
@@ -278,7 +278,7 @@ DG.DotPlotView = DG.PlotView.extend(
     return null;
   },
 
-  createCircle: function( iDatum, iIndex, iAnimate) {
+  createElement: function( iDatum, iIndex, iAnimate) {
     var this_ = this,
         tNumericPlace = this.getPath('model.primaryAxisPlace');
 
@@ -371,7 +371,7 @@ DG.DotPlotView = DG.PlotView.extend(
               tIsDragging = false;
               this.ox = this.oy = this.w = undefined;
             });
-    //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "CreateCircle index="+iIndex );
+    //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "createElement index="+iIndex );
     tCircle.index = iIndex;
     tCircle.node.setAttribute('shape-rendering', 'geometric-precision');
     if( iAnimate)
@@ -387,8 +387,8 @@ DG.DotPlotView = DG.PlotView.extend(
     if( this.getPath('model.isAnimating'))
       return; // Points are animating to new position
 
-    if( !SC.none( this.get('transferredPointCoordinates'))) {
-      this.animateFromTransferredPoints();
+    if( !SC.none( this.get('transferredElementCoordinates'))) {
+      this.animateFromTransferredElements();
       return;
     }
 

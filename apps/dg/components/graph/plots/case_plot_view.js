@@ -38,7 +38,7 @@ DG.CasePlotView = DG.PlotView.extend(
       tChanges = tChanges || [];
       tChanges.forEach( function( iIndex ) {
         if( iIndex >= tPlotElementLength )
-          this_.callCreateCircle( tCases[ iIndex], iIndex, this_._createAnimationOn );
+          this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn );
         this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
       } );
       sc_super();
@@ -86,7 +86,7 @@ DG.CasePlotView = DG.PlotView.extend(
       return null;
     },
 
-    createCircle: function ( iDatum, iIndex, iAnimate ) {
+    createElement: function ( iDatum, iIndex, iAnimate ) {
       var this_ = this;
 
       function changeCaseValues( iIndex, iWorldValues) {
@@ -145,7 +145,7 @@ DG.CasePlotView = DG.PlotView.extend(
                 tIsDragging = false;
               })
           ;
-      //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "CreateCircle index="+iIndex );
+      //if( iIndex % 100 === 0 ) DG.logTimer( iIndex===0, "createElement index="+iIndex );
       tCircle.index = iIndex;
       tCircle.node.setAttribute( 'shape-rendering', 'geometric-precision' );
       return tCircle;
@@ -168,7 +168,7 @@ DG.CasePlotView = DG.PlotView.extend(
         if( tLoopIndex < tCases.length) {
           for( ; (tLoopIndex < tCases.length) && (tLoopIndex < tStopIndex); tLoopIndex++ ) {
             var tCase = tCases[tLoopIndex],
-                tPoint = this.createCircle(null, tLoopIndex);
+                tPoint = this.createElement(null, tLoopIndex);
             tPoint.attr({'fill-opacity': 0, fill: 'yellow'});
             this._plottedElements.push(tPoint);
             this.setCircleCoordinate(tRC, tCase, tLoopIndex, true);
@@ -185,8 +185,8 @@ DG.CasePlotView = DG.PlotView.extend(
       if( this.getPath( 'model.isAnimating' ) )
         return; // Points are animating to new position
 
-      if( !SC.none( this.get( 'transferredPointCoordinates' ) ) ) {
-        this.animateFromTransferredPoints();
+      if( !SC.none( this.get( 'transferredElementCoordinates' ) ) ) {
+        this.animateFromTransferredElements();
         return;
       }
 
@@ -238,7 +238,7 @@ DG.CasePlotView = DG.PlotView.extend(
      */
     worldValuesChanged: function() {
       this.prepareForConfigurationChange();
-      this.set('transferredPointCoordinates', this.get('cachedPointCoordinates'));
+      this.set('transferredElementCoordinates', this.get('cachedPointCoordinates'));
       this._isRenderingValid = false;
       this.displayDidChange();
     }.observes( '.model.worldValues')

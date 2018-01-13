@@ -51,9 +51,9 @@ DG.BarChartView = DG.ChartView.extend(
           // a plot element that no longer exists.
 /*
           if (!this_._plottedElements[iIndex])
-            this_.callCreateCircle(tCases[iIndex], iIndex, this_._createAnimationOn);
+            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-          this_.privSetCircleCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+          this_.privSetRectCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
 */
         });
         sc_super();
@@ -87,7 +87,7 @@ DG.BarChartView = DG.ChartView.extend(
        * @param iIndex
        * @param iAnimate
        */
-      createRect: function (iCase, iIndex, iAnimate) {
+      createElement: function (iCase, iIndex, iAnimate) {
         // Can't create rects if we don't have paper for them
         if (!this.get('paper')) return;
 
@@ -132,7 +132,7 @@ DG.BarChartView = DG.ChartView.extend(
         tRect.node.setAttribute('shape-rendering', 'geometric-precision');
 /*
         if (iAnimate)
-          DG.PlotUtilities.doCreateCircleAnimation(tRect);
+          DG.PlotUtilities.doCreateRectAnimation(tRect);
 */
         return tRect;
       },
@@ -158,7 +158,7 @@ DG.BarChartView = DG.ChartView.extend(
         if (tDataLength > tPlotElementLength) {
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this._plottedElements.push( this.createRect(tCases[tIndex], tIndex, this.animationIsAllowable()));
+            this._plottedElements.push( this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable()));
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
             this.privSetRectCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
           }
@@ -191,8 +191,8 @@ DG.BarChartView = DG.ChartView.extend(
         if (this.getPath('model.isAnimating'))
           return; // Points are animating to new position
 
-        if (!SC.none(this.get('transferredPointCoordinates'))) {
-          this.animateFromTransferredPoints();
+        if (!SC.none(this.get('transferredElementCoordinates'))) {
+          this.animateFromTransferredElements();
           return;
         }
 
@@ -225,13 +225,13 @@ DG.BarChartView = DG.ChartView.extend(
       /**
        We override the base class implementation
        */
-      animateFromTransferredPoints: function () {
+      animateFromTransferredElements: function () {
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
             tRC = this.createRenderContext(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
-            tOldPointAttrs = this.get('transferredPointCoordinates'),
+            tOldPointAttrs = this.get('transferredElementCoordinates'),
             tNewPointAttrs = [], // used if many-to-one animation (parent to child collection)
             tNewToOldCaseMap = [],
             tOldToNewCaseMap = [];
@@ -269,12 +269,12 @@ DG.BarChartView = DG.ChartView.extend(
         });
         tCases.forEach(function (iCase, iIndex) {
           var tPt = getCaseCurrentLocation(iIndex),
-              tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          this_.callCreateCircle(iCase, iIndex, false);
+              tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
+              tElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tPt)) {
             this_._plottedElements[iIndex].attr(tPt);
           }
-          tPt = this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+          tPt = this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
           if (hasVanishingElements) {
             tNewPointAttrs.push(tPt);
           }
@@ -285,12 +285,12 @@ DG.BarChartView = DG.ChartView.extend(
             var tNewIndex = tOldToNewCaseMap[iIndex],
                 tNewAttrs = tNewPointAttrs[tNewIndex];
             if (SC.none(tNewIndex) || SC.none(tNewAttrs) || (iOldAttrs.r === 0))
-              return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
+              return; // no vanishing element, if (1) element persists or (2) new element hidden or (3) old element hidden
             this_.vanishPlottedElement(iOldAttrs, tNewAttrs);
           });
         }
         this._mustCreatePlottedElements = false;  // because we just created them
-        this.set('transferredPointCoordinates', null);
+        this.set('transferredElementCoordinates', null);
 
         tModel.set('isAnimating', true);
         SC.Timer.schedule({action: turnOffAnimation, interval: DG.PlotUtilities.kDefaultAnimationTime});
