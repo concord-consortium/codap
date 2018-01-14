@@ -534,10 +534,22 @@ DG.PlotModel = SC.Object.extend( DG.Destroyable,
     this.notifyPropertyChange('plotConfiguration');
   },
 
+
+  /**
+   Subclasses may override
+   @param { DG.GraphTypes.EPlace }
+   @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
+   */
+  getDataMinAndMaxForDimension: function( iPlace) {
+    var tDataConfiguration = this.get('dataConfiguration');
+    return tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( iPlace);
+  },
+
   /**
     Subclasses may override
   */
-  handleDataConfigurationChange: function() {
+  handleDataConfigurationChange: function()
+  {
   },
 
   /**

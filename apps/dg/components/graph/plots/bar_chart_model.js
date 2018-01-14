@@ -19,19 +19,30 @@
 // ==========================================================================
 
 sc_require('components/graph/plots/chart_model');
+sc_require('components/graph/plots/numeric_plot_model_mixin');
 
 /** @class  DG.BarChartModel - The model for a plot with categorical axes
 
   @extends DG.ChartModel
 */
-DG.BarChartModel = DG.ChartModel.extend(
-/** @scope DG.BarChartModel.prototype */ 
+DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
+/** @scope DG.BarChartModel.prototype */
 {
   /**
    * Override
    * @property {Boolean}
    */
   displayAsBarChart: true,
+
+  /**
+   Subclasses may override
+   @param { DG.GraphTypes.EPlace }
+   @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
+   */
+  getDataMinAndMaxForDimension: function( iPlace) {
+    var tResult = { min: 0, max: this.get( 'maxInCell'), isDataInteger: true };
+    return tResult;
+  }
 
 });
 

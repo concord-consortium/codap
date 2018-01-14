@@ -67,10 +67,10 @@ DG.ChartView = DG.PlotView.extend(
       dataDidChange: function (iNotifier, iChangeKey, iOperation) {
         if (!this.getPath('model.dataConfiguration'))
           return; // Can happen during destroy
-        // Override because we're going to do the work in updatePoints
+        // Override because we're going to do the work in updateElements
         if (iOperation !== 'createCase' && iOperation !== 'createCases')
           this.get('model').invalidateCaches();
-        this.updatePoints();
+        this.updateElements();
         this._elementOrderIsValid = false;
         // this.selectionDidChange();
         this.installCleanup();  // Call explicitly since we're not calling sc_super
@@ -88,8 +88,21 @@ DG.ChartView = DG.PlotView.extend(
         tRC.primaryAxisView = this.get('primaryAxisView');
         tRC.secondaryAxisView = this.get('secondaryAxisView');
         tRC.isVerticalOrientation = this.getPath('model.orientation') === 'vertical';
+        tRC.cellHalfWidth = tRC.secondaryAxisView.get('fullCellWidth') / 2;
 
         return tRC;
+      },
+
+      /**
+       Generate the svg needed to display the plot
+       */
+      doDraw: function doDraw() {
+        sc_super();
+
+        if (!this.getPath('model._cacheIsValid'))
+          this.updateElements();
+
+        this.drawData();
       },
 
       /**
@@ -97,7 +110,7 @@ DG.ChartView = DG.PlotView.extend(
        refactor further because of the need to deal with positioning points via
        privSetCircleCoords.
        */
-      updatePoints: function () {
+      updateElements: function () {
         // update adornments when cases added or removed
         // note: don't rely on tDataLength != tPlotElementLength test for this
         this.updateAdornments();

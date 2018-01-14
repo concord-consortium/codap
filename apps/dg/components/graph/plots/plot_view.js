@@ -208,10 +208,26 @@ DG.PlotView = DG.PlotLayer.extend(
     @return {Array of {cx:{Number}, cy:{Number}}}
   */
   getElementPositionsInParentFrame: function() {
+
+    function getCoord( dim, iElem) {
+      var tRectDim = (dim === 'x') ? 'width' : 'height',
+          tRectExtra = SC.none( iElem[ tRectDim]) ? 0 : iElem[ tRectDim] / 2,
+          tCoord = (SC.none( iElem.attr('c' + dim)) ?
+          SC.none( iElem.attr(dim)) ? 0 : iElem.attr(dim) :
+          iElem.attr('c' + dim));
+      return tCoord + tRectExtra;
+    }
+
     var tFrame = this.get('frame');
     return this._plottedElements.map( function( iElement) {
-        var radius =( iElement.isHidden() ? 0 : iElement.attr('r')); // use r:0 as proxy for hidden plot element
-        return { cx: iElement.attr('cx') + tFrame.x, cy: iElement.attr('cy') + tFrame.y, r: radius, fill: iElement.attr('fill') };
+        var tPosKey = SC.none( iElement.attr('cx')) ? '' : 'c',
+            radius =( iElement.isHidden() ? 0 : iElement.attr('r')), // use r:0 as proxy for hidden plot element
+            tX = getCoord('x', iElement) + tFrame.x,
+            tY = getCoord('y', iElement) + tFrame.y,
+            tResult = { r: radius, fill: iElement.attr('fill') }
+            tResult[ tPosKey + 'x'] = tX,
+            tResult[ tPosKey + 'y'] = tY;
+        return tResult;
       });
   },
 
@@ -245,7 +261,7 @@ DG.PlotView = DG.PlotLayer.extend(
       return tOldPointAttrs[ tNewToOldCaseMap[iIndex]];
     }
 
-    this._getTransferredPointsToCasesMap( tNewToOldCaseMap, tOldToNewCaseMap );
+    this._getTransferredElementsToCasesMap( tNewToOldCaseMap, tOldToNewCaseMap );
     var hasElementMap = tNewToOldCaseMap.length > 0,
         hasVanishingElements = tOldToNewCaseMap.length > 0,
         getCaseCurrentLocation = ( hasElementMap ? caseLocationViaMap : caseLocationSimple ),
@@ -313,7 +329,7 @@ DG.PlotView = DG.PlotLayer.extend(
    * @param iNewToOldCaseMap {[]} empty Array, or array of index values, one for each (new) case.
    * @param iOldToNewCaseMap {[]} empty Array, or array of index values, one for each (old) transferred point coordinate.
    */
-  _getTransferredPointsToCasesMap: function( iNewToOldCaseMap, iOldToNewCaseMap ) {
+  _getTransferredElementsToCasesMap: function(iNewToOldCaseMap, iOldToNewCaseMap ) {
     var tTransferredPoints = this.get('transferredElementCoordinates'),
         tCases = this.getPath('model.cases'),
         tCollectionClient = this.getPath('model.collectionClient'),
@@ -391,8 +407,8 @@ DG.PlotView = DG.PlotLayer.extend(
     } else if( isChildToParentTransformation()) {
       getChildToParentTransformation( iNewToOldCaseMap, iOldToNewCaseMap );
     }
-    //DG.log("DG.PlotView._getTransferredPointsToCasesMap() collection id=%@, NewToOldCaseMap %@", tCollectionClient.get('id'), iNewToOldCaseMap.toString());
-    //DG.log("DG.PlotView._getTransferredPointsToCasesMap() collection id=%@, OldToNewCaseMap %@", tCollectionClient.get('id'), iOldToNewCaseMap.toString());
+    //DG.log("DG.PlotView._getTransferredElementsToCasesMap() collection id=%@, NewToOldCaseMap %@", tCollectionClient.get('id'), iNewToOldCaseMap.toString());
+    //DG.log("DG.PlotView._getTransferredElementsToCasesMap() collection id=%@, OldToNewCaseMap %@", tCollectionClient.get('id'), iOldToNewCaseMap.toString());
   },
 
   /**

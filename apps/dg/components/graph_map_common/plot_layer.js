@@ -702,18 +702,33 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   _selectionTree: null,
 
   preparePointSelection: function() {
-    var tCases = this.getPath('model.cases' );
+
+    var doInsertion = function( iX, iY, iCase) {
+      this._selectionTree.insert({
+            x: iX,
+            y: iY,
+            w: 1,
+            h: 1
+          },
+          iCase
+      );
+    }.bind( this);
+
+    var tCases = this.getPath('model.cases' ),
+        tElementsAreRects = this._plottedElements.length > 0 &&
+            this._plottedElements[0][0].constructor === SVGRectElement;
 
     this._selectionTree = new RTree();
     this._plottedElements.forEach(function(iElement, iIndex){
-      this._selectionTree.insert({
-          x: iElement.attrs.cx,
-          y: iElement.attrs.cy,
-          w: 1,
-          h: 1
-        },
-        tCases[iIndex]
-      );
+      if( tElementsAreRects) {
+        doInsertion(iElement.attrs.x, iElement.attrs.y, tCases[iIndex]);
+        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y, tCases[iIndex]);
+        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y + iElement.attrs.height, tCases[iIndex]);
+        doInsertion(iElement.attrs.x, iElement.attrs.y + iElement.attrs.height, tCases[iIndex]);
+      }
+      else {
+        doInsertion(iElement.attrs.cx, iElement.attrs.cy, tCases[iIndex]);
+      }
     }.bind(this));
   },
   cleanUpPointSelection: function () {

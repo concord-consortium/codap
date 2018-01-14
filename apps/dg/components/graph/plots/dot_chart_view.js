@@ -50,7 +50,7 @@ DG.DotChartView = DG.ChartView.extend(
        refactor further because of the need to deal with positioning points via
        privSetCircleCoords.
        */
-      updatePoints: function () {
+      updateElements: function () {
         // It's possible to get here before didCreateLayer() creates the get('paper').
         if (!this.get('paper'))
           return;
@@ -173,7 +173,7 @@ DG.DotChartView = DG.ChartView.extend(
 
         // show or hide if needed, then update if shown.
         if (this.showHidePlottedElement(tElement, tIsMissingCase)) {
-          var tCellHalfWidth = iRC.secondaryAxisView.get('fullCellWidth') / 2,
+          var tCellHalfWidth = iRC.cellHalfWidth,
               tNumInRow = this.get('numPointsInRow'),
               tOverlap = this.get('overlap'),
               tRow = Math.floor(iCellIndices.indexInCell / tNumInRow),
@@ -303,25 +303,11 @@ DG.DotChartView = DG.ChartView.extend(
           var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
           if (iIndex >= tPlotElementLength)
             this_.callCreateElement(iCase, iIndex);
-          if (this_.getPath('model.displayAsBarChart'))
-            this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
-          else
-            this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices);
+
+          this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices);
         });
 
         this.updateSelection();
-      },
-
-      /**
-       Generate the svg needed to display the plot
-       */
-      doDraw: function doDraw() {
-        sc_super();
-
-        if (!this.getPath('model._cacheIsValid'))
-          this.updatePoints();
-
-        this.drawData();
       },
 
       /**
@@ -333,8 +319,8 @@ DG.DotChartView = DG.ChartView.extend(
             tCases = tModel.get('cases'),
             tRC = this.createRenderContext(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
-            tOldPointAttrs = this.get('transferredElementCoordinates'),
-            tNewPointAttrs = [], // used if many-to-one animation (parent to child collection)
+            tOldElementAttrs = this.get('transferredElementCoordinates'),
+            tNewElementAttrs = [], // used if many-to-one animation (parent to child collection)
             tNewToOldCaseMap = [],
             tOldToNewCaseMap = [];
         if (!tCases)
@@ -347,45 +333,53 @@ DG.DotChartView = DG.ChartView.extend(
 
         function caseLocationSimple(iIndex) {
           // assume a 1 to 1 correspondence of the current case indices to the new cases
-          return tOldPointAttrs[iIndex];
+          return tOldElementAttrs[iIndex];
         }
 
         function caseLocationViaMap(iIndex) {
           // use our case index map to go from current case index to previous case index
-          return tOldPointAttrs[tNewToOldCaseMap[iIndex]];
+          return tOldElementAttrs[tNewToOldCaseMap[iIndex]];
         }
 
         DG.sounds.playMixup();
-        this._getTransferredPointsToCasesMap(tNewToOldCaseMap, tOldToNewCaseMap);
+        this._getTransferredElementsToCasesMap(tNewToOldCaseMap, tOldToNewCaseMap);
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
-            getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple);
+            getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple),
+            tTransAttrs;
 
         this.prepareToResetCoordinates();
         this.removePlottedElements();
         this.computeCellParams();
-        tOldPointAttrs.forEach(function (iPoint, iIndex) {
+        tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
-          iPoint.cx -= tFrame.x;
-          iPoint.cy -= tFrame.y;
+          iElement.cx -= tFrame.x;
+          iElement.cy -= tFrame.y;
         });
         tCases.forEach(function (iCase, iIndex) {
-          var tPt = getCaseCurrentLocation(iIndex),
-              tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          this_.callCreateElement(iCase, iIndex, false);
-          if (!SC.none(tPt)) {
-            this_._plottedElements[iIndex].attr(tPt);
+          var tCurrAttrs = getCaseCurrentLocation(iIndex),
+              tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
+              tNewElement = this_.callCreateElement(iCase, iIndex, false);
+          if (!SC.none(tCurrAttrs)) {
+            tTransAttrs = {
+              r: tCurrAttrs.r ? tCurrAttrs.r : 0,
+              cx: tCurrAttrs.cx ? tCurrAttrs.cx : tCurrAttrs.x,
+              cy: tCurrAttrs.cy ? tCurrAttrs.cy : tCurrAttrs.y,
+              fill: tCurrAttrs.fill,
+              stroke: tCurrAttrs.stroke
+            };
+            tNewElement.attr(tTransAttrs);
           }
-          tPt = this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+          tCurrAttrs = this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
           if (hasVanishingElements) {
-            tNewPointAttrs.push(tPt);
+            tNewElementAttrs.push(tCurrAttrs);
           }
         });
         if (hasVanishingElements) {
           // create a vanishing element for each old point that needs one (used if many-to-one animation)
-          tOldPointAttrs.forEach(function (iOldAttrs, iIndex) {
+          tOldElementAttrs.forEach(function (iOldAttrs, iIndex) {
             var tNewIndex = tOldToNewCaseMap[iIndex],
-                tNewAttrs = tNewPointAttrs[tNewIndex];
+                tNewAttrs = tNewElementAttrs[tNewIndex];
             if (SC.none(tNewIndex) || SC.none(tNewAttrs) || (iOldAttrs.r === 0))
               return; // no vanishing element, if (1) element persists or (2) new circle hidden or (3) old circle hidden
             this_.vanishPlottedElement(iOldAttrs, tNewAttrs);

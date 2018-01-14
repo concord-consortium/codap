@@ -75,8 +75,7 @@ DG.NumericPlotModelMixin =
       if( iPlace === DG.GraphTypes.EPlace.eY && this_.get('verticalAxisIsY2'))
         iPlace = DG.GraphTypes.EPlace.eY2;
 
-      var tDataConfiguration = this_.get('dataConfiguration'),
-          tMinMax = tDataConfiguration && tDataConfiguration.getDataMinAndMaxForDimension( iPlace),
+      var tMinMax = this_.getDataMinAndMaxForDimension( iPlace),
           tOldLower = iAxis.get('lowerBound'),
           tOldUpper = iAxis.get('upperBound'),
           tNewLower, tNewUpper;
