@@ -846,12 +846,15 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
     canAcceptDrop: function (attr) {
       var canAcceptDrop = false;
       var tContext = this.get('dataContext');
+      var dataInteractiveController
+          = tContext.get('owningDataInteractive');
       var attrCollection = attr.collection;
       if (!SC.none(tContext.getCollectionByID(attrCollection.id))) {
-        if (attrCollection.getAttributeByID(attr.get('id'))) {
+        if (this.collection.getAttributeByID(attr.get('id'))) {
           canAcceptDrop = !tContext.get('hasGameInteractive');
         } else {
-          canAcceptDrop = !tContext.get('hasDataInteractive');
+          canAcceptDrop =  SC.none(dataInteractiveController)
+              || !dataInteractiveController.get('preventDataContextReorg');
         }
       }
 
