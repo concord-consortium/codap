@@ -23,26 +23,116 @@ sc_require('components/graph/plots/numeric_plot_model_mixin');
 
 /** @class  DG.BarChartModel - The model for a plot with categorical axes
 
-  @extends DG.ChartModel
-*/
+ @extends DG.ChartModel
+ */
 DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
-/** @scope DG.BarChartModel.prototype */
-{
-  /**
-   * Override
-   * @property {Boolean}
-   */
-  displayAsBarChart: true,
+    /** @scope DG.BarChartModel.prototype */
+    {
+      /**
+       * Override
+       * @property {Boolean}
+       */
+      displayAsBarChart: true,
 
-  /**
-   Subclasses may override
-   @param { DG.GraphTypes.EPlace }
-   @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
-   */
-  getDataMinAndMaxForDimension: function( iPlace) {
-    var tResult = { min: 0, max: this.get( 'maxInCell'), isDataInteger: true };
-    return tResult;
-  }
+      breakdownType: DG.Analysis.EBreakdownType.eCount,
 
-});
+      breakdownTypeDidChange: function () {
+        var tNewType = this.get('breakdownType'),
+            tNewUpperBound;
+        this.setPath('secondaryAxisModel.scaleType', tNewType);
+        switch( tNewType) {
+          case DG.Analysis.EBreakdownType.eCount:
+            tNewUpperBound = this.get('maxInCell');
+            break;
+          case DG.Analysis.EBreakdownType.ePercent:
+            tNewUpperBound = 100;
+            break;
+        }
+        this.get('secondaryAxisModel').setLowerAndUpperBounds(0, 1.05 * tNewUpperBound, true /* with animation */);
+      }.observes('breakdownType'),
+
+      /**
+       Subclasses may override
+       @param { DG.GraphTypes.EPlace }
+       @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
+       */
+      getDataMinAndMaxForDimension: function (iPlace) {
+        var tResult = {min: 0, max: this.get('maxInCell'), isDataInteger: true};
+        return tResult;
+      },
+
+      lastValueControls: function () {
+        var tControls = sc_super(),
+            this_ = this,
+            kRowHeight = 18,
+            kControlValues = {
+              count: 'DG.Inspector.graphCount'.loc(),
+              percent: 'DG.Inspector.graphPercent'.loc()
+            };
+
+        function mapValueToBreakdownType(iValue) {
+          var tKind = -1;
+          switch (iValue) {
+            case kControlValues.count:
+              tKind = DG.Analysis.EBreakdownType.eCount;
+              break;
+            case kControlValues.percent:
+              tKind = DG.Analysis.EBreakdownType.ePercent;
+              break;
+          }
+          return tKind;
+        }
+
+        function mapBreakdownTypeToValue( iType) {
+          var tValue = '';
+          switch( iType) {
+            case DG.Analysis.EBreakdownType.eCount:
+              tValue = kControlValues.count;
+              break;
+            case DG.Analysis.EBreakdownType.ePercent:
+              tValue = kControlValues.percent;
+              break;
+          }
+          return tValue;
+        }
+
+        tControls.push(
+            SC.LabelView.create({
+              layout: {height: kRowHeight},
+              value: 'DG.Inspector.displayScale',
+              localize: true
+            })
+        );
+
+        tControls.push(
+            SC.RadioView.create({
+              items: [kControlValues.count, kControlValues.percent],
+              value: mapBreakdownTypeToValue( this_.get('breakdownType')),
+              layoutDirection: SC.LAYOUT_VERTICAL,
+              layout: {height: 3 * kRowHeight},
+              classNames: 'dg-inspector-radio'.w(),
+              valueDidChange: function () {
+                this_.set('breakdownType', mapValueToBreakdownType(this.value));
+              }.observes('value')
+            })
+        );
+        return tControls;
+      }.property('plot'),
+
+      /**
+       Each axis should rescale based on the values to be plotted with it.
+       @param{Boolean} Default is false
+       @param{Boolean} Default is true
+       @param{Boolean} Default is false
+       @param{Boolean} Default is false
+       */
+      rescaleAxesFromData: function (iAllowScaleShrinkage, iAnimatePoints, iLogIt, iUserAction) {
+        if (iAnimatePoints === undefined)
+          iAnimatePoints = true;
+        this.doRescaleAxesFromData([this.get('secondaryAxisPlace')], iAllowScaleShrinkage, iAnimatePoints, iUserAction);
+        if (iLogIt)
+          DG.logUser("rescaleDotPlot");
+      }
+
+    });
 

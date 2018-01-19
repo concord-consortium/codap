@@ -156,6 +156,7 @@ DG.GraphView = SC.View.extend(
             tOtherView = this.get(((tPrefix === 'x') ? 'y' : 'x') + 'AxisView');
             tNewView.set('otherAxisView', tOtherView);
             tOldView.destroy();
+            this.setPath('model.' + tPrefix + 'Axis', tNewModel);
           }
         }.bind( this);
 
@@ -200,6 +201,8 @@ DG.GraphView = SC.View.extend(
               return (iAttributeType === 'qualitative') ? DG.QualCellLinearAxisView : DG.CellLinearAxisView;
             case DG.CellAxisModel:
               return DG.CellAxisView;
+            case DG.CountAxisModel:
+              return DG.CountAxisView;
           }
           return null;
         }

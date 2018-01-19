@@ -28,18 +28,26 @@ sc_require('components/graph/plots/chart_view');
 DG.BarChartView = DG.ChartView.extend(
     /** @scope DG.BarChartView.prototype */
     {
-      // displayProperties: ['barSliceHeight', '*yAxisView.model.upperBound' ],
+      // displayProperties: ['barSliceHeights', '*yAxisView.model.upperBound' ],
 
       upperBoundDidChange: function() {
         this.computeCellParams();
         this.displayDidChange();
-      }.observes('*yAxisView.model.upperBound'),
+      }.observes('*secondaryAxisView.model.upperBound'),
+
+      /**
+       * We want to animate from the current element positions to new ones. The trick is to
+       * compute the new positions with the correct secondary axis bounds.
+       */
+      breakdownTypeDidChange: function() {
+
+      }.observes('model.breakdownType'),
 
       /**
        * If we're displaying as a barchart, this is how high the slices of a bar are
        * @property {Number}
        */
-      barSliceHeight: 0,
+      barSliceHeights: [],
 
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
         var /*this_ = this,
@@ -73,7 +81,7 @@ DG.BarChartView = DG.ChartView.extend(
         var tRC = sc_super();
 
         // cache some more render parameters common to all cases, but unique to ChartView.
-        tRC.barSliceHeight = this.get('barSliceHeight');
+        tRC.barSliceHeights = this.get('barSliceHeights');
 
         return tRC;
       },
@@ -209,7 +217,7 @@ DG.BarChartView = DG.ChartView.extend(
         if (SC.none(this.get('paper')))
           return; // not ready to draw
         if (this.getPath('model.isAnimating'))
-          return; // Points are animating to new position
+          return; // Bars are animating to new position
 
         if (!SC.none(this.get('transferredElementCoordinates'))) {
           this.animateFromTransferredElements();
@@ -343,11 +351,25 @@ DG.BarChartView = DG.ChartView.extend(
        */
       computeCellParams: function () {
         var tMaxInCell = this.getPath('model.maxInCell'),
-            tCoordOfMaxInCell = this.get('secondaryAxisView').dataToCoordinate( tMaxInCell),
-            tCoordOfZero = this.get('secondaryAxisView').dataToCoordinate( 0),
-            tBarSliceHeight = Math.abs(tCoordOfMaxInCell - tCoordOfZero) / tMaxInCell;
+            tSecondaryAxisView = this.get('secondaryAxisView'),
+            tCoordOfMaxInCell = tSecondaryAxisView.dataToCoordinate( tMaxInCell),
+            tCoordOf100Percent = tSecondaryAxisView.dataToCoordinate( 100),
+            tCoordOfZero = tSecondaryAxisView.dataToCoordinate( 0),
+            tBreakdownType = this.getPath('model.breakdownType'),
+            tMinBarSliceHeight = Math.abs(tCoordOfMaxInCell - tCoordOfZero) / tMaxInCell,
+            tSliceHeights = this.getPath('model.primaryCellCounts').map(function( iCount) {
+              var tSliceHeight = 0;
+              switch( tBreakdownType) {
+                case DG.Analysis.EBreakdownType.eCount:
+                  tSliceHeight = tMinBarSliceHeight;
+                  break;
+                case DG.Analysis.EBreakdownType.ePercent:
+                  tSliceHeight = Math.abs(tCoordOf100Percent - tCoordOfZero) / iCount;
+              }
+              return tSliceHeight;
+            });
 
-        this.setIfChanged('barSliceHeight', tBarSliceHeight);
+        this.setIfChanged('barSliceHeights', tSliceHeights);
       },
 
       /**
@@ -370,9 +392,8 @@ DG.BarChartView = DG.ChartView.extend(
         // if( this.showHidePlottedElement(tRect, tIsMissingCase)) {
 
         var tCellHalfWidth = iRC.primaryAxisView.get('fullCellWidth') / 2,
-            tCellDrawingWidth = iRC.primaryAxisView.get('cellWidth') / 2,
             tCellHeight = iRC.secondaryAxisView.get('fullCellWidth'),
-            tBarSliceHeight = iRC.barSliceHeight,
+            tBarSliceHeight = iRC.barSliceHeights[iCellIndices.primaryCell],
             tTop = (iCellIndices.indexInCell + 1) * tBarSliceHeight,
             tEdge = iRC.primaryAxisView.cellToCoordinate(iCellIndices.primaryCell) -
                 tCellHalfWidth / 2,

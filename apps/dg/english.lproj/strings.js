@@ -706,6 +706,7 @@ SC.stringsFor("en", {
     "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
     "DG.Inspector.makeImage.toolTip": "Save the image as a PNG file",
     "DG.Inspector.displayShow": "Show …",
+    "DG.Inspector.displayScale": "Scale …",
 
     // Color Picker
     "DG.Inspector.colorPicker.more": "more",
@@ -719,7 +720,6 @@ SC.stringsFor("en", {
     "DG.Inspector.graphColumn": "Column",
     "DG.Inspector.graphCell": "Cell",
     "DG.Inspector.graphConnectingLine": "Connecting Lines",
-    "DG.Inspector.graphMovablePoint": "Movable Point",
     "DG.Inspector.graphMovableLine": "Movable Line",
     "DG.Inspector.graphInterceptLocked": "Intercept Locked",
     "DG.Inspector.graphPlottedFunction": "Plotted Function",

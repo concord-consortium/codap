@@ -33,6 +33,12 @@ DG.CountAxisModel = DG.CellLinearAxisModel.extend(
   */
   displayOnlyIntegers: true,
 
+  /**
+   * Determines whether we display count or percent
+   * @property {DG.Analysis.EBreakdownType}
+   */
+  scaleType: DG.Analysis.EBreakdownType.eCount,
+
    /**
       @private
     @property { boolean }
@@ -43,15 +49,29 @@ DG.CountAxisModel = DG.CellLinearAxisModel.extend(
    Override
    */
   labels: function() {
-    return ['DG.CountAxisView.countLabel'.loc()];
-  }.property(),
+    switch( this.get('scaleType')) {
+      case DG.Analysis.EBreakdownType.eCount:
+        return ["DG.CountAxisView.countLabel".loc()];
+      case DG.Analysis.EBreakdownType.ePercent:
+        return ["DG.CountAxisView.percentLabel".loc()];
+      default:
+        return [];
+    }
+  }.property('scaleType'),
 
   /**
    *
    * @return {String}
    */
   getLabelDescription: function( /*iIndex*/) {
-    return "DG.CountAxisView.countLabelDescription".loc();
+    switch( this.get('scaleType')) {
+      case DG.Analysis.EBreakdownType.eCount:
+        return "DG.CountAxisView.countLabelDescription".loc();
+      case DG.Analysis.EBreakdownType.ePercent:
+        return "DG.CountAxisView.percentLabelDescription".loc();
+      default:
+        return '';
+    }
   },
 
   /**

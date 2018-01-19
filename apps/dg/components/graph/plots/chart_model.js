@@ -110,6 +110,18 @@ DG.ChartModel = DG.PlotModel.extend(
   }.property(),
 
   /**
+   * An array of counts, indexed by primary cell
+   * @property { [Integer]}
+   */
+  primaryCellCounts: function() {
+    if( !this._cacheIsValid)
+      this._buildCache();
+    return this.get('cachedCells').map( function( iCell) {
+      return iCell[0].length;
+    });
+  }.property(),
+
+  /**
     Responder for DataContext notifications. The PlotModel does not
     receive DataContext notifications directly, however. Instead, it
     receives them from the GraphModel, which receives them directly
@@ -295,89 +307,6 @@ DG.ChartModel = DG.PlotModel.extend(
       this.set('_maxInCell', tMaxInCell);
     this.endPropertyChanges();
   },
-
-  lastValueControls: function() {
-    var tControls = sc_super(),
-        this_ = this,
-        kControlValues = {
-          row: 'DG.Inspector.graphRow'.loc(),
-          column: 'DG.Inspector.graphColumn'.loc(),
-          cell: 'DG.Inspector.graphCell'.loc()
-        },
-        tNumOnX = this.getPath('xAxis.numberOfCells'),
-        tNumOnY = this.getPath('yAxis.numberOfCells');
-
-    function mapValueToPercentKind( iValue) {
-      var tKind = -1;
-      switch( iValue) {
-        case kControlValues.row:
-          tKind = DG.Analysis.EPercentKind.eRow;
-          break;
-        case kControlValues.column:
-          tKind = DG.Analysis.EPercentKind.eColumn;
-          break;
-        case kControlValues.cell:
-          tKind = DG.Analysis.EPercentKind.eCell;
-      }
-      return tKind;
-    }
-
-    function mapPercentKindToValue( iPercentKind) {
-      var tValue = '';
-      switch( iPercentKind) {
-        case DG.Analysis.EPercentKind.eRow:
-          tValue = kControlValues.row;
-          break;
-        case DG.Analysis.EPercentKind.eColumn:
-          tValue = kControlValues.column;
-          break;
-        case DG.Analysis.EPercentKind.eCell:
-          tValue = kControlValues.cell;
-          break;
-      }
-      return tValue;
-    }
-
-    if( tNumOnX > 1 && tNumOnY > 1) {
-      tControls.push(
-        SC.RadioView.create( {
-          items: [ kControlValues.row, kControlValues.column, kControlValues.cell],
-          value: 'DG.Inspector.graphRow'.loc(),
-          layoutDirection: SC.LAYOUT_VERTICAL,
-          layout: { height: 65 },
-          classNames: 'dg-inspector-radio'.w(),
-          valueDidChange: function () {
-            this_.setPath('plottedCount.percentKind', mapValueToPercentKind( this.value));
-          }.observes('value'),
-          init: function() {
-            sc_super();
-            this_.addObserver('plottedCount', this, this.addIsShowingPercentObserver);
-            this.addIsShowingPercentObserver();
-          },
-          addIsShowingPercentObserver: function() {
-            var tPlottedCount = this_.get('plottedCount'),
-                tPercentKind;
-            if( tPlottedCount) {
-              tPlottedCount.addObserver('isShowingPercent', this, this.isShowingPercentChanged);
-              tPercentKind = tPlottedCount.get('percentKind');
-              this.set('value', mapPercentKindToValue( tPercentKind));
-            }
-            this.isShowingPercentChanged();
-          },
-          isShowingPercentChanged: function() {
-            this.set( 'isEnabled', this_.getPath('plottedCount.isShowingPercent'));
-          },
-          destroy: function() {
-            var tPlottedCount = this_.get('plottedCount');
-            if( tPlottedCount)
-              tPlottedCount.removeObserver('isShowingPercent', this, this.isShowingPercentChanged);
-            this_.removeObserver('plottedCount', this, this.addIsShowingPercentObserver);
-          }
-        })
-      );
-    }
-    return tControls;
-  }.property('plot'),
 
   /**
    If we need to make a count model, do so. In any event toggle its visibility.
