@@ -36,7 +36,7 @@ DG.splash = SC.Object.create({
 
           splash: SC.ImageView.extend({
             layout: { left: kPadding, right: kPadding, top: kPadding, bottom: kPadding },
-            value: static_url('images/codap-splash-screen.png'),
+            value: DG.get('splashURL'),
             click: function () {
               DG.splash.hideSplash();
             },

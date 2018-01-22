@@ -281,6 +281,8 @@ DG = SC.Application.create((function () // closure
 
     showWebSiteURL: 'https://codap.concord.org',
 
+    splashURL: static_url('images/codap-splash-screen.png'),
+
     /**
      * URL for a plugin data store.
      */
