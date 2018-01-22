@@ -386,7 +386,7 @@ DG.main = function main() {
           ]
         };
     // only enable Google Drive if origin is ssl
-    if (new URL(document.origin).protocol === 'https:') {
+    if (document.location.protocol === 'https:') {
       options.providers.splice(1, 0, {
         "name": "googleDrive",
         "mimeType": "application/json",
