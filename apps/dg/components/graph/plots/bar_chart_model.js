@@ -36,19 +36,25 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
 
       breakdownType: DG.Analysis.EBreakdownType.eCount,
 
+      naturalUpperBound: function () {
+        var tNaturalUpperBound;
+        switch (this.get('breakdownType')) {
+          case DG.Analysis.EBreakdownType.eCount:
+            tNaturalUpperBound = this.get('maxInCell');
+            break;
+          case DG.Analysis.EBreakdownType.ePercent:
+            tNaturalUpperBound = 100;
+            break;
+        }
+        return 1.05 * tNaturalUpperBound;
+      }.property('breakdownType'),
+
       breakdownTypeDidChange: function () {
         var tNewType = this.get('breakdownType'),
             tNewUpperBound;
         this.setPath('secondaryAxisModel.scaleType', tNewType);
-        switch( tNewType) {
-          case DG.Analysis.EBreakdownType.eCount:
-            tNewUpperBound = this.get('maxInCell');
-            break;
-          case DG.Analysis.EBreakdownType.ePercent:
-            tNewUpperBound = 100;
-            break;
-        }
-        this.get('secondaryAxisModel').setLowerAndUpperBounds(0, 1.05 * tNewUpperBound, true /* with animation */);
+        tNewUpperBound = this.get('naturalUpperBound');
+        this.get('secondaryAxisModel').setLowerAndUpperBounds(0, tNewUpperBound, true /* with animation */);
       }.observes('breakdownType'),
 
       /**
@@ -57,7 +63,11 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
        @return{ {min:{Number}, max:{Number} isDataInteger:{Boolean}} }
        */
       getDataMinAndMaxForDimension: function (iPlace) {
-        var tResult = {min: 0, max: this.get('maxInCell'), isDataInteger: true};
+        var tResult = {
+          min: 0,
+          max: this.get('naturalUpperBound'),
+          isDataInteger: this.get('breakdownType') === DG.Analysis.EBreakdownType.eCount
+        };
         return tResult;
       },
 
@@ -83,9 +93,9 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
           return tKind;
         }
 
-        function mapBreakdownTypeToValue( iType) {
+        function mapBreakdownTypeToValue(iType) {
           var tValue = '';
-          switch( iType) {
+          switch (iType) {
             case DG.Analysis.EBreakdownType.eCount:
               tValue = kControlValues.count;
               break;
@@ -107,7 +117,7 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
         tControls.push(
             SC.RadioView.create({
               items: [kControlValues.count, kControlValues.percent],
-              value: mapBreakdownTypeToValue( this_.get('breakdownType')),
+              value: mapBreakdownTypeToValue(this_.get('breakdownType')),
               layoutDirection: SC.LAYOUT_VERTICAL,
               layout: {height: 3 * kRowHeight},
               classNames: 'dg-inspector-radio'.w(),
@@ -132,7 +142,28 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
         this.doRescaleAxesFromData([this.get('secondaryAxisPlace')], iAllowScaleShrinkage, iAnimatePoints, iUserAction);
         if (iLogIt)
           DG.logUser("rescaleDotPlot");
+      },
+      /**
+       * @return {Object} the saved data.
+       */
+      createStorage: function () {
+        var tStorage = sc_super();
+
+        tStorage.breakdownType = this.breakdownType;
+
+        return tStorage;
+      },
+
+      /**
+       * @param iStorage
+       */
+      restoreStorage: function (iStorage) {
+        sc_super();
+        if (!SC.none(iStorage.breakdownType)) {
+          this.set( 'breakdownType', iStorage.breakdownType);
+        }
       }
+
 
     });
 

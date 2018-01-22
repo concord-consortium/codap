@@ -139,8 +139,11 @@ DG.GraphView = SC.View.extend(
           var tNewViewClass = iAxisViewDescription.axisClass,
               tPrefix = iAxisViewDescription.axisKey;
           if (!SC.none(tNewViewClass)) {
-            var tOldView = this.get(tPrefix + 'AxisView'),
-                tNewModelClass = DG.PlotUtilities.mapAxisViewClassToAxisModelClass( tNewViewClass),
+            var tOldView = this.get(tPrefix + 'AxisView');
+            if( tOldView.constructor === tNewViewClass)
+              return; // Already done
+
+            var tNewModelClass = DG.PlotUtilities.mapAxisViewClassToAxisModelClass( tNewViewClass),
                 tNewModel = tNewModelClass.create(),
                 tNewView = tNewViewClass.create({
                   orientation: tOldView.get('orientation'),

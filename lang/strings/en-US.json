@@ -590,6 +590,10 @@
     "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
     "DG.ScatterPlotModel.secondsLabel": "per seconds", // used in equation for line when x is a datetime axis
 
+    // DG.BarChartModel
+    "DG.BarChartModel.cellTipPlural": "%@ %@ out \nof %@ (%@\%) are %@",
+    "DG.BarChartModel.cellTipSingular": "%@ %@ out \nof %@ (%@\%) is %@",
+
     // DG.LegendView
     "DG.LegendView.attributeTooltip": "Click to change legend attribute",
 

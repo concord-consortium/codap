@@ -20,6 +20,8 @@
 
 sc_require('components/graph/plots/chart_view');
 
+/*global pluralize:true*/
+
 /** @class  DG.BarChartView, a plot of rectangles, one for each category. Each rectangle is made of
  * thinner rectangles, one for each case.
 
@@ -30,7 +32,27 @@ DG.BarChartView = DG.ChartView.extend(
     {
       // displayProperties: ['barSliceHeights', '*yAxisView.model.upperBound' ],
 
-      upperBoundDidChange: function() {
+      /**
+       * If we're displaying as a barchart, this is how high the slices are in a given bar
+       * @property {[Number]}
+       */
+      barSliceHeights: null,
+
+      /**
+       * @property {[RaphaelElement]}
+       */
+      categoryCoverRects: null,
+
+      _categoryCellToolTip: null,
+      categoryCellToolTip: function() {
+        if( !this._categoryCellToolTip) {
+          this._categoryCellToolTip = DG.ToolTip.create( { paperSource: this,
+            layerName: 'dataTip' });
+        }
+        return this._categoryCellToolTip;
+      }.property(),
+
+      upperBoundDidChange: function () {
         this.computeCellParams();
         this.displayDidChange();
       }.observes('*secondaryAxisView.model.upperBound'),
@@ -39,15 +61,24 @@ DG.BarChartView = DG.ChartView.extend(
        * We want to animate from the current element positions to new ones. The trick is to
        * compute the new positions with the correct secondary axis bounds.
        */
-      breakdownTypeDidChange: function() {
-
+      breakdownTypeDidChange: function () {
+        var tCurrBound = this.getPath('secondaryAxisView.model.upperBound'),
+            tNewBound = this.getPath('model.naturalUpperBound');
+        this.getPath('secondaryAxisView.model').setLowerAndUpperBounds(0, tNewBound);
+        this.getPath('secondaryAxisView.model').notifyPropertyChange('upperBound');  // So updating coordinates will work
+        this.setPath('model.isAnimating', true);
+        this.updateAllCoordinates(true /* animate */, function () {
+          this.setPath('model.isAnimating', false);
+        }.bind(this));
+        this.getPath('secondaryAxisView.model').setLowerAndUpperBounds(0, tCurrBound);
       }.observes('model.breakdownType'),
 
-      /**
-       * If we're displaying as a barchart, this is how high the slices of a bar are
-       * @property {Number}
-       */
-      barSliceHeights: [],
+      init: function () {
+        sc_super();
+
+        this.barSliceHeights = [];
+        this.categoryCoverRects = [];
+      },
 
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
         var /*this_ = this,
@@ -62,12 +93,12 @@ DG.BarChartView = DG.ChartView.extend(
         tChanges.forEach(function (iIndex) {
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
-/*
-          if (!this_._plottedElements[iIndex])
-            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
-          var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-          this_.privSetRectCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
-*/
+          /*
+                    if (!this_._plottedElements[iIndex])
+                      this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
+                    var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
+                    this_.privSetRectCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+          */
         });
         sc_super();
       },
@@ -80,8 +111,9 @@ DG.BarChartView = DG.ChartView.extend(
       createRenderContext: function () {
         var tRC = sc_super();
 
-        // cache some more render parameters common to all cases, but unique to ChartView.
+        // cache some more render parameters common to all cases, but unique to BarChartView.
         tRC.barSliceHeights = this.get('barSliceHeights');
+        tRC.barWidth = tRC.primaryAxisView.get('fullCellWidth') / 2;
 
         return tRC;
       },
@@ -89,11 +121,11 @@ DG.BarChartView = DG.ChartView.extend(
       /**
        * Make sure the count axis has the correct upper bounds
        */
-      setupAxes: function() {
+      setupAxes: function () {
         sc_super();
         var tCountAxisView = this.get('secondaryAxisView');
-        if( tCountAxisView) {
-          tCountAxisView.get('model').setLowerAndUpperBounds( 0, 100);
+        if (tCountAxisView) {
+          tCountAxisView.get('model').setLowerAndUpperBounds(0, this.getPath('model.naturalUpperBound'));
         }
       },
 
@@ -118,56 +150,37 @@ DG.BarChartView = DG.ChartView.extend(
         // Can't create rects if we don't have paper for them
         if (!this.get('paper')) return;
 
-        var this_ = this,
-            tInitialTransform = null,
-            kOpaque = 1,
-            tRect = this.get('paper').rect(-1000, -1000, 0, 0)
-            // Note: we have to set cx and cy offscreen here rather than in creation because for some unknown
-            // reason, when we do it in creation, they end up zero rather than offscreen.
-                .attr({
-                  cursor: "pointer",
-                  fill: DG.PlotUtilities.kDefaultPointColor,
-                  stroke: DG.PlotUtilities.kDefaultPointColor
-                })
-                // .addClass(DG.PlotUtilities.kColoredDotClassName)
-                .hover(function (event) {
-                      // Note that Firefox can come through here repeatedly so we have to check for existence
-                      if (SC.none(tInitialTransform)) {
-                        tInitialTransform = '';
-                        this.animate({
-                          opacity: kOpaque,
-                          transform: DG.PlotUtilities.kDataHoverTransform
-                        }, DG.PlotUtilities.kDataTipShowTime);
-                        this_.showDataTip(this, iIndex);
-                      }
-                    },
-                    function (event) { // out
-                      this.stop();
-                      this.animate({
-                        opacity: DG.PlotUtilities.kDefaultPointOpacity,
-                        transform: tInitialTransform
-                      }, DG.PlotUtilities.kHighlightHideTime);
-                      tInitialTransform = null;
-                      this_.hideDataTip();
-                    })
-                .mousedown(function (iEvent) {
-                  SC.run(function () {
-                    this_.get('model').selectCaseByIndex(iIndex, iEvent.shiftKey);
-                  });
-                });
-        tRect.index = iIndex;
+        var tRect = this.get('paper').rect(-1000, -1000, 0, 0)
+            .attr({
+              fill: DG.PlotUtilities.kDefaultPointColor,
+              stroke: 'none'
+            });
         tRect.node.setAttribute('shape-rendering', 'geometric-precision');
-/*
-        if (iAnimate)
-          DG.PlotUtilities.doCreateRectAnimation(tRect);
-*/
+        /*
+                if (iAnimate)
+                  DG.PlotUtilities.doCreateRectAnimation(tRect);
+        */
         return tRect;
+      },
+
+      updateAllCoordinates: function (iAnimate, iCallback) {
+        var tModel = this.get('model'),
+            tRC = this.createRenderContext(),
+            tCases = this.getPath('model.cases'),
+            tDataLength = tCases && tCases.length;
+        tCases.forEach(function (iCase, iIndex) {
+          var tCallback = iIndex === tDataLength - 1 ? iCallback : null,
+              tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
+          this.privSetRectCoords(tRC, iCase, iIndex, tCellIndices, iAnimate, tCallback);
+        }.bind(this));
       },
 
       /**
        "Points" is a misnomer since we're really updating the rectangles that make up the bar.
+       @param { Boolean }
+       @param { Function }
        */
-      updateElements: function () {
+      updateElements: function (iAnimate, iCallback) {
         // It's possible to get here before didCreateLayer() creates the get('paper').
         if (!this.get('paper'))
           return;
@@ -187,7 +200,7 @@ DG.BarChartView = DG.ChartView.extend(
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
             this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetRectCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+            this.privSetRectCoords(tRC, tCases[tIndex], tIndex, tCellIndices, iAnimate, iCallback);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
@@ -202,10 +215,7 @@ DG.BarChartView = DG.ChartView.extend(
           }
           this._plottedElements.length = tDataLength;
           // update all coordinates because we don't know which cases were deleted
-          tCases.forEach(function (iCase, iIndex) {
-            tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-            this.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
-          });
+          this.updateAllCoordinates(iAnimate, iCallback);
         }
         this._isRenderingValid = false;
       },
@@ -227,10 +237,9 @@ DG.BarChartView = DG.ChartView.extend(
         var this_ = this,
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
-            tRC = this.createRenderContext(),
             tPlotElementLength = this._plottedElements.length,
             tLayerManager = this.get('layerManager'),
-            tIndex;
+            tIndex, tRC;
 
         if (!tCases)
           return; // We can get here before things are linked up during restore
@@ -249,16 +258,118 @@ DG.BarChartView = DG.ChartView.extend(
         if (tCases.length < tPlotElementLength) { // remove from array
           tPlotElementLength = this._plottedElements.length = tCases.length;
         }
-
+        tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {
           var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
           if (iIndex >= tPlotElementLength)
             this_.callCreateElement(iCase, iIndex);
-          if (this_.getPath('model.displayAsBarChart'))
-            this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
+          this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
         });
 
+        this.drawSubBars();
+
         this.updateSelection();
+      },
+
+      /**
+       * Cases are stacked as rectangles, grouped first by a primary attribute and then by a legend attribute.
+       */
+      drawSubBars: function () {
+
+        var makeRect = function (iPrimaryCoord, iStartCoord, iCount, iCaseIndices,
+                                 iNumCasesInContainingCell, iCategoryName, iPrimaryName) {
+          var this_ = this,
+              tTemplate, tToolTip,
+              tCurrCoord = tRC.secondaryAxisView.dataToCoordinate(getSecondaryValue( iCount, iNumCasesInContainingCell)),
+              tRect = tPaper.rect(iPrimaryCoord - tRC.barWidth / 2 - 1,
+                  tCurrCoord - 1, tRC.barWidth + 2, iStartCoord - tCurrCoord + 2)
+                  .attr({stroke: 'none', fill: 'white', 'fill-opacity': 0.001, cursor: 'pointer'})
+                  .hover(function (iEvent) {
+                        // Note that Firefox can come through here repeatedly so we have to check for existence
+                        this.animate({
+                          'fill-opacity': 0.4
+                        }, DG.PlotUtilities.kDataTipShowTime);
+                        tTemplate = this.caseIndices.length > 1 ? "DG.BarChartModel.cellTipPlural" :
+                            "DG.BarChartModel.cellTipSingular";
+                        tToolTip = this_.get('categoryCellToolTip');
+                        if( this.caseIndices.length > 1) {
+                          iPrimaryName = pluralize(iPrimaryName);
+                          if( iPrimaryName.endsWith( "S")) {
+                            iPrimaryName = iPrimaryName.replace(/S$/, 's');
+                          }
+                        }
+                        tToolTip.set( 'text', tTemplate.loc(
+                            this.caseIndices.length,
+                            iPrimaryName,
+                            this.numCasesInContainingCell,
+                            Math.round( 1000 * this.caseIndices.length / this.numCasesInContainingCell) / 10,
+                            iCategoryName
+                        ));
+                        tToolTip.set('tipOrigin', {x: iEvent.layerX, y: iEvent.layerY});
+                        tToolTip.show();
+                      },
+                      function (event) { // out
+                        this.stop();
+                        this.animate({
+                          'fill-opacity': 0.001
+                        }, DG.PlotUtilities.kHighlightHideTime);
+                        tToolTip.hide();
+                      }
+                  )
+                  .mousedown(function (iEvent) {
+                    SC.run(function () {
+                      this_.get('model').selectCasesWithIndices(this.caseIndices, iEvent.shiftKey);
+                    }.bind( this));
+                  });
+          tRect.caseIndices = iCaseIndices;
+          tRect.numCasesInContainingCell = iNumCasesInContainingCell;
+          tCoverRects.push(tRect);
+          return tCurrCoord;
+        }.bind(this);
+
+        function getSecondaryValue( iCount, iTotal) {
+          return tBreakdownType === DG.Analysis.EBreakdownType.eCount ?
+              iCount : 100 * iCount / iTotal;
+        }
+
+        var tPaper = this.get('paper'),
+            tCoverRects = this.get('categoryCoverRects'),
+            tCellArray = this.getPath('model.cachedCells'),
+            tBreakdownType = this.getPath('model.breakdownType'),
+            tRC = this.createRenderContext(),
+            tPrimaryVarID = this.getPath('model.primaryVarID'),
+            tLegendVarID = this.getPath('model.legendVarID');
+        tCoverRects.forEach(function (iRect) {
+          iRect.remove();
+        });
+        tCoverRects.length = 0;
+        tCellArray.forEach(function (iPrimary, iPrimaryIndex) {
+          // This is the primary division. It has an array for each category on the secondary axis
+          var tPrimaryCoord = tRC.primaryAxisView.cellToCoordinate(iPrimaryIndex),
+              tPrimaryName = iPrimary[0][0].theCase.getValue(tPrimaryVarID);
+          iPrimary.forEach(function (iSecondary, iSecondaryIndex) {
+            var tCount = 0,
+                tTotalNumCasesInPrimary = iSecondary.length,
+                tPreviousCoord = tRC.secondaryAxisView.dataToCoordinate(getSecondaryValue( tCount, tTotalNumCasesInPrimary)),
+                tPreviousValue = null,
+                tCaseIndices = [],
+                tValue;
+            // The given array contains an element for each case belonging to this stack
+            iSecondary.forEach(function (iCaseContainer, iIndex) {
+              tValue = iCaseContainer.theCase.getValue(tLegendVarID);
+              if (tPreviousValue && tValue !== tPreviousValue) {
+                tPreviousCoord = makeRect(tPrimaryCoord, tPreviousCoord, tCount,
+                    tCaseIndices, tTotalNumCasesInPrimary, tPreviousValue, tPrimaryName);
+                tCaseIndices = [];
+              }
+              tCaseIndices.push( iCaseContainer.caseIndex);
+              tCount++;
+              tPreviousValue = tValue;
+            });
+            makeRect(tPrimaryCoord, tPreviousCoord, tCount,
+                tCaseIndices, tTotalNumCasesInPrimary, tValue, tPrimaryName);
+          });
+        });
       },
 
       /**
@@ -296,7 +407,7 @@ DG.BarChartView = DG.ChartView.extend(
         this._getTransferredElementsToCasesMap(tNewToOldCaseMap, tOldToNewCaseMap);
         var hasElementMap = tNewToOldCaseMap.length > 0,
             hasVanishingElements = tOldToNewCaseMap.length > 0,
-            getCaseCurrentLocation = ( hasElementMap ? caseLocationViaMap : caseLocationSimple ),
+            getCaseCurrentLocation = (hasElementMap ? caseLocationViaMap : caseLocationSimple),
             tTransAttrs;
 
         this.prepareToResetCoordinates();
@@ -341,7 +452,8 @@ DG.BarChartView = DG.ChartView.extend(
 
         tModel.set('isAnimating', true);
         SC.Timer.schedule({action: turnOffAnimation, interval: DG.PlotUtilities.kDefaultAnimationTime});
-      },
+      }
+      ,
 
       /**
        We need to decide on the number of points in a row. To do so, we find the
@@ -352,14 +464,14 @@ DG.BarChartView = DG.ChartView.extend(
       computeCellParams: function () {
         var tMaxInCell = this.getPath('model.maxInCell'),
             tSecondaryAxisView = this.get('secondaryAxisView'),
-            tCoordOfMaxInCell = tSecondaryAxisView.dataToCoordinate( tMaxInCell),
-            tCoordOf100Percent = tSecondaryAxisView.dataToCoordinate( 100),
-            tCoordOfZero = tSecondaryAxisView.dataToCoordinate( 0),
+            tCoordOfMaxInCell = tSecondaryAxisView.dataToCoordinate(tMaxInCell),
+            tCoordOf100Percent = tSecondaryAxisView.dataToCoordinate(100),
+            tCoordOfZero = tSecondaryAxisView.dataToCoordinate(0),
             tBreakdownType = this.getPath('model.breakdownType'),
             tMinBarSliceHeight = Math.abs(tCoordOfMaxInCell - tCoordOfZero) / tMaxInCell,
-            tSliceHeights = this.getPath('model.primaryCellCounts').map(function( iCount) {
+            tSliceHeights = this.getPath('model.primaryCellCounts').map(function (iCount) {
               var tSliceHeight = 0;
-              switch( tBreakdownType) {
+              switch (tBreakdownType) {
                 case DG.Analysis.EBreakdownType.eCount:
                   tSliceHeight = tMinBarSliceHeight;
                   break;
@@ -370,7 +482,8 @@ DG.BarChartView = DG.ChartView.extend(
             });
 
         this.setIfChanged('barSliceHeights', tSliceHeights);
-      },
+      }
+      ,
 
       /**
        *
@@ -391,7 +504,7 @@ DG.BarChartView = DG.ChartView.extend(
         // show or hide if needed, then update if shown.
         // if( this.showHidePlottedElement(tRect, tIsMissingCase)) {
 
-        var tCellHalfWidth = iRC.primaryAxisView.get('fullCellWidth') / 2,
+        var tCellHalfWidth = iRC.barWidth,
             tCellHeight = iRC.secondaryAxisView.get('fullCellWidth'),
             tBarSliceHeight = iRC.barSliceHeights[iCellIndices.primaryCell],
             tTop = (iCellIndices.indexInCell + 1) * tBarSliceHeight,
@@ -412,58 +525,60 @@ DG.BarChartView = DG.ChartView.extend(
           tHeight = tCellHalfWidth;
         }
         // Move the rect to a starting position
-/*
-        tRect.attr( {
-          x: iRC.isVerticalOrientation ? tCoordX + tCellHeight / 2 : 0,
-          y: iRC.isVerticalOrientation ? tCellHeight : tCoordY + tCellDrawingWidth / 2
-        });
-*/
+        /*
+                tRect.attr( {
+                  x: iRC.isVerticalOrientation ? tCoordX + tCellHeight / 2 : 0,
+                  y: iRC.isVerticalOrientation ? tCellHeight : tCoordY + tCellDrawingWidth / 2
+                });
+        */
         var tNewAttrs = {
           x: tCoordX, y: tCoordY, r: 0.1, width: tWidth, height: tHeight,
           fill: iRC.calcCaseColorString(iCase),
           'fill-opacity': iRC.transparency,
           'stroke-opacity': 0
         };
-        if( iAnimate) {
-          tRect.animate(tNewAttrs, DG.PlotUtilities.kDefaultAnimationTime);
+        if (iAnimate) {
+          tRect.animate(tNewAttrs, DG.PlotUtilities.kDefaultAnimationTime, '<>', iCallback);
         }
         else {
-          tRect.attr( tNewAttrs);
+          tRect.attr(tNewAttrs);
         }
         return tRect;
         // this.updatePlottedElement( tRect, tAttrs, iAnimate, iCallback);
         // }
-      }/*,
+      }
+      /*,
 
-      displayAsBarChartDidChange: function () {
-        var tPaper = this.get('paper'),
-            tR = this._pointRadius,
-            tPlottedElements = this._plottedElements,
-            tLayerManager = this.get('layerManager'),
-            tLayer = tLayerManager[DG.LayerNames.kPoints],
-            tRenderContext = this.createRenderContext(),
-            tModel = this.get('model'),
-            tCases = tModel.get('cases');
-        if (this.getPath('model.displayAsBarChart')) {
-          tPlottedElements.forEach(function (iElement, iIndex) {
-            var cx = iElement.attr('cx'),
-                cy = iElement.attr('cy'),
-                fill = iElement.attr('fill'),
-                opacity = iElement.attr('fill-opacity'),
-                strokeOpacity = 0, //iElement.attr('stroke-opacity'),
-                tRect = tPaper.rect(cx - tR, cy - tR, 2 * tR, 2 * tR)
-                    .attr({
-                      fill: fill, 'fill-opacity': opacity, stroke: fill, 'stroke-opacity': strokeOpacity,
-                      r: tR
-                    });
-            tLayerManager.removeElement(iElement);
-            tPlottedElements[iIndex] = tRect;
-            tLayer.push(tRect);
-            this.privSetRectCoords(tRenderContext, tCases[iIndex], iIndex,
-                tModel.lookupCellForCaseIndex(iIndex), true /!*animate*!/, null /!* no callback *!/);
-          }.bind(this));
-        }
-      }.observes('model.displayAsBarChart')
-*/
-    });
+            displayAsBarChartDidChange: function () {
+              var tPaper = this.get('paper'),
+                  tR = this._pointRadius,
+                  tPlottedElements = this._plottedElements,
+                  tLayerManager = this.get('layerManager'),
+                  tLayer = tLayerManager[DG.LayerNames.kPoints],
+                  tRenderContext = this.createRenderContext(),
+                  tModel = this.get('model'),
+                  tCases = tModel.get('cases');
+              if (this.getPath('model.displayAsBarChart')) {
+                tPlottedElements.forEach(function (iElement, iIndex) {
+                  var cx = iElement.attr('cx'),
+                      cy = iElement.attr('cy'),
+                      fill = iElement.attr('fill'),
+                      opacity = iElement.attr('fill-opacity'),
+                      strokeOpacity = 0, //iElement.attr('stroke-opacity'),
+                      tRect = tPaper.rect(cx - tR, cy - tR, 2 * tR, 2 * tR)
+                          .attr({
+                            fill: fill, 'fill-opacity': opacity, stroke: fill, 'stroke-opacity': strokeOpacity,
+                            r: tR
+                          });
+                  tLayerManager.removeElement(iElement);
+                  tPlottedElements[iIndex] = tRect;
+                  tLayer.push(tRect);
+                  this.privSetRectCoords(tRenderContext, tCases[iIndex], iIndex,
+                      tModel.lookupCellForCaseIndex(iIndex), true /!*animate*!/, null /!* no callback *!/);
+                }.bind(this));
+              }
+            }.observes('model.displayAsBarChart')
+      */
+    })
+;
 

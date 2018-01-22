@@ -333,26 +333,6 @@ DG.ChartModel = DG.PlotModel.extend(
   }.property(),
 
   /**
-   * @return {Object} the saved data.
-   */
-  createStorage: function() {
-    var tStorage = sc_super();
-
-    tStorage.displayAsBarChart = this.displayAsBarChart;
-
-    return tStorage;
-  },
-
-  /**
-   * @param iStorage
-   */
-  restoreStorage: function( iStorage) {
-    sc_super();
-    this.displayAsBarChart = iStorage.displayAsBarChart;
-  },
-
-
-  /**
     @property{Boolean}
     @private
   */

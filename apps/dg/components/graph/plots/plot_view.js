@@ -224,8 +224,8 @@ DG.PlotView = DG.PlotLayer.extend(
             radius =( iElement.isHidden() ? 0 : iElement.attr('r')), // use r:0 as proxy for hidden plot element
             tX = getCoord('x', iElement) + tFrame.x,
             tY = getCoord('y', iElement) + tFrame.y,
-            tResult = { r: radius, fill: iElement.attr('fill') }
-            tResult[ tPosKey + 'x'] = tX,
+            tResult = { r: radius, fill: iElement.attr('fill') };
+            tResult[ tPosKey + 'x'] = tX;
             tResult[ tPosKey + 'y'] = tY;
         return tResult;
       });

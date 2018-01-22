@@ -362,15 +362,15 @@ DG.DotChartView = DG.ChartView.extend(
               tNewElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tCurrAttrs)) {
             tTransAttrs = {
-              r: tCurrAttrs.r ? tCurrAttrs.r : 0,
-              cx: tCurrAttrs.cx ? tCurrAttrs.cx : tCurrAttrs.x,
-              cy: tCurrAttrs.cy ? tCurrAttrs.cy : tCurrAttrs.y,
+              r: !SC.none(tCurrAttrs.r) ? tCurrAttrs.r : 0,
+              cx: !SC.none(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x,
+              cy: !SC.none(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y,
               fill: tCurrAttrs.fill,
               stroke: tCurrAttrs.stroke
             };
             tNewElement.attr(tTransAttrs);
           }
-          tCurrAttrs = this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+          this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
           if (hasVanishingElements) {
             tNewElementAttrs.push(tCurrAttrs);
           }
