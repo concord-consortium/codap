@@ -385,14 +385,14 @@ DG.main = function main() {
             //"localStorage"
           ]
         };
-    // only enable Google Drive if origin is ssl
-    if (document.location.protocol === 'https:') {
+    // only enable Google Drive if origin is ssl or localhost
+     if (document.location.protocol === 'https:' || document.location.hostname === 'localhost' || document.location.hostname === '127.0.0.1') {
       options.providers.splice(1, 0, {
         "name": "googleDrive",
         "mimeType": "application/json",
-        "clientId": "891260722961-eqgr7i63p33k44jcfr367539n068m57k.apps.googleusercontent.com"
+        "clientId": DG.get('googleDriveClientID')
       });
-    }
+     }
     if (DG.cfmConfigurationOverride) {
       options = Object.assign(options, DG.cfmConfigurationOverride);
     }
