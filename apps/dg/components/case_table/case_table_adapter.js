@@ -61,6 +61,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         return tName + (!SC.empty( tUnit) ? ' (' + tUnit + ')' : '');
       },
 
+      indexFormatter = function  (rowIndex, colIndex, cellValue, colInfo, rowItem) {
+        return '<span class="dg-index">' + cellValue + '</span>';
+      },
+
       /**
        * Formats table cells.
        *
@@ -120,7 +124,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       numberFormatter = function (cellValue, type, precision) {
         var roundDigits = !SC.none(precision)? precision : 2,
             multiplier = !SC.none(roundDigits) ? Math.pow(10,roundDigits) : 1;
-        return '' + (Math.round( multiplier * cellValue) / multiplier);
+        return '<span class="dg-numeric">' + (Math.round( multiplier * cellValue) / multiplier) + '</span>';
       },
 
       errorFormatter = function (error) {
@@ -175,7 +179,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
 
       tooltipFormatter = function(row, cell, cellValue, formattedValue, columnDef, dataContext) {
         // don't show tooltips for DG-formatted HTML values
-        var tooltipValue = /<span.*class='dg-.*'.*<\/span>/.test(formattedValue) ? "" : formattedValue;
+        var tooltipValue = /<span.*class=["']dg-.*["'].*<\/span>/.test(formattedValue) ? "" : formattedValue;
         // HTML-escape tooltips for other values
         return tooltipValue && formattedValue.replace
                 ? formattedValue.replace(/&/g, '&amp;')
@@ -460,7 +464,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             toolTip: 'DG.CaseTable.indexColumnTooltip'.loc(),
             focusable: false,
             cssClass: 'dg-index-column',
-            formatter: cellFormatter,
+            formatter: indexFormatter,
             width: kIndexColumnWidth,
           };
       columnDefs.push(columnInfo);
