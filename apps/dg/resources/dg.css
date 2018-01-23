@@ -106,17 +106,19 @@
 }
 
 .dg-qualitative-backing {
-    display: inline-block;
+    width: 100%;
+    display: block;
     height: 7px;
     border-radius: 3px;
     background-color: lightgrey;
 }
 
 .dg-qualitative-bar {
-    display: inline-block;
-    position: absolute;
+    display: block;
     height: 7px;
-    border-radius: 3px 0px 0px 3px;
+    border-width:0;
+    border-radius: 3px;
+    box-sizing: border-box;
 }
 
 .dg-boundary-thumb {

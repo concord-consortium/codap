@@ -141,13 +141,10 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
         }
 
         var color = DG.PlotUtilities.kDefaultPointColor,
-            kColumnDefaultWidth = 60,
-            kPadding = 10,
-            tFullWidth = kColumnDefaultWidth - kPadding,
-            tWidth = tFullWidth * value / 100;
+            tWidth = value ;
 
-        return "<span class='dg-qualitative-backing' style='width:" + tFullWidth + "px'>" +
-        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "px'></span></span>";
+        return "<span class='dg-qualitative-backing'>" +
+        "<span class='dg-qualitative-bar' style='background:" + color + ";width:" + tWidth + "%'></span></span>";
       },
 
       boundaryFormatter = function ( value) {
