@@ -318,6 +318,7 @@ DG.DotChartView = DG.ChartView.extend(
             tModel = this.get('model'),
             tCases = tModel.get('cases'),
             tRC = this.createRenderContext(),
+            tDefaultR = this.calcPointRadius(),
             tFrame = this.get('frame'), // to convert from parent frame to this frame
             tOldElementAttrs = this.get('transferredElementCoordinates'),
             tNewElementAttrs = [], // used if many-to-one animation (parent to child collection)
@@ -353,8 +354,12 @@ DG.DotChartView = DG.ChartView.extend(
         this.computeCellParams();
         tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
+          // In case they are circles
           iElement.cx -= tFrame.x;
           iElement.cy -= tFrame.y;
+          // In case they are rects
+          iElement.x -= tFrame.x;
+          iElement.y -= tFrame.y;
         });
         tCases.forEach(function (iCase, iIndex) {
           var tCurrAttrs = getCaseCurrentLocation(iIndex),
@@ -362,9 +367,9 @@ DG.DotChartView = DG.ChartView.extend(
               tNewElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tCurrAttrs)) {
             tTransAttrs = {
-              r: !SC.none(tCurrAttrs.r) ? tCurrAttrs.r : 0,
-              cx: !SC.none(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x,
-              cy: !SC.none(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y,
+              r: DG.isFinite(tCurrAttrs.r) ? tCurrAttrs.r : tDefaultR,
+              cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
+              cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
               fill: tCurrAttrs.fill,
               stroke: tCurrAttrs.stroke
             };

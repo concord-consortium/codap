@@ -38,11 +38,6 @@ DG.BarChartView = DG.ChartView.extend(
        */
       barSliceHeights: null,
 
-      /**
-       * @property {[RaphaelElement]}
-       */
-      categoryCoverRects: null,
-
       _categoryCellToolTip: null,
       categoryCellToolTip: function() {
         if( !this._categoryCellToolTip) {
@@ -50,6 +45,17 @@ DG.BarChartView = DG.ChartView.extend(
             layerName: 'dataTip' });
         }
         return this._categoryCellToolTip;
+      }.property(),
+
+      /**
+       * @property {DG.Layer}
+       */
+      _coverRectsLayer: null,
+      coverRectsLayer: function () {
+        if (!this._coverRectsLayer && this.getPath('paperSource.layerManager')) {
+          this._coverRectsLayer = this.getPath('paperSource.layerManager.' + DG.LayerNames.kCoverRects);
+        }
+        return this._coverRectsLayer;
       }.property(),
 
       upperBoundDidChange: function () {
@@ -77,7 +83,11 @@ DG.BarChartView = DG.ChartView.extend(
         sc_super();
 
         this.barSliceHeights = [];
-        this.categoryCoverRects = [];
+      },
+
+      destroy: function() {
+        this.get('coverRectsLayer').clear();
+        sc_super();
       },
 
       dataRangeDidChange: function (iSource, iQuestion, iKey, iChanges) {
@@ -289,31 +299,34 @@ DG.BarChartView = DG.ChartView.extend(
                         this.animate({
                           'fill-opacity': 0.4
                         }, DG.PlotUtilities.kDataTipShowTime);
-                        tTemplate = this.caseIndices.length > 1 ? "DG.BarChartModel.cellTipPlural" :
-                            "DG.BarChartModel.cellTipSingular";
-                        tToolTip = this_.get('categoryCellToolTip');
-                        if( this.caseIndices.length > 1) {
-                          iPrimaryName = pluralize(iPrimaryName);
-                          if( iPrimaryName.endsWith( "S")) {
-                            iPrimaryName = iPrimaryName.replace(/S$/, 's');
+                        if( !SC.none( tLegendVarID)) {
+                          tTemplate = this.caseIndices.length > 1 ? "DG.BarChartModel.cellTipPlural" :
+                              "DG.BarChartModel.cellTipSingular";
+                          tToolTip = this_.get('categoryCellToolTip');
+                          if (this.numCasesInContainingCell > 1) {
+                            iPrimaryName = pluralize(iPrimaryName);
+                            if (iPrimaryName.endsWith("S")) {
+                              iPrimaryName = iPrimaryName.replace(/S$/, 's');
+                            }
                           }
+                          tToolTip.set('text', tTemplate.loc(
+                              this.caseIndices.length,
+                              this.numCasesInContainingCell,
+                              iPrimaryName,
+                              Math.round(1000 * this.caseIndices.length / this.numCasesInContainingCell) / 10,
+                              iCategoryName
+                          ));
+                          tToolTip.set('tipOrigin', {x: iEvent.layerX, y: iEvent.layerY});
+                          tToolTip.show();
                         }
-                        tToolTip.set( 'text', tTemplate.loc(
-                            this.caseIndices.length,
-                            iPrimaryName,
-                            this.numCasesInContainingCell,
-                            Math.round( 1000 * this.caseIndices.length / this.numCasesInContainingCell) / 10,
-                            iCategoryName
-                        ));
-                        tToolTip.set('tipOrigin', {x: iEvent.layerX, y: iEvent.layerY});
-                        tToolTip.show();
                       },
                       function (event) { // out
                         this.stop();
                         this.animate({
                           'fill-opacity': 0.001
                         }, DG.PlotUtilities.kHighlightHideTime);
-                        tToolTip.hide();
+                        if(tToolTip)
+                          tToolTip.hide();
                       }
                   )
                   .mousedown(function (iEvent) {
@@ -323,7 +336,7 @@ DG.BarChartView = DG.ChartView.extend(
                   });
           tRect.caseIndices = iCaseIndices;
           tRect.numCasesInContainingCell = iNumCasesInContainingCell;
-          tCoverRects.push(tRect);
+          tCoverRectsLayer.push(tRect);
           return tCurrCoord;
         }.bind(this);
 
@@ -333,16 +346,13 @@ DG.BarChartView = DG.ChartView.extend(
         }
 
         var tPaper = this.get('paper'),
-            tCoverRects = this.get('categoryCoverRects'),
+            tCoverRectsLayer = this.get('coverRectsLayer'),
             tCellArray = this.getPath('model.cachedCells'),
             tBreakdownType = this.getPath('model.breakdownType'),
             tRC = this.createRenderContext(),
             tPrimaryVarID = this.getPath('model.primaryVarID'),
             tLegendVarID = this.getPath('model.legendVarID');
-        tCoverRects.forEach(function (iRect) {
-          iRect.remove();
-        });
-        tCoverRects.length = 0;
+        tCoverRectsLayer.clear();
         tCellArray.forEach(function (iPrimary, iPrimaryIndex) {
           // This is the primary division. It has an array for each category on the secondary axis
           var tPrimaryCoord = tRC.primaryAxisView.cellToCoordinate(iPrimaryIndex),
@@ -369,6 +379,23 @@ DG.BarChartView = DG.ChartView.extend(
             makeRect(tPrimaryCoord, tPreviousCoord, tCount,
                 tCaseIndices, tTotalNumCasesInPrimary, tValue, tPrimaryName);
           });
+        });
+      },
+
+      /**
+       Override base class because we're dealing with rectangles, not points.
+       @return {Array of {x:{Number}, y:{Number}, width:{Number}, height:{Number}, fill:{String}}}
+       */
+      getElementPositionsInParentFrame: function() {
+
+        var tFrame = this.get('frame');
+        return this._plottedElements.map( function( iElement) {
+          var tX = iElement.attr('x') + tFrame.x,
+              tY = iElement.attr('y') + tFrame.y,
+              tWidth = iElement.attr('width'),
+              tHeight = iElement.attr('height'),
+              tResult = { x: tX, y: tY, width: tWidth, height: tHeight, fill: iElement.attr('fill') };
+          return tResult;
         });
       },
 
@@ -413,22 +440,28 @@ DG.BarChartView = DG.ChartView.extend(
         this.prepareToResetCoordinates();
         this.removePlottedElements();
         this.computeCellParams();
-        tOldElementAttrs.forEach(function (iPoint, iIndex) {
+        tOldElementAttrs.forEach(function (iElement, iIndex) {
           // adjust old coordinates from parent frame to this view
-          iPoint.cx -= tFrame.x;
-          iPoint.cy -= tFrame.y;
+          // In case it's a point
+          iElement.cx -= tFrame.x;
+          iElement.cy -= tFrame.y;
+          // in case it's a rect
+          iElement.x -= tFrame.x;
+          iElement.y -= tFrame.y;
         });
         tCases.forEach(function (iCase, iIndex) {
-          var tPt = getCaseCurrentLocation(iIndex),
+          var tOldElement = getCaseCurrentLocation(iIndex),
               tCellIndices = tModel.lookupCellForCaseIndex(iIndex),
               tElement = this_.callCreateElement(iCase, iIndex, false);
-          if (!SC.none(tPt)) {
+          if (!SC.none(tOldElement)) {
             tTransAttrs = {
-              r: tPt.r ? tPt.r : 0,
-              x: tPt.cx ? tPt.cx : tPt.x,
-              y: tPt.cy ? tPt.cy : tPt.y,
-              fill: tPt.fill,
-              stroke: tPt.fill
+              r: DG.isFinite( tOldElement.r) ? tOldElement.r : 0,
+              x: DG.isFinite(tOldElement.cx) ? tOldElement.cx - tOldElement.r : tOldElement.x,
+              y: DG.isFinite(tOldElement.cy) ? tOldElement.cy - tOldElement.r : tOldElement.y,
+              width: DG.isFinite( tOldElement.width) ? tOldElement.width : 2 * tOldElement.r,
+              height: DG.isFinite( tOldElement.height) ? tOldElement.height : 2 * tOldElement.r,
+              fill: tOldElement.fill,
+              stroke: tOldElement.fill
             };
             tElement.attr(tTransAttrs);
           }

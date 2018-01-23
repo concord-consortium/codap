@@ -112,7 +112,8 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
                   .addNamedLayer( ln.kPoints )
                   .addNamedLayer( ln.kSelectedPoints )
                   .addNamedLayer( ln.kAdornments )
-                  .addNamedLayer( ln.kDataTip );
+                  .addNamedLayer( ln.kDataTip )
+                  .addNamedLayer( ln.kCoverRects );
   },
 
   /**

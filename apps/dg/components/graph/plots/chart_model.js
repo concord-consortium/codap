@@ -326,6 +326,7 @@ DG.ChartModel = DG.PlotModel.extend(
             classNames: 'dg-graph-barchart-check'.w(),
             valueDidChange: function () {
               this_.toggleDisplayAsBarChart();
+              DG.mainPage.mainPane.hideInspectorPicker();
             }.observes('value')
           }
     );

@@ -31,5 +31,6 @@ DG.LayerNames = {
   kPoints: 'points',
   kSelectedPoints: 'selectedPoints',
   kAdornments: 'adornments',
-  kDataTip: 'dataTip'
+  kDataTip: 'dataTip',
+  kCoverRects: 'coverRects'
 };
