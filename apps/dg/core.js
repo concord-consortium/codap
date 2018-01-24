@@ -281,6 +281,12 @@ DG = SC.Application.create((function () // closure
 
     showWebSiteURL: 'https://codap.concord.org',
 
+    splashURL: static_url('images/codap-splash-screen.png'),
+
+    /* This is the developer client id. Provides access to an unverified
+     * version of the app. Should be overridden for end users */
+    googleDriveClientID: '891260722961-81f8ic8tddobbh66p1j7nenr42hb93u1.apps.googleusercontent.com',
+
     /**
      * URL for a plugin data store.
      */

@@ -324,7 +324,8 @@ DG.appController = SC.Object.create((function () // closure
           toolTip: pluginData.description,
           dgAction: 'openPlugin',
           icon: 'tile-icon-mediaTool',
-          id: 'dg-pluginMenuItem-' + pluginData.title
+          // replace spaces with hyphens when creating the id
+          id: 'dg-pluginMenuItem-' + pluginData.title.replace(/ /g, '-')
         };
       }): [];
       return items;

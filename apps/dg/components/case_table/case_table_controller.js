@@ -1084,6 +1084,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             execute: function() {
               var change;
               if ((tCollectionClient.get('attrsController').get('length') === 1) &&
+                  (tDataContext.get('collections').length !== 1) &&
                   (tCollectionClient.getAttributeByID(iAttrID))) {
                 change = {
                   operation: 'deleteCollection',
@@ -1113,6 +1114,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 tDataContext.applyChange(tChange);
                 tDataContext.set('flexibleGroupingChangeFlag',
                     this._beforeStorage.changeFlag);
+                this._afterStorage.collection = tCollectionClient;
               } else {
                 tAttrRef.attribute.collection = null;
                 tChange = {
@@ -1136,6 +1138,7 @@ DG.CaseTableController = DG.ComponentController.extend(
               var change;
               var tCollectionClient1 = tDataContext.getCollectionByID(this._afterStorage.collection.get('id'));
               if ((tCollectionClient1.get('attrsController').get('length') === 1) &&
+                  (tDataContext.get('collections').length !== 1) &&
                   (tCollectionClient1.getAttributeByID(iAttrID))) {
                 change = {
                   operation: 'deleteCollection',

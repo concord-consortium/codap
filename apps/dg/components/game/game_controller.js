@@ -296,6 +296,8 @@ DG.GameController = DG.ComponentController.extend(
           // Save information about the current game
           tStorage.currentGameName = tStorage.currentGameName || this.getPath('context.gameName');
           tStorage.currentGameUrl = tStorage.currentGameUrl || this.getPath('context.gameUrl');
+          tStorage.preventBringToFront = this.get('preventBringToFront');
+          tStorage.preventDataContextReorg = this.get('preventDataContextReorg');
         }
 
         var dataContext = this.get('context');
@@ -356,6 +358,8 @@ DG.GameController = DG.ComponentController.extend(
           this.set('context', dataContext);
           this.setPath('context.gameName', gameName);
           this.setPath('context.gameUrl', gameUrl);
+          this.set('preventBringToFront', iComponentStorage.preventBringToFront);
+          this.set('preventDataContextReorg', iComponentStorage.preventDataContextReorg);
         }
 
         // If there are user-created formulas to restore, set them in the

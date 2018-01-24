@@ -106,17 +106,19 @@
 }
 
 .dg-qualitative-backing {
-    display: inline-block;
+    width: 100%;
+    display: block;
     height: 7px;
     border-radius: 3px;
     background-color: lightgrey;
 }
 
 .dg-qualitative-bar {
-    display: inline-block;
-    position: absolute;
+    display: block;
     height: 7px;
-    border-radius: 3px 0px 0px 3px;
+    border-width:0;
+    border-radius: 3px;
+    box-sizing: border-box;
 }
 
 .dg-boundary-thumb {
@@ -1269,4 +1271,14 @@ html.dg-embedded-mode .dg-data-tip-text {
     color: black;
 }
 
-
+.slick-cell .dg-index {
+    width: 100%;
+    text-align: center;
+    display: block;
+}
+.slick-cell .dg-numeric {
+    width: 100%;
+    text-align: right;
+    display: block;
+    font-variant-numeric: tabular-nums;
+}
