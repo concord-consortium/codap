@@ -271,11 +271,17 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
       }.observes('*captionAttributeDescription.attributeID'),
 
       getLatLongBounds: function () {
+
+        function isValid( iMinMax) {
+          return DG.isFinite( iMinMax.min) && DG.isFinite( iMinMax.max);
+        }
+
         var tLatMinMax = this.getPath('yAttributeDescription.attributeStats.minMax'),
             tLngMinMax = this.getPath('xAttributeDescription.attributeStats.minMax'),
             tSouthWest = [tLatMinMax.min, tLngMinMax.min],
-            tNorthEast = [tLatMinMax.max, tLngMinMax.max];
-        return L.latLngBounds([tSouthWest, tNorthEast]);
+            tNorthEast = [tLatMinMax.max, tLngMinMax.max],
+            tBounds = (isValid( tLatMinMax) && isValid(tLngMinMax)) ? L.latLngBounds([tSouthWest, tNorthEast]) : null;
+        return tBounds;
       },
 
       /**
