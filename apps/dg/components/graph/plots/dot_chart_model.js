@@ -31,7 +31,7 @@ DG.DotChartModel = DG.ChartModel.extend(
    * Override
    * @property {Boolean}
    */
-  displayAsBarChart: false
+  displayAsBarChart: false,
 
   lastValueControls: function() {
     var tControls = sc_super(),
