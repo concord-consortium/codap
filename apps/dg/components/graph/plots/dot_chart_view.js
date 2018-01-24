@@ -131,18 +131,6 @@ DG.DotChartView = DG.ChartView.extend(
       },
 
       /**
-       * Return the class of the count axis with the x or y to put it on.
-       */
-      configureAxes: function () {
-        var tRet = sc_super(),
-            tCountKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
-        tRet = tRet || {};
-        tRet.axisKey = tCountKey;
-        tRet.axisClass = DG.AxisView; // Dot chart has no numeric scale on the count axis
-        return tRet;
-      },
-
-      /**
        * Set the coordinates and other attributes of the case circle (a Rafael element in this._plottedElements).
        * @param iRC {} case-invariant Render Context
        * @param iCase {DG.Case} the case data
