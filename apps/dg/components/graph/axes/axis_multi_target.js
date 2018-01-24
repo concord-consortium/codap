@@ -103,7 +103,7 @@ DG.AxisMultiTarget = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       return (tOtherAttr !== DG.Analysis.kNullAttribute) &&
              (tCurrAttr !== DG.Analysis.kNullAttribute) &&
              (tCurrAttr !== tDragAttr) &&
-              tOtherDescr.get('isNumeric');
+             tOtherDescr && tOtherDescr.get('isNumeric');
     },
 
     // Draw an orange frame to show we're a drop target.

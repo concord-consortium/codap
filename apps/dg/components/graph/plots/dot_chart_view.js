@@ -140,10 +140,7 @@ DG.DotChartView = DG.ChartView.extend(
        */
       setCircleCoordinate: function setCircleCoordinate(iRC, iCase, iIndex, iAnimate, iCallback) {
         var tCellIndices = this.get('model').lookupCellForCaseIndex(iIndex);
-        if (this.getPath('model.displayAsBarChart'))
-          this.privSetRectCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
-        else
-          this.privSetCircleCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
+        this.privSetCircleCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
       },
 
       /**

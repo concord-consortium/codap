@@ -296,7 +296,7 @@ DG.BarChartView = DG.ChartView.extend(
             tX = iPrimaryCoord - tRC.barWidth / 2 - 1;
             tY = tCurrCoord - 1;
             tWidth = tRC.barWidth + 2;
-            tHeight = tCurrCoord + 2 - iStartCoord;
+            tHeight = iStartCoord - tCurrCoord + 2;
           }
           else {
             tX = iStartCoord;
@@ -304,8 +304,7 @@ DG.BarChartView = DG.ChartView.extend(
             tWidth = tCurrCoord + 2 - iStartCoord;
             tHeight = tRC.barWidth + 2;
           }
-          var tRect = tPaper.rect(iPrimaryCoord - tRC.barWidth / 2 - 1,
-                  tCurrCoord - 1, tRC.barWidth + 2, iStartCoord - tCurrCoord + 2)
+          var tRect = tPaper.rect( tX, tY, tWidth, tHeight)
                   .attr({stroke: 'none', fill: 'white', 'fill-opacity': 0.001, cursor: 'pointer'})
                   .hover(function (iEvent) {
                         // Note that Firefox can come through here repeatedly so we have to check for existence
