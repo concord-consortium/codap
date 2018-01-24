@@ -291,7 +291,20 @@ DG.BarChartView = DG.ChartView.extend(
           var this_ = this,
               tTemplate, tToolTip,
               tCurrCoord = tRC.secondaryAxisView.dataToCoordinate(getSecondaryValue( iCount, iNumCasesInContainingCell)),
-              tRect = tPaper.rect(iPrimaryCoord - tRC.barWidth / 2 - 1,
+              tX, tY, tWidth, tHeight;
+          if( tRC.isVerticalOrientation) {
+            tX = iPrimaryCoord - tRC.barWidth / 2 - 1;
+            tY = tCurrCoord - 1;
+            tWidth = tRC.barWidth + 2;
+            tHeight = tCurrCoord + 2 - iStartCoord;
+          }
+          else {
+            tX = iStartCoord;
+            tY = iPrimaryCoord - tRC.barWidth / 2 - 1;
+            tWidth = tCurrCoord + 2 - iStartCoord;
+            tHeight = tRC.barWidth + 2;
+          }
+          var tRect = tPaper.rect(iPrimaryCoord - tRC.barWidth / 2 - 1,
                   tCurrCoord - 1, tRC.barWidth + 2, iStartCoord - tCurrCoord + 2)
                   .attr({stroke: 'none', fill: 'white', 'fill-opacity': 0.001, cursor: 'pointer'})
                   .hover(function (iEvent) {
