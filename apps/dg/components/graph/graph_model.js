@@ -650,8 +650,8 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       }.bind( this);
 
       var tInitialValue = iChartPlot.get('displayAsBarChart'),
-          tUndo = tInitialValue ? ('DG.Undo.graph.showAsDotChart') : ('DG.Undo.graph.showAsBarChart'),
-          tRedo = tInitialValue ? ('DG.Redo.graph.showAsDotChart') : ('DG.Redo.graph.showAsBarChart');
+          tUndo = tInitialValue ? ('DG.Undo.graph.showAsBarChart') : ('DG.Undo.graph.showAsDotChart'),
+          tRedo = tInitialValue ? ('DG.Redo.graph.showAsBarChart') : ('DG.Redo.graph.showAsDotChart');
       DG.UndoHistory.execute(DG.Command.create({
         name: "graph.toggleBarChart",
         undoString: tUndo,

@@ -131,10 +131,10 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
 
       /**
        Each axis should rescale based on the values to be plotted with it.
-       @param{Boolean} Default is false
-       @param{Boolean} Default is true
-       @param{Boolean} Default is false
-       @param{Boolean} Default is false
+       @param iAllowScaleShrinkage{Boolean} Default is false
+       @param iAnimatePoints {Boolean} Default is true
+       @param iLogIt {Boolean} Default is false
+       @param iUserAction {Boolean} Default is false
        */
       rescaleAxesFromData: function (iAllowScaleShrinkage, iAnimatePoints, iLogIt, iUserAction) {
         if (iAnimatePoints === undefined)

@@ -105,15 +105,73 @@ DG.ChartView = DG.PlotView.extend(
         this.drawData();
       },
 
-      /**
-       Note: There's a lot of redundancy here with plotLayer::dataDidChange. But it's difficult to
-       refactor further because of the need to deal with positioning points via
-       privSetCircleCoords.
-       */
       updateElements: function () {
         // update adornments when cases added or removed
         // note: don't rely on tDataLength != tPlotElementLength test for this
         this.updateAdornments();
+      },
+
+      /**
+       Only recreate elements if necessary. Otherwise, just set svg element coordinates.
+       */
+      drawData: function drawData() {
+        if (SC.none(this.get('paper')))
+          return; // not ready to draw
+        if (this.getPath('model.isAnimating'))
+          return; // Bars are animating to new position
+
+        if (!SC.none(this.get('transferredElementCoordinates'))) {
+          this.animateFromTransferredElements();
+          return;
+        }
+
+        var this_ = this,
+            tModel = this.get('model'),
+            tCases = tModel.get('cases'),
+            tPlotElementLength = this._plottedElements.length,
+            tLayerManager = this.get('layerManager'),
+            tIndex, tRC;
+
+        if (!tCases)
+          return; // We can get here before things are linked up during restore
+
+        if (this._mustCreatePlottedElements) {
+          this.removePlottedElements();
+          tCases.forEach(this.callCreateElement, this);
+          this._mustCreatePlottedElements = false;
+        }
+
+        this.computeCellParams();
+
+        for (tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
+          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex], tLayerManager);
+        }
+        if (tCases.length < tPlotElementLength) { // remove from array
+          tPlotElementLength = this._plottedElements.length = tCases.length;
+        }
+        tRC = this.createRenderContext();
+        tCases.forEach(function (iCase, iIndex) {
+          var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
+          if (iIndex >= tPlotElementLength)
+            this_.callCreateElement(iCase, iIndex);
+          this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices);
+        });
+
+        this.updateSelection();
+      },
+
+      /**
+       * Must be overridden
+       * @param iRC
+       * @param iCase
+       * @param iIndex
+       * @param iCellIndices
+       * @param iAnimate
+       * @param iCallback
+       */
+      privSetElementCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
+
       }
-    });
+
+      });
 

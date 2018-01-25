@@ -70,7 +70,6 @@ DG.InspectorView = DG.DraggableView.extend(
                 tChildren.forEach(function (iChild, iIndex) {
                   if( iChild.get('isVisible')) {
                     iChild.adjust({top: tCurrTop, left: (kCellHeight - iChild.iconExtent.width) / 2});
-                    // iChild.set('isVisible', true);
                     tCurrTop += iChild.iconExtent.height + 2 * kPadding;
                   }
                 });
@@ -95,8 +94,6 @@ DG.InspectorView = DG.DraggableView.extend(
               tButtons = this.getPath('targetComponent.inspectorButtons');
           if (tButtons && tButtons.length > 0) {
             tButtons.forEach(function (iButton) {
-              // if (!iButton.get('layout').top)
-              //   iButton.set('isVisible', false);
               this.appendChild(iButton);
               iButton.addObserver( 'isVisible', this, adjustLayout);
             }.bind(this));

@@ -40,15 +40,9 @@ DG.DotChartView = DG.ChartView.extend(
       overlap: 0,
 
       /**
-       * If we're displaying as a barchart, this is how high the slices of a bar are
-       * @property {Number}
-       */
-      barSliceHeight: 0,
-
-      /**
        Note: There's a lot of redundancy here with plotLayer::dataDidChange. But it's difficult to
        refactor further because of the need to deal with positioning points via
-       privSetCircleCoords.
+       privSetElementCoords.
        */
       updateElements: function () {
         // It's possible to get here before didCreateLayer() creates the get('paper').
@@ -78,14 +72,14 @@ DG.DotChartView = DG.ChartView.extend(
               // tCellIndices may come out null if the case has empty values
               // Note that we don't animate here because things can happen during the
               // animation that change the destination.
-              this.privSetCircleCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+              this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
             }
           }
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
             this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetCircleCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+            this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
@@ -102,7 +96,7 @@ DG.DotChartView = DG.ChartView.extend(
           // update all coordinates because we don't know which cases were deleted
           tCases.forEach(function (iCase, iIndex) {
             tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-            this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices);
+            this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices);
           });
         }
         this._isRenderingValid = false;
@@ -125,7 +119,7 @@ DG.DotChartView = DG.ChartView.extend(
           if (!this_._plottedElements[iIndex])
             this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-          this_.privSetCircleCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+          this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
         });
         sc_super();
       },
@@ -140,7 +134,7 @@ DG.DotChartView = DG.ChartView.extend(
        */
       setCircleCoordinate: function setCircleCoordinate(iRC, iCase, iIndex, iAnimate, iCallback) {
         var tCellIndices = this.get('model').lookupCellForCaseIndex(iIndex);
-        this.privSetCircleCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
+        this.privSetElementCoords(iRC, iCase, iIndex, tCellIndices, iAnimate, iCallback);
       },
 
       /**
@@ -148,7 +142,7 @@ DG.DotChartView = DG.ChartView.extend(
        Note the tricky computation for secondary coordinate: the 0.5 is to left the center up half a point size.
        the "1" is to lift the center far enough that the circle border doesn't get cut off.
        */
-      privSetCircleCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
+      privSetElementCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
 
         DG.assert(iRC && iRC.xAxisView);
         DG.assert(iCase);
@@ -190,6 +184,17 @@ DG.DotChartView = DG.ChartView.extend(
           };
           this.updatePlottedElement(tElement, tAttrs, iAnimate, iCallback);
         }
+      },
+
+      /**
+       * Return the class of the count axis with the x or y to put it on.
+       */
+      configureAxes: function () {
+        var tRet = sc_super();
+        tRet = tRet || {};
+        tRet.axisKey = this.getPath('model.orientation') === 'vertical' ? 'y' : 'x';
+        tRet.axisClass = DG.AxisView;
+        return tRet;
       },
 
       /**
@@ -247,52 +252,7 @@ DG.DotChartView = DG.ChartView.extend(
        Only recreate elements if necessary. Otherwise, just set svg element coordinates.
        */
       drawData: function drawData() {
-        if (SC.none(this.get('paper')))
-          return; // not ready to draw
-        if (this.getPath('model.isAnimating'))
-          return; // Points are animating to new position
-
-        if (!SC.none(this.get('transferredElementCoordinates'))) {
-          this.animateFromTransferredElements();
-          return;
-        }
-
-        var this_ = this,
-            tModel = this.get('model'),
-            tCases = tModel.get('cases'),
-            tRC = this.createRenderContext(),
-            tPlotElementLength = this._plottedElements.length,
-            tLayerManager = this.get('layerManager'),
-            tIndex;
-
-        if (!tCases)
-          return; // We can get here before things are linked up during restore
-
-        this._pointRadius = this.calcPointRadius(); // make sure created circles are of right size
-        if (this._mustCreatePlottedElements) {
-          this.removePlottedElements();
-          tCases.forEach(this.callCreateElement, this);
-          this._mustCreatePlottedElements = false;
-        }
-
-        this.computeCellParams();
-
-        for (tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex], tLayerManager);
-        }
-        if (tCases.length < tPlotElementLength) { // remove from array
-          tPlotElementLength = this._plottedElements.length = tCases.length;
-        }
-
-        tCases.forEach(function (iCase, iIndex) {
-          var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          if (iIndex >= tPlotElementLength)
-            this_.callCreateElement(iCase, iIndex);
-
-          this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices);
-        });
-
-        this.updateSelection();
+        sc_super();
       },
 
       /**
@@ -360,7 +320,7 @@ DG.DotChartView = DG.ChartView.extend(
             };
             tNewElement.attr(tTransAttrs);
           }
-          this_.privSetCircleCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+          this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
           if (hasVanishingElements) {
             tNewElementAttrs.push(tCurrAttrs);
           }
@@ -400,8 +360,7 @@ DG.DotChartView = DG.ChartView.extend(
                     Math.ceil(tMaxInCell / tAllowedPointsPerColumn))),
             tActualPointsPerColumn = Math.ceil(tMaxInCell / tNumPointsInRow),
             tOverlap = Math.max(0, ((tActualPointsPerColumn + 1) * tPointSize - tCellHeight) /
-                tActualPointsPerColumn),
-            tBarSliceHeight = tCellHeight / tMaxInCell;
+                tActualPointsPerColumn);
         tOverlap = Math.min(tOverlap, tPointSize); // Otherwise points can stack downward
 
         // Note: Bill points out that 1 is a better default here, but using 1 doesn't fix the bug
@@ -415,7 +374,6 @@ DG.DotChartView = DG.ChartView.extend(
         this.beginPropertyChanges();
         this.setIfChanged('numPointsInRow', tNumPointsInRow);
         this.setIfChanged('overlap', tOverlap);
-        this.setIfChanged('barSliceHeight', tBarSliceHeight);
         this.endPropertyChanges();
       }
 

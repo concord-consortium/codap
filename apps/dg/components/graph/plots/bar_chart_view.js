@@ -30,8 +30,6 @@ sc_require('components/graph/plots/chart_view');
 DG.BarChartView = DG.ChartView.extend(
     /** @scope DG.BarChartView.prototype */
     {
-      // displayProperties: ['barSliceHeights', '*yAxisView.model.upperBound' ],
-
       /**
        * If we're displaying as a barchart, this is how high the slices are in a given bar
        * @property {[Number]}
@@ -103,11 +101,11 @@ DG.BarChartView = DG.ChartView.extend(
         tChanges.forEach(function (iIndex) {
           // We can get in here after a delete, in which case, iChanges can be referring to
           // a plot element that no longer exists.
-          /*
+          /*  Todo: Deal with these changes in order to get delete and add cases to work
                     if (!this_._plottedElements[iIndex])
                       this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
                     var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-                    this_.privSetRectCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+                    this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
           */
         });
         sc_super();
@@ -181,12 +179,11 @@ DG.BarChartView = DG.ChartView.extend(
         tCases.forEach(function (iCase, iIndex) {
           var tCallback = iIndex === tDataLength - 1 ? iCallback : null,
               tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          this.privSetRectCoords(tRC, iCase, iIndex, tCellIndices, iAnimate, tCallback);
+          this.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, iAnimate, tCallback);
         }.bind(this));
       },
 
       /**
-       "Points" is a misnomer since we're really updating the rectangles that make up the bar.
        @param { Boolean }
        @param { Function }
        */
@@ -210,7 +207,7 @@ DG.BarChartView = DG.ChartView.extend(
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
             this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetRectCoords(tRC, tCases[tIndex], tIndex, tCellIndices, iAnimate, iCallback);
+            this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices, iAnimate, iCallback);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
@@ -234,51 +231,11 @@ DG.BarChartView = DG.ChartView.extend(
        Only recreate elements if necessary. Otherwise, just set svg element coordinates.
        */
       drawData: function drawData() {
-        if (SC.none(this.get('paper')))
-          return; // not ready to draw
-        if (this.getPath('model.isAnimating'))
-          return; // Bars are animating to new position
-
-        if (!SC.none(this.get('transferredElementCoordinates'))) {
-          this.animateFromTransferredElements();
-          return;
-        }
-
-        var this_ = this,
-            tModel = this.get('model'),
-            tCases = tModel.get('cases'),
-            tPlotElementLength = this._plottedElements.length,
-            tLayerManager = this.get('layerManager'),
-            tIndex, tRC;
-
-        if (!tCases)
-          return; // We can get here before things are linked up during restore
-
-        if (this._mustCreatePlottedElements) {
-          this.removePlottedElements();
-          tCases.forEach(this.callCreateElement, this);
-          this._mustCreatePlottedElements = false;
-        }
-
-        this.computeCellParams();
-
-        for (tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
-          DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex], tLayerManager);
-        }
-        if (tCases.length < tPlotElementLength) { // remove from array
-          tPlotElementLength = this._plottedElements.length = tCases.length;
-        }
-        tRC = this.createRenderContext();
-        tCases.forEach(function (iCase, iIndex) {
-          var tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
-          if (iIndex >= tPlotElementLength)
-            this_.callCreateElement(iCase, iIndex);
-          this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices);
-        });
-
-        this.drawSubBars();
+        sc_super();
 
         this.updateSelection();
+
+        this.drawSubBars();
       },
 
       /**
@@ -477,7 +434,7 @@ DG.BarChartView = DG.ChartView.extend(
             };
             tElement.attr(tTransAttrs);
           }
-          tElement = this_.privSetRectCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
+          tElement = this_.privSetElementCoords(tRC, iCase, iIndex, tCellIndices, true /* animate */);
           if (hasVanishingElements) {
             tNewElementAttrs.push(tElement);
           }
@@ -539,7 +496,7 @@ DG.BarChartView = DG.ChartView.extend(
        * @param iAnimate {Boolean}
        * @param iCallback {Function}
        */
-      privSetRectCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
+      privSetElementCoords: function (iRC, iCase, iIndex, iCellIndices, iAnimate, iCallback) {
         DG.assert(iRC && iRC.xAxisView);
         DG.assert(iCase);
         DG.assert(DG.MathUtilities.isInIntegerRange(iIndex, 0, this._plottedElements.length));
@@ -569,13 +526,6 @@ DG.BarChartView = DG.ChartView.extend(
           tWidth = tBarSliceHeight;
           tHeight = tCellHalfWidth;
         }
-        // Move the rect to a starting position
-        /*
-                tRect.attr( {
-                  x: iRC.isVerticalOrientation ? tCoordX + tCellHeight / 2 : 0,
-                  y: iRC.isVerticalOrientation ? tCellHeight : tCoordY + tCellDrawingWidth / 2
-                });
-        */
         var tNewAttrs = {
           x: tCoordX, y: tCoordY, r: 0.1, width: tWidth, height: tHeight,
           fill: iRC.calcCaseColorString(iCase),
@@ -589,41 +539,7 @@ DG.BarChartView = DG.ChartView.extend(
           tRect.attr(tNewAttrs);
         }
         return tRect;
-        // this.updatePlottedElement( tRect, tAttrs, iAnimate, iCallback);
-        // }
       }
-      /*,
-
-            displayAsBarChartDidChange: function () {
-              var tPaper = this.get('paper'),
-                  tR = this._pointRadius,
-                  tPlottedElements = this._plottedElements,
-                  tLayerManager = this.get('layerManager'),
-                  tLayer = tLayerManager[DG.LayerNames.kPoints],
-                  tRenderContext = this.createRenderContext(),
-                  tModel = this.get('model'),
-                  tCases = tModel.get('cases');
-              if (this.getPath('model.displayAsBarChart')) {
-                tPlottedElements.forEach(function (iElement, iIndex) {
-                  var cx = iElement.attr('cx'),
-                      cy = iElement.attr('cy'),
-                      fill = iElement.attr('fill'),
-                      opacity = iElement.attr('fill-opacity'),
-                      strokeOpacity = 0, //iElement.attr('stroke-opacity'),
-                      tRect = tPaper.rect(cx - tR, cy - tR, 2 * tR, 2 * tR)
-                          .attr({
-                            fill: fill, 'fill-opacity': opacity, stroke: fill, 'stroke-opacity': strokeOpacity,
-                            r: tR
-                          });
-                  tLayerManager.removeElement(iElement);
-                  tPlottedElements[iIndex] = tRect;
-                  tLayer.push(tRect);
-                  this.privSetRectCoords(tRenderContext, tCases[iIndex], iIndex,
-                      tModel.lookupCellForCaseIndex(iIndex), true /!*animate*!/, null /!* no callback *!/);
-                }.bind(this));
-              }
-            }.observes('model.displayAsBarChart')
-      */
     })
 ;
 

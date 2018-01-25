@@ -198,31 +198,19 @@ DG.PlotView = DG.PlotLayer.extend(
   },
 
   /**
-    For use in transferring current point positions of this plot to a new plot about
+    For use in transferring current element positions of this plot to a new plot about
     to take its place.
-    @return {Array of {cx:{Number}, cy:{Number}}}
+    @return {Array of {cx:{Number}, cy:{Number}, r: {Number}, fill: {String} }
   */
   getElementPositionsInParentFrame: function() {
-
-    function getCoord( dim, iElem) {
-      var tRectDim = (dim === 'x') ? 'width' : 'height',
-          tRectExtra = SC.none( iElem[ tRectDim]) ? 0 : iElem[ tRectDim] / 2,
-          tCoord = (SC.none( iElem.attr('c' + dim)) ?
-          SC.none( iElem.attr(dim)) ? 0 : iElem.attr(dim) :
-          iElem.attr('c' + dim));
-      return tCoord + tRectExtra;
-    }
-
     var tFrame = this.get('frame');
     return this._plottedElements.map( function( iElement) {
-        var tPosKey = SC.none( iElement.attr('cx')) ? '' : 'c',
-            radius =( iElement.isHidden() ? 0 : iElement.attr('r')), // use r:0 as proxy for hidden plot element
-            tX = getCoord('x', iElement) + tFrame.x,
-            tY = getCoord('y', iElement) + tFrame.y,
-            tResult = { r: radius, fill: iElement.attr('fill') };
-            tResult[ tPosKey + 'x'] = tX;
-            tResult[ tPosKey + 'y'] = tY;
-        return tResult;
+        var tRadius =( iElement.isHidden() ? 0 : iElement.attr('r')); // use r:0 as proxy for hidden plot element
+            return {
+              cx: iElement.attr('cx') + tFrame.x,
+              cy: iElement.attr('cy') + tFrame.y,
+              r: tRadius,
+              fill: iElement.attr('fill') };
       });
   },
 

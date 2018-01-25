@@ -85,26 +85,7 @@ DG.CountAxisModel = DG.CellLinearAxisModel.extend(
    */
   cellNameToCellNumber: function( iName) {
     return 0;
-  },
-
-  /**
-  Recompute lowerBound, upperBound and tickGap for each subaxis
-
-    @param {Number} iDataMin - the data provide this value
-    @param {Number} iDataMax - the data provide this value
-    @return { {lower: {Number}, upper: {Number}, gap: {Number}} }
-    @protected
-  */
-/*
-  _computeBoundsAndTickGap: function( /!*iDataMin, iDataMax*!/) {
-    var tTickGap;
-
-    tTickGap = this._computeTickGap( 0, 100);
-    return { lower: this._findLow( 0, tTickGap),
-              upper: this._findHigh( 100, tTickGap),
-              gap: tTickGap };
   }
-*/
 
  });
 
