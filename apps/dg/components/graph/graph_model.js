@@ -656,7 +656,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         name: "graph.toggleBarChart",
         undoString: tUndo,
         redoString: tRedo,
-        log: ("toggleShowAs" + ": %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
+        log: ("toggleShowAs: %@").fmt(tInitialValue ? "DotChart" : "BarChart"),
         execute: function() {
           doSwap();
         }.bind(this),
