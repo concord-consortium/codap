@@ -203,7 +203,7 @@ DG.PlotView = DG.PlotLayer.extend(
     @return {Array of {cx:{Number}, cy:{Number}, r: {Number}, fill: {String} }
   */
   getElementPositionsInParentFrame: function() {
-    DG.assert( this._plottedElements.length === 0 || SC.none(this._plottedElements[0].attr('width')),
+    DG.assert( this._plottedElements.length === 0 || this._plottedElements[0][0].constructor !== SVGRectElement,
         'Expecting circle, not rect');
     var tFrame = this.get('frame');
     return this._plottedElements.map( function( iElement) {
