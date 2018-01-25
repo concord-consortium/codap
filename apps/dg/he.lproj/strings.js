@@ -648,5 +648,19 @@ SC.stringsFor("he", {
     "DG.Inspector.graphMovablePoint": "Movable Point",
     "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
-    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set"
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
+    "DG.Undo.graph.showAsBarChart": "Undo fusing dots into bars",
+    "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
+    "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
+    "DG.Redo.graph.showAsDotChart": "Redo dispersing bars into dots",
+    "DG.CountAxisView.countLabel": "Count",
+    "DG.CountAxisView.countLabelDescription": "Number of cases in the bar along this axis",
+    "DG.CountAxisView.percentLabel": "Percent",
+    "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
+    "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",
+    "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
+    "DG.Inspector.configuration": "Configuration",
+    "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
+    "DG.Inspector.displayScale": "Scale …",
+    "DG.Inspector.graphBarChart": "Fuse Dots into Bars"
 });
