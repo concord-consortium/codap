@@ -73,13 +73,17 @@ DG.MapGridMarqueeView = DG.RaphaelBaseView.extend(
         tBaseSelection = [];  // eslint-disable-line no-unused-vars
 
     function startMarquee( iWindowX, iWindowY, iEvent) {
+      // In embedded mode we may have a scrolled page.
+      var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+          scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
       if( iEvent.shiftKey) {
         //tBaseSelection = this_.getPath( 'mapGridModel.selection').toArray();
       }
       else
         this_.get('mapGridModel').deselectAll();
       tStartPt = DG.ViewUtilities.windowToViewCoordinates(
-                    { x: iWindowX, y: iWindowY }, this_);
+                    { x: iWindowX - scrollLeft, y: iWindowY - scrollTop }, this_);
       tMarquee = this_._paper.rect( tStartPt.x, tStartPt.y, 0, 0)
               .attr( { fill: DG.PlotUtilities.kMarqueeColor,
                     stroke: DG.RenderingUtilities.kTransparent });
