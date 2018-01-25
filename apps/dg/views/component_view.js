@@ -219,7 +219,8 @@ DG.ComponentView = SC.View.extend(
           kRightBorderCursor = SC.Cursor.create({cursorStyle: SC.E_RESIZE_CURSOR}),
           kBottomBorderCursor = SC.Cursor.create({cursorStyle: SC.S_RESIZE_CURSOR}),
           kLeftBorderCursor = SC.Cursor.create({cursorStyle: SC.W_RESIZE_CURSOR}),
-          kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR})
+          kCornerBorderCursor = SC.Cursor.create({cursorStyle: SC.SE_RESIZE_CURSOR}),
+          kLockThingsDown = DG.get('componentMode') === 'yes' || DG.get('embeddedMode') === 'yes'
           ;
       return {
         classNames: ['dg-component-view'],
@@ -272,7 +273,7 @@ DG.ComponentView = SC.View.extend(
 
           // If we are in component mode we select the component after it is
           // rendered.
-          if (DG.get('componentMode') === 'yes') {
+          if (kLockThingsDown) {
             this.invokeLater(function () {
               this.select();
             }.bind(this));
@@ -285,7 +286,7 @@ DG.ComponentView = SC.View.extend(
           }
         },
         contentView: SC.outlet('containerView.contentView'),
-        childViews: ('containerView' + (DG.get('componentMode') === 'no' ?
+        childViews: ('containerView' + (!kLockThingsDown ?
             ' borderRight borderBottom borderLeft borderTop borderCorner' : '')).w(),
         containerView: SC.View.design({
           layout: {left: 0, bottom: 0, right: 0},
@@ -298,7 +299,7 @@ DG.ComponentView = SC.View.extend(
             classNameBindings: ['isSelected:dg-titlebar-selected'],
             model: null,  // DG.ComponentModel. Needed to determine if closebox should show
             childViews: ('statusView versionView ' +
-            (DG.get('componentMode') === 'no' ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
+            (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],
@@ -403,27 +404,27 @@ DG.ComponentView = SC.View.extend(
               layout: {left: 5, top: 5},
               value: ''
             }),
-            minimize: DG.get('componentMode') === 'no' ?
+            minimize: !kLockThingsDown ?
                 DG.TitleBarMinimizeButton.design({
                   layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-minimize-view'],
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            closeBox: DG.get('componentMode') === 'no' ?
+            closeBox: !kLockThingsDown ?
                 DG.TitleBarCloseButton.design({
                   layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-close-view'],
                   isVisible: SC.platform.touch
                 }) :
                 null,
-            undo: DG.get('componentMode') === 'yes' ?
+            undo: kLockThingsDown ?
                 DG.TitleBarUndoButton.design({
                   layout: {right: kTitleBarHeight, top: 10, width: 24, height: kTitleBarHeight},
                   classNames: ['dg-undo'],
                 }) :
                 null,
-            redo: DG.get('componentMode') === 'yes' ?
+            redo: kLockThingsDown ?
                 DG.TitleBarRedoButton.design({
                   layout: {right: 0, top: 4, width: kTitleBarHeight, height: kTitleBarHeight},
                   classNames: ['dg-redo'],
@@ -457,7 +458,7 @@ DG.ComponentView = SC.View.extend(
               tOuterView.adjust('top', tY);
             },
             canBeDragged: function () {
-              return DG.get('componentMode') === 'no';
+              return !kLockThingsDown;
             }
           }),
           coverSheet: SC.View.design({
