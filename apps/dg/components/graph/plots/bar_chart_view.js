@@ -233,7 +233,7 @@ DG.BarChartView = DG.ChartView.extend(
       drawData: function drawData() {
         sc_super();
 
-        this.updateSelection();
+        // this.updateSelection();
 
         this.drawSubBars();
       },

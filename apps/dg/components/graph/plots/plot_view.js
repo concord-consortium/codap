@@ -203,6 +203,8 @@ DG.PlotView = DG.PlotLayer.extend(
     @return {Array of {cx:{Number}, cy:{Number}, r: {Number}, fill: {String} }
   */
   getElementPositionsInParentFrame: function() {
+    DG.assert( this._plottedElements.length === 0 || SC.none(this._plottedElements[0].attr('width')),
+        'Expecting circle, not rect');
     var tFrame = this.get('frame');
     return this._plottedElements.map( function( iElement) {
         var tRadius =( iElement.isHidden() ? 0 : iElement.attr('r')); // use r:0 as proxy for hidden plot element
