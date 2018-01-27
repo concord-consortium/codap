@@ -209,6 +209,7 @@ DG.DataDisplayController = DG.ComponentController.extend(
             init: function () {
               sc_super();
               this_.get('dataDisplayModel').addObserver('canSupportConfigurations', this, 'plotDidChange');
+              this.plotDidChange(); // For initialization of visibility
             },
             plotDidChange: function () {
               this.set('isVisible', this_.getPath('dataDisplayModel.canSupportConfigurations'));
