@@ -268,7 +268,7 @@ DG.ChartModel = DG.PlotModel.extend(
     // compute count of cases in each cell, excluding missing values
     this.forEachBivariateCaseDo( function( iCase, iIndex, iPrimaryCell, iSecondaryCell) {
       tCellIndex = iPrimaryCell*tNumCells2 + iSecondaryCell;
-      if( DG.MathUtilities.isInIntegerRange( tCellIndex, 0, totalCells )) {
+      if( isFinite( tCellIndex) && DG.MathUtilities.isInIntegerRange( tCellIndex, 0, totalCells )) {
         var iValue = tValueArray[ tCellIndex ];
         iValue.count += 1;
         DG.assert( iValue.primaryCell === (iPrimaryCell || 0), "primary cell index error in DG.ChartModel.getCellCaseCounts()" );
