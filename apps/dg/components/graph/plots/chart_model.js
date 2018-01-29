@@ -68,10 +68,12 @@ DG.ChartModel = DG.PlotModel.extend(
 
   /**
    * A dot chart can be configured as a bar chart
+   * But (for now) not if there are categorical attributes on both x and y axes
    * @property {Boolean}
    */
   canSupportConfigurations: function() {
-    return true;
+    return this.getPath( 'dataConfiguration.xAttributeDescription.isNull') ||
+        this.getPath( 'dataConfiguration.yAttributeDescription.isNull');
   }.property(),
 
   /**
