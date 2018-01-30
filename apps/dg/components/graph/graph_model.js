@@ -604,6 +604,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.set( iDim + 'Axis', tNewAxis );
         tAxisToDestroy.destroy();
       }
+      else if( tWantsOtherAxis) {
+        // We've changed the attribute on the primary axis. Give the 'other' axis a chance to rescale
+        this.rescaleAxesFromData( true /* allow shrinkage */, true /* allow animation */);
+      }
     },
 
     /**
