@@ -569,14 +569,14 @@ DG.GraphModel = DG.DataDisplayModel.extend(
     privSyncAxisWithAttribute: function( iDescKey, iAxisKey ) {
       var tDataConfiguration = this.get('dataConfiguration'),
           tVarIsNumeric = tDataConfiguration.getPath( iDescKey + '.isNumeric'),
-          tAxisIsNumeric = this.getPath( iAxisKey + '.isNumeric'),
+          tDesiredAxisClass = tVarIsNumeric ? DG.CellLinearAxisModel : DG.CellAxisModel,
+          tCurrentAxisClass = this.get( iAxisKey).constructor,
           tAxisModelParams = { dataConfiguration: tDataConfiguration };
 
       // If the variable and axis are incompatible, we'll have to change the axis
-      if( tAxisIsNumeric !== tVarIsNumeric ) {
+      if( tDesiredAxisClass !== tCurrentAxisClass ) {
         var tAxisToDestroy = this.get( iAxisKey ),
-            tNewAxis = tVarIsNumeric ? DG.CellLinearAxisModel.create(tAxisModelParams) :
-                       DG.CellAxisModel.create(tAxisModelParams);
+            tNewAxis = tDesiredAxisClass.create(tAxisModelParams);
         tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDescKey ) );
         this.set( iAxisKey, tNewAxis );
         tAxisToDestroy.destroy();
