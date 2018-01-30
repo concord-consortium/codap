@@ -353,7 +353,7 @@ DG.BarChartView = DG.ChartView.extend(
 
       /**
        Override base class because we're dealing with rectangles, not points.
-       @return {Array of {x:{Number}, y:{Number}, width:{Number}, height:{Number}, fill:{String}}}
+       @return {Array of {x:{Number}, y:{Number}, width:{Number}, height:{Number}, cx:{Number}, cy:{Number}, r:{Number}, fill:{String}}}
        */
       getElementPositionsInParentFrame: function() {
 
@@ -363,7 +363,11 @@ DG.BarChartView = DG.ChartView.extend(
               tY = iElement.attr('y') + tFrame.y,
               tWidth = iElement.attr('width'),
               tHeight = iElement.attr('height'),
-              tResult = { x: tX, y: tY, width: tWidth, height: tHeight, fill: iElement.attr('fill') };
+              tR = Math.min( tWidth, tHeight) / 2,
+              tCx = tX + tWidth / 2,
+              tCy = tY + tHeight / 2,
+              tResult = { x: tX, y: tY, width: tWidth, height: tHeight, cx: tCx, cy: tCy, r: tR,
+                fill: iElement.attr('fill') };
           return tResult;
         });
       },

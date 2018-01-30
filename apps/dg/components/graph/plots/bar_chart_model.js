@@ -36,6 +36,12 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
 
       breakdownType: DG.Analysis.EBreakdownType.eCount,
 
+      /**
+       * We want an 'other' axis for count or percent.
+       * @property {Boolean}
+       */
+      wantsOtherAxis: true,
+
       naturalUpperBound: function () {
         var tNaturalUpperBound;
         switch (this.get('breakdownType')) {

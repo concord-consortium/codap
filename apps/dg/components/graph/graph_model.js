@@ -388,21 +388,24 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       @param  {String}              iOrientation -- identifies the axis ('horizontal' or 'vertical')
      */
     changeAttributeForAxis: function( iDataContext, iAttrRefs, iOrientation) {
-      var tDescKey, tAxisKey,
+      var tDescKey, tAxisKey, tOtherDim,
           newAttribute = iAttrRefs.attributes[0];
 
       switch( iOrientation) {
         case 'horizontal':
           tDescKey = 'xAttributeDescription';
           tAxisKey = 'xAxis';
+          tOtherDim = 'y';
           break;
         case 'vertical':
           tDescKey = 'yAttributeDescription';
           tAxisKey = 'yAxis';
+          tOtherDim = 'x';
           break;
         case 'vertical2':
           tDescKey = 'y2AttributeDescription';
           tAxisKey = 'y2Axis';
+          tOtherDim = 'x';
           break;
       }
 
@@ -415,6 +418,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
 
       // Make sure correct kind of axis is installed
       this.privSyncAxisWithAttribute( tDescKey, tAxisKey );
+      this.privSyncOtherAxisWithAttribute( tOtherDim);
       this.invalidate();
       this.set('aboutToChangeConfiguration', false ); // reset for next time
     },
@@ -578,6 +582,27 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         tAxisToDestroy.destroy();
 
         this.synchPlotWithAttributes();
+      }
+    },
+
+    /**
+     * Usually we don't have to worry about the other axis, but if there is no attribute on that axis, and if
+     * that dimension does not have an attribute, we have to make sure the axis is DG.AxisModel. A bar chart
+     * may have previously installed a DG.CountAxisModel that we get rid of.
+     * @param{String} iDim - 'x' or 'y'
+     */
+    privSyncOtherAxisWithAttribute: function( iDim ) {
+      var tDataConfiguration = this.get('dataConfiguration'),
+          tHasNoAttribute = tDataConfiguration.getPath(iDim + 'AttributeDescription.isNull'),
+          tAxisClass = this.getPath(iDim + 'Axis').constructor,
+          tWantsOtherAxis = this.getPath('plot.wantsOtherAxis');
+
+      if( tHasNoAttribute && !tWantsOtherAxis && tAxisClass !== DG.AxisModel) {
+        var tAxisToDestroy = this.get(iDim + 'Axis'),
+            tNewAxis = DG.AxisModel.create( { dataConfiguration: tDataConfiguration});
+        tNewAxis.set( 'attributeDescription', tDataConfiguration.get( iDim + 'AttributeDescription' ) );
+        this.set( iDim + 'Axis', tNewAxis );
+        tAxisToDestroy.destroy();
       }
     },
 

@@ -277,6 +277,12 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
       wantsPercentCheckbox: false,
 
       /**
+       * Generally false. But some plots, like a bar chart, will require an 'other' axis; e.g. for count.
+       * @property {Boolean}
+       */
+      wantsOtherAxis: false,
+
+      /**
        @return { Boolean }
        */
       shouldPlottedCountBeChecked: function (iWhat) {
