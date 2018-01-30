@@ -91,7 +91,7 @@ DG.AxisModel = SC.Object.extend(
    */
   getLabelDescription: function( iIndex) {
     var tAttributes = this.getPath('attributeDescription.attributes');
-    return (iIndex < tAttributes.length) ? tAttributes[ iIndex].get('description') : '';
+    return (tAttributes && iIndex < tAttributes.length) ? tAttributes[ iIndex].get('description') : '';
   },
 
   firstAttribute: function() {
