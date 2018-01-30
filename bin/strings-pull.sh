@@ -1,8 +1,12 @@
 #!/bin/bash
+
 CURL='/usr/bin/curl'
 POEDITOR_EXPORT_URL="https://api.poeditor.com/v2/projects/export"
 API_TOKEN="$POEDITOR_API_TOKEN" # may be set as environment variable
 OUTPUT_DIR="." # default before argument processing
+
+# override with defaults, if rc is present
+[ -f $HOME/.porc ] && . $HOME/.porc
 
 # argument processing from https://stackoverflow.com/a/14203146
 while [[ $# -gt 1 ]]

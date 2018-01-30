@@ -8,6 +8,9 @@ OVERWRITE="1"
 SYNC_TERMS="1"
 FUZZY_TRIGGER="1"
 
+# override with defaults, if rc is present
+[ -f $HOME/.porc ] && . $HOME/.porc
+
 # argument processing from https://stackoverflow.com/a/14203146
 while [[ $# -gt 1 ]]
 do
