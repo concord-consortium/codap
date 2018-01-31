@@ -662,5 +662,11 @@ SC.stringsFor("tr", {
     "DG.Inspector.configuration": "Configuration",
     "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
     "DG.Inspector.displayScale": "Scale …",
-    "DG.Inspector.graphBarChart": "Fuse Dots into Bars"
+    "DG.Inspector.graphBarChart": "Fuse Dots into Bars",
+    "DG.Locale.name.de": "German",
+    "DG.Locale.name.en": "English",
+    "DG.Locale.name.es": "Spanish",
+    "DG.Locale.name.he": "Hebrew",
+    "DG.Locale.name.tr": "Turkish",
+    "DG.Locale.name.zh": "Chinese"
 });
