@@ -137,17 +137,17 @@ DG.ChartView = DG.PlotView.extend(
 
         if (this._mustCreatePlottedElements) {
           this.removePlottedElements();
-          tCases.forEach(this.callCreateElement, this);
+          tCases.forEach(this.callCreateElement.bind(this));
           this._mustCreatePlottedElements = false;
         }
 
         this.computeCellParams();
 
-        for (tIndex = tCases.length; tIndex < tPlotElementLength; tIndex++) {
+        for (tIndex = tCases.get('length'); tIndex < tPlotElementLength; tIndex++) {
           DG.PlotUtilities.doHideRemoveAnimation(this._plottedElements[tIndex], tLayerManager);
         }
-        if (tCases.length < tPlotElementLength) { // remove from array
-          tPlotElementLength = this._plottedElements.length = tCases.length;
+        if (tCases.get('length') < tPlotElementLength) { // remove from array
+          tPlotElementLength = this._plottedElements.length = tCases.get('length');
         }
         tRC = this.createRenderContext();
         tCases.forEach(function (iCase, iIndex) {

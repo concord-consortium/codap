@@ -502,3 +502,66 @@ DG.PlotUtilities = {
   }
 
 };
+
+DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
+  _cases: null,
+  _map: null,
+
+  init: function() {
+    sc_super();
+    this._cases = this._cases || [];
+    this._map = this._map || [];
+  },
+
+  length: function() {
+    return this._cases.length;
+  }.property( '_cases'),
+
+  at: function( iIndex) {
+    return this._cases[this._map[iIndex]];
+  },
+
+  /**
+   * Return the case at the given index in the original array
+   * @param iIndex {Number}
+   * @return {DG.Case}
+   */
+  unorderedAt: function( iIndex) {
+    return this._cases[iIndex];
+  },
+
+  push: function( iCase) {
+    this._cases.push( iCase);
+    this._map.push( this._cases.length - 1);
+  },
+
+  indexOf: function( iCase) {
+    return this._cases.indexOf( iCase);
+  },
+
+  forEach: function( iDoF) {
+    this._map.forEach( function( iMapValue, iIndex) {
+      iDoF( this._cases[iMapValue], iMapValue, iIndex);
+    }.bind( this));
+  },
+
+  map: function( iTransF) {
+    var tResult = DG.PlotUtilities.PlotCaseArray.create();
+    this.forEach( function( iCase, iMapIndex) {
+        tResult._cases[ iMapIndex] = iTransF( iCase, iMapIndex);
+        tResult._map.push( iMapIndex);
+      });
+    return tResult;
+  },
+
+  filter: function( iBoolF) {
+    var tResult = DG.PlotUtilities.PlotCaseArray.create();
+    this.forEach( function( iCase, iMapIndex) {
+      if( iBoolF( iCase, iMapIndex)) {
+        tResult._cases[ iMapIndex] = iCase;
+        tResult._map.push( iMapIndex);
+      }
+    }.bind( this));
+    return tResult;
+  }
+});

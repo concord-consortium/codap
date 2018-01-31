@@ -78,7 +78,7 @@ DG.CasePlotModel = DG.PlotModel.extend(
     // assumes a single row and column axis cell and no missing cases
     var tValueArray = [];
     var tCases = this.get('cases');
-    var tNumCases = tCases.length;
+    var tNumCases = tCases.get('length');
     tValueArray.push( {
         count: tNumCases,
         primaryCell: 0,

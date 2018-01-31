@@ -278,7 +278,7 @@ DG.AttributeStats = SC.Object.extend(
             tNumericCaseCount = 0,
             tAttributeType,
             tDataIsNumeric = true,  // True both for numbers and dates
-            tDataIsDateTime = tCases.length > 0,
+            tDataIsDateTime = tCases.get('length') > 0,
             tColorValuesExist = false,
             tMin = Number.POSITIVE_INFINITY,
             tMax = Number.NEGATIVE_INFINITY,

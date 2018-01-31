@@ -175,7 +175,7 @@ DG.BarChartView = DG.ChartView.extend(
         var tModel = this.get('model'),
             tRC = this.createRenderContext(),
             tCases = this.getPath('model.cases'),
-            tDataLength = tCases && tCases.length;
+            tDataLength = tCases && tCases.get('length');
         tCases.forEach(function (iCase, iIndex) {
           var tCallback = iIndex === tDataLength - 1 ? iCallback : null,
               tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
@@ -196,7 +196,7 @@ DG.BarChartView = DG.ChartView.extend(
         var tModel = this.get('model'),
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
-            tDataLength = tCases && tCases.length,
+            tDataLength = tCases && tCases.get('length'),
             tPlotElementLength = this._plottedElements.length,
             tLayerManager = this.get('layerManager'),
             tIndex, tCellIndices;
@@ -205,9 +205,9 @@ DG.BarChartView = DG.ChartView.extend(
         if (tDataLength > tPlotElementLength) {
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
+            this.callCreateElement(tCases.at(tIndex), tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices, iAnimate, iCallback);
+            this.privSetElementCoords(tRC, tCases.at(tIndex), tIndex, tCellIndices, iAnimate, iCallback);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates

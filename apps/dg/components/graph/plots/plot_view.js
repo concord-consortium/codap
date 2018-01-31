@@ -266,10 +266,10 @@ DG.PlotView = DG.PlotLayer.extend(
         // create new circles, animating from old coordinates where possible
         var tPt = getCaseCurrentLocation( iIndex ),
             tAnimate = false,
-            tCallBack;
-        this_.callCreateElement( iCase, iIndex, false);
+            tCallBack,
+            tNewElement = this_.callCreateElement( iCase, iIndex, false);
         if( !SC.none( tPt)) {
-          tElements[ iIndex].attr( tPt);
+          tNewElement.attr( tPt);
           tAnimate = true;
           if( !tHaveInstalledCallback) {
             tCallBack = function() {
@@ -322,7 +322,7 @@ DG.PlotView = DG.PlotLayer.extend(
         tParentCollectionClient = this.getPath('model.dataContext.parentCollection'),
         tParentNumCases = tParentCollectionClient ? tParentCollectionClient.getCaseCount() : 0,
         tChildNumCases = tChildCollectionClient ? tChildCollectionClient.getCaseCount() : 0,
-        tNewNumCases = tCases ? tCases.length : 0,
+        tNewNumCases = tCases ? tCases.get('length') : 0,
         tOldNumCases = tTransferredPoints.length;
 
     function isParentToChildTransformation() {

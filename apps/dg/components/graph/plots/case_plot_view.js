@@ -37,9 +37,10 @@ DG.CasePlotView = DG.PlotView.extend(
       var tChanges = (SC.typeOf( iChanges ) === SC.T_NUMBER ? [ iChanges ] : iChanges);
       tChanges = tChanges || [];
       tChanges.forEach( function( iIndex ) {
+        var tCase = tCases.at(iIndex);
         if( iIndex >= tPlotElementLength )
-          this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn );
-        this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
+          this_.callCreateElement( tCase, iIndex, this_._createAnimationOn );
+        this_.setCircleCoordinate( tRC, tCase, iIndex );
       } );
       sc_super();
     },
@@ -54,9 +55,10 @@ DG.CasePlotView = DG.PlotView.extend(
      * @returns {cx {Number},cy {Number}} final coordinates or null if not defined (hidden plot element)
      */
     setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
-      DG.assert( iRC && iRC.xAxisView );
-      DG.assert( iCase );
-      DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
+      DG.assert( iRC && iRC.xAxisView, 'incomplete render context' );
+      DG.assert( iCase, 'no case' );
+      DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ),
+         'out of bounds', 'Index for circle element');
 
       function dataToCoordinateWithMargin( iAxisView, iData, iMargin ) {
         // position icons in view, with margin to prevent circle edge from being clipped.
@@ -131,7 +133,7 @@ DG.CasePlotView = DG.PlotView.extend(
                   changeCaseValues( this.index, tPoint);
                   this.transform( tCurrTransform);
                 }
-                this_.setCircleCoordinate( tRC, this_.getPath('model.cases')[ this.index], this.index);
+                this_.setCircleCoordinate( tRC, this_.getPath('model.cases').at(this.index), this.index);
               },
               function (x, y) { // begin
                 tIsDragging = true;
@@ -165,9 +167,9 @@ DG.CasePlotView = DG.PlotView.extend(
           return;
 
         var tStopIndex = tLoopIndex + tIncrementBy;
-        if( tLoopIndex < tCases.length) {
-          for( ; (tLoopIndex < tCases.length) && (tLoopIndex < tStopIndex); tLoopIndex++ ) {
-            var tCase = tCases[tLoopIndex],
+        if( tLoopIndex < tCases.get('length')) {
+          for( ; (tLoopIndex < tCases.get('length')) && (tLoopIndex < tStopIndex); tLoopIndex++ ) {
+            var tCase = tCases.at(tLoopIndex),
                 tPoint = this.createElement(null, tLoopIndex);
             tPoint.attr({'fill-opacity': 0, fill: 'yellow'});
             this._plottedElements.push(tPoint);
@@ -203,7 +205,7 @@ DG.CasePlotView = DG.PlotView.extend(
         } );
         this._plottedElements.length = 0;
 
-        tIncrementBy = Math.ceil( tCases.length / 50);
+        tIncrementBy = Math.ceil( tCases.get('length') / 50);
         this.setPath( 'model.isAnimating', true); // So the animation can finish
         animateSomePoints();  // will loop through all points using invokeLater
         this._mustCreatePlottedElements = false;
@@ -214,10 +216,10 @@ DG.CasePlotView = DG.PlotView.extend(
         });
 
         // Get rid of any extra circles
-        for (tIndex = tCases.length; tIndex < this._plottedElements.length; tIndex++) {
+        for (tIndex = tCases.get('length'); tIndex < this._plottedElements.length; tIndex++) {
           this._plottedElements[tIndex].remove();
         }
-        this._plottedElements.length = tCases.length;
+        this._plottedElements.length = tCases.get('length');
       }
     },
 

@@ -356,6 +356,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
   init: function() {
     sc_super();
     this._hiddenCases = [];
+    this._plotCaseArray = DG.PlotUtilities.PlotCaseArray.create();
   },
 
   destroy: function() {
@@ -503,6 +504,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   _casesCache: null, // Array of DG.Case
+  _plotCaseArray: null, // DG.PlotUtilities.PlotCaseArray
 
   /**
    * @property {SC.Array of DG.Case} All cases, both hidden and visible
@@ -518,7 +520,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
   }.property(),
 
   /**
-    @property { Function that returns SC.Array of DG.Case }
+    @property { {DG.PlotUtilities.PlotCaseArray} that behaves like an SC.Array of DG.Case }
   */
   cases: function() {
     if( SC.none( this._casesCache)) {
@@ -559,19 +561,25 @@ DG.PlotDataConfiguration = SC.Object.extend(
         // If there is a categorical legend attribute then we sort the cases so that cases
         // belonging to a given category are together. The order of categories is determined by
         // the attribute's categoryMap
-        var tLegendAttrDesc = tAttributesByPlace[ DG.GraphTypes.EPlace.eLegend][0];
+        var tLegendAttrDesc = tAttributesByPlace[ DG.GraphTypes.EPlace.eLegend][0],
+            tMapOriginalToSorted = [];
+        for( var index = 0; index < tResult.length; index++) {
+          tMapOriginalToSorted.push(index);
+        }
         if( tLegendAttrDesc &&
             tLegendAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eCategorical) {
           var tLegendID = tLegendAttrDesc.getPath('attribute.id'),
               tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
-          tResult.sort( function( iCase1, iCase2) {
-            var tValue1 = iCase1.getStrValue( tLegendID),
-                tValue2 = iCase2.getStrValue( tLegendID);
-            return tCategoryMap.__order.indexOf( tValue1) - tCategoryMap.__order.indexOf( tValue2);
+          tMapOriginalToSorted.sort( function( iIndex1, iIndex2) {
+            var tValue1 = tResult[iIndex1].getStrValue( tLegendID),
+                tValue2 = tResult[iIndex2].getStrValue( tLegendID);
+            return tCategoryMap.__order.indexOf( tValue2) - tCategoryMap.__order.indexOf( tValue1);
           });
         }
+        this._plotCaseArray.set('_cases', tResult);
+        this._plotCaseArray.set('_map', tMapOriginalToSorted);
       }
-      this._casesCache = tResult;
+      this._casesCache = this._plotCaseArray;
     }
     return this._casesCache;
   }.property('xCollectionClient','yCollectionClient', 'legendCollectionClient'),
@@ -587,12 +595,15 @@ DG.PlotDataConfiguration = SC.Object.extend(
         tAttrID = tAttrDesc.getPath('attribute.id');
     if (tAttrDesc.get('isNumeric')) {
       var tCases = this.get('cases');
-      tValues = (tCases ? (tCases.map(function (iCase) {
-        var tValue = iCase.getNumValue(tAttrID);
-        return isFinite(tValue) ? tValue : null;
-      })) : []).filter(function (iValue) {
-        return iValue !== null;
-      });
+      tValues = [];
+      if (tCases) {
+        tCases.forEach(function (iCase) {
+          var tValue = iCase.getNumValue(tAttrID);
+          if (isFinite(tValue)) {
+            tValues.push(tValue);
+          }
+        });
+      }
     }
     return tValues;
   },

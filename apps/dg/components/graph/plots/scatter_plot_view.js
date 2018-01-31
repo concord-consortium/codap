@@ -154,8 +154,8 @@ DG.ScatterPlotView = DG.PlotView.extend(
     tChanges = tChanges || [];
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn);
-      this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
+        this_.callCreateElement( tCases.at(iIndex), iIndex, this_._createAnimationOn);
+      this_.setCircleCoordinate( tRC, tCases.at(iIndex), iIndex );
     });
 
     // If we are displaying squares then we invalidate the display so squares will be updated
@@ -272,7 +272,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
     }
     
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoords) {
-      var tCase = this_.getPath('model.cases')[ iCaseIndex],
+      var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
           tVarIDs = getVarIDs(),
           tDeltaX = tCase.getNumValue( tVarIDs.x) - iStartWorldCoords.x,
           tDeltaY = tCase.getNumValue( tVarIDs.y) - iStartWorldCoords.y;
@@ -324,7 +324,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                   var tNewX = this_.get('xAxisView').coordinateToData( this.ox + dx),
                       tNewY = this_.get('yAxisView').coordinateToData( this.oy + dy),
                       tVarIDs = getVarIDs(),
-                      tCase = this_.getPath('model.cases')[ this.index],
+                      tCase = this_.getPath('model.cases').unorderedAt(this.index),
                       tOldX = tCase.getNumValue( tVarIDs.x),
                       tOldY = tCase.getNumValue( tVarIDs.y),
                       tCurrTransform = this.transform();
@@ -342,7 +342,7 @@ DG.ScatterPlotView = DG.PlotView.extend(
                 }, this);
             },
             function (x, y) { // begin
-              var tCase = this_.getPath('model.cases')[ this.index],
+              var tCase = this_.getPath('model.cases').unorderedAt(this.index),
                   tVarIDs = getVarIDs();
               tIsDragging = true;
               // Save the initial screen coordinates
