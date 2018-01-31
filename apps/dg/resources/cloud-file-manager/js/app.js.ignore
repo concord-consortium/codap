@@ -12240,6 +12240,9 @@ CloudFileManagerClient = (function() {
       callback = null;
     }
     if (metadata != null ? (ref = metadata.provider) != null ? ref.can('load', metadata) : void 0 : void 0) {
+      this._event('willOpenFile', {
+        op: "openFile"
+      });
       return metadata.provider.load(metadata, (function(_this) {
         return function(err, content) {
           if (err) {
@@ -12347,6 +12350,9 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
+    this._event('willOpenFile', {
+      op: "openLocalFile"
+    });
     return this.readLocalFile(file, (function(_this) {
       return function(data) {
         var content, metadata;
@@ -12376,6 +12382,9 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype.openSharedContent = function(id) {
     var ref;
+    this._event('willOpenFile', {
+      op: "openSharedContent"
+    });
     return (ref = this.state.shareProvider) != null ? ref.loadSharedContent(id, (function(_this) {
       return function(err, content, metadata) {
         if (err) {
@@ -12410,6 +12419,9 @@ CloudFileManagerClient = (function() {
     return this.confirm(tr("~CONFIRM.AUTHORIZE_OPEN"), (function(_this) {
       return function() {
         return provider.authorize(function() {
+          _this._event('willOpenFile', {
+            op: "confirmAuthorizeAndOpen"
+          });
           return provider.openSaved(providerParams, function(err, content, metadata) {
             if (err) {
               return _this.alert(err);
@@ -12431,6 +12443,9 @@ CloudFileManagerClient = (function() {
       return provider.authorized((function(_this) {
         return function(authorized) {
           if (authorized || !provider.isAuthorizationRequired()) {
+            _this._event('willOpenFile', {
+              op: "openProviderFile"
+            });
             return provider.openSaved(providerParams, function(err, content, metadata) {
               if (err) {
                 return _this.alert(err, function() {
@@ -12459,6 +12474,9 @@ CloudFileManagerClient = (function() {
   CloudFileManagerClient.prototype.openUrlFile = function(url) {
     return this.urlProvider.openFileFromUrl(url, (function(_this) {
       return function(err, content, metadata) {
+        _this._event('willOpenFile', {
+          op: "openUrlFile"
+        });
         if (err) {
           return _this.alert(err, function() {
             return _this.ready();
@@ -12681,6 +12699,9 @@ CloudFileManagerClient = (function() {
 
   CloudFileManagerClient.prototype.openCopiedFile = function(copyParams) {
     var content, copied, e, key, metadata;
+    this._event('willOpenFile', {
+      op: "openCopiedFile"
+    });
     try {
       key = "cfm-copy::" + copyParams;
       copied = JSON.parse(window.localStorage.getItem(key));
@@ -12945,6 +12966,9 @@ CloudFileManagerClient = (function() {
     if (callback == null) {
       callback = null;
     }
+    this._event('willOpenFile', {
+      op: "revertToLastOpened"
+    });
     if ((this.state.openedContent != null) && this.state.metadata) {
       return this._fileOpened(this.state.openedContent, this.state.metadata, {
         openedContent: this.state.openedContent.clone()

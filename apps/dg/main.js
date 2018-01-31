@@ -586,6 +586,12 @@ DG.main = function main() {
               });
             break;
 
+          case 'willOpenFile':
+            SC.run(function() {
+              DG.splash.showSplash();
+            });
+            break;
+
           case 'newedFile':
             SC.run(function() {
               DG.appController.closeAndNewDocument();
