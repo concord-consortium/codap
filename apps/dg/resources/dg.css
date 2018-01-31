@@ -1282,3 +1282,31 @@ html.dg-embedded-mode .dg-data-tip-text {
     display: block;
     font-variant-numeric: tabular-nums;
 }
+
+
+
+/*!
+ * Generated with CSS Flag Sprite generator (https://www.flag-sprites.com/)
+ */
+
+img.flag {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    left:4px;
+    top:0;
+    background: static_url('flags.png') no-repeat;
+}
+
+.dg.rightSide .dg.dg-icon-button label{
+    background: #005060;
+    padding: 2px 0;
+}
+
+.menu.dg-locales-menu .sc-menu-item {
+    top:0;
+}
+
+.menu.dg-locales-menu {
+    padding-left: 0;
+}

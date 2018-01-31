@@ -577,7 +577,46 @@ DG = SC.Application.create((function () // closure
     // CFM functions, null until connected
     exportFile: null,
 
-    enableUndoHistory: true //getUrlParameter('undo') === 'true'
+    enableUndoHistory: true, //getUrlParameter('undo') === 'true'
+
+    locales: [
+      // {
+      //   langName: 'DG.Locale.name.de',
+      //   langDigraph: 'de',
+      //   countryDigraph: 'DE',
+      //   icon: 'flag flag-de'
+      // },
+      {
+        langName: 'DG.Locale.name.en',
+        langDigraph: 'en',
+        countryDigraph: 'US',
+        icon: 'flag flag-us'
+      },
+      {
+        langName: 'DG.Locale.name.es',
+        langDigraph: 'es',
+        countryDigraph: 'ES',
+        icon: 'flag flag-es'
+      },
+      {
+        langName: 'DG.Locale.name.he',
+        langDigraph: 'he',
+        countryDigraph: 'IL',
+        icon: 'flag flag-il'
+      },
+      {
+        langName: 'DG.Locale.name.tr',
+        langDigraph: 'tr',
+        countryDigraph: 'TR',
+        icon: 'flag flag-tr'
+      },
+      {
+        langName: 'DG.Locale.name.zh',
+        langDigraph: 'zh',
+        countryDigraph: 'CN',
+        icon: 'flag flag-cn'
+      }
+    ]
 
   }, window.DG); // end return from closure
 

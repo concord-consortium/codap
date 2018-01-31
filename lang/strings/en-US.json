@@ -768,5 +768,12 @@
     "DG.GameController.confirmCloseDescription": "If you close this, you may not be able to add more data.",
 
     // Web View
-    "DG.WebView.defaultTitle": "Web Page"
+    "DG.WebView.defaultTitle": "Web Page",
+
+    "DG.Locale.name.de": "German",
+    "DG.Locale.name.en": "English",
+    "DG.Locale.name.es": "Spanish",
+    "DG.Locale.name.he": "Hebrew",
+    "DG.Locale.name.tr": "Turkish",
+    "DG.Locale.name.zh": "Chinese"
 }
