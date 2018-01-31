@@ -1,42 +1,29 @@
-{
-    // CFM/File menu
-    "DG.fileMenu.menuItem.newDocument": "New",
-    "DG.fileMenu.menuItem.openDocument": "Open...",
-    "DG.fileMenu.menuItem.closeDocument": "Close",
-    "DG.fileMenu.menuItem.importFile": "Import...",
+SC.stringsFor("de", {
+    "DG.fileMenu.menuItem.newDocument": "Neu",
+    "DG.fileMenu.menuItem.openDocument": "Öffnen",
+    "DG.fileMenu.menuItem.closeDocument": "Schließen",
+    "DG.fileMenu.menuItem.importFile": "Importieren ...",
     "DG.fileMenu.menuItem.revertTo": "Revert...",
     "DG.fileMenu.menuItem.revertToOpened": "Recently opened state",
     "DG.fileMenu.menuItem.revertToShared": "Shared view",
-    "DG.fileMenu.menuItem.saveDocument": "Save...",
-    "DG.fileMenu.menuItem.copyDocument": "Create a copy",
-    "DG.fileMenu.menuItem.share": "Share...",
+    "DG.fileMenu.menuItem.saveDocument": "Speichern ...",
+    "DG.fileMenu.menuItem.copyDocument": "Kopie erstellen",
+    "DG.fileMenu.menuItem.share": "Teilen ...",
     "DG.fileMenu.menuItem.shareGetLink": "Get link to shared view",
     "DG.fileMenu.menuItem.shareUpdate": "Update shared view",
-    "DG.fileMenu.menuItem.renameDocument": "Rename",
-    "DG.fileMenu.provider.examples.displayName": "Example Documents",
-
-    // main.js
+    "DG.fileMenu.menuItem.renameDocument": "Umbennen",
     "DG.main.userEntryView.title": "What would you like to do?",
     "DG.main.userEntryView.openDocument": "Open Document or Browse Examples",
-    "DG.main.userEntryView.newDocument": "Create New Document",
-
-    // mainPage.js
-    "DG.mainPage.mainPane.undoButton.title": "Undo",
+    "DG.main.userEntryView.newDocument": "Neues Dokument erstellen",
+    "DG.mainPage.mainPane.undoButton.title": "Zurück",
     "DG.mainPage.mainPane.undoButton.toolTip": "Undo the last action",
-    "DG.mainPage.mainPane.redoButton.title": "Redo",
-    "DG.mainPage.mainPane.redoButton.toolTip": "Redo the last undone action",
-    "DG.mainPage.mainPane.versionString": "Version %@ (%@)", // DG.VERSION, DG.BUILD_NUM
+    "DG.mainPage.mainPane.redoButton.title": "Wiederholen",
+    "DG.mainPage.mainPane.redoButton.toolTip": "Letzte Aktion wiederholen",
+    "DG.mainPage.mainPane.versionString": "Version %@ (%@)",
     "DG.mainPage.mainPane.messageView.value": "Unfortunately, CODAP is not currently supported on your browser. CODAP is supported on Firefox 46+, Chrome 50+, Windows Edge 14+, and Safari 10+. CODAP is not actively supported on other browsers at this time.",
     "DG.mainPage.titleBar.saved": "Document Saved!",
-    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
-  
-    // IS_BUILD variants of strings for InquirySpace
     "DG.mainPage.mainPane.versionString.IS_BUILD": "Version %@ (%@ IS)",
-
-    // DG.IS_SRRI_BUILD variants of strings for SRRI build
-    "DG.mainPage.mainPane.versionString.SRRI_BUILD": "Version %@ (%@.srri10)", // Add suffix to version to identify SRRI's subsequent modifications .srri0, .srri1, .srri2 etc.
-
-    // DG.AppController
+    "DG.mainPage.mainPane.versionString.SRRI_BUILD": "Version %@ (%@.srri10)",
     "DG.AppController.resetData.title": "Clear Data...",
     "DG.AppController.resetData.toolTip": "Delete all data from current document",
     "DG.AppController.resetData.warnMessage": "Do you really want to delete all the data in this document?",
@@ -72,7 +59,7 @@
     "DG.AppController.showHelpTitle": "Help with CODAP",
     "DG.AppController.showAboutTitle": "About CODAP",
     "DG.AppController.showReleaseNotesTitle": "CODAP Release Notes",
-    "DG.AppController.dropFile.error": "Error: %@1", // Error: <error text>
+    "DG.AppController.dropFile.error": "Error: %@1",
     "DG.AppController.dropFile.unknownFileType": "You cannot import the type of file dropped",
     "DG.AppController.validateDocument.missingRequiredProperty": "Required property not found: %@1",
     "DG.AppController.validateDocument.unexpectedProperty": "Unexpected top-level property: %@1",
@@ -84,16 +71,10 @@
     "DG.AppController.createDataSet.initialAttribute": "Attribute",
     "DG.AppController.createDataSet.name": "New Dataset",
     "DG.AppController.createDataSet.collectionName": "Cases",
-    "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
     "DG.AppController.caseTableMenu.newDataSet": "-- new --",
-    "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
-    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
-
     "DG.SingleTextDialog.okButton.title": "OK",
     "DG.SingleTextDialog.cancelButton.title": "Cancel",
     "DG.SingleTextDialog.cancelButton.toolTip": "Dismiss the dialog without making any changes",
-
-    // DG.DocumentController
     "DG.DocumentController.calculatorTitle": "Calculator",
     "DG.DocumentController.caseTableTitle": "Case Table",
     "DG.DocumentController.graphTitle": "Graph",
@@ -102,16 +83,10 @@
     "DG.DocumentController.mapTitle": "Map",
     "DG.DocumentController.enterURLPrompt": "Enter the URL of a web page to display",
     "DG.DocumentController.enterViewWebPageOKTip": "Displays the web page given by the URL",
- 
-    // DG.Document
     "DG.Document.defaultDocumentName": "Untitled Document",
     "DG.Document.documentName.toolTip": "Click to edit document name",
-
-    // DG.SliderView
     "DG.SliderView.thumbView.toolTip": "Drag to change the slider's value",
     "DG.SliderView.startButton.toolTip": "Start/stop animation",
-
-    // DG.ToolButtonData
     "DG.ToolButtonData.tableButton.title": "Tables",
     "DG.ToolButtonData.tableButton.toolTip": "Open a case table for each data set(ctrl-alt-t)",
     "DG.ToolButtonData.graphButton.title": "Graph",
@@ -133,10 +108,6 @@
     "DG.ToolButtonData.guideMenu.showGuide": "Show Guide",
     "DG.ToolButtonData.help.title": "Help",
     "DG.ToolButtonData.help.toolTip": "Help for CODAP, learn about CODAP project",
-    "DG.ToolButtonData.pluginMenu.title": "Plugins",
-    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
-
-    // DG.Slider
     "DG.Slider.multiples": "Restrict to Multiples of:",
     "DG.Slider.maxPerSecond": "Maximum Animation Frames/sec:",
     "DG.Slider.direction": "Animation Direction:",
@@ -146,8 +117,6 @@
     "DG.Slider.mode": "Animation Repetition:",
     "DG.Slider.nonStop": "Non-Stop",
     "DG.Slider.onceOnly": "Once Only",
-
-    // Undo / Redo
     "DG.Undo.exceptionOccurred": "An error occurred while trying to undo.",
     "DG.Redo.exceptionOccurred": "An error occurred while trying to redo.",
     "DG.Undo.componentMove": "Undo moving the component",
@@ -210,10 +179,6 @@
     "DG.Redo.graph.showPercent": "Redo showing percent",
     "DG.Undo.graph.hidePercent": "Undo hiding percent",
     "DG.Redo.graph.hidePercent": "Redo hiding percent",
-    "DG.Undo.graph.showMovablePoint": "Undo showing movable point",
-    "DG.Redo.graph.showMovablePoint": "Redo showing movable point",
-    "DG.Undo.graph.hideMovablePoint": "Undo hiding movable point",
-    "DG.Redo.graph.hideMovablePoint": "Redo hiding movable point",
     "DG.Undo.graph.showMovableLine": "Undo showing movable line",
     "DG.Redo.graph.showMovableLine": "Redo showing movable line",
     "DG.Undo.graph.hideMovableLine": "Undo hiding movable line",
@@ -262,18 +227,12 @@
     "DG.Redo.graph.hidePlottedIQR": "Redo hiding inter-quartile range",
     "DG.Undo.graph.hidePlottedIQR": "Undo hiding inter-quartile range",
     "DG.Redo.graph.showPlottedIQR": "Redo showing inter-quartile range",
-    "DG.Undo.graph.showAsBarChart": "Undo fusing dots into bars",
-    "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
-    "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
-    "DG.Redo.graph.showAsDotChart": "Redo dispersing bars into dots",
     "DG.Undo.graph.addMovableValue": "Undo adding movable value",
     "DG.Redo.graph.addMovableValue": "Redo adding movable value",
     "DG.Undo.graph.removeMovableValue": "Undo removing movable value",
     "DG.Redo.graph.removeMovableValue": "Redo removing movable value",
     "DG.Undo.graph.moveMovableValue": "Undo moving movable value",
     "DG.Redo.graph.moveMovableValue": "Redo moving movable value",
-    "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
-    "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
     "DG.Undo.graph.changePointColor": "Undo changing data color",
     "DG.Redo.graph.changePointColor": "Redo changing data color",
     "DG.Undo.graph.changeStrokeColor": "Undo changing stroke color",
@@ -354,31 +313,24 @@
     "DG.Redo.component.minimize": "Redo minimizing component",
     "DG.Undo.dataContext.moveAttribute": "Undo moving case table attribute",
     "DG.Redo.dataContext.moveAttribute": "Redo moving case table attribute",
-
-    // DG.DataContext
     "DG.DataContext.singleCaseName": "case",
     "DG.DataContext.pluralCaseName": "cases",
-    "DG.DataContext.caseCountString": "%@1 %@2", // %@1: count, %@2: case name string
+    "DG.DataContext.caseCountString": "%@1 %@2",
     "DG.DataContext.setOfCasesLabel": "a collection",
     "DG.DataContext.collapsedRowString": "%@1 of %@2",
     "DG.DataContext.noData": "No Data",
     "DG.DataContext.baseName": "Data_Set_%@1",
-
-    // DG.CollectionClient
     "DG.CollectionClient.cantEditFormulaErrorMsg": "The formula for attribute \"%@\" is not editable.",
     "DG.CollectionClient.cantEditFormulaErrorDesc": "Create a new attribute to be able to specify a formula.",
-
-    // DG.Formula
     "DG.Formula.FuncCategoryArithmetic": "Arithmetic Functions",
-    "DG.Formula.FuncCategoryConversion": "Other Functions", // put into "Other" for now
+    "DG.Formula.FuncCategoryConversion": "Other Functions",
     "DG.Formula.FuncCategoryDateTime": "Date/Time Functions",
     "DG.Formula.FuncCategoryLookup": "Lookup Functions",
     "DG.Formula.FuncCategoryOther": "Other Functions",
-    "DG.Formula.FuncCategoryRandom": "Other Functions", // put into "Other" for now
+    "DG.Formula.FuncCategoryRandom": "Other Functions",
     "DG.Formula.FuncCategoryStatistical": "Statistical Functions",
     "DG.Formula.FuncCategoryString": "String Functions",
     "DG.Formula.FuncCategoryTrigonometric": "Trigonometric Functions",
-
     "DG.Formula.DateLongMonthJanuary": "January",
     "DG.Formula.DateLongMonthFebruary": "February",
     "DG.Formula.DateLongMonthMarch": "March",
@@ -391,7 +343,6 @@
     "DG.Formula.DateLongMonthOctober": "October",
     "DG.Formula.DateLongMonthNovember": "November",
     "DG.Formula.DateLongMonthDecember": "December",
-
     "DG.Formula.DateShortMonthJanuary": "Jan",
     "DG.Formula.DateShortMonthFebruary": "Feb",
     "DG.Formula.DateShortMonthMarch": "Mar",
@@ -404,7 +355,6 @@
     "DG.Formula.DateShortMonthOctober": "Oct",
     "DG.Formula.DateShortMonthNovember": "Nov",
     "DG.Formula.DateShortMonthDecember": "Dec",
-
     "DG.Formula.DateLongDaySunday": "Sunday",
     "DG.Formula.DateLongDayMonday": "Monday",
     "DG.Formula.DateLongDayTuesday": "Tuesday",
@@ -412,16 +362,10 @@
     "DG.Formula.DateLongDayThursday": "Thursday",
     "DG.Formula.DateLongDayFriday": "Friday",
     "DG.Formula.DateLongDaySaturday": "Saturday",
-
-                                          /* "dd-mmm-yyyy", "dd-mmm-yy", "mm/dd/yy", "mm/dd/yyyy" */
     "DG.Utilities.date.localDatePattern": "(?:(?:[0-3]?\\d-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-\\d{2}(?:\\d{2})?)|(?:[01]?\\d/[0-3]?\\d/\\d{2}(?:\\d{2})?))",
-                                     /* "hh:mm", "hh:mm:ss", "hh:mm:ss.ddd" */
     "DG.Utilities.date.timePattern": "(?:[0-2]?\\d:[0-5]?\\d(?::[0-5]\\d(?:\\.\\d{3})?)? ?(?:[ap]m)?)",
-                                        /* "yyyy-mm-dd", "yyyy-mm-ddThh:mm:ss", "yyyy-mm-ddThh:mm:ssZ" "yyyy-mm-ddThh:mm:ss+hh:mm"*/
     "DG.Utilities.date.iso8601Pattern": "^\\d{4}-[01]\\d-[0-3]\\d(?:[T ][0-2]\\d:[0-5]\\d(?::[0-5]\\d(?:\\.\\d{3,6})?)?(?:Z|(?:[-+]?[01]\\d:[0-5]\\d)|(?: ?[-+][0-2]\\d{3}))?)?$",
-                                 /* "rgb(nnn,nnn,nnn)" "rgba(nnn,nnn,nnn,0.n)" "#ffffff" */
     "DG.Utilities.colorPattern": "(?:rgb\\((?:\\d{1,3},){2}\\d{1,3}\\))|(?:rgba\\((?:\\d{1,3},){3}[\\d\\.]*\\))|(?:#[\\da-f]{6})",
-
     "DG.Formula.SyntaxErrorMiddle": "Syntax error: '%@'",
     "DG.Formula.SyntaxErrorEnd": "Incomplete expression",
     "DG.Formula.SyntaxErrorInvalidOperator": "invalid operator '%@'",
@@ -460,8 +404,6 @@
     "DG.Formula.LookupDataSetError.description": "Data set '%@' is unrecognized",
     "DG.Formula.LookupAttrError.message": "'%@' not found in data set '%@'",
     "DG.Formula.LookupAttrError.description": "Attribute '%@' not found in data set '%@'",
-
-    // DG.TableController
     "DG.TableController.headerMenuItems.editAttribute": "Edit Attribute Properties...",
     "DG.TableController.headerMenuItems.editFormula": "Edit Formula...",
     "DG.TableController.headerMenuItems.randomizeAttribute": "Rerandomize",
@@ -476,7 +418,7 @@
     "DG.TableController.newAttrDialog.AttributesCategory": "Attributes",
     "DG.TableController.newAttrDialog.SpecialCategory": "Special",
     "DG.TableController.newAttrDialog.GlobalsCategory": "Globals",
-    "DG.TableController.newAttrDialog.ConstantsCategory": "Constants",  // Set to "Special" to combine with 'caseIndex'
+    "DG.TableController.newAttrDialog.ConstantsCategory": "Constants",
     "DG.TableController.newAttrDialog.FunctionsCategory": "Functions",
     "DG.TableController.renameAttributeInvalidMsg": "Attribute names may not be empty",
     "DG.TableController.renameAttributeInvalidDesc": "Please enter a valid attribute name",
@@ -497,21 +439,16 @@
     "DG.TableController.setScoreDlg.applyTooltip": "Set the formula for the '%@' attribute",
     "DG.TableController.setScoreDlg.formulaHint": "Type a formula for computing values of this attribute",
     "DG.TableController.newAttributeTooltip": "Add a new attribute to this table",
-
     "DG.TableController.attributeEditor.title": "Attribute Properties",
-
-    // DG.CaseTableDropTarget
     "DG.CaseTableDropTarget.dropMessage": "drop attribute to create new collection",
     "DG.CaseTable.defaultAttrName": "newAttr",
-
-    // DG.CaseTable
     "DG.CaseTable.indexColumnName": "index",
     "DG.CaseTable.indexColumnTooltip": "The row number (caseIndex) within the collection",
     "DG.CaseTable.indexMenu.insertCase": "Insert Case",
     "DG.CaseTable.indexMenu.insertCases": "Insert Cases...",
     "DG.CaseTable.indexMenu.deleteCase": "Delete Case",
     "DG.CaseTable.indexMenu.deleteCases": "Delete Cases",
-    "DG.CaseTable.attribute.type.none": "",
+    "DG.CaseTable.attribute.type.none": "\u200b",
     "DG.CaseTable.attribute.type.nominal": "categorical",
     "DG.CaseTable.attribute.type.categorical": "categorical",
     "DG.CaseTable.attribute.type.numeric": "numeric",
@@ -531,11 +468,7 @@
     "DG.CaseTable.insertCasesDialog.beforeAfter.after": "after",
     "DG.CaseTable.insertCasesDialog.applyBtnTitle": "Insert Cases",
     "DG.CaseTable.insertCasesDialog.applyBtnTooltip": "Insert the specified number of cases",
-
-    // DG.CaseTableController
     "DG.CaseTableController.allTables": "All tables",
-
-    // DG.AttributeFormulaView
     "DG.AttrFormView.attrNamePrompt": "Attribute Name:",
     "DG.AttrFormView.formulaPrompt": "Formula:",
     "DG.AttrFormView.operandMenuTitle": "--- Insert Value ---",
@@ -543,8 +476,6 @@
     "DG.AttrFormView.applyBtnTitle": "Apply",
     "DG.AttrFormView.cancelBtnTitle": "Cancel",
     "DG.AttrFormView.cancelBtnTooltip": "Dismiss the dialog without making any changes",
-
-    // DG.GuideConfigurationView
     "DG.GuideConfigView.titlePrompt": "Guide Title",
     "DG.GuideConfigView.titleHint": "Activity Name",
     "DG.GuideConfigView.itemTitleHint": "Section Name",
@@ -554,53 +485,30 @@
     "DG.GuideConfigView.cancelBtnTitle": "Cancel",
     "DG.GuideConfigView.cancelBtnTooltip": "Dismiss the dialog without making any changes",
     "DG.GuideConfigView.httpWarning": "The URL must start with either http:// or https://",
-
     "DG.DataDisplayModel.rescaleToData": "Rescale to Data",
     "DG.DataDisplayModel.ShowConnectingLine": "Show Connecting Lines",
     "DG.DataDisplayModel.HideConnectingLine": "Hide Connecting Lines",
-
-    // DG.AxisView
     "DG.AxisView.emptyGraphCue": "Click here, or drag an attribute here.",
-
-    // DG.CellLinearAxisView
     "DG.CellLinearAxisView.midPanelTooltip": "Drag to translate axis scale",
     "DG.CellLinearAxisView.lowerPanelTooltip": "Drag to change axis lower bound",
     "DG.CellLinearAxisView.upperPanelTooltip": "Drag to change axis upper bound",
-
-    // DG.CountAxisView
-    "DG.CountAxisView.countLabel": "Count",
-    "DG.CountAxisView.countLabelDescription": "Number of cases in the bar along this axis",
-    "DG.CountAxisView.percentLabel": "Percent",
-    "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
-
-    // DG.PlotModel
     "DG.PlotModel.mixup": "Mix Up the Plot",
     "DG.PlotModel.showCount": "Show Count",
     "DG.PlotModel.hideCount": "Hide Count",
-
-    // DG.ScatterPlotModel
-    "DG.ScatterPlotModel.sumSquares": ",\nSum of squares = %@", // sumOfResidualsSquared
-    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@", // r-squared
-    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@", // y,slope,x,signInt,Int
-    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@", // x,constant
-    "DG.ScatterPlotModel.slopeOnly": "slope = %@ %@", // numeric slope
-    "DG.ScatterPlotModel.yearsLabel": "per year", // used in equation for line when x is a datetime axis
-    "DG.ScatterPlotModel.daysLabel": "per day", // used in equation for line when x is a datetime axis
-    "DG.ScatterPlotModel.hoursLabel": "per hour", // used in equation for line when x is a datetime axis
-    "DG.ScatterPlotModel.minutesLabel": "per minute", // used in equation for line when x is a datetime axis
-    "DG.ScatterPlotModel.secondsLabel": "per seconds", // used in equation for line when x is a datetime axis
-
-    // DG.BarChartModel
-    "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",  // "<n> of <m> <X>s (<p>%) are <Y>"
-    "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
-
-    // DG.LegendView
+    "DG.ScatterPlotModel.sumSquares": ",\nSum of squares = %@",
+    "DG.ScatterPlotModel.rSquared": ",\nr^2 = %@",
+    "DG.ScatterPlotModel.slopeIntercept": "%@ = %@ %@ %@ %@",
+    "DG.ScatterPlotModel.infiniteSlope": "%@ = %@",
+    "DG.ScatterPlotModel.slopeOnly": "slope = %@ %@",
+    "DG.ScatterPlotModel.yearsLabel": "per year",
+    "DG.ScatterPlotModel.daysLabel": "per day",
+    "DG.ScatterPlotModel.hoursLabel": "per hour",
+    "DG.ScatterPlotModel.minutesLabel": "per minute",
+    "DG.ScatterPlotModel.secondsLabel": "per seconds",
     "DG.LegendView.attributeTooltip": "Click to change legend attribute",
-
-    // DG.NumberToggleView
-    "DG.NumberToggleView.showAll": "Show All –", // \u2013
-    "DG.NumberToggleView.hideAll": "Hide All –", // \u2013
-    "DG.NumberToggleView.lastDash": "–", // \u2013
+    "DG.NumberToggleView.showAll": "Show All –",
+    "DG.NumberToggleView.hideAll": "Hide All –",
+    "DG.NumberToggleView.lastDash": "–",
     "DG.NumberToggleView.lastUnchecked": "☐",
     "DG.NumberToggleView.lastChecked": "☒",
     "DG.NumberToggleView.lastLabel": "Last",
@@ -609,25 +517,21 @@
     "DG.NumberToggleView.enableLastModeTooltip": "Click to show last parent case only",
     "DG.NumberToggleView.disableLastModeTooltip": "Click to exit last parent case mode",
     "DG.NumberToggleView.indexTooltip": "Click to toggle visibility",
-
-    // DG.PlottedAverageAdornment
-    "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@", // "mean=123.456"
-    "DG.PlottedAverageAdornment.medianValueTitle": "median=%@", // "median=123.456"
-    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@", // "st.dev=123.456"
-    "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@", // "iqr=123.456"
-    "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@", // "lower=%@\nQ1=%@\nmedian=%@\nQ3=\nIQ=%@\nupper=%@"
-    "DG.PlottedCountAdornment.title": "%@ %@, %@%", // "12 cases, 50%"
-
-    // DG.GraphModel
-    "DG.DataDisplayMenu.attribute_x": "X: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.attribute_y": "Y: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.attribute_y2": "Y: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.attribute_legend": "Legend: %@", // %@ = attribute name
+    "DG.PlottedAverageAdornment.meanValueTitle": "mean=%@",
+    "DG.PlottedAverageAdornment.medianValueTitle": "median=%@",
+    "DG.PlottedAverageAdornment.stDevValueTitle": "±1 SD, %@",
+    "DG.PlottedAverageAdornment.iqrValueTitle": "IQR=%@",
+    "DG.PlottedAverageAdornment.boxPlotTitle": "lower=%@\nQ1=%@\nmedian=%@\nQ3=%@\nupper=%@\nIQR=%@",
+    "DG.PlottedCountAdornment.title": "%@ %@, %@%",
+    "DG.DataDisplayMenu.attribute_x": "X: %@",
+    "DG.DataDisplayMenu.attribute_y": "Y: %@",
+    "DG.DataDisplayMenu.attribute_y2": "Y: %@",
+    "DG.DataDisplayMenu.attribute_legend": "Legend: %@",
     "DG.DataDisplayMenu.remove": "Remove Attribute",
-    "DG.DataDisplayMenu.removeAttribute_x": "Remove X: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.removeAttribute_y": "Remove Y: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.removeAttribute_y2": "Remove Y: %@", // %@ = attribute name
-    "DG.DataDisplayMenu.removeAttribute_legend": "Remove Legend: %@", // %@ = attribute name
+    "DG.DataDisplayMenu.removeAttribute_x": "Remove X: %@",
+    "DG.DataDisplayMenu.removeAttribute_y": "Remove Y: %@",
+    "DG.DataDisplayMenu.removeAttribute_y2": "Remove Y: %@",
+    "DG.DataDisplayMenu.removeAttribute_legend": "Remove Legend: %@",
     "DG.DataDisplayMenu.treatAsCategorical": "Treat as Categorical",
     "DG.DataDisplayMenu.treatAsNumeric": "Treat as Numeric",
     "DG.DataDisplayMenu.hide": "Hide and Show",
@@ -639,11 +543,6 @@
     "DG.DataDisplayMenu.disableNumberToggle": "Hide Parent Visibility Toggles",
     "DG.DataDisplayMenu.showAll": "Show All Cases",
     "DG.DataDisplayMenu.snapshot": "Make Snapshot",
-    "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
-    "DG.DataDisplayMenu.exportImage": "Export Image...",
-    "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
-
-    // DG.GraphView
     "DG.GraphView.replaceAttribute": "Replace %@ with %@",
     "DG.GraphView.addAttribute": "Add attribute %@",
     "DG.GraphView.addToEmptyPlace": "Create axis with %@",
@@ -651,39 +550,26 @@
     "DG.GraphView.dropInPlot": "Color points by values of %@",
     "DG.GraphView.zoomTip": "Double-click to zoom in.\nShift-double-click to zoom out",
     "DG.GraphView.rescale": "Rescale to data",
-
-    // DG.AxisView
-    "DG.AxisView.labelTooltip": "—Click to change %@ axis attribute",  // %@ is either horizontal or vertical
+    "DG.AxisView.labelTooltip": "—Click to change %@ axis attribute",
     "DG.AxisView.vertical": "vertical",
     "DG.AxisView.horizontal": "horizontal",
-
-    // DG.DataTip
     "DG.DataTip.connectingLine": "%@: %@\nwith %@ %@",
-
-    // DG.MovableValueAdornment
-    "DG.MovableMonthYear": "%@, %@", // <monthname>, <year>
-    "DG.MovableMonthDayHour": "%@ %@ %@:00", // <monthname> <day> <hour>:00
-
-    // DG.PlottedValueAdornment/DG.PlottedFunctionAdornment
+    "DG.MovableMonthYear": "%@, %@",
+    "DG.MovableMonthDayHour": "%@ %@ %@:00",
     "DG.PlottedFormula.defaultNamePrompt": "Formula",
     "DG.PlottedValue.namePrompt": "Plotted Value",
     "DG.PlottedValue.formulaPrompt": "value =",
-    "DG.PlottedValue.formulaHint": "",
+    "DG.PlottedValue.formulaHint": "\u200b",
     "DG.PlottedFunction.namePrompt": "Plotted Function",
     "DG.PlottedFunction.formulaPrompt": "f() =",
     "DG.PlottedFunction.formulaHint": "Type an expression e.g. x*x/30 - 50",
-
-    // DG.MapView
     "DG.MapView.showGrid": "Show Grid",
     "DG.MapView.hideGrid": "Hide Grid",
     "DG.MapView.showPoints": "Show Points",
     "DG.MapView.hidePoints": "Hide Points",
     "DG.MapView.marqueeHint": "Marquee tool—drag select points in map",
     "DG.MapView.gridControlHint": "Change size of grid rectangles",
-
-    // Inspector
     "DG.Inspector.values": "Measure",
-    "DG.Inspector.configuration": "Configuration",
     "DG.Inspector.styles": "Format",
     "DG.Inspector.pointSize": "Point size:",
     "DG.Inspector.transparency": "Transparency:",
@@ -697,26 +583,17 @@
     "DG.Inspector.delete.toolTip": "Delete selected or unselected cases",
     "DG.Inspector.sliderValues.toolTip": "Set slider animation direction, speed, …",
     "DG.Inspector.webViewEditURL.toolTip": "Edit the URL of the displayed web page",
-
     "DG.Inspector.selection.selectAll": "Select All Cases",
     "DG.Inspector.selection.deleteSelectedCases": "Delete Selected Cases",
     "DG.Inspector.selection.deleteUnselectedCases": "Delete Unselected Cases",
     "DG.Inspector.deleteAll": "Delete All Cases",
     "DG.Inspector.deleteDataSet": "Delete and Destroy Data Set",
-
-    // Display Inspector
     "DG.Inspector.displayValues.toolTip": "Change what is shown along with the points",
     "DG.Inspector.displayStyles.toolTip": "Change the appearance of the display",
-    "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
     "DG.Inspector.makeImage.toolTip": "Save the image as a PNG file",
     "DG.Inspector.displayShow": "Show …",
-    "DG.Inspector.displayScale": "Scale …",
-
-    // Color Picker
     "DG.Inspector.colorPicker.more": "more",
     "DG.Inspector.colorPicker.less": "less",
-
-    // Graph Inspector
     "DG.Inspector.graphTransparency": "Transparent",
     "DG.Inspector.graphCount": "Count",
     "DG.Inspector.graphPercent": "Percent",
@@ -724,7 +601,6 @@
     "DG.Inspector.graphColumn": "Column",
     "DG.Inspector.graphCell": "Cell",
     "DG.Inspector.graphConnectingLine": "Connecting Lines",
-    "DG.Inspector.graphMovablePoint": "Movable Point",
     "DG.Inspector.graphMovableLine": "Movable Line",
     "DG.Inspector.graphInterceptLocked": "Intercept Locked",
     "DG.Inspector.graphPlottedFunction": "Plotted Function",
@@ -739,41 +615,58 @@
     "DG.Inspector.graphPlottedIQR": "Interquartile Range",
     "DG.Inspector.graphPlottedBoxPlot": "Box Plot",
     "DG.Inspector.graphPlottedValue": "Plotted Value",
-    "DG.Inspector.graphBarChart": "Fuse Dots into Bars",
-
-    // Table Inspector
     "DG.Inspector.attributes.toolTip": "Make new attributes. Export case data.",
     "DG.Inspector.resize.toolTip": "Resize all columns to fit data",
     "DG.Inspector.newAttribute": "New Attribute in %@...",
     "DG.Inspector.randomizeAllAttributes": "Rerandomize All",
     "DG.Inspector.exportCaseData": "Export Case Data...",
-
-    // Map Inspector
     "DG.Inspector.mapGrid": "Grid",
     "DG.Inspector.mapPoints": "Points",
     "DG.Inspector.mapLines": "Connecting Lines",
-
-    // Game Controller
     "DG.GameController.continuityError": "Sorry, after columns in the case table have been reordered, new data cannot be accepted.",
-
-    // Game View
     "DG.GameView.loading": "Loading",
     "DG.GameView.loadError": "If you can see this text, loading the above URL may have failed. You can check the link in another browser tab or report the error to http://codap.concord.org/help.",
-
-    // Controllers
     "DG.Component.closeComponent.confirmCloseMessage": "Are you sure?",
-    "DG.Component.closeComponent.confirmCloseDescription": "",
+    "DG.Component.closeComponent.confirmCloseDescription": "\u200b",
     "DG.Component.closeComponent.okButtonTitle": "Yes, close it",
     "DG.Component.closeComponent.cancelButtonTitle": "Cancel",
     "DG.GameController.confirmCloseDescription": "If you close this, you may not be able to add more data.",
-
-    // Web View
     "DG.WebView.defaultTitle": "Web Page",
-
+    "DG.mainPage.exceptionMessage": "An error has occurred that may affect how this program behaves. You may wish to reload this page after you save your work. (Error: %@)",
+    "DG.fileMenu.provider.examples.displayName": "Example Documents",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
+    "DG.ToolButtonData.pluginMenu.toolTip": "Open a plugin component",
+    "DG.Undo.graph.showMovablePoint": "Undo showing movable point",
+    "DG.Redo.graph.showMovablePoint": "Redo showing movable point",
+    "DG.Undo.graph.hideMovablePoint": "Undo hiding movable point",
+    "DG.Redo.graph.hideMovablePoint": "Redo hiding movable point",
+    "DG.Undo.graph.moveMovablePoint": "Undo moving movable point",
+    "DG.Redo.graph.moveMovablePoint": "Redo moving movable point",
+    "DG.DataDisplayMenu.copyAsImage": "Open in Draw Tool",
+    "DG.DataDisplayMenu.exportImage": "Export Image...",
+    "DG.DataDisplayMenu.imageOfTitle": "Image of %@",
+    "DG.Inspector.graphMovablePoint": "Movable Point",
+    "DG.AppController.caseTableMenu.openCaseTableToolTip": "Open case table for this data set",
+    "DG.AppController.caseTableMenu.newDataSetToolTip": "Create a new data set",
+    "DG.AppController.caseTableMenu.deleteDataSetToolTip": "Delete and destroy this data set",
+    "DG.Undo.graph.showAsBarChart": "Undo fusing dots into bars",
+    "DG.Redo.graph.showAsBarChart": "Redo fusing dots into bars",
+    "DG.Undo.graph.showAsDotChart": "Undo dispersing bars into dots",
+    "DG.Redo.graph.showAsDotChart": "Redo dispersing bars into dots",
+    "DG.CountAxisView.countLabel": "Count",
+    "DG.CountAxisView.countLabelDescription": "Number of cases in the bar along this axis",
+    "DG.CountAxisView.percentLabel": "Percent",
+    "DG.CountAxisView.percentLabelDescription": "Percent of cases in the bar along this axis",
+    "DG.BarChartModel.cellTipPlural": "%@ of %@ %@ (%@%) are %@",
+    "DG.BarChartModel.cellTipSingular": "%@ of %@ %@ (%@%) is %@",
+    "DG.Inspector.configuration": "Configuration",
+    "DG.Inspector.displayConfiguration.toolTip": "Configure the display differently",
+    "DG.Inspector.displayScale": "Scale …",
+    "DG.Inspector.graphBarChart": "Fuse Dots into Bars",
     "DG.Locale.name.de": "German",
     "DG.Locale.name.en": "English",
     "DG.Locale.name.es": "Spanish",
     "DG.Locale.name.he": "Hebrew",
     "DG.Locale.name.tr": "Turkish",
     "DG.Locale.name.zh": "Chinese"
-}
+});
