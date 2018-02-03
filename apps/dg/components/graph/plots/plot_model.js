@@ -359,6 +359,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             this, 'colorMapDidChange');
         this.addObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
+        this.addObserver('dataConfiguration.legendAttributeDescription.attribute.categoryMap',
+            this, 'colorMapDidChange');
       },
 
       /**
@@ -371,6 +373,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         this.removeObserver('dataConfiguration.xAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
         this.removeObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
+            this, 'colorMapDidChange');
+        this.removeObserver('dataConfiguration.legendAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
         // Detach the data Configuration
         this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');

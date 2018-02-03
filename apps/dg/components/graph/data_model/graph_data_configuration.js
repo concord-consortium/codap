@@ -96,6 +96,7 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
                              DG.Analysis.EAnalysisRole.eSecondaryCategorical);
     configAttrDesc('legend', 'Legend', DG.Analysis.EAnalysisRole.eLegendNumeric,
                                        DG.Analysis.EAnalysisRole.eLegendCategorical);
+    attributeDescriptions.legend.addObserver('attributeStats.categoricalStats.cellMap', this, 'legendColorMapDidChange');
 
     // Prepare the attributes array. It has as many elements as there are places,
     //  and, initially, those elements are empty arrays.
@@ -109,6 +110,10 @@ DG.GraphDataConfiguration = DG.PlotDataConfiguration.extend(
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY][0] = attributeDescriptions.y;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eY2][0] = attributeDescriptions.y2;
     this.attributesByPlace[ DG.GraphTypes.EPlace.eLegend][0] = attributeDescriptions.legend;
+  },
+
+  legendColorMapDidChange: function() {
+    this._casesCache = null;
   }
 
 });
