@@ -1,7 +1,7 @@
 #!/bin/bash
 PROJECT_ID=125447
 OUTPUT_DIR=lang/strings
-LANGUAGES=("he" "tr" "zh-TW")
+LANGUAGES=("de" "es" "he" "tr" "zh-TW")
 LANG_COUNT=${#LANGUAGES[@]}
 
 # argument processing from https://stackoverflow.com/a/14203146
