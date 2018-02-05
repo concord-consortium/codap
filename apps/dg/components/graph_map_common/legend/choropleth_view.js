@@ -41,9 +41,9 @@ DG.ChoroplethView = DG.RaphaelBaseView.extend(
          */
         model: null,
 
-        desiredExtent: function () {
-          return kRectHeight + kTickLength + DG.RenderingUtilities.kDefaultFontHeight;
-        }.property(),
+        desiredExtent: function ( iRowHeight) {
+          return kRectHeight + kTickLength + iRowHeight;
+        },
 
         doDraw: function doDraw() {
           var kStrokeWidth = 0.5,

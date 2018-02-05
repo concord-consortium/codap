@@ -89,8 +89,6 @@ DG.CellAxisModel = DG.AxisModel.extend(
   },
 
   /**
-   * The attribute's categoryMap is a hash such that we are taking advantage of the order of the properties.
-   * In order to swap two categories we convert to array, swap, and then convert back to hash.
    * @param iIndex1 {Number}
    * @param iIndex2 {Number}
    */
