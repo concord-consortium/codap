@@ -504,7 +504,13 @@ DG.PlotUtilities = {
 };
 
 DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
+  /**
+   * @property [DG.Case]
+   */
   _cases: null,
+  /**
+   * @property [Number]
+   */
   _map: null,
 
   init: function() {
