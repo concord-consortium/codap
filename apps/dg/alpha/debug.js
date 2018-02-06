@@ -458,6 +458,10 @@ DG.Debug = SC.Object.create( (function() {
       var shouldCallSystemHandler = !SC.none( DG.Debug._prevExceptionHandler);
 
       DG.Debug.logError( "Exception: " + iException);
+      if (console && console.log) {
+        DG.log(iException.stack);
+      }
+
 
       //@if(debug)
         /* eslint no-eval: "off" */
