@@ -78,7 +78,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tExtent = tLabelHeight + 2 * kVMargin;
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
-            tExtent += this.get('chloroplethView').desiredExtent( tLabelHeight);
+            tExtent += this.get('choroplethView').desiredExtent( tLabelHeight);
             break;
           case DG.Analysis.EAttributeType.eCategorical:
             tExtent += this.get('categoriesView').desiredExtent( tLabelHeight);
