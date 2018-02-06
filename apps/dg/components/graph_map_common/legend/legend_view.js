@@ -29,15 +29,12 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
 
   (function()
   {
-    var kMinWidth = 150, // of a cell. Used to determine how many columns
-        kVMargin = 3,
+    var kVMargin = 3,
         kHMargin = 6;
     
     /** @scope DG.LegendView.prototype */
     return {
-      displayProperties: ['model.attributeDescription.attribute',
-                          'model.attributeDescription.attributeStats.categoricalStats.numberOfCells',
-                          'model.numericRange'],
+      displayProperties: ['model.attributeDescription.attribute'],
 
       classNames: ['dg-legend-view'],
 
@@ -54,9 +51,9 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       orientation: 'horizontal',
 
       /**
-       * @property {String: Raphael.element}
+       * @property {DG.CategoriesView}
        */
-      rectangles: null,
+      categoriesView: null,
 
       /**
        * @property {DG.ChoroplethView}
@@ -81,17 +78,13 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
             tExtent = tLabelHeight + 2 * kVMargin;
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
-            tExtent += this.getPath('choroplethView.desiredExtent');
+            tExtent += this.get('chloroplethView').desiredExtent( tLabelHeight);
             break;
           case DG.Analysis.EAttributeType.eCategorical:
-            var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
-                tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth )),
-                tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
-                tNumRows = Math.ceil( tNumCells / tNumColumns);
-            tExtent += tNumRows * tLabelHeight;
+            tExtent += this.get('categoriesView').desiredExtent( tLabelHeight);
             break;
           case DG.Analysis.EAttributeType.eColor:
-            tNumRows = 1;
+            // Only the label displays
             break;
         }
         return tExtent;
@@ -113,7 +106,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           return { x: isNaN(tBox.width) ? kMinHeight : Math.max( kMinHeight, tBox.width),
                    y: isNaN(tBox.height) ? kMinHeight : Math.max( kMinHeight, Math.ceil( tBox.height / 2) * 2) };
         }
-        return { x: 0, y: 0};
+        return { x: 0, y: kMinHeight};
       }.property('labelNode').cacheable(),
 
       /**
@@ -193,6 +186,15 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       init: function() {
         sc_super();
 
+        this.categoriesView = DG.CategoriesView.create( {
+          classNames: 'dg-categories'.w(),
+          layout: { left: kHMargin, right: kHMargin, top: kVMargin, bottom: kVMargin },
+          isVisible: false,
+          model: this.get('model'),
+          rowHeight: DG.RenderingUtilities.kDefaultFontHeight
+        });
+        this.appendChild( this.categoriesView);
+
         this.choroplethView = DG.ChoroplethView.create( {
           classNames: 'dg-choropleth'.w(),
           layout: { left: kHMargin, right: kHMargin, top: kVMargin, bottom: kVMargin },
@@ -212,98 +214,40 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       displayDidChange: function() {
         sc_super();
         this.get('choroplethView').displayDidChange();
+        this.get('categoriesView').displayDidChange();
       },
 
       doDraw: function doDraw() {
-        var this_ = this,
-            tAttrDesc = this.getPath('model.attributeDescription'),
-            tWidth = this_._paper.width - 2 * kHMargin,
-            tHeight = this_._paper.height - 2 * kVMargin
-          ;
 
         /**
          * renderLabel - Render the attribute name centered
          */
-        function renderLabel() {
-          var tLabelNode = this_.get('labelNode'),
-              tLabelExtent = this_.get('labelExtent'),
-              tDescription = this_.getPath('model.attributeDescription.attribute.description') + '—' +
+        var renderLabel = function() {
+          var tLabelNode = this.get('labelNode'),
+              tLabelExtent = this.get('labelExtent'),
+              tDescription = this.getPath('model.attributeDescription.attribute.description') + '—' +
                   'DG.LegendView.attributeTooltip'.loc();
           if( SC.none( tLabelNode))
             return;
 
-          tLabelNode.get('_textElement').attr({ text: this_.getPath('model.label'),
+          tLabelNode.get('_textElement').attr({ text: this.getPath('model.label'),
                             x: kHMargin, y: tLabelExtent.y / 2});
           tLabelNode.get('_textElement').attr({ title: tDescription});
-        }
+        }.bind( this);
 
-        /**
-         * drawCategoriesKey
-         */
-        function drawCategoriesKey() {
-          var tNumColumns = Math.max( 2, Math.floor( tWidth / kMinWidth) ),
-              tNumCells = this_.getPath('model.numberOfCells'),
-              tNumRows = Math.ceil( tNumCells / tNumColumns),
-              tRowHeight = tHeight / (tNumRows + 1), // adding one to include label
-              tSize = Math.max( 0, tRowHeight - 2 * kVMargin),
-              tCellIndex,
-              tRectangles = {},
-              tCellNames = this_.getPath('model.cellNames')
-            ;
-
-          // Function passed to Raphael mouseDown event handler, which guarantees
-          // that 'this' correctly refers to the Raphael element being called.
-          function selectCasesInRectCell( iEvent) {
-            SC.run(function() {
-              this_.get('model').selectCasesInCell( this.cellName, iEvent.shiftKey);
-            }.bind(this));
-          }
-          
-          // Function passed to Raphael mouseDown event handler, which guarantees
-          // that 'this' correctly refers to the Raphael element being called.
-          function selectCasesInTextCell( iEvent) {
-            SC.run(function() {
-              this_.get('model').selectCasesInCell( this.attr('text'), iEvent.shiftKey);
-            }.bind(this));
-          }
-
-          for( tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {
-            var tName = tCellNames[ tCellIndex],
-                tColor = DG.ColorUtilities.calcCaseColor( tName, tAttrDesc).colorString,
-                tRow = Math.floor( tCellIndex / tNumColumns),
-                tCol = tCellIndex % tNumColumns,
-                tX = kHMargin + tCol * tWidth / tNumColumns,
-                tY = kVMargin + (tRow + 1) * tRowHeight,
-                tRectElement = this_._paper.rect( tX, tY, tSize, tSize)
-                                                          .attr({ fill: tColor })
-                    .addClass( DG.PlotUtilities.kLegendKey)
-                    .mousedown( selectCasesInRectCell);
-            tRectElement.cellName = tName;
-            this_._elementsToClear.push( tRectElement);
-            this_._elementsToClear.push( this_._paper.text( tX + tRowHeight,
-                tY + DG.RenderingUtilities.kDefaultFontHeight / 3,
-                                                            tName)
-                .attr({ 'text-anchor': 'start' })
-                .addClass( DG.PlotUtilities.kLegendKeyName)
-                .mousedown( selectCasesInTextCell)
-            );
-            tRectangles[tName] = tRectElement;
-          }
-          this_.set('rectangles', tRectangles);
-          this_.selectionDidChange();
-        }
-
-        var tChoroplethView = this.get('choroplethView');
+        var tCategoriesView = this.get('categoriesView'),
+            tChoroplethView = this.get('choroplethView');
         renderLabel();
         switch( this.get('attributeType')) {
           case DG.Analysis.EAttributeType.eNumeric:
-            tChoroplethView.set('model', this.get('model'));
             tChoroplethView.set('isVisible', true);
+            tCategoriesView.set('isVisible', false);
             tChoroplethView.adjust('top', kVMargin + this.get('labelExtent').y);
             break;
           case DG.Analysis.EAttributeType.eCategorical:
+            tCategoriesView.adjust('top', kVMargin + this.get('labelExtent').y);
+            tCategoriesView.set('isVisible', true);
             tChoroplethView.set('isVisible', false);
-            drawCategoriesKey();
             break;
         }
       },
