@@ -199,33 +199,6 @@ DG.LegendModel = SC.Object.extend(
       }
     });
     this.set( 'selectionMap', tSelectionMap);
-  },
-
-  /**Called when the user drags legend category keys
-   * @param iIndex1 {Number}
-   * @param iIndex2 {Number}
-   */
-  swapCategoriesByIndex: function( iIndex1, iIndex2) {
-    var tCategoryMap = this.getPath('attributeDescription.attribute.categoryMap'),
-        tOrder = tCategoryMap.__order || [],
-        tAttribute = this.getPath('attributeDescription.attribute');
-    if( DG.ObjectMap.length( tCategoryMap) === 0) {
-      var tAttrStats = this.getPath('attributeDescription.attributeStats'),
-          tAttrColor = DG.ColorUtilities.calcAttributeColor( this.get('attributeDescription'));
-      tOrder = [];
-      this.forEachCellDo( function( iIndex, iName) {
-        var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
-        tCategoryMap[iName] = tColor.colorString || tColor;
-        tOrder.push( iName);
-      });
-      tCategoryMap.__order = tOrder;
-    }
-    var tSaved = tOrder[ iIndex1];
-    tOrder[iIndex1] = tOrder[iIndex2];
-    tOrder[iIndex2] = tSaved;
-    this.setPath('attributeDescription.attribute.categoryMap', tCategoryMap);
-    tAttribute.notifyPropertyChange('categoryMap');
-    this.get('attributeDescription').invalidateCaches();
   }
 
 });

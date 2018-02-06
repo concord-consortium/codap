@@ -499,6 +499,33 @@ DG.PlotUtilities = {
         tModelClass = DG.CountAxisModel;
     }
     return tModelClass;
+  },
+
+  /**Called when the user drags legend category keys
+   * @param iIndex1 {Number}
+   * @param iIndex2 {Number}
+   */
+  swapCategoriesByIndex: function( iAttributeDescription, iIndex1, iIndex2) {
+    var tCategoryMap = iAttributeDescription.getPath('attribute.categoryMap'),
+        tOrder = tCategoryMap.__order || [],
+        tAttribute = iAttributeDescription.get('attribute');
+    if( DG.ObjectMap.length( tCategoryMap) === 0) {
+      var tAttrStats = iAttributeDescription.get('attributeStats'),
+          tAttrColor = DG.ColorUtilities.calcAttributeColor( iAttributeDescription);
+      tOrder = [];
+      this.forEachCellDo( function( iIndex, iName) {
+        var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
+        tCategoryMap[iName] = tColor.colorString || tColor;
+        tOrder.push( iName);
+      });
+      tCategoryMap.__order = tOrder;
+    }
+    var tSaved = tOrder[ iIndex1];
+    tOrder[iIndex1] = tOrder[iIndex2];
+    tOrder[iIndex2] = tSaved;
+    iAttributeDescription.setPath('attribute.categoryMap', tCategoryMap);
+    tAttribute.notifyPropertyChange('categoryMap');
+    iAttributeDescription.invalidateCaches();
   }
 
 };

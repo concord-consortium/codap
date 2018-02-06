@@ -192,7 +192,7 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                     tCellToSwap = tCellBeingDragged + tSign;
                 // Insist on pairwise swaps until we get one beyond tCategoryInCurrentCell
                 while( tCellToSwap !== tCategoryInCurrentCell +tSign) {
-                  tModel.swapCategoriesByIndex(tCellBeingDragged, tCellToSwap);
+                  DG.PlotUtilities.swapCategoriesByIndex(tModel.get('attributeDescription'),tCellBeingDragged, tCellToSwap);
                   tCellToSwap += tSign;
                   tCellBeingDragged += tSign;
                 }

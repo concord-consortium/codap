@@ -106,7 +106,7 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
           return { x: isNaN(tBox.width) ? kMinHeight : Math.max( kMinHeight, tBox.width),
                    y: isNaN(tBox.height) ? kMinHeight : Math.max( kMinHeight, Math.ceil( tBox.height / 2) * 2) };
         }
-        return { x: 0, y: kMinHeight};
+        return { x: 0, y: 0};
       }.property('labelNode').cacheable(),
 
       /**

@@ -67,8 +67,10 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   beginDrag = function (iWindowX, iWindowY) {
                     tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates({x: iWindowX, y: iWindowY}, tView);
                     tOriginalCellIndex = tCellBeingDragged = this_.coordinatesToCellNum(tDragStartCoord);
-                    tOffset = { x: this_.left - tDragStartCoord.x,
-                                y: this_.top - tDragStartCoord.y };
+                    tOffset = {
+                      x: this_.left - tDragStartCoord.x,
+                      y: this_.top - tDragStartCoord.y
+                    };
                   },
                   doDrag = function (iDeltaX, iDeltaY, iWindowX, iWindowY) {
                     var tModel = this_.get('model'),
@@ -86,7 +88,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                             tCellToSwap = tCellBeingDragged + tSign;
                         // Insist on pairwise swaps until we get one beyond tCategoryInCurrentCell
                         while (tCellToSwap !== tCategoryInCurrentCell + tSign) {
-                          tModel.swapCategoriesByIndex(tCellBeingDragged, tCellToSwap);
+                          DG.PlotUtilities.swapCategoriesByIndex(tModel.get('attributeDescription'), tCellBeingDragged, tCellToSwap);
                           tCellToSwap += tSign;
                           tCellBeingDragged += tSign;
                         }
@@ -95,7 +97,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                       tView.set('dragInfo', {
                         cellBeingDragged: tCellBeingDragged,
                         offset: tOffset,
-                        position: tCurrentCoord,
+                        position: tCurrentCoord
                       });
                       tView.displayDidChange();
                       tView.propertyDidChange('categoriesDragged');
@@ -125,24 +127,33 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             destroy: function () {
               this.keyRect.remove();
               this.keyText.remove();
+              this.containingView = null;
 
               sc_super();
             },
 
-            draw: function () {
+            draw: function (iAnimate) {
               // body of draw
-              this.keyRect.attr({
-                x: this.left,
-                y: this.top,
-                width: this.rectSize,
-                height: this.rectSize,
-                fill: this.color
-              });
-              this.keyText.attr({
-                x: this.left + this.rectSize + 5,
-                y: this.top + this.rectSize - 5,
-                text: this.cellName
-              });
+              var tRectAttrs = {
+                    x: this.left,
+                    y: this.top,
+                    width: this.rectSize,
+                    height: this.rectSize,
+                    fill: this.color
+                  },
+                  tTextAttrs = {
+                    x: this.left + this.rectSize + 5,
+                    y: this.top + this.rectSize - 5,
+                  };
+              if(iAnimate) {
+                this.keyRect.animate(tRectAttrs, 100, '<>');
+                this.keyText.animate(tTextAttrs, 100, '<>');
+              }
+              else {
+                this.keyRect.attr(tRectAttrs);
+                this.keyText.attr(tTextAttrs);
+              }
+              this.keyText.attr('text', this.cellName);
             }
           });
 
@@ -158,13 +169,13 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             model: null,
 
             /**
-             * Cache of
-             * @property { [CategoryKey] }
+             * Hash of category names to CategoryKey
+             * @property { Object }
              */
             categoryKeys: null,
 
             /**
-             * @property {{}}
+             * @property {Object}
              */
             dragInfo: null,
 
@@ -198,16 +209,12 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                     var tCol = Math.floor(iCoords.x / tColWidth),
                         tRow = Math.floor(iCoords.y / this.rowHeight),
                         tCellNum = tCol + tRow * tNumColumns;
-/*
-                    console.log('x: %@, y: %@, row: %@, col: %@, cell: %@, colWidth: %@'.loc(
-                        iCoords.x, iCoords.y, tRow, tCol, tCellNum, tColWidth));
-*/
                     return tCellNum < 0 || tCellNum >= tNumCells ? null : tCellNum;
-                  }.bind( this);
+                  }.bind(this);
               this.set('rowHeight', tRowHeight);
               // Mark them all as unused so we can get rid of ones no longer present
               DG.ObjectMap.forEach(tCategoryKeys, function (iName, iKey) {
-                iKey.set('inUse',false);
+                iKey.set('inUse', false);
               });
 
               for (tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {
@@ -215,7 +222,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                     tColor = DG.ColorUtilities.calcCaseColor(tName, tAttrDesc).colorString,
                     tRow = Math.floor(tCellIndex / tNumColumns),
                     tCol = tCellIndex % tNumColumns,
-                    tCategoryKey = tCategoryKeys[tName];
+                    tCategoryKey = tCategoryKeys[tName],
+                    tIsDraggedCell = this.dragInfo && this.dragInfo.cellBeingDragged === tCellIndex;
                 if (!tCategoryKey) {
                   tCategoryKeys[tName] = tCategoryKey = CategoryKey.create({
                     model: this.get('model'),
@@ -224,9 +232,9 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                     coordinatesToCellNum: coordinatesToCellNum
                   });
                 }
-                if( this.dragInfo && this.dragInfo.cellBeingDragged === tCellIndex) {
-                  tCategoryKey.set('left', this.dragInfo.position.x + this.dragInfo.offset.x );
-                  tCategoryKey.set('top', this.dragInfo.position.y + this.dragInfo.offset.y );
+                if (tIsDraggedCell) {
+                  tCategoryKey.set('left', this.dragInfo.position.x + this.dragInfo.offset.x);
+                  tCategoryKey.set('top', this.dragInfo.position.y + this.dragInfo.offset.y);
                 } else {
                   tCategoryKey.set('left', tCol * tWidth / tNumColumns);
                   tCategoryKey.set('top', tRow * tRowHeight);
@@ -235,7 +243,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                 tCategoryKey.set('color', tColor);
                 tCategoryKey.set('cellName', tName);
                 tCategoryKey.set('inUse', true);
-                tCategoryKey.draw();
+                tCategoryKey.draw(!tIsDraggedCell);
               }
 
               // Those that are unused get destroyed
@@ -245,29 +253,6 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   delete tCategoryKeys[iName];
                 }
               });
-
-            },
-
-            selectCasesBetween: function (iLower, iUpper, iExtend) {
-              var tAttrID = this.getPath('model.attributeDescription.attribute.id'),
-                  tCases = this.getPath('model.dataConfiguration.cases'),
-                  tAttrName = this.getPath('model.attributeDescription.attribute.name'),
-                  tChange = {
-                    operation: 'selectCases',
-                    collection: this.getPath('dataConfiguration.collectionClient'),
-                    cases: [],
-                    select: true,
-                    extend: iExtend
-                  };
-              if (SC.none(tAttrID) || SC.none(tCases))
-                return;
-              tCases.forEach(function (iCase) {
-                var tValue = iCase.getNumValue(tAttrID);
-                if (tValue >= iLower && tValue <= iUpper)
-                  tChange.cases.push(iCase);
-              });
-              this.getPath('model.dataConfiguration.dataContext').applyChange(tChange);
-              DG.logUser("caseSelected with values of: %@ between %@ and %@", tAttrName, iLower, iUpper);
 
             }
 
