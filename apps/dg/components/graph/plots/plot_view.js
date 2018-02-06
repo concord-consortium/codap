@@ -212,7 +212,8 @@ DG.PlotView = DG.PlotLayer.extend(
               cx: iElement.attr('cx') + tFrame.x,
               cy: iElement.attr('cy') + tFrame.y,
               r: tRadius,
-              fill: iElement.attr('fill') };
+              fill: iElement.attr('fill'),
+              type: 'circle'};
       });
   },
 

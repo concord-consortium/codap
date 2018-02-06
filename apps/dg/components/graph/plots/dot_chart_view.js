@@ -313,7 +313,7 @@ DG.DotChartView = DG.ChartView.extend(
               tNewElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tCurrAttrs)) {
             tTransAttrs = {
-              r: DG.isFinite(tCurrAttrs.r) ? tCurrAttrs.r : tDefaultR,
+              r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
               cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
               cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
               fill: tCurrAttrs.fill,
