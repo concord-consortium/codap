@@ -580,12 +580,12 @@ DG = SC.Application.create((function () // closure
     enableUndoHistory: true, //getUrlParameter('undo') === 'true'
 
     locales: [
-      // {
-      //   langName: 'DG.Locale.name.de',
-      //   langDigraph: 'de',
-      //   countryDigraph: 'DE',
-      //   icon: 'flag flag-de'
-      // },
+      {
+        langName: 'DG.Locale.name.de',
+        langDigraph: 'de',
+        countryDigraph: 'DE',
+        icon: 'flag flag-de'
+      },
       {
         langName: 'DG.Locale.name.en',
         langDigraph: 'en',
@@ -612,9 +612,9 @@ DG = SC.Application.create((function () // closure
       },
       {
         langName: 'DG.Locale.name.zh',
-        langDigraph: 'zh',
-        countryDigraph: 'CN',
-        icon: 'flag flag-cn'
+        langDigraph: 'zh-TW',
+        countryDigraph: 'TW',
+        icon: 'flag flag-tw'
       }
     ]
 
