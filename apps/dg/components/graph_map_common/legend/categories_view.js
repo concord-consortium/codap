@@ -27,7 +27,9 @@ sc_require('views/raphael_base');
  */
 DG.CategoriesView = DG.RaphaelBaseView.extend(
     (function () {
-          var kMinWidth = 150; // of a cell. Used to determine how many columns
+          var kMaxWidth = 150, // of a cell. Used to determine how many columns
+              kMinWidth = 20,
+              kDefaultRectSize = 14;
 
           var CategoryKey = SC.Object.extend({
             model: null,
@@ -115,12 +117,12 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
               this.keyRect = this.paper.rect(0, 0, this.rectSize, this.rectSize)
                   .attr({fill: this.color})
                   .addClass(DG.PlotUtilities.kLegendKey)
-                  .click(selectCasesInCell)
+                  .mousedown(selectCasesInCell)
                   .drag(doDrag, beginDrag, endDrag);
               this.keyText = this.paper.text(0, 0, this.cellName)
                   .attr({'text-anchor': 'start'})
                   .addClass(DG.PlotUtilities.kLegendKeyName)
-                  .click(selectCasesInCell)
+                  .mousedown(selectCasesInCell)
                   .drag(doDrag, beginDrag, endDrag);
             },
 
@@ -145,7 +147,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                     x: this.left + this.rectSize + 5,
                     y: this.top + this.rectSize - 5,
                   };
-              if(iAnimate) {
+              if (iAnimate) {
                 this.keyRect.animate(tRectAttrs, 100, '<>');
                 this.keyText.animate(tTextAttrs, 100, '<>');
               }
@@ -179,14 +181,33 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
              */
             dragInfo: null,
 
+            // These are used during a drag of a categoryKey to compute current cell of mouse
+            colWidth: null,
+            rowHeight: null,
+            numColumns: 2,
+
             init: function () {
               sc_super();
               this.categoryKeys = {};
             },
 
+            maxCellNameExtent: function () {
+              var tMaxExtent = 0,
+                  tPaper = this.get('paper'),
+                  tCellNames = this.getPath('model.cellNames');
+              if (!tPaper || !tCellNames)
+                return kMaxWidth;
+              tCellNames.forEach(function (iName) {
+                tMaxExtent = Math.max(tMaxExtent, DG.RenderingUtilities.textExtentOnCanvas(tPaper, iName).x);
+              });
+              return tMaxExtent + kDefaultRectSize + 10;
+            },
+
             desiredExtent: function (iRowHeight) {
-              var tWidth = this.getPath('parentView.frame.width') || kMinWidth,
-                  tNumColumns = Math.max(2, Math.floor(tWidth / kMinWidth)),
+
+              var tCellWidth = Math.max(kMinWidth, Math.min(kMaxWidth, this.maxCellNameExtent())),
+                  tWidth = this.getPath('parentView.frame.width') || tCellWidth,
+                  tNumColumns = Math.max(2, Math.floor(tWidth / tCellWidth)),
                   tNumCells = this.model ? this.getPath('model.numberOfCells') : 0,
                   tNumRows = Math.ceil(tNumCells / tNumColumns);
               return tNumRows * iRowHeight;
@@ -196,8 +217,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
               var tAttrDesc = this.getPath('model.attributeDescription'),
                   tWidth = this._paper.width,
                   tHeight = this._paper.height,
-                  tNumColumns = Math.max(2, Math.floor(tWidth / kMinWidth)),
-                  tColWidth = tWidth / tNumColumns,
+                  tColWidth = Math.max(kMinWidth, Math.min(kMaxWidth, this.maxCellNameExtent())),
+                  tNumColumns = Math.max(2, Math.floor(tWidth / tColWidth)),
                   tNumCells = this.getPath('model.numberOfCells'),
                   tNumRows = Math.ceil(tNumCells / tNumColumns),
                   tRowHeight = tHeight / tNumRows,
@@ -206,12 +227,14 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   tCellNames = this.getPath('model.cellNames'),
                   tCategoryKeys = this.get('categoryKeys'),
                   coordinatesToCellNum = function (iCoords) {
-                    var tCol = Math.floor(iCoords.x / tColWidth),
+                    var tCol = Math.floor(iCoords.x / this.colWidth),
                         tRow = Math.floor(iCoords.y / this.rowHeight),
-                        tCellNum = tCol + tRow * tNumColumns;
+                        tCellNum = tCol + tRow * this.numColumns;
                     return tCellNum < 0 || tCellNum >= tNumCells ? null : tCellNum;
                   }.bind(this);
               this.set('rowHeight', tRowHeight);
+              this.set('colWidth', tColWidth);
+              this.set('numColumns', tNumColumns);
               // Mark them all as unused so we can get rid of ones no longer present
               DG.ObjectMap.forEach(tCategoryKeys, function (iName, iKey) {
                 iKey.set('inUse', false);
