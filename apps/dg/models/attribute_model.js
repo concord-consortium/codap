@@ -418,7 +418,7 @@ DG.Attribute = DG.BaseModel.extend(
               tColorIndex = tCategoryMap.__order.length % DG.ColorUtilities.kKellyColors.length,
               tCatRecord = {};
           tCases && tCases.forEach( function( iCase) {
-            var tValue = iCase.getValue( tAttrID);
+            var tValue = iCase.getStrValue( tAttrID);
             tCatRecord[ tValue] = true;
             if( SC.none( tCategoryMap[ String( tValue)])) {
               if( !SC.empty(tValue)) {
@@ -528,7 +528,7 @@ DG.Attribute.createAttribute = function (iProperties) {
       tNewColormap.__order = [];
       DG.ObjectMap.forEach(tNewColormap, function (iKey) {
         if (iKey !== '__order' && !SC.empty( iKey))
-          tNewColormap.__order.push(iKey);
+          tNewColormap.__order.push(String(iKey));
       });
     }
     newAttribute.set('categoryMap', tNewColormap);

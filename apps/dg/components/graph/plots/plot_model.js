@@ -359,6 +359,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             this, 'colorMapDidChange');
         this.addObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
+        this.addObserver('dataConfiguration.legendAttributeDescription.attribute.categoryMap',
+            this, 'colorMapDidChange');
       },
 
       /**
@@ -371,6 +373,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         this.removeObserver('dataConfiguration.xAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
         this.removeObserver('dataConfiguration.yAttributeDescription.attribute.categoryMap',
+            this, 'colorMapDidChange');
+        this.removeObserver('dataConfiguration.legendAttributeDescription.attribute.categoryMap',
             this, 'colorMapDidChange');
         // Detach the data Configuration
         this.removeObserver('dataConfiguration', this, 'dataConfigurationDidChange');
@@ -828,8 +832,8 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         var tCases = this.get('cases'),
             tCasesToSelect = [];
         iIndices.forEach(function (iCaseIndex) {
-          if (iCaseIndex < tCases.length) {
-            tCasesToSelect.push(tCases[iCaseIndex]);
+          if (iCaseIndex < tCases.get('length')) {
+            tCasesToSelect.push(tCases.unorderedAt(iCaseIndex));
           }
         });
         this.get('dataContext').applyChange({
@@ -847,7 +851,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
        */
       selectCaseByIndex: function (iIndex, iExtend) {
         var tCases = this.get('cases'),
-            tCase = tCases[iIndex],
+            tCase = tCases.unorderedAt(iIndex),
             tSelection = this.get('selection'),
             tChange = {
               operation: 'selectCases',

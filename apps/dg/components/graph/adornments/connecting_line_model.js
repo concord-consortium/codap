@@ -97,7 +97,7 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     var getCategoryMap = function() {
       var tMap = null,
           tLegendIsCategorical = tLegendDesc && tLegendDesc.get('isCategorical'),
-          tFirstCase = tCases[0];
+          tFirstCase = tCases.at(0);
       if( tLegendIsCategorical && tFirstCase) {
         var tCaseParentCollectionID = tFirstCase.getPath('parent.collection.id'),
             tLegendCollID = tLegendDesc.getPath( 'collectionClient.id');

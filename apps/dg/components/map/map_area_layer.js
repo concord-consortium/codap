@@ -136,7 +136,7 @@ DG.MapAreaLayer = DG.PlotLayer.extend(
       return;   // not ready to create elements yet
     var tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext();
-    if( tCases.length !== this.features.length) {
+    if( tCases.get('length') !== this.features.length) {
       this.clear();
       this.addFeatures();
     }

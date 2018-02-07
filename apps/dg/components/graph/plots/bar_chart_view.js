@@ -175,7 +175,7 @@ DG.BarChartView = DG.ChartView.extend(
         var tModel = this.get('model'),
             tRC = this.createRenderContext(),
             tCases = this.getPath('model.cases'),
-            tDataLength = tCases && tCases.length;
+            tDataLength = tCases && tCases.get('length');
         tCases.forEach(function (iCase, iIndex) {
           var tCallback = iIndex === tDataLength - 1 ? iCallback : null,
               tCellIndices = tModel.lookupCellForCaseIndex(iIndex);
@@ -196,7 +196,7 @@ DG.BarChartView = DG.ChartView.extend(
         var tModel = this.get('model'),
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
-            tDataLength = tCases && tCases.length,
+            tDataLength = tCases && tCases.get('length'),
             tPlotElementLength = this._plottedElements.length,
             tLayerManager = this.get('layerManager'),
             tIndex, tCellIndices;
@@ -205,9 +205,9 @@ DG.BarChartView = DG.ChartView.extend(
         if (tDataLength > tPlotElementLength) {
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
+            this.callCreateElement(tCases.at(tIndex), tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices, iAnimate, iCallback);
+            this.privSetElementCoords(tRC, tCases.at(tIndex), tIndex, tCellIndices, iAnimate, iCallback);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
@@ -363,11 +363,11 @@ DG.BarChartView = DG.ChartView.extend(
               tY = iElement.attr('y') + tFrame.y,
               tWidth = iElement.attr('width'),
               tHeight = iElement.attr('height'),
-              tR = Math.min( tWidth, tHeight) / 2,
+              tR = 0, //Math.min( tWidth, tHeight) / 2,
               tCx = tX + tWidth / 2,
               tCy = tY + tHeight / 2,
               tResult = { x: tX, y: tY, width: tWidth, height: tHeight, cx: tCx, cy: tCy, r: tR,
-                fill: iElement.attr('fill') };
+                fill: iElement.attr('fill'), type: 'rect' };
           return tResult;
         });
       },
@@ -384,7 +384,8 @@ DG.BarChartView = DG.ChartView.extend(
             tOldElementAttrs = this.get('transferredElementCoordinates'),
             tNewElementAttrs = [], // used if many-to-one animation (parent to child collection)
             tNewToOldCaseMap = [],
-            tOldToNewCaseMap = [];
+            tOldToNewCaseMap = [],
+            tOldElementsAreCircles = tOldElementAttrs.length > 0 && tOldElementAttrs[0].type === 'circle';
         if (!tCases)
           return;
 
@@ -428,11 +429,11 @@ DG.BarChartView = DG.ChartView.extend(
               tElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tOldElement)) {
             tTransAttrs = {
-              r: DG.isFinite( tOldElement.r) ? tOldElement.r : 0,
-              x: DG.isFinite(tOldElement.cx) ? tOldElement.cx - tOldElement.r : tOldElement.x,
-              y: DG.isFinite(tOldElement.cy) ? tOldElement.cy - tOldElement.r : tOldElement.y,
-              width: DG.isFinite( tOldElement.width) ? tOldElement.width : 2 * tOldElement.r,
-              height: DG.isFinite( tOldElement.height) ? tOldElement.height : 2 * tOldElement.r,
+              r: tOldElementsAreCircles ? tOldElement.r : 0,
+              x: tOldElementsAreCircles ? tOldElement.cx - tOldElement.r : tOldElement.x,
+              y: tOldElementsAreCircles ? tOldElement.cy - tOldElement.r : tOldElement.y,
+              width: tOldElementsAreCircles ? 2 * tOldElement.r : tOldElement.width,
+              height: tOldElementsAreCircles ? 2 * tOldElement.r : tOldElement.height,
               fill: tOldElement.fill,
               stroke: tOldElement.fill
             };

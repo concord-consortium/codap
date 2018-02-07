@@ -103,7 +103,7 @@ return {
 
     // This check for whether we can use the cached parents isn't completely foolproof because
     // cases could come and go leaving us with the same number between calls.
-    if( tCases.length === this._cachedCaseCount) {
+    if( tCases.get('length') === this._cachedCaseCount) {
       tParents = this._cachedParentCases;
     }
     else {
@@ -113,7 +113,7 @@ return {
           tParents.push( tParent );
         }
       });
-      this._cachedCaseCount = tCases.length;
+      this._cachedCaseCount = tCases.get('length');
       this._cachedParentCases = tParents;
       this._isHierarchical = isHierarchical;
     }
@@ -253,7 +253,7 @@ return {
     else {
       var tAllCases = tConfig ? tConfig.get('allCases') : [],
           tCases = tAllCases ? tAllCases.slice() : [],
-          tCase = (tCases.length > iIndex) ? tCases[iIndex] : null;
+          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
       tResultCases = tCase ? [tCase] : null;
     }
     return tResultCases;
@@ -286,7 +286,7 @@ return {
       var tConfig = this.get('dataConfiguration'),
           tCases = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
-          tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
+          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
       this.beginVisibilityChanges();
       hideShowCases(tConfig, [tCase], tHidden.indexOf(tCase) >= 0);
       this.endVisibilityChanges();
@@ -389,7 +389,7 @@ return {
       var tConfig = this.get('dataConfiguration'),
           tCases = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
-          tCase = (tCases.length > iIndex) ? tCases[ iIndex] : null;
+          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
       return( tHidden.indexOf( tCase) >= 0);
     }
   },

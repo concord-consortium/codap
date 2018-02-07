@@ -53,7 +53,7 @@ DG.DotChartView = DG.ChartView.extend(
             tModel = this.get('model'),
             tCases = this.getPath('model.cases'),
             tRC = this.createRenderContext(),
-            tDataLength = tCases && tCases.length,
+            tDataLength = tCases && tCases.get('length'),
             tPlotElementLength = this._plottedElements.length,
             tCandidateRadius = this.calcPointRadius(),
             tWantNewPointRadius = (this._pointRadius !== tCandidateRadius),
@@ -72,14 +72,14 @@ DG.DotChartView = DG.ChartView.extend(
               // tCellIndices may come out null if the case has empty values
               // Note that we don't animate here because things can happen during the
               // animation that change the destination.
-              this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+              this.privSetElementCoords(tRC, tCases.at(tIndex), tIndex, tCellIndices);
             }
           }
           // add plot elements for added cases
           for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-            this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
+            this.callCreateElement(tCases.at(tIndex), tIndex, this.animationIsAllowable());
             tCellIndices = tModel.lookupCellForCaseIndex(tIndex);
-            this.privSetElementCoords(tRC, tCases[tIndex], tIndex, tCellIndices);
+            this.privSetElementCoords(tRC, tCases.at(tIndex), tIndex, tCellIndices);
           }
         }
         // Get rid of plot elements for removed cases and update all coordinates
@@ -117,9 +117,9 @@ DG.DotChartView = DG.ChartView.extend(
           // a plot element that no longer exists.
           //DG.assert( this_._plottedElements[ iIndex], "dataRangeDidChange: missing plotted element!");
           if (!this_._plottedElements[iIndex])
-            this_.callCreateElement(tCases[iIndex], iIndex, this_._createAnimationOn);
+            this_.callCreateElement(tCases.at(iIndex), iIndex, this_._createAnimationOn);
           var tCellIndices = this_.get('model').lookupCellForCaseIndex(iIndex);
-          this_.privSetElementCoords(tRC, tCases[iIndex], iIndex, tCellIndices);
+          this_.privSetElementCoords(tRC, tCases.at(iIndex), iIndex, tCellIndices);
         });
         sc_super();
       },
@@ -313,7 +313,7 @@ DG.DotChartView = DG.ChartView.extend(
               tNewElement = this_.callCreateElement(iCase, iIndex, false);
           if (!SC.none(tCurrAttrs)) {
             tTransAttrs = {
-              r: DG.isFinite(tCurrAttrs.r) ? tCurrAttrs.r : tDefaultR,
+              r: DG.isFinite(tCurrAttrs.r) && tCurrAttrs.r > 0 ? tCurrAttrs.r : tDefaultR,
               cx: DG.isFinite(tCurrAttrs.cx) ? tCurrAttrs.cx : tCurrAttrs.x + tCurrAttrs.width / 2,
               cy: DG.isFinite(tCurrAttrs.cy) ? tCurrAttrs.cy : tCurrAttrs.y + tCurrAttrs.height / 2,
               fill: tCurrAttrs.fill,

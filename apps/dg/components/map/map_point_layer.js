@@ -117,8 +117,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     tChanges = tChanges || [];
     tChanges.forEach( function( iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn);
-      this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex );
+        this_.callCreateElement( tCases.at(iIndex), iIndex, this_._createAnimationOn);
+      this_.setCircleCoordinate( tRC, tCases.at(iIndex), iIndex );
     });
 
     sc_super();

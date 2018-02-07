@@ -45,7 +45,7 @@ DG.PointDataTip = DG.DataTip.extend(
         var this_ = this,
             tPlot = this.getPath('plotLayer.model'),  // Use of plotBinding doesn't work the first time
             tCases = tPlot.get('cases'),
-            tCase = tCases ? tCases[this.get('caseIndex')] : null;
+            tCase = tCases ? tCases.unorderedAt(this.get('caseIndex')) : null;
 
         function getNameValuePair(iKey) {
           var digitsForLegend = function() {

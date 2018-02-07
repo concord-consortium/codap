@@ -499,6 +499,102 @@ DG.PlotUtilities = {
         tModelClass = DG.CountAxisModel;
     }
     return tModelClass;
+  },
+
+  /**Called when the user drags legend category keys
+   * @param iIndex1 {Number}
+   * @param iIndex2 {Number}
+   */
+  swapCategoriesByIndex: function( iAttributeDescription, iIndex1, iIndex2) {
+    var tCategoryMap = iAttributeDescription.getPath('attribute.categoryMap'),
+        tOrder = tCategoryMap.__order || [],
+        tAttribute = iAttributeDescription.get('attribute');
+    if( DG.ObjectMap.length( tCategoryMap) === 0) {
+      var tAttrStats = iAttributeDescription.get('attributeStats'),
+          tAttrColor = DG.ColorUtilities.calcAttributeColor( iAttributeDescription);
+      tOrder = [];
+      this.forEachCellDo( function( iIndex, iName) {
+        var tColor = DG.ColorUtilities.calcCategoryColor( tAttrStats, tAttrColor, iName);
+        tCategoryMap[iName] = tColor.colorString || tColor;
+        tOrder.push( iName);
+      });
+      tCategoryMap.__order = tOrder;
+    }
+    var tSaved = tOrder[ iIndex1];
+    tOrder[iIndex1] = tOrder[iIndex2];
+    tOrder[iIndex2] = tSaved;
+    iAttributeDescription.setPath('attribute.categoryMap', tCategoryMap);
+    tAttribute.notifyPropertyChange('categoryMap');
+    iAttributeDescription.invalidateCaches();
   }
 
 };
+
+DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
+  /**
+   * @property [DG.Case]
+   */
+  _cases: null,
+  /**
+   * @property [Number]
+   */
+  _map: null,
+
+  init: function() {
+    sc_super();
+    this._cases = this._cases || [];
+    this._map = this._map || [];
+  },
+
+  length: function() {
+    return this._cases.length;
+  }.property( '_cases'),
+
+  at: function( iIndex) {
+    return this._cases[this._map[iIndex]];
+  },
+
+  /**
+   * Return the case at the given index in the original array
+   * @param iIndex {Number}
+   * @return {DG.Case}
+   */
+  unorderedAt: function( iIndex) {
+    return this._cases[iIndex];
+  },
+
+  push: function( iCase) {
+    this._cases.push( iCase);
+    this._map.push( this._cases.length - 1);
+  },
+
+  indexOf: function( iCase) {
+    return this._cases.indexOf( iCase);
+  },
+
+  forEach: function( iDoF) {
+    this._map.forEach( function( iMapValue, iIndex) {
+      iDoF( this._cases[iMapValue], iMapValue, iIndex);
+    }.bind( this));
+  },
+
+  map: function( iTransF) {
+    var tResult = DG.PlotUtilities.PlotCaseArray.create();
+    this.forEach( function( iCase, iMapIndex) {
+        tResult._cases[ iMapIndex] = iTransF( iCase, iMapIndex);
+        tResult._map.push( iMapIndex);
+      });
+    return tResult;
+  },
+
+  filter: function( iBoolF) {
+    var tResult = DG.PlotUtilities.PlotCaseArray.create();
+    this.forEach( function( iCase, iMapIndex) {
+      if( iBoolF( iCase, iMapIndex)) {
+        tResult._cases[ iMapIndex] = iCase;
+        tResult._map.push( iMapIndex);
+      }
+    }.bind( this));
+    return tResult;
+  }
+});

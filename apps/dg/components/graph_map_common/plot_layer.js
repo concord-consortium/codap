@@ -358,7 +358,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
   callCreateElement: function(iCase, iIndex, iAnimate) {
     var tElement = this.createElement( iCase, iIndex, iAnimate);
     if( tElement) {
-      this._plottedElements.push( tElement );
+      this._plottedElements[iIndex] = tElement;
       this.getPath('layerManager.' + DG.LayerNames.kPoints ).push( tElement);
       this._elementOrderIsValid = false; // So updateSelection will work
     }
@@ -389,7 +389,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     var this_ = this,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
-        tDataLength = tCases && tCases.length,
+        tDataLength = tCases && tCases.get('length'),
         tPlotElementLength = this._plottedElements.length,
         tWantNewPointRadius = (this._pointRadius !== this.calcPointRadius()),
         tLayerManager = this.get('layerManager' ),
@@ -414,8 +414,8 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if (tDataLength > tPlotElementLength) {
       // create plot elements for added cases
       for (tIndex = tPlotElementLength; tIndex < tDataLength; tIndex++) {
-        this.callCreateElement(tCases[tIndex], tIndex, this.animationIsAllowable());
-        this.setCircleCoordinate(tRC, tCases[tIndex], tIndex);
+        this.callCreateElement(tCases.at(tIndex), tIndex, this.animationIsAllowable());
+        this.setCircleCoordinate(tRC, tCases.at(tIndex), tIndex);
       }
     }
     // Get rid of plot elements for removed cases and update all coordinates
@@ -434,7 +434,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
     if( (iProperty === 'hiddenCases') || (iOperation === 'deleteCases')) {
       this.prepareToResetCoordinates();
       tCases.forEach(function (iCase, iIndex) {
-        this_.setCircleCoordinate(tRC, tCases[iIndex], iIndex);
+        this_.setCircleCoordinate(tRC, tCases.at(iIndex), iIndex);
       });
     }
 
@@ -517,7 +517,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
    * Remove elements in _plottedElements beyond the length of the array of cases
    */
   removeExtraElements: function() {
-    var tCasesLength = this.getPath('model.cases').length,
+    var tCasesLength = this.getPath('model.cases.length'),
         tPlotElementLength = this._plottedElements.length,
         tLayerManager = this.get('layerManager');
     for( var tIndex = tCasesLength; tIndex < tPlotElementLength; tIndex++) {
@@ -566,14 +566,14 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     // If we're going to be adding cases, then we'll want to call updateSelection because
     // these new cases may be selected. Setting _elementOrderIsValid to false accomplishes this.
-    if( this._plottedElements.length < tCases.length)
+    if( this._plottedElements.length < tCases.get('length'))
       this_._elementOrderIsValid = false;
 
     // update case elements, adding them if necessary
     if( tRC.updatedPositions || tRC.updatedColors || tRC.casesAdded || this._mustMoveElementsToNewCoordinates ) {
       this.resetCoordinates( tCases, tRC);
     }
-    DG.assert( this._plottedElements.length === tCases.length );
+    DG.assert( this._plottedElements.length === tCases.get('length') );
   },
 
   resetCoordinates: function( iCases, iRC) {
@@ -720,14 +720,15 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
     this._selectionTree = new RTree();
     this._plottedElements.forEach(function(iElement, iIndex){
+      var tCase = tCases.unorderedAt(iIndex);
       if( tElementsAreRects) {
-        doInsertion(iElement.attrs.x, iElement.attrs.y, tCases[iIndex]);
-        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y, tCases[iIndex]);
-        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y + iElement.attrs.height, tCases[iIndex]);
-        doInsertion(iElement.attrs.x, iElement.attrs.y + iElement.attrs.height, tCases[iIndex]);
+        doInsertion(iElement.attrs.x, iElement.attrs.y, tCase);
+        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y, tCase);
+        doInsertion(iElement.attrs.x + iElement.attrs.width, iElement.attrs.y + iElement.attrs.height, tCase);
+        doInsertion(iElement.attrs.x, iElement.attrs.y + iElement.attrs.height, tCase);
       }
       else {
-        doInsertion(iElement.attrs.cx, iElement.attrs.cy, tCases[iIndex]);
+        doInsertion(iElement.attrs.cx, iElement.attrs.cy, tCase);
       }
     }.bind(this));
   },
@@ -835,7 +836,7 @@ DG.PlotLayer = SC.Object.extend( DG.Destroyable,
 
       this._plottedElements.forEach( function( iElement, iIndex) {
         if( DG.ViewUtilities.ptInRect( { x: iElement.attrs.cx, y: iElement.attrs.cy }, iRect))
-          tSelected.push( tCases[ iIndex]);
+          tSelected.push( tCases.at( iIndex));
       });
     }
     return tSelected;

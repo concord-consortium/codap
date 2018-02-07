@@ -562,11 +562,11 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       var tSelection = this.getPath('dataConfiguration.selection' ).toArray(),
           tSomethingIsSelected = tSelection && tSelection.get('length') !== 0,
           tCases = this.getPath('dataConfiguration.cases' ),
-          tSomethingIsUnselected = tSelection && tCases && (tSelection.get('length') < tCases.length),
+          tSomethingIsUnselected = tSelection && tCases && (tSelection.get('length') < tCases.get('length')),
           tSomethingHidden = this.getPath('dataConfiguration.hiddenCases' ).length > 0,
           tHideSelectedNumber = (tSelection && tSelection.length > 1) ? 'Plural' : 'Sing',
           tHideUnselectedNumber = (tSelection && tCases &&
-              (tCases.length - tSelection.length > 1)) ? 'Plural' : 'Sing',
+              (tCases.get('length') - tSelection.length > 1)) ? 'Plural' : 'Sing',
           self = this;
 
       function hideSelectedCases() {

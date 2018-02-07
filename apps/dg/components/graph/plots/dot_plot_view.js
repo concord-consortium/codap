@@ -143,8 +143,8 @@ DG.DotPlotView = DG.PlotView.extend(
     this.prepareToResetCoordinates();
     tCases.forEach( function( iCase, iIndex) {
       if( iIndex >= tPlotElementLength)
-        this_.callCreateElement( tCases[ iIndex], iIndex, this_._createAnimationOn);
-      this_.setCircleCoordinate( tRC, tCases[ iIndex], iIndex);
+        this_.callCreateElement( iCase, iIndex, this_._createAnimationOn);
+      this_.setCircleCoordinate( tRC, iCase, iIndex);
     });
 
     this.updateAverages();
@@ -233,8 +233,9 @@ DG.DotPlotView = DG.PlotView.extend(
    */
   setCircleCoordinate: function( iRC, iCase, iIndex, iAnimate, iCallback ) {
     //DG.assert( iRC && iRC.categoryAxisView );
-    DG.assert( iCase );
-    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
+    DG.assert( iCase, 'There must be a case' );
+    DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ),
+        'index %@ out of bounds for _plottedElements of length %@'.loc(iIndex, this._plottedElements.length));
     var tCircle = this._plottedElements[ iIndex],
         tWorld = iCase.getNumValue( iRC.primaryVarID ),
         tScreenCoord = iRC.primaryAxisView.dataToCoordinate( tWorld),
@@ -306,7 +307,7 @@ DG.DotPlotView = DG.PlotView.extend(
     }
 
     function returnCaseValuesToStart( iCaseIndex, iStartWorldCoord) {
-      var tCase = this_.getPath('model.cases')[ iCaseIndex],
+      var tCase = this_.getPath('model.cases').unorderedAt(iCaseIndex),
           tPrimaryVarID = this_.getPath('model.primaryVarID'),
           tDelta = tCase.getNumValue( tPrimaryVarID) - iStartWorldCoord;
       this_.get('model').animateSelectionBackToStart([ tPrimaryVarID], [ tDelta]);
@@ -344,7 +345,7 @@ DG.DotPlotView = DG.PlotView.extend(
               var tNewCoord = (tNumericPlace === DG.GraphTypes.EPlace.eX) ?
                                 this.ox + dx : this.oy + dy,
                   tNewWorld = this_.get('primaryAxisView').coordinateToData( tNewCoord),
-                  tOldWorld = this_.getPath('model.cases')[this.index].getNumValue( this_.getPath('model.primaryVarID')),
+                  tOldWorld = this_.getPath('model.cases').unorderedAt(this.index).getNumValue( this_.getPath('model.primaryVarID')),
                   tCurrTransform = this.transform();
               if( isFinite( tNewWorld)) {
                 // Put the element into the initial transformed state so that changing case values
@@ -362,7 +363,7 @@ DG.DotPlotView = DG.PlotView.extend(
               this.ox = this.attr("cx");
               this.oy = this.attr("cy");
               // Save the initial world coordinate
-              this.w = this_.getPath('model.cases')[ this.index].getNumValue( this_.getPath('model.primaryVarID'));
+              this.w = this_.getPath('model.cases').unorderedAt(this.index).getNumValue( this_.getPath('model.primaryVarID'));
               this.attr({opacity: kOpaque });
             },
             function() {  // end
