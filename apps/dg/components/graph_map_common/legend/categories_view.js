@@ -198,7 +198,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
               if (!tPaper || !tCellNames)
                 return kMaxWidth;
               tCellNames.forEach(function (iName) {
-                tMaxExtent = Math.max(tMaxExtent, DG.RenderingUtilities.textExtentOnCanvas(tPaper, iName).x);
+                tMaxExtent = Math.max(tMaxExtent,
+                    DG.RenderingUtilities.textExtent( iName).x);
               });
               return tMaxExtent + kDefaultRectSize + 10;
             },
