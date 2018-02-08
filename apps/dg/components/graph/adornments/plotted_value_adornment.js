@@ -153,32 +153,35 @@ DG.PlottedValueAdornment = DG.PlotAdornment.extend( DG.LineLabelMixin,
 
   */
   updateToModel: function() {
-    if( !this.myElements || !this.myElements.length)
-      this.createElements();
+    if (this.getPath('model.isVisible')) {
 
-    var tAxisView = this.get( 'valueAxisView'),
-        tPaper = this.get('paper'),
-        tPlottedValues = this.get('values'),
-        tIndex = this.get('currentIndex') || 0,
-        tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
-        tCoord, tPt1, tPt2;
+      if (!this.myElements || !this.myElements.length)
+        this.createElements();
 
-    if( DG.isFinite( tPlottedValue)) {
-      tCoord = tAxisView.dataToCoordinate( tPlottedValue);
-      if( tAxisView.get('orientation') === 'horizontal') {
-        tPt1 = { x: tCoord, y: tPaper.height };
-        tPt2 = { x: tCoord, y: 0 };
+      var tAxisView = this.get('valueAxisView'),
+          tPaper = this.get('paper'),
+          tPlottedValues = this.get('values'),
+          tIndex = this.get('currentIndex') || 0,
+          tPlottedValue = tPlottedValues && tPlottedValues[tIndex],
+          tCoord, tPt1, tPt2;
+
+      if (DG.isFinite(tPlottedValue)) {
+        tCoord = tAxisView.dataToCoordinate(tPlottedValue);
+        if (tAxisView.get('orientation') === 'horizontal') {
+          tPt1 = {x: tCoord, y: tPaper.height};
+          tPt2 = {x: tCoord, y: 0};
+        }
+        else {
+          tPt1 = {x: 0, y: tCoord};
+          tPt2 = {x: tPaper.width, y: tCoord};
+        }
+        DG.RenderingUtilities.updateLine(this.valueSegment, tPt1, tPt2);
       }
-      else {
-        tPt1 = { x: 0, y: tCoord };
-        tPt2 = { x: tPaper.width, y: tCoord };
-      }
-      DG.RenderingUtilities.updateLine( this.valueSegment, tPt1, tPt2);
+      else
+        this.valueSegment.attr({path: ''});
+
+      this.updateTextToModel(1 / 4); // offset from top of plot
     }
-    else
-      this.valueSegment.attr( { path: '' });
-
-    this.updateTextToModel( 1/4); // offset from top of plot
   }.observes('DG.globalsController.globalNameChanges'),
 
   valueAxisAttrDidChange: function() {

@@ -508,7 +508,15 @@ DG.PlotView = DG.PlotLayer.extend(
    */
   plottedValueChanged: function() {
     var plotModel = this.get('model'),
-        tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue');
+        tPlottedValue = plotModel && plotModel.getAdornmentModel('plottedValue'),
+        tPlottedValueEditView = this.get('plottedValueEditView'),
+        tPlottedValueIsVisible = tPlottedValue && tPlottedValue.get('isVisible');
+    if( !tPlottedValueIsVisible) {  // If it's not visible, we can avoid much of the work
+      if( tPlottedValueEditView)  // but we still make the edit view at the top of the plot hidden
+        tPlottedValueEditView.set('isVisible', false);
+      return;
+    }
+
     var tPlottedValueEditView = this.get('plottedValueEditView');
     if( SC.none( tPlottedValueEditView)) {
       tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
