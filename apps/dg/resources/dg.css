@@ -1293,9 +1293,12 @@ img.flag {
     display: inline-block;
     width: 24px;
     height: 24px;
-    left:4px;
-    top:0;
     background: static_url('flags.png') no-repeat;
+}
+
+.dg.menu img.flag {
+    /*left:4px;*/
+    top:0;
 }
 
 .dg.rightSide .dg.dg-icon-button label{

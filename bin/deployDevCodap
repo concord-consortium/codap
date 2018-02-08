@@ -17,6 +17,7 @@ function usage() {
 PROGNAME=`basename $0`
 DIRNAME=`dirname $0`
 RC_FILE=.${PROGNAME}rc
+CONFIG_FILE=/var/www/config/releases/codap-config.js
 
 # update the path to include this path
 PATH=$DIRNAME:$PATH
@@ -51,6 +52,7 @@ makeCODAPZip --minify=no $LOCS $VERSION_STRING
 mkdir $TEMPDIR
 unzip -d $TEMPDIR codap_$VERSION_STRING
 rsync -av $TEMPDIR/$VERSION_STRING $SERVER:$SERVER_DIR
+ssh $SERVER cp $CONFIG_FILE $SERVER_DIR/$VERSION_STRING
 
 #
 # Clean up

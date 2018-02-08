@@ -116,16 +116,18 @@ DG.mainPage = SC.Page.design((function() {
             classNames: 'dg-locales-menu',
             itemToolTipKey: 'name',
             itemIconKey: 'icon',
+            itemTitleKey: 'title',
             itemHeight: 24,
-            itemWidth: 24,
+            itemWidth: 48,
             menuHeightPadding: 0,
-            layout: { width: 32},
+            layout: { width: 90},
             items: function () {
               this.items = DG.locales.map(function (locale) {
                 return {
                   name: locale.langName.loc(),
                   icon: locale.icon,
-                  digraph: locale.langDigraph
+                  digraph: locale.langDigraph,
+                  title: locale.langDigraph.toUpperCase()
                 }
               });
             }.property().cacheable(true),
