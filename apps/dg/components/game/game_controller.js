@@ -85,9 +85,10 @@ DG.GameController = DG.ComponentController.extend(
       /**
        * If false, permit the data interactive to participate in normal component
        * selection, including coming to the front.
+       * As of build ~0428 we allow data interactives to come to the front like any other component
        * @type {boolean}
        */
-      preventBringToFront: true,
+      preventBringToFront: false,
 
       /**
        * If true, prevent collection reorganization for this data interactive's

@@ -726,7 +726,8 @@ DG.DocumentController = SC.Object.extend(
             },
             title: tGameName,
             isResizable: true,
-            useLayout: false  // may change this to false in the future
+            useLayout: false,
+            positionOnCreate: true
           });
           this._component = tController.get('model');
         },

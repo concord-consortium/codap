@@ -790,10 +790,11 @@ DG.ComponentView.restoreComponent = function (iParams) {
     tUseLayoutForPosition = true;
   }
   if (!tUseLayoutForPosition) {
-    tSuperView.positionNewComponent(tComponentView, iParams.position);
+    tSuperView.positionNewComponent(tComponentView, iParams.position, iParams.positionOnCreate);
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();
+  tComponentView.select();
 
   return tComponentView;
 };
