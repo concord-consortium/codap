@@ -612,7 +612,7 @@ DG = SC.Application.create((function () // closure
       },
       {
         langName: 'DG.Locale.name.zh',
-        langDigraph: 'zh-TW',
+        langDigraph: 'zh',
         countryDigraph: 'TW',
         icon: 'flag flag-tw'
       }
