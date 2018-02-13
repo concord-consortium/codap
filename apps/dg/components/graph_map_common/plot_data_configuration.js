@@ -17,8 +17,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 // ==========================================================================
-sc_require('_');
-/*global _:true*/
 
 /** @class  DG.PlotDataConfiguration - The object that describes the manner in which attributes are
     assigned to places in a graph.
@@ -572,9 +570,7 @@ DG.PlotDataConfiguration = SC.Object.extend(
             tLegendAttrDesc.get('attributeType') === DG.Analysis.EAttributeType.eCategorical) {
           var tLegendID = tLegendAttrDesc.getPath('attribute.id'),
               tCategoryMap = tLegendAttrDesc.getPath('attribute.categoryMap');
-          // we use lodash sort here because Chrome's native sort is not stable
-          // https://stackoverflow.com/questions/42731205/stable-sorting-in-google-chrome
-          _.sortBy(tMapOriginalToSorted, function( iIndex1, iIndex2) {
+          tMapOriginalToSorted = DG.ArrayUtils.stableSort(tMapOriginalToSorted, function( iIndex1, iIndex2) {
             var tValue1 = tResult[iIndex1].getStrValue( tLegendID),
                 tValue2 = tResult[iIndex2].getStrValue( tLegendID);
             return tCategoryMap.__order.indexOf( tValue2) - tCategoryMap.__order.indexOf( tValue1);
