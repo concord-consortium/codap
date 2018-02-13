@@ -267,7 +267,7 @@ DG = SC.Application.create((function () // closure
     /*
      * Build number
      */
-    BUILD_NUM: '0427',
+    BUILD_NUM: '0428',
 
     IS_DG_BUILD: isDGBuild.property(),
 
@@ -612,7 +612,7 @@ DG = SC.Application.create((function () // closure
       },
       {
         langName: 'DG.Locale.name.zh',
-        langDigraph: 'zh-TW',
+        langDigraph: 'zh',
         countryDigraph: 'TW',
         icon: 'flag flag-tw'
       }

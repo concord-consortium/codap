@@ -634,7 +634,7 @@ SC.stringsFor("he", {
     "DG.WebView.defaultTitle": "עמוד אינטרנט",
     "DG.mainPage.exceptionMessage": "חלה שגיאה שיכולה להשפיע על התוכנה. רצוי לטעון מחדש דף זה לאחר שמירת העבודה",
     "DG.fileMenu.provider.examples.displayName": "מסמכים לדוגמא",
-    "DG.ToolButtonData.pluginMenu.title": "\n Plugins",
+    "DG.ToolButtonData.pluginMenu.title": "Plugins",
     "DG.ToolButtonData.pluginMenu.toolTip": "פתח מרכיב plugin",
     "DG.Undo.graph.showMovablePoint": "בצע שוב הצגת נקודה נעה",
     "DG.Redo.graph.showMovablePoint": "עשה שוב הצגת נקודה נעה",

@@ -11936,7 +11936,7 @@ CloudFileManager = (function() {
 module.exports = new CloudFileManager();
 
 
-},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":80}],54:[function(require,module,exports){
+},{"./client":54,"./ui":68,"./utils/get-hash-param":69,"./views/app-view":82}],54:[function(require,module,exports){
 var CloudContent, CloudFileManagerClient, CloudFileManagerClientEvent, CloudFileManagerUI, CloudMetadata, DocumentStoreProvider, DocumentStoreShareProvider, GoogleDriveProvider, LaraProvider, LocalFileProvider, LocalStorageProvider, PostMessageProvider, ProviderInterface, ReadOnlyProvider, URLProvider, base64Array, cloudContentFactory, getQueryParam, isString, tr,
   bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   hasProp = {}.hasOwnProperty;
@@ -13349,7 +13349,7 @@ module.exports = {
 };
 
 
-},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":77,"base64-js":1}],55:[function(require,module,exports){
+},{"./providers/document-store-provider":56,"./providers/document-store-share-provider":57,"./providers/google-drive-provider":59,"./providers/lara-provider":60,"./providers/local-file-provider":61,"./providers/localstorage-provider":62,"./providers/post-message-provider":64,"./providers/provider-interface":65,"./providers/readonly-provider":66,"./providers/url-provider":67,"./ui":68,"./utils/get-query-param":70,"./utils/is-string":72,"./utils/translate":79,"base64-js":1}],55:[function(require,module,exports){
 /* FileSaver.js
  * A saveAs() FileSaver implementation.
  * 1.3.2
@@ -14139,7 +14139,7 @@ DocumentStoreProvider = (function(superClass) {
 module.exports = DocumentStoreProvider;
 
 
-},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":77,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
+},{"../utils/get-hash-param":69,"../utils/get-query-param":70,"../utils/is-string":72,"../utils/translate":79,"./document-store-url":58,"./patchable-content":63,"./provider-interface":65,"jiff":20,"pako":35}],57:[function(require,module,exports){
 var CloudMetadata, DocumentStoreShareProvider, DocumentStoreUrl, pako;
 
 CloudMetadata = (require('./provider-interface')).CloudMetadata;
@@ -14931,7 +14931,7 @@ GoogleDriveProvider = (function(superClass) {
 module.exports = GoogleDriveProvider;
 
 
-},{"../utils/is-string":72,"../utils/translate":77,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":79,"./provider-interface":65,"diff":12}],60:[function(require,module,exports){
 var CloudMetadata, DocumentStoreUrl, LaraProvider, PatchableContent, ProviderInterface, base64, cloudContentFactory, getQueryParam, pako,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -15516,7 +15516,7 @@ LocalFileProvider = (function(superClass) {
 module.exports = LocalFileProvider;
 
 
-},{"../utils/translate":77,"../views/local-file-tab-list-view":88,"../views/local-file-tab-save-view":89,"./provider-interface":65}],62:[function(require,module,exports){
+},{"../utils/translate":79,"../views/local-file-tab-list-view":90,"../views/local-file-tab-save-view":91,"./provider-interface":65}],62:[function(require,module,exports){
 var CloudMetadata, LocalStorageProvider, ProviderInterface, cloudContentFactory, tr,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty,
@@ -15672,7 +15672,7 @@ LocalStorageProvider = (function(superClass) {
 module.exports = LocalStorageProvider;
 
 
-},{"../utils/translate":77,"./provider-interface":65}],63:[function(require,module,exports){
+},{"../utils/translate":79,"./provider-interface":65}],63:[function(require,module,exports){
 var PatchableContent, jiff;
 
 jiff = require('jiff');
@@ -16497,7 +16497,7 @@ ReadOnlyProvider = (function(superClass) {
 module.exports = ReadOnlyProvider;
 
 
-},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":77,"./provider-interface":65}],67:[function(require,module,exports){
+},{"../utils/is-array":71,"../utils/is-string":72,"../utils/translate":79,"./provider-interface":65}],67:[function(require,module,exports){
 var CloudMetadata, ProviderInterface, URLProvider, cloudContentFactory,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
@@ -16843,7 +16843,7 @@ module.exports = {
 };
 
 
-},{"./utils/is-string":72,"./utils/translate":77}],69:[function(require,module,exports){
+},{"./utils/is-string":72,"./utils/translate":79}],69:[function(require,module,exports){
 module.exports = function(param) {
   var ret;
   ret = null;
@@ -16893,6 +16893,114 @@ module.exports = function(param) {
 
 
 },{}],73:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "Dokument1",
+    "~MENU.NEW": "Neu",
+    "~MENU.OPEN": "Öffnen",
+    "~MENU.CLOSE": "Schließen",
+    "~MENU.IMPORT_DATA": "Daten importieren ...",
+    "~MENU.SAVE": "Speichern",
+    "~MENU.SAVE_AS": "Speichern unter ...",
+    "~MENU.EXPORT_AS": "Datei exportieren als ...",
+    "~MENU.CREATE_COPY": "Kopie erstellen",
+    "~MENU.SHARE": "Teilen ...",
+    "~MENU.SHARE_GET_LINK": "Link erhalten für geteilte Ansicht",
+    "~MENU.SHARE_UPDATE": "Geteilte Ansicht aktualisieren",
+    "~MENU.DOWNLOAD": "Download",
+    "~MENU.RENAME": "Umbenennen",
+    "~MENU.REVERT_TO": "Zurückkehren ...",
+    "~MENU.REVERT_TO_LAST_OPENED": "Kürzlich geöffnete Fassung",
+    "~MENU.REVERT_TO_SHARED_VIEW": "Geteilte Ansicht",
+    "~DIALOG.SAVE": "Speichern",
+    "~DIALOG.SAVE_AS": "Speichern unter ...",
+    "~DIALOG.EXPORT_AS": "Datei exportieren als ...",
+    "~DIALOG.CREATE_COPY": "Kopie erstellen ...",
+    "~DIALOG.OPEN": "Öffnen",
+    "~DIALOG.DOWNLOAD": "Download",
+    "~DIALOG.RENAME": "Umbenennen",
+    "~DIALOG.SHARED": "Teilen",
+    "~DIALOG.IMPORT_DATA": "Daten importieren",
+    "~PROVIDER.LOCAL_STORAGE": "Local Storage",
+    "~PROVIDER.READ_ONLY": "Leseansicht",
+    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
+    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
+    "~PROVIDER.LOCAL_FILE": "Lokale Datei",
+    "~FILE_STATUS.SAVING": "Speichern",
+    "~FILE_STATUS.SAVED": "Gespeichert",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "All changes saved to %{providerName}",
+    "~FILE_STATUS.UNSAVED": "Ungespeichert",
+    "~FILE_DIALOG.FILENAME": "Dateiname",
+    "~FILE_DIALOG.OPEN": "Öffnen",
+    "~FILE_DIALOG.SAVE": "Speichern",
+    "~FILE_DIALOG.CANCEL": "Abbrechen",
+    "~FILE_DIALOG.REMOVE": "Löschen",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "Sind Sie sicher, dass %{filename} gelöscht werden soll?",
+    "~FILE_DIALOG.REMOVED_TITLE": "Datei löschen",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} wurde gelöscht",
+    "~FILE_DIALOG.LOADING": "Laden...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Fehler beim Laden der Ordnerinhalte ***",
+    "~FILE_DIALOG.DOWNLOAD": "Download",
+    "~FILE_DIALOG.DOWNLOAD_NOTE": "Achtung: Bei Safari könnte diese Datei \"unbekannt\" heißen und sollte manuell mit der .codap Erweiterung versehen werden.",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "Download",
+    "~DOWNLOAD_DIALOG.CANCEL": "Abbrechen",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Include sharing information in downloaded file",
+    "~RENAME_DIALOG.RENAME": "Umbenennen",
+    "~RENAME_DIALOG.CANCEL": "Abbrechen",
+    "~SHARE_DIALOG.COPY": "Kopieren",
+    "~SHARE_DIALOG.VIEW": "View",
+    "~SHARE_DIALOG.CLOSE": "Schließen",
+    "~SHARE_DIALOG.COPY_SUCCESS": "The info has been copied to the clipboard.",
+    "~SHARE_DIALOG.COPY_ERROR": "Sorry, the info was not able to be copied to the clipboard.",
+    "~SHARE_DIALOG.COPY_TITLE": "Copy Result",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "The shared copy of this document will be retained until it has not been accessed for over a year.",
+    "~SHARE_UPDATE.TITLE": "Shared View Updated",
+    "~SHARE_UPDATE.MESSAGE": "The shared view was updated successfully.",
+    "~CONFIRM.OPEN_FILE": "You have unsaved changes. Are you sure you want to open a new document?",
+    "~CONFIRM.NEW_FILE": "You have unsaved changes. Are you sure you want to create a new document?",
+    "~CONFIRM.AUTHORIZE_OPEN": "Authorization is required to open the document. Would you like to proceed with authorization?",
+    "~CONFIRM.AUTHORIZE_SAVE": "Authorization is required to save the document. Would you like to proceed with authorization?",
+    "~CONFIRM.CLOSE_FILE": "You have unsaved changes. Are you sure you want to close the document?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "Are you sure you want to revert the document to its most recently opened state?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "Are you sure you want to revert the document to its most recently shared state?",
+    "~CONFIRM_DIALOG.TITLE": "Are you sure?",
+    "~CONFIRM_DIALOG.YES": "Ja",
+    "~CONFIRM_DIALOG.NO": "Nein",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Drop file here or click here to select a file.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Sorry, you can choose only one file to open.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Sorry, you can't drop more than one file.",
+    "~IMPORT.LOCAL_FILE": "Local File",
+    "~IMPORT.URL": "URL",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Sorry, you can choose only one url to open.",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "Please enter a url to import.",
+    "~URL_TAB.DROP_URL_HERE": "Drop URL here or enter URL below",
+    "~URL_TAB.IMPORT": "Import",
+    "~CLIENT_ERROR.TITLE": "Error",
+    "~ALERT_DIALOG.TITLE": "Alert",
+    "~ALERT_DIALOG.CLOSE": "Close",
+    "~ALERT.NO_PROVIDER": "Could not open the specified document because an appropriate provider is not available.",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Login to Google",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Connecting to Google...",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Missing required clientId in googleDrive provider options",
+    "~DOCSTORE.LOAD_403_ERROR": "You don't have permission to load %{filename}.<br><br>If you are using some else's shared document it may have been unshared.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "Unable to load the requested shared document.<br><br>Perhaps the file was not shared?",
+    "~DOCSTORE.LOAD_404_ERROR": "Unable to load %{filename}",
+    "~DOCSTORE.SAVE_403_ERROR": "You don't have permission to save '%{filename}'.<br><br>You may need to log in again.",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "Unable to create %{filename}.  File already exists.",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "Unable to save %{filename}: [%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "Unable to save %{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "You don't have permission to remove %{filename}.<br><br>You may need to log in again.",
+    "~DOCSTORE.REMOVE_ERROR": "Unable to remove %{filename}",
+    "~DOCSTORE.RENAME_403_ERROR": "You don't have permission to rename %{filename}.<br><br>You may need to log in again.",
+    "~DOCSTORE.RENAME_ERROR": "Unable to rename %{filename}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Concord Cloud Alert",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Concord Cloud Alert",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Save Elsewhere",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "I'll do it later",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "The Concord Cloud has been shut down!",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
+}
+
+},{}],74:[function(require,module,exports){
 module.exports={
   "~MENUBAR.UNTITLED_DOCUMENT": "Untitled Document",
 
@@ -17023,7 +17131,115 @@ module.exports={
 }
 
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
+module.exports={
+    "~MENUBAR.UNTITLED_DOCUMENT": "Documento sin título",
+    "~MENU.NEW": "Nuevo",
+    "~MENU.OPEN": "Abrir ...",
+    "~MENU.CLOSE": "Cerrar",
+    "~MENU.IMPORT_DATA": "Importar datos...",
+    "~MENU.SAVE": "Guardar",
+    "~MENU.SAVE_AS": "Guardar como ...",
+    "~MENU.EXPORT_AS": "Exportar archivo como ...",
+    "~MENU.CREATE_COPY": "Crear una copia",
+    "~MENU.SHARE": "Compartir...",
+    "~MENU.SHARE_GET_LINK": "Obtener enlace de la vista compartida",
+    "~MENU.SHARE_UPDATE": "Actualizar vista compartida",
+    "~MENU.DOWNLOAD": "Bajar",
+    "~MENU.RENAME": "Renombrar",
+    "~MENU.REVERT_TO": "Revertir a...",
+    "~MENU.REVERT_TO_LAST_OPENED": "Estado recientemente abierto",
+    "~MENU.REVERT_TO_SHARED_VIEW": "Vista compartida",
+    "~DIALOG.SAVE": "Guardar",
+    "~DIALOG.SAVE_AS": "Guardar como ...",
+    "~DIALOG.EXPORT_AS": "Exportar archivo como ...",
+    "~DIALOG.CREATE_COPY": "Crear una copia ...",
+    "~DIALOG.OPEN": "Abrir",
+    "~DIALOG.DOWNLOAD": "Bajar",
+    "~DIALOG.RENAME": "Renombrar",
+    "~DIALOG.SHARED": "Compartir",
+    "~DIALOG.IMPORT_DATA": "Importar datos",
+    "~PROVIDER.LOCAL_STORAGE": "Almacenamiento local",
+    "~PROVIDER.READ_ONLY": "Sólo lectura",
+    "~PROVIDER.GOOGLE_DRIVE": "Google Drive",
+    "~PROVIDER.DOCUMENT_STORE": "Concord Cloud",
+    "~PROVIDER.LOCAL_FILE": "Archivo local",
+    "~FILE_STATUS.SAVING": "Guardando...",
+    "~FILE_STATUS.SAVED": "Se guardaron todos los cambios",
+    "~FILE_STATUS.SAVED_TO_PROVIDER": "Se guardaron todos los cambios en %{providerName}",
+    "~FILE_STATUS.UNSAVED": "Sin guardar",
+    "~FILE_DIALOG.FILENAME": "Nombre de archivo",
+    "~FILE_DIALOG.OPEN": "Abrir",
+    "~FILE_DIALOG.SAVE": "Guardar",
+    "~FILE_DIALOG.CANCEL": "Cancelar",
+    "~FILE_DIALOG.REMOVE": "Eliminar",
+    "~FILE_DIALOG.REMOVE_CONFIRM": "¿Confirma eliminar el archivo %{filename}?",
+    "~FILE_DIALOG.REMOVED_TITLE": "Archivo eliminado",
+    "~FILE_DIALOG.REMOVED_MESSAGE": "%{filename} fue eliminado",
+    "~FILE_DIALOG.LOADING": "Cargando...",
+    "~FILE_DIALOG.LOAD_FOLDER_ERROR": "*** Error al cargar contenido de la carpeta ***",
+    "~FILE_DIALOG.DOWNLOAD": "Bajar",
+    "~FILE_DIALOG.DOWNLOAD_NOTE": "NOTA: En Safari el archivo puede ser \"Desconocido\" y deben ser renombrado de manera manual con extensión .codap",
+    "~DOWNLOAD_DIALOG.DOWNLOAD": "Bajar",
+    "~DOWNLOAD_DIALOG.CANCEL": "Cancelar",
+    "~DOWNLOAD_DIALOG.INCLUDE_SHARE_INFO": "Incluir información para compartir en archivo bajado",
+    "~RENAME_DIALOG.RENAME": "Renombrar",
+    "~RENAME_DIALOG.CANCEL": "Cancelar",
+    "~SHARE_DIALOG.COPY": "Copiar",
+    "~SHARE_DIALOG.VIEW": "Ver",
+    "~SHARE_DIALOG.CLOSE": "Cerrar",
+    "~SHARE_DIALOG.COPY_SUCCESS": "La información ha sido copiada al portapapeles",
+    "~SHARE_DIALOG.COPY_ERROR": "Disculpas, la información no pudo copiarse al portapapeles",
+    "~SHARE_DIALOG.COPY_TITLE": "Resultado de la copia",
+    "~SHARE_DIALOG.LONGEVITY_WARNING": "La copia compartida de este documento será retenida hasta que no sea accedida a lo largo de un año.",
+    "~SHARE_UPDATE.TITLE": "Se actualizó la vista compartida",
+    "~SHARE_UPDATE.MESSAGE": "La vista compartida fue actualizada exitosamente.",
+    "~CONFIRM.OPEN_FILE": "Hay cambios sin guardar. ¿Desea igual abrir un nuevo documento?",
+    "~CONFIRM.NEW_FILE": "Hay cambios sin guardar. ¿Desea igual crear un nuevo documento?",
+    "~CONFIRM.AUTHORIZE_OPEN": "Se requiere autorización para abrir el documento. ¿Desea proceder con la autorización?",
+    "~CONFIRM.AUTHORIZE_SAVE": "Se requiere autorización para guardar el documento. ¿Desea proceder con la autorización?",
+    "~CONFIRM.CLOSE_FILE": "Hay cambios sin guardar. ¿Desea igual cerrar el documento?",
+    "~CONFIRM.REVERT_TO_LAST_OPENED": "¿Confirma que quiere revertir el documento a su estado abierto más reciente?",
+    "~CONFIRM.REVERT_TO_SHARED_VIEW": "¿Confirma que quiere revertir el documento a su estado compartido más reciente?",
+    "~CONFIRM_DIALOG.TITLE": "¿Confirma?",
+    "~CONFIRM_DIALOG.YES": "Sí",
+    "~CONFIRM_DIALOG.NO": "No",
+    "~LOCAL_FILE_DIALOG.DROP_FILE_HERE": "Arrastrar archivo acá o clic acá para seleccionar un archivo.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_SELECTED": "Disculpas, sólo se puede elegir un archivo para abrir.",
+    "~LOCAL_FILE_DIALOG.MULTIPLE_FILES_DROPPED": "Disculpas, no se pueden soltar más de un archivo.",
+    "~IMPORT.LOCAL_FILE": "Archivo local",
+    "~IMPORT.URL": "URL",
+    "~IMPORT_URL.MULTIPLE_URLS_DROPPED": "Disculpas, sólo se puede elegir una URL para abrir",
+    "~IMPORT_URL.PLEASE_ENTER_URL": "Por favor ingresar una URL para importar.",
+    "~URL_TAB.DROP_URL_HERE": "Arrastrar URL acá or ingresar URL debajo",
+    "~URL_TAB.IMPORT": "Importar",
+    "~CLIENT_ERROR.TITLE": "Error",
+    "~ALERT_DIALOG.TITLE": "Alerta",
+    "~ALERT_DIALOG.CLOSE": "Cerrar",
+    "~ALERT.NO_PROVIDER": "No se pudo abrir el documento especificado porque no hay disponible un proveedor apropiado.",
+    "~GOOGLE_DRIVE.LOGIN_BUTTON_LABEL": "Loguearse en Google",
+    "~GOOGLE_DRIVE.CONNECTING_MESSAGE": "Conectando con Google...",
+    "~GOOGLE_DRIVE.ERROR_MISSING_CLIENTID": "Falta el id de cliente requerido en las opciones de proveedor de GoogleDrive",
+    "~DOCSTORE.LOAD_403_ERROR": "No tiene permiso para cargar el archivo %{filename}.<br><br>Si está usando un documento compartido por otro quizás no esté más compartido.",
+    "~DOCSTORE.LOAD_SHARED_404_ERROR": "No se pudo cargar el documento compartido requerido.<br><br>Quizás el archivo no haya sido compartido de modo adecuado",
+    "~DOCSTORE.LOAD_404_ERROR": "No se pudo cargar el archivo %{filename}",
+    "~DOCSTORE.SAVE_403_ERROR": "No tiene permiso para guardar el archivo '%{filename}'.<br><br>Necesita loguearse de nuevo.\n",
+    "~DOCSTORE.SAVE_DUPLICATE_ERROR": "No se pudo crear %{filename}. Ya existe un archivo con ese nombre.\n",
+    "~DOCSTORE.SAVE_ERROR_WITH_MESSAGE": "No se pudo guardar %{filename}: [%{message}]",
+    "~DOCSTORE.SAVE_ERROR": "No se pudo guardar %{filename}",
+    "~DOCSTORE.REMOVE_403_ERROR": "No tiene permiso para quitar el archivo %{filename}.<br><br>Necesita loguearse de nuevo.",
+    "~DOCSTORE.REMOVE_ERROR": "No se pudo remover %{filename}",
+    "~DOCSTORE.RENAME_403_ERROR": "No tiene permiso para renombrar el archivo %{filename}.<br><br>Necesita loguearse de nuevo.",
+    "~DOCSTORE.RENAME_ERROR": "No se pudo renombrar %{filename}",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_TITLE": "Alerta de Concord Cloud",
+    "~CONCORD_CLOUD_DEPRECATION.ALERT_SAVE_TITLE": "Alerta de Concord Cloud",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_SAVE_ELSEWHERE": "Guardar en cualquier lugar",
+    "~CONCORD_CLOUD_DEPRECATION.CONFIRM_DO_IT_LATER": "Lo haré más tarde",
+    "~CONCORD_CLOUD_DEPRECATION.SHUT_DOWN_MESSAGE": "Concord Cloud ha sido cerrado",
+    "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Por favor guardar sus documentos en otra ubicación."
+}
+
+},{}],76:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "מסמך לא שמור",
     "~MENU.NEW": "חדש",
@@ -17131,7 +17347,7 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "שמור מסמך במיקום אחר."
 }
 
-},{}],75:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "İsimsiz Dosya",
     "~MENU.NEW": "Yeni",
@@ -17239,7 +17455,7 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Lütfen dosyanızı farklı bir yere kaydedin."
 }
 
-},{}],76:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 module.exports={
     "~MENUBAR.UNTITLED_DOCUMENT": "未命名文件",
     "~MENU.NEW": "新增",
@@ -17347,13 +17563,15 @@ module.exports={
     "~CONCORD_CLOUD_DEPRECATION.PLEASE_SAVE_ELSEWHERE": "Please save your documents to another location."
 }
 
-},{}],77:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 var defaultLang, languageFiles, translate, translations, urlParams, varRegExp;
 
 urlParams = require('./url-params');
 
 languageFiles = {
+  'de': require('./lang/de'),
   'en-US': require('./lang/en-US'),
+  'es': require('./lang/es'),
   'he': require('./lang/he'),
   'tr': require('./lang/tr'),
   'zh-TW': require('./lang/zh-TW')
@@ -17410,7 +17628,7 @@ translate = function(key, vars, lang) {
 module.exports = translate;
 
 
-},{"./lang/en-US":73,"./lang/he":74,"./lang/tr":75,"./lang/zh-TW":76,"./url-params":78}],78:[function(require,module,exports){
+},{"./lang/de":73,"./lang/en-US":74,"./lang/es":75,"./lang/he":76,"./lang/tr":77,"./lang/zh-TW":78,"./url-params":80}],80:[function(require,module,exports){
 // http://stackoverflow.com/a/2880929
 var urlParams = {};
 if (window && window.location && window.location.search) {
@@ -17428,7 +17646,7 @@ if (window && window.location && window.location.search) {
 
 module.exports = urlParams;
 
-},{}],79:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -17467,7 +17685,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77,"./modal-dialog-view":91}],80:[function(require,module,exports){
+},{"../utils/translate":79,"./modal-dialog-view":93}],82:[function(require,module,exports){
 var AlertDialog, App, BlockingModal, ConfirmDialog, DownloadDialog, ImportTabbedDialog, InnerApp, MenuBar, ProviderTabbedDialog, RenameDialog, ShareDialog, div, iframe, isString, ref, tr;
 
 MenuBar = React.createFactory(require('./menu-bar-view'));
@@ -17757,7 +17975,7 @@ App = React.createClass({
 module.exports = App;
 
 
-},{"../utils/is-string":72,"../utils/translate":77,"./alert-dialog-view":79,"./blocking-modal-view":82,"./confirm-dialog-view":83,"./download-dialog-view":84,"./import-tabbed-dialog-view":87,"./menu-bar-view":90,"./provider-tabbed-dialog-view":94,"./rename-dialog-view":95,"./share-dialog-view":97}],81:[function(require,module,exports){
+},{"../utils/is-string":72,"../utils/translate":79,"./alert-dialog-view":81,"./blocking-modal-view":84,"./confirm-dialog-view":85,"./download-dialog-view":86,"./import-tabbed-dialog-view":89,"./menu-bar-view":92,"./provider-tabbed-dialog-view":96,"./rename-dialog-view":97,"./share-dialog-view":99}],83:[function(require,module,exports){
 var AuthorizeMixin;
 
 AuthorizeMixin = {
@@ -17802,7 +18020,7 @@ AuthorizeMixin = {
 module.exports = AuthorizeMixin;
 
 
-},{}],82:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -17838,7 +18056,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":93}],83:[function(require,module,exports){
+},{"./modal-view":95}],85:[function(require,module,exports){
 var ModalDialog, button, div, ref, tr;
 
 ref = React.DOM, div = ref.div, button = ref.button;
@@ -17886,7 +18104,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77,"./modal-dialog-view":91}],84:[function(require,module,exports){
+},{"../utils/translate":79,"./modal-dialog-view":93}],86:[function(require,module,exports){
 var CloudMetadata, ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -17987,7 +18205,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":77,"./modal-dialog-view":91}],85:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":79,"./modal-dialog-view":93}],87:[function(require,module,exports){
 var DropDown, DropdownItem, div, g, i, li, rect, ref, span, svg, ul;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, ul = ref.ul, li = ref.li, svg = ref.svg, g = ref.g, rect = ref.rect;
@@ -18186,7 +18404,7 @@ DropDown = React.createClass({
 module.exports = DropDown;
 
 
-},{}],86:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 var AuthorizeMixin, CloudMetadata, FileDialogTab, FileList, FileListFile, button, div, i, img, input, ref, span, tr;
 
 AuthorizeMixin = require('./authorize-mixin');
@@ -18499,7 +18717,7 @@ FileDialogTab = React.createClass({
 module.exports = FileDialogTab;
 
 
-},{"../providers/provider-interface":65,"../utils/translate":77,"./authorize-mixin":81}],87:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":79,"./authorize-mixin":83}],89:[function(require,module,exports){
 var LocalFileImportTab, LocalFileTab, ModalTabbedDialog, TabbedPanel, UrlTab, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -18581,7 +18799,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77,"./local-file-tab-list-view":88,"./modal-tabbed-dialog-view":92,"./tabbed-panel-view":98,"./url-tab-view":99}],88:[function(require,module,exports){
+},{"../utils/translate":79,"./local-file-tab-list-view":90,"./modal-tabbed-dialog-view":94,"./tabbed-panel-view":100,"./url-tab-view":101}],90:[function(require,module,exports){
 var CloudMetadata, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -18676,7 +18894,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":77}],89:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":79}],91:[function(require,module,exports){
 var CloudMetadata, FileSaver, a, button, cloudContentFactory, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button, a = ref.a;
@@ -18847,7 +19065,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":77}],90:[function(require,module,exports){
+},{"../lib/file-saver":55,"../providers/provider-interface":65,"../utils/translate":79}],92:[function(require,module,exports){
 var Dropdown, div, i, input, ref, span, tr;
 
 ref = React.DOM, div = ref.div, i = ref.i, span = ref.span, input = ref.input;
@@ -19022,7 +19240,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77,"./dropdown-view":85}],91:[function(require,module,exports){
+},{"../utils/translate":79,"./dropdown-view":87}],93:[function(require,module,exports){
 var Modal, div, i, ref;
 
 Modal = React.createFactory(require('./modal-view'));
@@ -19055,7 +19273,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-view":93}],92:[function(require,module,exports){
+},{"./modal-view":95}],94:[function(require,module,exports){
 var ModalDialog, TabbedPanel;
 
 ModalDialog = React.createFactory(require('./modal-dialog-view'));
@@ -19076,7 +19294,7 @@ module.exports = React.createClass({
 });
 
 
-},{"./modal-dialog-view":91,"./tabbed-panel-view":98}],93:[function(require,module,exports){
+},{"./modal-dialog-view":93,"./tabbed-panel-view":100}],95:[function(require,module,exports){
 var div;
 
 div = React.DOM.div;
@@ -19155,7 +19373,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],94:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 var CloudMetadata, FileDialogTab, ModalTabbedDialog, SelectProviderDialogTab, TabbedPanel, tr;
 
 ModalTabbedDialog = React.createFactory(require('./modal-tabbed-dialog-view'));
@@ -19227,7 +19445,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../providers/provider-interface":65,"../utils/translate":77,"./file-dialog-tab-view":86,"./modal-tabbed-dialog-view":92,"./select-provider-dialog-tab-view":96,"./tabbed-panel-view":98}],95:[function(require,module,exports){
+},{"../providers/provider-interface":65,"../utils/translate":79,"./file-dialog-tab-view":88,"./modal-tabbed-dialog-view":94,"./select-provider-dialog-tab-view":98,"./tabbed-panel-view":100}],97:[function(require,module,exports){
 var ModalDialog, a, button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button;
@@ -19296,7 +19514,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77,"./modal-dialog-view":91}],96:[function(require,module,exports){
+},{"../utils/translate":79,"./modal-dialog-view":93}],98:[function(require,module,exports){
 var SelectProviderDialogTab, div;
 
 div = React.DOM.div;
@@ -19311,7 +19529,7 @@ SelectProviderDialogTab = React.createFactory(React.createClass({
 module.exports = SelectProviderDialogTab;
 
 
-},{}],97:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 var ModalDialog, SHOW_LONGEVITY_WARNING, SocialIcon, a, button, circle, div, g, getQueryParam, input, li, path, ref, socialIcons, span, strong, svg, textarea, tr, ul;
 
 ref = React.DOM, div = ref.div, input = ref.input, a = ref.a, button = ref.button, strong = ref.strong, textarea = ref.textarea, svg = ref.svg, g = ref.g, path = ref.path, span = ref.span, circle = ref.circle, ul = ref.ul, li = ref.li;
@@ -19621,7 +19839,7 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/get-query-param":70,"../utils/translate":77,"./modal-dialog-view":91,"svg-social-icons/lib/icons.json":51}],98:[function(require,module,exports){
+},{"../utils/get-query-param":70,"../utils/translate":79,"./modal-dialog-view":93,"svg-social-icons/lib/icons.json":51}],100:[function(require,module,exports){
 var Tab, TabInfo, a, div, li, ref, ul;
 
 ref = React.DOM, div = ref.div, ul = ref.ul, li = ref.li, a = ref.a;
@@ -19733,7 +19951,7 @@ module.exports = React.createClass({
 });
 
 
-},{}],99:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 var button, div, input, ref, tr;
 
 ref = React.DOM, div = ref.div, input = ref.input, button = ref.button;
@@ -19814,6 +20032,6 @@ module.exports = React.createClass({
 });
 
 
-},{"../utils/translate":77}]},{},[52,53])(53)
+},{"../utils/translate":79}]},{},[52,53])(53)
 });
 //# sourceURL=cfm/app.js.ignore

@@ -226,7 +226,7 @@ DG.PlotView = DG.PlotLayer.extend(
   */
   animateFromTransferredElements: function() {
     var this_ = this,
-        tElements = this._plottedElements,
+        // tElements = this._plottedElements,
         tCases = this.getPath('model.cases'),
         tRC = this.createRenderContext(),
         tFrame = this.get('frame'),
