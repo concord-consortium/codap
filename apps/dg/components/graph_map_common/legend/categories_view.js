@@ -223,19 +223,21 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   tNumCells = this.getPath('model.numberOfCells'),
                   tNumRows = Math.ceil(tNumCells / tNumColumns),
                   tRowHeight = tHeight / tNumRows,
-                  // tSize = Math.max(0, tRowHeight),
                   tCellIndex,
                   tCellNames = this.getPath('model.cellNames'),
                   tCategoryKeys = this.get('categoryKeys'),
                   coordinatesToCellNum = function (iCoords) {
-                    var tCol = Math.floor(iCoords.x / this.colWidth),
-                        tRow = Math.floor(iCoords.y / this.rowHeight),
-                        tCellNum = tCol + tRow * this.numColumns;
-                    return tCellNum < 0 || tCellNum >= tNumCells ? null : tCellNum;
+                    var tCol = Math.min( this.numColumns - 1, Math.max(0, Math.floor(iCoords.x / this.colWidth))),
+                        tRow = Math.min( this.numRows - 1, Math.max(0, Math.floor(iCoords.y / this.rowHeight))),
+                        tCellNum = Math.min( this.numCells - 1, tCol + tRow * this.numColumns);
+                    return tCellNum;
                   }.bind(this);
+              // Stash the quantities we will need when coordinatesToCellNum is called
               this.set('rowHeight', tRowHeight);
               this.set('colWidth', tColWidth);
               this.set('numColumns', tNumColumns);
+              this.set('numRows', tNumRows);
+              this.set('numCells', tNumCells);
               // Mark them all as unused so we can get rid of ones no longer present
               DG.ObjectMap.forEach(tCategoryKeys, function (iName, iKey) {
                 iKey.set('inUse', false);
@@ -281,8 +283,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             }
 
           };
-        }
-        ()
+        }()
     ))
 ;
 
