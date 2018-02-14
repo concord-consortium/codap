@@ -60,7 +60,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             init: function () {
               var this_ = this,
                   tView = this.containingView,
-                  tDragStartCoord, tCellBeingDragged, /*tOriginalCellIndex, */tOffset,
+                  tDragStartCoord, tCellBeingDragged, tOffset,
                   selectCasesInCell = function (iEvent) {
                     SC.run(function () {
                       this_.get('model').selectCasesInCell(this_.cellName, iEvent.shiftKey);
@@ -68,7 +68,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   },
                   beginDrag = function (iWindowX, iWindowY) {
                     tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates({x: iWindowX, y: iWindowY}, tView);
-                    // tOriginalCellIndex = tCellBeingDragged = this_.coordinatesToCellNum(tDragStartCoord);
+                    tCellBeingDragged = this_.coordinatesToCellNum(tDragStartCoord);
                     tOffset = {
                       x: this_.left - tDragStartCoord.x,
                       y: this_.top - tDragStartCoord.y

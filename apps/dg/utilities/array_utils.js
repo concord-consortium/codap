@@ -145,7 +145,51 @@ DG.ArrayUtils = {
       tDifference.push( tHash[ iKey]);
     });
     return tDifference;
-  }
+  },
 
+  stableSort: function (iArray, iCompare) {
+    if (!iCompare) {
+      iCompare = function (a, b) { return (a<=b)?((a<b)?-1:0):1; };
+    }
+
+    if (SC.browser.name !== SC.BROWSER.chrome) {
+      return iArray.sort(iCompare);
+    }
+
+    // adapted from http://khan4019.github.io/front-end-Interview-Questions/sort.html#mergeSort
+
+    function mergeSort(arr) {
+      if (arr.length < 2) return arr;
+
+      var middle = Math.floor(arr.length / 2);
+      var left = arr.slice(0, middle);
+      var right = arr.slice(middle, arr.length);
+
+      return merge(mergeSort(left), mergeSort(right));
+    }
+
+    function merge(left, right) {
+      var result = [];
+      var leftLength = left.length;
+      var rightLength = right.length;
+      var leftIndex = 0;
+      var rightIndex = 0;
+
+      while (leftIndex < leftLength && rightIndex < rightLength) {
+        if (iCompare(left[leftIndex], right[rightIndex]) <= 0) {
+          result.push(left[leftIndex++]);
+        } else {
+          result.push(right[rightIndex++]);
+        }
+      }
+
+      result = result.concat(left.slice(leftIndex));
+      result = result.concat(right.slice(rightIndex));
+
+      return result;
+    }
+
+    return mergeSort(iArray);
+  }
 };
 
