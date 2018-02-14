@@ -596,5 +596,9 @@ DG.PlotUtilities.PlotCaseArray = SC.Object.extend( {
       }
     }.bind( this));
     return tResult;
+  },
+
+  reduce: function( iReduceFunc, accumulator) {
+    return this._cases.reduce(iReduceFunc, accumulator);
   }
 });
