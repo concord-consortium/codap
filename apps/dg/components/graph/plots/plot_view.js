@@ -517,7 +517,6 @@ DG.PlotView = DG.PlotLayer.extend(
       return;
     }
 
-    var tPlottedValueEditView = this.get('plottedValueEditView');
     if( SC.none( tPlottedValueEditView)) {
       tPlottedValueEditView = DG.PlottedValueAdornment.createFormulaEditView( tPlottedValue);
       this.set('plottedValueEditView', tPlottedValueEditView);
