@@ -60,6 +60,11 @@ DG.LegendView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
        */
       choroplethView: null,
 
+      modelDidChange: function() {
+        this.setPath('categoriesView.model', this.get('model'));
+        this.setPath('choroplethView.model', this.get('model'));
+      }.observes('model'),
+
       /**
        * @property {DG.Attribute}
        */
