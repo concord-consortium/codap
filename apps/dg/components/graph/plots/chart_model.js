@@ -158,7 +158,7 @@ DG.ChartModel = DG.PlotModel.extend(
 
     if( (iChange.operation === 'createCase') || (iChange.operation === 'createCases')) {
       var tCaseIDs = iChange.result.caseIDs || [ iChange.result.caseID ],
-      tIndexOfCaseInArray = this.getPath('dataConfiguration.cases.length') - tCaseIDs.length,
+      tIndexOfCaseInArray = this.getPath('dataConfiguration.cases').length() - tCaseIDs.length,
           tCC = this.get('computationContext' );
       tCaseIDs.forEach( function( iCaseID) {
                           var tCase = DG.store.find( DG.Case, iCaseID);

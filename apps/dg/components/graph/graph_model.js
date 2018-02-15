@@ -1046,11 +1046,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         this.invalidate( iChange);  // So that when we ask for cases we get the right ones
         var dataConfig = this.get('dataConfiguration'),
             cases = dataConfig && dataConfig.get('cases'),
-            tDataLength = cases ? cases.length : 0;
+            tDataLength = cases ? cases.length() : 0;
         if( tDataLength !== this._oldNumberOfCases ) {
           var isAddingCases = (tDataLength > this._oldNumberOfCases);
           if( tPlot && isAddingCases) {
-            var newCase = cases[ tDataLength-1];
+            var newCase = cases.at( tDataLength-1;
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
 
