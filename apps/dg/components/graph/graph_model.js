@@ -1050,7 +1050,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         if( tDataLength !== this._oldNumberOfCases ) {
           var isAddingCases = (tDataLength > this._oldNumberOfCases);
           if( tPlot && isAddingCases) {
-            var newCase = cases.at( tDataLength-1;
+            var newCase = cases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
 
