@@ -129,10 +129,12 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
    */
   doUpdateLine: function( iAnimate, getCoordsFunc ) {
     var this_ = this,
-        tArrayOfCoordinatesArrays = this.getPath('model.values'),
+        tCoordinatesKeyedByParentID = this.getPath('model.values'),
         kCount = 10,  // This is fixed so we get same colors no matter how many lines there are
         tPaper = this.get('paper' ),
-        tLayer = this.get('layer');
+        tLayer = this.get('layer'),
+        tNumLines = DG.ObjectMap.length( tCoordinatesKeyedByParentID),
+        tLineNum = 0;
 
     if( !tPaper) {
       this.invokeOnceLater( function() {
@@ -140,16 +142,16 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       }.bind( this));
       return;
     }
-    if( !tArrayOfCoordinatesArrays)
+    if( !tCoordinatesKeyedByParentID)
       return; // Can happen in scatterplot that has multiple attributes
 
-    tArrayOfCoordinatesArrays.forEach( function( iObject, iLineNum) {
-      var tCoordinates = iObject.coordinates,
+    DG.ObjectMap.forEach( tCoordinatesKeyedByParentID, function( iParentID, iCoordinatesObject) {
+      var tCoordinates = iCoordinatesObject.coordinates,
           tNumValues = tCoordinates ? tCoordinates.length : 0,
           tPath = 'M0,0', // use empty path if no points to connect
-          tLineColor = iObject.color ?
-              (typeof iObject.color === 'string' ? iObject.color : iObject.color.colorString) :
-              DG.ColorUtilities.calcAttributeColorFromIndex( iLineNum % kCount, kCount).colorString,
+          tLineColor = iCoordinatesObject.color ?
+              (typeof iCoordinatesObject.color === 'string' ? iCoordinatesObject.color : iCoordinatesObject.color.colorString) :
+              DG.ColorUtilities.calcAttributeColorFromIndex( tLineNum % kCount, kCount).colorString,
           i,
           tLine;
       // create a new path, connecting each sorted data point
@@ -163,33 +165,36 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
       }
       DG.assert( tPath );
 
-      tLine = this_.myElements[ iLineNum];
-      if( !tLine ) {
+      tLine = this_.myElements[ tLineNum];
+      if (!tLine) {
         // create the line
-        tLine = tPaper.path( '');
-        this_.myElements.push( tLine );
-        tLayer.push( tLine);
-        }
-      tLine.attr({ path: tPath, 'stroke-opacity': 0, stroke: tLineColor, cursor: 'pointer' })
-        .mousedown( function( iEvent) {
-          this_.get('model' ).selectParent( iLineNum, iEvent.shiftKey);
-        })
-        .hover(
-          // over
-          function( iEvent) {
-            this_.showDataTip( iEvent, iLineNum);
-          },
-          // out
-          function(){
-            this_.hideDataTip();
-          });
+        tLine = tPaper.path('')
+            .attr({'stroke-opacity': 0, cursor: 'pointer'})
+            .mousedown(function (iEvent) {
+              this_.get('model').selectParent(this.parentCaseID, iEvent.shiftKey);
+            })
+            .hover(
+                // over
+                function (iEvent) {
+                  this_.showDataTip(iEvent, iParentID);
+                },
+                // out
+                function () {
+                  this_.hideDataTip();
+                });
+        this_.myElements.push(tLine);
+        tLayer.push(tLine);
+      }
+      tLine.parentCaseID = iParentID;
+      tLine.attr({ path: tPath, stroke: tLineColor });
       if( iAnimate)
         tLine.animate( { 'stroke-opacity': 1 }, DG.PlotUtilities.kDefaultAnimationTime, '<>');
       else
         tLine.attr( { 'stroke-opacity': 1 });
+      tLineNum++;
     });
 
-    while( this.myElements.length > tArrayOfCoordinatesArrays.length) {
+    while( this.myElements.length > tNumLines) {
       var tLast = this.myElements.pop();
       tLayer.prepareToMoveOrRemove( tLast);
       tLast.remove();
@@ -204,7 +209,7 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     if( !this.get('paper'))
       return;
     // TODO: Encapsulate access to selection in plotModel.
-    var tArrayOfCoordinatesArrays = this.getPath('model.values' ) || [], // In certain situations 'model.values' can be null
+    var tArrayOfCoordinatesArrays = DG.ObjectMap.values( this.getPath('model.values' )) || [], // In certain situations 'model.values' can be null
         tSelection = this.getPath('model.plotModel.selection');
     tArrayOfCoordinatesArrays.forEach( function( iObject, iLineNum) {
       var
@@ -224,22 +229,24 @@ DG.ConnectingLineAdornment = DG.PlotAdornment.extend(
     }.bind( this));
   },
 
-  showDataTip: function( iEvent, iLineNum) {
+  showDataTip: function( iEvent, iParentID) {
     if( this._dataTip) {
-      var tParents = this.getPath('model.parents' ),
-          tParent = SC.isArray( tParents) && (iLineNum < tParents.length) ? tParents[ iLineNum] : null,
-          tParentName = tParent.getPath('collection.name' ),
+      var tParent = this.getPath( 'model.plotModel.dataContext').getCaseByID( iParentID);
+      if( SC.none( tParent))
+        return;
+
+      var tParentName = tParent.getPath('collection.name' ),
           tChildren = tParent.get('children' ).flatten(),
           tNumChildren = SC.isArray(tChildren) ? tChildren.get('length') : 0,
           tChildrenName = (tNumChildren > 0) ? tChildren[ 0].getPath('collection.name') : '';
       this._dataTip.show(
         {
-          lineIndex: iLineNum + 1,
+          lineIndex: tParent.get('collection').getCaseIndexByID( iParentID) + 1,
           parentName: tParentName,
           numChildren: tNumChildren,
           childrenName: tChildrenName
         },
-        { x: iEvent.offsetX, y: iEvent.offsetY });
+        { x: iEvent.offsetX - 5, y: iEvent.offsetY - 5 });
     }
   },
 

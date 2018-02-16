@@ -700,6 +700,15 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     /**
+     * @param iCaseID {number|string}
+     * @returns {number|undefined}
+     */
+    getCaseIndexByID: function (iCaseID) {
+      var caseIDToIndexMap = this.get('caseIDToIndexMap');
+      return caseIDToIndexMap && caseIDToIndexMap[iCaseID];
+    },
+
+    /**
      * Debug-only utility function.
      */
     debugLog: function (iPrompt) {

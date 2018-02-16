@@ -509,8 +509,8 @@ DG.CollectionClient = SC.Object.extend(
    * @returns {number|undefined}
    */
   getCaseIndexByID: function (iCaseID) {
-    var caseIDToIndexMap = this.getPath('collection.caseIDToIndexMap');
-    return caseIDToIndexMap && caseIDToIndexMap[iCaseID];
+    var tCollection = this.get('collection');
+    return tCollection && tCollection.getCaseIndexByID( iCaseID);
   },
 
   /**

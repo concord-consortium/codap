@@ -31,11 +31,10 @@ sc_require('components/graph/adornments/plot_adornment_model');
 DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
 /** @scope DG.ConnectingLineModel.prototype */
 {
-  parents: null,      // [{Case}], the parents, if any, encountered while constructing values
-
   /**
    * @private
-   * @property{[[{ x,y }]]} array of arrays of one point per non-missing value in the plot
+   * @property{{key: caseID, coordinates: [{ x,y }]}} arrays of one point per non-missing value in the plot keyed
+   * by parent case ID
    */
   _values: null,
 
@@ -83,7 +82,6 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
     */
   recomputeValue: function() {
     var tCases = this.getPath('plotModel.cases'),
-        tParents = [],
         tXVarID = this.getPath( 'plotModel.xVarID'),
         tYKey = 'plotModel.' + (this.getPath('plotModel.verticalAxisIsY2') ? 'y2VarID' : 'yVarID'),
         tYVarID = this.getPath(tYKey),
@@ -123,14 +121,12 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
             coordinates: []
           };
         }
-        tParents.push(tParent);
         tValues[ tParentID].coordinates.push( { x: tXVal, y: tYVal, theCase: iCase } );
       }
     });
 
-    this.set('parents', tParents);
     this._needsComputing = false;
-    this.set( 'values', DG.ObjectMap.values( tValues) ); // we expect view to observe this change
+    this.set( 'values', tValues); // we expect view to observe this change
   },
 
   /**
@@ -144,24 +140,24 @@ DG.ConnectingLineModel = DG.PlotAdornmentModel.extend(
    * @param iIndex {Number} of parent
    * @param iExtend {Boolean}
    */
-  selectParent: function( iIndex, iExtend) {
-    var tParents = this.get('parents');
-    if( SC.isArray( tParents) && iIndex < tParents.length) {
-      var tParent = tParents[ iIndex],
-          tChange = {
-            operation: 'selectCases',
-            collection: tParent.get('collection'),
-            cases: [ tParent ],
-            select: true,
-            extend: iExtend
-          };
-
-      this.getPath('plotModel.dataContext').applyChange( tChange);
-      if( tChange.select)
-        DG.logUser("lineSelected: %@", iIndex);
+  selectParent: function( iParentID, iExtend) {
+    var tDataContext = this.getPath('plotModel.dataContext'),
+        tParent = tDataContext.getCaseByID( iParentID),
+        tParentCaseIndex = tParent.get('collection').getCaseIndexByID( iParentID) + 1,
+        tChange = {
+          operation: 'selectCases',
+          collection: tParent.get('collection'),
+          cases: [tParent],
+          select: true,
+          extend: iExtend
+        };
+    SC.run(function () {
+      tDataContext.applyChange(tChange);
+      if (tChange.select)
+        DG.logUser("lineSelected: %@", tParentCaseIndex);
       else
-        DG.logUser("lineDeselected: %@", iIndex);
-    }
+        DG.logUser("lineDeselected: %@", tParentCaseIndex);
+    }.bind(this));
   }
 
 });
