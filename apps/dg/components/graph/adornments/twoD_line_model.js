@@ -146,7 +146,7 @@ DG.TwoDLineModel = DG.PlotAdornmentModel.extend(
         tYVarID = this.getPath('plotModel.yVarID'),
         tlegendVarID = this.getPath('plotModel.legendVarID'),
         tLegendIsNumeric = this.getPath('plotModel.dataConfiguration.legendAttributeDescription.isNumeric');
-    if( Array.isArray(tCases)) {
+    if( !SC.none(tCases)) {
       tCases.forEach(function (iCase) {
         var tXValue = iCase.getNumValue(tXVarID),
             tYValue = iCase.getNumValue(tYVarID),
