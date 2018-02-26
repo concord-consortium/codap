@@ -280,7 +280,7 @@ DG.GameController = DG.ComponentController.extend(
           handler = this.get('gamePhoneHandler');
           handler.saveGameState(function (result) {
             if(modelStorage)
-              modelStorage.savedGameState = result.state;
+              modelStorage.savedGameState = result && result.state;
             callback(result);
           });
         }
