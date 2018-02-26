@@ -252,8 +252,8 @@ return {
     }
     else {
       var tAllCases = tConfig ? tConfig.get('allCases') : [],
-          tCases = tAllCases ? tAllCases.slice() : [],
-          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
+          tCasesArray = tAllCases ? tAllCases.slice() : [],
+          tCase = (tCasesArray.length > iIndex) ? tCasesArray[iIndex] : null;
       tResultCases = tCase ? [tCase] : null;
     }
     return tResultCases;
@@ -284,9 +284,9 @@ return {
     }
     else {
       var tConfig = this.get('dataConfiguration'),
-          tCases = tConfig ? tConfig.get('allCases').slice() : [],
+          tAllCasesArray = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
-          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
+          tCase = (tAllCasesArray.length > iIndex) ? tAllCasesArray[iIndex] : null;
       this.beginVisibilityChanges();
       hideShowCases(tConfig, [tCase], tHidden.indexOf(tCase) >= 0);
       this.endVisibilityChanges();
@@ -387,9 +387,9 @@ return {
     }
     else {
       var tConfig = this.get('dataConfiguration'),
-          tCases = tConfig ? tConfig.get('allCases').slice() : [],
+          tAllCasesArray = tConfig ? tConfig.get('allCases').slice() : [],
           tHidden = tConfig ? tConfig.get('hiddenCases' ) : [],
-          tCase = (tCases.get('length') > iIndex) ? tCases.at(iIndex) : null;
+          tCase = (tAllCasesArray.length > iIndex) ? tAllCasesArray[iIndex] : null;
       return( tHidden.indexOf( tCase) >= 0);
     }
   },
