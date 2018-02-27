@@ -174,8 +174,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
 
       dragInsertPoint: null,
 
-      dragUpdated: function( iDragObject, iEvent) {
-
+      _computeInsertionPoint: function (location) {
         function findDragInsertionPoint(slickGrid, locX) {
           var columnDefs = slickGrid.getColumns();
           var obj;
@@ -214,7 +213,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         var gridPosition =  slickGrid.getGridPosition();
         var headerRowHeight = slickGrid.getOptions().headerRowHeight;
         // compute cursor location relative to grid
-        var loc = {x: iDragObject.location.x-gridPosition.left, y:iDragObject.location.y-gridPosition.top};
+        var loc = {x: location.x-gridPosition.left, y:location.y-gridPosition.top};
         // find new insertion point
         var inHeader = loc.y < headerRowHeight;
         var newDragInsertionPoint = inHeader && findDragInsertionPoint(slickGrid, loc.x);
@@ -227,7 +226,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           // if unchanged, we are done
           if (this.dragInsertPoint &&
               (this.dragInsertPoint.columnIndex === newDragInsertionPoint.columnIndex)
-                && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
+              && (this.dragInsertPoint.nearerBound === newDragInsertionPoint.nearerBound)) {
             return;
           }
         }
@@ -240,6 +239,11 @@ DG.CaseTableView = SC.View.extend( (function() // closure
           this.$(this.dragInsertPoint.headerNode).addClass('drag-insert-'
               + this.dragInsertPoint.nearerBound);
         }
+      },
+      dragUpdated: function( iDragObject, iEvent) {
+        DG.log('dragUpdated location/client/offset/page:' +
+            [iDragObject.location.x,iDragObject.location.y, iEvent.clientX, iEvent.clientY, iEvent.offsetX, iEvent.offsetY, iEvent.pageX, iEvent.pageY].join('/'));
+        this._computeInsertionPoint(iDragObject.location);
       },
 
       dragExited: function( iDragObject, iEvent) {
@@ -263,8 +267,7 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         return isOverHeader;
       },
 
-      performDragOperation:function ( iDragObject, iDragOp ) {
-        var dragData = iDragObject.data;
+      _performDragOperation: function (dragData) {
         var attr = dragData.attribute;
         var position;
 
@@ -276,13 +279,42 @@ DG.CaseTableView = SC.View.extend( (function() // closure
               : this.dragInsertPoint.columnIndex;
           this.parentView.gridAdapter.requestMoveAttribute(attr, position);
         }
-        //DG.log('Got drop: ' + iDragObject.data.attribute.name);
+      },
+      performDragOperation:function ( iDragObject, iDragOp ) {
+        var dragData = iDragObject.data;
+        this._performDragOperation(dragData);
       },
 
       isValidAttribute: function( iDrag) {
         var tDragAttr = iDrag.data.attribute;
         return !SC.none( tDragAttr)
             && this.parentView.gridAdapter.canAcceptDrop(iDrag.data.attribute);
+      },
+
+      /**
+       * These methods -- dataDragEntered, dataDragHovered, dataDragDropped,
+       * and dataDragExited -- support drags initiated outside the page,
+       * specifically drags from plugins.
+       */
+      dataDragEntered: function (iEvent) {
+        this.set('isDragEntered', true);
+
+        iEvent.preventDefault();
+      },
+      dataDragHovered: function (iEvent) {
+        iEvent.dataTransfer.dropEffect = 'copy';
+        iEvent.preventDefault();
+        iEvent.stopPropagation();
+        this._computeInsertionPoint({x: iEvent.clientX, y: iEvent.clientY});
+      },
+      dataDragDropped: function(iEvent) {
+        iEvent.preventDefault();
+        var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+        this._performDragOperation(data);
+      },
+      dataDragExited: function (iEvent) {
+        iEvent.preventDefault();
+        this.set('isDragEntered', false);
       }
 
     }),
