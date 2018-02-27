@@ -45,6 +45,9 @@ CURLARGS="-X POST -d id=$PROJECT_ID -d language=$LANGUAGE -d type=key_value_json
 RESPONSE=$($CURL $CURLARGS $POEDITOR_EXPORT_URL)
 # extract the file URL from the initial response
 FILE_URL=$(echo $RESPONSE | cut -d '"' -f 20)
+
+if [ "$FILE_URL" = "" ] ; then echo "Error: $RESPONSE" 1>&2; exit 2; fi
+
 # eliminate the extraneous '\' characters in URL
 FILE_URL=$(echo $FILE_URL | tr -d \\ )
 
