@@ -84,35 +84,6 @@ DG.GraphDropTarget =
     return SC.none( tCurrAttr) || (tCurrAttr !== tDragAttr);
   },
 
-  externalDragDidChange: function () {
-    if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
-      this._createDropFrameBorder();
-    } else {
-      this._hideDropFrameBorder();
-    }
-  }.observes('DG.mainPage.mainPane._isDraggingAttr'),
-
-  _createDropFrameBorder: function () {
-    var kWidth = 3;
-    var tPaper = this.get('paper' );
-    var tFrame = {
-      x: kWidth,
-      y: kWidth,
-      width: tPaper.width - 2 * kWidth,
-      height: tPaper.height - 2 * kWidth
-    };
-
-    if( SC.none( this.borderFrame)) {
-      this.borderFrame = tPaper.path('')
-          .addClass( this.kDropFrameClass);
-    }
-    this.borderFrame.attr( { path:  DG.RenderingUtilities.pathForFrame( tFrame) } )
-        .show();
-  },
-  _hideDropFrameBorder: function () {
-    if( this.borderFrame)
-      this.borderFrame.hide();
-  },
   // Draw an orange frame to show we're a drop target.
   dragStarted: function( iDrag) {
     var kWidth = 3,
@@ -158,7 +129,8 @@ DG.GraphDropTarget =
   },
 
   dragEnded: function() {
-    this._hideDropFrameBorder();
+    if( this.borderFrame)
+      this.borderFrame.hide();
   },
 
   /**
@@ -230,15 +202,29 @@ DG.GraphDropTarget =
   },
 
   /**
-   * These methods -- dataDragEntered, dataDragHovered, dataDragDropped,
-   * and dataDragExited -- support drags initiated outside the page,
-   * specifically drags from plugins.
+   * These methods -- externalDragDidChange, dataDragEntered, dataDragHovered,
+   * dataDragDropped, and dataDragExited -- support drags initiated outside
+   * the page, specifically drags from plugins.
    */
-  dataDragEntered: function (iEvent) {
-    this.borderFrame.addClass('dg-graph-drop-frame-fill');
-    this.showDropHint();
+  _externalDragObject: function () {
+    return {
+      data: DG.mainPage.getPath('mainPane.dragAttributeData')
+    };
+  }.property(),
+  externalDragDidChange: function () {
+    if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
+      this.dragStarted(this.get('_externalDragObject'));
+    } else {
+      this.dragEnded();
+    }
+  }.observes('DG.mainPage.mainPane._isDraggingAttr'),
 
-    iEvent.preventDefault();
+  dataDragEntered: function (iEvent) {
+    var externalDragObject = this.get('_externalDragObject');
+    if (this.isValidAttribute(externalDragObject)) {
+      this.dragEntered(externalDragObject, iEvent);
+      iEvent.preventDefault();
+    }
   },
   dataDragHovered: function (iEvent) {
     iEvent.dataTransfer.dropEffect = 'copy';
@@ -251,9 +237,11 @@ DG.GraphDropTarget =
     iEvent.preventDefault();
   },
   dataDragExited: function (iEvent) {
-    this.borderFrame.removeClass('dg-graph-drop-frame-fill');
-    this.hideDropHint();
-    iEvent.preventDefault();
+    var externalDragObject = this.get('_externalDragObject');
+    if (this.isValidAttribute(externalDragObject)) {
+      this.dragExited(externalDragObject, iEvent);
+      iEvent.preventDefault();
+    }
   }
 };
 

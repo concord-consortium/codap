@@ -1119,9 +1119,6 @@ input.dg-editor-text {
     transform: rotate(0deg);
 }
 
-.dg-attr-drop {
-    border: 3px solid red !important;
-}
 .dg-table-drop-target.dg-table-drop-target-show .sc-label-view,
 .dg-attr-drop .dg-table-drop-target .sc-label-view {
     border: medium #ffe4b3 solid;
