@@ -730,19 +730,18 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             for (i = 0; i < changeCount; ++i) {
               change = iChange.changes[i];
               if (change.attributeIDs && this.getPlottedAttributesIncludeIDs(change.attributeIDs))
-                return true;
+                isAffected = true;
             }
-            return false;
+            break;
           case 'updateCases':
             // only if the attributes involved are being plotted OR
             // if there are formulas such that the plotted attributes
             // are affected indirectly.
-            var changedAttrIDs = iChange.attributeIDs;
-            // If no attributes are listed, then assume all are affected
-            if (changedAttrIDs) {
-              // identify all of the attributes that are being plotted
-              return this.getPlottedAttributesIncludeIDs(changedAttrIDs);
-            }
+            var changedAttrIDs = Array.isArray(iChange.attributeIDs) ?  iChange.attributeIDs : [];
+            if( !SC.none( iChange.attributeID))
+              changedAttrIDs.push( iChange.attributeID);
+            isAffected = this.getPlottedAttributesIncludeIDs(changedAttrIDs);
+            break;
             /* jshint -W086 */  // Expected a 'break' statement before 'case'. (W086)
             // fall through intentional -- w/o attribute IDs, rely on collection
           case 'createCase':
@@ -750,22 +749,30 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
             // Only if the case(s) created are in a collection that is being plotted
             var changedCollectionID = iChange.collection && iChange.collection.get('id'),
                 plottedCollectionIDs = this.getPlottedCollectionIDs();
-            return !changedCollectionID || (plottedCollectionIDs.indexOf(changedCollectionID) >= 0);
+            isAffected = !changedCollectionID || (plottedCollectionIDs.indexOf(changedCollectionID) >= 0);
+            break;
           case 'deleteCases':
           case 'selectCases':
             // We could do a collection test if that information were reliably
             // available in the change request, but that's not currently so.
-            return true;
-          case 'createAttributes':
-          case 'updateAttributes':
-            // only if there are formulas such that the plotted attributes
-            // are affected indirectly, e.g. a formula written to reference
-            // the about-to-be-created attributes.
-            if (iChange.result && iChange.result.attrIDs)
-              isAffected = this.getPlottedAttributesIncludeIDs(iChange.result.attrIDs);
-            return isAffected || this.getPlottedAttributesContainFormulas();
+            isAffected = true;
+            break;
+          case 'createCollection':
+            var tAttributes = iChange.attributes,
+                tIDs = tAttributes && tAttributes.map( function( iAttribute) {
+                  return iAttribute.get('id');
+                });
+            isAffected = this.getPlottedAttributesIncludeIDs(tIDs);
+            break;
+          case 'moveAttribute':
+            var tMovedID = iChange.attr && iChange.attr.get('id'),
+                tFromID = iChange.fromCollection && iChange.fromCollection.get('id'),
+                tToID = iChange.toCollection && iChange.toCollection.get('id');
+            isAffected = this.getPlottedAttributesIncludeIDs([tMovedID]) &&
+                            tFromID !== tToID;
+            break;
         }
-        return true;
+        return isAffected;
       },
 
       /**

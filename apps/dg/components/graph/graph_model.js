@@ -1007,12 +1007,11 @@ DG.GraphModel = DG.DataDisplayModel.extend(
         case 'createCollection':
         case 'deleteCollection':
         case 'resetCollections':
+        case 'moveAttribute':   // Will only get here if the move is from one collection to another
           this.dataDidChange( null, null, iChange);
           break;
         case 'updateCases':
         case 'dependentCases':
-        case 'createAttributes':
-        case 'updateAttributes':
           // We must invalidate before we build indices because the change may
           // have affected the set of included cases, which affects indices.
           // It would be better not to be dealing with indices at all, but
