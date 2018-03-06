@@ -199,7 +199,49 @@ DG.GraphDropTarget =
     this.hideDropHint();
     this.set( 'dragData', iDragObject.data );
     return SC.DRAG_LINK;
-  }
+  },
 
+  /**
+   * These methods -- externalDragDidChange, dataDragEntered, dataDragHovered,
+   * dataDragDropped, and dataDragExited -- support drags initiated outside
+   * the page, specifically drags from plugins.
+   */
+  _externalDragObject: function () {
+    return {
+      data: DG.mainPage.getPath('mainPane.dragAttributeData')
+    };
+  }.property(),
+  externalDragDidChange: function () {
+    if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
+      this.dragStarted(this.get('_externalDragObject'));
+    } else {
+      this.dragEnded();
+    }
+  }.observes('DG.mainPage.mainPane._isDraggingAttr'),
+
+  dataDragEntered: function (iEvent) {
+    var externalDragObject = this.get('_externalDragObject');
+    if (this.isValidAttribute(externalDragObject)) {
+      this.dragEntered(externalDragObject, iEvent);
+      iEvent.preventDefault();
+    }
+  },
+  dataDragHovered: function (iEvent) {
+    iEvent.dataTransfer.dropEffect = 'copy';
+    iEvent.preventDefault();
+    iEvent.stopPropagation();
+  },
+  dataDragDropped: function(iEvent) {
+    var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+    this.set('dragData', data);
+    iEvent.preventDefault();
+  },
+  dataDragExited: function (iEvent) {
+    var externalDragObject = this.get('_externalDragObject');
+    if (this.isValidAttribute(externalDragObject)) {
+      this.dragExited(externalDragObject, iEvent);
+      iEvent.preventDefault();
+    }
+  }
 };
 

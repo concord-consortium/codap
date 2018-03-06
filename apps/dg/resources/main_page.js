@@ -254,49 +254,94 @@ DG.mainPage = SC.Page.design((function() {
       this.invokeLater( 'setupDragDrop', 300);
     },
 
-    setupDragDrop: function() {
+    classNameBindings: [
+        '_isDraggingFileOrURL:dg-receive-outside-drop',
+        '_isDraggingAttr:dg-attr-drop'
+    ],
+
+    dragAttributeData: null,
+    _isDraggingAttr: false,
+    _isDraggingFileOrURL: false,
+
+    /**
+     * These methods -- dataDragEntered, dataDragHovered, dataDragDropped,
+     * and dataDragExited -- support drags initiated outside the page,
+     * specifically drags from plugins.
+     */
+    dataDragEntered: function (iEvent) {
+      function findAttributeRefByID(id) {
+        var contexts = DG.currDocumentController().contexts;
+        var attrRef;
+        contexts && contexts.some(function (context) {
+          attrRef = context.getAttrRefByID(id);
+          if (attrRef) { attrRef.context = context; }
+          return !!attrRef;
+        });
+        return attrRef;
+      }
+      function computeDropData(_this, attrRef) {
+        return {
+          context: attrRef.context,
+          collection: attrRef.collection.get('collection'),
+          attribute: attrRef.attribute,
+          text: attrRef.attribute.get('name')
+        };
+      }
+
+      var context;
+      var attrID = iEvent.dataTransfer.types.find(function (type) {
+        var found = type.startsWith('application/x-codap-attr-');
+        return found && type.replace('application/x-codap-attr-', '');
+      });
+      attrID = attrID && attrID.replace('application/x-codap-attr-', '');
+      var attrRef = attrID && findAttributeRefByID(attrID);
+
+      // DG.log('main: dataDragEntered: ' + (iEvent.dataTransfer && iEvent.dataTransfer.types.join())
+      //     + ' attrID' + attrID
+      //     + ' attrRef: ' + (attrRef && [attrRef.context.get('name'), attrRef.collection.get('name'), attrRef.attribute.get('id')].join())
+      // );
+      if (attrRef) {
+        this.set('dragAttributeData', computeDropData(this, attrRef));
+        this.set('_isDraggingAttr', true);
+      } else {
+        this.set('_isDraggingFileOrURL', true);
+      }
+    },
+
+    dataDragHovered: function (iEvent) {
+      if (this.get('_isDraggingFileOrURL')) {
+        iEvent.dataTransfer.dropEffect = 'copy';
+      }
+      return YES;
+    },
+
+    dataDragDropped: function(iEvent) {
       var tElement = this.get('layer');
+      var tDataTransfer = iEvent.dataTransfer;
       var isIE = (SC.browser.engine === SC.ENGINE.trident);
-      var cancel = function( iEvent) {
-            if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
-            if (iEvent.stopPropagation) iEvent.stopPropagation();
-            iEvent.dataTransfer.dropEffect = 'copy';
-            return false; // required by IE
-          },
-          dragEnter = function( iEvent) {
-            cancel( iEvent);
-            $(tElement).addClass('dg-receive-outside-drop');
-          }.bind( this),
-          dragEnd = function( iEvent) {
-            cancel( iEvent);
-            $(tElement).removeClass('dg-receive-outside-drop');
-          }.bind( this);
+      var tFiles = tDataTransfer.files,
+          tURIType = isIE ? 'URL': 'text/uri-list',
+          tURI = tDataTransfer.getData(tURIType);
+      if( tFiles && (tFiles.length > 0)) {
+        DG.appController.importFile(tFiles[0]);  // We only deal with the first file
+      }
+      else if( !SC.empty(tURI)) {
+        SC.run(function () {
+          DG.appController.importURL( tURI);
+        });
+      }
+      $(tElement).removeClass('dg-receive-outside-drop');
 
-      var handleDrop = function( iEvent) {
+      iEvent.preventDefault();
+      return false;
 
-        if (iEvent.preventDefault) iEvent.preventDefault(); // required by FF + Safari
+    },
 
-        var tDataTransfer = iEvent.dataTransfer,
-            tFiles = tDataTransfer.files,
-            tURIType = isIE ? 'URL': 'text/uri-list',
-            tURI = tDataTransfer.getData(tURIType);
-        if( tFiles && (tFiles.length > 0)) {
-          DG.appController.importFile(tFiles[0]);  // We only deal with the first file
-        }
-        else if( !SC.empty(tURI)) {
-          SC.run(function () {
-            DG.appController.importURL( tURI);
-          });
-        }
-        $(tElement).removeClass('dg-receive-outside-drop');
-
-        return false;
-      };
-
-      tElement.ondragover = cancel;
-      tElement.ondragenter = dragEnter;
-      tElement.ondragleave = dragEnd;
-      tElement.ondrop = handleDrop;
+    dataDragExited: function (iEvent) {
+      this.set('_isDraggingFileOrURL', false);
+      this.set('_isDraggingAttr', false);
+      this.set('dragAttributeData', null);
+      iEvent.preventDefault();
     },
 
     /**

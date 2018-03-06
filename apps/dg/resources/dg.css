@@ -1119,11 +1119,13 @@ input.dg-editor-text {
     transform: rotate(0deg);
 }
 
-.dg-table-drop-target.dg-table-drop-target-show .sc-label-view {
+.dg-table-drop-target.dg-table-drop-target-show .sc-label-view,
+.dg-attr-drop .dg-table-drop-target .sc-label-view {
     border: medium #ffe4b3 solid;
 }
 
-.dg-table-drop-target-show .slick-header {
+.dg-table-drop-target-show .slick-header,
+.dg-attr-drop .slick-header {
     border-top: medium #ffe4b3 solid;
     border-bottom: medium #ffe4b3 solid;
 }

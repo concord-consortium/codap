@@ -53,8 +53,8 @@ DG.Drag = SC.Drag.extend({
       var pv = dv.get('parentView');
 
       // convert to global coordinates. Origin is used to slide the ghost view back.
-      var tOffset = $(pv.containerLayer()).offset(),
-          origin = { x: tOffset.left, y: tOffset.top };
+      var tOffset = pv && $(pv.containerLayer()).offset(),
+          origin = { x: tOffset?tOffset.left:0, y: tOffset?tOffset.top:0 };
 
       if (this.get('ghost')) {
         // Hide the dragView

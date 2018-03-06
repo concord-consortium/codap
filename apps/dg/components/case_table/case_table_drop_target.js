@@ -144,6 +144,32 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         performDragOperation:function ( iDragObject, iDragOp ) {
           this.hideDropHint();
           this.set('dropData', iDragObject.data);
+        },
+
+        /**
+         * These methods -- dataDragEntered, dataDragHovered, dataDragDropped,
+         * and dataDragExited -- support drags initiated outside the page,
+         * specifically drags from plugins.
+         */
+        dataDragEntered: function (iEvent) {
+          this.set('isDragInProgress', true);
+          this.showDropHint();
+          iEvent.preventDefault();
+        },
+        dataDragHovered: function (iEvent) {
+          iEvent.dataTransfer.dropEffect = 'copy';
+          iEvent.preventDefault();
+          iEvent.stopPropagation();
+        },
+        dataDragDropped: function(iEvent) {
+          var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+          this.set('dropData', data);
+          iEvent.preventDefault();
+        },
+        dataDragExited: function (iEvent) {
+          this.set('isDragInProgress', false);
+          this.hideDropHint();
+          iEvent.preventDefault();
         }
       };
     }())
