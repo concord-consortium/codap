@@ -61,6 +61,12 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
               var this_ = this,
                   tView = this.containingView,
                   tDragStartCoord, tCellBeingDragged, tOffset,
+                  rectHover = function( iEvent) {
+                    this.transform('s1.2');
+                  },
+                  rectUnhover = function( iEvent) {
+                    this.transform('');
+                  },
                   selectCasesInCell = function (iEvent) {
                     SC.run(function () {
                       this_.get('model').selectCasesInCell(this_.cellName, iEvent.shiftKey);
@@ -117,6 +123,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
               this.keyRect = this.paper.rect(0, 0, this.rectSize, this.rectSize)
                   .attr({fill: this.color})
                   .addClass(DG.PlotUtilities.kLegendKey)
+                  .mouseover(rectHover)
+                  .mouseout( rectUnhover)
                   .mousedown(selectCasesInCell)
                   .drag(doDrag, beginDrag, endDrag);
               this.keyText = this.paper.text(0, 0, this.cellName)
@@ -262,8 +270,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                   tCategoryKey.set('left', this.dragInfo.position.x + this.dragInfo.offset.x);
                   tCategoryKey.set('top', this.dragInfo.position.y + this.dragInfo.offset.y);
                 } else {
-                  tCategoryKey.set('left', tCol * tWidth / tNumColumns);
-                  tCategoryKey.set('top', tRow * tRowHeight);
+                  tCategoryKey.set('left', tCol * tWidth / tNumColumns + 2);
+                  tCategoryKey.set('top', tRow * tRowHeight + 2);
                 }
                 tCategoryKey.set('rectSize', tRowHeight - 5);
                 tCategoryKey.set('color', tColor);
