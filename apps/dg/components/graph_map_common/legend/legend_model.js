@@ -110,8 +110,14 @@ DG.LegendModel = SC.Object.extend(
     @property{Array of {String}}
   */
   cellNames: function() {
-    var tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
-    return DG.ObjectMap.keys( tCellMap);
+    var tNames = [],
+        tAttribute = this.getPath('attributeDescription.attribute');
+    if( tAttribute) {
+      tAttribute.forEachCategory( function( iCategory) {
+        tNames.push( iCategory);
+      });
+    }
+    return tNames;
   }.property(),
   cellNamesDidChange: function() {
     this.notifyPropertyChange('cellNames');
