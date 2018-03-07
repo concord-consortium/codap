@@ -518,6 +518,7 @@ DG.main = function main() {
   }
 
   function cfmConnect(iCloudFileManager) {
+    var presaveChangeCount;
     DG.cfm = iCloudFileManager;
 
     if (DG.cfm) {
@@ -569,13 +570,12 @@ DG.main = function main() {
                     docMetadata = iContents.metadata || {},
                     // validate before saving as well as when opening
                     contents = validateDocument(iContents);
+                presaveChangeCount = DG.currDocumentController().get('changeCount');
                 if (contents) {
                   // For now, _permissions must be stored at top-level for Document Store
                   syncProperty(contents, cfmSharedMetadata, '_permissions');
                   // replace 'shared' metadata property with object passed from CFM
                   docMetadata.shared = $.extend(true, {}, cfmSharedMetadata);
-                  // record changeCount as a form of savedVersionID
-                  docMetadata.changeCount = DG.currDocumentController().get('changeCount');
                   // combine shared metadata with content to pass back to caller
                   contents.metadata = docMetadata;
                 }
@@ -641,12 +641,7 @@ DG.main = function main() {
 
           case 'savedFile':
             SC.run(function() {
-              docContent = event.data.content;
-              docMetadata = docContent && docContent.metadata;
-              var docContentChangeCount = docContent && docContent.changeCount,
-                  docMetadataChangeCount = docMetadata && docMetadata.changeCount,
-                  savedChangeCount = docContentChangeCount || docMetadataChangeCount;
-              if(DG.currDocumentController().get('changeCount') === savedChangeCount) {
+              if(DG.currDocumentController().get('changeCount') === presaveChangeCount) {
                 // Marking CODAP document clean iff document hasn't changed since getContent()
                 DG.currDocumentController().updateSavedChangeCount();
               }
