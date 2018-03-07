@@ -151,25 +151,59 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
          * and dataDragExited -- support drags initiated outside the page,
          * specifically drags from plugins.
          */
+        _externalDragObject: function () {
+          var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+          if (data && data.context === this.get('dataContext')) {
+            return {
+              data: data
+            };
+          }
+        }.property(),
+        externalDragDidChange: function () {
+          var tDrag = this.get('_externalDragObject');
+          if (!tDrag) {
+            return;
+          }
+          if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
+            this.dragStarted(tDrag);
+          } else {
+            this.dragEnded();
+          }
+        }.observes('DG.mainPage.mainPane._isDraggingAttr'),
+
         dataDragEntered: function (iEvent) {
-          this.set('isDragInProgress', true);
-          this.showDropHint();
-          iEvent.preventDefault();
+          var externalDragObject = this.get('_externalDragObject');
+          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+            this.dragEntered(null, externalDragObject);
+            iEvent.preventDefault();
+          }
         },
         dataDragHovered: function (iEvent) {
-          iEvent.dataTransfer.dropEffect = 'copy';
-          iEvent.preventDefault();
-          iEvent.stopPropagation();
+          var externalDragObject = this.get('_externalDragObject');
+          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+            iEvent.dataTransfer.dropEffect = 'copy';
+            iEvent.preventDefault();
+            iEvent.stopPropagation();
+          } else {
+            return false;
+          }
         },
         dataDragDropped: function(iEvent) {
-          var data = DG.mainPage.getPath('mainPane.dragAttributeData');
-          this.set('dropData', data);
-          iEvent.preventDefault();
+          var externalDragObject = this.get('_externalDragObject');
+          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+            var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+            this.set('dropData', data);
+            iEvent.preventDefault();
+          } else {
+            return false;
+          }
         },
         dataDragExited: function (iEvent) {
-          this.set('isDragInProgress', false);
-          this.hideDropHint();
-          iEvent.preventDefault();
+          var externalDragObject = this.get('_externalDragObject');
+          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+            this.dragExited(null, externalDragObject);
+            iEvent.preventDefault();
+          }
         }
       };
     }())

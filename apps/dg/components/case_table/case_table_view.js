@@ -241,8 +241,6 @@ DG.CaseTableView = SC.View.extend( (function() // closure
         }
       },
       dragUpdated: function( iDragObject, iEvent) {
-        DG.log('dragUpdated location/client/offset/page:' +
-            [iDragObject.location.x,iDragObject.location.y, iEvent.clientX, iEvent.clientY, iEvent.offsetX, iEvent.offsetY, iEvent.pageX, iEvent.pageY].join('/'));
         this._computeInsertionPoint(iDragObject.location);
       },
 
@@ -296,25 +294,60 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * and dataDragExited -- support drags initiated outside the page,
        * specifically drags from plugins.
        */
-      dataDragEntered: function (iEvent) {
-        this.set('isDragEntered', true);
+      _externalDragObject: function () {
+        var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+        if (data && data.context === this.parentView.get('dataContext')) {
+          return {
+            data: data
+          };
+        }
+      }.property(),
+      externalDragDidChange: function () {
+        var tDrag = this.get('_externalDragObject');
+        if (!tDrag) {
+          return;
+        }
+        if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
+          this.dragStarted(tDrag);
+        } else {
+          this.dragEnded();
+        }
+      }.observes('DG.mainPage.mainPane._isDraggingAttr'),
 
-        iEvent.preventDefault();
+      dataDragEntered: function (iEvent) {
+        var externalDragObject = this.get('_externalDragObject');
+        if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          this.dragEntered(null, externalDragObject);
+          iEvent.preventDefault();
+        }
       },
       dataDragHovered: function (iEvent) {
-        iEvent.dataTransfer.dropEffect = 'copy';
-        iEvent.preventDefault();
-        iEvent.stopPropagation();
-        this._computeInsertionPoint({x: iEvent.clientX, y: iEvent.clientY});
+        var externalDragObject = this.get('_externalDragObject');
+        if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          iEvent.dataTransfer.dropEffect = 'copy';
+          iEvent.preventDefault();
+          iEvent.stopPropagation();
+          this._computeInsertionPoint({x: iEvent.clientX, y: iEvent.clientY});
+        } else {
+          return false;
+        }
       },
       dataDragDropped: function(iEvent) {
-        iEvent.preventDefault();
-        var data = DG.mainPage.getPath('mainPane.dragAttributeData');
-        this._performDragOperation(data);
+        var externalDragObject = this.get('_externalDragObject');
+        if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          iEvent.preventDefault();
+          var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+          this._performDragOperation(data);
+        } else {
+          return false;
+        }
       },
       dataDragExited: function (iEvent) {
-        iEvent.preventDefault();
-        this.set('isDragEntered', false);
+        var externalDragObject = this.get('_externalDragObject');
+        if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          this.dragExited(null, externalDragObject);
+          iEvent.preventDefault();
+        }
       }
 
     }),

@@ -207,13 +207,20 @@ DG.GraphDropTarget =
    * the page, specifically drags from plugins.
    */
   _externalDragObject: function () {
-    return {
-      data: DG.mainPage.getPath('mainPane.dragAttributeData')
-    };
+    var data = DG.mainPage.getPath('mainPane.dragAttributeData');
+    if (data) {
+      return {
+        data: data
+      };
+    }
   }.property(),
   externalDragDidChange: function () {
+    var tDrag = this.get('_externalDragObject');
+    if (!tDrag) {
+      return;
+    }
     if (DG.mainPage.getPath('mainPane._isDraggingAttr')) {
-      this.dragStarted(this.get('_externalDragObject'));
+      this.dragStarted(tDrag);
     } else {
       this.dragEnded();
     }
@@ -221,24 +228,35 @@ DG.GraphDropTarget =
 
   dataDragEntered: function (iEvent) {
     var externalDragObject = this.get('_externalDragObject');
-    if (this.isValidAttribute(externalDragObject)) {
+    if (externalDragObject && this.isValidAttribute(externalDragObject)) {
       this.dragEntered(externalDragObject, iEvent);
       iEvent.preventDefault();
     }
   },
   dataDragHovered: function (iEvent) {
-    iEvent.dataTransfer.dropEffect = 'copy';
-    iEvent.preventDefault();
-    iEvent.stopPropagation();
+    var externalDragObject = this.get('_externalDragObject');
+    if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+      iEvent.dataTransfer.dropEffect = 'copy';
+      iEvent.preventDefault();
+      iEvent.stopPropagation();
+    } else {
+      return false;
+    }
   },
   dataDragDropped: function(iEvent) {
-    var data = DG.mainPage.getPath('mainPane.dragAttributeData');
-    this.set('dragData', data);
-    iEvent.preventDefault();
+    var externalDragObject = this.get('_externalDragObject');
+    var data;
+    if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+      data = DG.mainPage.getPath('mainPane.dragAttributeData');
+      this.set('dragData', data);
+      iEvent.preventDefault();
+    } else {
+      return false;
+    }
   },
   dataDragExited: function (iEvent) {
     var externalDragObject = this.get('_externalDragObject');
-    if (this.isValidAttribute(externalDragObject)) {
+    if (externalDragObject && this.isValidAttribute(externalDragObject)) {
       this.dragExited(externalDragObject, iEvent);
       iEvent.preventDefault();
     }
