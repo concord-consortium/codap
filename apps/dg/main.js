@@ -570,6 +570,9 @@ DG.main = function main() {
                     docMetadata = iContents.metadata || {},
                     // validate before saving as well as when opening
                     contents = validateDocument(iContents);
+                // We save the change count before save so, when the save is
+                // complete, we can tell whether there were new changes requiring
+                // an additional save.
                 presaveChangeCount = DG.currDocumentController().get('changeCount');
                 if (contents) {
                   // For now, _permissions must be stored at top-level for Document Store
