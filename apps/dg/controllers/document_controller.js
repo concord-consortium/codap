@@ -729,6 +729,7 @@ DG.DocumentController = SC.Object.extend(
             useLayout: false,
             positionOnCreate: true
           });
+          tView.select();
           this._component = tController.get('model');
         },
         undo: function() {

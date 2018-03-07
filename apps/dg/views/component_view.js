@@ -794,7 +794,6 @@ DG.ComponentView.restoreComponent = function (iParams) {
   }
   tSuperView.appendChild(tComponentView);
   tSuperView.updateFrame();
-  tComponentView.select();
 
   return tComponentView;
 };
