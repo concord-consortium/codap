@@ -2309,6 +2309,7 @@ DG.DataContext = SC.Object.extend((function() // closure
         change = {
           operation: 'updateCases',
           collection: iNotifier,
+          attributeID: attrID,
           isComplete: true
         };
     this.applyChange( change);

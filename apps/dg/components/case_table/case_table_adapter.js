@@ -823,6 +823,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
             operation: 'moveAttribute',
             attr: attr,
             toCollection: tCollection,
+            fromCollection: attr.get('collection'),
             // subtract one for index column, which doesn't correspond to an attribute
             position: position > 0 ? position - 1 : 0
           };
