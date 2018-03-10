@@ -60,7 +60,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
             init: function () {
               var this_ = this,
                   tView = this.containingView,
-                  tDragStartCoord, tCellBeingDragged, tOffset,
+                  tStartingCellnames, tInitialCell, tDragStartCoord, tCellBeingDragged, tOffset,
                   rectHover = function( iEvent) {
                     this.transform('s1.2');
                   },
@@ -73,8 +73,9 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                     }.bind(this));
                   },
                   beginDrag = function (iWindowX, iWindowY) {
+                    tStartingCellnames = this_.getPath('model.cellNames');
                     tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates({x: iWindowX, y: iWindowY}, tView);
-                    tCellBeingDragged = this_.coordinatesToCellNum(tDragStartCoord);
+                    tInitialCell = tCellBeingDragged = this_.coordinatesToCellNum(tDragStartCoord);
                     tOffset = {
                       x: this_.left - tDragStartCoord.x,
                       y: this_.top - tDragStartCoord.y
@@ -92,15 +93,8 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                       return;
                     SC.run(function () {
                       if (tCategoryInCurrentCell !== tCellBeingDragged) {
-                        var tSign = Math.sign(tCategoryInCurrentCell - tCellBeingDragged),
-                            tCellToSwap = tCellBeingDragged + tSign;
-                        // Insist on pairwise swaps until we get one beyond tCategoryInCurrentCell
-                        while (tCellToSwap !== tCategoryInCurrentCell + tSign) {
-                          DG.PlotUtilities.swapCategoriesByIndex(tModel.get('attributeDescription'), tCellBeingDragged, tCellToSwap);
-                          tCellToSwap += tSign;
-                          tCellBeingDragged += tSign;
-                        }
-                        tCellBeingDragged = tCategoryInCurrentCell;
+                        tCellBeingDragged = swapCategories( tModel.get('attributeDescription'),
+                            tCategoryInCurrentCell, tCellBeingDragged);
                       }
                       tView.set('dragInfo', {
                         cellBeingDragged: tCellBeingDragged,
@@ -118,7 +112,43 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                       tView.propertyDidChange('categoriesDragged');
                       tView.updateLayerIfNeeded();
                     });
-                  };
+                    if( tInitialCell !== tCellBeingDragged) {
+                      var tCat1 = tStartingCellnames[tInitialCell],
+                          tCat2 = tStartingCellnames[tCellBeingDragged];
+                      DG.UndoHistory.execute(DG.Command.create({
+                        name: 'swapCategories',
+                        undoString: 'DG.Undo.graph.swapCategories',
+                        redoString: 'DG.Redo.graph.swapCategories',
+                        log: 'Moved category %@ into position of %@'.fmt(tCat1, tCat2),
+                        _initialCell: tInitialCell,
+                        _finalCell: tCellBeingDragged,
+                        _legendModel: this_.get('model'),
+                        execute: function () {
+                        },
+                        undo: function () {
+                          swapCategories( this._legendModel.get('attributeDescription'),
+                              this._initialCell, this._finalCell);
+                          var temp = this._initialCell;
+                          this._initialCell = this._finalCell;
+                          this._finalCell = temp;
+                        },
+                        redo: function () {
+                          this.undo();
+                        }
+                      }));
+                    }
+                  },
+              swapCategories = function( iAttributeDescription, iCat1, iCat2) {
+                var tSign = Math.sign(iCat1 - iCat2),
+                    tCellToSwap = iCat2 + tSign;
+                // Insist on pairwise swaps until we get one beyond iCat1
+                while (tCellToSwap !== iCat1 + tSign) {
+                  DG.PlotUtilities.swapCategoriesByIndex(iAttributeDescription, iCat2, tCellToSwap);
+                  tCellToSwap += tSign;
+                  iCat2 += tSign;
+                }
+                return iCat2;
+              };
 
               this.keyRect = this.paper.rect(0, 0, this.rectSize, this.rectSize)
                   .attr({fill: this.color})
