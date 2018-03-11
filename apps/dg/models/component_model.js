@@ -52,9 +52,13 @@ DG.Component = DG.BaseModel.extend(
         return this._title;
       }.property(),
 
+      userSetTitle: false,
+
       defaultTitleChanged: function () {
-        this._title = null;
-        this.notifyPropertyChange('title');
+        if( !this.get('userSetTitle')) {
+          this._title = null;
+          this.notifyPropertyChange('title');
+        }
       }.observes('*content.defaultTitle'),
 
       //contentTitleChanged: function() {
@@ -159,6 +163,9 @@ DG.Component = DG.BaseModel.extend(
           if( tStorage.name) {
             this.set('name', tStorage.name);
           }
+          if( tStorage.userSetTitle) {
+            this.set('userSetTitle', tStorage.userSetTitle);
+          }
           this.set('cannotClose', tStorage.cannotClose);
         }
       },
@@ -176,6 +183,7 @@ DG.Component = DG.BaseModel.extend(
         if( tStorage) {
           tStorage.title = tStorage.title || this.get('title');
           tStorage.name = tStorage.name || this.get('name');
+          tStorage.userSetTitle = tStorage.userSetTitle || this.get('userSetTitle');
           tStorage.cannotClose = tStorage.cannotClose || this.get('cannotClose');
         }
         obj = {

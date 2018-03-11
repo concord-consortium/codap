@@ -217,11 +217,11 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 log: 'Moved category %@ into position of %@'.fmt(tCat1, tCat2),
                 _initialCell: tOriginalCellIndex,
                 _finalCell: tCellBeingDragged,
-                _legendModel: this_.get('model'),
+                _axisModel: this_.get('model'),
                 execute: function () {
                 },
                 undo: function () {
-                  swapCategories( this._legendModel.get('attributeDescription'),
+                  swapCategories( this._axisModel.get('attributeDescription'),
                       this._initialCell, this._finalCell);
                   var temp = this._initialCell;
                   this._initialCell = this._finalCell;
