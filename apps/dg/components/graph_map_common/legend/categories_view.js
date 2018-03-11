@@ -281,7 +281,7 @@ DG.CategoriesView = DG.RaphaelBaseView.extend(
                 iKey.set('inUse', false);
               });
 
-              for (tCellIndex = 0; tCellIndex < tNumCells; tCellIndex++) {
+              for (tCellIndex = 0; tCellIndex < tNumCells && tCellIndex < tCellNames.length; tCellIndex++) {
                 var tName = tCellNames[tCellIndex],
                     tColor = DG.ColorUtilities.calcCaseColor(tName, tAttrDesc).colorString,
                     tRow = Math.floor(tCellIndex / tNumColumns),
