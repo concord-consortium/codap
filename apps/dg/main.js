@@ -524,7 +524,7 @@ DG.main = function main() {
     if (DG.cfm) {
       DG.cfm.clientConnect(function (event) {
         /* global deepEqual */
-        var docController, docContent, docMetadata,
+        var docController, /*docContent, docMetadata,*/
             cfmSharedMetadata;
 
         function syncDocumentDirtyState() {
@@ -700,8 +700,8 @@ DG.main = function main() {
           case 'unsharedFile':
             SC.run(function() {
               docController = DG.currDocumentController();
-              docContent = docController && docController.get('content');
-              docMetadata = docContent && docContent.metadata;
+              // docContent = docController && docController.get('content');
+              // docMetadata = docContent && docContent.metadata;
               var docSharedMetadata = docController.get('sharedMetadata') || {};
               cfmSharedMetadata = (event.data && event.data.shared) || {};
               if(DG.appController.get('_undoRedoShareInProgressCount')) {
