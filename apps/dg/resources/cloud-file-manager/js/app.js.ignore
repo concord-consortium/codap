@@ -14675,6 +14675,10 @@ GoogleDriveProvider = (function(superClass) {
     return metadata.providerData.id;
   };
 
+  GoogleDriveProvider.prototype.isAuthorizationRequired = function() {
+    return true;
+  };
+
   GoogleDriveProvider.prototype._loadGAPI = function() {
     var script;
     if (!window._LoadingGAPI) {
