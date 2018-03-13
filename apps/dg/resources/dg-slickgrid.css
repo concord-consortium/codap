@@ -163,34 +163,4 @@ sc_require('resources/slickgrid/plugins/slick.headermenu.css')
    */
   -webkit-transform: translate3d(0, 0, 0);
 }
-/*
- * This is a temporary fix to force the display of scrollbars in case tables
- * on retina displays. It is a workaround to a Chrome/Blink bug that prevents
- * trackwheel scrolling. The fix should be removed when the bug is fixed.
- *
- * From: https://css-tricks.com/snippets/css/retina-display-media-query/
- */
-@media screen and (-webkit-min-device-pixel-ratio: 2),(min-resolution: 192dpi) {
-  ::-webkit-scrollbar{
-    -webkit-appearance: none;
-    width: 12px;
-    height: 0;
-
-  }
-  ::-webkit-scrollbar-thumb {
-    border-radius: 8px;
-    background-color: rgba(0,0,0,.5);
-    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
-  }
-
-  /*
-   * The following selector selects the direct children('>') of the last sc-view
-   * of an element if that child has the class 'dg-case-table'. We want to pad
-   * the last case table in a case-table component so that the full scrollbar
-   * will show. Otherwise it is cut off.
-   */
-  div.sc-view:last-of-type>div.dg-case-table {
-    padding-right: 2px;
-  }
-}
 
