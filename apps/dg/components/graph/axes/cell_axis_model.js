@@ -35,6 +35,17 @@ DG.CellAxisModel = DG.AxisModel.extend(
     return Math.max( 1, this.getPath('attributeDescription.attributeStats.numberOfCells'));
   }.property(),
 
+  cellNames: function() {
+    var tNames = [],
+        tAttribute = this.getPath('attributeDescription.attribute');
+    if( tAttribute) {
+      tAttribute.forEachCategory( function( iCategory) {
+        tNames.push( iCategory);
+      });
+    }
+    return tNames;
+  }.property(),
+
   numberOfCellsDidChange: function() {
     this.notifyPropertyChange('numberOfCells');
   }.observes('*attributeDescription.attributeStats.numberOfCells'),

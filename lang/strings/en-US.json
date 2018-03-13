@@ -286,6 +286,8 @@
     "DG.Redo.graph.changeBackgroundColor": "Redo changing graph background color",
     "DG.Undo.graph.toggleTransparent": "Undo toggling plot transparency",
     "DG.Redo.graph.toggleTransparent": "Redo toggling plot transparency",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories",
     "DG.Undo.guide.show": "Undo showing the guide",
     "DG.Redo.guide.show": "Redo showing the guide",
     "DG.Undo.guide.navigate": "Undo changing the guide page",

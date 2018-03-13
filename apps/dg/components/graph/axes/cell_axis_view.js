@@ -172,11 +172,12 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
           tLabelSpecs = this.get('labelSpecs') || [],
           tCollision = false,
           tPrevLabelEnd,
-          tDragStartCoord, tCellBeingDragged, tOriginalCellIndex; // eslint-disable-line no-unused-vars
+          tDragStartCoord, tCellBeingDragged, tOriginalCellIndex, tStartingCellnames; // eslint-disable-line no-unused-vars
 
       var beginDrag = function ( iWindowX, iWindowY) {
+            tStartingCellnames = this_.getPath('model.cellNames');
             tOriginalCellIndex = tCellBeingDragged = this.cellNum;
-            tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates( { x: iWindowX, y: iWindowY }, this_);
+            tDragStartCoord = DG.ViewUtilities.windowToViewCoordinates({x: iWindowX, y: iWindowY}, this_);
             tDragStartCoord = (tOrientation === 'horizontal') ? tDragStartCoord.x : tDragStartCoord.y;
           },
           doDrag = function (iDeltaX, iDeltaY, iWindowX, iWindowY) {
@@ -188,15 +189,8 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
                 return;
             SC.run(function() {
               if( tCategoryInCurrentCell !== tCellBeingDragged) {
-                var tSign = Math.sign( tCategoryInCurrentCell - tCellBeingDragged),
-                    tCellToSwap = tCellBeingDragged + tSign;
-                // Insist on pairwise swaps until we get one beyond tCategoryInCurrentCell
-                while( tCellToSwap !== tCategoryInCurrentCell +tSign) {
-                  DG.PlotUtilities.swapCategoriesByIndex(tModel.get('attributeDescription'),tCellBeingDragged, tCellToSwap);
-                  tCellToSwap += tSign;
-                  tCellBeingDragged += tSign;
-                }
-                tCellBeingDragged = tCategoryInCurrentCell;
+                tCellBeingDragged = swapCategories( tModel.get('attributeDescription'),
+                    tCategoryInCurrentCell, tCellBeingDragged);
               }
               this_.set('dragInfo', {
                 cellBeingDragged: tCellBeingDragged, position: tCurrentCoord,
@@ -213,6 +207,42 @@ DG.CellAxisView = DG.AxisView.extend( (function() {
               this_.propertyDidChange('categoriesDragged');
               this_.updateLayerIfNeeded();
             });
+            if( tOriginalCellIndex !== tCellBeingDragged) {
+              var tCat1 = tStartingCellnames[tOriginalCellIndex],
+                  tCat2 = tStartingCellnames[tCellBeingDragged];
+              DG.UndoHistory.execute(DG.Command.create({
+                name: 'swapCategories',
+                undoString: 'DG.Undo.graph.swapCategories',
+                redoString: 'DG.Redo.graph.swapCategories',
+                log: 'Moved category %@ into position of %@'.fmt(tCat1, tCat2),
+                _initialCell: tOriginalCellIndex,
+                _finalCell: tCellBeingDragged,
+                _axisModel: this_.get('model'),
+                execute: function () {
+                },
+                undo: function () {
+                  swapCategories( this._axisModel.get('attributeDescription'),
+                      this._initialCell, this._finalCell);
+                  var temp = this._initialCell;
+                  this._initialCell = this._finalCell;
+                  this._finalCell = temp;
+                },
+                redo: function () {
+                  this.undo();
+                }
+              }));
+            }
+          },
+          swapCategories = function( iAttributeDescription, iCat1, iCat2) {
+            var tSign = Math.sign(iCat1 - iCat2),
+                tCellToSwap = iCat2 + tSign;
+            // Insist on pairwise swaps until we get one beyond iCat1
+            while (tCellToSwap !== iCat1 + tSign) {
+              DG.PlotUtilities.swapCategoriesByIndex(iAttributeDescription, iCat2, tCellToSwap);
+              tCellToSwap += tSign;
+              iCat2 += tSign;
+            }
+            return iCat2;
           };
 
       function measureOneCell( iCellNum, iCellName) {

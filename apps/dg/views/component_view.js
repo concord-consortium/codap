@@ -359,6 +359,7 @@ DG.ComponentView = SC.View.extend(
                     name: 'component.titleChange',
                     undoString: 'DG.Undo.componentTitleChange',
                     redoString: 'DG.Redo.componentTitleChange',
+                    _userPreviouslySetTitle: tComponentView.getPath('model.userSetTitle'),
                     execute: function () {
                       this._beforeStorage = tComponentView.getPath('model.title');
                       // If the title has already been changed (e.g. due to notification),
@@ -366,17 +367,20 @@ DG.ComponentView = SC.View.extend(
                       if (this._beforeStorage === value)
                         this._beforeStorage = tComponentView.getPath('model._prevTitle');
                       tComponentView.setPath('model.title', value);
+                      tComponentView.setPath('model.userSetTitle', true);
                       this.log = "Change title '%@' to '%@'".fmt(this._beforeStorage, value);
                     },
                     undo: function () {
                       var prev = this._beforeStorage;
                       tComponentView.setPath('model.title', prev);
+                      tComponentView.setPath('model.userSetTitle', this._userPreviouslySetTitle);
                       // we have to set this as well, as 'value' is not tightly bound
                       this_._value = prev;
                       this_.propertyDidChange('value');
                     },
                     redo: function () {
                       tComponentView.setPath('model.title', value);
+                      tComponentView.setPath('model.userSetTitle', true);
                       // we have to set this as well, as 'value' is not tightly bound
                       this_._value = value;
                       this_.propertyDidChange('value');
