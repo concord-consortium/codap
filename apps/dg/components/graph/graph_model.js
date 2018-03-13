@@ -1040,6 +1040,23 @@ DG.GraphModel = DG.DataDisplayModel.extend(
      @private
      */
     dataDidChange: function( iSource, iKey, iChange ) {
+
+      var caseLiesOutsideBounds = function( iCase) {
+        return ['x', 'y', 'y2'].some( function( iDim) {
+          var tFound = false,
+              tAxis = this.get( iDim + 'Axis');
+          if( tAxis && tAxis.get('isNumeric')) {
+            var tLower = tAxis.get('lowerBound'),
+                tUpper = tAxis.get('upperBound');
+            tFound = this.getPath('dataConfiguration.' + iDim + 'AttributeDescription.attributes').some(function( iAttr) {
+              var tValue = iCase.getNumValue( iAttr.get('id'));
+              return isFinite( tValue) && (tValue < tLower || tValue > tUpper);
+            });
+          }
+          return tFound;
+        }.bind( this));
+      }.bind( this);
+
       var tPlot = this.get('plot');
       if( tPlot && tPlot.isAffectedByChange( iChange)) {
         this.invalidate( iChange);  // So that when we ask for cases we get the right ones
@@ -1052,17 +1069,18 @@ DG.GraphModel = DG.DataDisplayModel.extend(
             var newCase = cases.at( tDataLength-1);
             if( this.isParentCase( newCase))
               tPlot.set('openParentCaseID', newCase.get('id'));
-
-            // We always rescale the axes on new data. Previously, we rescaled
-            // for child cases but skipped rescale on parent cases because in
-            // most cases the parent case values aren't filled in until the end
-            // when the closeCase command is issued. Some games provide all their
-            // parent-level case values at createCase-time, however, and then
-            // don't trigger any updateCase notifications at closeCase time.
-            // Therefore, we always rescale here even though that could lead to
-            // rescaling at openCase and again at closeCase under some circumstances.
-            tPlot.rescaleAxesFromData( false /* don't allow scale shrinkage */,
-                                       false /* don't animate points */ );
+            if( caseLiesOutsideBounds( newCase)) {
+              // We always rescale the axes on new data. Previously, we rescaled
+              // for child cases but skipped rescale on parent cases because in
+              // most cases the parent case values aren't filled in until the end
+              // when the closeCase command is issued. Some games provide all their
+              // parent-level case values at createCase-time, however, and then
+              // don't trigger any updateCase notifications at closeCase time.
+              // Therefore, we always rescale here even though that could lead to
+              // rescaling at openCase and again at closeCase under some circumstances.
+              tPlot.rescaleAxesFromData(false /* don't allow scale shrinkage */,
+                  false /* don't animate points */);
+            }
           }
           this._oldNumberOfCases = tDataLength;
         }
