@@ -656,6 +656,10 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
         return [];
       }.property(),
 
+      lastConfigurationControls: function () {
+        return [];
+      }.property(),
+
       /**
        Call the given function once for each case that has a value for each axis.
        Given function should have the signature (iCase, iCaseIndex)
