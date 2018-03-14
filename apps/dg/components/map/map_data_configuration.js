@@ -272,13 +272,62 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
       getLatLongBounds: function () {
 
-        function isValid( iMinMax) {
-          return DG.isFinite( iMinMax.min) && DG.isFinite( iMinMax.max);
-        }
+        var getRationalLongitudeBounds = function () {
+              var tLongID = this.getPath('xAttributeDescription.attribute.id'),
+                  tLongs = [];
+              this.get('cases').forEach(function (iCase) {
+                var tLong = iCase.getNumValue(tLongID);
+                if (isFinite(tLong))
+                  tLongs.push(tLong);
+              });
+              tLongs.sort(function (iV1, iV2) {
+                return iV1 - iV2;
+              });
+              var tLength = tLongs.length,
+                  tMin = tLongs[0],
+                  tMax = tLongs[tLength - 1],
+                  tMedian;
+              while (tMax - tMin > 180) {
+                tMin = Math.min(tMin, tLongs[0]);
+                tMax = Math.max(tMax, tLongs[tLength - 1]);
+                tMedian = tLongs[Math.floor( tLength / 2)];
+                if (tMax - tMedian > tMedian - tMin) {
+                  tMax -= 360;
+                  if (tMax < tLongs[tLength - 2]) {
+                    tMin = Math.min( tMin, tMax);
+                    tMax = tLongs[ tLength - 2];
+                    tLongs.pop();
+                  }
+                }
+                else {
+                  tMin += 360;
+                  if (tMin > tLongs [1]) {
+                    tMax = Math.max( tMax, tMin);
+                    tMin = tLongs[1];
+                    tLongs.shift();
+                  }
+                }
+                tLength = tLongs.length;
+                if( tMax < tMin) {
+                  var tTemp = tMax;
+                  tMax = tMin;
+                  tMin = tTemp;
+                }
+              }
+              return {min: tMin, max: tMax};
+            }.bind(this),
+
+            isValid = function (iMinMax) {
+              return DG.isFinite(iMinMax.min) && DG.isFinite(iMinMax.max);
+            };
 
         var tLatMinMax = this.getPath('yAttributeDescription.attributeStats.minMax'),
-            tLngMinMax = this.getPath('xAttributeDescription.attributeStats.minMax'),
-            tSouthWest = [tLatMinMax.min, tLngMinMax.min],
+            tLngMinMax = this.getPath('xAttributeDescription.attributeStats.minMax');
+
+        if( tLngMinMax.max - tLngMinMax.min > 180)
+          tLngMinMax = getRationalLongitudeBounds();
+
+        var tSouthWest = [tLatMinMax.min, tLngMinMax.min],
             tNorthEast = [tLatMinMax.max, tLngMinMax.max],
             tBounds = (isValid( tLatMinMax) && isValid(tLngMinMax)) ? L.latLngBounds([tSouthWest, tNorthEast]) : null;
         return tBounds;
