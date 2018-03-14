@@ -411,6 +411,12 @@ DG.Debug = SC.Object.create( (function() {
             messageType = messageParts.shift(),
             messageArgs = messageParts.join(':').trim();
 
+        // Warnings and errors have a messageType of their level. We pass the original message.
+        if (scType === SC.LOGGER_LEVEL_ERROR || scType === SC.LOGGER_LEVEL_WARN) {
+          messageType = scType;
+          messageArgs = '{"message": "' +  DG.Debug._currentMessage + '"}';
+        }
+
         // Log the message to the server as well, if appropriate
         if ( shouldLogToServer ) {
           try {
