@@ -963,6 +963,10 @@ DG.GraphModel = DG.DataDisplayModel.extend(
       return this.getPath('plot.lastValueControls');
     }.property('plot'),
 
+    lastConfigurationControls: function() {
+      return this.getPath('plot.lastConfigurationControls');
+    }.property('plot'),
+
     /**
      * My plot model and my axes may have animations going on. If so, stop them.
      */

@@ -75,6 +75,8 @@ DG.MapPointLayer = DG.PlotLayer.extend(
       updatedColors: true,
 
       map: this.get('map' ),
+      westBound: this.get('map').getBounds().getWest(),
+      eastBound: this.get('map').getBounds().getEast(),
       latVarID: tModel.getPath('dataConfiguration.latAttributeID'),
       longVarID: tModel.getPath('dataConfiguration.longAttributeID'),
       legendDesc: tLegendDesc,
@@ -147,9 +149,16 @@ DG.MapPointLayer = DG.PlotLayer.extend(
     DG.assert( DG.MathUtilities.isInIntegerRange( iIndex, 0, this._plottedElements.length ));
     var tCircle = this._plottedElements[ iIndex],
         tLat = iCase.getNumValue( iRC.latVarID),
-        tLong = iCase.getNumValue( iRC.longVarID),
-        tValid = !(Number.isNaN(tLat) || Number.isNaN(tLong)),
-        tCoords = tValid? iRC.map.latLngToContainerPoint([ tLat, tLong] ): null,
+        tLong = iCase.getNumValue( iRC.longVarID);
+    if( tLong < iRC.westBound) {
+      tLong += Math.ceil( (iRC.westBound - tLong) / 360) * 360;
+    }
+    else if( tLong > iRC.eastBound) {
+      tLong -= Math.ceil( (tLong - iRC.eastBound) / 360) * 360;
+    }
+
+    var tValid = !(Number.isNaN(tLat) || Number.isNaN(tLong)),
+        tCoords = tValid ? iRC.map.latLngToContainerPoint([ tLat, tLong] ): null,
         tCoordX = tCoords && tCoords.x,
         tCoordY = tCoords && tCoords.y,
         tIsMissingCase = !DG.isFinite(tCoordX) || !DG.isFinite(tCoordY);

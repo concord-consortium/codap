@@ -77,7 +77,7 @@ DG.BarChartModel = DG.ChartModel.extend(DG.NumericPlotModelMixin,
         return tResult;
       },
 
-      lastValueControls: function () {
+      lastConfigurationControls: function () {
         var tControls = sc_super(),
             this_ = this,
             kRowHeight = 18,

@@ -196,6 +196,15 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
       return [];
     }.property(),
 
+   /**
+     * Subclasses will append if necessary.
+     * These appear in the configurationPane of the inspector
+     * @property {[SC.Control]}
+     */
+    lastConfigurationControls: function() {
+      return [];
+    }.property(),
+
     /**
      * Default is true. Subclasses will override as desired.
      * @returns {boolean}
