@@ -301,7 +301,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                 }
                 else {
                   tMin += 360;
-                  if (tMin > tLongs [1]) {
+                  if (tMin > tLongs[1]) {
                     tMax = Math.max( tMax, tMin);
                     tMin = tLongs[1];
                     tLongs.shift();
