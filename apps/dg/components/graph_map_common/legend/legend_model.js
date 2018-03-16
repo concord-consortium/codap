@@ -107,17 +107,10 @@ DG.LegendModel = SC.Object.extend(
 
   /**
     Determined by asking attributeStats
-    @property{Array of {String}}
+    @property{[{String}]}
   */
   cellNames: function() {
-    var tNames = [],
-        tAttribute = this.getPath('attributeDescription.attribute');
-    if( tAttribute) {
-      tAttribute.forEachCategory( function( iCategory) {
-        tNames.push( iCategory);
-      });
-    }
-    return tNames;
+    return this.getPath('attributeDescription.cellNames');
   }.property(),
   cellNamesDidChange: function() {
     this.notifyPropertyChange('cellNames');
@@ -196,9 +189,9 @@ DG.LegendModel = SC.Object.extend(
     var tSelectionMap = {},
         tSelection = this.getPath('dataConfiguration.collectionClient.casesController.selection'),
         tCellMap = this.getPath('attributeDescription.attributeStats.cellMap');
-    DG.ObjectMap.forEach( tCellMap, function( iKey, iCases) {
-      if( (iCases.length > 0) &&
-          iCases.every(function( iCase) {
+    DG.ObjectMap.forEach( tCellMap, function( iKey, iCell) {
+      if( (iCell.cases.length > 0) &&
+          iCell.cases.every(function( iCase) {
             return tSelection.containsObject( iCase);
           })) {
         tSelectionMap[ iKey] = true;

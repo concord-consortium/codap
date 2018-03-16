@@ -18,66 +18,82 @@
 
 /** @class
 
-  Encapsulates a cache of cell counts for a categorical attribute.
+    Encapsulates a cache of cell counts for a categorical attribute.
 
-  @extends SC.Object
-*/
+ @extends SC.Object
+ */
 DG.CategoricalStats = SC.Object.extend(
-/** @scope DG.CategoricalStats.prototype */ {
+    /** @scope DG.CategoricalStats.prototype */ {
 
-  /**
-   * How many cases
-   * @property {Number}
-   */
-  count: null,
+      /**
+       * How many cases
+       * @property {Number}
+       */
+      count: null,
 
-  /**
-   * One property for each of the possible categorical values
-   * @property {SC.Object}
-   */
-  cellMap: null,
+      /**
+       * One property for each of the possible categorical values
+       * @property {SC.Object}
+       */
+      cellMap: null,
 
-  /** @private
-    The previously computed number of cells, used for change detection.
-    @property {Number}
-   */
-  _prevNumberOfCells: 0,
+      /** @private
+       The previously computed number of cells, used for change detection.
+       @property {Number}
+       */
+      _prevNumberOfCells: 0,
 
-    init: function() {
-      sc_super();
-      this.cellMap = [];
-    },
+      init: function () {
+        sc_super();
+        this.cellMap = {};
+      },
 
-  /**
-   * The number of distinct values
-   * @property {Number}
-   */
-  numberOfCells: function() {
-    return DG.ObjectMap.length( this.cellMap);
-  }.property('cellMap'),
-  
-  countDidChange: function() {
-    var currNumberOfCells = this.get('numberOfCells');
-    if( currNumberOfCells !== this._prevNumberOfCells)
-      this.notifyPropertyChange('numberOfCells');
-    this._prevNumberOfCells = currNumberOfCells;
-  }.observes('count'),
+      /**
+       * The number of distinct values
+       * @property {Number}
+       */
+      numberOfCells: function () {
+        return DG.ObjectMap.length(this.cellMap);
+      }.property('cellMap'),
 
-  /**
-    @return{Number} corresponding to given name
-  */
-  cellNameToCellNumber: function( iCellName) {
-    var tCell =  SC.empty( iCellName) ? null : this.cellMap[ iCellName.toString()];
-    return tCell && tCell.cellNumber;
-  },
-  
-  /**
-   * Return all values to original state
-   */
-  reset: function() {
-    this.set('count', 0);
-    this.set('cellMap', []);
-  }
-  
-});
+      countDidChange: function () {
+        var currNumberOfCells = this.get('numberOfCells');
+        if (currNumberOfCells !== this._prevNumberOfCells)
+          this.notifyPropertyChange('numberOfCells');
+        this._prevNumberOfCells = currNumberOfCells;
+      }.observes('count'),
+
+      /**
+       @return{Number} corresponding to given name
+       */
+      cellNameToCellNumber: function (iCellName) {
+        var tCell = SC.empty(iCellName) ? null : this.cellMap[iCellName.toString()];
+        return tCell && tCell.cellNumber;
+      },
+
+      /**
+       * @property {[{String}]}
+       */
+      cellNames: function () {
+        var tNames = [];
+        DG.ObjectMap.forEach(this.get('cellMap'), function (iName, iCell) {
+          tNames.push({ name: iName, cellNumber: iCell.cellNumber});
+        });
+        tNames = tNames.sort( function( iObj1, iObj2) {
+          return iObj1.cellNumber - iObj2.cellNumber;
+        });
+        return tNames.map( function( iObj) {
+          return iObj.name;
+        });
+      }.property('cellMap'),
+
+      /**
+       * Return all values to original state
+       */
+      reset: function () {
+        this.set('count', 0);
+        this.set('cellMap', {});
+      }
+
+    });
 
