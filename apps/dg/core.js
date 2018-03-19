@@ -275,7 +275,11 @@ DG = SC.Application.create((function () // closure
 
     IS_SRRI_BUILD: isSrriBuild.property(),
 
-    exampleListURL: 'https://codap-resources.concord.org/examples/index.json',
+    exampleListBaseURL: '//codap.concord.org/resources/latest/example-documents',
+
+    exampleListURL: function () {
+      return '%@1/index.json.%@2'.loc(this.get('exampleListBaseURL'), SC.Locale.currentLanguage);
+    }.property(),
 
     showHelpURL: 'https://codap.concord.org/help',
 
