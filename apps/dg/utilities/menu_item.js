@@ -27,7 +27,6 @@ DG.MenuItem = SC.MenuItemView.extend(
 {
 
   init: function () {
-    DG.log('creating DG.MenuItemView');
     sc_super();
   },
   displayProperties: ['title', 'toolTip', 'isEnabled', 'icon', 'isSeparator', 'shortcut', 'isChecked','rightIcon'],
