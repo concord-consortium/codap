@@ -861,8 +861,11 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       //     by our collection or 'preventDataContextReorg' is false for the owning plugin
       if (!SC.none(tContext.getCollectionByID(attrCollection.id))
           && !tContext.get('hasGameInteractive')) {
-        if (!this.collection.getAttributeByID(attr.get('id'))) {
-          canAcceptDrop = SC.none(dataInteractiveController) || !dataInteractiveController.get(
+        if (this.collection.getAttributeByID(attr.get('id'))) {
+          canAcceptDrop = true;
+        } else {
+          canAcceptDrop = SC.none(
+              dataInteractiveController) || !dataInteractiveController.get(
               'preventDataContextReorg');
         }
       }

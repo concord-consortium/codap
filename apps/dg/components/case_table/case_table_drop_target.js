@@ -52,20 +52,31 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           return YES;
         }.property(),
 
+        /**
+         * Drop is _not_ active if
+         *   (a) the dragged attribute is for another dataContext
+         *   (b) the dataContext has is owned by a plugin using the game API
+         *   (c) or is owned by a modern plugin that sets preventDataContextReorg.
+         */
         isDropEnabled: function () {
-          var dataInteractiveController
-              = this.dataContext.get('owningDataInteractive');
-          // Drop is _not_ active if the dataContext has is owned by a plugin using
-          // the game API or is owned by a modern plugin that sets preventDataContextReorg.
+          var dataInteractiveController = this.dataContext.get('owningDataInteractive');
           var hasGameInteractive = this.dataContext.get('hasGameInteractive');
-          var preventReorg = hasGameInteractive || (dataInteractiveController &&
-              dataInteractiveController.get('preventDataContextReorg'));
+          var dragAttribute = this.get('dragAttribute');
+          var ownsThisAttribute = dragAttribute && !SC.none(this.dataContext.getCollectionByID(dragAttribute.collection.id));
+          var preventReorg = !ownsThisAttribute ||
+              hasGameInteractive ||
+              (dataInteractiveController && dataInteractiveController.get('preventDataContextReorg'));
           return !preventReorg;
-        }.property(),
+        }.property('dragAttribute'),
 
         isDropEnabledDidChange: function () {
           this.notifyPropertyChange('isDropEnabled');
         }.observes('*dataContext.hasDataInteractive'),
+
+        /**
+         * @type {DG.Attribute|null}
+         */
+        dragAttribute: null,
 
         /**
          * Whether drag is in progress
@@ -108,26 +119,29 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
           this.set('isDragEntered', false);
         },
 
-        isValidAttribute: function( iDrag) {
-          var tDragAttr = iDrag.data.attribute;
-          var dragContext = iDrag.data.context;
-          return !SC.none( tDragAttr )  && (dragContext === this.dataContext);
+        extractDragInfo: function( iDrag) {
+          if (iDrag && iDrag.data ) {
+            this.set('dragAttribute', iDrag.data.attribute);
+          }
         },
 
         computeDragOperations: function( iDrag) {
-          if( this.isValidAttribute( iDrag))
+          this.extractDragInfo( iDrag);
+          if( this.get('isDropEnabled'))
             return SC.DRAG_LINK;
           else
             return SC.DRAG_NONE;
         },
 
         dragStarted: function( iDrag) {
-          if (this.isValidAttribute(iDrag) && this.get('isDropEnabled')) {
+          this.extractDragInfo(iDrag);
+          if (this.get('isDropEnabled')) {
             this.set('isDragInProgress', true);
           }
         },
 
         dragEnded: function () {
+          this.set('dragAttribute', null);
           this.set('isDragInProgress', false);
         },
 
@@ -163,6 +177,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
             };
           }
         }.property(),
+
         externalDragDidChange: function () {
           var tDrag = this.get('_externalDragObject');
           if (!tDrag) {
@@ -177,14 +192,14 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
 
         dataDragEntered: function (iEvent) {
           var externalDragObject = this.get('_externalDragObject');
-          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          if (externalDragObject) {
             this.dragEntered(null, externalDragObject);
             iEvent.preventDefault();
           }
         },
         dataDragHovered: function (iEvent) {
           var externalDragObject = this.get('_externalDragObject');
-          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          if (externalDragObject ) {
             iEvent.dataTransfer.dropEffect = 'copy';
             iEvent.preventDefault();
             iEvent.stopPropagation();
@@ -194,7 +209,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
         dataDragDropped: function(iEvent) {
           var externalDragObject = this.get('_externalDragObject');
-          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          if (externalDragObject) {
             var data = DG.mainPage.getPath('mainPane.dragAttributeData');
             this.set('dropData', data);
             iEvent.preventDefault();
@@ -204,7 +219,7 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
         },
         dataDragExited: function (iEvent) {
           var externalDragObject = this.get('_externalDragObject');
-          if (externalDragObject && this.isValidAttribute(externalDragObject)) {
+          if (externalDragObject) {
             this.dragExited(null, externalDragObject);
             iEvent.preventDefault();
           }
