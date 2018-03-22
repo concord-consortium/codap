@@ -764,9 +764,15 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
           case 'createCollection':
             var tAttributes = iChange.attributes,
                 tIDs = tAttributes && tAttributes.map( function( iAttribute) {
-                  return iAttribute.get('id');
+                  // sometimes the attributes object is a plain, not sproutcore, object
+                  return iAttribute.get && iAttribute.get('id');
                 });
-            isAffected = this.getPlottedAttributesIncludeIDs(tIDs);
+            // if we did not see attributes with ids, we assume we are affected
+            if (tIDs.length>0 && SC.none(tIDs[0])) {
+              isAffected = true;
+            } else {
+              isAffected = this.getPlottedAttributesIncludeIDs(tIDs);
+            }
             break;
           case 'moveAttribute':
             var tMovedID = iChange.attr && iChange.attr.get('id'),
