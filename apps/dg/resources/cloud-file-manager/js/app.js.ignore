@@ -14485,7 +14485,7 @@ GoogleDriveProvider = (function(superClass) {
         var args;
         args = {
           client_id: _this.clientId,
-          scope: ['https://www.googleapis.com/auth/drive.readonly', 'https://www.googleapis.com/auth/drive.install', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.profile'],
+          scope: ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.install', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.profile'],
           immediate: immediate
         };
         return gapi.auth.authorize(args, function(authToken) {
