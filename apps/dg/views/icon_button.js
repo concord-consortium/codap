@@ -31,15 +31,17 @@ sc_require('views/image_view');
 DG.IconButton = SC.View.extend(
 /** @scope DG.IconButton.prototype */
   (function() {
-    var kTopOffset = 0;
+    var kTopOffset = 0,
+        kIconExtent = { width: 34, height: 25 };
     return {
+      classNames: 'dg-toolshelf-button',
       // if the property 'disabled' is set a class of the same name is set on the
       // button
       classNameBindings: ['disabled'],
       iconName: null,
       depressedIconName: null,
       title: null,
-      iconExtent: { width: 34, height: 25 },
+      iconExtent: kIconExtent,
       showBlip: false,  // If true, will show indicator that click will bring up palette
       childViews: 'iconView labelView'.w(),
         iconView: DG.FontIconView.design({
@@ -54,13 +56,16 @@ DG.IconButton = SC.View.extend(
       
       init: function() {
         sc_super();
-        var tTitleIsEmpty = SC.empty( this.get('title')),
-            tLabelHeight = tTitleIsEmpty ? 0 : 15;
+        var tTitle = this.get('title') ? this.get('title').loc() : null,
+            tTitleIsEmpty = SC.empty( tTitle),
+            tLabelHeight = tTitleIsEmpty ? 0 : 15,
+            tLabelWidth = tTitleIsEmpty ? 0 : DG.RenderingUtilities.textExtent(tTitle, 'MuseoSans-500', 12).x;
         this.iconView.set('layout',
           { top: kTopOffset, centerX: 0, height: this.iconExtent.height, width: this.iconExtent.width });
         this.iconView.set('iconClass', this.iconClass);
-        this.labelView.adjust('top', this.iconExtent.height + kTopOffset);
-        this.labelView.adjust('height', tLabelHeight);
+        this.setPath('labelView.layout',
+            { top: this.iconExtent.height + kTopOffset, centerX: 0,
+              width: tLabelWidth, height: tLabelHeight });
         this.labelView.set('isVisible', !tTitleIsEmpty);
         //this.adjust('height', this.iconExtent.height + kTopOffset + tLabelHeight);
 
@@ -74,6 +79,10 @@ DG.IconButton = SC.View.extend(
             layout: { left: 0, bottom: 0, width: 3, height: 3 }
           }));
         }
+      },
+
+      getWidth: function() {
+        return Math.max( this.getPath('iconView.layout').width, this.getPath('labelView.layout').width);
       },
 
       iconClassDidChange: function() {

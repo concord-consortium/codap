@@ -181,7 +181,7 @@ DG.mainPage = SC.Page.design((function() {
             tButton.classNames = tButton.classNames || '';
             tButton.classNames = (tButton.classNames + ' dg-toolshelf-button').w();
             this[ iButtonName] = DG.IconButton.create( tButton);
-            this[ iButtonName].set('layout', { width: kButtonWidth, height: 40 });
+            this[ iButtonName].set('layout', { width: this[ iButtonName].getWidth(), height: 40 });
             this.appendChild( this[ iButtonName ]);
           }.bind(this));
         }

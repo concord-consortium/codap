@@ -136,6 +136,10 @@
     cursor: pointer;
 }
 
+.dg-toolshelf-button {
+    overflow: visible;
+}
+
 .dg-icon-label {
     color: black;
     font-size: 11px !important;
