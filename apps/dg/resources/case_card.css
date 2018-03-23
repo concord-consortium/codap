@@ -50,17 +50,10 @@
   display: inline-block;
   margin-right: 10px;
   font-size: 12px;
-  cursor: pointer;
 }
 .react-data-card td span i,
 .react-data-card-function-info h1 i {
   color: #555;
-}
-.react-data-card td span:hover,
-.react-data-card td div:hover,
-.react-data-card-function-info h1:hover {
-  text-decoration: underline;
-  color: #72bfca;
 }
 .react-data-card-header {
   color: white;
@@ -70,4 +63,14 @@
 .react-data-card-header span {
   /*margin-right: 5px;*/
   /*font-weight: bold;*/
+}
+.react-data-card-attribute {
+  cursor: pointer;
+}
+.react-data-card-attribute:hover {
+  text-decoration: underline;
+  color: #72bfca;
+}
+.react-data-card-value {
+  cursor: text;
 }
