@@ -851,12 +851,22 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
       var dataInteractiveController
           = tContext.get('owningDataInteractive');
       var attrCollection = attr.collection;
-      if (!SC.none(tContext.getCollectionByID(attrCollection.id))) {
+      // Figure out if we can accept an attribute drop. Assume false.
+      // (a) We can never accept drop if data context is owned by a game-api-plugin
+      // (b) We can never accept drop if the attribute is owned by another data context.
+      // (c) We can always accept a drop if the attribute is owned by the context and
+      //     the context is not owned by a plugin
+      // (d) Otherwise, if the attribute is owned by the context and the context is owned
+      //     by a modern plugin then we can accept the drop if the attribute is owned
+      //     by our collection or 'preventDataContextReorg' is false for the owning plugin
+      if (!SC.none(tContext.getCollectionByID(attrCollection.id))
+          && !tContext.get('hasGameInteractive')) {
         if (this.collection.getAttributeByID(attr.get('id'))) {
-          canAcceptDrop = !tContext.get('hasGameInteractive');
+          canAcceptDrop = true;
         } else {
-          canAcceptDrop =  SC.none(dataInteractiveController)
-              || !dataInteractiveController.get('preventDataContextReorg');
+          canAcceptDrop = SC.none(
+              dataInteractiveController) || !dataInteractiveController.get(
+              'preventDataContextReorg');
         }
       }
 

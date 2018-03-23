@@ -172,7 +172,7 @@ DG.Component = DG.BaseModel.extend(
 
       destroy: function () {
         if (this.document) {
-          delete this.document.components[this.id];
+          delete this.document.get('components')[this.id];
         }
         sc_super();
       },
