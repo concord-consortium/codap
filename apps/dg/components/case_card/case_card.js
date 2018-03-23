@@ -14,7 +14,9 @@ DG.React.ready(function () {
       table = React.DOM.table,
       tbody = React.DOM.tbody,
       tr = React.DOM.tr,
-      td = React.DOM.td;
+      td = React.DOM.td,
+      input = React.DOM.input
+  ;
   // kLeftAngleBracketChar = '&#x2039;',
   // kRightAngleBracketChar = '&#x203a;',
   // kInfoIconChar = '&#9432;';
@@ -22,10 +24,10 @@ DG.React.ready(function () {
   DG.React.Components.CaseCard = DG.React.createComponent(
       (function () {
 
-        var ChangeListener = SC.Object.extend( {
+        var ChangeListener = SC.Object.extend({
           dependent: null,
 
-          init: function() {
+          init: function () {
             sc_super();
 
             DG.currDocumentController().get('contexts').forEach(function (context) {
@@ -35,11 +37,11 @@ DG.React.ready(function () {
             DG.currDocumentController().addObserver('contexts.length', this, this.contextCountDidChange);
           },
 
-          destroy: function() {
+          destroy: function () {
             DG.currDocumentController().removeObserver('contexts.length', this, this.contextCountDidChange);
-            DG.currDocumentController().get('contexts').forEach( function( iContext) {
+            DG.currDocumentController().get('contexts').forEach(function (iContext) {
               this.removeDataContextObserver(iContext);
-            }.bind( this));
+            }.bind(this));
             this.dependent = null;
 
             sc_super();
@@ -55,49 +57,51 @@ DG.React.ready(function () {
             iDataContext.removeObserver('changeCount', this, this.contextDataDidChange);
           },
 
-          contextCountDidChange: function() {
-            DG.currDocumentController().contexts.forEach(function (context){
+          contextCountDidChange: function () {
+            DG.currDocumentController().contexts.forEach(function (context) {
               this.guaranteeDataContextObserver(context);
             }.bind(this));
             this.dependent.incrementStateCount();
           },
 
-          contextDataDidChange: function( iDataContext) {
-            iDataContext.get('newChanges').forEach( function( iChange) {
-              switch( iChange.operation) {
-                // case 'selectCases':
-                // case 'updateCases':
-                //   break;
+          contextDataDidChange: function (iDataContext) {
+            iDataContext.get('newChanges').forEach(function (iChange) {
+              switch (iChange.operation) {
+                  // case 'selectCases':
+                  // case 'updateCases':
+                  //   break;
                 default:
                   this.dependent.incrementStateCount();
               }
-            }.bind( this));
+            }.bind(this));
           }
 
         });
 
         return {
           changeListener: null,
+          currEditField: null,
 
           getInitialState: function () {
             return {
-              count: 0
+              count: 0,
+              attrIndex: 0
             };
           },
 
           componentDidMount: function () {
-            this.changeListener = ChangeListener.create( {
+            this.changeListener = ChangeListener.create({
               dependent: this
             });
           },
 
-          componentWillUnmount: function() {
+          componentWillUnmount: function () {
             this.changeListener.destroy();
             this.changeListener = null;
           },
 
-          incrementStateCount: function() {
-            this.setState( {count: this.state.count + 1 });
+          incrementStateCount: function () {
+            this.setState({count: this.state.count + 1});
           },
 
           renderContext: function (iDataSetName, iIndex) {
@@ -188,39 +192,59 @@ DG.React.ready(function () {
               }
             }
 
-            function handleCellLeave( iEvent) {
+            function handleCellLeave(iEvent) {
               logit('cellLeave');
-              if( tDragInProgress)
-                handleMouseMove( iEvent);
+              if (tDragInProgress)
+                handleMouseMove(iEvent);
             }
 
             var tDescription = iAttr.get('description') || '',
-                tUnit = iAttr.get('unit') ||'',
+                tUnit = iAttr.get('unit') || '',
                 tFormula = iAttr.get('formula'),
-                tValue = iCase ? iCase.getValue( iAttr.get('id')) : '';
-            if( isNotEmpty(tDescription) && isNotEmpty( tUnit))
-                tUnit = ' (' + tUnit + ')';
-            if( DG.isNumeric( tValue)) {
+                tAttrIndex = this.state.attrIndex++,
+                tValue = iCase ? iCase.getValue(iAttr.get('id')) : '';
+            if (isNotEmpty(tDescription) && isNotEmpty(tUnit))
+              tUnit = ' (' + tUnit + ')';
+            if (DG.isNumeric(tValue)) {
               var tPrecision = iAttr.get('precision');
-              tPrecision = SC.none( tPrecision) ? 2 : tPrecision;
-              tValue = DG.MathUtilities.formatNumber( tValue, tPrecision);
+              tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
+              tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
             }
-            else if( typeof tValue === 'object') {
+            else if (typeof tValue === 'object') {
               tValue = '';
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
                 + tFormula : '';
             var tSpan = span({
-              title: tDescription + tUnit + tFormula,
-              onMouseDown: handleMouseDown,
-              onMouseUp: handleMouseUp,
-              onMouseLeave: handleMouseLeave,
-              onMouseMove: handleMouseMove
-            }, iAttr.get('name')),
-                tCell = td( {
+                  className: 'react-data-card-attribute',
+                  title: tDescription + tUnit + tFormula,
+                  onMouseDown: handleMouseDown,
+                  onMouseUp: handleMouseUp,
+                  onMouseLeave: handleMouseLeave,
+                  onMouseMove: handleMouseMove
+                }, iAttr.get('name')),
+                tCell = td({
                   onMouseLeave: handleCellLeave
-                }, tSpan);
-            return tr({key: 'attr-' + iIndex}, tCell, DG.React.Components.TextInput( { value: tValue}));
+                }, tSpan),
+                tValueField = DG.React.Components.TextInput({
+                  value: tValue,
+                  attrIndex: tAttrIndex,
+                  case: iCase,
+                  attrID: iAttr.get('id'),
+                  onToggleEditing: function (iValueField, iAttrIndex) {
+                    if (this.currEditField !== iValueField) {
+                      iValueField.setState({editing: true});
+                      if (this.currEditField) {
+                        if( this.currEditField.props.value !== this.currEditField.state.value)
+                          this.currEditField.props.case.setValue( this.currEditField.props.attrID,
+                              this.currEditField.state.value);
+                        this.currEditField.setState({editing: false});
+                      }
+                      this.currEditField = iValueField;
+                    }
+                  }.bind(this)
+                });
+            return tr({key: 'attr-' + iIndex}, tCell, tValueField);
           },
 
           render: function () {
@@ -243,7 +267,7 @@ DG.React.ready(function () {
             }.bind(this));
             tCardEntries.push(tCollEntries);
 
-            return div({className: 'react-data-card', style: this.state.style}, tCardEntries);
+            return div({className: 'react-data-card', style: this.state.style}, tCardEntries/*, tPara*/);
           }
         };
       })(), []);
