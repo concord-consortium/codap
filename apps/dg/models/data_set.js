@@ -245,9 +245,10 @@ DG.DataSet = SC.Object.extend((function() // closure
      * @param {integer} itemIndex
      * @return {DG.DataItem} the deleted item.
      */
-    deleteDataItem: function (item) {
+    deleteDataItem: function (item, setAside) {
       if (item) {
         item.deleted = true;
+        item.setAside = setAside;
       }
       return item;
     },
@@ -277,6 +278,18 @@ DG.DataSet = SC.Object.extend((function() // closure
         item.deleted = false;
       }
       return item;
+    },
+
+    restoreSetAsideItems: function () {
+      var restoredItems = [];
+      this.dataItems.forEach(function (item) {
+        if (item.setAside) {
+          restoredItems.push(item);
+          item.deleted = false;
+          item.setAside = false;
+        }
+      });
+      return restoredItems;
     },
 
     /**
@@ -432,6 +445,20 @@ DG.DataSet = SC.Object.extend((function() // closure
       return item1._clientIndex - item2._clientIndex;
     },
 
+    createSetAsideItems: function (items) {
+      items.forEach(function (item) {
+        this.addDataItem(item);
+        this.deleteDataItem(item, true);
+      }.bind(this));
+    },
+
+    archiveSetAsideItems: function () {
+      return this.dataItems.filter(function (item) {
+          return item.setAside;
+        }).map(function (item) {
+          return item.toArchive().values;
+        });
+      },
     /**
      * Returns a serializable version of this object.
      * @returns {{dataItems: [DG.DataItem]}}
