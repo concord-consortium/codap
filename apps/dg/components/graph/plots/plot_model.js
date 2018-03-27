@@ -838,6 +838,7 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
 
       colorMapDidChange: function () {
         this.invalidateCaches();
+        this.propertyDidChange('colorMap');
       },
 
       /**

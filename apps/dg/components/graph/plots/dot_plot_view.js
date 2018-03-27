@@ -166,7 +166,7 @@ DG.DotPlotView = DG.PlotView.extend(
   */
   categoriesDidChange: function() {
     this.updateAverages();
-  },
+  }.observes('model.colorMap'),
 
   /**
    * Invalidate and update the averages adornments.
