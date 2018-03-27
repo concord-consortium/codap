@@ -1017,6 +1017,7 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   deleteCasesAndChildren: function(iChange) {
     var deletedCases = [];
+    var tSetAside = iChange.setAside;
 
     iChange.ids = [];
     iChange.collectionIDs = {};
@@ -1043,7 +1044,12 @@ DG.DataContext = SC.Object.extend((function() // closure
         iChange.collectionIDs[tCollection.get('id')] = tCollection;
       }
 
-      tCollection.deleteCase(iCase);
+      if (tSetAside) {
+        tCollection.setAsideCase(iCase);
+      } else {
+        tCollection.deleteCase(iCase);
+      }
+
       if (tParent) {
         if (tParent.children.length === 0) {
           doDelete(tParent);
@@ -2569,7 +2575,15 @@ DG.DataContext = SC.Object.extend((function() // closure
         this.addCollection( collection);
       }.bind(this));
     }
-  }
+  },
+
+    restoreSetAsideCases: function () {
+      var items = this.get('dataSet').restoreSetAsideItems();
+      var count = items.length;
+      var results = this.regenerateCollectionCases(null, 'createCases');
+      DG.log("Restored " + count + " items in context \"" + this.get('name') + "\"");
+      DG.log("Restored %@ cases".loc(results.createdCases && results.createdCases.length));
+    }
 
   }; // end return from closure
 

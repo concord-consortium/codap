@@ -657,13 +657,20 @@ DG.CollectionClient = SC.Object.extend(
     this.get('collection').deleteCase( iCase);
   },
 
+  setAsideCase: function (iCase) {
+    this.get('collection').setAsideCase(iCase);
+  },
+
+  restoreSetAsideCases: function () {
+    this.get('collection').restoreSetAsideCases();
+  },
+
   /**
     This function should be called whenever cases are deleted to allow
     the collection a chance to synchronize store contents, ID to index
     maps, and other contents.
    */
   didDeleteCases: function() {
-
     this.get('collection').updateCaseIDToIndexMap();
   },
 

@@ -628,7 +628,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       /**
         Deletes the currently selected cases from their collections.
        */
-      deleteSelectedCases: function() {
+      deleteSelectedCases: function(iSetAside) {
         var tContext = this.get('dataContext'),
             tCases = tContext.getSelectedCases(),
             tChange;
@@ -644,6 +644,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           tContext.applyChange( tChange);
           tChange = {
             operation: 'deleteCases',
+            setAside: iSetAside,
             cases: tCases
           };
           tContext.applyChange( tChange);
@@ -654,7 +655,7 @@ DG.CaseTableController = DG.ComponentController.extend(
        Delete the currently unselected cases.
        Passes the request on to the data context to do the heavy lifting.
        */
-      deleteUnselectedCases: function(){
+      deleteUnselectedCases: function(iSetAside){
         /**
          * Adds iValue to iArray if iKey is not already seen
          * @return {boolean} whether entry was added
@@ -698,6 +699,7 @@ DG.CaseTableController = DG.ComponentController.extend(
         // delete selected
         tContext.applyChange( {
           operation: 'deleteCases',
+          setAside: iSetAside,
           cases: tUnselected
         });
       },
@@ -716,6 +718,18 @@ DG.CaseTableController = DG.ComponentController.extend(
         tContext.applyChange( tChange);
       },
 
+      setAsideSelectedCases: function () {
+        this.deleteSelectedCases(true);
+      },
+
+      setAsideUnselectedCases: function () {
+        this.deleteUnselectedCases(true);
+      },
+
+      restoreSetAsideCases: function () {
+        var tContext = this.get('dataContext');
+        tContext.restoreSetAsideCases();
+      },
       /**
         Handler for sendAction('newAttributeAction')
        */
@@ -1059,7 +1073,43 @@ DG.CaseTableController = DG.ComponentController.extend(
             });
         tMenu.popup(this.get('inspectorButtons')[0]);
       },
-
+      showHideShowPopup: function () {
+        var tDataContext = this.get('dataContext'),
+            tSelection = tDataContext && tDataContext.getSelectedCases(),
+            tSelectedIsEnabled = tSelection && tSelection.get('length') > 0,
+            tCaseCount = tDataContext.get('totalCaseCount'),
+            tUnselectedIsEnabled = (tCaseCount > 0) &&
+                (!tSelection || tSelection.get('length') < tCaseCount),
+            tItems = [
+              {
+                title: 'DG.Inspector.setaside.setAsideSelectedCases',
+                localize: true,
+                target: this,
+                action: 'setAsideSelectedCases',
+                isEnabled: tSelectedIsEnabled
+              },
+              {
+                title: 'DG.Inspector.setaside.setAsideUnselectedCases',
+                localize: true,
+                target: this,
+                action: 'setAsideUnselectedCases',
+                isEnabled: tUnselectedIsEnabled
+              },
+              {
+                title: 'DG.Inspector.setaside.restoreSetAsideCases',
+                localize: true,
+                target: this,
+                action: 'restoreSetAsideCases',
+                isEnabled: true
+              }
+            ],
+            tMenu = DG.MenuPane.create({
+              classNames: 'dg-hideshow-popup'.w(),
+              layout: {width: 200, height: 150},
+              items: tItems
+            });
+        tMenu.popup(this.get('inspectorButtons')[0]);
+      },
       showAttributesPopup: function() {
         var tDataContext = this.get('dataContext'),
             collectionRecords = tDataContext.get('collections') || [],
@@ -1160,6 +1210,17 @@ DG.CaseTableController = DG.ComponentController.extend(
               localize: true
             })
         );
+        tButtons.push(DG.IconButton.create({
+          layout: {width: 32},
+          classNames: 'dg-display-hideshow'.w(),
+          iconClass: 'moonicon-icon-hideShow',
+          showBlip: true,
+          target: this,
+          action: 'showHideShowPopup',
+          toolTip: 'DG.Inspector.hideShow.toolTip',  // "Show all cases or hide selected/unselected cases"
+          localize: true
+        }));
+
         tButtons.push(DG.IconButton.create({
               layout: {width: 32},
               classNames: 'dg-table-attributes'.w(),

@@ -46,6 +46,12 @@ DG.DataItem = SC.Object.extend({
    */
   deleted: false,
 
+  /**
+   * Whether the case has been 'set aside': gone but retrievable
+   * @type boolean
+   */
+  setAside: false,
+
   /*
    * A hash map of attribute IDs to values.
    * @type {{attributeID: *}}
