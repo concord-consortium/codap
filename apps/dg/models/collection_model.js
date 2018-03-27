@@ -503,6 +503,22 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
       }
     },
 
+    setAsideCase: function (iCase) {
+      DG.log('Setting aside case "%@" in collection "%@"'.loc(iCase.id, this.get('name')));
+      var item = iCase.item;
+      DG.Case.destroyCase(iCase);
+      this.dataSet.deleteDataItem(item, true);
+    },
+
+    restoreSetAsideCases: function () {
+      var items = this.dataSet.restoreSetAsideItems();
+      var count = items.length;
+      if (count > 0) {
+        this.updateCaseIDToIndexMap();
+      }
+      DG.log("Restored " + count + " cases in collection \"" + this.get('name') + "\"");
+    },
+
     /**
      * Recreates a set of cases in this collection from the DataSet. If no
      * argument is provided, will recreate cases for all items, otherwise will create cases

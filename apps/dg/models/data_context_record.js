@@ -171,6 +171,7 @@ DG.DataContextRecord = DG.BaseModel.extend(
             name: this.get('name'),
             title: this.get('title'),
             collections: [],
+            setAsideItems: this.get('dataSet').archiveSetAsideItems(),
             contextStorage: this.contextStorage
           };
 
@@ -236,6 +237,10 @@ DG.DataContextRecord.createContext = function( iProperties) {
       iProps.context = tContext;
       DG.Collection.createCollection(iProps);
     });
+  }
+  if (iProperties.setAsideItems) {
+    var tDataSet = tContext.get('dataSet');
+    tDataSet.createSetAsideItems(iProperties.setAsideItems);
   }
   DG.log("Create context: '%@'", tContext.name);
 

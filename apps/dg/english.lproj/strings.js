@@ -705,6 +705,10 @@ SC.stringsFor("en", {
     "DG.Inspector.deleteAll": "Delete All Cases",
     "DG.Inspector.deleteDataSet": "Delete and Destroy Data Set",
 
+    "DG.Inspector.setaside.setAsideSelectedCases": "Set Aside Selected Cases",
+    "DG.Inspector.setaside.setAsideUnselectedCases": "Set Aside Unselected Cases",
+    "DG.Inspector.setaside.restoreSetAsideCases": "Restore Set Aside Cases",
+
     // Display Inspector
     "DG.Inspector.displayValues.toolTip": "Change what is shown along with the points",
     "DG.Inspector.displayStyles.toolTip": "Change the appearance of the display",
