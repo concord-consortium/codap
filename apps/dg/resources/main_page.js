@@ -201,7 +201,7 @@ DG.mainPage = SC.Page.design((function() {
             var tButton = DG.RightButtonData[iButtonName];
             tButton.classNames.push('dg-toolshelf-button');
             this[ iButtonName] = DG.IconButton.create( tButton);
-            this[ iButtonName].set('layout', { width: kButtonWidth/*, height: 40*/ });
+            this[ iButtonName].set('layout', { width: this[ iButtonName].getWidth()/*, height: 40*/ });
             this.appendChild( this[ iButtonName ]);
           }.bind(this));
           DG.currDocumentController().set('guideButton', this.guideButton);
