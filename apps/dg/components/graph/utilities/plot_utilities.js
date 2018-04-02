@@ -352,9 +352,11 @@ DG.PlotUtilities = {
     return tResult;
   },
 
-  getFormattedCaseValue: function( iCase, iAttrDesc, iGetDigitsFunc) {
-    var tAttrID = iAttrDesc.getPath('attribute.id'),
-        tValue = iCase && iCase.getValue(tAttrID),
+  getFormattedCaseValue: function( iCase, iAttrDesc, iGetDigitsFunc, iAttrIndex) {
+    iAttrIndex = !SC.none(iAttrIndex) ? iAttrIndex : 0;
+    var tAttrs = iAttrDesc.get('attributes'),
+        tAttrID = SC.isArray(tAttrs) ? tAttrs[iAttrIndex].get('id') : null,
+        tValue = iCase && !SC.none( tAttrID) && iCase.getValue(tAttrID),
         tDigits, tNumFormat;
     if (SC.empty(tValue)) return '';
 

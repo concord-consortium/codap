@@ -68,7 +68,7 @@ DG.PointDataTip = DG.DataTip.extend(
                   tName, tValue;
           if (!SC.none(tAttrID) && tType !== 'qualitative') {
             tName = tAttr.get('name');
-            tValue = DG.PlotUtilities.getFormattedCaseValue( tCase, tAttrDesc, tDigitsFunc);
+            tValue = DG.PlotUtilities.getFormattedCaseValue( tCase, tAttrDesc, tDigitsFunc, tPlotIndex);
             return tName + ': ' + tValue;
           }
           return null;
