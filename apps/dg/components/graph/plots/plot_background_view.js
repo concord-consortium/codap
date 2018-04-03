@@ -133,6 +133,7 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
         tMarquee,
         tLastRect,
         tStartPt,
+        tNeedToDeselectAll,
         tBaseSelection = [];//,
 //        tToolTip;
 
@@ -184,12 +185,16 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
       if( iEvent.altKey)
         return; // Alt key has a different meaning
 
+      tNeedToDeselectAll = true;
       this_.set('tempDisallowDataTips', true);
 
-      if( iEvent.shiftKey)
-        tBaseSelection = this_.getPath( 'graphModel.selection').toArray();
+      if( iEvent.shiftKey) {
+        tBaseSelection = this_.getPath('graphModel.selection').toArray();
+        tNeedToDeselectAll = false;
+      }
       // Only deselect everything if we are the currently selected component
       else if(DG.ComponentView.findComponentViewParent(this_) === DG.mainPage.docView.get('selectedChildView')) {
+        tNeedToDeselectAll = false;
         SC.run(function(){
           this_.get('graphModel').selectAll( false);
         });
@@ -207,7 +212,10 @@ DG.PlotBackgroundView = DG.RaphaelBaseView.extend( DG.GraphDropTarget,
     function continueMarquee( idX, idY) {
       if( SC.none( tMarquee))
         return; // Alt key was down when we started
-
+      if( tNeedToDeselectAll) {
+        this_.get('graphModel').selectAll( false);
+        tNeedToDeselectAll = false;
+      }
       var tX = (idX > 0) ? tStartPt.x : tStartPt.x + idX,
         tY = (idY > 0) ? tStartPt.y : tStartPt.y + idY,
         tWidth = Math.abs( idX),
