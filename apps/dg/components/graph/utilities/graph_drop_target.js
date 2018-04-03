@@ -248,6 +248,7 @@ DG.GraphDropTarget =
     var data;
     if (externalDragObject && this.isValidAttribute(externalDragObject)) {
       data = DG.mainPage.getPath('mainPane.dragAttributeData');
+      this.hideDropHint();
       this.set('dragData', data);
       iEvent.preventDefault();
     } else {

@@ -145,10 +145,14 @@ DG.mainPage = SC.Page.design((function() {
           selectedItemDidChange: function () {
             function makeUrl(digraph, location) {
               var baseURL = 'https://codap.concord.org/releases/latest/static/dg/%@/cert/'.loc(digraph);
+              var hash = location.hash;
               if (location.pathname.indexOf('static/dg')>0) {
                 baseURL = '../../%@/cert'.loc(digraph);
               }
-              return baseURL + window.location.search+window.location.hash;
+              if (hash.startsWith('#file=examples:')) {
+                hash = '';
+              }
+              return baseURL + location.search+hash;
             }
             var item = this.menu.get('selectedItem');
             DG.assert(item, 'Check if locale item exists');

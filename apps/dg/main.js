@@ -345,7 +345,7 @@ DG.main = function main() {
               "name": "readOnly",
               "displayName": "DG.fileMenu.provider.examples.displayName".loc(),
               "urlDisplayName": "examples",
-              "src": DG.exampleListURL,
+              "src": DG.get('exampleListURL'),
               alphabetize: true
             },
             {
