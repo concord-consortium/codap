@@ -1360,9 +1360,10 @@ DG.DocumentController = SC.Object.extend(
                     tCardComponentView = iTableComponentView.get('cardView') ||
                         this.addCaseCard(iTableComponentView.get('parentView'),
                             tCardInitialLayout, tContext, null, iTableComponentView.get('title'));
+                    var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
                     tCardComponentView.set('isVisible', true);
                     tCardComponentView.select();
-                    tCardComponentView.animate(tCardFinalLayout, {duration: 0.4, timing: 'ease-in-out'});
+                    tCardComponentView.animate(tCardLayout, {duration: 0.4, timing: 'ease-in-out'});
                     tCardComponentView.set('tableView', iTableComponentView);
                     iTableComponentView.set('cardView', tCardComponentView);
                   }.bind(this));
