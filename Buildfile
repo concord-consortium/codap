@@ -29,5 +29,8 @@ mode :debug do
 end
 
 # proxy for local dev.
-proxy '/DataGames', :to => 'dg.ccssgames.com'
+#proxy '/DataGames', :to => 'dg.ccssgames.com'
 #proxy '/examples', :to => 'localhost:80'
+# Dev version of sage defaults to localhost, port 8080
+#proxy '/sage', :to => '127.0.0.1:8080', :url => '/'
+#proxy '/codap-data-interactives', :to => 'localhost:80', :url => '/~jsandoe/codap-data-interactives'
