@@ -1045,8 +1045,11 @@ DG.DataContext = SC.Object.extend((function() // closure
         if (tParent.children.length === 0) {
           doDelete(tParent);
         }
-        else {
+        else if (tParent.item !== tParent.children[0].item) {
+          // assign a new item to the parent
+          DG.Case._removeCaseFromItemMap(tParent);
           tParent.item = tParent.children[0].item;
+          DG.Case._addCaseToItemMap(tParent);
         }
       }
     }.bind(this);
