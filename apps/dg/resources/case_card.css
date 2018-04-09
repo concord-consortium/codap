@@ -1,3 +1,11 @@
+.react-data-card-view {
+
+}
+
+.react-data-card-view.drag-in-progress {
+  border: medium #ffe4b3 solid;
+}
+
 .react-data-card{
   position: absolute;
   top: 0px;
@@ -11,6 +19,15 @@
   font-family: 'Montserrat', sans-serif;
   table-layout: fixed;
   white-space: nowrap;
+}
+
+.react-data-card .attr-cell-upper {
+  border-top: thick darkgray solid;
+}
+
+
+.react-data-card .attr-cell-lower {
+  border-bottom: thick darkgray solid;
 }
 
 .react-data-card input {

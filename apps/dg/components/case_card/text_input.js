@@ -61,7 +61,7 @@ DG.React.ready(function () {
                 tValue = td({
                       className: 'react-data-card-value',
                       onClick: function () {
-                        if (!this.state.editing)
+                        if (!this.state.editing && this.props.onToggleEditing)
                           this.props.onToggleEditing(this);
                       }.bind(this)
                     },

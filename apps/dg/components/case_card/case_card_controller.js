@@ -37,7 +37,6 @@ DG.CaseCardController = DG.ComponentController.extend(
       },
 
       willCloseComponent: function() {
-        DG.React.toggleRender( this.reactDiv);
         sc_super();
       },
 
