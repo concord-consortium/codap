@@ -37,6 +37,7 @@ DG.React.ready(function () {
                 tMin = Number.MAX_VALUE,
                 tMax = Number.MIN_VALUE,
                 tUniqueValues = {},
+                tNumUniqueValues,
                 tSummary;
             this.props.cases.forEach(function (iCase) {
               var tValue = iCase.getValue(tAttrID);
@@ -54,10 +55,19 @@ DG.React.ready(function () {
               tMin = DG.MathUtilities.formatNumber(tMin, 2);
               tMax = DG.MathUtilities.formatNumber(tMax, 2);
             }
-
-            tSummary = tAllNumeric ? 'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit) :
-                'DG.CaseCard.summaryValues'.loc(Object.keys(tUniqueValues).length);
-            return td({}, span({className: 'react-data-card-attribute-summary'}, tSummary));
+            tNumUniqueValues = Object.keys(tUniqueValues).length;
+            if( tNumUniqueValues > 1) {
+              tSummary = tAllNumeric ? 'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit) :
+                  'DG.CaseCard.summaryValues'.loc(tNumUniqueValues);
+              return td({}, span({className: 'react-data-card-attribute-summary'}, tSummary));
+            }
+            else {
+              var tUniqueValue = tNumUniqueValues === 0 ? '' : Object.keys( tUniqueValues)[0];
+              return DG.React.Components.TextInput({
+                value: tUniqueValue,
+                unit: ''
+              });
+            }
           }
         };
       })(), []);

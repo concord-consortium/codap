@@ -66,7 +66,7 @@ DG.DragCaseCardItemHandler = SC.Object.extend(
             handleStartDrag: function (iEvent) {
               var tDragView = SC.LabelView.create({
                 classNames: 'dg-drag-label'.w(),
-                layout: {width: 100, height: 20, top: -50, left: 0},
+                layout: {width: 100, height: 20, top: -100, left: 0},
                 value: this.get('attributeName')
               });
               this.set('dragView', tDragView);

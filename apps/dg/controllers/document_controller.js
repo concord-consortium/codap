@@ -1078,9 +1078,9 @@ DG.DocumentController = SC.Object.extend(
               showTitleBar: true,
               isResizable: true,
             }),
-            tContentView = SC.View.create({
-              // layout: { top: DG.ViewUtilities.kTitleBarHeight },
-              classNames: 'dg-opaque dg-scrollable'.w()
+            tContentView = DG.CaseCardView.create({
+              classNames: 'dg-opaque dg-scrollable'.w(),
+              context: iContext
             });
         tComponentView.set('model', tModel);
         tController.set('view', tComponentView);
@@ -1088,16 +1088,8 @@ DG.DocumentController = SC.Object.extend(
         tComponentView.addContent(tContentView);
         tComponentView.set('controller', tController);
         this.registerComponent(tModel);
+        tContentView.initCardLayer();
 
-        var tLayer = tContentView.get('layer'),
-            tView = DG.React.Components.CaseCard({
-              container: tLayer,
-              context: iContext
-            }),
-            tDiv = document.createElement('div');
-        tLayer.appendChild(tDiv);
-        tController.set('reactDiv', tDiv);
-        DG.React.toggleRender(tDiv, tView);
         return tComponentView;
       },
 

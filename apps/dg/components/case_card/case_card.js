@@ -13,8 +13,8 @@ DG.React.ready(function () {
       h2 = React.DOM.h2,
       table = React.DOM.table,
       tbody = React.DOM.tbody,
-      tr = React.DOM.tr,
-      td = React.DOM.td //,
+      tr = React.DOM.tr
+      // td = React.DOM.td //,
       // input = React.DOM.input
   ;
   // kLeftAngleBracketChar = '&#x2039;',
@@ -103,6 +103,13 @@ DG.React.ready(function () {
           incrementStateCount: function () {
             this.setState({count: this.state.count + 1});
           },
+
+          /**
+           * -------------------Drop functionality-------------------------------
+           */
+          /**
+           *  ------------------Below here are rendering functions---------------
+           */
 
           renderContext: function (iDataSetName, iIndex) {
             return div({key: 'cont-' + iIndex, className: 'react-data-card-header'},
@@ -214,16 +221,18 @@ DG.React.ready(function () {
             }
 
             function handleCellLeave(iEvent) {
-              logit('cellLeave');
               if (tDragInProgress)
                 handleMouseMove(iEvent);
             }
 
             var toggleEditing = function (iValueField) {
               var stashValue = function () {
-                if (this.currEditField.props.value !== this.currEditField.state.value)
-                  this.currEditField.props.case.setValue(this.currEditField.props.attrID,
-                      this.currEditField.state.value);
+                if (this.currEditField.props.value !== this.currEditField.state.value) {
+                  var tCase = this.currEditField.props.case,
+                      tAttrID = this.currEditField.props.attrID,
+                      tValue = this.currEditField.state.value;
+                  tCase.setValue(tAttrID, tValue);
+                }
               }.bind(this);
 
               if (this.currEditField !== iValueField) {
@@ -246,10 +255,10 @@ DG.React.ready(function () {
                 tUnit = iAttr.get('unit') || '',
                 tUnitWithParens = '',
                 tFormula = iAttr.get('formula'),
-                tAttrIndex = this.state.attrIndex++,
                 tSummarize = iCases.length > 1,
                 tCase = tSummarize ? null : iCases[0],
                 tValue = tSummarize ? '' : tCase.getValue(tAttrID);
+            this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';
             if (DG.isNumeric(tValue)) {
@@ -270,9 +279,11 @@ DG.React.ready(function () {
                   onMouseLeave: handleMouseLeave,
                   onMouseMove: handleMouseMove
                 }, iAttr.get('name')),
-                tCell = td({
-                  onMouseLeave: handleCellLeave
-                }, tSpan),
+                tCell = DG.React.Components.AttributeNameCell({
+                  content: tSpan,
+                  dragObject: this.props.dragStatus ? this.props.dragStatus.dragObject : null,
+                  cellLeaveCallback: handleCellLeave
+                }),
                 tValueField = tSummarize ?
                     DG.React.Components.AttributeSummary({
                       cases: iCases,
@@ -281,9 +292,8 @@ DG.React.ready(function () {
                     }) :
                     DG.React.Components.TextInput({
                       value: tValue,
-                      attrIndex: tAttrIndex,
-                      case: tCase,
                       attrID: tAttrID,
+                      case: tCase,
                       unit: tUnit,
                       onToggleEditing: toggleEditing
                     });
@@ -350,12 +360,12 @@ DG.React.ready(function () {
                 tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases, iAttr, iAttrIndex));
               }.bind(this));
               tCollEntries.push(table({
-                  style: {'margin-left': (iCollIndex + 1) * 10 + 'px'}
-                  }, tbody({}, tAttrEntries)));
+                style: {'margin-left': (iCollIndex + 1) * 10 + 'px'}
+              }, tbody({}, tAttrEntries)));
             }.bind(this));
             tCardEntries.push(tCollEntries);
 
-            return div({className: 'react-data-card', style: this.state.style}, tCardEntries);
+            return div({className: 'react-data-card'}, tCardEntries);
           }
         };
       })(), []);
