@@ -116,6 +116,7 @@ DG.Case = DG.BaseModel.extend((function() {
      * Destruction function for the case.
      */
     destroy: function() {
+      //DG.log('removing case(%@) from collection(%@) with item(%@/%@)'.loc(this.get('id'), this.collection.get('name'), this.item.id, this.item.itemIndex));
       if (this.parent) {
         this.parent.children.removeObject(this);
       }
@@ -350,7 +351,7 @@ DG.Case._removeCaseFromItemMap = function(iCase) {
   var collectionID = iCase.getPath('collection.id'),
       itemID = iCase.getPath('item.id'),
       itemCaseMap = collectionID && DG.Case._itemCaseMaps[collectionID];
-  if (itemID && itemCaseMap) {
+  if (!SC.none(itemID) && itemCaseMap) {
     delete itemCaseMap[itemID];
     if (!DG.ObjectMap.length(itemCaseMap))
       delete DG.Case._itemCaseMaps[collectionID];
