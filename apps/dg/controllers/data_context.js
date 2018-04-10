@@ -1038,7 +1038,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.ids.push(iCase.get('id'));
 
       // keep track of the affected collections
-      iChange.collectionIDs[tCollection.get('id')] = tCollection;
+      if (!iChange.collectionIDs[tCollection.get('id')]) {
+        tCollection.get('casesController').beginPropertyChanges();
+        iChange.collectionIDs[tCollection.get('id')] = tCollection;
+      }
 
       tCollection.deleteCase(iCase);
       if (tParent) {
@@ -1054,39 +1057,48 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }.bind(this);
 
-    // find the leaf node cases and call doDelete on each of them.
-    // The doDelete function will propagate up the parental hierarchy
-    // as far as appropriate.
-    var deleteCaseAndChildren = function(iCase) {
-      //var tCollection = this.getCollectionForCase( iCase);
-      var tChildren= iCase.get('children'), ix;
-      // we remove children in reverse order because removal from this list
-      // is immediate and would otherwise corrupt the list.
-      if (tChildren && tChildren.length) {
-        for (ix = tChildren.length - 1; ix >= 0; ix--) {
-          deleteCaseAndChildren(tChildren[ix]);
+
+      // find the leaf node cases and call doDelete on each of them.
+      // The doDelete function will propagate up the parental hierarchy
+      // as far as appropriate.
+      var deleteCaseAndChildren = function (iCase) {
+        //var tCollection = this.getCollectionForCase( iCase);
+        var tChildren = iCase.get('children'), ix;
+        // we remove children in reverse order because removal from this list
+        // is immediate and would otherwise corrupt the list.
+        if (tChildren && tChildren.length) {
+          for (ix = tChildren.length - 1; ix >= 0; ix--) {
+            deleteCaseAndChildren(tChildren[ix]);
+          }
+        } else {
+          doDelete(iCase);
         }
-      } else {
-        doDelete(iCase);
+      }.bind(this);
+
+    try {
+
+      if (iChange.cases) {
+        iChange.cases.forEach(deleteCaseAndChildren);
+
+        // Call didDeleteCases() for each affected collection
+        DG.ObjectMap.forEach(iChange.collectionIDs,
+            function (iCollectionID, iCollection) {
+              if (iCollection) iCollection.didDeleteCases();
+            });
+
+        iChange.isComplete = true;
+        this.applyChange(iChange);
+
+        // invalidate dependents; aggregate functions may need to recalculate
+        this.invalidateAttrsOfCollections(
+            DG.ObjectMap.values(iChange.collectionIDs), iChange);
       }
-    }.bind( this);
-
-    if (iChange.cases) {
-      iChange.cases.forEach(deleteCaseAndChildren);
-
-      // Call didDeleteCases() for each affected collection
-      DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
-        if (iCollection)
-          iCollection.didDeleteCases();
-      });
-
-      iChange.isComplete = true;
-      this.applyChange(iChange);
-
-      // invalidate dependents; aggregate functions may need to recalculate
-      this.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
     }
-
+    finally {
+      Object.values(iChange.collectionIDs).forEach(function (collection) {
+        collection.get('casesController').endPropertyChanges();
+      });
+    }
     return deletedCases;
   },
 
