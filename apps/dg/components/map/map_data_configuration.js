@@ -44,10 +44,9 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
             tMapContext,
             tCaptionName, tLatName, tLongName, tAreaName,
             tCaptionAttr, tLatAttr, tLongAttr, tAreaAttr,
-            kLatNames = ['latitude', 'lat', 'Latitude', 'Lat', 'LAT', 'LATITUDE', 'LATITUD', 'latitud'],
-            kLongNames = ['longitude', 'long', 'lng', 'Longitude', 'Long', 'Lng', 'LONG', 'LON',
-              'LONGITUDE', 'LONGITUD', 'longitud'],
-            kAreaNames = ['boundary', 'boundaries', 'polygon', 'Boundary', 'Boundaries', 'Polygon'];
+            kLatNames = ['latitude', 'lat', 'latitud'],
+            kLongNames = ['longitude', 'long', 'lng', 'lon', 'longitud'],
+            kAreaNames = ['boundary', 'boundaries', 'polygon', 'polygons'];
 
         sc_super();
 
@@ -95,29 +94,26 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           DG.currDocumentController().get('contexts').forEach(function (iContext) {
             iContext.get('collections').forEach(function (iCollection) {
               var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
-                  tFoundLat = kLatNames.some(function (iName) {
-                    if (tAttrNames.indexOf(iName) >= 0) {
-                      tLatName = iName;
-                      return true;
-                    }
-                    return false;
-                  }),
-                  tFoundLong = kLongNames.some(function (iName) {
-                    if (tAttrNames.indexOf(iName) >= 0) {
-                      tLongName = iName;
-                      return true;
-                    }
-                    return false;
-                  }),
-                  tFoundArea = kAreaNames.some(function (iName) {
-                    if (tAttrNames.indexOf(iName) >= 0) {
-                      tAreaName = iName;
-                      return true;
-                    }
-                    return false;
+                  // Make a copy, all lower case. We will need the original if we find a match.
+                  tLowerCaseNames = tAttrNames.map( function( iAttrName) {
+                    return iAttrName.toLowerCase();
                   });
-              if( !tFoundArea) {  // Try for an attribute that has a boundary type
-                tFoundArea = ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
+
+              function pickOutName( iKNames) {
+                return tAttrNames.find(function (iAttrName, iIndex) {
+                  if (iKNames.find(function (iKName) {
+                    return (iKName === tLowerCaseNames[ iIndex]);
+                  })) {
+                    return true;
+                  }
+                });
+              }
+
+              tLatName = pickOutName( kLatNames);
+              tLongName = pickOutName( kLongNames);
+              tAreaName = pickOutName( kAreaNames);
+              if( !tAreaName) {  // Try for an attribute that has a boundary type
+                ((iCollection && iCollection.get('attrs')) || []).some( function( iAttr) {
                   if( iAttr.get('type') === 'boundary') {
                     tAreaName = iAttr.get('name');
                     return true;
@@ -127,7 +123,7 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
                 });
               }
 
-              if ((tFoundLat && tFoundLong) || tFoundArea) {
+              if ((tLatName && tLongName) || tAreaName) {
                 tMapContext = iContext;
                 tMapCollection = iCollection;
                 tMapCollectionClient = iContext.getCollectionByID( iCollection.get('id'));
