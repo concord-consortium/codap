@@ -2586,6 +2586,13 @@ DG.DataContext = SC.Object.extend((function() // closure
       var results = this.regenerateCollectionCases(null, 'createCases');
       DG.log("Restored " + count + " items in context \"" + this.get('name') + "\"");
       DG.log("Restored %@ cases".loc(results.createdCases && results.createdCases.length));
+      var tChange = {
+        operation: 'selectCases',
+        cases: results.createdCases,
+        select: true,
+        extend: false
+      };
+      this.applyChange(tChange);
     }
 
   }; // end return from closure
