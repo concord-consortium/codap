@@ -175,6 +175,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       return this.getPath('model.dataSet');
     }.property(),
 
+    setAsideCount: function () {
+      return this.get('dataSet').getSetAsideCount();
+    }.property(),
+
     /**
      *  The collections for which this controller is responsible.
      *  Clients expect the order of this array to be parent --> child.
