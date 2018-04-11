@@ -453,9 +453,14 @@ DG.DataSet = SC.Object.extend((function() // closure
       return item1._clientIndex - item2._clientIndex;
     },
 
-    createSetAsideItems: function (items) {
-      items.forEach(function (item) {
-        this.addDataItem(item);
+    /**
+     * This method is called as a part of restoring a DataContext, to add
+     * SetAside items to the DataSet.
+     * @param itemSpecs
+     */
+    createSetAsideItems: function (itemSpecs) {
+      itemSpecs.forEach(function (itemData) {
+        var item = this.addDataItem(itemData);
         this.deleteDataItem(item, true);
       }.bind(this));
     },
