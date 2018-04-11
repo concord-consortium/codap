@@ -1043,7 +1043,10 @@ DG.DataContext = SC.Object.extend((function() // closure
       iChange.ids.push(iCase.get('id'));
 
       // keep track of the affected collections
-      iChange.collectionIDs[tCollection.get('id')] = tCollection;
+      if (!iChange.collectionIDs[tCollection.get('id')]) {
+        tCollection.get('casesController').beginPropertyChanges();
+        iChange.collectionIDs[tCollection.get('id')] = tCollection;
+      }
 
       if (tSetAside) {
         tCollection.setAsideCase(iCase);
@@ -1081,22 +1084,30 @@ DG.DataContext = SC.Object.extend((function() // closure
       }
     }.bind( this);
 
-    if (iChange.cases) {
-      iChange.cases.forEach(deleteCaseAndChildren);
+    try {
 
-      // Call didDeleteCases() for each affected collection
-      DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
-        if (iCollection)
-          iCollection.didDeleteCases();
-      });
+      if (iChange.cases) {
+        iChange.cases.forEach(deleteCaseAndChildren);
 
-      iChange.isComplete = true;
-      this.applyChange(iChange);
+        // Call didDeleteCases() for each affected collection
+        DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
+          if (iCollection)
+            iCollection.didDeleteCases();
+        });
 
-      // invalidate dependents; aggregate functions may need to recalculate
-      this.invalidateAttrsOfCollections(DG.ObjectMap.values(iChange.collectionIDs), iChange);
+        iChange.isComplete = true;
+        this.applyChange(iChange);
+
+        // invalidate dependents; aggregate functions may need to recalculate
+        this.invalidateAttrsOfCollections(
+            DG.ObjectMap.values(iChange.collectionIDs), iChange);
+      }
     }
-
+    finally {
+      Object.values(iChange.collectionIDs).forEach(function (collection) {
+        collection.get('casesController').endPropertyChanges();
+      });
+    }
     return deletedCases;
   },
 
