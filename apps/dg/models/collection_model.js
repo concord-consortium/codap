@@ -504,7 +504,6 @@ DG.Collection = DG.BaseModel.extend( (function() // closure
     },
 
     setAsideCase: function (iCase) {
-      DG.log('Setting aside case "%@" in collection "%@"'.loc(iCase.id, this.get('name')));
       var item = iCase.item;
       DG.Case.destroyCase(iCase);
       this.dataSet.deleteDataItem(item, true);
