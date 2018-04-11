@@ -1100,7 +1100,7 @@ DG.CaseTableController = DG.ComponentController.extend(
                 localize: true,
                 target: this,
                 action: 'restoreSetAsideCases',
-                isEnabled: true
+                isEnabled: (tDataContext.get('setAsideCount') > 0)
               }
             ],
             tMenu = DG.MenuPane.create({

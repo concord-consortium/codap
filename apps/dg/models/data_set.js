@@ -292,6 +292,14 @@ DG.DataSet = SC.Object.extend((function() // closure
       return restoredItems;
     },
 
+    getSetAsideCount: function () {
+      var count = 0;
+      this.dataItems.forEach(function (item) {
+        if (item.setAside) { count++; }
+      });
+      return count;
+    },
+
     /**
      * Permanently removes deleted dataItems and reclaims space.
      * @return {number} Count of dataItems retrieved.
