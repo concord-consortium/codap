@@ -625,10 +625,13 @@ DG.CaseTableController = DG.ComponentController.extend(
         }
         tContext.applyChange( tChange);
       },
+      deleteSelectedCases: function () {
+        this._deleteOrSetAsideSelectedCases(false);
+      },
       /**
         Deletes the currently selected cases from their collections.
        */
-      deleteSelectedCases: function(iSetAside) {
+      _deleteOrSetAsideSelectedCases: function(iSetAside) {
         var tContext = this.get('dataContext'),
             tCases = tContext.getSelectedCases(),
             tChange;
@@ -719,7 +722,7 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       setAsideSelectedCases: function () {
-        this.deleteSelectedCases(true);
+        this._deleteOrSetAsideSelectedCases(true);
       },
 
       setAsideUnselectedCases: function () {
