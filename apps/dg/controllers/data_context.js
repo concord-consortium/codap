@@ -1087,14 +1087,16 @@ DG.DataContext = SC.Object.extend((function() // closure
 
     try {
 
+    try {
+
       if (iChange.cases) {
         iChange.cases.forEach(deleteCaseAndChildren);
 
         // Call didDeleteCases() for each affected collection
-        DG.ObjectMap.forEach(iChange.collectionIDs,
-            function (iCollectionID, iCollection) {
-              if (iCollection) iCollection.didDeleteCases();
-            });
+        DG.ObjectMap.forEach(iChange.collectionIDs, function(iCollectionID, iCollection) {
+          if (iCollection)
+            iCollection.didDeleteCases();
+        });
 
         iChange.isComplete = true;
         this.applyChange(iChange);
