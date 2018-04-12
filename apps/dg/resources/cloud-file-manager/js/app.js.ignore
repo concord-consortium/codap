@@ -19595,12 +19595,11 @@ module.exports = React.createClass({
     return {
       link: this.getShareLink(),
       embed: this.getEmbed(),
-      lara: this.getLara({
-        codapServerUrl: "https://codap.concord.org/releases/latest/",
-        launchButtonText: "Launch"
-      }),
+      pageType: "autolaunch",
       codapServerUrl: "https://codap.concord.org/releases/latest/",
       launchButtonText: "Launch",
+      fullscreenScaling: true,
+      graphVisToggles: false,
       tabSelected: 'link'
     };
   },
@@ -19628,20 +19627,19 @@ module.exports = React.createClass({
       return null;
     }
   },
-  getLara: function(options) {
-    var buttonText, documentServer, server, sharedDocumentId;
-    if (options == null) {
-      options = null;
-    }
+  getLara: function() {
+    var buttonText, documentServer, fullscreenScaling, graphVisToggles, server, sharedDocumentId;
     sharedDocumentId = this.getSharedDocumentId();
     if (sharedDocumentId) {
       documentServer = getQueryParam('documentServer') || 'https://document-store.concord.org';
       while (documentServer.substr(-1) === '/') {
         documentServer = documentServer.slice(0, -1);
       }
-      server = encodeURIComponent(((options != null ? options.hasOwnProperty('codapServerUrl') : void 0) ? options.codapServerUrl : this.state.codapServerUrl));
-      buttonText = encodeURIComponent(((options != null ? options.hasOwnProperty('launchButtonText') : void 0) ? options.launchButtonText : this.state.launchButtonText));
-      return documentServer + "/v2/documents/" + sharedDocumentId + "/launch?server=" + server + "&buttonText=" + buttonText;
+      server = encodeURIComponent(this.state.codapServerUrl);
+      buttonText = this.state.pageType === 'launch' ? "&buttonText=" + (encodeURIComponent(this.state.launchButtonText)) : '';
+      fullscreenScaling = this.state.pageType === 'autolaunch' && this.state.fullscreenScaling ? '&scaling' : '';
+      graphVisToggles = this.state.graphVisToggles ? '&app=is' : '';
+      return documentServer + "/v2/documents/" + sharedDocumentId + "/" + this.state.pageType + "?server=" + server + buttonText + fullscreenScaling + graphVisToggles;
     } else {
       return null;
     }
@@ -19691,8 +19689,7 @@ module.exports = React.createClass({
       return function() {
         return _this.setState({
           link: _this.getShareLink(),
-          embed: _this.getEmbed(),
-          lara: _this.getLara()
+          embed: _this.getEmbed()
         });
       };
     })(this));
@@ -19712,24 +19709,29 @@ module.exports = React.createClass({
       tabSelected: 'lara'
     });
   },
-  changedCodapServerUrl: function() {
-    var codapServerUrl;
-    codapServerUrl = ReactDOM.findDOMNode(this.refs.codapServerUrl).value;
+  changedCodapServerUrl: function(event) {
     return this.setState({
-      codapServerUrl: codapServerUrl,
-      lara: this.getLara({
-        codapServerUrl: codapServerUrl
-      })
+      codapServerUrl: event.target.value
     });
   },
-  changedLaunchButtonText: function() {
-    var launchButtonText;
-    launchButtonText = ReactDOM.findDOMNode(this.refs.launchButtonText).value;
+  changedLaunchButtonText: function(event) {
     return this.setState({
-      launchButtonText: launchButtonText,
-      lara: this.getLara({
-        launchButtonText: launchButtonText
-      })
+      launchButtonText: event.target.value
+    });
+  },
+  changedAutoscalingPage: function(event) {
+    return this.setState({
+      pageType: event.target.checked ? 'autolaunch' : 'launch'
+    });
+  },
+  changedFullscreenScaling: function(event) {
+    return this.setState({
+      fullscreenScaling: event.target.checked
+    });
+  },
+  changedGraphVisToggles: function(event) {
+    return this.setState({
+      graphVisToggles: event.target.checked
     });
   },
   render: function() {
@@ -19797,7 +19799,7 @@ module.exports = React.createClass({
             href: '#',
             onClick: this.copy
           }, tr('~SHARE_DIALOG.COPY')) : void 0, div({}, input({
-            value: this.state.lara,
+            value: this.getLara(),
             readOnly: true
           })), div({
             className: 'lara-settings'
@@ -19805,15 +19807,29 @@ module.exports = React.createClass({
             className: 'codap-server-url'
           }, "CODAP Server URL:", div({}, input({
             value: this.state.codapServerUrl,
-            ref: 'codapServerUrl',
             onChange: this.changedCodapServerUrl
           }))), div({
+            className: 'autolaunch'
+          }, input({
+            type: 'checkbox',
+            checked: this.state.pageType === 'autolaunch',
+            onChange: this.changedAutoscalingPage
+          }), "Autolaunch page"), this.state.pageType === 'autolaunch' ? div({
+            className: 'fullsceen-scaling'
+          }, input({
+            type: 'checkbox',
+            checked: this.state.fullscreenScaling,
+            onChange: this.changedFullscreenScaling
+          }), "Fullscreen button and scaling") : void 0, this.state.pageType === 'launch' ? div({
             className: 'launch-button-text'
-          }, "Launch Button Text:", div({}, input({
+          }, "Launch Button Text:", input({
             value: this.state.launchButtonText,
-            ref: 'launchButtonText',
             onChange: this.changedLaunchButtonText
-          })))));
+          })) : void 0, div({}, input({
+            type: 'checkbox',
+            checked: this.state.graphVisToggles,
+            onChange: this.changedGraphVisToggles
+          }), "Display data visibility toggles on graphs")));
         default:
           return div({}, "Paste this into an email or text message ", document.execCommand || window.clipboardData ? a({
             className: 'copy-link',
