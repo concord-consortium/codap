@@ -1369,6 +1369,11 @@ DG.DataContext = SC.Object.extend((function() // closure
     if (notifyOperation) {
       change.operation = notifyOperation;
       change.isComplete = true;
+      change.result = {
+        caseIDs: createdCases.map(function (iCase) {
+          return iCase.id;
+        })
+      };
       this.applyChange(change);
     }
     return change;
