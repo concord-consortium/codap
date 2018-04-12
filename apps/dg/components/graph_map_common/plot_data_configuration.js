@@ -701,16 +701,28 @@ DG.PlotDataConfiguration = SC.Object.extend(
 
       // If the change is from a collection other than one we care about, bail
       var tChangedCollectionID = iChange.collection && iChange.collection.get('id'),
-          tPlottedCollectionID = this.getPath('collectionClient.id');
-      if( tChangedCollectionID !== tPlottedCollectionID)
+          tPlottedCollectionID = this.getPath('collectionClient.id'),
+          tChangedCollectionIDs = iChange.collections.map( function( iColl) {
+            return iColl.get('id');
+          }),
+          tChangeIsRelevant = (tChangedCollectionID === tPlottedCollectionID) ||
+              (tChangedCollectionIDs && tChangedCollectionIDs.indexOf( tPlottedCollectionID) >= 0);
+      if( !tChangeIsRelevant)
         return;
 
-      var caseIDs = iChange.result.caseIDs || [ iChange.result.caseID ];
-      caseIDs.forEach( function( iCaseID) {
-                          var tNewCase = this.dataContext.getCaseByID(iCaseID);
-                          if( tNewCase)
-                            this._casesCache.push( tNewCase);
-                        }.bind( this));
+      if( iChange.result.caseIDs || iChange.result.caseID) {
+        var caseIDs = iChange.result.caseIDs || [iChange.result.caseID];
+        caseIDs.forEach(function (iCaseID) {
+          var tNewCase = this.dataContext.getCaseByID(iCaseID);
+          if (tNewCase)
+            this._casesCache.push(tNewCase);
+        }.bind(this));
+      }
+      if( iChange.createdCases) {
+        iChange.createdCases.forEach( function( iCase) {
+          this._casesCache.push( iCase);
+        }.bind( this));
+      }
       tCases = this._casesCache;
     }
     else {
