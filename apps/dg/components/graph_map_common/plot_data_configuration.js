@@ -718,11 +718,6 @@ DG.PlotDataConfiguration = SC.Object.extend(
             this._casesCache.push(tNewCase);
         }.bind(this));
       }
-      if( iChange.createdCases) {
-        iChange.createdCases.forEach( function( iCase) {
-          this._casesCache.push( iCase);
-        }.bind( this));
-      }
       tCases = this._casesCache;
     }
     else {
