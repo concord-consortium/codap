@@ -435,7 +435,6 @@ SC.stringsFor("de", {
     "DG.TableController.attrEditor.precisionHint": "Anzahl der Stellen nach dem Komma",
     "DG.TableController.attrEditor.unitHint": "Unit of measure, if applicable",
     "DG.TableController.attrEditor.descriptionHint": "Describe the attribute",
-    "DG.TableController.scoreAttrName": "score",
     "DG.TableController.setScoreDlg.applyTooltip": "Set the formula for the '%@' attribute",
     "DG.TableController.setScoreDlg.formulaHint": "Type a formula for computing values of this attribute",
     "DG.TableController.newAttributeTooltip": "Add a new attribute to this table",
@@ -668,5 +667,7 @@ SC.stringsFor("de", {
     "DG.Locale.name.es": "Spanisch",
     "DG.Locale.name.he": "Hebräisch",
     "DG.Locale.name.tr": "Türkisch",
-    "DG.Locale.name.zh": "Chinesisch"
+    "DG.Locale.name.zh": "Chinesisch",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories"
 });
