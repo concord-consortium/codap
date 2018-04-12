@@ -101,11 +101,9 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
 
               function pickOutName( iKNames) {
                 return tAttrNames.find(function (iAttrName, iIndex) {
-                  if (iKNames.find(function (iKName) {
+                  return iKNames.find(function (iKName) {
                     return (iKName === tLowerCaseNames[ iIndex]);
-                  })) {
-                    return true;
-                  }
+                  }); 
                 });
               }
 
