@@ -1386,6 +1386,7 @@ DG.DocumentController = SC.Object.extend(
                           tTableComponentView.adjust('height', tTableLayout.height);
                         });
                     tTableComponentView.set('cardView', iCardComponentView);
+                    iCardComponentView.set('tableView', tTableComponentView);
                   }.bind(this));
             }.bind(this));
       },
