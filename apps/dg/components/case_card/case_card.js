@@ -161,6 +161,9 @@ DG.React.ready(function () {
               return iString !== undefined && iString !== null && iString !== '';
             }
 
+            /**
+             * -------------------------Dragging this attribute----------------
+             */
             function handleMouseDown(iEvent) {
               tMouseIsDown = true;
               tStartCoordinates = {x: iEvent.clientX, y: iEvent.clientY};
@@ -209,6 +212,11 @@ DG.React.ready(function () {
               }
             }
 
+            function handleCellLeave(iEvent) {
+              if (tDragInProgress)
+                handleMouseMove(iEvent);
+            }
+
             function handleDragStart(iEvent) {
               if (!tStartCoordinates)
                 return;
@@ -220,11 +228,28 @@ DG.React.ready(function () {
               }
             }
 
-            function handleCellLeave(iEvent) {
-              if (tDragInProgress)
-                handleMouseMove(iEvent);
-            }
+            /**
+             * --------------------------Another attribute is dropped---------------
+             */
+            var handleDrop = function( iMoveDirection) {
+              var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute;
+              console.log('handleDrop of %@ on %@-%@ %@'.fmt(
+                  tDroppedAttr.get('name'), iIndex, iAttr.get('name'), iMoveDirection));
+              var tPosition = iIndex + (iMoveDirection === 'up' ? 0 : 1),
+                  tChange = {
+                    operation: 'moveAttribute',
+                    attr: tDroppedAttr,
+                    toCollection: iCollection,
+                    fromCollection: tDroppedAttr.get('collection'),
+                    // subtract one for index column, which doesn't correspond to an attribute
+                    position: tPosition
+                  };
+              iContext.applyChange(tChange);
+            }.bind( this);
 
+            /**
+             * --------------------------Handling editing the value-----------------
+             */
             var toggleEditing = function (iValueField) {
               var stashValue = function () {
                 if (this.currEditField.props.value !== this.currEditField.state.value) {
@@ -250,6 +275,9 @@ DG.React.ready(function () {
               }
             }.bind(this);
 
+            /**
+             * --------------------------Body of renderAttribute-----------------
+             */
             var tDescription = iAttr.get('description') || '',
                 tAttrID = iAttr.get('id'),
                 tUnit = iAttr.get('unit') || '',
@@ -281,7 +309,8 @@ DG.React.ready(function () {
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tSpan,
-                  dragObject: this.props.dragStatus ? this.props.dragStatus.dragObject : null,
+                  dragStatus: this.props.dragStatus,
+                  dropCallback: handleDrop,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = tSummarize ?
