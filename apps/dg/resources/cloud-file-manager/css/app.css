@@ -853,7 +853,6 @@
 .share-dialog .sharing-tab-contents {
   clear: both;
   padding: 20px;
-  height: 100px;
   background-color: #ddd;
   border-top: 1px solid #000;
   border-bottom: 1px solid #000;
@@ -916,11 +915,14 @@
 }
 .share-dialog .sharing-tab-contents .lara-settings .codap-server-url {
   width: 68%;
-  float: left;
 }
-.share-dialog .sharing-tab-contents .lara-settings .launch-button-text {
-  width: 30%;
-  float: right;
+.share-dialog .sharing-tab-contents .lara-settings .launch-button-text input {
+  width: 160px !important;
+  margin-left: 10px;
+}
+.share-dialog .sharing-tab-contents .lara-settings input[type="checkbox"] {
+  margin-right: 10px;
+  width: 10px !important;
 }
 .share-dialog .buttons {
   clear: both;

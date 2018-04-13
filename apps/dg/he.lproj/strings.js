@@ -435,7 +435,6 @@ SC.stringsFor("he", {
     "DG.TableController.attrEditor.precisionHint": "מספר ספרות לאחר הנקודה העשרונית",
     "DG.TableController.attrEditor.unitHint": "יחידת מדידה, אם יישומי",
     "DG.TableController.attrEditor.descriptionHint": "תיאור המשתנה",
-    "DG.TableController.scoreAttrName": "ציון",
     "DG.TableController.setScoreDlg.applyTooltip": "קבע את הנוסחה למשתנה '%@'",
     "DG.TableController.setScoreDlg.formulaHint": "הקלד נוסחה לחישוב ערכים למשתנה זה",
     "DG.TableController.newAttributeTooltip": "הוסף משתנה חדש לטבלה זו",
@@ -668,5 +667,7 @@ SC.stringsFor("he", {
     "DG.Locale.name.es": "ספרדית",
     "DG.Locale.name.he": "עברית",
     "DG.Locale.name.tr": "טורקית",
-    "DG.Locale.name.zh": "סינית"
+    "DG.Locale.name.zh": "סינית",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories"
 });

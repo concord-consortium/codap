@@ -435,7 +435,6 @@ SC.stringsFor("es", {
     "DG.TableController.attrEditor.precisionHint": "Cantidad de dígitos después de la coma o el punto decimal",
     "DG.TableController.attrEditor.unitHint": "Unidad de medida (si aplica)",
     "DG.TableController.attrEditor.descriptionHint": "Describir el atributo",
-    "DG.TableController.scoreAttrName": "puntaje",
     "DG.TableController.setScoreDlg.applyTooltip": "Fórmula para el atributo '%@'",
     "DG.TableController.setScoreDlg.formulaHint": "Tipear una fórmula para computar los valores de este atributo",
     "DG.TableController.newAttributeTooltip": "Agregar un nuevo atributo a esta tabla",
@@ -668,5 +667,7 @@ SC.stringsFor("es", {
     "DG.Locale.name.es": "Español",
     "DG.Locale.name.he": "Hebreo",
     "DG.Locale.name.tr": "Turco",
-    "DG.Locale.name.zh": "Chino"
+    "DG.Locale.name.zh": "Chino",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories"
 });

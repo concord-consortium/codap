@@ -435,7 +435,6 @@ SC.stringsFor("zh", {
     "DG.TableController.attrEditor.precisionHint": "小數點後的位數",
     "DG.TableController.attrEditor.unitHint": "可用的測量單位",
     "DG.TableController.attrEditor.descriptionHint": "描述這個變項",
-    "DG.TableController.scoreAttrName": "分數",
     "DG.TableController.setScoreDlg.applyTooltip": "設定一個公式針對 '%@' 變項",
     "DG.TableController.setScoreDlg.formulaHint": "輸入一個公式來計算這個屬型",
     "DG.TableController.newAttributeTooltip": "在此表中添加一個新變項",
@@ -668,5 +667,7 @@ SC.stringsFor("zh", {
     "DG.Locale.name.es": "Spanish",
     "DG.Locale.name.he": "Hebrew",
     "DG.Locale.name.tr": "Turkish",
-    "DG.Locale.name.zh": "Chinese"
+    "DG.Locale.name.zh": "Chinese",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories"
 });

@@ -435,7 +435,6 @@ SC.stringsFor("tr", {
     "DG.TableController.attrEditor.precisionHint": "Noktadan sonraki basamak sayısı",
     "DG.TableController.attrEditor.unitHint": "Varsa, ölçü birimi",
     "DG.TableController.attrEditor.descriptionHint": "Özelliği tanımla",
-    "DG.TableController.scoreAttrName": "Puan",
     "DG.TableController.setScoreDlg.applyTooltip": "'%@' özelliği için formülü ayarla",
     "DG.TableController.setScoreDlg.formulaHint": "Bu niteliğin değerlerini hesaplamak için bir formül girin",
     "DG.TableController.newAttributeTooltip": "Bu tabloya yeni bir özellik girin",
@@ -668,5 +667,7 @@ SC.stringsFor("tr", {
     "DG.Locale.name.es": "Spanish",
     "DG.Locale.name.he": "Hebrew",
     "DG.Locale.name.tr": "Turkish",
-    "DG.Locale.name.zh": "Chinese"
+    "DG.Locale.name.zh": "Chinese",
+    "DG.Undo.graph.swapCategories": "Undo reordering categories",
+    "DG.Redo.graph.swapCategories": "Redo reordering categories"
 });
