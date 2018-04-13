@@ -768,11 +768,13 @@ DG.PlotModel = SC.Object.extend(DG.Destroyable,
                   return iAttribute.get && iAttribute.get('id');
                 });
             // if we did not see attributes with ids, we assume we are affected
-            if (tIDs.length>0 && SC.none(tIDs[0])) {
-              isAffected = true;
-            } else {
-              isAffected = this.getPlottedAttributesIncludeIDs(tIDs);
-            }
+              if(!SC.none( tIDs)) {
+                if (tIDs.length > 0 && SC.none(tIDs[0])) {
+                  isAffected = true;
+                } else {
+                  isAffected = this.getPlottedAttributesIncludeIDs(tIDs);
+                }
+              }
             break;
           case 'moveAttribute':
             var tMovedID = iChange.attr && iChange.attr.get('id'),
