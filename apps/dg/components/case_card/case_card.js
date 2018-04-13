@@ -231,7 +231,7 @@ DG.React.ready(function () {
             /**
              * --------------------------Another attribute is dropped---------------
              */
-            var handleDrop = function( iMoveDirection) {
+            var handleDrop = function (iMoveDirection) {
               var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute;
               console.log('handleDrop of %@ on %@-%@ %@'.fmt(
                   tDroppedAttr.get('name'), iIndex, iAttr.get('name'), iMoveDirection));
@@ -245,19 +245,68 @@ DG.React.ready(function () {
                     position: tPosition
                   };
               iContext.applyChange(tChange);
-            }.bind( this);
+            }.bind(this);
 
             /**
              * --------------------------Handling editing the value-----------------
              */
             var toggleEditing = function (iValueField) {
+              /**
+               * Apply the edited value, by storing it in the DG data context.
+               * Here we override the standard TextEditor.applyValue() method
+               * Because the default editor modifies our row data, instead
+               * of allowing the adapter to do it.  With this override we
+               * don't need to handle the "onCellChanged" event.
+               * @param item {DG.Case}
+               * @param state {String} -- the edited string value
+               */
               var stashValue = function () {
-                if (this.currEditField.props.value !== this.currEditField.state.value) {
-                  var tCase = this.currEditField.props.case,
-                      tAttrID = this.currEditField.props.attrID,
-                      tValue = this.currEditField.state.value;
-                  tCase.setValue(tAttrID, tValue);
+                var tCase = this.currEditField.props.case,
+                    tValue = this.currEditField.state.value,
+                    tAttrID = this.currEditField.props.attrID,
+                    originalValue = tCase.getStrValue(tAttrID),
+                    newValue = DG.DataUtilities.canonicalizeInputValue(tValue),
+                    contextName = iContext.get('name'),
+                    collection = tCase.get('collection'),
+                    collectionName = collection && collection.get('name') || "",
+                    attr = collection && collection.getAttributeByID(tAttrID),
+                    attrName = attr && attr.get('name'),
+                    caseIndex = collection.getCaseIndexByID(tCase.get('id'));
+
+                function applyEditChange(attrID, iValue, isUndoRedo) {
+                  iContext.applyChange({
+                    operation: 'updateCases',
+                    cases: [tCase],
+                    attributeIDs: [attrID],
+                    values: [[iValue]]
+                  });
                 }
+
+                var cmd = DG.Command.create({
+                  name: 'caseTable.editCellValue',
+                  undoString: 'DG.Undo.caseTable.editCellValue',
+                  redoString: 'DG.Redo.caseTable.editCellValue',
+                  log: "editValue: { collection: %@, case: %@, attribute: '%@', old: '%@', new: '%@' }"
+                      .fmt(collectionName, caseIndex + 1, tAttrID, originalValue, newValue),
+                  causedChange: true,
+                  execute: function () {
+                    applyEditChange(tAttrID, newValue);
+                  },
+                  undo: function () {
+                    applyEditChange(tAttrID, originalValue, true);
+                  },
+                  redo: function () {
+                    iContext = DG.currDocumentController().getContextByName(contextName);
+                    collection = iContext && iContext.getCollectionByName(collectionName);
+                    attr = collection && collection.getAttributeByName(attrName);
+                    tAttrID = attr.get('id');
+                    var cases = collection && collection.get('casesController');
+                    tCase = cases && cases.objectAt(caseIndex);
+                    if (tCase)
+                      applyEditChange(tAttrID, newValue, true);
+                  }
+                });
+                DG.UndoHistory.execute(cmd);
               }.bind(this);
 
               if (this.currEditField !== iValueField) {
