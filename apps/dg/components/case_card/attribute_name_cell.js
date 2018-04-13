@@ -18,6 +18,8 @@ DG.React.ready(function () {
 
         return {
 
+          moveDirection: '',
+
           getInitialState: function () {
             return {
               dragInsideMe: false
@@ -38,26 +40,46 @@ DG.React.ready(function () {
           render: function () {
             var this_ = this;
 
-            function handleCellMouseEnter(iEvent) {
-              if (this_.props.dragObject) {
-                this_.setState({dragInsideMe: true});
-              }
-              console.log('cellEnter');
+            function assignCellRef(iElement) {
+              this_.cellRef = iElement;
             }
 
-            function handleCellLeave(iEvent) {
-              if (this_.state.dragInsideMe) {
-                // console.log('cellLeave');
-                this_.setState({dragInsideMe: false});
+            function dragLocation() {
+              if (this_.props.dragStatus && this_.props.dragStatus.event && this_.cellRef) {
+                var tEvent = this_.props.dragStatus.event,
+                    tX = tEvent.clientX,
+                    tY = tEvent.clientY,
+                    tRect = this_.cellRef.getBoundingClientRect();
+                if (tX > tRect.x && tX < tRect.x + tRect.width && tY > tRect.y) {
+                  if (tY < tRect.y + tRect.height / 2) {
+                    this_.moveDirection = 'up';
+                    return '-upper';
+                  }
+                  else if (tY < tRect.y + tRect.height) {
+                    this_.moveDirection = 'down';
+                    return '-lower';
+                  }
+                }
               }
-              if (this_.props.cellLeaveCallback)
-                this_.props.cellLeaveCallback(iEvent);
+              this_.moveDirection = '';
+              return '';
             }
+
+            function handleDropIfAny() {
+              if( this_.props.dragStatus &&
+                  this_.props.dragStatus.op === SC.DRAG_LINK &&
+                  this_.props.dropCallback &&
+                  this_.moveDirection !== '') {
+                this_.props.dropCallback( this_.moveDirection);
+              }
+            }
+
+            handleDropIfAny();
+            var tClassName = 'attr-cell' + dragLocation();
 
             return td({
-              className: this.state.dragInsideMe ? 'attr-cell-upper' : '',
-              onMouseLeave: handleCellLeave,
-              onMouseEnter: handleCellMouseEnter
+              ref: assignCellRef,
+              className: tClassName,
             }, this.props.content);
           }
         };

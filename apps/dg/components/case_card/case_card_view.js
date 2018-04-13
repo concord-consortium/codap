@@ -95,6 +95,10 @@ DG.CaseCardView = SC.View.extend(
           this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
         },
 
+        dragUpdated: function (iDragObject, iEvent) {
+          this.renderCard({ dragStatus: { dragObject: iDragObject, event: iEvent}});
+        },
+
         dragExited: function (iDragObject, iEvent) {
           this.renderCard({ dragStatus: null});
         },
@@ -111,6 +115,11 @@ DG.CaseCardView = SC.View.extend(
 
         dragEnded: function () {
           this.set('dragInProgress', false);
+          this.dragExited();
+        },
+
+        performDragOperation: function( iDragObject, iOp) {
+          this.renderCard({ dragStatus: { dragObject: iDragObject, op: iOp } });
         }
 
       };
