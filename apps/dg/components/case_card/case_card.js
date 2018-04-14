@@ -171,6 +171,11 @@ DG.React.ready(function () {
               tDragInProgress = false;
             }
 
+            function handleTouchStart( iEvent) {
+              iEvent.preventDefault();
+              handleMouseDown( iEvent.touches[0]);
+            }
+
             function handleMouseMove(iEvent) {
               if (!tStartCoordinates)
                 return;
@@ -184,6 +189,11 @@ DG.React.ready(function () {
               }
             }
 
+            function handleTouchMove( iEvent) {
+              iEvent.preventDefault();
+              handleMouseMove( iEvent.touches[0]);
+            }
+
             function handleMouseUp() {
               tMouseIsDown = false;
               tStartCoordinates = null;
@@ -193,8 +203,16 @@ DG.React.ready(function () {
               tDragHandler = null;
             }
 
+            function handleTouchEnd( iEvent) {
+              iEvent.preventDefault();
+              handleMouseUp();
+            }
+
+            function handleTouchCancel( iEvent) {
+              iEvent.preventDefault();
+            }
+
             function handleMouseLeave(iEvent) {
-              logit('in handleMouseLeave');
               if (tMouseIsDown && !tDragInProgress) {
                 doDragStart(iEvent);
               }
@@ -355,7 +373,11 @@ DG.React.ready(function () {
                   onMouseDown: handleMouseDown,
                   onMouseUp: handleMouseUp,
                   onMouseLeave: handleMouseLeave,
-                  onMouseMove: handleMouseMove
+                  onMouseMove: handleMouseMove,
+                  onTouchStart: handleTouchStart,
+                  onTouchMove: handleTouchMove,
+                  onTouchEnd: handleTouchEnd,
+                  onTouchCancel: handleTouchCancel
                 }, iAttr.get('name')),
                 tCell = DG.React.Components.AttributeNameCell({
                   content: tSpan,
