@@ -139,7 +139,8 @@ DG.React.ready(function () {
                 });
             return div({
                   key: 'coll-' + iIndex,
-                  style: {'margin-left': iIndex * 10 + 'px'}
+                  className: 'react-data-card-collection-header',
+                  style: {'marginLeft': iIndex * 10 + 'px'}
                 },
                 h2({}, tHeaderString),
                 tNavButtons
@@ -438,7 +439,7 @@ DG.React.ready(function () {
                 tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases, iAttr, iAttrIndex));
               }.bind(this));
               tCollEntries.push(table({
-                style: {'margin-left': (iCollIndex + 1) * 10 + 'px'}
+                style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
               }, tbody({}, tAttrEntries)));
             }.bind(this));
             tCardEntries.push(tCollEntries);
