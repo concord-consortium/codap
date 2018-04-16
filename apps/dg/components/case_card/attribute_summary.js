@@ -59,7 +59,7 @@ DG.React.ready(function () {
             if( tNumUniqueValues > 1) {
               tSummary = tAllNumeric ? 'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit) :
                   'DG.CaseCard.summaryValues'.loc(tNumUniqueValues);
-              return td({}, span({className: 'react-data-card-attribute-summary'}, tSummary));
+              return span({className: 'react-data-card-attribute-summary'}, tSummary);
             }
             else {
               var tUniqueValue = tNumUniqueValues === 0 ? '' : Object.keys( tUniqueValues)[0];

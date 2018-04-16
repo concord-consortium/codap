@@ -33,44 +33,43 @@ DG.React.ready(function () {
           componentWillUnmount: function () {
           },
 
-          componentWillReceiveProps: function ( iNewProps) {
-            if( iNewProps.value !== this.state.value)
-              this.setState({ value: iNewProps.value});
-            if( iNewProps.unit !== this.state.unit)
-              this.setState({ unit: iNewProps.unit});
+          componentWillReceiveProps: function (iNewProps) {
+            if (iNewProps.value !== this.state.value)
+              this.setState({value: iNewProps.value});
+            if (iNewProps.unit !== this.state.unit)
+              this.setState({unit: iNewProps.unit});
           },
 
-          handleChange: function( iEvent) {
+          handleChange: function (iEvent) {
             console.log('handleChange: ' + iEvent.target.value);
-            this.setState({ value: iEvent.target.value});
+            this.setState({value: iEvent.target.value});
           },
 
           render: function () {
-            var tInput = td({}, input({
+            var tInput = input({
                   type: 'text',
                   value: this.state.value,
                   onChange: this.handleChange,
                   autoFocus: true,
-                  onKeyDown: function( iEvent) {
-                    if( iEvent.keyCode === 13) {
+                  onKeyDown: function (iEvent) {
+                    if (iEvent.keyCode === 13) {
                       this.props.onToggleEditing(this);
                     }
                   }.bind(this)
-                })),
-                tUnits = SC.empty(this.state.value) ? '' : ' ' + this.state.unit,
-                tValue = td({
-                      className: 'react-data-card-value',
-                      onClick: function () {
-                        if (!this.state.editing && this.props.onToggleEditing)
-                          this.props.onToggleEditing(this);
-                      }.bind(this)
-                    },
-                    span({}, this.state.value + tUnits)),
+                }),
+                tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
+                tValue = span({
+                  className: 'react-data-card-value',
+                  onClick: function () {
+                    if (!this.state.editing && this.props.onToggleEditing)
+                      this.props.onToggleEditing(this);
+                  }.bind(this)
+                }, this.state.value + tUnits),
                 tResult =
                     this.state.editing ?
                         tInput :
                         tValue;
-            return td({}, tResult);
+            return tResult;
           }
         };
       })(), []);

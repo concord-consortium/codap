@@ -21,11 +21,6 @@
     white-space: nowrap;
 }
 
-.react-data-card-collection-header {
-    background-color: #f2ffe9;
-    padding-top: 5px;
-}
-
 .react-data-card .attr-cell-upper {
     border-top: thick darkgray solid;
 }
@@ -43,7 +38,7 @@
     right: 0px;
     width: fit-content;
     display: inline-block;
-    float: right;
+    /*float: right;*/
 }
 
 .navbuttons-arrow [class*="moonicon-"] {
@@ -56,15 +51,6 @@
 
 .navbuttons-arrow [class*="moonicon-"]:hover {
     color: #72bfca;
-}
-
-.react-data-card h2 {
-    font-style: italic;
-    font-weight: bold;
-    margin-left: 5px;
-    text-decoration: underline;
-    display: inline-block;
-    width: fit-content;
 }
 
 .react-data-card table {
@@ -101,20 +87,14 @@
     font-size: 11px;
 }
 
-.react-data-card td span i,
-.react-data-card-function-info h1 i {
-    color: #555;
-}
-
 .react-data-card-header {
-    color: white;
-    text-align: center;
-    background-color: #bbbbbb;
-}
-
-.react-data-card-header span {
-    /*margin-right: 5px;*/
-    /*font-weight: bold;*/
+    background-color: #f2ffe9;
+    padding-top: 5px;
+    font-style: italic;
+    font-weight: bold;
+    margin-left: 5px;
+    text-decoration: underline;
+    /*width: fit-content;*/
 }
 
 .react-data-card-attribute {
