@@ -422,6 +422,12 @@ DG.ComponentView = SC.View.extend(
                 return SC.empty(this.get('value'));
               }.property('.value')
             }),
+            statusView: SC.LabelView.design({
+              textAlign: SC.ALIGN_LEFT,
+              classNames: ['dg-status-view'],
+              layout: {left: 5},
+              value: ''
+            }),
             versionView: SC.LabelView.design({
               textAlign: SC.ALIGN_LEFT,
               classNames: ['dg-version-view'],
@@ -621,6 +627,9 @@ DG.ComponentView = SC.View.extend(
           if (!SC.none(iValue))
             this.set('version', iValue);
         }.observes('*model.version'),
+
+        status: null,
+        statusBinding: '.containerView.titlebar.statusView.value',
 
         contentMinWidth: function () {
           if (this.get('contentView')) {
