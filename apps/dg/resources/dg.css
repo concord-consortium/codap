@@ -587,6 +587,11 @@
     font-size: 4px;
     color: lightgrey;
     text-align: center;
+    background-color: #72bfca;
+}
+
+.dg-min-icon-selected {
+    background-color: #177991;
 }
 
 .dg-min-icon:hover {
@@ -608,6 +613,11 @@
     font-size: 12px;
     color: lightgrey;
     text-align: center;
+    background-color: #72bfca;
+}
+
+.dg-close-icon-selected {
+    background-color: #177991;
 }
 
 .dg-close-icon:hover {

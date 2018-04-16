@@ -297,9 +297,13 @@ DG.ComponentView = SC.View.extend(
             isSelected: false,
             userEdit: false,
             classNameBindings: ['isSelected:dg-titlebar-selected'],
+            isSelectedDidChange: function() {
+              this.setPath('closeBox.isSelected', this.get('isSelected'));
+              this.setPath('minimize.isSelected', this.get('isSelected'));
+            }.observes('isSelected'),
             model: null,  // DG.ComponentModel. Needed to determine if closebox should show
-            childViews: ('statusView versionView ' +
-            (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo') + ' titleView').w(),
+            childViews: ('statusView versionView titleView ' +
+            (!kLockThingsDown ? 'minimize closeBox ' : 'undo redo')).w(),
             titleView: SC.LabelView.design(DG.MouseAndTouchView, SC.AutoResize, {
               classNames: ['dg-titleview'],
               classNameBindings: ['valueIsEmpty:dg-titleview-empty'],

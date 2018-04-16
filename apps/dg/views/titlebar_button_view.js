@@ -33,6 +33,8 @@ DG.TitleBarCloseButton = SC.View.extend(DG.MouseAndTouchView,
     (function () {
     return {
         classNames: 'dg-close-icon'.w(),
+        isSelected: false,
+        classNameBindings: ['isSelected:dg-close-icon-selected'],
         isVisible: false, // to start with
         doIt: function() {
           var tComponentId = this.parentView.viewToDrag().getPath('controller.model.id'),
@@ -85,6 +87,8 @@ DG.TitleBarMinimizeButton = SC.View.extend(DG.MouseAndTouchView,
     return {
         classNames: 'dg-min-icon'.w(),
         isVisible: false, // to start with
+        isSelected: false,
+        classNameBindings: ['isSelected:dg-min-icon-selected'],
         doIt: function() {
           var tComponentView = this.parentView.viewToDrag();
           DG.UndoHistory.execute(DG.Command.create({
