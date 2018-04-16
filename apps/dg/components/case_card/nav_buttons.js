@@ -62,11 +62,11 @@ DG.React.ready(function () {
                       className: 'moonicon-inspectorArrow-collapse',
                       onClick: this.getNext
                     }),
-                tButtonPair = div({
+                tButtonPair = span({
                       className: 'navbuttons-arrow'
                     }, tFirstButton, tSecondButton
                 );
-            return div({className: 'react-data-card-navbuttons'}, tButtonPair);
+            return span({className: 'react-data-card-navbuttons'}, tButtonPair);
           }
         };
       })(), []);

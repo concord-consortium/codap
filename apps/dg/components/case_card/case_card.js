@@ -10,11 +10,11 @@ DG.React.ready(function () {
       span = React.DOM.span, //,
       // italic = React.DOM.i,
       // h1 = React.DOM.h1,
-      h2 = React.DOM.h2,
+      // h2 = React.DOM.h2,
       table = React.DOM.table,
       tbody = React.DOM.tbody,
-      tr = React.DOM.tr
-      // td = React.DOM.td //,
+      tr = React.DOM.tr,
+      td = React.DOM.td //,
       // input = React.DOM.input
   ;
   // kLeftAngleBracketChar = '&#x2039;',
@@ -111,13 +111,12 @@ DG.React.ready(function () {
            *  ------------------Below here are rendering functions---------------
            */
 
-          renderContext: function (iDataSetName, iIndex) {
-            return div({key: 'cont-' + iIndex, className: 'react-data-card-header'},
-                span({}, iDataSetName)
-            );
-          },
+          renderCollectionHeader: function (iIndex, iCollClient, iCaseID) {
 
-          renderCollection: function (iIndex, iCollClient, iCaseID) {
+            var toggleEditing = function () {
+
+            }.bind(this);
+
             var tCollection = iCollClient.get('collection'),
                 tName = tCollection.get('name'),
                 tNumCases = tCollection.get('cases').length,
@@ -136,14 +135,17 @@ DG.React.ready(function () {
                   numCases: tNumCases,
                   onPrevious: this.moveToPreviousCase,
                   onNext: this.moveToNextCase
+                }),
+                tHeaderComponent = DG.React.Components.TextInput({
+                  value: tHeaderString,
+                  onToggleEditing: toggleEditing
                 });
-            return div({
+            return tr({
                   key: 'coll-' + iIndex,
-                  className: 'react-data-card-collection-header',
-                  style: {'marginLeft': iIndex * 10 + 'px'}
+                  className: 'react-data-card-header'
                 },
-                h2({}, tHeaderString),
-                tNavButtons
+                td({}, tHeaderComponent),
+                td({}, tNavButtons)
             );
           },
 
@@ -171,9 +173,9 @@ DG.React.ready(function () {
               tDragInProgress = false;
             }
 
-            function handleTouchStart( iEvent) {
+            function handleTouchStart(iEvent) {
               iEvent.preventDefault();
-              handleMouseDown( iEvent.touches[0]);
+              handleMouseDown(iEvent.touches[0]);
             }
 
             function handleMouseMove(iEvent) {
@@ -189,9 +191,9 @@ DG.React.ready(function () {
               }
             }
 
-            function handleTouchMove( iEvent) {
+            function handleTouchMove(iEvent) {
               iEvent.preventDefault();
-              handleMouseMove( iEvent.touches[0]);
+              handleMouseMove(iEvent.touches[0]);
             }
 
             function handleMouseUp() {
@@ -203,12 +205,12 @@ DG.React.ready(function () {
               tDragHandler = null;
             }
 
-            function handleTouchEnd( iEvent) {
+            function handleTouchEnd(iEvent) {
               iEvent.preventDefault();
               handleMouseUp();
             }
 
-            function handleTouchCancel( iEvent) {
+            function handleTouchCancel(iEvent) {
               iEvent.preventDefault();
             }
 
@@ -280,9 +282,9 @@ DG.React.ready(function () {
                * @param state {String} -- the edited string value
                */
               var stashValue = function () {
-                var tCase = this.currEditField.props.case,
+                var tCase = iCases[0],
                     tValue = this.currEditField.state.value,
-                    tAttrID = this.currEditField.props.attrID,
+                    tAttrID = iAttr.get('id'),
                     originalValue = tCase.getStrValue(tAttrID),
                     newValue = DG.DataUtilities.canonicalizeInputValue(tValue),
                     contextName = iContext.get('name'),
@@ -293,11 +295,13 @@ DG.React.ready(function () {
                     caseIndex = collection.getCaseIndexByID(tCase.get('id'));
 
                 function applyEditChange(attrID, iValue, isUndoRedo) {
-                  iContext.applyChange({
-                    operation: 'updateCases',
-                    cases: [tCase],
-                    attributeIDs: [attrID],
-                    values: [[iValue]]
+                  SC.run(function () {
+                    iContext.applyChange({
+                      operation: 'updateCases',
+                      cases: [tCase],
+                      attributeIDs: [attrID],
+                      values: [[iValue]]
+                    });
                   });
                 }
 
@@ -393,14 +397,12 @@ DG.React.ready(function () {
                     }) :
                     DG.React.Components.TextInput({
                       value: tValue,
-                      attrID: tAttrID,
-                      case: tCase,
                       unit: tUnit,
                       onToggleEditing: toggleEditing
                     });
             return tr({
               key: 'attr-' + iIndex
-            }, tCell, tValueField);
+            }, tCell, td({}, tValueField));
           },
 
           /**
@@ -453,16 +455,17 @@ DG.React.ready(function () {
                   tSelLength = tSelectedCases ? tSelectedCases.length : 0,
                   tCase = tSelLength === 1 ? tSelectedCases[0] : null,
                   tCases = tSelLength > 0 ? tSelectedCases : iCollection.get('cases'),
-                  tAttrEntries = [];
-
-              tCollEntries.push(this.renderCollection(iCollIndex, tCollClient, tCase && tCase.get('id')));
+                  tAttrEntries = [],
+                  tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
 
               iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
                 tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases, iAttr, iAttrIndex));
               }.bind(this));
               tCollEntries.push(table({
-                style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
-              }, tbody({}, tAttrEntries)));
+                    style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
+                  },
+                  tbody({},
+                      tCollectionHeader, tAttrEntries)));
             }.bind(this));
             tCardEntries.push(tCollEntries);
 
