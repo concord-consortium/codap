@@ -352,7 +352,8 @@ DG.ContainerView = SC.View.extend(
       */
       coverUpComponentViews: function( iAction) {
         this.allComponentViews().forEach( function( iView) {
-          iView.cover( iAction);
+          if( iView.get('isVisible'))
+            iView.cover( iAction);
         });
       },
 
