@@ -13,6 +13,7 @@ DG.React.ready(function () {
       // h2 = React.DOM.h2,
       table = React.DOM.table,
       tbody = React.DOM.tbody,
+      th = React.DOM.th,
       tr = React.DOM.tr,
       td = React.DOM.td //,
       // input = React.DOM.input
@@ -142,10 +143,15 @@ DG.React.ready(function () {
                 });
             return tr({
                   key: 'coll-' + iIndex,
-                  className: 'react-data-card-header'
+                  className: 'react-data-card-collection-header'
                 },
-                td({}, tHeaderComponent),
-                td({}, tNavButtons)
+                th({
+                  style: { 'paddingLeft': (iIndex * 10 + 5) + 'px'},
+                  className: 'react-data-card-coll-header-cell'
+                }, tHeaderComponent),
+                td({
+                  className: 'react-data-card-nav-header-cell'
+                }, tNavButtons)
             );
           },
 
@@ -265,7 +271,10 @@ DG.React.ready(function () {
                     // subtract one for index column, which doesn't correspond to an attribute
                     position: tPosition
                   };
-              iContext.applyChange(tChange);
+              // Apply the change, but not as part of the current render
+              iContext.invokeLater( function() {
+                iContext.applyChange(tChange);
+              });
             }.bind(this);
 
             /**
@@ -462,7 +471,7 @@ DG.React.ready(function () {
                 tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases, iAttr, iAttrIndex));
               }.bind(this));
               tCollEntries.push(table({
-                    style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
+                    // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
                   },
                   tbody({},
                       tCollectionHeader, tAttrEntries)));

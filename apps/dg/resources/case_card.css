@@ -11,7 +11,7 @@
     top: 0px;
     left: 0px;
     width: 100%;
-    margin: 3px 0;
+    margin: 0 0 3px;
     font-size: 11px !important;
     background-color: white;
     overflow-x: hidden;
@@ -21,24 +21,16 @@
     white-space: nowrap;
 }
 
-.react-data-card .attr-cell-upper {
-    border-top: thick darkgray solid;
-}
-
-.react-data-card .attr-cell-lower {
-    border-bottom: thick darkgray solid;
-}
-
 .react-data-card input {
     font-size: 11px;
 }
 
 .react-data-card-navbuttons {
-    /*background-color: #D3E9C8;*/
     right: 0px;
     width: fit-content;
     display: inline-block;
-    /*float: right;*/
+    text-align: right;
+    color: cadetblue;
 }
 
 .navbuttons-arrow [class*="moonicon-"] {
@@ -53,15 +45,35 @@
     color: #72bfca;
 }
 
+.react-data-card-collection-header {
+    background: #bddfdf !important;
+    margin-left: 0;
+    padding: 5px 0;
+    padding-left: 10px;
+}
+
+.react-data-card-coll-header-cell {
+    width: 50%;
+    border: none;
+    text-align: left;
+    text-decoration: underline;
+    font-weight: bold;
+    white-space: normal;
+}
+
+.react-data-card-nav-header-cell {
+    text-align: right;
+}
+
 .react-data-card table {
     width: 100%;
     margin-bottom: 0px;
+    margin-left: 0;
     border-bottom: gray thin solid;
 }
 
 .react-data-card table tr {
     width: 100%;
-    /*min-width: 150px;*/
 }
 
 .react-data-card tr:nth-child(odd) {
@@ -75,20 +87,29 @@
 }
 
 .react-data-card td {
-    border: 0px;
-    padding: 1px;
-    padding-right: 10px;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border: 0;
+    padding: 2px 3px 2px 3px;
     text-overflow: ellipsis;
 }
 
+.react-data-card td.columnA {
+    width: 50%;
+}
+
+.react-data-card td.columnB {
+    width: 50%;
+}
+
 .react-data-card td span {
-    display: inline-block;
-    margin-right: 10px;
+    margin-right: 0;
     font-size: 11px;
 }
 
 .react-data-card-header {
-    background-color: #f2ffe9;
+    background-color: #f2ffe9 !important;
     padding-top: 5px;
     font-style: italic;
     font-weight: bold;
@@ -99,12 +120,30 @@
 
 .react-data-card-attribute {
     cursor: pointer;
-    font-weight: bold;
+    font-weight: normal;
+    text-align: right;
 }
 
 .react-data-card-attribute:hover {
     text-decoration: underline;
-    color: #72bfca;
+    color: #1b5798;
+}
+
+td.attr-cell {
+    background: #ccc;
+    text-align: right;
+}
+
+tr:nth-child(even) td.attr-cell {
+    background: #eee;
+}
+
+.react-data-card .attr-cell-upper {
+    border-top: thick yellow solid;
+}
+
+.react-data-card .attr-cell-lower {
+    border-bottom: thick yellow solid;
 }
 
 .react-data-card-value {

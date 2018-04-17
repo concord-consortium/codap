@@ -3,7 +3,7 @@
 
 DG.React.ready(function () {
   var
-      div = React.DOM.div,
+      // div = React.DOM.div,
       // p = React.DOM.p,
       // ul = React.DOM.ul,
       // li = React.DOM.li,
@@ -54,12 +54,12 @@ DG.React.ready(function () {
             var tCaseIndex = this.props.caseIndex,
                 tFirstButton = (!SC.none(tCaseIndex) && tCaseIndex <= 1) ? '' :
                 span({
-                  className: 'moonicon-inspectorArrow-expand',
+                  className: 'moonicon-icon-reverse-play',
                   onClick: this.getPrevious
                 }),
                 tSecondButton = (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases) ? '' :
                     span({
-                      className: 'moonicon-inspectorArrow-collapse',
+                      className: 'moonicon-icon-play',
                       onClick: this.getNext
                     }),
                 tButtonPair = span({
