@@ -170,6 +170,11 @@
 .moonicon-icon-play:before {
 	content: "\4a";
 }
+.moonicon-icon-reverse-play:before {
+	content: "\4a";
+	display: inline-block;
+	transform: scale(-1, 1);
+}
 .moonicon-icon-controlsReset:before {
 	content: "\4b";
 }

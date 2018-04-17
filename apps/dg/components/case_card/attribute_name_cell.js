@@ -53,11 +53,11 @@ DG.React.ready(function () {
                 if (tX > tRect.x && tX < tRect.x + tRect.width && tY > tRect.y) {
                   if (tY < tRect.y + tRect.height / 2) {
                     this_.moveDirection = 'up';
-                    return '-upper';
+                    return 'attr-cell-upper';
                   }
                   else if (tY < tRect.y + tRect.height) {
                     this_.moveDirection = 'down';
-                    return '-lower';
+                    return 'attr-cell-lower';
                   }
                 }
               }
@@ -75,7 +75,7 @@ DG.React.ready(function () {
             }
 
             handleDropIfAny();
-            var tClassName = 'attr-cell' + dragLocation();
+            var tClassName = 'attr-cell ' + dragLocation();
 
             return td({
               ref: assignCellRef,
