@@ -93,6 +93,10 @@ DG.MapDataConfiguration = DG.PlotDataConfiguration.extend(
           var tMapCollection, tMapCollectionClient;
           DG.currDocumentController().get('contexts').forEach(function (iContext) {
             iContext.get('collections').forEach(function (iCollection) {
+              // If we've already identified a map context, we're done
+              if( tMapContext)
+                return;
+
               var tAttrNames = (iCollection && iCollection.getAttributeNames()) || [],
                   // Make a copy, all lower case. We will need the original if we find a match.
                   tLowerCaseNames = tAttrNames.map( function( iAttrName) {
