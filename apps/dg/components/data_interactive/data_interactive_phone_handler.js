@@ -442,13 +442,12 @@ DG.DataInteractivePhoneHandler = SC.Object.extend(
       handleInteractiveFrame: {
         update: function (iResources, iValues) {
           var diModel = iResources.interactiveFrame.getPath('model.content');
-          var title = iValues.title || iValues.name || '';
+          var title = iValues.title || iValues.name;
           DG.assert(diModel, 'DataInteractiveModel  exists' );
           DG.assert(diModel.constructor === DG.DataInteractiveModel, 'model content is DataInteractiveModel');
           if (iValues) {
-            if (iValues.title != null) {
-              diModel.set('title', iValues.title);
-              this.setPath('view.title', title);
+            if (!SC.none(title)) {
+              diModel.set('title', title);
             }
 
             if (iValues.version != null)

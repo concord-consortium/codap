@@ -54,17 +54,13 @@ DG.Component = DG.BaseModel.extend(
 
       userSetTitle: false,
 
-      defaultTitleChanged: function () {
+      titleChanged: function () {
         if( !this.get('userSetTitle')) {
           this._title = null;
           this.notifyPropertyChange('title');
         }
-      }.observes('*content.defaultTitle'),
-
-      //contentTitleChanged: function() {
-      //  this.notifyPropertyChange('title');
-      //}.observes('*content.title'),
-
+      }.observes('*content.title', '*content.defaultTitle'),
+      
       /*
        * The width and height of this component in pixels to be used in layout.
        * @property {Object}
