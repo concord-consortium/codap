@@ -3,8 +3,7 @@
 
 DG.React.ready(function () {
   var
-      span = React.DOM.span,
-      td = React.DOM.td;
+      span = React.DOM.span;
 
   DG.React.Components.AttributeSummary = DG.React.createComponent(
       (function () {
