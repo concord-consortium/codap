@@ -34,10 +34,37 @@ DG.mainPage = SC.Page.design((function() {
     isTextSelectable: YES, // Makes text selectable in the background page in
                            // shared embedded mode
 
+    /**
+     * Objects in this array have an action they want to pay attention to, a receiver that will be
+     * addressed, and a method belong to the receiver that will be called.
+     * @property [{}]
+     */
+    listeners: null,
+
+    /**
+     *
+     * @param iObject { action: {String}, target: {Object}, method {function}}
+     */
+    addListener: function( iObject) {
+      this.listeners.push( iObject);
+    },
+
+    removeListener: function( iObject) {
+      this.listeners = this.listeners.filter( function( iListener) {
+        return iObject.action !== iListener.action || iObject.target !== iListener.target ||
+            iObject.method !== iListener.method;
+      });
+    },
+
     sendEvent: function(action, evt, target) {
       if( action === 'mouseDown' || action === 'touchStart' || action === 'click') {
         this.hideInspectorPicker( target);
       }
+      this.listeners.forEach( function( iListener) {
+        if( iListener.action === action) {
+          iListener.method.call( iListener.target, evt);
+        }
+      });
       return sc_super();
     },
 
@@ -248,6 +275,7 @@ DG.mainPage = SC.Page.design((function() {
      */
     init: function() {
       sc_super();
+      this.listeners = [];
       if(( DG.get('componentMode') === 'yes') || ( DG.get('embeddedMode') === 'yes')) {
         var tScrollView = this.get('scrollView');
         this.setPath('topView.isVisible', false);

@@ -146,7 +146,7 @@ DG.React.ready(function () {
                   className: 'react-data-card-collection-header'
                 },
                 th({
-                  style: { 'paddingLeft': (iIndex * 10 + 5) + 'px'},
+                  style: {'paddingLeft': (iIndex * 10 + 5) + 'px'},
                   className: 'react-data-card-coll-header-cell'
                 }, tHeaderComponent),
                 td({
@@ -155,7 +155,8 @@ DG.React.ready(function () {
             );
           },
 
-          renderAttribute: function (iContext, iCollection, iCases, iAttr, iIndex) {
+          renderAttribute: function (iContext, iCollection, iCases,
+                                     iAttr, iIndex, iShouldSummarize, iChildmostSelected) {
             var kThresholdDistance2 = 0, // pixels^2
                 tMouseIsDown = false,
                 tStartCoordinates,
@@ -272,7 +273,7 @@ DG.React.ready(function () {
                     position: tPosition
                   };
               // Apply the change, but not as part of the current render
-              iContext.invokeLater( function() {
+              iContext.invokeLater(function () {
                 iContext.applyChange(tChange);
               });
             }.bind(this);
@@ -364,9 +365,8 @@ DG.React.ready(function () {
                 tUnit = iAttr.get('unit') || '',
                 tUnitWithParens = '',
                 tFormula = iAttr.get('formula'),
-                tSummarize = iCases.length > 1,
-                tCase = tSummarize ? null : iCases[0],
-                tValue = tSummarize ? '' : tCase.getValue(tAttrID);
+                tCase = iShouldSummarize ? null : iChildmostSelected || iCases[0],
+                tValue = iShouldSummarize ? '' : tCase.getValue(tAttrID);
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';
@@ -375,7 +375,7 @@ DG.React.ready(function () {
               tPrecision = SC.none(tPrecision) ? 2 : tPrecision;
               tValue = DG.MathUtilities.formatNumber(tValue, tPrecision);
             }
-            else if (typeof tValue === 'object') {
+            else if (SC.none(tValue) || (typeof tValue === 'object')) {
               tValue = '';
             }
             tFormula = isNotEmpty(tFormula) ? ((isNotEmpty(tDescription) || isNotEmpty(tUnit)) ? '\n' : '')
@@ -398,7 +398,7 @@ DG.React.ready(function () {
                   dropCallback: handleDrop,
                   cellLeaveCallback: handleCellLeave
                 }),
-                tValueField = tSummarize ?
+                tValueField = iShouldSummarize ?
                     DG.React.Components.AttributeSummary({
                       cases: iCases,
                       attrID: tAttrID,
@@ -455,20 +455,53 @@ DG.React.ready(function () {
           },
 
           render: function () {
+
+            function childmostSingleSelection(iContext) {
+              var tSingleton,
+                  tCollections = iContext.get('collections'),
+                  tCurrColl = tCollections[0],
+                  tCurrIndex = 0;
+              while (tCurrColl) {
+                var tSelectedCases = iContext.getCollectionByID(tCurrColl.get('id')).getPath('casesController.selection').toArray(),
+                    tNumSelected = tSelectedCases.length;
+                if (tNumSelected === 1) {
+                  tSingleton = tSelectedCases[0];
+                  tCurrColl = tCollections[++tCurrIndex];
+                }
+                else if (tNumSelected === 0) {
+                  tCurrColl = tCollections[++tCurrIndex];
+                }
+                else {  // tNumSelected > 1
+                  tCurrColl = null;
+                }
+              }
+              return tSingleton;
+            }
+
             var tCardEntries = [], tCollEntries = [],
-                tContext = this.props.context;
+                tContext = this.props.context,
+                tChildmostSingletonSelection = childmostSingleSelection(tContext);
             tContext.get('collections').forEach(function (iCollection, iCollIndex) {
+
+              function shouldSummarize() {
+                var tShould = (tCases.length > 1) &&
+                    (!tChildmostSingletonSelection ||
+                        !tChildmostSingletonSelection.get('collection').isDescendantOf(iCollection));
+                return tShould;
+              }
+
               var tCollClient = tContext.getCollectionByID(iCollection.get('id')),
                   tSelectedCases = tCollClient ? tCollClient.getPath('casesController.selection').toArray() : null,
-                  // tCases = iCollection.get('cases'),
                   tSelLength = tSelectedCases ? tSelectedCases.length : 0,
                   tCase = tSelLength === 1 ? tSelectedCases[0] : null,
                   tCases = tSelLength > 0 ? tSelectedCases : iCollection.get('cases'),
+                  tShouldSummarize = shouldSummarize(),
                   tAttrEntries = [],
                   tCollectionHeader = this.renderCollectionHeader(iCollIndex, tCollClient, tCase && tCase.get('id'));
 
               iCollection.get('attrs').forEach(function (iAttr, iAttrIndex) {
-                tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases, iAttr, iAttrIndex));
+                tAttrEntries.push(this.renderAttribute(tContext, iCollection, tCases,
+                    iAttr, iAttrIndex, tShouldSummarize, tChildmostSingletonSelection));
               }.bind(this));
               tCollEntries.push(table({
                     // style: {'marginLeft': (iCollIndex * 10 + 5) + 'px'}
@@ -477,6 +510,15 @@ DG.React.ready(function () {
                       tCollectionHeader, tAttrEntries)));
             }.bind(this));
             tCardEntries.push(tCollEntries);
+
+/*
+            var tMenuItems = ['hello', 'everyone', 'out there'].map(function (iItem) {
+                  return div({className: 'react-data-card-attribute-menu'}, iItem);
+                }),
+                tMenu = DG.React.Components.Dropdown({},
+                    DG.React.Components.DropdownTrigger({}, span({}, 'Click me')),
+                    DG.React.Components.DropdownContent({}, tMenuItems));
+*/
 
             return div({className: 'react-data-card'}, tCardEntries);
           }

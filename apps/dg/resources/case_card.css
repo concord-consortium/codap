@@ -82,7 +82,7 @@
 
 .react-data-card td div {
     float: right;
-    margin-right: 20px;
+    /*margin-right: 20px;*/
     border: 0px;
 }
 
@@ -153,3 +153,28 @@ tr:nth-child(even) td.attr-cell {
 .react-data-card-attribute-summary {
     font-style: italic;
 }
+
+.dropdown {
+    /*display: inline-block;*/
+}
+
+.dropdown__content {
+    display: none;
+    position: absolute;
+    border: 1px solid gray;
+    box-shadow: 2px 2px #8080804a;
+}
+
+.dropdown--active .dropdown__content {
+    display: grid;
+}
+
+.react-data-card-attribute-menu {
+    padding: 2px;
+    background-color: #dddddd;
+    border: 1px solid #718BB7;
+    z-index: 20;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+}
+

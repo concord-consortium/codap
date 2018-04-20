@@ -4,7 +4,8 @@
 DG.React.ready(function () {
   var
       // span = React.DOM.span,
-      td = React.DOM.td;
+      span = React.DOM.span,
+      div = React.DOM.div;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
       (function () {
@@ -22,7 +23,8 @@ DG.React.ready(function () {
 
           getInitialState: function () {
             return {
-              dragInsideMe: false
+              dragInsideMe: false,
+              showPopup: false
             };
           },
 
@@ -66,21 +68,35 @@ DG.React.ready(function () {
             }
 
             function handleDropIfAny() {
-              if( this_.props.dragStatus &&
+              if (this_.props.dragStatus &&
                   this_.props.dragStatus.op === SC.DRAG_LINK &&
                   this_.props.dropCallback &&
                   this_.moveDirection !== '') {
-                this_.props.dropCallback( this_.moveDirection);
+                this_.props.dropCallback(this_.moveDirection);
               }
             }
 
             handleDropIfAny();
-            var tClassName = 'attr-cell ' + dragLocation();
+            var tClassName = 'attr-cell ' + dragLocation(),
+                tMenuItems = [
+                  'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                  'DG.TableController.headerMenuItems.editFormula'.loc(),
+                  'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
+                  'DG.TableController.headerMenuItems.sortAscending'.loc(),
+                  'DG.TableController.headerMenuItems.sortDescending'.loc(),
+                  'DG.TableController.headerMenuItems.deleteAttribute'.loc()
+                ].map(function (iItem) {
+                  return div({className: 'react-data-card-attribute-menu'}, iItem);
+                }),
+                tAttributeName = DG.React.Components.Dropdown({},
+                    DG.React.Components.DropdownTrigger({},
+                        span({
+                          ref: assignCellRef,
+                          className: tClassName
+                        }, this.props.content)),
+                    DG.React.Components.DropdownContent({}, tMenuItems));
 
-            return td({
-              ref: assignCellRef,
-              className: tClassName,
-            }, this.props.content);
+            return tAttributeName;
           }
         };
       })(), []);
