@@ -19635,11 +19635,11 @@ module.exports = React.createClass({
       while (documentServer.substr(-1) === '/') {
         documentServer = documentServer.slice(0, -1);
       }
-      server = encodeURIComponent(this.state.codapServerUrl);
+      graphVisToggles = this.state.graphVisToggles ? '?app=is' : '';
+      server = encodeURIComponent(this.state.codapServerUrl + graphVisToggles);
       buttonText = this.state.pageType === 'launch' ? "&buttonText=" + (encodeURIComponent(this.state.launchButtonText)) : '';
       fullscreenScaling = this.state.pageType === 'autolaunch' && this.state.fullscreenScaling ? '&scaling' : '';
-      graphVisToggles = this.state.graphVisToggles ? '&app=is' : '';
-      return documentServer + "/v2/documents/" + sharedDocumentId + "/" + this.state.pageType + "?server=" + server + buttonText + fullscreenScaling + graphVisToggles;
+      return documentServer + "/v2/documents/" + sharedDocumentId + "/" + this.state.pageType + "?server=" + server + buttonText + fullscreenScaling;
     } else {
       return null;
     }
@@ -19648,7 +19648,16 @@ module.exports = React.createClass({
     var copied, mark, range, selection, toCopy;
     e.preventDefault();
     copied = false;
-    toCopy = this.state[this.state.tabSelected];
+    toCopy = (function() {
+      switch (this.state.tabSelected) {
+        case 'embed':
+          return this.getEmbed();
+        case 'link':
+          return this.getShareLink();
+        case 'lara':
+          return this.getLara();
+      }
+    }).call(this);
     try {
       mark = document.createElement('mark');
       mark.innerText = toCopy;
