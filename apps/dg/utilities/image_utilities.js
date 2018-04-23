@@ -37,11 +37,17 @@ DG.ImageUtilities = (function () {
       function getCSSText() {
         var text = [], ix, jx;
         for (ix = 0; ix < document.styleSheets.length; ix += 1) {
-          var styleSheet = document.styleSheets[ix];
-          var rules = styleSheet.rules || styleSheet.cssRules || [];
-          for (jx = 0; jx < rules.length; jx += 1) {
-            var rule = rules[jx];
-            text.push(rule.cssText);
+          try {
+            var styleSheet = document.styleSheets[ix];
+            if (styleSheet) {
+              var rules = styleSheet.rules || styleSheet.cssRules || [];
+              for (jx = 0; jx < rules.length; jx += 1) {
+                var rule = rules[jx];
+                text.push(rule.cssText);
+              }
+            }
+          } catch (ex) {
+            DG.logWarn('Exception retrieving stylesheet: ' + ex);
           }
         }
         return text.join('\n');
