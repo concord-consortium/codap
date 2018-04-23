@@ -57,7 +57,11 @@ DG.React.ready(function () {
                   className: 'moonicon-icon-reverse-play',
                   onClick: this.getPrevious
                 }),
-                tSecondButton = (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases) ? '' :
+                tSecondButton = (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases) ?
+                    span({
+                      className: 'moonicon-icon-play',
+                      style: { 'color': 'transparent', 'cursor': 'default'}
+                    }) :
                     span({
                       className: 'moonicon-icon-play',
                       onClick: this.getNext
