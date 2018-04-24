@@ -388,7 +388,7 @@ DG.React.ready(function () {
                 tUnitWithParens = '',
                 tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : iChildmostSelected || iCases[0],
-                tValue = iShouldSummarize ? '' : tCase.getValue(tAttrID);
+                tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
             this.state.attrIndex++;
             if (isNotEmpty(tUnit))
               tUnitWithParens = ' (' + tUnit + ')';

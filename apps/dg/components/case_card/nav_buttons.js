@@ -52,12 +52,12 @@ DG.React.ready(function () {
 
           render: function () {
             var tCaseIndex = this.props.caseIndex,
-                tFirstButton = (!SC.none(tCaseIndex) && tCaseIndex <= 1) ? '' :
+                tFirstButton = (this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex <= 1)) ? '' :
                 span({
                   className: 'moonicon-icon-reverse-play',
                   onClick: this.getPrevious
                 }),
-                tSecondButton = (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases) ?
+                tSecondButton = (this.props.numCases === 0 || (!SC.none(tCaseIndex) && tCaseIndex >= this.props.numCases)) ?
                     span({
                       className: 'moonicon-icon-play',
                       style: { 'color': 'transparent', 'cursor': 'default'}
