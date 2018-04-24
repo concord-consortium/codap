@@ -955,47 +955,8 @@ DG.CaseTableController = DG.ComponentController.extend(
        * @param iChangedAttrProps {object}
        */
       updateAttribute: function(iAttrRef, iChangedAttrProps) {
-        var tDataContext = this.get('dataContext');
-        var tAttr = iAttrRef.attribute;
-        var tOldAttrProps = {
-          id: tAttr.get('id'),
-          name: tAttr.get('name'),
-          type: tAttr.get('type'),
-          unit: tAttr.get('unit'),
-          editable: tAttr.get('editable'),
-          precision: tAttr.get('precision'),
-          description: tAttr.get('description'),
-        };
-        DG.UndoHistory.execute(DG.Command.create({
-          name: "caseTable.editAttribute",
-          undoString: 'DG.Undo.caseTable.editAttribute',
-          redoString: 'DG.Redo.caseTable.editAttribute',
-          log: 'Edit attribute "%@"'.fmt(iChangedAttrProps.name),
-          _componentId: this.getPath('model.id'),
-          _controller: function() {
-            return DG.currDocumentController().componentControllersMap[this._componentId];
-          },
-          execute: function() {
-            var change = {
-                            operation: 'updateAttributes',
-                            collection: iAttrRef && iAttrRef.collection,
-                            attrPropsArray: [Object.assign({ id: iAttrRef.attribute.get('id')}, iChangedAttrProps)]
-                          };
-            tDataContext.applyChange( change);
-          },
-          undo: function() {
-            var change = {
-                            operation: 'updateAttributes',
-                            collection: iAttrRef && iAttrRef.collection,
-                            attrPropsArray: [tOldAttrProps]
-                          };
-            tDataContext.applyChange( change);
-          },
-          redo: function() {
-            tDataContext = this._controller().get('dataContext');
-            this.execute();
-          }
-        }));
+        DG.DataContext.updateAttribute( this.get('dataContext'), iAttrRef && iAttrRef.collection,
+            iAttrRef.attribute, iChangedAttrProps);
       },
 
       showEditAttributePane: function (iAttrRef, menuItem) {

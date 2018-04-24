@@ -4,8 +4,8 @@
 DG.React.ready(function () {
   var
       // span = React.DOM.span,
-      span = React.DOM.span,
-      div = React.DOM.div;
+      span = React.DOM.span/*,
+      div = React.DOM.div*/;
 
   DG.React.Components.AttributeNameCell = DG.React.createComponent(
       (function () {
@@ -15,6 +15,8 @@ DG.React.ready(function () {
          *    content: {span}
          *    dragObject: {Object}
          *    cellLeaveCallback: { function}
+         *    dropCallback: { function }
+         *    editAttributeCallback: {function}
          */
 
         return {
@@ -76,19 +78,53 @@ DG.React.ready(function () {
               }
             }
 
+            function editAttributeClickHandler() {
+              SC.run(function () {
+                this_.dropdown.hide();
+                this_.props.editAttributeCallback();
+              });
+            }
+
             handleDropIfAny();
+
             var tClassName = 'attr-cell ' + dragLocation(),
                 tMenuItems = [
-                  'DG.TableController.headerMenuItems.editAttribute'.loc(),
-                  'DG.TableController.headerMenuItems.editFormula'.loc(),
-                  'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
-                  'DG.TableController.headerMenuItems.sortAscending'.loc(),
-                  'DG.TableController.headerMenuItems.sortDescending'.loc(),
-                  'DG.TableController.headerMenuItems.deleteAttribute'.loc()
-                ].map(function (iItem) {
-                  return div({className: 'react-data-card-attribute-menu'}, iItem);
+                  {
+                    label: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
+                    disabled: false,
+                    clickHandler: editAttributeClickHandler
+                  },
+                  {
+                    label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
+                    disabled: false
+                  },
+                  {
+                    label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
+                    disabled: false
+                  },
+                  /*
+                                    {label: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
+                                      disabled: false },
+                                    {label: 'DG.TableController.headerMenuItems.sortDescending'.loc(),
+                                      disabled: false },
+                  */
+                  {
+                    label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
+                    disabled: false
+                  }
+                ].map(function (iItem, iIndex) {
+                  return DG.React.Components.DropdownItem({
+                        disabled: iItem.disabled,
+                        key: 'item-' + iIndex,
+                        clickHandler: iItem.clickHandler
+                      },
+                      iItem.label);
                 }),
-                tAttributeName = DG.React.Components.Dropdown({},
+                tAttributeName = DG.React.Components.Dropdown({
+                      ref: function (iDropdown) {
+                        this.dropdown = iDropdown;
+                      }.bind(this)
+                    },
                     DG.React.Components.DropdownTrigger({},
                         span({
                           ref: assignCellRef,
