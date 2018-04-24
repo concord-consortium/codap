@@ -85,6 +85,20 @@ DG.React.ready(function () {
               });
             }
 
+            function editFormulaClickHandler() {
+              SC.run(function () {
+                this_.dropdown.hide();
+                this_.props.editFormulaCallback();
+              });
+            }
+
+            function deleteAttributeClickHandler() {
+              SC.run(function () {
+                this_.dropdown.hide();
+                this_.props.deleteAttributeCallback();
+              });
+            }
+
             handleDropIfAny();
 
             var tClassName = 'attr-cell ' + dragLocation(),
@@ -96,7 +110,8 @@ DG.React.ready(function () {
                   },
                   {
                     label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
-                    disabled: false
+                    disabled: false,
+                    clickHandler: editFormulaClickHandler
                   },
                   {
                     label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
@@ -110,7 +125,8 @@ DG.React.ready(function () {
                   */
                   {
                     label: 'DG.TableController.headerMenuItems.deleteAttribute'.loc(),
-                    disabled: false
+                    disabled: false,
+                    clickHandler: deleteAttributeClickHandler
                   }
                 ].map(function (iItem, iIndex) {
                   return DG.React.Components.DropdownItem({

@@ -358,16 +358,26 @@ DG.React.ready(function () {
              * ---------------------------Handlers for dropdown menu------------
              */
 
-            var editAttribute = function() {
+            var editAttribute = function () {
 
-              this.updateAttribute = function(iAttrRef, iChangedAttrProps) {
-                DG.DataContext.updateAttribute( iContext, iCollection,
-                    iAttrRef.attribute, iChangedAttrProps);
-              };
+                  this.updateAttribute = function (iAttrRef, iChangedAttrProps) {
+                    DG.DataContextUtilities.updateAttribute(iContext, iCollection,
+                        iAttrRef.attribute, iChangedAttrProps);
+                  };
 
-              var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this});
-              attributePane.append();
-            }.bind( this);
+                  var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this});
+                  attributePane.append();
+                }.bind(this),
+
+                editFormula = function () {
+                  DG.DataContextUtilities.editAttributeFormula(iContext, iCollection,
+                      iAttr.get('name'), iAttr.get('formula'));
+                }.bind(this),
+
+                deleteAttribute = function () {
+                  DG.DataContextUtilities.deleteAttribute(iContext, iCollection,
+                      iAttr.get('name'), iAttr.get('formula'));
+                }.bind(this);
 
             /**
              * --------------------------Body of renderAttribute-----------------
@@ -409,6 +419,8 @@ DG.React.ready(function () {
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
                   editAttributeCallback: editAttribute,
+                  editFormulaCallback: editFormula,
+                  deleteAttributeCallback: deleteAttribute,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = iShouldSummarize ?
