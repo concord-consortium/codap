@@ -162,19 +162,30 @@ tr:nth-child(even) td.attr-cell {
     display: none;
     position: absolute;
     border: 1px solid gray;
-    box-shadow: 2px 2px #8080804a;
+    box-shadow: 2px 2px rgba(128, 128, 128, 0.38);
 }
 
 .dropdown--active .dropdown__content {
     display: grid;
+    cursor: pointer;
+    background: #DDDDDD;
 }
 
-.react-data-card-attribute-menu {
+.react-data-card-attribute-menu-item {
+    margin: 1px;
     padding: 2px;
     background-color: #dddddd;
     border: 1px solid #718BB7;
     z-index: 20;
     font-family: 'Montserrat', sans-serif;
     font-size: 11px;
+}
+
+.react-data-card-attribute-menu-item:hover {
+    background-color: white;
+}
+
+.react-data-card-attribute-menu-item.disabled {
+    color: #333333;
 }
 

@@ -106,9 +106,6 @@ DG.React.ready(function () {
           },
 
           /**
-           * -------------------Drop functionality-------------------------------
-           */
-          /**
            *  ------------------Below here are rendering functions---------------
            */
 
@@ -358,6 +355,21 @@ DG.React.ready(function () {
             }.bind(this);
 
             /**
+             * ---------------------------Handlers for dropdown menu------------
+             */
+
+            var editAttribute = function() {
+
+              this.updateAttribute = function(iAttrRef, iChangedAttrProps) {
+                DG.DataContext.updateAttribute( iContext, iCollection,
+                    iAttrRef.attribute, iChangedAttrProps);
+              };
+
+              var attributePane = DG.AttributeEditorView.create({attrRef: {attribute: iAttr}, attrUpdater: this});
+              attributePane.append();
+            }.bind( this);
+
+            /**
              * --------------------------Body of renderAttribute-----------------
              */
             var tDescription = iAttr.get('description') || '',
@@ -396,6 +408,7 @@ DG.React.ready(function () {
                   content: tSpan,
                   dragStatus: this.props.dragStatus,
                   dropCallback: handleDrop,
+                  editAttributeCallback: editAttribute,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = iShouldSummarize ?
@@ -510,16 +523,6 @@ DG.React.ready(function () {
                       tCollectionHeader, tAttrEntries)));
             }.bind(this));
             tCardEntries.push(tCollEntries);
-
-/*
-            var tMenuItems = ['hello', 'everyone', 'out there'].map(function (iItem) {
-                  return div({className: 'react-data-card-attribute-menu'}, iItem);
-                }),
-                tMenu = DG.React.Components.Dropdown({},
-                    DG.React.Components.DropdownTrigger({}, span({}, 'Click me')),
-                    DG.React.Components.DropdownContent({}, tMenuItems));
-*/
-
             return div({className: 'react-data-card'}, tCardEntries);
           }
         };
