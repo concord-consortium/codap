@@ -2639,43 +2639,6 @@ DG.DataContext.collectionDefaults = function() {
   return defaultValues;
 };
 
-DG.DataContext.updateAttribute = function( iContext, iCollection, iAttribute, iChangedAttrProps) {
-  var tOldAttrProps = {
-    id: iAttribute.get('id'),
-    name: iAttribute.get('name'),
-    type: iAttribute.get('type'),
-    unit: iAttribute.get('unit'),
-    editable: iAttribute.get('editable'),
-    precision: iAttribute.get('precision'),
-    description: iAttribute.get('description'),
-  };
-  DG.UndoHistory.execute(DG.Command.create({
-    name: "caseTable.editAttribute",
-    undoString: 'DG.Undo.caseTable.editAttribute',
-    redoString: 'DG.Redo.caseTable.editAttribute',
-    log: 'Edit attribute "%@"'.fmt(iChangedAttrProps.name),
-    execute: function() {
-      var change = {
-        operation: 'updateAttributes',
-        collection: iCollection,
-        attrPropsArray: [Object.assign({ id: iAttribute.get('id')}, iChangedAttrProps)]
-      };
-      iContext.applyChange( change);
-    },
-    undo: function() {
-      var change = {
-        operation: 'updateAttributes',
-        collection: iCollection,
-        attrPropsArray: [tOldAttrProps]
-      };
-      iContext.applyChange( change);
-    },
-    redo: function() {
-      this.execute();
-    }
-  }));
-};
-
 /**
  *  A factory function for creating an appropriate DG.DataContext object, i.e.
  *  either a DG.DataContext or an appropriate derived class. Derived classes should
