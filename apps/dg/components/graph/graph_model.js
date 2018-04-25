@@ -1088,6 +1088,7 @@ DG.GraphModel = DG.DataDisplayModel.extend(
           }
           this._oldNumberOfCases = tDataLength;
         }
+        return;
       }
       // Must redraw everything if there are aggregate functions
       // Should be able to refine this to only changes that affect the plot
