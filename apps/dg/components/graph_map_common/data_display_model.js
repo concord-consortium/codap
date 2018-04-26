@@ -400,6 +400,7 @@ DG.DataDisplayModel = SC.Object.extend( DG.Destroyable,
           this.notifyPropertyChange('caseOrder');
           break;
         case 'deleteDataContext':
+          this.reset();
           this.dataContextOrCollectionWasDeleted();
           break;
         default:
