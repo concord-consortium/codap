@@ -632,9 +632,9 @@ DG.DataContext = SC.Object.extend((function() // closure
    */
   doCreateItems: function (iChange) {
 
-    var cases = this.addItems(iChange.items);
+    var caseIDs = this.addItems(iChange.items);
 
-    return {success: true, caseIDs: cases.map(function (iCase) { return iCase.id;})};
+    return {success: true, caseIDs: caseIDs};
   },
   /**
      Updates values in one or more items
