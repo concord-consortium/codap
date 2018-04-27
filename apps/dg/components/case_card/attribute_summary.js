@@ -43,10 +43,10 @@ DG.React.ready(function () {
               if (!tUniqueValues[tValue])
                 tUniqueValues[tValue] = 0;
               tUniqueValues[tValue]++;
-              if (isFinite(tValue)) {
+              if (tValue !== '' && isFinite(tValue)) {
                 tMin = Math.min(tMin, tValue);
                 tMax = Math.max(tMax, tValue);
-              } else {
+              } else if( tValue !== '') {
                 tAllNumeric = false;
               }
             });
