@@ -257,18 +257,21 @@ DG.React.ready(function () {
              * --------------------------Another attribute is dropped---------------
              */
             var handleDrop = function (iMoveDirection) {
-              var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute;
-              console.log('handleDrop of %@ on %@-%@ %@'.fmt(
-                  tDroppedAttr.get('name'), iIndex, iAttr.get('name'), iMoveDirection));
-              var tPosition = iIndex + (iMoveDirection === 'up' ? 0 : 1),
-                  tChange = {
-                    operation: 'moveAttribute',
-                    attr: tDroppedAttr,
-                    toCollection: iCollection,
-                    fromCollection: tDroppedAttr.get('collection'),
-                    // subtract one for index column, which doesn't correspond to an attribute
-                    position: tPosition
-                  };
+              var tDroppedAttr = this.props.dragStatus.dragObject.data.attribute,
+                  tPosition = iIndex + (iMoveDirection === 'up' ? 0 : 1),
+                  tFromCollection = tDroppedAttr.get('collection');
+              // If we're not actually moving the attribute, bail now
+              if (iCollection === tFromCollection &&
+                  tPosition === tFromCollection.get('attrs').indexOf(tDroppedAttr))
+                return;
+
+              var tChange = {
+                operation: 'moveAttribute',
+                attr: tDroppedAttr,
+                toCollection: iCollection,
+                fromCollection: tFromCollection,
+                position: tPosition
+              };
               // Apply the change, but not as part of the current render
               iContext.invokeLater(function () {
                 iContext.applyChange(tChange);

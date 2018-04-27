@@ -137,14 +137,14 @@ DG.React.ready(function () {
                       iItem.label);
                 }),
                 tAttributeName = DG.React.Components.Dropdown({
+                      className: tClassName,
                       ref: function (iDropdown) {
                         this.dropdown = iDropdown;
-                      }.bind(this)
+                      }.bind(this),
+                      onRefCallback: assignCellRef
                     },
                     DG.React.Components.DropdownTrigger({},
                         span({
-                          ref: assignCellRef,
-                          className: tClassName
                         }, this.props.content)),
                     DG.React.Components.DropdownContent({}, tMenuItems));
 
