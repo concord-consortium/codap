@@ -1343,10 +1343,10 @@ DG.DocumentController = SC.Object.extend(
             },
             tCardComponentView;
         iTableComponentView.set('savedLayout', tTableLayout);
-        iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.4, timing: 'ease-in-out'},
+        iTableComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
             function () {
               iTableComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
-                  {duration: 0.4, timing: 'ease-in-out'},
+                  {duration: 0.3, timing: 'ease-in-out'},
                   function () {
                     iTableComponentView.set('isVisible', false);
                     tCardComponentView = iTableComponentView.get('cardView') ||
@@ -1355,7 +1355,7 @@ DG.DocumentController = SC.Object.extend(
                     var tCardLayout = tCardComponentView.get('savedLayout') || tCardFinalLayout;
                     tCardComponentView.set('isVisible', true);
                     tCardComponentView.select();
-                    tCardComponentView.animate(tCardLayout, {duration: 0.4, timing: 'ease-in-out'});
+                    tCardComponentView.animate(tCardLayout, {duration: 0.3, timing: 'ease-in-out'});
                     tCardComponentView.set('tableView', iTableComponentView);
                     iTableComponentView.set('cardView', tCardComponentView);
                   }.bind(this));
@@ -1366,10 +1366,10 @@ DG.DocumentController = SC.Object.extend(
         var kDefaultCardWidth = 200,
             tCardLayout = iCardComponentView.get('layout');
         iCardComponentView.set('savedLayout', tCardLayout);
-        iCardComponentView.animate({width: kDefaultCardWidth}, {duration: 0.4, timing: 'ease-in-out'},
+        iCardComponentView.animate({width: kDefaultCardWidth}, {duration: 0.3, timing: 'ease-in-out'},
             function () {
               iCardComponentView.animate({height: DG.ViewUtilities.kTitleBarHeight},
-                  {duration: 0.4, timing: 'ease-in-out'},
+                  {duration: 0.3, timing: 'ease-in-out'},
                   function () {
                     var tTableComponentView = iCardComponentView.get('tableView') ||
                         this.addCaseTable(iCardComponentView.get('parentView'), null, {
@@ -1379,7 +1379,7 @@ DG.DocumentController = SC.Object.extend(
                     tTableComponentView.set('isVisible', true);
                     iCardComponentView.set('isVisible', false);
                     tTableLayout.height++;
-                    tTableComponentView.animate(tTableLayout, {duration: 0.4, timing: 'ease-in-out'},
+                    tTableComponentView.animate(tTableLayout, {duration: 0.3, timing: 'ease-in-out'},
                         function () {
                           tTableComponentView.select();
                           tTableLayout.height--;
