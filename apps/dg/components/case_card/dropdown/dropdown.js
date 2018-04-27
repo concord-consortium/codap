@@ -120,7 +120,11 @@ DG.React.ready(function () {
                   }
                   return iChild;
                 }.bind( this)),
-                tCleanProps = Object.assign({}, this.props);
+                tCleanProps = Object.assign({
+                  ref: function( iElement) {
+                    this.props.onRefCallback( iElement);
+                  }.bind( this)
+                }, this.props);
             delete tCleanProps.active;
             delete tCleanProps.onShow;
             delete tCleanProps.onHide;
