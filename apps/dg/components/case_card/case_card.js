@@ -122,6 +122,8 @@ DG.React.ready(function () {
               index: iIndex,
               collClient: iCollClient,
               caseID: iCaseID,
+              onNext: this.moveToNextCase,
+              onPrevious: this.moveToPreviousCase,
               dragStatus: this.props.dragStatus,
               dropCallback: handleDropInCollectionHeader
             });
