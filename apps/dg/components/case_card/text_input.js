@@ -59,7 +59,7 @@ DG.React.ready(function () {
                 }),
                 tUnits = SC.empty(this.state.value) ? '' : ' ' + (this.state.unit || ''),
                 tValue = span({
-                  className: 'react-data-card-value',
+                  className: 'react-data-card-value ' + this.props.className,
                   onClick: function () {
                     if (!this.state.editing && this.props.onToggleEditing)
                       this.props.onToggleEditing(this);
