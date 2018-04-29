@@ -55,14 +55,17 @@ DG.React.ready(function () {
               tMax = DG.MathUtilities.formatNumber(tMax, 2);
             }
             tNumUniqueValues = Object.keys(tUniqueValues).length;
-            if( tNumUniqueValues > 1) {
-              tSummary = tAllNumeric ? 'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit) :
+            if( tNumUniqueValues > 2 || tAllNumeric) {
+              tSummary = tAllNumeric ?
+                  (tMin === tMax ? (tMin + this.props.unit) :
+                      'DG.CaseCard.summaryRange'.loc(tMin, tMax, this.props.unit)) :
                   'DG.CaseCard.summaryValues'.loc(tNumUniqueValues);
               return span({className: 'react-data-card-attribute-summary'}, tSummary);
             }
             else {
-              var tUniqueValue = tNumUniqueValues === 0 ? '' : Object.keys( tUniqueValues)[0];
+              var tUniqueValue = Object.keys( tUniqueValues).join(', ');
               return DG.React.Components.TextInput({
+                className: 'react-data-card-attribute-summary',
                 value: tUniqueValue,
                 unit: ''
               });
