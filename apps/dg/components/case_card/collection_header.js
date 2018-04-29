@@ -92,8 +92,8 @@ DG.React.ready(function () {
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
                   numCases: tNumCases,
-                  onPrevious: this.moveToPreviousCase,
-                  onNext: this.moveToNextCase
+                  onPrevious: this.props.onPrevious,
+                  onNext: this.props.onNext
                 }),
                 tHeaderComponent = DG.React.Components.TextInput({
                   value: tHeaderString,
