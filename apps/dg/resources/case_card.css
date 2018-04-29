@@ -176,17 +176,21 @@ tr:nth-child(even) td.attr-cell {
 .dropdown--active .dropdown__content {
     display: grid;
     cursor: pointer;
-    background: #DDDDDD;
+    padding: 2px;
+    background: #f0f0f0;
+    border: #718BB7 1px solid;
+    box-shadow: 2px 2px 3px #888888ad;
 }
 
 .react-data-card-attribute-menu-item {
     margin: 1px;
-    padding: 2px;
-    background-color: #dddddd;
+    padding: 2px 4px;
+    /*background-color: #dddddd;*/
     border: 1px solid #718BB7;
     z-index: 20;
     font-family: 'Montserrat', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
+    text-align: left;
 }
 
 .react-data-card-attribute-menu-item:hover {
