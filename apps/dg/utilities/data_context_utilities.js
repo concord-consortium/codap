@@ -18,6 +18,8 @@
 //  limitations under the License.
 // ==========================================================================
 
+/*global pluralize:true*/
+
 DG.DataContextUtilities = {
 
   updateAttribute: function (iContext, iCollection, iAttribute, iChangedAttrProps) {
@@ -250,7 +252,121 @@ DG.DataContextUtilities = {
         localize: false
       });
     }
-  }
+  },
 
+  /**
+   *
+   * @param iContext {DG.DataContext}
+   * @param iAttrID {Number}
+   * @return {Boolean}
+   */
+  attributeCanBeRandomized: function( iContext, iAttrID) {
+    var depMgr = iContext && iContext.get('dependencyMgr'),
+        dependency = depMgr &&
+            depMgr.findDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
+                  id: iAttrID },
+                { type: DG.DEP_TYPE_SPECIAL,
+                  id: 'random' });
+    return dependency;
+  },
+
+  /**
+   * Randomize a single attribute
+   */
+  randomizeAttribute: function(iDataContext, iAttrID) {
+    if (iDataContext && iAttrID) {
+      iDataContext.invalidateDependencyAndNotify({ type: DG.DEP_TYPE_ATTRIBUTE,
+            id: iAttrID },
+          { type: DG.DEP_TYPE_SPECIAL,
+            id: 'random' },
+          true /* force aggregate */);
+    }
+  },
+
+  makeUniqueCollectionName: function (context, candidateName) {
+    var name = pluralize(candidateName);
+    var ix = 0;
+    while (!SC.none(context.getCollectionByName(name))) {
+      ix += 1;
+      name = pluralize(candidateName) + ix;
+    }
+    return name;
+  },
+
+  /**
+   * Helper method to create a DG.Command to create a new collection from
+   * a dragged attribute.
+   *
+   * @param attribute {DG.Attribute}
+   * @param collection {DG.collection}
+   * @param context  {DG.DataContext} The current DataContext
+   * @param parentCollectionID {number|undefined} Parent collection id, if
+   *                  collection is to be created as a child collection of
+   *                  another collection. Otherwise, it is created as the
+   *                  parent of the current parent collection.
+   * @returns {*}
+   * @private
+   */
+  createCollectionCommand: function (attribute, collection, context, parentCollectionID) {
+    var collectionName = this.makeUniqueCollectionName(context, attribute.name);
+    var childCollectionID = null;
+    if (SC.none(parentCollectionID)) {
+      childCollectionID = context.getCollectionAtIndex(0).collection.id;
+    }
+    return DG.Command.create({
+      name: 'caseTable.createCollection',
+      undoString: 'DG.Undo.caseTable.createCollection',
+      redoString: 'DG.Redo.caseTable.createCollection',
+      log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
+          attribute.name),
+      _beforeStorage: {
+        context: context,
+        newCollectionName: collectionName,
+        newParentCollectionID: parentCollectionID,
+        newChildCollectionID: childCollectionID,
+        attributeID: attribute.id,
+        oldAttributePosition: collection.attrs.indexOf(
+            attribute),
+        oldCollectionID: collection.id,
+        changeFlag: context.get('flexibleGroupingChangeFlag')
+      },
+      execute: function () {
+        var context = this._beforeStorage.context;
+        var attribute = context.getAttrRefByID(
+            this._beforeStorage.attributeID).attribute;
+        var childCollectionID = this._beforeStorage.newChildCollectionID;
+        var childCollection = childCollectionID && context.getCollectionByID(
+            childCollectionID).collection;
+        var tChange = {
+          operation: 'createCollection',
+          properties: {
+            name: this._beforeStorage.newCollectionName,
+            parent: this._beforeStorage.newParentCollectionID
+          },
+          attributes: [attribute]
+        };
+        if (childCollection) {
+          tChange.properties.children = [childCollection];
+        }
+        context.applyChange(tChange);
+        context.set('flexibleGroupingChangeFlag', true);
+      },
+      undo: function () {
+        var context = this._beforeStorage.context;
+        var attribute = context.getAttrRefByID(
+            this._beforeStorage.attributeID).attribute;
+        var toCollection = context.getCollectionByID(
+            this._beforeStorage.oldCollectionID);
+        var tChange = {
+          operation: 'moveAttribute',
+          attr: attribute,
+          toCollection: toCollection,
+          position: this._beforeStorage.oldAttributePosition
+        };
+        context.applyChange(tChange);
+        context.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
+      }
+    });
+  }
 
 };

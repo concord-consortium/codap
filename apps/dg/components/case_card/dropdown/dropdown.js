@@ -125,10 +125,7 @@ DG.React.ready(function () {
                     this.props.onRefCallback( iElement);
                   }.bind( this)
                 }, this.props);
-            delete tCleanProps.active;
-            delete tCleanProps.onShow;
-            delete tCleanProps.onHide;
-            delete tCleanProps.removeElement;
+            delete tCleanProps.onRefCallback;
             tCleanProps.className = tClasses + ' ' + tClassName;
             return td( tCleanProps, tBoundChildren);
           }

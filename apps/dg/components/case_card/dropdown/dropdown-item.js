@@ -39,7 +39,7 @@ DG.React.ready(function () {
             var tClassName = this.classNameDefault + (this.props.disabled ? ' disabled' : ''),
                 tProps = {
                   className: tClassName,
-                  onClick: this.props.clickHandler
+                  onClick: this.props.disabled ? null : this.props.clickHandler
                 };
             return div(tProps, this.props.children);
           }

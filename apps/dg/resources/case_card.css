@@ -52,6 +52,10 @@
     padding-left: 10px;
 }
 
+.react-data-card-collection-header.drop {
+    border-top: yellow thick solid ;
+}
+
 .react-data-card-coll-header-cell {
     width: 50%;
     border: none;

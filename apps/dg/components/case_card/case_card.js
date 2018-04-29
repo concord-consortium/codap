@@ -13,7 +13,6 @@ DG.React.ready(function () {
       // h2 = React.DOM.h2,
       table = React.DOM.table,
       tbody = React.DOM.tbody,
-      th = React.DOM.th,
       tr = React.DOM.tr,
       td = React.DOM.td //,
       // input = React.DOM.input
@@ -111,45 +110,21 @@ DG.React.ready(function () {
 
           renderCollectionHeader: function (iIndex, iCollClient, iCaseID) {
 
-            var toggleEditing = function () {
-
+            var handleDropInCollectionHeader = function (iAttribute) {
+              var tCollection = iCollClient.get('collection'),
+                  tParentCollection = tCollection.get('parent'),
+                  tCmd = DG.DataContextUtilities.createCollectionCommand(
+                          iAttribute, tCollection, this.props.context, tParentCollection);
+              DG.UndoHistory.execute( tCmd);
             }.bind(this);
 
-            var tCollection = iCollClient.get('collection'),
-                tName = tCollection.get('name'),
-                tNumCases = tCollection.get('cases').length,
-                tNumSelected = iCollClient ?
-                    iCollClient.getPath('casesController.selection').toArray().length : null,
-                tCaseIndex = SC.none(iCaseID) ? null : tCollection.getCaseIndexByID(iCaseID) + 1,
-                tHeaderString = tCaseIndex === null ?
-                    (tNumSelected > 1 ?
-                            'DG.CaseCard.namePlusSelectionCount'.loc(tName, tNumSelected, tNumCases) :
-                            'DG.CaseCard.namePlusCaseCount'.loc(tName, tNumCases)
-                    ) :
-                    'DG.CaseCard.indexString'.loc(tName, tCaseIndex, tNumCases),
-                tNavButtons = DG.React.Components.NavButtons({
-                  collectionClient: iCollClient,
-                  caseIndex: tCaseIndex,
-                  numCases: tNumCases,
-                  onPrevious: this.moveToPreviousCase,
-                  onNext: this.moveToNextCase
-                }),
-                tHeaderComponent = DG.React.Components.TextInput({
-                  value: tHeaderString,
-                  onToggleEditing: toggleEditing
-                });
-            return tr({
-                  key: 'coll-' + iIndex,
-                  className: 'react-data-card-collection-header'
-                },
-                th({
-                  style: {'paddingLeft': (iIndex * 10 + 5) + 'px'},
-                  className: 'react-data-card-coll-header-cell'
-                }, tHeaderComponent),
-                td({
-                  className: 'react-data-card-nav-header-cell'
-                }, tNavButtons)
-            );
+            return DG.React.Components.CollectionHeader({
+              index: iIndex,
+              collClient: iCollClient,
+              caseID: iCaseID,
+              dragStatus: this.props.dragStatus,
+              dropCallback: handleDropInCollectionHeader
+            });
           },
 
           renderAttribute: function (iContext, iCollection, iCases,
@@ -378,9 +353,20 @@ DG.React.ready(function () {
                 }.bind(this),
 
                 deleteAttribute = function () {
-                  DG.DataContextUtilities.deleteAttribute(iContext, iCollection,
-                      iAttr.get('name'), iAttr.get('formula'));
-                }.bind(this);
+                  DG.DataContextUtilities.deleteAttribute(iContext, iAttr.get('id'));
+                }.bind(this),
+
+                attributeIsEditable = function () {
+                  return iAttr.get('editable');
+                },
+
+                attributeCanBeRandomized = function () {
+                  return DG.DataContextUtilities.attributeCanBeRandomized(iContext, iAttr.get('id'));
+                },
+
+                rerandomizeAttribute = function () {
+                  DG.DataContextUtilities.randomizeAttribute(iContext, iAttr.get('id'));
+                };
 
             /**
              * --------------------------Body of renderAttribute-----------------
@@ -424,6 +410,9 @@ DG.React.ready(function () {
                   editAttributeCallback: editAttribute,
                   editFormulaCallback: editFormula,
                   deleteAttributeCallback: deleteAttribute,
+                  attributeIsEditableCallback: attributeIsEditable,
+                  attributeCanBeRandomizedCallback: attributeCanBeRandomized,
+                  rerandomizeCallback: rerandomizeAttribute,
                   cellLeaveCallback: handleCellLeave
                 }),
                 tValueField = iShouldSummarize ?

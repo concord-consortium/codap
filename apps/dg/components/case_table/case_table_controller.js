@@ -23,8 +23,6 @@
 sc_require('controllers/component_controller');
 sc_require('components/case_table/attribute_editor_view');
 
-/*global pluralize:true*/
-
 /** @class
 
   DG.CaseTableController provides controller functionality for DG.TableViews.
@@ -285,7 +283,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           this.editAttribute( columnID, iArgs.grid.getHeaderRowColumn(columnID));
           break;
         case 'cmdRandomizeAttribute':
-          this.randomizeAttribute( columnID);
+          DG.DataContextUtilities.randomizeAttribute( this.get('dataContext'), columnID);
           break;
         case 'cmdSortAscending':
           this.sortAttribute( columnID);
@@ -921,20 +919,6 @@ DG.CaseTableController = DG.ComponentController.extend(
       },
 
       /**
-       * Randomize a single attribute
-       */
-      randomizeAttribute: function(iAttrID) {
-        var dataContext = this.get('dataContext');
-        if (dataContext && iAttrID) {
-          dataContext.invalidateDependencyAndNotify({ type: DG.DEP_TYPE_ATTRIBUTE,
-                                                      id: iAttrID },
-                                                    { type: DG.DEP_TYPE_SPECIAL,
-                                                      id: 'random' },
-                                                    true /* force aggregate */);
-        }
-      },
-
-      /**
        * Randomize all attributes
        */
       randomizeAllAttributes: function() {
@@ -1255,93 +1239,6 @@ DG.CaseTableController = DG.ComponentController.extend(
         return tButtons;
       },
 
-      _makeUniqueCollectionName: function (candidateName) {
-        var context = this.dataContext;
-        var name = pluralize(candidateName);
-        var ix = 0;
-        while (!SC.none(context.getCollectionByName(name))) {
-          ix += 1;
-          name = pluralize(candidateName) + ix;
-        }
-        return name;
-      },
-
-      /**
-       * Helper method to create a DG.Command to create a new collection from
-       * a dragged attribute.
-       *
-       * @param attribute {DG.Attribute}
-       * @param collection {DG.collection}
-       * @param context  {DG.DataContext} The current DataContext
-       * @param parentCollectionID {number|undefined} Parent collection id, if
-       *                  collection is to be created as a child collection of
-       *                  another collection. Otherwise, it is created as the
-       *                  parent of the current parent collection.
-       * @returns {*}
-       * @private
-       */
-      _createCollectionCommand: function (attribute, collection, context, parentCollectionID) {
-        var collectionName = this._makeUniqueCollectionName(attribute.name);
-        var childCollectionID = null;
-        if (SC.none(parentCollectionID)) {
-          childCollectionID = context.getCollectionAtIndex(0).collection.id;
-        }
-        return DG.Command.create({
-          name: 'caseTable.createCollection',
-          undoString: 'DG.Undo.caseTable.createCollection',
-          redoString: 'DG.Redo.caseTable.createCollection',
-          log: 'createCollection {name: %@, attr: %@}'.loc(collectionName,
-              attribute.name),
-          _beforeStorage: {
-            context: context,
-            newCollectionName: collectionName,
-            newParentCollectionID: parentCollectionID,
-            newChildCollectionID: childCollectionID,
-            attributeID: attribute.id,
-            oldAttributePosition: collection.attrs.indexOf(
-                attribute),
-            oldCollectionID: collection.id,
-            changeFlag: context.get('flexibleGroupingChangeFlag')
-          },
-          execute: function () {
-            var context = this._beforeStorage.context;
-            var attribute = context.getAttrRefByID(
-                this._beforeStorage.attributeID).attribute;
-            var childCollectionID = this._beforeStorage.newChildCollectionID;
-            var childCollection = childCollectionID && context.getCollectionByID(
-                childCollectionID).collection;
-            var tChange = {
-              operation: 'createCollection',
-              properties: {
-                name: this._beforeStorage.newCollectionName,
-                parent: this._beforeStorage.newParentCollectionID
-              },
-              attributes: [attribute]
-            };
-            if (childCollection) {
-              tChange.properties.children = [childCollection];
-            }
-            context.applyChange(tChange);
-            context.set('flexibleGroupingChangeFlag', true);
-          },
-          undo: function () {
-            var context = this._beforeStorage.context;
-            var attribute = context.getAttrRefByID(
-                this._beforeStorage.attributeID).attribute;
-            var toCollection = context.getCollectionByID(
-                this._beforeStorage.oldCollectionID);
-            var tChange = {
-              operation: 'moveAttribute',
-              attr: attribute,
-              toCollection: toCollection,
-              position: this._beforeStorage.oldAttributePosition
-            };
-            context.applyChange(tChange);
-            context.set('flexibleGroupingChangeFlag', this._beforeStorage.changeFlag);
-          }
-        });
-      },
-
       /**
        * Handles drop to leftDropZone.
        */
@@ -1351,7 +1248,7 @@ DG.CaseTableController = DG.ComponentController.extend(
           return;
         }
         var context = this.dataContext;
-        DG.UndoHistory.execute(this._createCollectionCommand(dropData.attribute,
+        DG.UndoHistory.execute(DG.DataContextUtilities.createCollectionCommand(dropData.attribute,
             dropData.collection, context));
         this.setPath('contentView.leftDropTarget.dropData', null);
       }.observes('contentView.leftDropTarget.dropData')
