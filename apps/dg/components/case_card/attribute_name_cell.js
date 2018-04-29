@@ -25,7 +25,6 @@ DG.React.ready(function () {
 
           getInitialState: function () {
             return {
-              dragInsideMe: false,
               showPopup: false
             };
           },
@@ -37,8 +36,6 @@ DG.React.ready(function () {
           },
 
           componentWillReceiveProps: function (iNewProps) {
-            if (!iNewProps.dragObject)
-              this.setState({dragInsideMe: false});
           },
 
           render: function () {
@@ -78,25 +75,27 @@ DG.React.ready(function () {
               }
             }
 
-            function editAttributeClickHandler() {
+            function clickHandler(iCallback) {
               SC.run(function () {
                 this_.dropdown.hide();
-                this_.props.editAttributeCallback();
+                iCallback();
               });
+            }
+
+            function editAttributeClickHandler() {
+              clickHandler( this_.props.editAttributeCallback);
             }
 
             function editFormulaClickHandler() {
-              SC.run(function () {
-                this_.dropdown.hide();
-                this_.props.editFormulaCallback();
-              });
+              clickHandler( this_.props.editFormulaCallback);
             }
 
             function deleteAttributeClickHandler() {
-              SC.run(function () {
-                this_.dropdown.hide();
-                this_.props.deleteAttributeCallback();
-              });
+              clickHandler( this_.props.deleteAttributeCallback);
+            }
+
+            function rerandomizeClickHandler() {
+              clickHandler( this_.props.rerandomizeCallback);
             }
 
             handleDropIfAny();
@@ -105,17 +104,17 @@ DG.React.ready(function () {
                 tMenuItems = [
                   {
                     label: 'DG.TableController.headerMenuItems.editAttribute'.loc(),
-                    disabled: false,
                     clickHandler: editAttributeClickHandler
                   },
                   {
                     label: 'DG.TableController.headerMenuItems.editFormula'.loc(),
-                    disabled: false,
+                    disabled: !this.props.attributeIsEditableCallback(),
                     clickHandler: editFormulaClickHandler
                   },
                   {
                     label: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
-                    disabled: false
+                    disabled: !this.props.attributeCanBeRandomizedCallback(),
+                    clickHandler: rerandomizeClickHandler
                   },
                   /*
                                     {label: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
@@ -144,8 +143,7 @@ DG.React.ready(function () {
                       onRefCallback: assignCellRef
                     },
                     DG.React.Components.DropdownTrigger({},
-                        span({
-                        }, this.props.content)),
+                        span({}, this.props.content)),
                     DG.React.Components.DropdownContent({}, tMenuItems));
 
             return tAttributeName;

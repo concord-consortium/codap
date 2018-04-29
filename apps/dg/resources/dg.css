@@ -812,6 +812,9 @@
 .tile-icon-table:before {
     content: "\31";
 }
+.tile-icon-card:before {
+    content: "\32";
+}
 .tile-icon-graph:before {
     content: "\33";
 }

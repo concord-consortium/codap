@@ -512,13 +512,7 @@ DG.CaseTableAdapter = SC.Object.extend( (function() // closure
                   { title: 'DG.TableController.headerMenuItems.randomizeAttribute'.loc(),
                     command: 'cmdRandomizeAttribute',
                     updater: function( iColumn, iMenu, ioMenuItem) {
-                      var depMgr = context && context.get('dependencyMgr'),
-                          dependency = depMgr &&
-                                        depMgr.findDependency({ type: DG.DEP_TYPE_ATTRIBUTE,
-                                                                id: attrID },
-                                                              { type: DG.DEP_TYPE_SPECIAL,
-                                                                id: 'random' });
-                      ioMenuItem.disabled = !dependency;
+                      ioMenuItem.disabled = !DG.DataContextUtilities.attributeCanBeRandomized(context, attrID);
                     }
                   },
                   { title: 'DG.TableController.headerMenuItems.sortAscending'.loc(),
