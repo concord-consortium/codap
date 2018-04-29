@@ -375,6 +375,7 @@ DG.React.ready(function () {
                 tAttrID = iAttr.get('id'),
                 tUnit = iAttr.get('unit') || '',
                 tUnitWithParens = '',
+                tHasFormula = iAttr.get('hasFormula'),
                 tFormula = iAttr.get('formula'),
                 tCase = iShouldSummarize ? null : iChildmostSelected || iCases[0],
                 tValue = iShouldSummarize ? '' : tCase && tCase.getValue(tAttrID);
@@ -425,10 +426,11 @@ DG.React.ready(function () {
                       value: tValue,
                       unit: tUnit,
                       onToggleEditing: toggleEditing
-                    });
+                    }),
+                tValueClassName = tHasFormula ? 'react-data-card-formula' : '';
             return tr({
               key: 'attr-' + iIndex
-            }, tCell, td({}, tValueField));
+            }, tCell, td({ className: tValueClassName }, tValueField));
           },
 
           /**
