@@ -115,9 +115,9 @@ SC.stringsFor("en", {
     "DG.SliderView.startButton.toolTip": "Start/stop animation",
 
     // DG.CaseCard
-    "DG.CaseCard.indexString": "%@ (%@ of %@)",    // Name, caseIndex, number of cases
-    "DG.CaseCard.namePlusCaseCount": "%@ (%@)",    // Name, number of cases
-    "DG.CaseCard.namePlusSelectionCount": "%@ (%@ selected of %@)",    // Name, number selected, number of cases
+    "DG.CaseCard.indexString": "1 of %@ %@",    // number of cases, Name
+    "DG.CaseCard.namePlusCaseCount": "%@ %@",    // <num>, Name; e.g. 27 Mammals
+    "DG.CaseCard.namePlusSelectionCount": "%@ selected of %@ %@",    // number selected, number of cases, Name
     "DG.CaseCard.summaryValues": "%@ values",    // number of unique values when categorical
     "DG.CaseCard.summaryRange": "%@–%@ %@",    // min, max, unit (if any)
 

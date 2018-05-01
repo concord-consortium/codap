@@ -84,10 +84,10 @@ DG.React.ready(function () {
                 tCaseIndex = SC.none(tCaseID) ? null : tCollection.getCaseIndexByID(tCaseID) + 1,
                 tHeaderString = tCaseIndex === null ?
                     (tNumSelected > 1 ?
-                            'DG.CaseCard.namePlusSelectionCount'.loc(tName, tNumSelected, tNumCases) :
-                            'DG.CaseCard.namePlusCaseCount'.loc(tName, tNumCases)
+                            'DG.CaseCard.namePlusSelectionCount'.loc(tNumSelected, tNumCases, tName) :
+                            'DG.CaseCard.namePlusCaseCount'.loc(tNumCases, tName)
                     ) :
-                    'DG.CaseCard.indexString'.loc(tName, tCaseIndex, tNumCases),
+                    'DG.CaseCard.indexString'.loc(tNumCases, tName),
                 tNavButtons = DG.React.Components.NavButtons({
                   collectionClient: tCollClient,
                   caseIndex: tCaseIndex,
