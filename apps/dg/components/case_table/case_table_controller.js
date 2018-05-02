@@ -1081,6 +1081,7 @@ DG.CaseTableController = DG.ComponentController.extend(
             tSelection = tDataContext && tDataContext.getSelectedCases(),
             tSelectedIsEnabled = tSelection && tSelection.get('length') > 0,
             tCaseCount = tDataContext.get('totalCaseCount'),
+            tSetAsideCount = tDataContext.get('setAsideCount'),
             tUnselectedIsEnabled = (tCaseCount > 0) &&
                 (!tSelection || tSelection.get('length') < tCaseCount),
             tItems = [
@@ -1099,11 +1100,11 @@ DG.CaseTableController = DG.ComponentController.extend(
                 isEnabled: tUnselectedIsEnabled
               },
               {
-                title: 'DG.Inspector.setaside.restoreSetAsideCases',
-                localize: true,
+                title: 'DG.Inspector.setaside.restoreSetAsideCases'.loc(tSetAsideCount),
+                localize: false,
                 target: this,
                 action: 'restoreSetAsideCases',
-                isEnabled: (tDataContext.get('setAsideCount') > 0)
+                isEnabled: (tSetAsideCount > 0)
               }
             ],
             tMenu = DG.MenuPane.create({

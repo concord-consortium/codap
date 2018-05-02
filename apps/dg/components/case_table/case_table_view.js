@@ -77,8 +77,17 @@ DG.CaseTableView = SC.View.extend( (function() // closure
        * Assembles the value from collection name and count.
        */
       value: function () {
-        return this.parentView.get('collectionName') + ' (' +
-            this.parentView.get('caseCount') + ')';
+        var collectionName = this.parentView.get('collectionName');
+        var caseCount = this.parentView.get('caseCount');
+        var hasChildTable = !!this.parentView.get('childTable');
+        var setAsideCount = hasChildTable? 0: this.getPath('parentView.dataContext.setAsideCount');
+        if (hasChildTable || (setAsideCount === 0)) {
+          return 'DG.TableController.collectionTitleText'.loc(collectionName,
+              caseCount);
+        } else {
+          return 'DG.TableController.collectionTitleTextWithSetAside'.loc(
+              collectionName, caseCount, setAsideCount);
+        }
       }.property(),
 
       valueDidChange: function() {
