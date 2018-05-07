@@ -75,7 +75,7 @@ DG.MenuItem = SC.MenuItemView.extend(
     var className = null;
     var toolTip = this.getContentProperty('itemRightToolTipKey');
     if (toolTip) { toolTip = toolTip.loc();}
-    DG.log('toolTip: ' + toolTip);
+    // DG.log('toolTip: ' + toolTip);
     var classArray = ['dg-right-icon'];
         // classArray = ['dg-right-icon', 'dg-trash-icon'];
     // context.begin('div')
