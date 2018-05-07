@@ -77,7 +77,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
      */
     isSelectedDidChange: function () {
       if (!this.getPath('parentView.parentView.isSelected')) {
-        DG.log('Hiding Header Menus');
+        // DG.log('Hiding Header Menus');
         this.contentView.hideHeaderMenus();
       }
     }.observes('parentView.parentView.isSelected'),
@@ -462,6 +462,7 @@ DG.HierTableView = SC.ScrollView.extend( (function() {
     if (ev.target.tagName !== 'INPUT') {
       DG.globalEditorLock.commitCurrentEdit();
     }
+    return NO;
   },
 
     touchStart: function( ev) {

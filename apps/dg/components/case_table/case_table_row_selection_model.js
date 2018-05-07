@@ -243,11 +243,8 @@ DG.CaseTableRowSelectionModel = function (options) {
     var idx = $.inArray(cell.row, selection);
 
     if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-      // clicking on a selected row doesn't change selection
-      if (idx < 0) {
-        selection = [cell.row];
-        notifyContextOfSelectionChange(selection);
-      }
+      selection = [cell.row];
+      notifyContextOfSelectionChange(selection);
       return false;
     }
     else if (_grid.getOptions().multiSelect) {
