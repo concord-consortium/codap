@@ -223,6 +223,21 @@ DG.CaseTableDropTarget = SC.View.extend(SC.SplitChild, (function () {
             this.dragExited(null, externalDragObject);
             iEvent.preventDefault();
           }
+        },
+        click: function () {
+          // DG.log('Drop Target click!');
+          var dataContext = this.get('dataContext');
+          var tChange = {
+            operation: 'selectCases',
+            cases: [],
+            select: true,
+            extend: false
+          };
+          dataContext.applyChange(tChange);
+        },
+        mouseDown: function () {
+          // DG.log('Drop Target mouseDown!');
+          return YES;
         }
       };
     }())

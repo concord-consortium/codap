@@ -2201,7 +2201,28 @@ DG.CaseTableView = SC.View.extend( (function() // closure
       didScroll = true;
     }
     return didScroll;
-  }
+  },
+    click: function (iEvent) {
+      function isInHeader(e) {
+        return !!($(e.target).closest(".slick-header-column", ".slick-header-columns").length);
+      }
+      // bail if we are in the actual table space
+      if (this._slickGrid.getCellFromEvent(iEvent) || isInHeader(iEvent) ) {
+        return YES;
+      }
+      var dataContext = this.get('dataContext');
+      var tChange = {
+        operation: 'selectCases',
+        cases: [],
+        select: true,
+        extend: false
+      };
+      dataContext.applyChange(tChange);
+      return YES;
+    },
+    mouseDown: function () {
+      return YES;
+    }
   }; // end return from closure
 
 }())); // end closure
