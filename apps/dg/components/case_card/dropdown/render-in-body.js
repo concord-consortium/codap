@@ -1,5 +1,5 @@
 // ==========================================================================
-//                              DG.React.Components.DropdownItem
+//                              DG.React.Components.RenderInBody
 //
 //  Copyright (c) 2018 by The Concord Consortium, Inc. All rights reserved.
 //
@@ -17,32 +17,47 @@
 // ==========================================================================
 
 /* global React */
+/* global ReactDOM */
 // sc_require('react/dg-react');
 
 DG.React.ready(function () {
   var
       div = React.DOM.div;
-
-  /**
-   * props
-   *  disabled: Boolean
-   *  clickHandler: function
-   *
-   */
-
-  DG.React.Components.DropdownItem = DG.React.createComponent(
+  DG.React.Components.RenderInBody = DG.React.createComponent(
       (function () {
-
         return {
-          classNameDefault: 'react-data-card-attribute-menu-item',
+
+          componentDidMount: function () {
+            this.popup = document.createElement("div");
+            document.body.appendChild(this.popup);
+            this._renderLayer();
+          },
+
+
+          componentDidUpdate: function () {
+            this.props.setLocationCallback( 50, 300);
+            this._renderLayer();
+          },
+
+
+          componentWillUnmount: function () {
+            ReactDOM.unmountComponentAtNode(this.popup);
+            document.body.removeChild(this.popup);
+          },
+
+
+          _renderLayer: function () {
+            ReactDOM.render( this.props.children, this.popup);
+          },
+
 
           render: function () {
-
-            var tClassName = this.classNameDefault + (this.props.disabled ? ' disabled' : '');
+            // Render a placeholder
             return div({
-              className: tClassName,
-              onMouseDown: this.props.disabled ? null : this.props.clickHandler,
-            }, this.props.children);
+              ref: function( iElement) {
+                this.placeHolder = iElement;
+              }.bind( this)
+            });
           }
         };
       })(), []);

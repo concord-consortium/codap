@@ -23,15 +23,11 @@
 DG.React.ready(function () {
   var
       findDOMNode = ReactDOM.findDOMNode,
-      td = React.DOM.td;
+      td = React.DOM.td,
+      span = React.DOM.span;
 
   DG.React.Components.Dropdown = DG.React.createComponent(
       (function () {
-
-        /**
-         * Props are
-         *
-         */
 
         return {
 
@@ -62,16 +58,18 @@ DG.React.ready(function () {
 
           hide: function () {
             this.setState({
-              active: false
+              active: false,
+              location: null
             });
             if (this.props.onHide) {
               this.props.onHide();
             }
           },
 
-          show: function () {
+          show: function ( iLocation) {
             this.setState({
-              active: true
+              active: true,
+              location: iLocation
             });
             if (this.props.onShow) {
               this.props.onShow();
@@ -90,44 +88,38 @@ DG.React.ready(function () {
             if (this.isActive()) {
               this.hide();
             } else {
-              this.show();
+              this.show({ left: event.clientX, top: event.clientY });
             }
           },
 
           render: function () {
-            var tChildren = this.props.children,
+            var /*tChildren = this.props.children,*/
                 tClassName = this.props.className || '',
                 tDisabled = this.props.disabled,
-                tRemoveElement = this.props.removeElement,
                 tActive = this.isActive(),
                 tClasses = 'dropdown' + (tActive ? ' dropdown--active' : '') + (tDisabled ? ' dropdown--disabled' : ''),
-                tBoundChildren = React.Children.map( tChildren, function( iChild) {
-                  if( iChild.type === DG.React.Components.DropdownTrigger.type) {
-                    var tOriginalOnClick = iChild.props.onClick;
-                    iChild = React.cloneElement( iChild, {
-                      ref: 'trigger',
+                tTrigger = DG.React.Components.DropdownTrigger({},
+                    span({
                       onClick: function( iEvent) {
                         if( !tDisabled) {
                           this._onToggleClick( iEvent);
-                          if( tOriginalOnClick)
-                            tOriginalOnClick.apply( iChild, arguments);
                         }
                       }.bind( this)
-                    });
-                  }
-                  else if( iChild.type === DG.React.Components.DropdownContent.type && tRemoveElement && !tActive) {
-                    iChild = null;
-                  }
-                  return iChild;
-                }.bind( this)),
+                    }, this.props.trigger)),
+                tMenuItems = tActive ?
+                    DG.React.Components.DropdownContent({
+                  location: this.state.location
+                }, this.props.menuItems) : null,
                 tCleanProps = Object.assign({
                   ref: function( iElement) {
                     this.props.onRefCallback( iElement);
                   }.bind( this)
                 }, this.props);
             delete tCleanProps.onRefCallback;
+            delete tCleanProps.trigger;
+            delete tCleanProps.menuItems;
             tCleanProps.className = tClasses + ' ' + tClassName;
-            return td( tCleanProps, tBoundChildren);
+            return td( tCleanProps, tTrigger, tMenuItems);
           }
         };
       })(), []);

@@ -62,7 +62,15 @@ DG.React.ready(function () {
               if (this_.dragIsInMe && this_.props.dragStatus &&
                   this_.props.dragStatus.op === SC.DRAG_LINK &&
                   this_.props.dropCallback) {
-                this_.props.dropCallback(this_.props.dragStatus.dragObject.data.attribute);
+                var tAttr = this_.props.dragStatus.dragObject.data.attribute,
+                    tCallback = this_.props.dropCallback;
+                // Postpone the actual change so that we'll be outside this render
+                setTimeout( function() {
+                  // Use SC.run to make Sproutcore happy with invokeLaters that will be called
+                  SC.run(function() {
+                    tCallback( tAttr);
+                  });
+                }, 0);
               }
             }
 

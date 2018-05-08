@@ -28,13 +28,26 @@ DG.React.ready(function () {
 
         return {
 
+          getInitialState: function () {
+            return {
+              location: {
+                left: -1000,
+                top: -1000
+              }
+            };
+          },
+
           render: function () {
+
             var tChildren = this.props.children,
-                tClassName = this.props.className || '',
-                tDropdownContentProps = Object.assign({}, this.props);
-            delete tDropdownContentProps.children;
-            tDropdownContentProps.className = 'dropdown__content ' + tClassName;
-            return div( tDropdownContentProps, tChildren);
+                tLocation = this.props.location || this.state.location;
+            return DG.React.Components.RenderInBody({}, div({
+              className: 'dropdown__content',
+              style: {
+                left: tLocation.left,
+                top: tLocation.top
+              },
+            }, tChildren));
           }
         };
       })(), []);
