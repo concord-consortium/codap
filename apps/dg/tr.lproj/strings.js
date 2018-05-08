@@ -669,5 +669,10 @@ SC.stringsFor("tr", {
     "DG.Locale.name.tr": "Turkish",
     "DG.Locale.name.zh": "Chinese",
     "DG.Undo.graph.swapCategories": "Undo reordering categories",
-    "DG.Redo.graph.swapCategories": "Redo reordering categories"
+    "DG.Redo.graph.swapCategories": "Redo reordering categories",
+    "DG.TableController.collectionTitleText": "%@1 (%@2 cases)",
+    "DG.TableController.collectionTitleTextWithSetAside": "%@1 (%@2 cases, set aside: %@3)",
+    "DG.Inspector.setaside.setAsideSelectedCases": "Set Aside Selected Cases",
+    "DG.Inspector.setaside.setAsideUnselectedCases": "Set Aside Unselected Cases",
+    "DG.Inspector.setaside.restoreSetAsideCases": "Restore %@ Set Aside Cases"
 });
